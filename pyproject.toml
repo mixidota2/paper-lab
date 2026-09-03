@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paper-lab"
+version = "0.1.0"
+description = "Static-site generator for the Interactive Research Library"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "Jinja2>=3.1",
+  "Markdown>=3.5",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+paper-lab = "paper_lab.build:cli"
+
+[tool.setuptools.packages.find]
+include = ["paper_lab*"]
+
+[tool.setuptools.package-data]
+paper_lab = ["templates/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

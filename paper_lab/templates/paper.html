@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ lab.title }} — Interactive Research Library</title>
+  <meta name="description" content="{{ lab.summary or lab.title }}">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="../index.html">
+        <span class="brand-kicker">Paper Lab</span>
+        <span class="brand-title">Interactive Research Library</span>
+      </a>
+      <div class="header-meta">{{ lab.id }}</div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <nav class="crumb"><a href="../index.html">Library</a> / {{ lab.id }}</nav>
+
+    {% if lab.example %}
+    <div class="banner" role="note">
+      <strong>EXAMPLE / fictional.</strong>
+      This lab is a format demonstration. It is not a real paper, not a scientific
+      result, and must not be cited. Numbers in Results are invented schema fixtures.
+    </div>
+    {% endif %}
+
+    <header class="paper-hero">
+      <div class="chips">
+        {% if lab.example %}<span class="chip example">EXAMPLE / fictional</span>{% endif %}
+        <span class="chip">{{ lab.status }}</span>
+        {% for t in lab.topics %}<span class="chip">{{ t }}</span>{% endfor %}
+      </div>
+      <h1>{{ lab.title }}</h1>
+      <p class="byline">{{ lab.authors_text }} · {{ lab.year }}</p>
+      <p class="verdict"><strong>Verdict.</strong> {{ lab.verdict }}</p>
+    </header>
+
+    {% if lab.urls.present() %}
+    <p class="links">
+      {% for label, href in lab.urls.present() %}
+      <a href="{{ href }}" rel="noopener noreferrer" target="_blank">{{ label }}</a>
+      {% endfor %}
+    </p>
+    {% else %}
+    <p class="links"><span class="placeholder">No original paper / official code links.</span></p>
+    {% endif %}
+
+    <section class="panel">
+      <h2>Verification status</h2>
+      <table class="vtable">
+        <thead>
+          <tr><th>Dimension</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for key in verification_keys %}
+          <tr>
+            <td>{{ verification_labels[key] }}</td>
+            <td class="status status-{{ lab.verification.as_dict()[key] | replace(' ', '-') }}">
+              {{ lab.verification.as_dict()[key] }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if lab.related_threads %}
+      <p><strong>Related threads.</strong>
+        {% for th in lab.related_threads %}
+        <span class="chip">{{ th }}</span>
+        {% endfor %}
+      </p>
+      {% endif %}
+    </section>
+
+    <nav class="panel" aria-label="Sections">
+      <h2>On this page</h2>
+      <ol class="toc">
+        {% for s in sections %}
+        <li><a href="#{{ s.key }}">{{ s.title }}</a></li>
+        {% endfor %}
+      </ol>
+    </nav>
+
+    {% for s in sections %}
+    <section class="section" id="{{ s.key }}">
+      <h2>{{ s.title }}</h2>
+      {% if s.key == 'why_it_might_work' %}
+      <div class="inference-tag">Inference — not an author claim</div>
+      {% endif %}
+      {% if s.key == 'core_idea' %}
+      <div class="split">
+        <div class="callout author">
+          <p class="label">Author claim</p>
+          <div class="prose">
+            {% if s.author_claim_html %}{{ s.author_claim_html | safe }}{% else %}<p class="placeholder">No author claim recorded.</p>{% endif %}
+          </div>
+        </div>
+        <div class="callout interp">
+          <p class="label">Research Bot interpretation</p>
+          <div class="prose">
+            {% if s.interpretation_html %}{{ s.interpretation_html | safe }}{% else %}<p class="placeholder">No interpretation recorded.</p>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% if s.html %}
+      <div class="prose">{{ s.html | safe }}</div>
+      {% elif s.empty %}
+      <p class="placeholder">Not provided in this lab.</p>
+      {% endif %}
+    </section>
+    {% endfor %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      Source: <code>{{ lab.source_dir.name }}/lab.yaml</code>.
+      Generated HTML is not the source of truth.
+    </div>
+  </footer>
+</body>
+</html>

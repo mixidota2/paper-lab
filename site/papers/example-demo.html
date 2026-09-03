@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EXAMPLE (fictional): Session-Intent Additive Decay — Interactive Research Library</title>
+  <meta name="description" content="Format demonstration for the Interactive Research Library. Invented toy idea and invented numbers. Not a paper, not a result.">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="../index.html">
+        <span class="brand-kicker">Paper Lab</span>
+        <span class="brand-title">Interactive Research Library</span>
+      </a>
+      <div class="header-meta">example-demo</div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <nav class="crumb"><a href="../index.html">Library</a> / example-demo</nav>
+
+    
+    <div class="banner" role="note">
+      <strong>EXAMPLE / fictional.</strong>
+      This lab is a format demonstration. It is not a real paper, not a scientific
+      result, and must not be cited. Numbers in Results are invented schema fixtures.
+    </div>
+    
+
+    <header class="paper-hero">
+      <div class="chips">
+        <span class="chip example">EXAMPLE / fictional</span>
+        <span class="chip">published</span>
+        <span class="chip">example</span><span class="chip">recommender-systems</span><span class="chip">session-intent</span>
+      </div>
+      <h1>EXAMPLE (fictional): Session-Intent Additive Decay</h1>
+      <p class="byline">A. Example, B. Placeholder · 2026</p>
+      <p class="verdict"><strong>Verdict.</strong> EXAMPLE — format demonstration only; no research verdict</p>
+    </header>
+
+    
+    <p class="links"><span class="placeholder">No original paper / official code links.</span></p>
+    
+
+    <section class="panel">
+      <h2>Verification status</h2>
+      <table class="vtable">
+        <thead>
+          <tr><th>Dimension</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td>Mechanism</td>
+            <td class="status status-NOT-TESTED">
+              NOT TESTED
+            </td>
+          </tr>
+          
+          <tr>
+            <td>Performance</td>
+            <td class="status status-NOT-TESTED">
+              NOT TESTED
+            </td>
+          </tr>
+          
+          <tr>
+            <td>Scaling</td>
+            <td class="status status-NOT-TESTED">
+              NOT TESTED
+            </td>
+          </tr>
+          
+          <tr>
+            <td>Production applicability</td>
+            <td class="status status-NOT-TESTED">
+              NOT TESTED
+            </td>
+          </tr>
+          
+        </tbody>
+      </table>
+      
+      <p><strong>Related threads.</strong>
+        
+        <span class="chip">user-history-context-design</span>
+        
+      </p>
+      
+    </section>
+
+    <nav class="panel" aria-label="Sections">
+      <h2>On this page</h2>
+      <ol class="toc">
+        
+        <li><a href="#overview">Overview</a></li>
+        
+        <li><a href="#problem">Problem</a></li>
+        
+        <li><a href="#core_idea">Core Idea</a></li>
+        
+        <li><a href="#why_it_might_work">Why It Might Work</a></li>
+        
+        <li><a href="#evidence">Evidence</a></li>
+        
+        <li><a href="#executable_understanding">Executable Understanding</a></li>
+        
+        <li><a href="#results">Results</a></li>
+        
+        <li><a href="#what_we_verified">What We Verified</a></li>
+        
+        <li><a href="#what_we_did_not_verify">What We Did NOT Verify</a></li>
+        
+        <li><a href="#implementation">Implementation</a></li>
+        
+        <li><a href="#mapping">Original Paper / Official Code Mapping</a></li>
+        
+      </ol>
+    </nav>
+
+    
+    <section class="section" id="overview">
+      <h2>Overview</h2>
+      
+      
+      
+      <div class="prose"><p><strong>EXAMPLE / fictional.</strong> This page shows every standard lab section so the
+generator and templates can be checked. Nothing here is a claim about the
+real world.</p>
+<p>A real overview would state, in a few paragraphs, what trustworthy
+understanding a human should gain quickly from this lab.</p></div>
+      
+    </section>
+    
+    <section class="section" id="problem">
+      <h2>Problem</h2>
+      
+      
+      
+      <div class="prose"><p><strong>EXAMPLE / fictional.</strong> The made-up problem is: session rankers often mix
+long-term preference with temporary intent in one user vector, and it is
+unclear when a trivial recency decay is enough.</p>
+<p>A real Problem section would name the decision the paper is trying to
+change, the failure mode of the obvious baseline, and what evidence would
+discriminate hypotheses — without advertising.</p></div>
+      
+    </section>
+    
+    <section class="section" id="core_idea">
+      <h2>Core Idea</h2>
+      
+      
+      <div class="split">
+        <div class="callout author">
+          <p class="label">Author claim</p>
+          <div class="prose">
+            <p><strong>Fictional author claim (there is no paper):</strong> replacing a learned
+attention mixer over history with a fixed additive exponential decay
+over session events preserves next-item ranking while cutting serving
+cost.</p>
+          </div>
+        </div>
+        <div class="callout interp">
+          <p class="label">Research Bot interpretation</p>
+          <div class="prose">
+            <p><strong>Our interpretation (not the authors’):</strong> if this were real, the
+interesting bit would be <em>whether</em> a one-parameter decay is a sufficient
+statistic for short-term intent, not the decay formula itself. This lab
+does <strong>not</strong> test that. The split on this page is the format: author
+claim stays on the left; our reading stays on the right.</p>
+          </div>
+        </div>
+      </div>
+      
+      
+    </section>
+    
+    <section class="section" id="why_it_might_work">
+      <h2>Why It Might Work</h2>
+      
+      <div class="inference-tag">Inference — not an author claim</div>
+      
+      
+      
+      <div class="prose"><p><strong>Inference (labeled as such).</strong> A recency kernel <em>might</em> work when
+temporary intent is short compared with the session and when long-term
+preference is already captured by a slowly updated user tower. That is a
+guess, not evidence, and not an author quote.</p>
+<p>If this were a real lab, this section would spell out the mechanism story
+we would try to falsify — and mark it as inference.</p></div>
+      
+    </section>
+    
+    <section class="section" id="evidence">
+      <h2>Evidence</h2>
+      
+      
+      
+      <div class="prose"><p><strong>EXAMPLE / fictional.</strong> The authors (who do not exist) would typically
+point at an offline table and an optional online slice. Here there is no
+evidence. <code>results.json</code> holds cartoon metrics so the Results renderer
+has something to draw.</p></div>
+      
+    </section>
+    
+    <section class="section" id="executable_understanding">
+      <h2>Executable Understanding</h2>
+      
+      
+      
+      <div class="prose"><p><strong>EXAMPLE / fictional.</strong> Executable understanding would be a tiny
+experiment that makes the <em>mechanism</em> visible: hold features fixed, swap
+only the history mixer for additive decay, and watch a metric that can
+actually move if the story is wrong.</p>
+<p>This example does not ship <code>baseline.py</code> / <code>proposed.py</code> / <code>run.py</code>
+because we are not fabricating a scientific run.</p></div>
+      
+    </section>
+    
+    <section class="section" id="results">
+      <h2>Results</h2>
+      
+      
+      
+      <div class="prose"><p class="callout-body"><em>EXAMPLE / fictional. Synthetic numbers for schema demonstration only. Not experimental results. Do not cite.</em></p>
+<h3>toy_session_rerank (FICTIONAL)</h3>
+<ul><li><strong>dataset</strong>: synthetic_sessions_v0 — generated sequences, not real users</li><li><strong>n</strong>: 128</li><li><strong>seed</strong>: 0</li></ul>
+<table class="metrics"><thead><tr><th>Metric</th><th>baseline</th><th>proposed</th><th>delta</th></tr></thead><tbody><tr><th scope='row'>nDCG@10</th><td>0.41</td><td>0.43</td><td>0.02</td></tr><tr><th scope='row'>latency_ms_p50</th><td>2.1</td><td>2.3</td><td></td></tr></tbody></table>
+<details><summary>Raw results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;EXAMPLE / fictional. Synthetic numbers for schema demonstration only. Not experimental results. Do not cite.&quot;,
+  &quot;fictional&quot;: true,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;toy_session_rerank (FICTIONAL)&quot;,
+      &quot;dataset&quot;: &quot;synthetic_sessions_v0 — generated sequences, not real users&quot;,
+      &quot;n&quot;: 128,
+      &quot;seed&quot;: 0,
+      &quot;metrics&quot;: {
+        &quot;nDCG@10&quot;: {
+          &quot;baseline&quot;: 0.41,
+          &quot;proposed&quot;: 0.43,
+          &quot;delta&quot;: 0.02
+        },
+        &quot;latency_ms_p50&quot;: {
+          &quot;baseline&quot;: 2.1,
+          &quot;proposed&quot;: 2.3
+        }
+      }
+    }
+  ]
+}</code></pre></details></div>
+      
+    </section>
+    
+    <section class="section" id="what_we_verified">
+      <h2>What We Verified</h2>
+      
+      
+      
+      <div class="prose"><p><strong>Nothing.</strong> All four verification dimensions are <code>NOT TESTED</code>.</p>
+<p>A real lab would write, in plain language, what the tiny experiment
+actually established (for example: “on this synthetic construction, removing
+the proposed term collapses the intended delta”).</p></div>
+      
+    </section>
+    
+    <section class="section" id="what_we_did_not_verify">
+      <h2>What We Did NOT Verify</h2>
+      
+      
+      
+      <div class="prose"><p><strong>Everything that would matter for a real paper</strong>, including:</p>
+<ul>
+<li>whether additive decay matches attention on real sessions</li>
+<li>offline ↔ online correspondence</li>
+<li>latency at production QPS</li>
+<li>cold-start, popularity bias, and feedback loops</li>
+</ul>
+<p>Scaling and production applicability are <code>NOT TESTED</code> on purpose.</p></div>
+      
+    </section>
+    
+    <section class="section" id="implementation">
+      <h2>Implementation</h2>
+      
+      
+      
+      <div class="prose"><p>No implementation. Artifacts in this directory:</p>
+<ul>
+<li><code>lab.yaml</code> — this record</li>
+<li><code>results.json</code> — fictional metrics</li>
+<li><code>mapping.md</code> — empty mapping, as there is no official code</li>
+</ul>
+<p>A real lab would link the code that was actually run, plus the official
+repo when one exists (<code>urls.official_code</code>).</p></div>
+      
+    </section>
+    
+    <section class="section" id="mapping">
+      <h2>Original Paper / Official Code Mapping</h2>
+      
+      
+      
+      <div class="prose"><h1>Original paper / official code mapping</h1>
+<p><strong>EXAMPLE / fictional.</strong> There is no original paper and no official repository.</p>
+<table>
+<thead>
+<tr>
+<th>Fictional “paper” location</th>
+<th>Intended minimal artifact</th>
+<th>Official code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3 “additive decay” (does not exist)</td>
+<td><em>none — this lab ships no code</em></td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>Eq. (1) decay kernel (does not exist)</td>
+<td><em>none</em></td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>Table 2 online A/B (does not exist)</td>
+<td><code>results.json</code> fixture only</td>
+<td>n/a</td>
+</tr>
+</tbody>
+</table>
+<p>If this were a real lab, this table would map paper equations/sections ↔ the
+minimal code that exposes the mechanism ↔ paths in the authors’ official repo.</p></div>
+      
+    </section>
+    
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      Source: <code>_example_demo/lab.yaml</code>.
+      Generated HTML is not the source of truth.
+    </div>
+  </footer>
+</body>
+</html>

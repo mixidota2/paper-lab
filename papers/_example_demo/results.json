@@ -1,0 +1,23 @@
+{
+  "note": "EXAMPLE / fictional. Synthetic numbers for schema demonstration only. Not experimental results. Do not cite.",
+  "fictional": true,
+  "experiments": [
+    {
+      "name": "toy_session_rerank (FICTIONAL)",
+      "dataset": "synthetic_sessions_v0 — generated sequences, not real users",
+      "n": 128,
+      "seed": 0,
+      "metrics": {
+        "nDCG@10": {
+          "baseline": 0.41,
+          "proposed": 0.43,
+          "delta": 0.02
+        },
+        "latency_ms_p50": {
+          "baseline": 2.1,
+          "proposed": 2.3
+        }
+      }
+    }
+  ]
+}

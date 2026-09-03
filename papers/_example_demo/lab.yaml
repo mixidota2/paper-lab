@@ -1,0 +1,104 @@
+# EXAMPLE / fictional lab. Not a real paper. Do not cite.
+id: example-demo
+title: "EXAMPLE (fictional): Session-Intent Additive Decay"
+example: true
+authors:
+  - A. Example
+  - B. Placeholder
+year: 2026
+topics:
+  - example
+  - recommender-systems
+  - session-intent
+urls:
+  paper: null
+  arxiv: null
+  official_code: null
+  pdf: null
+verdict: "EXAMPLE — format demonstration only; no research verdict"
+verification:
+  mechanism: NOT TESTED
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+  - user-history-context-design
+status: published
+summary: >
+  Format demonstration for the Interactive Research Library. Invented toy idea
+  and invented numbers. Not a paper, not a result.
+sections:
+  overview: |
+    **EXAMPLE / fictional.** This page shows every standard lab section so the
+    generator and templates can be checked. Nothing here is a claim about the
+    real world.
+
+    A real overview would state, in a few paragraphs, what trustworthy
+    understanding a human should gain quickly from this lab.
+  problem: |
+    **EXAMPLE / fictional.** The made-up problem is: session rankers often mix
+    long-term preference with temporary intent in one user vector, and it is
+    unclear when a trivial recency decay is enough.
+
+    A real Problem section would name the decision the paper is trying to
+    change, the failure mode of the obvious baseline, and what evidence would
+    discriminate hypotheses — without advertising.
+  core_idea:
+    author_claim: |
+      **Fictional author claim (there is no paper):** replacing a learned
+      attention mixer over history with a fixed additive exponential decay
+      over session events preserves next-item ranking while cutting serving
+      cost.
+    research_bot_interpretation: |
+      **Our interpretation (not the authors’):** if this were real, the
+      interesting bit would be *whether* a one-parameter decay is a sufficient
+      statistic for short-term intent, not the decay formula itself. This lab
+      does **not** test that. The split on this page is the format: author
+      claim stays on the left; our reading stays on the right.
+  why_it_might_work: |
+    **Inference (labeled as such).** A recency kernel *might* work when
+    temporary intent is short compared with the session and when long-term
+    preference is already captured by a slowly updated user tower. That is a
+    guess, not evidence, and not an author quote.
+
+    If this were a real lab, this section would spell out the mechanism story
+    we would try to falsify — and mark it as inference.
+  evidence: |
+    **EXAMPLE / fictional.** The authors (who do not exist) would typically
+    point at an offline table and an optional online slice. Here there is no
+    evidence. `results.json` holds cartoon metrics so the Results renderer
+    has something to draw.
+  executable_understanding: |
+    **EXAMPLE / fictional.** Executable understanding would be a tiny
+    experiment that makes the *mechanism* visible: hold features fixed, swap
+    only the history mixer for additive decay, and watch a metric that can
+    actually move if the story is wrong.
+
+    This example does not ship `baseline.py` / `proposed.py` / `run.py`
+    because we are not fabricating a scientific run.
+  what_we_verified: |
+    **Nothing.** All four verification dimensions are `NOT TESTED`.
+
+    A real lab would write, in plain language, what the tiny experiment
+    actually established (for example: “on this synthetic construction, removing
+    the proposed term collapses the intended delta”).
+  what_we_did_not_verify: |
+    **Everything that would matter for a real paper**, including:
+
+    - whether additive decay matches attention on real sessions
+    - offline ↔ online correspondence
+    - latency at production QPS
+    - cold-start, popularity bias, and feedback loops
+
+    Scaling and production applicability are `NOT TESTED` on purpose.
+  implementation: |
+    No implementation. Artifacts in this directory:
+
+    - `lab.yaml` — this record
+    - `results.json` — fictional metrics
+    - `mapping.md` — empty mapping, as there is no official code
+
+    A real lab would link the code that was actually run, plus the official
+    repo when one exists (`urls.official_code`).
+  mapping: mapping.md
+  results: results.json
