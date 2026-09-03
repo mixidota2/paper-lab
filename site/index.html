@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Interactive Research Library</title>
-  <meta name="description" content="Human-facing library of Interactive Labs. Generated from lab.yaml — HTML is not the source of truth.">
+  <title>インタラクティブ研究ライブラリ</title>
+  <meta name="description" content="Interactive Lab の人間向けライブラリ。lab.yaml から生成 — HTML はソース・オブ・トゥルースではない。">
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -12,42 +12,41 @@
     <div class="wrap">
       <a class="brand" href="index.html">
         <span class="brand-kicker">Paper Lab</span>
-        <span class="brand-title">Interactive Research Library</span>
+        <span class="brand-title">インタラクティブ研究ライブラリ</span>
       </a>
-      <div class="header-meta">1 lab</div>
+      <div class="header-meta">1 件のラボ</div>
     </div>
   </header>
 
   <main class="wrap">
     <section class="hero">
-      <h1>Labs worth the time</h1>
+      <h1>時間をかける価値のあるラボ</h1>
       <p>
-        Each page is generated from <code>lab.yaml</code> plus markdown/json artifacts.
-        Do not treat HTML as source of truth. Full labs exist only when expected
-        understanding gain exceeds implementation cost — low-value papers should not get labs.
+        各ページは <code>lab.yaml</code> と markdown / json 成果物から生成されます。
+        HTML をソース・オブ・トゥルースとして扱わないでください。フルラボは、期待される理解の利得が実装コストを上回る場合にのみ存在します — 低価値な論文にラボを付けてはいけません。
       </p>
     </section>
 
     <form class="filters" id="filters" autocomplete="off">
-      <label>Search
-        <input type="search" id="q" placeholder="Title, authors, topics, verdict…">
+      <label>検索
+        <input type="search" id="q" placeholder="タイトル、著者、トピック、判定…">
       </label>
-      <label>Topic
+      <label>トピック
         <select id="topic">
-          <option value="">All topics</option>
+          <option value="">すべてのトピック</option>
           <option value="example">example</option><option value="recommender-systems">recommender-systems</option><option value="session-intent">session-intent</option>
         </select>
       </label>
-      <label>Verdict
+      <label>判定
         <select id="verdict">
-          <option value="">All verdicts</option>
-          <option value="EXAMPLE — format demonstration only; no research verdict">EXAMPLE — format demonstration only; no research verdict</option>
+          <option value="">すべての判定</option>
+          <option value="EXAMPLE — フォーマットデモのみ。研究上の判定なし">EXAMPLE — フォーマットデモのみ。研究上の判定なし</option>
         </select>
       </label>
-      <label>Verification status
+      <label>検証ステータス
         <select id="vstatus">
-          <option value="">Any status</option>
-          <option value="CONFIRMED">CONFIRMED</option><option value="PARTIAL">PARTIAL</option><option value="NOT OBSERVED">NOT OBSERVED</option><option value="NOT TESTED">NOT TESTED</option>
+          <option value="">すべてのステータス</option>
+          <option value="CONFIRMED">確認済み</option><option value="PARTIAL">部分的</option><option value="NOT OBSERVED">未観測</option><option value="NOT TESTED">未検証</option>
         </select>
       </label>
     </form>
@@ -59,57 +58,57 @@
          href="papers/example-demo.html"
          data-id="example-demo"
          data-topics="example|recommender-systems|session-intent"
-         data-verdict="EXAMPLE — format demonstration only; no research verdict"
+         data-verdict="EXAMPLE — フォーマットデモのみ。研究上の判定なし"
          data-status="published"
          data-verification="NOT TESTED|NOT TESTED|NOT TESTED|NOT TESTED"
          data-mech="NOT TESTED"
          data-perf="NOT TESTED"
          data-scale="NOT TESTED"
          data-prod="NOT TESTED"
-         data-text="example-demo example (fictional): session-intent additive decay a. example, b. placeholder 2026 example — format demonstration only; no research verdict format demonstration for the interactive research library. invented toy idea and invented numbers. not a paper, not a result. example recommender-systems session-intent user-history-context-design published">
+         data-text="example-demo example（架空）: セッション意図の加法的減衰 a. example, b. placeholder 2026 example — フォーマットデモのみ。研究上の判定なし インタラクティブ研究ライブラリのフォーマットデモ。玩具的なアイデアと架空の数値。 論文でも結果でもない。 example recommender-systems session-intent user-history-context-design published 公開 not tested 未検証 not tested 未検証 not tested 未検証 not tested 未検証">
         <div class="chips">
-          <span class="chip example">EXAMPLE / fictional</span>
+          <span class="chip example">EXAMPLE / 架空</span>
           
           <span class="chip">example</span><span class="chip">recommender-systems</span><span class="chip">session-intent</span>
         </div>
-        <h2>EXAMPLE (fictional): Session-Intent Additive Decay</h2>
+        <h2>EXAMPLE（架空）: セッション意図の加法的減衰</h2>
         <div class="meta">A. Example, B. Placeholder · 2026</div>
-        <p class="summary">Format demonstration for the Interactive Research Library. Invented toy idea and invented numbers. Not a paper, not a result.</p>
-        <div class="verdict"><strong>Verdict.</strong> EXAMPLE — format demonstration only; no research verdict</div>
+        <p class="summary">インタラクティブ研究ライブラリのフォーマットデモ。玩具的なアイデアと架空の数値。 論文でも結果でもない。</p>
+        <div class="verdict"><strong>判定。</strong> EXAMPLE — フォーマットデモのみ。研究上の判定なし</div>
         <div class="vgrid">
           
           <div class="vcell" data-status="NOT TESTED">
-            <span class="k">Mechanism</span>
-            NOT TESTED
+            <span class="k">メカニズム</span>
+            未検証
           </div>
           
           <div class="vcell" data-status="NOT TESTED">
-            <span class="k">Performance</span>
-            NOT TESTED
+            <span class="k">性能</span>
+            未検証
           </div>
           
           <div class="vcell" data-status="NOT TESTED">
-            <span class="k">Scaling</span>
-            NOT TESTED
+            <span class="k">スケーリング</span>
+            未検証
           </div>
           
           <div class="vcell" data-status="NOT TESTED">
-            <span class="k">Production applicability</span>
-            NOT TESTED
+            <span class="k">本番適用性</span>
+            未検証
           </div>
           
         </div>
       </a>
       
     </div>
-    <div class="empty hidden" id="empty">No labs match the current filters.</div>
+    <div class="empty hidden" id="empty">現在のフィルタに一致するラボはありません。</div>
   </main>
 
   <footer class="site-footer">
-    <div class="wrap">Generated by <code>paper-lab build</code>. Artifacts in <code>papers/</code> are authoritative.</div>
+    <div class="wrap"><code>paper-lab build</code> により生成。権威ある成果物は <code>papers/</code> にあります。</div>
   </footer>
 
-  <script type="application/json" id="catalog">[{"id": "example-demo", "title": "EXAMPLE (fictional): Session-Intent Additive Decay", "authors": "A. Example, B. Placeholder", "year": 2026, "topics": ["example", "recommender-systems", "session-intent"], "verdict": "EXAMPLE — format demonstration only; no research verdict", "status": "published", "example": true, "verification": {"mechanism": "NOT TESTED", "performance": "NOT TESTED", "scaling": "NOT TESTED", "production_applicability": "NOT TESTED"}, "href": "papers/example-demo.html", "summary": "Format demonstration for the Interactive Research Library. Invented toy idea and invented numbers. Not a paper, not a result.", "related_threads": ["user-history-context-design"]}]</script>
+  <script type="application/json" id="catalog">[{"id": "example-demo", "title": "EXAMPLE（架空）: セッション意図の加法的減衰", "authors": "A. Example, B. Placeholder", "year": 2026, "topics": ["example", "recommender-systems", "session-intent"], "verdict": "EXAMPLE — フォーマットデモのみ。研究上の判定なし", "status": "published", "status_label": "公開", "example": true, "verification": {"mechanism": "NOT TESTED", "performance": "NOT TESTED", "scaling": "NOT TESTED", "production_applicability": "NOT TESTED"}, "verification_labels": {"mechanism": "未検証", "performance": "未検証", "scaling": "未検証", "production_applicability": "未検証"}, "href": "papers/example-demo.html", "summary": "インタラクティブ研究ライブラリのフォーマットデモ。玩具的なアイデアと架空の数値。 論文でも結果でもない。", "related_threads": ["user-history-context-design"]}]</script>
   <script>
     (function () {
       const q = document.getElementById("q");
@@ -141,8 +140,8 @@
         });
         empty.classList.toggle("hidden", shown !== 0);
         status.textContent = shown === total
-          ? total + " lab" + (total === 1 ? "" : "s")
-          : shown + " of " + total + " labs";
+          ? total + " 件のラボ"
+          : "全 " + total + " 件中 " + shown + " 件";
       }
 
       ["input", "change"].forEach(function (evt) {

@@ -1,12 +1,12 @@
-# Original paper / official code mapping
+# 原論文・公式コード対応
 
-**EXAMPLE / fictional.** There is no original paper and no official repository.
+**EXAMPLE / 架空。** 原論文も公式リポジトリもありません。
 
-| Fictional “paper” location | Intended minimal artifact | Official code |
+| 架空の「論文」箇所 | 想定する最小成果物 | 公式コード |
 | --- | --- | --- |
-| §3 “additive decay” (does not exist) | *none — this lab ships no code* | n/a |
-| Eq. (1) decay kernel (does not exist) | *none* | n/a |
-| Table 2 online A/B (does not exist) | `results.json` fixture only | n/a |
+| §3 「加法的減衰」（存在しない） | *なし — このラボはコードを同梱しない* | n/a |
+| 式 (1) 減衰カーネル（存在しない） | *なし* | n/a |
+| 表 2 オンライン A/B（存在しない） | `results.json` のフィクスチャのみ | n/a |
 
-If this were a real lab, this table would map paper equations/sections ↔ the
-minimal code that exposes the mechanism ↔ paths in the authors’ official repo.
+本物のラボなら、この表は論文の式・節 ↔ メカニズムを露出する最小コード ↔
+著者公式リポジトリ内のパス、を対応付けます。

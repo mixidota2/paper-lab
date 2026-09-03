@@ -10,13 +10,25 @@ from typing import Any
 
 import yaml
 
+# Machine identifiers stay English for filtering / schema stability.
 VERIFICATION_STATUSES = (
     "CONFIRMED",
     "PARTIAL",
     "NOT OBSERVED",
     "NOT TESTED",
 )
+# Japanese display labels for Pages UI (values above remain in lab.yaml).
+VERIFICATION_STATUS_LABELS = {
+    "CONFIRMED": "確認済み",
+    "PARTIAL": "部分的",
+    "NOT OBSERVED": "未観測",
+    "NOT TESTED": "未検証",
+}
 LAB_STATUSES = ("draft", "published")
+LAB_STATUS_LABELS = {
+    "draft": "下書き",
+    "published": "公開",
+}
 URL_KEYS = ("paper", "arxiv", "official_code", "pdf")
 VERIFICATION_KEYS = (
     "mechanism",
@@ -25,31 +37,32 @@ VERIFICATION_KEYS = (
     "production_applicability",
 )
 VERIFICATION_LABELS = {
-    "mechanism": "Mechanism",
-    "performance": "Performance",
-    "scaling": "Scaling",
-    "production_applicability": "Production applicability",
+    "mechanism": "メカニズム",
+    "performance": "性能",
+    "scaling": "スケーリング",
+    "production_applicability": "本番適用性",
 }
 URL_LABELS = {
-    "paper": "Paper",
+    "paper": "論文",
     "arxiv": "arXiv",
-    "official_code": "Official code",
+    "official_code": "公式コード",
     "pdf": "PDF",
 }
 
 # Page section order is fixed. Missing content still renders a placeholder.
+# Keys stay English; titles are Japanese for human-facing Pages.
 STANDARD_SECTIONS: list[tuple[str, str]] = [
-    ("overview", "Overview"),
-    ("problem", "Problem"),
-    ("core_idea", "Core Idea"),
-    ("why_it_might_work", "Why It Might Work"),
-    ("evidence", "Evidence"),
-    ("executable_understanding", "Executable Understanding"),
-    ("results", "Results"),
-    ("what_we_verified", "What We Verified"),
-    ("what_we_did_not_verify", "What We Did NOT Verify"),
-    ("implementation", "Implementation"),
-    ("mapping", "Original Paper / Official Code Mapping"),
+    ("overview", "概要"),
+    ("problem", "問題設定"),
+    ("core_idea", "核心"),
+    ("why_it_might_work", "なぜ効きそうか"),
+    ("evidence", "根拠"),
+    ("executable_understanding", "実行可能な理解"),
+    ("results", "結果"),
+    ("what_we_verified", "検証できたこと"),
+    ("what_we_did_not_verify", "検証していないこと"),
+    ("implementation", "実装"),
+    ("mapping", "原論文・公式コード対応"),
 ]
 
 _FILE_REF = re.compile(r"^[\w./-]+\.(md|txt|json|yaml|yml)$", re.IGNORECASE)
@@ -88,6 +101,13 @@ class Verification:
     def statuses(self) -> set[str]:
         return set(self.as_dict().values())
 
+    def labeled(self) -> dict[str, str]:
+        """English status values mapped to Japanese display labels."""
+        return {
+            key: VERIFICATION_STATUS_LABELS.get(status, status)
+            for key, status in self.as_dict().items()
+        }
+
 
 @dataclass
 class CoreIdea:
@@ -123,6 +143,10 @@ class Lab:
     def authors_text(self) -> str:
         return ", ".join(self.authors)
 
+    @property
+    def status_label(self) -> str:
+        return LAB_STATUS_LABELS.get(self.status, self.status)
+
     def search_text(self) -> str:
         parts = [
             self.id,
@@ -134,7 +158,12 @@ class Lab:
             " ".join(self.topics),
             " ".join(self.related_threads),
             self.status,
+            self.status_label,
         ]
+        # Include Japanese verification labels for client-side search.
+        for status in self.verification.as_dict().values():
+            parts.append(status)
+            parts.append(VERIFICATION_STATUS_LABELS.get(status, ""))
         return " ".join(parts).lower()
 
     def to_catalog_entry(self) -> dict[str, Any]:
@@ -146,8 +175,10 @@ class Lab:
             "topics": list(self.topics),
             "verdict": self.verdict,
             "status": self.status,
+            "status_label": self.status_label,
             "example": self.example,
             "verification": self.verification.as_dict(),
+            "verification_labels": self.verification.labeled(),
             "href": f"papers/{self.slug}.html",
             "summary": self.summary,
             "related_threads": list(self.related_threads),
@@ -274,7 +305,12 @@ def lab_from_dict(raw: dict[str, Any], paper_dir: Path) -> Lab:
 
 def _looks_like_example(title: str, lab_id: str) -> bool:
     blob = f"{title} {lab_id}".lower()
-    return "example" in blob or "fictional" in blob
+    return (
+        "example" in blob
+        or "fictional" in blob
+        or "架空" in title
+        or "EXAMPLE" in title
+    )
 
 
 def _require_str(raw: dict[str, Any], key: str, paper_dir: Path) -> str:

@@ -1,12 +1,12 @@
-# EXAMPLE (fictional) — format demonstration
+# EXAMPLE（架空）— フォーマットデモ
 
-This directory is **not a scientific result**. It exists so the generator,
-templates, and filters have one complete lab to render.
+このディレクトリは**科学的結果ではありません**。ジェネレータ・テンプレート・フィルタが
+1件の完全なラボを描画できるように存在します。
 
-- Do not cite this “paper”.
-- Numbers in `results.json` are invented schema fixtures.
-- There is no `baseline.py` / `proposed.py` / `run.py` on purpose: this is not fake science.
+- この「論文」を引用しないでください。
+- `results.json` の数値はスキーマ確認用の架空データです。
+- `baseline.py` / `proposed.py` / `run.py` が無いのは意図的です。偽の科学ではありません。
 
-To add a *real* lab, copy the layout (not the claims), fill `lab.yaml` from a
-real paper, and only then generate the site. Low-value papers should not get labs;
-see the repository README.
+*本物の*ラボを追加するときは、レイアウト（主張ではない）をコピーし、実在の論文から
+`lab.yaml` を埋め、その後サイトを生成してください。低価値な論文にラボを付けてはいけません。
+リポジトリの README を参照。

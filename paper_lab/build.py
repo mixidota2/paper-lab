@@ -21,6 +21,7 @@ from paper_lab.models import (
     STANDARD_SECTIONS,
     VERIFICATION_KEYS,
     VERIFICATION_LABELS,
+    VERIFICATION_STATUS_LABELS,
     VERIFICATION_STATUSES,
     Lab,
     LabError,
@@ -63,7 +64,7 @@ def results_to_html(results: Any) -> str:
             for i, exp in enumerate(experiments, start=1):
                 if not isinstance(exp, dict):
                     continue
-                name = exp.get("name") or f"Experiment {i}"
+                name = exp.get("name") or f"実験 {i}"
                 chunks.append(f"<h3>{_escape(str(name))}</h3>")
                 meta_bits = []
                 for key in ("dataset", "n", "seed"):
@@ -78,7 +79,7 @@ def results_to_html(results: Any) -> str:
                     chunks.append(_metrics_table(metrics))
     raw = json.dumps(results, indent=2, ensure_ascii=False)
     chunks.append(
-        "<details><summary>Raw results.json</summary>"
+        "<details><summary>生の results.json</summary>"
         f'<pre><code>{_escape(raw)}</code></pre></details>'
     )
     return "\n".join(chunks)
@@ -106,7 +107,7 @@ def _metrics_table(metrics: dict[str, Any]) -> str:
             cells.append(f"<td colspan='{len(cols)}'>{_escape(str(spec))}</td>")
         body.append("<tr>" + "".join(cells) + "</tr>")
     return (
-        '<table class="metrics"><thead><tr><th>Metric</th>'
+        '<table class="metrics"><thead><tr><th>指標</th>'
         + head
         + "</tr></thead><tbody>"
         + "".join(body)
@@ -207,6 +208,7 @@ def build(
         topics=topics,
         verdicts=verdicts,
         verification_statuses=VERIFICATION_STATUSES,
+        verification_status_labels=VERIFICATION_STATUS_LABELS,
         verification_keys=VERIFICATION_KEYS,
         verification_labels=VERIFICATION_LABELS,
         catalog_json=json.dumps(catalog, ensure_ascii=False),
@@ -221,6 +223,7 @@ def build(
             sections=paper_sections(lab),
             verification_keys=VERIFICATION_KEYS,
             verification_labels=VERIFICATION_LABELS,
+            verification_status_labels=VERIFICATION_STATUS_LABELS,
         )
         (papers_out / f"{lab.slug}.html").write_text(html, encoding="utf-8")
 

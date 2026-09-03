@@ -1,10 +1,10 @@
 {
-  "note": "EXAMPLE / fictional. Synthetic numbers for schema demonstration only. Not experimental results. Do not cite.",
+  "note": "EXAMPLE / 架空。スキーマデモ用の合成数値のみ。実験結果ではない。引用禁止。",
   "fictional": true,
   "experiments": [
     {
-      "name": "toy_session_rerank (FICTIONAL)",
-      "dataset": "synthetic_sessions_v0 — generated sequences, not real users",
+      "name": "toy_session_rerank（架空）",
+      "dataset": "synthetic_sessions_v0 — 生成シーケンス。実ユーザーではない",
       "n": 128,
       "seed": 0,
       "metrics": {

@@ -25,6 +25,7 @@ def test_example_lab_yaml_loads():
     assert lab.id == "example-demo"
     assert lab.example is True
     assert lab.status == "published"
+    assert lab.status_label == "公開"
     assert lab.year == 2026
     assert "example" in lab.topics
     assert lab.urls.present() == []
@@ -34,7 +35,7 @@ def test_example_lab_yaml_loads():
     assert lab.core_idea.research_bot_interpretation
     assert lab.results is not None
     assert lab.results.get("fictional") is True
-    assert "fictional" in lab.mapping_markdown.lower()
+    assert "架空" in lab.mapping_markdown or "fictional" in lab.mapping_markdown.lower()
     assert "EXAMPLE" in lab.title
 
 
@@ -57,6 +58,7 @@ def test_build_writes_index_and_paper(tmp_path: Path):
     assert (site / ".nojekyll").is_file()
 
     index_html = index.read_text(encoding="utf-8")
+    assert 'lang="ja"' in index_html
     assert 'id="q"' in index_html
     assert 'id="topic"' in index_html
     assert 'id="verdict"' in index_html
@@ -64,6 +66,10 @@ def test_build_writes_index_and_paper(tmp_path: Path):
     assert "data-topics=" in index_html
     assert "data-verification=" in index_html
     assert "EXAMPLE" in index_html
+    assert "架空" in index_html
+    assert "インタラクティブ研究ライブラリ" in index_html
+    assert "すべてのトピック" in index_html
+    assert "未検証" in index_html
     catalog = json.loads(
         index_html.split('<script type="application/json" id="catalog">', 1)[1]
         .split("</script>", 1)[0]
@@ -71,14 +77,18 @@ def test_build_writes_index_and_paper(tmp_path: Path):
     assert any(entry["id"] == "example-demo" for entry in catalog)
 
     paper_html = paper.read_text(encoding="utf-8")
+    assert 'lang="ja"' in paper_html
     for _key, title in STANDARD_SECTIONS:
         assert f">{title}</h2>" in paper_html
         assert f'id="{_key}"' in paper_html
-    assert "Author claim" in paper_html
-    assert "Research Bot interpretation" in paper_html
-    assert "Inference — not an author claim" in paper_html
-    assert "EXAMPLE / fictional" in paper_html
-    assert "Not provided in this lab." not in paper_html
+    assert "著者の主張" in paper_html
+    assert "Research Bot の解釈" in paper_html
+    assert "推論 — 著者の主張ではない" in paper_html
+    assert "EXAMPLE / 架空" in paper_html
+    assert "このラボでは提供されていません。" not in paper_html
+    assert "概要" in paper_html
+    assert "問題設定" in paper_html
+    assert "原論文・公式コード対応" in paper_html
 
 
 def test_build_rejects_bad_verification(tmp_path: Path):

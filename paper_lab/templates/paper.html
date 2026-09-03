@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ lab.title }} — Interactive Research Library</title>
+  <title>{{ lab.title }} — インタラクティブ研究ライブラリ</title>
   <meta name="description" content="{{ lab.summary or lab.title }}">
   <link rel="stylesheet" href="../assets/style.css">
 </head>
@@ -12,32 +12,32 @@
     <div class="wrap">
       <a class="brand" href="../index.html">
         <span class="brand-kicker">Paper Lab</span>
-        <span class="brand-title">Interactive Research Library</span>
+        <span class="brand-title">インタラクティブ研究ライブラリ</span>
       </a>
       <div class="header-meta">{{ lab.id }}</div>
     </div>
   </header>
 
   <main class="wrap">
-    <nav class="crumb"><a href="../index.html">Library</a> / {{ lab.id }}</nav>
+    <nav class="crumb"><a href="../index.html">ライブラリ</a> / {{ lab.id }}</nav>
 
     {% if lab.example %}
     <div class="banner" role="note">
-      <strong>EXAMPLE / fictional.</strong>
-      This lab is a format demonstration. It is not a real paper, not a scientific
-      result, and must not be cited. Numbers in Results are invented schema fixtures.
+      <strong>EXAMPLE / 架空。</strong>
+      このラボはフォーマットのデモです。実在の論文でも科学的結果でもなく、引用してはいけません。
+      「結果」の数値はスキーマ確認用の架空データです。
     </div>
     {% endif %}
 
     <header class="paper-hero">
       <div class="chips">
-        {% if lab.example %}<span class="chip example">EXAMPLE / fictional</span>{% endif %}
-        <span class="chip">{{ lab.status }}</span>
+        {% if lab.example %}<span class="chip example">EXAMPLE / 架空</span>{% endif %}
+        <span class="chip">{{ lab.status_label }}</span>
         {% for t in lab.topics %}<span class="chip">{{ t }}</span>{% endfor %}
       </div>
       <h1>{{ lab.title }}</h1>
       <p class="byline">{{ lab.authors_text }} · {{ lab.year }}</p>
-      <p class="verdict"><strong>Verdict.</strong> {{ lab.verdict }}</p>
+      <p class="verdict"><strong>判定。</strong> {{ lab.verdict }}</p>
     </header>
 
     {% if lab.urls.present() %}
@@ -47,28 +47,28 @@
       {% endfor %}
     </p>
     {% else %}
-    <p class="links"><span class="placeholder">No original paper / official code links.</span></p>
+    <p class="links"><span class="placeholder">原論文・公式コードのリンクはありません。</span></p>
     {% endif %}
 
     <section class="panel">
-      <h2>Verification status</h2>
+      <h2>検証ステータス</h2>
       <table class="vtable">
         <thead>
-          <tr><th>Dimension</th><th>Status</th></tr>
+          <tr><th>観点</th><th>ステータス</th></tr>
         </thead>
         <tbody>
           {% for key in verification_keys %}
           <tr>
             <td>{{ verification_labels[key] }}</td>
             <td class="status status-{{ lab.verification.as_dict()[key] | replace(' ', '-') }}">
-              {{ lab.verification.as_dict()[key] }}
+              {{ verification_status_labels[lab.verification.as_dict()[key]] }}
             </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
       {% if lab.related_threads %}
-      <p><strong>Related threads.</strong>
+      <p><strong>関連スレッド。</strong>
         {% for th in lab.related_threads %}
         <span class="chip">{{ th }}</span>
         {% endfor %}
@@ -76,8 +76,8 @@
       {% endif %}
     </section>
 
-    <nav class="panel" aria-label="Sections">
-      <h2>On this page</h2>
+    <nav class="panel" aria-label="セクション">
+      <h2>このページの内容</h2>
       <ol class="toc">
         {% for s in sections %}
         <li><a href="#{{ s.key }}">{{ s.title }}</a></li>
@@ -89,20 +89,20 @@
     <section class="section" id="{{ s.key }}">
       <h2>{{ s.title }}</h2>
       {% if s.key == 'why_it_might_work' %}
-      <div class="inference-tag">Inference — not an author claim</div>
+      <div class="inference-tag">推論 — 著者の主張ではない</div>
       {% endif %}
       {% if s.key == 'core_idea' %}
       <div class="split">
         <div class="callout author">
-          <p class="label">Author claim</p>
+          <p class="label">著者の主張</p>
           <div class="prose">
-            {% if s.author_claim_html %}{{ s.author_claim_html | safe }}{% else %}<p class="placeholder">No author claim recorded.</p>{% endif %}
+            {% if s.author_claim_html %}{{ s.author_claim_html | safe }}{% else %}<p class="placeholder">著者の主張は記録されていません。</p>{% endif %}
           </div>
         </div>
         <div class="callout interp">
-          <p class="label">Research Bot interpretation</p>
+          <p class="label">Research Bot の解釈</p>
           <div class="prose">
-            {% if s.interpretation_html %}{{ s.interpretation_html | safe }}{% else %}<p class="placeholder">No interpretation recorded.</p>{% endif %}
+            {% if s.interpretation_html %}{{ s.interpretation_html | safe }}{% else %}<p class="placeholder">解釈は記録されていません。</p>{% endif %}
           </div>
         </div>
       </div>
@@ -110,7 +110,7 @@
       {% if s.html %}
       <div class="prose">{{ s.html | safe }}</div>
       {% elif s.empty %}
-      <p class="placeholder">Not provided in this lab.</p>
+      <p class="placeholder">このラボでは提供されていません。</p>
       {% endif %}
     </section>
     {% endfor %}
@@ -118,8 +118,8 @@
 
   <footer class="site-footer">
     <div class="wrap">
-      Source: <code>{{ lab.source_dir.name }}/lab.yaml</code>.
-      Generated HTML is not the source of truth.
+      ソース: <code>{{ lab.source_dir.name }}/lab.yaml</code>。
+      生成された HTML はソース・オブ・トゥルースではありません。
     </div>
   </footer>
 </body>

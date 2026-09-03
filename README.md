@@ -1,14 +1,16 @@
 # Interactive Research Library (paper-lab)
 
-Static site for Interactive Labs. **`papers/*/lab.yaml` plus markdown/json artifacts are the source of truth.** Generated HTML under `site/` is a view — do not edit it by hand.
+Interactive Lab 向けの静的サイト。**`papers/*/lab.yaml` と markdown / json 成果物がソース・オブ・トゥルース。** `site/` 以下の生成 HTML はビューであり、手編集しないでください。
 
-This is a library of *labs worth the time*, not a paper dump. Optimize for time to trustworthy understanding.
+**人間向けライブラリ（GitHub Pages）の UI とラボ本文は日本語です。** 機械識別子（`id`、トピック slug、検証 enum 値、ファイル名・コード識別子）はフィルタ安定性のため英語のままにし、表示ラベルは日本語にしています。
 
-Python environments use **[uv](https://docs.astral.sh/uv/)** (not raw `pip` / `venv`).
+これは「時間をかける価値のあるラボ」のライブラリであり、論文の投げ込みではありません。信頼できる理解までの時間を最適化します。
 
-## Install and build
+Python 環境は **[uv](https://docs.astral.sh/uv/)** を使います（生の `pip` / `venv` ではありません）。
 
-From this directory (Python 3.10+):
+## Install and build / インストールとビルド
+
+このディレクトリから（Python 3.10+）:
 
 ```bash
 uv sync --extra dev
@@ -17,61 +19,61 @@ uv run paper-lab build
 uv run python -m paper_lab.build
 ```
 
-Output is `site/index.html` and one page per lab under `site/papers/`. Open `site/index.html` in a browser (works offline; filters are client-side JS, no network).
+出力は `site/index.html` と、ラボごとの `site/papers/` です。ブラウザで `site/index.html` を開いてください（オフライン可。フィルタはクライアント側 JS、ネットワーク不要）。
 
-Useful flags:
+Useful flags / 便利なフラグ:
 
 ```bash
 uv run paper-lab build --root . --out site
 uv run paper-lab build --papers papers --out /tmp/library-site
 ```
 
-A committed `site/` is included so the demo works without running Python. Re-run the build after any lab change.
+コミット済みの `site/` が含まれているので、Python なしでもデモできます。ラボを変えたらビルドを再実行してください。
 
-Tests:
+Tests / テスト:
 
 ```bash
 uv run pytest
 ```
 
-GitHub Pages: `.github/workflows/pages.yml` uses `uv` to install, run `paper-lab build`, and deploy `site/`.
+GitHub Pages: `.github/workflows/pages.yml` が `uv` でインストールし、`paper-lab build` を実行して `site/` をデプロイします。
 
-## How to add a paper lab
+## How to add a paper lab / ラボの追加方法
 
-1. Create `papers/<paper-id>/` (use a URL-safe slug; leading `_` is fine for fixtures).
-2. Add `lab.yaml` with the schema below. Put section prose inline or as a filename in the same directory (`mapping.md`, `overview.md`, …).
-3. Add `results.json` if you ran anything; add `mapping.md` for paper ↔ code ↔ official repo.
-4. Ship code (`baseline.py` / `proposed.py` / `run.py`) **only** when a tiny real experiment is the right medium. Do not invent science.
-5. Run `uv run paper-lab build` and confirm the new page on `site/index.html`.
+1. `papers/<paper-id>/` を作成（URL 安全な slug。フィクスチャなら先頭 `_` 可）。
+2. 下記スキーマで `lab.yaml` を追加。セクション本文はインライン、または同ディレクトリのファイル名（`mapping.md`、`overview.md` など）。
+3. 実行したものがあれば `results.json`、論文 ↔ コード ↔ 公式リポ対応は `mapping.md`。
+4. 小さな実実験が正しい媒体であるときだけコード（`baseline.py` / `proposed.py` / `run.py`）を同梱。科学を捏造しない。
+5. `uv run paper-lab build` を実行し、`site/index.html` で新ページを確認。
 
-Do **not** add a lab for a low-value paper. Registry entries can live elsewhere; a full Interactive Lab is for high relevance × novelty × importance × evidence × information gain, and only when expected understanding gain exceeds implementation and compute cost. Tiny benchmark deltas, architecture-only novelty, marketing with thin evidence, and incremental extensions of already-known work should not get labs.
+低価値な論文にラボを**付けない**でください。レジストリ条目は別の場所にあって構いません。フル Interactive Lab は、関連性 × 新規性 × 重要性 × 根拠 × 情報利得が高く、かつ期待される理解の利得が実装・計算コストを上回る場合のみです。微小なベンチ差分、アーキテクチャだけの新規性、薄い根拠の宣伝、既知の増分拡張にはラボを付けません。
 
 ## `lab.yaml` schema
 
-Required:
+Required / 必須:
 
 | Field | Notes |
 | --- | --- |
 | `id` | URL-safe slug; becomes `site/papers/<id>.html` |
-| `title` | Human title |
+| `title` | Human title（人間向け。日本語可） |
 | `authors` | List of strings (or `{name: ...}`) |
 | `year` | Int or string |
-| `topics` | List of topic slugs |
+| `topics` | List of topic slugs（英語 slug のまま） |
 | `urls` | `paper`, `arxiv`, `official_code`, `pdf` (string or `null`) |
-| `verdict` | Short library verdict |
-| `verification` | `mechanism`, `performance`, `scaling`, `production_applicability` each `CONFIRMED` \| `PARTIAL` \| `NOT OBSERVED` \| `NOT TESTED` |
+| `verdict` | Short library verdict（表示用。日本語可） |
+| `verification` | `mechanism`, `performance`, `scaling`, `production_applicability` each `CONFIRMED` \| `PARTIAL` \| `NOT OBSERVED` \| `NOT TESTED`（値は英語。UI は日本語ラベル） |
 | `related_threads` | List of thread ids |
 | `status` | `draft` \| `published` |
 
-Optional: `summary` (index card), `example: true`, `sections` (or `content`) mapping standard keys to markdown or a relative filename, structured `core_idea.author_claim` / `core_idea.research_bot_interpretation`.
+Optional: `summary`（索引カード）、`example: true`、`sections`（または `content`）で標準キー → markdown または相対ファイル名、構造化 `core_idea.author_claim` / `core_idea.research_bot_interpretation`。
 
-Standard page sections, in order: Overview, Problem, Core Idea (author claim vs Research Bot interpretation), Why It Might Work (labeled inference), Evidence, Executable Understanding, Results, What We Verified, What We Did NOT Verify, Implementation, Original Paper / Official Code Mapping.
+標準ページ見出し（順）: 概要、問題設定、核心（著者の主張 vs Research Bot の解釈）、なぜ効きそうか（推論ラベル付き）、根拠、実行可能な理解、結果、検証できたこと、検証していないこと、実装、原論文・公式コード対応。
 
-`mapping.md` and `results.json` in the paper directory are picked up automatically when present.
+`mapping.md` と `results.json` は、論文ディレクトリにあれば自動で読み込まれます。
 
-## Example lab
+## Example lab / 例のラボ
 
-`papers/_example_demo/` is a **fictional format demonstration**. It is not a paper. Numbers are invented. Do not cite it.
+`papers/_example_demo/` は**架空のフォーマットデモ**です。論文ではありません。数値は創作です。引用しないでください。
 
 ## Layout
 
