@@ -4,29 +4,26 @@ Static site for Interactive Labs. **`papers/*/lab.yaml` plus markdown/json artif
 
 This is a library of *labs worth the time*, not a paper dump. Optimize for time to trustworthy understanding.
 
+Python environments use **[uv](https://docs.astral.sh/uv/)** (not raw `pip` / `venv`).
+
 ## Install and build
 
 From this directory (Python 3.10+):
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-python -m pip install -e ".[dev]"
-paper-lab build
+uv sync --extra dev
+uv run paper-lab build
 # equivalent:
-python -m paper_lab.build
-python -m paper_lab build
+uv run python -m paper_lab.build
 ```
-
-On PEP 668 / “externally managed” systems, the venv step is required (do not `pip install` into system Python).
 
 Output is `site/index.html` and one page per lab under `site/papers/`. Open `site/index.html` in a browser (works offline; filters are client-side JS, no network).
 
 Useful flags:
 
 ```bash
-paper-lab build --root . --out site
-paper-lab build --papers papers --out /tmp/library-site
+uv run paper-lab build --root . --out site
+uv run paper-lab build --papers papers --out /tmp/library-site
 ```
 
 A committed `site/` is included so the demo works without running Python. Re-run the build after any lab change.
@@ -34,10 +31,10 @@ A committed `site/` is included so the demo works without running Python. Re-run
 Tests:
 
 ```bash
-python -m pytest
+uv run pytest
 ```
 
-GitHub Pages: `.github/workflows/pages.yml` installs the package, runs `paper-lab build`, and deploys `site/`.
+GitHub Pages: `.github/workflows/pages.yml` uses `uv` to install, run `paper-lab build`, and deploy `site/`.
 
 ## How to add a paper lab
 
@@ -45,7 +42,7 @@ GitHub Pages: `.github/workflows/pages.yml` installs the package, runs `paper-la
 2. Add `lab.yaml` with the schema below. Put section prose inline or as a filename in the same directory (`mapping.md`, `overview.md`, …).
 3. Add `results.json` if you ran anything; add `mapping.md` for paper ↔ code ↔ official repo.
 4. Ship code (`baseline.py` / `proposed.py` / `run.py`) **only** when a tiny real experiment is the right medium. Do not invent science.
-5. Run `paper-lab build` and confirm the new page on `site/index.html`.
+5. Run `uv run paper-lab build` and confirm the new page on `site/index.html`.
 
 Do **not** add a lab for a low-value paper. Registry entries can live elsewhere; a full Interactive Lab is for high relevance × novelty × importance × evidence × information gain, and only when expected understanding gain exceeds implementation and compute cost. Tiny benchmark deltas, architecture-only novelty, marketing with thin evidence, and incremental extensions of already-known work should not get labs.
 
@@ -82,6 +79,7 @@ Standard page sections, in order: Overview, Problem, Core Idea (author claim vs 
 paper-lab/
 ├── README.md
 ├── pyproject.toml
+├── uv.lock
 ├── papers/_example_demo/   # lab.yaml + artifacts
 ├── paper_lab/              # generator
 ├── site/                   # generated output
