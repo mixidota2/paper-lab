@@ -46,6 +46,7 @@ def test_sample_lab_yaml_loads():
     assert lab.results is not None
     assert lab.mapping_markdown
     assert "Scaffold Effects" in lab.title
+    assert "最大差は28ポイントだった" in lab.sections["overview"]
 
 
 def test_discover_three_real_papers():
@@ -101,6 +102,9 @@ def test_build_writes_index_and_paper(tmp_path: Path):
     assert "概要" in paper_html
     assert "問題設定" in paper_html
     assert "原論文・公式コード対応" in paper_html
+    assert "このラボの読み" in paper_html
+    assert "検証の境界" in paper_html
+    assert "最大差は28ポイントだった" in paper_html
 
 
 def test_build_rejects_bad_verification(tmp_path: Path):

@@ -27,6 +27,7 @@ summary: >
   LLM を生成器というより two-tower の意味バックボーンとして使う。共有 LLM・EOS・CE yes/no+NTP 教師、
   CE2TT 蒸留、ユーザー塔の latent reasoning。Amazon で CE は SOTA 寄り、0.6B TT は ORT 8B に
   R@10 で対抗。本番は 0.5% データで DLRM と NE パリティ、staleness 耐性。玩具で ANN vs SID 生成コスト。
+content_file: content.yaml
 sections:
   overview: |
     推薦で LLM を使う流れの一方に、「推薦＝生成（セマンティック ID のデコード）」がある。

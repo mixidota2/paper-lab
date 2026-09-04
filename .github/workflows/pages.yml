@@ -24,7 +24,8 @@ jobs:
           enable-cache: true
       - name: Install and generate site
         run: |
-          uv sync
+          uv sync --extra dev
+          uv run pytest
           uv run paper-lab build
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

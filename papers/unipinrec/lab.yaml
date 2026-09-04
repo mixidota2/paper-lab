@@ -27,6 +27,7 @@ summary: >
   入力・モデル・学習・配信まで retrieval と ranking を統一しつつ ANN は維持。MAM（インターリーブなし）、
   blended training、KV-cache 再利用。オフライン Hit@3 +14.8%。オンライン BMI saves +0.95%、
   push opens +0.91%、レイテンシ -11.1%、QPS +63.6%。L2 fine ranker は未置換。玩具で KV 再利用と系列長。
+content_file: content.yaml
 sections:
   overview: |
     大規模推薦は retrieval と ranking を別モデルにしがちだ。どちらも同じユーザー行動列を

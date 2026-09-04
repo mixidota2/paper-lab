@@ -258,7 +258,7 @@ def lab_from_dict(raw: dict[str, Any], paper_dir: Path) -> Lab:
     if _looks_like_example(title, lab_id) or paper_dir.name.startswith("_example"):
         example = True
 
-    section_raw = raw.get("sections") or raw.get("content") or {}
+    section_raw = _load_section_source(raw, paper_dir)
     if section_raw is None:
         section_raw = {}
     if not isinstance(section_raw, dict):
@@ -301,6 +301,26 @@ def lab_from_dict(raw: dict[str, Any], paper_dir: Path) -> Lab:
         results=results,
         mapping_markdown=mapping_markdown,
     )
+
+
+def _load_section_source(raw: dict[str, Any], paper_dir: Path) -> Any:
+    """Return inline sections or a local YAML section artifact."""
+    source = raw.get("content_file")
+    if source is None:
+        return raw.get("sections") or raw.get("content") or {}
+    if not isinstance(source, str) or not source.strip():
+        raise LabError(f"{paper_dir}/lab.yaml: content_file must be a non-empty string")
+    path = (paper_dir / source).resolve()
+    try:
+        path.relative_to(paper_dir.resolve())
+    except ValueError as exc:
+        raise LabError(f"{paper_dir}/lab.yaml: content_file escapes paper directory") from exc
+    if path.suffix not in {".yaml", ".yml"} or not path.is_file():
+        raise LabError(f"{paper_dir}/lab.yaml: content_file must name a local YAML file")
+    try:
+        return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except yaml.YAMLError as exc:
+        raise LabError(f"{path}: invalid YAML: {exc}") from exc
 
 
 def _looks_like_example(title: str, lab_id: str) -> bool:

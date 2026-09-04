@@ -3,58 +3,70 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>インタラクティブ研究ライブラリ</title>
-  <meta name="description" content="Interactive Lab の人間向けライブラリ。lab.yaml から生成 — HTML はソース・オブ・トゥルースではない。">
+  <title>Paper Lab — 読む前に、仕組みを触る。</title>
+  <meta name="description" content="論文を、要点・根拠・小さな実験まで一枚でたどる研究ライブラリ。">
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
   <header class="site-header">
     <div class="wrap">
       <a class="brand" href="index.html">
-        <span class="brand-kicker">Paper Lab</span>
-        <span class="brand-title">インタラクティブ研究ライブラリ</span>
+        <span class="brand-mark" aria-hidden="true">PL</span>
+        <span>
+          <span class="brand-kicker">Paper Lab / Research Library</span>
+          <span class="brand-title">研究を、読む前に動かす。</span>
+        </span>
       </a>
-      <div class="header-meta">{{ paper_count }} 件のラボ</div>
+      <div class="header-meta"><span>現在の棚</span> {{ paper_count }} 本</div>
     </div>
   </header>
 
   <main class="wrap">
-    <section class="hero">
-      <h1>時間をかける価値のあるラボ</h1>
-      <p>
-        各ページは <code>lab.yaml</code> と markdown / json 成果物から生成されます。
-        HTML をソース・オブ・トゥルースとして扱わないでください。フルラボは、期待される理解の利得が実装コストを上回る場合にのみ存在します — 低価値な論文にラボを付けてはいけません。
-      </p>
+    <section class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">SELECTED RESEARCH · 2026</p>
+      <h1 id="page-title">結論だけで終わらせない<br><em>研究の読書棚。</em></h1>
+      <div class="hero-copy">
+        <p>論文の主張、こちらの読み、確かめられた範囲を分けて置く。小さな実験は、数値を再現するためでなく、仕組みの輪郭をつかむためにある。</p>
+        <p class="hero-note">ここにあるのは、いま読む理由がはっきりした3本だけです。</p>
+      </div>
     </section>
 
-    <form class="filters" id="filters" autocomplete="off">
-      <label>検索
-        <input type="search" id="q" placeholder="タイトル、著者、トピック、判定…">
-      </label>
-      <label>トピック
-        <select id="topic">
-          <option value="">すべてのトピック</option>
-          {% for t in topics %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
-        </select>
-      </label>
-      <label>判定
-        <select id="verdict">
-          <option value="">すべての判定</option>
-          {% for v in verdicts %}<option value="{{ v }}">{{ v }}</option>{% endfor %}
-        </select>
-      </label>
-      <label>検証ステータス
-        <select id="vstatus">
-          <option value="">すべてのステータス</option>
-          {% for s in verification_statuses %}<option value="{{ s }}">{{ verification_status_labels[s] }}</option>{% endfor %}
-        </select>
-      </label>
-    </form>
-    <p class="filter-status" id="filter-status"></p>
+    <section class="catalogue" aria-labelledby="catalogue-title">
+      <div class="catalogue-heading">
+        <div>
+          <p class="eyebrow">CATALOGUE</p>
+          <h2 id="catalogue-title">今日、読む一冊を選ぶ</h2>
+        </div>
+        <p class="filter-status" id="filter-status" aria-live="polite"></p>
+      </div>
+      <form class="filters" id="filters" autocomplete="off">
+        <label class="search-field"><span>探す</span>
+          <input type="search" id="q" placeholder="論文名、著者、論点で探す">
+        </label>
+        <label><span>テーマ</span>
+          <select id="topic">
+            <option value="">すべて</option>
+            {% for t in topics %}<option value="{{ t }}">{{ topic_labels.get(t, t) }}</option>{% endfor %}
+          </select>
+        </label>
+        <label><span>読む判定</span>
+          <select id="verdict">
+            <option value="">すべて</option>
+            {% for v in verdicts %}<option value="{{ v }}">{{ "必読" if v.startswith("Must Read") else "読む価値あり" if v.startswith("Worth Reading") else v }}</option>{% endfor %}
+          </select>
+        </label>
+        <label><span>検証の状態</span>
+          <select id="vstatus">
+            <option value="">すべて</option>
+            {% for s in verification_statuses %}<option value="{{ s }}">{{ verification_status_labels[s] }}</option>{% endfor %}
+          </select>
+        </label>
+      </form>
+    </section>
 
-    <div class="grid" id="grid">
+    <div class="paper-grid" id="grid">
       {% for lab in labs %}
-      <a class="card"
+      <a class="paper-card"
          href="papers/{{ lab.slug }}.html"
          data-id="{{ lab.id }}"
          data-topics="{{ lab.topics | join('|') }}"
@@ -66,15 +78,17 @@
          data-scale="{{ lab.verification.scaling }}"
          data-prod="{{ lab.verification.production_applicability }}"
          data-text="{{ lab.search_text() }}">
-        <div class="chips">
-          {% if lab.example %}<span class="chip example">EXAMPLE / 架空</span>{% endif %}
-          {% if lab.status == 'draft' %}<span class="chip draft">{{ lab.status_label }}</span>{% endif %}
-          {% for t in lab.topics %}<span class="chip">{{ t }}</span>{% endfor %}
+        <div class="card-topline">
+          <span class="verdict-label">{{ "必読" if lab.verdict.startswith("Must Read") else "読む価値あり" }}</span>
+          <span class="card-number">0{{ loop.index }}</span>
         </div>
         <h2>{{ lab.title }}</h2>
-        <div class="meta">{{ lab.authors_text }} · {{ lab.year }}</div>
+        <div class="meta">{{ lab.authors_text }} <span>·</span> {{ lab.year }}</div>
         {% if lab.summary %}<p class="summary">{{ lab.summary }}</p>{% endif %}
-        <div class="verdict"><strong>判定。</strong> {{ lab.verdict }}</div>
+        <p class="card-take">{{ lab.verdict.split("—", 1)[-1].strip() }}</p>
+        <div class="topic-row">
+          {% for t in lab.topics %}<span>{{ topic_labels.get(t, t) }}</span>{% endfor %}
+        </div>
         <div class="vgrid">
           {% for key in verification_keys %}
           <div class="vcell" data-status="{{ lab.verification.as_dict()[key] }}">
@@ -83,6 +97,7 @@
           </div>
           {% endfor %}
         </div>
+        <span class="card-arrow" aria-hidden="true">↗</span>
       </a>
       {% endfor %}
     </div>
@@ -90,7 +105,10 @@
   </main>
 
   <footer class="site-footer">
-    <div class="wrap"><code>paper-lab build</code> により生成。権威ある成果物は <code>papers/</code> にあります。</div>
+    <div class="wrap">
+      <span class="footer-mark">PL</span>
+      <p>Paper Lab は、論文・最小コード・結果の対応を残す個人研究ライブラリです。ページは <code>papers/*/lab.yaml</code> から生成しています。</p>
+    </div>
   </footer>
 
   <script type="application/json" id="catalog">{{ catalog_json | safe }}</script>

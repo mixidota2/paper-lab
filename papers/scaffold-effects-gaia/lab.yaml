@@ -25,6 +25,7 @@ summary: >
   GAIA L1/L2 で 3 scaffolds × 5 models を事前登録つきで比較。scaffold だけで最大28pp
   （Opus L2 robust）。H1は支持、H2は方向が棄却、H3は Anthropic 系で条件つき、H4は棄却。
   構造化 scaffold は行動数が少なく、中盤失敗からの復帰が高い。玩具実験では行動数と復帰だけ確認。
+content_file: content.yaml
 sections:
   overview: |
     公開されているエージェント能力スコアは、モデルの実力と scaffold の引き出し方を混ぜて読まれがちだ。

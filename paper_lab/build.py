@@ -30,6 +30,16 @@ from paper_lab.models import (
 
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 
+TOPIC_LABELS = {
+    "ai-agent-systems": "AIエージェント",
+    "agent-architecture": "エージェント設計",
+    "evaluation": "評価",
+    "recommender-systems": "推薦システム",
+    "retrieval": "検索・候補生成",
+    "generative-recommendation": "生成推薦",
+    "ml-systems": "MLシステム",
+}
+
 
 def find_root(explicit: Path | None = None) -> Path:
     if explicit is not None:
@@ -67,13 +77,14 @@ def results_to_html(results: Any) -> str:
                 name = exp.get("name") or f"実験 {i}"
                 chunks.append(f"<h3>{_escape(str(name))}</h3>")
                 meta_bits = []
+                labels = {"dataset": "設定", "n": "試行数", "seed": "乱数シード"}
                 for key in ("dataset", "n", "seed"):
                     if key in exp:
                         meta_bits.append(
-                            f"<li><strong>{_escape(key)}</strong>: {_escape(str(exp[key]))}</li>"
+                            f"<li><span>{labels[key]}</span>{_escape(str(exp[key]))}</li>"
                         )
                 if meta_bits:
-                    chunks.append("<ul>" + "".join(meta_bits) + "</ul>")
+                    chunks.append("<ul class='experiment-meta'>" + "".join(meta_bits) + "</ul>")
                 metrics = exp.get("metrics")
                 if isinstance(metrics, dict) and metrics:
                     chunks.append(_metrics_table(metrics))
@@ -211,6 +222,7 @@ def build(
         verification_status_labels=VERIFICATION_STATUS_LABELS,
         verification_keys=VERIFICATION_KEYS,
         verification_labels=VERIFICATION_LABELS,
+        topic_labels=TOPIC_LABELS,
         catalog_json=json.dumps(catalog, ensure_ascii=False),
         paper_count=len(labs),
     )
@@ -224,6 +236,7 @@ def build(
             verification_keys=VERIFICATION_KEYS,
             verification_labels=VERIFICATION_LABELS,
             verification_status_labels=VERIFICATION_STATUS_LABELS,
+            topic_labels=TOPIC_LABELS,
         )
         (papers_out / f"{lab.slug}.html").write_text(html, encoding="utf-8")
 
