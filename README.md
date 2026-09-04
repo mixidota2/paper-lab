@@ -84,3 +84,14 @@ paper-lab/
 ├── tests/
 └── .github/workflows/pages.yml
 ```
+
+## Agent skills (for Codex)
+
+This repo ships shared skills under `skills/` (mirrored in `.cursor/skills/`):
+
+- `skills/natural-japanese` — write/lint natural Japanese for Pages and reports
+- `skills/personal-research-bot` — research selection and library principles
+- `skills/codex-lab-handoff` — how coding work should be done
+
+Codex / cloud agents must read these before changing Lab Japanese or site design.
+
