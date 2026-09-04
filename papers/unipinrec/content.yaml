@@ -30,7 +30,7 @@ evidence: |
 executable_understanding: |
   `run.py` には二組の比較がある。第一は Baseline の別配信で、履歴を候補生成と順位付けが二度読む。Proposed は KV-cache を再利用し、履歴の prefill を一度で済ませる。
 
-  第二は MAM とインターリーブの系列長比較だ。履歴992、候補656を固定し、概算の attention 量を出す。単位は相対値であり、ミリ秒やGPU使用率ではない。
+  第二は MAM とインターリーブの系列長比較だ。履歴992、候補656を固定し、概算の attention 量を出す。値は、GPUカーネル、通信、候補の分布を持たない算術模型から得た相対値なので、論文の本番測定へ換算できない。
 results: results.json
 what_we_verified: |
   合成計算では、KV-cache を使う経路の総コストが別配信より小さくなり、インターリーブは MAM より系列を長くした。方向を確認する模型として、メカニズムは PARTIAL と記録する。
