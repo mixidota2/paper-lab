@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>The Case Against Generation for Retrieval: Discriminative Language Models as Effective Retrievers — インタラクティブ研究ライブラリ</title>
+  <title>The Case Against Generation for Retrieval: Discriminative Language Models as Effective Retrievers — Paper Lab</title>
   <meta name="description" content="LLM を生成器というより two-tower の意味バックボーンとして使う。共有 LLM・EOS・CE yes/no+NTP 教師、 CE2TT 蒸留、ユーザー塔の latent reasoning。Amazon で CE は SOTA 寄り、0.6B TT は ORT 8B に R@10 で対抗。本番は 0.5% データで DLRM と NE パリティ、staleness 耐性。玩具で ANN vs SID 生成コスト。">
   <link rel="stylesheet" href="../assets/style.css">
 </head>
@@ -11,231 +11,224 @@
   <header class="site-header">
     <div class="wrap">
       <a class="brand" href="../index.html">
-        <span class="brand-kicker">Paper Lab</span>
-        <span class="brand-title">インタラクティブ研究ライブラリ</span>
+        <span class="brand-mark" aria-hidden="true">PL</span>
+        <span>
+          <span class="brand-kicker">Paper Lab / Research Library</span>
+          <span class="brand-title">研究を、読む前に動かす。</span>
+        </span>
       </a>
-      <div class="header-meta">case-against-generation-retrieval</div>
+      <div class="header-meta">LAB NOTE / case-against-generation-retrieval</div>
     </div>
   </header>
 
   <main class="wrap">
-    <nav class="crumb"><a href="../index.html">ライブラリ</a> / case-against-generation-retrieval</nav>
-
-    
-
     <header class="paper-hero">
-      <div class="chips">
-        
-        <span class="chip">公開</span>
-        <span class="chip">recommender-systems</span><span class="chip">retrieval</span><span class="chip">generative-recommendation</span>
+      <nav class="crumb"><a href="../index.html">研究ライブラリ</a><span>/</span>case-against-generation-retrieval</nav>
+      <div class="paper-hero-grid">
+        <div>
+          <p class="eyebrow">MUST READ · 2026</p>
+          <h1>The Case Against Generation for Retrieval: Discriminative Language Models as Effective Retrievers</h1>
+          <p class="byline">Zhe Xu, Prachi Agrawal, et al. (Meta)</p>
+        </div>
+        <aside class="hero-verdict">
+          <span>読む判定</span>
+          <strong>必読</strong>
+          <p>LLM の意味力を two-tower の表現バックボーンに載せ、ANN 配信を保ったまま Amazon 公開と本番で対抗できることを示した。生成 CG 一択論への産業側カウンター。</p>
+        </aside>
       </div>
-      <h1>The Case Against Generation for Retrieval: Discriminative Language Models as Effective Retrievers</h1>
-      <p class="byline">Zhe Xu, Prachi Agrawal, et al. (Meta) · 2026</p>
-      <p class="verdict"><strong>判定。</strong> Must Read — LLM の意味力を two-tower の表現バックボーンに載せ、ANN 配信を保ったまま Amazon 公開と本番で対抗できることを示した。生成 CG 一択論への産業側カウンター。</p>
+      <div class="topic-row paper-topics">
+        <span>推薦システム</span><span>検索・候補生成</span><span>生成推薦</span>
+      </div>
     </header>
 
     
-    <p class="links">
+    <div class="links" aria-label="外部リンク">
       
-      <a href="https://arxiv.org/abs/2607.25346" rel="noopener noreferrer" target="_blank">論文</a>
+      <a href="https://arxiv.org/abs/2607.25346" rel="noopener noreferrer" target="_blank">論文 <span aria-hidden="true">↗</span></a>
       
-      <a href="https://arxiv.org/abs/2607.25346" rel="noopener noreferrer" target="_blank">arXiv</a>
+      <a href="https://arxiv.org/abs/2607.25346" rel="noopener noreferrer" target="_blank">arXiv <span aria-hidden="true">↗</span></a>
       
-      <a href="https://arxiv.org/pdf/2607.25346" rel="noopener noreferrer" target="_blank">PDF</a>
+      <a href="https://arxiv.org/pdf/2607.25346" rel="noopener noreferrer" target="_blank">PDF <span aria-hidden="true">↗</span></a>
       
-    </p>
+    </div>
     
 
-    <section class="panel">
-      <h2>検証ステータス</h2>
-      <table class="vtable">
-        <thead>
-          <tr><th>観点</th><th>ステータス</th></tr>
-        </thead>
-        <tbody>
-          
-          <tr>
-            <td>メカニズム</td>
-            <td class="status status-PARTIAL">
-              部分的
-            </td>
-          </tr>
-          
-          <tr>
-            <td>性能</td>
-            <td class="status status-NOT-TESTED">
-              未検証
-            </td>
-          </tr>
-          
-          <tr>
-            <td>スケーリング</td>
-            <td class="status status-NOT-TESTED">
-              未検証
-            </td>
-          </tr>
-          
-          <tr>
-            <td>本番適用性</td>
-            <td class="status status-NOT-TESTED">
-              未検証
-            </td>
-          </tr>
-          
-        </tbody>
-      </table>
-      
-      <p><strong>関連スレッド。</strong>
+    <div class="reading-layout">
+      <aside class="reading-rail">
+        <section class="rail-block">
+          <p class="rail-label">検証の境界</p>
+          <dl class="verification-list">
+            
+            <div>
+              <dt>メカニズム</dt>
+              <dd class="status status-PARTIAL">部分的</dd>
+            </div>
+            
+            <div>
+              <dt>性能</dt>
+              <dd class="status status-NOT-TESTED">未検証</dd>
+            </div>
+            
+            <div>
+              <dt>スケーリング</dt>
+              <dd class="status status-NOT-TESTED">未検証</dd>
+            </div>
+            
+            <div>
+              <dt>本番適用性</dt>
+              <dd class="status status-NOT-TESTED">未検証</dd>
+            </div>
+            
+          </dl>
+        </section>
+        <nav class="rail-block toc" aria-label="このページの内容">
+          <p class="rail-label">このノートの目次</p>
+          <ol>
+            
+            <li><a href="#overview">概要</a></li>
+            
+            <li><a href="#problem">問題設定</a></li>
+            
+            <li><a href="#core_idea">核心</a></li>
+            
+            <li><a href="#why_it_might_work">なぜ効きそうか</a></li>
+            
+            <li><a href="#evidence">根拠</a></li>
+            
+            <li><a href="#executable_understanding">実行可能な理解</a></li>
+            
+            <li><a href="#results">結果</a></li>
+            
+            <li><a href="#what_we_verified">検証できたこと</a></li>
+            
+            <li><a href="#what_we_did_not_verify">検証していないこと</a></li>
+            
+            <li><a href="#implementation">実装</a></li>
+            
+            <li><a href="#mapping">原論文・公式コード対応</a></li>
+            
+          </ol>
+        </nav>
         
-        <span class="chip">generative-rec-vs-retrieval</span>
+        <section class="rail-block">
+          <p class="rail-label">関連する問い</p>
+          <span class="thread">generative-rec-vs-retrieval</span>
+        </section>
         
-      </p>
-      
-    </section>
+      </aside>
 
-    <nav class="panel" aria-label="セクション">
-      <h2>このページの内容</h2>
-      <ol class="toc">
+      <article class="reading-body">
         
-        <li><a href="#overview">概要</a></li>
-        
-        <li><a href="#problem">問題設定</a></li>
-        
-        <li><a href="#core_idea">核心</a></li>
-        
-        <li><a href="#why_it_might_work">なぜ効きそうか</a></li>
-        
-        <li><a href="#evidence">根拠</a></li>
-        
-        <li><a href="#executable_understanding">実行可能な理解</a></li>
-        
-        <li><a href="#results">結果</a></li>
-        
-        <li><a href="#what_we_verified">検証できたこと</a></li>
-        
-        <li><a href="#what_we_did_not_verify">検証していないこと</a></li>
-        
-        <li><a href="#implementation">実装</a></li>
-        
-        <li><a href="#mapping">原論文・公式コード対応</a></li>
-        
-      </ol>
-    </nav>
-
-    
-    <section class="section" id="overview">
-      <h2>概要</h2>
-      
-      
-      
-      <div class="prose"><p>推薦で LLM を使う流れの一方に、「推薦＝生成（セマンティック ID のデコード）」がある。
-ただ大規模 retrieval では、自己回帰デコードのレイテンシと、トークンが実アイテムに
-接地しない問題がボトルネックになる。</p>
-<p>この論文は古典的 two-tower を LLM 時代の表現学習で立て直す。ユーザーとアイテムを
-共有 LLM で別フォワードし、EOS プーリング、データセット横断の mid-train、
-強い cross-encoder 教師（yes/no + ユーザー条件つき NTP）からの CE2TT 蒸留、
-ユーザー塔だけの latent reasoning を積み上げる。アイテム側は事前計算可能なままなので
-ANN のまま配信できる。</p>
-<p>公開 Amazon 三データでは CE が概ね SOTA。0.6B の TT 学生は 8B 級の OneRec-Think に
-R@10 で張り合う。社内では学習データの 0.5% で従来 DLRM two-tower と NE パリティ、
-凍結時の staleness 耐性も強い、と主張する。</p>
-<p>ラボの玩具は精度表を再現しない。カタログ上で「ANN/内積」と「SID 逐次デコード＋接地ミス」の
-コスト形だけを対比する。</p></div>
-      
-    </section>
-    
-    <section class="section" id="problem">
-      <h2>問題設定</h2>
-      
-      
-      
-      <div class="prose"><p>生成 retrieval は理論上はエンドツーエンドだが、出力は離散トークンであり、
-アイテム ID への写像はモデルの外で起きる。そこで grounding 失敗が下流に伝播する。
-一方 two-tower はアイテム埋め込みをオフライン索引でき、工業的 CG の標準になっている。</p>
-<p>問いは単純で重い。LLM の意味の深さを表現バックボーンとして載せたとき、
-古典 two-tower はまだ戦えるか。生成でファネルを置き換える必要があるのか。</p></div>
-      
-    </section>
-    
-    <section class="section" id="core_idea">
-      <h2>核心</h2>
-      
-      
-      <div class="split">
-        <div class="callout author">
-          <p class="label">著者の主張</p>
-          <div class="prose">
-            <p>LLM-native two-tower: 共有エンコーダ + EOS、CE 教師を yes/no ヘッドとユーザー条件 NTP で強化し、
-候補集合上のスコア分布を TT に蒸留（CE2TT）。ユーザー塔のみ Coconut 風の latent 1ステップ。
-公開ベンチでは CE が多くの指標で最良、TT は R@10 で ORT を上回るケースが多い（バックボーンは 0.6B vs ORT の 8B）。
-本番では DLRM と NE パリティを 0.5% データで達成し、凍結評価で staleness に強い。</p>
+        <section class="section" id="overview">
+          <div class="section-heading">
+            <span>01</span>
+            <h2>概要</h2>
           </div>
-        </div>
-        <div class="callout interp">
-          <p class="label">Research Bot の解釈</p>
-          <div class="prose">
-            <p>「生成が retrieval を置き換える」より、「LLM の利得の多くは意味表現にあり、
-デコード形式は必須ではない」という仮説を産業データで押している、と読む。
-ANN を捨てない選択は、レイテンシ・接地・既存索引との互換で実務的だ。
-一方、公開 Amazon は Web 規模 CG そのものとは限らず、生成系のオンライン勝ち事例との
-正面比較も限定的。勝ち筋は「意味＋因数分解」側にあり、「生成だから」で説明しきれる話ではない——
-このスレッドとの接続点はそこにある。</p>
-<p>ラボでは grounding miss とコスト比の玩具のみ。NE や R@K は未検証。</p>
+          
+          
+          
+          <div class="prose"><p>LLM を推薦に使うなら、候補も生成しなければならないのか。Meta のこの論文は、その前提に異議を唱える。LLM を二つの塔の表現学習器として使い、候補生成には ANN を残す設計を提案した。</p>
+<p>共有 LLM、EOS 表現、cross-encoder 教師、蒸留、ユーザー側の latent reasoning を重ねる。それでも配信時はアイテム埋め込みの近傍探索で済む。公開 Amazon データと本番の双方で、この選択を検証している。</p>
+<p>本ラボでは、学習品質を再現しない。事前に索引化した候補を引く経路と、semantic ID を一つずつ出す経路を並べ、配信時の形と接地失敗の違いを小さく可視化する。</p></div>
+          
+        </section>
+        
+        <section class="section" id="problem">
+          <div class="section-heading">
+            <span>02</span>
+            <h2>問題設定</h2>
           </div>
-        </div>
-      </div>
-      
-      
-    </section>
-    
-    <section class="section" id="why_it_might_work">
-      <h2>なぜ効きそうか</h2>
-      
-      <div class="inference-tag">推論 — 著者の主張ではない</div>
-      
-      
-      
-      <div class="prose"><p>内積 retrieval が安いのは、アイテムを一度埋め込んでしまえばクエリごとにデコード列を
-伸ばさないからだ。接地ミスがゼロなのも、候補が最初からアイテム ID だから。
-教師 CE が相対順位を持ち、それを KL で学生に渡すのは、双エンコーダが失う相互作用を
-ソフトラベルで補う定番の筋で、LLM 表現との相性も良い。この説明は自然に聞こえる。</p></div>
-      
-    </section>
-    
-    <section class="section" id="evidence">
-      <h2>根拠</h2>
-      
-      
-      
-      <div class="prose"><p>論文: Amazon Beauty / Sports / Toys での SOTA 表と TT アブレーション（特に CE2TT の寄与大）、
-社内 NE・セグメント・staleness・データスケール表。限界は公開コードなし、社内詳細の再現困難、
-生成ベースラインとのサービング条件の完全一致ではない点。</p>
-<p><code>results.json</code> は合成カタログ上のコストと grounding_miss_rate のみ。</p></div>
-      
-    </section>
-    
-    <section class="section" id="executable_understanding">
-      <h2>実行可能な理解</h2>
-      
-      
-      
-      <div class="prose"><p><code>run.py</code> はカタログサイズ固定の合成クエリで、(1) ユーザー1回エンコード + ANN 風コスト、
-(2) SID 長ぶんの逐次デコード + トークン接地ミス確率、を並べる。論文 §4.3 の効率議論と
-導入部の grounding 懸念を、数値のオーダー感だけで掴むための装置。</p></div>
-      
-    </section>
-    
-    <section class="section" id="results">
-      <h2>結果</h2>
-      
-      
-      
-      <div class="prose"><p class="callout-body"><em>Synthetic catalog simulation only. Contrasts serving cost shape and grounding miss rate for ANN/dot-product vs sequential SID decode. Does not reproduce Amazon R@10, CE SOTA, or production NE vs DLRM.</em></p>
+          
+          
+          
+          <div class="prose"><p>生成型の候補生成は、トークン列からアイテムを導く。表現力は魅力的だが、逐次デコードには段数があり、出した記号を実在アイテムへ結びつける処理も要る。</p>
+<p>two-tower は逆に、ユーザーとアイテムを別々に埋め込み、アイテム側を前計算しておける。大規模な候補生成で広く使われる理由は、近似最近傍探索（ANN）で速く探せる点にある。</p>
+<p>問いは、LLM の意味表現を使っても、この分離を保てるかだ。本論文は「生成か検索か」を二者択一にせず、意味理解と配信形式を切り分けた。</p></div>
+          
+        </section>
+        
+        <section class="section" id="core_idea">
+          <div class="section-heading">
+            <span>03</span>
+            <h2>核心</h2>
+          </div>
+          
+          
+          <div class="split">
+            <div class="callout author">
+              <p class="label">論文が主張すること</p>
+              <div class="prose">
+                <p>著者は共有 LLM でユーザーとアイテムを別々に符号化し、文末の EOS 表現を用いる two-tower を構成した。教師となる cross-encoder には yes/no の判定と、ユーザー条件付きの next-token prediction を与える。教師の候補順位を CE2TT 蒸留で two-tower へ渡し、ユーザー塔だけに latent reasoning を加える。</p>
+<p>公開 Amazon では、教師の cross-encoder が強い結果を出し、0.6B の two-tower 学生は R@10 で 8B の ORT に並ぶ、または上回る結果を報告した。本番では学習データの0.5%で既存 DLRM と NE の同等性を示し、データを凍結した条件でも staleness への強さを報告している。</p>
+              </div>
+            </div>
+            <div class="callout interp">
+              <p class="label">このラボの読み</p>
+              <div class="prose">
+                <p>読みどころは「LLM を使うこと」と「生成すること」を分けた点にある。LLM の価値の多くが表現にあるなら、候補を出す最後の形式まで自己回帰にする必然は薄くなる。</p>
+<p>ただし、これは生成型の推薦が常に不要だという証明ではない。公開ベンチと本番の詳細には距離があり、各方式を同じ配信条件で比べた完全な比較でもない。ここで強く支持されるのは、ANN を残す道が競争力を持ちうる、という判断だ。</p>
+              </div>
+            </div>
+          </div>
+          
+          
+        </section>
+        
+        <section class="section" id="why_it_might_work">
+          <div class="section-heading">
+            <span>04</span>
+            <h2>なぜ効きそうか</h2>
+          </div>
+          
+          <div class="inference-tag">ここからはラボの解釈です。著者の因果主張ではありません。</div>
+          
+          
+          
+          <div class="prose"><p>【ラボの解釈】アイテムを前もって埋め込めるなら、リクエスト時に重い処理をするのはユーザー側だけでよい。ANN は候補を実在のアイテムIDとして返すため、出力記号から商品へ戻す段階もない。</p>
+<p>蒸留は、cross-encoder が候補ごとの組合せを見て付けた順位を、軽い two-tower へ移す手段になる。どの要素が公開結果や本番結果をどれだけ押し上げたかは、論文の主張を超えてこのラボが断定できる範囲ではない。</p></div>
+          
+        </section>
+        
+        <section class="section" id="evidence">
+          <div class="section-heading">
+            <span>05</span>
+            <h2>根拠</h2>
+          </div>
+          
+          
+          
+          <div class="prose"><p>根拠は二層ある。公開側では Amazon のデータセットで cross-encoder、two-tower、既存手法を比べた。本番側では、0.5%の学習データで DLRM と NE の同等性、さらに staleness 耐性を報告している。</p>
+<p>これらは論文の実験結果である。ラボが実行するのは、ANN と semantic ID デコードのコスト形、そして意図的に入れた接地失敗だけだ。R@10、NE、蒸留の効果を検証した結果ではない。</p></div>
+          
+        </section>
+        
+        <section class="section" id="executable_understanding">
+          <div class="section-heading">
+            <span>06</span>
+            <h2>実行可能な理解</h2>
+          </div>
+          
+          
+          
+          <div class="prose"><p><code>run.py</code> は1万件の合成カタログに500件の問い合わせを投げる。Baseline の <code>generative_sid</code> は4トークンの semantic ID を順に出し、トークンごとに接地失敗の確率を持つ。Proposed の <code>ann_two_tower</code> は、ユーザーを一度符号化して索引を探す。</p>
+<p>比べる指標は相対コスト、待ち段数、接地失敗率である。関連性のヒット率は合成の乱数なので、品質比較として読むべきではない。</p></div>
+          
+        </section>
+        
+        <section class="section" id="results">
+          <div class="section-heading">
+            <span>07</span>
+            <h2>結果</h2>
+          </div>
+          
+          
+          
+          <div class="prose"><p class="callout-body"><em>Synthetic catalog simulation only. Contrasts serving cost shape and grounding miss rate for ANN/dot-product vs sequential SID decode. Does not reproduce Amazon R@10, CE SOTA, or production NE vs DLRM.</em></p>
 <h3>toy_ann_two_tower</h3>
-<ul><li><strong>dataset</strong>: synthetic_catalog_n10000</li><li><strong>n</strong>: 500</li><li><strong>seed</strong>: 7</li></ul>
+<ul class='experiment-meta'><li><span>設定</span>synthetic_catalog_n10000</li><li><span>試行数</span>500</li><li><span>乱数シード</span>7</li></ul>
 <table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>mean_cost</th><td colspan='1'>17.315</td></tr><tr><th scope='row'>mean_latency_steps</th><td colspan='1'>1.0</td></tr><tr><th scope='row'>grounding_miss_rate</th><td colspan='1'>0.0</td></tr><tr><th scope='row'>hit_at_10</th><td colspan='1'>0.442</td></tr></tbody></table>
 <h3>toy_generative_sid_decode</h3>
-<ul><li><strong>dataset</strong>: synthetic_catalog_n10000</li><li><strong>n</strong>: 500</li><li><strong>seed</strong>: 7</li></ul>
+<ul class='experiment-meta'><li><span>設定</span>synthetic_catalog_n10000</li><li><span>試行数</span>500</li><li><span>乱数シード</span>7</li></ul>
 <table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>mean_cost</th><td colspan='1'>26.357</td></tr><tr><th scope='row'>mean_latency_steps</th><td colspan='1'>4.576</td></tr><tr><th scope='row'>grounding_miss_rate</th><td colspan='1'>0.288</td></tr><tr><th scope='row'>hit_at_10</th><td colspan='1'>0.326</td></tr></tbody></table>
 <details><summary>生の results.json</summary><pre><code>{
   &quot;note&quot;: &quot;Synthetic catalog simulation only. Contrasts serving cost shape and grounding miss rate for ANN/dot-product vs sequential SID decode. Does not reproduce Amazon R@10, CE SOTA, or production NE vs DLRM.&quot;,
@@ -282,52 +275,61 @@ ANN を捨てない選択は、レイテンシ・接地・既存索引との互�
     }
   ]
 }</code></pre></details></div>
-      
-    </section>
-    
-    <section class="section" id="what_we_verified">
-      <h2>検証できたこと</h2>
-      
-      
-      
-      <div class="prose"><p>玩具では ANN 経路の grounding miss は常に 0。生成 SID 経路は設定したミス率どおり欠測が出て、
-平均コスト・レイテンシ段数が高くなる（Mechanism: PARTIAL）。これはサービング形の説明用で、
-推薦品質の確認ではない。</p></div>
-      
-    </section>
-    
-    <section class="section" id="what_we_did_not_verify">
-      <h2>検証していないこと</h2>
-      
-      
-      
-      <div class="prose"><ul>
-<li>Amazon R@10 / NDCG や CE・TT の学習</li>
-<li>CE2TT・NTP・latent reasoning のアブレーション</li>
-<li>本番 NE パリティ（0.5% データ）と staleness</li>
-<li>性能・スケーリング・本番適用性は NOT TESTED</li>
+          
+        </section>
+        
+        <section class="section" id="what_we_verified">
+          <div class="section-heading">
+            <span>08</span>
+            <h2>検証できたこと</h2>
+          </div>
+          
+          
+          
+          <div class="prose"><p>この設定では ANN 経路の接地失敗は0で、逐次デコード経路には設定した失敗が生じた。後者はデコード段数と相対コストも大きくなった。配信形式の違いを説明する確認としては PARTIAL である。</p>
+<p>実験のコードが作った差は、パラメータを変えれば変わる。Amazon の検索品質や、LLM 表現の有効性を確かめたわけではない。</p></div>
+          
+        </section>
+        
+        <section class="section" id="what_we_did_not_verify">
+          <div class="section-heading">
+            <span>09</span>
+            <h2>検証していないこと</h2>
+          </div>
+          
+          
+          
+          <div class="prose"><ul>
+<li>Amazon の R@10、NDCG、cross-encoder の成績</li>
+<li>CE2TT、yes/no 教師、latent reasoning の寄与</li>
+<li>0.5%データでの DLRM との NE 同等性と staleness 耐性</li>
+<li>性能、スケーリング、本番適用性</li>
 </ul></div>
-      
-    </section>
-    
-    <section class="section" id="implementation">
-      <h2>実装</h2>
-      
-      
-      
-      <div class="prose"><ul>
-<li><code>lab.yaml</code> / <code>run.py</code> / <code>results.json</code> / <code>mapping.md</code></li>
-<li>公式コード URL は論文時点で未提示。バックボーン言及は Qwen3-0.6B。</li>
-</ul></div>
-      
-    </section>
-    
-    <section class="section" id="mapping">
-      <h2>原論文・公式コード対応</h2>
-      
-      
-      
-      <div class="prose"><h1>原論文・公式コード対応</h1>
+          
+        </section>
+        
+        <section class="section" id="implementation">
+          <div class="section-heading">
+            <span>10</span>
+            <h2>実装</h2>
+          </div>
+          
+          
+          
+          <div class="prose"><p><code>run.py</code> は外部データセットやモデルを使わない。<code>ann_retrieve</code> と <code>generative_sid</code> の小さなコスト模型を同じ乱数シードで動かし、<code>results.json</code> に集計する。</p>
+<p>実行には <code>uv run python papers/case-against-generation-retrieval/run.py</code> を使う。接地失敗率は論文から転記した値ではなく、この模型だけの設定値である。</p></div>
+          
+        </section>
+        
+        <section class="section" id="mapping">
+          <div class="section-heading">
+            <span>11</span>
+            <h2>原論文・公式コード対応</h2>
+          </div>
+          
+          
+          
+          <div class="prose"><h1>原論文・公式コード対応</h1>
 <table>
 <thead>
 <tr>
@@ -364,15 +366,17 @@ ANN を捨てない選択は、レイテンシ・接地・既存索引との互�
 </tr>
 </tbody>
 </table></div>
-      
-    </section>
-    
+          
+        </section>
+        
+      </article>
+    </div>
   </main>
 
   <footer class="site-footer">
     <div class="wrap">
-      ソース: <code>case-against-generation-retrieval/lab.yaml</code>。
-      生成された HTML はソース・オブ・トゥルースではありません。
+      <span class="footer-mark">PL</span>
+      <p>このページは <code>papers/case-against-generation-retrieval/lab.yaml</code> と同じディレクトリの成果物から生成しています。HTML は編集元ではありません。</p>
     </div>
   </footer>
 </body>

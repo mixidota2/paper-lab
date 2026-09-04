@@ -78,8 +78,8 @@ def test_build_writes_index_and_paper(tmp_path: Path):
     assert "data-verification=" in index_html
     assert "EXAMPLE" not in index_html
     assert "example-demo" not in index_html
-    assert "インタラクティブ研究ライブラリ" in index_html
-    assert "すべてのトピック" in index_html
+    assert "研究を、読む前に動かす。" in index_html
+    assert "テーマ" in index_html
     assert "未検証" in index_html
     catalog = json.loads(
         index_html.split('<script type="application/json" id="catalog">', 1)[1]
@@ -94,9 +94,9 @@ def test_build_writes_index_and_paper(tmp_path: Path):
     for _key, title in STANDARD_SECTIONS:
         assert f">{title}</h2>" in paper_html
         assert f'id="{_key}"' in paper_html
-    assert "著者の主張" in paper_html
-    assert "Research Bot の解釈" in paper_html
-    assert "推論 — 著者の主張ではない" in paper_html
+    assert "論文が主張すること" in paper_html
+    assert "このラボの読み" in paper_html
+    assert "ここからはラボの解釈です。" in paper_html
     assert "EXAMPLE / 架空" not in paper_html
     assert "このラボでは提供されていません。" not in paper_html
     assert "概要" in paper_html
