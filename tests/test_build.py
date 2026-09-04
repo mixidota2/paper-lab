@@ -44,6 +44,8 @@ def test_build_is_deterministic_and_has_no_demo_content(tmp_path: Path):
         assert f"https://arxiv.org/abs/{arxiv_id}" in page
         assert "論文に書かれていること" in page
         assert "読書メモ" in page
+        assert 'class="figures"' in page
+        assert (first / "figures" / paper_id / "figures").is_dir()
 
 
 def test_rejects_an_arxiv_url_that_does_not_match_the_identifier(tmp_path: Path):

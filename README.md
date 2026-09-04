@@ -17,6 +17,16 @@ uv run paper-lab build
 uv run python -m http.server --directory site 8000
 ```
 
+## 各 Lab の小実験
+
+三つの実験は CPU と標準ライブラリだけを使い、各 paper directory の `results.json` を更新します。論文の再現ではなく、仕組みと比較軸を動かして確かめるための実装です。
+
+```bash
+uv run papers/scaffold-effects-gaia/run.py
+uv run papers/case-against-generation-retrieval/run.py
+uv run papers/unipinrec/run.py
+```
+
 最後のコマンドのあと、<http://localhost:8000> を開きます。ビルドは決定的で、古い生成ファイルを残しません。
 
 ## 論文を追加・更新する

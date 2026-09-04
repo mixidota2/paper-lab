@@ -5,59 +5,51 @@ title: "Scaffold Effects on GAIA: A Controlled Comparison"
 authors: ["Jason Starace"]
 year: 2026
 topics: [ai-agent-systems, agent-architecture, evaluation]
-urls:
-  paper: https://arxiv.org/abs/2606.08529
-  arxiv: https://arxiv.org/abs/2606.08529
-  pdf: https://arxiv.org/pdf/2606.08529
-  official_code: null
+urls: {paper: https://arxiv.org/abs/2606.08529, arxiv: https://arxiv.org/abs/2606.08529, pdf: https://arxiv.org/pdf/2606.08529, official_code: null}
 verdict: "Must Read"
-verification:
-  mechanism: NOT TESTED
-  performance: NOT TESTED
-  scaling: NOT TESTED
-  production_applicability: NOT TESTED
+verification: {mechanism: PARTIAL, performance: NOT TESTED, scaling: NOT TESTED, production_applicability: NOT TESTED}
 related_threads: [agent-architecture-and-harness]
 status: published
-summary: "同じモデル・同じ GAIA 問題でも、scaffold を替えると測定精度が最大 28 ポイント動いた。能力の数値は harness とモデルの組で読む必要がある。"
+summary: "同じモデルでも scaffold で GAIA の測定値が大きく動く。能力表は harness とモデルの組として読むべきだ、という制御実験。"
+figures:
+  - {path: figures/control-flow.svg, title: "3 種類の制御フロー", caption: "役割分担と、計画をいつ固定するかが異なる。"}
+  - {path: figures/evaluation-unit.svg, title: "harness–model を評価単位にする", caption: "一つの精度だけでは scaffold 差をモデル差と誤読しうる。"}
+  - {path: figures/recovery.svg, title: "失敗、回復、ツール量", caption: "論文の行動指標を因果図ではなく比較の観点として描いた。"}
 core_idea:
   author_claim: |
-    著者は3種類の scaffold を比べた。ReAct、Planner-Actor-Rater（PAR）、planner-then-executor である。対象は5モデルと GAIA validation の Level 1/2 で、各問題を3回試行した。タスクと条件はそろえている。
+    著者は GAIA validation の Level 1・2 で、ReAct、Planner-Actor-Rater（PAR）、planner-then-executor を 5 モデルに交差させた。問題と条件を固定し、各問を 3 回実行した（§3.3–3.5）。最大の scaffold gap は robust slice の Opus Level 2 で 28 ポイントだった（§4.1）。
 
-    同一モデル内の最大差は、robust slice の Opus Level 2 で28ポイントだった。構造化した scaffold は、難しい Level 2 でツール呼び出しが少なく、中盤のエラーから復帰する割合が高かった。より高性能なモデルほど scaffold の影響が小さい、という事前仮説は方向が合わなかった。
+    Level 2 では、構造化した scaffold は ReAct より少ないツール呼び出しで、途中の失敗から多く回復したと報告する。ただし PAR の ReAct 優位は Anthropic 系では支持され、provider 横断では一様でなかった（§4.2–4.3）。
   research_bot_interpretation: |
-    モデルの比較表を読むときは、数値の横に harness を置くべきだ。少なくとも一つ別の scaffold を走らせれば、見出しの数字が設計に強いのか、モデルそのものに強いのかを切り分ける手掛かりになる。
+    「このモデルは何点か」より、「どの scaffold とツール面で何点か」と書く方が正確だ。agent 数が一般に有利だと結論づける論文ではない。役割分担、再試行の位置、ツール実装を含む評価装置が測定値を動かす、という警告として読む。
 sections:
   overview: |
-    エージェントの評価値には、モデルの能力と、その能力を引き出す scaffold の働きが混ざる。本論文は後者を操作して、差の大きさを測った。
-
-    差は小さくない。
-    比較は制御した。
-    それが要点だ。
-    同じ問題を使う。
-    同じ条件に置く。
-    scaffold だけを替える。
+    エージェント評価では、モデルの推論と scaffold の引き出し方が混ざる。本論文は後者を操作変数にした。GAIA は複数手順、Web、ファイル読解を含むため、単発の回答より制御フローの差が出やすい。
   problem: |
-    異なるチームが異なる scaffold でモデルを測ると、モデル差と scaffold 差を区別できない。比較の単位をモデル単体に置くと、その混同が残る。
+    Model A を scaffold X、Model B を scaffold Y で測ると、点差はモデル差とも scaffold 差とも言えない。論文の中心は「評価単位を model 単体に置くと交絡する」という問題設定である。さらに ReAct と他の二つはツール面が完全一致していないため、この論文自身の比較にも残る交絡がある（§3.3、§6）。
   why_it_might_work: |
-    計画、実行、見直しを分けると、途中の失敗を次の行動へ反映しやすくなる可能性がある。ただし論文は、その因果メカニズムを特定したとは述べていない。
+    **読書メモ（推論）**。PAR は rater が失敗を検出して actor の次手を狭める。planner-then-executor は失敗しても残りの計画を参照できる。どちらも無目的な再試行を減らせる仮説である。論文はこの因果機構を同定しておらず、回復率は記述的な行動指標として報告している。
   evidence: |
-    論文は3 × 5 の要因計画で、GAIA validation の Level 1 と Level 2 を評価した。各セルは問題ごとに3試行し、ブートストラップ信頼区間と scaffold × model の混合効果ロジスティック回帰を報告する。
+    設計は 3 scaffold × 5 model × 139 問 × 3 attempt、計画上 6,255 runs である（Level 1 は 53 問、Level 2 は 86 問、§3.5）。実行完了は 5,907 runs で、15/30 cell は部分的だった（§3.6）。主指標は公式 GAIA scorer の正誤。clustered bootstrap 95% CI と scaffold × model の混合効果ロジスティック回帰を使う（§3.5、§4.1）。
 
-    論文は、ReAct と他の scaffold のツール面が完全には同じでなかったと記す。provider 側のシリアライズ不具合、未完了セル、validation を用いた点も限界に挙げている。
+    強みは事前登録、条件固定、失敗・コスト・ツール量のログである。弱みは公開 validation、provider serialization bug、未完了 cell、ReAct の異なるツール面、reasoning mode を無効にした逸脱である。したがって 28 ポイントを一般的な「scaffold 効果」とは読めない。
   executable_understanding: |
-    このライブラリでは論文の実験を再実装していない。比較の条件、使用したツール、試行回数は原論文の Methodology で確認する。
+    `uv run papers/scaffold-effects-gaia/run.py` は、同じ 90 個の合成多段タスクに途中エラーを注入する。reactive loop、PAR 風の planner–actor–rater、planner-then-executor を比較する。結果は `results.json` に保存する。ここでの agent は確率的な規則であり、LLM でも GAIA でもない。
   results: |
-    原論文の主結果は、scaffold だけで同一モデルの測定精度が最大28ポイント変わったことだ。Level 2 の PAR 対 ReAct の優位は Anthropic 系では見られたが、プロバイダ横断では一様ではなかった。planner-then-executor がファイル読みで有利という仮説は支持されなかった。
+    著者報告では、Level 2 の robust slice で Opus の gap は 0.28。H2 の「高能力ほど scaffold 感度が下がる」は方向が反証された（§4.1）。Level 2 の平均回復率は ReAct 0.38、PAR 0.57、planner-then-executor 0.51 と報告されたが、因果検定ではない（§4.3）。
+
+    下の表は独自の合成実験であって、原論文の数値ではない。
   what_we_verified: |
-    このライブラリは独自の実験を行っていない。検証欄はすべて「未検証」である。
+    合成タスクでは、構造化した制御が注入済みエラー後の回復率を上げ、平均ツール呼び出しを減らす設定を再現した。これは「回復のための状態・評価点を置く」という機構の例示であり、**メカニズムは PARTIAL** とする。
   what_we_did_not_verify: |
-    GAIA の再実行、論文の統計検定、コスト計算、各プロバイダでの再現性は確認していない。
+    GAIA、5 モデル、bootstrap CI、混合効果モデル、28 ポイント、provider 差、費用は再実行していない。実サービスでの信頼性、費用対効果、最適な agent 数も未検証である。反証には、ツール面を完全一致させた held-out task 上の再現と、失敗検出・修復介入を個別に外す ablation が要る。
   implementation: |
-    独自実装は置かない。論文が案内する匿名リポジトリと、受理後に公開予定のログについては原論文を参照する。
+    `run.py` は固定 seed の小さな状態機械である。途中エラーの位置、回復確率、修復に必要な呼び出しを明示している。実装は説明用で、本番 agent framework の代替ではない。
   mapping: |
-    | 原論文 | このノート |
+    | 原論文 | この Lab |
     | --- | --- |
-    | Abstract / §4.1 | scaffold gap と H1/H2 の記録 |
-    | §4.2 | H3/H4 の条件付きの結果 |
-    | §4.3 | ツール呼び出しと復帰の観察 |
-    | §6 | ツール面・SDK・validation の限界 |
+    | §3.3 | `control-flow.svg` と scaffold の状態機械 |
+    | §3.5 | 同一 task set・seed の比較という簡略化 |
+    | §4.1–4.2 | gap と family 条件付きの解説 |
+    | §4.3 | `recovery.svg`、回復率・ツール量 |
+    | §6 | 未検証項目と交絡の指摘 |

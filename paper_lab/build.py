@@ -199,6 +199,7 @@ def build(
     papers_out = site / "papers"
     assets.mkdir(parents=True)
     papers_out.mkdir()
+    figures_out = site / "figures"
 
     css_src = TEMPLATES_DIR / "style.css"
     (assets / "style.css").write_text(css_src.read_text(encoding="utf-8"), encoding="utf-8")
@@ -226,6 +227,13 @@ def build(
 
     paper_template = env.get_template("paper.html")
     for lab in labs:
+        rendered_figures = []
+        for figure in lab.figures:
+            source = lab.source_dir / figure["path"]
+            destination = figures_out / lab.id / figure["path"]
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
+            rendered_figures.append({**figure, "url": f"../figures/{lab.id}/{figure['path']}"})
         html = paper_template.render(
             lab=lab,
             sections=paper_sections(lab),
@@ -233,6 +241,7 @@ def build(
             verification_labels=VERIFICATION_LABELS,
             verification_status_labels=VERIFICATION_STATUS_LABELS,
             topic_labels=TOPIC_LABELS,
+            figures=rendered_figures,
         )
         (papers_out / f"{lab.slug}.html").write_text(html, encoding="utf-8")
 

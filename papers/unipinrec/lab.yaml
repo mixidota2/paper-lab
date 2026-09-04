@@ -7,46 +7,49 @@ year: 2026
 topics: [recommender-systems, generative-recommendation, ml-systems]
 urls: {paper: https://arxiv.org/abs/2606.00422, arxiv: https://arxiv.org/abs/2606.00422, pdf: https://arxiv.org/pdf/2606.00422, official_code: null}
 verdict: "Worth Reading"
-verification:
-  mechanism: NOT TESTED
-  performance: NOT TESTED
-  scaling: NOT TESTED
-  production_applicability: NOT TESTED
+verification: {mechanism: PARTIAL, performance: NOT TESTED, scaling: NOT TESTED, production_applicability: NOT TESTED}
 related_threads: [generative-rec-vs-retrieval]
 status: published
-summary: "Pinterest の候補生成とランキングを、入力・モデル・学習・配信まで一つにする。ANN を残し、MAM と KV cache 共有で段階間の重複を減らす。"
+summary: "候補生成とランキングを一つの backbone、訓練、配信に揃え、ANN を残したまま履歴 KV を段階間で再利用する Pinterest の実装報告。"
+figures:
+  - {path: figures/cascade.svg, title: "分離 cascade と統合 stack", caption: "統合は model 重みだけでなく入力、学習、配信までを対象にする。"}
+  - {path: figures/mam.svg, title: "MAM で何を隠すか", caption: "item を interleave せず action を mask し、系列長を保つ。"}
+  - {path: figures/kv-cache.svg, title: "段階間の KV-cache 再利用", caption: "ranking は history prefill を繰り返さず decode として進む。"}
 core_idea:
   author_claim: |
-    UniPinRec は、ユーザー行動列を一つの transformer でエンコードし、候補生成では ANN の内積、ランキングでは cross-attention のヘッドへ分岐する。Masked Action Modeling（MAM）は行動トークンを挿入せず、系列の長さを増やさない。
+    UniPinRec は、一つの transformer が user action sequence を候補に依存しない表現へ変換し、retrieval は ANN dot product、ranking は cross-attention head へ分岐する。Masked Action Modeling（MAM）、blended training examples、cross-stage KV-cache sharing で入力・学習・配信まで統合すると著者は説明する（§3）。
 
-    学習では行動履歴と後続の feedview impression slate を組にする。配信では retrieval が作ったユーザー履歴の KV cache を ranking が使い、履歴を再エンコードしない。著者は Pinterest の主要面で、およそ1%のオンライン engagement lift、エンドツーエンド遅延 11.1% 削減、QPS 63.6% 増を報告する。
+    Pinterest core surfaces で online engagement 約 +1%、end-to-end latency -11.1%、QPS +63.6% を報告する（Abstract、§4）。
   research_bot_interpretation: |
-    これは候補生成を生成モデルへ全面置換する話ではない。ANN と既存の段階構造を残したまま、重複していた履歴エンコードを共有する。推薦の改善をモデルだけでなく、学習データと配信境界まで含めて考える実装例として読める。
+    これは cascade を自己回帰 item generation へ全面置換する話ではない。ANN と retrieval/ranking の責務を残し、共通の履歴計算を再利用する設計である。モデル統合の価値は精度だけでなく、訓練データの接続と serving boundary にある、と読むと実務に移しやすい。
 sections:
   overview: |
-    大規模推薦では、候補生成とランキングが同じ行動履歴を別々の transformer で読みがちだ。UniPinRec はその重複を、入力・モデル・学習・配信の4層で解く。
+    典型的な推薦 cascade は、候補生成が数百万件から候補を取り、ランキングが数百件に濃い相互作用をかける。両段が同じ履歴を transformer で読むなら、パラメータ、学習、online prefill を二重に払う。UniPinRec はこの重複を full-stack の問題として扱う。
   problem: |
-    モデルの骨格だけを共有しても、入力形式、訓練例、配信プロセスが分かれていれば重複は残る。ランキングには impression の負例が要る一方、候補生成には行動履歴が要るため、学習データの組み方も課題になる。
+    retrieval は全 corpus に近い候補を低遅延で扱うので dot product と ANN が必要だ。ranking は小候補集合に cross-attention と action label を使える。目的関数も入力も異なるため、重みを同じにするだけでは統合にならない。さらに process 間で KV を渡すには、GPU memory、slot、寿命、copy の設計が必要になる（§3.3）。
   why_it_might_work: |
-    retrieval で作った履歴 KV を ranking が読めれば、重い履歴の self-attention を二度払わずに済む。MAM は行動情報を特徴次元に入れるため、候補生成と同じ系列形式を保てる。この説明は設計からの推論であり、因果の切り分けではない。
+    **読書メモ（推論）**。MAM は action を item の間に追加せず隠して予測するので、retrieval の item 系列を伸ばさず ranking signal を加えられる。retrieval が作った history KV を ranking が読むなら、二度目の quadratic prefill を decode に置き換えられる。joint loss が実際に両 stage を改善した因果は、独立した production ablation がない限り限定的に読むべきである。
   evidence: |
-    論文はオフライン評価と Pinterest の core surfaces における online 実験を報告する。配信設計では Triton ensemble、CPU 上の Faiss index、別プロセス間の GPU memory pool を記述する。
+    著者は TransAct V2 + DCNv2、HSTU、PinRec、PinRec finetuned、item loss を外した UniPinRec を比較する（§4.1）。MAM masking ratio の ablation は Hit@3 が 0.0 で 0.09923、0.2 で 0.10096、0.3 で 0.10075 と報告する（§4.3）。
 
-    著者の数値は運用環境の結果であり、このライブラリは独自に再現していない。公開コードへのリンクは論文ページで示されていない。
+    serving microbenchmark は L40S、B=8、history n=992、candidate k=656、12 layer で行い、bf16 SDPA compile の prefill 25.72 ms に対し bf16 SDPA decode 10.42 ms、約 2.47×と報告する（§4.2）。これは有益な具体性だが、hardware・batch・history 長が変われば比率は変わる。online engagement は著者の内部 A/B 実験で、外部再現はできない。
   executable_understanding: |
-    このライブラリは本番の候補生成・ランキングを再実装していない。MAM、blended training、KV cache の詳細は原論文 §3 を参照する。
+    `uv run papers/unipinrec/run.py` は 80 の合成 session で、分離 retrieval+ranking と shared backbone を比べる。同じ候補 ranking 規則のまま、history prefill 回数、cache hit、simulated work unit を数え、`results.json` に保存する。GPU KV tensor や Triton は模倣しない。
   results: |
-    著者は Pinterest の主要面で、オンライン engagement がおよそ1%上がり、エンドツーエンド遅延が11.1%下がり、QPS が63.6%上がったと報告する。これらは著者の運用実験の結果である。
+    著者報告の online variant（bf16 decode flex compile）は joint baseline に対し latency -11.1%、QPS +63.6% である（Table 3）。fp8 decode flex graph は QPS +109.1% だが latency +6.7% で、著者は batch をためる制約を説明する（§4.2）。「速い」だけでなく tail latency と精度の損失を確認すべきだ。
+
+    下の表は独自の合成カウントであり、Pinterest の latency・QPS・engagement ではない。
   what_we_verified: |
-    このライブラリは独自の実験を行っていない。検証欄はすべて「未検証」である。
+    合成 session では、shared path が ranking metric を同じに保ったまま history prefill を半減し、cache hit を得た。**メカニズムは PARTIAL**。これは状態再利用の会計上の効果であり、実 GPU の速度向上を測ったものではない。
   what_we_did_not_verify: |
-    オフライン指標、オンライン lift、遅延、QPS、既存カスケードへの移植性は再現していない。
+    MAM の学習、blended examples、cross-attention、Faiss、Triton IPC、Table 2/3、online engagement、production 安定性は再現していない。反証には、shared state の転送・待ち時間・memory pressure を含む p50/p99 実測と、item loss/MAM/KV reuse を別々に外す online ablation が必要である。
   implementation: |
-    独自実装は置かない。原論文が記す PinRec、Triton、Faiss、Ray をこのページの公式実装と混同しない。
+    `run.py` は標準ライブラリだけで実行する。KV cache は tensor ではなく「history を再計算したか」の counter で表す。ranking 規則を固定したのは、計算共有だけを見えるようにするためである。
   mapping: |
-    | 原論文 | このノート |
+    | 原論文 | この Lab |
     | --- | --- |
-    | §3.1.1 | MAM と非インターリーブ入力 |
-    | §3.2 | blended training と in-trainer join |
-    | §3.3 | retrieval / ranking 間の KV cache 共有 |
-    | Abstract / §4 | オフライン・オンラインの著者報告 |
+    | §3.1 | `mam.svg`、item loss と action loss の役割 |
+    | §3.2 | blended training の説明 |
+    | §3.3 | `kv-cache.svg`、cache hit / prefill counter |
+    | §4.2 | microbenchmark と online 数値の境界 |
+    | §4.3 | masking ratio ablation と反証条件 |

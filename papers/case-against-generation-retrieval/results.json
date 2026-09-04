@@ -1,0 +1,24 @@
+{
+  "note": "合成ベクトルと意図的に壊れやすい逐次 ID デコードの比較。ANN ライブラリ、LLM、Meta の NE は使わない。",
+  "experiments": [
+    {
+      "name": "逐次 ID デコードと因子化検索",
+      "dataset": "synthetic catalog",
+      "n": 40,
+      "seed": 20260904,
+      "metrics": {
+        "generative_style_decode": {
+          "recall_at_1": 0.0,
+          "elapsed_ms": 164.133,
+          "grounding_failures": 40
+        },
+        "two_tower_exact_ann": {
+          "recall_at_1": 0.95,
+          "elapsed_ms": 5.086,
+          "grounding_failures": 0
+        }
+      }
+    }
+  ],
+  "boundary": "逐次デコードの grounding と計算経路のトレードオフを可視化するだけで、実サービスの性能比較ではない。"
+}

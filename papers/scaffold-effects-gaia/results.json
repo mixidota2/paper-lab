@@ -1,0 +1,29 @@
+{
+  "note": "合成した多段タスクの決定的な玩具実験。GAIA、LLM、論文の数値は再現していない。",
+  "experiments": [
+    {
+      "name": "同一タスク上の scaffold 比較",
+      "dataset": "synthetic 90 tasks",
+      "n": 90,
+      "seed": 20260904,
+      "metrics": {
+        "reactive": {
+          "success_rate": 0.744,
+          "recovery_after_injected_error": 0.4,
+          "mean_tool_calls": 4.14
+        },
+        "planner_actor_rater": {
+          "success_rate": 0.811,
+          "recovery_after_injected_error": 0.767,
+          "mean_tool_calls": 3.81
+        },
+        "planner_then_executor": {
+          "success_rate": 0.756,
+          "recovery_after_injected_error": 0.567,
+          "mean_tool_calls": 3.81
+        }
+      }
+    }
+  ],
+  "boundary": "構造化した制御で注入済みエラーの回復と呼び出し量が変わる、という機構の例示だけを検証する。"
+}

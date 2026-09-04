@@ -145,6 +145,7 @@ class Lab:
     core_idea: CoreIdea = field(default_factory=CoreIdea)
     results: Any = None
     mapping_markdown: str = ""
+    figures: list[dict[str, str]] = field(default_factory=list)
 
     @property
     def slug(self) -> str:
@@ -296,6 +297,7 @@ def lab_from_dict(raw: dict[str, Any], paper_dir: Path) -> Lab:
     if "mapping" not in sections and mapping_path.is_file():
         sections["mapping"] = mapping_path.read_text(encoding="utf-8")
     mapping_markdown = sections.get("mapping", "")
+    figures = _parse_figures(raw.get("figures"), paper_dir)
 
     results = _load_results(paper_dir, sections.get("results"))
     if isinstance(sections.get("results"), str) and sections["results"].strip().startswith("{"):
@@ -322,7 +324,28 @@ def lab_from_dict(raw: dict[str, Any], paper_dir: Path) -> Lab:
         core_idea=core_idea,
         results=results,
         mapping_markdown=mapping_markdown,
+        figures=figures,
     )
+
+
+def _parse_figures(value: Any, paper_dir: Path) -> list[dict[str, str]]:
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise LabError(f"{paper_dir}/lab.yaml: figures must be a list")
+    figures: list[dict[str, str]] = []
+    for item in value:
+        if not isinstance(item, dict):
+            raise LabError(f"{paper_dir}/lab.yaml: each figure must be a mapping")
+        path, title, caption = item.get("path"), item.get("title"), item.get("caption", "")
+        if not isinstance(path, str) or not path or Path(path).is_absolute() or ".." in Path(path).parts:
+            raise LabError(f"{paper_dir}/lab.yaml: figure path must be a safe relative path")
+        if not isinstance(title, str) or not title or not isinstance(caption, str):
+            raise LabError(f"{paper_dir}/lab.yaml: invalid figure title or caption")
+        if not (paper_dir / path).is_file():
+            raise LabError(f"{paper_dir}/lab.yaml: figure does not exist: {path}")
+        figures.append({"path": path, "title": title, "caption": caption})
+    return figures
 
 
 def _looks_like_example(title: str, lab_id: str) -> bool:

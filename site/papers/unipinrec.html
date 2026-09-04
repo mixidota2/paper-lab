@@ -1,33 +1,75 @@
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Pinterest の候補生成とランキングを、入力・モデル・学習・配信まで一つにする。ANN を残し、MAM と KV cache 共有で段階間の重複を減らす。"><title>UniPinRec: Unifying Generative Retrieval and Ranking at Pinterest Scale | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"></head>
-<body><a class="skip-link" href="#paper">本文へ移動</a><header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
-<main id="paper" class="paper shell"><nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2606.00422</span></nav><header class="paper-hero"><p class="priority priority--worth">Worth Reading</p><h1>UniPinRec: Unifying Generative Retrieval and Ranking at Pinterest Scale</h1><p class="authors">Hanyu Li, Yi-Ping Hsu, Aditya Mantha, Prabhat Agarwal, Laksh Bhasin, Jialu Wang, Hongtao Lin, Bella Huang, Yaxin Li, Xinyi Li, Chuxi Wang, Kousik Rajesh, Hooshmand Shokri Razaghi, Shunyao Li, Zongyue Qin, Jaewon Yang, James Li, Dhruvil Deven Badani, Jiajing Xu, Charles Rosenberg</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2606.00422" rel="noopener">2606.00422</a></dd></div><div><dt>投稿</dt><dd>2026-05-29</dd></div><div><dt>収録</dt><dd>2026</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2606.00422" rel="noopener">arXiv で読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2606.00422" rel="noopener">PDF</a></div></header><aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside><div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>大規模推薦では、候補生成とランキングが同じ行動履歴を別々の transformer で読みがちだ。UniPinRec はその重複を、入力・モデル・学習・配信の4層で解く。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>モデルの骨格だけを共有しても、入力形式、訓練例、配信プロセスが分かれていれば重複は残る。ランキングには impression の負例が要る一方、候補生成には行動履歴が要るため、学習データの組み方も課題になる。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>UniPinRec は、ユーザー行動列を一つの transformer でエンコードし、候補生成では ANN の内積、ランキングでは cross-attention のヘッドへ分岐する。Masked Action Modeling（MAM）は行動トークンを挿入せず、系列の長さを増やさない。</p>
-<p>学習では行動履歴と後続の feedview impression slate を組にする。配信では retrieval が作ったユーザー履歴の KV cache を ranking が使い、履歴を再エンコードしない。著者は Pinterest の主要面で、およそ1%のオンライン engagement lift、エンドツーエンド遅延 11.1% 削減、QPS 63.6% 増を報告する。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>これは候補生成を生成モデルへ全面置換する話ではない。ANN と既存の段階構造を残したまま、重複していた履歴エンコードを共有する。推薦の改善をモデルだけでなく、学習データと配信境界まで含めて考える実装例として読める。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p>retrieval で作った履歴 KV を ranking が読めれば、重い履歴の self-attention を二度払わずに済む。MAM は行動情報を特徴次元に入れるため、候補生成と同じ系列形式を保てる。この説明は設計からの推論であり、因果の切り分けではない。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>論文はオフライン評価と Pinterest の core surfaces における online 実験を報告する。配信設計では Triton ensemble、CPU 上の Faiss index、別プロセス間の GPU memory pool を記述する。</p>
-<p>著者の数値は運用環境の結果であり、このライブラリは独自に再現していない。公開コードへのリンクは論文ページで示されていない。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p>このライブラリは本番の候補生成・ランキングを再実装していない。MAM、blended training、KV cache の詳細は原論文 §3 を参照する。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p>著者は Pinterest の主要面で、オンライン engagement がおよそ1%上がり、エンドツーエンド遅延が11.1%下がり、QPS が63.6%上がったと報告する。これらは著者の運用実験の結果である。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p>このライブラリは独自の実験を行っていない。検証欄はすべて「未検証」である。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>オフライン指標、オンライン lift、遅延、QPS、既存カスケードへの移植性は再現していない。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p>独自実装は置かない。原論文が記す PinRec、Triton、Faiss、Ray をこのページの公式実装と混同しない。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="候補生成とランキングを一つの backbone、訓練、配信に揃え、ANN を残したまま履歴 KV を段階間で再利用する Pinterest の実装報告。"><title>UniPinRec: Unifying Generative Retrieval and Ranking at Pinterest Scale | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
+<main id="paper" class="paper shell">
+<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2606.00422</span></nav>
+<header class="paper-hero"><p class="priority priority--worth">Worth Reading</p><h1>UniPinRec: Unifying Generative Retrieval and Ranking at Pinterest Scale</h1><p class="authors">Hanyu Li, Yi-Ping Hsu, Aditya Mantha, Prabhat Agarwal, Laksh Bhasin, Jialu Wang, Hongtao Lin, Bella Huang, Yaxin Li, Xinyi Li, Chuxi Wang, Kousik Rajesh, Hooshmand Shokri Razaghi, Shunyao Li, Zongyue Qin, Jaewon Yang, James Li, Dhruvil Deven Badani, Jiajing Xu, Charles Rosenberg</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2606.00422" rel="noopener">2606.00422</a></dd></div><div><dt>投稿</dt><dd>2026-05-29</dd></div><div><dt>収録</dt><dd>2026</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2606.00422" rel="noopener">arXiv で読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2606.00422" rel="noopener">PDF</a></div></header>
+<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
+<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid"><figure><img src="../figures/unipinrec/figures/cascade.svg" alt="分離 cascade と統合 stack" loading="lazy"><figcaption><strong>分離 cascade と統合 stack</strong><br>統合は model 重みだけでなく入力、学習、配信までを対象にする。</figcaption></figure><figure><img src="../figures/unipinrec/figures/mam.svg" alt="MAM で何を隠すか" loading="lazy"><figcaption><strong>MAM で何を隠すか</strong><br>item を interleave せず action を mask し、系列長を保つ。</figcaption></figure><figure><img src="../figures/unipinrec/figures/kv-cache.svg" alt="段階間の KV-cache 再利用" loading="lazy"><figcaption><strong>段階間の KV-cache 再利用</strong><br>ranking は history prefill を繰り返さず decode として進む。</figcaption></figure></div></section>
+<div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>典型的な推薦 cascade は、候補生成が数百万件から候補を取り、ランキングが数百件に濃い相互作用をかける。両段が同じ履歴を transformer で読むなら、パラメータ、学習、online prefill を二重に払う。UniPinRec はこの重複を full-stack の問題として扱う。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>retrieval は全 corpus に近い候補を低遅延で扱うので dot product と ANN が必要だ。ranking は小候補集合に cross-attention と action label を使える。目的関数も入力も異なるため、重みを同じにするだけでは統合にならない。さらに process 間で KV を渡すには、GPU memory、slot、寿命、copy の設計が必要になる（§3.3）。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>UniPinRec は、一つの transformer が user action sequence を候補に依存しない表現へ変換し、retrieval は ANN dot product、ranking は cross-attention head へ分岐する。Masked Action Modeling（MAM）、blended training examples、cross-stage KV-cache sharing で入力・学習・配信まで統合すると著者は説明する（§3）。</p>
+<p>Pinterest core surfaces で online engagement 約 +1%、end-to-end latency -11.1%、QPS +63.6% を報告する（Abstract、§4）。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>これは cascade を自己回帰 item generation へ全面置換する話ではない。ANN と retrieval/ranking の責務を残し、共通の履歴計算を再利用する設計である。モデル統合の価値は精度だけでなく、訓練データの接続と serving boundary にある、と読むと実務に移しやすい。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p><strong>読書メモ（推論）</strong>。MAM は action を item の間に追加せず隠して予測するので、retrieval の item 系列を伸ばさず ranking signal を加えられる。retrieval が作った history KV を ranking が読むなら、二度目の quadratic prefill を decode に置き換えられる。joint loss が実際に両 stage を改善した因果は、独立した production ablation がない限り限定的に読むべきである。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>著者は TransAct V2 + DCNv2、HSTU、PinRec、PinRec finetuned、item loss を外した UniPinRec を比較する（§4.1）。MAM masking ratio の ablation は Hit@3 が 0.0 で 0.09923、0.2 で 0.10096、0.3 で 0.10075 と報告する（§4.3）。</p>
+<p>serving microbenchmark は L40S、B=8、history n=992、candidate k=656、12 layer で行い、bf16 SDPA compile の prefill 25.72 ms に対し bf16 SDPA decode 10.42 ms、約 2.47×と報告する（§4.2）。これは有益な具体性だが、hardware・batch・history 長が変われば比率は変わる。online engagement は著者の内部 A/B 実験で、外部再現はできない。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p><code>uv run papers/unipinrec/run.py</code> は 80 の合成 session で、分離 retrieval+ranking と shared backbone を比べる。同じ候補 ranking 規則のまま、history prefill 回数、cache hit、simulated work unit を数え、<code>results.json</code> に保存する。GPU KV tensor や Triton は模倣しない。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p class="callout-body"><em>合成履歴で、同じランキング規則を使いながら履歴 prefill の重複だけを数える玩具実験。Pinterest の GPU 遅延やオンライン指標は再現していない。</em></p>
+<h3>分離 cascade と KV 再利用</h3>
+<ul><li><strong>dataset</strong>: synthetic 80 sessions</li><li><strong>n</strong>: 80</li><li><strong>seed</strong>: 20260904</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>hit_at_3</th><th>history_prefills</th><th>cache_hits</th><th>simulated_work_units</th></tr></thead><tbody><tr><th scope='row'>separate_retrieval_ranking</th><td>0.838</td><td>160</td><td>0</td><td>3360</td></tr><tr><th scope='row'>unified_cache_reuse</th><td>0.838</td><td>80</td><td>80</td><td>2080</td></tr></tbody></table>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成履歴で、同じランキング規則を使いながら履歴 prefill の重複だけを数える玩具実験。Pinterest の GPU 遅延やオンライン指標は再現していない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;分離 cascade と KV 再利用&quot;,
+      &quot;dataset&quot;: &quot;synthetic 80 sessions&quot;,
+      &quot;n&quot;: 80,
+      &quot;seed&quot;: 20260904,
+      &quot;metrics&quot;: {
+        &quot;separate_retrieval_ranking&quot;: {
+          &quot;hit_at_3&quot;: 0.838,
+          &quot;history_prefills&quot;: 160,
+          &quot;cache_hits&quot;: 0,
+          &quot;simulated_work_units&quot;: 3360
+        },
+        &quot;unified_cache_reuse&quot;: {
+          &quot;hit_at_3&quot;: 0.838,
+          &quot;history_prefills&quot;: 80,
+          &quot;cache_hits&quot;: 80,
+          &quot;simulated_work_units&quot;: 2080
+        }
+      }
+    }
+  ],
+  &quot;boundary&quot;: &quot;共有状態が同じ候補ランキングを保ったまま再計算量を減らせることの例示に限る。&quot;
+}</code></pre></details><p>著者報告の online variant（bf16 decode flex compile）は joint baseline に対し latency -11.1%、QPS +63.6% である（Table 3）。fp8 decode flex graph は QPS +109.1% だが latency +6.7% で、著者は batch をためる制約を説明する（§4.2）。「速い」だけでなく tail latency と精度の損失を確認すべきだ。</p>
+<p>下の表は独自の合成カウントであり、Pinterest の latency・QPS・engagement ではない。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p>合成 session では、shared path が ranking metric を同じに保ったまま history prefill を半減し、cache hit を得た。<strong>メカニズムは PARTIAL</strong>。これは状態再利用の会計上の効果であり、実 GPU の速度向上を測ったものではない。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>MAM の学習、blended examples、cross-attention、Faiss、Triton IPC、Table 2/3、online engagement、production 安定性は再現していない。反証には、shared state の転送・待ち時間・memory pressure を含む p50/p99 実測と、item loss/MAM/KV reuse を別々に外す online ablation が必要である。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p><code>run.py</code> は標準ライブラリだけで実行する。KV cache は tensor ではなく「history を再計算したか」の counter で表す。ranking 規則を固定したのは、計算共有だけを見えるようにするためである。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
 <thead>
 <tr>
 <th>原論文</th>
-<th>このノート</th>
+<th>この Lab</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>§3.1.1</td>
-<td>MAM と非インターリーブ入力</td>
+<td>§3.1</td>
+<td><code>mam.svg</code>、item loss と action loss の役割</td>
 </tr>
 <tr>
 <td>§3.2</td>
-<td>blended training と in-trainer join</td>
+<td>blended training の説明</td>
 </tr>
 <tr>
 <td>§3.3</td>
-<td>retrieval / ranking 間の KV cache 共有</td>
+<td><code>kv-cache.svg</code>、cache hit / prefill counter</td>
 </tr>
 <tr>
-<td>Abstract / §4</td>
-<td>オフライン・オンラインの著者報告</td>
+<td>§4.2</td>
+<td>microbenchmark と online 数値の境界</td>
+</tr>
+<tr>
+<td>§4.3</td>
+<td>masking ratio ablation と反証条件</td>
 </tr>
 </tbody>
-</table></div></section></article></div></main><footer class="footer"><div class="shell"><p>原データ: <code>papers/unipinrec/lab.yaml</code></p></div></footer>
+</table></div></section></article></div>
+</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/unipinrec/lab.yaml</code></p></div></footer>
 </body></html>

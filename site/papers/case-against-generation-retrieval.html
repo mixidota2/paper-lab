@@ -1,37 +1,73 @@
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="LLM を逐次生成器ではなく二塔モデルの表現基盤として使い、事前計算したアイテム表現と ANN を保つ。生成型 retrieval への明確な反論。"><title>The Case Against Generation for Retrieval: Discriminative Language Models as Effective Retrievers | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"></head>
-<body><a class="skip-link" href="#paper">本文へ移動</a><header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
-<main id="paper" class="paper shell"><nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2607.25346</span></nav><header class="paper-hero"><p class="priority priority--must">Must Read</p><h1>The Case Against Generation for Retrieval: Discriminative Language Models as Effective Retrievers</h1><p class="authors">Zhe Xu, Prachi Agrawal, Kavosh Asadi, Tianyi Chen, Carl Hu, Justin Johnson, Wuwei Lan, Mingfu Liang, Xi Liu, Tik On Lui, Oladipo Ositelu, Sandeep Pandey, Ankit Peshin, Feng Qi, Anil Ramakrishna, Kaushik Rangadurai, Frank Shyu, Luke Simon, Yang Yang, Chiyu Zhang</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2607.25346" rel="noopener">2607.25346</a></dd></div><div><dt>投稿</dt><dd>2026-08-01 (v2)</dd></div><div><dt>収録</dt><dd>2026</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2607.25346" rel="noopener">arXiv で読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2607.25346" rel="noopener">PDF</a></div></header><aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside><div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>Web 規模で生成推薦や zero-shot ranking を動かすと、計算量と grounding が問題になる。本論文は二塔モデルを LLM 時代の表現学習で更新する。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>二塔モデルはアイテム側を事前計算できる一方、ユーザーとアイテムの細かな相互作用を落とす。cross-encoder は強いが、候補生成には重すぎる。その隔たりを、教師からの蒸留で埋める。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>著者は、ユーザーとアイテムで共有する LLM エンコーダ、EOS pooling、データセット横断の転移学習、cross-encoder から two-tower への蒸留、ユーザー塔だけの latent reasoning を組み合わせる。</p>
-<p>アイテム表現は事前計算できるため、検索時はユーザー表現との内積と近似最近傍探索を使える。論文は、公開ベンチマークで cross-encoder が既存法を上回り、two-tower 学生も競争力のある retrieval 性能を示したと報告する。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>LLM を使うことと、推薦を自己回帰デコードにすることは別の選択だ、と整理できる。意味表現の改善を取り込みながら ANN の運用特性を残す設計は、既存の候補生成をすぐ置き換えられない場面で読む価値がある。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p>アイテム表現を前計算できれば、検索時に逐次トークンを生成しなくてよい。cross-encoder の候補集合内の順位分布を学生へ渡す蒸留は、二塔モデルが失う相互作用の一部を補う方法として読める。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>論文は Amazon の3公開ベンチマークと社内の大規模データで評価する。公開実験では Recall@K と NDCG@K を使い、社内実験では retrieval の NE、staleness、データ・モデルのスケールを扱う。</p>
-<p>公開コードは論文ページで示されていない。社内データの実験は、第三者が同じ条件で再現できない。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p>このライブラリは ANN と生成型 retrieval の性能比較を実装していない。効率についての議論は原論文 §4.3 を参照する。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p>著者は、生成型 retrieval が逐次デコードを要するのに対し、提案法はユーザーを一度エンコードして、事前計算済みのアイテム表現を ANN で検索すると説明する。論文は社内実験で staleness への強さとデータスケールでの優位も報告している。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p>このライブラリは独自の実験を行っていない。検証欄はすべて「未検証」である。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>公開ベンチマークの数値、蒸留の寄与、社内 NE、staleness、データスケールの結果は再現していない。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p>独自実装と公式コードへのリンクは掲載しない。論文本文で示される設計のみを記録する。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="LLM の意味表現は使いながら、検索は二塔と ANN に残す。生成デコードの計算量と grounding を、設計選択として問い直す論文。"><title>The Case Against Generation for Retrieval: Discriminative Language Models as Effective Retrievers | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
+<main id="paper" class="paper shell">
+<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2607.25346</span></nav>
+<header class="paper-hero"><p class="priority priority--must">Must Read</p><h1>The Case Against Generation for Retrieval: Discriminative Language Models as Effective Retrievers</h1><p class="authors">Zhe Xu, Prachi Agrawal, Kavosh Asadi, Tianyi Chen, Carl Hu, Justin Johnson, Wuwei Lan, Mingfu Liang, Xi Liu, Tik On Lui, Oladipo Ositelu, Sandeep Pandey, Ankit Peshin, Feng Qi, Anil Ramakrishna, Kaushik Rangadurai, Frank Shyu, Luke Simon, Yang Yang, Chiyu Zhang</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2607.25346" rel="noopener">2607.25346</a></dd></div><div><dt>投稿</dt><dd>2026-08-01 (v2)</dd></div><div><dt>収録</dt><dd>2026</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2607.25346" rel="noopener">arXiv で読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2607.25346" rel="noopener">PDF</a></div></header>
+<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
+<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid"><figure><img src="../figures/case-against-generation-retrieval/figures/paths.svg" alt="逐次生成と二塔 + ANN の経路" loading="lazy"><figcaption><strong>逐次生成と二塔 + ANN の経路</strong><br>LLM を使うかと、ID を逐次生成するかは別の選択である。</figcaption></figure><figure><img src="../figures/case-against-generation-retrieval/figures/distillation.svg" alt="cross-encoder から二塔への蒸留" loading="lazy"><figcaption><strong>cross-encoder から二塔への蒸留</strong><br>教師の候補内 score 分布を、因子化した学生に移す。</figcaption></figure><figure><img src="../figures/case-against-generation-retrieval/figures/failure-modes.svg" alt="遅延と grounding の比較軸" loading="lazy"><figcaption><strong>遅延と grounding の比較軸</strong><br>二塔にも表現・index 鮮度という別の失敗面がある。</figcaption></figure></div></section>
+<div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>Web 規模の推薦では、候補を数百万件から絞る段階に一件ずつの token decode を持ち込むと、遅延と item grounding が難しくなる。論文は LLM を表現学習の backbone として使い、候補生成の計算形は二塔に戻す。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>cross-encoder は user と item を一緒に読めるので精密だが、全 catalog を採点できない。二塔は item を事前計算できるが、その相互作用を捨てる。生成 retrieval は ID を出力できても、存在しない ID、古い ID、token ごとの遅延を扱う必要がある。論文の狙いは、教師の精密さを学生へ移しつつ ANN の性質を保つことだ。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>著者は共有 LLM encoder、EOS pooling、cross-dataset transfer、cross-encoder teacher から two-tower student への蒸留、user tower 内の latent reasoning を提案する。item embedding を前計算し、検索時は user embedding と ANN を使う（§4–5）。</p>
+<p>公開 3 benchmark では cross-encoder が強く、two-tower student は競争力のある retrieval を示したと報告する。内部実験では、two-tower が production DLRM と 0.5% の学習データで NE parity、cross-encoder が 0.15% で parity と報告する（§6–7）。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>この反論の対象は LLM そのものではなく、候補生成を自己回帰 decode にする必然性である。意味表現の改善を ANN の外部 index と組み合わせれば、更新・検索・運用の境界を保てる。反対に、二塔が失う細かな user–item 相互作用を蒸留だけで十分に戻せるかは、用途ごとに残る問いだ。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p><strong>読書メモ（推論）</strong>。教師が同一候補集合への相対的な score を渡すと、正解 / 不正解だけより豊かな近傍構造を学生に与えられる。item 側を固定・前計算できるため、catalog の大きさが online user forward を直接は増やさない。これは蒸留が user–item interaction を完全に復元する主張ではない。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>§6 は Amazon の Beauty、Sports、Toys を使い Recall@K と NDCG@K を報告する。two-tower の leave-one-out では CE2TT を外すと R@10 が Beauty で 0.0825→0.0715、Sports で 0.0542→0.0417、Toys で 0.1078→0.0992 となった（§6.2.3）。teacher の yes/no + NTP は 12 dataset–metric の最良値と著者は述べる（§6.2.2）。</p>
+<p>§7 の内部結果は重要だが、データ、traffic、NE の詳細な再現条件が公開されない。0.5% parity や staleness は著者報告としては強いが、第三者再現の証拠ではない。生成法との matched production head-to-head も、このページで確認した範囲ではない。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p><code>uv run papers/case-against-generation-retrieval/run.py</code> は 160 item の合成 catalog を作る。意図的に壊れやすい逐次 semantic-ID decode と、事前計算 embedding への厳密 top-1 検索を比べ、時間・grounding failure を <code>results.json</code> に残す。ANN library や LLM は使わない。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p class="callout-body"><em>合成ベクトルと意図的に壊れやすい逐次 ID デコードの比較。ANN ライブラリ、LLM、Meta の NE は使わない。</em></p>
+<h3>逐次 ID デコードと因子化検索</h3>
+<ul><li><strong>dataset</strong>: synthetic catalog</li><li><strong>n</strong>: 40</li><li><strong>seed</strong>: 20260904</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>recall_at_1</th><th>elapsed_ms</th><th>grounding_failures</th></tr></thead><tbody><tr><th scope='row'>generative_style_decode</th><td>0.0</td><td>164.133</td><td>40</td></tr><tr><th scope='row'>two_tower_exact_ann</th><td>0.95</td><td>5.086</td><td>0</td></tr></tbody></table>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成ベクトルと意図的に壊れやすい逐次 ID デコードの比較。ANN ライブラリ、LLM、Meta の NE は使わない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;逐次 ID デコードと因子化検索&quot;,
+      &quot;dataset&quot;: &quot;synthetic catalog&quot;,
+      &quot;n&quot;: 40,
+      &quot;seed&quot;: 20260904,
+      &quot;metrics&quot;: {
+        &quot;generative_style_decode&quot;: {
+          &quot;recall_at_1&quot;: 0.0,
+          &quot;elapsed_ms&quot;: 164.133,
+          &quot;grounding_failures&quot;: 40
+        },
+        &quot;two_tower_exact_ann&quot;: {
+          &quot;recall_at_1&quot;: 0.95,
+          &quot;elapsed_ms&quot;: 5.086,
+          &quot;grounding_failures&quot;: 0
+        }
+      }
+    }
+  ],
+  &quot;boundary&quot;: &quot;逐次デコードの grounding と計算経路のトレードオフを可視化するだけで、実サービスの性能比較ではない。&quot;
+}</code></pre></details><p>著者報告では、公開 benchmark の two-tower は OneRec-Think より三 dataset の R@10 が高い一方、NDCG は一様でない（§6.2.1）。内部 CE の 2× / 3× data scaling は各 1× 基準から +1.59% / +2.19% NE、DLRM は +1.30% / +1.80% と報告する（§7.2）。この差はデータ・実装条件に依存する。</p>
+<p>下の表は合成実験であり、Meta の benchmark、NE、処理時間ではない。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p>合成 catalog では、因子化検索が「登録済み item を返す」経路を保ち、意図的な逐次 ID decoder より高い top-1 と少ない failure を示した。<strong>メカニズムは PARTIAL</strong>。これは設計上の trade-off を動かして見せたにすぎない。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>CE2TT の学習、EOS pooling、latent reasoning、公開値、0.5% parity、staleness、data scaling、実 ANN の近似誤差を再現していない。反証には、同じ feature・catalog・更新頻度で、生成と二塔を online に比較し、invalid / stale ID の割合も測る必要がある。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p><code>run.py</code> は外部依存なしの CPU 実装である。生成側の失敗は、論文から推定した頻度ではなく、grounding 問題を明示するために注入した。production Meta 実装ではない。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
 <thead>
 <tr>
 <th>原論文</th>
-<th>このノート</th>
+<th>この Lab</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>§3</td>
-<td>二塔と cross-encoder の役割</td>
+<td>§4.1</td>
+<td><code>distillation.svg</code>、teacher / student の役割</td>
 </tr>
 <tr>
-<td>§4.2.4</td>
-<td>CE2TT 蒸留</td>
+<td>§4.2</td>
+<td>shared encoder、EOS、CE2TT の説明</td>
 </tr>
 <tr>
-<td>§4.2.5</td>
-<td>ユーザー塔だけの latent reasoning</td>
+<td>§5</td>
+<td><code>paths.svg</code>、前計算 item と ANN</td>
 </tr>
 <tr>
-<td>§4.3</td>
-<td>ANN と自己回帰デコードの効率議論</td>
+<td>§6.2.3</td>
+<td>CE2TT ablation の数値</td>
 </tr>
 <tr>
-<td>§6–7</td>
-<td>公開・社内実験の根拠</td>
+<td>§7</td>
+<td>parity・staleness・scaling の検証境界</td>
 </tr>
 </tbody>
-</table></div></section></article></div></main><footer class="footer"><div class="shell"><p>原データ: <code>papers/case-against-generation-retrieval/lab.yaml</code></p></div></footer>
+</table></div></section></article></div>
+</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/case-against-generation-retrieval/lab.yaml</code></p></div></footer>
 </body></html>

@@ -1,0 +1,26 @@
+{
+  "note": "合成履歴で、同じランキング規則を使いながら履歴 prefill の重複だけを数える玩具実験。Pinterest の GPU 遅延やオンライン指標は再現していない。",
+  "experiments": [
+    {
+      "name": "分離 cascade と KV 再利用",
+      "dataset": "synthetic 80 sessions",
+      "n": 80,
+      "seed": 20260904,
+      "metrics": {
+        "separate_retrieval_ranking": {
+          "hit_at_3": 0.838,
+          "history_prefills": 160,
+          "cache_hits": 0,
+          "simulated_work_units": 3360
+        },
+        "unified_cache_reuse": {
+          "hit_at_3": 0.838,
+          "history_prefills": 80,
+          "cache_hits": 80,
+          "simulated_work_units": 2080
+        }
+      }
+    }
+  ],
+  "boundary": "共有状態が同じ候補ランキングを保ったまま再計算量を減らせることの例示に限る。"
+}
