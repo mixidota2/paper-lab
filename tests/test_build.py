@@ -1,136 +1,70 @@
-"""Smoke tests for the Interactive Research Library generator."""
+"""Tests for the deterministic static Research Library build."""
 
-from __future__ import annotations
-
-import json
 from pathlib import Path
 
 import pytest
 
-from paper_lab.build import build, main
-from paper_lab.models import (
-    STANDARD_SECTIONS,
-    VERIFICATION_KEYS,
-    LabError,
-    load_all_labs,
-    load_lab,
-)
+from paper_lab.build import build
+from paper_lab.models import LabError, load_all_labs, load_lab
 
-ROOT = Path(__file__).resolve().parent.parent
-SAMPLE_DIR = ROOT / "papers" / "scaffold-effects-gaia"
-EXPECTED_IDS = {
-    "scaffold-effects-gaia",
-    "case-against-generation-retrieval",
-    "unipinrec",
+ROOT = Path(__file__).resolve().parents[1]
+EXPECTED = {
+    "scaffold-effects-gaia": "2606.08529",
+    "case-against-generation-retrieval": "2607.25346",
+    "unipinrec": "2606.00422",
 }
 
 
-def test_sample_lab_yaml_loads():
-    lab = load_lab(SAMPLE_DIR)
-    assert lab.id == "scaffold-effects-gaia"
-    assert lab.example is False
-    assert lab.status == "published"
-    assert lab.status_label == "公開"
-    assert lab.year == 2026
-    assert "ai-agent-systems" in lab.topics
-    assert lab.urls.arxiv
-    for key in VERIFICATION_KEYS:
-        assert lab.verification.as_dict()[key] in {
-            "CONFIRMED",
-            "PARTIAL",
-            "NOT OBSERVED",
-            "NOT TESTED",
-        }
-    assert lab.core_idea.author_claim
-    assert lab.core_idea.research_bot_interpretation
-    assert lab.results is not None
-    assert lab.mapping_markdown
-    assert "Scaffold Effects" in lab.title
-
-
-def test_discover_three_real_papers():
+def test_library_has_exactly_the_three_requested_arxiv_papers():
     labs = load_all_labs(ROOT / "papers")
-    ids = {lab.id for lab in labs}
-    assert ids == EXPECTED_IDS
-    assert all(not lab.example for lab in labs)
+    assert {lab.id: lab.arxiv_id for lab in labs} == EXPECTED
+    assert all(lab.urls.arxiv == f"https://arxiv.org/abs/{lab.arxiv_id}" for lab in labs)
+    assert all(lab.authors and all("et al." not in author for author in lab.authors) for lab in labs)
 
 
-def test_build_writes_index_and_paper(tmp_path: Path):
-    site = tmp_path / "site"
-    labs = build(root=ROOT, site_dir=site)
-    assert len(labs) == 3
-    index = site / "index.html"
-    paper = site / "papers" / "scaffold-effects-gaia.html"
-    css = site / "assets" / "style.css"
-    assert index.is_file()
-    assert paper.is_file()
-    assert css.is_file()
-    assert (site / ".nojekyll").is_file()
-
-    index_html = index.read_text(encoding="utf-8")
-    assert 'lang="ja"' in index_html
-    assert 'id="q"' in index_html
-    assert 'id="topic"' in index_html
-    assert 'id="verdict"' in index_html
-    assert 'id="vstatus"' in index_html
-    assert "data-topics=" in index_html
-    assert "data-verification=" in index_html
-    assert "EXAMPLE" not in index_html
-    assert "example-demo" not in index_html
-    assert "インタラクティブ研究ライブラリ" in index_html
-    assert "すべてのトピック" in index_html
-    assert "未検証" in index_html
-    catalog = json.loads(
-        index_html.split('<script type="application/json" id="catalog">', 1)[1]
-        .split("</script>", 1)[0]
+def test_build_is_deterministic_and_has_no_demo_content(tmp_path: Path):
+    first = tmp_path / "first"
+    second = tmp_path / "second"
+    build(root=ROOT, site_dir=first)
+    build(root=ROOT, site_dir=second)
+    assert sorted(path.relative_to(first) for path in first.rglob("*") if path.is_file()) == sorted(
+        path.relative_to(second) for path in second.rglob("*") if path.is_file()
     )
-    catalog_ids = {entry["id"] for entry in catalog}
-    assert catalog_ids == EXPECTED_IDS
-    assert all(not entry.get("example") for entry in catalog)
-
-    paper_html = paper.read_text(encoding="utf-8")
-    assert 'lang="ja"' in paper_html
-    for _key, title in STANDARD_SECTIONS:
-        assert f">{title}</h2>" in paper_html
-        assert f'id="{_key}"' in paper_html
-    assert "著者の主張" in paper_html
-    assert "Research Bot の解釈" in paper_html
-    assert "推論 — 著者の主張ではない" in paper_html
-    assert "EXAMPLE / 架空" not in paper_html
-    assert "このラボでは提供されていません。" not in paper_html
-    assert "概要" in paper_html
-    assert "問題設定" in paper_html
-    assert "原論文・公式コード対応" in paper_html
+    for path in first.rglob("*"):
+        if path.is_file():
+            assert path.read_bytes() == (second / path.relative_to(first)).read_bytes()
+    html = (first / "index.html").read_text(encoding="utf-8")
+    assert 'lang="ja"' in html
+    assert "EXAMPLE" not in html
+    assert "data-library-controls" in html
+    assert (first / "assets" / "library.js").is_file()
+    for paper_id, arxiv_id in EXPECTED.items():
+        page = (first / "papers" / f"{paper_id}.html").read_text(encoding="utf-8")
+        assert arxiv_id in page
+        assert f"https://arxiv.org/abs/{arxiv_id}" in page
+        assert "論文に書かれていること" in page
+        assert "読書メモ" in page
 
 
-def test_build_rejects_bad_verification(tmp_path: Path):
-    papers = tmp_path / "papers" / "bad"
-    papers.mkdir(parents=True)
-    (papers / "lab.yaml").write_text(
-        """
-id: bad-lab
+def test_rejects_an_arxiv_url_that_does_not_match_the_identifier(tmp_path: Path):
+    paper = tmp_path / "bad"
+    paper.mkdir()
+    (paper / "lab.yaml").write_text(
+        '''
+id: bad
+arxiv_id: "2606.00422"
+submitted: "2026-05-29"
 title: Bad
-authors: [X]
+authors: [A]
 year: 2026
 topics: [x]
-urls: {}
-verdict: skip
-verification:
-  mechanism: YES
-  performance: NOT TESTED
-  scaling: NOT TESTED
-  production_applicability: NOT TESTED
+urls: {arxiv: https://arxiv.org/abs/2606.99999}
+verdict: Must Read
+verification: {mechanism: NOT TESTED, performance: NOT TESTED, scaling: NOT TESTED, production_applicability: NOT TESTED}
 related_threads: []
-status: draft
-""",
+status: published
+''',
         encoding="utf-8",
     )
-    with pytest.raises(LabError, match="verification.mechanism"):
-        load_lab(papers)
-
-
-def test_main_build_to_out(tmp_path: Path):
-    out = tmp_path / "out"
-    code = main(["--root", str(ROOT), "--out", str(out)])
-    assert code == 0
-    assert (out / "index.html").is_file()
+    with pytest.raises(LabError, match="must match arxiv_id"):
+        load_lab(paper)

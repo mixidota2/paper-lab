@@ -48,6 +48,15 @@ URL_LABELS = {
     "official_code": "公式コード",
     "pdf": "PDF",
 }
+TOPIC_LABELS = {
+    "ai-agent-systems": "AIエージェント",
+    "agent-architecture": "エージェント設計",
+    "evaluation": "評価",
+    "recommender-systems": "推薦システム",
+    "retrieval": "検索・候補生成",
+    "generative-recommendation": "生成推薦",
+    "ml-systems": "MLシステム",
+}
 
 # Page section order is fixed. Missing content still renders a placeholder.
 # Keys stay English; titles are Japanese for human-facing Pages.
@@ -128,6 +137,8 @@ class Lab:
     related_threads: list[str]
     status: str
     source_dir: Path
+    arxiv_id: str = ""
+    submitted: str = ""
     summary: str = ""
     example: bool = False
     sections: dict[str, str] = field(default_factory=dict)
@@ -159,6 +170,7 @@ class Lab:
             " ".join(self.related_threads),
             self.status,
             self.status_label,
+            self.arxiv_id,
         ]
         # Include Japanese verification labels for client-side search.
         for status in self.verification.as_dict().values():
@@ -172,6 +184,8 @@ class Lab:
             "title": self.title,
             "authors": self.authors_text,
             "year": self.year,
+            "arxiv_id": self.arxiv_id,
+            "submitted": self.submitted,
             "topics": list(self.topics),
             "verdict": self.verdict,
             "status": self.status,
@@ -247,6 +261,12 @@ def lab_from_dict(raw: dict[str, Any], paper_dir: Path) -> Lab:
         )
 
     urls = _parse_urls(raw.get("urls"), paper_dir)
+    arxiv_id = _require_str(raw, "arxiv_id", paper_dir)
+    if not re.fullmatch(r"\d{4}\.\d{5}", arxiv_id):
+        raise LabError(f"{paper_dir}/lab.yaml: arxiv_id must look like 2606.00422")
+    if urls.arxiv != f"https://arxiv.org/abs/{arxiv_id}":
+        raise LabError(f"{paper_dir}/lab.yaml: urls.arxiv must match arxiv_id")
+    submitted = _require_str(raw, "submitted", paper_dir)
     verification = _parse_verification(raw.get("verification"), paper_dir)
 
     summary = raw.get("summary") or ""
@@ -294,6 +314,8 @@ def lab_from_dict(raw: dict[str, Any], paper_dir: Path) -> Lab:
         related_threads=related_threads,
         status=status,
         source_dir=paper_dir.resolve(),
+        arxiv_id=arxiv_id,
+        submitted=submitted,
         summary=summary,
         example=example,
         sections=sections,

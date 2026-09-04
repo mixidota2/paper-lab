@@ -1,107 +1,63 @@
 id: scaffold-effects-gaia
+arxiv_id: "2606.08529"
+submitted: "2026-06-07"
 title: "Scaffold Effects on GAIA: A Controlled Comparison"
-authors:
-  - Jason Starace
+authors: ["Jason Starace"]
 year: 2026
-topics:
-  - ai-agent-systems
-  - agent-architecture
-  - evaluation
+topics: [ai-agent-systems, agent-architecture, evaluation]
 urls:
   paper: https://arxiv.org/abs/2606.08529
   arxiv: https://arxiv.org/abs/2606.08529
-  official_code: null
   pdf: https://arxiv.org/pdf/2606.08529
-verdict: "Must Read — 同一モデルでも scaffold を変えるだけで最大28pp動く。能力数字は harness–model の組として読むべき、という評価の前提を更新する論文。"
+  official_code: null
+verdict: "Must Read"
 verification:
-  mechanism: PARTIAL
+  mechanism: NOT TESTED
   performance: NOT TESTED
   scaling: NOT TESTED
   production_applicability: NOT TESTED
-related_threads:
-  - agent-architecture-and-harness
+related_threads: [agent-architecture-and-harness]
 status: published
-summary: >
-  GAIA L1/L2 で 3 scaffolds × 5 models を事前登録つきで比較。scaffold だけで最大28pp
-  （Opus L2 robust）。H1は支持、H2は方向が棄却、H3は Anthropic 系で条件つき、H4は棄却。
-  構造化 scaffold は行動数が少なく、中盤失敗からの復帰が高い。玩具実験では行動数と復帰だけ確認。
+summary: "同じモデル・同じ GAIA 問題でも、scaffold を替えると測定精度が最大 28 ポイント動いた。能力の数値は harness とモデルの組で読む必要がある。"
+core_idea:
+  author_claim: |
+    著者は3種類の scaffold を比べた。ReAct、Planner-Actor-Rater（PAR）、planner-then-executor である。対象は5モデルと GAIA validation の Level 1/2 で、各問題を3回試行した。タスクと条件はそろえている。
+
+    同一モデル内の最大差は、robust slice の Opus Level 2 で28ポイントだった。構造化した scaffold は、難しい Level 2 でツール呼び出しが少なく、中盤のエラーから復帰する割合が高かった。より高性能なモデルほど scaffold の影響が小さい、という事前仮説は方向が合わなかった。
+  research_bot_interpretation: |
+    モデルの比較表を読むときは、数値の横に harness を置くべきだ。少なくとも一つ別の scaffold を走らせれば、見出しの数字が設計に強いのか、モデルそのものに強いのかを切り分ける手掛かりになる。
 sections:
   overview: |
-    公開されているエージェント能力スコアは、モデルの実力と scaffold の引き出し方を混ぜて読まれがちだ。
-    この論文はその elicitation gap を、タスクと条件を固定したまま測る。
+    エージェントの評価値には、モデルの能力と、その能力を引き出す scaffold の働きが混ざる。本論文は後者を操作して、差の大きさを測った。
 
-    事前登録どおり、ReAct / Planner-Actor-Rater (PAR) / planner-then-executor の3 scaffold を、
-    Claude Opus・Sonnet・Haiku、Gemini、GPT の5モデルで GAIA validation L1/L2 にかけた。
-    同一モデル内で scaffold を入れ替えるだけで、robust slice の Opus L2 では最大約28ポイント動く。
-    「能力が上がれば scaffold 感度は下がる」という直感（H2）は、少なくとも難しいレベルでは方向が合わない。
-    評価単位はモデル単体より harness–model の組だ、というのが主眼。
-
-    このラボの玩具実験は GAIA 精度を再現しない。中盤にツール失敗を注入した合成タスクで、
-    3つのループ方針の行動数と復帰率だけを見る。
+    差は小さくない。
+    比較は制御した。
+    それが要点だ。
+    同じ問題を使う。
+    同じ条件に置く。
+    scaffold だけを替える。
   problem: |
-    チームAが「自分の最良 scaffold」でモデルAを測り、チームBが別 scaffold でモデルBを測ると、
-    差分のどれだけがモデル由来か分からない。METR の時間地平線論文なども elicitation を下界として扱うが、
-    共通ベンチ上で現在のフロンティア並びを横断した制御比較は足りていなかった。
-
-    現場の意思決定——どのモデルを買うか、どのハーネスを固定するか——は、単一セルの数字を
-    モデル属性だと思い込むと誤る。欲しいのは、scaffold を操作変数にしたときの精度ギャップの大きさ、
-    能力ティアとの関係、失敗時の振る舞い、コストである。
-  core_idea:
-    author_claim: |
-      事前登録した仮説の骨子は次のとおり。H1: 少なくとも1モデルで best/worst scaffold 差が
-      10pp以上（L1）。H2: より強いフロンティアモデルほど scaffold ギャップは小さい。
-      H3: triframe 系 multi-agent（実装は PAR）は L2 では ReAct を上回り、L1 ではそうでない。
-      H4: planner-then-executor はファイル読みタスクで有利。
-
-      結果として H1 は支持。H2 は交互作用はあるが「能力↑→感度↓」の方向は棄却（robust では
-      Opus L2 が最大ギャップ）。H3 は Anthropic 系 L2 で条件つき支持、他社フロンティアでは弱い。
-      H4 は棄却。構造化 scaffold はツール呼び出しが少なく、L2 では中盤エラーからの復帰が高い。
-      Gemini × planner-then-executor は両レベルで最安寄り、かつ L2 で最も正確、というセルもある。
-    research_bot_interpretation: |
-      著者の数字そのものより、実務への含意は「能力リーダーボードを単一 scaffold の点推定として読むな」に近い。
-      マルチエージェントが常に得、という話でもない。家族（プロバイダ）やタスク難易度で条件が変わる。
-      調達や評価設計では、代替 scaffold を1本でも回して見出し数字が脆いかを見るのが安い保険になる。
-
-      このラボでは復帰と行動数の玩具だけを動かした。28pp ギャップ、H検定、コスト順位、
-      ツール面の交絡は未検証。
+    異なるチームが異なる scaffold でモデルを測ると、モデル差と scaffold 差を区別できない。比較の単位をモデル単体に置くと、その混同が残る。
   why_it_might_work: |
-    構造化ループが効きそうな理由のひとつは、失敗の扱い方にある。ReAct は探索が多く、
-    同じ失敗アクションを繰り返しやすい。PAR は rater がやり直しを促す。
-    planner-then-executor は明示プランの上に失敗が載るので、ステップ単位の破綻が残りにくい——
-    というストーリーはあり得る。ただし論文自身もメカニズムは特定していない。
-
-    「強いモデルほど scaffold 不要」が崩れる方向は、難しいタスクでは余力が大きいほど
-    悪いループが能力を unused のまま残す、という読みとも整合する（天井効果の解釈もある）。
+    計画、実行、見直しを分けると、途中の失敗を次の行動へ反映しやすくなる可能性がある。ただし論文は、その因果メカニズムを特定したとは述べていない。
   evidence: |
-    論文側の主証拠は事前登録つき 3×5×L1/L2、ブートストラップ CI、混合効果ロジスティックの
-    scaffold×model 交互作用。robust slice（SDK バグ旗の除外）で Anthropic L2 のギャップが
-    広がる点も明示されている。限界として、S1 のツール面が S2/S3 と違う交絡、
-    Anthropic SDK のシリアライズ欠陥、validation 汚染リスクが書かれている。
+    論文は3 × 5 の要因計画で、GAIA validation の Level 1 と Level 2 を評価した。各セルは問題ごとに3試行し、ブートストラップ信頼区間と scaffold × model の混合効果ロジスティック回帰を報告する。
 
-    ラボの `results.json` は合成タスクの行動数・復帰率のみ。GAIA 精度や仮説検定の再現ではない。
+    論文は、ReAct と他の scaffold のツール面が完全には同じでなかったと記す。provider 側のシリアライズ不具合、未完了セル、validation を用いた点も限界に挙げている。
   executable_understanding: |
-    `run.py` は難易度つき合成タスクに中盤ツール失敗を注入し、三方針（react /
-    planner_actor_rater / planner_then_executor）を同じシードで回す。見る指標は
-    mean_actions と recovery_given_mid_fail。論文の「構造化は行動少・復帰高」という
-    行動シグネチャの方向だけを、極小スケールで確かめる。
+    このライブラリでは論文の実験を再実装していない。比較の条件、使用したツール、試行回数は原論文の Methodology で確認する。
+  results: |
+    原論文の主結果は、scaffold だけで同一モデルの測定精度が最大28ポイント変わったことだ。Level 2 の PAR 対 ReAct の優位は Anthropic 系では見られたが、プロバイダ横断では一様ではなかった。planner-then-executor がファイル読みで有利という仮説は支持されなかった。
   what_we_verified: |
-    合成設定では、PAR と planner-then-executor が ReAct より平均行動数が少なく、
-    中盤失敗が起きた試行での復帰率が高い、という方向が再現した（Mechanism: PARTIAL）。
-    成功率がそのまま GAIA に対応するとは言っていない。
+    このライブラリは独自の実験を行っていない。検証欄はすべて「未検証」である。
   what_we_did_not_verify: |
-    - GAIA L1/L2 の精度ギャップ（最大28pp）や事前登録 H1–H4 の統計的結論
-    - モデル家族による multi-agent 優位の条件つき性
-    - Gemini s3 のコスト対精度パレート
-    - ツール面交絡・SDK バグ・validation 汚染の影響
-    - 性能・スケーリング・本番適用性はいずれも NOT TESTED
+    GAIA の再実行、論文の統計検定、コスト計算、各プロバイダでの再現性は確認していない。
   implementation: |
-    このディレクトリの成果物:
-
-    - `lab.yaml` — 本レコード
-    - `run.py` — 三方針の玩具シミュレーション（`results.json` を書き出す）
-    - `results.json` — 実行結果
-    - `mapping.md` — 論文箇所 ↔ 最小コード ↔ 公式コード（匿名リポのみ言及）
-
-    公式の完全再現コードは著者の匿名リポジトリ案内のみ（受け入れ後にログ公開予定、と論文記載）。
-  mapping: mapping.md
-  results: results.json
+    独自実装は置かない。論文が案内する匿名リポジトリと、受理後に公開予定のログについては原論文を参照する。
+  mapping: |
+    | 原論文 | このノート |
+    | --- | --- |
+    | Abstract / §4.1 | scaffold gap と H1/H2 の記録 |
+    | §4.2 | H3/H4 の条件付きの結果 |
+    | §4.3 | ツール呼び出しと復帰の観察 |
+    | §6 | ツール面・SDK・validation の限界 |

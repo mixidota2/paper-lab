@@ -1,98 +1,53 @@
 id: case-against-generation-retrieval
+arxiv_id: "2607.25346"
+submitted: "2026-08-01 (v2)"
 title: "The Case Against Generation for Retrieval: Discriminative Language Models as Effective Retrievers"
-authors:
-  - Zhe Xu
-  - Prachi Agrawal
-  - et al. (Meta)
+authors: ["Zhe Xu", "Prachi Agrawal", "Kavosh Asadi", "Tianyi Chen", "Carl Hu", "Justin Johnson", "Wuwei Lan", "Mingfu Liang", "Xi Liu", "Tik On Lui", "Oladipo Ositelu", "Sandeep Pandey", "Ankit Peshin", "Feng Qi", "Anil Ramakrishna", "Kaushik Rangadurai", "Frank Shyu", "Luke Simon", "Yang Yang", "Chiyu Zhang"]
 year: 2026
-topics:
-  - recommender-systems
-  - retrieval
-  - generative-recommendation
-urls:
-  paper: https://arxiv.org/abs/2607.25346
-  arxiv: https://arxiv.org/abs/2607.25346
-  official_code: null
-  pdf: https://arxiv.org/pdf/2607.25346
-verdict: "Must Read — LLM の意味力を two-tower の表現バックボーンに載せ、ANN 配信を保ったまま Amazon 公開と本番で対抗できることを示した。生成 CG 一択論への産業側カウンター。"
+topics: [recommender-systems, retrieval, generative-recommendation]
+urls: {paper: https://arxiv.org/abs/2607.25346, arxiv: https://arxiv.org/abs/2607.25346, pdf: https://arxiv.org/pdf/2607.25346, official_code: null}
+verdict: "Must Read"
 verification:
-  mechanism: PARTIAL
+  mechanism: NOT TESTED
   performance: NOT TESTED
   scaling: NOT TESTED
   production_applicability: NOT TESTED
-related_threads:
-  - generative-rec-vs-retrieval
+related_threads: [generative-rec-vs-retrieval]
 status: published
-summary: >
-  LLM を生成器というより two-tower の意味バックボーンとして使う。共有 LLM・EOS・CE yes/no+NTP 教師、
-  CE2TT 蒸留、ユーザー塔の latent reasoning。Amazon で CE は SOTA 寄り、0.6B TT は ORT 8B に
-  R@10 で対抗。本番は 0.5% データで DLRM と NE パリティ、staleness 耐性。玩具で ANN vs SID 生成コスト。
+summary: "LLM を逐次生成器ではなく二塔モデルの表現基盤として使い、事前計算したアイテム表現と ANN を保つ。生成型 retrieval への明確な反論。"
+core_idea:
+  author_claim: |
+    著者は、ユーザーとアイテムで共有する LLM エンコーダ、EOS pooling、データセット横断の転移学習、cross-encoder から two-tower への蒸留、ユーザー塔だけの latent reasoning を組み合わせる。
+
+    アイテム表現は事前計算できるため、検索時はユーザー表現との内積と近似最近傍探索を使える。論文は、公開ベンチマークで cross-encoder が既存法を上回り、two-tower 学生も競争力のある retrieval 性能を示したと報告する。
+  research_bot_interpretation: |
+    LLM を使うことと、推薦を自己回帰デコードにすることは別の選択だ、と整理できる。意味表現の改善を取り込みながら ANN の運用特性を残す設計は、既存の候補生成をすぐ置き換えられない場面で読む価値がある。
 sections:
   overview: |
-    推薦で LLM を使う流れの一方に、「推薦＝生成（セマンティック ID のデコード）」がある。
-    ただ大規模 retrieval では、自己回帰デコードのレイテンシと、トークンが実アイテムに
-    接地しない問題がボトルネックになる。
-
-    この論文は古典的 two-tower を LLM 時代の表現学習で立て直す。ユーザーとアイテムを
-    共有 LLM で別フォワードし、EOS プーリング、データセット横断の mid-train、
-    強い cross-encoder 教師（yes/no + ユーザー条件つき NTP）からの CE2TT 蒸留、
-    ユーザー塔だけの latent reasoning を積み上げる。アイテム側は事前計算可能なままなので
-    ANN のまま配信できる。
-
-    公開 Amazon 三データでは CE が概ね SOTA。0.6B の TT 学生は 8B 級の OneRec-Think に
-    R@10 で張り合う。社内では学習データの 0.5% で従来 DLRM two-tower と NE パリティ、
-    凍結時の staleness 耐性も強い、と主張する。
-
-    ラボの玩具は精度表を再現しない。カタログ上で「ANN/内積」と「SID 逐次デコード＋接地ミス」の
-    コスト形だけを対比する。
+    Web 規模で生成推薦や zero-shot ranking を動かすと、計算量と grounding が問題になる。本論文は二塔モデルを LLM 時代の表現学習で更新する。
   problem: |
-    生成 retrieval は理論上はエンドツーエンドだが、出力は離散トークンであり、
-    アイテム ID への写像はモデルの外で起きる。そこで grounding 失敗が下流に伝播する。
-    一方 two-tower はアイテム埋め込みをオフライン索引でき、工業的 CG の標準になっている。
-
-    問いは単純で重い。LLM の意味の深さを表現バックボーンとして載せたとき、
-    古典 two-tower はまだ戦えるか。生成でファネルを置き換える必要があるのか。
-  core_idea:
-    author_claim: |
-      LLM-native two-tower: 共有エンコーダ + EOS、CE 教師を yes/no ヘッドとユーザー条件 NTP で強化し、
-      候補集合上のスコア分布を TT に蒸留（CE2TT）。ユーザー塔のみ Coconut 風の latent 1ステップ。
-      公開ベンチでは CE が多くの指標で最良、TT は R@10 で ORT を上回るケースが多い（バックボーンは 0.6B vs ORT の 8B）。
-      本番では DLRM と NE パリティを 0.5% データで達成し、凍結評価で staleness に強い。
-    research_bot_interpretation: |
-      「生成が retrieval を置き換える」より、「LLM の利得の多くは意味表現にあり、
-      デコード形式は必須ではない」という仮説を産業データで押している、と読む。
-      ANN を捨てない選択は、レイテンシ・接地・既存索引との互換で実務的だ。
-      一方、公開 Amazon は Web 規模 CG そのものとは限らず、生成系のオンライン勝ち事例との
-      正面比較も限定的。勝ち筋は「意味＋因数分解」側にあり、「生成だから」で説明しきれる話ではない——
-      このスレッドとの接続点はそこにある。
-
-      ラボでは grounding miss とコスト比の玩具のみ。NE や R@K は未検証。
+    二塔モデルはアイテム側を事前計算できる一方、ユーザーとアイテムの細かな相互作用を落とす。cross-encoder は強いが、候補生成には重すぎる。その隔たりを、教師からの蒸留で埋める。
   why_it_might_work: |
-    内積 retrieval が安いのは、アイテムを一度埋め込んでしまえばクエリごとにデコード列を
-    伸ばさないからだ。接地ミスがゼロなのも、候補が最初からアイテム ID だから。
-    教師 CE が相対順位を持ち、それを KL で学生に渡すのは、双エンコーダが失う相互作用を
-    ソフトラベルで補う定番の筋で、LLM 表現との相性も良い。この説明は自然に聞こえる。
+    アイテム表現を前計算できれば、検索時に逐次トークンを生成しなくてよい。cross-encoder の候補集合内の順位分布を学生へ渡す蒸留は、二塔モデルが失う相互作用の一部を補う方法として読める。
   evidence: |
-    論文: Amazon Beauty / Sports / Toys での SOTA 表と TT アブレーション（特に CE2TT の寄与大）、
-    社内 NE・セグメント・staleness・データスケール表。限界は公開コードなし、社内詳細の再現困難、
-    生成ベースラインとのサービング条件の完全一致ではない点。
+    論文は Amazon の3公開ベンチマークと社内の大規模データで評価する。公開実験では Recall@K と NDCG@K を使い、社内実験では retrieval の NE、staleness、データ・モデルのスケールを扱う。
 
-    `results.json` は合成カタログ上のコストと grounding_miss_rate のみ。
+    公開コードは論文ページで示されていない。社内データの実験は、第三者が同じ条件で再現できない。
   executable_understanding: |
-    `run.py` はカタログサイズ固定の合成クエリで、(1) ユーザー1回エンコード + ANN 風コスト、
-    (2) SID 長ぶんの逐次デコード + トークン接地ミス確率、を並べる。論文 §4.3 の効率議論と
-    導入部の grounding 懸念を、数値のオーダー感だけで掴むための装置。
+    このライブラリは ANN と生成型 retrieval の性能比較を実装していない。効率についての議論は原論文 §4.3 を参照する。
+  results: |
+    著者は、生成型 retrieval が逐次デコードを要するのに対し、提案法はユーザーを一度エンコードして、事前計算済みのアイテム表現を ANN で検索すると説明する。論文は社内実験で staleness への強さとデータスケールでの優位も報告している。
   what_we_verified: |
-    玩具では ANN 経路の grounding miss は常に 0。生成 SID 経路は設定したミス率どおり欠測が出て、
-    平均コスト・レイテンシ段数が高くなる（Mechanism: PARTIAL）。これはサービング形の説明用で、
-    推薦品質の確認ではない。
+    このライブラリは独自の実験を行っていない。検証欄はすべて「未検証」である。
   what_we_did_not_verify: |
-    - Amazon R@10 / NDCG や CE・TT の学習
-    - CE2TT・NTP・latent reasoning のアブレーション
-    - 本番 NE パリティ（0.5% データ）と staleness
-    - 性能・スケーリング・本番適用性は NOT TESTED
+    公開ベンチマークの数値、蒸留の寄与、社内 NE、staleness、データスケールの結果は再現していない。
   implementation: |
-    - `lab.yaml` / `run.py` / `results.json` / `mapping.md`
-    - 公式コード URL は論文時点で未提示。バックボーン言及は Qwen3-0.6B。
-  mapping: mapping.md
-  results: results.json
+    独自実装と公式コードへのリンクは掲載しない。論文本文で示される設計のみを記録する。
+  mapping: |
+    | 原論文 | このノート |
+    | --- | --- |
+    | §3 | 二塔と cross-encoder の役割 |
+    | §4.2.4 | CE2TT 蒸留 |
+    | §4.2.5 | ユーザー塔だけの latent reasoning |
+    | §4.3 | ANN と自己回帰デコードの効率議論 |
+    | §6–7 | 公開・社内実験の根拠 |

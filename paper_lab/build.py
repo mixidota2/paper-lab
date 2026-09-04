@@ -13,12 +13,14 @@ import json
 import sys
 from pathlib import Path
 from typing import Any, Sequence
+import shutil
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markdown import Markdown
 
 from paper_lab.models import (
     STANDARD_SECTIONS,
+    TOPIC_LABELS,
     VERIFICATION_KEYS,
     VERIFICATION_LABELS,
     VERIFICATION_STATUS_LABELS,
@@ -190,13 +192,18 @@ def build(
     labs = load_all_labs(papers)
     env = jinja_env()
 
+    # site/ is entirely generated. Recreate it so a build cannot retain stale files.
+    if site.exists():
+        shutil.rmtree(site)
     assets = site / "assets"
     papers_out = site / "papers"
-    assets.mkdir(parents=True, exist_ok=True)
-    papers_out.mkdir(parents=True, exist_ok=True)
+    assets.mkdir(parents=True)
+    papers_out.mkdir()
 
     css_src = TEMPLATES_DIR / "style.css"
     (assets / "style.css").write_text(css_src.read_text(encoding="utf-8"), encoding="utf-8")
+    js_src = TEMPLATES_DIR / "library.js"
+    (assets / "library.js").write_text(js_src.read_text(encoding="utf-8"), encoding="utf-8")
     (site / ".nojekyll").write_text("", encoding="utf-8")
 
     topics = sorted({topic for lab in labs for topic in lab.topics})
@@ -211,6 +218,7 @@ def build(
         verification_status_labels=VERIFICATION_STATUS_LABELS,
         verification_keys=VERIFICATION_KEYS,
         verification_labels=VERIFICATION_LABELS,
+        topic_labels=TOPIC_LABELS,
         catalog_json=json.dumps(catalog, ensure_ascii=False),
         paper_count=len(labs),
     )
@@ -224,6 +232,7 @@ def build(
             verification_keys=VERIFICATION_KEYS,
             verification_labels=VERIFICATION_LABELS,
             verification_status_labels=VERIFICATION_STATUS_LABELS,
+            topic_labels=TOPIC_LABELS,
         )
         (papers_out / f"{lab.slug}.html").write_text(html, encoding="utf-8")
 

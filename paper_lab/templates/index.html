@@ -1,142 +1,15 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>インタラクティブ研究ライブラリ</title>
-  <meta name="description" content="Interactive Lab の人間向けライブラリ。lab.yaml から生成 — HTML はソース・オブ・トゥルースではない。">
-  <link rel="stylesheet" href="assets/style.css">
-</head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="一次ソースを起点に、読むべき論文を短く理解するための個人研究ライブラリ。"><title>研究ライブラリ</title><link rel="stylesheet" href="assets/style.css"></head>
 <body>
-  <header class="site-header">
-    <div class="wrap">
-      <a class="brand" href="index.html">
-        <span class="brand-kicker">Paper Lab</span>
-        <span class="brand-title">インタラクティブ研究ライブラリ</span>
-      </a>
-      <div class="header-meta">{{ paper_count }} 件のラボ</div>
-    </div>
-  </header>
-
-  <main class="wrap">
-    <section class="hero">
-      <h1>時間をかける価値のあるラボ</h1>
-      <p>
-        各ページは <code>lab.yaml</code> と markdown / json 成果物から生成されます。
-        HTML をソース・オブ・トゥルースとして扱わないでください。フルラボは、期待される理解の利得が実装コストを上回る場合にのみ存在します — 低価値な論文にラボを付けてはいけません。
-      </p>
+  <a class="skip-link" href="#library">論文一覧へ移動</a>
+  <header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><p>収録 3 本 · 2026</p></div></header>
+  <main>
+    <section class="intro shell"><p class="eyebrow">読み終える前に、論点をつかむ</p><h1>今、戻って読む<br>3本の論文。</h1><p class="intro__copy">論文本文に書かれたことと、個人の読書メモを分けて記録する。数字を集めるための棚ではなく、設計判断に戻るための棚。</p><dl class="library-stats"><div><dt>{{ paper_count }}</dt><dd>収録論文</dd></div><div><dt>2</dt><dd>Must Read</dd></div><div><dt>1</dt><dd>Worth Reading</dd></div></dl></section>
+    <section class="library shell" id="library" aria-labelledby="library-title"><div class="section-heading"><div><p class="eyebrow">COLLECTION</p><h2 id="library-title">論文を選ぶ</h2></div><p><strong data-result-count>{{ paper_count }}件</strong>を表示</p></div>
+      <form class="controls" data-library-controls autocomplete="off"><label class="search-field"><span class="sr-only">論文を検索</span><input name="search" type="search" placeholder="題名、著者、キーワードで検索"></label><label><span>テーマ</span><select name="topic"><option value="">すべて</option>{% for t in topics %}<option value="{{ t }}">{{ topic_labels.get(t, t) }}</option>{% endfor %}</select></label><label><span>優先度</span><select name="verdict"><option value="">すべて</option>{% for v in verdicts %}<option value="{{ v }}">{{ v }}</option>{% endfor %}</select></label><label><span>並べ替え</span><select name="sort"><option value="priority">優先度順</option><option value="date">投稿日の新しい順</option><option value="title">題名順</option></select></label><button class="text-button" type="button" data-clear>条件を消去</button></form>
+      <div class="paper-list">{% for lab in labs %}<article class="paper-card" data-paper data-search="{{ lab.search_text() }}" data-topics="{{ lab.topics | join('|') }}" data-verdict="{{ lab.verdict }}" data-title="{{ lab.title | lower }}" data-date="{{ lab.submitted }}" data-priority="{{ 2 if lab.verdict == 'Must Read' else 1 }}"><div class="paper-card__top"><span class="priority priority--{{ 'must' if lab.verdict == 'Must Read' else 'worth' }}">{{ lab.verdict }}</span><span>{{ lab.submitted }}</span></div><h3><a href="papers/{{ lab.slug }}.html">{{ lab.title }}</a></h3><p class="authors">{{ lab.authors_text }}</p><p class="summary">{{ lab.summary }}</p><footer><div class="tags">{% for t in lab.topics %}<span>{{ topic_labels.get(t, t) }}</span>{% endfor %}</div><a class="arrow-link" href="papers/{{ lab.slug }}.html">ノートを開く <span aria-hidden="true">→</span></a></footer></article>{% endfor %}</div><p class="empty-state" data-empty hidden>条件に合う論文はありません。</p>
     </section>
-
-    <form class="filters" id="filters" autocomplete="off">
-      <label>検索
-        <input type="search" id="q" placeholder="タイトル、著者、トピック、判定…">
-      </label>
-      <label>トピック
-        <select id="topic">
-          <option value="">すべてのトピック</option>
-          {% for t in topics %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
-        </select>
-      </label>
-      <label>判定
-        <select id="verdict">
-          <option value="">すべての判定</option>
-          {% for v in verdicts %}<option value="{{ v }}">{{ v }}</option>{% endfor %}
-        </select>
-      </label>
-      <label>検証ステータス
-        <select id="vstatus">
-          <option value="">すべてのステータス</option>
-          {% for s in verification_statuses %}<option value="{{ s }}">{{ verification_status_labels[s] }}</option>{% endfor %}
-        </select>
-      </label>
-    </form>
-    <p class="filter-status" id="filter-status"></p>
-
-    <div class="grid" id="grid">
-      {% for lab in labs %}
-      <a class="card"
-         href="papers/{{ lab.slug }}.html"
-         data-id="{{ lab.id }}"
-         data-topics="{{ lab.topics | join('|') }}"
-         data-verdict="{{ lab.verdict }}"
-         data-status="{{ lab.status }}"
-         data-verification="{{ lab.verification.as_dict().values() | join('|') }}"
-         data-mech="{{ lab.verification.mechanism }}"
-         data-perf="{{ lab.verification.performance }}"
-         data-scale="{{ lab.verification.scaling }}"
-         data-prod="{{ lab.verification.production_applicability }}"
-         data-text="{{ lab.search_text() }}">
-        <div class="chips">
-          {% if lab.example %}<span class="chip example">EXAMPLE / 架空</span>{% endif %}
-          {% if lab.status == 'draft' %}<span class="chip draft">{{ lab.status_label }}</span>{% endif %}
-          {% for t in lab.topics %}<span class="chip">{{ t }}</span>{% endfor %}
-        </div>
-        <h2>{{ lab.title }}</h2>
-        <div class="meta">{{ lab.authors_text }} · {{ lab.year }}</div>
-        {% if lab.summary %}<p class="summary">{{ lab.summary }}</p>{% endif %}
-        <div class="verdict"><strong>判定。</strong> {{ lab.verdict }}</div>
-        <div class="vgrid">
-          {% for key in verification_keys %}
-          <div class="vcell" data-status="{{ lab.verification.as_dict()[key] }}">
-            <span class="k">{{ verification_labels[key] }}</span>
-            {{ verification_status_labels[lab.verification.as_dict()[key]] }}
-          </div>
-          {% endfor %}
-        </div>
-      </a>
-      {% endfor %}
-    </div>
-    <div class="empty hidden" id="empty">現在のフィルタに一致するラボはありません。</div>
   </main>
-
-  <footer class="site-footer">
-    <div class="wrap"><code>paper-lab build</code> により生成。権威ある成果物は <code>papers/</code> にあります。</div>
-  </footer>
-
-  <script type="application/json" id="catalog">{{ catalog_json | safe }}</script>
-  <script>
-    (function () {
-      const q = document.getElementById("q");
-      const topic = document.getElementById("topic");
-      const verdict = document.getElementById("verdict");
-      const vstatus = document.getElementById("vstatus");
-      const cards = Array.from(document.querySelectorAll(".card"));
-      const empty = document.getElementById("empty");
-      const status = document.getElementById("filter-status");
-      const total = cards.length;
-
-      function apply() {
-        const query = (q.value || "").trim().toLowerCase();
-        const t = topic.value;
-        const v = verdict.value;
-        const vs = vstatus.value;
-        let shown = 0;
-        cards.forEach(function (card) {
-          const text = card.getAttribute("data-text") || "";
-          const topics = (card.getAttribute("data-topics") || "").split("|");
-          const verifs = (card.getAttribute("data-verification") || "").split("|");
-          const hitQuery = !query || text.indexOf(query) !== -1;
-          const hitTopic = !t || topics.indexOf(t) !== -1;
-          const hitVerdict = !v || card.getAttribute("data-verdict") === v;
-          const hitVerif = !vs || verifs.indexOf(vs) !== -1;
-          const on = hitQuery && hitTopic && hitVerdict && hitVerif;
-          card.classList.toggle("hidden", !on);
-          if (on) shown += 1;
-        });
-        empty.classList.toggle("hidden", shown !== 0);
-        status.textContent = shown === total
-          ? total + " 件のラボ"
-          : "全 " + total + " 件中 " + shown + " 件";
-      }
-
-      ["input", "change"].forEach(function (evt) {
-        q.addEventListener(evt, apply);
-        topic.addEventListener(evt, apply);
-        verdict.addEventListener(evt, apply);
-        vstatus.addEventListener(evt, apply);
-      });
-      apply();
-    })();
-  </script>
-</body>
-</html>
+  <footer class="footer"><div class="shell"><p>紙面は <code>papers/*/lab.yaml</code> から生成。掲載する事実は arXiv の原論文にリンクしています。</p><p><a href="https://arxiv.org" rel="noopener">arXiv</a> を一次ソースとして参照</p></div></footer><script src="assets/library.js"></script>
+</body></html>
