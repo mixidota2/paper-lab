@@ -14,7 +14,7 @@ urls:
   pdf: https://arxiv.org/pdf/2606.08529
 verdict: "Must Read — 同一モデルでも scaffold を変えるだけで最大28pp動く。能力数字は harness–model の組として読むべき、という評価の前提を更新する論文。"
 verification:
-  mechanism: PARTIAL
+  mechanism: NOT TESTED
   performance: NOT TESTED
   scaling: NOT TESTED
   production_applicability: NOT TESTED
