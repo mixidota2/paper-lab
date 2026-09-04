@@ -1,0 +1,94 @@
+id: unipinrec
+title: "UniPinRec: Unifying Generative Retrieval and Ranking at Pinterest Scale"
+authors:
+  - Hanyu Li
+  - Yi-Ping Hsu
+  - et al. (Pinterest)
+year: 2026
+topics:
+  - recommender-systems
+  - generative-recommendation
+  - ml-systems
+urls:
+  paper: https://arxiv.org/abs/2606.00422
+  arxiv: https://arxiv.org/abs/2606.00422
+  official_code: null
+  pdf: https://arxiv.org/pdf/2606.00422
+verdict: "Worth Reading — ファネル置換ではなく ANN を残したまま retrieval+ranking を full-stack 統合。MAM と KV 再利用でオンライン約+1% とレイテンシ/QPS 改善。L2 はまだ置き換えない現実的な道。"
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+  - generative-rec-vs-retrieval
+status: published
+summary: >
+  入力・モデル・学習・配信まで retrieval と ranking を統一しつつ ANN は維持。MAM（インターリーブなし）、
+  blended training、KV-cache 再利用。オフライン Hit@3 +14.8%。オンライン BMI saves +0.95%、
+  push opens +0.91%、レイテンシ -11.1%、QPS +63.6%。L2 fine ranker は未置換。玩具で KV 再利用と系列長。
+sections:
+  overview: |
+    大規模推薦は retrieval と ranking を別モデルにしがちだが、どちらも同じユーザー行動列を
+    大きな transformer で読むようになると、パラメータも計算も二重になる。
+
+    UniPinRec はアーキテクチャだけでなく、入力形式・学習・配信まで含めた full-stack 統合を
+    Pinterest 本番でやる。共有 transformer が候補非依存のユーザー表現を出し、retrieval は
+    ANN 内積、ranking はクロスアテンション頭、と分岐する。柱は三つ: Masked Action Modeling
+    （行動をトークン挿入せず特徴次元に載せ、系列を倍にしない）、blended training
+    （行動履歴と feedview 印象を一段階で）、retrieval で作ったユーザー履歴 KV を ranking が再利用。
+
+    オフラインで production ranker 比 Hit@3 約 +14.8%、retrieval recall は維持。オンラインは
+    BMI saves +0.95%、通知 push opens +0.91% など。別デプロイ比で e2e レイテンシ -11.1%、
+    QPS +63.6%。ただし L2 fine ranker はまだ残し、L0+L1 として差し込む段階。
+
+    ラボの玩具はオンラインリフトを再現しない。履歴エンコードを一度にするか二度にするか、
+    MAM とインターリーブの系列長差だけを数える。
+  problem: |
+    HSTU などは骨格を寄せても、retrieval と ranking で入力形式が違い、学習も配信も分かれがち。
+    OneRec 系はファネル自体を生成で置き換えるが、既存候補源との合成や段階的ロールバックが難しい。
+
+    欲しいのは「置き換え劇場」ではなく、ANN や既存カスケードに載る統合。ユーザー履歴の
+    $O(n^2)$ をリクエストごとに二度払わないこと、系列を行動トークンで膨らませないことが鍵になる。
+  core_idea:
+    author_claim: |
+      MAM で非インターリーブのまま ranking 監督を載せ、blended 例と joint loss で一段階学習。
+      配信は Triton 上で retrieval と ranking を分けつつ GPU 上の KV プールを共有し、
+      ranking は履歴再エンコードなしの decode 的パスにする。結果として recall を維持しつつ
+      ranking 品質とサービング効率を同時に取りにいく。L2 は意図的にまだ統合しない。
+    research_bot_interpretation: |
+      Meta 論文（生成に反対して two-tower を守る）と並ぶと、こちらは「生成的シーケンスモデルは
+      使うが、ファネル置換ではなくハイブリッド統合」という相補的な産業解に見える。
+      勝ちの源泉は MAM の長さ設計と KV 再利用というシステム側共設計で、セマンティック ID 生成の
+      必然ではない。オンライン +1% 前後は下流 L2 で薄まる前提でも出ている点が実務的。
+
+      ラボではコスト構造の玩具のみ。Hit@3 や A/B は未検証。
+  why_it_might_work: |
+    履歴アテンションが支配的コストなら、一度キャッシュして候補だけ足すのが合理的。
+    インターリーブは候補認識には分かりやすいが系列長をほぼ倍にし、retrieval と入力を共有しにくい。
+    行動をマスクして特徴側に載せるのは、「長さを売らずに監督を足す」妥協として効きそう、
+    という推論（著者主張の言い換えに近いが、因果は未特定）。
+  evidence: |
+    論文 Table 1（Hit@3 / Recall@10）、Table 2–3（KV 再利用とオンラインレイテンシ/QPS）、
+    BMI / Notifications の A/B。限界: L2 未置換、公開再現困難、オフライン→オンラインの減衰。
+
+    `results.json` は相対 FLOP と系列長の玩具計算のみ。
+  executable_understanding: |
+    `run.py` は $n$（履歴）と $k$（候補）を論文の測温に近い値に固定し、
+    (1) 履歴 prefill を retrieval+ranking で二度払う vs KV 再利用、
+    (2) MAM 長 vs インターリーブ長と粗いアテンション量、を出力する。
+  what_we_verified: |
+    相対単位では、KV 再利用が別デプロイより総コストを大きく下げ、インターリーブは
+    MAM より系列が長い、という方向だけ確認（Mechanism: PARTIAL）。ハードウェア実測や
+    オンライン指標ではない。
+  what_we_did_not_verify: |
+    - オフライン Hit@3 +14.8% や retrieval recall
+    - オンライン BMI / push のリフト
+    - 本番 -11.1% レイテンシ / +63.6% QPS
+    - L2 置換の可否
+    - 性能・スケーリング・本番適用性は NOT TESTED（オンラインリフトは主張の引用のみ）
+  implementation: |
+    - `lab.yaml` / `run.py` / `results.json` / `mapping.md`
+    - 公式コードは非公開。PinRec / Triton / Faiss 上の拡張として記述。
+  mapping: mapping.md
+  results: results.json

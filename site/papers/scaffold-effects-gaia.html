@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scaffold Effects on GAIA: A Controlled Comparison — インタラクティブ研究ライブラリ</title>
+  <meta name="description" content="GAIA L1/L2 で 3 scaffolds × 5 models の事前登録つき比較。scaffold だけで最大28pp （Opus L2 robust）。H1支持、H2は方向が棄却、H3は Anthropic 系で条件つき、H4は棄却。 構造化 scaffold は行動数が少なく中盤失敗からの復帰が高い。玩具実験で行動数と復帰だけ確認。">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="../index.html">
+        <span class="brand-kicker">Paper Lab</span>
+        <span class="brand-title">インタラクティブ研究ライブラリ</span>
+      </a>
+      <div class="header-meta">scaffold-effects-gaia</div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <nav class="crumb"><a href="../index.html">ライブラリ</a> / scaffold-effects-gaia</nav>
+
+    
+
+    <header class="paper-hero">
+      <div class="chips">
+        
+        <span class="chip">公開</span>
+        <span class="chip">ai-agent-systems</span><span class="chip">agent-architecture</span><span class="chip">evaluation</span>
+      </div>
+      <h1>Scaffold Effects on GAIA: A Controlled Comparison</h1>
+      <p class="byline">Jason Starace · 2026</p>
+      <p class="verdict"><strong>判定。</strong> Must Read — 同一モデルで scaffold だけで最大28pp動くことを事前登録つきで示した。能力数字は harness–model 組として読むべき、という評価の前提を更新する論文。</p>
+    </header>
+
+    
+    <p class="links">
+      
+      <a href="https://arxiv.org/abs/2606.08529" rel="noopener noreferrer" target="_blank">論文</a>
+      
+      <a href="https://arxiv.org/abs/2606.08529" rel="noopener noreferrer" target="_blank">arXiv</a>
+      
+      <a href="https://arxiv.org/pdf/2606.08529" rel="noopener noreferrer" target="_blank">PDF</a>
+      
+    </p>
+    
+
+    <section class="panel">
+      <h2>検証ステータス</h2>
+      <table class="vtable">
+        <thead>
+          <tr><th>観点</th><th>ステータス</th></tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td>メカニズム</td>
+            <td class="status status-PARTIAL">
+              部分的
+            </td>
+          </tr>
+          
+          <tr>
+            <td>性能</td>
+            <td class="status status-NOT-TESTED">
+              未検証
+            </td>
+          </tr>
+          
+          <tr>
+            <td>スケーリング</td>
+            <td class="status status-NOT-TESTED">
+              未検証
+            </td>
+          </tr>
+          
+          <tr>
+            <td>本番適用性</td>
+            <td class="status status-NOT-TESTED">
+              未検証
+            </td>
+          </tr>
+          
+        </tbody>
+      </table>
+      
+      <p><strong>関連スレッド。</strong>
+        
+        <span class="chip">agent-architecture-and-harness</span>
+        
+      </p>
+      
+    </section>
+
+    <nav class="panel" aria-label="セクション">
+      <h2>このページの内容</h2>
+      <ol class="toc">
+        
+        <li><a href="#overview">概要</a></li>
+        
+        <li><a href="#problem">問題設定</a></li>
+        
+        <li><a href="#core_idea">核心</a></li>
+        
+        <li><a href="#why_it_might_work">なぜ効きそうか</a></li>
+        
+        <li><a href="#evidence">根拠</a></li>
+        
+        <li><a href="#executable_understanding">実行可能な理解</a></li>
+        
+        <li><a href="#results">結果</a></li>
+        
+        <li><a href="#what_we_verified">検証できたこと</a></li>
+        
+        <li><a href="#what_we_did_not_verify">検証していないこと</a></li>
+        
+        <li><a href="#implementation">実装</a></li>
+        
+        <li><a href="#mapping">原論文・公式コード対応</a></li>
+        
+      </ol>
+    </nav>
+
+    
+    <section class="section" id="overview">
+      <h2>概要</h2>
+      
+      
+      
+      <div class="prose"><p>公開されているエージェント能力スコアは、「モデルが何ができるか」と「scaffold が何を引き出せるか」を
+混ぜてしまう。この論文は、その elicitation gap の大きさを、タスクと条件を固定したまま測る。</p>
+<p>事前登録どおり、ReAct / Planner-Actor-Rater (PAR) / planner-then-executor の3つを、
+Claude Opus・Sonnet・Haiku、Gemini、GPT の5モデルで GAIA validation L1/L2 にかける。
+同一モデル内で scaffold を変えるだけで、robust slice では Opus L2 で最大約28ポイント動く。
+「能力が上がれば scaffold 感度は下がる」という直感（H2）は、少なくとも難しいレベルでは
+方向が合わない。評価単位はモデル単体ではなく harness–model の組だ、という読みが主眼。</p>
+<p>このラボの玩具実験は GAIA 精度を再現しない。中盤のツール失敗を注入した合成タスクで、
+3つのループ方針の行動数と復帰率だけを見る。</p></div>
+      
+    </section>
+    
+    <section class="section" id="problem">
+      <h2>問題設定</h2>
+      
+      
+      
+      <div class="prose"><p>チームAが「自分の最良 scaffold」でモデルAを測り、チームBが別 scaffold でモデルBを測ると、
+差分のどれだけがモデル由来か分からない。METR の時間地平線論文なども elicitation を下界として
+扱うが、共通ベンチ上で現在のフロンティア並びを横断した制御比較は足りていなかった。</p>
+<p>現場の意思決定（どのモデルを買うか、どのハーネスを固定するか）は、単一セルの数字を
+モデル属性だと思い込むと誤る。ここで欲しいのは、scaffold を操作変数にしたときの
+精度ギャップの大きさ、能力ティアとの関係、失敗時の振る舞い、コストである。</p></div>
+      
+    </section>
+    
+    <section class="section" id="core_idea">
+      <h2>核心</h2>
+      
+      
+      <div class="split">
+        <div class="callout author">
+          <p class="label">著者の主張</p>
+          <div class="prose">
+            <p>事前登録した仮説の骨子は次のとおり。H1: 少なくとも1モデルで best/worst scaffold 差が
+10pp以上（L1）。H2: より強いフロンティアモデルほど scaffold ギャップは小さい。
+H3: triframe 系 multi-agent（実装は PAR）は L2 では ReAct を上回り L1 ではそうでない。
+H4: planner-then-executor はファイル読みタスクで有利。</p>
+<p>結果として H1 は支持。H2 は交互作用はあるが「能力↑→感度↓」の方向は棄却（robust では
+Opus L2 が最大ギャップ）。H3 は Anthropic 系 L2 で条件つき支持、他社フロンティアでは弱い。
+H4 は棄却。構造化 scaffold はツール呼び出しが少なく、L2 では中盤エラーからの復帰が高い。
+Gemini × planner-then-executor は両レベルで最安寄り、かつ L2 で最も正確、というセルもある。</p>
+          </div>
+        </div>
+        <div class="callout interp">
+          <p class="label">Research Bot の解釈</p>
+          <div class="prose">
+            <p>著者の数字そのものより、実務への含意は「能力リーダーボードを単一 scaffold の点推定として
+読むな」に近い。マルチエージェントが常に得、という話でもなく、家族（プロバイダ）や
+タスク難易度で条件が変わる。調達や評価設計では、代替 scaffold を1本でも回して
+見出し数字が脆いかを見るのが安い保険になる。</p>
+<p>このラボでは復帰と行動数の玩具だけを動かした。28pp ギャップ、H検定、コスト順位、
+ツール面の交絡は未検証。</p>
+          </div>
+        </div>
+      </div>
+      
+      
+    </section>
+    
+    <section class="section" id="why_it_might_work">
+      <h2>なぜ効きそうか</h2>
+      
+      <div class="inference-tag">推論 — 著者の主張ではない</div>
+      
+      
+      
+      <div class="prose"><p>構造化ループが効きそうな理由のひとつは、失敗の扱い方にある。ReAct は探索が多く、
+同じ失敗アクションを繰り返しやすい。一方 PAR は rater がやり直しを促し、
+planner-then-executor は明示プランの上に失敗が載るので、ステップ単位の破綻が残りにくい——
+というストーリーはあり得る。ただし論文自身もメカニズムは特定していない。</p>
+<p>「強いモデルほど scaffold 不要」が崩れる方向は、難しいタスクでは余力が大きいほど
+悪いループが能力を unused のまま残す、という読みとも整合する（天井効果の解釈もある）。</p></div>
+      
+    </section>
+    
+    <section class="section" id="evidence">
+      <h2>根拠</h2>
+      
+      
+      
+      <div class="prose"><p>論文側の主証拠は事前登録つき 3×5×L1/L2、ブートストラップ CI、混合効果ロジスティックの
+scaffold×model 交互作用。robust slice（SDK バグ旗の除外）で Anthropic L2 のギャップが
+広がる点も明示されている。限界として、S1 のツール面が S2/S3 と違う交絡、
+Anthropic SDK のシリアライズ欠陥、validation 汚染リスクが書かれている。</p>
+<p>ラボの <code>results.json</code> は合成タスクの行動数・復帰率のみ。GAIA 精度や仮説検定の再現ではない。</p></div>
+      
+    </section>
+    
+    <section class="section" id="executable_understanding">
+      <h2>実行可能な理解</h2>
+      
+      
+      
+      <div class="prose"><p><code>run.py</code> は難易度つき合成タスクに中盤ツール失敗を注入し、三方針（react /
+planner_actor_rater / planner_then_executor）を同じシードで回す。見る指標は
+mean_actions と recovery_given_mid_fail。論文の「構造化は行動少・復帰高」という
+行動シグネチャの方向だけを、極小スケールで確かめる。</p></div>
+      
+    </section>
+    
+    <section class="section" id="results">
+      <h2>結果</h2>
+      
+      
+      
+      <div class="prose"><p class="callout-body"><em>Synthetic toy only. Does not reproduce GAIA accuracy, model families, or the paper's 28pp scaffold gap. Mechanism-oriented: action count and mid-trajectory recovery under three loop policies.</em></p>
+<h3>toy_scaffold_react</h3>
+<ul><li><strong>dataset</strong>: synthetic_tool_tasks_v0</li><li><strong>n</strong>: 200</li><li><strong>seed</strong>: 42</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>mean_actions</th><td colspan='1'>13.9</td></tr><tr><th scope='row'>success_rate</th><td colspan='1'>0.81</td></tr><tr><th scope='row'>mid_trajectory_fail_rate</th><td colspan='1'>0.83</td></tr><tr><th scope='row'>recovery_given_mid_fail</th><td colspan='1'>0.777</td></tr></tbody></table>
+<h3>toy_scaffold_planner_actor_rater</h3>
+<ul><li><strong>dataset</strong>: synthetic_tool_tasks_v0</li><li><strong>n</strong>: 200</li><li><strong>seed</strong>: 42</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>mean_actions</th><td colspan='1'>7.94</td></tr><tr><th scope='row'>success_rate</th><td colspan='1'>1.0</td></tr><tr><th scope='row'>mid_trajectory_fail_rate</th><td colspan='1'>0.805</td></tr><tr><th scope='row'>recovery_given_mid_fail</th><td colspan='1'>1.0</td></tr></tbody></table>
+<h3>toy_scaffold_planner_then_executor</h3>
+<ul><li><strong>dataset</strong>: synthetic_tool_tasks_v0</li><li><strong>n</strong>: 200</li><li><strong>seed</strong>: 42</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>mean_actions</th><td colspan='1'>8.72</td></tr><tr><th scope='row'>success_rate</th><td colspan='1'>0.9</td></tr><tr><th scope='row'>mid_trajectory_fail_rate</th><td colspan='1'>0.75</td></tr><tr><th scope='row'>recovery_given_mid_fail</th><td colspan='1'>0.867</td></tr></tbody></table>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;Synthetic toy only. Does not reproduce GAIA accuracy, model families, or the paper's 28pp scaffold gap. Mechanism-oriented: action count and mid-trajectory recovery under three loop policies.&quot;,
+  &quot;fictional&quot;: false,
+  &quot;toy&quot;: true,
+  &quot;paper_claims_not_tested&quot;: [
+    &quot;GAIA L1/L2 accuracy gaps&quot;,
+    &quot;H1–H4 pre-registered hypothesis tests&quot;,
+    &quot;model-family conditioning of multi-agent advantage&quot;,
+    &quot;cost-per-correct rankings (e.g. Gemini s3)&quot;
+  ],
+  &quot;summary&quot;: {
+    &quot;action_ratio_par_vs_react&quot;: 0.571,
+    &quot;action_ratio_s3_vs_react&quot;: 0.627,
+    &quot;recovery_lift_par_vs_react_pp&quot;: 22.3,
+    &quot;recovery_lift_s3_vs_react_pp&quot;: 9.0
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;toy_scaffold_react&quot;,
+      &quot;dataset&quot;: &quot;synthetic_tool_tasks_v0&quot;,
+      &quot;n&quot;: 200,
+      &quot;seed&quot;: 42,
+      &quot;policy&quot;: &quot;react&quot;,
+      &quot;metrics&quot;: {
+        &quot;mean_actions&quot;: 13.9,
+        &quot;success_rate&quot;: 0.81,
+        &quot;mid_trajectory_fail_rate&quot;: 0.83,
+        &quot;recovery_given_mid_fail&quot;: 0.777
+      }
+    },
+    {
+      &quot;name&quot;: &quot;toy_scaffold_planner_actor_rater&quot;,
+      &quot;dataset&quot;: &quot;synthetic_tool_tasks_v0&quot;,
+      &quot;n&quot;: 200,
+      &quot;seed&quot;: 42,
+      &quot;policy&quot;: &quot;planner_actor_rater&quot;,
+      &quot;metrics&quot;: {
+        &quot;mean_actions&quot;: 7.94,
+        &quot;success_rate&quot;: 1.0,
+        &quot;mid_trajectory_fail_rate&quot;: 0.805,
+        &quot;recovery_given_mid_fail&quot;: 1.0
+      }
+    },
+    {
+      &quot;name&quot;: &quot;toy_scaffold_planner_then_executor&quot;,
+      &quot;dataset&quot;: &quot;synthetic_tool_tasks_v0&quot;,
+      &quot;n&quot;: 200,
+      &quot;seed&quot;: 42,
+      &quot;policy&quot;: &quot;planner_then_executor&quot;,
+      &quot;metrics&quot;: {
+        &quot;mean_actions&quot;: 8.72,
+        &quot;success_rate&quot;: 0.9,
+        &quot;mid_trajectory_fail_rate&quot;: 0.75,
+        &quot;recovery_given_mid_fail&quot;: 0.867
+      }
+    }
+  ]
+}</code></pre></details></div>
+      
+    </section>
+    
+    <section class="section" id="what_we_verified">
+      <h2>検証できたこと</h2>
+      
+      
+      
+      <div class="prose"><p>合成設定では、PAR と planner-then-executor が ReAct より平均行動数が少なく、
+中盤失敗が起きた試行での復帰率が高い、という方向が再現した（Mechanism: PARTIAL）。
+成功率がそのまま GAIA に対応するとは言っていない。</p></div>
+      
+    </section>
+    
+    <section class="section" id="what_we_did_not_verify">
+      <h2>検証していないこと</h2>
+      
+      
+      
+      <div class="prose"><ul>
+<li>GAIA L1/L2 の精度ギャップ（最大28pp）や事前登録 H1–H4 の統計的結論</li>
+<li>モデル家族による multi-agent 優位の条件つき性</li>
+<li>Gemini s3 のコスト対精度パレート</li>
+<li>ツール面交絡・SDK バグ・validation 汚染の影響</li>
+<li>性能・スケーリング・本番適用性はいずれも NOT TESTED</li>
+</ul></div>
+      
+    </section>
+    
+    <section class="section" id="implementation">
+      <h2>実装</h2>
+      
+      
+      
+      <div class="prose"><p>このディレクトリの成果物:</p>
+<ul>
+<li><code>lab.yaml</code> — 本レコード</li>
+<li><code>run.py</code> — 三方針の玩具シミュレーション（<code>results.json</code> を書き出す）</li>
+<li><code>results.json</code> — 実行結果</li>
+<li><code>mapping.md</code> — 論文箇所 ↔ 最小コード ↔ 公式コード（匿名リポのみ言及）</li>
+</ul>
+<p>公式の完全再現コードは著者の匿名リポジトリ案内のみ（受け入れ後にログ公開予定、と論文記載）。</p></div>
+      
+    </section>
+    
+    <section class="section" id="mapping">
+      <h2>原論文・公式コード対応</h2>
+      
+      
+      
+      <div class="prose"><h1>原論文・公式コード対応</h1>
+<table>
+<thead>
+<tr>
+<th>論文箇所</th>
+<th>最小成果物</th>
+<th>公式コード</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3.3 Scaffolds（ReAct / PAR / planner-then-executor）</td>
+<td><code>run.py</code> の三方針ループ</td>
+<td>匿名リポ案内のみ（論文脚注）</td>
+</tr>
+<tr>
+<td>§4.3 Behavioral signatures（action count, recovery）</td>
+<td><code>results.json</code> の mean_actions / recovery_given_mid_fail</td>
+<td>per-attempt logs（受け入れ後公開予定）</td>
+</tr>
+<tr>
+<td>§4.1 Scaffold gap / H1–H2</td>
+<td><em>未実装 — GAIA 精度は再現しない</em></td>
+<td>configs + analysis pipeline（同上）</td>
+</tr>
+<tr>
+<td>§6 Limitations（tool-surface, SDK bug, validation）</td>
+<td>lab.yaml の「検証していないこと」</td>
+<td>n/a</td>
+</tr>
+</tbody>
+</table></div>
+      
+    </section>
+    
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      ソース: <code>scaffold-effects-gaia/lab.yaml</code>。
+      生成された HTML はソース・オブ・トゥルースではありません。
+    </div>
+  </footer>
+</body>
+</html>

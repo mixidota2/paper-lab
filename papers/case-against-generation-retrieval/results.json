@@ -1,0 +1,45 @@
+{
+  "note": "Synthetic catalog simulation only. Contrasts serving cost shape and grounding miss rate for ANN/dot-product vs sequential SID decode. Does not reproduce Amazon R@10, CE SOTA, or production NE vs DLRM.",
+  "fictional": false,
+  "toy": true,
+  "paper_claims_not_tested": [
+    "Amazon Beauty/Sports/Toys R@10 / NDCG",
+    "CE yes/no+NTP teacher quality",
+    "CE2TT distillation gains",
+    "production NE parity at 0.5% data",
+    "staleness resilience vs DLRM"
+  ],
+  "summary": {
+    "cost_ratio_gen_over_ann": 1.522,
+    "latency_steps_ratio": 4.576,
+    "grounding_miss_ann": 0.0,
+    "grounding_miss_gen": 0.288
+  },
+  "experiments": [
+    {
+      "name": "toy_ann_two_tower",
+      "dataset": "synthetic_catalog_n10000",
+      "n": 500,
+      "seed": 7,
+      "metrics": {
+        "mean_cost": 17.315,
+        "mean_latency_steps": 1.0,
+        "grounding_miss_rate": 0.0,
+        "hit_at_10": 0.442
+      }
+    },
+    {
+      "name": "toy_generative_sid_decode",
+      "dataset": "synthetic_catalog_n10000",
+      "n": 500,
+      "seed": 7,
+      "sid_len": 4,
+      "metrics": {
+        "mean_cost": 26.357,
+        "mean_latency_steps": 4.576,
+        "grounding_miss_rate": 0.288,
+        "hit_at_10": 0.326
+      }
+    }
+  ]
+}

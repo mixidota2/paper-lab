@@ -1,0 +1,45 @@
+{
+  "note": "Relative FLOP/sequence-length toy only. Illustrates why history encode-once (KV reuse) and non-interleaved MAM matter for serving/context. Does not reproduce offline Hit@3, online BMI/push lifts, or production QPS.",
+  "fictional": false,
+  "toy": true,
+  "paper_claims_not_tested": [
+    "offline Hit@3 +14.8%",
+    "online BMI saves +0.95%",
+    "push opens +0.91%",
+    "e2e latency -11.1% / QPS +63.6%",
+    "L2 fine ranker replacement"
+  ],
+  "summary": {
+    "kv_reuse_speedup_vs_separate": 1.865,
+    "interleave_length_inflation": 2.0
+  },
+  "experiments": [
+    {
+      "name": "toy_kv_reuse_serving",
+      "dataset": "synthetic_n992_k656",
+      "n": 1,
+      "seed": 0,
+      "metrics": {
+        "history_prefill_units": 755761152,
+        "separate_deploy_total_units": 2341797888,
+        "kv_reuse_total_units": 1255538688,
+        "speedup_vs_separate": 1.865,
+        "ranking_marginal_ratio": 0.661
+      }
+    },
+    {
+      "name": "toy_mam_vs_interleave_length",
+      "dataset": "synthetic_n992_k656",
+      "n": 1,
+      "seed": 0,
+      "metrics": {
+        "mam_sequence_length": 1648,
+        "interleaved_sequence_length": 3296,
+        "length_ratio_interleave_over_mam": 2.0,
+        "mam_sparse_attn_units": 1255538688,
+        "interleave_dense_attn_units": 8343257088,
+        "attn_ratio_interleave_over_mam_sparse": 6.645
+      }
+    }
+  ]
+}
