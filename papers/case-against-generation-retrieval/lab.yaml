@@ -14,7 +14,7 @@ urls:
   arxiv: https://arxiv.org/abs/2607.25346
   official_code: null
   pdf: https://arxiv.org/pdf/2607.25346
-verdict: "Must Read — LLM の意味力を生成デコーダではなく two-tower の表現バックボーンに載せ、ANN 配信を保ったまま Amazon 公開と本番で対抗できることを示した。生成 CG 一択論への産業側カウンター。"
+verdict: "Must Read — LLM の意味力を two-tower の表現バックボーンに載せ、ANN 配信を保ったまま Amazon 公開と本番で対抗できることを示した。生成 CG 一択論への産業側カウンター。"
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -24,13 +24,13 @@ related_threads:
   - generative-rec-vs-retrieval
 status: published
 summary: >
-  LLM を生成器ではなく two-tower の意味バックボーンに。共有 LLM・EOS・CE yes/no+NTP 教師、
+  LLM を生成器というより two-tower の意味バックボーンとして使う。共有 LLM・EOS・CE yes/no+NTP 教師、
   CE2TT 蒸留、ユーザー塔の latent reasoning。Amazon で CE は SOTA 寄り、0.6B TT は ORT 8B に
   R@10 で対抗。本番は 0.5% データで DLRM と NE パリティ、staleness 耐性。玩具で ANN vs SID 生成コスト。
 sections:
   overview: |
     推薦で LLM を使う流れの一方に、「推薦＝生成（セマンティック ID のデコード）」がある。
-    しかし大規模 retrieval では自己回帰デコードのレイテンシと、トークンが実アイテムに
+    ただ大規模 retrieval では、自己回帰デコードのレイテンシと、トークンが実アイテムに
     接地しない問題がボトルネックになる。
 
     この論文は古典的 two-tower を LLM 時代の表現学習で立て直す。ユーザーとアイテムを
@@ -39,7 +39,7 @@ sections:
     ユーザー塔だけの latent reasoning を積み上げる。アイテム側は事前計算可能なままなので
     ANN のまま配信できる。
 
-    公開 Amazon 三データでは CE が概ね SOTA、0.6B の TT 学生は 8B 級の OneRec-Think に
+    公開 Amazon 三データでは CE が概ね SOTA。0.6B の TT 学生は 8B 級の OneRec-Think に
     R@10 で張り合う。社内では学習データの 0.5% で従来 DLRM two-tower と NE パリティ、
     凍結時の staleness 耐性も強い、と主張する。
 
@@ -50,8 +50,8 @@ sections:
     アイテム ID への写像はモデルの外で起きる。そこで grounding 失敗が下流に伝播する。
     一方 two-tower はアイテム埋め込みをオフライン索引でき、工業的 CG の標準になっている。
 
-    問いは単純で重い: LLM の意味の深さを、生成エンジンとしてではなく表現バックボーンとして
-    載せたとき、古典 two-tower はまだ戦えるか？ 生成でファネルを置き換える必要があるのか？
+    問いは単純で重い。LLM の意味の深さを表現バックボーンとして載せたとき、
+    古典 two-tower はまだ戦えるか。生成でファネルを置き換える必要があるのか。
   core_idea:
     author_claim: |
       LLM-native two-tower: 共有エンコーダ + EOS、CE 教師を yes/no ヘッドとユーザー条件 NTP で強化し、
@@ -59,18 +59,19 @@ sections:
       公開ベンチでは CE が多くの指標で最良、TT は R@10 で ORT を上回るケースが多い（バックボーンは 0.6B vs ORT の 8B）。
       本番では DLRM と NE パリティを 0.5% データで達成し、凍結評価で staleness に強い。
     research_bot_interpretation: |
-      「生成が retrieval を置き換える」のではなく、「LLM の利得の多くは意味表現にあり、
-      デコード形式は必須ではない」という仮説を産業データで押している。ANN を捨てない選択は、
-      レイテンシ・接地・既存索引との互換で実務的。一方、公開 Amazon は Web 規模 CG そのものではなく、
-      生成系のオンライン勝ち事例との正面比較も限定的。勝ち筋は「意味＋因数分解」であり、
-      「生成だから」ではない、と読むのがこのスレッドとの接続点。
+      「生成が retrieval を置き換える」より、「LLM の利得の多くは意味表現にあり、
+      デコード形式は必須ではない」という仮説を産業データで押している、と読む。
+      ANN を捨てない選択は、レイテンシ・接地・既存索引との互換で実務的だ。
+      一方、公開 Amazon は Web 規模 CG そのものとは限らず、生成系のオンライン勝ち事例との
+      正面比較も限定的。勝ち筋は「意味＋因数分解」側にあり、「生成だから」で説明しきれる話ではない——
+      このスレッドとの接続点はそこにある。
 
       ラボでは grounding miss とコスト比の玩具のみ。NE や R@K は未検証。
   why_it_might_work: |
     内積 retrieval が安いのは、アイテムを一度埋め込んでしまえばクエリごとにデコード列を
     伸ばさないからだ。接地ミスがゼロなのも、候補が最初からアイテム ID だから。
     教師 CE が相対順位を持ち、それを KL で学生に渡すのは、双エンコーダが失う相互作用を
-    ソフトラベルで補う定番の筋で、LLM 表現とその相性が良い、という説明は自然。
+    ソフトラベルで補う定番の筋で、LLM 表現との相性も良い。この説明は自然に聞こえる。
   evidence: |
     論文: Amazon Beauty / Sports / Toys での SOTA 表と TT アブレーション（特に CE2TT の寄与大）、
     社内 NE・セグメント・staleness・データスケール表。限界は公開コードなし、社内詳細の再現困難、
@@ -82,7 +83,7 @@ sections:
     (2) SID 長ぶんの逐次デコード + トークン接地ミス確率、を並べる。論文 §4.3 の効率議論と
     導入部の grounding 懸念を、数値のオーダー感だけで掴むための装置。
   what_we_verified: |
-    玩具では ANN 経路の grounding miss は常に 0、生成 SID 経路は設定したミス率どおり欠測が出て
+    玩具では ANN 経路の grounding miss は常に 0。生成 SID 経路は設定したミス率どおり欠測が出て、
     平均コスト・レイテンシ段数が高くなる（Mechanism: PARTIAL）。これはサービング形の説明用で、
     推薦品質の確認ではない。
   what_we_did_not_verify: |

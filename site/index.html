@@ -14,7 +14,7 @@
         <span class="brand-kicker">Paper Lab</span>
         <span class="brand-title">インタラクティブ研究ライブラリ</span>
       </a>
-      <div class="header-meta">4 件のラボ</div>
+      <div class="header-meta">3 件のラボ</div>
     </div>
   </header>
 
@@ -34,13 +34,13 @@
       <label>トピック
         <select id="topic">
           <option value="">すべてのトピック</option>
-          <option value="agent-architecture">agent-architecture</option><option value="ai-agent-systems">ai-agent-systems</option><option value="evaluation">evaluation</option><option value="example">example</option><option value="generative-recommendation">generative-recommendation</option><option value="ml-systems">ml-systems</option><option value="recommender-systems">recommender-systems</option><option value="retrieval">retrieval</option><option value="session-intent">session-intent</option>
+          <option value="agent-architecture">agent-architecture</option><option value="ai-agent-systems">ai-agent-systems</option><option value="evaluation">evaluation</option><option value="generative-recommendation">generative-recommendation</option><option value="ml-systems">ml-systems</option><option value="recommender-systems">recommender-systems</option><option value="retrieval">retrieval</option>
         </select>
       </label>
       <label>判定
         <select id="verdict">
           <option value="">すべての判定</option>
-          <option value="EXAMPLE — フォーマットデモのみ。研究上の判定なし">EXAMPLE — フォーマットデモのみ。研究上の判定なし</option><option value="Must Read — LLM の意味力を生成デコーダではなく two-tower の表現バックボーンに載せ、ANN 配信を保ったまま Amazon 公開と本番で対抗できることを示した。生成 CG 一択論への産業側カウンター。">Must Read — LLM の意味力を生成デコーダではなく two-tower の表現バックボーンに載せ、ANN 配信を保ったまま Amazon 公開と本番で対抗できることを示した。生成 CG 一択論への産業側カウンター。</option><option value="Must Read — 同一モデルで scaffold だけで最大28pp動くことを事前登録つきで示した。能力数字は harness–model 組として読むべき、という評価の前提を更新する論文。">Must Read — 同一モデルで scaffold だけで最大28pp動くことを事前登録つきで示した。能力数字は harness–model 組として読むべき、という評価の前提を更新する論文。</option><option value="Worth Reading — ファネル置換ではなく ANN を残したまま retrieval+ranking を full-stack 統合。MAM と KV 再利用でオンライン約+1% とレイテンシ/QPS 改善。L2 はまだ置き換えない現実的な道。">Worth Reading — ファネル置換ではなく ANN を残したまま retrieval+ranking を full-stack 統合。MAM と KV 再利用でオンライン約+1% とレイテンシ/QPS 改善。L2 はまだ置き換えない現実的な道。</option>
+          <option value="Must Read — LLM の意味力を two-tower の表現バックボーンに載せ、ANN 配信を保ったまま Amazon 公開と本番で対抗できることを示した。生成 CG 一択論への産業側カウンター。">Must Read — LLM の意味力を two-tower の表現バックボーンに載せ、ANN 配信を保ったまま Amazon 公開と本番で対抗できることを示した。生成 CG 一択論への産業側カウンター。</option><option value="Must Read — 同一モデルでも scaffold を変えるだけで最大28pp動く。能力数字は harness–model の組として読むべき、という評価の前提を更新する論文。">Must Read — 同一モデルでも scaffold を変えるだけで最大28pp動く。能力数字は harness–model の組として読むべき、という評価の前提を更新する論文。</option><option value="Worth Reading — ANN を残したまま retrieval+ranking を full-stack 統合。MAM と KV 再利用でオンライン約+1% とレイテンシ/QPS 改善。L2 はまだ置き換えない現実的な道。">Worth Reading — ANN を残したまま retrieval+ranking を full-stack 統合。MAM と KV 再利用でオンライン約+1% とレイテンシ/QPS 改善。L2 はまだ置き換えない現実的な道。</option>
         </select>
       </label>
       <label>検証ステータス
@@ -55,63 +55,17 @@
     <div class="grid" id="grid">
       
       <a class="card"
-         href="papers/example-demo.html"
-         data-id="example-demo"
-         data-topics="example|recommender-systems|session-intent"
-         data-verdict="EXAMPLE — フォーマットデモのみ。研究上の判定なし"
-         data-status="published"
-         data-verification="NOT TESTED|NOT TESTED|NOT TESTED|NOT TESTED"
-         data-mech="NOT TESTED"
-         data-perf="NOT TESTED"
-         data-scale="NOT TESTED"
-         data-prod="NOT TESTED"
-         data-text="example-demo example（架空）: セッション意図の加法的減衰 a. example, b. placeholder 2026 example — フォーマットデモのみ。研究上の判定なし インタラクティブ研究ライブラリのフォーマットデモ。玩具的なアイデアと架空の数値。 論文でも結果でもない。 example recommender-systems session-intent user-history-context-design published 公開 not tested 未検証 not tested 未検証 not tested 未検証 not tested 未検証">
-        <div class="chips">
-          <span class="chip example">EXAMPLE / 架空</span>
-          
-          <span class="chip">example</span><span class="chip">recommender-systems</span><span class="chip">session-intent</span>
-        </div>
-        <h2>EXAMPLE（架空）: セッション意図の加法的減衰</h2>
-        <div class="meta">A. Example, B. Placeholder · 2026</div>
-        <p class="summary">インタラクティブ研究ライブラリのフォーマットデモ。玩具的なアイデアと架空の数値。 論文でも結果でもない。</p>
-        <div class="verdict"><strong>判定。</strong> EXAMPLE — フォーマットデモのみ。研究上の判定なし</div>
-        <div class="vgrid">
-          
-          <div class="vcell" data-status="NOT TESTED">
-            <span class="k">メカニズム</span>
-            未検証
-          </div>
-          
-          <div class="vcell" data-status="NOT TESTED">
-            <span class="k">性能</span>
-            未検証
-          </div>
-          
-          <div class="vcell" data-status="NOT TESTED">
-            <span class="k">スケーリング</span>
-            未検証
-          </div>
-          
-          <div class="vcell" data-status="NOT TESTED">
-            <span class="k">本番適用性</span>
-            未検証
-          </div>
-          
-        </div>
-      </a>
-      
-      <a class="card"
          href="papers/case-against-generation-retrieval.html"
          data-id="case-against-generation-retrieval"
          data-topics="recommender-systems|retrieval|generative-recommendation"
-         data-verdict="Must Read — LLM の意味力を生成デコーダではなく two-tower の表現バックボーンに載せ、ANN 配信を保ったまま Amazon 公開と本番で対抗できることを示した。生成 CG 一択論への産業側カウンター。"
+         data-verdict="Must Read — LLM の意味力を two-tower の表現バックボーンに載せ、ANN 配信を保ったまま Amazon 公開と本番で対抗できることを示した。生成 CG 一択論への産業側カウンター。"
          data-status="published"
          data-verification="PARTIAL|NOT TESTED|NOT TESTED|NOT TESTED"
          data-mech="PARTIAL"
          data-perf="NOT TESTED"
          data-scale="NOT TESTED"
          data-prod="NOT TESTED"
-         data-text="case-against-generation-retrieval the case against generation for retrieval: discriminative language models as effective retrievers zhe xu, prachi agrawal, et al. (meta) 2026 must read — llm の意味力を生成デコーダではなく two-tower の表現バックボーンに載せ、ann 配信を保ったまま amazon 公開と本番で対抗できることを示した。生成 cg 一択論への産業側カウンター。 llm を生成器ではなく two-tower の意味バックボーンに。共有 llm・eos・ce yes/no+ntp 教師、 ce2tt 蒸留、ユーザー塔の latent reasoning。amazon で ce は sota 寄り、0.6b tt は ort 8b に r@10 で対抗。本番は 0.5% データで dlrm と ne パリティ、staleness 耐性。玩具で ann vs sid 生成コスト。 recommender-systems retrieval generative-recommendation generative-rec-vs-retrieval published 公開 partial 部分的 not tested 未検証 not tested 未検証 not tested 未検証">
+         data-text="case-against-generation-retrieval the case against generation for retrieval: discriminative language models as effective retrievers zhe xu, prachi agrawal, et al. (meta) 2026 must read — llm の意味力を two-tower の表現バックボーンに載せ、ann 配信を保ったまま amazon 公開と本番で対抗できることを示した。生成 cg 一択論への産業側カウンター。 llm を生成器というより two-tower の意味バックボーンとして使う。共有 llm・eos・ce yes/no+ntp 教師、 ce2tt 蒸留、ユーザー塔の latent reasoning。amazon で ce は sota 寄り、0.6b tt は ort 8b に r@10 で対抗。本番は 0.5% データで dlrm と ne パリティ、staleness 耐性。玩具で ann vs sid 生成コスト。 recommender-systems retrieval generative-recommendation generative-rec-vs-retrieval published 公開 partial 部分的 not tested 未検証 not tested 未検証 not tested 未検証">
         <div class="chips">
           
           
@@ -119,8 +73,8 @@
         </div>
         <h2>The Case Against Generation for Retrieval: Discriminative Language Models as Effective Retrievers</h2>
         <div class="meta">Zhe Xu, Prachi Agrawal, et al. (Meta) · 2026</div>
-        <p class="summary">LLM を生成器ではなく two-tower の意味バックボーンに。共有 LLM・EOS・CE yes/no+NTP 教師、 CE2TT 蒸留、ユーザー塔の latent reasoning。Amazon で CE は SOTA 寄り、0.6B TT は ORT 8B に R@10 で対抗。本番は 0.5% データで DLRM と NE パリティ、staleness 耐性。玩具で ANN vs SID 生成コスト。</p>
-        <div class="verdict"><strong>判定。</strong> Must Read — LLM の意味力を生成デコーダではなく two-tower の表現バックボーンに載せ、ANN 配信を保ったまま Amazon 公開と本番で対抗できることを示した。生成 CG 一択論への産業側カウンター。</div>
+        <p class="summary">LLM を生成器というより two-tower の意味バックボーンとして使う。共有 LLM・EOS・CE yes/no+NTP 教師、 CE2TT 蒸留、ユーザー塔の latent reasoning。Amazon で CE は SOTA 寄り、0.6B TT は ORT 8B に R@10 で対抗。本番は 0.5% データで DLRM と NE パリティ、staleness 耐性。玩具で ANN vs SID 生成コスト。</p>
+        <div class="verdict"><strong>判定。</strong> Must Read — LLM の意味力を two-tower の表現バックボーンに載せ、ANN 配信を保ったまま Amazon 公開と本番で対抗できることを示した。生成 CG 一択論への産業側カウンター。</div>
         <div class="vgrid">
           
           <div class="vcell" data-status="PARTIAL">
@@ -150,14 +104,14 @@
          href="papers/scaffold-effects-gaia.html"
          data-id="scaffold-effects-gaia"
          data-topics="ai-agent-systems|agent-architecture|evaluation"
-         data-verdict="Must Read — 同一モデルで scaffold だけで最大28pp動くことを事前登録つきで示した。能力数字は harness–model 組として読むべき、という評価の前提を更新する論文。"
+         data-verdict="Must Read — 同一モデルでも scaffold を変えるだけで最大28pp動く。能力数字は harness–model の組として読むべき、という評価の前提を更新する論文。"
          data-status="published"
          data-verification="PARTIAL|NOT TESTED|NOT TESTED|NOT TESTED"
          data-mech="PARTIAL"
          data-perf="NOT TESTED"
          data-scale="NOT TESTED"
          data-prod="NOT TESTED"
-         data-text="scaffold-effects-gaia scaffold effects on gaia: a controlled comparison jason starace 2026 must read — 同一モデルで scaffold だけで最大28pp動くことを事前登録つきで示した。能力数字は harness–model 組として読むべき、という評価の前提を更新する論文。 gaia l1/l2 で 3 scaffolds × 5 models の事前登録つき比較。scaffold だけで最大28pp （opus l2 robust）。h1支持、h2は方向が棄却、h3は anthropic 系で条件つき、h4は棄却。 構造化 scaffold は行動数が少なく中盤失敗からの復帰が高い。玩具実験で行動数と復帰だけ確認。 ai-agent-systems agent-architecture evaluation agent-architecture-and-harness published 公開 partial 部分的 not tested 未検証 not tested 未検証 not tested 未検証">
+         data-text="scaffold-effects-gaia scaffold effects on gaia: a controlled comparison jason starace 2026 must read — 同一モデルでも scaffold を変えるだけで最大28pp動く。能力数字は harness–model の組として読むべき、という評価の前提を更新する論文。 gaia l1/l2 で 3 scaffolds × 5 models を事前登録つきで比較。scaffold だけで最大28pp （opus l2 robust）。h1は支持、h2は方向が棄却、h3は anthropic 系で条件つき、h4は棄却。 構造化 scaffold は行動数が少なく、中盤失敗からの復帰が高い。玩具実験では行動数と復帰だけ確認。 ai-agent-systems agent-architecture evaluation agent-architecture-and-harness published 公開 partial 部分的 not tested 未検証 not tested 未検証 not tested 未検証">
         <div class="chips">
           
           
@@ -165,8 +119,8 @@
         </div>
         <h2>Scaffold Effects on GAIA: A Controlled Comparison</h2>
         <div class="meta">Jason Starace · 2026</div>
-        <p class="summary">GAIA L1/L2 で 3 scaffolds × 5 models の事前登録つき比較。scaffold だけで最大28pp （Opus L2 robust）。H1支持、H2は方向が棄却、H3は Anthropic 系で条件つき、H4は棄却。 構造化 scaffold は行動数が少なく中盤失敗からの復帰が高い。玩具実験で行動数と復帰だけ確認。</p>
-        <div class="verdict"><strong>判定。</strong> Must Read — 同一モデルで scaffold だけで最大28pp動くことを事前登録つきで示した。能力数字は harness–model 組として読むべき、という評価の前提を更新する論文。</div>
+        <p class="summary">GAIA L1/L2 で 3 scaffolds × 5 models を事前登録つきで比較。scaffold だけで最大28pp （Opus L2 robust）。H1は支持、H2は方向が棄却、H3は Anthropic 系で条件つき、H4は棄却。 構造化 scaffold は行動数が少なく、中盤失敗からの復帰が高い。玩具実験では行動数と復帰だけ確認。</p>
+        <div class="verdict"><strong>判定。</strong> Must Read — 同一モデルでも scaffold を変えるだけで最大28pp動く。能力数字は harness–model の組として読むべき、という評価の前提を更新する論文。</div>
         <div class="vgrid">
           
           <div class="vcell" data-status="PARTIAL">
@@ -196,14 +150,14 @@
          href="papers/unipinrec.html"
          data-id="unipinrec"
          data-topics="recommender-systems|generative-recommendation|ml-systems"
-         data-verdict="Worth Reading — ファネル置換ではなく ANN を残したまま retrieval+ranking を full-stack 統合。MAM と KV 再利用でオンライン約+1% とレイテンシ/QPS 改善。L2 はまだ置き換えない現実的な道。"
+         data-verdict="Worth Reading — ANN を残したまま retrieval+ranking を full-stack 統合。MAM と KV 再利用でオンライン約+1% とレイテンシ/QPS 改善。L2 はまだ置き換えない現実的な道。"
          data-status="published"
          data-verification="PARTIAL|NOT TESTED|NOT TESTED|NOT TESTED"
          data-mech="PARTIAL"
          data-perf="NOT TESTED"
          data-scale="NOT TESTED"
          data-prod="NOT TESTED"
-         data-text="unipinrec unipinrec: unifying generative retrieval and ranking at pinterest scale hanyu li, yi-ping hsu, et al. (pinterest) 2026 worth reading — ファネル置換ではなく ann を残したまま retrieval+ranking を full-stack 統合。mam と kv 再利用でオンライン約+1% とレイテンシ/qps 改善。l2 はまだ置き換えない現実的な道。 入力・モデル・学習・配信まで retrieval と ranking を統一しつつ ann は維持。mam（インターリーブなし）、 blended training、kv-cache 再利用。オフライン hit@3 +14.8%。オンライン bmi saves +0.95%、 push opens +0.91%、レイテンシ -11.1%、qps +63.6%。l2 fine ranker は未置換。玩具で kv 再利用と系列長。 recommender-systems generative-recommendation ml-systems generative-rec-vs-retrieval published 公開 partial 部分的 not tested 未検証 not tested 未検証 not tested 未検証">
+         data-text="unipinrec unipinrec: unifying generative retrieval and ranking at pinterest scale hanyu li, yi-ping hsu, et al. (pinterest) 2026 worth reading — ann を残したまま retrieval+ranking を full-stack 統合。mam と kv 再利用でオンライン約+1% とレイテンシ/qps 改善。l2 はまだ置き換えない現実的な道。 入力・モデル・学習・配信まで retrieval と ranking を統一しつつ ann は維持。mam（インターリーブなし）、 blended training、kv-cache 再利用。オフライン hit@3 +14.8%。オンライン bmi saves +0.95%、 push opens +0.91%、レイテンシ -11.1%、qps +63.6%。l2 fine ranker は未置換。玩具で kv 再利用と系列長。 recommender-systems generative-recommendation ml-systems generative-rec-vs-retrieval published 公開 partial 部分的 not tested 未検証 not tested 未検証 not tested 未検証">
         <div class="chips">
           
           
@@ -212,7 +166,7 @@
         <h2>UniPinRec: Unifying Generative Retrieval and Ranking at Pinterest Scale</h2>
         <div class="meta">Hanyu Li, Yi-Ping Hsu, et al. (Pinterest) · 2026</div>
         <p class="summary">入力・モデル・学習・配信まで retrieval と ranking を統一しつつ ANN は維持。MAM（インターリーブなし）、 blended training、KV-cache 再利用。オフライン Hit@3 +14.8%。オンライン BMI saves +0.95%、 push opens +0.91%、レイテンシ -11.1%、QPS +63.6%。L2 fine ranker は未置換。玩具で KV 再利用と系列長。</p>
-        <div class="verdict"><strong>判定。</strong> Worth Reading — ファネル置換ではなく ANN を残したまま retrieval+ranking を full-stack 統合。MAM と KV 再利用でオンライン約+1% とレイテンシ/QPS 改善。L2 はまだ置き換えない現実的な道。</div>
+        <div class="verdict"><strong>判定。</strong> Worth Reading — ANN を残したまま retrieval+ranking を full-stack 統合。MAM と KV 再利用でオンライン約+1% とレイテンシ/QPS 改善。L2 はまだ置き換えない現実的な道。</div>
         <div class="vgrid">
           
           <div class="vcell" data-status="PARTIAL">
@@ -246,7 +200,7 @@
     <div class="wrap"><code>paper-lab build</code> により生成。権威ある成果物は <code>papers/</code> にあります。</div>
   </footer>
 
-  <script type="application/json" id="catalog">[{"id": "example-demo", "title": "EXAMPLE（架空）: セッション意図の加法的減衰", "authors": "A. Example, B. Placeholder", "year": 2026, "topics": ["example", "recommender-systems", "session-intent"], "verdict": "EXAMPLE — フォーマットデモのみ。研究上の判定なし", "status": "published", "status_label": "公開", "example": true, "verification": {"mechanism": "NOT TESTED", "performance": "NOT TESTED", "scaling": "NOT TESTED", "production_applicability": "NOT TESTED"}, "verification_labels": {"mechanism": "未検証", "performance": "未検証", "scaling": "未検証", "production_applicability": "未検証"}, "href": "papers/example-demo.html", "summary": "インタラクティブ研究ライブラリのフォーマットデモ。玩具的なアイデアと架空の数値。 論文でも結果でもない。", "related_threads": ["user-history-context-design"]}, {"id": "case-against-generation-retrieval", "title": "The Case Against Generation for Retrieval: Discriminative Language Models as Effective Retrievers", "authors": "Zhe Xu, Prachi Agrawal, et al. (Meta)", "year": 2026, "topics": ["recommender-systems", "retrieval", "generative-recommendation"], "verdict": "Must Read — LLM の意味力を生成デコーダではなく two-tower の表現バックボーンに載せ、ANN 配信を保ったまま Amazon 公開と本番で対抗できることを示した。生成 CG 一択論への産業側カウンター。", "status": "published", "status_label": "公開", "example": false, "verification": {"mechanism": "PARTIAL", "performance": "NOT TESTED", "scaling": "NOT TESTED", "production_applicability": "NOT TESTED"}, "verification_labels": {"mechanism": "部分的", "performance": "未検証", "scaling": "未検証", "production_applicability": "未検証"}, "href": "papers/case-against-generation-retrieval.html", "summary": "LLM を生成器ではなく two-tower の意味バックボーンに。共有 LLM・EOS・CE yes/no+NTP 教師、 CE2TT 蒸留、ユーザー塔の latent reasoning。Amazon で CE は SOTA 寄り、0.6B TT は ORT 8B に R@10 で対抗。本番は 0.5% データで DLRM と NE パリティ、staleness 耐性。玩具で ANN vs SID 生成コスト。", "related_threads": ["generative-rec-vs-retrieval"]}, {"id": "scaffold-effects-gaia", "title": "Scaffold Effects on GAIA: A Controlled Comparison", "authors": "Jason Starace", "year": 2026, "topics": ["ai-agent-systems", "agent-architecture", "evaluation"], "verdict": "Must Read — 同一モデルで scaffold だけで最大28pp動くことを事前登録つきで示した。能力数字は harness–model 組として読むべき、という評価の前提を更新する論文。", "status": "published", "status_label": "公開", "example": false, "verification": {"mechanism": "PARTIAL", "performance": "NOT TESTED", "scaling": "NOT TESTED", "production_applicability": "NOT TESTED"}, "verification_labels": {"mechanism": "部分的", "performance": "未検証", "scaling": "未検証", "production_applicability": "未検証"}, "href": "papers/scaffold-effects-gaia.html", "summary": "GAIA L1/L2 で 3 scaffolds × 5 models の事前登録つき比較。scaffold だけで最大28pp （Opus L2 robust）。H1支持、H2は方向が棄却、H3は Anthropic 系で条件つき、H4は棄却。 構造化 scaffold は行動数が少なく中盤失敗からの復帰が高い。玩具実験で行動数と復帰だけ確認。", "related_threads": ["agent-architecture-and-harness"]}, {"id": "unipinrec", "title": "UniPinRec: Unifying Generative Retrieval and Ranking at Pinterest Scale", "authors": "Hanyu Li, Yi-Ping Hsu, et al. (Pinterest)", "year": 2026, "topics": ["recommender-systems", "generative-recommendation", "ml-systems"], "verdict": "Worth Reading — ファネル置換ではなく ANN を残したまま retrieval+ranking を full-stack 統合。MAM と KV 再利用でオンライン約+1% とレイテンシ/QPS 改善。L2 はまだ置き換えない現実的な道。", "status": "published", "status_label": "公開", "example": false, "verification": {"mechanism": "PARTIAL", "performance": "NOT TESTED", "scaling": "NOT TESTED", "production_applicability": "NOT TESTED"}, "verification_labels": {"mechanism": "部分的", "performance": "未検証", "scaling": "未検証", "production_applicability": "未検証"}, "href": "papers/unipinrec.html", "summary": "入力・モデル・学習・配信まで retrieval と ranking を統一しつつ ANN は維持。MAM（インターリーブなし）、 blended training、KV-cache 再利用。オフライン Hit@3 +14.8%。オンライン BMI saves +0.95%、 push opens +0.91%、レイテンシ -11.1%、QPS +63.6%。L2 fine ranker は未置換。玩具で KV 再利用と系列長。", "related_threads": ["generative-rec-vs-retrieval"]}]</script>
+  <script type="application/json" id="catalog">[{"id": "case-against-generation-retrieval", "title": "The Case Against Generation for Retrieval: Discriminative Language Models as Effective Retrievers", "authors": "Zhe Xu, Prachi Agrawal, et al. (Meta)", "year": 2026, "topics": ["recommender-systems", "retrieval", "generative-recommendation"], "verdict": "Must Read — LLM の意味力を two-tower の表現バックボーンに載せ、ANN 配信を保ったまま Amazon 公開と本番で対抗できることを示した。生成 CG 一択論への産業側カウンター。", "status": "published", "status_label": "公開", "example": false, "verification": {"mechanism": "PARTIAL", "performance": "NOT TESTED", "scaling": "NOT TESTED", "production_applicability": "NOT TESTED"}, "verification_labels": {"mechanism": "部分的", "performance": "未検証", "scaling": "未検証", "production_applicability": "未検証"}, "href": "papers/case-against-generation-retrieval.html", "summary": "LLM を生成器というより two-tower の意味バックボーンとして使う。共有 LLM・EOS・CE yes/no+NTP 教師、 CE2TT 蒸留、ユーザー塔の latent reasoning。Amazon で CE は SOTA 寄り、0.6B TT は ORT 8B に R@10 で対抗。本番は 0.5% データで DLRM と NE パリティ、staleness 耐性。玩具で ANN vs SID 生成コスト。", "related_threads": ["generative-rec-vs-retrieval"]}, {"id": "scaffold-effects-gaia", "title": "Scaffold Effects on GAIA: A Controlled Comparison", "authors": "Jason Starace", "year": 2026, "topics": ["ai-agent-systems", "agent-architecture", "evaluation"], "verdict": "Must Read — 同一モデルでも scaffold を変えるだけで最大28pp動く。能力数字は harness–model の組として読むべき、という評価の前提を更新する論文。", "status": "published", "status_label": "公開", "example": false, "verification": {"mechanism": "PARTIAL", "performance": "NOT TESTED", "scaling": "NOT TESTED", "production_applicability": "NOT TESTED"}, "verification_labels": {"mechanism": "部分的", "performance": "未検証", "scaling": "未検証", "production_applicability": "未検証"}, "href": "papers/scaffold-effects-gaia.html", "summary": "GAIA L1/L2 で 3 scaffolds × 5 models を事前登録つきで比較。scaffold だけで最大28pp （Opus L2 robust）。H1は支持、H2は方向が棄却、H3は Anthropic 系で条件つき、H4は棄却。 構造化 scaffold は行動数が少なく、中盤失敗からの復帰が高い。玩具実験では行動数と復帰だけ確認。", "related_threads": ["agent-architecture-and-harness"]}, {"id": "unipinrec", "title": "UniPinRec: Unifying Generative Retrieval and Ranking at Pinterest Scale", "authors": "Hanyu Li, Yi-Ping Hsu, et al. (Pinterest)", "year": 2026, "topics": ["recommender-systems", "generative-recommendation", "ml-systems"], "verdict": "Worth Reading — ANN を残したまま retrieval+ranking を full-stack 統合。MAM と KV 再利用でオンライン約+1% とレイテンシ/QPS 改善。L2 はまだ置き換えない現実的な道。", "status": "published", "status_label": "公開", "example": false, "verification": {"mechanism": "PARTIAL", "performance": "NOT TESTED", "scaling": "NOT TESTED", "production_applicability": "NOT TESTED"}, "verification_labels": {"mechanism": "部分的", "performance": "未検証", "scaling": "未検証", "production_applicability": "未検証"}, "href": "papers/unipinrec.html", "summary": "入力・モデル・学習・配信まで retrieval と ranking を統一しつつ ANN は維持。MAM（インターリーブなし）、 blended training、KV-cache 再利用。オフライン Hit@3 +14.8%。オンライン BMI saves +0.95%、 push opens +0.91%、レイテンシ -11.1%、QPS +63.6%。L2 fine ranker は未置換。玩具で KV 再利用と系列長。", "related_threads": ["generative-rec-vs-retrieval"]}]</script>
   <script>
     (function () {
       const q = document.getElementById("q");

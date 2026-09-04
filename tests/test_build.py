@@ -17,40 +17,50 @@ from paper_lab.models import (
 )
 
 ROOT = Path(__file__).resolve().parent.parent
-EXAMPLE_DIR = ROOT / "papers" / "_example_demo"
+SAMPLE_DIR = ROOT / "papers" / "scaffold-effects-gaia"
+EXPECTED_IDS = {
+    "scaffold-effects-gaia",
+    "case-against-generation-retrieval",
+    "unipinrec",
+}
 
 
-def test_example_lab_yaml_loads():
-    lab = load_lab(EXAMPLE_DIR)
-    assert lab.id == "example-demo"
-    assert lab.example is True
+def test_sample_lab_yaml_loads():
+    lab = load_lab(SAMPLE_DIR)
+    assert lab.id == "scaffold-effects-gaia"
+    assert lab.example is False
     assert lab.status == "published"
     assert lab.status_label == "公開"
     assert lab.year == 2026
-    assert "example" in lab.topics
-    assert lab.urls.present() == []
+    assert "ai-agent-systems" in lab.topics
+    assert lab.urls.arxiv
     for key in VERIFICATION_KEYS:
-        assert lab.verification.as_dict()[key] == "NOT TESTED"
+        assert lab.verification.as_dict()[key] in {
+            "CONFIRMED",
+            "PARTIAL",
+            "NOT OBSERVED",
+            "NOT TESTED",
+        }
     assert lab.core_idea.author_claim
     assert lab.core_idea.research_bot_interpretation
     assert lab.results is not None
-    assert lab.results.get("fictional") is True
-    assert "架空" in lab.mapping_markdown or "fictional" in lab.mapping_markdown.lower()
-    assert "EXAMPLE" in lab.title
+    assert lab.mapping_markdown
+    assert "Scaffold Effects" in lab.title
 
 
-def test_discover_example_among_papers():
+def test_discover_three_real_papers():
     labs = load_all_labs(ROOT / "papers")
-    ids = [lab.id for lab in labs]
-    assert "example-demo" in ids
+    ids = {lab.id for lab in labs}
+    assert ids == EXPECTED_IDS
+    assert all(not lab.example for lab in labs)
 
 
 def test_build_writes_index_and_paper(tmp_path: Path):
     site = tmp_path / "site"
     labs = build(root=ROOT, site_dir=site)
-    assert labs
+    assert len(labs) == 3
     index = site / "index.html"
-    paper = site / "papers" / "example-demo.html"
+    paper = site / "papers" / "scaffold-effects-gaia.html"
     css = site / "assets" / "style.css"
     assert index.is_file()
     assert paper.is_file()
@@ -65,8 +75,8 @@ def test_build_writes_index_and_paper(tmp_path: Path):
     assert 'id="vstatus"' in index_html
     assert "data-topics=" in index_html
     assert "data-verification=" in index_html
-    assert "EXAMPLE" in index_html
-    assert "架空" in index_html
+    assert "EXAMPLE" not in index_html
+    assert "example-demo" not in index_html
     assert "インタラクティブ研究ライブラリ" in index_html
     assert "すべてのトピック" in index_html
     assert "未検証" in index_html
@@ -74,7 +84,9 @@ def test_build_writes_index_and_paper(tmp_path: Path):
         index_html.split('<script type="application/json" id="catalog">', 1)[1]
         .split("</script>", 1)[0]
     )
-    assert any(entry["id"] == "example-demo" for entry in catalog)
+    catalog_ids = {entry["id"] for entry in catalog}
+    assert catalog_ids == EXPECTED_IDS
+    assert all(not entry.get("example") for entry in catalog)
 
     paper_html = paper.read_text(encoding="utf-8")
     assert 'lang="ja"' in paper_html
@@ -84,7 +96,7 @@ def test_build_writes_index_and_paper(tmp_path: Path):
     assert "著者の主張" in paper_html
     assert "Research Bot の解釈" in paper_html
     assert "推論 — 著者の主張ではない" in paper_html
-    assert "EXAMPLE / 架空" in paper_html
+    assert "EXAMPLE / 架空" not in paper_html
     assert "このラボでは提供されていません。" not in paper_html
     assert "概要" in paper_html
     assert "問題設定" in paper_html

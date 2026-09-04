@@ -71,10 +71,6 @@ Optional: `summary`（索引カード）、`example: true`、`sections`（また
 
 `mapping.md` と `results.json` は、論文ディレクトリにあれば自動で読み込まれます。
 
-## Example lab / 例のラボ
-
-`papers/_example_demo/` は**架空のフォーマットデモ**です。論文ではありません。数値は創作です。引用しないでください。
-
 ## Layout
 
 ```
@@ -82,7 +78,7 @@ paper-lab/
 ├── README.md
 ├── pyproject.toml
 ├── uv.lock
-├── papers/_example_demo/   # lab.yaml + artifacts
+├── papers/<paper-id>/      # lab.yaml + artifacts
 ├── paper_lab/              # generator
 ├── site/                   # generated output
 ├── tests/

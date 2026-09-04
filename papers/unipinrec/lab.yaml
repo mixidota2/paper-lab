@@ -14,7 +14,7 @@ urls:
   arxiv: https://arxiv.org/abs/2606.00422
   official_code: null
   pdf: https://arxiv.org/pdf/2606.00422
-verdict: "Worth Reading — ファネル置換ではなく ANN を残したまま retrieval+ranking を full-stack 統合。MAM と KV 再利用でオンライン約+1% とレイテンシ/QPS 改善。L2 はまだ置き換えない現実的な道。"
+verdict: "Worth Reading — ANN を残したまま retrieval+ranking を full-stack 統合。MAM と KV 再利用でオンライン約+1% とレイテンシ/QPS 改善。L2 はまだ置き換えない現実的な道。"
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -29,12 +29,12 @@ summary: >
   push opens +0.91%、レイテンシ -11.1%、QPS +63.6%。L2 fine ranker は未置換。玩具で KV 再利用と系列長。
 sections:
   overview: |
-    大規模推薦は retrieval と ranking を別モデルにしがちだが、どちらも同じユーザー行動列を
+    大規模推薦は retrieval と ranking を別モデルにしがちだ。どちらも同じユーザー行動列を
     大きな transformer で読むようになると、パラメータも計算も二重になる。
 
     UniPinRec はアーキテクチャだけでなく、入力形式・学習・配信まで含めた full-stack 統合を
     Pinterest 本番でやる。共有 transformer が候補非依存のユーザー表現を出し、retrieval は
-    ANN 内積、ranking はクロスアテンション頭、と分岐する。柱は三つ: Masked Action Modeling
+    ANN 内積、ranking はクロスアテンション頭、と分岐する。柱は三つ。Masked Action Modeling
     （行動をトークン挿入せず特徴次元に載せ、系列を倍にしない）、blended training
     （行動履歴と feedview 印象を一段階で）、retrieval で作ったユーザー履歴 KV を ranking が再利用。
 
@@ -48,8 +48,9 @@ sections:
     HSTU などは骨格を寄せても、retrieval と ranking で入力形式が違い、学習も配信も分かれがち。
     OneRec 系はファネル自体を生成で置き換えるが、既存候補源との合成や段階的ロールバックが難しい。
 
-    欲しいのは「置き換え劇場」ではなく、ANN や既存カスケードに載る統合。ユーザー履歴の
-    $O(n^2)$ をリクエストごとに二度払わないこと、系列を行動トークンで膨らませないことが鍵になる。
+    欲しいのは ANN や既存カスケードに載る統合だ。置き換え劇場は要らない。
+    ユーザー履歴の $O(n^2)$ をリクエストごとに二度払わないこと、
+    系列を行動トークンで膨らませないことが鍵になる。
   core_idea:
     author_claim: |
       MAM で非インターリーブのまま ranking 監督を載せ、blended 例と joint loss で一段階学習。
@@ -57,8 +58,8 @@ sections:
       ranking は履歴再エンコードなしの decode 的パスにする。結果として recall を維持しつつ
       ranking 品質とサービング効率を同時に取りにいく。L2 は意図的にまだ統合しない。
     research_bot_interpretation: |
-      Meta 論文（生成に反対して two-tower を守る）と並ぶと、こちらは「生成的シーケンスモデルは
-      使うが、ファネル置換ではなくハイブリッド統合」という相補的な産業解に見える。
+      Meta 論文（生成に反対して two-tower を守る）と並ぶと、こちらは生成的シーケンスモデルを
+      使いながらも、ファネル全体の置換までは踏み込まずハイブリッド統合に留める産業解に見える。
       勝ちの源泉は MAM の長さ設計と KV 再利用というシステム側共設計で、セマンティック ID 生成の
       必然ではない。オンライン +1% 前後は下流 L2 で薄まる前提でも出ている点が実務的。
 
@@ -66,8 +67,8 @@ sections:
   why_it_might_work: |
     履歴アテンションが支配的コストなら、一度キャッシュして候補だけ足すのが合理的。
     インターリーブは候補認識には分かりやすいが系列長をほぼ倍にし、retrieval と入力を共有しにくい。
-    行動をマスクして特徴側に載せるのは、「長さを売らずに監督を足す」妥協として効きそう、
-    という推論（著者主張の言い換えに近いが、因果は未特定）。
+    行動をマスクして特徴側に載せるのは、「長さを売らずに監督を足す」妥協として効きそう——
+    という推論だ（著者主張の言い換えに近いが、因果は未特定）。
   evidence: |
     論文 Table 1（Hit@3 / Recall@10）、Table 2–3（KV 再利用とオンラインレイテンシ/QPS）、
     BMI / Notifications の A/B。限界: L2 未置換、公開再現困難、オフライン→オンラインの減衰。

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Scaffold Effects on GAIA: A Controlled Comparison — インタラクティブ研究ライブラリ</title>
-  <meta name="description" content="GAIA L1/L2 で 3 scaffolds × 5 models の事前登録つき比較。scaffold だけで最大28pp （Opus L2 robust）。H1支持、H2は方向が棄却、H3は Anthropic 系で条件つき、H4は棄却。 構造化 scaffold は行動数が少なく中盤失敗からの復帰が高い。玩具実験で行動数と復帰だけ確認。">
+  <meta name="description" content="GAIA L1/L2 で 3 scaffolds × 5 models を事前登録つきで比較。scaffold だけで最大28pp （Opus L2 robust）。H1は支持、H2は方向が棄却、H3は Anthropic 系で条件つき、H4は棄却。 構造化 scaffold は行動数が少なく、中盤失敗からの復帰が高い。玩具実験では行動数と復帰だけ確認。">
   <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
@@ -31,7 +31,7 @@
       </div>
       <h1>Scaffold Effects on GAIA: A Controlled Comparison</h1>
       <p class="byline">Jason Starace · 2026</p>
-      <p class="verdict"><strong>判定。</strong> Must Read — 同一モデルで scaffold だけで最大28pp動くことを事前登録つきで示した。能力数字は harness–model 組として読むべき、という評価の前提を更新する論文。</p>
+      <p class="verdict"><strong>判定。</strong> Must Read — 同一モデルでも scaffold を変えるだけで最大28pp動く。能力数字は harness–model の組として読むべき、という評価の前提を更新する論文。</p>
     </header>
 
     
@@ -128,14 +128,14 @@
       
       
       
-      <div class="prose"><p>公開されているエージェント能力スコアは、「モデルが何ができるか」と「scaffold が何を引き出せるか」を
-混ぜてしまう。この論文は、その elicitation gap の大きさを、タスクと条件を固定したまま測る。</p>
-<p>事前登録どおり、ReAct / Planner-Actor-Rater (PAR) / planner-then-executor の3つを、
-Claude Opus・Sonnet・Haiku、Gemini、GPT の5モデルで GAIA validation L1/L2 にかける。
-同一モデル内で scaffold を変えるだけで、robust slice では Opus L2 で最大約28ポイント動く。
-「能力が上がれば scaffold 感度は下がる」という直感（H2）は、少なくとも難しいレベルでは
-方向が合わない。評価単位はモデル単体ではなく harness–model の組だ、という読みが主眼。</p>
-<p>このラボの玩具実験は GAIA 精度を再現しない。中盤のツール失敗を注入した合成タスクで、
+      <div class="prose"><p>公開されているエージェント能力スコアは、モデルの実力と scaffold の引き出し方を混ぜて読まれがちだ。
+この論文はその elicitation gap を、タスクと条件を固定したまま測る。</p>
+<p>事前登録どおり、ReAct / Planner-Actor-Rater (PAR) / planner-then-executor の3 scaffold を、
+Claude Opus・Sonnet・Haiku、Gemini、GPT の5モデルで GAIA validation L1/L2 にかけた。
+同一モデル内で scaffold を入れ替えるだけで、robust slice の Opus L2 では最大約28ポイント動く。
+「能力が上がれば scaffold 感度は下がる」という直感（H2）は、少なくとも難しいレベルでは方向が合わない。
+評価単位はモデル単体より harness–model の組だ、というのが主眼。</p>
+<p>このラボの玩具実験は GAIA 精度を再現しない。中盤にツール失敗を注入した合成タスクで、
 3つのループ方針の行動数と復帰率だけを見る。</p></div>
       
     </section>
@@ -146,11 +146,11 @@ Claude Opus・Sonnet・Haiku、Gemini、GPT の5モデルで GAIA validation L1/
       
       
       <div class="prose"><p>チームAが「自分の最良 scaffold」でモデルAを測り、チームBが別 scaffold でモデルBを測ると、
-差分のどれだけがモデル由来か分からない。METR の時間地平線論文なども elicitation を下界として
-扱うが、共通ベンチ上で現在のフロンティア並びを横断した制御比較は足りていなかった。</p>
-<p>現場の意思決定（どのモデルを買うか、どのハーネスを固定するか）は、単一セルの数字を
-モデル属性だと思い込むと誤る。ここで欲しいのは、scaffold を操作変数にしたときの
-精度ギャップの大きさ、能力ティアとの関係、失敗時の振る舞い、コストである。</p></div>
+差分のどれだけがモデル由来か分からない。METR の時間地平線論文なども elicitation を下界として扱うが、
+共通ベンチ上で現在のフロンティア並びを横断した制御比較は足りていなかった。</p>
+<p>現場の意思決定——どのモデルを買うか、どのハーネスを固定するか——は、単一セルの数字を
+モデル属性だと思い込むと誤る。欲しいのは、scaffold を操作変数にしたときの精度ギャップの大きさ、
+能力ティアとの関係、失敗時の振る舞い、コストである。</p></div>
       
     </section>
     
@@ -164,7 +164,7 @@ Claude Opus・Sonnet・Haiku、Gemini、GPT の5モデルで GAIA validation L1/
           <div class="prose">
             <p>事前登録した仮説の骨子は次のとおり。H1: 少なくとも1モデルで best/worst scaffold 差が
 10pp以上（L1）。H2: より強いフロンティアモデルほど scaffold ギャップは小さい。
-H3: triframe 系 multi-agent（実装は PAR）は L2 では ReAct を上回り L1 ではそうでない。
+H3: triframe 系 multi-agent（実装は PAR）は L2 では ReAct を上回り、L1 ではそうでない。
 H4: planner-then-executor はファイル読みタスクで有利。</p>
 <p>結果として H1 は支持。H2 は交互作用はあるが「能力↑→感度↓」の方向は棄却（robust では
 Opus L2 が最大ギャップ）。H3 は Anthropic 系 L2 で条件つき支持、他社フロンティアでは弱い。
@@ -175,10 +175,9 @@ Gemini × planner-then-executor は両レベルで最安寄り、かつ L2 で�
         <div class="callout interp">
           <p class="label">Research Bot の解釈</p>
           <div class="prose">
-            <p>著者の数字そのものより、実務への含意は「能力リーダーボードを単一 scaffold の点推定として
-読むな」に近い。マルチエージェントが常に得、という話でもなく、家族（プロバイダ）や
-タスク難易度で条件が変わる。調達や評価設計では、代替 scaffold を1本でも回して
-見出し数字が脆いかを見るのが安い保険になる。</p>
+            <p>著者の数字そのものより、実務への含意は「能力リーダーボードを単一 scaffold の点推定として読むな」に近い。
+マルチエージェントが常に得、という話でもない。家族（プロバイダ）やタスク難易度で条件が変わる。
+調達や評価設計では、代替 scaffold を1本でも回して見出し数字が脆いかを見るのが安い保険になる。</p>
 <p>このラボでは復帰と行動数の玩具だけを動かした。28pp ギャップ、H検定、コスト順位、
 ツール面の交絡は未検証。</p>
           </div>
@@ -196,7 +195,7 @@ Gemini × planner-then-executor は両レベルで最安寄り、かつ L2 で�
       
       
       <div class="prose"><p>構造化ループが効きそうな理由のひとつは、失敗の扱い方にある。ReAct は探索が多く、
-同じ失敗アクションを繰り返しやすい。一方 PAR は rater がやり直しを促し、
+同じ失敗アクションを繰り返しやすい。PAR は rater がやり直しを促す。
 planner-then-executor は明示プランの上に失敗が載るので、ステップ単位の破綻が残りにくい——
 というストーリーはあり得る。ただし論文自身もメカニズムは特定していない。</p>
 <p>「強いモデルほど scaffold 不要」が崩れる方向は、難しいタスクでは余力が大きいほど

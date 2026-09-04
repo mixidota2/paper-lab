@@ -1,12 +1,12 @@
 # Case Against Generation for Retrieval — Interactive Lab
 
-Zhe Xu et al. (Meta), arXiv:2607.25346（2026）。LLM を生成デコーダではなく
-two-tower の意味バックボーンとして使う枠組みのラボ。
+Zhe Xu et al. (Meta), arXiv:2607.25346（2026）。LLM を two-tower の意味バックボーンとして
+使う枠組みのラボ。
 
-## このラボで分かること
+## 「意味は LLM、配信は ANN」が工業的に効く理由
 
-- なぜ「意味は LLM、配信は ANN」が工業的に魅力的か
 - 生成 SID デコードがレイテンシと grounding で不利になり得る形（玩具）
+- 古典 two-tower を LLM 表現で立て直す設計の骨格
 
 ## やっていないこと
 
