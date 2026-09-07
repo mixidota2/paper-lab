@@ -27,10 +27,7 @@ related_threads:
 - tabular-vs-neural-forecasting
 status: published
 summary: 予測を作るモデルとは別に、履歴・予測図・販促の説明を読む批評器を置く。狙いは誤予測の自動修正より、点検すべき系列の発見。
-figures:
-- path: figures/loop.svg
-  title: 処理の全体像
-  caption: 論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。
+figures: []
 core_idea:
   author_claim: '著者はトレンド、水準、周期、急増を人工的に崩した予測で批評能力を調べる。販促の説明を加える実験と、M5上のChronos予測を点検する実験も行う。言語・画像の文脈から不自然な予測を拾う監視手段として提案する。
 
@@ -38,10 +35,7 @@ core_idea:
     [一次資料：合成実験 / 外生情報の実験 / 実データの実験](https://arxiv.org/html/2512.12059)'
   research_bot_interpretation: これは予測精度を直接改善する学習法ではない。警告した後に誰が何を確認し、誤警告をいくつまで許すかが運用を決める。図の描き方や説明文の質に依存するなら、監視器自身も評価対象になる。
 sections:
-  overview: '予測を作るモデルとは別に、履歴・予測図・販促の説明を読む批評器を置く。狙いは誤予測の自動修正より、点検すべき系列の発見。
-
-
-    このLabでは「未来の実績を待たずに、怪しい予測を見つけられるか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。'
+  overview: 予測を作るモデルとは別に、履歴・予測図・販促の説明を読む批評器を置く。狙いは誤予測の自動修正より、点検すべき系列の発見。
   problem: '平均の誤差が良くても、個別には周期がずれた予測や、不自然に平らな予測が混じる。未来の実績がまだない時点では、通常の誤差指標でその失敗を測れない。
 
 
@@ -55,7 +49,7 @@ sections:
 
 
     実行：`uv run papers/forecast-critic/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json` へ保存する。'
-  results: 図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。
+  results: 初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。
   what_we_verified: '**メカニズム：PARTIAL（部分的）**。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。
 
 
@@ -71,38 +65,80 @@ sections:
 
     | 原論文 | [合成実験 / 外生情報の実験 / 実データの実験](https://arxiv.org/html/2512.12059) |
 
-    | 処理図 | 上記の仕組みを説明用に簡略化。公式実装ではない |
+    | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |
 
-    | 条件探索 | `run.py` → `papers/_toy_common.py` → `results.json` |
+    | 小実験 | `run.py` → `papers/_toy_common.py` → `results.json` |
 
     | 公式コード | このLabでは公式コードとの行単位の照合はしていない。 |'
+  method: method.md
 question: 未来の実績を待たずに、怪しい予測を見つけられるか
-interactives:
-- kind: flow
-  title: 処理と設計の違いを追う
-  caption: 段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。
-  source: https://arxiv.org/html/2512.12059
-  stages:
-  - title: 予測を受け取る
-    baseline: 平均誤差を後から測る
-    proposed: 履歴と予測を図にする
-    detail: 未来の実績はまだ見えない時点を想定する。
-  - title: 状況を加える
-    baseline: 数値だけを確認
-    proposed: 販促などの説明を加える
-    detail: 説明文に未来の正解が漏れていないかを確認する。
-  - title: 不自然さを判定する
-    baseline: 誤差の大きい順に並べる
-    proposed: 図と文脈から批評する
-    detail: 周期、水準、急増などが妥当かを見る。図は論文システムの概念説明。
-  - title: 人が点検する
-    baseline: 全件を読む
-    proposed: 警告した系列を点検
-    detail: 批評器が予測を自動修正するとは限らない。見逃しと誤警告の両方を数える。
-- kind: explorer
-  title: 警告を厳しくすると何を見逃すか
-  caption: 10件の合成スコアと正解ラベルを用意する。警告閾値を変え、適合率・再現率・誤警告・見逃しを再計算する。LLMを呼ばず、監視運用の判断を学ぶための実験。
+interactives: []
 source_review:
   checked: '2026-09-07'
   url: https://arxiv.org/html/2512.12059
-  scope: arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。
+  scope: 一次資料の方法・数式・実験条件を再確認。図は説明用の再構成。著者の性能・運用結果は独立再現していない。
+teaching_figures:
+- kind: logic
+  id: visibility
+  title: 判定時に見える情報と、後から評価する情報
+  after: method
+  locator: 実験設定・実データ評価
+  rationale: 情報の境界が方法の理解に直結する。
+  caption: LLMへ未来の実績を見せる設計ではない。小実験の閾値判定はLLMの代替実装ではない。
+  rows:
+  - label: 判定時に渡す
+    nodes:
+    - title: 画像
+      text: 過去の実績線と、今作った予測線。
+    - title: テキスト
+      text: 予測の見方と、利用可能な販促などの文脈。
+  - label: Forecast Criticの判定
+    nodes:
+    - title: 妥当 / 不自然
+      text: 予測の形と文脈が合っているかを判断。
+  - label: 実績が届いた後に別途評価
+    nodes:
+    - title: 未来の正解
+      text: 誤差を計算し、flagあり・なしの群を比較する。
+  source: https://arxiv.org/html/2512.12059
+- kind: matrix
+  id: perturbations
+  title: 不自然さは1種類ではない
+  after: method
+  locator: Synthetic experiments・付録
+  rationale: 単一スライダーでなく失敗の種類ごとに考える。
+  caption: 人工的な変更の整理。右列はLabの解釈で、論文の性能数値ではない。
+  columns:
+  - 予測線への変更
+  - 判定で確認したい点
+  rows:
+  - label: Translation
+    cells:
+    - 全体を上または下へずらす
+    - 水準変化を説明する文脈があるか
+  - label: Trend
+    cells:
+    - 傾きの大きさを変える
+    - 過去から見た傾向が続くか
+  - label: Compression
+    cells:
+    - 周期を圧縮する
+    - 山と谷の間隔が不自然か
+  - label: Spike
+    cells:
+    - 局所的な突出を加える
+    - 販促予定と時期が合うか
+  corner: 条件
+  source: https://arxiv.org/html/2512.12059
+- kind: equations
+  id: critic-metric
+  title: 検出能力は適合率と再現率を両方見る
+  after: method
+  locator: Synthetic experiments
+  rationale: 誤検出と見逃しを区別する。
+  caption: 標準的なF1の定義を補足。TPは不適切な予測の正しい検出、FPは誤警報、FNは見逃し。
+  steps:
+  - name: F1
+    formula: F1 = 2TP / (2TP + FP + FN)
+    explanation: 人工データの不適切率は50%。現場の率が異なると、同じ検出器でも適合率やレビュー量は変わる。
+  source: https://arxiv.org/html/2512.12059

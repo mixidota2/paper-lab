@@ -48,6 +48,7 @@ def test_build_is_deterministic_and_has_no_demo_content(tmp_path: Path):
     html = (first / "index.html").read_text(encoding="utf-8")
     assert 'lang="ja"' in html
     assert "EXAMPLE" not in html
+    assert "2つの操作図" not in html
     assert "data-library-controls" in html
     assert (first / "assets" / "library.js").is_file()
     for paper_id, arxiv_id in EXPECTED.items():
@@ -56,8 +57,10 @@ def test_build_is_deterministic_and_has_no_demo_content(tmp_path: Path):
         assert f"https://arxiv.org/abs/{arxiv_id}" in page
         assert "論文に書かれていること" in page
         assert "読書メモ" in page
-        assert 'class="figures"' in page
-        assert (first / "figures" / paper_id / "figures").is_dir()
+        assert 'class="teaching teaching--' in page
+        assert 'id="method"' in page
+        assert "モデル / 手法" in page
+        assert (first / "downloads" / paper_id / "method.md").is_file()
     shelf_html = (first / "papers" / "whole-foods-shelf.html").read_text(encoding="utf-8")
     assert "10.1145/3764919.3770880" in shelf_html
 

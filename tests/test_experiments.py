@@ -64,24 +64,57 @@ def test_critic_extreme_thresholds_show_tradeoff():
     assert toy.critic(10)['bars'][1]['value'] == 0
 
 
-def test_all_labs_have_two_valid_interactives_and_sources():
+def test_all_labs_have_paper_specific_figures_and_methods():
     labs = load_all_labs(ROOT / 'papers')
     for lab in labs:
-        assert [s['kind'] for s in lab.interactives] == ['flow','explorer']
+        assert len(lab.teaching_figures) >= 2
+        assert lab.sections['method']
+        assert all(f['source'].startswith('https://') for f in lab.teaching_figures)
+        assert all(s['kind'] == 'explorer' for s in lab.interactives)
         assert lab.question and lab.source_review['url'].startswith('https://')
         assert '一次資料' in lab.sections['evidence']
 
 
-@pytest.mark.parametrize('bad', ['missing_results', 'nan', 'default', 'stage', 'kind'])
+@pytest.mark.parametrize('bad', ['missing_results', 'nan', 'default', 'kind'])
 def test_invalid_interactive_data_fails_build(tmp_path, bad):
     source = ROOT / 'papers/unipinrec'
     raw = yaml.safe_load((source / 'lab.yaml').read_text())
     raw['figures'] = []
+    raw['sections']['method'] = 'test method'
     result = json.loads((source / 'results.json').read_text())
     if bad == 'missing_results': result = {}
     if bad == 'nan': result['explorer']['frames'][0]['bars'][0]['value'] = float('nan')
     if bad == 'default': result['explorer']['default'] = 999
-    if bad == 'stage': del raw['interactives'][0]['stages'][0]['detail']
     if bad == 'kind': raw['interactives'][0]['kind'] = 'unknown'
     (tmp_path / 'results.json').write_text(json.dumps(result))
     with pytest.raises(LabError): lab_from_dict(raw, tmp_path)
+
+
+def test_figure_plans_are_heterogeneous():
+    labs = load_all_labs(ROOT / 'papers')
+    plans = {tuple(f['kind'] for f in lab.teaching_figures) for lab in labs}
+    assert len(plans) >= 7
+    assert {f['kind'] for lab in labs for f in lab.teaching_figures} == {
+        'architecture', 'equations', 'matrix', 'logic', 'timeline', 'chart'
+    }
+    assert any(not lab.interactives for lab in labs)
+
+
+@pytest.mark.parametrize('bad', ['kind', 'duplicate', 'source', 'placement', 'matrix', 'equation', 'node', 'chart'])
+def test_malformed_teaching_figures_fail_before_render(bad):
+    source = ROOT / 'papers/unipinrec'
+    raw = yaml.safe_load((source / 'lab.yaml').read_text())
+    figs = raw['teaching_figures']
+    if bad == 'kind': figs[0]['kind'] = 'unknown'
+    if bad == 'duplicate': figs[1]['id'] = figs[0]['id']
+    if bad == 'source': del figs[0]['source']
+    if bad == 'placement': figs[0]['after'] = 'no-section'
+    if bad == 'matrix': figs[0]['rows'][0]['cells'].pop()
+    if bad == 'equation': del figs[2]['steps'][0]['formula']
+    if bad == 'node': del figs[1]['rows'][0]['nodes'][0]['text']
+    if bad == 'chart':
+        raw = yaml.safe_load((ROOT / 'papers/harness-bench/lab.yaml').read_text())
+        raw['sections']['method'] = 'test method'
+        raw['teaching_figures'][1]['bars'][0]['value'] = float('nan')
+    with pytest.raises(LabError):
+        lab_from_dict(raw, source)

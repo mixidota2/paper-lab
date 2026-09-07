@@ -24,10 +24,7 @@ related_threads:
 - agent-architecture-and-harness
 status: published
 summary: GAIAの成績はモデルと実行手順の組合せで変わる。複数役割に分ける効果も、モデルの系列や問題の難しさに左右される。
-figures:
-- path: figures/control-flow.svg
-  title: 処理の全体像
-  caption: 論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。
+figures: []
 core_idea:
   author_claim: '著者はGAIAの検証用問題で、モデルを固定しても実行手順により正答率が変わると報告する。計画と評価を分ける利点は一様でなく、難しい問題における複数役割の優位はAnthropic系列で観測され、他社モデルにはそのまま広がらない。強いモデルほど手順の影響が小さくなる、という事前の予想も支持されなかった。
 
@@ -35,10 +32,7 @@ core_idea:
     [一次資料：§3.3 / §3.6 / §4.1.3 / §6](https://arxiv.org/html/2606.08529)'
   research_bot_interpretation: モデルを購入・採用するときは、普段使うツールと回復手順を含めて評価したい。ただし「人数を増やせば改善する」と結論づけるのは早い。役割分担、プロンプト、検索手段、失敗処理がまとめて変わっているため、効いた部品は追加実験で切り分ける必要がある。
 sections:
-  overview: 'GAIAの成績はモデルと実行手順の組合せで変わる。複数役割に分ける効果も、モデルの系列や問題の難しさに左右される。
-
-
-    このLabでは「モデルが同じでも、仕事の進め方で成績はどこまで変わるか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。'
+  overview: GAIAの成績はモデルと実行手順の組合せで変わる。複数役割に分ける効果も、モデルの系列や問題の難しさに左右される。
   problem: 'エージェントは回答文を作るだけでなく、検索し、ファイルを読み、失敗した操作をやり直す。その進め方を決める外側の仕組みを、この論文ではscaffoldと呼ぶ。異なる仕組みで測った成績をそのまま比べると、モデルの差と実行環境の差が混ざる。
 
 
@@ -52,7 +46,7 @@ sections:
 
 
     実行：`uv run papers/scaffold-effects-gaia/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json` へ保存する。'
-  results: 図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。
+  results: 初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。
   what_we_verified: '**メカニズム：PARTIAL（部分的）**。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。
 
 
@@ -68,38 +62,70 @@ sections:
 
     | 原論文 | [§3.3 / §3.6 / §4.1.3 / §6](https://arxiv.org/html/2606.08529) |
 
-    | 処理図 | 上記の仕組みを説明用に簡略化。公式実装ではない |
+    | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |
 
-    | 条件探索 | `run.py` → `papers/_toy_common.py` → `results.json` |
+    | 小実験 | `run.py` → `papers/_toy_common.py` → `results.json` |
 
     | 公式コード | このLabでは公式コードとの行単位の照合はしていない。 |'
+  method: method.md
 question: モデルが同じでも、仕事の進め方で成績はどこまで変わるか
-interactives:
-- kind: flow
-  title: 処理と設計の違いを追う
-  caption: 段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。
-  source: https://arxiv.org/html/2606.08529
-  stages:
-  - title: 問題を受け取る
-    baseline: その場で次の操作を考える
-    proposed: 計画を明示する
-    detail: まず必要な資料と作業順を決める。計画の品質自体は保証されない。
-  - title: 操作する
-    baseline: 単一のループで実行
-    proposed: 実行役が操作
-    detail: ツールの応答が期待と違うとき、作業を止めて確認できるかが分岐点。
-  - title: 失敗を見つける
-    baseline: 次の推論に任せる
-    proposed: 評価役が点検
-    detail: PARの評価役は完了か修正かを判断する。これは研究の役割構成の説明。
-  - title: 回答を確定する
-    baseline: 回答を提出
-    proposed: 修正後に提出
-    detail: 評価基準を満たす回答だけを正解とする。途中の説明の長さは正解の代用にならない。
-- kind: explorer
-  title: 回復の予算と完了件数
-  caption: 同じ60件の人工タスクに、初回から成功するものと数回失敗するものを置く。再試行上限を変え、完了件数と呼出し回数を数える。
+interactives: []
 source_review:
   checked: '2026-09-07'
   url: https://arxiv.org/html/2606.08529
-  scope: arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。
+  scope: 一次資料の方法・数式・実験条件を再確認。図は説明用の再構成。著者の性能・運用結果は独立再現していない。
+teaching_figures:
+- kind: matrix
+  id: design
+  title: モデルを固定して実行構成を横に比べる
+  after: method
+  locator: §3.3–3.6
+  rationale: 単一の勝者図より、何を掛け合わせたかが研究の核心。
+  caption: 各セルで同じ問題を3回。Level 1は53問、Level 2は86問。未完了セルがあり、計画した全試行が揃ったわけではない。
+  columns:
+  - ReAct
+  - PAR
+  - Plan → Execute
+  rows:
+  - label: Opus 4.7
+    cells:
+    - 交互に推論・行動
+    - 計画 → 実行 → 評価 ↺
+    - 計画を引き継いで実行
+  - label: Sonnet 4.6
+    cells:
+    - 交互に推論・行動
+    - 計画 → 実行 → 評価 ↺
+    - 計画を引き継いで実行
+  - label: Haiku 4.5
+    cells:
+    - 交互に推論・行動
+    - 計画 → 実行 → 評価 ↺
+    - 計画を引き継いで実行
+  - label: Gemini 3.1 Pro Preview
+    cells:
+    - 交互に推論・行動
+    - 計画 → 実行 → 評価 ↺
+    - 計画を引き継いで実行
+  - label: GPT-5.5
+    cells:
+    - 交互に推論・行動
+    - 計画 → 実行 → 評価 ↺
+    - 計画を引き継いで実行
+  corner: モデル
+  source: https://arxiv.org/html/2606.08529
+- kind: equations
+  id: gap
+  title: 構成による差は最大値と最小値の差
+  after: method
+  locator: §4.1.2–4.1.3
+  rationale: 差の定義と誤差の扱いを説明する。
+  caption: 記号を整理した定義。信頼区間は問題ID単位のbootstrapで、同一問題の試行をまとめて再標本化する。
+  steps:
+  - name: 同じモデル・難度で集計
+    formula: Gap(m, l) = maxₛ Accuracy(m, s, l) − minₛ Accuracy(m, s, l)
+    explanation: mはモデル、lは難度、sは3つの実行構成。別モデル間の差ではない。
+  - name: ポイントと相対率を区別する
+    formula: 0.70 − 0.50 = 0.20 = 20 percentage points
+    explanation: この数値は計算例。20%の相対改善とは異なる。
+  source: https://arxiv.org/html/2606.08529

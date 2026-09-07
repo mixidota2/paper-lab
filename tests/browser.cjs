@@ -16,15 +16,16 @@ const site = path.resolve(__dirname, '../site');
       page.on('console', m=>{if(m.type()==='error')errors.push(m.text());});
       for (const name of fs.readdirSync(path.join(site,'papers')).filter(n=>n.endsWith('.html'))) {
         await page.goto(pathToFileURL(path.join(site,'papers',name)).href);
-        assert.equal(await page.locator('[data-ready=true]').count(),2,name);
+        const modules=await page.locator('[data-interactive]').count();
+        assert.equal(await page.locator('[data-ready=true]').count(),modules,name);
+        assert.ok(await page.locator('figure.teaching').count()>=2,name);
+        assert.ok(await page.locator('#method').textContent());
         assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth),true,`${name} overflow at ${width}`);
-        const flow=page.locator('[data-interactive=flow]');
-        await flow.getByRole('button',{name:'比較側の設計',exact:true}).click();
-        assert.equal(await flow.getByRole('button',{name:'比較側の設計',exact:true}).getAttribute('aria-pressed'),'true');
-        for(let i=1;i<4;i++)await flow.getByRole('button',{name:'次へ →',exact:true}).click();
-        assert.equal(await flow.getByRole('button',{name:'次へ →',exact:true}).isDisabled(),true);
-        assert.equal(await flow.locator('[aria-current=step]').count(),1);
-        await flow.getByRole('button',{name:'論文の設計',exact:true}).click();
+        const brokenAnchors=await page.locator('a[href^="#"]').evaluateAll(links=>links.filter(a=>!document.getElementById(a.hash.slice(1))).map(a=>a.hash));
+        assert.deepEqual(brokenAnchors,[],name);
+        if(width===360 && ['unipinrec.html','apollopfn.html','rest-sequence-ranking.html'].includes(name)) await page.locator('figure.teaching').first().screenshot({path:`/tmp/${name}-mobile.png`});
+        if(width===1440 && ['tgr.html','harness-bench.html','whole-foods-shelf.html'].includes(name)) await page.locator('figure.teaching').first().screenshot({path:`/tmp/${name}-desktop.png`});
+        if(!modules) continue;
         const explorer=page.locator('[data-interactive=explorer]');
         const slider=explorer.getByRole('slider');
         await slider.focus();await slider.press('Home');
@@ -64,10 +65,11 @@ const site = path.resolve(__dirname, '../site');
     const nojs=await browser.newPage({javaScriptEnabled:false,viewport:{width:360,height:800}});
     for(const name of fs.readdirSync(path.join(site,'papers')).filter(n=>n.endsWith('.html'))) {
       await nojs.goto(pathToFileURL(path.join(site,'papers',name)).href);
-      assert.equal(await nojs.locator('[data-fallback]:visible').count(),2);
+      assert.equal(await nojs.locator('[data-fallback]:visible').count(),await nojs.locator('[data-interactive]').count());
+      assert.ok(await nojs.locator('figure.teaching:visible').count()>=2);
       assert.equal(await nojs.evaluate(()=>document.documentElement.scrollWidth <= innerWidth),true);
     }
     assert.deepEqual(errors,[]);
-    console.log('PASS: 11 labs × 3 viewports; flow, slider keyboard, data, filters, offline/no-JS, overflow, console');
+    console.log('PASS: 11 labs × 3 viewports; heterogeneous figures, anchors, slider keyboard, data, filters, offline/no-JS, overflow, console');
   } finally {await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

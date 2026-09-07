@@ -1,7 +1,8 @@
 id: rest-sequence-ranking
 arxiv_id: '2609.01240'
 submitted: '2026-09-01'
-title: 'From Language to Behavior: Scaling Sequence Transformers for Industrial Recommendation Ranking with Rec-Native Designs'
+title: 'From Language to Behavior: Scaling Sequence Transformers for Industrial Recommendation Ranking with Rec-Native
+  Designs'
 authors:
 - Jie Chen
 - Xiangqian Yu
@@ -35,10 +36,7 @@ related_threads:
 - user-history-context-design
 status: published
 summary: 系列の枝へ学習信号を届かせ、重い履歴計算を候補間で共有する。ReSTは学習の不足と配信の重複を一緒に扱う。
-figures:
-- path: figures/shortcut.svg
-  title: 処理の全体像
-  caption: 論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。
+figures: []
 core_idea:
   author_claim: 'ReSTは情報を集める前と後にゲートを置いてノイズを抑え、順序と実時間を別の回転埋込みで扱う。残差の正規化で深い層を安定させ、系列単独の購入率予測と枝間の整合を学習時に補助する。配信では重い履歴エンコーダーを1回動かし、軽い候補別デコーダーから共有表現を読む。
 
@@ -46,10 +44,7 @@ core_idea:
     [一次資料：§2.3–2.6 / §3.4 / §3.5](https://arxiv.org/html/2609.01240)'
   research_bot_interpretation: 履歴長を増やす前に、系列の枝が何を学び、どれほど勾配を受けているかを確かめたい。UniPinRecが段をまたぐ共有を狙うのに対し、ここは順位付けの候補間での共有が中心。両者は競合するとは限らない。
 sections:
-  overview: '系列の枝へ学習信号を届かせ、重い履歴計算を候補間で共有する。ReSTは学習の不足と配信の重複を一緒に扱う。
-
-
-    このLabでは「行動履歴を長くしても順位付けが良くならないのはなぜか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。'
+  overview: 系列の枝へ学習信号を届かせ、重い履歴計算を候補間で共有する。ReSTは学習の不足と配信の重複を一緒に扱う。
   problem: '推薦の履歴は文章とは違う。クリックには偶然が混じり、隣り合う行動が数秒差のことも数日差のこともある。正解ラベルも各行動に密に付くわけではない。
 
 
@@ -63,7 +58,7 @@ sections:
 
 
     実行：`uv run papers/rest-sequence-ranking/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json` へ保存する。'
-  results: 図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。
+  results: 初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。
   what_we_verified: '**メカニズム：PARTIAL（部分的）**。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。
 
 
@@ -79,38 +74,59 @@ sections:
 
     | 原論文 | [§2.3–2.6 / §3.4 / §3.5](https://arxiv.org/html/2609.01240) |
 
-    | 処理図 | 上記の仕組みを説明用に簡略化。公式実装ではない |
+    | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |
 
-    | 条件探索 | `run.py` → `papers/_toy_common.py` → `results.json` |
+    | 小実験 | `run.py` → `papers/_toy_common.py` → `results.json` |
 
     | 公式コード | このLabでは公式コードとの行単位の照合はしていない。 |'
+  method: method.md
 question: 行動履歴を長くしても順位付けが良くならないのはなぜか
-interactives:
-- kind: flow
-  title: 処理と設計の違いを追う
-  caption: 段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。
-  source: https://arxiv.org/html/2609.01240
-  stages:
-  - title: 行動を読む
-    baseline: 順序だけで表現
-    proposed: 順序と経過時間を表現
-    detail: 近い位置でも時間差が大きい行動を区別する。
-  - title: 履歴を集約する
-    baseline: 通常のattention
-    proposed: 集約前後のゲート
-    detail: 値を集める前と集めた後で情報量を調節する。ゲートが真の意図を識別する保証はない。
-  - title: 系列を学習する
-    baseline: 主損失からの信号だけ
-    proposed: 系列へ補助損失を追加
-    detail: 強い非系列枝への依存で系列の学習が弱まる問題を扱う。補助損失は学習時だけ。
-  - title: 候補を採点する
-    baseline: 重い処理を候補ごとに反復
-    proposed: 履歴を共有し軽い照合を反復
-    detail: 共有できる計算と候補依存の計算を分ける。
-- kind: explorer
-  title: 系列の枝に届く勾配を変える
-  caption: 非系列の予測が正解に近い1例で、系列枝へ届く二乗損失の勾配を解析的に計算する。補助損失の重みを変え、勾配がどう変わるかを見る。
+interactives: []
 source_review:
   checked: '2026-09-07'
   url: https://arxiv.org/html/2609.01240
-  scope: arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。
+  scope: 一次資料の方法・数式・実験条件を再確認。図は説明用の再構成。著者の性能・運用結果は独立再現していない。
+teaching_figures:
+- kind: architecture
+  id: asymmetric
+  title: 履歴は重く1回、候補は軽く何回も
+  after: method
+  locator: 図1・§2.3–2.6
+  rationale: 非対称な計算配置と学習用の枝を明示する。
+  caption: TとCの機能を再構成した図。候補側は同じ履歴メモリを読む。
+  rows:
+  - label: ユーザー単位の共有処理
+    nodes:
+    - title: 行動履歴 → T
+      text: DGA・RoPE/RoTE・SRNを備えた系列encoder → H
+  - label: HをKey/Valueとして共有 ↓
+    nodes:
+    - title: 候補A → C
+      text: 少数のQueryでHを読む。
+    - title: 候補B → C
+      text: 同じHを読み、候補別表現を作る。
+  - label: 出力と学習専用の枝
+    nodes:
+    - title: 本番：CVR head
+      text: 系列表現と非系列DLRM特徴を合わせる。
+    - title: 学習のみ：補助head
+      text: 系列CVRと表現整合でTへ直接学習信号を送る。
+  source: https://arxiv.org/html/2609.01240
+- kind: equations
+  id: dual-gates
+  title: Valueを絞ってから集約し、出力をもう一度調整する
+  after: method
+  locator: 式(2)・(3)・(6)
+  rationale: 二重ゲートがattentionのどこに作用するかを示す。
+  caption: Xは入力系列、σはsigmoid、⊙は要素ごとの積。Wは学習する射影行列。
+  steps:
+  - name: 集約前のValueゲート
+    formula: V′ = σ(XWgv) ⊙ (XWV)
+    explanation: 個々の行動特徴が集約へ入る強さを調整する。
+  - name: 因果attentionで集約
+    formula: H = softmax(QKᵀ / √d + Mcausal) V′
+    explanation: 未来位置をMcausalで遮断する。ゲートはsoftmax自体を置き換えない。
+  - name: 集約後の出力ゲート
+    formula: DGA(X) = (H ⊙ σ(XWgo)) Wo
+    explanation: 集約された文脈が出力へ寄与する強さを調整する。2つのゲートは別のパラメータを持つ。
+  source: https://arxiv.org/html/2609.01240

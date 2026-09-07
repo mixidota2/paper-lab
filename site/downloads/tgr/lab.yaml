@@ -1,7 +1,8 @@
 id: tgr
 arxiv_id: '2609.00986'
 submitted: '2026-09-01'
-title: 'TGR: Advancing Industrial Recommendation from Generative-Paradigm Ranking toward Unified Generation and Reasoning'
+title: 'TGR: Advancing Industrial Recommendation from Generative-Paradigm Ranking toward Unified Generation and
+  Reasoning'
 authors:
 - Lei Cheng
 - Haonan Hu
@@ -37,10 +38,7 @@ related_threads:
 - when-complex-ranking-is-worth-it
 status: published
 summary: TGRは順位付け、商品候補の生成、一覧の生成、事前の推論を分けて設計する。導入箇所と出力形式を押さえると、報告された改善を読み違えにくい。
-figures:
-- path: figures/cascade.svg
-  title: 処理の全体像
-  caption: 論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。
+figures: []
 core_idea:
   author_claim: 'CCFormerは順位付けを担う。BARGEは商品内のIDをまとめた文脈を各トークンへ戻すICA、経路全体の整合性を評価するHPR、別の生成経路を持つDPDでID生成の失敗に対処する。HiGRは一覧全体を生成する。TGR-Reasonは推論を事前計算し、圧縮した表現を配信時に参照する。
 
@@ -48,10 +46,7 @@ core_idea:
     [一次資料：§2 / §3.6 / §4.2 / §4.3 / §5](https://arxiv.org/html/2609.00986)'
   research_bot_interpretation: 既存の段構成を捨てるかどうかと、生成モデルを採用するかどうかは別の判断になる。BARGEが候補源の一つとして導入された点は、他の候補源と混ぜながら増分を確かめる設計例として読める。
 sections:
-  overview: 'TGRは順位付け、商品候補の生成、一覧の生成、事前の推論を分けて設計する。導入箇所と出力形式を押さえると、報告された改善を読み違えにくい。
-
-
-    このLabでは「生成推薦を、既存システムのどこへ組み込むか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。'
+  overview: TGRは順位付け、商品候補の生成、一覧の生成、事前の推論を分けて設計する。導入箇所と出力形式を押さえると、報告された改善を読み違えにくい。
   problem: '推薦システムは、候補生成から詳細な順位付けへ順に候補を絞る。各段は使える計算量も、返すものも異なる。候補ごとの点数を返すモデルと、表示する一覧を直接作るモデルは、同じ「生成」という言葉でも交換可能ではない。
 
 
@@ -65,7 +60,7 @@ sections:
 
 
     実行：`uv run papers/tgr/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json` へ保存する。'
-  results: 図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。
+  results: 初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。
   what_we_verified: '**メカニズム：PARTIAL（部分的）**。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。
 
 
@@ -81,38 +76,75 @@ sections:
 
     | 原論文 | [§2 / §3.6 / §4.2 / §4.3 / §5](https://arxiv.org/html/2609.00986) |
 
-    | 処理図 | 上記の仕組みを説明用に簡略化。公式実装ではない |
+    | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |
 
-    | 条件探索 | `run.py` → `papers/_toy_common.py` → `results.json` |
+    | 小実験 | `run.py` → `papers/_toy_common.py` → `results.json` |
 
     | 公式コード | このLabでは公式コードとの行単位の照合はしていない。 |'
+  method: method.md
 question: 生成推薦を、既存システムのどこへ組み込むか
-interactives:
-- kind: flow
-  title: 処理と設計の違いを追う
-  caption: 段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。
-  source: https://arxiv.org/html/2609.00986
-  stages:
-  - title: 候補源を作る
-    baseline: 既存の複数候補源
-    proposed: BARGEを候補源へ追加
-    detail: BARGEは商品IDの生成を改善する。推薦全体を丸ごと置き換えたという意味ではない。
-  - title: 候補を採点する
-    baseline: 既存の順位付け
-    proposed: CCFormerで順位付け
-    detail: 入力を統一したTransformerで候補の点数を出す。出力は一覧のID生成と区別する。
-  - title: 一覧を考える
-    baseline: 商品ごとの判断を集約
-    proposed: HiGRで一覧を生成
-    detail: 一覧内の関係と位置、生成時間を扱う独立した設計。前段から必ず直列につながる図ではない。
-  - title: 推論を渡す
-    baseline: 履歴の直接参照
-    proposed: 事前推論の表現を参照
-    detail: TGR-Reasonは共有の追加情報を提供する。4段は部品の配置を比較する図で、固定の実行順ではない。
-- kind: explorer
-  title: IDの途中の誤りはどこまで残るか
-  caption: 各ID階層が独立に90%の確率で正しい枝を選ぶ仮定を置き、階層を深くしたときの到達率を計算する。BARGEの改善率を作り込まず、早い段の誤りの蓄積だけを見る。
+interactives: []
 source_review:
   checked: '2026-09-07'
   url: https://arxiv.org/html/2609.00986
-  scope: arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。
+  scope: 一次資料の方法・数式・実験条件を再確認。図は説明用の再構成。著者の性能・運用結果は独立再現していない。
+teaching_figures:
+- kind: logic
+  id: families
+  title: 順位付け・商品生成・一覧生成は別の設計
+  after: method
+  locator: §3–5
+  rationale: 総合報告を1本のパイプラインに誤って直列化しない。
+  caption: 3つの用途の整理。BARGEとHiGRは生成方式の選択肢で、常に順番に通す段ではない。
+  rows:
+  - label: 既存の順位付けを改める
+    nodes:
+    - title: CCFormer / GenRank
+      text: 特徴をtoken化 → 履歴を圧縮・照合 → 商品別スコア
+  - label: 生成へ進む2つの選択肢
+    nodes:
+    - title: BARGE / NTP
+      text: 商品IDのtoken列を順に生成。境界と経路を補正。
+    - title: HiGR / NSP
+      text: 一覧のprefix計画 → 商品ごとの詳細生成。
+  - label: 生成に推論情報を供給
+    nodes:
+    - title: LatentRec / TGR-Reason
+      text: オフラインのThinkモデル → 保存したreason token → Genモデル
+  source: https://arxiv.org/html/2609.00986
+- kind: timeline
+  id: reason-refresh
+  title: 遅い推論をオンライン経路から外す
+  after: method
+  locator: §5.2–5.4
+  rationale: 処理時間帯の分離が方法の運用上の核心。
+  caption: 保存レコードの鮮度とモデル版の整合が前提。近傍更新を即時の推論実行と混同しない。
+  rows:
+  - label: オフライン
+    nodes:
+    - title: Thinkモデル
+      text: LatentRecの潜在多段学習でreason tokenを作り、版付きレコードに保存。
+  - label: オンライン：リクエスト到着
+    nodes:
+    - title: Genモデル
+      text: 保存tokenを読み、履歴やmemoryと合わせて候補を生成。
+  - label: 非同期の更新
+    nodes:
+    - title: Nearline refresh
+      text: リクエストを契機に更新を予約。完了前は既存レコードの鮮度を管理する。
+  source: https://arxiv.org/html/2609.00986
+- kind: equations
+  id: generation
+  title: 何を生成するかで確率の単位が変わる
+  after: method
+  locator: §4.1
+  rationale: 商品tokenと一覧の目的を区別する。
+  caption: 論文のNTP/NSPの違いを記号を整理して表す。Hは履歴、zはID token、Sは一覧。
+  steps:
+  - name: NTP：IDの次token
+    formula: p(z₁,…,zL | H) = ∏ₜ p(zₜ | H,z<t)
+    explanation: 早いprefixの誤りが後続へ伝わる。BARGEは商品境界と経路の扱いを改める。
+  - name: NSP：一覧全体を対象にする
+    formula: S* = argmaxₛ p(S | H)
+    explanation: HiGRは粗い一覧計画と局所の商品生成へ分ける。各商品を独立に上位から並べる操作とは目的が異なる。
+  source: https://arxiv.org/html/2609.00986

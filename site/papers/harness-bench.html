@@ -16,17 +16,16 @@
     <h1>仕事が終わらない原因は、推論と実行のどちらにあるか</h1>
     <p class="lede">モデルの回答を外部の操作へつなぐ仕組みも評価対象にする。最終成果物、途中の行動、費用を分けて見るためのベンチマーク。</p>
     <details class="bibliography"><summary>原論文：Harness-Bench: Measuring Harness Effects across Models in Realistic Agent Workflows</summary><p>Yilun Yao, Xinyu Tan, Chao-Hsuan Liu, Yaoming Li, Zhengyang Wang, Wenhan Yu, Zhewen Tan, Yuxuan Tian, Guangxiang Zhao, Lin Sun, Xiangzheng Zhang, Tong Yang</p><p>2605.27922 · 2026</p></details>
-    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2605.27922">原典を読む ↗</a><a href="https://arxiv.org/pdf/2605.27922">PDF ↗</a><a href="#interactive-1">図を操作する ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2605.27922">原典を読む ↗</a><a href="https://arxiv.org/pdf/2605.27922">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
     <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
-    <p class="source-note">一次資料の確認：2026-09-07 · arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。</p>
+    <p class="source-note">一次資料の確認：2026-09-07 · 一次資料の方法・数式・実験条件を再確認。図は説明用の再構成。著者の性能・運用結果は独立再現していない。</p>
   </header>
   <div class="paper-layout">
-    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">01 問いと仕組み</a><a href="#interactive-1">02 図で追う</a><a href="#evidence">03 論文の根拠</a><a href="#interactive-2">04 条件を変える</a><a href="#what_we_did_not_verify">05 限界と批評</a><a href="#implementation">06 実装と出典</a></nav>
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-score">完了度が同じでも過程の採点で差が出る</a><a href="#figure-harness-scores">6構成の総合点：同じタスクとモデル群で比較</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
     <article class="paper-body">
       <section id="overview" class="note-section">
         <h2>概要</h2>
-<div class="prose"><p>モデルの回答を外部の操作へつなぐ仕組みも評価対象にする。最終成果物、途中の行動、費用を分けて見るためのベンチマーク。</p>
-<p>このLabでは「仕事が終わらない原因は、推論と実行のどちらにあるか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。</p></div>      </section>
+<div class="prose"><p>モデルの回答を外部の操作へつなぐ仕組みも評価対象にする。最終成果物、途中の行動、費用を分けて見るためのベンチマーク。</p></div>      </section>
       <section id="problem" class="note-section">
         <h2>問題設定</h2>
 <div class="prose"><p>正しい手順を説明できても、ファイルを保存しなければ仕事は完了しない。ツールの形式に合わせる、状態を保つ、失敗から戻るといった実行の仕事を担うのがハーネスだ。</p>
@@ -37,37 +36,30 @@
 <p><a href="https://arxiv.org/html/2605.27922">一次資料：§3.4 / §4.1 / 表2 / §4.4</a></p></div></div>
         <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>調達や改善の判断には、総合点に加えて「何が壊れたか」が役立つ。ただし総合点が高い構成の部品をまねても、その部品が改善原因だったとは限らない。タスク別の失敗記録から、修正すべき箇所を絞り込む使い方がよい。</p></div></div>
       </section>
-      <section class="interactive" id="interactive-1" data-interactive="flow" aria-labelledby="figure-title-3">
-        <div class="figure-heading"><p class="eyebrow">01 / MECHANISM</p><span class="figure-badge">論文の概念図</span></div>
-        <h2 id="figure-title-3">処理と設計の違いを追う</h2>
-        <p class="figure-caption">段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。</p>
-        <script type="application/json" data-config>{"caption": "\u6bb5\u3092\u9078\u3076\u3068\u8aac\u660e\u304c\u5207\u308a\u66ff\u308f\u308b\u3002\u6bd4\u8f03\u5074\u306f\u8ad6\u70b9\u3092\u793a\u3059\u7c21\u7565\u5316\u3067\u3001\u7d71\u5236\u5b9f\u9a13\u306e\u5b9f\u88c5\u3067\u306f\u306a\u3044\u3002", "kind": "flow", "source": "https://arxiv.org/html/2605.27922", "stages": [{"baseline": "\u6587\u7ae0\u306e\u56de\u7b54\u3092\u4f5c\u308b", "detail": "\u5fc5\u8981\u306a\u30d5\u30a1\u30a4\u30eb\u3001\u5f62\u5f0f\u3001\u6839\u62e0\u306a\u3069\u3092\u5148\u306b\u78ba\u8a8d\u3059\u308b\u3002", "proposed": "\u6210\u679c\u7269\u306e\u6761\u4ef6\u3092\u8aad\u3080", "title": "\u4f9d\u983c\u3092\u89e3\u91c8\u3059\u308b"}, {"baseline": "\u30e2\u30c7\u30eb\u51fa\u529b\u3092\u6e21\u3059", "detail": "\u5f62\u5f0f\u306e\u8aa4\u308a\u306f\u691c\u51fa\u30fb\u4fee\u5fa9\u3067\u304d\u3066\u3082\u3001\u5185\u5bb9\u306e\u6b63\u3057\u3055\u306f\u5225\u306e\u6761\u4ef6\u3002", "proposed": "\u30c4\u30fc\u30eb\u5f62\u5f0f\u3092\u691c\u67fb", "title": "\u64cd\u4f5c\u3078\u5909\u63db\u3059\u308b"}, {"baseline": "\u6700\u7d42\u56de\u7b54\u3060\u3051\u3092\u898b\u308b", "detail": "\u64cd\u4f5c\u304c\u5931\u6557\u3057\u305f\u306e\u304b\u3001\u6839\u62e0\u304c\u6b20\u3051\u305f\u306e\u304b\u3092\u5206\u3051\u308b\u3002", "proposed": "\u72b6\u614b\u3068\u5931\u6557\u3092\u8a18\u9332", "title": "\u5b9f\u884c\u3092\u8ffd\u8de1\u3059\u308b"}, {"baseline": "\u5b8c\u4e86\u3068\u66f8\u3044\u3066\u63d0\u51fa", "detail": "\u5b9f\u969b\u306e\u6210\u679c\u7269\u3068\u5b9f\u884c\u8a18\u9332\u3092\u7528\u3044\u308b\u3002\u56f3\u306f\u8a55\u4fa1\u306e\u8003\u3048\u65b9\u3067\u3001\u7279\u5b9a\u30cf\u30fc\u30cd\u30b9\u306e\u5b9f\u88c5\u6bd4\u8f03\u3067\u306f\u306a\u3044\u3002", "proposed": "\u4fdd\u5b58\u3055\u308c\u305f\u6210\u679c\u7269\u3092\u691c\u67fb", "title": "\u5b8c\u4e86\u3092\u63a1\u70b9\u3059\u308b"}], "title": "\u51e6\u7406\u3068\u8a2d\u8a08\u306e\u9055\u3044\u3092\u8ffd\u3046"}</script>
-        <div data-mount></div>
-        <div data-fallback>
-          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
-<ol><li><strong>依頼を解釈する：成果物の条件を読む</strong><p>必要なファイル、形式、根拠などを先に確認する。</p></li><li><strong>操作へ変換する：ツール形式を検査</strong><p>形式の誤りは検出・修復できても、内容の正しさは別の条件。</p></li><li><strong>実行を追跡する：状態と失敗を記録</strong><p>操作が失敗したのか、根拠が欠けたのかを分ける。</p></li><li><strong>完了を採点する：保存された成果物を検査</strong><p>実際の成果物と実行記録を用いる。図は評価の考え方で、特定ハーネスの実装比較ではない。</p></li></ol>
-        </div>
-        <p class="figure-source">出典に基づく説明用の簡略化。 <a href="https://arxiv.org/html/2605.27922">一次資料 ↗</a></p>
-      </section>
-      <section id="why_it_might_work" class="note-section">
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><p>Harness-Benchは <strong>106タスク × 6ハーネス × 8モデル</strong> の比較設計。OpenClaw、NanoBot、Hermes、ZeroClaw、NullClaw、Moltisを、同じ初期ファイル・予算・時間制限・評価器で動かす。モデル群はClaude Opus 4.6、Sonnet 4.6、Gemini 3.1 Pro Preview、Qwen3.6 Plus、GLM-5.1、Kimi K2.5、GPT-5.4、DeepSeek V4 Flash（付録B）。各ハーネス固有のプロンプトや復旧方法は保持するため、個々の機能の因果効果を測る設計ではない。</p>
+<p>成果物はタスク固有の検査器またはrubricで採点し、実行履歴の評価には固定の <strong>claude-sonnet-4.6</strong> を使う。完了度、許可違反の有無、実行過程の品質を掛け合わせるのが特徴だ。Codex（本文ではGPT-5.4）は106件を別枠で評価し、8モデル平均のハーネスと混ぜない。</p>
+<p>最終点だけでは、未完了だったのか過程の評価が低かったのか分からない。下の式を分解してから報告値を見る。</p>
+<p><a href="https://arxiv.org/html/2605.27922">一次資料：方法と実験条件</a></p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-score" aria-labelledby="title-score">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-score">完了度が同じでも過程の採点で差が出る</h3>
+  <ol class="equation-steps"><li><strong>過程の3軸を平均</strong><div class="math-expression" tabindex="0" role="math" aria-label="P = (Robustness + ToolUse + Consistency) / 3">P = (Robustness + ToolUse + Consistency) / 3</div><p>障害への対処、ツールの適切さ、状態と行動の整合性を評価する。PはLLM評価を含む。</p></li><li><strong>許可違反をゲートにする</strong><div class="math-expression" tabindex="0" role="math" aria-label="TaskScore = Security × Completion × P">TaskScore = Security × Completion × P</div><p>Securityは0または1。明示された許可・セキュリティ制約に違反すれば、完了度が高くても総合点は0になる。</p></li><li><strong>集計は各タスクの積から</strong><div class="math-expression" tabindex="0" role="math" aria-label="MeanScore = (Σᵢ TaskScoreᵢ) / N">MeanScore = (Σᵢ TaskScoreᵢ) / N</div><p>平均完了度と平均過程点を後から掛けても、一般には同じ平均点にならない。</p></li></ol>
+  <figcaption>論文の採点式。Security以外は0〜1へ正規化する。 <a href="https://arxiv.org/html/2605.27922">出典：§3.4 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
         <h2>なぜ効きそうか</h2>
-<p class="label">解釈・推論</p><div class="prose"><p>形式の検査や保存確認を外側へ持たせると、モデルが正しい内容を作った後の取りこぼしを防げると考えられる。根拠の不足は形式検査では修復できない。下の図では、この2種類の失敗を分ける。</p></div>      </section>
+<p class="label">解釈・推論</p><div class="prose"><p>形式の検査や保存確認を外側へ持たせると、モデルが正しい内容を作った後の取りこぼしを防げると考えられる。根拠の不足は形式検査では修復できない。小実験では、この2種類の失敗を分ける。</p></div>      </section>
       <section id="evidence" class="note-section">
         <h2>根拠</h2>
 <div class="prose"><p>§4.1・表2の設定可能な6ハーネスは106タスクと8モデルで平均され、NanoBotの総合点76.2とOpenClawの52.4の間に23.8ポイント差がある。これは完了率の差ではない。Codexは固定モデルを伴う参考値として別枠。§3.4の過程評価にはLLM判定も含まれるため、その採点の癖も検討対象になる。</p>
 <p><a href="https://arxiv.org/html/2605.27922">一次資料：§3.4 / §4.1 / 表2 / §4.4</a></p></div>      </section>
-      <section class="interactive" id="interactive-2" data-interactive="explorer" aria-labelledby="figure-title-5">
-        <div class="figure-heading"><p class="eyebrow">02 / EXPERIMENT</p><span class="figure-badge">合成実験 · PARTIAL</span></div>
-        <h2 id="figure-title-5">形式を直せば仕事は完了するか</h2>
-        <p class="figure-caption">60件の人工成果物に形式不備・根拠不足・未保存を割り当てる。形式と保存を順に修復し、全条件を満たした件数を再計算する。根拠不足は自動的に合格へ変えない。</p>
-        <script type="application/json" data-config>{"caption": "60\u4ef6\u306e\u4eba\u5de5\u6210\u679c\u7269\u306b\u5f62\u5f0f\u4e0d\u5099\u30fb\u6839\u62e0\u4e0d\u8db3\u30fb\u672a\u4fdd\u5b58\u3092\u5272\u308a\u5f53\u3066\u308b\u3002\u5f62\u5f0f\u3068\u4fdd\u5b58\u3092\u9806\u306b\u4fee\u5fa9\u3057\u3001\u5168\u6761\u4ef6\u3092\u6e80\u305f\u3057\u305f\u4ef6\u6570\u3092\u518d\u8a08\u7b97\u3059\u308b\u3002\u6839\u62e0\u4e0d\u8db3\u306f\u81ea\u52d5\u7684\u306b\u5408\u683c\u3078\u5909\u3048\u306a\u3044\u3002", "kind": "explorer", "title": "\u5f62\u5f0f\u3092\u76f4\u305b\u3070\u4ed5\u4e8b\u306f\u5b8c\u4e86\u3059\u308b\u304b"}</script>
-<script type="application/json" data-results>{"default": 0, "frames": [{"bars": [{"label": "\u4fee\u5fa9\u524d\uff1a\u5408\u683c\u6210\u679c\u7269", "value": 24}, {"label": "\u4fee\u5fa9\u5f8c\uff1a\u5408\u683c\u6210\u679c\u7269", "value": 24}], "lines": [], "note": "\u4fee\u5fa9\u306a\u3057\u3002\u5f62\u5f0f\u30fb\u6839\u62e0\u30fb\u4fdd\u5b58\u306e\u5168\u6761\u4ef6\u3092\u6e80\u305f\u3057\u305f\u6210\u679c\u7269\u3060\u3051\u3092\u6570\u3048\u308b\u3002", "value": 0}, {"bars": [{"label": "\u4fee\u5fa9\u524d\uff1a\u5408\u683c\u6210\u679c\u7269", "value": 24}, {"label": "\u4fee\u5fa9\u5f8c\uff1a\u5408\u683c\u6210\u679c\u7269", "value": 36}], "lines": [], "note": "\u5f62\u5f0f\u3092\u4fee\u5fa9\u3002\u5185\u5bb9\u306e\u6839\u62e0\u4e0d\u8db3\u3084\u672a\u4fdd\u5b58\u306f\u6b8b\u308b\u3002", "value": 1}, {"bars": [{"label": "\u4fee\u5fa9\u524d\uff1a\u5408\u683c\u6210\u679c\u7269", "value": 24}, {"label": "\u4fee\u5fa9\u5f8c\uff1a\u5408\u683c\u6210\u679c\u7269", "value": 48}], "lines": [], "note": "\u5f62\u5f0f\u3068\u4fdd\u5b58\u3092\u4fee\u5fa9\u3002\u6839\u62e0\u4e0d\u8db3\u306e12\u4ef6\u306f\u4e0d\u5408\u683c\u306e\u307e\u307e\u3002\u691c\u67fb\u3092\u901a\u3059\u64cd\u4f5c\u3068\u3001\u6b63\u3057\u3044\u4ed5\u4e8b\u3092\u3059\u308b\u3053\u3068\u306f\u5225\u3002", "value": 2}], "label": "\u4fee\u5fa9\u7bc4\u56f2\uff1a0\u306a\u3057\uff0f1\u5f62\u5f0f\uff0f2\u5f62\u5f0f\u3068\u4fdd\u5b58", "metric": "\u5408\u683c\u6210\u679c\u7269\u6570", "unit": ""}</script>        <div data-mount></div>
-        <div data-fallback>
-          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
-<p>修復範囲：0なし／1形式／2形式と保存：0</p><ul><li>修復前：合格成果物：24</li><li>修復後：合格成果物：24</li></ul><p>修復なし。形式・根拠・保存の全条件を満たした成果物だけを数える。</p>        </div>
-        <p class="figure-source">数値の出所：このLabの results.json。論文の測定値ではありません。 </p>
-      </section>
-      <section id="executable_understanding" class="note-section">
+<figure class="teaching teaching--chart" id="figure-harness-scores" aria-labelledby="title-harness-scores">
+  <div class="figure-heading"><span class="eyebrow">CHART</span><span class="figure-badge">論文の報告値</span></div>
+  <h3 id="title-harness-scores">6構成の総合点：同じタスクとモデル群で比較</h3>
+  <p class="chart-metric">点（100点換算） · 共通尺度 0–100</p><div class="bar-chart"><div class="bar-row"><div class="bar-label"><span>OpenClaw</span><strong>52.4 点（100点換算）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 52.4%"></div></div></div><div class="bar-row"><div class="bar-label"><span>NanoBot</span><strong>76.2 点（100点換算）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 76.2%"></div></div></div><div class="bar-row"><div class="bar-label"><span>Hermes</span><strong>71.2 点（100点換算）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 71.2%"></div></div></div><div class="bar-row"><div class="bar-label"><span>ZeroClaw</span><strong>61.4 点（100点換算）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 61.4%"></div></div></div><div class="bar-row"><div class="bar-label"><span>NullClaw</span><strong>64.4 点（100点換算）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 64.4%"></div></div></div><div class="bar-row"><div class="bar-label"><span>Moltis</span><strong>68.8 点（100点換算）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 68.8%"></div></div></div></div>
+  <figcaption>著者の報告値。106タスク・8モデルの平均。Codexの別枠評価は含めない。信頼区間はこの表に記載されていない。 <a href="https://arxiv.org/html/2605.27922">出典：表2 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
         <h2>実行可能な理解</h2>
 <div class="prose"><p>60件の人工成果物に形式不備・根拠不足・未保存を割り当てる。形式と保存を順に修復し、全条件を満たした件数を再計算する。根拠不足は自動的に合格へ変えない。</p>
 <p>実行：<code>uv run papers/harness-bench/run.py</code>。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を <code>results.json</code> へ保存する。</p></div><div class="downloads"><a href="../downloads/harness-bench/run.py" download>実行コード</a><a href="../downloads/_toy_common.py" download>計算本体</a><a href="../downloads/harness-bench/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/harness-bench">GitHubで開く ↗</a></div><p class="source-note">再実行はリポジトリの配置を使ってください。上の2ファイルだけを同じ階層へ置く方式には対応していません。</p>      </section>
@@ -148,7 +140,7 @@
       }
     ]
   }
-}</code></pre></details><p>図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。</p></div>      </section>
+}</code></pre></details><p>初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。</p></div>      </section>
       <section id="what_we_verified" class="note-section">
         <h2>検証できたこと</h2>
 <div class="prose"><p><strong>メカニズム：PARTIAL（部分的）</strong>。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。</p>
@@ -175,11 +167,11 @@
 <td><a href="https://arxiv.org/html/2605.27922">§3.4 / §4.1 / 表2 / §4.4</a></td>
 </tr>
 <tr>
-<td>処理図</td>
+<td>手法の図と数式</td>
 <td>上記の仕組みを説明用に簡略化。公式実装ではない</td>
 </tr>
 <tr>
-<td>条件探索</td>
+<td>小実験</td>
 <td><code>run.py</code> → <code>papers/_toy_common.py</code> → <code>results.json</code></td>
 </tr>
 <tr>
@@ -188,7 +180,7 @@
 </tr>
 </tbody>
 </table></div>      </section>
-<section class="figures"><details><summary>参考用の静止図を開く</summary><div class="figure-grid"><figure><img src="../figures/harness-bench/figures/unit.svg" alt="参考図 1：処理の全体像" loading="lazy"><figcaption>論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。</figcaption></figure></div></details></section>    <aside class="end-note"><p>次に確かめたいこと</p><strong>仕事が終わらない原因は、推論と実行のどちらにあるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>仕事が終わらない原因は、推論と実行のどちらにあるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
     </article>
   </div>
 </main>

@@ -69,6 +69,7 @@ STANDARD_SECTIONS: list[tuple[str, str]] = [
     ("overview", "概要"),
     ("problem", "問題設定"),
     ("core_idea", "核心"),
+    ("method", "モデル / 手法"),
     ("why_it_might_work", "なぜ効きそうか"),
     ("evidence", "根拠"),
     ("executable_understanding", "実行可能な理解"),
@@ -149,6 +150,7 @@ class Lab:
     question: str = ""
     source_review: dict[str, str] = field(default_factory=dict)
     interactives: list[dict[str, Any]] = field(default_factory=list)
+    teaching_figures: list[dict[str, Any]] = field(default_factory=list)
     summary: str = ""
     example: bool = False
     sections: dict[str, str] = field(default_factory=dict)
@@ -342,6 +344,7 @@ def lab_from_dict(raw: dict[str, Any], paper_dir: Path) -> Lab:
         question=str(raw.get("question", "")),
         source_review=raw.get("source_review") or {},
         interactives=_parse_interactives(raw.get("interactives"), results, paper_dir),
+        teaching_figures=_parse_teaching_figures(raw.get("teaching_figures"), paper_dir),
         example=example,
         sections=sections,
         core_idea=core_idea,
@@ -535,8 +538,6 @@ def _parse_interactives(value: Any, results: Any, paper_dir: Path) -> list[dict[
         return []
     if not isinstance(value, list):
         raise LabError(f"{paper_dir}: interactives must be a list")
-    if len(value) != 2 or [s.get("kind") for s in value if isinstance(s, dict)] != ["flow", "explorer"]:
-        raise LabError(f"{paper_dir}: interactives must contain flow then explorer")
     for spec in value:
         if not isinstance(spec, dict) or spec.get("kind") not in ("flow", "explorer"):
             raise LabError(f"{paper_dir}: unknown interactive kind")
@@ -570,4 +571,56 @@ def _parse_interactives(value: Any, results: Any, paper_dir: Path) -> list[dict[
                 for line in f.get("lines", []):
                     if not isinstance(line.get("label"), str) or not line.get("values") or not all(number(v) for v in line["values"]):
                         raise LabError(f"{paper_dir}: invalid explorer line")
+    return value
+
+
+def _parse_teaching_figures(value: Any, paper_dir: Path) -> list[dict[str, Any]]:
+    """Paper-specific, server-rendered teaching modules; no mandatory pair."""
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise LabError(f"{paper_dir}: teaching_figures must be a list")
+    ids = set()
+    for f in value:
+        if not isinstance(f, dict) or f.get("kind") not in {"architecture", "equations", "matrix", "logic", "timeline", "chart"}:
+            raise LabError(f"{paper_dir}: unknown teaching figure kind")
+        for key in ("id", "title", "caption", "source", "locator", "rationale"):
+            if not isinstance(f.get(key), str) or not f[key].strip():
+                raise LabError(f"{paper_dir}: teaching figure needs {key}")
+        if not re.fullmatch(r"[a-z][a-z0-9-]*", f["id"]) or f["id"] in ids:
+            raise LabError(f"{paper_dir}: invalid or duplicate teaching figure id")
+        ids.add(f["id"])
+        if f.get("after") not in dict(STANDARD_SECTIONS):
+            raise LabError(f"{paper_dir}: unknown figure placement")
+        kind = f["kind"]
+        if kind in {"architecture", "logic", "timeline"}:
+            rows = f.get("rows")
+            if not isinstance(rows, list) or not rows:
+                raise LabError(f"{paper_dir}: figure needs rows")
+            for row in rows:
+                if not isinstance(row, dict) or not isinstance(row.get("label"), str) or not row.get("nodes"):
+                    raise LabError(f"{paper_dir}: invalid diagram row")
+                for node in row["nodes"]:
+                    if not isinstance(node, dict) or not all(isinstance(node.get(k), str) and node[k] for k in ("title", "text")):
+                        raise LabError(f"{paper_dir}: invalid diagram node")
+        elif kind == "equations":
+            if not f.get("steps") or not all(isinstance(x, dict) and all(isinstance(x.get(k), str) and x[k] for k in ("name", "formula", "explanation")) for x in f["steps"]):
+                raise LabError(f"{paper_dir}: invalid equation steps")
+        elif kind == "matrix":
+            columns = f.get("columns")
+            if not isinstance(columns, list) or not columns or not all(isinstance(c, str) for c in columns):
+                raise LabError(f"{paper_dir}: invalid matrix columns")
+            if not f.get("rows") or not all(isinstance(r, dict) and isinstance(r.get("label"), str) and isinstance(r.get("cells"), list) and len(r["cells"]) == len(columns) and all(isinstance(c, str) for c in r["cells"]) for r in f["rows"]):
+                raise LabError(f"{paper_dir}: invalid matrix rows")
+        elif kind == "chart":
+            import math
+            maximum = f.get("maximum")
+            if isinstance(maximum, bool) or not isinstance(maximum, (int, float)) or not math.isfinite(maximum) or maximum <= 0:
+                raise LabError(f"{paper_dir}: invalid chart maximum")
+            if not isinstance(f.get("unit"), str) or not f.get("bars"):
+                raise LabError(f"{paper_dir}: chart needs unit and bars")
+            for bar in f["bars"]:
+                v = bar.get("value")
+                if not isinstance(bar.get("label"), str) or isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or not 0 <= v <= maximum:
+                    raise LabError(f"{paper_dir}: invalid chart bar")
     return value

@@ -30,10 +30,7 @@ related_threads:
 - causal-placement-and-assortment
 status: published
 summary: 部門ごとの面積に対する需要反応を推定し、制約の下で売場を配分する。Whole Foodsの報告値は、シミュレーションで見積もった改善余地を表す。
-figures:
-- path: figures/pipeline.svg
-  title: 処理の全体像
-  caption: 論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。
+figures: []
 core_idea:
   author_claim: '立地で変わる面積弾力性、購買が将来の店舗売上へ与える効果、業務制約の3つを組み合わせる。面積モデルは階層的な変数選択後に回帰をやり直す。長期効果には傾向スコアによる重み付けなどを挙げ、短期の価値と重みを付けて目的関数へ入れる。
 
@@ -41,10 +38,7 @@ core_idea:
     [一次資料：PDF §2–4 / 式(2)・(6)](https://cdn.amazon.science/32/d1/6c82b85045a9bc0927e744698688/scipub-approval152129-41212433-a-framework-to-optimize-shelf-space-allocations-for-physical-stores.pdf)'
   research_bot_interpretation: 面積モデルの正則化の偏りを減らす操作と、面積配分の交絡を除く操作は同じではない。また長期効果の処置は商品群からの購買であって、棚の拡張そのものではない。購入する人の違いを十分に調整できたかが重要になる。
 sections:
-  overview: '部門ごとの面積に対する需要反応を推定し、制約の下で売場を配分する。Whole Foodsの報告値は、シミュレーションで見積もった改善余地を表す。
-
-
-    このLabでは「限られた売場を、立地と長期の価値に合わせて配分できるか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。'
+  overview: 部門ごとの面積に対する需要反応を推定し、制約の下で売場を配分する。Whole Foodsの報告値は、シミュレーションで見積もった改善余地を表す。
   problem: '同じ部門でも、商圏や店舗の条件によって面積を増やす価値は違う。ほかの部門の面積も販売に影響するため、人気順に広げるだけでは全店の目的値を最大化できない。
 
 
@@ -58,7 +52,7 @@ sections:
 
 
     実行：`uv run papers/whole-foods-shelf/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json` へ保存する。'
-  results: 図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。
+  results: 初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。
   what_we_verified: '**メカニズム：PARTIAL（部分的）**。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。
 
 
@@ -72,40 +66,73 @@ sections:
 
     | --- | --- |
 
-    | 原論文 | [PDF §2–4 / 式(2)・(6)](https://cdn.amazon.science/32/d1/6c82b85045a9bc0927e744698688/scipub-approval152129-41212433-a-framework-to-optimize-shelf-space-allocations-for-physical-stores.pdf) |
+    | 原論文 | [PDF §2–4 / 式(2)・(6)](https://cdn.amazon.science/32/d1/6c82b85045a9bc0927e744698688/scipub-approval152129-41212433-a-framework-to-optimize-shelf-space-allocations-for-physical-stores.pdf)
+    |
 
-    | 処理図 | 上記の仕組みを説明用に簡略化。公式実装ではない |
+    | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |
 
-    | 条件探索 | `run.py` → `papers/_toy_common.py` → `results.json` |
+    | 小実験 | `run.py` → `papers/_toy_common.py` → `results.json` |
 
     | 公式コード | このLabでは公式コードとの行単位の照合はしていない。 |'
+  method: method.md
 question: 限られた売場を、立地と長期の価値に合わせて配分できるか
 interactives:
-- kind: flow
-  title: 処理と設計の違いを追う
-  caption: 段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。
-  source: https://cdn.amazon.science/32/d1/6c82b85045a9bc0927e744698688/scipub-approval152129-41212433-a-framework-to-optimize-shelf-space-allocations-for-physical-stores.pdf
-  stages:
-  - title: 需要反応を推定する
-    baseline: 全店で同じ面積反応
-    proposed: 立地で変わる面積反応
-    detail: 面積を1%増やしたとき需要が何%動くかを表す弾力性を推定する。
-  - title: 長期の価値を考える
-    baseline: 当期の売上だけ
-    proposed: 購買後の店舗全体への効果
-    detail: 購買の効果推定と棚拡張の効果は別。本文は詳細な実証を省略している。
-  - title: 制約を加える
-    baseline: 売上の高い部門へ寄せる
-    proposed: 総面積と部門上下限を設定
-    detail: 改装の変更幅や部門別ルールを入れる。
-  - title: 配分を選ぶ
-    baseline: 既存配分を維持
-    proposed: 目的関数を制約内で最大化
-    detail: 得られるのはモデル上の推奨。現場での増収を保証しない。
 - kind: explorer
   title: 弾力性で売場の配分はどう変わるか
   caption: 総面積100を2部門へ分け、各部門10以上の制約の下で目的値を全探索する。面積への反応を変えると、最適な配分がどう動くかを見る。
 source_review:
   checked: '2026-09-07'
   url: https://cdn.amazon.science/32/d1/6c82b85045a9bc0927e744698688/scipub-approval152129-41212433-a-framework-to-optimize-shelf-space-allocations-for-physical-stores.pdf
-  scope: Amazon Science公開PDF・全4ページ。因果効果の詳細結果と非公開データは確認できない。
+  scope: Amazon Science公開PDF全4ページを再確認。因果効果の詳細結果・実売上の絶対値・データは非公開。
+teaching_figures:
+- kind: equations
+  id: elasticity
+  title: 立地が変わると面積の価値も変わる
+  after: method
+  locator: PDF 式(2)–(3)・§3.1
+  rationale: 面積反応を具体的なモデルで説明する。
+  caption: 原式を弾力性eにまとめた等価な表記。xは地理属性、sは部門面積。係数の数値は非公開。
+  steps:
+  - name: 部門iの需要
+    formula: log dᵢ(s,x) = log αᵢ + eᵢ(x) log sᵢ + Σⱼ≠ᵢ eᵢⱼ(x) log sⱼ + τᵀx
+    explanation: eᵢは自部門、eᵢⱼは他部門の面積への反応。補完・代替の関係を係数で表す。
+  - name: 地理属性で弾力性を変える
+    formula: eᵢ(x) = βᵢ + Σₗ γₗ xₗ
+    explanation: 面積を1%変えたときの需要の変化率を、商圏などの条件に応じて変える。
+  source: https://cdn.amazon.science/32/d1/6c82b85045a9bc0927e744698688/scipub-approval152129-41212433-a-framework-to-optimize-shelf-space-allocations-for-physical-stores.pdf
+- kind: equations
+  id: allocation
+  title: 短期・長期の価値から費用を引く
+  after: method
+  locator: PDF 式(6)・§3.3
+  rationale: 最適化対象と制約を具体化する。
+  caption: hᵢ,Tは購買の長期効果、pᵢは平均価格、cᵢ,kは費用。原式を括弧で整理した。
+  steps:
+  - name: 目的関数
+    formula: maxₛ Σᵢ { dᵢ(s,x)[ωpᵢ + (1−ω)hᵢ,T(x)] − Σₖ cᵢ,k(s,x) }
+    explanation: ωを0〜1で動かし短期と長期の価値を調整する。長期効果の推定誤差も配分へ伝わる。
+  - name: 面積の制約
+    formula: Σᵢ sᵢ ≤ S,    lᵢ ≤ sᵢ ≤ uᵢ
+    explanation: Sは総面積、lᵢとuᵢは部門別の下限・上限。実際には費用上限や商品政策の規則も加わる。
+  source: https://cdn.amazon.science/32/d1/6c82b85045a9bc0927e744698688/scipub-approval152129-41212433-a-framework-to-optimize-shelf-space-allocations-for-physical-stores.pdf
+- kind: logic
+  id: evidence-boundary
+  title: 推定の3段階で、未確認の箇所が違う
+  after: method
+  locator: PDF §3–4
+  rationale: シミュレーションを実店舗の因果効果へ読み替えない。
+  caption: 数値を創作せず、公開資料で追える範囲を示す。
+  rows:
+  - label: 需要反応
+    nodes:
+    - title: DHGL
+      text: 面積と地理属性の相互作用を選択・再推定。これは正則化の偏りへの対処。
+  - label: 長期効果
+    nodes:
+    - title: 購買を処置とする因果推定
+      text: 詳細な実証結果は本文にない。交絡の調整を独立確認できない。
+  - label: 推奨配分
+    nodes:
+    - title: 制約内でのシミュレーション
+      text: 改装と新店を別条件で評価。実店舗の増収は未検証。
+  source: https://cdn.amazon.science/32/d1/6c82b85045a9bc0927e744698688/scipub-approval152129-41212433-a-framework-to-optimize-shelf-space-allocations-for-physical-stores.pdf

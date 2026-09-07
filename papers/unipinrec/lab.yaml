@@ -43,10 +43,7 @@ related_threads:
 - generative-rec-vs-retrieval
 status: published
 summary: 履歴の表現を共有し、候補生成は近傍検索、順位付けは候補との照合に分ける。統合の狙いは、段を残しながら重複計算を減らすこと。
-figures:
-- path: figures/cascade.svg
-  title: 処理の全体像
-  caption: 論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。
+figures: []
 core_idea:
   author_claim: '商品と行動を特徴の方向に結合し、予測対象の行動を隠すMasked Action Modeling（MAM）を導入する。商品と行動を交互の位置に置かないため、系列を倍の長さにしない。候補位置の行動は常に隠し、候補同士は互いに参照させない。候補に依存しない履歴表現を使い、検索段で作ったキー・バリュー（KV）を順位付けでも再利用する。
 
@@ -54,10 +51,7 @@ core_idea:
     [一次資料：§3.1 / §3.3 / §4.2 / §5](https://arxiv.org/html/2606.00422)'
   research_bot_interpretation: 「生成推薦」という題名でも、候補生成はANNの内積検索である。モデル名に加えて、何を一度だけ計算し、何を候補ごとに計算するかを見たい。共有する履歴やモデル版が一致しなければ、キャッシュを再利用してはいけない。
 sections:
-  overview: '履歴の表現を共有し、候補生成は近傍検索、順位付けは候補との照合に分ける。統合の狙いは、段を残しながら重複計算を減らすこと。
-
-
-    このLabでは「候補生成と順位付けで、同じ履歴を二度計算せずに済むか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。'
+  overview: 履歴の表現を共有し、候補生成は近傍検索、順位付けは候補との照合に分ける。統合の狙いは、段を残しながら重複計算を減らすこと。
   problem: '候補生成と順位付けを別モデルにすると、同じ利用者の行動履歴を二度読み直す。モデルの形だけをそろえても、入力形式や学習例、配信プロセスが違えば計算は共有できない。
 
 
@@ -71,7 +65,7 @@ sections:
 
 
     実行：`uv run papers/unipinrec/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json` へ保存する。'
-  results: 図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。
+  results: 初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。
   what_we_verified: '**メカニズム：PARTIAL（部分的）**。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。
 
 
@@ -87,38 +81,105 @@ sections:
 
     | 原論文 | [§3.1 / §3.3 / §4.2 / §5](https://arxiv.org/html/2606.00422) |
 
-    | 処理図 | 上記の仕組みを説明用に簡略化。公式実装ではない |
+    | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |
 
-    | 条件探索 | `run.py` → `papers/_toy_common.py` → `results.json` |
+    | 小実験 | `run.py` → `papers/_toy_common.py` → `results.json` |
 
     | 公式コード | このLabでは公式コードとの行単位の照合はしていない。 |'
+  method: method.md
 question: 候補生成と順位付けで、同じ履歴を二度計算せずに済むか
 interactives:
-- kind: flow
-  title: 処理と設計の違いを追う
-  caption: 段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。
-  source: https://arxiv.org/html/2606.00422
-  stages:
-  - title: 履歴を入力する
-    baseline: 検索と順位付けで別形式
-    proposed: 商品と行動を同じ系列へ
-    detail: MAMは行動を特徴方向に結合する。未知の候補行動を入力して正解を漏らさない。
-  - title: 履歴を計算する
-    baseline: 段ごとに履歴を計算
-    proposed: 共有バックボーンで計算
-    detail: 候補に依存しない履歴のKVを保存する。共有範囲をここに限定する。
-  - title: 候補を集める
-    baseline: 検索専用モデルでANN
-    proposed: 共有表現からANN
-    detail: 実在する商品ベクトルを索引検索する。既存の候補源とも組み合わせられる。
-  - title: 候補を採点する
-    baseline: 履歴をもう一度計算
-    proposed: 保存したKVで候補を照合
-    detail: 候補は過去の履歴を参照するが、他候補を参照しない。キャッシュの一致が前提。
 - kind: explorer
   title: 履歴が長いほど共有は効くか
   caption: 80リクエストで履歴計算を1回共有する場合と2回行う場合を数える。候補数を固定して履歴長を変え、重複の割合がどう変わるかを見る。
 source_review:
   checked: '2026-09-07'
   url: https://arxiv.org/html/2606.00422
-  scope: arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。
+  scope: 一次資料の方法・数式・実験条件を再確認。図は説明用の再構成。著者の性能・運用結果は独立再現していない。
+teaching_figures:
+- kind: matrix
+  id: attention-mask
+  title: 候補同士を見せないattention mask
+  after: method
+  locator: §3.1.1・図2
+  rationale: キャッシュ再利用の条件をマスクそのもので示す。
+  caption: 3履歴・2候補へ縮めた説明図。行がQuery、列がKey。候補の自己参照は許し、別候補への参照を遮断する。
+  columns:
+  - 履歴1
+  - 履歴2
+  - 履歴3
+  - 候補A
+  - 候補B
+  rows:
+  - label: 履歴1
+    cells:
+    - 参照
+    - 遮断
+    - 遮断
+    - 遮断
+    - 遮断
+  - label: 履歴2
+    cells:
+    - 参照
+    - 参照
+    - 遮断
+    - 遮断
+    - 遮断
+  - label: 履歴3
+    cells:
+    - 参照
+    - 参照
+    - 参照
+    - 遮断
+    - 遮断
+  - label: 候補A
+    cells:
+    - 参照
+    - 参照
+    - 参照
+    - 参照
+    - 遮断
+  - label: 候補B
+    cells:
+    - 参照
+    - 参照
+    - 参照
+    - 遮断
+    - 参照
+  corner: Query ↓ / Key →
+  source: https://arxiv.org/html/2606.00422
+- kind: architecture
+  id: cache
+  title: 履歴KVを1回作り、検索と順位付けへ渡す
+  after: method
+  locator: 図2・§3.3
+  rationale: 重み共有と実際の計算共有を分ける。
+  caption: 段間で同じモデル・入力に対応するKVを利用する概念図。転送や失効処理の時間は小実験に含まない。
+  rows:
+  - label: 入力 → 共有Transformer
+    nodes:
+    - title: 商品特徴 ＋ 行動 / [MASK]
+      text: 系列長を倍にせず、特徴方向に結合する。
+  - label: 履歴を1回計算 → 2つの用途
+    nodes:
+    - title: 候補生成
+      text: 次商品表現 → ANN → 候補ID
+    - title: 履歴KVキャッシュ
+      text: 順位付けへ引き渡す。履歴の自己attentionを再計算しない。
+  - label: 候補 ＋ KV → 行動別head
+    nodes:
+    - title: 順位付け
+      text: 候補のQueryから履歴を照合し、行動確率を出す。
+  source: https://arxiv.org/html/2606.00422
+- kind: equations
+  id: cost
+  title: 省くのは履歴の二重計算
+  after: method
+  locator: §3.1.1
+  rationale: 計算量と遅延を混同しないため。
+  caption: 主要attention項だけの次数。nは履歴長、kは候補数。小実験の演算カウントは実機の時間ではない。
+  steps:
+  - name: 共有後の主要項
+    formula: O(n² + nk)
+    explanation: 履歴のn²を1回、候補と履歴の照合nkを追加する。候補同士のk²項を作らない。
+  source: https://arxiv.org/html/2606.00422

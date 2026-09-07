@@ -24,10 +24,7 @@ related_threads:
 - observed-sales-vs-latent-demand
 status: published
 summary: 平常時の需要と販促の一時的な動きを分ける。変動を抑える利点はあるが、欠品損失が重い条件では総費用が悪化する。
-figures:
-- path: figures/deconv.svg
-  title: 処理の全体像
-  caption: 論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。
+figures: []
 core_idea:
   author_claim: '基礎需要の滑らかさと一時変化の疎らさを制約にし、観測系列を説明する分解を求める。販促の応答を表す作用素はデータから推定し、商品間で情報を部分的に共有する。未来は基礎需要の外挿と既知の販促効果を組み合わせる。
 
@@ -35,10 +32,7 @@ core_idea:
     [一次資料：§3.1–3.3 / §4 / Appendix R.6](https://arxiv.org/html/2607.25664)'
   research_bot_interpretation: 低い変動率だけでは良い発注とは判断できない。急増を抑えた結果の欠品が高くつくなら、予測が安定して見えても損失は増える。費用の内訳まで示す点に読む価値がある。
 sections:
-  overview: '平常時の需要と販促の一時的な動きを分ける。変動を抑える利点はあるが、欠品損失が重い条件では総費用が悪化する。
-
-
-    このLabでは「予測を滑らかにすると、在庫費用は本当に下がるか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。'
+  overview: 平常時の需要と販促の一時的な動きを分ける。変動を抑える利点はあるが、欠品損失が重い条件では総費用が悪化する。
   problem: '販促の急増を新しい平常水準だと思うと、販促が終わっても高い予測が残る。一方、全体を滑らかにするだけでは、本当に必要な販促在庫も削ってしまう。
 
 
@@ -52,7 +46,7 @@ sections:
 
 
     実行：`uv run papers/contextual-deconvolution/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json` へ保存する。'
-  results: 図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。
+  results: 初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。
   what_we_verified: '**メカニズム：PARTIAL（部分的）**。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。
 
 
@@ -68,38 +62,80 @@ sections:
 
     | 原論文 | [§3.1–3.3 / §4 / Appendix R.6](https://arxiv.org/html/2607.25664) |
 
-    | 処理図 | 上記の仕組みを説明用に簡略化。公式実装ではない |
+    | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |
 
-    | 条件探索 | `run.py` → `papers/_toy_common.py` → `results.json` |
+    | 小実験 | `run.py` → `papers/_toy_common.py` → `results.json` |
 
     | 公式コード | このLabでは公式コードとの行単位の照合はしていない。 |'
+  method: method.md
 question: 予測を滑らかにすると、在庫費用は本当に下がるか
 interactives:
-- kind: flow
-  title: 処理と設計の違いを追う
-  caption: 段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。
-  source: https://arxiv.org/html/2607.25664
-  stages:
-  - title: 需要を観測する
-    baseline: 変動をまとめて学習
-    proposed: 平常と一時変化を分ける
-    detail: 分解は観測値だけでは一意に決まらず、滑らかさなどの仮定が必要。
-  - title: 販促を表現する
-    baseline: 当日のフラグだけ
-    proposed: 持続時間を含む応答
-    detail: 効果が即日で終わる商品では、作用素はほぼ恒等写像へ戻る。
-  - title: 未来を組み立てる
-    baseline: 一つの系列を外挿
-    proposed: 基礎需要と既知の販促を合成
-    detail: カレンダーが誤れば一時変化の予測も誤る。
-  - title: 在庫を評価する
-    baseline: 誤差や変動率を見る
-    proposed: 余剰と不足の費用を見る
-    detail: 安定化で減る保管費用と、増える欠品費用を同時に計算する。
 - kind: explorer
   title: 保管と欠品の費用比を動かす
   caption: 8期の需要に対して、変動を追う在庫と一定の在庫を置く。余剰と不足を実際に数え、費用比を動かして総費用の順位が反転するか確かめる。
 source_review:
   checked: '2026-09-07'
   url: https://arxiv.org/html/2607.25664
-  scope: arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。
+  scope: 一次資料の方法・数式・実験条件を再確認。図は説明用の再構成。著者の性能・運用結果は独立再現していない。
+teaching_figures:
+- kind: equations
+  id: inverse
+  title: 観測値を説明するだけでは分解は決まらない
+  after: method
+  locator: 式(1)–(3)
+  rationale: 逆問題の目的関数を項別に説明する。
+  caption: bは観測系列、xは平滑なベース、zは疎なショック。記号を短くした。
+  steps:
+  - name: 観測式
+    formula: b = x + Az + ε
+    explanation: 1回のショックzがAを通って複数日に影響する。εは観測雑音。
+  - name: 固定したAで解く
+    formula: minₓ,𝓏  ‖b − x − Az‖₂² + λsmooth ‖Lx‖₂² + λsparse ‖z‖₁
+    explanation: 第1項は観測との一致、第2項はベースの滑らかさ、第3項は少数のショックを好む制約。λによって分解は変わる。
+  - name: イベント発生日から伝播
+    formula: A = Σₘ Σₖ φₘ(k) Sₖ diag(fₘ)
+    explanation: fₘはイベント種別mのカレンダー、Sₖはk日ずらす行列。受け手の日でなく発生日の文脈が効く。
+  source: https://arxiv.org/html/2607.25664
+- kind: matrix
+  id: impulse
+  title: 1日のイベントが後日へ伝わる
+  after: method
+  locator: 式(3)・表1
+  rationale: 作用素を小さな行列として可視化する。
+  caption: 説明用の1イベント。数値は測定値ではない。φ(k)はk日後の反応で、実際は複数イベントを重ねる。
+  columns:
+  - 発生日にz=1
+  - イベントなし
+  rows:
+  - label: 当日
+    cells:
+    - φ(0)
+    - '0'
+  - label: 翌日
+    cells:
+    - φ(1)
+    - '0'
+  - label: 2日後
+    cells:
+    - φ(2)
+    - '0'
+  - label: 3日後
+    cells:
+    - φ(3)
+    - '0'
+  corner: 影響が到着する日
+  source: https://arxiv.org/html/2607.25664
+- kind: equations
+  id: kernel
+  title: 負の裾はモデルの仮定として読む
+  after: method
+  locator: 表1・§3.3
+  rationale: 推定事実とkernelの表現力を区別する。
+  caption: M5で販促後の負の反応を確認した図ではない。
+  steps:
+  - name: Difference of Exponentials
+    formula: 'φ(k) = α exp(−k/τ₁) − β exp(−k/τ₂)
+
+      α > β > 0,  τ₁ < τ₂'
+    explanation: 最初は正、遅い負の成分が裾に残る。純粋な指数減衰との比較も論文は報告している。
+  source: https://arxiv.org/html/2607.25664

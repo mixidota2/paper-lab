@@ -31,10 +31,7 @@ related_threads:
 - tabular-vs-neural-forecasting
 status: published
 summary: ApolloPFNは時間の順序と外生変数を扱う事前学習モデル。予測の差を読むには、将来情報がいつ利用可能だったかを押さえる必要がある。
-figures:
-- path: figures/prior.svg
-  title: 処理の全体像
-  caption: 論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。
+figures: []
 core_idea:
   author_claim: 'ApolloPFNは時間依存の信号を根に持つ合成グラフで、目的変数と説明変数を生成する。さらに特徴間の照合と時間方向の照合を分け、時間順序を表現する仕組みを持たせる。表データ向けPFNの枠組みを、順序に意味がある時系列へ合わせる提案。
 
@@ -42,10 +39,7 @@ core_idea:
     [一次資料：§3.2 / §3.3 / §4.2・表1](https://arxiv.org/html/2603.15802)'
   research_bot_interpretation: 実務上の比較相手は、同じ販促予定を渡した木モデルや時系列モデルになる。外生変数を使えない相手に勝っても、モデル構造の優位と情報量の優位は切り分けられない。
 sections:
-  overview: 'ApolloPFNは時間の順序と外生変数を扱う事前学習モデル。予測の差を読むには、将来情報がいつ利用可能だったかを押さえる必要がある。
-
-
-    このLabでは「将来の価格や販促を、再学習せず予測へ使えるか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。'
+  overview: ApolloPFNは時間の順序と外生変数を扱う事前学習モデル。予測の差を読むには、将来情報がいつ利用可能だったかを押さえる必要がある。
   problem: '来週の販促は、過去の販売だけからは分からない。価格や販促予定を入力できるモデルでも、時間の前後関係や最近の変化を捉えにくければ、販促前後の動きを取り違える。
 
 
@@ -59,7 +53,7 @@ sections:
 
 
     実行：`uv run papers/apollopfn/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json` へ保存する。'
-  results: 図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。
+  results: 初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。
   what_we_verified: '**メカニズム：PARTIAL（部分的）**。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。
 
 
@@ -75,38 +69,82 @@ sections:
 
     | 原論文 | [§3.2 / §3.3 / §4.2・表1](https://arxiv.org/html/2603.15802) |
 
-    | 処理図 | 上記の仕組みを説明用に簡略化。公式実装ではない |
+    | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |
 
-    | 条件探索 | `run.py` → `papers/_toy_common.py` → `results.json` |
+    | 小実験 | `run.py` → `papers/_toy_common.py` → `results.json` |
 
     | 公式コード | このLabでは公式コードとの行単位の照合はしていない。 |'
+  method: method.md
 question: 将来の価格や販促を、再学習せず予測へ使えるか
-interactives:
-- kind: flow
-  title: 処理と設計の違いを追う
-  caption: 段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。
-  source: https://arxiv.org/html/2603.15802
-  stages:
-  - title: 課題を準備する
-    baseline: 独立した表の人工課題
-    proposed: 時間依存の人工課題
-    detail: 事前学習段階。時間の根信号から目的変数と説明変数を作る。
-  - title: 事前学習する
-    baseline: 表の関係を学ぶ
-    proposed: 特徴と時間を分けて学ぶ
-    detail: 時間方向の構造を学習に含める。ここは利用時とは別の計算。
-  - title: 予測時に入力する
-    baseline: 過去の販売だけ
-    proposed: 過去と既知の将来変数
-    detail: 将来の売上は渡さない。販促予定は予測時点で分かるものに限る。
-  - title: 未来を予測する
-    baseline: 過去の形を外挿
-    proposed: 文脈から条件付き予測
-    detail: 対象データで重みを更新しない。予測の妥当性は予定の正確さにも依存する。
-- kind: explorer
-  title: 販促予定がずれると予測はどうなるか
-  caption: 季節性と販促の上乗せから16期の人工需要を作る。販促予定の時期をずらし、情報が正しい場合と誤っている場合の平均絶対誤差を比べる。
+interactives: []
 source_review:
   checked: '2026-09-07'
   url: https://arxiv.org/html/2603.15802
-  scope: arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。
+  scope: 一次資料の方法・数式・実験条件を再確認。図は説明用の再構成。著者の性能・運用結果は独立再現していない。
+teaching_figures:
+- kind: architecture
+  id: prior-and-model
+  title: 合成課題で学び、利用時は履歴を文脈にする
+  after: method
+  locator: 図3・§3.2–3.3
+  rationale: 事前学習と利用時を分離してPFNの意味を教える。
+  caption: 合成SCMと予測器は別の構成要素。矢印はデータまたは表現の受け渡し。
+  rows:
+  - label: 事前学習データ
+    nodes:
+    - title: 時間信号 → SRNGNのSCM
+      text: sin/cosの根 → ランダムMLPで伝播 → xとyを選択
+  - label: 各層：まず特徴を照合
+    nodes:
+    - title: 特徴方向 AttnFeat
+      text: 同じ時刻の外生変数と目的変数の関係を照合。
+  - label: 次に時間を照合 ↓
+    nodes:
+    - title: 時間方向 AttnSamp
+      text: RoPEと絶対位置表現で時刻を扱う。
+  - label: 各層の出力 ↓
+    nodes:
+    - title: MLP ＋ 残差・LayerNorm
+      text: 特徴attention、時間attention、MLPの各段で残差を足して正規化する。
+  - label: 新しい系列での利用
+    nodes:
+    - title: 過去(x,y) ＋ 将来x → 予測分布
+      text: 将来yはマスク。対象データでの勾配更新は行わない。
+  source: https://arxiv.org/html/2603.15802
+- kind: matrix
+  id: visible-input
+  title: 未来の外生変数は見せても、正解は見せない
+  after: method
+  locator: §3.1・3.3
+  rationale: full attentionを情報漏洩と混同しないため。
+  caption: 価格・販促が予測時点で確定している例。実際の利用可能時刻の確認は別途必要。
+  columns:
+  - 過去1…T
+  - 将来T+1…T+H
+  rows:
+  - label: 目的変数y
+    cells:
+    - 観測値を入力
+    - マスクする
+  - label: 説明変数x
+    cells:
+    - 観測済みの値
+    - 予測時に既知の値
+  - label: 時間方向attention
+    cells:
+    - 全時刻の表現を参照
+    - 他の将来時刻の表現も参照
+  corner: 条件
+  source: https://arxiv.org/html/2603.15802
+- kind: equations
+  id: pfn-loss
+  title: 合成課題上の予測分布を学習する
+  after: method
+  locator: §3.1
+  rationale: zero-shotが何を省くのかを学習目的で示す。
+  caption: 論文の条件付き負の対数尤度を短い記号で表す。Dpastは過去の(x,y)、xfutureは既知の将来説明変数。
+  steps:
+  - name: 事前学習
+    formula: L(θ) = − Esynthetic [ log qθ(yfuture | xfuture, Dpast) ]
+    explanation: 合成課題を多数サンプルし、未来の正解に高い確率を付けるようにθを学ぶ。実データ利用時はθを固定する。
+  source: https://arxiv.org/html/2603.15802

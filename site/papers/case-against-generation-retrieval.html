@@ -16,17 +16,16 @@
     <h1>言語モデルの知識を使うために、商品IDまで生成する必要はあるか</h1>
     <p class="lede">言語モデルをユーザーと商品の表現作りに使い、検索はベクトル索引に任せる。重い教師の判断を、軽い検索経路へ移す設計。</p>
     <details class="bibliography"><summary>原論文：The Case Against Generation for Retrieval: Discriminative Language Models as Effective Retrievers</summary><p>Zhe Xu, Prachi Agrawal, Kavosh Asadi, Tianyi Chen, Carl Hu, Justin Johnson, Wuwei Lan, Mingfu Liang, Xi Liu, Tik On Lui, Oladipo Ositelu, Sandeep Pandey, Ankit Peshin, Feng Qi, Anil Ramakrishna, Kaushik Rangadurai, Frank Shyu, Luke Simon, Yang Yang, Chiyu Zhang</p><p>2607.25346 · 2026</p></details>
-    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2607.25346">原典を読む ↗</a><a href="https://arxiv.org/pdf/2607.25346">PDF ↗</a><a href="#interactive-1">図を操作する ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2607.25346">原典を読む ↗</a><a href="https://arxiv.org/pdf/2607.25346">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
     <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
-    <p class="source-note">一次資料の確認：2026-09-07 · arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。</p>
+    <p class="source-note">一次資料の確認：2026-09-07 · 一次資料の方法・数式・実験条件を再確認。図は説明用の再構成。著者の性能・運用結果は独立再現していない。</p>
   </header>
   <div class="paper-layout">
-    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">01 問いと仕組み</a><a href="#interactive-1">02 図で追う</a><a href="#evidence">03 論文の根拠</a><a href="#interactive-2">04 条件を変える</a><a href="#what_we_did_not_verify">05 限界と批評</a><a href="#implementation">06 実装と出典</a></nav>
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-teacher-student">学習時の教師と配信時の2塔を分ける</a><a href="#figure-distillation">教師の順位情報を生徒へ渡す</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
     <article class="paper-body">
       <section id="overview" class="note-section">
         <h2>概要</h2>
-<div class="prose"><p>言語モデルをユーザーと商品の表現作りに使い、検索はベクトル索引に任せる。重い教師の判断を、軽い検索経路へ移す設計。</p>
-<p>このLabでは「言語モデルの知識を使うために、商品IDまで生成する必要はあるか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。</p></div>      </section>
+<div class="prose"><p>言語モデルをユーザーと商品の表現作りに使い、検索はベクトル索引に任せる。重い教師の判断を、軽い検索経路へ移す設計。</p></div>      </section>
       <section id="problem" class="note-section">
         <h2>問題設定</h2>
 <div class="prose"><p>数百万件の商品から候補を選ぶ段階では、候補ごとに言語モデルを動かす費用を払えない。商品IDを順番に生成する方式には、途中の枝選択や実在商品との対応付けという別の課題もある。</p>
@@ -37,36 +36,31 @@
 <p><a href="https://arxiv.org/html/2607.25346">一次資料：§4 / §5 / §6 / §7.2</a></p></div></div>
         <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>この研究が示す選択肢は、豊かな意味理解と索引検索を組み合わせること。生成推薦全体への決着とは読まない。教師が高性能でも、その順位を生徒が完全には保持できず、索引更新の遅れも残る。</p></div></div>
       </section>
-      <section class="interactive" id="interactive-1" data-interactive="flow" aria-labelledby="figure-title-3">
-        <div class="figure-heading"><p class="eyebrow">01 / MECHANISM</p><span class="figure-badge">論文の概念図</span></div>
-        <h2 id="figure-title-3">処理と設計の違いを追う</h2>
-        <p class="figure-caption">段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。</p>
-        <script type="application/json" data-config>{"caption": "\u6bb5\u3092\u9078\u3076\u3068\u8aac\u660e\u304c\u5207\u308a\u66ff\u308f\u308b\u3002\u6bd4\u8f03\u5074\u306f\u8ad6\u70b9\u3092\u793a\u3059\u7c21\u7565\u5316\u3067\u3001\u7d71\u5236\u5b9f\u9a13\u306e\u5b9f\u88c5\u3067\u306f\u306a\u3044\u3002", "kind": "flow", "source": "https://arxiv.org/html/2607.25346", "stages": [{"baseline": "ID\u7cfb\u5217\u3092\u5b66\u3076", "detail": "\u6559\u5e2b\u306f\u4e21\u8005\u306e\u60c5\u5831\u3092\u4e00\u7dd2\u306b\u8aad\u3081\u308b\u304c\u3001\u5168\u5019\u88dc\u306b\u9069\u7528\u3059\u308b\u306b\u306f\u91cd\u3044\u3002", "proposed": "\u30e6\u30fc\u30b6\u30fc\u3068\u5546\u54c1\u3092\u6559\u5e2b\u304c\u7167\u5408", "title": "\u5b66\u7fd2\u7528\u306e\u5165\u529b"}, {"baseline": "\u6b21\u306eID\u3092\u4e88\u6e2c", "detail": "\u5019\u88dc\u96c6\u5408\u4e0a\u306e\u30b9\u30b3\u30a2\u5206\u5e03\u3092\u8fd1\u3065\u3051\u308b\u3002\u6559\u5e2b\u3068\u751f\u5f92\u306e\u8868\u73fe\u529b\u306f\u540c\u3058\u3067\u306f\u306a\u3044\u3002", "proposed": "\u6559\u5e2b\u306e\u9806\u4f4d\u3092\u751f\u5f92\u3078\u84b8\u7559", "title": "\u77e5\u8b58\u3092\u5727\u7e2e\u3059\u308b"}, {"baseline": "ID\u3068\u5546\u54c1\u3092\u5bfe\u5fdc\u4ed8\u3051\u308b", "detail": "\u7d22\u5f15\u306b\u5b9f\u5728\u5546\u54c1\u3092\u767b\u9332\u3059\u308b\u3002\u65b0\u5546\u54c1\u30fb\u524a\u9664\u5546\u54c1\u3078\u306e\u66f4\u65b0\u306f\u5225\u9014\u5fc5\u8981\u3002", "proposed": "\u5546\u54c1\u30d9\u30af\u30c8\u30eb\u3092\u4e8b\u524d\u8a08\u7b97", "title": "\u5546\u54c1\u3092\u6e96\u5099\u3059\u308b"}, {"baseline": "ID\u306e\u679d\u3092\u9806\u306b\u9078\u3076", "detail": "\u751f\u6210\u306e\u679d\u9078\u629e\u3068\u7d22\u5f15\u691c\u7d22\u306f\u7570\u306a\u308b\u7d4c\u8def\u3002\u3069\u3061\u3089\u3082\u5019\u88dc\u306e\u53d6\u308a\u9003\u3057\u306f\u8d77\u3053\u308a\u5f97\u308b\u3002", "proposed": "\u30e6\u30fc\u30b6\u30fc\u30d9\u30af\u30c8\u30eb\u304b\u3089\u8fd1\u508d\u691c\u7d22", "title": "\u5019\u88dc\u3092\u53d6\u308a\u51fa\u3059"}], "title": "\u51e6\u7406\u3068\u8a2d\u8a08\u306e\u9055\u3044\u3092\u8ffd\u3046"}</script>
-        <div data-mount></div>
-        <div data-fallback>
-          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
-<ol><li><strong>学習用の入力：ユーザーと商品を教師が照合</strong><p>教師は両者の情報を一緒に読めるが、全候補に適用するには重い。</p></li><li><strong>知識を圧縮する：教師の順位を生徒へ蒸留</strong><p>候補集合上のスコア分布を近づける。教師と生徒の表現力は同じではない。</p></li><li><strong>商品を準備する：商品ベクトルを事前計算</strong><p>索引に実在商品を登録する。新商品・削除商品への更新は別途必要。</p></li><li><strong>候補を取り出す：ユーザーベクトルから近傍検索</strong><p>生成の枝選択と索引検索は異なる経路。どちらも候補の取り逃しは起こり得る。</p></li></ol>
-        </div>
-        <p class="figure-source">出典に基づく説明用の簡略化。 <a href="https://arxiv.org/html/2607.25346">一次資料 ↗</a></p>
-      </section>
-      <section id="why_it_might_work" class="note-section">
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><p>公開データでのbackboneは <strong>Qwen3-0.6B</strong>。教師のCross-Encoder（CE）はユーザーと商品を同時に読み、yesとnoのlogit差を関連度とする。ユーザー条件付きの商品文の次トークン予測も補助学習に使う。</p>
+<p>生徒は同じLLMの重みをユーザー側と商品側で共有するTwo-Tower（TT）。末尾のEOS状態からベクトルを取り出し、内積で検索する。教師と生徒が同じ候補集合に付けた確率分布をKL divergenceで近づける。Coconut式の潜在推論はユーザー側だけに1段加え、商品のベクトルは事前計算できる状態を保つ。</p>
+<p>生成一般の否定と読むのは広すぎる。公開比較では教師と生徒の成績が異なり、比較対象OneRec-ThinkはQwen3-8Bを使う。計算量・候補集合・学習条件も合わせて評価したい。</p>
+<p><a href="https://arxiv.org/html/2607.25346">一次資料：方法と実験条件</a></p></div>      </section>
+<figure class="teaching teaching--architecture" id="figure-teacher-student" aria-labelledby="title-teacher-student">
+  <div class="figure-heading"><span class="eyebrow">ARCHITECTURE</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-teacher-student">学習時の教師と配信時の2塔を分ける</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">学習時だけの教師</p><div class="diagram-nodes"><div class="diagram-node"><strong>ユーザー文 ＋ 商品文 → CE</strong><p>Qwen3-0.6Bで同時に符号化し、yes/noのlogit差を出す。</p></div></div></div><div class="diagram-row"><p class="lane-label">同じ候補集合の分布を蒸留 ↓</p><div class="diagram-nodes"><div class="diagram-node"><strong>ユーザー塔</strong><p>共有LLM → 潜在トークン1段 → EOS → zᵤ</p></div><div class="diagram-node"><strong>商品塔</strong><p>共有LLM → EOS → zᵢ。商品更新時に事前計算。</p></div></div></div><div class="diagram-row"><p class="lane-label">オンライン検索</p><div class="diagram-nodes"><div class="diagram-node"><strong>zᵤ → ANN索引 ← zᵢ</strong><p>内積が大きい実在商品のIDを返す。</p></div></div></div></div>
+  <figcaption>矢印は情報の受け渡し。CEをオンラインの全商品検索で毎回呼ぶ構成ではない。 <a href="https://arxiv.org/html/2607.25346">出典：図1・§4–5 ↗</a></figcaption>
+</figure><figure class="teaching teaching--equations" id="figure-distillation" aria-labelledby="title-distillation">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-distillation">教師の順位情報を生徒へ渡す</h3>
+  <ol class="equation-steps"><li><strong>教師と生徒のスコア</strong><div class="math-expression" tabindex="0" role="math" aria-label="sCE(u,i) = ℓyes(u,i) − ℓno(u,i)
+sTT(u,i) = zᵤᵀ zᵢ">sCE(u,i) = ℓyes(u,i) − ℓno(u,i)
+sTT(u,i) = zᵤᵀ zᵢ</div><p>教師は組ごとの相互作用、生徒は独立に作った表現の内積。</p></li><li><strong>候補間の好みを移す</strong><div class="math-expression" tabindex="0" role="math" aria-label="LKD = T² Σᵤ KL(qCE(·|u,C) ∥ pTT(·|u,C))">LKD = T² Σᵤ KL(qCE(·|u,C) ∥ pTT(·|u,C))</div><p>qCEとpTTは各スコアを温度Tのsoftmaxに通した分布。正例だけでなく、候補間の相対関係を学ぶ。</p></li></ol>
+  <figcaption>候補集合Cと温度Tを固定して比較する。θは生徒の学習パラメータ。 <a href="https://arxiv.org/html/2607.25346">出典：式(12)・(17)・(19) ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
         <h2>なぜ効きそうか</h2>
 <p class="label">解釈・推論</p><div class="prose"><p>教師はユーザーと商品を直接照合できるので、単純な内積では見えにくい関連性を教えられる。生徒へ移せた分だけ検索品質が上がると考えられるが、圧縮には限界がある。狭い候補集合上の蒸留と、全商品からの候補生成を同じ評価にしないことが大切。</p></div>      </section>
       <section id="evidence" class="note-section">
         <h2>根拠</h2>
 <div class="prose"><p>§7.2.1では、生徒が本番DLRMの正規化エントロピー（NE）と同程度に達するのに使った学習データは0.5%と報告する。NEは小さいほどよい予測損失で、クリック率の改善幅ではない。§7.2.2の古いモデルへの耐性は主に教師CEの結果であり、生徒TTの結果へ読み替えない。公開データの比較は§6、運用経路は§5。</p>
 <p><a href="https://arxiv.org/html/2607.25346">一次資料：§4 / §5 / §6 / §7.2</a></p></div>      </section>
-      <section class="interactive" id="interactive-2" data-interactive="explorer" aria-labelledby="figure-title-5">
-        <div class="figure-heading"><p class="eyebrow">02 / EXPERIMENT</p><span class="figure-badge">合成実験 · PARTIAL</span></div>
-        <h2 id="figure-title-5">枝を絞ると、最良候補を落とすか</h2>
-        <p class="figure-caption">16候補を4つの枝に分け、全候補の最高点と、枝の平均点で絞ってから選ぶ最高点を比べる。枝幅を増やすと取り逃しと探索量がどう変わるかを計算する。</p>
-        <script type="application/json" data-config>{"caption": "16\u5019\u88dc\u30924\u3064\u306e\u679d\u306b\u5206\u3051\u3001\u5168\u5019\u88dc\u306e\u6700\u9ad8\u70b9\u3068\u3001\u679d\u306e\u5e73\u5747\u70b9\u3067\u7d5e\u3063\u3066\u304b\u3089\u9078\u3076\u6700\u9ad8\u70b9\u3092\u6bd4\u3079\u308b\u3002\u679d\u5e45\u3092\u5897\u3084\u3059\u3068\u53d6\u308a\u9003\u3057\u3068\u63a2\u7d22\u91cf\u304c\u3069\u3046\u5909\u308f\u308b\u304b\u3092\u8a08\u7b97\u3059\u308b\u3002", "kind": "explorer", "title": "\u679d\u3092\u7d5e\u308b\u3068\u3001\u6700\u826f\u5019\u88dc\u3092\u843d\u3068\u3059\u304b"}</script>
-<script type="application/json" data-results>{"default": 0, "frames": [{"bars": [{"label": "\u5168\u5019\u88dc\u304b\u3089\u9078\u629e\uff1a\u95a2\u9023\u5ea6", "value": 0.99}, {"label": "\u679d\u3092\u7d5e\u3063\u3066\u9078\u629e\uff1a\u95a2\u9023\u5ea6", "value": 0.6}], "lines": [{"label": "\u5404\u679d\u306e\u5e73\u5747\u70b9", "values": [0.6, 0.285, 0.35, 0.25]}, {"label": "\u5404\u679d\u306e\u6700\u9ad8\u70b9", "values": [0.6, 0.99, 0.5, 0.4]}], "note": "\u7b2c1\u6bb5\u3067\u6b8b\u3059\u679d 1/4\u3002\u8abf\u3079\u308b\u672b\u7aef\u306f 4/16 \u4ef6\u3002\u5e73\u5747\u70b9\u3067\u679d\u3092\u9078\u3076\u4f8b\u3067\u306f\u3001\u6700\u826f\u5019\u88dc\u3092\u542b\u3080\u679d\u3092\u5148\u306b\u6368\u3066\u308b\u5834\u5408\u304c\u3042\u308b\u3002\u7121\u52b9ID\u306f\u751f\u6210\u3057\u3066\u3044\u306a\u3044\u3002", "value": 1}, {"bars": [{"label": "\u5168\u5019\u88dc\u304b\u3089\u9078\u629e\uff1a\u95a2\u9023\u5ea6", "value": 0.99}, {"label": "\u679d\u3092\u7d5e\u3063\u3066\u9078\u629e\uff1a\u95a2\u9023\u5ea6", "value": 0.6}], "lines": [{"label": "\u5404\u679d\u306e\u5e73\u5747\u70b9", "values": [0.6, 0.285, 0.35, 0.25]}, {"label": "\u5404\u679d\u306e\u6700\u9ad8\u70b9", "values": [0.6, 0.99, 0.5, 0.4]}], "note": "\u7b2c1\u6bb5\u3067\u6b8b\u3059\u679d 2/4\u3002\u8abf\u3079\u308b\u672b\u7aef\u306f 8/16 \u4ef6\u3002\u5e73\u5747\u70b9\u3067\u679d\u3092\u9078\u3076\u4f8b\u3067\u306f\u3001\u6700\u826f\u5019\u88dc\u3092\u542b\u3080\u679d\u3092\u5148\u306b\u6368\u3066\u308b\u5834\u5408\u304c\u3042\u308b\u3002\u7121\u52b9ID\u306f\u751f\u6210\u3057\u3066\u3044\u306a\u3044\u3002", "value": 2}, {"bars": [{"label": "\u5168\u5019\u88dc\u304b\u3089\u9078\u629e\uff1a\u95a2\u9023\u5ea6", "value": 0.99}, {"label": "\u679d\u3092\u7d5e\u3063\u3066\u9078\u629e\uff1a\u95a2\u9023\u5ea6", "value": 0.99}], "lines": [{"label": "\u5404\u679d\u306e\u5e73\u5747\u70b9", "values": [0.6, 0.285, 0.35, 0.25]}, {"label": "\u5404\u679d\u306e\u6700\u9ad8\u70b9", "values": [0.6, 0.99, 0.5, 0.4]}], "note": "\u7b2c1\u6bb5\u3067\u6b8b\u3059\u679d 3/4\u3002\u8abf\u3079\u308b\u672b\u7aef\u306f 12/16 \u4ef6\u3002\u5e73\u5747\u70b9\u3067\u679d\u3092\u9078\u3076\u4f8b\u3067\u306f\u3001\u6700\u826f\u5019\u88dc\u3092\u542b\u3080\u679d\u3092\u5148\u306b\u6368\u3066\u308b\u5834\u5408\u304c\u3042\u308b\u3002\u7121\u52b9ID\u306f\u751f\u6210\u3057\u3066\u3044\u306a\u3044\u3002", "value": 3}, {"bars": [{"label": "\u5168\u5019\u88dc\u304b\u3089\u9078\u629e\uff1a\u95a2\u9023\u5ea6", "value": 0.99}, {"label": "\u679d\u3092\u7d5e\u3063\u3066\u9078\u629e\uff1a\u95a2\u9023\u5ea6", "value": 0.99}], "lines": [{"label": "\u5404\u679d\u306e\u5e73\u5747\u70b9", "values": [0.6, 0.285, 0.35, 0.25]}, {"label": "\u5404\u679d\u306e\u6700\u9ad8\u70b9", "values": [0.6, 0.99, 0.5, 0.4]}], "note": "\u7b2c1\u6bb5\u3067\u6b8b\u3059\u679d 4/4\u3002\u8abf\u3079\u308b\u672b\u7aef\u306f 16/16 \u4ef6\u3002\u5e73\u5747\u70b9\u3067\u679d\u3092\u9078\u3076\u4f8b\u3067\u306f\u3001\u6700\u826f\u5019\u88dc\u3092\u542b\u3080\u679d\u3092\u5148\u306b\u6368\u3066\u308b\u5834\u5408\u304c\u3042\u308b\u3002\u7121\u52b9ID\u306f\u751f\u6210\u3057\u3066\u3044\u306a\u3044\u3002", "value": 4}], "label": "\u6b8b\u3059\u5019\u88dc\u306e\u679d", "metric": "\u95a2\u9023\u5ea6\uff08\u5408\u6210\u30b9\u30b3\u30a2\uff09", "unit": "\u672c"}</script>        <div data-mount></div>
-        <div data-fallback>
-          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
-<p>残す候補の枝：1本</p><ul><li>全候補から選択：関連度：0.99</li><li>枝を絞って選択：関連度：0.6</li></ul><p>第1段で残す枝 1/4。調べる末端は 4/16 件。平均点で枝を選ぶ例では、最良候補を含む枝を先に捨てる場合がある。無効IDは生成していない。</p>        </div>
-        <p class="figure-source">数値の出所：このLabの results.json。論文の測定値ではありません。 </p>
-      </section>
       <section id="executable_understanding" class="note-section">
         <h2>実行可能な理解</h2>
 <div class="prose"><p>16候補を4つの枝に分け、全候補の最高点と、枝の平均点で絞ってから選ぶ最高点を比べる。枝幅を増やすと取り逃しと探索量がどう変わるかを計算する。</p>
@@ -239,7 +233,7 @@
       }
     ]
   }
-}</code></pre></details><p>図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。</p></div>      </section>
+}</code></pre></details><p>初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。</p></div>      </section>
       <section id="what_we_verified" class="note-section">
         <h2>検証できたこと</h2>
 <div class="prose"><p><strong>メカニズム：PARTIAL（部分的）</strong>。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。</p>
@@ -266,11 +260,11 @@
 <td><a href="https://arxiv.org/html/2607.25346">§4 / §5 / §6 / §7.2</a></td>
 </tr>
 <tr>
-<td>処理図</td>
+<td>手法の図と数式</td>
 <td>上記の仕組みを説明用に簡略化。公式実装ではない</td>
 </tr>
 <tr>
-<td>条件探索</td>
+<td>小実験</td>
 <td><code>run.py</code> → <code>papers/_toy_common.py</code> → <code>results.json</code></td>
 </tr>
 <tr>
@@ -279,7 +273,7 @@
 </tr>
 </tbody>
 </table></div>      </section>
-<section class="figures"><details><summary>参考用の静止図を開く</summary><div class="figure-grid"><figure><img src="../figures/case-against-generation-retrieval/figures/paths.svg" alt="参考図 1：処理の全体像" loading="lazy"><figcaption>論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。</figcaption></figure></div></details></section>    <aside class="end-note"><p>次に確かめたいこと</p><strong>言語モデルの知識を使うために、商品IDまで生成する必要はあるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>言語モデルの知識を使うために、商品IDまで生成する必要はあるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
     </article>
   </div>
 </main>

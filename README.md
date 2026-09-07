@@ -1,6 +1,6 @@
 # Interactive Research Library
 
-一次資料を読み、仕組み・根拠・限界を日本語で説明する11件のLabです。各Labには、処理を追う比較図と、条件を動かす合成実験があります。
+一次資料を読み、仕組み・根拠・限界を日本語で説明する11件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
 
 公開先：https://mixidota2.github.io/paper-lab/
 
@@ -22,12 +22,20 @@ uv run python -m http.server --directory site 8000
 
 `lab.yaml` の `question` は日本語の研究上の問い、`source_review` は確認日・一次資料URL・確認範囲です。著者の主張は `core_idea.author_claim`、解釈は `core_idea.research_bot_interpretation` に分けます。
 
-`interactives` には次の2種類を順に定義します。
+`sections.method` は「モデル / 手法」の本文で、各Labの `method.md` を読み込みます。`teaching_figures` は図の計画とデータです。共通項目は `id`、`kind`、`title`、`caption`、`source`、`locator`（節・式・表）、`rationale`（その図を選ぶ理由）、`after`（挿入先の節）。以下から必要な種類を選びます。
 
-- `flow`：`title`、`caption`、`source`、`stages` を持ちます。各段は `title`、`baseline`、`proposed`、`detail` で定義します。比較切替・段選択・前後移動で処理を追えます。
-- `explorer`：`title` と `caption` を持ち、数値は `results.json` の `explorer` から読みます。スライダー、1段ずつの移動、初期条件への復帰、棒の尺度切替、数値表を備えます。
+| kind | 用途 | データ |
+| --- | --- | --- |
+| architecture | モデルの分岐と共有部分 | rows → label, nodes → title, text |
+| equations | 数式を項別に説明 | steps → name, formula, explanation |
+| matrix | attention mask・実験設計・比較表 | columns, rows → label, cells |
+| logic | 主張・情報境界・方式の選択肢 | rows → label, nodes → title, text |
+| timeline | 時間帯を分けた処理 | rows → label, nodes → title, text |
+| chart | 一次資料の報告値 | unit, maximum, bars → label, value |
 
-全条件をPythonで計算し、JSONをページ内へ埋め込みます。JavaScriptは数値を再実装せず、選んだ条件の棒・系列・注記を更新します。数値の表と本文はキーボードでも読め、JavaScript無効時には処理の説明と初期値が残ります。静止図は補助資料です。
+図と数式はHTMLで生成し、JSや数式CDNがなくても読めます。数式はUnicodeの添字・演算子と説明を使い、狭い画面では折り返します。行列だけは必要に応じて図の内部を横スクロールします。チャートは0起点の共通尺度と正確な数値を併記します。
+
+`interactives` は任意の配列です。既存の `flow` と `explorer` を必要な個数・順序で選べます。今回の11件では処理図の一律使用をやめ、4件だけに `explorer` を残しています。`explorer` は `title` と `caption` を持ち、`results.json` の計算済み全条件を表示します。JavaScriptは計算式を再実装せず、棒・系列・注記を更新します。キーボードで操作でき、JavaScript無効時にも初期値が残ります。
 
 `run.py` は各Labの入口、`papers/_toy_common.py` は11個の独立した小実験です。固定の勝敗表は使いません。ただし人工データ・仮定した費用・簡略な規則による説明であり、原論文のモデルを訓練したり性能を再現したりする実験ではありません。検証範囲は全LabでMechanism PARTIAL、Performance / Scaling / Production applicability NOT TESTEDです。
 

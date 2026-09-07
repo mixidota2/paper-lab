@@ -1,7 +1,8 @@
 id: vn2-stockout-catboost
 arxiv_id: '2601.18919'
 submitted: '2026-01-26'
-title: 'One Global Model, Many Behaviors: Stockout-Aware Feature Engineering and Dynamic Scaling for Multi-Horizon Retail Demand Forecasting with a Cost-Aware Ordering Policy (VN2 Winner Report)'
+title: 'One Global Model, Many Behaviors: Stockout-Aware Feature Engineering and Dynamic Scaling for Multi-Horizon
+  Retail Demand Forecasting with a Cost-Aware Ordering Policy (VN2 Winner Report)'
 authors:
 - Bartosz Szabłowski
 year: 2026
@@ -24,21 +25,15 @@ related_threads:
 - observed-sales-vs-latent-demand
 status: published
 summary: 欠品週の販売を需要の真値として使わず、予測と発注を分ける。VN2の勝者報告は、特徴量と費用に合わせた注文規則の組合せを示す。
-figures:
-- path: figures/censoring.svg
-  title: 処理の全体像
-  caption: 論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。
+figures: []
 core_idea:
-  author_claim: '全系列を使うCatBoostで複数の先の週を予測する。欠品週を欠損として扱った実効需要から履歴特徴を作り、系列ごとの規模で正規化する。発注時は到着までの在庫を見積もり、欠品と保管の費用比に応じた目標在庫から注文量を決める。
+  author_claim: '各予測先の週について、全系列を使うCatBoostを学習する。3週先までを独立した3つの回帰器で予測する。欠品週を欠損として扱った実効需要から履歴特徴を作り、系列ごとの規模で正規化する。発注時は到着までの在庫を見積もり、欠品と保管の費用比に応じた目標在庫から注文量を決める。
 
 
     [一次資料：§2 / §6.2 / §7](https://arxiv.org/html/2601.18919)'
   research_bot_interpretation: 欠品を除外する処理は、潜在需要を復元する因果モデルではない。むしろ「確かに需要を観測できた期間はどこか」を区別する実用策。非欠品の週だけが平穏な週に偏っていれば、その平均にも下方の偏りは残る。
 sections:
-  overview: '欠品週の販売を需要の真値として使わず、予測と発注を分ける。VN2の勝者報告は、特徴量と費用に合わせた注文規則の組合せを示す。
-
-
-    このLabでは「売れた数しか分からないとき、必要な在庫をどう決めるか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。'
+  overview: 欠品週の販売を需要の真値として使わず、予測と発注を分ける。VN2の勝者報告は、特徴量と費用に合わせた注文規則の組合せを示す。
   problem: '在庫が8個しかなければ、20個欲しい人がいても販売は8個で止まる。販売をそのまま需要として学習すると、よく欠品する商品ほど低く予測し、次も在庫を減らす循環が起こる。
 
 
@@ -52,7 +47,7 @@ sections:
 
 
     実行：`uv run papers/vn2-stockout-catboost/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json` へ保存する。'
-  results: 図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。
+  results: 初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。
   what_we_verified: '**メカニズム：PARTIAL（部分的）**。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。
 
 
@@ -68,38 +63,60 @@ sections:
 
     | 原論文 | [§2 / §6.2 / §7](https://arxiv.org/html/2601.18919) |
 
-    | 処理図 | 上記の仕組みを説明用に簡略化。公式実装ではない |
+    | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |
 
-    | 条件探索 | `run.py` → `papers/_toy_common.py` → `results.json` |
+    | 小実験 | `run.py` → `papers/_toy_common.py` → `results.json` |
 
     | 公式コード | このLabでは公式コードとの行単位の照合はしていない。 |'
+  method: method.md
 question: 売れた数しか分からないとき、必要な在庫をどう決めるか
 interactives:
-- kind: flow
-  title: 処理と設計の違いを追う
-  caption: 段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。
-  source: https://arxiv.org/html/2601.18919
-  stages:
-  - title: 販売を観測する
-    baseline: 販売を需要とみなす
-    proposed: 欠品の有無を確認
-    detail: 販売=min(潜在需要,利用可能在庫)という観測上の上限を意識する。
-  - title: 履歴を作る
-    baseline: 欠品週も平均へ入れる
-    proposed: 実効需要から特徴を作る
-    detail: 欠品週を欠損扱いにする。未知の需要が既知になるわけではない。
-  - title: 未来を予測する
-    baseline: 商品ごとの単純予測
-    proposed: 全系列のCatBoost
-    detail: 規模を調整し、複数の予測先を扱う。
-  - title: 発注を決める
-    baseline: 予測値だけ注文
-    proposed: 到着時在庫と費用から注文
-    detail: 残在庫、入荷、欠品と保管の費用を考慮する。図の小実験は第1〜2段だけを扱う。
 - kind: explorer
   title: 欠品を除けば需要は分かるか
   caption: 同じ8期の潜在需要に異なる在庫上限を適用する。販売平均と、上限に達した期間を除いた平均を計算し、除外しても真値に戻るとは限らないことを見る。
 source_review:
   checked: '2026-09-07'
   url: https://arxiv.org/html/2601.18919
-  scope: arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。
+  scope: 一次資料の方法・数式・実験条件を再確認。図は説明用の再構成。著者の性能・運用結果は独立再現していない。
+teaching_figures:
+- kind: equations
+  id: mask-scale
+  title: 欠品を欠損へ変え、系列の規模をそろえる
+  after: method
+  locator: §6.1–6.2
+  rationale: モデル前処理が方法の核心。
+  caption: 式は論文の表記を整理。初期の短い履歴には拡大窓平均のwarm-startを用いる。
+  steps:
+  - name: 販売をそのまま目的変数にしない
+    formula: 'yᵉᶠᶠₜ = yₜ  （在庫あり）
+
+      yᵉᶠᶠₜ = NaN  （欠品）'
+    explanation: NaNは0個の需要ではない。実効需要は観測できた週の販売を使う代理値。
+  - name: 53週の規模で割る
+    formula: scaleₜ = max(53 × mean_nonmissing(yᵉᶠᶠₜ₋₅₂:ₜ), 1)
+    explanation: 十分な非欠品履歴がある場合の式。特徴と目的変数を同じ尺度へそろえる。
+  - name: 3つの予測先を直接学習
+    formula: D̂ₜ₊ₕ = scaleₜ × CatBoostₕ(featuresₜ),  h ∈ {1,2,3}
+    explanation: 各hは別の回帰器。h=1の予測値をh=2へ入力する再帰予測ではない。
+  source: https://arxiv.org/html/2601.18919
+- kind: timeline
+  id: arrival
+  title: 今日の発注が効くのはt+3週の開始
+  after: method
+  locator: §2・§7
+  rationale: 予測と意思決定を時間軸で接続する。
+  caption: 論文の配送条件。図では在庫投影の細かな丸めや費用係数を省略する。
+  rows:
+  - label: t週末
+    nodes:
+    - title: 注文量を決める
+      text: 手持ち・輸送中在庫と3週分の需要予測を参照。
+  - label: t+1 / t+2
+    nodes:
+    - title: 到着前の在庫を投影
+      text: 予測需要による消費と予定入荷を反映。
+  - label: t+3週の開始
+    nodes:
+    - title: 今回の注文が到着
+      text: 到着時の残在庫を目標在庫と比べて不足分を補う。
+  source: https://arxiv.org/html/2601.18919

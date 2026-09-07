@@ -43,10 +43,7 @@ related_threads:
 - generative-rec-vs-retrieval
 status: published
 summary: 言語モデルをユーザーと商品の表現作りに使い、検索はベクトル索引に任せる。重い教師の判断を、軽い検索経路へ移す設計。
-figures:
-- path: figures/paths.svg
-  title: 処理の全体像
-  caption: 論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。
+figures: []
 core_idea:
   author_claim: 'ユーザーと商品を同時に読むCross-Encoderを教師にし、その候補間の好みをTwo-Towerへ学習させる。教師は関連性のYes/No判定と商品テキストの予測で訓練する。生徒は共有エンコーダーと文末位置の表現を使い、ユーザー側には潜在表現による追加推論も入れる。推論時の商品ベクトルは事前計算のまま保つ。
 
@@ -54,10 +51,7 @@ core_idea:
     [一次資料：§4 / §5 / §6 / §7.2](https://arxiv.org/html/2607.25346)'
   research_bot_interpretation: この研究が示す選択肢は、豊かな意味理解と索引検索を組み合わせること。生成推薦全体への決着とは読まない。教師が高性能でも、その順位を生徒が完全には保持できず、索引更新の遅れも残る。
 sections:
-  overview: '言語モデルをユーザーと商品の表現作りに使い、検索はベクトル索引に任せる。重い教師の判断を、軽い検索経路へ移す設計。
-
-
-    このLabでは「言語モデルの知識を使うために、商品IDまで生成する必要はあるか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。'
+  overview: 言語モデルをユーザーと商品の表現作りに使い、検索はベクトル索引に任せる。重い教師の判断を、軽い検索経路へ移す設計。
   problem: '数百万件の商品から候補を選ぶ段階では、候補ごとに言語モデルを動かす費用を払えない。商品IDを順番に生成する方式には、途中の枝選択や実在商品との対応付けという別の課題もある。
 
 
@@ -70,8 +64,9 @@ sections:
   executable_understanding: '16候補を4つの枝に分け、全候補の最高点と、枝の平均点で絞ってから選ぶ最高点を比べる。枝幅を増やすと取り逃しと探索量がどう変わるかを計算する。
 
 
-    実行：`uv run papers/case-against-generation-retrieval/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json` へ保存する。'
-  results: 図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。
+    実行：`uv run papers/case-against-generation-retrieval/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json`
+    へ保存する。'
+  results: 初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。
   what_we_verified: '**メカニズム：PARTIAL（部分的）**。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。
 
 
@@ -87,38 +82,56 @@ sections:
 
     | 原論文 | [§4 / §5 / §6 / §7.2](https://arxiv.org/html/2607.25346) |
 
-    | 処理図 | 上記の仕組みを説明用に簡略化。公式実装ではない |
+    | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |
 
-    | 条件探索 | `run.py` → `papers/_toy_common.py` → `results.json` |
+    | 小実験 | `run.py` → `papers/_toy_common.py` → `results.json` |
 
     | 公式コード | このLabでは公式コードとの行単位の照合はしていない。 |'
+  method: method.md
 question: 言語モデルの知識を使うために、商品IDまで生成する必要はあるか
-interactives:
-- kind: flow
-  title: 処理と設計の違いを追う
-  caption: 段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。
-  source: https://arxiv.org/html/2607.25346
-  stages:
-  - title: 学習用の入力
-    baseline: ID系列を学ぶ
-    proposed: ユーザーと商品を教師が照合
-    detail: 教師は両者の情報を一緒に読めるが、全候補に適用するには重い。
-  - title: 知識を圧縮する
-    baseline: 次のIDを予測
-    proposed: 教師の順位を生徒へ蒸留
-    detail: 候補集合上のスコア分布を近づける。教師と生徒の表現力は同じではない。
-  - title: 商品を準備する
-    baseline: IDと商品を対応付ける
-    proposed: 商品ベクトルを事前計算
-    detail: 索引に実在商品を登録する。新商品・削除商品への更新は別途必要。
-  - title: 候補を取り出す
-    baseline: IDの枝を順に選ぶ
-    proposed: ユーザーベクトルから近傍検索
-    detail: 生成の枝選択と索引検索は異なる経路。どちらも候補の取り逃しは起こり得る。
-- kind: explorer
-  title: 枝を絞ると、最良候補を落とすか
-  caption: 16候補を4つの枝に分け、全候補の最高点と、枝の平均点で絞ってから選ぶ最高点を比べる。枝幅を増やすと取り逃しと探索量がどう変わるかを計算する。
+interactives: []
 source_review:
   checked: '2026-09-07'
   url: https://arxiv.org/html/2607.25346
-  scope: arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。
+  scope: 一次資料の方法・数式・実験条件を再確認。図は説明用の再構成。著者の性能・運用結果は独立再現していない。
+teaching_figures:
+- kind: architecture
+  id: teacher-student
+  title: 学習時の教師と配信時の2塔を分ける
+  after: method
+  locator: 図1・§4–5
+  rationale: 教師の同時入力と生徒の分離入力を空間的に対比する。
+  caption: 矢印は情報の受け渡し。CEをオンラインの全商品検索で毎回呼ぶ構成ではない。
+  rows:
+  - label: 学習時だけの教師
+    nodes:
+    - title: ユーザー文 ＋ 商品文 → CE
+      text: Qwen3-0.6Bで同時に符号化し、yes/noのlogit差を出す。
+  - label: 同じ候補集合の分布を蒸留 ↓
+    nodes:
+    - title: ユーザー塔
+      text: 共有LLM → 潜在トークン1段 → EOS → zᵤ
+    - title: 商品塔
+      text: 共有LLM → EOS → zᵢ。商品更新時に事前計算。
+  - label: オンライン検索
+    nodes:
+    - title: zᵤ → ANN索引 ← zᵢ
+      text: 内積が大きい実在商品のIDを返す。
+  source: https://arxiv.org/html/2607.25346
+- kind: equations
+  id: distillation
+  title: 教師の順位情報を生徒へ渡す
+  after: method
+  locator: 式(12)・(17)・(19)
+  rationale: 何を蒸留するかを目的関数で具体化する。
+  caption: 候補集合Cと温度Tを固定して比較する。θは生徒の学習パラメータ。
+  steps:
+  - name: 教師と生徒のスコア
+    formula: 'sCE(u,i) = ℓyes(u,i) − ℓno(u,i)
+
+      sTT(u,i) = zᵤᵀ zᵢ'
+    explanation: 教師は組ごとの相互作用、生徒は独立に作った表現の内積。
+  - name: 候補間の好みを移す
+    formula: LKD = T² Σᵤ KL(qCE(·|u,C) ∥ pTT(·|u,C))
+    explanation: qCEとpTTは各スコアを温度Tのsoftmaxに通した分布。正例だけでなく、候補間の相対関係を学ぶ。
+  source: https://arxiv.org/html/2607.25346

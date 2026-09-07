@@ -16,12 +16,12 @@
     <h1>{{ lab.question or lab.title }}</h1>
     <p class="lede">{{ lab.summary }}</p>
     <details class="bibliography"><summary>原論文：{{ lab.title }}</summary><p>{{ lab.authors_text }}</p><p>{{ lab.arxiv_id or lab.doi }} · {{ lab.year }}</p></details>
-    <div class="paper-actions"><a class="button" href="{{ lab.urls.paper }}">原典を読む ↗</a>{% if lab.urls.pdf %}<a href="{{ lab.urls.pdf }}">PDF ↗</a>{% endif %}<a href="#interactive-1">図を操作する ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="paper-actions"><a class="button" href="{{ lab.urls.paper }}">原典を読む ↗</a>{% if lab.urls.pdf %}<a href="{{ lab.urls.pdf }}">PDF ↗</a>{% endif %}<a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
     <div class="trust-strip" aria-label="このLabの確認範囲">{% for key in verification_keys %}<div><span>{{ verification_labels[key] }}</span><strong>{{ verification_status_labels[lab.verification.as_dict()[key]] }}</strong><small>{{ lab.verification.as_dict()[key] }}</small></div>{% endfor %}</div>
     <p class="source-note">一次資料の確認：{{ lab.source_review.get('checked', '未記録') }} · {{ lab.source_review.get('scope', '') }}</p>
   </header>
   <div class="paper-layout">
-    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">01 問いと仕組み</a><a href="#interactive-1">02 図で追う</a><a href="#evidence">03 論文の根拠</a><a href="#interactive-2">04 条件を変える</a><a href="#what_we_did_not_verify">05 限界と批評</a><a href="#implementation">06 実装と出典</a></nav>
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a>{% for f in lab.teaching_figures %}<a href="#figure-{{ f.id }}">{{ f.title }}</a>{% endfor %}<a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
     <article class="paper-body">
     {% for s in sections %}
       <section id="{{ s.key }}" class="note-section">
@@ -32,24 +32,19 @@
         {% else %}{% if s.key == 'why_it_might_work' %}<p class="label">解釈・推論</p>{% endif %}<div class="prose">{{ s.html | safe }}</div>{% endif %}
         {% if s.key == 'executable_understanding' %}<div class="downloads"><a href="../downloads/{{ lab.id }}/run.py" download>実行コード</a><a href="../downloads/_toy_common.py" download>計算本体</a><a href="../downloads/{{ lab.id }}/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/{{ lab.id }}">GitHubで開く ↗</a></div><p class="source-note">再実行はリポジトリの配置を使ってください。上の2ファイルだけを同じ階層へ置く方式には対応していません。</p>{% endif %}
       </section>
-      {% if s.key == 'core_idea' or s.key == 'evidence' %}
-      {% set interactive = lab.interactives[0 if s.key == 'core_idea' else 1] if lab.interactives else none %}
-      {% if interactive %}
-      <section class="interactive" id="interactive-{{ 1 if s.key == 'core_idea' else 2 }}" data-interactive="{{ interactive.kind }}" aria-labelledby="figure-title-{{ loop.index }}">
-        <div class="figure-heading"><p class="eyebrow">{{ '01 / MECHANISM' if interactive.kind == 'flow' else '02 / EXPERIMENT' }}</p><span class="figure-badge">{{ '論文の概念図' if interactive.kind == 'flow' else '合成実験 · PARTIAL' }}</span></div>
-        <h2 id="figure-title-{{ loop.index }}">{{ interactive.title }}</h2>
-        <p class="figure-caption">{{ interactive.caption }}</p>
+      {% for f in lab.teaching_figures if f.after == s.key %}{% include 'teaching.html' %}{% endfor %}
+      {% if s.key == 'executable_understanding' %}
+      {% for interactive in lab.interactives %}
+      <section class="interactive" id="interactive-{{ loop.index }}" data-interactive="{{ interactive.kind }}">
+        <p class="figure-badge">合成実験 · Mechanism PARTIAL</p><h2>{{ interactive.title }}</h2><p>{{ interactive.caption }}</p>
         <script type="application/json" data-config>{{ interactive | tojson }}</script>
         {% if interactive.kind == 'explorer' %}<script type="application/json" data-results>{{ lab.results.explorer | tojson }}</script>{% endif %}
-        <div data-mount></div>
-        <div data-fallback>
-          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
-          {% if interactive.kind == 'flow' %}<ol>{% for stage in interactive.stages %}<li><strong>{{ stage.title }}：{{ stage.proposed }}</strong><p>{{ stage.detail }}</p></li>{% endfor %}</ol>
-          {% else %}{% set frame = lab.results.explorer.frames[lab.results.explorer.default] %}<p>{{ lab.results.explorer.label }}：{{ frame.value }}{{ lab.results.explorer.unit }}</p><ul>{% for bar in frame.bars %}<li>{{ bar.label }}：{{ bar.value }}</li>{% endfor %}</ul><p>{{ frame.note }}</p>{% endif %}
-        </div>
-        <p class="figure-source">{{ '出典に基づく説明用の簡略化。' if interactive.kind == 'flow' else '数値の出所：このLabの results.json。論文の測定値ではありません。' }} {% if interactive.source %}<a href="{{ interactive.source }}">一次資料 ↗</a>{% endif %}</p>
+        <div data-mount></div><div data-fallback>
+        {% if interactive.kind == 'flow' %}<ol>{% for stage in interactive.stages %}<li>{{ stage.title }}：{{ stage.proposed }}<p>{{ stage.detail }}</p></li>{% endfor %}</ol>
+        {% else %}{% set frame = lab.results.explorer.frames[lab.results.explorer.default] %}<p>{{ lab.results.explorer.label }}：{{ frame.value }}{{ lab.results.explorer.unit }}</p><ul>{% for bar in frame.bars %}<li>{{ bar.label }}：{{ bar.value }}</li>{% endfor %}</ul><p>{{ frame.note }}</p>{% endif %}
+        </div><p class="source-note">数値の出所：このLabの results.json。論文の測定値ではありません。</p>
       </section>
-      {% endif %}{% endif %}
+      {% endfor %}{% endif %}
     {% endfor %}
     {% if figures %}<section class="figures"><details><summary>参考用の静止図を開く</summary><div class="figure-grid">{% for figure in figures %}<figure><img src="{{ figure.url }}" alt="参考図 {{ loop.index }}：{{ figure.title }}" loading="lazy"><figcaption>{{ figure.caption }}</figcaption></figure>{% endfor %}</div></details></section>{% endif %}
     <aside class="end-note"><p>次に確かめたいこと</p><strong>{{ lab.question }}</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>

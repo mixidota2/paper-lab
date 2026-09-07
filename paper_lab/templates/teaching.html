@@ -1,0 +1,15 @@
+<figure class="teaching teaching--{{ f.kind }}" id="figure-{{ f.id }}" aria-labelledby="title-{{ f.id }}">
+  <div class="figure-heading"><span class="eyebrow">{{ f.kind | upper }}</span><span class="figure-badge">{{ '論文の報告値' if f.kind == 'chart' else '説明用に再構成' }}</span></div>
+  <h3 id="title-{{ f.id }}">{{ f.title }}</h3>
+  {% if f.kind in ['architecture', 'logic', 'timeline'] %}
+  <div class="diagram-rows">{% for row in f.rows %}<div class="diagram-row"><p class="lane-label">{{ row.label }}</p><div class="diagram-nodes">{% for node in row.nodes %}<div class="diagram-node"><strong>{{ node.title }}</strong><p>{{ node.text }}</p></div>{% endfor %}</div></div>{% endfor %}</div>
+  {% elif f.kind == 'equations' %}
+  <ol class="equation-steps">{% for step in f.steps %}<li><strong>{{ step.name }}</strong><div class="math-expression" tabindex="0" role="math" aria-label="{{ step.formula }}">{{ step.formula }}</div><p>{{ step.explanation }}</p></li>{% endfor %}</ol>
+  {% elif f.kind == 'matrix' %}
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="{{ f.title }}の表"><table class="teaching-matrix"><thead><tr><th scope="col">{{ f.corner or '条件' }}</th>{% for c in f.columns %}<th scope="col">{{ c }}</th>{% endfor %}</tr></thead><tbody>{% for row in f.rows %}<tr><th scope="row">{{ row.label }}</th>{% for cell in row.cells %}<td class="{{ 'cell-on' if cell == '参照' else 'cell-off' if cell == '遮断' else '' }}">{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  {% elif f.kind == 'chart' %}
+  <p class="chart-metric">{{ f.unit }} · 共通尺度 0–{{ f.maximum }}</p><div class="bar-chart">{% for bar in f.bars %}<div class="bar-row"><div class="bar-label"><span>{{ bar.label }}</span><strong>{{ bar.value }} {{ f.unit }}</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: {{ 100 * bar.value / f.maximum }}%"></div></div></div>{% endfor %}</div>
+  {% endif %}
+  <figcaption>{{ f.caption }} <a href="{{ f.source }}">出典：{{ f.locator }} ↗</a></figcaption>
+</figure>

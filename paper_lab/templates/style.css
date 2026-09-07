@@ -193,3 +193,34 @@ body{background:white}
 .paper-hero{padding:0}
 .footer{margin-top:1rem}
 }
+
+/* Paper-shaped modules remain readable without JavaScript or remote math assets. */
+.teaching { margin: 2rem 0 3rem; padding: clamp(1rem, 3vw, 2rem); border: 1px solid #ccd5cb; border-radius: 16px; background: #fafcf7; min-width: 0; }
+.teaching h3 { margin: .6rem 0 1.4rem; font-size: clamp(1.2rem, 2vw, 1.65rem); line-height: 1.5; }
+.teaching figcaption { margin-top: 1.4rem; font-size: .88rem; line-height: 1.8; color: #465347; }
+.diagram-rows { display: grid; gap: 1rem; }
+.diagram-row { display: grid; gap: .5rem; }
+.lane-label { margin: 0; font-size: .85rem; color: #486b57; font-weight: 700; }
+.diagram-nodes { display: flex; flex-wrap: wrap; gap: .8rem; }
+.diagram-node { flex: 1 1 180px; padding: 1rem; background: white; border: 1px solid #bacdbe; border-top: 4px solid #337858; border-radius: 8px; min-width: 0; }
+.diagram-node strong { display: block; overflow-wrap: anywhere; }
+.diagram-node p { font-size: .9rem; margin: .5rem 0 0; line-height: 1.75; }
+.teaching--architecture .diagram-row + .diagram-row::before { content: '↓'; font-size: 1.4rem; text-align: center; color: #337858; }
+.teaching--logic { background: #fbf8f0; }
+.teaching--logic .diagram-node { border-top-color: #aa703c; }
+.teaching--timeline .diagram-row { border-left: 3px solid #337858; padding-left: 1rem; position: relative; }
+.teaching--timeline .diagram-row::before { content: ''; width: .7rem; height: .7rem; background: #337858; border-radius: 50%; position: absolute; left: -.45rem; top: .4rem; }
+.equation-steps { padding-left: 1.4rem; }
+.equation-steps li { margin: 1.6rem 0; padding-left: .3rem; }
+.math-expression { font-family: 'Cambria Math', 'STIX Two Math', Georgia, serif; font-size: clamp(1rem, 2vw, 1.3rem); white-space: pre-wrap; overflow-wrap: anywhere; padding: 1rem; margin: .6rem 0; background: #eef3e9; border-left: 3px solid #337858; line-height: 1.9; }
+.matrix-scroll { overflow-x: auto; max-width: 100%; }
+.teaching-matrix { width: 100%; font-size: .88rem; }
+.teaching-matrix th, .teaching-matrix td { padding: .7rem; min-width: 5rem; }
+.cell-on { background: #d5eadb; color: #164c30; font-weight: bold; }
+.cell-off { background: #f0ece6; color: #64594f; }
+.paper-body, .paper-layout, .note-section, .prose { min-width: 0; }
+@media (max-width: 600px) { .diagram-node { flex-basis: 100%; } .teaching { border-radius: 8px; } .math-expression { padding: .7rem; } }
+.teaching-matrix { table-layout: auto; }
+.teaching-matrix th { min-width: 6rem; word-break: normal; overflow-wrap: normal; }
+.teaching-matrix td { min-width: 6rem; }
+.teaching-matrix .cell-on, .teaching-matrix .cell-off { white-space: nowrap; min-width: 4rem; }

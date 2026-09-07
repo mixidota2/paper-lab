@@ -35,10 +35,7 @@ related_threads:
 - agent-architecture-and-harness
 status: published
 summary: モデルの回答を外部の操作へつなぐ仕組みも評価対象にする。最終成果物、途中の行動、費用を分けて見るためのベンチマーク。
-figures:
-- path: figures/unit.svg
-  title: 処理の全体像
-  caption: 論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。
+figures: []
 core_idea:
   author_claim: '著者は106件のオフライン作業を用意し、実行の記録と成果物を採点する。完了だけでなくツール利用の適切さ、一貫性、回復などを併せて評価し、モデルとハーネスの組合せを報告単位にするべきだと主張する。
 
@@ -46,15 +43,12 @@ core_idea:
     [一次資料：§3.4 / §4.1 / 表2 / §4.4](https://arxiv.org/html/2605.27922)'
   research_bot_interpretation: 調達や改善の判断には、総合点に加えて「何が壊れたか」が役立つ。ただし総合点が高い構成の部品をまねても、その部品が改善原因だったとは限らない。タスク別の失敗記録から、修正すべき箇所を絞り込む使い方がよい。
 sections:
-  overview: 'モデルの回答を外部の操作へつなぐ仕組みも評価対象にする。最終成果物、途中の行動、費用を分けて見るためのベンチマーク。
-
-
-    このLabでは「仕事が終わらない原因は、推論と実行のどちらにあるか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。'
+  overview: モデルの回答を外部の操作へつなぐ仕組みも評価対象にする。最終成果物、途中の行動、費用を分けて見るためのベンチマーク。
   problem: '正しい手順を説明できても、ファイルを保存しなければ仕事は完了しない。ツールの形式に合わせる、状態を保つ、失敗から戻るといった実行の仕事を担うのがハーネスだ。
 
 
     この研究は各ハーネスの内部を同一化しない。問題、初期環境、予算、採点をそろえ、固有のプロンプトや状態管理を残して比較する。測っているのは構成全体の差で、単一部品の因果効果ではない。'
-  why_it_might_work: 形式の検査や保存確認を外側へ持たせると、モデルが正しい内容を作った後の取りこぼしを防げると考えられる。根拠の不足は形式検査では修復できない。下の図では、この2種類の失敗を分ける。
+  why_it_might_work: 形式の検査や保存確認を外側へ持たせると、モデルが正しい内容を作った後の取りこぼしを防げると考えられる。根拠の不足は形式検査では修復できない。小実験では、この2種類の失敗を分ける。
   evidence: '§4.1・表2の設定可能な6ハーネスは106タスクと8モデルで平均され、NanoBotの総合点76.2とOpenClawの52.4の間に23.8ポイント差がある。これは完了率の差ではない。Codexは固定モデルを伴う参考値として別枠。§3.4の過程評価にはLLM判定も含まれるため、その採点の癖も検討対象になる。
 
 
@@ -63,7 +57,7 @@ sections:
 
 
     実行：`uv run papers/harness-bench/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json` へ保存する。'
-  results: 図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。
+  results: 初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。
   what_we_verified: '**メカニズム：PARTIAL（部分的）**。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。
 
 
@@ -79,38 +73,57 @@ sections:
 
     | 原論文 | [§3.4 / §4.1 / 表2 / §4.4](https://arxiv.org/html/2605.27922) |
 
-    | 処理図 | 上記の仕組みを説明用に簡略化。公式実装ではない |
+    | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |
 
-    | 条件探索 | `run.py` → `papers/_toy_common.py` → `results.json` |
+    | 小実験 | `run.py` → `papers/_toy_common.py` → `results.json` |
 
     | 公式コード | このLabでは公式コードとの行単位の照合はしていない。 |'
+  method: method.md
 question: 仕事が終わらない原因は、推論と実行のどちらにあるか
-interactives:
-- kind: flow
-  title: 処理と設計の違いを追う
-  caption: 段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。
-  source: https://arxiv.org/html/2605.27922
-  stages:
-  - title: 依頼を解釈する
-    baseline: 文章の回答を作る
-    proposed: 成果物の条件を読む
-    detail: 必要なファイル、形式、根拠などを先に確認する。
-  - title: 操作へ変換する
-    baseline: モデル出力を渡す
-    proposed: ツール形式を検査
-    detail: 形式の誤りは検出・修復できても、内容の正しさは別の条件。
-  - title: 実行を追跡する
-    baseline: 最終回答だけを見る
-    proposed: 状態と失敗を記録
-    detail: 操作が失敗したのか、根拠が欠けたのかを分ける。
-  - title: 完了を採点する
-    baseline: 完了と書いて提出
-    proposed: 保存された成果物を検査
-    detail: 実際の成果物と実行記録を用いる。図は評価の考え方で、特定ハーネスの実装比較ではない。
-- kind: explorer
-  title: 形式を直せば仕事は完了するか
-  caption: 60件の人工成果物に形式不備・根拠不足・未保存を割り当てる。形式と保存を順に修復し、全条件を満たした件数を再計算する。根拠不足は自動的に合格へ変えない。
+interactives: []
 source_review:
   checked: '2026-09-07'
   url: https://arxiv.org/html/2605.27922
-  scope: arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。
+  scope: 一次資料の方法・数式・実験条件を再確認。図は説明用の再構成。著者の性能・運用結果は独立再現していない。
+teaching_figures:
+- kind: equations
+  id: score
+  title: 完了度が同じでも過程の採点で差が出る
+  after: method
+  locator: §3.4
+  rationale: 合成スライダーより採点の積構造を直接示す。
+  caption: 論文の採点式。Security以外は0〜1へ正規化する。
+  steps:
+  - name: 過程の3軸を平均
+    formula: P = (Robustness + ToolUse + Consistency) / 3
+    explanation: 障害への対処、ツールの適切さ、状態と行動の整合性を評価する。PはLLM評価を含む。
+  - name: 許可違反をゲートにする
+    formula: TaskScore = Security × Completion × P
+    explanation: Securityは0または1。明示された許可・セキュリティ制約に違反すれば、完了度が高くても総合点は0になる。
+  - name: 集計は各タスクの積から
+    formula: MeanScore = (Σᵢ TaskScoreᵢ) / N
+    explanation: 平均完了度と平均過程点を後から掛けても、一般には同じ平均点にならない。
+  source: https://arxiv.org/html/2605.27922
+- kind: chart
+  id: harness-scores
+  title: 6構成の総合点：同じタスクとモデル群で比較
+  after: evidence
+  locator: 表2
+  rationale: 評価設計に対応する実測値を共通尺度で比較する。
+  caption: 著者の報告値。106タスク・8モデルの平均。Codexの別枠評価は含めない。信頼区間はこの表に記載されていない。
+  unit: 点（100点換算）
+  maximum: 100
+  bars:
+  - label: OpenClaw
+    value: 52.4
+  - label: NanoBot
+    value: 76.2
+  - label: Hermes
+    value: 71.2
+  - label: ZeroClaw
+    value: 61.4
+  - label: NullClaw
+    value: 64.4
+  - label: Moltis
+    value: 68.8
+  source: https://arxiv.org/html/2605.27922
