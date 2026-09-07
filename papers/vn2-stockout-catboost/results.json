@@ -1,0 +1,21 @@
+{
+  "note": "単一 SKU・一期間の合成例。CatBoost、二週リードタイム、公式 VN2 simulator は含まない。",
+  "experiments": [
+    {
+      "name": "CPU-only synthetic toy",
+      "dataset": "deterministic synthetic",
+      "seed": 0,
+      "metrics": {
+        "latent demand": {
+          "真値": 20,
+          "stockout 時の観測販売": 8,
+          "mask 後の推定": 19
+        },
+        "inventory cost": {
+          "sales=demand の注文": 72,
+          "cost-aware order-up-to": 28
+        }
+      }
+    }
+  ]
+}

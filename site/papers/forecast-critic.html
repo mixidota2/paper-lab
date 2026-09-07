@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="forecast の誤差順位とは別に、LLM が trend・時点ずれ・販促 spike を批評して poor forecast を見つけられるかを問う。"><title>The Forecast Critic: Leveraging Large Language Models for Poor Forecast Identification | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
+<main id="paper" class="paper shell">
+<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2512.12059</span></nav>
+<header class="paper-hero"><p class="priority priority--worth">Park / Exploration</p><h1>The Forecast Critic: Leveraging Large Language Models for Poor Forecast Identification</h1><p class="authors">Luke Bhan, Hanyu Zhang, Andrew Gordon Wilson, Michael W. Mahoney, Chuck Arvin</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2512.12059" rel="noopener">2512.12059</a></dd></div><div><dt>投稿</dt><dd>2025-12-12</dd></div><div><dt>収録</dt><dd>2025</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2512.12059" rel="noopener">原典を読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2512.12059" rel="noopener">PDF</a></div></header>
+<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
+<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid"><figure><img src="../figures/forecast-critic/figures/loop.svg" alt="forecast–critic–decision" loading="lazy"><figcaption><strong>forecast–critic–decision</strong><br>critic は予測器を置換せず、review queue を作る。</figcaption></figure><figure><img src="../figures/forecast-critic/figures/visibility.svg" alt="critic に見えるもの" loading="lazy"><figcaption><strong>critic に見えるもの</strong><br>系列、予測、販促文脈があっても将来の真値は見えない。</figcaption></figure><figure><img src="../figures/forecast-critic/figures/failures.svg" alt="異なる失敗を拾う" loading="lazy"><figcaption><strong>異なる失敗を拾う</strong><br>MAPE の順位と過信・spike miss の警告は一致しない。</figcaption></figure></div></section>
+<div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>forecast が出た後にも、極端な flatness や既知販促を無視した spike miss を見つける仕事がある。point error が後日まで分からない状況で、critic は先行アラートになり得る。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>MAPE は実績が出るまで使えず、平均誤差が低くても危険な一件を隠す。言語や画像の販促情報を予測器に入れず、review にだけ使う設計もあり得る。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>Forecast Critic は LLM に forecast monitoring をさせ、temporal misalignment、trend inconsistency、spike error を検出できるかを実験する。Abstract は最良 model F1 0.88、human F1 0.97、promo context を含む spike 判定 F1 0.84、M5 の unreasonable forecast は sCRPS が少なくとも 10% 高いと報告する。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>これは forecast を良くする手法ではなく、どの予測を人間や別モデルに回すかを決める monitoring layer と読む。critic 自身の false positive cost と feedback loop の劣化が実務上の中心になる。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p><strong>読書メモ（推論）</strong>。系列形状と context を言語的な期待に照らせば、統計的にあり得るが運用上おかしい予測を拾える。ただし critic がもっともらしい説明を作るだけの risk がある。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>Abstract の synthetic/real-world experiments は promise を示すが、LLM version、prompt、cost、distribution shift に感度がある。F1 をそのまま自社の alert precision とみなせない。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p><code>uv run papers/forecast-critic/run.py</code> は bias と under-dispersion を flag する規則 critic と raw MAPE ranking を比較する。LLM は呼ばない。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p class="callout-body"><em>LLM judge の代替ではなく規則ベースの批評器。言語・画像コンテキストや論文の F1 は検証しない。</em></p>
+<h3>CPU-only synthetic toy</h3>
+<ul><li><strong>dataset</strong>: deterministic synthetic</li><li><strong>seed</strong>: 0</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>MAPE ranking</th><th>bias/under-dispersion critic</th><th>promotion spike miss</th><th>overconfident flat forecast</th></tr></thead><tbody><tr><th scope='row'>bad forecast flags</th><td>2</td><td>4</td><td></td><td></td></tr><tr><th scope='row'>different failures found</th><td></td><td></td><td>1</td><td>1</td></tr></tbody></table>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;LLM judge の代替ではなく規則ベースの批評器。言語・画像コンテキストや論文の F1 は検証しない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;CPU-only synthetic toy&quot;,
+      &quot;dataset&quot;: &quot;deterministic synthetic&quot;,
+      &quot;seed&quot;: 0,
+      &quot;metrics&quot;: {
+        &quot;bad forecast flags&quot;: {
+          &quot;MAPE ranking&quot;: 2,
+          &quot;bias/under-dispersion critic&quot;: 4
+        },
+        &quot;different failures found&quot;: {
+          &quot;promotion spike miss&quot;: 1,
+          &quot;overconfident flat forecast&quot;: 1
+        }
+      }
+    }
+  ]
+}</code></pre></details><p>規則 critic は spike miss と過信 flat forecast を別に数える。paper の LLM F1 や multimodal reasoning の再現ではない。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p><strong>メカニズムは PARTIAL</strong>。誤差ランキングとは異なる failure taxonomy を持つ critic が review target を増やし得る。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>LLM reasoning、image/context 入力、F1、M5 sCRPS、human comparison、deployment cost は未検証である。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p>CPU-only の透明な rule set を使い、LLM の代理であることを明記した。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>Lab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>monitoring loop</td>
+<td><code>loop.svg</code></td>
+</tr>
+<tr>
+<td>contextual visibility</td>
+<td><code>visibility.svg</code></td>
+</tr>
+<tr>
+<td>poor forecast taxonomy</td>
+<td><code>failures.svg</code> と toy</td>
+</tr>
+</tbody>
+</table></div></section></article></div>
+</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/forecast-critic/lab.yaml</code></p></div></footer>
+</body></html>

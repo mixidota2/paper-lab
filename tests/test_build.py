@@ -12,13 +12,25 @@ EXPECTED = {
     "scaffold-effects-gaia": "2606.08529",
     "case-against-generation-retrieval": "2607.25346",
     "unipinrec": "2606.00422",
+    "tgr": "2609.00986",
+    "harness-bench": "2605.27922",
+    "rest-sequence-ranking": "2609.01240",
+    "apollopfn": "2603.15802",
+    "vn2-stockout-catboost": "2601.18919",
+    "contextual-deconvolution": "2607.25664",
+    "forecast-critic": "2512.12059",
 }
 
 
-def test_library_has_exactly_the_three_requested_arxiv_papers():
+def test_library_has_the_full_registry_catalog_and_a_doi_only_paper():
     labs = load_all_labs(ROOT / "papers")
-    assert {lab.id: lab.arxiv_id for lab in labs} == EXPECTED
-    assert all(lab.urls.arxiv == f"https://arxiv.org/abs/{lab.arxiv_id}" for lab in labs)
+    arxiv_labs = {lab.id: lab.arxiv_id for lab in labs if lab.arxiv_id}
+    assert arxiv_labs == EXPECTED
+    assert len(labs) == 11
+    assert all(lab.urls.arxiv == f"https://arxiv.org/abs/{lab.arxiv_id}" for lab in labs if lab.arxiv_id)
+    shelf = next(lab for lab in labs if lab.id == "whole-foods-shelf")
+    assert not shelf.arxiv_id
+    assert shelf.doi == "10.1145/3764919.3770880"
     assert all(lab.authors and all("et al." not in author for author in lab.authors) for lab in labs)
 
 
@@ -46,6 +58,8 @@ def test_build_is_deterministic_and_has_no_demo_content(tmp_path: Path):
         assert "読書メモ" in page
         assert 'class="figures"' in page
         assert (first / "figures" / paper_id / "figures").is_dir()
+    shelf_html = (first / "papers" / "whole-foods-shelf.html").read_text(encoding="utf-8")
+    assert "10.1145/3764919.3770880" in shelf_html
 
 
 def test_rejects_an_arxiv_url_that_does_not_match_the_identifier(tmp_path: Path):

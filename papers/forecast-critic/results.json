@@ -1,0 +1,20 @@
+{
+  "note": "LLM judge の代替ではなく規則ベースの批評器。言語・画像コンテキストや論文の F1 は検証しない。",
+  "experiments": [
+    {
+      "name": "CPU-only synthetic toy",
+      "dataset": "deterministic synthetic",
+      "seed": 0,
+      "metrics": {
+        "bad forecast flags": {
+          "MAPE ranking": 2,
+          "bias/under-dispersion critic": 4
+        },
+        "different failures found": {
+          "promotion spike miss": 1,
+          "overconfident flat forecast": 1
+        }
+      }
+    }
+  ]
+}

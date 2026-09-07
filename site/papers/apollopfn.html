@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="ApolloPFN は price/promo のような外生変数を native に扱う、time-aware な zero-shot PFN。"><title>Time-Aware Prior Fitted Networks for Zero-Shot Forecasting with Exogenous Variables | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
+<main id="paper" class="paper shell">
+<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2603.15802</span></nav>
+<header class="paper-hero"><p class="priority priority--worth">Worth Reading</p><h1>Time-Aware Prior Fitted Networks for Zero-Shot Forecasting with Exogenous Variables</h1><p class="authors">Andres Potapczynski, Ravi Kiran Selvam, Tatiana Konstantinova, Malcolm Wolff, Kin G. Olivares, Ruijun Ma, Michael W. Mahoney, Andrew Gordon Wilson, Boris N. Oreshkin, Dmitry Efimov</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2603.15802" rel="noopener">2603.15802</a></dd></div><div><dt>投稿</dt><dd>2026-03-16</dd></div><div><dt>収録</dt><dd>2026</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2603.15802" rel="noopener">原典を読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2603.15802" rel="noopener">PDF</a></div></header>
+<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
+<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid"><figure><img src="../figures/apollopfn/figures/prior.svg" alt="時系列 prior と外生パス" loading="lazy"><figcaption><strong>時系列 prior と外生パス</strong><br>合成 prior に time pattern と covariate dependency を入れる。</figcaption></figure><figure><img src="../figures/apollopfn/figures/zero-shot.svg" alt="zero-shot の比較軸" loading="lazy"><figcaption><strong>zero-shot の比較軸</strong><br>学習済み prior の転移と tabular baseline は別の仮説である。</figcaption></figure><figure><img src="../figures/apollopfn/figures/promo.svg" alt="販促 spike" loading="lazy"><figcaption><strong>販促 spike</strong><br>履歴だけでは将来の既知販促を区別できない。</figcaption></figure></div></section>
+<div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>需要は自己回帰的に見えても、販促や価格で不連続に動く。外生変数を無視する forecast は spike を過去ノイズと見なす。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>future covariate は予測時点で利用可能か、後から判明するかを分けなければならない。評価で未来の promo を渡すなら、同じ情報を baseline にも渡す必要がある。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>著者は現行 TSFM の多くが外生変数を無視すると問題化し、temporal pattern、structural change、exogenous dependency を含む synthetic prior と time-aware architecture を持つ ApolloPFN を提案する。M5、電力価格、Air Quality、Solar で baseline を上回ると報告する。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>価値は PFN という名前より、予測時に既知の promo/price を入力契約に入れる点にある。covariate の将来値がない運用では、この強みはそのまま使えない。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p><strong>読書メモ（推論）</strong>。prior が『価格が動くと需要が変わる』分布を含めば、few-shot fitting より前に関係を学べる。ただし店舗・SKU ごとの効果異質性は別問題である。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>arXiv abstract は TMLR 2026 掲載と複数 benchmark の優位を述べる。Chronos-2 や同条件の GBDT と比較しない限り、実務選択の結論は限定的である。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p><code>uv run papers/apollopfn/run.py</code> は販促週を含む八期の合成需要で、履歴だけと既知 flag を比べる。PFN の事前学習はしない。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p class="callout-body"><em>PFN の事前学習ではない。将来の販促が既知なら外生変数を使える、という最小例。</em></p>
+<h3>CPU-only synthetic toy</h3>
+<ul><li><strong>dataset</strong>: deterministic synthetic</li><li><strong>seed</strong>: 0</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>履歴だけ</th><th>既知の販促フラグ</th></tr></thead><tbody><tr><th scope='row'>MAE</th><td>3.25</td><td>0.75</td></tr><tr><th scope='row'>販促週 MAE</th><td>12.0</td><td>2.0</td></tr></tbody></table>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;PFN の事前学習ではない。将来の販促が既知なら外生変数を使える、という最小例。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;CPU-only synthetic toy&quot;,
+      &quot;dataset&quot;: &quot;deterministic synthetic&quot;,
+      &quot;seed&quot;: 0,
+      &quot;metrics&quot;: {
+        &quot;MAE&quot;: {
+          &quot;履歴だけ&quot;: 3.25,
+          &quot;既知の販促フラグ&quot;: 0.75
+        },
+        &quot;販促週 MAE&quot;: {
+          &quot;履歴だけ&quot;: 12.0,
+          &quot;既知の販促フラグ&quot;: 2.0
+        }
+      }
+    }
+  ]
+}</code></pre></details><p>販促週の MAE が下がるのは、真の販促 flag を入力したためである。zero-shot 性能の検証ではない。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p><strong>メカニズムは PARTIAL</strong>。外生情報が将来に利用可能なら、履歴だけでは予測不能な spike を説明できる。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>SRNGN、RoPE/full attention、M5 RMSSE、PFN training、zero-shot transfer、production inventory cost は未検証である。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p>標準ライブラリの平均絶対誤差だけを使う。結果は covariate availability の説明に限定する。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>Lab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>synthetic prior</td>
+<td><code>prior.svg</code></td>
+</tr>
+<tr>
+<td>zero-shot framing</td>
+<td><code>zero-shot.svg</code></td>
+</tr>
+<tr>
+<td>M5 price/promo motivation</td>
+<td><code>promo.svg</code> と toy</td>
+</tr>
+</tbody>
+</table></div></section></article></div>
+</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/apollopfn/lab.yaml</code></p></div></footer>
+</body></html>

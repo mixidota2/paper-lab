@@ -1,0 +1,32 @@
+id: whole-foods-shelf
+arxiv_id: null
+doi: "10.1145/3764919.3770880"
+submitted: "2025-11"
+title: "A Framework to Optimize Shelf Space Allocations for Physical Stores"
+authors: ["Zhen Li", "Yuchen Luo", "Gianluca Grilli", "Xiaoyi Gu", "Bruno Lopez-Videla", "James Renier Domingo"]
+year: 2025
+topics: [ml-systems]
+urls: {paper: https://www.amazon.science/publications/a-framework-to-optimize-shelf-space-allocations-for-physical-stores, arxiv: null, doi: https://doi.org/10.1145/3764919.3770880, pdf: null, official_code: null}
+verdict: "Worth Reading"
+verification: {mechanism: PARTIAL, performance: NOT TESTED, scaling: NOT TESTED, production_applicability: NOT TESTED}
+related_threads: [causal-placement-and-assortment]
+status: published
+summary: "Whole Foods の shelf allocation を、geospatial elasticity・causal lift・制約付き最適化でつなぐ ACM GeoIndustry 2025 の枠組み。"
+figures:
+  - {path: figures/pipeline.svg, title: "elasticity から配分へ", caption: "地理的需要、因果 lift、棚制約を一つの意思決定へつなぐ。"}
+  - {path: figures/bias.svg, title: "棚面積の選択バイアス", caption: "人気商品ほど広い棚を得るなら、単純相関は lift ではない。"}
+  - {path: figures/scenarios.svg, title: "remodeling と新店", caption: "既存店の再配分と新店の初期設計では利用可能な情報が違う。"}
+core_idea:
+  author_claim: "Amazon Science/ACM の記載によれば、framework は geospatial space elasticity、long-term causal lift、constrained shelf-space optimization を組み合わせる。registry の原典確認では Whole Foods case の simulation で remodeling +7.5%、new store +6.7% を報告する。"
+  research_bot_interpretation: "棚面積はランダムに決まらないので、人気順の面積配分を学習するだけでは policy を固定化する。IPW/DR 的な補正は識別の出発点であり、実地 rollout がなければ因果主張はなお脆い。"
+sections:
+  overview: "物理棚は有限で、商品の面積、陳列位置、地域需要を同時に決める。予測値が高い商品へ全て寄せれば、category 制約や exposure の逆因果を見落とす。"
+  problem: "historical shelf space は店長や既存需要で選ばれる。売れたから広い棚なのか、広い棚だから売れたのかを分けずに elasticity を作ると最適化が偏る。"
+  why_it_might_work: "**読書メモ（推論）**。geospatial pooling は店ごとの疎いデータを補い、causal lift を objective に渡せば popularity ではなく増分を配分できる。unmeasured placement policy が強ければ IPW でも残差バイアスは残る。"
+  evidence: "Amazon Science の公開ページと DOI を原典として登録した。PDF はこの作業環境から確認できず、+7.5%/+6.7% は registry に保存された原典読書記録に基づく simulation 結果であり、field experiment として扱わない。"
+  executable_understanding: "`uv run papers/whole-foods-shelf/run.py` は人気と面積割当が相関する合成例で、単純比較と IPW-style weighting、greedy と制約付き配分を並べる。"
+  results: "toy の補正値は正解を保証しない。観測 policy の selection bias が lift 推定を過大に見せる可能性を可視化するだけである。"
+  what_we_verified: "**メカニズムは PARTIAL**。観測上の人気と causal lift を分け、棚制約の下で最適化する必要があることを確認した。"
+  what_we_did_not_verify: "Debiased Hierarchical Group Lasso、DR estimator、Whole Foods data、ACM の simulation、実店舗の増分売上は未検証である。"
+  implementation: "IPW-style の固定数値と小さな allocation value を使う CPU toy である。因果推定器の実装ではない。"
+  mapping: "| 原典 | Lab |\n| --- | --- |\n| geospatial elasticity | `pipeline.svg` |\n| causal lift | `bias.svg` と toy |\n| constrained optimization | `scenarios.svg` |"

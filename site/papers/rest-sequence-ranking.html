@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="ReST は hybrid ranker で sequence branch が shortcut に負ける問題を、推薦向け encoder と補助損失で扱う。"><title>From Language to Behavior: Scaling Sequence Transformers for Industrial Recommendation Ranking with Rec-Native Designs | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
+<main id="paper" class="paper shell">
+<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2609.01240</span></nav>
+<header class="paper-hero"><p class="priority priority--worth">Worth Reading</p><h1>From Language to Behavior: Scaling Sequence Transformers for Industrial Recommendation Ranking with Rec-Native Designs</h1><p class="authors">Jie Chen, Xiangqian Yu, Yanchao Lian, Tan Lu, Run Yang, Zhengchun Shang, Xing Wang, Cheng Chen, Ke Hu, Qiang Li, Tianjiu Yin, Xiaobing Liu</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2609.01240" rel="noopener">2609.01240</a></dd></div><div><dt>投稿</dt><dd>2026-09-01</dd></div><div><dt>収録</dt><dd>2026</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.01240" rel="noopener">原典を読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2609.01240" rel="noopener">PDF</a></div></header>
+<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
+<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid"><figure><img src="../figures/rest-sequence-ranking/figures/shortcut.svg" alt="hybrid fusion の shortcut" loading="lazy"><figcaption><strong>hybrid fusion の shortcut</strong><br>強い非系列 feature が loss を説明すると sequence 側の勾配が細る。</figcaption></figure><figure><img src="../figures/rest-sequence-ranking/figures/asymmetric.svg" alt="重い encoder と軽い decoder" loading="lazy"><figcaption><strong>重い encoder と軽い decoder</strong><br>shared history を一度だけ符号化し、候補ごとに軽く読む。</figcaption></figure><figure><img src="../figures/rest-sequence-ranking/figures/scaling.svg" alt="長さを増やす前の条件" loading="lazy"><figcaption><strong>長さを増やす前の条件</strong><br>長い系列が効くには signal と gradient の入口がいる。</figcaption></figure></div></section>
+<div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>推薦の履歴は noisy で不規則だが、候補は多い。ReST は user history を重く一度処理し、candidate interaction を軽く反復する。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>DLRM-like feature branch が強いと、sequence representation を使わずに loss を下げられる。層や長さを増やしても sequence branch の勾配が小さければ scaling は飽和する。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>ReST は dual-gated attention、rotary positional/temporal embedding、stabilized residual normalization、training-only auxiliary objective を持つ sequence encoder と、heavy encoder/light cross decoder を提案する。Abstract は 50 ms P99 内で online AUC +1.31%、主要 revenue metric +11.93% を報告する。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>『長い Transformer が弱い』のではなく、hybrid の非系列 branch が shortcut になれば sequence encoder に学習信号が届かない、という診断が中心である。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p><strong>読書メモ（推論）</strong>。補助 sequence loss は shortcut と独立した誤差信号を作る。これは accuracy を保証せず、候補 feature を外した controlled ablation で確認すべき仮説である。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>Abstract は public/industrial benchmark と一週間の広告 platform A/B を報告する。著者の production 数値は強い実務証拠だが、feature、traffic、objective を固定した外部比較ではない。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p><code>uv run papers/rest-sequence-ranking/run.py</code> は shortcut fusion と補助損失の合成 gradient share を比較する。Transformer を学習しない。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p class="callout-body"><em>固定した合成勾配の会計。ReST の attention、16k 系列、online A/B は再現しない。</em></p>
+<h3>CPU-only synthetic toy</h3>
+<ul><li><strong>dataset</strong>: deterministic synthetic</li><li><strong>seed</strong>: 0</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>shortcut fusion</th><th>auxiliary sequence loss</th></tr></thead><tbody><tr><th scope='row'>sequence branch gradient share</th><td>0.08</td><td>0.31</td></tr><tr><th scope='row'>synthetic sequence accuracy</th><td>0.58</td><td>0.79</td></tr></tbody></table>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;固定した合成勾配の会計。ReST の attention、16k 系列、online A/B は再現しない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;CPU-only synthetic toy&quot;,
+      &quot;dataset&quot;: &quot;deterministic synthetic&quot;,
+      &quot;seed&quot;: 0,
+      &quot;metrics&quot;: {
+        &quot;sequence branch gradient share&quot;: {
+          &quot;shortcut fusion&quot;: 0.08,
+          &quot;auxiliary sequence loss&quot;: 0.31
+        },
+        &quot;synthetic sequence accuracy&quot;: {
+          &quot;shortcut fusion&quot;: 0.58,
+          &quot;auxiliary sequence loss&quot;: 0.79
+        }
+      }
+    }
+  ]
+}</code></pre></details><p>補助損失を足した側で sequence branch の share を大きく置く toy である。実 AUC や 16k token scaling の証明ではない。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p><strong>メカニズムは PARTIAL</strong>。shortcut があると系列側の寄与が小さくなり、直接の損失を加える理由があることを可視化した。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>DGA、RoTE、projection-free KV、shared-prefix serving、online A/B、P99 は未検証である。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p>数値は説明用に固定した CPU toy である。学習済みモデルの代用品として解釈しない。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>Lab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sequence starvation</td>
+<td><code>shortcut.svg</code> と toy</td>
+</tr>
+<tr>
+<td>encoder/cross decoder</td>
+<td><code>asymmetric.svg</code></td>
+</tr>
+<tr>
+<td>scaling</td>
+<td><code>scaling.svg</code></td>
+</tr>
+</tbody>
+</table></div></section></article></div>
+</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/rest-sequence-ranking/lab.yaml</code></p></div></footer>
+</body></html>

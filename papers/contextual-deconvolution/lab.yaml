@@ -1,0 +1,31 @@
+id: contextual-deconvolution
+arxiv_id: "2607.25664"
+submitted: "2026-07-28"
+title: "Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail"
+authors: ["Mohammad Forouhesh"]
+year: 2026
+topics: [ml-systems]
+urls: {paper: https://arxiv.org/abs/2607.25664, arxiv: https://arxiv.org/abs/2607.25664, pdf: https://arxiv.org/pdf/2607.25664, official_code: null}
+verdict: "Worth Reading"
+verification: {mechanism: PARTIAL, performance: NOT TESTED, scaling: NOT TESTED, production_applicability: NOT TESTED}
+related_threads: [tabular-vs-neural-forecasting, observed-sales-vs-latent-demand]
+status: published
+summary: "販促 shock と滑らかな baseline を分け、誤差でなく h/p の在庫費用比で安定化の得失を問う。"
+figures:
+  - {path: figures/deconv.svg, title: "baseline と販促 carryover", caption: "transfer-function 的に shock と構造を分ける。"}
+  - {path: figures/tradeoff.svg, title: "h/p の境界", caption: "滑らかさは常に総費用を下げるわけではない。"}
+  - {path: figures/bullwhip.svg, title: "bullwhip の位置", caption: "forecast variance は発注 variance を経て安全在庫に影響する。"}
+core_idea:
+  author_claim: "CD は kernel-modulated banded operator で transient promotion shock と smooth baseline を convex に分け、hierarchical partial pooling で catalog scale にする。著者は M5 30,490 SKU と Favorita 2,845 item で、h/p が約 20% を超える時だけ総費用が低いと報告する。"
+  research_bot_interpretation: "この論文の良い点は『より安定』を無条件の勝ちにしないことだ。spike を薄める forecast は holding cost を下げても、stockout cost が重い業態では危険になり得る。"
+sections:
+  overview: "販促は一日だけで終わるとは限らず、carryover と baseline を混ぜる。単純 smoothing は二つを同時に消してしまう。"
+  problem: "低い variance ratio は安全在庫を減らすが、event spike の under-provision を伴う。統計誤差と発注費用の目的関数は異なる。"
+  why_it_might_work: "**読書メモ（推論）**。kernel が impulsive response では identity に退避するなら、無理に carryover を作らずに済む。future promo calendar の可用性が前提である。"
+  evidence: "Abstract は holding/stockout 比の 95% CI [17%,25%] と catastrophic error の比較を記載する。単一著者の長い preprint なので、第三者の cost simulation で再確認したい。"
+  executable_understanding: "`uv run papers/contextual-deconvolution/run.py` は baseline と stable forecast の費用順位が h/p で反転する表を出す。deconvolution は解かない。"
+  results: "合成表は安定化が low h/p で悪化し high h/p で有利になる例である。20% の閾値を再推定したものではない。"
+  what_we_verified: "**メカニズムは PARTIAL**。variance を下げる選択の評価には、holding と shortage の比を明示する必要がある。"
+  what_we_did_not_verify: "operator fitting、partial pooling、M5/Favorita、error dispersion、bullwhip の実測は未検証である。"
+  implementation: "短い deterministic cost sweep で、予測器の優劣ではなく decision boundary を示す。"
+  mapping: "| 原論文 | Lab |\n| --- | --- |\n| kernel decomposition | `deconv.svg` |\n| inventory-cost sweep | `tradeoff.svg` と toy |\n| operational motivation | `bullwhip.svg` |"

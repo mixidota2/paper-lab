@@ -1,0 +1,31 @@
+id: harness-bench
+arxiv_id: "2605.27922"
+submitted: "2026-05-27"
+title: "Harness-Bench: Measuring Harness Effects across Models in Realistic Agent Workflows"
+authors: ["Yilun Yao", "Xinyu Tan", "Chao-Hsuan Liu", "Yaoming Li", "Zhengyang Wang", "Wenhan Yu", "Zhewen Tan", "Yuxuan Tian", "Guangxiang Zhao", "Lin Sun", "Xiangzheng Zhang", "Tong Yang"]
+year: 2026
+topics: [ai-agent-systems, agent-architecture, evaluation]
+urls: {paper: https://arxiv.org/abs/2605.27922, arxiv: https://arxiv.org/abs/2605.27922, pdf: https://arxiv.org/pdf/2605.27922, official_code: null}
+verdict: "Worth Reading"
+verification: {mechanism: PARTIAL, performance: NOT TESTED, scaling: NOT TESTED, production_applicability: NOT TESTED}
+related_threads: [agent-architecture-and-harness]
+status: published
+summary: "agent の能力を base model 単体でなく model–harness 構成として測る、106 sandbox task の診断 benchmark。"
+figures:
+  - {path: figures/unit.svg, title: "評価単位は model–harness", caption: "同じ model でも context、tool、recovery が違えば軌跡が変わる。"}
+  - {path: figures/failures.svg, title: "実行整合性の失敗", caption: "もっともらしい推論と成果物の契約充足は別である。"}
+  - {path: figures/gap.svg, title: "model gap と harness gap", caption: "最終正解率だけでは差の場所を特定できない。"}
+core_idea:
+  author_claim: "Harness-Bench は共有 task environment、budget、protocol の下で、native harness behavior を保った構成を比較する。106 の offline sandbox task と 5,194 trajectory で、completion、process quality、efficiency、failure を記録し、能力は model–harness configuration で報告すべきだと主張する。"
+  research_bot_interpretation: "これは harness の因果効果を完全に分離する実験ではない。それでも procurement や評価の単位を『モデル名』から『実行契約を含む構成』へ戻すための有用な診断枠組みである。"
+sections:
+  overview: "agent は tool、workspace、permission、context、recovery を通して仕事をする。この system layer を harness と呼び、モデルを固定しても結果が動く点を評価対象にする。"
+  problem: "final answer が正しく見えても、ファイル形式、validator、tool feedback、workspace state を外せば実務成果物として失敗する。complete agent を比較するだけでは、どの層が差を作ったか読めない。"
+  why_it_might_work: "**読書メモ（推論）**。回復回数や契約違反を trace と共に残せば、能力不足と orchestration の不備を切り分けやすい。ただし、harness ごとに native な設計が異なるため、公平な budget 設計が結論を左右する。"
+  evidence: "Abstract は task を manual review し、artifact、trace、usage、validator output を保存したと述べる。そこで見える差は benchmark 設計内の観測であり、実サービス全般へ直接外挿はできない。"
+  executable_understanding: "`uv run papers/harness-bench/run.py` は 60 個の scripted task で、固定規則と回復規則の format/contract failure を数える。LLM API は呼ばない。"
+  results: "合成結果は recovery が最終契約失敗を減らし得ることを示すだけである。どの実 model が優れるかは何も示さない。"
+  what_we_verified: "**メカニズムは PARTIAL**。最終 completion と contract failure を別メトリクスにすると、同じ task set の比較でも結論が変わる。"
+  what_we_did_not_verify: "106 task、6 harness、8 model、execution-alignment taxonomy の割合、token efficiency、現場の安全性は未検証である。"
+  implementation: "scripted agent の失敗位置を固定し、recovery rule だけを替える。再現性のため seed は使わない。"
+  mapping: "| 原論文 | Lab |\n| --- | --- |\n| model–harness configuration | `unit.svg` |\n| execution-alignment failures | `failures.svg` と toy |\n| configuration-level reporting | `gap.svg` |"

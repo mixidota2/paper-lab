@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Tencent の生成推薦を、cascade を一気に消す話ではなく、ranker・retrieval channel・slate を段階的に置換する設計として読む。"><title>TGR: Advancing Industrial Recommendation from Generative-Paradigm Ranking toward Unified Generation and Reasoning | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
+<main id="paper" class="paper shell">
+<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2609.00986</span></nav>
+<header class="paper-hero"><p class="priority priority--must">Must Read</p><h1>TGR: Advancing Industrial Recommendation from Generative-Paradigm Ranking toward Unified Generation and Reasoning</h1><p class="authors">Lei Cheng, Haonan Hu, Beibei Kong, Yudong Li, Zang Li, Yunsheng Pang, Hongyang Su, Jianchao Tu, Yunlong Wang, Bing Wen, Junzhang Zhu, Shaojie Zhu, Chengxiang Zhuo</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2609.00986" rel="noopener">2609.00986</a></dd></div><div><dt>投稿</dt><dd>2026-09-01</dd></div><div><dt>収録</dt><dd>2026</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.00986" rel="noopener">原典を読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2609.00986" rel="noopener">PDF</a></div></header>
+<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
+<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid"><figure><img src="../figures/tgr/figures/cascade.svg" alt="段階ごとの置換" loading="lazy"><figcaption><strong>段階ごとの置換</strong><br>CCFormer、BARGE、HiGR は既存 cascade に入る位置が異なる。</figcaption></figure><figure><img src="../figures/tgr/figures/ranking.svg" alt="score-out と生成 slate" loading="lazy"><figcaption><strong>score-out と生成 slate</strong><br>per-item 出力と token decode は同じ「生成推薦」ではない。</figcaption></figure><figure><img src="../figures/tgr/figures/channel.svg" alt="BARGE は retrieval channel" loading="lazy"><figcaption><strong>BARGE は retrieval channel</strong><br>既存 funnel の全面代替ではなく、候補源の一つとして読む。</figcaption></figure></div></section>
+<div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>推薦 cascade は retrieval、pre-ranking、ranking、reranking の計算量を分ける。TGR はこの境界を残しつつ、生成的な表現を各段へ持ち込む産業報告である。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>SID の階層 token を単純に生成すると、item の境界をまたぐ token 列や、意味が近いが別 item へ流れる drift が起こる。ranking 側にも、候補ごとの多目的 score を低遅延で返す制約が残る。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>著者は CCFormer による generative-paradigm ranking、BARGE/HiGR による生成 retrieval・slate、offline reason token を組み合わせた TGR を示す。BARGE は item-boundary loss と semantic drift を ICA、HPR、DPD で扱うと説明する。Abstract は CCFormer の二面完全展開、BARGE の +0.60% CTR、+1.70% reading time を報告する。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>全面的な end-to-end 置換より、遅延と GPU 予算をそろえて部品ごとに置く運用原則に価値がある。SID を decode できても、既存 retrieval を安全に捨てられるとは限らない。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p><strong>読書メモ（推論）</strong>。候補 channel と ranker を分ければ、生成 decode の失敗を既存 channel で吸収しながら、良い領域だけを rollout できる。失敗率、coverage、tail latency を同時に測らなければ、CTR だけで安全性は分からない。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>Abstract は BARGE の offline Hit@5 +10.2–16.9%、CCFormer の最大 +3.57% CTR と +1.71% advertising revenue を記す。これらは Tencent 内 A/B の著者報告で、外部が同じ traffic と candidate pool で再現した数値ではない。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p><code>uv run papers/tgr/run.py</code> は、800 件を score する ranker と 12 token を decode する slate の演算単位を並べる。item ID、attention、実測 latency は実装しない。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p class="callout-body"><em>合成の演算回数であり、Tencent の latency・CTR・GPU 利用率ではない。</em></p>
+<h3>CPU-only synthetic toy</h3>
+<ul><li><strong>dataset</strong>: deterministic synthetic</li><li><strong>seed</strong>: 0</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>token_steps</th><th>candidate_scores</th></tr></thead><tbody><tr><th scope='row'>generative_slate</th><td>12</td><td>0</td></tr><tr><th scope='row'>ccformer</th><td>0</td><td>800</td></tr></tbody></table>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成の演算回数であり、Tencent の latency・CTR・GPU 利用率ではない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;CPU-only synthetic toy&quot;,
+      &quot;dataset&quot;: &quot;deterministic synthetic&quot;,
+      &quot;seed&quot;: 0,
+      &quot;metrics&quot;: {
+        &quot;generative_slate&quot;: {
+          &quot;token_steps&quot;: 12,
+          &quot;candidate_scores&quot;: 0
+        },
+        &quot;ccformer&quot;: {
+          &quot;token_steps&quot;: 0,
+          &quot;candidate_scores&quot;: 800
+        }
+      }
+    }
+  ]
+}</code></pre></details><p>下表は合成の work counter であり、paper の性能値ではない。比較の目的は、生成 slate と per-item score で serving contract が異なることを確かめる点にある。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p><strong>メカニズムは PARTIAL</strong>。小実験では score-per-item と token decode の計算単位が違うこと、channel と funnel replacement を区別すべきことを確認した。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>ICA/HPR/DPD、CCFormer、HiGR、reason token、Hit@5、online A/B、億規模 serving は未検証である。反証には matched latency/candidate pool での SID invalid rate と channel ablation が要る。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p>標準ライブラリだけで動く決定的な counter である。生成モデルの性能比較に見せないため、結果 JSON に境界を明記した。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>Lab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Abstract / TGR-GenRank</td>
+<td><code>ranking.svg</code></td>
+</tr>
+<tr>
+<td>TGR-GenRec (BARGE)</td>
+<td><code>channel.svg</code> と toy</td>
+</tr>
+<tr>
+<td>cascade design principle</td>
+<td><code>cascade.svg</code></td>
+</tr>
+</tbody>
+</table></div></section></article></div>
+</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/tgr/lab.yaml</code></p></div></footer>
+</body></html>

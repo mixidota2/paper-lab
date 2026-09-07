@@ -2,7 +2,7 @@
 
 arXiv の原論文を起点にした、個人用の静的研究ライブラリです。公開ページは日本語で表示し、論文に書かれたことと読書メモを明確に分けます。
 
-対象は三本だけです。
+現在は 11 本の Lab を収録しています。
 
 `papers/<id>/lab.yaml` が唯一のコンテンツソースです。`site/` は毎回作り直す生成物なので、直接編集しません。
 
@@ -25,6 +25,14 @@ uv run python -m http.server --directory site 8000
 uv run papers/scaffold-effects-gaia/run.py
 uv run papers/case-against-generation-retrieval/run.py
 uv run papers/unipinrec/run.py
+uv run papers/tgr/run.py
+uv run papers/harness-bench/run.py
+uv run papers/rest-sequence-ranking/run.py
+uv run papers/apollopfn/run.py
+uv run papers/vn2-stockout-catboost/run.py
+uv run papers/contextual-deconvolution/run.py
+uv run papers/whole-foods-shelf/run.py
+uv run papers/forecast-critic/run.py
 ```
 
 最後のコマンドのあと、<http://localhost:8000> を開きます。ビルドは決定的で、古い生成ファイルを残しません。

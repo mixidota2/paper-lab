@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="VN2 winner report: stockout を意識した global CatBoost forecast と不足・保管費を織り込む注文方策。"><title>One Global Model, Many Behaviors: Stockout-Aware Feature Engineering and Dynamic Scaling for Multi-Horizon Retail Demand Forecasting with a Cost-Aware Ordering Policy (VN2 Winner Report) | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
+<main id="paper" class="paper shell">
+<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2601.18919</span></nav>
+<header class="paper-hero"><p class="priority priority--worth">Worth Reading</p><h1>One Global Model, Many Behaviors: Stockout-Aware Feature Engineering and Dynamic Scaling for Multi-Horizon Retail Demand Forecasting with a Cost-Aware Ordering Policy (VN2 Winner Report)</h1><p class="authors">Bartosz Szabłowski</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2601.18919" rel="noopener">2601.18919</a></dd></div><div><dt>投稿</dt><dd>2026-01-26</dd></div><div><dt>収録</dt><dd>2026</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2601.18919" rel="noopener">原典を読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2601.18919" rel="noopener">PDF</a></div></header>
+<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
+<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid"><figure><img src="../figures/vn2-stockout-catboost/figures/censoring.svg" alt="観測販売と潜在需要" loading="lazy"><figcaption><strong>観測販売と潜在需要</strong><br>欠品時の販売は需要の下限であって同値ではない。</figcaption></figure><figure><img src="../figures/vn2-stockout-catboost/figures/masking.svg" alt="stockout-aware feature" loading="lazy"><figcaption><strong>stockout-aware feature</strong><br>censored observation を通常 lag として学習しない。</figcaption></figure><figure><img src="../figures/vn2-stockout-catboost/figures/order.svg" alt="forecast から注文へ" loading="lazy"><figcaption><strong>forecast から注文へ</strong><br>誤差最小と在庫費用最小は一致しない。</figcaption></figure></div></section>
+<div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>注文は forecast の後段ではなく、shortage cost と holding cost を通じて forecast の誤差を増幅する。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>在庫が 0 なら観測販売は需要でなく供給制約の結果になる。過去 sales を真値として学べば、次の order-up-to も低くなり得る。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>VN2 は二週リードタイムの週次 inventory challenge で、global multi-horizon CatBoost、stockout-aware feature、per-series scaling、time weights と cost-aware order-up-to policy を組み合わせる。著者は公式 simulation 六 round での一位を報告する。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>欠品 flag で feature を mask することは latent demand を構造推定することではない。それでも sales=demand を無批判に lag に入れるより、意思決定の歪みを減らす実務的な第一歩になる。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p><strong>読書メモ（推論）</strong>。欠品を flag/mask し、需要パターンを global に共有すれば、censored lag を説明変数として信じ込む経路を弱められる。代替需要や欠品検知漏れは残る。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>Abstract は CatBoost と公式 six-round simulation を明記する。competition の勝利は同 simulator 内の意思決定証拠であって、店舗への一般化を保証しない。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p><code>uv run papers/vn2-stockout-catboost/run.py</code> は真の需要 20 に対する stockout sales 8 を置き、naive と cost-aware order の費用を比較する。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p class="callout-body"><em>単一 SKU・一期間の合成例。CatBoost、二週リードタイム、公式 VN2 simulator は含まない。</em></p>
+<h3>CPU-only synthetic toy</h3>
+<ul><li><strong>dataset</strong>: deterministic synthetic</li><li><strong>seed</strong>: 0</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>真値</th><th>stockout 時の観測販売</th><th>mask 後の推定</th><th>sales=demand の注文</th><th>cost-aware order-up-to</th></tr></thead><tbody><tr><th scope='row'>latent demand</th><td>20</td><td>8</td><td>19</td><td></td><td></td></tr><tr><th scope='row'>inventory cost</th><td></td><td></td><td></td><td>72</td><td>28</td></tr></tbody></table>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;単一 SKU・一期間の合成例。CatBoost、二週リードタイム、公式 VN2 simulator は含まない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;CPU-only synthetic toy&quot;,
+      &quot;dataset&quot;: &quot;deterministic synthetic&quot;,
+      &quot;seed&quot;: 0,
+      &quot;metrics&quot;: {
+        &quot;latent demand&quot;: {
+          &quot;真値&quot;: 20,
+          &quot;stockout 時の観測販売&quot;: 8,
+          &quot;mask 後の推定&quot;: 19
+        },
+        &quot;inventory cost&quot;: {
+          &quot;sales=demand の注文&quot;: 72,
+          &quot;cost-aware order-up-to&quot;: 28
+        }
+      }
+    }
+  ]
+}</code></pre></details><p>toy は observation censoring と asymmetric cost を同時に無視する危険を示す。CatBoost の精度を評価していない。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p><strong>メカニズムは PARTIAL</strong>。stockout sales を demand と置くと注文量が低くなり、不足費用が大きくなる構図を確認した。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>GBDT、dynamic scaling、二週 lead time、VN2 official −13.2% cost、実在商品の substitution は未検証である。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p>一 SKU の決定的な費用表である。構造的 censoring model ではない。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>Lab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>stockout-aware features</td>
+<td><code>censoring.svg</code>, <code>masking.svg</code></td>
+</tr>
+<tr>
+<td>cost-aware policy</td>
+<td><code>order.svg</code> と toy</td>
+</tr>
+</tbody>
+</table></div></section></article></div>
+</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/vn2-stockout-catboost/lab.yaml</code></p></div></footer>
+</body></html>

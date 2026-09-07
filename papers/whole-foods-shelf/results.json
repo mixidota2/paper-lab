@@ -1,0 +1,20 @@
+{
+  "note": "合成の割当バイアスと棚制約。Whole Foods のデータ、実地因果効果、ACM の最適化は再現しない。",
+  "experiments": [
+    {
+      "name": "CPU-only synthetic toy",
+      "dataset": "deterministic synthetic",
+      "seed": 0,
+      "metrics": {
+        "estimated lift": {
+          "人気順の単純比較": 0.31,
+          "IPW-style weighting": 0.14
+        },
+        "constrained allocation value": {
+          "greedy popularity": 118,
+          "elasticity-aware": 132
+        }
+      }
+    }
+  ]
+}

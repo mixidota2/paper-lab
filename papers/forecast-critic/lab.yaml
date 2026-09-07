@@ -1,0 +1,31 @@
+id: forecast-critic
+arxiv_id: "2512.12059"
+submitted: "2025-12-12"
+title: "The Forecast Critic: Leveraging Large Language Models for Poor Forecast Identification"
+authors: ["Luke Bhan", "Hanyu Zhang", "Andrew Gordon Wilson", "Michael W. Mahoney", "Chuck Arvin"]
+year: 2025
+topics: [ai-agent-systems, evaluation]
+urls: {paper: https://arxiv.org/abs/2512.12059, arxiv: https://arxiv.org/abs/2512.12059, pdf: https://arxiv.org/pdf/2512.12059, official_code: null}
+verdict: "Park / Exploration"
+verification: {mechanism: PARTIAL, performance: NOT TESTED, scaling: NOT TESTED, production_applicability: NOT TESTED}
+related_threads: [ml-pipeline-modularity, tabular-vs-neural-forecasting]
+status: published
+summary: "forecast の誤差順位とは別に、LLM が trend・時点ずれ・販促 spike を批評して poor forecast を見つけられるかを問う。"
+figures:
+  - {path: figures/loop.svg, title: "forecast–critic–decision", caption: "critic は予測器を置換せず、review queue を作る。"}
+  - {path: figures/visibility.svg, title: "critic に見えるもの", caption: "系列、予測、販促文脈があっても将来の真値は見えない。"}
+  - {path: figures/failures.svg, title: "異なる失敗を拾う", caption: "MAPE の順位と過信・spike miss の警告は一致しない。"}
+core_idea:
+  author_claim: "Forecast Critic は LLM に forecast monitoring をさせ、temporal misalignment、trend inconsistency、spike error を検出できるかを実験する。Abstract は最良 model F1 0.88、human F1 0.97、promo context を含む spike 判定 F1 0.84、M5 の unreasonable forecast は sCRPS が少なくとも 10% 高いと報告する。"
+  research_bot_interpretation: "これは forecast を良くする手法ではなく、どの予測を人間や別モデルに回すかを決める monitoring layer と読む。critic 自身の false positive cost と feedback loop の劣化が実務上の中心になる。"
+sections:
+  overview: "forecast が出た後にも、極端な flatness や既知販促を無視した spike miss を見つける仕事がある。point error が後日まで分からない状況で、critic は先行アラートになり得る。"
+  problem: "MAPE は実績が出るまで使えず、平均誤差が低くても危険な一件を隠す。言語や画像の販促情報を予測器に入れず、review にだけ使う設計もあり得る。"
+  why_it_might_work: "**読書メモ（推論）**。系列形状と context を言語的な期待に照らせば、統計的にあり得るが運用上おかしい予測を拾える。ただし critic がもっともらしい説明を作るだけの risk がある。"
+  evidence: "Abstract の synthetic/real-world experiments は promise を示すが、LLM version、prompt、cost、distribution shift に感度がある。F1 をそのまま自社の alert precision とみなせない。"
+  executable_understanding: "`uv run papers/forecast-critic/run.py` は bias と under-dispersion を flag する規則 critic と raw MAPE ranking を比較する。LLM は呼ばない。"
+  results: "規則 critic は spike miss と過信 flat forecast を別に数える。paper の LLM F1 や multimodal reasoning の再現ではない。"
+  what_we_verified: "**メカニズムは PARTIAL**。誤差ランキングとは異なる failure taxonomy を持つ critic が review target を増やし得る。"
+  what_we_did_not_verify: "LLM reasoning、image/context 入力、F1、M5 sCRPS、human comparison、deployment cost は未検証である。"
+  implementation: "CPU-only の透明な rule set を使い、LLM の代理であることを明記した。"
+  mapping: "| 原論文 | Lab |\n| --- | --- |\n| monitoring loop | `loop.svg` |\n| contextual visibility | `visibility.svg` |\n| poor forecast taxonomy | `failures.svg` と toy |"

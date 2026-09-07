@@ -1,0 +1,31 @@
+id: vn2-stockout-catboost
+arxiv_id: "2601.18919"
+submitted: "2026-01-26"
+title: "One Global Model, Many Behaviors: Stockout-Aware Feature Engineering and Dynamic Scaling for Multi-Horizon Retail Demand Forecasting with a Cost-Aware Ordering Policy (VN2 Winner Report)"
+authors: ["Bartosz Szabłowski"]
+year: 2026
+topics: [ml-systems]
+urls: {paper: https://arxiv.org/abs/2601.18919, arxiv: https://arxiv.org/abs/2601.18919, pdf: https://arxiv.org/pdf/2601.18919, official_code: null}
+verdict: "Worth Reading"
+verification: {mechanism: PARTIAL, performance: NOT TESTED, scaling: NOT TESTED, production_applicability: NOT TESTED}
+related_threads: [tabular-vs-neural-forecasting, observed-sales-vs-latent-demand]
+status: published
+summary: "VN2 winner report: stockout を意識した global CatBoost forecast と不足・保管費を織り込む注文方策。"
+figures:
+  - {path: figures/censoring.svg, title: "観測販売と潜在需要", caption: "欠品時の販売は需要の下限であって同値ではない。"}
+  - {path: figures/masking.svg, title: "stockout-aware feature", caption: "censored observation を通常 lag として学習しない。"}
+  - {path: figures/order.svg, title: "forecast から注文へ", caption: "誤差最小と在庫費用最小は一致しない。"}
+core_idea:
+  author_claim: "VN2 は二週リードタイムの週次 inventory challenge で、global multi-horizon CatBoost、stockout-aware feature、per-series scaling、time weights と cost-aware order-up-to policy を組み合わせる。著者は公式 simulation 六 round での一位を報告する。"
+  research_bot_interpretation: "欠品 flag で feature を mask することは latent demand を構造推定することではない。それでも sales=demand を無批判に lag に入れるより、意思決定の歪みを減らす実務的な第一歩になる。"
+sections:
+  overview: "注文は forecast の後段ではなく、shortage cost と holding cost を通じて forecast の誤差を増幅する。"
+  problem: "在庫が 0 なら観測販売は需要でなく供給制約の結果になる。過去 sales を真値として学べば、次の order-up-to も低くなり得る。"
+  why_it_might_work: "**読書メモ（推論）**。欠品を flag/mask し、需要パターンを global に共有すれば、censored lag を説明変数として信じ込む経路を弱められる。代替需要や欠品検知漏れは残る。"
+  evidence: "Abstract は CatBoost と公式 six-round simulation を明記する。competition の勝利は同 simulator 内の意思決定証拠であって、店舗への一般化を保証しない。"
+  executable_understanding: "`uv run papers/vn2-stockout-catboost/run.py` は真の需要 20 に対する stockout sales 8 を置き、naive と cost-aware order の費用を比較する。"
+  results: "toy は observation censoring と asymmetric cost を同時に無視する危険を示す。CatBoost の精度を評価していない。"
+  what_we_verified: "**メカニズムは PARTIAL**。stockout sales を demand と置くと注文量が低くなり、不足費用が大きくなる構図を確認した。"
+  what_we_did_not_verify: "GBDT、dynamic scaling、二週 lead time、VN2 official −13.2% cost、実在商品の substitution は未検証である。"
+  implementation: "一 SKU の決定的な費用表である。構造的 censoring model ではない。"
+  mapping: "| 原論文 | Lab |\n| --- | --- |\n| stockout-aware features | `censoring.svg`, `masking.svg` |\n| cost-aware policy | `order.svg` と toy |"

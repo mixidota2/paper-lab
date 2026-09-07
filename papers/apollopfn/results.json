@@ -1,0 +1,20 @@
+{
+  "note": "PFN の事前学習ではない。将来の販促が既知なら外生変数を使える、という最小例。",
+  "experiments": [
+    {
+      "name": "CPU-only synthetic toy",
+      "dataset": "deterministic synthetic",
+      "seed": 0,
+      "metrics": {
+        "MAE": {
+          "履歴だけ": 3.25,
+          "既知の販促フラグ": 0.75
+        },
+        "販促週 MAE": {
+          "履歴だけ": 12.0,
+          "既知の販促フラグ": 2.0
+        }
+      }
+    }
+  ]
+}

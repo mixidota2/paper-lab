@@ -1,0 +1,31 @@
+id: apollopfn
+arxiv_id: "2603.15802"
+submitted: "2026-03-16"
+title: "Time-Aware Prior Fitted Networks for Zero-Shot Forecasting with Exogenous Variables"
+authors: ["Andres Potapczynski", "Ravi Kiran Selvam", "Tatiana Konstantinova", "Malcolm Wolff", "Kin G. Olivares", "Ruijun Ma", "Michael W. Mahoney", "Andrew Gordon Wilson", "Boris N. Oreshkin", "Dmitry Efimov"]
+year: 2026
+topics: [ml-systems]
+urls: {paper: https://arxiv.org/abs/2603.15802, arxiv: https://arxiv.org/abs/2603.15802, pdf: https://arxiv.org/pdf/2603.15802, official_code: null}
+verdict: "Worth Reading"
+verification: {mechanism: PARTIAL, performance: NOT TESTED, scaling: NOT TESTED, production_applicability: NOT TESTED}
+related_threads: [tabular-vs-neural-forecasting]
+status: published
+summary: "ApolloPFN は price/promo のような外生変数を native に扱う、time-aware な zero-shot PFN。"
+figures:
+  - {path: figures/prior.svg, title: "時系列 prior と外生パス", caption: "合成 prior に time pattern と covariate dependency を入れる。"}
+  - {path: figures/zero-shot.svg, title: "zero-shot の比較軸", caption: "学習済み prior の転移と tabular baseline は別の仮説である。"}
+  - {path: figures/promo.svg, title: "販促 spike", caption: "履歴だけでは将来の既知販促を区別できない。"}
+core_idea:
+  author_claim: "著者は現行 TSFM の多くが外生変数を無視すると問題化し、temporal pattern、structural change、exogenous dependency を含む synthetic prior と time-aware architecture を持つ ApolloPFN を提案する。M5、電力価格、Air Quality、Solar で baseline を上回ると報告する。"
+  research_bot_interpretation: "価値は PFN という名前より、予測時に既知の promo/price を入力契約に入れる点にある。covariate の将来値がない運用では、この強みはそのまま使えない。"
+sections:
+  overview: "需要は自己回帰的に見えても、販促や価格で不連続に動く。外生変数を無視する forecast は spike を過去ノイズと見なす。"
+  problem: "future covariate は予測時点で利用可能か、後から判明するかを分けなければならない。評価で未来の promo を渡すなら、同じ情報を baseline にも渡す必要がある。"
+  why_it_might_work: "**読書メモ（推論）**。prior が『価格が動くと需要が変わる』分布を含めば、few-shot fitting より前に関係を学べる。ただし店舗・SKU ごとの効果異質性は別問題である。"
+  evidence: "arXiv abstract は TMLR 2026 掲載と複数 benchmark の優位を述べる。Chronos-2 や同条件の GBDT と比較しない限り、実務選択の結論は限定的である。"
+  executable_understanding: "`uv run papers/apollopfn/run.py` は販促週を含む八期の合成需要で、履歴だけと既知 flag を比べる。PFN の事前学習はしない。"
+  results: "販促週の MAE が下がるのは、真の販促 flag を入力したためである。zero-shot 性能の検証ではない。"
+  what_we_verified: "**メカニズムは PARTIAL**。外生情報が将来に利用可能なら、履歴だけでは予測不能な spike を説明できる。"
+  what_we_did_not_verify: "SRNGN、RoPE/full attention、M5 RMSSE、PFN training、zero-shot transfer、production inventory cost は未検証である。"
+  implementation: "標準ライブラリの平均絶対誤差だけを使う。結果は covariate availability の説明に限定する。"
+  mapping: "| 原論文 | Lab |\n| --- | --- |\n| synthetic prior | `prior.svg` |\n| zero-shot framing | `zero-shot.svg` |\n| M5 price/promo motivation | `promo.svg` と toy |"

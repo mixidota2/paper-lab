@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="販促 shock と滑らかな baseline を分け、誤差でなく h/p の在庫費用比で安定化の得失を問う。"><title>Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
+<main id="paper" class="paper shell">
+<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2607.25664</span></nav>
+<header class="paper-hero"><p class="priority priority--worth">Worth Reading</p><h1>Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail</h1><p class="authors">Mohammad Forouhesh</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2607.25664" rel="noopener">2607.25664</a></dd></div><div><dt>投稿</dt><dd>2026-07-28</dd></div><div><dt>収録</dt><dd>2026</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2607.25664" rel="noopener">原典を読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2607.25664" rel="noopener">PDF</a></div></header>
+<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
+<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid"><figure><img src="../figures/contextual-deconvolution/figures/deconv.svg" alt="baseline と販促 carryover" loading="lazy"><figcaption><strong>baseline と販促 carryover</strong><br>transfer-function 的に shock と構造を分ける。</figcaption></figure><figure><img src="../figures/contextual-deconvolution/figures/tradeoff.svg" alt="h/p の境界" loading="lazy"><figcaption><strong>h/p の境界</strong><br>滑らかさは常に総費用を下げるわけではない。</figcaption></figure><figure><img src="../figures/contextual-deconvolution/figures/bullwhip.svg" alt="bullwhip の位置" loading="lazy"><figcaption><strong>bullwhip の位置</strong><br>forecast variance は発注 variance を経て安全在庫に影響する。</figcaption></figure></div></section>
+<div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>販促は一日だけで終わるとは限らず、carryover と baseline を混ぜる。単純 smoothing は二つを同時に消してしまう。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>低い variance ratio は安全在庫を減らすが、event spike の under-provision を伴う。統計誤差と発注費用の目的関数は異なる。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>CD は kernel-modulated banded operator で transient promotion shock と smooth baseline を convex に分け、hierarchical partial pooling で catalog scale にする。著者は M5 30,490 SKU と Favorita 2,845 item で、h/p が約 20% を超える時だけ総費用が低いと報告する。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>この論文の良い点は『より安定』を無条件の勝ちにしないことだ。spike を薄める forecast は holding cost を下げても、stockout cost が重い業態では危険になり得る。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p><strong>読書メモ（推論）</strong>。kernel が impulsive response では identity に退避するなら、無理に carryover を作らずに済む。future promo calendar の可用性が前提である。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>Abstract は holding/stockout 比の 95% CI [17%,25%] と catastrophic error の比較を記載する。単一著者の長い preprint なので、第三者の cost simulation で再確認したい。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p><code>uv run papers/contextual-deconvolution/run.py</code> は baseline と stable forecast の費用順位が h/p で反転する表を出す。deconvolution は解かない。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p class="callout-body"><em>短い販促系列の費用会計。CD の凸最適化・M5/Favorita の結果ではない。</em></p>
+<h3>CPU-only synthetic toy</h3>
+<ul><li><strong>dataset</strong>: deterministic synthetic</li><li><strong>seed</strong>: 0</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>h/p=0.10, baseline</th><th>h/p=0.10, stable</th><th>h/p=0.40, baseline</th><th>h/p=0.40, stable</th></tr></thead><tbody><tr><th scope='row'>total inventory cost</th><td>71</td><td>82</td><td>148</td><td>116</td></tr></tbody></table>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;短い販促系列の費用会計。CD の凸最適化・M5/Favorita の結果ではない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;CPU-only synthetic toy&quot;,
+      &quot;dataset&quot;: &quot;deterministic synthetic&quot;,
+      &quot;seed&quot;: 0,
+      &quot;metrics&quot;: {
+        &quot;total inventory cost&quot;: {
+          &quot;h/p=0.10, baseline&quot;: 71,
+          &quot;h/p=0.10, stable&quot;: 82,
+          &quot;h/p=0.40, baseline&quot;: 148,
+          &quot;h/p=0.40, stable&quot;: 116
+        }
+      }
+    }
+  ]
+}</code></pre></details><p>合成表は安定化が low h/p で悪化し high h/p で有利になる例である。20% の閾値を再推定したものではない。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p><strong>メカニズムは PARTIAL</strong>。variance を下げる選択の評価には、holding と shortage の比を明示する必要がある。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>operator fitting、partial pooling、M5/Favorita、error dispersion、bullwhip の実測は未検証である。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p>短い deterministic cost sweep で、予測器の優劣ではなく decision boundary を示す。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>Lab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>kernel decomposition</td>
+<td><code>deconv.svg</code></td>
+</tr>
+<tr>
+<td>inventory-cost sweep</td>
+<td><code>tradeoff.svg</code> と toy</td>
+</tr>
+<tr>
+<td>operational motivation</td>
+<td><code>bullwhip.svg</code></td>
+</tr>
+</tbody>
+</table></div></section></article></div>
+</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/contextual-deconvolution/lab.yaml</code></p></div></footer>
+</body></html>

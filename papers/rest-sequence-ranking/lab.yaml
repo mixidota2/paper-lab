@@ -1,0 +1,31 @@
+id: rest-sequence-ranking
+arxiv_id: "2609.01240"
+submitted: "2026-09-01"
+title: "From Language to Behavior: Scaling Sequence Transformers for Industrial Recommendation Ranking with Rec-Native Designs"
+authors: ["Jie Chen", "Xiangqian Yu", "Yanchao Lian", "Tan Lu", "Run Yang", "Zhengchun Shang", "Xing Wang", "Cheng Chen", "Ke Hu", "Qiang Li", "Tianjiu Yin", "Xiaobing Liu"]
+year: 2026
+topics: [recommender-systems, ml-systems]
+urls: {paper: https://arxiv.org/abs/2609.01240, arxiv: https://arxiv.org/abs/2609.01240, pdf: https://arxiv.org/pdf/2609.01240, official_code: null}
+verdict: "Worth Reading"
+verification: {mechanism: PARTIAL, performance: NOT TESTED, scaling: NOT TESTED, production_applicability: NOT TESTED}
+related_threads: [when-complex-ranking-is-worth-it, user-history-context-design]
+status: published
+summary: "ReST は hybrid ranker で sequence branch が shortcut に負ける問題を、推薦向け encoder と補助損失で扱う。"
+figures:
+  - {path: figures/shortcut.svg, title: "hybrid fusion の shortcut", caption: "強い非系列 feature が loss を説明すると sequence 側の勾配が細る。"}
+  - {path: figures/asymmetric.svg, title: "重い encoder と軽い decoder", caption: "shared history を一度だけ符号化し、候補ごとに軽く読む。"}
+  - {path: figures/scaling.svg, title: "長さを増やす前の条件", caption: "長い系列が効くには signal と gradient の入口がいる。"}
+core_idea:
+  author_claim: "ReST は dual-gated attention、rotary positional/temporal embedding、stabilized residual normalization、training-only auxiliary objective を持つ sequence encoder と、heavy encoder/light cross decoder を提案する。Abstract は 50 ms P99 内で online AUC +1.31%、主要 revenue metric +11.93% を報告する。"
+  research_bot_interpretation: "『長い Transformer が弱い』のではなく、hybrid の非系列 branch が shortcut になれば sequence encoder に学習信号が届かない、という診断が中心である。"
+sections:
+  overview: "推薦の履歴は noisy で不規則だが、候補は多い。ReST は user history を重く一度処理し、candidate interaction を軽く反復する。"
+  problem: "DLRM-like feature branch が強いと、sequence representation を使わずに loss を下げられる。層や長さを増やしても sequence branch の勾配が小さければ scaling は飽和する。"
+  why_it_might_work: "**読書メモ（推論）**。補助 sequence loss は shortcut と独立した誤差信号を作る。これは accuracy を保証せず、候補 feature を外した controlled ablation で確認すべき仮説である。"
+  evidence: "Abstract は public/industrial benchmark と一週間の広告 platform A/B を報告する。著者の production 数値は強い実務証拠だが、feature、traffic、objective を固定した外部比較ではない。"
+  executable_understanding: "`uv run papers/rest-sequence-ranking/run.py` は shortcut fusion と補助損失の合成 gradient share を比較する。Transformer を学習しない。"
+  results: "補助損失を足した側で sequence branch の share を大きく置く toy である。実 AUC や 16k token scaling の証明ではない。"
+  what_we_verified: "**メカニズムは PARTIAL**。shortcut があると系列側の寄与が小さくなり、直接の損失を加える理由があることを可視化した。"
+  what_we_did_not_verify: "DGA、RoTE、projection-free KV、shared-prefix serving、online A/B、P99 は未検証である。"
+  implementation: "数値は説明用に固定した CPU toy である。学習済みモデルの代用品として解釈しない。"
+  mapping: "| 原論文 | Lab |\n| --- | --- |\n| sequence starvation | `shortcut.svg` と toy |\n| encoder/cross decoder | `asymmetric.svg` |\n| scaling | `scaling.svg` |"

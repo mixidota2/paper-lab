@@ -1,0 +1,31 @@
+id: tgr
+arxiv_id: "2609.00986"
+submitted: "2026-09-01"
+title: "TGR: Advancing Industrial Recommendation from Generative-Paradigm Ranking toward Unified Generation and Reasoning"
+authors: ["Lei Cheng", "Haonan Hu", "Beibei Kong", "Yudong Li", "Zang Li", "Yunsheng Pang", "Hongyang Su", "Jianchao Tu", "Yunlong Wang", "Bing Wen", "Junzhang Zhu", "Shaojie Zhu", "Chengxiang Zhuo"]
+year: 2026
+topics: [recommender-systems, generative-recommendation, ml-systems]
+urls: {paper: https://arxiv.org/abs/2609.00986, arxiv: https://arxiv.org/abs/2609.00986, pdf: https://arxiv.org/pdf/2609.00986, official_code: null}
+verdict: "Must Read"
+verification: {mechanism: PARTIAL, performance: NOT TESTED, scaling: NOT TESTED, production_applicability: NOT TESTED}
+related_threads: [generative-rec-vs-retrieval, when-complex-ranking-is-worth-it]
+status: published
+summary: "Tencent の生成推薦を、cascade を一気に消す話ではなく、ranker・retrieval channel・slate を段階的に置換する設計として読む。"
+figures:
+  - {path: figures/cascade.svg, title: "段階ごとの置換", caption: "CCFormer、BARGE、HiGR は既存 cascade に入る位置が異なる。"}
+  - {path: figures/ranking.svg, title: "score-out と生成 slate", caption: "per-item 出力と token decode は同じ「生成推薦」ではない。"}
+  - {path: figures/channel.svg, title: "BARGE は retrieval channel", caption: "既存 funnel の全面代替ではなく、候補源の一つとして読む。"}
+core_idea:
+  author_claim: "著者は CCFormer による generative-paradigm ranking、BARGE/HiGR による生成 retrieval・slate、offline reason token を組み合わせた TGR を示す。BARGE は item-boundary loss と semantic drift を ICA、HPR、DPD で扱うと説明する。Abstract は CCFormer の二面完全展開、BARGE の +0.60% CTR、+1.70% reading time を報告する。"
+  research_bot_interpretation: "全面的な end-to-end 置換より、遅延と GPU 予算をそろえて部品ごとに置く運用原則に価値がある。SID を decode できても、既存 retrieval を安全に捨てられるとは限らない。"
+sections:
+  overview: "推薦 cascade は retrieval、pre-ranking、ranking、reranking の計算量を分ける。TGR はこの境界を残しつつ、生成的な表現を各段へ持ち込む産業報告である。"
+  problem: "SID の階層 token を単純に生成すると、item の境界をまたぐ token 列や、意味が近いが別 item へ流れる drift が起こる。ranking 側にも、候補ごとの多目的 score を低遅延で返す制約が残る。"
+  why_it_might_work: "**読書メモ（推論）**。候補 channel と ranker を分ければ、生成 decode の失敗を既存 channel で吸収しながら、良い領域だけを rollout できる。失敗率、coverage、tail latency を同時に測らなければ、CTR だけで安全性は分からない。"
+  evidence: "Abstract は BARGE の offline Hit@5 +10.2–16.9%、CCFormer の最大 +3.57% CTR と +1.71% advertising revenue を記す。これらは Tencent 内 A/B の著者報告で、外部が同じ traffic と candidate pool で再現した数値ではない。"
+  executable_understanding: "`uv run papers/tgr/run.py` は、800 件を score する ranker と 12 token を decode する slate の演算単位を並べる。item ID、attention、実測 latency は実装しない。"
+  results: "下表は合成の work counter であり、paper の性能値ではない。比較の目的は、生成 slate と per-item score で serving contract が異なることを確かめる点にある。"
+  what_we_verified: "**メカニズムは PARTIAL**。小実験では score-per-item と token decode の計算単位が違うこと、channel と funnel replacement を区別すべきことを確認した。"
+  what_we_did_not_verify: "ICA/HPR/DPD、CCFormer、HiGR、reason token、Hit@5、online A/B、億規模 serving は未検証である。反証には matched latency/candidate pool での SID invalid rate と channel ablation が要る。"
+  implementation: "標準ライブラリだけで動く決定的な counter である。生成モデルの性能比較に見せないため、結果 JSON に境界を明記した。"
+  mapping: "| 原論文 | Lab |\n| --- | --- |\n| Abstract / TGR-GenRank | `ranking.svg` |\n| TGR-GenRec (BARGE) | `channel.svg` と toy |\n| cascade design principle | `cascade.svg` |"

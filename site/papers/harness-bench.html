@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="agent の能力を base model 単体でなく model–harness 構成として測る、106 sandbox task の診断 benchmark。"><title>Harness-Bench: Measuring Harness Effects across Models in Realistic Agent Workflows | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
+<main id="paper" class="paper shell">
+<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2605.27922</span></nav>
+<header class="paper-hero"><p class="priority priority--worth">Worth Reading</p><h1>Harness-Bench: Measuring Harness Effects across Models in Realistic Agent Workflows</h1><p class="authors">Yilun Yao, Xinyu Tan, Chao-Hsuan Liu, Yaoming Li, Zhengyang Wang, Wenhan Yu, Zhewen Tan, Yuxuan Tian, Guangxiang Zhao, Lin Sun, Xiangzheng Zhang, Tong Yang</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2605.27922" rel="noopener">2605.27922</a></dd></div><div><dt>投稿</dt><dd>2026-05-27</dd></div><div><dt>収録</dt><dd>2026</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2605.27922" rel="noopener">原典を読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2605.27922" rel="noopener">PDF</a></div></header>
+<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
+<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid"><figure><img src="../figures/harness-bench/figures/unit.svg" alt="評価単位は model–harness" loading="lazy"><figcaption><strong>評価単位は model–harness</strong><br>同じ model でも context、tool、recovery が違えば軌跡が変わる。</figcaption></figure><figure><img src="../figures/harness-bench/figures/failures.svg" alt="実行整合性の失敗" loading="lazy"><figcaption><strong>実行整合性の失敗</strong><br>もっともらしい推論と成果物の契約充足は別である。</figcaption></figure><figure><img src="../figures/harness-bench/figures/gap.svg" alt="model gap と harness gap" loading="lazy"><figcaption><strong>model gap と harness gap</strong><br>最終正解率だけでは差の場所を特定できない。</figcaption></figure></div></section>
+<div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>agent は tool、workspace、permission、context、recovery を通して仕事をする。この system layer を harness と呼び、モデルを固定しても結果が動く点を評価対象にする。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>final answer が正しく見えても、ファイル形式、validator、tool feedback、workspace state を外せば実務成果物として失敗する。complete agent を比較するだけでは、どの層が差を作ったか読めない。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>Harness-Bench は共有 task environment、budget、protocol の下で、native harness behavior を保った構成を比較する。106 の offline sandbox task と 5,194 trajectory で、completion、process quality、efficiency、failure を記録し、能力は model–harness configuration で報告すべきだと主張する。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>これは harness の因果効果を完全に分離する実験ではない。それでも procurement や評価の単位を『モデル名』から『実行契約を含む構成』へ戻すための有用な診断枠組みである。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p><strong>読書メモ（推論）</strong>。回復回数や契約違反を trace と共に残せば、能力不足と orchestration の不備を切り分けやすい。ただし、harness ごとに native な設計が異なるため、公平な budget 設計が結論を左右する。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>Abstract は task を manual review し、artifact、trace、usage、validator output を保存したと述べる。そこで見える差は benchmark 設計内の観測であり、実サービス全般へ直接外挿はできない。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p><code>uv run papers/harness-bench/run.py</code> は 60 個の scripted task で、固定規則と回復規則の format/contract failure を数える。LLM API は呼ばない。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p class="callout-body"><em>スクリプト化した行為者を使う。実 LLM、106 タスク、各ハーネスの実装は評価しない。</em></p>
+<h3>CPU-only synthetic toy</h3>
+<ul><li><strong>dataset</strong>: deterministic synthetic</li><li><strong>seed</strong>: 0</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>固定ハーネス</th><th>回復付きハーネス</th></tr></thead><tbody><tr><th scope='row'>最終成果物が契約を満たす率</th><td>0.7</td><td>0.55</td></tr><tr><th scope='row'>形式・契約失敗</th><td>12</td><td>6</td></tr></tbody></table>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;スクリプト化した行為者を使う。実 LLM、106 タスク、各ハーネスの実装は評価しない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;CPU-only synthetic toy&quot;,
+      &quot;dataset&quot;: &quot;deterministic synthetic&quot;,
+      &quot;seed&quot;: 0,
+      &quot;metrics&quot;: {
+        &quot;最終成果物が契約を満たす率&quot;: {
+          &quot;固定ハーネス&quot;: 0.7,
+          &quot;回復付きハーネス&quot;: 0.55
+        },
+        &quot;形式・契約失敗&quot;: {
+          &quot;固定ハーネス&quot;: 12,
+          &quot;回復付きハーネス&quot;: 6
+        }
+      }
+    }
+  ]
+}</code></pre></details><p>合成結果は recovery が最終契約失敗を減らし得ることを示すだけである。どの実 model が優れるかは何も示さない。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p><strong>メカニズムは PARTIAL</strong>。最終 completion と contract failure を別メトリクスにすると、同じ task set の比較でも結論が変わる。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>106 task、6 harness、8 model、execution-alignment taxonomy の割合、token efficiency、現場の安全性は未検証である。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p>scripted agent の失敗位置を固定し、recovery rule だけを替える。再現性のため seed は使わない。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>Lab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>model–harness configuration</td>
+<td><code>unit.svg</code></td>
+</tr>
+<tr>
+<td>execution-alignment failures</td>
+<td><code>failures.svg</code> と toy</td>
+</tr>
+<tr>
+<td>configuration-level reporting</td>
+<td><code>gap.svg</code></td>
+</tr>
+</tbody>
+</table></div></section></article></div>
+</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/harness-bench/lab.yaml</code></p></div></footer>
+</body></html>

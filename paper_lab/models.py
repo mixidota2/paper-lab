@@ -29,7 +29,7 @@ LAB_STATUS_LABELS = {
     "draft": "下書き",
     "published": "公開",
 }
-URL_KEYS = ("paper", "arxiv", "official_code", "pdf")
+URL_KEYS = ("paper", "arxiv", "doi", "official_code", "pdf")
 VERIFICATION_KEYS = (
     "mechanism",
     "performance",
@@ -85,6 +85,7 @@ class LabError(ValueError):
 class Urls:
     paper: str | None = None
     arxiv: str | None = None
+    doi: str | None = None
     official_code: str | None = None
     pdf: str | None = None
 
@@ -138,6 +139,7 @@ class Lab:
     status: str
     source_dir: Path
     arxiv_id: str = ""
+    doi: str = ""
     submitted: str = ""
     summary: str = ""
     example: bool = False
@@ -172,6 +174,7 @@ class Lab:
             self.status,
             self.status_label,
             self.arxiv_id,
+            self.doi,
         ]
         # Include Japanese verification labels for client-side search.
         for status in self.verification.as_dict().values():
@@ -186,6 +189,7 @@ class Lab:
             "authors": self.authors_text,
             "year": self.year,
             "arxiv_id": self.arxiv_id,
+            "doi": self.doi,
             "submitted": self.submitted,
             "topics": list(self.topics),
             "verdict": self.verdict,
@@ -262,11 +266,17 @@ def lab_from_dict(raw: dict[str, Any], paper_dir: Path) -> Lab:
         )
 
     urls = _parse_urls(raw.get("urls"), paper_dir)
-    arxiv_id = _require_str(raw, "arxiv_id", paper_dir)
-    if not re.fullmatch(r"\d{4}\.\d{5}", arxiv_id):
-        raise LabError(f"{paper_dir}/lab.yaml: arxiv_id must look like 2606.00422")
-    if urls.arxiv != f"https://arxiv.org/abs/{arxiv_id}":
-        raise LabError(f"{paper_dir}/lab.yaml: urls.arxiv must match arxiv_id")
+    arxiv_value = raw.get("arxiv_id")
+    arxiv_id = "" if arxiv_value in (None, "") else str(arxiv_value).strip()
+    doi_value = raw.get("doi")
+    doi = "" if doi_value in (None, "") else str(doi_value).strip()
+    if arxiv_id:
+        if not re.fullmatch(r"\d{4}\.\d{5}", arxiv_id):
+            raise LabError(f"{paper_dir}/lab.yaml: arxiv_id must look like 2606.00422")
+        if urls.arxiv != f"https://arxiv.org/abs/{arxiv_id}":
+            raise LabError(f"{paper_dir}/lab.yaml: urls.arxiv must match arxiv_id")
+    elif not doi:
+        raise LabError(f"{paper_dir}/lab.yaml: provide arxiv_id or doi")
     submitted = _require_str(raw, "submitted", paper_dir)
     verification = _parse_verification(raw.get("verification"), paper_dir)
 
@@ -317,6 +327,7 @@ def lab_from_dict(raw: dict[str, Any], paper_dir: Path) -> Lab:
         status=status,
         source_dir=paper_dir.resolve(),
         arxiv_id=arxiv_id,
+        doi=doi,
         submitted=submitted,
         summary=summary,
         example=example,

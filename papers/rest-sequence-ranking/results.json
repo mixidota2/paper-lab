@@ -1,0 +1,20 @@
+{
+  "note": "固定した合成勾配の会計。ReST の attention、16k 系列、online A/B は再現しない。",
+  "experiments": [
+    {
+      "name": "CPU-only synthetic toy",
+      "dataset": "deterministic synthetic",
+      "seed": 0,
+      "metrics": {
+        "sequence branch gradient share": {
+          "shortcut fusion": 0.08,
+          "auxiliary sequence loss": 0.31
+        },
+        "synthetic sequence accuracy": {
+          "shortcut fusion": 0.58,
+          "auxiliary sequence loss": 0.79
+        }
+      }
+    }
+  ]
+}
