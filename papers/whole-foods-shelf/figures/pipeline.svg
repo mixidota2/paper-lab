@@ -1,1 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 180"><rect width="600" height="180" fill="#fbfaf7"/><text x="300" y="30" text-anchor="middle" font-size="18">geospatial elasticity → causal lift → allocation</text><text x="115" y="105">store geography</text><text x="285" y="105">incremental lift</text><text x="465" y="105">shelf constraint</text><path d="M190 100 H240 M360 100 H420" stroke="#2563eb" stroke-width="5"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 520" role="img" aria-labelledby="title">
+<title id="title">論文の設計を簡略化した処理図</title>
+<rect width="600" height="520" fill="#f5f3ec"/>
+<g font-family="sans-serif" fill="#172e30">
+<rect x="24" y="20" width="552" height="98" rx="7" fill="#e6eee5" stroke="#afc1b4"/>
+<text x="48" y="53" font-size="16">01 / 需要反応を推定する</text>
+<text x="48" y="90" font-size="22" font-weight="bold">立地で変わる面積反応</text>
+<path d="M300 120 v20 m-5 -6 l5 6 5 -6" fill="none" stroke="#086b5e" stroke-width="2"/>
+<rect x="24" y="145" width="552" height="98" rx="7" fill="#e6eee5" stroke="#afc1b4"/>
+<text x="48" y="178" font-size="16">02 / 長期の価値を考える</text>
+<text x="48" y="215" font-size="22" font-weight="bold">購買後の店舗全体への効果</text>
+<path d="M300 245 v20 m-5 -6 l5 6 5 -6" fill="none" stroke="#086b5e" stroke-width="2"/>
+<rect x="24" y="270" width="552" height="98" rx="7" fill="#e6eee5" stroke="#afc1b4"/>
+<text x="48" y="303" font-size="16">03 / 制約を加える</text>
+<text x="48" y="340" font-size="22" font-weight="bold">総面積と部門上下限を設定</text>
+<path d="M300 370 v20 m-5 -6 l5 6 5 -6" fill="none" stroke="#086b5e" stroke-width="2"/>
+<rect x="24" y="395" width="552" height="98" rx="7" fill="#e6eee5" stroke="#afc1b4"/>
+<text x="48" y="428" font-size="16">04 / 配分を選ぶ</text>
+<text x="48" y="465" font-size="22" font-weight="bold">目的関数を制約内で最大化</text>
+</g></svg>

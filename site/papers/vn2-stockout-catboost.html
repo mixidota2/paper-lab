@@ -1,55 +1,796 @@
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="VN2 winner report: stockout を意識した global CatBoost forecast と不足・保管費を織り込む注文方策。"><title>One Global Model, Many Behaviors: Stockout-Aware Feature Engineering and Dynamic Scaling for Multi-Horizon Retail Demand Forecasting with a Cost-Aware Ordering Policy (VN2 Winner Report) | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="欠品週の販売を需要の真値として使わず、予測と発注を分ける。VN2の勝者報告は、特徴量と費用に合わせた注文規則の組合せを示す。">
+  <title>売れた数しか分からないとき、必要な在庫をどう決めるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
 <body>
 <a class="skip-link" href="#paper">本文へ移動</a>
-<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
-<main id="paper" class="paper shell">
-<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2601.18919</span></nav>
-<header class="paper-hero"><p class="priority priority--worth">Worth Reading</p><h1>One Global Model, Many Behaviors: Stockout-Aware Feature Engineering and Dynamic Scaling for Multi-Horizon Retail Demand Forecasting with a Cost-Aware Ordering Policy (VN2 Winner Report)</h1><p class="authors">Bartosz Szabłowski</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2601.18919" rel="noopener">2601.18919</a></dd></div><div><dt>投稿</dt><dd>2026-01-26</dd></div><div><dt>収録</dt><dd>2026</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2601.18919" rel="noopener">原典を読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2601.18919" rel="noopener">PDF</a></div></header>
-<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
-<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid"><figure><img src="../figures/vn2-stockout-catboost/figures/censoring.svg" alt="観測販売と潜在需要" loading="lazy"><figcaption><strong>観測販売と潜在需要</strong><br>欠品時の販売は需要の下限であって同値ではない。</figcaption></figure><figure><img src="../figures/vn2-stockout-catboost/figures/masking.svg" alt="stockout-aware feature" loading="lazy"><figcaption><strong>stockout-aware feature</strong><br>censored observation を通常 lag として学習しない。</figcaption></figure><figure><img src="../figures/vn2-stockout-catboost/figures/order.svg" alt="forecast から注文へ" loading="lazy"><figcaption><strong>forecast から注文へ</strong><br>誤差最小と在庫費用最小は一致しない。</figcaption></figure></div></section>
-<div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>注文は forecast の後段ではなく、shortage cost と holding cost を通じて forecast の誤差を増幅する。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>在庫が 0 なら観測販売は需要でなく供給制約の結果になる。過去 sales を真値として学べば、次の order-up-to も低くなり得る。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>VN2 は二週リードタイムの週次 inventory challenge で、global multi-horizon CatBoost、stockout-aware feature、per-series scaling、time weights と cost-aware order-up-to policy を組み合わせる。著者は公式 simulation 六 round での一位を報告する。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>欠品 flag で feature を mask することは latent demand を構造推定することではない。それでも sales=demand を無批判に lag に入れるより、意思決定の歪みを減らす実務的な第一歩になる。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p><strong>読書メモ（推論）</strong>。欠品を flag/mask し、需要パターンを global に共有すれば、censored lag を説明変数として信じ込む経路を弱められる。代替需要や欠品検知漏れは残る。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>Abstract は CatBoost と公式 six-round simulation を明記する。competition の勝利は同 simulator 内の意思決定証拠であって、店舗への一般化を保証しない。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p><code>uv run papers/vn2-stockout-catboost/run.py</code> は真の需要 20 に対する stockout sales 8 を置き、naive と cost-aware order の費用を比較する。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p class="callout-body"><em>単一 SKU・一期間の合成例。CatBoost、二週リードタイム、公式 VN2 simulator は含まない。</em></p>
-<h3>CPU-only synthetic toy</h3>
-<ul><li><strong>dataset</strong>: deterministic synthetic</li><li><strong>seed</strong>: 0</li></ul>
-<table class="metrics"><thead><tr><th>指標</th><th>真値</th><th>stockout 時の観測販売</th><th>mask 後の推定</th><th>sales=demand の注文</th><th>cost-aware order-up-to</th></tr></thead><tbody><tr><th scope='row'>latent demand</th><td>20</td><td>8</td><td>19</td><td></td><td></td></tr><tr><th scope='row'>inventory cost</th><td></td><td></td><td></td><td>72</td><td>28</td></tr></tbody></table>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-01-26</span></div>
+    <h1>売れた数しか分からないとき、必要な在庫をどう決めるか</h1>
+    <p class="lede">欠品週の販売を需要の真値として使わず、予測と発注を分ける。VN2の勝者報告は、特徴量と費用に合わせた注文規則の組合せを示す。</p>
+    <details class="bibliography"><summary>原論文：One Global Model, Many Behaviors: Stockout-Aware Feature Engineering and Dynamic Scaling for Multi-Horizon Retail Demand Forecasting with a Cost-Aware Ordering Policy (VN2 Winner Report)</summary><p>Bartosz Szabłowski</p><p>2601.18919 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2601.18919">原典を読む ↗</a><a href="https://arxiv.org/pdf/2601.18919">PDF ↗</a><a href="#interactive-1">図を操作する ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-07 · arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">01 問いと仕組み</a><a href="#interactive-1">02 図で追う</a><a href="#evidence">03 論文の根拠</a><a href="#interactive-2">04 条件を変える</a><a href="#what_we_did_not_verify">05 限界と批評</a><a href="#implementation">06 実装と出典</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>欠品週の販売を需要の真値として使わず、予測と発注を分ける。VN2の勝者報告は、特徴量と費用に合わせた注文規則の組合せを示す。</p>
+<p>このLabでは「売れた数しか分からないとき、必要な在庫をどう決めるか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>在庫が8個しかなければ、20個欲しい人がいても販売は8個で止まる。販売をそのまま需要として学習すると、よく欠品する商品ほど低く予測し、次も在庫を減らす循環が起こる。</p>
+<p>VN2では週末に注文した商品が2週間の配送期間を経て、t+3週の開始に届く。今日の棚を埋めるのでなく、到着時の残在庫と需要を見越して発注する問題だ。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>全系列を使うCatBoostで複数の先の週を予測する。欠品週を欠損として扱った実効需要から履歴特徴を作り、系列ごとの規模で正規化する。発注時は到着までの在庫を見積もり、欠品と保管の費用比に応じた目標在庫から注文量を決める。</p>
+<p><a href="https://arxiv.org/html/2601.18919">一次資料：§2 / §6.2 / §7</a></p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>欠品を除外する処理は、潜在需要を復元する因果モデルではない。むしろ「確かに需要を観測できた期間はどこか」を区別する実用策。非欠品の週だけが平穏な週に偏っていれば、その平均にも下方の偏りは残る。</p></div></div>
+      </section>
+      <section class="interactive" id="interactive-1" data-interactive="flow" aria-labelledby="figure-title-3">
+        <div class="figure-heading"><p class="eyebrow">01 / MECHANISM</p><span class="figure-badge">論文の概念図</span></div>
+        <h2 id="figure-title-3">処理と設計の違いを追う</h2>
+        <p class="figure-caption">段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。</p>
+        <script type="application/json" data-config>{"caption": "\u6bb5\u3092\u9078\u3076\u3068\u8aac\u660e\u304c\u5207\u308a\u66ff\u308f\u308b\u3002\u6bd4\u8f03\u5074\u306f\u8ad6\u70b9\u3092\u793a\u3059\u7c21\u7565\u5316\u3067\u3001\u7d71\u5236\u5b9f\u9a13\u306e\u5b9f\u88c5\u3067\u306f\u306a\u3044\u3002", "kind": "flow", "source": "https://arxiv.org/html/2601.18919", "stages": [{"baseline": "\u8ca9\u58f2\u3092\u9700\u8981\u3068\u307f\u306a\u3059", "detail": "\u8ca9\u58f2=min(\u6f5c\u5728\u9700\u8981,\u5229\u7528\u53ef\u80fd\u5728\u5eab)\u3068\u3044\u3046\u89b3\u6e2c\u4e0a\u306e\u4e0a\u9650\u3092\u610f\u8b58\u3059\u308b\u3002", "proposed": "\u6b20\u54c1\u306e\u6709\u7121\u3092\u78ba\u8a8d", "title": "\u8ca9\u58f2\u3092\u89b3\u6e2c\u3059\u308b"}, {"baseline": "\u6b20\u54c1\u9031\u3082\u5e73\u5747\u3078\u5165\u308c\u308b", "detail": "\u6b20\u54c1\u9031\u3092\u6b20\u640d\u6271\u3044\u306b\u3059\u308b\u3002\u672a\u77e5\u306e\u9700\u8981\u304c\u65e2\u77e5\u306b\u306a\u308b\u308f\u3051\u3067\u306f\u306a\u3044\u3002", "proposed": "\u5b9f\u52b9\u9700\u8981\u304b\u3089\u7279\u5fb4\u3092\u4f5c\u308b", "title": "\u5c65\u6b74\u3092\u4f5c\u308b"}, {"baseline": "\u5546\u54c1\u3054\u3068\u306e\u5358\u7d14\u4e88\u6e2c", "detail": "\u898f\u6a21\u3092\u8abf\u6574\u3057\u3001\u8907\u6570\u306e\u4e88\u6e2c\u5148\u3092\u6271\u3046\u3002", "proposed": "\u5168\u7cfb\u5217\u306eCatBoost", "title": "\u672a\u6765\u3092\u4e88\u6e2c\u3059\u308b"}, {"baseline": "\u4e88\u6e2c\u5024\u3060\u3051\u6ce8\u6587", "detail": "\u6b8b\u5728\u5eab\u3001\u5165\u8377\u3001\u6b20\u54c1\u3068\u4fdd\u7ba1\u306e\u8cbb\u7528\u3092\u8003\u616e\u3059\u308b\u3002\u56f3\u306e\u5c0f\u5b9f\u9a13\u306f\u7b2c1\u301c2\u6bb5\u3060\u3051\u3092\u6271\u3046\u3002", "proposed": "\u5230\u7740\u6642\u5728\u5eab\u3068\u8cbb\u7528\u304b\u3089\u6ce8\u6587", "title": "\u767a\u6ce8\u3092\u6c7a\u3081\u308b"}], "title": "\u51e6\u7406\u3068\u8a2d\u8a08\u306e\u9055\u3044\u3092\u8ffd\u3046"}</script>
+        <div data-mount></div>
+        <div data-fallback>
+          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
+<ol><li><strong>販売を観測する：欠品の有無を確認</strong><p>販売=min(潜在需要,利用可能在庫)という観測上の上限を意識する。</p></li><li><strong>履歴を作る：実効需要から特徴を作る</strong><p>欠品週を欠損扱いにする。未知の需要が既知になるわけではない。</p></li><li><strong>未来を予測する：全系列のCatBoost</strong><p>規模を調整し、複数の予測先を扱う。</p></li><li><strong>発注を決める：到着時在庫と費用から注文</strong><p>残在庫、入荷、欠品と保管の費用を考慮する。図の小実験は第1〜2段だけを扱う。</p></li></ol>
+        </div>
+        <p class="figure-source">出典に基づく説明用の簡略化。 <a href="https://arxiv.org/html/2601.18919">一次資料 ↗</a></p>
+      </section>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>規模の違う商品を正規化すると、大量販売の商品だけに学習が寄るのを抑えられると考えられる。予測器を固定しても、欠品損失が高い商品へ厚く在庫を置く規則で総費用は変わる。予測精度と注文品質を別々に検証したい。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>§2.3とAbstractは公式シミュレーション6ラウンドでの優勝を報告する。特徴量と規模調整は§6.2、到着週の目標在庫と注文規則は§7。競技の条件下でのシステム評価であり、CatBoost単体が他の全予測器より優れているという比較ではない。</p>
+<p><a href="https://arxiv.org/html/2601.18919">一次資料：§2 / §6.2 / §7</a></p></div>      </section>
+      <section class="interactive" id="interactive-2" data-interactive="explorer" aria-labelledby="figure-title-5">
+        <div class="figure-heading"><p class="eyebrow">02 / EXPERIMENT</p><span class="figure-badge">合成実験 · PARTIAL</span></div>
+        <h2 id="figure-title-5">欠品を除けば需要は分かるか</h2>
+        <p class="figure-caption">同じ8期の潜在需要に異なる在庫上限を適用する。販売平均と、上限に達した期間を除いた平均を計算し、除外しても真値に戻るとは限らないことを見る。</p>
+        <script type="application/json" data-config>{"caption": "\u540c\u30588\u671f\u306e\u6f5c\u5728\u9700\u8981\u306b\u7570\u306a\u308b\u5728\u5eab\u4e0a\u9650\u3092\u9069\u7528\u3059\u308b\u3002\u8ca9\u58f2\u5e73\u5747\u3068\u3001\u4e0a\u9650\u306b\u9054\u3057\u305f\u671f\u9593\u3092\u9664\u3044\u305f\u5e73\u5747\u3092\u8a08\u7b97\u3057\u3001\u9664\u5916\u3057\u3066\u3082\u771f\u5024\u306b\u623b\u308b\u3068\u306f\u9650\u3089\u306a\u3044\u3053\u3068\u3092\u898b\u308b\u3002", "kind": "explorer", "title": "\u6b20\u54c1\u3092\u9664\u3051\u3070\u9700\u8981\u306f\u5206\u304b\u308b\u304b"}</script>
+<script type="application/json" data-results>{"default": 8, "frames": [{"bars": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981\uff1a\u5e73\u5747", "value": 20}, {"label": "\u89b3\u6e2c\u8ca9\u58f2\uff1a\u5e73\u5747", "value": 12}, {"label": "\u975e\u6b20\u54c1\u65e5\u306e\u307f\uff1a\u5e73\u5747", "value": 0}], "lines": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981", "values": [18, 20, 22, 19, 21, 20, 18, 22]}, {"label": "\u89b3\u6e2c\u8ca9\u58f2", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u89b3\u6e2c\u8ca9\u58f2=min(\u9700\u8981,\u5728\u5eab)\u3002\u5728\u5eab\u4e0a\u9650\u3068\u540c\u5024\u306e\u671f\u9593\u3092\u9664\u5916\u3059\u308b\u7c21\u7565\u4f8b\u3002\u975e\u6b20\u54c1\u671f\u9593\u304c\u306a\u3044\u305f\u3081\u63a8\u5b9a\u4e0d\u80fd\uff08\u68d2\u306f0\u3067\u8868\u793a\uff09\u3002", "value": 12}, {"bars": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981\uff1a\u5e73\u5747", "value": 20}, {"label": "\u89b3\u6e2c\u8ca9\u58f2\uff1a\u5e73\u5747", "value": 13}, {"label": "\u975e\u6b20\u54c1\u65e5\u306e\u307f\uff1a\u5e73\u5747", "value": 0}], "lines": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981", "values": [18, 20, 22, 19, 21, 20, 18, 22]}, {"label": "\u89b3\u6e2c\u8ca9\u58f2", "values": [13, 13, 13, 13, 13, 13, 13, 13]}], "note": "\u89b3\u6e2c\u8ca9\u58f2=min(\u9700\u8981,\u5728\u5eab)\u3002\u5728\u5eab\u4e0a\u9650\u3068\u540c\u5024\u306e\u671f\u9593\u3092\u9664\u5916\u3059\u308b\u7c21\u7565\u4f8b\u3002\u975e\u6b20\u54c1\u671f\u9593\u304c\u306a\u3044\u305f\u3081\u63a8\u5b9a\u4e0d\u80fd\uff08\u68d2\u306f0\u3067\u8868\u793a\uff09\u3002", "value": 13}, {"bars": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981\uff1a\u5e73\u5747", "value": 20}, {"label": "\u89b3\u6e2c\u8ca9\u58f2\uff1a\u5e73\u5747", "value": 14}, {"label": "\u975e\u6b20\u54c1\u65e5\u306e\u307f\uff1a\u5e73\u5747", "value": 0}], "lines": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981", "values": [18, 20, 22, 19, 21, 20, 18, 22]}, {"label": "\u89b3\u6e2c\u8ca9\u58f2", "values": [14, 14, 14, 14, 14, 14, 14, 14]}], "note": "\u89b3\u6e2c\u8ca9\u58f2=min(\u9700\u8981,\u5728\u5eab)\u3002\u5728\u5eab\u4e0a\u9650\u3068\u540c\u5024\u306e\u671f\u9593\u3092\u9664\u5916\u3059\u308b\u7c21\u7565\u4f8b\u3002\u975e\u6b20\u54c1\u671f\u9593\u304c\u306a\u3044\u305f\u3081\u63a8\u5b9a\u4e0d\u80fd\uff08\u68d2\u306f0\u3067\u8868\u793a\uff09\u3002", "value": 14}, {"bars": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981\uff1a\u5e73\u5747", "value": 20}, {"label": "\u89b3\u6e2c\u8ca9\u58f2\uff1a\u5e73\u5747", "value": 15}, {"label": "\u975e\u6b20\u54c1\u65e5\u306e\u307f\uff1a\u5e73\u5747", "value": 0}], "lines": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981", "values": [18, 20, 22, 19, 21, 20, 18, 22]}, {"label": "\u89b3\u6e2c\u8ca9\u58f2", "values": [15, 15, 15, 15, 15, 15, 15, 15]}], "note": "\u89b3\u6e2c\u8ca9\u58f2=min(\u9700\u8981,\u5728\u5eab)\u3002\u5728\u5eab\u4e0a\u9650\u3068\u540c\u5024\u306e\u671f\u9593\u3092\u9664\u5916\u3059\u308b\u7c21\u7565\u4f8b\u3002\u975e\u6b20\u54c1\u671f\u9593\u304c\u306a\u3044\u305f\u3081\u63a8\u5b9a\u4e0d\u80fd\uff08\u68d2\u306f0\u3067\u8868\u793a\uff09\u3002", "value": 15}, {"bars": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981\uff1a\u5e73\u5747", "value": 20}, {"label": "\u89b3\u6e2c\u8ca9\u58f2\uff1a\u5e73\u5747", "value": 16}, {"label": "\u975e\u6b20\u54c1\u65e5\u306e\u307f\uff1a\u5e73\u5747", "value": 0}], "lines": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981", "values": [18, 20, 22, 19, 21, 20, 18, 22]}, {"label": "\u89b3\u6e2c\u8ca9\u58f2", "values": [16, 16, 16, 16, 16, 16, 16, 16]}], "note": "\u89b3\u6e2c\u8ca9\u58f2=min(\u9700\u8981,\u5728\u5eab)\u3002\u5728\u5eab\u4e0a\u9650\u3068\u540c\u5024\u306e\u671f\u9593\u3092\u9664\u5916\u3059\u308b\u7c21\u7565\u4f8b\u3002\u975e\u6b20\u54c1\u671f\u9593\u304c\u306a\u3044\u305f\u3081\u63a8\u5b9a\u4e0d\u80fd\uff08\u68d2\u306f0\u3067\u8868\u793a\uff09\u3002", "value": 16}, {"bars": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981\uff1a\u5e73\u5747", "value": 20}, {"label": "\u89b3\u6e2c\u8ca9\u58f2\uff1a\u5e73\u5747", "value": 17}, {"label": "\u975e\u6b20\u54c1\u65e5\u306e\u307f\uff1a\u5e73\u5747", "value": 0}], "lines": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981", "values": [18, 20, 22, 19, 21, 20, 18, 22]}, {"label": "\u89b3\u6e2c\u8ca9\u58f2", "values": [17, 17, 17, 17, 17, 17, 17, 17]}], "note": "\u89b3\u6e2c\u8ca9\u58f2=min(\u9700\u8981,\u5728\u5eab)\u3002\u5728\u5eab\u4e0a\u9650\u3068\u540c\u5024\u306e\u671f\u9593\u3092\u9664\u5916\u3059\u308b\u7c21\u7565\u4f8b\u3002\u975e\u6b20\u54c1\u671f\u9593\u304c\u306a\u3044\u305f\u3081\u63a8\u5b9a\u4e0d\u80fd\uff08\u68d2\u306f0\u3067\u8868\u793a\uff09\u3002", "value": 17}, {"bars": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981\uff1a\u5e73\u5747", "value": 20}, {"label": "\u89b3\u6e2c\u8ca9\u58f2\uff1a\u5e73\u5747", "value": 18}, {"label": "\u975e\u6b20\u54c1\u65e5\u306e\u307f\uff1a\u5e73\u5747", "value": 0}], "lines": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981", "values": [18, 20, 22, 19, 21, 20, 18, 22]}, {"label": "\u89b3\u6e2c\u8ca9\u58f2", "values": [18, 18, 18, 18, 18, 18, 18, 18]}], "note": "\u89b3\u6e2c\u8ca9\u58f2=min(\u9700\u8981,\u5728\u5eab)\u3002\u5728\u5eab\u4e0a\u9650\u3068\u540c\u5024\u306e\u671f\u9593\u3092\u9664\u5916\u3059\u308b\u7c21\u7565\u4f8b\u3002\u975e\u6b20\u54c1\u671f\u9593\u304c\u306a\u3044\u305f\u3081\u63a8\u5b9a\u4e0d\u80fd\uff08\u68d2\u306f0\u3067\u8868\u793a\uff09\u3002", "value": 18}, {"bars": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981\uff1a\u5e73\u5747", "value": 20}, {"label": "\u89b3\u6e2c\u8ca9\u58f2\uff1a\u5e73\u5747", "value": 18.75}, {"label": "\u975e\u6b20\u54c1\u65e5\u306e\u307f\uff1a\u5e73\u5747", "value": 18}], "lines": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981", "values": [18, 20, 22, 19, 21, 20, 18, 22]}, {"label": "\u89b3\u6e2c\u8ca9\u58f2", "values": [18, 19, 19, 19, 19, 19, 18, 19]}], "note": "\u89b3\u6e2c\u8ca9\u58f2=min(\u9700\u8981,\u5728\u5eab)\u3002\u5728\u5eab\u4e0a\u9650\u3068\u540c\u5024\u306e\u671f\u9593\u3092\u9664\u5916\u3059\u308b\u7c21\u7565\u4f8b\u3002\u975e\u6b20\u54c1\u65e5\u306e\u5e73\u5747\u3082\u9078\u629e\u30d0\u30a4\u30a2\u30b9\u3092\u542b\u3080\u3002\u6b20\u54c1\u65e5\u306e\u771f\u306e\u9700\u8981\u3092\u5fa9\u5143\u3057\u305f\u5024\u3067\u306f\u306a\u3044\u3002", "value": 19}, {"bars": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981\uff1a\u5e73\u5747", "value": 20}, {"label": "\u89b3\u6e2c\u8ca9\u58f2\uff1a\u5e73\u5747", "value": 19.375}, {"label": "\u975e\u6b20\u54c1\u65e5\u306e\u307f\uff1a\u5e73\u5747", "value": 18.3333}], "lines": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981", "values": [18, 20, 22, 19, 21, 20, 18, 22]}, {"label": "\u89b3\u6e2c\u8ca9\u58f2", "values": [18, 20, 20, 19, 20, 20, 18, 20]}], "note": "\u89b3\u6e2c\u8ca9\u58f2=min(\u9700\u8981,\u5728\u5eab)\u3002\u5728\u5eab\u4e0a\u9650\u3068\u540c\u5024\u306e\u671f\u9593\u3092\u9664\u5916\u3059\u308b\u7c21\u7565\u4f8b\u3002\u975e\u6b20\u54c1\u65e5\u306e\u5e73\u5747\u3082\u9078\u629e\u30d0\u30a4\u30a2\u30b9\u3092\u542b\u3080\u3002\u6b20\u54c1\u65e5\u306e\u771f\u306e\u9700\u8981\u3092\u5fa9\u5143\u3057\u305f\u5024\u3067\u306f\u306a\u3044\u3002", "value": 20}, {"bars": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981\uff1a\u5e73\u5747", "value": 20}, {"label": "\u89b3\u6e2c\u8ca9\u58f2\uff1a\u5e73\u5747", "value": 19.75}, {"label": "\u975e\u6b20\u54c1\u65e5\u306e\u307f\uff1a\u5e73\u5747", "value": 19}], "lines": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981", "values": [18, 20, 22, 19, 21, 20, 18, 22]}, {"label": "\u89b3\u6e2c\u8ca9\u58f2", "values": [18, 20, 21, 19, 21, 20, 18, 21]}], "note": "\u89b3\u6e2c\u8ca9\u58f2=min(\u9700\u8981,\u5728\u5eab)\u3002\u5728\u5eab\u4e0a\u9650\u3068\u540c\u5024\u306e\u671f\u9593\u3092\u9664\u5916\u3059\u308b\u7c21\u7565\u4f8b\u3002\u975e\u6b20\u54c1\u65e5\u306e\u5e73\u5747\u3082\u9078\u629e\u30d0\u30a4\u30a2\u30b9\u3092\u542b\u3080\u3002\u6b20\u54c1\u65e5\u306e\u771f\u306e\u9700\u8981\u3092\u5fa9\u5143\u3057\u305f\u5024\u3067\u306f\u306a\u3044\u3002", "value": 21}, {"bars": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981\uff1a\u5e73\u5747", "value": 20}, {"label": "\u89b3\u6e2c\u8ca9\u58f2\uff1a\u5e73\u5747", "value": 20}, {"label": "\u975e\u6b20\u54c1\u65e5\u306e\u307f\uff1a\u5e73\u5747", "value": 19.3333}], "lines": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981", "values": [18, 20, 22, 19, 21, 20, 18, 22]}, {"label": "\u89b3\u6e2c\u8ca9\u58f2", "values": [18, 20, 22, 19, 21, 20, 18, 22]}], "note": "\u89b3\u6e2c\u8ca9\u58f2=min(\u9700\u8981,\u5728\u5eab)\u3002\u5728\u5eab\u4e0a\u9650\u3068\u540c\u5024\u306e\u671f\u9593\u3092\u9664\u5916\u3059\u308b\u7c21\u7565\u4f8b\u3002\u975e\u6b20\u54c1\u65e5\u306e\u5e73\u5747\u3082\u9078\u629e\u30d0\u30a4\u30a2\u30b9\u3092\u542b\u3080\u3002\u6b20\u54c1\u65e5\u306e\u771f\u306e\u9700\u8981\u3092\u5fa9\u5143\u3057\u305f\u5024\u3067\u306f\u306a\u3044\u3002", "value": 22}, {"bars": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981\uff1a\u5e73\u5747", "value": 20}, {"label": "\u89b3\u6e2c\u8ca9\u58f2\uff1a\u5e73\u5747", "value": 20}, {"label": "\u975e\u6b20\u54c1\u65e5\u306e\u307f\uff1a\u5e73\u5747", "value": 20}], "lines": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981", "values": [18, 20, 22, 19, 21, 20, 18, 22]}, {"label": "\u89b3\u6e2c\u8ca9\u58f2", "values": [18, 20, 22, 19, 21, 20, 18, 22]}], "note": "\u89b3\u6e2c\u8ca9\u58f2=min(\u9700\u8981,\u5728\u5eab)\u3002\u5728\u5eab\u4e0a\u9650\u3068\u540c\u5024\u306e\u671f\u9593\u3092\u9664\u5916\u3059\u308b\u7c21\u7565\u4f8b\u3002\u975e\u6b20\u54c1\u65e5\u306e\u5e73\u5747\u3082\u9078\u629e\u30d0\u30a4\u30a2\u30b9\u3092\u542b\u3080\u3002\u6b20\u54c1\u65e5\u306e\u771f\u306e\u9700\u8981\u3092\u5fa9\u5143\u3057\u305f\u5024\u3067\u306f\u306a\u3044\u3002", "value": 23}, {"bars": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981\uff1a\u5e73\u5747", "value": 20}, {"label": "\u89b3\u6e2c\u8ca9\u58f2\uff1a\u5e73\u5747", "value": 20}, {"label": "\u975e\u6b20\u54c1\u65e5\u306e\u307f\uff1a\u5e73\u5747", "value": 20}], "lines": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981", "values": [18, 20, 22, 19, 21, 20, 18, 22]}, {"label": "\u89b3\u6e2c\u8ca9\u58f2", "values": [18, 20, 22, 19, 21, 20, 18, 22]}], "note": "\u89b3\u6e2c\u8ca9\u58f2=min(\u9700\u8981,\u5728\u5eab)\u3002\u5728\u5eab\u4e0a\u9650\u3068\u540c\u5024\u306e\u671f\u9593\u3092\u9664\u5916\u3059\u308b\u7c21\u7565\u4f8b\u3002\u975e\u6b20\u54c1\u65e5\u306e\u5e73\u5747\u3082\u9078\u629e\u30d0\u30a4\u30a2\u30b9\u3092\u542b\u3080\u3002\u6b20\u54c1\u65e5\u306e\u771f\u306e\u9700\u8981\u3092\u5fa9\u5143\u3057\u305f\u5024\u3067\u306f\u306a\u3044\u3002", "value": 24}, {"bars": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981\uff1a\u5e73\u5747", "value": 20}, {"label": "\u89b3\u6e2c\u8ca9\u58f2\uff1a\u5e73\u5747", "value": 20}, {"label": "\u975e\u6b20\u54c1\u65e5\u306e\u307f\uff1a\u5e73\u5747", "value": 20}], "lines": [{"label": "\u5408\u6210\u306e\u6f5c\u5728\u9700\u8981", "values": [18, 20, 22, 19, 21, 20, 18, 22]}, {"label": "\u89b3\u6e2c\u8ca9\u58f2", "values": [18, 20, 22, 19, 21, 20, 18, 22]}], "note": "\u89b3\u6e2c\u8ca9\u58f2=min(\u9700\u8981,\u5728\u5eab)\u3002\u5728\u5eab\u4e0a\u9650\u3068\u540c\u5024\u306e\u671f\u9593\u3092\u9664\u5916\u3059\u308b\u7c21\u7565\u4f8b\u3002\u975e\u6b20\u54c1\u65e5\u306e\u5e73\u5747\u3082\u9078\u629e\u30d0\u30a4\u30a2\u30b9\u3092\u542b\u3080\u3002\u6b20\u54c1\u65e5\u306e\u771f\u306e\u9700\u8981\u3092\u5fa9\u5143\u3057\u305f\u5024\u3067\u306f\u306a\u3044\u3002", "value": 25}], "label": "\u5404\u671f\u306e\u5728\u5eab\u4e0a\u9650", "metric": "\u5e73\u5747\u6570\u91cf", "unit": "\u500b"}</script>        <div data-mount></div>
+        <div data-fallback>
+          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
+<p>各期の在庫上限：20個</p><ul><li>合成の潜在需要：平均：20</li><li>観測販売：平均：19.375</li><li>非欠品日のみ：平均：18.3333</li></ul><p>観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。非欠品日の平均も選択バイアスを含む。欠品日の真の需要を復元した値ではない。</p>        </div>
+        <p class="figure-source">数値の出所：このLabの results.json。論文の測定値ではありません。 </p>
+      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>同じ8期の潜在需要に異なる在庫上限を適用する。販売平均と、上限に達した期間を除いた平均を計算し、除外しても真値に戻るとは限らないことを見る。</p>
+<p>実行：<code>uv run papers/vn2-stockout-catboost/run.py</code>。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を <code>results.json</code> へ保存する。</p></div><div class="downloads"><a href="../downloads/vn2-stockout-catboost/run.py" download>実行コード</a><a href="../downloads/_toy_common.py" download>計算本体</a><a href="../downloads/vn2-stockout-catboost/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/vn2-stockout-catboost">GitHubで開く ↗</a></div><p class="source-note">再実行はリポジトリの配置を使ってください。上の2ファイルだけを同じ階層へ置く方式には対応していません。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>教材用の合成実験。論文モデルの再現・性能比較ではありません。</em></p>
+<h3>条件を変える最小実験</h3>
+<ul><li><strong>dataset</strong>: deterministic synthetic</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>合成の潜在需要：平均</th><td colspan='1'>20</td></tr><tr><th scope='row'>観測販売：平均</th><td colspan='1'>19.375</td></tr><tr><th scope='row'>非欠品日のみ：平均</th><td colspan='1'>18.3333</td></tr></tbody></table>
 <details><summary>生の results.json</summary><pre><code>{
-  &quot;note&quot;: &quot;単一 SKU・一期間の合成例。CatBoost、二週リードタイム、公式 VN2 simulator は含まない。&quot;,
+  &quot;note&quot;: &quot;教材用の合成実験。論文モデルの再現・性能比較ではありません。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
   &quot;experiments&quot;: [
     {
-      &quot;name&quot;: &quot;CPU-only synthetic toy&quot;,
+      &quot;name&quot;: &quot;条件を変える最小実験&quot;,
       &quot;dataset&quot;: &quot;deterministic synthetic&quot;,
-      &quot;seed&quot;: 0,
       &quot;metrics&quot;: {
-        &quot;latent demand&quot;: {
-          &quot;真値&quot;: 20,
-          &quot;stockout 時の観測販売&quot;: 8,
-          &quot;mask 後の推定&quot;: 19
-        },
-        &quot;inventory cost&quot;: {
-          &quot;sales=demand の注文&quot;: 72,
-          &quot;cost-aware order-up-to&quot;: 28
-        }
+        &quot;合成の潜在需要：平均&quot;: 20,
+        &quot;観測販売：平均&quot;: 19.375,
+        &quot;非欠品日のみ：平均&quot;: 18.3333
       }
     }
-  ]
-}</code></pre></details><p>toy は observation censoring と asymmetric cost を同時に無視する危険を示す。CatBoost の精度を評価していない。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p><strong>メカニズムは PARTIAL</strong>。stockout sales を demand と置くと注文量が低くなり、不足費用が大きくなる構図を確認した。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>GBDT、dynamic scaling、二週 lead time、VN2 official −13.2% cost、実在商品の substitution は未検証である。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p>一 SKU の決定的な費用表である。構造的 censoring model ではない。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
+  ],
+  &quot;explorer&quot;: {
+    &quot;label&quot;: &quot;各期の在庫上限&quot;,
+    &quot;unit&quot;: &quot;個&quot;,
+    &quot;metric&quot;: &quot;平均数量&quot;,
+    &quot;default&quot;: 8,
+    &quot;frames&quot;: [
+      {
+        &quot;value&quot;: 12,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;観測販売：平均&quot;,
+            &quot;value&quot;: 12
+          },
+          {
+            &quot;label&quot;: &quot;非欠品日のみ：平均&quot;,
+            &quot;value&quot;: 0
+          }
+        ],
+        &quot;note&quot;: &quot;観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。非欠品期間がないため推定不能（棒は0で表示）。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;観測販売&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 13,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;観測販売：平均&quot;,
+            &quot;value&quot;: 13
+          },
+          {
+            &quot;label&quot;: &quot;非欠品日のみ：平均&quot;,
+            &quot;value&quot;: 0
+          }
+        ],
+        &quot;note&quot;: &quot;観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。非欠品期間がないため推定不能（棒は0で表示）。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;観測販売&quot;,
+            &quot;values&quot;: [
+              13,
+              13,
+              13,
+              13,
+              13,
+              13,
+              13,
+              13
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 14,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;観測販売：平均&quot;,
+            &quot;value&quot;: 14
+          },
+          {
+            &quot;label&quot;: &quot;非欠品日のみ：平均&quot;,
+            &quot;value&quot;: 0
+          }
+        ],
+        &quot;note&quot;: &quot;観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。非欠品期間がないため推定不能（棒は0で表示）。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;観測販売&quot;,
+            &quot;values&quot;: [
+              14,
+              14,
+              14,
+              14,
+              14,
+              14,
+              14,
+              14
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 15,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;観測販売：平均&quot;,
+            &quot;value&quot;: 15
+          },
+          {
+            &quot;label&quot;: &quot;非欠品日のみ：平均&quot;,
+            &quot;value&quot;: 0
+          }
+        ],
+        &quot;note&quot;: &quot;観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。非欠品期間がないため推定不能（棒は0で表示）。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;観測販売&quot;,
+            &quot;values&quot;: [
+              15,
+              15,
+              15,
+              15,
+              15,
+              15,
+              15,
+              15
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 16,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;観測販売：平均&quot;,
+            &quot;value&quot;: 16
+          },
+          {
+            &quot;label&quot;: &quot;非欠品日のみ：平均&quot;,
+            &quot;value&quot;: 0
+          }
+        ],
+        &quot;note&quot;: &quot;観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。非欠品期間がないため推定不能（棒は0で表示）。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;観測販売&quot;,
+            &quot;values&quot;: [
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 17,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;観測販売：平均&quot;,
+            &quot;value&quot;: 17
+          },
+          {
+            &quot;label&quot;: &quot;非欠品日のみ：平均&quot;,
+            &quot;value&quot;: 0
+          }
+        ],
+        &quot;note&quot;: &quot;観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。非欠品期間がないため推定不能（棒は0で表示）。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;観測販売&quot;,
+            &quot;values&quot;: [
+              17,
+              17,
+              17,
+              17,
+              17,
+              17,
+              17,
+              17
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 18,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;観測販売：平均&quot;,
+            &quot;value&quot;: 18
+          },
+          {
+            &quot;label&quot;: &quot;非欠品日のみ：平均&quot;,
+            &quot;value&quot;: 0
+          }
+        ],
+        &quot;note&quot;: &quot;観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。非欠品期間がないため推定不能（棒は0で表示）。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;観測販売&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              18,
+              18,
+              18,
+              18,
+              18,
+              18
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 19,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;観測販売：平均&quot;,
+            &quot;value&quot;: 18.75
+          },
+          {
+            &quot;label&quot;: &quot;非欠品日のみ：平均&quot;,
+            &quot;value&quot;: 18
+          }
+        ],
+        &quot;note&quot;: &quot;観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。非欠品日の平均も選択バイアスを含む。欠品日の真の需要を復元した値ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;観測販売&quot;,
+            &quot;values&quot;: [
+              18,
+              19,
+              19,
+              19,
+              19,
+              19,
+              18,
+              19
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 20,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;観測販売：平均&quot;,
+            &quot;value&quot;: 19.375
+          },
+          {
+            &quot;label&quot;: &quot;非欠品日のみ：平均&quot;,
+            &quot;value&quot;: 18.3333
+          }
+        ],
+        &quot;note&quot;: &quot;観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。非欠品日の平均も選択バイアスを含む。欠品日の真の需要を復元した値ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;観測販売&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              20,
+              19,
+              20,
+              20,
+              18,
+              20
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 21,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;観測販売：平均&quot;,
+            &quot;value&quot;: 19.75
+          },
+          {
+            &quot;label&quot;: &quot;非欠品日のみ：平均&quot;,
+            &quot;value&quot;: 19
+          }
+        ],
+        &quot;note&quot;: &quot;観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。非欠品日の平均も選択バイアスを含む。欠品日の真の需要を復元した値ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;観測販売&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              21,
+              19,
+              21,
+              20,
+              18,
+              21
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 22,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;観測販売：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;非欠品日のみ：平均&quot;,
+            &quot;value&quot;: 19.3333
+          }
+        ],
+        &quot;note&quot;: &quot;観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。非欠品日の平均も選択バイアスを含む。欠品日の真の需要を復元した値ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;観測販売&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 23,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;観測販売：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;非欠品日のみ：平均&quot;,
+            &quot;value&quot;: 20
+          }
+        ],
+        &quot;note&quot;: &quot;観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。非欠品日の平均も選択バイアスを含む。欠品日の真の需要を復元した値ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;観測販売&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 24,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;観測販売：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;非欠品日のみ：平均&quot;,
+            &quot;value&quot;: 20
+          }
+        ],
+        &quot;note&quot;: &quot;観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。非欠品日の平均も選択バイアスを含む。欠品日の真の需要を復元した値ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;観測販売&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 25,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;観測販売：平均&quot;,
+            &quot;value&quot;: 20
+          },
+          {
+            &quot;label&quot;: &quot;非欠品日のみ：平均&quot;,
+            &quot;value&quot;: 20
+          }
+        ],
+        &quot;note&quot;: &quot;観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。非欠品日の平均も選択バイアスを含む。欠品日の真の需要を復元した値ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;合成の潜在需要&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;観測販売&quot;,
+            &quot;values&quot;: [
+              18,
+              20,
+              22,
+              19,
+              21,
+              20,
+              18,
+              22
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre></details><p>図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>メカニズム：PARTIAL（部分的）</strong>。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。</p>
+<p>同じ8期の潜在需要に異なる在庫上限を適用する。販売平均と、上限に達した期間を除いた平均を計算し、除外しても真値に戻るとは限らないことを見る。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>全期間で欠品している商品には、除外後の情報が残らない。代替購買、失注数、発注の最小単位、配送の遅れを含む現場への適用は別途検証が必要。公式シミュレーターとCatBoostの学習は実行していない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけで実行できる。入口は各Labの <code>run.py</code>、計算本体は <code>papers/_toy_common.py</code> にある。関数は論文IDごとに独立し、ブラウザー用の全条件と初期条件の表を同時に出力する。</p>
+<p>意図して省いたもの：CatBoost、動的正規化、2週の配送期間、費用最適化、公式競技。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
 <thead>
 <tr>
-<th>原論文</th>
-<th>Lab</th>
+<th>対象</th>
+<th>原典とLabの対応</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>stockout-aware features</td>
-<td><code>censoring.svg</code>, <code>masking.svg</code></td>
+<td>原論文</td>
+<td><a href="https://arxiv.org/html/2601.18919">§2 / §6.2 / §7</a></td>
 </tr>
 <tr>
-<td>cost-aware policy</td>
-<td><code>order.svg</code> と toy</td>
+<td>処理図</td>
+<td>上記の仕組みを説明用に簡略化。公式実装ではない</td>
+</tr>
+<tr>
+<td>条件探索</td>
+<td><code>run.py</code> → <code>papers/_toy_common.py</code> → <code>results.json</code></td>
+</tr>
+<tr>
+<td>公式コード</td>
+<td>このLabでは公式コードとの行単位の照合はしていない。</td>
 </tr>
 </tbody>
-</table></div></section></article></div>
-</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/vn2-stockout-catboost/lab.yaml</code></p></div></footer>
+</table></div>      </section>
+<section class="figures"><details><summary>参考用の静止図を開く</summary><div class="figure-grid"><figure><img src="../figures/vn2-stockout-catboost/figures/censoring.svg" alt="参考図 1：処理の全体像" loading="lazy"><figcaption>論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。</figcaption></figure></div></details></section>    <aside class="end-note"><p>次に確かめたいこと</p><strong>売れた数しか分からないとき、必要な在庫をどう決めるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/vn2-stockout-catboost/lab.yaml" download>このページの原データ</a></footer>
 </body></html>

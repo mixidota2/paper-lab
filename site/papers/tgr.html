@@ -1,58 +1,355 @@
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Tencent の生成推薦を、cascade を一気に消す話ではなく、ranker・retrieval channel・slate を段階的に置換する設計として読む。"><title>TGR: Advancing Industrial Recommendation from Generative-Paradigm Ranking toward Unified Generation and Reasoning | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="TGRは順位付け、商品候補の生成、一覧の生成、事前の推論を分けて設計する。導入箇所と出力形式を押さえると、報告された改善を読み違えにくい。">
+  <title>生成推薦を、既存システムのどこへ組み込むか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
 <body>
 <a class="skip-link" href="#paper">本文へ移動</a>
-<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
-<main id="paper" class="paper shell">
-<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2609.00986</span></nav>
-<header class="paper-hero"><p class="priority priority--must">Must Read</p><h1>TGR: Advancing Industrial Recommendation from Generative-Paradigm Ranking toward Unified Generation and Reasoning</h1><p class="authors">Lei Cheng, Haonan Hu, Beibei Kong, Yudong Li, Zang Li, Yunsheng Pang, Hongyang Su, Jianchao Tu, Yunlong Wang, Bing Wen, Junzhang Zhu, Shaojie Zhu, Chengxiang Zhuo</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2609.00986" rel="noopener">2609.00986</a></dd></div><div><dt>投稿</dt><dd>2026-09-01</dd></div><div><dt>収録</dt><dd>2026</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.00986" rel="noopener">原典を読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2609.00986" rel="noopener">PDF</a></div></header>
-<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
-<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid"><figure><img src="../figures/tgr/figures/cascade.svg" alt="段階ごとの置換" loading="lazy"><figcaption><strong>段階ごとの置換</strong><br>CCFormer、BARGE、HiGR は既存 cascade に入る位置が異なる。</figcaption></figure><figure><img src="../figures/tgr/figures/ranking.svg" alt="score-out と生成 slate" loading="lazy"><figcaption><strong>score-out と生成 slate</strong><br>per-item 出力と token decode は同じ「生成推薦」ではない。</figcaption></figure><figure><img src="../figures/tgr/figures/channel.svg" alt="BARGE は retrieval channel" loading="lazy"><figcaption><strong>BARGE は retrieval channel</strong><br>既存 funnel の全面代替ではなく、候補源の一つとして読む。</figcaption></figure></div></section>
-<div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>推薦 cascade は retrieval、pre-ranking、ranking、reranking の計算量を分ける。TGR はこの境界を残しつつ、生成的な表現を各段へ持ち込む産業報告である。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>SID の階層 token を単純に生成すると、item の境界をまたぐ token 列や、意味が近いが別 item へ流れる drift が起こる。ranking 側にも、候補ごとの多目的 score を低遅延で返す制約が残る。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>著者は CCFormer による generative-paradigm ranking、BARGE/HiGR による生成 retrieval・slate、offline reason token を組み合わせた TGR を示す。BARGE は item-boundary loss と semantic drift を ICA、HPR、DPD で扱うと説明する。Abstract は CCFormer の二面完全展開、BARGE の +0.60% CTR、+1.70% reading time を報告する。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>全面的な end-to-end 置換より、遅延と GPU 予算をそろえて部品ごとに置く運用原則に価値がある。SID を decode できても、既存 retrieval を安全に捨てられるとは限らない。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p><strong>読書メモ（推論）</strong>。候補 channel と ranker を分ければ、生成 decode の失敗を既存 channel で吸収しながら、良い領域だけを rollout できる。失敗率、coverage、tail latency を同時に測らなければ、CTR だけで安全性は分からない。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>Abstract は BARGE の offline Hit@5 +10.2–16.9%、CCFormer の最大 +3.57% CTR と +1.71% advertising revenue を記す。これらは Tencent 内 A/B の著者報告で、外部が同じ traffic と candidate pool で再現した数値ではない。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p><code>uv run papers/tgr/run.py</code> は、800 件を score する ranker と 12 token を decode する slate の演算単位を並べる。item ID、attention、実測 latency は実装しない。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p class="callout-body"><em>合成の演算回数であり、Tencent の latency・CTR・GPU 利用率ではない。</em></p>
-<h3>CPU-only synthetic toy</h3>
-<ul><li><strong>dataset</strong>: deterministic synthetic</li><li><strong>seed</strong>: 0</li></ul>
-<table class="metrics"><thead><tr><th>指標</th><th>token_steps</th><th>candidate_scores</th></tr></thead><tbody><tr><th scope='row'>generative_slate</th><td>12</td><td>0</td></tr><tr><th scope='row'>ccformer</th><td>0</td><td>800</td></tr></tbody></table>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-01</span></div>
+    <h1>生成推薦を、既存システムのどこへ組み込むか</h1>
+    <p class="lede">TGRは順位付け、商品候補の生成、一覧の生成、事前の推論を分けて設計する。導入箇所と出力形式を押さえると、報告された改善を読み違えにくい。</p>
+    <details class="bibliography"><summary>原論文：TGR: Advancing Industrial Recommendation from Generative-Paradigm Ranking toward Unified Generation and Reasoning</summary><p>Lei Cheng, Haonan Hu, Beibei Kong, Yudong Li, Zang Li, Yunsheng Pang, Hongyang Su, Jianchao Tu, Yunlong Wang, Bing Wen, Junzhang Zhu, Shaojie Zhu, Chengxiang Zhuo</p><p>2609.00986 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.00986">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.00986">PDF ↗</a><a href="#interactive-1">図を操作する ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-07 · arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">01 問いと仕組み</a><a href="#interactive-1">02 図で追う</a><a href="#evidence">03 論文の根拠</a><a href="#interactive-2">04 条件を変える</a><a href="#what_we_did_not_verify">05 限界と批評</a><a href="#implementation">06 実装と出典</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>TGRは順位付け、商品候補の生成、一覧の生成、事前の推論を分けて設計する。導入箇所と出力形式を押さえると、報告された改善を読み違えにくい。</p>
+<p>このLabでは「生成推薦を、既存システムのどこへ組み込むか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>推薦システムは、候補生成から詳細な順位付けへ順に候補を絞る。各段は使える計算量も、返すものも異なる。候補ごとの点数を返すモデルと、表示する一覧を直接作るモデルは、同じ「生成」という言葉でも交換可能ではない。</p>
+<p>商品を階層的なID列に変えると、モデルが見る単位はトークンになり、利用者が選ぶ商品単位とのずれが生じる。先頭のIDを誤ると、その後を正しく選んでも目的の商品へたどり着けない。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>CCFormerは順位付けを担う。BARGEは商品内のIDをまとめた文脈を各トークンへ戻すICA、経路全体の整合性を評価するHPR、別の生成経路を持つDPDでID生成の失敗に対処する。HiGRは一覧全体を生成する。TGR-Reasonは推論を事前計算し、圧縮した表現を配信時に参照する。</p>
+<p><a href="https://arxiv.org/html/2609.00986">一次資料：§2 / §3.6 / §4.2 / §4.3 / §5</a></p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>既存の段構成を捨てるかどうかと、生成モデルを採用するかどうかは別の判断になる。BARGEが候補源の一つとして導入された点は、他の候補源と混ぜながら増分を確かめる設計例として読める。</p></div></div>
+      </section>
+      <section class="interactive" id="interactive-1" data-interactive="flow" aria-labelledby="figure-title-3">
+        <div class="figure-heading"><p class="eyebrow">01 / MECHANISM</p><span class="figure-badge">論文の概念図</span></div>
+        <h2 id="figure-title-3">処理と設計の違いを追う</h2>
+        <p class="figure-caption">段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。</p>
+        <script type="application/json" data-config>{"caption": "\u6bb5\u3092\u9078\u3076\u3068\u8aac\u660e\u304c\u5207\u308a\u66ff\u308f\u308b\u3002\u6bd4\u8f03\u5074\u306f\u8ad6\u70b9\u3092\u793a\u3059\u7c21\u7565\u5316\u3067\u3001\u7d71\u5236\u5b9f\u9a13\u306e\u5b9f\u88c5\u3067\u306f\u306a\u3044\u3002", "kind": "flow", "source": "https://arxiv.org/html/2609.00986", "stages": [{"baseline": "\u65e2\u5b58\u306e\u8907\u6570\u5019\u88dc\u6e90", "detail": "BARGE\u306f\u5546\u54c1ID\u306e\u751f\u6210\u3092\u6539\u5584\u3059\u308b\u3002\u63a8\u85a6\u5168\u4f53\u3092\u4e38\u3054\u3068\u7f6e\u304d\u63db\u3048\u305f\u3068\u3044\u3046\u610f\u5473\u3067\u306f\u306a\u3044\u3002", "proposed": "BARGE\u3092\u5019\u88dc\u6e90\u3078\u8ffd\u52a0", "title": "\u5019\u88dc\u6e90\u3092\u4f5c\u308b"}, {"baseline": "\u65e2\u5b58\u306e\u9806\u4f4d\u4ed8\u3051", "detail": "\u5165\u529b\u3092\u7d71\u4e00\u3057\u305fTransformer\u3067\u5019\u88dc\u306e\u70b9\u6570\u3092\u51fa\u3059\u3002\u51fa\u529b\u306f\u4e00\u89a7\u306eID\u751f\u6210\u3068\u533a\u5225\u3059\u308b\u3002", "proposed": "CCFormer\u3067\u9806\u4f4d\u4ed8\u3051", "title": "\u5019\u88dc\u3092\u63a1\u70b9\u3059\u308b"}, {"baseline": "\u5546\u54c1\u3054\u3068\u306e\u5224\u65ad\u3092\u96c6\u7d04", "detail": "\u4e00\u89a7\u5185\u306e\u95a2\u4fc2\u3068\u4f4d\u7f6e\u3001\u751f\u6210\u6642\u9593\u3092\u6271\u3046\u72ec\u7acb\u3057\u305f\u8a2d\u8a08\u3002\u524d\u6bb5\u304b\u3089\u5fc5\u305a\u76f4\u5217\u306b\u3064\u306a\u304c\u308b\u56f3\u3067\u306f\u306a\u3044\u3002", "proposed": "HiGR\u3067\u4e00\u89a7\u3092\u751f\u6210", "title": "\u4e00\u89a7\u3092\u8003\u3048\u308b"}, {"baseline": "\u5c65\u6b74\u306e\u76f4\u63a5\u53c2\u7167", "detail": "TGR-Reason\u306f\u5171\u6709\u306e\u8ffd\u52a0\u60c5\u5831\u3092\u63d0\u4f9b\u3059\u308b\u30024\u6bb5\u306f\u90e8\u54c1\u306e\u914d\u7f6e\u3092\u6bd4\u8f03\u3059\u308b\u56f3\u3067\u3001\u56fa\u5b9a\u306e\u5b9f\u884c\u9806\u3067\u306f\u306a\u3044\u3002", "proposed": "\u4e8b\u524d\u63a8\u8ad6\u306e\u8868\u73fe\u3092\u53c2\u7167", "title": "\u63a8\u8ad6\u3092\u6e21\u3059"}], "title": "\u51e6\u7406\u3068\u8a2d\u8a08\u306e\u9055\u3044\u3092\u8ffd\u3046"}</script>
+        <div data-mount></div>
+        <div data-fallback>
+          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
+<ol><li><strong>候補源を作る：BARGEを候補源へ追加</strong><p>BARGEは商品IDの生成を改善する。推薦全体を丸ごと置き換えたという意味ではない。</p></li><li><strong>候補を採点する：CCFormerで順位付け</strong><p>入力を統一したTransformerで候補の点数を出す。出力は一覧のID生成と区別する。</p></li><li><strong>一覧を考える：HiGRで一覧を生成</strong><p>一覧内の関係と位置、生成時間を扱う独立した設計。前段から必ず直列につながる図ではない。</p></li><li><strong>推論を渡す：事前推論の表現を参照</strong><p>TGR-Reasonは共有の追加情報を提供する。4段は部品の配置を比較する図で、固定の実行順ではない。</p></li></ol>
+        </div>
+        <p class="figure-source">出典に基づく説明用の簡略化。 <a href="https://arxiv.org/html/2609.00986">一次資料 ↗</a></p>
+      </section>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>商品単位の文脈と経路全体の点検を足せば、局所的にはもっともらしいIDの誤りを減らせると考えられる。ただし探索幅を固定したまま、どの候補を救い、どれを落としたかを見る必要がある。事前推論には古くなった利用者情報をどう更新するかという課題も残る。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>§4.2.5はBARGEを候補生成チャネルとして導入した2週間・6%トラフィックのA/B実験を記載する。CTRは+0.60%、総閲覧時間は+1.70%という著者報告。§3.6のCCFormer、§4.3のHiGR、§5の推論部分の結果は別の部品・条件であり、改善率を合算しない。</p>
+<p><a href="https://arxiv.org/html/2609.00986">一次資料：§2 / §3.6 / §4.2 / §4.3 / §5</a></p></div>      </section>
+      <section class="interactive" id="interactive-2" data-interactive="explorer" aria-labelledby="figure-title-5">
+        <div class="figure-heading"><p class="eyebrow">02 / EXPERIMENT</p><span class="figure-badge">合成実験 · PARTIAL</span></div>
+        <h2 id="figure-title-5">IDの途中の誤りはどこまで残るか</h2>
+        <p class="figure-caption">各ID階層が独立に90%の確率で正しい枝を選ぶ仮定を置き、階層を深くしたときの到達率を計算する。BARGEの改善率を作り込まず、早い段の誤りの蓄積だけを見る。</p>
+        <script type="application/json" data-config>{"caption": "\u5404ID\u968e\u5c64\u304c\u72ec\u7acb\u306b90%\u306e\u78ba\u7387\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u4eee\u5b9a\u3092\u7f6e\u304d\u3001\u968e\u5c64\u3092\u6df1\u304f\u3057\u305f\u3068\u304d\u306e\u5230\u9054\u7387\u3092\u8a08\u7b97\u3059\u308b\u3002BARGE\u306e\u6539\u5584\u7387\u3092\u4f5c\u308a\u8fbc\u307e\u305a\u3001\u65e9\u3044\u6bb5\u306e\u8aa4\u308a\u306e\u84c4\u7a4d\u3060\u3051\u3092\u898b\u308b\u3002", "kind": "explorer", "title": "ID\u306e\u9014\u4e2d\u306e\u8aa4\u308a\u306f\u3069\u3053\u307e\u3067\u6b8b\u308b\u304b"}</script>
+<script type="application/json" data-results>{"default": 2, "frames": [{"bars": [{"label": "\u5404\u6bb5\u306e\u6b63\u3057\u3044\u679d\u306e\u9078\u629e\u7387 (%)", "value": 90.0}, {"label": "\u5168\u6bb5\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u7387 (%)", "value": 90.0}], "lines": [{"label": "\u6df1\u3055\u3054\u3068\u306e\u5230\u9054\u7387 (%)", "values": [90.0]}], "note": "\u5404\u6bb5\u304c\u72ec\u7acb\u306b90%\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u4eee\u5b9a\u3002\u9014\u4e2d\u3067\u679d\u3092\u8aa4\u308b\u3068\u5f8c\u6bb5\u3060\u3051\u3067\u306f\u76ee\u6a19\u3078\u623b\u308c\u306a\u3044\u3002BARGE\u306e\u5b9f\u6e2c\u7cbe\u5ea6\u3084\u6539\u5584\u5e45\u3092\u8868\u3059\u5f0f\u3067\u306f\u306a\u3044\u3002", "value": 1}, {"bars": [{"label": "\u5404\u6bb5\u306e\u6b63\u3057\u3044\u679d\u306e\u9078\u629e\u7387 (%)", "value": 90.0}, {"label": "\u5168\u6bb5\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u7387 (%)", "value": 81.0}], "lines": [{"label": "\u6df1\u3055\u3054\u3068\u306e\u5230\u9054\u7387 (%)", "values": [90.0, 81.0]}], "note": "\u5404\u6bb5\u304c\u72ec\u7acb\u306b90%\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u4eee\u5b9a\u3002\u9014\u4e2d\u3067\u679d\u3092\u8aa4\u308b\u3068\u5f8c\u6bb5\u3060\u3051\u3067\u306f\u76ee\u6a19\u3078\u623b\u308c\u306a\u3044\u3002BARGE\u306e\u5b9f\u6e2c\u7cbe\u5ea6\u3084\u6539\u5584\u5e45\u3092\u8868\u3059\u5f0f\u3067\u306f\u306a\u3044\u3002", "value": 2}, {"bars": [{"label": "\u5404\u6bb5\u306e\u6b63\u3057\u3044\u679d\u306e\u9078\u629e\u7387 (%)", "value": 90.0}, {"label": "\u5168\u6bb5\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u7387 (%)", "value": 72.9}], "lines": [{"label": "\u6df1\u3055\u3054\u3068\u306e\u5230\u9054\u7387 (%)", "values": [90.0, 81.0, 72.9]}], "note": "\u5404\u6bb5\u304c\u72ec\u7acb\u306b90%\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u4eee\u5b9a\u3002\u9014\u4e2d\u3067\u679d\u3092\u8aa4\u308b\u3068\u5f8c\u6bb5\u3060\u3051\u3067\u306f\u76ee\u6a19\u3078\u623b\u308c\u306a\u3044\u3002BARGE\u306e\u5b9f\u6e2c\u7cbe\u5ea6\u3084\u6539\u5584\u5e45\u3092\u8868\u3059\u5f0f\u3067\u306f\u306a\u3044\u3002", "value": 3}, {"bars": [{"label": "\u5404\u6bb5\u306e\u6b63\u3057\u3044\u679d\u306e\u9078\u629e\u7387 (%)", "value": 90.0}, {"label": "\u5168\u6bb5\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u7387 (%)", "value": 65.61}], "lines": [{"label": "\u6df1\u3055\u3054\u3068\u306e\u5230\u9054\u7387 (%)", "values": [90.0, 81.0, 72.9, 65.61]}], "note": "\u5404\u6bb5\u304c\u72ec\u7acb\u306b90%\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u4eee\u5b9a\u3002\u9014\u4e2d\u3067\u679d\u3092\u8aa4\u308b\u3068\u5f8c\u6bb5\u3060\u3051\u3067\u306f\u76ee\u6a19\u3078\u623b\u308c\u306a\u3044\u3002BARGE\u306e\u5b9f\u6e2c\u7cbe\u5ea6\u3084\u6539\u5584\u5e45\u3092\u8868\u3059\u5f0f\u3067\u306f\u306a\u3044\u3002", "value": 4}, {"bars": [{"label": "\u5404\u6bb5\u306e\u6b63\u3057\u3044\u679d\u306e\u9078\u629e\u7387 (%)", "value": 90.0}, {"label": "\u5168\u6bb5\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u7387 (%)", "value": 59.049}], "lines": [{"label": "\u6df1\u3055\u3054\u3068\u306e\u5230\u9054\u7387 (%)", "values": [90.0, 81.0, 72.9, 65.61, 59.049]}], "note": "\u5404\u6bb5\u304c\u72ec\u7acb\u306b90%\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u4eee\u5b9a\u3002\u9014\u4e2d\u3067\u679d\u3092\u8aa4\u308b\u3068\u5f8c\u6bb5\u3060\u3051\u3067\u306f\u76ee\u6a19\u3078\u623b\u308c\u306a\u3044\u3002BARGE\u306e\u5b9f\u6e2c\u7cbe\u5ea6\u3084\u6539\u5584\u5e45\u3092\u8868\u3059\u5f0f\u3067\u306f\u306a\u3044\u3002", "value": 5}, {"bars": [{"label": "\u5404\u6bb5\u306e\u6b63\u3057\u3044\u679d\u306e\u9078\u629e\u7387 (%)", "value": 90.0}, {"label": "\u5168\u6bb5\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u7387 (%)", "value": 53.1441}], "lines": [{"label": "\u6df1\u3055\u3054\u3068\u306e\u5230\u9054\u7387 (%)", "values": [90.0, 81.0, 72.9, 65.61, 59.049, 53.1441]}], "note": "\u5404\u6bb5\u304c\u72ec\u7acb\u306b90%\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u4eee\u5b9a\u3002\u9014\u4e2d\u3067\u679d\u3092\u8aa4\u308b\u3068\u5f8c\u6bb5\u3060\u3051\u3067\u306f\u76ee\u6a19\u3078\u623b\u308c\u306a\u3044\u3002BARGE\u306e\u5b9f\u6e2c\u7cbe\u5ea6\u3084\u6539\u5584\u5e45\u3092\u8868\u3059\u5f0f\u3067\u306f\u306a\u3044\u3002", "value": 6}, {"bars": [{"label": "\u5404\u6bb5\u306e\u6b63\u3057\u3044\u679d\u306e\u9078\u629e\u7387 (%)", "value": 90.0}, {"label": "\u5168\u6bb5\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u7387 (%)", "value": 47.8297}], "lines": [{"label": "\u6df1\u3055\u3054\u3068\u306e\u5230\u9054\u7387 (%)", "values": [90.0, 81.0, 72.9, 65.61, 59.049, 53.1441, 47.8297]}], "note": "\u5404\u6bb5\u304c\u72ec\u7acb\u306b90%\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u4eee\u5b9a\u3002\u9014\u4e2d\u3067\u679d\u3092\u8aa4\u308b\u3068\u5f8c\u6bb5\u3060\u3051\u3067\u306f\u76ee\u6a19\u3078\u623b\u308c\u306a\u3044\u3002BARGE\u306e\u5b9f\u6e2c\u7cbe\u5ea6\u3084\u6539\u5584\u5e45\u3092\u8868\u3059\u5f0f\u3067\u306f\u306a\u3044\u3002", "value": 7}, {"bars": [{"label": "\u5404\u6bb5\u306e\u6b63\u3057\u3044\u679d\u306e\u9078\u629e\u7387 (%)", "value": 90.0}, {"label": "\u5168\u6bb5\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u7387 (%)", "value": 43.0467}], "lines": [{"label": "\u6df1\u3055\u3054\u3068\u306e\u5230\u9054\u7387 (%)", "values": [90.0, 81.0, 72.9, 65.61, 59.049, 53.1441, 47.8297, 43.0467]}], "note": "\u5404\u6bb5\u304c\u72ec\u7acb\u306b90%\u3067\u6b63\u3057\u3044\u679d\u3092\u9078\u3076\u4eee\u5b9a\u3002\u9014\u4e2d\u3067\u679d\u3092\u8aa4\u308b\u3068\u5f8c\u6bb5\u3060\u3051\u3067\u306f\u76ee\u6a19\u3078\u623b\u308c\u306a\u3044\u3002BARGE\u306e\u5b9f\u6e2c\u7cbe\u5ea6\u3084\u6539\u5584\u5e45\u3092\u8868\u3059\u5f0f\u3067\u306f\u306a\u3044\u3002", "value": 8}], "label": "\u5546\u54c1ID\u306e\u968e\u5c64\u306e\u6df1\u3055", "metric": "\u78ba\u7387 (%)", "unit": "\u6bb5"}</script>        <div data-mount></div>
+        <div data-fallback>
+          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
+<p>商品IDの階層の深さ：3段</p><ul><li>各段の正しい枝の選択率 (%)：90.0</li><li>全段で正しい枝を選ぶ率 (%)：72.9</li></ul><p>各段が独立に90%で正しい枝を選ぶ仮定。途中で枝を誤ると後段だけでは目標へ戻れない。BARGEの実測精度や改善幅を表す式ではない。</p>        </div>
+        <p class="figure-source">数値の出所：このLabの results.json。論文の測定値ではありません。 </p>
+      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>各ID階層が独立に90%の確率で正しい枝を選ぶ仮定を置き、階層を深くしたときの到達率を計算する。BARGEの改善率を作り込まず、早い段の誤りの蓄積だけを見る。</p>
+<p>実行：<code>uv run papers/tgr/run.py</code>。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を <code>results.json</code> へ保存する。</p></div><div class="downloads"><a href="../downloads/tgr/run.py" download>実行コード</a><a href="../downloads/_toy_common.py" download>計算本体</a><a href="../downloads/tgr/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/tgr">GitHubで開く ↗</a></div><p class="source-note">再実行はリポジトリの配置を使ってください。上の2ファイルだけを同じ階層へ置く方式には対応していません。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>教材用の合成実験。論文モデルの再現・性能比較ではありません。</em></p>
+<h3>条件を変える最小実験</h3>
+<ul><li><strong>dataset</strong>: deterministic synthetic</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>各段の正しい枝の選択率 (%)</th><td colspan='1'>90.0</td></tr><tr><th scope='row'>全段で正しい枝を選ぶ率 (%)</th><td colspan='1'>72.9</td></tr></tbody></table>
 <details><summary>生の results.json</summary><pre><code>{
-  &quot;note&quot;: &quot;合成の演算回数であり、Tencent の latency・CTR・GPU 利用率ではない。&quot;,
+  &quot;note&quot;: &quot;教材用の合成実験。論文モデルの再現・性能比較ではありません。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
   &quot;experiments&quot;: [
     {
-      &quot;name&quot;: &quot;CPU-only synthetic toy&quot;,
+      &quot;name&quot;: &quot;条件を変える最小実験&quot;,
       &quot;dataset&quot;: &quot;deterministic synthetic&quot;,
-      &quot;seed&quot;: 0,
       &quot;metrics&quot;: {
-        &quot;generative_slate&quot;: {
-          &quot;token_steps&quot;: 12,
-          &quot;candidate_scores&quot;: 0
-        },
-        &quot;ccformer&quot;: {
-          &quot;token_steps&quot;: 0,
-          &quot;candidate_scores&quot;: 800
-        }
+        &quot;各段の正しい枝の選択率 (%)&quot;: 90.0,
+        &quot;全段で正しい枝を選ぶ率 (%)&quot;: 72.9
       }
     }
-  ]
-}</code></pre></details><p>下表は合成の work counter であり、paper の性能値ではない。比較の目的は、生成 slate と per-item score で serving contract が異なることを確かめる点にある。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p><strong>メカニズムは PARTIAL</strong>。小実験では score-per-item と token decode の計算単位が違うこと、channel と funnel replacement を区別すべきことを確認した。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>ICA/HPR/DPD、CCFormer、HiGR、reason token、Hit@5、online A/B、億規模 serving は未検証である。反証には matched latency/candidate pool での SID invalid rate と channel ablation が要る。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p>標準ライブラリだけで動く決定的な counter である。生成モデルの性能比較に見せないため、結果 JSON に境界を明記した。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
+  ],
+  &quot;explorer&quot;: {
+    &quot;label&quot;: &quot;商品IDの階層の深さ&quot;,
+    &quot;unit&quot;: &quot;段&quot;,
+    &quot;metric&quot;: &quot;確率 (%)&quot;,
+    &quot;default&quot;: 2,
+    &quot;frames&quot;: [
+      {
+        &quot;value&quot;: 1,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;各段の正しい枝の選択率 (%)&quot;,
+            &quot;value&quot;: 90.0
+          },
+          {
+            &quot;label&quot;: &quot;全段で正しい枝を選ぶ率 (%)&quot;,
+            &quot;value&quot;: 90.0
+          }
+        ],
+        &quot;note&quot;: &quot;各段が独立に90%で正しい枝を選ぶ仮定。途中で枝を誤ると後段だけでは目標へ戻れない。BARGEの実測精度や改善幅を表す式ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;深さごとの到達率 (%)&quot;,
+            &quot;values&quot;: [
+              90.0
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 2,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;各段の正しい枝の選択率 (%)&quot;,
+            &quot;value&quot;: 90.0
+          },
+          {
+            &quot;label&quot;: &quot;全段で正しい枝を選ぶ率 (%)&quot;,
+            &quot;value&quot;: 81.0
+          }
+        ],
+        &quot;note&quot;: &quot;各段が独立に90%で正しい枝を選ぶ仮定。途中で枝を誤ると後段だけでは目標へ戻れない。BARGEの実測精度や改善幅を表す式ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;深さごとの到達率 (%)&quot;,
+            &quot;values&quot;: [
+              90.0,
+              81.0
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 3,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;各段の正しい枝の選択率 (%)&quot;,
+            &quot;value&quot;: 90.0
+          },
+          {
+            &quot;label&quot;: &quot;全段で正しい枝を選ぶ率 (%)&quot;,
+            &quot;value&quot;: 72.9
+          }
+        ],
+        &quot;note&quot;: &quot;各段が独立に90%で正しい枝を選ぶ仮定。途中で枝を誤ると後段だけでは目標へ戻れない。BARGEの実測精度や改善幅を表す式ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;深さごとの到達率 (%)&quot;,
+            &quot;values&quot;: [
+              90.0,
+              81.0,
+              72.9
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 4,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;各段の正しい枝の選択率 (%)&quot;,
+            &quot;value&quot;: 90.0
+          },
+          {
+            &quot;label&quot;: &quot;全段で正しい枝を選ぶ率 (%)&quot;,
+            &quot;value&quot;: 65.61
+          }
+        ],
+        &quot;note&quot;: &quot;各段が独立に90%で正しい枝を選ぶ仮定。途中で枝を誤ると後段だけでは目標へ戻れない。BARGEの実測精度や改善幅を表す式ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;深さごとの到達率 (%)&quot;,
+            &quot;values&quot;: [
+              90.0,
+              81.0,
+              72.9,
+              65.61
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 5,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;各段の正しい枝の選択率 (%)&quot;,
+            &quot;value&quot;: 90.0
+          },
+          {
+            &quot;label&quot;: &quot;全段で正しい枝を選ぶ率 (%)&quot;,
+            &quot;value&quot;: 59.049
+          }
+        ],
+        &quot;note&quot;: &quot;各段が独立に90%で正しい枝を選ぶ仮定。途中で枝を誤ると後段だけでは目標へ戻れない。BARGEの実測精度や改善幅を表す式ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;深さごとの到達率 (%)&quot;,
+            &quot;values&quot;: [
+              90.0,
+              81.0,
+              72.9,
+              65.61,
+              59.049
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 6,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;各段の正しい枝の選択率 (%)&quot;,
+            &quot;value&quot;: 90.0
+          },
+          {
+            &quot;label&quot;: &quot;全段で正しい枝を選ぶ率 (%)&quot;,
+            &quot;value&quot;: 53.1441
+          }
+        ],
+        &quot;note&quot;: &quot;各段が独立に90%で正しい枝を選ぶ仮定。途中で枝を誤ると後段だけでは目標へ戻れない。BARGEの実測精度や改善幅を表す式ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;深さごとの到達率 (%)&quot;,
+            &quot;values&quot;: [
+              90.0,
+              81.0,
+              72.9,
+              65.61,
+              59.049,
+              53.1441
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 7,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;各段の正しい枝の選択率 (%)&quot;,
+            &quot;value&quot;: 90.0
+          },
+          {
+            &quot;label&quot;: &quot;全段で正しい枝を選ぶ率 (%)&quot;,
+            &quot;value&quot;: 47.8297
+          }
+        ],
+        &quot;note&quot;: &quot;各段が独立に90%で正しい枝を選ぶ仮定。途中で枝を誤ると後段だけでは目標へ戻れない。BARGEの実測精度や改善幅を表す式ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;深さごとの到達率 (%)&quot;,
+            &quot;values&quot;: [
+              90.0,
+              81.0,
+              72.9,
+              65.61,
+              59.049,
+              53.1441,
+              47.8297
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 8,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;各段の正しい枝の選択率 (%)&quot;,
+            &quot;value&quot;: 90.0
+          },
+          {
+            &quot;label&quot;: &quot;全段で正しい枝を選ぶ率 (%)&quot;,
+            &quot;value&quot;: 43.0467
+          }
+        ],
+        &quot;note&quot;: &quot;各段が独立に90%で正しい枝を選ぶ仮定。途中で枝を誤ると後段だけでは目標へ戻れない。BARGEの実測精度や改善幅を表す式ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;深さごとの到達率 (%)&quot;,
+            &quot;values&quot;: [
+              90.0,
+              81.0,
+              72.9,
+              65.61,
+              59.049,
+              53.1441,
+              47.8297,
+              43.0467
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre></details><p>図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>メカニズム：PARTIAL（部分的）</strong>。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。</p>
+<p>各ID階層が独立に90%の確率で正しい枝を選ぶ仮定を置き、階層を深くしたときの到達率を計算する。BARGEの改善率を作り込まず、早い段の誤りの蓄積だけを見る。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>IDの到達可能性、候補の重複、多様性、遅いリクエストの応答時間を比較したい。論文の産業データや複数シナリオのA/Bを外部で再検証してはいない。推論の事前計算費用も、配信経路から外れただけでは消えない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけで実行できる。入口は各Labの <code>run.py</code>、計算本体は <code>papers/_toy_common.py</code> にある。関数は論文IDごとに独立し、ブラウザー用の全条件と初期条件の表を同時に出力する。</p>
+<p>意図して省いたもの：ICA・HPR・DPD、CCFormer、HiGR、事前推論、実機配信。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
 <thead>
 <tr>
-<th>原論文</th>
-<th>Lab</th>
+<th>対象</th>
+<th>原典とLabの対応</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Abstract / TGR-GenRank</td>
-<td><code>ranking.svg</code></td>
+<td>原論文</td>
+<td><a href="https://arxiv.org/html/2609.00986">§2 / §3.6 / §4.2 / §4.3 / §5</a></td>
 </tr>
 <tr>
-<td>TGR-GenRec (BARGE)</td>
-<td><code>channel.svg</code> と toy</td>
+<td>処理図</td>
+<td>上記の仕組みを説明用に簡略化。公式実装ではない</td>
 </tr>
 <tr>
-<td>cascade design principle</td>
-<td><code>cascade.svg</code></td>
+<td>条件探索</td>
+<td><code>run.py</code> → <code>papers/_toy_common.py</code> → <code>results.json</code></td>
+</tr>
+<tr>
+<td>公式コード</td>
+<td>このLabでは公式コードとの行単位の照合はしていない。</td>
 </tr>
 </tbody>
-</table></div></section></article></div>
-</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/tgr/lab.yaml</code></p></div></footer>
+</table></div>      </section>
+<section class="figures"><details><summary>参考用の静止図を開く</summary><div class="figure-grid"><figure><img src="../figures/tgr/figures/cascade.svg" alt="参考図 1：処理の全体像" loading="lazy"><figcaption>論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。</figcaption></figure></div></details></section>    <aside class="end-note"><p>次に確かめたいこと</p><strong>生成推薦を、既存システムのどこへ組み込むか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/tgr/lab.yaml" download>このページの原データ</a></footer>
 </body></html>

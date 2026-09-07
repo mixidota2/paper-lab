@@ -1,5 +1,13 @@
-# Case Against Generation for Retrieval — 小実験
+# 言語モデルの知識を使うために、商品IDまで生成する必要はあるか
 
-`uv run papers/case-against-generation-retrieval/run.py` は合成 catalog で逐次 ID decode と因子化検索を比べ、`results.json` を更新する。Meta の LLM、ANN、NE を再現しない。
+16候補を4つの枝に分け、全候補の最高点と、枝の平均点で絞ってから選ぶ最高点を比べる。枝幅を増やすと取り逃しと探索量がどう変わるかを計算する。
 
-原論文 §4 の teacher/student、§5 の serving、§6.2.3 の CE2TT ablation を説明するための最小実装である。
+```bash
+uv run papers/case-against-generation-retrieval/run.py
+```
+
+計算本体は `papers/_toy_common.py`。`results.json` の全条件を更新します。
+
+同じ商品集合、更新頻度、応答時間上限で生成検索と比較したい。公開ベンチマークの教師の成績と、生徒を本番で動かす結果は分けて見る。事前学習の費用は0.5%という学習データ比に含まれるとは限らない。
+
+一次資料と本文は `lab.yaml` を参照してください。

@@ -1,73 +1,287 @@
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="LLM の意味表現は使いながら、検索は二塔と ANN に残す。生成デコードの計算量と grounding を、設計選択として問い直す論文。"><title>The Case Against Generation for Retrieval: Discriminative Language Models as Effective Retrievers | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="言語モデルをユーザーと商品の表現作りに使い、検索はベクトル索引に任せる。重い教師の判断を、軽い検索経路へ移す設計。">
+  <title>言語モデルの知識を使うために、商品IDまで生成する必要はあるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
 <body>
 <a class="skip-link" href="#paper">本文へ移動</a>
-<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
-<main id="paper" class="paper shell">
-<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2607.25346</span></nav>
-<header class="paper-hero"><p class="priority priority--must">Must Read</p><h1>The Case Against Generation for Retrieval: Discriminative Language Models as Effective Retrievers</h1><p class="authors">Zhe Xu, Prachi Agrawal, Kavosh Asadi, Tianyi Chen, Carl Hu, Justin Johnson, Wuwei Lan, Mingfu Liang, Xi Liu, Tik On Lui, Oladipo Ositelu, Sandeep Pandey, Ankit Peshin, Feng Qi, Anil Ramakrishna, Kaushik Rangadurai, Frank Shyu, Luke Simon, Yang Yang, Chiyu Zhang</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2607.25346" rel="noopener">2607.25346</a></dd></div><div><dt>投稿</dt><dd>2026-08-01 (v2)</dd></div><div><dt>収録</dt><dd>2026</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2607.25346" rel="noopener">原典を読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2607.25346" rel="noopener">PDF</a></div></header>
-<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
-<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid"><figure><img src="../figures/case-against-generation-retrieval/figures/paths.svg" alt="逐次生成と二塔 + ANN の経路" loading="lazy"><figcaption><strong>逐次生成と二塔 + ANN の経路</strong><br>LLM を使うかと、ID を逐次生成するかは別の選択である。</figcaption></figure><figure><img src="../figures/case-against-generation-retrieval/figures/distillation.svg" alt="cross-encoder から二塔への蒸留" loading="lazy"><figcaption><strong>cross-encoder から二塔への蒸留</strong><br>教師の候補内 score 分布を、因子化した学生に移す。</figcaption></figure><figure><img src="../figures/case-against-generation-retrieval/figures/failure-modes.svg" alt="遅延と grounding の比較軸" loading="lazy"><figcaption><strong>遅延と grounding の比較軸</strong><br>二塔にも表現・index 鮮度という別の失敗面がある。</figcaption></figure></div></section>
-<div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>Web 規模の推薦では、候補を数百万件から絞る段階に一件ずつの token decode を持ち込むと、遅延と item grounding が難しくなる。論文は LLM を表現学習の backbone として使い、候補生成の計算形は二塔に戻す。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>cross-encoder は user と item を一緒に読めるので精密だが、全 catalog を採点できない。二塔は item を事前計算できるが、その相互作用を捨てる。生成 retrieval は ID を出力できても、存在しない ID、古い ID、token ごとの遅延を扱う必要がある。論文の狙いは、教師の精密さを学生へ移しつつ ANN の性質を保つことだ。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>著者は共有 LLM encoder、EOS pooling、cross-dataset transfer、cross-encoder teacher から two-tower student への蒸留、user tower 内の latent reasoning を提案する。item embedding を前計算し、検索時は user embedding と ANN を使う（§4–5）。</p>
-<p>公開 3 benchmark では cross-encoder が強く、two-tower student は競争力のある retrieval を示したと報告する。内部実験では、two-tower が production DLRM と 0.5% の学習データで NE parity、cross-encoder が 0.15% で parity と報告する（§6–7）。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>この反論の対象は LLM そのものではなく、候補生成を自己回帰 decode にする必然性である。意味表現の改善を ANN の外部 index と組み合わせれば、更新・検索・運用の境界を保てる。反対に、二塔が失う細かな user–item 相互作用を蒸留だけで十分に戻せるかは、用途ごとに残る問いだ。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p><strong>読書メモ（推論）</strong>。教師が同一候補集合への相対的な score を渡すと、正解 / 不正解だけより豊かな近傍構造を学生に与えられる。item 側を固定・前計算できるため、catalog の大きさが online user forward を直接は増やさない。これは蒸留が user–item interaction を完全に復元する主張ではない。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>§6 は Amazon の Beauty、Sports、Toys を使い Recall@K と NDCG@K を報告する。two-tower の leave-one-out では CE2TT を外すと R@10 が Beauty で 0.0825→0.0715、Sports で 0.0542→0.0417、Toys で 0.1078→0.0992 となった（§6.2.3）。teacher の yes/no + NTP は 12 dataset–metric の最良値と著者は述べる（§6.2.2）。</p>
-<p>§7 の内部結果は重要だが、データ、traffic、NE の詳細な再現条件が公開されない。0.5% parity や staleness は著者報告としては強いが、第三者再現の証拠ではない。生成法との matched production head-to-head も、このページで確認した範囲ではない。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p><code>uv run papers/case-against-generation-retrieval/run.py</code> は 160 item の合成 catalog を作る。意図的に壊れやすい逐次 semantic-ID decode と、事前計算 embedding への厳密 top-1 検索を比べ、時間・grounding failure を <code>results.json</code> に残す。ANN library や LLM は使わない。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p class="callout-body"><em>合成ベクトルと意図的に壊れやすい逐次 ID デコードの比較。ANN ライブラリ、LLM、Meta の NE は使わない。</em></p>
-<h3>逐次 ID デコードと因子化検索</h3>
-<ul><li><strong>dataset</strong>: synthetic catalog</li><li><strong>n</strong>: 40</li><li><strong>seed</strong>: 20260904</li></ul>
-<table class="metrics"><thead><tr><th>指標</th><th>recall_at_1</th><th>elapsed_ms</th><th>grounding_failures</th></tr></thead><tbody><tr><th scope='row'>generative_style_decode</th><td>0.0</td><td>164.133</td><td>40</td></tr><tr><th scope='row'>two_tower_exact_ann</th><td>0.95</td><td>5.086</td><td>0</td></tr></tbody></table>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-08-01 (v2)</span></div>
+    <h1>言語モデルの知識を使うために、商品IDまで生成する必要はあるか</h1>
+    <p class="lede">言語モデルをユーザーと商品の表現作りに使い、検索はベクトル索引に任せる。重い教師の判断を、軽い検索経路へ移す設計。</p>
+    <details class="bibliography"><summary>原論文：The Case Against Generation for Retrieval: Discriminative Language Models as Effective Retrievers</summary><p>Zhe Xu, Prachi Agrawal, Kavosh Asadi, Tianyi Chen, Carl Hu, Justin Johnson, Wuwei Lan, Mingfu Liang, Xi Liu, Tik On Lui, Oladipo Ositelu, Sandeep Pandey, Ankit Peshin, Feng Qi, Anil Ramakrishna, Kaushik Rangadurai, Frank Shyu, Luke Simon, Yang Yang, Chiyu Zhang</p><p>2607.25346 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2607.25346">原典を読む ↗</a><a href="https://arxiv.org/pdf/2607.25346">PDF ↗</a><a href="#interactive-1">図を操作する ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-07 · arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">01 問いと仕組み</a><a href="#interactive-1">02 図で追う</a><a href="#evidence">03 論文の根拠</a><a href="#interactive-2">04 条件を変える</a><a href="#what_we_did_not_verify">05 限界と批評</a><a href="#implementation">06 実装と出典</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>言語モデルをユーザーと商品の表現作りに使い、検索はベクトル索引に任せる。重い教師の判断を、軽い検索経路へ移す設計。</p>
+<p>このLabでは「言語モデルの知識を使うために、商品IDまで生成する必要はあるか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>数百万件の商品から候補を選ぶ段階では、候補ごとに言語モデルを動かす費用を払えない。商品IDを順番に生成する方式には、途中の枝選択や実在商品との対応付けという別の課題もある。</p>
+<p>Two-Towerは、ユーザーと商品を別々にベクトルへ変換して近いものを探す。商品側を事前計算できるため、利用者が来るたびに全商品を言語モデルへ入力せずに済む。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>ユーザーと商品を同時に読むCross-Encoderを教師にし、その候補間の好みをTwo-Towerへ学習させる。教師は関連性のYes/No判定と商品テキストの予測で訓練する。生徒は共有エンコーダーと文末位置の表現を使い、ユーザー側には潜在表現による追加推論も入れる。推論時の商品ベクトルは事前計算のまま保つ。</p>
+<p><a href="https://arxiv.org/html/2607.25346">一次資料：§4 / §5 / §6 / §7.2</a></p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>この研究が示す選択肢は、豊かな意味理解と索引検索を組み合わせること。生成推薦全体への決着とは読まない。教師が高性能でも、その順位を生徒が完全には保持できず、索引更新の遅れも残る。</p></div></div>
+      </section>
+      <section class="interactive" id="interactive-1" data-interactive="flow" aria-labelledby="figure-title-3">
+        <div class="figure-heading"><p class="eyebrow">01 / MECHANISM</p><span class="figure-badge">論文の概念図</span></div>
+        <h2 id="figure-title-3">処理と設計の違いを追う</h2>
+        <p class="figure-caption">段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。</p>
+        <script type="application/json" data-config>{"caption": "\u6bb5\u3092\u9078\u3076\u3068\u8aac\u660e\u304c\u5207\u308a\u66ff\u308f\u308b\u3002\u6bd4\u8f03\u5074\u306f\u8ad6\u70b9\u3092\u793a\u3059\u7c21\u7565\u5316\u3067\u3001\u7d71\u5236\u5b9f\u9a13\u306e\u5b9f\u88c5\u3067\u306f\u306a\u3044\u3002", "kind": "flow", "source": "https://arxiv.org/html/2607.25346", "stages": [{"baseline": "ID\u7cfb\u5217\u3092\u5b66\u3076", "detail": "\u6559\u5e2b\u306f\u4e21\u8005\u306e\u60c5\u5831\u3092\u4e00\u7dd2\u306b\u8aad\u3081\u308b\u304c\u3001\u5168\u5019\u88dc\u306b\u9069\u7528\u3059\u308b\u306b\u306f\u91cd\u3044\u3002", "proposed": "\u30e6\u30fc\u30b6\u30fc\u3068\u5546\u54c1\u3092\u6559\u5e2b\u304c\u7167\u5408", "title": "\u5b66\u7fd2\u7528\u306e\u5165\u529b"}, {"baseline": "\u6b21\u306eID\u3092\u4e88\u6e2c", "detail": "\u5019\u88dc\u96c6\u5408\u4e0a\u306e\u30b9\u30b3\u30a2\u5206\u5e03\u3092\u8fd1\u3065\u3051\u308b\u3002\u6559\u5e2b\u3068\u751f\u5f92\u306e\u8868\u73fe\u529b\u306f\u540c\u3058\u3067\u306f\u306a\u3044\u3002", "proposed": "\u6559\u5e2b\u306e\u9806\u4f4d\u3092\u751f\u5f92\u3078\u84b8\u7559", "title": "\u77e5\u8b58\u3092\u5727\u7e2e\u3059\u308b"}, {"baseline": "ID\u3068\u5546\u54c1\u3092\u5bfe\u5fdc\u4ed8\u3051\u308b", "detail": "\u7d22\u5f15\u306b\u5b9f\u5728\u5546\u54c1\u3092\u767b\u9332\u3059\u308b\u3002\u65b0\u5546\u54c1\u30fb\u524a\u9664\u5546\u54c1\u3078\u306e\u66f4\u65b0\u306f\u5225\u9014\u5fc5\u8981\u3002", "proposed": "\u5546\u54c1\u30d9\u30af\u30c8\u30eb\u3092\u4e8b\u524d\u8a08\u7b97", "title": "\u5546\u54c1\u3092\u6e96\u5099\u3059\u308b"}, {"baseline": "ID\u306e\u679d\u3092\u9806\u306b\u9078\u3076", "detail": "\u751f\u6210\u306e\u679d\u9078\u629e\u3068\u7d22\u5f15\u691c\u7d22\u306f\u7570\u306a\u308b\u7d4c\u8def\u3002\u3069\u3061\u3089\u3082\u5019\u88dc\u306e\u53d6\u308a\u9003\u3057\u306f\u8d77\u3053\u308a\u5f97\u308b\u3002", "proposed": "\u30e6\u30fc\u30b6\u30fc\u30d9\u30af\u30c8\u30eb\u304b\u3089\u8fd1\u508d\u691c\u7d22", "title": "\u5019\u88dc\u3092\u53d6\u308a\u51fa\u3059"}], "title": "\u51e6\u7406\u3068\u8a2d\u8a08\u306e\u9055\u3044\u3092\u8ffd\u3046"}</script>
+        <div data-mount></div>
+        <div data-fallback>
+          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
+<ol><li><strong>学習用の入力：ユーザーと商品を教師が照合</strong><p>教師は両者の情報を一緒に読めるが、全候補に適用するには重い。</p></li><li><strong>知識を圧縮する：教師の順位を生徒へ蒸留</strong><p>候補集合上のスコア分布を近づける。教師と生徒の表現力は同じではない。</p></li><li><strong>商品を準備する：商品ベクトルを事前計算</strong><p>索引に実在商品を登録する。新商品・削除商品への更新は別途必要。</p></li><li><strong>候補を取り出す：ユーザーベクトルから近傍検索</strong><p>生成の枝選択と索引検索は異なる経路。どちらも候補の取り逃しは起こり得る。</p></li></ol>
+        </div>
+        <p class="figure-source">出典に基づく説明用の簡略化。 <a href="https://arxiv.org/html/2607.25346">一次資料 ↗</a></p>
+      </section>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>教師はユーザーと商品を直接照合できるので、単純な内積では見えにくい関連性を教えられる。生徒へ移せた分だけ検索品質が上がると考えられるが、圧縮には限界がある。狭い候補集合上の蒸留と、全商品からの候補生成を同じ評価にしないことが大切。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>§7.2.1では、生徒が本番DLRMの正規化エントロピー（NE）と同程度に達するのに使った学習データは0.5%と報告する。NEは小さいほどよい予測損失で、クリック率の改善幅ではない。§7.2.2の古いモデルへの耐性は主に教師CEの結果であり、生徒TTの結果へ読み替えない。公開データの比較は§6、運用経路は§5。</p>
+<p><a href="https://arxiv.org/html/2607.25346">一次資料：§4 / §5 / §6 / §7.2</a></p></div>      </section>
+      <section class="interactive" id="interactive-2" data-interactive="explorer" aria-labelledby="figure-title-5">
+        <div class="figure-heading"><p class="eyebrow">02 / EXPERIMENT</p><span class="figure-badge">合成実験 · PARTIAL</span></div>
+        <h2 id="figure-title-5">枝を絞ると、最良候補を落とすか</h2>
+        <p class="figure-caption">16候補を4つの枝に分け、全候補の最高点と、枝の平均点で絞ってから選ぶ最高点を比べる。枝幅を増やすと取り逃しと探索量がどう変わるかを計算する。</p>
+        <script type="application/json" data-config>{"caption": "16\u5019\u88dc\u30924\u3064\u306e\u679d\u306b\u5206\u3051\u3001\u5168\u5019\u88dc\u306e\u6700\u9ad8\u70b9\u3068\u3001\u679d\u306e\u5e73\u5747\u70b9\u3067\u7d5e\u3063\u3066\u304b\u3089\u9078\u3076\u6700\u9ad8\u70b9\u3092\u6bd4\u3079\u308b\u3002\u679d\u5e45\u3092\u5897\u3084\u3059\u3068\u53d6\u308a\u9003\u3057\u3068\u63a2\u7d22\u91cf\u304c\u3069\u3046\u5909\u308f\u308b\u304b\u3092\u8a08\u7b97\u3059\u308b\u3002", "kind": "explorer", "title": "\u679d\u3092\u7d5e\u308b\u3068\u3001\u6700\u826f\u5019\u88dc\u3092\u843d\u3068\u3059\u304b"}</script>
+<script type="application/json" data-results>{"default": 0, "frames": [{"bars": [{"label": "\u5168\u5019\u88dc\u304b\u3089\u9078\u629e\uff1a\u95a2\u9023\u5ea6", "value": 0.99}, {"label": "\u679d\u3092\u7d5e\u3063\u3066\u9078\u629e\uff1a\u95a2\u9023\u5ea6", "value": 0.6}], "lines": [{"label": "\u5404\u679d\u306e\u5e73\u5747\u70b9", "values": [0.6, 0.285, 0.35, 0.25]}, {"label": "\u5404\u679d\u306e\u6700\u9ad8\u70b9", "values": [0.6, 0.99, 0.5, 0.4]}], "note": "\u7b2c1\u6bb5\u3067\u6b8b\u3059\u679d 1/4\u3002\u8abf\u3079\u308b\u672b\u7aef\u306f 4/16 \u4ef6\u3002\u5e73\u5747\u70b9\u3067\u679d\u3092\u9078\u3076\u4f8b\u3067\u306f\u3001\u6700\u826f\u5019\u88dc\u3092\u542b\u3080\u679d\u3092\u5148\u306b\u6368\u3066\u308b\u5834\u5408\u304c\u3042\u308b\u3002\u7121\u52b9ID\u306f\u751f\u6210\u3057\u3066\u3044\u306a\u3044\u3002", "value": 1}, {"bars": [{"label": "\u5168\u5019\u88dc\u304b\u3089\u9078\u629e\uff1a\u95a2\u9023\u5ea6", "value": 0.99}, {"label": "\u679d\u3092\u7d5e\u3063\u3066\u9078\u629e\uff1a\u95a2\u9023\u5ea6", "value": 0.6}], "lines": [{"label": "\u5404\u679d\u306e\u5e73\u5747\u70b9", "values": [0.6, 0.285, 0.35, 0.25]}, {"label": "\u5404\u679d\u306e\u6700\u9ad8\u70b9", "values": [0.6, 0.99, 0.5, 0.4]}], "note": "\u7b2c1\u6bb5\u3067\u6b8b\u3059\u679d 2/4\u3002\u8abf\u3079\u308b\u672b\u7aef\u306f 8/16 \u4ef6\u3002\u5e73\u5747\u70b9\u3067\u679d\u3092\u9078\u3076\u4f8b\u3067\u306f\u3001\u6700\u826f\u5019\u88dc\u3092\u542b\u3080\u679d\u3092\u5148\u306b\u6368\u3066\u308b\u5834\u5408\u304c\u3042\u308b\u3002\u7121\u52b9ID\u306f\u751f\u6210\u3057\u3066\u3044\u306a\u3044\u3002", "value": 2}, {"bars": [{"label": "\u5168\u5019\u88dc\u304b\u3089\u9078\u629e\uff1a\u95a2\u9023\u5ea6", "value": 0.99}, {"label": "\u679d\u3092\u7d5e\u3063\u3066\u9078\u629e\uff1a\u95a2\u9023\u5ea6", "value": 0.99}], "lines": [{"label": "\u5404\u679d\u306e\u5e73\u5747\u70b9", "values": [0.6, 0.285, 0.35, 0.25]}, {"label": "\u5404\u679d\u306e\u6700\u9ad8\u70b9", "values": [0.6, 0.99, 0.5, 0.4]}], "note": "\u7b2c1\u6bb5\u3067\u6b8b\u3059\u679d 3/4\u3002\u8abf\u3079\u308b\u672b\u7aef\u306f 12/16 \u4ef6\u3002\u5e73\u5747\u70b9\u3067\u679d\u3092\u9078\u3076\u4f8b\u3067\u306f\u3001\u6700\u826f\u5019\u88dc\u3092\u542b\u3080\u679d\u3092\u5148\u306b\u6368\u3066\u308b\u5834\u5408\u304c\u3042\u308b\u3002\u7121\u52b9ID\u306f\u751f\u6210\u3057\u3066\u3044\u306a\u3044\u3002", "value": 3}, {"bars": [{"label": "\u5168\u5019\u88dc\u304b\u3089\u9078\u629e\uff1a\u95a2\u9023\u5ea6", "value": 0.99}, {"label": "\u679d\u3092\u7d5e\u3063\u3066\u9078\u629e\uff1a\u95a2\u9023\u5ea6", "value": 0.99}], "lines": [{"label": "\u5404\u679d\u306e\u5e73\u5747\u70b9", "values": [0.6, 0.285, 0.35, 0.25]}, {"label": "\u5404\u679d\u306e\u6700\u9ad8\u70b9", "values": [0.6, 0.99, 0.5, 0.4]}], "note": "\u7b2c1\u6bb5\u3067\u6b8b\u3059\u679d 4/4\u3002\u8abf\u3079\u308b\u672b\u7aef\u306f 16/16 \u4ef6\u3002\u5e73\u5747\u70b9\u3067\u679d\u3092\u9078\u3076\u4f8b\u3067\u306f\u3001\u6700\u826f\u5019\u88dc\u3092\u542b\u3080\u679d\u3092\u5148\u306b\u6368\u3066\u308b\u5834\u5408\u304c\u3042\u308b\u3002\u7121\u52b9ID\u306f\u751f\u6210\u3057\u3066\u3044\u306a\u3044\u3002", "value": 4}], "label": "\u6b8b\u3059\u5019\u88dc\u306e\u679d", "metric": "\u95a2\u9023\u5ea6\uff08\u5408\u6210\u30b9\u30b3\u30a2\uff09", "unit": "\u672c"}</script>        <div data-mount></div>
+        <div data-fallback>
+          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
+<p>残す候補の枝：1本</p><ul><li>全候補から選択：関連度：0.99</li><li>枝を絞って選択：関連度：0.6</li></ul><p>第1段で残す枝 1/4。調べる末端は 4/16 件。平均点で枝を選ぶ例では、最良候補を含む枝を先に捨てる場合がある。無効IDは生成していない。</p>        </div>
+        <p class="figure-source">数値の出所：このLabの results.json。論文の測定値ではありません。 </p>
+      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>16候補を4つの枝に分け、全候補の最高点と、枝の平均点で絞ってから選ぶ最高点を比べる。枝幅を増やすと取り逃しと探索量がどう変わるかを計算する。</p>
+<p>実行：<code>uv run papers/case-against-generation-retrieval/run.py</code>。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を <code>results.json</code> へ保存する。</p></div><div class="downloads"><a href="../downloads/case-against-generation-retrieval/run.py" download>実行コード</a><a href="../downloads/_toy_common.py" download>計算本体</a><a href="../downloads/case-against-generation-retrieval/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/case-against-generation-retrieval">GitHubで開く ↗</a></div><p class="source-note">再実行はリポジトリの配置を使ってください。上の2ファイルだけを同じ階層へ置く方式には対応していません。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>教材用の合成実験。論文モデルの再現・性能比較ではありません。</em></p>
+<h3>条件を変える最小実験</h3>
+<ul><li><strong>dataset</strong>: deterministic synthetic</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>全候補から選択：関連度</th><td colspan='1'>0.99</td></tr><tr><th scope='row'>枝を絞って選択：関連度</th><td colspan='1'>0.6</td></tr></tbody></table>
 <details><summary>生の results.json</summary><pre><code>{
-  &quot;note&quot;: &quot;合成ベクトルと意図的に壊れやすい逐次 ID デコードの比較。ANN ライブラリ、LLM、Meta の NE は使わない。&quot;,
+  &quot;note&quot;: &quot;教材用の合成実験。論文モデルの再現・性能比較ではありません。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
   &quot;experiments&quot;: [
     {
-      &quot;name&quot;: &quot;逐次 ID デコードと因子化検索&quot;,
-      &quot;dataset&quot;: &quot;synthetic catalog&quot;,
-      &quot;n&quot;: 40,
-      &quot;seed&quot;: 20260904,
+      &quot;name&quot;: &quot;条件を変える最小実験&quot;,
+      &quot;dataset&quot;: &quot;deterministic synthetic&quot;,
       &quot;metrics&quot;: {
-        &quot;generative_style_decode&quot;: {
-          &quot;recall_at_1&quot;: 0.0,
-          &quot;elapsed_ms&quot;: 164.133,
-          &quot;grounding_failures&quot;: 40
-        },
-        &quot;two_tower_exact_ann&quot;: {
-          &quot;recall_at_1&quot;: 0.95,
-          &quot;elapsed_ms&quot;: 5.086,
-          &quot;grounding_failures&quot;: 0
-        }
+        &quot;全候補から選択：関連度&quot;: 0.99,
+        &quot;枝を絞って選択：関連度&quot;: 0.6
       }
     }
   ],
-  &quot;boundary&quot;: &quot;逐次デコードの grounding と計算経路のトレードオフを可視化するだけで、実サービスの性能比較ではない。&quot;
-}</code></pre></details><p>著者報告では、公開 benchmark の two-tower は OneRec-Think より三 dataset の R@10 が高い一方、NDCG は一様でない（§6.2.1）。内部 CE の 2× / 3× data scaling は各 1× 基準から +1.59% / +2.19% NE、DLRM は +1.30% / +1.80% と報告する（§7.2）。この差はデータ・実装条件に依存する。</p>
-<p>下の表は合成実験であり、Meta の benchmark、NE、処理時間ではない。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p>合成 catalog では、因子化検索が「登録済み item を返す」経路を保ち、意図的な逐次 ID decoder より高い top-1 と少ない failure を示した。<strong>メカニズムは PARTIAL</strong>。これは設計上の trade-off を動かして見せたにすぎない。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>CE2TT の学習、EOS pooling、latent reasoning、公開値、0.5% parity、staleness、data scaling、実 ANN の近似誤差を再現していない。反証には、同じ feature・catalog・更新頻度で、生成と二塔を online に比較し、invalid / stale ID の割合も測る必要がある。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p><code>run.py</code> は外部依存なしの CPU 実装である。生成側の失敗は、論文から推定した頻度ではなく、grounding 問題を明示するために注入した。production Meta 実装ではない。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
+  &quot;explorer&quot;: {
+    &quot;label&quot;: &quot;残す候補の枝&quot;,
+    &quot;unit&quot;: &quot;本&quot;,
+    &quot;metric&quot;: &quot;関連度（合成スコア）&quot;,
+    &quot;default&quot;: 0,
+    &quot;frames&quot;: [
+      {
+        &quot;value&quot;: 1,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;全候補から選択：関連度&quot;,
+            &quot;value&quot;: 0.99
+          },
+          {
+            &quot;label&quot;: &quot;枝を絞って選択：関連度&quot;,
+            &quot;value&quot;: 0.6
+          }
+        ],
+        &quot;note&quot;: &quot;第1段で残す枝 1/4。調べる末端は 4/16 件。平均点で枝を選ぶ例では、最良候補を含む枝を先に捨てる場合がある。無効IDは生成していない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;各枝の平均点&quot;,
+            &quot;values&quot;: [
+              0.6,
+              0.285,
+              0.35,
+              0.25
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;各枝の最高点&quot;,
+            &quot;values&quot;: [
+              0.6,
+              0.99,
+              0.5,
+              0.4
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 2,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;全候補から選択：関連度&quot;,
+            &quot;value&quot;: 0.99
+          },
+          {
+            &quot;label&quot;: &quot;枝を絞って選択：関連度&quot;,
+            &quot;value&quot;: 0.6
+          }
+        ],
+        &quot;note&quot;: &quot;第1段で残す枝 2/4。調べる末端は 8/16 件。平均点で枝を選ぶ例では、最良候補を含む枝を先に捨てる場合がある。無効IDは生成していない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;各枝の平均点&quot;,
+            &quot;values&quot;: [
+              0.6,
+              0.285,
+              0.35,
+              0.25
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;各枝の最高点&quot;,
+            &quot;values&quot;: [
+              0.6,
+              0.99,
+              0.5,
+              0.4
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 3,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;全候補から選択：関連度&quot;,
+            &quot;value&quot;: 0.99
+          },
+          {
+            &quot;label&quot;: &quot;枝を絞って選択：関連度&quot;,
+            &quot;value&quot;: 0.99
+          }
+        ],
+        &quot;note&quot;: &quot;第1段で残す枝 3/4。調べる末端は 12/16 件。平均点で枝を選ぶ例では、最良候補を含む枝を先に捨てる場合がある。無効IDは生成していない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;各枝の平均点&quot;,
+            &quot;values&quot;: [
+              0.6,
+              0.285,
+              0.35,
+              0.25
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;各枝の最高点&quot;,
+            &quot;values&quot;: [
+              0.6,
+              0.99,
+              0.5,
+              0.4
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 4,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;全候補から選択：関連度&quot;,
+            &quot;value&quot;: 0.99
+          },
+          {
+            &quot;label&quot;: &quot;枝を絞って選択：関連度&quot;,
+            &quot;value&quot;: 0.99
+          }
+        ],
+        &quot;note&quot;: &quot;第1段で残す枝 4/4。調べる末端は 16/16 件。平均点で枝を選ぶ例では、最良候補を含む枝を先に捨てる場合がある。無効IDは生成していない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;各枝の平均点&quot;,
+            &quot;values&quot;: [
+              0.6,
+              0.285,
+              0.35,
+              0.25
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;各枝の最高点&quot;,
+            &quot;values&quot;: [
+              0.6,
+              0.99,
+              0.5,
+              0.4
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre></details><p>図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>メカニズム：PARTIAL（部分的）</strong>。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。</p>
+<p>16候補を4つの枝に分け、全候補の最高点と、枝の平均点で絞ってから選ぶ最高点を比べる。枝幅を増やすと取り逃しと探索量がどう変わるかを計算する。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>同じ商品集合、更新頻度、応答時間上限で生成検索と比較したい。公開ベンチマークの教師の成績と、生徒を本番で動かす結果は分けて見る。事前学習の費用は0.5%という学習データ比に含まれるとは限らない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけで実行できる。入口は各Labの <code>run.py</code>、計算本体は <code>papers/_toy_common.py</code> にある。関数は論文IDごとに独立し、ブラウザー用の全条件と初期条件の表を同時に出力する。</p>
+<p>意図して省いたもの：言語モデル、学習、蒸留、近似近傍索引、実測の応答時間。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
 <thead>
 <tr>
-<th>原論文</th>
-<th>この Lab</th>
+<th>対象</th>
+<th>原典とLabの対応</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>§4.1</td>
-<td><code>distillation.svg</code>、teacher / student の役割</td>
+<td>原論文</td>
+<td><a href="https://arxiv.org/html/2607.25346">§4 / §5 / §6 / §7.2</a></td>
 </tr>
 <tr>
-<td>§4.2</td>
-<td>shared encoder、EOS、CE2TT の説明</td>
+<td>処理図</td>
+<td>上記の仕組みを説明用に簡略化。公式実装ではない</td>
 </tr>
 <tr>
-<td>§5</td>
-<td><code>paths.svg</code>、前計算 item と ANN</td>
+<td>条件探索</td>
+<td><code>run.py</code> → <code>papers/_toy_common.py</code> → <code>results.json</code></td>
 </tr>
 <tr>
-<td>§6.2.3</td>
-<td>CE2TT ablation の数値</td>
-</tr>
-<tr>
-<td>§7</td>
-<td>parity・staleness・scaling の検証境界</td>
+<td>公式コード</td>
+<td>このLabでは公式コードとの行単位の照合はしていない。</td>
 </tr>
 </tbody>
-</table></div></section></article></div>
-</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/case-against-generation-retrieval/lab.yaml</code></p></div></footer>
+</table></div>      </section>
+<section class="figures"><details><summary>参考用の静止図を開く</summary><div class="figure-grid"><figure><img src="../figures/case-against-generation-retrieval/figures/paths.svg" alt="参考図 1：処理の全体像" loading="lazy"><figcaption>論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。</figcaption></figure></div></details></section>    <aside class="end-note"><p>次に確かめたいこと</p><strong>言語モデルの知識を使うために、商品IDまで生成する必要はあるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/case-against-generation-retrieval/lab.yaml" download>このページの原データ</a></footer>
 </body></html>

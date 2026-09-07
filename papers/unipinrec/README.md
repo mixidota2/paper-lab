@@ -1,5 +1,13 @@
-# UniPinRec — 小実験
+# 候補生成と順位付けで、同じ履歴を二度計算せずに済むか
 
-`uv run papers/unipinrec/run.py` は合成 session で history prefill と cache hit を数え、`results.json` を更新する。Pinterest の GPU serving や online A/B test の再現ではない。
+80リクエストで履歴計算を1回共有する場合と2回行う場合を数える。候補数を固定して履歴長を変え、重複の割合がどう変わるかを見る。
 
-原論文 §3.1 の MAM、§3.3 の KV 共有、§4.2 の latency 比較を、再計算量の小さな会計モデルへ対応づけた。
+```bash
+uv run papers/unipinrec/run.py
+```
+
+計算本体は `papers/_toy_common.py`。`results.json` の全条件を更新します。
+
+キャッシュ転送の時間、容量不足時の再計算、履歴更新、モデル更新を含めて測りたい。共有を止めた場合と共同学習を止めた場合の比較を分けると、速度と品質の改善源を区別しやすい。
+
+一次資料と本文は `lab.yaml` を参照してください。

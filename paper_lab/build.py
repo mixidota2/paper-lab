@@ -170,6 +170,8 @@ def jinja_env() -> Environment:
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATES_DIR)),
         autoescape=select_autoescape(["html", "j2"]),
+        trim_blocks=True,
+        lstrip_blocks=True,
     )
     env.filters["md"] = markdown_to_html
     return env
@@ -203,8 +205,8 @@ def build(
 
     css_src = TEMPLATES_DIR / "style.css"
     (assets / "style.css").write_text(css_src.read_text(encoding="utf-8"), encoding="utf-8")
-    js_src = TEMPLATES_DIR / "library.js"
-    (assets / "library.js").write_text(js_src.read_text(encoding="utf-8"), encoding="utf-8")
+    for name in ("library.js", "interactives.js"):
+        shutil.copy2(TEMPLATES_DIR / name, assets / name)
     (site / ".nojekyll").write_text("", encoding="utf-8")
 
     topics = sorted({topic for lab in labs for topic in lab.topics})
@@ -227,6 +229,15 @@ def build(
 
     paper_template = env.get_template("paper.html")
     for lab in labs:
+        download_dir = site / "downloads" / lab.id
+        download_dir.mkdir(parents=True)
+        for name in ("run.py", "results.json", "lab.yaml"):
+            source = lab.source_dir / name
+            if source.is_file():
+                shutil.copy2(source, download_dir / name)
+        helper = papers / "_toy_common.py"
+        if helper.is_file():
+            shutil.copy2(helper, site / "downloads" / "_toy_common.py")
         rendered_figures = []
         for figure in lab.figures:
             source = lab.source_dir / figure["path"]

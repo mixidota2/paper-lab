@@ -47,6 +47,7 @@ URL_LABELS = {
     "arxiv": "arXiv",
     "official_code": "公式コード",
     "pdf": "PDF",
+    "doi": "DOI",
 }
 TOPIC_LABELS = {
     "ai-agent-systems": "AIエージェント",
@@ -56,6 +57,10 @@ TOPIC_LABELS = {
     "retrieval": "検索・候補生成",
     "generative-recommendation": "生成推薦",
     "ml-systems": "MLシステム",
+    "demand-forecasting": "需要予測",
+    "inventory-decisions": "在庫・発注",
+    "retail-optimization": "売場の最適化",
+    "causal-inference": "因果推論",
 }
 
 # Page section order is fixed. Missing content still renders a placeholder.
@@ -141,6 +146,9 @@ class Lab:
     arxiv_id: str = ""
     doi: str = ""
     submitted: str = ""
+    question: str = ""
+    source_review: dict[str, str] = field(default_factory=dict)
+    interactives: list[dict[str, Any]] = field(default_factory=list)
     summary: str = ""
     example: bool = False
     sections: dict[str, str] = field(default_factory=dict)
@@ -169,6 +177,7 @@ class Lab:
             str(self.year),
             self.verdict,
             self.summary,
+            self.question,
             " ".join(self.topics),
             " ".join(self.related_threads),
             self.status,
@@ -330,6 +339,9 @@ def lab_from_dict(raw: dict[str, Any], paper_dir: Path) -> Lab:
         doi=doi,
         submitted=submitted,
         summary=summary,
+        question=str(raw.get("question", "")),
+        source_review=raw.get("source_review") or {},
+        interactives=_parse_interactives(raw.get("interactives"), results, paper_dir),
         example=example,
         sections=sections,
         core_idea=core_idea,
@@ -515,3 +527,47 @@ def _load_results(paper_dir: Path, section_value: str | None) -> Any:
             except json.JSONDecodeError as exc:
                 raise LabError(f"{ref_path}: invalid JSON: {exc}") from exc
     return None
+
+
+def _parse_interactives(value: Any, results: Any, paper_dir: Path) -> list[dict[str, Any]]:
+    """Validate the declarative teaching UI before emitting a broken page."""
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise LabError(f"{paper_dir}: interactives must be a list")
+    if len(value) != 2 or [s.get("kind") for s in value if isinstance(s, dict)] != ["flow", "explorer"]:
+        raise LabError(f"{paper_dir}: interactives must contain flow then explorer")
+    for spec in value:
+        if not isinstance(spec, dict) or spec.get("kind") not in ("flow", "explorer"):
+            raise LabError(f"{paper_dir}: unknown interactive kind")
+        if not all(isinstance(spec.get(k), str) and spec[k] for k in ("title", "caption")):
+            raise LabError(f"{paper_dir}: interactive needs title and caption")
+        if spec["kind"] == "flow":
+            stages = spec.get("stages")
+            if not isinstance(stages, list) or len(stages) < 2:
+                raise LabError(f"{paper_dir}: flow needs at least two stages")
+            for stage in stages:
+                if not isinstance(stage, dict) or not all(isinstance(stage.get(k), str) and stage[k] for k in ("title", "baseline", "proposed", "detail")):
+                    raise LabError(f"{paper_dir}: incomplete flow stage")
+        else:
+            explorer = results.get("explorer") if isinstance(results, dict) else None
+            if not isinstance(explorer, dict) or not explorer.get("frames"):
+                raise LabError(f"{paper_dir}: explorer requires computed results frames")
+            frames = explorer["frames"]
+            default = explorer.get("default")
+            if not isinstance(default, int) or not 0 <= default < len(frames):
+                raise LabError(f"{paper_dir}: invalid explorer default")
+            if not all(isinstance(explorer.get(k), str) for k in ("label", "unit", "metric")):
+                raise LabError(f"{paper_dir}: explorer labels missing")
+            import math
+            def number(x):
+                return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
+            for f in frames:
+                if not isinstance(f, dict) or not number(f.get("value")) or not isinstance(f.get("note"), str):
+                    raise LabError(f"{paper_dir}: invalid explorer frame")
+                if not f.get("bars") or not all(isinstance(b.get("label"), str) and number(b.get("value")) and b["value"] >= 0 for b in f["bars"]):
+                    raise LabError(f"{paper_dir}: invalid explorer bars")
+                for line in f.get("lines", []):
+                    if not isinstance(line.get("label"), str) or not line.get("values") or not all(number(v) for v in line["values"]):
+                        raise LabError(f"{paper_dir}: invalid explorer line")
+    return value

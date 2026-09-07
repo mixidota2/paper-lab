@@ -1,75 +1,406 @@
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="候補生成とランキングを一つの backbone、訓練、配信に揃え、ANN を残したまま履歴 KV を段階間で再利用する Pinterest の実装報告。"><title>UniPinRec: Unifying Generative Retrieval and Ranking at Pinterest Scale | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="履歴の表現を共有し、候補生成は近傍検索、順位付けは候補との照合に分ける。統合の狙いは、段を残しながら重複計算を減らすこと。">
+  <title>候補生成と順位付けで、同じ履歴を二度計算せずに済むか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
 <body>
 <a class="skip-link" href="#paper">本文へ移動</a>
-<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
-<main id="paper" class="paper shell">
-<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2606.00422</span></nav>
-<header class="paper-hero"><p class="priority priority--worth">Worth Reading</p><h1>UniPinRec: Unifying Generative Retrieval and Ranking at Pinterest Scale</h1><p class="authors">Hanyu Li, Yi-Ping Hsu, Aditya Mantha, Prabhat Agarwal, Laksh Bhasin, Jialu Wang, Hongtao Lin, Bella Huang, Yaxin Li, Xinyi Li, Chuxi Wang, Kousik Rajesh, Hooshmand Shokri Razaghi, Shunyao Li, Zongyue Qin, Jaewon Yang, James Li, Dhruvil Deven Badani, Jiajing Xu, Charles Rosenberg</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2606.00422" rel="noopener">2606.00422</a></dd></div><div><dt>投稿</dt><dd>2026-05-29</dd></div><div><dt>収録</dt><dd>2026</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2606.00422" rel="noopener">原典を読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2606.00422" rel="noopener">PDF</a></div></header>
-<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
-<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid"><figure><img src="../figures/unipinrec/figures/cascade.svg" alt="分離 cascade と統合 stack" loading="lazy"><figcaption><strong>分離 cascade と統合 stack</strong><br>統合は model 重みだけでなく入力、学習、配信までを対象にする。</figcaption></figure><figure><img src="../figures/unipinrec/figures/mam.svg" alt="MAM で何を隠すか" loading="lazy"><figcaption><strong>MAM で何を隠すか</strong><br>item を interleave せず action を mask し、系列長を保つ。</figcaption></figure><figure><img src="../figures/unipinrec/figures/kv-cache.svg" alt="段階間の KV-cache 再利用" loading="lazy"><figcaption><strong>段階間の KV-cache 再利用</strong><br>ranking は history prefill を繰り返さず decode として進む。</figcaption></figure></div></section>
-<div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>典型的な推薦 cascade は、候補生成が数百万件から候補を取り、ランキングが数百件に濃い相互作用をかける。両段が同じ履歴を transformer で読むなら、パラメータ、学習、online prefill を二重に払う。UniPinRec はこの重複を full-stack の問題として扱う。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>retrieval は全 corpus に近い候補を低遅延で扱うので dot product と ANN が必要だ。ranking は小候補集合に cross-attention と action label を使える。目的関数も入力も異なるため、重みを同じにするだけでは統合にならない。さらに process 間で KV を渡すには、GPU memory、slot、寿命、copy の設計が必要になる（§3.3）。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>UniPinRec は、一つの transformer が user action sequence を候補に依存しない表現へ変換し、retrieval は ANN dot product、ranking は cross-attention head へ分岐する。Masked Action Modeling（MAM）、blended training examples、cross-stage KV-cache sharing で入力・学習・配信まで統合すると著者は説明する（§3）。</p>
-<p>Pinterest core surfaces で online engagement 約 +1%、end-to-end latency -11.1%、QPS +63.6% を報告する（Abstract、§4）。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>これは cascade を自己回帰 item generation へ全面置換する話ではない。ANN と retrieval/ranking の責務を残し、共通の履歴計算を再利用する設計である。モデル統合の価値は精度だけでなく、訓練データの接続と serving boundary にある、と読むと実務に移しやすい。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p><strong>読書メモ（推論）</strong>。MAM は action を item の間に追加せず隠して予測するので、retrieval の item 系列を伸ばさず ranking signal を加えられる。retrieval が作った history KV を ranking が読むなら、二度目の quadratic prefill を decode に置き換えられる。joint loss が実際に両 stage を改善した因果は、独立した production ablation がない限り限定的に読むべきである。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>著者は TransAct V2 + DCNv2、HSTU、PinRec、PinRec finetuned、item loss を外した UniPinRec を比較する（§4.1）。MAM masking ratio の ablation は Hit@3 が 0.0 で 0.09923、0.2 で 0.10096、0.3 で 0.10075 と報告する（§4.3）。</p>
-<p>serving microbenchmark は L40S、B=8、history n=992、candidate k=656、12 layer で行い、bf16 SDPA compile の prefill 25.72 ms に対し bf16 SDPA decode 10.42 ms、約 2.47×と報告する（§4.2）。これは有益な具体性だが、hardware・batch・history 長が変われば比率は変わる。online engagement は著者の内部 A/B 実験で、外部再現はできない。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p><code>uv run papers/unipinrec/run.py</code> は 80 の合成 session で、分離 retrieval+ranking と shared backbone を比べる。同じ候補 ranking 規則のまま、history prefill 回数、cache hit、simulated work unit を数え、<code>results.json</code> に保存する。GPU KV tensor や Triton は模倣しない。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p class="callout-body"><em>合成履歴で、同じランキング規則を使いながら履歴 prefill の重複だけを数える玩具実験。Pinterest の GPU 遅延やオンライン指標は再現していない。</em></p>
-<h3>分離 cascade と KV 再利用</h3>
-<ul><li><strong>dataset</strong>: synthetic 80 sessions</li><li><strong>n</strong>: 80</li><li><strong>seed</strong>: 20260904</li></ul>
-<table class="metrics"><thead><tr><th>指標</th><th>hit_at_3</th><th>history_prefills</th><th>cache_hits</th><th>simulated_work_units</th></tr></thead><tbody><tr><th scope='row'>separate_retrieval_ranking</th><td>0.838</td><td>160</td><td>0</td><td>3360</td></tr><tr><th scope='row'>unified_cache_reuse</th><td>0.838</td><td>80</td><td>80</td><td>2080</td></tr></tbody></table>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-05-29</span></div>
+    <h1>候補生成と順位付けで、同じ履歴を二度計算せずに済むか</h1>
+    <p class="lede">履歴の表現を共有し、候補生成は近傍検索、順位付けは候補との照合に分ける。統合の狙いは、段を残しながら重複計算を減らすこと。</p>
+    <details class="bibliography"><summary>原論文：UniPinRec: Unifying Generative Retrieval and Ranking at Pinterest Scale</summary><p>Hanyu Li, Yi-Ping Hsu, Aditya Mantha, Prabhat Agarwal, Laksh Bhasin, Jialu Wang, Hongtao Lin, Bella Huang, Yaxin Li, Xinyi Li, Chuxi Wang, Kousik Rajesh, Hooshmand Shokri Razaghi, Shunyao Li, Zongyue Qin, Jaewon Yang, James Li, Dhruvil Deven Badani, Jiajing Xu, Charles Rosenberg</p><p>2606.00422 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2606.00422">原典を読む ↗</a><a href="https://arxiv.org/pdf/2606.00422">PDF ↗</a><a href="#interactive-1">図を操作する ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-07 · arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">01 問いと仕組み</a><a href="#interactive-1">02 図で追う</a><a href="#evidence">03 論文の根拠</a><a href="#interactive-2">04 条件を変える</a><a href="#what_we_did_not_verify">05 限界と批評</a><a href="#implementation">06 実装と出典</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>履歴の表現を共有し、候補生成は近傍検索、順位付けは候補との照合に分ける。統合の狙いは、段を残しながら重複計算を減らすこと。</p>
+<p>このLabでは「候補生成と順位付けで、同じ履歴を二度計算せずに済むか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>候補生成と順位付けを別モデルにすると、同じ利用者の行動履歴を二度読み直す。モデルの形だけをそろえても、入力形式や学習例、配信プロセスが違えば計算は共有できない。</p>
+<p>統合後も、全商品から広く候補を集める仕事と、少数の候補を詳しく採点する仕事は残る。他の候補生成器を足したり、各段を個別に切り戻したりする運用が必要だからだ。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>商品と行動を特徴の方向に結合し、予測対象の行動を隠すMasked Action Modeling（MAM）を導入する。商品と行動を交互の位置に置かないため、系列を倍の長さにしない。候補位置の行動は常に隠し、候補同士は互いに参照させない。候補に依存しない履歴表現を使い、検索段で作ったキー・バリュー（KV）を順位付けでも再利用する。</p>
+<p><a href="https://arxiv.org/html/2606.00422">一次資料：§3.1 / §3.3 / §4.2 / §5</a></p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>「生成推薦」という題名でも、候補生成はANNの内積検索である。モデル名に加えて、何を一度だけ計算し、何を候補ごとに計算するかを見たい。共有する履歴やモデル版が一致しなければ、キャッシュを再利用してはいけない。</p></div></div>
+      </section>
+      <section class="interactive" id="interactive-1" data-interactive="flow" aria-labelledby="figure-title-3">
+        <div class="figure-heading"><p class="eyebrow">01 / MECHANISM</p><span class="figure-badge">論文の概念図</span></div>
+        <h2 id="figure-title-3">処理と設計の違いを追う</h2>
+        <p class="figure-caption">段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。</p>
+        <script type="application/json" data-config>{"caption": "\u6bb5\u3092\u9078\u3076\u3068\u8aac\u660e\u304c\u5207\u308a\u66ff\u308f\u308b\u3002\u6bd4\u8f03\u5074\u306f\u8ad6\u70b9\u3092\u793a\u3059\u7c21\u7565\u5316\u3067\u3001\u7d71\u5236\u5b9f\u9a13\u306e\u5b9f\u88c5\u3067\u306f\u306a\u3044\u3002", "kind": "flow", "source": "https://arxiv.org/html/2606.00422", "stages": [{"baseline": "\u691c\u7d22\u3068\u9806\u4f4d\u4ed8\u3051\u3067\u5225\u5f62\u5f0f", "detail": "MAM\u306f\u884c\u52d5\u3092\u7279\u5fb4\u65b9\u5411\u306b\u7d50\u5408\u3059\u308b\u3002\u672a\u77e5\u306e\u5019\u88dc\u884c\u52d5\u3092\u5165\u529b\u3057\u3066\u6b63\u89e3\u3092\u6f0f\u3089\u3055\u306a\u3044\u3002", "proposed": "\u5546\u54c1\u3068\u884c\u52d5\u3092\u540c\u3058\u7cfb\u5217\u3078", "title": "\u5c65\u6b74\u3092\u5165\u529b\u3059\u308b"}, {"baseline": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u8a08\u7b97", "detail": "\u5019\u88dc\u306b\u4f9d\u5b58\u3057\u306a\u3044\u5c65\u6b74\u306eKV\u3092\u4fdd\u5b58\u3059\u308b\u3002\u5171\u6709\u7bc4\u56f2\u3092\u3053\u3053\u306b\u9650\u5b9a\u3059\u308b\u3002", "proposed": "\u5171\u6709\u30d0\u30c3\u30af\u30dc\u30fc\u30f3\u3067\u8a08\u7b97", "title": "\u5c65\u6b74\u3092\u8a08\u7b97\u3059\u308b"}, {"baseline": "\u691c\u7d22\u5c02\u7528\u30e2\u30c7\u30eb\u3067ANN", "detail": "\u5b9f\u5728\u3059\u308b\u5546\u54c1\u30d9\u30af\u30c8\u30eb\u3092\u7d22\u5f15\u691c\u7d22\u3059\u308b\u3002\u65e2\u5b58\u306e\u5019\u88dc\u6e90\u3068\u3082\u7d44\u307f\u5408\u308f\u305b\u3089\u308c\u308b\u3002", "proposed": "\u5171\u6709\u8868\u73fe\u304b\u3089ANN", "title": "\u5019\u88dc\u3092\u96c6\u3081\u308b"}, {"baseline": "\u5c65\u6b74\u3092\u3082\u3046\u4e00\u5ea6\u8a08\u7b97", "detail": "\u5019\u88dc\u306f\u904e\u53bb\u306e\u5c65\u6b74\u3092\u53c2\u7167\u3059\u308b\u304c\u3001\u4ed6\u5019\u88dc\u3092\u53c2\u7167\u3057\u306a\u3044\u3002\u30ad\u30e3\u30c3\u30b7\u30e5\u306e\u4e00\u81f4\u304c\u524d\u63d0\u3002", "proposed": "\u4fdd\u5b58\u3057\u305fKV\u3067\u5019\u88dc\u3092\u7167\u5408", "title": "\u5019\u88dc\u3092\u63a1\u70b9\u3059\u308b"}], "title": "\u51e6\u7406\u3068\u8a2d\u8a08\u306e\u9055\u3044\u3092\u8ffd\u3046"}</script>
+        <div data-mount></div>
+        <div data-fallback>
+          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
+<ol><li><strong>履歴を入力する：商品と行動を同じ系列へ</strong><p>MAMは行動を特徴方向に結合する。未知の候補行動を入力して正解を漏らさない。</p></li><li><strong>履歴を計算する：共有バックボーンで計算</strong><p>候補に依存しない履歴のKVを保存する。共有範囲をここに限定する。</p></li><li><strong>候補を集める：共有表現からANN</strong><p>実在する商品ベクトルを索引検索する。既存の候補源とも組み合わせられる。</p></li><li><strong>候補を採点する：保存したKVで候補を照合</strong><p>候補は過去の履歴を参照するが、他候補を参照しない。キャッシュの一致が前提。</p></li></ol>
+        </div>
+        <p class="figure-source">出典に基づく説明用の簡略化。 <a href="https://arxiv.org/html/2606.00422">一次資料 ↗</a></p>
+      </section>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>履歴に対する重い計算を共通化できれば、順位付けの追加費用は候補を履歴に照合する部分に寄る。学習でも表示したが反応されなかった候補を含めることで、検索だけでは薄かった行動の教師信号を補えると考えられる。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>§3.1にMAMと候補間の参照を遮断するマスク、§3.3に段をまたぐKV共有がある。Abstractは応答時間11.1%減、QPS63.6%増を報告する。QPSは単位時間に処理できるリクエスト数。§4.2の配信比較と§5のオンライン実験は条件が異なるため、これらを同一の改善率として足し合わせない。</p>
+<p><a href="https://arxiv.org/html/2606.00422">一次資料：§3.1 / §3.3 / §4.2 / §5</a></p></div>      </section>
+      <section class="interactive" id="interactive-2" data-interactive="explorer" aria-labelledby="figure-title-5">
+        <div class="figure-heading"><p class="eyebrow">02 / EXPERIMENT</p><span class="figure-badge">合成実験 · PARTIAL</span></div>
+        <h2 id="figure-title-5">履歴が長いほど共有は効くか</h2>
+        <p class="figure-caption">80リクエストで履歴計算を1回共有する場合と2回行う場合を数える。候補数を固定して履歴長を変え、重複の割合がどう変わるかを見る。</p>
+        <script type="application/json" data-config>{"caption": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3067\u5c65\u6b74\u8a08\u7b97\u30921\u56de\u5171\u6709\u3059\u308b\u5834\u5408\u30682\u56de\u884c\u3046\u5834\u5408\u3092\u6570\u3048\u308b\u3002\u5019\u88dc\u6570\u3092\u56fa\u5b9a\u3057\u3066\u5c65\u6b74\u9577\u3092\u5909\u3048\u3001\u91cd\u8907\u306e\u5272\u5408\u304c\u3069\u3046\u5909\u308f\u308b\u304b\u3092\u898b\u308b\u3002", "kind": "explorer", "title": "\u5c65\u6b74\u304c\u9577\u3044\u307b\u3069\u5171\u6709\u306f\u52b9\u304f\u304b"}</script>
+<script type="application/json" data-results>{"default": 2, "frames": [{"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 800}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 800}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 0.0%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 0}, {"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 2080}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 1440}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 30.8%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 8}, {"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 3360}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 2080}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 38.1%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 16}, {"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 4640}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 2720}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 41.4%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 24}, {"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 5920}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 3360}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 43.2%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 32}, {"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 7200}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 4000}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 44.4%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 40}, {"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 8480}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 4640}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 45.3%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 48}, {"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 9760}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 5280}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 45.9%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 56}, {"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 11040}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 5920}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 46.4%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 64}, {"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 12320}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 6560}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 46.8%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 72}, {"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 13600}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 7200}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 47.1%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 80}, {"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 14880}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 7840}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 47.3%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 88}, {"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 16160}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 8480}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 47.5%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 96}, {"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 17440}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 9120}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 47.7%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 104}, {"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 18720}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 9760}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 47.9%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 112}, {"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 20000}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 10400}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 48.0%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 120}, {"bars": [{"label": "\u6bb5\u3054\u3068\u306b\u5c65\u6b74\u3092\u51e6\u7406", "value": 21280}, {"label": "\u5c65\u6b74\u3092\u5171\u6709", "value": 11040}], "lines": [], "note": "80\u30ea\u30af\u30a8\u30b9\u30c8\u3001\u5019\u88dc10\u4ef6\u3002\u5c65\u6b741\u8981\u7d20\u3068\u5019\u88dc1\u4ef6\u3092\u54041\u5358\u4f4d\u3068\u4eee\u5b9a\u3002\u524a\u6e1b\u7387 48.1%\u3002\u8ee2\u9001\u30fb\u4fdd\u5b58\u30fb\u5931\u52b9\u306e\u8cbb\u7528\u306f\u542b\u307e\u306a\u3044\u3002", "value": 128}], "label": "\u5c65\u6b74\u306e\u9577\u3055", "metric": "\u4eee\u5b9a\u3057\u305f\u8a08\u7b97\u5358\u4f4d", "unit": "\u8981\u7d20"}</script>        <div data-mount></div>
+        <div data-fallback>
+          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
+<p>履歴の長さ：16要素</p><ul><li>段ごとに履歴を処理：3360</li><li>履歴を共有：2080</li></ul><p>80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 38.1%。転送・保存・失効の費用は含まない。</p>        </div>
+        <p class="figure-source">数値の出所：このLabの results.json。論文の測定値ではありません。 </p>
+      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>80リクエストで履歴計算を1回共有する場合と2回行う場合を数える。候補数を固定して履歴長を変え、重複の割合がどう変わるかを見る。</p>
+<p>実行：<code>uv run papers/unipinrec/run.py</code>。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を <code>results.json</code> へ保存する。</p></div><div class="downloads"><a href="../downloads/unipinrec/run.py" download>実行コード</a><a href="../downloads/_toy_common.py" download>計算本体</a><a href="../downloads/unipinrec/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/unipinrec">GitHubで開く ↗</a></div><p class="source-note">再実行はリポジトリの配置を使ってください。上の2ファイルだけを同じ階層へ置く方式には対応していません。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>教材用の合成実験。論文モデルの再現・性能比較ではありません。</em></p>
+<h3>条件を変える最小実験</h3>
+<ul><li><strong>dataset</strong>: deterministic synthetic</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>段ごとに履歴を処理</th><td colspan='1'>3360</td></tr><tr><th scope='row'>履歴を共有</th><td colspan='1'>2080</td></tr></tbody></table>
 <details><summary>生の results.json</summary><pre><code>{
-  &quot;note&quot;: &quot;合成履歴で、同じランキング規則を使いながら履歴 prefill の重複だけを数える玩具実験。Pinterest の GPU 遅延やオンライン指標は再現していない。&quot;,
+  &quot;note&quot;: &quot;教材用の合成実験。論文モデルの再現・性能比較ではありません。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
   &quot;experiments&quot;: [
     {
-      &quot;name&quot;: &quot;分離 cascade と KV 再利用&quot;,
-      &quot;dataset&quot;: &quot;synthetic 80 sessions&quot;,
-      &quot;n&quot;: 80,
-      &quot;seed&quot;: 20260904,
+      &quot;name&quot;: &quot;条件を変える最小実験&quot;,
+      &quot;dataset&quot;: &quot;deterministic synthetic&quot;,
       &quot;metrics&quot;: {
-        &quot;separate_retrieval_ranking&quot;: {
-          &quot;hit_at_3&quot;: 0.838,
-          &quot;history_prefills&quot;: 160,
-          &quot;cache_hits&quot;: 0,
-          &quot;simulated_work_units&quot;: 3360
-        },
-        &quot;unified_cache_reuse&quot;: {
-          &quot;hit_at_3&quot;: 0.838,
-          &quot;history_prefills&quot;: 80,
-          &quot;cache_hits&quot;: 80,
-          &quot;simulated_work_units&quot;: 2080
-        }
+        &quot;段ごとに履歴を処理&quot;: 3360,
+        &quot;履歴を共有&quot;: 2080
       }
     }
   ],
-  &quot;boundary&quot;: &quot;共有状態が同じ候補ランキングを保ったまま再計算量を減らせることの例示に限る。&quot;
-}</code></pre></details><p>著者報告の online variant（bf16 decode flex compile）は joint baseline に対し latency -11.1%、QPS +63.6% である（Table 3）。fp8 decode flex graph は QPS +109.1% だが latency +6.7% で、著者は batch をためる制約を説明する（§4.2）。「速い」だけでなく tail latency と精度の損失を確認すべきだ。</p>
-<p>下の表は独自の合成カウントであり、Pinterest の latency・QPS・engagement ではない。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p>合成 session では、shared path が ranking metric を同じに保ったまま history prefill を半減し、cache hit を得た。<strong>メカニズムは PARTIAL</strong>。これは状態再利用の会計上の効果であり、実 GPU の速度向上を測ったものではない。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>MAM の学習、blended examples、cross-attention、Faiss、Triton IPC、Table 2/3、online engagement、production 安定性は再現していない。反証には、shared state の転送・待ち時間・memory pressure を含む p50/p99 実測と、item loss/MAM/KV reuse を別々に外す online ablation が必要である。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p><code>run.py</code> は標準ライブラリだけで実行する。KV cache は tensor ではなく「history を再計算したか」の counter で表す。ranking 規則を固定したのは、計算共有だけを見えるようにするためである。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
+  &quot;explorer&quot;: {
+    &quot;label&quot;: &quot;履歴の長さ&quot;,
+    &quot;unit&quot;: &quot;要素&quot;,
+    &quot;metric&quot;: &quot;仮定した計算単位&quot;,
+    &quot;default&quot;: 2,
+    &quot;frames&quot;: [
+      {
+        &quot;value&quot;: 0,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 800
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 800
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 0.0%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 8,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 2080
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 1440
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 30.8%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 16,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 3360
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 2080
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 38.1%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 24,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 4640
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 2720
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 41.4%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 32,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 5920
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 3360
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 43.2%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 40,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 7200
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 4000
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 44.4%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 48,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 8480
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 4640
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 45.3%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 56,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 9760
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 5280
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 45.9%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 64,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 11040
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 5920
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 46.4%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 72,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 12320
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 6560
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 46.8%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 80,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 13600
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 7200
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 47.1%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 88,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 14880
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 7840
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 47.3%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 96,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 16160
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 8480
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 47.5%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 104,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 17440
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 9120
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 47.7%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 112,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 18720
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 9760
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 47.9%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 120,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 20000
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 10400
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 48.0%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 128,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;段ごとに履歴を処理&quot;,
+            &quot;value&quot;: 21280
+          },
+          {
+            &quot;label&quot;: &quot;履歴を共有&quot;,
+            &quot;value&quot;: 11040
+          }
+        ],
+        &quot;note&quot;: &quot;80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 48.1%。転送・保存・失効の費用は含まない。&quot;,
+        &quot;lines&quot;: []
+      }
+    ]
+  }
+}</code></pre></details><p>図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>メカニズム：PARTIAL（部分的）</strong>。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。</p>
+<p>80リクエストで履歴計算を1回共有する場合と2回行う場合を数える。候補数を固定して履歴長を変え、重複の割合がどう変わるかを見る。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>キャッシュ転送の時間、容量不足時の再計算、履歴更新、モデル更新を含めて測りたい。共有を止めた場合と共同学習を止めた場合の比較を分けると、速度と品質の改善源を区別しやすい。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけで実行できる。入口は各Labの <code>run.py</code>、計算本体は <code>papers/_toy_common.py</code> にある。関数は論文IDごとに独立し、ブラウザー用の全条件と初期条件の表を同時に出力する。</p>
+<p>意図して省いたもの：MAMの学習、attention演算、GPU、キャッシュ転送と失効。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
 <thead>
 <tr>
-<th>原論文</th>
-<th>この Lab</th>
+<th>対象</th>
+<th>原典とLabの対応</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>§3.1</td>
-<td><code>mam.svg</code>、item loss と action loss の役割</td>
+<td>原論文</td>
+<td><a href="https://arxiv.org/html/2606.00422">§3.1 / §3.3 / §4.2 / §5</a></td>
 </tr>
 <tr>
-<td>§3.2</td>
-<td>blended training の説明</td>
+<td>処理図</td>
+<td>上記の仕組みを説明用に簡略化。公式実装ではない</td>
 </tr>
 <tr>
-<td>§3.3</td>
-<td><code>kv-cache.svg</code>、cache hit / prefill counter</td>
+<td>条件探索</td>
+<td><code>run.py</code> → <code>papers/_toy_common.py</code> → <code>results.json</code></td>
 </tr>
 <tr>
-<td>§4.2</td>
-<td>microbenchmark と online 数値の境界</td>
-</tr>
-<tr>
-<td>§4.3</td>
-<td>masking ratio ablation と反証条件</td>
+<td>公式コード</td>
+<td>このLabでは公式コードとの行単位の照合はしていない。</td>
 </tr>
 </tbody>
-</table></div></section></article></div>
-</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/unipinrec/lab.yaml</code></p></div></footer>
+</table></div>      </section>
+<section class="figures"><details><summary>参考用の静止図を開く</summary><div class="figure-grid"><figure><img src="../figures/unipinrec/figures/cascade.svg" alt="参考図 1：処理の全体像" loading="lazy"><figcaption>論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。</figcaption></figure></div></details></section>    <aside class="end-note"><p>次に確かめたいこと</p><strong>候補生成と順位付けで、同じ履歴を二度計算せずに済むか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/unipinrec/lab.yaml" download>このページの原データ</a></footer>
 </body></html>

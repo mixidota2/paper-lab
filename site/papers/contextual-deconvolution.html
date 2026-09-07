@@ -1,56 +1,2406 @@
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="販促 shock と滑らかな baseline を分け、誤差でなく h/p の在庫費用比で安定化の得失を問う。"><title>Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="平常時の需要と販促の一時的な動きを分ける。変動を抑える利点はあるが、欠品損失が重い条件では総費用が悪化する。">
+  <title>予測を滑らかにすると、在庫費用は本当に下がるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
 <body>
 <a class="skip-link" href="#paper">本文へ移動</a>
-<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
-<main id="paper" class="paper shell">
-<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2607.25664</span></nav>
-<header class="paper-hero"><p class="priority priority--worth">Worth Reading</p><h1>Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail</h1><p class="authors">Mohammad Forouhesh</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2607.25664" rel="noopener">2607.25664</a></dd></div><div><dt>投稿</dt><dd>2026-07-28</dd></div><div><dt>収録</dt><dd>2026</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2607.25664" rel="noopener">原典を読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2607.25664" rel="noopener">PDF</a></div></header>
-<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
-<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid"><figure><img src="../figures/contextual-deconvolution/figures/deconv.svg" alt="baseline と販促 carryover" loading="lazy"><figcaption><strong>baseline と販促 carryover</strong><br>transfer-function 的に shock と構造を分ける。</figcaption></figure><figure><img src="../figures/contextual-deconvolution/figures/tradeoff.svg" alt="h/p の境界" loading="lazy"><figcaption><strong>h/p の境界</strong><br>滑らかさは常に総費用を下げるわけではない。</figcaption></figure><figure><img src="../figures/contextual-deconvolution/figures/bullwhip.svg" alt="bullwhip の位置" loading="lazy"><figcaption><strong>bullwhip の位置</strong><br>forecast variance は発注 variance を経て安全在庫に影響する。</figcaption></figure></div></section>
-<div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>販促は一日だけで終わるとは限らず、carryover と baseline を混ぜる。単純 smoothing は二つを同時に消してしまう。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>低い variance ratio は安全在庫を減らすが、event spike の under-provision を伴う。統計誤差と発注費用の目的関数は異なる。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>CD は kernel-modulated banded operator で transient promotion shock と smooth baseline を convex に分け、hierarchical partial pooling で catalog scale にする。著者は M5 30,490 SKU と Favorita 2,845 item で、h/p が約 20% を超える時だけ総費用が低いと報告する。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>この論文の良い点は『より安定』を無条件の勝ちにしないことだ。spike を薄める forecast は holding cost を下げても、stockout cost が重い業態では危険になり得る。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p><strong>読書メモ（推論）</strong>。kernel が impulsive response では identity に退避するなら、無理に carryover を作らずに済む。future promo calendar の可用性が前提である。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>Abstract は holding/stockout 比の 95% CI [17%,25%] と catastrophic error の比較を記載する。単一著者の長い preprint なので、第三者の cost simulation で再確認したい。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p><code>uv run papers/contextual-deconvolution/run.py</code> は baseline と stable forecast の費用順位が h/p で反転する表を出す。deconvolution は解かない。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p class="callout-body"><em>短い販促系列の費用会計。CD の凸最適化・M5/Favorita の結果ではない。</em></p>
-<h3>CPU-only synthetic toy</h3>
-<ul><li><strong>dataset</strong>: deterministic synthetic</li><li><strong>seed</strong>: 0</li></ul>
-<table class="metrics"><thead><tr><th>指標</th><th>h/p=0.10, baseline</th><th>h/p=0.10, stable</th><th>h/p=0.40, baseline</th><th>h/p=0.40, stable</th></tr></thead><tbody><tr><th scope='row'>total inventory cost</th><td>71</td><td>82</td><td>148</td><td>116</td></tr></tbody></table>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-07-28</span></div>
+    <h1>予測を滑らかにすると、在庫費用は本当に下がるか</h1>
+    <p class="lede">平常時の需要と販促の一時的な動きを分ける。変動を抑える利点はあるが、欠品損失が重い条件では総費用が悪化する。</p>
+    <details class="bibliography"><summary>原論文：Contextual Deconvolution for Variance-Stable Demand Sensing: Kernel-Modulated Operators in Promotional Retail</summary><p>Mohammad Forouhesh</p><p>2607.25664 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2607.25664">原典を読む ↗</a><a href="https://arxiv.org/pdf/2607.25664">PDF ↗</a><a href="#interactive-1">図を操作する ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-07 · arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">01 問いと仕組み</a><a href="#interactive-1">02 図で追う</a><a href="#evidence">03 論文の根拠</a><a href="#interactive-2">04 条件を変える</a><a href="#what_we_did_not_verify">05 限界と批評</a><a href="#implementation">06 実装と出典</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>平常時の需要と販促の一時的な動きを分ける。変動を抑える利点はあるが、欠品損失が重い条件では総費用が悪化する。</p>
+<p>このLabでは「予測を滑らかにすると、在庫費用は本当に下がるか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>販促の急増を新しい平常水準だと思うと、販促が終わっても高い予測が残る。一方、全体を滑らかにするだけでは、本当に必要な販促在庫も削ってしまう。</p>
+<p>CDは観測系列を、滑らかな基礎需要と一時的な変化に分解する。販促の効果が何日残るかを表す応答形を使うが、持続が見られない商品にまで長い効果を押し付けない。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>基礎需要の滑らかさと一時変化の疎らさを制約にし、観測系列を説明する分解を求める。販促の応答を表す作用素はデータから推定し、商品間で情報を部分的に共有する。未来は基礎需要の外挿と既知の販促効果を組み合わせる。</p>
+<p><a href="https://arxiv.org/html/2607.25664">一次資料：§3.1–3.3 / §4 / Appendix R.6</a></p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>低い変動率だけでは良い発注とは判断できない。急増を抑えた結果の欠品が高くつくなら、予測が安定して見えても損失は増える。費用の内訳まで示す点に読む価値がある。</p></div></div>
+      </section>
+      <section class="interactive" id="interactive-1" data-interactive="flow" aria-labelledby="figure-title-3">
+        <div class="figure-heading"><p class="eyebrow">01 / MECHANISM</p><span class="figure-badge">論文の概念図</span></div>
+        <h2 id="figure-title-3">処理と設計の違いを追う</h2>
+        <p class="figure-caption">段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。</p>
+        <script type="application/json" data-config>{"caption": "\u6bb5\u3092\u9078\u3076\u3068\u8aac\u660e\u304c\u5207\u308a\u66ff\u308f\u308b\u3002\u6bd4\u8f03\u5074\u306f\u8ad6\u70b9\u3092\u793a\u3059\u7c21\u7565\u5316\u3067\u3001\u7d71\u5236\u5b9f\u9a13\u306e\u5b9f\u88c5\u3067\u306f\u306a\u3044\u3002", "kind": "flow", "source": "https://arxiv.org/html/2607.25664", "stages": [{"baseline": "\u5909\u52d5\u3092\u307e\u3068\u3081\u3066\u5b66\u7fd2", "detail": "\u5206\u89e3\u306f\u89b3\u6e2c\u5024\u3060\u3051\u3067\u306f\u4e00\u610f\u306b\u6c7a\u307e\u3089\u305a\u3001\u6ed1\u3089\u304b\u3055\u306a\u3069\u306e\u4eee\u5b9a\u304c\u5fc5\u8981\u3002", "proposed": "\u5e73\u5e38\u3068\u4e00\u6642\u5909\u5316\u3092\u5206\u3051\u308b", "title": "\u9700\u8981\u3092\u89b3\u6e2c\u3059\u308b"}, {"baseline": "\u5f53\u65e5\u306e\u30d5\u30e9\u30b0\u3060\u3051", "detail": "\u52b9\u679c\u304c\u5373\u65e5\u3067\u7d42\u308f\u308b\u5546\u54c1\u3067\u306f\u3001\u4f5c\u7528\u7d20\u306f\u307b\u307c\u6052\u7b49\u5199\u50cf\u3078\u623b\u308b\u3002", "proposed": "\u6301\u7d9a\u6642\u9593\u3092\u542b\u3080\u5fdc\u7b54", "title": "\u8ca9\u4fc3\u3092\u8868\u73fe\u3059\u308b"}, {"baseline": "\u4e00\u3064\u306e\u7cfb\u5217\u3092\u5916\u633f", "detail": "\u30ab\u30ec\u30f3\u30c0\u30fc\u304c\u8aa4\u308c\u3070\u4e00\u6642\u5909\u5316\u306e\u4e88\u6e2c\u3082\u8aa4\u308b\u3002", "proposed": "\u57fa\u790e\u9700\u8981\u3068\u65e2\u77e5\u306e\u8ca9\u4fc3\u3092\u5408\u6210", "title": "\u672a\u6765\u3092\u7d44\u307f\u7acb\u3066\u308b"}, {"baseline": "\u8aa4\u5dee\u3084\u5909\u52d5\u7387\u3092\u898b\u308b", "detail": "\u5b89\u5b9a\u5316\u3067\u6e1b\u308b\u4fdd\u7ba1\u8cbb\u7528\u3068\u3001\u5897\u3048\u308b\u6b20\u54c1\u8cbb\u7528\u3092\u540c\u6642\u306b\u8a08\u7b97\u3059\u308b\u3002", "proposed": "\u4f59\u5270\u3068\u4e0d\u8db3\u306e\u8cbb\u7528\u3092\u898b\u308b", "title": "\u5728\u5eab\u3092\u8a55\u4fa1\u3059\u308b"}], "title": "\u51e6\u7406\u3068\u8a2d\u8a08\u306e\u9055\u3044\u3092\u8ffd\u3046"}</script>
+        <div data-mount></div>
+        <div data-fallback>
+          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
+<ol><li><strong>需要を観測する：平常と一時変化を分ける</strong><p>分解は観測値だけでは一意に決まらず、滑らかさなどの仮定が必要。</p></li><li><strong>販促を表現する：持続時間を含む応答</strong><p>効果が即日で終わる商品では、作用素はほぼ恒等写像へ戻る。</p></li><li><strong>未来を組み立てる：基礎需要と既知の販促を合成</strong><p>カレンダーが誤れば一時変化の予測も誤る。</p></li><li><strong>在庫を評価する：余剰と不足の費用を見る</strong><p>安定化で減る保管費用と、増える欠品費用を同時に計算する。</p></li></ol>
+        </div>
+        <p class="figure-source">出典に基づく説明用の簡略化。 <a href="https://arxiv.org/html/2607.25664">一次資料 ↗</a></p>
+      </section>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>一時的な増加を平常水準へ混ぜなければ、上流へ不要な変動を伝えずに済むと考えられる。ただし分解は正則化なしには一意に決まらない。販促効果の持続が短いデータでは、複雑な応答形より基礎需要を安定させる部分が効いている可能性がある。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>Abstractと§4の在庫評価は、M5とFavoritaで保管費用/欠品費用が約0.20を超えるときに総費用の優位が出ると報告し、その境界の95%区間を0.17〜0.25とする。業態に共通の閾値ではない。§3.3は、M5で販促後の負の応答は観測上回復されず、応答形の仮定として残ると説明する。</p>
+<p><a href="https://arxiv.org/html/2607.25664">一次資料：§3.1–3.3 / §4 / Appendix R.6</a></p></div>      </section>
+      <section class="interactive" id="interactive-2" data-interactive="explorer" aria-labelledby="figure-title-5">
+        <div class="figure-heading"><p class="eyebrow">02 / EXPERIMENT</p><span class="figure-badge">合成実験 · PARTIAL</span></div>
+        <h2 id="figure-title-5">保管と欠品の費用比を動かす</h2>
+        <p class="figure-caption">8期の需要に対して、変動を追う在庫と一定の在庫を置く。余剰と不足を実際に数え、費用比を動かして総費用の順位が反転するか確かめる。</p>
+        <script type="application/json" data-config>{"caption": "8\u671f\u306e\u9700\u8981\u306b\u5bfe\u3057\u3066\u3001\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\u3068\u4e00\u5b9a\u306e\u5728\u5eab\u3092\u7f6e\u304f\u3002\u4f59\u5270\u3068\u4e0d\u8db3\u3092\u5b9f\u969b\u306b\u6570\u3048\u3001\u8cbb\u7528\u6bd4\u3092\u52d5\u304b\u3057\u3066\u7dcf\u8cbb\u7528\u306e\u9806\u4f4d\u304c\u53cd\u8ee2\u3059\u308b\u304b\u78ba\u304b\u3081\u308b\u3002", "kind": "explorer", "title": "\u4fdd\u7ba1\u3068\u6b20\u54c1\u306e\u8cbb\u7528\u6bd4\u3092\u52d5\u304b\u3059"}</script>
+<script type="application/json" data-results>{"default": 4, "frames": [{"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 4.0}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 36.0}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.0}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 6.4}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 36.6}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.05}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 8.8}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 37.2}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.1}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 11.2}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 37.8}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.15}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 13.6}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 38.4}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.2}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 16.0}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 39.0}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.25}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 18.4}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 39.6}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.3}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 20.8}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 40.2}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.35}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 23.2}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 40.8}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.4}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 25.6}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 41.4}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.45}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 28.0}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 42.0}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.5}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 30.4}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 42.6}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.55}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 32.8}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 43.2}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.6}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 35.2}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 43.8}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.65}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 37.6}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 44.4}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.7}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 40.0}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 45.0}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.75}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 42.4}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 45.6}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.8}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 44.8}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 46.2}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.85}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 47.2}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 46.8}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.9}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 49.6}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 47.4}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 0.95}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 52.0}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 48.0}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.0}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 54.4}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 48.6}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.05}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 56.8}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 49.2}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.1}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 59.2}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 49.8}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.15}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 61.6}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 50.4}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.2}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 64.0}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 51.0}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.25}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 66.4}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 51.6}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.3}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 68.8}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 52.2}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.35}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 71.2}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 52.8}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.4}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 73.6}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 53.4}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.45}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 76.0}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 54.0}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.5}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 78.4}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 54.6}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.55}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 80.8}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 55.2}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.6}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 83.2}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 55.8}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.65}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 85.6}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 56.4}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.7}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 88.0}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 57.0}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.75}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 90.4}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 57.6}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.8}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 92.8}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 58.2}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.85}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 95.2}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 58.8}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.9}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 97.6}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 59.4}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 1.95}, {"bars": [{"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 100.0}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab\uff1a\u7dcf\u8cbb\u7528", "value": 60.0}], "lines": [{"label": "\u9700\u8981", "values": [10, 10, 30, 10, 10, 30, 10, 10]}, {"label": "\u5909\u52d5\u3092\u8ffd\u3046\u5728\u5eab", "values": [18, 18, 28, 18, 18, 28, 18, 18]}, {"label": "\u5e73\u6ed1\u306a\u5728\u5eab", "values": [12, 12, 12, 12, 12, 12, 12, 12]}], "note": "\u8cbb\u7528=h\u00d7\u4f59\u5270+p\u00d7\u4e0d\u8db3\u3001p=1\u3002\u4f59\u5270/\u4e0d\u8db3\u306f\u8ffd\u5f93 48/4\u3001\u5e73\u6ed1 12/36\u3002\u5404\u671f\u72ec\u7acb\u3067\u6301\u8d8a\u3057\u306a\u3057\u3002\u3053\u306e\u53cd\u8ee2\u70b9\u306f\u8ad6\u6587\u306e\u7d040.20\u3068\u306f\u5225\u3002", "value": 2.0}], "label": "\u4fdd\u7ba1\u8cbb\u7528 / \u6b20\u54c1\u8cbb\u7528 h/p", "metric": "\u5408\u6210\u8cbb\u7528", "unit": ""}</script>        <div data-mount></div>
+        <div data-fallback>
+          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
+<p>保管費用 / 欠品費用 h/p：0.2</p><ul><li>変動を追う在庫：総費用：13.6</li><li>平滑な在庫：総費用：38.4</li></ul><p>費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。</p>        </div>
+        <p class="figure-source">数値の出所：このLabの results.json。論文の測定値ではありません。 </p>
+      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>8期の需要に対して、変動を追う在庫と一定の在庫を置く。余剰と不足を実際に数え、費用比を動かして総費用の順位が反転するか確かめる。</p>
+<p>実行：<code>uv run papers/contextual-deconvolution/run.py</code>。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を <code>results.json</code> へ保存する。</p></div><div class="downloads"><a href="../downloads/contextual-deconvolution/run.py" download>実行コード</a><a href="../downloads/_toy_common.py" download>計算本体</a><a href="../downloads/contextual-deconvolution/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/contextual-deconvolution">GitHubで開く ↗</a></div><p class="source-note">再実行はリポジトリの配置を使ってください。上の2ファイルだけを同じ階層へ置く方式には対応していません。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>教材用の合成実験。論文モデルの再現・性能比較ではありません。</em></p>
+<h3>条件を変える最小実験</h3>
+<ul><li><strong>dataset</strong>: deterministic synthetic</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>変動を追う在庫：総費用</th><td colspan='1'>13.6</td></tr><tr><th scope='row'>平滑な在庫：総費用</th><td colspan='1'>38.4</td></tr></tbody></table>
 <details><summary>生の results.json</summary><pre><code>{
-  &quot;note&quot;: &quot;短い販促系列の費用会計。CD の凸最適化・M5/Favorita の結果ではない。&quot;,
+  &quot;note&quot;: &quot;教材用の合成実験。論文モデルの再現・性能比較ではありません。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
   &quot;experiments&quot;: [
     {
-      &quot;name&quot;: &quot;CPU-only synthetic toy&quot;,
+      &quot;name&quot;: &quot;条件を変える最小実験&quot;,
       &quot;dataset&quot;: &quot;deterministic synthetic&quot;,
-      &quot;seed&quot;: 0,
       &quot;metrics&quot;: {
-        &quot;total inventory cost&quot;: {
-          &quot;h/p=0.10, baseline&quot;: 71,
-          &quot;h/p=0.10, stable&quot;: 82,
-          &quot;h/p=0.40, baseline&quot;: 148,
-          &quot;h/p=0.40, stable&quot;: 116
-        }
+        &quot;変動を追う在庫：総費用&quot;: 13.6,
+        &quot;平滑な在庫：総費用&quot;: 38.4
       }
     }
-  ]
-}</code></pre></details><p>合成表は安定化が low h/p で悪化し high h/p で有利になる例である。20% の閾値を再推定したものではない。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p><strong>メカニズムは PARTIAL</strong>。variance を下げる選択の評価には、holding と shortage の比を明示する必要がある。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>operator fitting、partial pooling、M5/Favorita、error dispersion、bullwhip の実測は未検証である。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p>短い deterministic cost sweep で、予測器の優劣ではなく decision boundary を示す。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
+  ],
+  &quot;explorer&quot;: {
+    &quot;label&quot;: &quot;保管費用 / 欠品費用 h/p&quot;,
+    &quot;unit&quot;: &quot;&quot;,
+    &quot;metric&quot;: &quot;合成費用&quot;,
+    &quot;default&quot;: 4,
+    &quot;frames&quot;: [
+      {
+        &quot;value&quot;: 0.0,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 4.0
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 36.0
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.05,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 6.4
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 36.6
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.1,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 8.8
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 37.2
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.15,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 11.2
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 37.8
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.2,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 13.6
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 38.4
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.25,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 16.0
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 39.0
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.3,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 18.4
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 39.6
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.35,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 20.8
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 40.2
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.4,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 23.2
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 40.8
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.45,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 25.6
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 41.4
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.5,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 28.0
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 42.0
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.55,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 30.4
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 42.6
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.6,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 32.8
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 43.2
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.65,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 35.2
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 43.8
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.7,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 37.6
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 44.4
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.75,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 40.0
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 45.0
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.8,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 42.4
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 45.6
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.85,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 44.8
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 46.2
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.9,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 47.2
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 46.8
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.95,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 49.6
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 47.4
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.0,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 52.0
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 48.0
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.05,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 54.4
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 48.6
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.1,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 56.8
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 49.2
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.15,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 59.2
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 49.8
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.2,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 61.6
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 50.4
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.25,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 64.0
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 51.0
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.3,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 66.4
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 51.6
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.35,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 68.8
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 52.2
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.4,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 71.2
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 52.8
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.45,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 73.6
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 53.4
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.5,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 76.0
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 54.0
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.55,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 78.4
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 54.6
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.6,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 80.8
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 55.2
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.65,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 83.2
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 55.8
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.7,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 85.6
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 56.4
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.75,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 88.0
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 57.0
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.8,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 90.4
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 57.6
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.85,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 92.8
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 58.2
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.9,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 95.2
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 58.8
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.95,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 97.6
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 59.4
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 2.0,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;変動を追う在庫：総費用&quot;,
+            &quot;value&quot;: 100.0
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫：総費用&quot;,
+            &quot;value&quot;: 60.0
+          }
+        ],
+        &quot;note&quot;: &quot;費用=h×余剰+p×不足、p=1。余剰/不足は追従 48/4、平滑 12/36。各期独立で持越しなし。この反転点は論文の約0.20とは別。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;需要&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              30,
+              10,
+              10,
+              30,
+              10,
+              10
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;変動を追う在庫&quot;,
+            &quot;values&quot;: [
+              18,
+              18,
+              28,
+              18,
+              18,
+              28,
+              18,
+              18
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;平滑な在庫&quot;,
+            &quot;values&quot;: [
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12,
+              12
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre></details><p>図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>メカニズム：PARTIAL（部分的）</strong>。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。</p>
+<p>8期の需要に対して、変動を追う在庫と一定の在庫を置く。余剰と不足を実際に数え、費用比を動かして総費用の順位が反転するか確かめる。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>同じ将来カレンダーを比較モデルへ渡すこと、実際の欠品率も見ることが必要。滑らかさの指標は発注分散そのものとは違う。作用素の推定、凸最適化、M5/Favorita、論文の費用境界は再現していない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけで実行できる。入口は各Labの <code>run.py</code>、計算本体は <code>papers/_toy_common.py</code> にある。関数は論文IDごとに独立し、ブラウザー用の全条件と初期条件の表を同時に出力する。</p>
+<p>意図して省いたもの：分解の推定、販促応答の学習、在庫持越し、論文データ。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
 <thead>
 <tr>
-<th>原論文</th>
-<th>Lab</th>
+<th>対象</th>
+<th>原典とLabの対応</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>kernel decomposition</td>
-<td><code>deconv.svg</code></td>
+<td>原論文</td>
+<td><a href="https://arxiv.org/html/2607.25664">§3.1–3.3 / §4 / Appendix R.6</a></td>
 </tr>
 <tr>
-<td>inventory-cost sweep</td>
-<td><code>tradeoff.svg</code> と toy</td>
+<td>処理図</td>
+<td>上記の仕組みを説明用に簡略化。公式実装ではない</td>
 </tr>
 <tr>
-<td>operational motivation</td>
-<td><code>bullwhip.svg</code></td>
+<td>条件探索</td>
+<td><code>run.py</code> → <code>papers/_toy_common.py</code> → <code>results.json</code></td>
+</tr>
+<tr>
+<td>公式コード</td>
+<td>このLabでは公式コードとの行単位の照合はしていない。</td>
 </tr>
 </tbody>
-</table></div></section></article></div>
-</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/contextual-deconvolution/lab.yaml</code></p></div></footer>
+</table></div>      </section>
+<section class="figures"><details><summary>参考用の静止図を開く</summary><div class="figure-grid"><figure><img src="../figures/contextual-deconvolution/figures/deconv.svg" alt="参考図 1：処理の全体像" loading="lazy"><figcaption>論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。</figcaption></figure></div></details></section>    <aside class="end-note"><p>次に確かめたいこと</p><strong>予測を滑らかにすると、在庫費用は本当に下がるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/contextual-deconvolution/lab.yaml" download>このページの原データ</a></footer>
 </body></html>

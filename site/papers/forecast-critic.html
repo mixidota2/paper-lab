@@ -1,58 +1,657 @@
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="forecast の誤差順位とは別に、LLM が trend・時点ずれ・販促 spike を批評して poor forecast を見つけられるかを問う。"><title>The Forecast Critic: Leveraging Large Language Models for Poor Forecast Identification | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="予測を作るモデルとは別に、履歴・予測図・販促の説明を読む批評器を置く。狙いは誤予測の自動修正より、点検すべき系列の発見。">
+  <title>未来の実績を待たずに、怪しい予測を見つけられるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
 <body>
 <a class="skip-link" href="#paper">本文へ移動</a>
-<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
-<main id="paper" class="paper shell">
-<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2512.12059</span></nav>
-<header class="paper-hero"><p class="priority priority--worth">Park / Exploration</p><h1>The Forecast Critic: Leveraging Large Language Models for Poor Forecast Identification</h1><p class="authors">Luke Bhan, Hanyu Zhang, Andrew Gordon Wilson, Michael W. Mahoney, Chuck Arvin</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2512.12059" rel="noopener">2512.12059</a></dd></div><div><dt>投稿</dt><dd>2025-12-12</dd></div><div><dt>収録</dt><dd>2025</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2512.12059" rel="noopener">原典を読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2512.12059" rel="noopener">PDF</a></div></header>
-<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
-<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid"><figure><img src="../figures/forecast-critic/figures/loop.svg" alt="forecast–critic–decision" loading="lazy"><figcaption><strong>forecast–critic–decision</strong><br>critic は予測器を置換せず、review queue を作る。</figcaption></figure><figure><img src="../figures/forecast-critic/figures/visibility.svg" alt="critic に見えるもの" loading="lazy"><figcaption><strong>critic に見えるもの</strong><br>系列、予測、販促文脈があっても将来の真値は見えない。</figcaption></figure><figure><img src="../figures/forecast-critic/figures/failures.svg" alt="異なる失敗を拾う" loading="lazy"><figcaption><strong>異なる失敗を拾う</strong><br>MAPE の順位と過信・spike miss の警告は一致しない。</figcaption></figure></div></section>
-<div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>forecast が出た後にも、極端な flatness や既知販促を無視した spike miss を見つける仕事がある。point error が後日まで分からない状況で、critic は先行アラートになり得る。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>MAPE は実績が出るまで使えず、平均誤差が低くても危険な一件を隠す。言語や画像の販促情報を予測器に入れず、review にだけ使う設計もあり得る。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>Forecast Critic は LLM に forecast monitoring をさせ、temporal misalignment、trend inconsistency、spike error を検出できるかを実験する。Abstract は最良 model F1 0.88、human F1 0.97、promo context を含む spike 判定 F1 0.84、M5 の unreasonable forecast は sCRPS が少なくとも 10% 高いと報告する。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>これは forecast を良くする手法ではなく、どの予測を人間や別モデルに回すかを決める monitoring layer と読む。critic 自身の false positive cost と feedback loop の劣化が実務上の中心になる。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p><strong>読書メモ（推論）</strong>。系列形状と context を言語的な期待に照らせば、統計的にあり得るが運用上おかしい予測を拾える。ただし critic がもっともらしい説明を作るだけの risk がある。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>Abstract の synthetic/real-world experiments は promise を示すが、LLM version、prompt、cost、distribution shift に感度がある。F1 をそのまま自社の alert precision とみなせない。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p><code>uv run papers/forecast-critic/run.py</code> は bias と under-dispersion を flag する規則 critic と raw MAPE ranking を比較する。LLM は呼ばない。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p class="callout-body"><em>LLM judge の代替ではなく規則ベースの批評器。言語・画像コンテキストや論文の F1 は検証しない。</em></p>
-<h3>CPU-only synthetic toy</h3>
-<ul><li><strong>dataset</strong>: deterministic synthetic</li><li><strong>seed</strong>: 0</li></ul>
-<table class="metrics"><thead><tr><th>指標</th><th>MAPE ranking</th><th>bias/under-dispersion critic</th><th>promotion spike miss</th><th>overconfident flat forecast</th></tr></thead><tbody><tr><th scope='row'>bad forecast flags</th><td>2</td><td>4</td><td></td><td></td></tr><tr><th scope='row'>different failures found</th><td></td><td></td><td>1</td><td>1</td></tr></tbody></table>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2025-12-12</span></div>
+    <h1>未来の実績を待たずに、怪しい予測を見つけられるか</h1>
+    <p class="lede">予測を作るモデルとは別に、履歴・予測図・販促の説明を読む批評器を置く。狙いは誤予測の自動修正より、点検すべき系列の発見。</p>
+    <details class="bibliography"><summary>原論文：The Forecast Critic: Leveraging Large Language Models for Poor Forecast Identification</summary><p>Luke Bhan, Hanyu Zhang, Andrew Gordon Wilson, Michael W. Mahoney, Chuck Arvin</p><p>2512.12059 · 2025</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2512.12059">原典を読む ↗</a><a href="https://arxiv.org/pdf/2512.12059">PDF ↗</a><a href="#interactive-1">図を操作する ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-07 · arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">01 問いと仕組み</a><a href="#interactive-1">02 図で追う</a><a href="#evidence">03 論文の根拠</a><a href="#interactive-2">04 条件を変える</a><a href="#what_we_did_not_verify">05 限界と批評</a><a href="#implementation">06 実装と出典</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>予測を作るモデルとは別に、履歴・予測図・販促の説明を読む批評器を置く。狙いは誤予測の自動修正より、点検すべき系列の発見。</p>
+<p>このLabでは「未来の実績を待たずに、怪しい予測を見つけられるか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>平均の誤差が良くても、個別には周期がずれた予測や、不自然に平らな予測が混じる。未来の実績がまだない時点では、通常の誤差指標でその失敗を測れない。</p>
+<p>Forecast Criticは過去と予測の図、必要なら販促に関する文章を見せ、もっともらしい予測かをLLMへ尋ねる。将来の真値を先に見て良否を判定する使い方ではない。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者はトレンド、水準、周期、急増を人工的に崩した予測で批評能力を調べる。販促の説明を加える実験と、M5上のChronos予測を点検する実験も行う。言語・画像の文脈から不自然な予測を拾う監視手段として提案する。</p>
+<p><a href="https://arxiv.org/html/2512.12059">一次資料：合成実験 / 外生情報の実験 / 実データの実験</a></p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>これは予測精度を直接改善する学習法ではない。警告した後に誰が何を確認し、誤警告をいくつまで許すかが運用を決める。図の描き方や説明文の質に依存するなら、監視器自身も評価対象になる。</p></div></div>
+      </section>
+      <section class="interactive" id="interactive-1" data-interactive="flow" aria-labelledby="figure-title-3">
+        <div class="figure-heading"><p class="eyebrow">01 / MECHANISM</p><span class="figure-badge">論文の概念図</span></div>
+        <h2 id="figure-title-3">処理と設計の違いを追う</h2>
+        <p class="figure-caption">段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。</p>
+        <script type="application/json" data-config>{"caption": "\u6bb5\u3092\u9078\u3076\u3068\u8aac\u660e\u304c\u5207\u308a\u66ff\u308f\u308b\u3002\u6bd4\u8f03\u5074\u306f\u8ad6\u70b9\u3092\u793a\u3059\u7c21\u7565\u5316\u3067\u3001\u7d71\u5236\u5b9f\u9a13\u306e\u5b9f\u88c5\u3067\u306f\u306a\u3044\u3002", "kind": "flow", "source": "https://arxiv.org/html/2512.12059", "stages": [{"baseline": "\u5e73\u5747\u8aa4\u5dee\u3092\u5f8c\u304b\u3089\u6e2c\u308b", "detail": "\u672a\u6765\u306e\u5b9f\u7e3e\u306f\u307e\u3060\u898b\u3048\u306a\u3044\u6642\u70b9\u3092\u60f3\u5b9a\u3059\u308b\u3002", "proposed": "\u5c65\u6b74\u3068\u4e88\u6e2c\u3092\u56f3\u306b\u3059\u308b", "title": "\u4e88\u6e2c\u3092\u53d7\u3051\u53d6\u308b"}, {"baseline": "\u6570\u5024\u3060\u3051\u3092\u78ba\u8a8d", "detail": "\u8aac\u660e\u6587\u306b\u672a\u6765\u306e\u6b63\u89e3\u304c\u6f0f\u308c\u3066\u3044\u306a\u3044\u304b\u3092\u78ba\u8a8d\u3059\u308b\u3002", "proposed": "\u8ca9\u4fc3\u306a\u3069\u306e\u8aac\u660e\u3092\u52a0\u3048\u308b", "title": "\u72b6\u6cc1\u3092\u52a0\u3048\u308b"}, {"baseline": "\u8aa4\u5dee\u306e\u5927\u304d\u3044\u9806\u306b\u4e26\u3079\u308b", "detail": "\u5468\u671f\u3001\u6c34\u6e96\u3001\u6025\u5897\u306a\u3069\u304c\u59a5\u5f53\u304b\u3092\u898b\u308b\u3002\u56f3\u306f\u8ad6\u6587\u30b7\u30b9\u30c6\u30e0\u306e\u6982\u5ff5\u8aac\u660e\u3002", "proposed": "\u56f3\u3068\u6587\u8108\u304b\u3089\u6279\u8a55\u3059\u308b", "title": "\u4e0d\u81ea\u7136\u3055\u3092\u5224\u5b9a\u3059\u308b"}, {"baseline": "\u5168\u4ef6\u3092\u8aad\u3080", "detail": "\u6279\u8a55\u5668\u304c\u4e88\u6e2c\u3092\u81ea\u52d5\u4fee\u6b63\u3059\u308b\u3068\u306f\u9650\u3089\u306a\u3044\u3002\u898b\u9003\u3057\u3068\u8aa4\u8b66\u544a\u306e\u4e21\u65b9\u3092\u6570\u3048\u308b\u3002", "proposed": "\u8b66\u544a\u3057\u305f\u7cfb\u5217\u3092\u70b9\u691c", "title": "\u4eba\u304c\u70b9\u691c\u3059\u308b"}], "title": "\u51e6\u7406\u3068\u8a2d\u8a08\u306e\u9055\u3044\u3092\u8ffd\u3046"}</script>
+        <div data-mount></div>
+        <div data-fallback>
+          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
+<ol><li><strong>予測を受け取る：履歴と予測を図にする</strong><p>未来の実績はまだ見えない時点を想定する。</p></li><li><strong>状況を加える：販促などの説明を加える</strong><p>説明文に未来の正解が漏れていないかを確認する。</p></li><li><strong>不自然さを判定する：図と文脈から批評する</strong><p>周期、水準、急増などが妥当かを見る。図は論文システムの概念説明。</p></li><li><strong>人が点検する：警告した系列を点検</strong><p>批評器が予測を自動修正するとは限らない。見逃しと誤警告の両方を数える。</p></li></ol>
+        </div>
+        <p class="figure-source">出典に基づく説明用の簡略化。 <a href="https://arxiv.org/html/2512.12059">一次資料 ↗</a></p>
+      </section>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>数値の誤差だけでは説明しにくい「販促予定があるのに山がない」という矛盾を、文章と図から拾える可能性がある。一方、新しい現象が過去と違って見えるだけで誤警告することもある。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>Abstractと合成実験では最良モデルのF1が0.88、人が0.97と報告される。F1は警告の適合率と再現率をまとめる値。実データの実験では、怪しいとされた予測群のsCRPSが少なくとも10%高い。これは群の誤差の違いで、監視を導入すれば誤差が10%改善するという結果ではない。</p>
+<p><a href="https://arxiv.org/html/2512.12059">一次資料：合成実験 / 外生情報の実験 / 実データの実験</a></p></div>      </section>
+      <section class="interactive" id="interactive-2" data-interactive="explorer" aria-labelledby="figure-title-5">
+        <div class="figure-heading"><p class="eyebrow">02 / EXPERIMENT</p><span class="figure-badge">合成実験 · PARTIAL</span></div>
+        <h2 id="figure-title-5">警告を厳しくすると何を見逃すか</h2>
+        <p class="figure-caption">10件の合成スコアと正解ラベルを用意する。警告閾値を変え、適合率・再現率・誤警告・見逃しを再計算する。LLMを呼ばず、監視運用の判断を学ぶための実験。</p>
+        <script type="application/json" data-config>{"caption": "10\u4ef6\u306e\u5408\u6210\u30b9\u30b3\u30a2\u3068\u6b63\u89e3\u30e9\u30d9\u30eb\u3092\u7528\u610f\u3059\u308b\u3002\u8b66\u544a\u95be\u5024\u3092\u5909\u3048\u3001\u9069\u5408\u7387\u30fb\u518d\u73fe\u7387\u30fb\u8aa4\u8b66\u544a\u30fb\u898b\u9003\u3057\u3092\u518d\u8a08\u7b97\u3059\u308b\u3002LLM\u3092\u547c\u3070\u305a\u3001\u76e3\u8996\u904b\u7528\u306e\u5224\u65ad\u3092\u5b66\u3076\u305f\u3081\u306e\u5b9f\u9a13\u3002", "kind": "explorer", "title": "\u8b66\u544a\u3092\u53b3\u3057\u304f\u3059\u308b\u3068\u4f55\u3092\u898b\u9003\u3059\u304b"}</script>
+<script type="application/json" data-results>{"default": 5, "frames": [{"bars": [{"label": "\u9069\u5408\u7387 (%)", "value": 60.0}, {"label": "\u518d\u73fe\u7387 (%)", "value": 100.0}], "lines": [{"label": "\u4e0d\u81ea\u7136\u3055\u306e\u898f\u5247\u30b9\u30b3\u30a2", "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}, {"label": "\u8b66\u544a\u306e\u95be\u5024", "values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}], "note": "\u5408\u621010\u4ef6\uff1a\u6b63\u3057\u304f\u8b66\u544a 6\u3001\u8aa4\u8b66\u544a 4\u3001\u898b\u9003\u3057 0\u3002\u9069\u5408\u7387\u306f\u8b66\u544a\u306e\u6b63\u3057\u3055\u3001\u518d\u73fe\u7387\u306f\u554f\u984c\u3092\u62fe\u3046\u5272\u5408\u3002\u6b63\u89e3\u30e9\u30d9\u30eb\u306f\u6559\u6750\u7528\u306b\u4eba\u70ba\u8a2d\u5b9a\u3002LLM\u3084\u8ad6\u6587F1\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 0}, {"bars": [{"label": "\u9069\u5408\u7387 (%)", "value": 66.6667}, {"label": "\u518d\u73fe\u7387 (%)", "value": 100.0}], "lines": [{"label": "\u4e0d\u81ea\u7136\u3055\u306e\u898f\u5247\u30b9\u30b3\u30a2", "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}, {"label": "\u8b66\u544a\u306e\u95be\u5024", "values": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]}], "note": "\u5408\u621010\u4ef6\uff1a\u6b63\u3057\u304f\u8b66\u544a 6\u3001\u8aa4\u8b66\u544a 3\u3001\u898b\u9003\u3057 0\u3002\u9069\u5408\u7387\u306f\u8b66\u544a\u306e\u6b63\u3057\u3055\u3001\u518d\u73fe\u7387\u306f\u554f\u984c\u3092\u62fe\u3046\u5272\u5408\u3002\u6b63\u89e3\u30e9\u30d9\u30eb\u306f\u6559\u6750\u7528\u306b\u4eba\u70ba\u8a2d\u5b9a\u3002LLM\u3084\u8ad6\u6587F1\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 1}, {"bars": [{"label": "\u9069\u5408\u7387 (%)", "value": 75.0}, {"label": "\u518d\u73fe\u7387 (%)", "value": 100.0}], "lines": [{"label": "\u4e0d\u81ea\u7136\u3055\u306e\u898f\u5247\u30b9\u30b3\u30a2", "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}, {"label": "\u8b66\u544a\u306e\u95be\u5024", "values": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]}], "note": "\u5408\u621010\u4ef6\uff1a\u6b63\u3057\u304f\u8b66\u544a 6\u3001\u8aa4\u8b66\u544a 2\u3001\u898b\u9003\u3057 0\u3002\u9069\u5408\u7387\u306f\u8b66\u544a\u306e\u6b63\u3057\u3055\u3001\u518d\u73fe\u7387\u306f\u554f\u984c\u3092\u62fe\u3046\u5272\u5408\u3002\u6b63\u89e3\u30e9\u30d9\u30eb\u306f\u6559\u6750\u7528\u306b\u4eba\u70ba\u8a2d\u5b9a\u3002LLM\u3084\u8ad6\u6587F1\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 2}, {"bars": [{"label": "\u9069\u5408\u7387 (%)", "value": 85.7143}, {"label": "\u518d\u73fe\u7387 (%)", "value": 100.0}], "lines": [{"label": "\u4e0d\u81ea\u7136\u3055\u306e\u898f\u5247\u30b9\u30b3\u30a2", "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}, {"label": "\u8b66\u544a\u306e\u95be\u5024", "values": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]}], "note": "\u5408\u621010\u4ef6\uff1a\u6b63\u3057\u304f\u8b66\u544a 6\u3001\u8aa4\u8b66\u544a 1\u3001\u898b\u9003\u3057 0\u3002\u9069\u5408\u7387\u306f\u8b66\u544a\u306e\u6b63\u3057\u3055\u3001\u518d\u73fe\u7387\u306f\u554f\u984c\u3092\u62fe\u3046\u5272\u5408\u3002\u6b63\u89e3\u30e9\u30d9\u30eb\u306f\u6559\u6750\u7528\u306b\u4eba\u70ba\u8a2d\u5b9a\u3002LLM\u3084\u8ad6\u6587F1\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 3}, {"bars": [{"label": "\u9069\u5408\u7387 (%)", "value": 83.3333}, {"label": "\u518d\u73fe\u7387 (%)", "value": 83.3333}], "lines": [{"label": "\u4e0d\u81ea\u7136\u3055\u306e\u898f\u5247\u30b9\u30b3\u30a2", "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}, {"label": "\u8b66\u544a\u306e\u95be\u5024", "values": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4]}], "note": "\u5408\u621010\u4ef6\uff1a\u6b63\u3057\u304f\u8b66\u544a 5\u3001\u8aa4\u8b66\u544a 1\u3001\u898b\u9003\u3057 1\u3002\u9069\u5408\u7387\u306f\u8b66\u544a\u306e\u6b63\u3057\u3055\u3001\u518d\u73fe\u7387\u306f\u554f\u984c\u3092\u62fe\u3046\u5272\u5408\u3002\u6b63\u89e3\u30e9\u30d9\u30eb\u306f\u6559\u6750\u7528\u306b\u4eba\u70ba\u8a2d\u5b9a\u3002LLM\u3084\u8ad6\u6587F1\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 4}, {"bars": [{"label": "\u9069\u5408\u7387 (%)", "value": 100.0}, {"label": "\u518d\u73fe\u7387 (%)", "value": 83.3333}], "lines": [{"label": "\u4e0d\u81ea\u7136\u3055\u306e\u898f\u5247\u30b9\u30b3\u30a2", "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}, {"label": "\u8b66\u544a\u306e\u95be\u5024", "values": [5, 5, 5, 5, 5, 5, 5, 5, 5, 5]}], "note": "\u5408\u621010\u4ef6\uff1a\u6b63\u3057\u304f\u8b66\u544a 5\u3001\u8aa4\u8b66\u544a 0\u3001\u898b\u9003\u3057 1\u3002\u9069\u5408\u7387\u306f\u8b66\u544a\u306e\u6b63\u3057\u3055\u3001\u518d\u73fe\u7387\u306f\u554f\u984c\u3092\u62fe\u3046\u5272\u5408\u3002\u6b63\u89e3\u30e9\u30d9\u30eb\u306f\u6559\u6750\u7528\u306b\u4eba\u70ba\u8a2d\u5b9a\u3002LLM\u3084\u8ad6\u6587F1\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 5}, {"bars": [{"label": "\u9069\u5408\u7387 (%)", "value": 100.0}, {"label": "\u518d\u73fe\u7387 (%)", "value": 66.6667}], "lines": [{"label": "\u4e0d\u81ea\u7136\u3055\u306e\u898f\u5247\u30b9\u30b3\u30a2", "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}, {"label": "\u8b66\u544a\u306e\u95be\u5024", "values": [6, 6, 6, 6, 6, 6, 6, 6, 6, 6]}], "note": "\u5408\u621010\u4ef6\uff1a\u6b63\u3057\u304f\u8b66\u544a 4\u3001\u8aa4\u8b66\u544a 0\u3001\u898b\u9003\u3057 2\u3002\u9069\u5408\u7387\u306f\u8b66\u544a\u306e\u6b63\u3057\u3055\u3001\u518d\u73fe\u7387\u306f\u554f\u984c\u3092\u62fe\u3046\u5272\u5408\u3002\u6b63\u89e3\u30e9\u30d9\u30eb\u306f\u6559\u6750\u7528\u306b\u4eba\u70ba\u8a2d\u5b9a\u3002LLM\u3084\u8ad6\u6587F1\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 6}, {"bars": [{"label": "\u9069\u5408\u7387 (%)", "value": 100.0}, {"label": "\u518d\u73fe\u7387 (%)", "value": 50.0}], "lines": [{"label": "\u4e0d\u81ea\u7136\u3055\u306e\u898f\u5247\u30b9\u30b3\u30a2", "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}, {"label": "\u8b66\u544a\u306e\u95be\u5024", "values": [7, 7, 7, 7, 7, 7, 7, 7, 7, 7]}], "note": "\u5408\u621010\u4ef6\uff1a\u6b63\u3057\u304f\u8b66\u544a 3\u3001\u8aa4\u8b66\u544a 0\u3001\u898b\u9003\u3057 3\u3002\u9069\u5408\u7387\u306f\u8b66\u544a\u306e\u6b63\u3057\u3055\u3001\u518d\u73fe\u7387\u306f\u554f\u984c\u3092\u62fe\u3046\u5272\u5408\u3002\u6b63\u89e3\u30e9\u30d9\u30eb\u306f\u6559\u6750\u7528\u306b\u4eba\u70ba\u8a2d\u5b9a\u3002LLM\u3084\u8ad6\u6587F1\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 7}, {"bars": [{"label": "\u9069\u5408\u7387 (%)", "value": 100.0}, {"label": "\u518d\u73fe\u7387 (%)", "value": 33.3333}], "lines": [{"label": "\u4e0d\u81ea\u7136\u3055\u306e\u898f\u5247\u30b9\u30b3\u30a2", "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}, {"label": "\u8b66\u544a\u306e\u95be\u5024", "values": [8, 8, 8, 8, 8, 8, 8, 8, 8, 8]}], "note": "\u5408\u621010\u4ef6\uff1a\u6b63\u3057\u304f\u8b66\u544a 2\u3001\u8aa4\u8b66\u544a 0\u3001\u898b\u9003\u3057 4\u3002\u9069\u5408\u7387\u306f\u8b66\u544a\u306e\u6b63\u3057\u3055\u3001\u518d\u73fe\u7387\u306f\u554f\u984c\u3092\u62fe\u3046\u5272\u5408\u3002\u6b63\u89e3\u30e9\u30d9\u30eb\u306f\u6559\u6750\u7528\u306b\u4eba\u70ba\u8a2d\u5b9a\u3002LLM\u3084\u8ad6\u6587F1\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 8}, {"bars": [{"label": "\u9069\u5408\u7387 (%)", "value": 100.0}, {"label": "\u518d\u73fe\u7387 (%)", "value": 16.6667}], "lines": [{"label": "\u4e0d\u81ea\u7136\u3055\u306e\u898f\u5247\u30b9\u30b3\u30a2", "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}, {"label": "\u8b66\u544a\u306e\u95be\u5024", "values": [9, 9, 9, 9, 9, 9, 9, 9, 9, 9]}], "note": "\u5408\u621010\u4ef6\uff1a\u6b63\u3057\u304f\u8b66\u544a 1\u3001\u8aa4\u8b66\u544a 0\u3001\u898b\u9003\u3057 5\u3002\u9069\u5408\u7387\u306f\u8b66\u544a\u306e\u6b63\u3057\u3055\u3001\u518d\u73fe\u7387\u306f\u554f\u984c\u3092\u62fe\u3046\u5272\u5408\u3002\u6b63\u89e3\u30e9\u30d9\u30eb\u306f\u6559\u6750\u7528\u306b\u4eba\u70ba\u8a2d\u5b9a\u3002LLM\u3084\u8ad6\u6587F1\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 9}, {"bars": [{"label": "\u9069\u5408\u7387 (%)", "value": 0}, {"label": "\u518d\u73fe\u7387 (%)", "value": 0.0}], "lines": [{"label": "\u4e0d\u81ea\u7136\u3055\u306e\u898f\u5247\u30b9\u30b3\u30a2", "values": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}, {"label": "\u8b66\u544a\u306e\u95be\u5024", "values": [10, 10, 10, 10, 10, 10, 10, 10, 10, 10]}], "note": "\u5408\u621010\u4ef6\uff1a\u6b63\u3057\u304f\u8b66\u544a 0\u3001\u8aa4\u8b66\u544a 0\u3001\u898b\u9003\u3057 6\u3002\u9069\u5408\u7387\u306f\u8b66\u544a\u306e\u6b63\u3057\u3055\u3001\u518d\u73fe\u7387\u306f\u554f\u984c\u3092\u62fe\u3046\u5272\u5408\u3002\u6b63\u89e3\u30e9\u30d9\u30eb\u306f\u6559\u6750\u7528\u306b\u4eba\u70ba\u8a2d\u5b9a\u3002LLM\u3084\u8ad6\u6587F1\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 10}], "label": "\u8b66\u544a\u3059\u308b\u4e0d\u81ea\u7136\u3055\u306e\u95be\u5024", "metric": "\u5272\u5408 (%)", "unit": ""}</script>        <div data-mount></div>
+        <div data-fallback>
+          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
+<p>警告する不自然さの閾値：5</p><ul><li>適合率 (%)：100.0</li><li>再現率 (%)：83.3333</li></ul><p>合成10件：正しく警告 5、誤警告 0、見逃し 1。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定。LLMや論文F1の再現ではない。</p>        </div>
+        <p class="figure-source">数値の出所：このLabの results.json。論文の測定値ではありません。 </p>
+      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>10件の合成スコアと正解ラベルを用意する。警告閾値を変え、適合率・再現率・誤警告・見逃しを再計算する。LLMを呼ばず、監視運用の判断を学ぶための実験。</p>
+<p>実行：<code>uv run papers/forecast-critic/run.py</code>。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を <code>results.json</code> へ保存する。</p></div><div class="downloads"><a href="../downloads/forecast-critic/run.py" download>実行コード</a><a href="../downloads/_toy_common.py" download>計算本体</a><a href="../downloads/forecast-critic/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/forecast-critic">GitHubで開く ↗</a></div><p class="source-note">再実行はリポジトリの配置を使ってください。上の2ファイルだけを同じ階層へ置く方式には対応していません。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>教材用の合成実験。論文モデルの再現・性能比較ではありません。</em></p>
+<h3>条件を変える最小実験</h3>
+<ul><li><strong>dataset</strong>: deterministic synthetic</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>適合率 (%)</th><td colspan='1'>100.0</td></tr><tr><th scope='row'>再現率 (%)</th><td colspan='1'>83.3333</td></tr></tbody></table>
 <details><summary>生の results.json</summary><pre><code>{
-  &quot;note&quot;: &quot;LLM judge の代替ではなく規則ベースの批評器。言語・画像コンテキストや論文の F1 は検証しない。&quot;,
+  &quot;note&quot;: &quot;教材用の合成実験。論文モデルの再現・性能比較ではありません。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
   &quot;experiments&quot;: [
     {
-      &quot;name&quot;: &quot;CPU-only synthetic toy&quot;,
+      &quot;name&quot;: &quot;条件を変える最小実験&quot;,
       &quot;dataset&quot;: &quot;deterministic synthetic&quot;,
-      &quot;seed&quot;: 0,
       &quot;metrics&quot;: {
-        &quot;bad forecast flags&quot;: {
-          &quot;MAPE ranking&quot;: 2,
-          &quot;bias/under-dispersion critic&quot;: 4
-        },
-        &quot;different failures found&quot;: {
-          &quot;promotion spike miss&quot;: 1,
-          &quot;overconfident flat forecast&quot;: 1
-        }
+        &quot;適合率 (%)&quot;: 100.0,
+        &quot;再現率 (%)&quot;: 83.3333
       }
     }
-  ]
-}</code></pre></details><p>規則 critic は spike miss と過信 flat forecast を別に数える。paper の LLM F1 や multimodal reasoning の再現ではない。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p><strong>メカニズムは PARTIAL</strong>。誤差ランキングとは異なる failure taxonomy を持つ critic が review target を増やし得る。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>LLM reasoning、image/context 入力、F1、M5 sCRPS、human comparison、deployment cost は未検証である。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p>CPU-only の透明な rule set を使い、LLM の代理であることを明記した。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
+  ],
+  &quot;explorer&quot;: {
+    &quot;label&quot;: &quot;警告する不自然さの閾値&quot;,
+    &quot;unit&quot;: &quot;&quot;,
+    &quot;metric&quot;: &quot;割合 (%)&quot;,
+    &quot;default&quot;: 5,
+    &quot;frames&quot;: [
+      {
+        &quot;value&quot;: 0,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;適合率 (%)&quot;,
+            &quot;value&quot;: 60.0
+          },
+          {
+            &quot;label&quot;: &quot;再現率 (%)&quot;,
+            &quot;value&quot;: 100.0
+          }
+        ],
+        &quot;note&quot;: &quot;合成10件：正しく警告 6、誤警告 4、見逃し 0。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定。LLMや論文F1の再現ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;不自然さの規則スコア&quot;,
+            &quot;values&quot;: [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;警告の閾値&quot;,
+            &quot;values&quot;: [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;適合率 (%)&quot;,
+            &quot;value&quot;: 66.6667
+          },
+          {
+            &quot;label&quot;: &quot;再現率 (%)&quot;,
+            &quot;value&quot;: 100.0
+          }
+        ],
+        &quot;note&quot;: &quot;合成10件：正しく警告 6、誤警告 3、見逃し 0。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定。LLMや論文F1の再現ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;不自然さの規則スコア&quot;,
+            &quot;values&quot;: [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;警告の閾値&quot;,
+            &quot;values&quot;: [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 2,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;適合率 (%)&quot;,
+            &quot;value&quot;: 75.0
+          },
+          {
+            &quot;label&quot;: &quot;再現率 (%)&quot;,
+            &quot;value&quot;: 100.0
+          }
+        ],
+        &quot;note&quot;: &quot;合成10件：正しく警告 6、誤警告 2、見逃し 0。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定。LLMや論文F1の再現ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;不自然さの規則スコア&quot;,
+            &quot;values&quot;: [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;警告の閾値&quot;,
+            &quot;values&quot;: [
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 3,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;適合率 (%)&quot;,
+            &quot;value&quot;: 85.7143
+          },
+          {
+            &quot;label&quot;: &quot;再現率 (%)&quot;,
+            &quot;value&quot;: 100.0
+          }
+        ],
+        &quot;note&quot;: &quot;合成10件：正しく警告 6、誤警告 1、見逃し 0。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定。LLMや論文F1の再現ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;不自然さの規則スコア&quot;,
+            &quot;values&quot;: [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;警告の閾値&quot;,
+            &quot;values&quot;: [
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 4,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;適合率 (%)&quot;,
+            &quot;value&quot;: 83.3333
+          },
+          {
+            &quot;label&quot;: &quot;再現率 (%)&quot;,
+            &quot;value&quot;: 83.3333
+          }
+        ],
+        &quot;note&quot;: &quot;合成10件：正しく警告 5、誤警告 1、見逃し 1。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定。LLMや論文F1の再現ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;不自然さの規則スコア&quot;,
+            &quot;values&quot;: [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;警告の閾値&quot;,
+            &quot;values&quot;: [
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 5,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;適合率 (%)&quot;,
+            &quot;value&quot;: 100.0
+          },
+          {
+            &quot;label&quot;: &quot;再現率 (%)&quot;,
+            &quot;value&quot;: 83.3333
+          }
+        ],
+        &quot;note&quot;: &quot;合成10件：正しく警告 5、誤警告 0、見逃し 1。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定。LLMや論文F1の再現ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;不自然さの規則スコア&quot;,
+            &quot;values&quot;: [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;警告の閾値&quot;,
+            &quot;values&quot;: [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 6,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;適合率 (%)&quot;,
+            &quot;value&quot;: 100.0
+          },
+          {
+            &quot;label&quot;: &quot;再現率 (%)&quot;,
+            &quot;value&quot;: 66.6667
+          }
+        ],
+        &quot;note&quot;: &quot;合成10件：正しく警告 4、誤警告 0、見逃し 2。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定。LLMや論文F1の再現ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;不自然さの規則スコア&quot;,
+            &quot;values&quot;: [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;警告の閾値&quot;,
+            &quot;values&quot;: [
+              6,
+              6,
+              6,
+              6,
+              6,
+              6,
+              6,
+              6,
+              6,
+              6
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 7,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;適合率 (%)&quot;,
+            &quot;value&quot;: 100.0
+          },
+          {
+            &quot;label&quot;: &quot;再現率 (%)&quot;,
+            &quot;value&quot;: 50.0
+          }
+        ],
+        &quot;note&quot;: &quot;合成10件：正しく警告 3、誤警告 0、見逃し 3。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定。LLMや論文F1の再現ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;不自然さの規則スコア&quot;,
+            &quot;values&quot;: [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;警告の閾値&quot;,
+            &quot;values&quot;: [
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7,
+              7
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 8,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;適合率 (%)&quot;,
+            &quot;value&quot;: 100.0
+          },
+          {
+            &quot;label&quot;: &quot;再現率 (%)&quot;,
+            &quot;value&quot;: 33.3333
+          }
+        ],
+        &quot;note&quot;: &quot;合成10件：正しく警告 2、誤警告 0、見逃し 4。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定。LLMや論文F1の再現ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;不自然さの規則スコア&quot;,
+            &quot;values&quot;: [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;警告の閾値&quot;,
+            &quot;values&quot;: [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 9,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;適合率 (%)&quot;,
+            &quot;value&quot;: 100.0
+          },
+          {
+            &quot;label&quot;: &quot;再現率 (%)&quot;,
+            &quot;value&quot;: 16.6667
+          }
+        ],
+        &quot;note&quot;: &quot;合成10件：正しく警告 1、誤警告 0、見逃し 5。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定。LLMや論文F1の再現ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;不自然さの規則スコア&quot;,
+            &quot;values&quot;: [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;警告の閾値&quot;,
+            &quot;values&quot;: [
+              9,
+              9,
+              9,
+              9,
+              9,
+              9,
+              9,
+              9,
+              9,
+              9
+            ]
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 10,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;適合率 (%)&quot;,
+            &quot;value&quot;: 0
+          },
+          {
+            &quot;label&quot;: &quot;再現率 (%)&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;合成10件：正しく警告 0、誤警告 0、見逃し 6。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定。LLMや論文F1の再現ではない。&quot;,
+        &quot;lines&quot;: [
+          {
+            &quot;label&quot;: &quot;不自然さの規則スコア&quot;,
+            &quot;values&quot;: [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            &quot;label&quot;: &quot;警告の閾値&quot;,
+            &quot;values&quot;: [
+              10,
+              10,
+              10,
+              10,
+              10,
+              10,
+              10,
+              10,
+              10,
+              10
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre></details><p>図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>メカニズム：PARTIAL（部分的）</strong>。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。</p>
+<p>10件の合成スコアと正解ラベルを用意する。警告閾値を変え、適合率・再現率・誤警告・見逃しを再計算する。LLMを呼ばず、監視運用の判断を学ぶための実験。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>人工的な破損と自然発生する失敗の分布は違う。実務では低い問題発生率の下で誤警告が増えないか、担当者の作業時間が減るか、警告後の修正で費用が下がるかを確認したい。LLMによる図の理解は今回検証していない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけで実行できる。入口は各Labの <code>run.py</code>、計算本体は <code>papers/_toy_common.py</code> にある。関数は論文IDごとに独立し、ブラウザー用の全条件と初期条件の表を同時に出力する。</p>
+<p>意図して省いたもの：画像理解、LLM、販促の文章、Chronos、M5。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
 <thead>
 <tr>
-<th>原論文</th>
-<th>Lab</th>
+<th>対象</th>
+<th>原典とLabの対応</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>monitoring loop</td>
-<td><code>loop.svg</code></td>
+<td>原論文</td>
+<td><a href="https://arxiv.org/html/2512.12059">合成実験 / 外生情報の実験 / 実データの実験</a></td>
 </tr>
 <tr>
-<td>contextual visibility</td>
-<td><code>visibility.svg</code></td>
+<td>処理図</td>
+<td>上記の仕組みを説明用に簡略化。公式実装ではない</td>
 </tr>
 <tr>
-<td>poor forecast taxonomy</td>
-<td><code>failures.svg</code> と toy</td>
+<td>条件探索</td>
+<td><code>run.py</code> → <code>papers/_toy_common.py</code> → <code>results.json</code></td>
+</tr>
+<tr>
+<td>公式コード</td>
+<td>このLabでは公式コードとの行単位の照合はしていない。</td>
 </tr>
 </tbody>
-</table></div></section></article></div>
-</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/forecast-critic/lab.yaml</code></p></div></footer>
+</table></div>      </section>
+<section class="figures"><details><summary>参考用の静止図を開く</summary><div class="figure-grid"><figure><img src="../figures/forecast-critic/figures/loop.svg" alt="参考図 1：処理の全体像" loading="lazy"><figcaption>論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。</figcaption></figure></div></details></section>    <aside class="end-note"><p>次に確かめたいこと</p><strong>未来の実績を待たずに、怪しい予測を見つけられるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/forecast-critic/lab.yaml" download>このページの原データ</a></footer>
 </body></html>

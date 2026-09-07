@@ -1,78 +1,226 @@
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="同じモデルでも scaffold で GAIA の測定値が大きく動く。能力表は harness とモデルの組として読むべきだ、という制御実験。"><title>Scaffold Effects on GAIA: A Controlled Comparison | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GAIAの成績はモデルと実行手順の組合せで変わる。複数役割に分ける効果も、モデルの系列や問題の難しさに左右される。">
+  <title>モデルが同じでも、仕事の進め方で成績はどこまで変わるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
 <body>
 <a class="skip-link" href="#paper">本文へ移動</a>
-<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
-<main id="paper" class="paper shell">
-<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>2606.08529</span></nav>
-<header class="paper-hero"><p class="priority priority--must">Must Read</p><h1>Scaffold Effects on GAIA: A Controlled Comparison</h1><p class="authors">Jason Starace</p><dl class="paper-meta"><div><dt>arXiv</dt><dd><a href="https://arxiv.org/abs/2606.08529" rel="noopener">2606.08529</a></dd></div><div><dt>投稿</dt><dd>2026-06-07</dd></div><div><dt>収録</dt><dd>2026</dd></div></dl><div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2606.08529" rel="noopener">原典を読む <span aria-hidden="true">↗</span></a><a class="text-button" href="https://arxiv.org/pdf/2606.08529" rel="noopener">PDF</a></div></header>
-<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
-<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid"><figure><img src="../figures/scaffold-effects-gaia/figures/control-flow.svg" alt="3 種類の制御フロー" loading="lazy"><figcaption><strong>3 種類の制御フロー</strong><br>役割分担と、計画をいつ固定するかが異なる。</figcaption></figure><figure><img src="../figures/scaffold-effects-gaia/figures/evaluation-unit.svg" alt="harness–model を評価単位にする" loading="lazy"><figcaption><strong>harness–model を評価単位にする</strong><br>一つの精度だけでは scaffold 差をモデル差と誤読しうる。</figcaption></figure><figure><img src="../figures/scaffold-effects-gaia/figures/recovery.svg" alt="失敗、回復、ツール量" loading="lazy"><figcaption><strong>失敗、回復、ツール量</strong><br>論文の行動指標を因果図ではなく比較の観点として描いた。</figcaption></figure></div></section>
-<div class="paper-layout"><aside class="toc"><p>このノート</p><ol><li><a href="#overview">概要</a></li><li><a href="#problem">問題設定</a></li><li><a href="#core_idea">核心</a></li><li><a href="#why_it_might_work">なぜ効きそうか</a></li><li><a href="#evidence">根拠</a></li><li><a href="#executable_understanding">実行可能な理解</a></li><li><a href="#results">結果</a></li><li><a href="#what_we_verified">検証できたこと</a></li><li><a href="#what_we_did_not_verify">検証していないこと</a></li><li><a href="#implementation">実装</a></li><li><a href="#mapping">原論文・公式コード対応</a></li></ol></aside><article class="paper-body"><section id="overview" class="note-section"><h2>概要</h2><div class="prose"><p>エージェント評価では、モデルの推論と scaffold の引き出し方が混ざる。本論文は後者を操作変数にした。GAIA は複数手順、Web、ファイル読解を含むため、単発の回答より制御フローの差が出やすい。</p></div></section><section id="problem" class="note-section"><h2>問題設定</h2><div class="prose"><p>Model A を scaffold X、Model B を scaffold Y で測ると、点差はモデル差とも scaffold 差とも言えない。論文の中心は「評価単位を model 単体に置くと交絡する」という問題設定である。さらに ReAct と他の二つはツール面が完全一致していないため、この論文自身の比較にも残る交絡がある（§3.3、§6）。</p></div></section><section id="core_idea" class="note-section"><h2>核心</h2><div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose"><p>著者は GAIA validation の Level 1・2 で、ReAct、Planner-Actor-Rater（PAR）、planner-then-executor を 5 モデルに交差させた。問題と条件を固定し、各問を 3 回実行した（§3.3–3.5）。最大の scaffold gap は robust slice の Opus Level 2 で 28 ポイントだった（§4.1）。</p>
-<p>Level 2 では、構造化した scaffold は ReAct より少ないツール呼び出しで、途中の失敗から多く回復したと報告する。ただし PAR の ReAct 優位は Anthropic 系では支持され、provider 横断では一様でなかった（§4.2–4.3）。</p></div></div><div><p class="label label--note">読書メモ</p><div class="prose"><p>「このモデルは何点か」より、「どの scaffold とツール面で何点か」と書く方が正確だ。agent 数が一般に有利だと結論づける論文ではない。役割分担、再試行の位置、ツール実装を含む評価装置が測定値を動かす、という警告として読む。</p></div></div></div></section><section id="why_it_might_work" class="note-section"><h2>なぜ効きそうか</h2><p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose"><p><strong>読書メモ（推論）</strong>。PAR は rater が失敗を検出して actor の次手を狭める。planner-then-executor は失敗しても残りの計画を参照できる。どちらも無目的な再試行を減らせる仮説である。論文はこの因果機構を同定しておらず、回復率は記述的な行動指標として報告している。</p></div></section><section id="evidence" class="note-section"><h2>根拠</h2><div class="prose"><p>設計は 3 scaffold × 5 model × 139 問 × 3 attempt、計画上 6,255 runs である（Level 1 は 53 問、Level 2 は 86 問、§3.5）。実行完了は 5,907 runs で、15/30 cell は部分的だった（§3.6）。主指標は公式 GAIA scorer の正誤。clustered bootstrap 95% CI と scaffold × model の混合効果ロジスティック回帰を使う（§3.5、§4.1）。</p>
-<p>強みは事前登録、条件固定、失敗・コスト・ツール量のログである。弱みは公開 validation、provider serialization bug、未完了 cell、ReAct の異なるツール面、reasoning mode を無効にした逸脱である。したがって 28 ポイントを一般的な「scaffold 効果」とは読めない。</p></div></section><section id="executable_understanding" class="note-section"><h2>実行可能な理解</h2><div class="prose"><p><code>uv run papers/scaffold-effects-gaia/run.py</code> は、同じ 90 個の合成多段タスクに途中エラーを注入する。reactive loop、PAR 風の planner–actor–rater、planner-then-executor を比較する。結果は <code>results.json</code> に保存する。ここでの agent は確率的な規則であり、LLM でも GAIA でもない。</p></div></section><section id="results" class="note-section"><h2>結果</h2><div class="prose"><p class="callout-body"><em>合成した多段タスクの決定的な玩具実験。GAIA、LLM、論文の数値は再現していない。</em></p>
-<h3>同一タスク上の scaffold 比較</h3>
-<ul><li><strong>dataset</strong>: synthetic 90 tasks</li><li><strong>n</strong>: 90</li><li><strong>seed</strong>: 20260904</li></ul>
-<table class="metrics"><thead><tr><th>指標</th><th>success_rate</th><th>recovery_after_injected_error</th><th>mean_tool_calls</th></tr></thead><tbody><tr><th scope='row'>reactive</th><td>0.744</td><td>0.4</td><td>4.14</td></tr><tr><th scope='row'>planner_actor_rater</th><td>0.811</td><td>0.767</td><td>3.81</td></tr><tr><th scope='row'>planner_then_executor</th><td>0.756</td><td>0.567</td><td>3.81</td></tr></tbody></table>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-06-07</span></div>
+    <h1>モデルが同じでも、仕事の進め方で成績はどこまで変わるか</h1>
+    <p class="lede">GAIAの成績はモデルと実行手順の組合せで変わる。複数役割に分ける効果も、モデルの系列や問題の難しさに左右される。</p>
+    <details class="bibliography"><summary>原論文：Scaffold Effects on GAIA: A Controlled Comparison</summary><p>Jason Starace</p><p>2606.08529 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2606.08529">原典を読む ↗</a><a href="https://arxiv.org/pdf/2606.08529">PDF ↗</a><a href="#interactive-1">図を操作する ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-07 · arXiv本文（HTML版）の方法・実験・制約を確認。著者の実験は独立再現していない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">01 問いと仕組み</a><a href="#interactive-1">02 図で追う</a><a href="#evidence">03 論文の根拠</a><a href="#interactive-2">04 条件を変える</a><a href="#what_we_did_not_verify">05 限界と批評</a><a href="#implementation">06 実装と出典</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>GAIAの成績はモデルと実行手順の組合せで変わる。複数役割に分ける効果も、モデルの系列や問題の難しさに左右される。</p>
+<p>このLabでは「モデルが同じでも、仕事の進め方で成績はどこまで変わるか」を考える。論文の主張を押さえたうえで、下の図で条件を変え、どこから結論が変わりそうか確かめる。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>エージェントは回答文を作るだけでなく、検索し、ファイルを読み、失敗した操作をやり直す。その進め方を決める外側の仕組みを、この論文ではscaffoldと呼ぶ。異なる仕組みで測った成績をそのまま比べると、モデルの差と実行環境の差が混ざる。</p>
+<p>比較対象は、考える・動くを交互に繰り返すReAct、計画・実行・採点の3役を持つPAR、先に計画を書いてから実行する方式。ただしReActと他方式ではツールの構成まで完全には同じでない。この差は結論を読む際に残る。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者はGAIAの検証用問題で、モデルを固定しても実行手順により正答率が変わると報告する。計画と評価を分ける利点は一様でなく、難しい問題における複数役割の優位はAnthropic系列で観測され、他社モデルにはそのまま広がらない。強いモデルほど手順の影響が小さくなる、という事前の予想も支持されなかった。</p>
+<p><a href="https://arxiv.org/html/2606.08529">一次資料：§3.3 / §3.6 / §4.1.3 / §6</a></p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>モデルを購入・採用するときは、普段使うツールと回復手順を含めて評価したい。ただし「人数を増やせば改善する」と結論づけるのは早い。役割分担、プロンプト、検索手段、失敗処理がまとめて変わっているため、効いた部品は追加実験で切り分ける必要がある。</p></div></div>
+      </section>
+      <section class="interactive" id="interactive-1" data-interactive="flow" aria-labelledby="figure-title-3">
+        <div class="figure-heading"><p class="eyebrow">01 / MECHANISM</p><span class="figure-badge">論文の概念図</span></div>
+        <h2 id="figure-title-3">処理と設計の違いを追う</h2>
+        <p class="figure-caption">段を選ぶと説明が切り替わる。比較側は論点を示す簡略化で、統制実験の実装ではない。</p>
+        <script type="application/json" data-config>{"caption": "\u6bb5\u3092\u9078\u3076\u3068\u8aac\u660e\u304c\u5207\u308a\u66ff\u308f\u308b\u3002\u6bd4\u8f03\u5074\u306f\u8ad6\u70b9\u3092\u793a\u3059\u7c21\u7565\u5316\u3067\u3001\u7d71\u5236\u5b9f\u9a13\u306e\u5b9f\u88c5\u3067\u306f\u306a\u3044\u3002", "kind": "flow", "source": "https://arxiv.org/html/2606.08529", "stages": [{"baseline": "\u305d\u306e\u5834\u3067\u6b21\u306e\u64cd\u4f5c\u3092\u8003\u3048\u308b", "detail": "\u307e\u305a\u5fc5\u8981\u306a\u8cc7\u6599\u3068\u4f5c\u696d\u9806\u3092\u6c7a\u3081\u308b\u3002\u8a08\u753b\u306e\u54c1\u8cea\u81ea\u4f53\u306f\u4fdd\u8a3c\u3055\u308c\u306a\u3044\u3002", "proposed": "\u8a08\u753b\u3092\u660e\u793a\u3059\u308b", "title": "\u554f\u984c\u3092\u53d7\u3051\u53d6\u308b"}, {"baseline": "\u5358\u4e00\u306e\u30eb\u30fc\u30d7\u3067\u5b9f\u884c", "detail": "\u30c4\u30fc\u30eb\u306e\u5fdc\u7b54\u304c\u671f\u5f85\u3068\u9055\u3046\u3068\u304d\u3001\u4f5c\u696d\u3092\u6b62\u3081\u3066\u78ba\u8a8d\u3067\u304d\u308b\u304b\u304c\u5206\u5c90\u70b9\u3002", "proposed": "\u5b9f\u884c\u5f79\u304c\u64cd\u4f5c", "title": "\u64cd\u4f5c\u3059\u308b"}, {"baseline": "\u6b21\u306e\u63a8\u8ad6\u306b\u4efb\u305b\u308b", "detail": "PAR\u306e\u8a55\u4fa1\u5f79\u306f\u5b8c\u4e86\u304b\u4fee\u6b63\u304b\u3092\u5224\u65ad\u3059\u308b\u3002\u3053\u308c\u306f\u7814\u7a76\u306e\u5f79\u5272\u69cb\u6210\u306e\u8aac\u660e\u3002", "proposed": "\u8a55\u4fa1\u5f79\u304c\u70b9\u691c", "title": "\u5931\u6557\u3092\u898b\u3064\u3051\u308b"}, {"baseline": "\u56de\u7b54\u3092\u63d0\u51fa", "detail": "\u8a55\u4fa1\u57fa\u6e96\u3092\u6e80\u305f\u3059\u56de\u7b54\u3060\u3051\u3092\u6b63\u89e3\u3068\u3059\u308b\u3002\u9014\u4e2d\u306e\u8aac\u660e\u306e\u9577\u3055\u306f\u6b63\u89e3\u306e\u4ee3\u7528\u306b\u306a\u3089\u306a\u3044\u3002", "proposed": "\u4fee\u6b63\u5f8c\u306b\u63d0\u51fa", "title": "\u56de\u7b54\u3092\u78ba\u5b9a\u3059\u308b"}], "title": "\u51e6\u7406\u3068\u8a2d\u8a08\u306e\u9055\u3044\u3092\u8ffd\u3046"}</script>
+        <div data-mount></div>
+        <div data-fallback>
+          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
+<ol><li><strong>問題を受け取る：計画を明示する</strong><p>まず必要な資料と作業順を決める。計画の品質自体は保証されない。</p></li><li><strong>操作する：実行役が操作</strong><p>ツールの応答が期待と違うとき、作業を止めて確認できるかが分岐点。</p></li><li><strong>失敗を見つける：評価役が点検</strong><p>PARの評価役は完了か修正かを判断する。これは研究の役割構成の説明。</p></li><li><strong>回答を確定する：修正後に提出</strong><p>評価基準を満たす回答だけを正解とする。途中の説明の長さは正解の代用にならない。</p></li></ol>
+        </div>
+        <p class="figure-source">出典に基づく説明用の簡略化。 <a href="https://arxiv.org/html/2606.08529">一次資料 ↗</a></p>
+      </section>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>途中の失敗を評価役が発見し、必要な操作だけやり直せれば、最初の誤りを最終回答まで引きずらずに済む。一方、評価役も誤るし、毎回の確認には費用がかかる。下の実験は「回復機会を増やすと何が変わるか」に絞り、役割の優劣は仮定しない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>§3.5–3.6は3方式×5モデル、各問題3試行の計画と未完了試行を記載する。§4.1.3の最大28ポイント差はOpusのLevel 2で、特定のSDK不具合を除いたrobust集計。全条件の平均改善ではない。§6にはツール差、公開された検証問題、未実施の非公開テストなどの制約がある。</p>
+<p><a href="https://arxiv.org/html/2606.08529">一次資料：§3.3 / §3.6 / §4.1.3 / §6</a></p></div>      </section>
+      <section class="interactive" id="interactive-2" data-interactive="explorer" aria-labelledby="figure-title-5">
+        <div class="figure-heading"><p class="eyebrow">02 / EXPERIMENT</p><span class="figure-badge">合成実験 · PARTIAL</span></div>
+        <h2 id="figure-title-5">回復の予算と完了件数</h2>
+        <p class="figure-caption">同じ60件の人工タスクに、初回から成功するものと数回失敗するものを置く。再試行上限を変え、完了件数と呼出し回数を数える。</p>
+        <script type="application/json" data-config>{"caption": "\u540c\u305860\u4ef6\u306e\u4eba\u5de5\u30bf\u30b9\u30af\u306b\u3001\u521d\u56de\u304b\u3089\u6210\u529f\u3059\u308b\u3082\u306e\u3068\u6570\u56de\u5931\u6557\u3059\u308b\u3082\u306e\u3092\u7f6e\u304f\u3002\u518d\u8a66\u884c\u4e0a\u9650\u3092\u5909\u3048\u3001\u5b8c\u4e86\u4ef6\u6570\u3068\u547c\u51fa\u3057\u56de\u6570\u3092\u6570\u3048\u308b\u3002", "kind": "explorer", "title": "\u56de\u5fa9\u306e\u4e88\u7b97\u3068\u5b8c\u4e86\u4ef6\u6570"}</script>
+<script type="application/json" data-results>{"default": 1, "frames": [{"bars": [{"label": "\u518d\u8a66\u884c\u306a\u3057\uff1a\u5b8c\u4e86\u30bf\u30b9\u30af", "value": 15}, {"label": "\u518d\u8a66\u884c\u3042\u308a\uff1a\u5b8c\u4e86\u30bf\u30b9\u30af", "value": 15}], "lines": [], "note": "60\u30bf\u30b9\u30af\u3067\u30c4\u30fc\u30eb\u547c\u51fa\u3057\u306f 60 \u2192 60 \u56de\u3002\u56de\u5fa9\u306b\u306f\u8ffd\u52a0\u4e88\u7b97\u304c\u5fc5\u8981\u3002\u5931\u6557\u56de\u6570\u306f\u4eba\u5de5\u7684\u306b\u8a2d\u5b9a\u3057\u3066\u304a\u308a\u3001LLM\u306e\u80fd\u529b\u5dee\u306f\u542b\u307e\u306a\u3044\u3002", "value": 0}, {"bars": [{"label": "\u518d\u8a66\u884c\u306a\u3057\uff1a\u5b8c\u4e86\u30bf\u30b9\u30af", "value": 15}, {"label": "\u518d\u8a66\u884c\u3042\u308a\uff1a\u5b8c\u4e86\u30bf\u30b9\u30af", "value": 30}], "lines": [], "note": "60\u30bf\u30b9\u30af\u3067\u30c4\u30fc\u30eb\u547c\u51fa\u3057\u306f 60 \u2192 105 \u56de\u3002\u56de\u5fa9\u306b\u306f\u8ffd\u52a0\u4e88\u7b97\u304c\u5fc5\u8981\u3002\u5931\u6557\u56de\u6570\u306f\u4eba\u5de5\u7684\u306b\u8a2d\u5b9a\u3057\u3066\u304a\u308a\u3001LLM\u306e\u80fd\u529b\u5dee\u306f\u542b\u307e\u306a\u3044\u3002", "value": 1}, {"bars": [{"label": "\u518d\u8a66\u884c\u306a\u3057\uff1a\u5b8c\u4e86\u30bf\u30b9\u30af", "value": 15}, {"label": "\u518d\u8a66\u884c\u3042\u308a\uff1a\u5b8c\u4e86\u30bf\u30b9\u30af", "value": 45}], "lines": [], "note": "60\u30bf\u30b9\u30af\u3067\u30c4\u30fc\u30eb\u547c\u51fa\u3057\u306f 60 \u2192 135 \u56de\u3002\u56de\u5fa9\u306b\u306f\u8ffd\u52a0\u4e88\u7b97\u304c\u5fc5\u8981\u3002\u5931\u6557\u56de\u6570\u306f\u4eba\u5de5\u7684\u306b\u8a2d\u5b9a\u3057\u3066\u304a\u308a\u3001LLM\u306e\u80fd\u529b\u5dee\u306f\u542b\u307e\u306a\u3044\u3002", "value": 2}, {"bars": [{"label": "\u518d\u8a66\u884c\u306a\u3057\uff1a\u5b8c\u4e86\u30bf\u30b9\u30af", "value": 15}, {"label": "\u518d\u8a66\u884c\u3042\u308a\uff1a\u5b8c\u4e86\u30bf\u30b9\u30af", "value": 60}], "lines": [], "note": "60\u30bf\u30b9\u30af\u3067\u30c4\u30fc\u30eb\u547c\u51fa\u3057\u306f 60 \u2192 150 \u56de\u3002\u56de\u5fa9\u306b\u306f\u8ffd\u52a0\u4e88\u7b97\u304c\u5fc5\u8981\u3002\u5931\u6557\u56de\u6570\u306f\u4eba\u5de5\u7684\u306b\u8a2d\u5b9a\u3057\u3066\u304a\u308a\u3001LLM\u306e\u80fd\u529b\u5dee\u306f\u542b\u307e\u306a\u3044\u3002", "value": 3}, {"bars": [{"label": "\u518d\u8a66\u884c\u306a\u3057\uff1a\u5b8c\u4e86\u30bf\u30b9\u30af", "value": 15}, {"label": "\u518d\u8a66\u884c\u3042\u308a\uff1a\u5b8c\u4e86\u30bf\u30b9\u30af", "value": 60}], "lines": [], "note": "60\u30bf\u30b9\u30af\u3067\u30c4\u30fc\u30eb\u547c\u51fa\u3057\u306f 60 \u2192 150 \u56de\u3002\u56de\u5fa9\u306b\u306f\u8ffd\u52a0\u4e88\u7b97\u304c\u5fc5\u8981\u3002\u5931\u6557\u56de\u6570\u306f\u4eba\u5de5\u7684\u306b\u8a2d\u5b9a\u3057\u3066\u304a\u308a\u3001LLM\u306e\u80fd\u529b\u5dee\u306f\u542b\u307e\u306a\u3044\u3002", "value": 4}], "label": "\u5931\u6557\u5f8c\u306e\u518d\u8a66\u884c\u4e0a\u9650", "metric": "\u5b8c\u4e86\u30bf\u30b9\u30af\u6570", "unit": "\u56de"}</script>        <div data-mount></div>
+        <div data-fallback>
+          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
+<p>失敗後の再試行上限：1回</p><ul><li>再試行なし：完了タスク：15</li><li>再試行あり：完了タスク：30</li></ul><p>60タスクでツール呼出しは 60 → 105 回。回復には追加予算が必要。失敗回数は人工的に設定しており、LLMの能力差は含まない。</p>        </div>
+        <p class="figure-source">数値の出所：このLabの results.json。論文の測定値ではありません。 </p>
+      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>同じ60件の人工タスクに、初回から成功するものと数回失敗するものを置く。再試行上限を変え、完了件数と呼出し回数を数える。</p>
+<p>実行：<code>uv run papers/scaffold-effects-gaia/run.py</code>。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を <code>results.json</code> へ保存する。</p></div><div class="downloads"><a href="../downloads/scaffold-effects-gaia/run.py" download>実行コード</a><a href="../downloads/_toy_common.py" download>計算本体</a><a href="../downloads/scaffold-effects-gaia/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/scaffold-effects-gaia">GitHubで開く ↗</a></div><p class="source-note">再実行はリポジトリの配置を使ってください。上の2ファイルだけを同じ階層へ置く方式には対応していません。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>教材用の合成実験。論文モデルの再現・性能比較ではありません。</em></p>
+<h3>条件を変える最小実験</h3>
+<ul><li><strong>dataset</strong>: deterministic synthetic</li></ul>
+<table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>再試行なし：完了タスク</th><td colspan='1'>15</td></tr><tr><th scope='row'>再試行あり：完了タスク</th><td colspan='1'>30</td></tr></tbody></table>
 <details><summary>生の results.json</summary><pre><code>{
-  &quot;note&quot;: &quot;合成した多段タスクの決定的な玩具実験。GAIA、LLM、論文の数値は再現していない。&quot;,
+  &quot;note&quot;: &quot;教材用の合成実験。論文モデルの再現・性能比較ではありません。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
   &quot;experiments&quot;: [
     {
-      &quot;name&quot;: &quot;同一タスク上の scaffold 比較&quot;,
-      &quot;dataset&quot;: &quot;synthetic 90 tasks&quot;,
-      &quot;n&quot;: 90,
-      &quot;seed&quot;: 20260904,
+      &quot;name&quot;: &quot;条件を変える最小実験&quot;,
+      &quot;dataset&quot;: &quot;deterministic synthetic&quot;,
       &quot;metrics&quot;: {
-        &quot;reactive&quot;: {
-          &quot;success_rate&quot;: 0.744,
-          &quot;recovery_after_injected_error&quot;: 0.4,
-          &quot;mean_tool_calls&quot;: 4.14
-        },
-        &quot;planner_actor_rater&quot;: {
-          &quot;success_rate&quot;: 0.811,
-          &quot;recovery_after_injected_error&quot;: 0.767,
-          &quot;mean_tool_calls&quot;: 3.81
-        },
-        &quot;planner_then_executor&quot;: {
-          &quot;success_rate&quot;: 0.756,
-          &quot;recovery_after_injected_error&quot;: 0.567,
-          &quot;mean_tool_calls&quot;: 3.81
-        }
+        &quot;再試行なし：完了タスク&quot;: 15,
+        &quot;再試行あり：完了タスク&quot;: 30
       }
     }
   ],
-  &quot;boundary&quot;: &quot;構造化した制御で注入済みエラーの回復と呼び出し量が変わる、という機構の例示だけを検証する。&quot;
-}</code></pre></details><p>著者報告では、Level 2 の robust slice で Opus の gap は 0.28。H2 の「高能力ほど scaffold 感度が下がる」は方向が反証された（§4.1）。Level 2 の平均回復率は ReAct 0.38、PAR 0.57、planner-then-executor 0.51 と報告されたが、因果検定ではない（§4.3）。</p>
-<p>下の表は独自の合成実験であって、原論文の数値ではない。</p></div></section><section id="what_we_verified" class="note-section"><h2>検証できたこと</h2><div class="prose"><p>合成タスクでは、構造化した制御が注入済みエラー後の回復率を上げ、平均ツール呼び出しを減らす設定を再現した。これは「回復のための状態・評価点を置く」という機構の例示であり、<strong>メカニズムは PARTIAL</strong> とする。</p></div></section><section id="what_we_did_not_verify" class="note-section"><h2>検証していないこと</h2><div class="prose"><p>GAIA、5 モデル、bootstrap CI、混合効果モデル、28 ポイント、provider 差、費用は再実行していない。実サービスでの信頼性、費用対効果、最適な agent 数も未検証である。反証には、ツール面を完全一致させた held-out task 上の再現と、失敗検出・修復介入を個別に外す ablation が要る。</p></div></section><section id="implementation" class="note-section"><h2>実装</h2><div class="prose"><p><code>run.py</code> は固定 seed の小さな状態機械である。途中エラーの位置、回復確率、修復に必要な呼び出しを明示している。実装は説明用で、本番 agent framework の代替ではない。</p></div></section><section id="mapping" class="note-section"><h2>原論文・公式コード対応</h2><div class="prose"><table>
+  &quot;explorer&quot;: {
+    &quot;label&quot;: &quot;失敗後の再試行上限&quot;,
+    &quot;unit&quot;: &quot;回&quot;,
+    &quot;metric&quot;: &quot;完了タスク数&quot;,
+    &quot;default&quot;: 1,
+    &quot;frames&quot;: [
+      {
+        &quot;value&quot;: 0,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;再試行なし：完了タスク&quot;,
+            &quot;value&quot;: 15
+          },
+          {
+            &quot;label&quot;: &quot;再試行あり：完了タスク&quot;,
+            &quot;value&quot;: 15
+          }
+        ],
+        &quot;note&quot;: &quot;60タスクでツール呼出しは 60 → 60 回。回復には追加予算が必要。失敗回数は人工的に設定しており、LLMの能力差は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 1,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;再試行なし：完了タスク&quot;,
+            &quot;value&quot;: 15
+          },
+          {
+            &quot;label&quot;: &quot;再試行あり：完了タスク&quot;,
+            &quot;value&quot;: 30
+          }
+        ],
+        &quot;note&quot;: &quot;60タスクでツール呼出しは 60 → 105 回。回復には追加予算が必要。失敗回数は人工的に設定しており、LLMの能力差は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 2,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;再試行なし：完了タスク&quot;,
+            &quot;value&quot;: 15
+          },
+          {
+            &quot;label&quot;: &quot;再試行あり：完了タスク&quot;,
+            &quot;value&quot;: 45
+          }
+        ],
+        &quot;note&quot;: &quot;60タスクでツール呼出しは 60 → 135 回。回復には追加予算が必要。失敗回数は人工的に設定しており、LLMの能力差は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 3,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;再試行なし：完了タスク&quot;,
+            &quot;value&quot;: 15
+          },
+          {
+            &quot;label&quot;: &quot;再試行あり：完了タスク&quot;,
+            &quot;value&quot;: 60
+          }
+        ],
+        &quot;note&quot;: &quot;60タスクでツール呼出しは 60 → 150 回。回復には追加予算が必要。失敗回数は人工的に設定しており、LLMの能力差は含まない。&quot;,
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 4,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;再試行なし：完了タスク&quot;,
+            &quot;value&quot;: 15
+          },
+          {
+            &quot;label&quot;: &quot;再試行あり：完了タスク&quot;,
+            &quot;value&quot;: 60
+          }
+        ],
+        &quot;note&quot;: &quot;60タスクでツール呼出しは 60 → 150 回。回復には追加予算が必要。失敗回数は人工的に設定しており、LLMの能力差は含まない。&quot;,
+        &quot;lines&quot;: []
+      }
+    ]
+  }
+}</code></pre></details><p>図のスライダーは、同じ実験コードが計算した各条件を表示する。初期条件の値を下表に示す。値の大小を論文モデルの優劣へ読み替えない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>メカニズム：PARTIAL（部分的）</strong>。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。</p>
+<p>同じ60件の人工タスクに、初回から成功するものと数回失敗するものを置く。再試行上限を変え、完了件数と呼出し回数を数える。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>ツールの種類をそろえた比較と、誤りからの回復だけを無効化する比較が必要。再試行が多いほど課金も増えるため、正答率だけでなく正解1件あたりの費用を見る。今回、GAIA・LLM呼出し・統計的な信頼区間は再現していない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけで実行できる。入口は各Labの <code>run.py</code>、計算本体は <code>papers/_toy_common.py</code> にある。関数は論文IDごとに独立し、ブラウザー用の全条件と初期条件の表を同時に出力する。</p>
+<p>意図して省いたもの：LLM、GAIA、PARのプロンプト、外部ツール。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
 <thead>
 <tr>
-<th>原論文</th>
-<th>この Lab</th>
+<th>対象</th>
+<th>原典とLabの対応</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>§3.3</td>
-<td><code>control-flow.svg</code> と scaffold の状態機械</td>
+<td>原論文</td>
+<td><a href="https://arxiv.org/html/2606.08529">§3.3 / §3.6 / §4.1.3 / §6</a></td>
 </tr>
 <tr>
-<td>§3.5</td>
-<td>同一 task set・seed の比較という簡略化</td>
+<td>処理図</td>
+<td>上記の仕組みを説明用に簡略化。公式実装ではない</td>
 </tr>
 <tr>
-<td>§4.1–4.2</td>
-<td>gap と family 条件付きの解説</td>
+<td>条件探索</td>
+<td><code>run.py</code> → <code>papers/_toy_common.py</code> → <code>results.json</code></td>
 </tr>
 <tr>
-<td>§4.3</td>
-<td><code>recovery.svg</code>、回復率・ツール量</td>
-</tr>
-<tr>
-<td>§6</td>
-<td>未検証項目と交絡の指摘</td>
+<td>公式コード</td>
+<td>このLabでは公式コードとの行単位の照合はしていない。</td>
 </tr>
 </tbody>
-</table></div></section></article></div>
-</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/scaffold-effects-gaia/lab.yaml</code></p></div></footer>
+</table></div>      </section>
+<section class="figures"><details><summary>参考用の静止図を開く</summary><div class="figure-grid"><figure><img src="../figures/scaffold-effects-gaia/figures/control-flow.svg" alt="参考図 1：処理の全体像" loading="lazy"><figcaption>論文の設計を簡略化した静止図。比較と段ごとの説明は操作図を参照。測定値は含まない。</figcaption></figure></div></details></section>    <aside class="end-note"><p>次に確かめたいこと</p><strong>モデルが同じでも、仕事の進め方で成績はどこまで変わるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/scaffold-effects-gaia/lab.yaml" download>このページの原データ</a></footer>
 </body></html>

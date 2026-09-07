@@ -1,14 +1,60 @@
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="{{ lab.summary }}"><title>{{ lab.title }} | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><style>.figures{padding:0 0 3.25rem}.figures h2{font:700 1.65rem/1.3 var(--serif);margin:0 0 1.2rem}.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.figure-grid figure{margin:0;padding:.8rem;background:#fbfaf7;border:1px solid var(--line)}.figure-grid img{display:block;width:100%;height:auto;background:#fff}.figure-grid figcaption{margin:.75rem .1rem .1rem;font-size:.78rem;line-height:1.55;color:var(--muted)}.figure-grid figcaption strong{color:var(--ink)}@media(max-width:560px){.figure-grid{grid-template-columns:1fr}}</style></head>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{{ lab.summary }}">
+  <title>{{ lab.question or lab.title }} | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
 <body>
 <a class="skip-link" href="#paper">本文へ移動</a>
-<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span>個人研究ライブラリ</span>研究ライブラリ</a><a class="back" href="../index.html">← 一覧へ</a></div></header>
-<main id="paper" class="paper shell">
-<nav class="crumb" aria-label="パンくず"><a href="../index.html">論文一覧</a><span>/</span><span>{{ lab.arxiv_id or lab.doi }}</span></nav>
-<header class="paper-hero"><p class="priority priority--{{ 'must' if lab.verdict == 'Must Read' else 'worth' }}">{{ lab.verdict }}</p><h1>{{ lab.title }}</h1><p class="authors">{{ lab.authors_text }}</p><dl class="paper-meta">{% if lab.arxiv_id %}<div><dt>arXiv</dt><dd><a href="{{ lab.urls.arxiv }}" rel="noopener">{{ lab.arxiv_id }}</a></dd></div>{% else %}<div><dt>DOI</dt><dd>{{ lab.doi }}</dd></div>{% endif %}<div><dt>投稿</dt><dd>{{ lab.submitted }}</dd></div><div><dt>収録</dt><dd>{{ lab.year }}</dd></div></dl><div class="paper-actions"><a class="button" href="{{ lab.urls.paper }}" rel="noopener">原典を読む <span aria-hidden="true">↗</span></a>{% if lab.urls.pdf %}<a class="text-button" href="{{ lab.urls.pdf }}" rel="noopener">PDF</a>{% endif %}</div></header>
-<aside class="reading-note"><p class="eyebrow">読書メモについて</p><p><strong>このページの区別。</strong>「論文に書かれていること」は原論文の要約。「読書メモ」はこのライブラリの解釈で、論文の主張ではありません。</p></aside>
-{% if figures %}<section class="figures" aria-labelledby="figures-title"><p class="eyebrow">図でつかむ</p><h2 id="figures-title">仕組みと比較の要点</h2><div class="figure-grid">{% for figure in figures %}<figure><img src="{{ figure.url }}" alt="{{ figure.title }}" loading="lazy"><figcaption><strong>{{ figure.title }}</strong>{% if figure.caption %}<br>{{ figure.caption }}{% endif %}</figcaption></figure>{% endfor %}</div></section>{% endif %}
-<div class="paper-layout"><aside class="toc"><p>このノート</p><ol>{% for s in sections %}<li><a href="#{{ s.key }}">{{ s.title }}</a></li>{% endfor %}</ol></aside><article class="paper-body">{% for s in sections %}<section id="{{ s.key }}" class="note-section"><h2>{{ s.title }}</h2>{% if s.key == 'core_idea' %}<div class="claim-grid"><div><p class="label">論文に書かれていること</p><div class="prose">{{ s.author_claim_html | safe }}</div></div><div><p class="label label--note">読書メモ</p><div class="prose">{{ s.interpretation_html | safe }}</div></div></div>{% elif s.key == 'why_it_might_work' %}<p class="inference">読書メモ — 著者による因果の立証ではありません。</p><div class="prose">{{ s.html | safe }}</div>{% else %}<div class="prose">{{ s.html | safe }}</div>{% endif %}</section>{% endfor %}</article></div>
-</main><footer class="footer"><div class="shell"><p>原データ: <code>papers/{{ lab.id }}/lab.yaml</code></p></div></footer>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ {{ lab.submitted }}</span></div>
+    <h1>{{ lab.question or lab.title }}</h1>
+    <p class="lede">{{ lab.summary }}</p>
+    <details class="bibliography"><summary>原論文：{{ lab.title }}</summary><p>{{ lab.authors_text }}</p><p>{{ lab.arxiv_id or lab.doi }} · {{ lab.year }}</p></details>
+    <div class="paper-actions"><a class="button" href="{{ lab.urls.paper }}">原典を読む ↗</a>{% if lab.urls.pdf %}<a href="{{ lab.urls.pdf }}">PDF ↗</a>{% endif %}<a href="#interactive-1">図を操作する ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲">{% for key in verification_keys %}<div><span>{{ verification_labels[key] }}</span><strong>{{ verification_status_labels[lab.verification.as_dict()[key]] }}</strong><small>{{ lab.verification.as_dict()[key] }}</small></div>{% endfor %}</div>
+    <p class="source-note">一次資料の確認：{{ lab.source_review.get('checked', '未記録') }} · {{ lab.source_review.get('scope', '') }}</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">01 問いと仕組み</a><a href="#interactive-1">02 図で追う</a><a href="#evidence">03 論文の根拠</a><a href="#interactive-2">04 条件を変える</a><a href="#what_we_did_not_verify">05 限界と批評</a><a href="#implementation">06 実装と出典</a></nav>
+    <article class="paper-body">
+    {% for s in sections %}
+      <section id="{{ s.key }}" class="note-section">
+        <h2>{{ s.title }}</h2>
+        {% if s.key == 'core_idea' %}
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose">{{ s.author_claim_html | safe }}</div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose">{{ s.interpretation_html | safe }}</div></div>
+        {% else %}{% if s.key == 'why_it_might_work' %}<p class="label">解釈・推論</p>{% endif %}<div class="prose">{{ s.html | safe }}</div>{% endif %}
+        {% if s.key == 'executable_understanding' %}<div class="downloads"><a href="../downloads/{{ lab.id }}/run.py" download>実行コード</a><a href="../downloads/_toy_common.py" download>計算本体</a><a href="../downloads/{{ lab.id }}/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/{{ lab.id }}">GitHubで開く ↗</a></div><p class="source-note">再実行はリポジトリの配置を使ってください。上の2ファイルだけを同じ階層へ置く方式には対応していません。</p>{% endif %}
+      </section>
+      {% if s.key == 'core_idea' or s.key == 'evidence' %}
+      {% set interactive = lab.interactives[0 if s.key == 'core_idea' else 1] if lab.interactives else none %}
+      {% if interactive %}
+      <section class="interactive" id="interactive-{{ 1 if s.key == 'core_idea' else 2 }}" data-interactive="{{ interactive.kind }}" aria-labelledby="figure-title-{{ loop.index }}">
+        <div class="figure-heading"><p class="eyebrow">{{ '01 / MECHANISM' if interactive.kind == 'flow' else '02 / EXPERIMENT' }}</p><span class="figure-badge">{{ '論文の概念図' if interactive.kind == 'flow' else '合成実験 · PARTIAL' }}</span></div>
+        <h2 id="figure-title-{{ loop.index }}">{{ interactive.title }}</h2>
+        <p class="figure-caption">{{ interactive.caption }}</p>
+        <script type="application/json" data-config>{{ interactive | tojson }}</script>
+        {% if interactive.kind == 'explorer' %}<script type="application/json" data-results>{{ lab.results.explorer | tojson }}</script>{% endif %}
+        <div data-mount></div>
+        <div data-fallback>
+          <p class="source-note">JavaScriptが無効な場合も、以下の説明と初期条件の値を読めます。</p>
+          {% if interactive.kind == 'flow' %}<ol>{% for stage in interactive.stages %}<li><strong>{{ stage.title }}：{{ stage.proposed }}</strong><p>{{ stage.detail }}</p></li>{% endfor %}</ol>
+          {% else %}{% set frame = lab.results.explorer.frames[lab.results.explorer.default] %}<p>{{ lab.results.explorer.label }}：{{ frame.value }}{{ lab.results.explorer.unit }}</p><ul>{% for bar in frame.bars %}<li>{{ bar.label }}：{{ bar.value }}</li>{% endfor %}</ul><p>{{ frame.note }}</p>{% endif %}
+        </div>
+        <p class="figure-source">{{ '出典に基づく説明用の簡略化。' if interactive.kind == 'flow' else '数値の出所：このLabの results.json。論文の測定値ではありません。' }} {% if interactive.source %}<a href="{{ interactive.source }}">一次資料 ↗</a>{% endif %}</p>
+      </section>
+      {% endif %}{% endif %}
+    {% endfor %}
+    {% if figures %}<section class="figures"><details><summary>参考用の静止図を開く</summary><div class="figure-grid">{% for figure in figures %}<figure><img src="{{ figure.url }}" alt="参考図 {{ loop.index }}：{{ figure.title }}" loading="lazy"><figcaption>{{ figure.caption }}</figcaption></figure>{% endfor %}</div></details></section>{% endif %}
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>{{ lab.question }}</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/{{ lab.id }}/lab.yaml" download>このページの原データ</a></footer>
 </body></html>

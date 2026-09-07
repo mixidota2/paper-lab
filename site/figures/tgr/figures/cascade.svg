@@ -1,1 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 180"><rect width="600" height="180" fill="#fbfaf7"/><g font-family="sans-serif" text-anchor="middle"><text x="300" y="25" font-size="18">cascade を段階ごとに置換</text><g fill="#dbeafe" stroke="#2563eb"><rect x="25" y="70" width="115" height="55"/><rect x="170" y="70" width="115" height="55"/><rect x="315" y="70" width="115" height="55"/><rect x="460" y="70" width="115" height="55"/></g><g font-size="15"><text x="82" y="102">retrieval</text><text x="227" y="102">pre-rank</text><text x="372" y="102">CCFormer</text><text x="517" y="102">rerank</text></g><text x="82" y="155" font-size="13">BARGE は候補源</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 520" role="img" aria-labelledby="title">
+<title id="title">論文の設計を簡略化した処理図</title>
+<rect width="600" height="520" fill="#f5f3ec"/>
+<g font-family="sans-serif" fill="#172e30">
+<rect x="24" y="20" width="552" height="98" rx="7" fill="#e6eee5" stroke="#afc1b4"/>
+<text x="48" y="53" font-size="16">01 / 候補源を作る</text>
+<text x="48" y="90" font-size="22" font-weight="bold">BARGEを候補源へ追加</text>
+<path d="M300 120 v20 m-5 -6 l5 6 5 -6" fill="none" stroke="#086b5e" stroke-width="2"/>
+<rect x="24" y="145" width="552" height="98" rx="7" fill="#e6eee5" stroke="#afc1b4"/>
+<text x="48" y="178" font-size="16">02 / 候補を採点する</text>
+<text x="48" y="215" font-size="22" font-weight="bold">CCFormerで順位付け</text>
+<path d="M300 245 v20 m-5 -6 l5 6 5 -6" fill="none" stroke="#086b5e" stroke-width="2"/>
+<rect x="24" y="270" width="552" height="98" rx="7" fill="#e6eee5" stroke="#afc1b4"/>
+<text x="48" y="303" font-size="16">03 / 一覧を考える</text>
+<text x="48" y="340" font-size="22" font-weight="bold">HiGRで一覧を生成</text>
+<path d="M300 370 v20 m-5 -6 l5 6 5 -6" fill="none" stroke="#086b5e" stroke-width="2"/>
+<rect x="24" y="395" width="552" height="98" rx="7" fill="#e6eee5" stroke="#afc1b4"/>
+<text x="48" y="428" font-size="16">04 / 推論を渡す</text>
+<text x="48" y="465" font-size="22" font-weight="bold">事前推論の表現を参照</text>
+</g></svg>
