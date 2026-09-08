@@ -370,7 +370,10 @@ def _parse_figures(value: Any, paper_dir: Path) -> list[dict[str, str]]:
             raise LabError(f"{paper_dir}/lab.yaml: invalid figure title or caption")
         if not (paper_dir / path).is_file():
             raise LabError(f"{paper_dir}/lab.yaml: figure does not exist: {path}")
-        figures.append({"path": path, "title": title, "caption": caption})
+        after = item.get("after", "")
+        if after and after not in dict(STANDARD_SECTIONS):
+            raise LabError(f"{paper_dir}/lab.yaml: unknown figure placement")
+        figures.append({"path": path, "title": title, "caption": caption, "after": after})
     return figures
 
 

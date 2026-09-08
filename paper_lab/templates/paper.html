@@ -30,8 +30,11 @@
         <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose">{{ s.author_claim_html | safe }}</div></div>
         <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose">{{ s.interpretation_html | safe }}</div></div>
         {% else %}{% if s.key == 'why_it_might_work' %}<p class="label">解釈・推論</p>{% endif %}<div class="prose">{{ s.html | safe }}</div>{% endif %}
-        {% if s.key == 'executable_understanding' %}<div class="downloads"><a href="../downloads/{{ lab.id }}/run.py" download>実行コード</a><a href="../downloads/_toy_common.py" download>計算本体</a><a href="../downloads/{{ lab.id }}/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/{{ lab.id }}">GitHubで開く ↗</a></div><p class="source-note">再実行はリポジトリの配置を使ってください。上の2ファイルだけを同じ階層へ置く方式には対応していません。</p>{% endif %}
+        {% if s.key == 'executable_understanding' %}<div class="downloads"><a href="../downloads/{{ lab.id }}/run.py" download>実行コード</a>{% if not standalone_toy %}<a href="../downloads/_toy_common.py" download>計算本体</a>{% endif %}<a href="../downloads/{{ lab.id }}/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/{{ lab.id }}">GitHubで開く ↗</a></div><p class="source-note">{% if standalone_toy %}このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。{% else %}再実行はリポジトリの配置を使ってください。上の2ファイルだけを同じ階層へ置く方式には対応していません。{% endif %}</p>{% endif %}
       </section>
+      {% for figure in figures if figure.after == s.key %}
+      <figure class="paper-svg teaching"><h3>{{ figure.title }}</h3><a href="{{ figure.url }}" aria-label="{{ figure.title }}を拡大"><img src="{{ figure.url }}" alt="{{ figure.title }}。{{ figure.caption }}" loading="lazy"></a><figcaption>{{ figure.caption }} <a href="{{ figure.url }}">図を拡大 ↗</a></figcaption></figure>
+      {% endfor %}
       {% for f in lab.teaching_figures if f.after == s.key %}{% include 'teaching.html' %}{% endfor %}
       {% if s.key == 'executable_understanding' %}
       {% for interactive in lab.interactives %}
@@ -46,7 +49,7 @@
       </section>
       {% endfor %}{% endif %}
     {% endfor %}
-    {% if figures %}<section class="figures"><details><summary>参考用の静止図を開く</summary><div class="figure-grid">{% for figure in figures %}<figure><img src="{{ figure.url }}" alt="参考図 {{ loop.index }}：{{ figure.title }}" loading="lazy"><figcaption>{{ figure.caption }}</figcaption></figure>{% endfor %}</div></details></section>{% endif %}
+    {% if figures | rejectattr('after') | list %}<section class="figures"><details><summary>参考用の静止図を開く</summary><div class="figure-grid">{% for figure in figures if not figure.after %}<figure><img src="{{ figure.url }}" alt="参考図 {{ loop.index }}：{{ figure.title }}" loading="lazy"><figcaption>{{ figure.caption }}</figcaption></figure>{% endfor %}</div></details></section>{% endif %}
     <aside class="end-note"><p>次に確かめたいこと</p><strong>{{ lab.question }}</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
     </article>
   </div>

@@ -1,0 +1,385 @@
+{
+  "note": "合成状態機械。KVは辞書の履歴でありTransformerではない。再計算は状態遷移回数だけを数え、token数・時間を測らない。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "experiments": [
+    {
+      "name": "T=12, τ=8, checkpoint=7",
+      "dataset": "決定的な状態機械",
+      "metrics": {
+        "削除なし": {
+          "task_string_leak": 1,
+          "leak_at_probes": 1,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "記録削除": {
+          "task_string_leak": 1,
+          "leak_at_probes": 1,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "忘却指示": {
+          "task_string_leak": 0,
+          "leak_at_probes": 1,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "元入力の除去": {
+          "task_string_leak": 1,
+          "leak_at_probes": 1,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "全文字列の除去": {
+          "task_string_leak": 0,
+          "leak_at_probes": 0,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "全再実行": {
+          "task_string_leak": 0,
+          "leak_at_probes": 0,
+          "behavioral_choice": "A",
+          "behavioral_mismatch": 0,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": true,
+          "recomputed_steps": 12
+        },
+        "選択的再実行": {
+          "task_string_leak": 0,
+          "leak_at_probes": 0,
+          "behavioral_choice": "A",
+          "behavioral_mismatch": 0,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": true,
+          "recomputed_steps": 5
+        }
+      }
+    },
+    {
+      "name": "T=12, τ=1, checkpoint=0",
+      "dataset": "決定的な状態機械",
+      "metrics": {
+        "削除なし": {
+          "task_string_leak": 1,
+          "leak_at_probes": 1,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "記録削除": {
+          "task_string_leak": 1,
+          "leak_at_probes": 1,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "忘却指示": {
+          "task_string_leak": 0,
+          "leak_at_probes": 1,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "元入力の除去": {
+          "task_string_leak": 1,
+          "leak_at_probes": 1,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "全文字列の除去": {
+          "task_string_leak": 0,
+          "leak_at_probes": 0,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "全再実行": {
+          "task_string_leak": 0,
+          "leak_at_probes": 0,
+          "behavioral_choice": "A",
+          "behavioral_mismatch": 0,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": true,
+          "recomputed_steps": 12
+        },
+        "選択的再実行": {
+          "task_string_leak": 0,
+          "leak_at_probes": 0,
+          "behavioral_choice": "A",
+          "behavioral_mismatch": 0,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": true,
+          "recomputed_steps": 12
+        }
+      }
+    },
+    {
+      "name": "T=12, τ=12, checkpoint=11",
+      "dataset": "決定的な状態機械",
+      "metrics": {
+        "削除なし": {
+          "task_string_leak": 1,
+          "leak_at_probes": 1,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "記録削除": {
+          "task_string_leak": 1,
+          "leak_at_probes": 1,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "忘却指示": {
+          "task_string_leak": 0,
+          "leak_at_probes": 1,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "元入力の除去": {
+          "task_string_leak": 1,
+          "leak_at_probes": 1,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "全文字列の除去": {
+          "task_string_leak": 0,
+          "leak_at_probes": 0,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "全再実行": {
+          "task_string_leak": 0,
+          "leak_at_probes": 0,
+          "behavioral_choice": "A",
+          "behavioral_mismatch": 0,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": true,
+          "recomputed_steps": 12
+        },
+        "選択的再実行": {
+          "task_string_leak": 0,
+          "leak_at_probes": 0,
+          "behavioral_choice": "A",
+          "behavioral_mismatch": 0,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": true,
+          "recomputed_steps": 1
+        }
+      }
+    },
+    {
+      "name": "T=12, τ=8, checkpoint=4",
+      "dataset": "決定的な状態機械",
+      "metrics": {
+        "削除なし": {
+          "task_string_leak": 1,
+          "leak_at_probes": 1,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "記録削除": {
+          "task_string_leak": 1,
+          "leak_at_probes": 1,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "忘却指示": {
+          "task_string_leak": 0,
+          "leak_at_probes": 1,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "元入力の除去": {
+          "task_string_leak": 1,
+          "leak_at_probes": 1,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "全文字列の除去": {
+          "task_string_leak": 0,
+          "leak_at_probes": 0,
+          "behavioral_choice": "B",
+          "behavioral_mismatch": 1,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": false,
+          "recomputed_steps": 0
+        },
+        "全再実行": {
+          "task_string_leak": 0,
+          "leak_at_probes": 0,
+          "behavioral_choice": "A",
+          "behavioral_mismatch": 0,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": true,
+          "recomputed_steps": 12
+        },
+        "選択的再実行": {
+          "task_string_leak": 0,
+          "leak_at_probes": 0,
+          "behavioral_choice": "A",
+          "behavioral_mismatch": 0,
+          "behavioral_answer_string_leak": 0,
+          "safe_total": 78,
+          "same_runtime_as_reference": true,
+          "recomputed_steps": 8
+        }
+      }
+    }
+  ],
+  "cost_sweep": [
+    {
+      "tau": 1,
+      "full": 12,
+      "selective": 12
+    },
+    {
+      "tau": 2,
+      "full": 12,
+      "selective": 11
+    },
+    {
+      "tau": 3,
+      "full": 12,
+      "selective": 10
+    },
+    {
+      "tau": 4,
+      "full": 12,
+      "selective": 9
+    },
+    {
+      "tau": 5,
+      "full": 12,
+      "selective": 8
+    },
+    {
+      "tau": 6,
+      "full": 12,
+      "selective": 7
+    },
+    {
+      "tau": 7,
+      "full": 12,
+      "selective": 6
+    },
+    {
+      "tau": 8,
+      "full": 12,
+      "selective": 5
+    },
+    {
+      "tau": 9,
+      "full": 12,
+      "selective": 4
+    },
+    {
+      "tau": 10,
+      "full": 12,
+      "selective": 3
+    },
+    {
+      "tau": 11,
+      "full": 12,
+      "selective": 2
+    },
+    {
+      "tau": 12,
+      "full": 12,
+      "selective": 1
+    }
+  ],
+  "probe_contract": "task obeys silent; introspection reads symbolic kv; summary reads derived notes; choice reads avoid_a",
+  "omissions": [
+    "real LLM",
+    "stochastic decoding",
+    "provenance discovery",
+    "external side effects",
+    "token-level attribution"
+  ]
+}

@@ -1,0 +1,167 @@
+id: glide-spotify-sid
+arxiv_id: '2603.17540'
+submitted: '2026-03-18'
+title: Deploying Semantic ID-based Generative Retrieval for Large-Scale Podcast Discovery at Spotify
+authors:
+- Edoardo D'Amico
+- Marco De Nadai
+- Praveen Chandar
+- Divita Vohra
+- Shawn Lin
+- Max Lefarov
+- Paul Gigioli
+- Gustavo Penha
+- Ilya Kopysitsky
+- Ivo Joel Senese
+- Darren Mei
+- Francesco Fabbri
+- Oguz Semerci
+- Yu Zhao
+- Vincent Tang
+- Brian St. Thomas
+- Alexandra Ranieri
+- Matthew N.K. Smith
+- Aaron Bernkopf
+- Bryan Leung
+- Ghazal Fazelnia
+- Mark VanMiddlesworth
+- Timothy Christopher Heath
+- Petter Pehrson Skiden
+- Alice Y. Wang
+- Doug J. Cole
+- Andreas Damianou
+- Maya Hristakeva
+- Reid Wilbur
+- Tarun Chillara
+- Vladan Radosavljevic
+- Pooja Chitkara
+- Sainath Adapa
+- Juan Elenter
+- Bernd Huber
+- Jacqueline Wood
+- Saaketh Vedantam
+- Jan Stypka
+- Sandeep Ghael
+- Martin D. Gould
+- David Murgatroyd
+- Yves Raimond
+- Mounia Lalmas
+- Paul N. Bennett
+year: 2026
+topics:
+- recommender-systems
+- generative-recommendation
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2603.17540
+  arxiv: https://arxiv.org/abs/2603.17540
+  pdf: https://arxiv.org/pdf/2603.17540
+  official_code: null
+verdict: Must Read
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- generative-rec-vs-retrieval
+- user-history-context-design
+status: published
+question: 生成推薦は、既存の候補経路に何を足したのか
+summary: GLIDEは既存ランキングへ発見向けの候補を足す。長期嗜好を1つの連続ベクトル、直近行動をSID列で渡す設計と、追加経路の効果を測るA/Bを分けて読む。
+source_review:
+  checked: '2026-09-07'
+  url: https://arxiv.org/html/2603.17540
+  scope: 2026-09-08日報の対象。arXiv v1のabs・HTML本文を確認。数値は著者の報告であり独立再現ではない。
+figures:
+- path: figures/cascade.svg
+  title: 生成器は追加の候補経路になる
+  caption: §4.4・§5.3の処置を再構成。候補の採用比率と発見の因果効果は別の量。
+  after: core_idea
+- path: figures/conditioning.svg
+  title: 長期はsoft prompt、直近はSID履歴
+  caption: §4.1–4.3と図2を再構成。SID側の内容ベクトルとユーザーCFを混同しない。
+  after: method
+- path: figures/quantizers.svg
+  title: 量子化の選択は衝突後の候補にも効く
+  caption: §5.2.2・表2の報告値。R-KMeansの採用はこの運用条件での判断で、一般的な優劣を保証しない。
+  after: method
+- path: figures/ab-design.svg
+  title: A/Bの効果と経路比率を区別する
+  caption: §5.3を再構成。著者報告の有意性表記はα<0.01。費用・遅延の詳細や信頼区間は本文の記載から確認できない。
+  after: evidence
+teaching_figures:
+- kind: equations
+  id: residual
+  title: SIDは残差を順に近似した4つの番号
+  after: method
+  source: https://arxiv.org/html/2603.17540
+  locator: §4.1.1・式(1)–(3)
+  rationale: 入力、演算、出力と適用条件を具体化する。
+  caption: 論文の記号を用いた手順。番号自体に人手のカテゴリ名が付くわけではない。
+  steps:
+  - name: 初期入力
+    formula: r₀ = xₑ
+    explanation: xₑはエピソードのタイトルと説明から得た内容ベクトル。ユーザーCFとは別。
+  - name: 最も近い重心
+    formula: cₘ = argminⱼ ‖rₘ₋₁ − μₘ,ⱼ‖₂
+    explanation: 各段mの256個の重心から1つを選ぶ。
+  - name: 説明済みの成分を引く
+    formula: rₘ = rₘ₋₁ − μₘ,cₘ ; SID(e) = (c₁,c₂,c₃,c₄)
+    explanation: 4段で4 tokens。段ごとに語彙を分けるため追加語彙は4×256=1,024。
+- kind: equations
+  id: conditioning
+  title: 長期と直近を同じ条件付き分布へ渡す
+  after: method
+  source: https://arxiv.org/html/2603.17540
+  locator: §4.1.2–4.3
+  rationale: 入力、演算、出力と適用条件を具体化する。
+  caption: soft promptの射影は推薦用instruction tuningで学習する。古い履歴全体の可逆圧縮を仮定しない。
+  steps:
+  - name: 長期嗜好の射影
+    formula: ṽᵤ = MLP₂(vᵤ) ∈ ℝ^(1 × dLLM)
+    explanation: 既存のユーザーCFベクトルを2層MLPで1 soft tokenへ写す。通常の文字tokenではない。
+  - name: 候補の生成
+    formula: p(SID(e) | ṽᵤ, SID(Hrecent), context, instruction)
+    explanation: 直近履歴は時間順。地域などの軽い文脈とfamiliar / unfamiliarの指示も条件にする。
+interactives: []
+core_idea:
+  author_claim: GLIDEはポッドキャストの内容を短い識別子列に変え、ユーザーの文脈から次の候補を生成する。長期嗜好、直近履歴、発見の指示を同じモデルに渡し、候補は既存の下流rankerへ送る。[一次資料：§4・§5.3](https://arxiv.org/html/2603.17540)
+  research_bot_interpretation: この事例の判断単位は、生成器だけの順位精度より「候補の集合へ何が加わるか」にある。既存経路との重複、候補の新鮮さ、rankerが採用した理由を測りたい。既存のCF基盤を再利用しているため、履歴を短くした成果をLLM単体の能力と読むのは早い。
+sections:
+  overview: GLIDEは既存ランキングへ発見向けの候補を足す。長期嗜好を1つの連続ベクトル、直近行動をSID列で渡す設計と、追加経路の効果を測るA/Bを分けて読む。 本番事例として読む価値は高い。ただし、経路全体のA/B改善をsoft
+    promptや量子化だけの因果効果へ分解した実験ではない。
+  problem: '聴き慣れた番組への関心と、今このセッションで探したい話題は違う。§3は直近28日の番組別聴取が10分未満のものをnon-habitualと定義する。その中で、過去に一度も聴いていない番組がunfamiliar、過去には聴いた番組がfamiliarである。新番組の発見と、久しぶりの番組への復帰を区別する。
+
+
+    推薦対象はエピソード、習慣の判定単位は番組である。この単位の違いを落とすと、新しいエピソードを聴いたことと新しい番組を発見したことを混同する。[一次資料：§3](https://arxiv.org/html/2603.17540)'
+  why_it_might_work: 長期の協調フィルタリング（CF）は他の人との行動の共通性を圧縮し、直近のSID列は行動の順番を残す。この分業なら、毎回すべての履歴を文章化せずに済むと考えられる。一方、1ベクトルから消えた過去の細部は復元できるとは限らない。圧縮された嗜好と、その時々の指示が衝突する利用者での評価が次の課題になる。
+  evidence: '### Homeの改善は追加経路を含むシステム全体の効果
+
+
+    著者は、英語圏市場の直近30日間に活動したポッドキャスト利用者を、ユーザー単位で無作為割付した。期間は21日、各群は約2,000万impressions。Homeでユーザー当たりのnon-habitual
+    streamsが相対5.4%、新番組のnon-habitual streamsが14.3%増えたと報告する。本文の有意性表記はα < 0.01。絶対増分、信頼区間、詳細な運用費用はこの記載からは確認できない。
+
+
+    処置群の推薦の約34%がGLIDE由来という値は、採用された経路の比率である。34%が純増した推薦や、34%の因果的な貢献を意味するわけではない。下のtoyはこの区別を計算で示す。[一次資料：§5.3](https://arxiv.org/html/2603.17540)
+
+
+    ### 条件によってはGLIDEが最良でない
+
+
+    §5.2の表1では、familiarのNDCG@30はSID-only比でSID + Textが+30.5%、GLIDEが+28.7%。全体で良いことと各層で最良であることは別である。表2のHR@30はRQ-VAE比でR-LFQが+4.76%、R-KMeansが+9.52%。同じSIDに複数件が入るbucketの平均cosine類似度は順に0.657、0.713、0.856である。R-KMeansがR-LFQより9.52%高いという比較ではない。[一次資料：表1・2](https://arxiv.org/html/2603.17540)'
+  executable_understanding: '`uv run papers/glide-spotify-sid/run.py`
+
+
+    候補経路の比率と発見の増分を切り分ける期待値計算を行う。仮想100枠のうち34枠に追加経路のラベルを付け、元の発見確率を0.1に固定する。追加経路で初めて入る候補の確率を0.05、0.1、0.2に変える。重複候補は同じ結果を保つ仮定で、重複数も動かす。実ユーザーの反応は生成しない。
+
+
+    補助実験は入力tokenの数え上げ。古い履歴件数を増やし、全文履歴・全SID履歴・1 soft tokenと直近SIDの入力長を比べる。1件30 text tokens、直近20件はtoyの仮定である。'
+  results: 追加経路の比率を34%に固定しても、仮想の発見増分は−17%、0%、+34%となる。候補が全件重複する条件では増分は0%。入力長の例では古い100件と直近20件で全文3,600、全SID
+    480、soft promptと直近SIDは81 tokens。これは同じ情報を保持した証明でも、81/3,600の時間で動くという測定でもない。
+  what_we_verified: Mechanism PARTIAL。候補経路の比率から因果効果は一意に決まらないという反例と、表現方式による入力枠の違いを確認した。全数値は決定的に再計算し、results.jsonへ保存する。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Llama、CF射影、R-KMeans、RQ-VAEの学習、衝突率、実トークナイザー、遅延、オンライン発見指標は再現していない。学習を省いた疑似RQ-VAEを用意して、codebook
+    collapseやR-KMeansの優越を主張することもしない。
+  implementation: run.pyは標準ライブラリだけで動く。channel_caseが期待イベント数、token_budgetが入力枠を計算する。共通ヘルパーやネットワークは不要。重複と確率を変更して反例を作れる。実サービスで必要なのは候補の重複除去、資格判定、ランキングと割付実験の整合であり、このtoyはそれらの実装ではない。
+  method: method.md
+  mapping: mapping.md

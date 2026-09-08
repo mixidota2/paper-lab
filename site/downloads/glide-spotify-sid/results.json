@@ -1,0 +1,96 @@
+{
+  "note": "合成の期待値計算。34%は説明上固定した経路比率で、論文の効果量を再現した値ではない。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "experiments": [
+    {
+      "name": "同じ経路比率でも増分は変わる",
+      "dataset": "仮想100推薦枠",
+      "metrics": {
+        "同じ価値": {
+          "channel_share_percent": 34.0,
+          "overlap_slots": 0,
+          "incremental_slots": 34,
+          "new_candidate_discovery_probability": 0.1,
+          "baseline_expected_events": 10.0,
+          "treatment_expected_events": 10.0,
+          "relative_lift_percent": 0.0
+        },
+        "新候補の価値が高い": {
+          "channel_share_percent": 34.0,
+          "overlap_slots": 0,
+          "incremental_slots": 34,
+          "new_candidate_discovery_probability": 0.2,
+          "baseline_expected_events": 10.0,
+          "treatment_expected_events": 13.4,
+          "relative_lift_percent": 34.0
+        },
+        "新候補の価値が低い": {
+          "channel_share_percent": 34.0,
+          "overlap_slots": 0,
+          "incremental_slots": 34,
+          "new_candidate_discovery_probability": 0.05,
+          "baseline_expected_events": 10.0,
+          "treatment_expected_events": 8.3,
+          "relative_lift_percent": -17.0
+        },
+        "候補がすべて重複": {
+          "channel_share_percent": 34.0,
+          "overlap_slots": 34,
+          "incremental_slots": 0,
+          "new_candidate_discovery_probability": 0.2,
+          "baseline_expected_events": 10.0,
+          "treatment_expected_events": 10.0,
+          "relative_lift_percent": 0.0
+        },
+        "半数が重複": {
+          "channel_share_percent": 34.0,
+          "overlap_slots": 17,
+          "incremental_slots": 17,
+          "new_candidate_discovery_probability": 0.2,
+          "baseline_expected_events": 10.0,
+          "treatment_expected_events": 11.7,
+          "relative_lift_percent": 17.0
+        }
+      }
+    },
+    {
+      "name": "履歴の入力枠を数える",
+      "dataset": "1件30 text tokens・直近20件を仮定",
+      "metrics": {
+        "0": {
+          "old_events": 0,
+          "recent_events": 20,
+          "text_history_tokens": 600,
+          "sid_history_tokens": 80,
+          "soft_plus_recent_sid_tokens": 81
+        },
+        "20": {
+          "old_events": 20,
+          "recent_events": 20,
+          "text_history_tokens": 1200,
+          "sid_history_tokens": 160,
+          "soft_plus_recent_sid_tokens": 81
+        },
+        "100": {
+          "old_events": 100,
+          "recent_events": 20,
+          "text_history_tokens": 3600,
+          "sid_history_tokens": 480,
+          "soft_plus_recent_sid_tokens": 81
+        },
+        "1000": {
+          "old_events": 1000,
+          "recent_events": 20,
+          "text_history_tokens": 30600,
+          "sid_history_tokens": 4080,
+          "soft_plus_recent_sid_tokens": 81
+        }
+      }
+    }
+  ]
+}

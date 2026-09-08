@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SIDの粗い意味構造、個体識別、探索中の絞り込みを分けて考える。ISDは外部のアイテム順位をbeam削減の前と生成完了後に使うが、失われた識別子の学習まで直す手法ではない。">
+  <title>正しい候補は、SIDを生成する途中で消えていないか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-07-27</span></div>
+    <h1>正しい候補は、SIDを生成する途中で消えていないか</h1>
+    <p class="lede">SIDの粗い意味構造、個体識別、探索中の絞り込みを分けて考える。ISDは外部のアイテム順位をbeam削減の前と生成完了後に使うが、失われた識別子の学習まで直す手法ではない。</p>
+    <details class="bibliography"><summary>原論文：Understanding Semantic IDs: From Item Representation to Item Selection in Generative Recommendation</summary><p>Junting Wang, Xinrui He, Yunzhe Li, Hari Sundaram</p><p>2607.24995 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2607.24995">原典を読む ↗</a><a href="https://arxiv.org/pdf/2607.24995">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-07 · 2026-09-08日報の対象。arXiv v1のabs・HTML本文を確認。数値は著者の報告であり独立再現ではない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-prefix-support">アイテム順位を削減前のprefixへ戻す</a><a href="#figure-post-order">候補を残すことと上位へ置くことを分ける</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>SIDの粗い意味構造、個体識別、探索中の絞り込みを分けて考える。ISDは外部のアイテム順位をbeam削減の前と生成完了後に使うが、失われた識別子の学習まで直す手法ではない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>あるprefixをbeamから外すと、そのprefixを持つ全アイテムが候補から消える。後で強いrankerを使っても、入力されなかったアイテムは救えない。問題は生成した最終リストの精度だけでなく、その前段でどの候補の到達可能性を失ったかにある。<a href="https://arxiv.org/html/2607.24995">一次資料：§4.1</a></p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>SIDは大まかなアイテムのまとまりを保つ一方、encoderの細かい近傍や、同じ事実の並べ替えに対する完全なコード不変性を失う。著者は、生成途中のprefix削除をアイテムの不可逆な除外として測り、外部順位で支えるISDを提案する。<a href="https://arxiv.org/html/2607.24995">一次資料：§3–5</a></p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>「意味が近い番号」を作ることと「必要な候補を落とさない探索」を実現することは別の設計課題である。SIDを捨てる結論ではなく、どの段で何件の候補が消えたかを観測する根拠として読む。SpotifyのR-KMeansにも問いは適用できるが、Amazonの測定率を本番へそのまま当てはめられない。</p></div></div>
+      </section>
+      <figure class="paper-svg teaching"><h3>SIDの3役は同じ保証ではない</h3><a href="../figures/understanding-sids-isd/figures/geometry.svg" aria-label="SIDの3役は同じ保証ではないを拡大"><img src="../figures/understanding-sids-isd/figures/geometry.svg" alt="SIDの3役は同じ保証ではない。§2–3を踏まえた概念図。粗い組織化を保つことと、完全SIDや細かな近傍を保つことを分ける。" loading="lazy"></a><figcaption>§2–3を踏まえた概念図。粗い組織化を保つことと、完全SIDや細かな近傍を保つことを分ける。 <a href="../figures/understanding-sids-isd/figures/geometry.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>同じSID列が3つの仕事を引き受けている</h3>
+<p>似た内容を同じprefixに集める。これが最初の仕事である。prefixを共有するアイテムの学習例が同じtokenに集まるため、疎らな履歴でも他アイテムの学習信号を使いやすい。次は、完全な番号列で1アイテムを特定すること。そして生成時には、各tokenが残すアイテムを絞る。この3つは別の性質であり、粗い分類がうまくいっても、完全なコードの安定性や候補の生存は保証しない。<a href="https://arxiv.org/html/2607.24995">一次資料：§2–4</a></p>
+<p>著者は内容から得た連続ベクトルhᵢ、量子化後のsemantic tuple zᵢ、衝突解決規則まで含む完全SID Cᵢを分ける。最後の識別suffixを意味構造の分析へ混ぜると、「個体を区別した」ことを「細かい意味を保った」ことと誤認しやすい。</p>
+<h3>近傍の保持と完全な番号の保持は別に測る</h3>
+<p>同一アイテムのtitleやdescriptionの順番だけを変える実験では、語や属性値の集合を保ち、encoderとconstructorを固定する。Sentence-T5、BGE-base、Qwen3-0.6Bを使うencoder対照では、元アイテムを近傍検索で取り戻せるかを調べる。SID側では完全コードが変わった割合と、再構成空間のtop-10近傍が元encoderと何件重なるかを測る。<a href="https://arxiv.org/html/2607.24995">一次資料：§3.1–3.2</a></p>
+<p>research_botの解釈：離散境界の近くでは、連続空間の小さな変化が番号を切り替え得る。番号が変わったことだけで、内容理解が壊れたとは言えない。逆に内容の大枠を保っていても、推薦器が学んだtargetの番号は動いてしまう。下の点と境界で、その違いを図示した。点は合成である。</p>
+<h3>ISDは生成器を固定し、外部の順位を探索へ使う</h3>
+<p>著者はTIGERとLIGERのSID割当てとdecoderを固定する。支援に使う順位は、学習データの遷移・共消費統計、SASRec、UniSRecから作る。statistics版は直前アイテムからの遷移数のlog(1+count)と、最近の共消費を出現頻度でcosine正規化した値を使う。両信号をユーザーごとの候補集合内で標準化して等しく足す。生scoreではなく順位を使うため、異なるrankerのscore尺度を直接そろえる必要がない。<a href="https://arxiv.org/html/2607.24995">一次資料：§5.1・式(13)–(14)</a></p>
+<p>一度作った上位J件のQ(h)を、各アイテムのSID prefixへ投影する。あるprefixがQ内の上位アイテムを含めば、その順位がprefixを支える。decoderの累積確率による順位と、κを足した逆数の和で融合する。これがreciprocal rank fusionである。削る前に加点する。ここが肝心だ。生成終了後には同じQを使って、生成できたアイテムだけを並べ替える。<a href="https://arxiv.org/html/2607.24995">一次資料：§5.2</a></p>
+<details><summary>なぜ最終rankerだけでは間に合わないのか</summary>
+<p>toyの履歴xで評価対象eのSIDを100とする。通常の幅1の探索は質量0.72のprefix 0を選び、0.28のprefix 1を捨てる。この瞬間にeは消える。最終段でeを高く評価する式を追加しても、候補にeがない。支援集合がeを上位に置けば、削減前の融合でprefix 1を残せる場合がある。ただし支援集合の正しさを仮定した論理であり、実験精度の保証ではない。</p>
+</details>
+
+<h3>「追加学習なし」と「追加費用なし」を分ける</h3>
+<p>ISDの追加パラメータは不要でも、外部rankerを学習・配信する費用は消えない。§5.3の計算量はQ(h)の作成を前処理として除外し、生成側にJLとB log Bを足す。Jは支援件数、LはSID長、Bはbeam幅である。すでにrankerを持つシステムと、新たに全カタログを採点するシステムでは採用条件が違う。<a href="https://arxiv.org/html/2607.24995">一次資料：§5.3</a></p>
+<p>research_botの次の検証案：同じ特徴、同じ候補予算、Q作成込みの遅延で、外部ranker単独、通常beam、orderingのみ、両段階を比べる。候補の質を外部から借りることで、生成側が何を追加したかを切り分けたい。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-prefix-support" aria-labelledby="title-prefix-support">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-prefix-support">アイテム順位を削減前のprefixへ戻す</h3>
+  <ol class="equation-steps"><li><strong>1回だけ支援集合を作る</strong><div class="math-expression" tabindex="0" role="math" aria-label="Q(h) = TopJᵢ s(h,i),  i ∉ h">Q(h) = TopJᵢ s(h,i),  i ∉ h</div><p>観測履歴hから未消費アイテムを順位付け。test targetの正体は入力しない。</p></li><li><strong>prefixを支える最上位</strong><div class="math-expression" tabindex="0" role="math" aria-label="rᵢₜₑₘ(p) = min { rQ(i) : i ∈ Q(h) ∩ Sₚ }">rᵢₜₑₘ(p) = min { rQ(i) : i ∈ Q(h) ∩ Sₚ }</div><p>Sₚはprefix pを持つアイテム集合。該当なしなら∞。</p></li><li><strong>順位融合してからbeam削減</strong><div class="math-expression" tabindex="0" role="math" aria-label="F(p) = 1/(κ + rdec(p)) + 1/(κ + rᵢₜₑₘ(p))">F(p) = 1/(κ + rdec(p)) + 1/(κ + rᵢₜₑₘ(p))</div><p>∞の項は0。rdecは累積系列確率での順位。上位B個を残す。</p></li></ol>
+  <figcaption>診断用の全アイテムscoreの線形混合（§4.3）とは異なり、ISDは順位を融合する。 <a href="https://arxiv.org/html/2607.24995">出典：§5.1–5.2・式(15)–(16) ↗</a></figcaption>
+</figure><figure class="teaching teaching--equations" id="figure-post-order" aria-labelledby="title-post-order">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-post-order">候補を残すことと上位へ置くことを分ける</h3>
+  <ol class="equation-steps"><li><strong>生存集合</strong><div class="math-expression" tabindex="0" role="math" aria-label="Rℓ = ⋃ { Sₚ : p ∈ Bℓ }">Rℓ = ⋃ { Sₚ : p ∈ Bℓ }</div><p>prefixが落ちると、その下の全アイテムが以後の生成対象から外れる。</p></li><li><strong>生成済みアイテムを並べ替える</strong><div class="math-expression" tabindex="0" role="math" aria-label="Fitem(i) = 1/(κ + rSID(i)) + 1/(κ + rQ(i))">Fitem(i) = 1/(κ + rSID(i)) + 1/(κ + rQ(i))</div><p>Qにないアイテムの第2項は0。並べ替えだけでは未生成のアイテムを復活させない。</p></li></ol>
+  <figcaption>prefix救済と最終orderingを別々に評価する理由。 <a href="https://arxiv.org/html/2607.24995">出典：§4.1・§5.2.2・式(9)・(17) ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>外部rankerが好むアイテムを残すprefixに加点すれば、tokenだけの判断で起こる取りこぼしを減らせると考えられる。ただし上位の1アイテムがprefix全体を支えるため、外部rankerが誤るとその誤りも広がる。多くのアイテムを抱えるbucketの有利さ、支援集合に入らない新規アイテムへの影響も測りたい。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>平均値だけでSIDの性質を決めない</h3>
+<p>Abstractはencoderのtop-10近傍回復を平均32.2%、同じ事実の並べ替えによる完全SIDの変化を38.4%と報告する。表2では、近傍回復は構築法・領域ごとに13.8–45.1%、SID変化は14.0–73.5%に広がる。例えばSentence-T5とOfficeのRQ-VAEでは近傍回復13.8%、変化53.9%。同じencoderのRQ-KMeansでは31.5%、29.3%となる。</p>
+<p>同一性の対照実験について、Abstractと§3.1.4は99.57%とするが、表1のSentence-T5のOffice / Scientificはともに99.51%。集計範囲の差が明記されていないため同じ値として統合しない。<a href="https://arxiv.org/html/2607.24995">一次資料：Abstract・表1・2</a></p>
+<h3>改善は外部順位と指標に依存する</h3>
+<p>Amazon ReviewsのBaby / Office / Scientificで、時系列の最後をtest、その前をvalidationとする。表3の最大+31.2%はBabyのTIGER + ISD(UniSRec)のNDCG@10であり、0.0295から0.0387への相対改善。statistics版ではBabyのRecall@20が0.0866から0.0745へ下がる。</p>
+<p>表5の段階別実験では、TIGERの改善は主にorderingから来る条件もある。「prefix救済だけが性能改善の原因」とは言えない。§6.4では変更後のsemantic prefixを残しても、未学習の衝突解決suffixのため完全取得がゼロの実験も報告する。<a href="https://arxiv.org/html/2607.24995">一次資料：§6・表3–5</a></p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/understanding-sids-isd/run.py</code></p>
+<p>8アイテムに3桁の固定SIDと正の生成確率を与える。外部順位は別に用意した学習遷移表の頻度から求める。9件の評価targetは順位作成にもdecode関数にも渡さない。通常beam、生成後の並べ替えだけ、prefix支援だけ、両段階、意図的な逆順位支援を同じbeam幅で比較する。</p>
+<p>幅1・2・4・8で、各桁の残存target率とtoy NDCG@2を計算する。評価は各例に関連アイテム1つ、残れば1/log₂(rank+1)、上位2件に入らなければ0。残存率の母集団は9例すべてで、論文の外部ranker top-kに条件付けたKℓとは異なる。</p></div><div class="downloads"><a href="../downloads/understanding-sids-isd/run.py" download>実行コード</a><a href="../downloads/understanding-sids-isd/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/understanding-sids-isd">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <figure class="paper-svg teaching"><h3>prefixを落とす前にアイテムの証拠を入れる</h3><a href="../figures/understanding-sids-isd/figures/beam.svg" aria-label="prefixを落とす前にアイテムの証拠を入れるを拡大"><img src="../figures/understanding-sids-isd/figures/beam.svg" alt="prefixを落とす前にアイテムの証拠を入れる。run.pyの履歴x・beam幅1を図示。数値はtoyであり論文の測定値ではない。target eは評価にだけ使い、順位作成には渡さない。" loading="lazy"></a><figcaption>run.pyの履歴x・beam幅1を図示。数値はtoyであり論文の測定値ではない。target eは評価にだけ使い、順位作成には渡さない。 <a href="../figures/understanding-sids-isd/figures/beam.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>合成の固定SIDと固定確率。残存率の母集団は9例すべてで、論文の外部ranker top-k条件付き集計とは異なる。</em></p>
+<h3>beam幅 1</h3>
+<ul><li><strong>dataset</strong>: 8 items・独立した学習遷移表と9評価例</li><li><strong>n</strong>: 9</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>remaining_target_rate</th><th>toy_ndcg_at_2</th></tr></thead><tbody><tr><th scope='row'>通常beam</th><td>[0.555556, 0.333333, 0.222222]</td><td>0.222222</td></tr><tr><th scope='row'>並べ替えだけ</th><td>[0.555556, 0.333333, 0.222222]</td><td>0.222222</td></tr><tr><th scope='row'>prefix支援だけ</th><td>[0.777778, 0.666667, 0.333333]</td><td>0.333333</td></tr><tr><th scope='row'>ISD型の両段階</th><td>[0.777778, 0.666667, 0.333333]</td><td>0.333333</td></tr><tr><th scope='row'>逆順位の支援</th><td>[0.444444, 0.0, 0.0]</td><td>0.0</td></tr></tbody></table></div>
+<h3>beam幅 2</h3>
+<ul><li><strong>dataset</strong>: 8 items・独立した学習遷移表と9評価例</li><li><strong>n</strong>: 9</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>remaining_target_rate</th><th>toy_ndcg_at_2</th></tr></thead><tbody><tr><th scope='row'>通常beam</th><td>[1.0, 0.555556, 0.333333]</td><td>0.292326</td></tr><tr><th scope='row'>並べ替えだけ</th><td>[1.0, 0.555556, 0.333333]</td><td>0.292326</td></tr><tr><th scope='row'>prefix支援だけ</th><td>[1.0, 0.888889, 0.555556]</td><td>0.432532</td></tr><tr><th scope='row'>ISD型の両段階</th><td>[1.0, 0.888889, 0.555556]</td><td>0.47354</td></tr><tr><th scope='row'>逆順位の支援</th><td>[1.0, 0.111111, 0.0]</td><td>0.0</td></tr></tbody></table></div>
+<h3>beam幅 4</h3>
+<ul><li><strong>dataset</strong>: 8 items・独立した学習遷移表と9評価例</li><li><strong>n</strong>: 9</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>remaining_target_rate</th><th>toy_ndcg_at_2</th></tr></thead><tbody><tr><th scope='row'>通常beam</th><td>[1.0, 1.0, 0.555556]</td><td>0.292326</td></tr><tr><th scope='row'>並べ替えだけ</th><td>[1.0, 1.0, 0.555556]</td><td>0.292326</td></tr><tr><th scope='row'>prefix支援だけ</th><td>[1.0, 1.0, 0.888889]</td><td>0.292326</td></tr><tr><th scope='row'>ISD型の両段階</th><td>[1.0, 1.0, 0.888889]</td><td>0.47354</td></tr><tr><th scope='row'>逆順位の支援</th><td>[1.0, 1.0, 0.222222]</td><td>0.0</td></tr></tbody></table></div>
+<h3>beam幅 8</h3>
+<ul><li><strong>dataset</strong>: 8 items・独立した学習遷移表と9評価例</li><li><strong>n</strong>: 9</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>remaining_target_rate</th><th>toy_ndcg_at_2</th></tr></thead><tbody><tr><th scope='row'>通常beam</th><td>[1.0, 1.0, 1.0]</td><td>0.292326</td></tr><tr><th scope='row'>並べ替えだけ</th><td>[1.0, 1.0, 1.0]</td><td>0.432532</td></tr><tr><th scope='row'>prefix支援だけ</th><td>[1.0, 1.0, 1.0]</td><td>0.292326</td></tr><tr><th scope='row'>ISD型の両段階</th><td>[1.0, 1.0, 1.0]</td><td>0.432532</td></tr><tr><th scope='row'>逆順位の支援</th><td>[1.0, 1.0, 1.0]</td><td>0.0</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成の固定SIDと固定確率。残存率の母集団は9例すべてで、論文の外部ranker top-k条件付き集計とは異なる。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;beam幅 1&quot;,
+      &quot;dataset&quot;: &quot;8 items・独立した学習遷移表と9評価例&quot;,
+      &quot;n&quot;: 9,
+      &quot;metrics&quot;: {
+        &quot;通常beam&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            0.555556,
+            0.333333,
+            0.222222
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.222222
+        },
+        &quot;並べ替えだけ&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            0.555556,
+            0.333333,
+            0.222222
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.222222
+        },
+        &quot;prefix支援だけ&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            0.777778,
+            0.666667,
+            0.333333
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.333333
+        },
+        &quot;ISD型の両段階&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            0.777778,
+            0.666667,
+            0.333333
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.333333
+        },
+        &quot;逆順位の支援&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            0.444444,
+            0.0,
+            0.0
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.0
+        }
+      }
+    },
+    {
+      &quot;name&quot;: &quot;beam幅 2&quot;,
+      &quot;dataset&quot;: &quot;8 items・独立した学習遷移表と9評価例&quot;,
+      &quot;n&quot;: 9,
+      &quot;metrics&quot;: {
+        &quot;通常beam&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            1.0,
+            0.555556,
+            0.333333
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.292326
+        },
+        &quot;並べ替えだけ&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            1.0,
+            0.555556,
+            0.333333
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.292326
+        },
+        &quot;prefix支援だけ&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            1.0,
+            0.888889,
+            0.555556
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.432532
+        },
+        &quot;ISD型の両段階&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            1.0,
+            0.888889,
+            0.555556
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.47354
+        },
+        &quot;逆順位の支援&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            1.0,
+            0.111111,
+            0.0
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.0
+        }
+      }
+    },
+    {
+      &quot;name&quot;: &quot;beam幅 4&quot;,
+      &quot;dataset&quot;: &quot;8 items・独立した学習遷移表と9評価例&quot;,
+      &quot;n&quot;: 9,
+      &quot;metrics&quot;: {
+        &quot;通常beam&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            1.0,
+            1.0,
+            0.555556
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.292326
+        },
+        &quot;並べ替えだけ&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            1.0,
+            1.0,
+            0.555556
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.292326
+        },
+        &quot;prefix支援だけ&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            1.0,
+            1.0,
+            0.888889
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.292326
+        },
+        &quot;ISD型の両段階&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            1.0,
+            1.0,
+            0.888889
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.47354
+        },
+        &quot;逆順位の支援&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            1.0,
+            1.0,
+            0.222222
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.0
+        }
+      }
+    },
+    {
+      &quot;name&quot;: &quot;beam幅 8&quot;,
+      &quot;dataset&quot;: &quot;8 items・独立した学習遷移表と9評価例&quot;,
+      &quot;n&quot;: 9,
+      &quot;metrics&quot;: {
+        &quot;通常beam&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            1.0,
+            1.0,
+            1.0
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.292326
+        },
+        &quot;並べ替えだけ&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            1.0,
+            1.0,
+            1.0
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.432532
+        },
+        &quot;prefix支援だけ&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            1.0,
+            1.0,
+            1.0
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.292326
+        },
+        &quot;ISD型の両段階&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            1.0,
+            1.0,
+            1.0
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.432532
+        },
+        &quot;逆順位の支援&quot;: {
+          &quot;remaining_target_rate&quot;: [
+            1.0,
+            1.0,
+            1.0
+          ],
+          &quot;toy_ndcg_at_2&quot;: 0.0
+        }
+      }
+    }
+  ],
+  &quot;example&quot;: {
+    &quot;history&quot;: &quot;x&quot;,
+    &quot;evaluation_target&quot;: &quot;e&quot;,
+    &quot;baseline&quot;: {
+      &quot;ranked_items&quot;: [
+        &quot;a&quot;
+      ],
+      &quot;provider&quot;: [
+        &quot;e&quot;,
+        &quot;f&quot;,
+        &quot;a&quot;
+      ],
+      &quot;trace&quot;: [
+        {
+          &quot;depth&quot;: 1,
+          &quot;prefixes&quot;: [
+            &quot;0&quot;
+          ],
+          &quot;items&quot;: [
+            &quot;a&quot;,
+            &quot;b&quot;,
+            &quot;c&quot;,
+            &quot;d&quot;
+          ],
+          &quot;extensions&quot;: [
+            {
+              &quot;prefix&quot;: &quot;0&quot;,
+              &quot;mass&quot;: 0.72,
+              &quot;fusion&quot;: 0.01639344
+            },
+            {
+              &quot;prefix&quot;: &quot;1&quot;,
+              &quot;mass&quot;: 0.28,
+              &quot;fusion&quot;: 0.01612903
+            }
+          ]
+        },
+        {
+          &quot;depth&quot;: 2,
+          &quot;prefixes&quot;: [
+            &quot;00&quot;
+          ],
+          &quot;items&quot;: [
+            &quot;a&quot;,
+            &quot;b&quot;
+          ],
+          &quot;extensions&quot;: [
+            {
+              &quot;prefix&quot;: &quot;00&quot;,
+              &quot;mass&quot;: 0.44,
+              &quot;fusion&quot;: 0.01639344
+            },
+            {
+              &quot;prefix&quot;: &quot;01&quot;,
+              &quot;mass&quot;: 0.28,
+              &quot;fusion&quot;: 0.01612903
+            }
+          ]
+        },
+        {
+          &quot;depth&quot;: 3,
+          &quot;prefixes&quot;: [
+            &quot;000&quot;
+          ],
+          &quot;items&quot;: [
+            &quot;a&quot;
+          ],
+          &quot;extensions&quot;: [
+            {
+              &quot;prefix&quot;: &quot;000&quot;,
+              &quot;mass&quot;: 0.24,
+              &quot;fusion&quot;: 0.01639344
+            },
+            {
+              &quot;prefix&quot;: &quot;001&quot;,
+              &quot;mass&quot;: 0.2,
+              &quot;fusion&quot;: 0.01612903
+            }
+          ]
+        }
+      ]
+    },
+    &quot;supported&quot;: {
+      &quot;ranked_items&quot;: [
+        &quot;e&quot;
+      ],
+      &quot;provider&quot;: [
+        &quot;e&quot;,
+        &quot;f&quot;,
+        &quot;a&quot;
+      ],
+      &quot;trace&quot;: [
+        {
+          &quot;depth&quot;: 1,
+          &quot;prefixes&quot;: [
+            &quot;1&quot;
+          ],
+          &quot;items&quot;: [
+            &quot;e&quot;,
+            &quot;f&quot;,
+            &quot;g&quot;,
+            &quot;h&quot;
+          ],
+          &quot;extensions&quot;: [
+            {
+              &quot;prefix&quot;: &quot;0&quot;,
+              &quot;mass&quot;: 0.72,
+              &quot;fusion&quot;: 0.03226646
+            },
+            {
+              &quot;prefix&quot;: &quot;1&quot;,
+              &quot;mass&quot;: 0.28,
+              &quot;fusion&quot;: 0.03252247
+            }
+          ]
+        },
+        {
+          &quot;depth&quot;: 2,
+          &quot;prefixes&quot;: [
+            &quot;10&quot;
+          ],
+          &quot;items&quot;: [
+            &quot;e&quot;,
+            &quot;f&quot;
+          ],
+          &quot;extensions&quot;: [
+            {
+              &quot;prefix&quot;: &quot;10&quot;,
+              &quot;mass&quot;: 0.18,
+              &quot;fusion&quot;: 0.03278689
+            },
+            {
+              &quot;prefix&quot;: &quot;11&quot;,
+              &quot;mass&quot;: 0.1,
+              &quot;fusion&quot;: 0.01612903
+            }
+          ]
+        },
+        {
+          &quot;depth&quot;: 3,
+          &quot;prefixes&quot;: [
+            &quot;100&quot;
+          ],
+          &quot;items&quot;: [
+            &quot;e&quot;
+          ],
+          &quot;extensions&quot;: [
+            {
+              &quot;prefix&quot;: &quot;100&quot;,
+              &quot;mass&quot;: 0.1,
+              &quot;fusion&quot;: 0.03278689
+            },
+            {
+              &quot;prefix&quot;: &quot;101&quot;,
+              &quot;mass&quot;: 0.08,
+              &quot;fusion&quot;: 0.03225806
+            }
+          ]
+        }
+      ]
+    }
+  },
+  &quot;assumptions&quot;: {
+    &quot;sids&quot;: {
+      &quot;a&quot;: &quot;000&quot;,
+      &quot;b&quot;: &quot;001&quot;,
+      &quot;c&quot;: &quot;010&quot;,
+      &quot;d&quot;: &quot;011&quot;,
+      &quot;e&quot;: &quot;100&quot;,
+      &quot;f&quot;: &quot;101&quot;,
+      &quot;g&quot;: &quot;110&quot;,
+      &quot;h&quot;: &quot;111&quot;
+    },
+    &quot;decoder_leaf_probabilities&quot;: {
+      &quot;a&quot;: 0.24,
+      &quot;b&quot;: 0.2,
+      &quot;c&quot;: 0.16,
+      &quot;d&quot;: 0.12,
+      &quot;e&quot;: 0.1,
+      &quot;f&quot;: 0.08,
+      &quot;g&quot;: 0.06,
+      &quot;h&quot;: 0.04
+    },
+    &quot;training_transitions&quot;: {
+      &quot;x&quot;: [
+        &quot;e&quot;,
+        &quot;e&quot;,
+        &quot;e&quot;,
+        &quot;e&quot;,
+        &quot;e&quot;,
+        &quot;e&quot;,
+        &quot;e&quot;,
+        &quot;e&quot;,
+        &quot;e&quot;,
+        &quot;e&quot;,
+        &quot;e&quot;,
+        &quot;e&quot;,
+        &quot;f&quot;,
+        &quot;f&quot;,
+        &quot;f&quot;,
+        &quot;f&quot;,
+        &quot;f&quot;,
+        &quot;f&quot;,
+        &quot;f&quot;,
+        &quot;f&quot;,
+        &quot;a&quot;,
+        &quot;a&quot;
+      ],
+      &quot;y&quot;: [
+        &quot;a&quot;,
+        &quot;a&quot;,
+        &quot;a&quot;,
+        &quot;a&quot;,
+        &quot;a&quot;,
+        &quot;a&quot;,
+        &quot;a&quot;,
+        &quot;a&quot;,
+        &quot;a&quot;,
+        &quot;a&quot;,
+        &quot;a&quot;,
+        &quot;a&quot;,
+        &quot;b&quot;,
+        &quot;b&quot;,
+        &quot;b&quot;,
+        &quot;b&quot;,
+        &quot;b&quot;,
+        &quot;b&quot;,
+        &quot;b&quot;,
+        &quot;b&quot;,
+        &quot;c&quot;,
+        &quot;c&quot;
+      ],
+      &quot;z&quot;: [
+        &quot;h&quot;,
+        &quot;h&quot;,
+        &quot;h&quot;,
+        &quot;h&quot;,
+        &quot;h&quot;,
+        &quot;h&quot;,
+        &quot;h&quot;,
+        &quot;h&quot;,
+        &quot;h&quot;,
+        &quot;h&quot;,
+        &quot;h&quot;,
+        &quot;h&quot;,
+        &quot;g&quot;,
+        &quot;g&quot;,
+        &quot;g&quot;,
+        &quot;g&quot;,
+        &quot;g&quot;,
+        &quot;g&quot;,
+        &quot;g&quot;,
+        &quot;g&quot;,
+        &quot;b&quot;,
+        &quot;b&quot;
+      ]
+    },
+    &quot;test_pairs&quot;: [
+      [
+        &quot;x&quot;,
+        &quot;e&quot;
+      ],
+      [
+        &quot;x&quot;,
+        &quot;f&quot;
+      ],
+      [
+        &quot;x&quot;,
+        &quot;a&quot;
+      ],
+      [
+        &quot;y&quot;,
+        &quot;a&quot;
+      ],
+      [
+        &quot;y&quot;,
+        &quot;b&quot;
+      ],
+      [
+        &quot;y&quot;,
+        &quot;d&quot;
+      ],
+      [
+        &quot;z&quot;,
+        &quot;h&quot;
+      ],
+      [
+        &quot;z&quot;,
+        &quot;g&quot;
+      ],
+      [
+        &quot;z&quot;,
+        &quot;c&quot;
+      ]
+    ],
+    &quot;support_budget&quot;: 3,
+    &quot;kappa&quot;: 60,
+    &quot;cutoff&quot;: 2
+  }
+}</code></pre></details><p>beam幅2では最終残存率が通常beamの3/9から両段階の5/9へ増え、toy NDCG@2は0.292326から0.473540となった。逆順位の支援では0に下がる。幅8で全アイテムを残すとprefix支援は残存率を改善できず、並べ替えの効果だけが残る。これらは手で定めた小さな確率表の結果である。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。累積生成確率によるbeam探索、式(15)–(17)の順位融合、候補脱落後の復帰不能を有限の木で確認した。外部順位が誤る条件と、全葉が残る条件も実行した。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。encoder、量子化学習、同事実の並べ替え、SASRec / UniSRec、TIGER / LIGERの学習、Amazonでの精度、実サービスの負荷は未検証。衝突解決suffixもtoyにはない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>run.pyのSIDSとPROBSがカタログと固定decoder、TRAINが外部順位の学習データ、TESTが評価例である。decodeは各段の全beam拡張を累積確率で順位付けし、支援を加えてから削減する。最終候補だけを再順位付けし、未生成アイテムは追加しない。results.jsonには各prefixの確率・融合値・残存集合も残す。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>論点</th>
+<th>一次資料</th>
+<th>Labの対応</th>
+<th>意図した差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SIDの3役・近傍の変化</td>
+<td><a href="https://arxiv.org/html/2607.24995">§2–3・表1–2</a></td>
+<td>method.md・geometry.svg</td>
+<td>図は概念、実embeddingでない</td>
+</tr>
+<tr>
+<td>prefix支援・最終ordering</td>
+<td><a href="https://arxiv.org/html/2607.24995">式(15)–(17)</a></td>
+<td>run.pyのdecode・数式図</td>
+<td>8アイテムの固定確率</td>
+</tr>
+<tr>
+<td>支援ranker</td>
+<td><a href="https://arxiv.org/html/2607.24995">§5.1</a></td>
+<td>ranker</td>
+<td>toyは遷移頻度だけ。式(14)の再現ではない</td>
+</tr>
+<tr>
+<td>残存率</td>
+<td><a href="https://arxiv.org/html/2607.24995">式(10)</a></td>
+<td>evaluate・beam.svg</td>
+<td>toyは全9例。top-k条件付きではない</td>
+</tr>
+<tr>
+<td>段階別効果</td>
+<td><a href="https://arxiv.org/html/2607.24995">表5</a></td>
+<td>4つの介入と逆順位の比較</td>
+<td>データ・cutoffが異なる</td>
+</tr>
+</tbody>
+</table>
+<p>2026-09-07 UTCにarXiv v1のabs・HTMLを確認。公式実装との行単位照合は未実施。AbstractのIdentity@1=99.57と表1のSentence-T5=99.51の集計対応は確認できないため、精度を1値へ丸めて統合しない。</p>
+<p>関連：<a href="glide-spotify-sid.html">GLIDE</a>は本番R-KMeansと衝突解決、<a href="tgr.html">TGR</a>は生成候補経路。SID診断のAmazon条件とは区別する。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>正しい候補は、SIDを生成する途中で消えていないか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/understanding-sids-isd/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

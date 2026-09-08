@@ -19,6 +19,9 @@ EXPECTED = {
     "vn2-stockout-catboost": "2601.18919",
     "contextual-deconvolution": "2607.25664",
     "forecast-critic": "2512.12059",
+    "glide-spotify-sid": "2603.17540",
+    "understanding-sids-isd": "2607.24995",
+    "execution-state-unlearning": "2609.04875",
 }
 
 
@@ -26,7 +29,7 @@ def test_library_has_the_full_registry_catalog_and_a_doi_only_paper():
     labs = load_all_labs(ROOT / "papers")
     arxiv_labs = {lab.id: lab.arxiv_id for lab in labs if lab.arxiv_id}
     assert arxiv_labs == EXPECTED
-    assert len(labs) == 11
+    assert len(labs) == 14
     assert all(lab.urls.arxiv == f"https://arxiv.org/abs/{lab.arxiv_id}" for lab in labs if lab.arxiv_id)
     shelf = next(lab for lab in labs if lab.id == "whole-foods-shelf")
     assert not shelf.arxiv_id

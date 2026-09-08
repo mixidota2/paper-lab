@@ -224,3 +224,9 @@ body{background:white}
 .teaching-matrix th { min-width: 6rem; word-break: normal; overflow-wrap: normal; }
 .teaching-matrix td { min-width: 6rem; }
 .teaching-matrix .cell-on, .teaching-matrix .cell-off { white-space: nowrap; min-width: 4rem; }
+
+.paper-svg img { display:block; width:100%; height:auto; }
+.paper-svg figcaption { font-size:.85rem; }
+
+.metrics { table-layout:auto; }
+.metrics th, .metrics td { min-width:6.5rem; }

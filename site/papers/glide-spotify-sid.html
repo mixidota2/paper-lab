@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GLIDEは既存ランキングへ発見向けの候補を足す。長期嗜好を1つの連続ベクトル、直近行動をSID列で渡す設計と、追加経路の効果を測るA/Bを分けて読む。">
+  <title>生成推薦は、既存の候補経路に何を足したのか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-03-18</span></div>
+    <h1>生成推薦は、既存の候補経路に何を足したのか</h1>
+    <p class="lede">GLIDEは既存ランキングへ発見向けの候補を足す。長期嗜好を1つの連続ベクトル、直近行動をSID列で渡す設計と、追加経路の効果を測るA/Bを分けて読む。</p>
+    <details class="bibliography"><summary>原論文：Deploying Semantic ID-based Generative Retrieval for Large-Scale Podcast Discovery at Spotify</summary><p>Edoardo D&#39;Amico, Marco De Nadai, Praveen Chandar, Divita Vohra, Shawn Lin, Max Lefarov, Paul Gigioli, Gustavo Penha, Ilya Kopysitsky, Ivo Joel Senese, Darren Mei, Francesco Fabbri, Oguz Semerci, Yu Zhao, Vincent Tang, Brian St. Thomas, Alexandra Ranieri, Matthew N.K. Smith, Aaron Bernkopf, Bryan Leung, Ghazal Fazelnia, Mark VanMiddlesworth, Timothy Christopher Heath, Petter Pehrson Skiden, Alice Y. Wang, Doug J. Cole, Andreas Damianou, Maya Hristakeva, Reid Wilbur, Tarun Chillara, Vladan Radosavljevic, Pooja Chitkara, Sainath Adapa, Juan Elenter, Bernd Huber, Jacqueline Wood, Saaketh Vedantam, Jan Stypka, Sandeep Ghael, Martin D. Gould, David Murgatroyd, Yves Raimond, Mounia Lalmas, Paul N. Bennett</p><p>2603.17540 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2603.17540">原典を読む ↗</a><a href="https://arxiv.org/pdf/2603.17540">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-07 · 2026-09-08日報の対象。arXiv v1のabs・HTML本文を確認。数値は著者の報告であり独立再現ではない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-residual">SIDは残差を順に近似した4つの番号</a><a href="#figure-conditioning">長期と直近を同じ条件付き分布へ渡す</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>GLIDEは既存ランキングへ発見向けの候補を足す。長期嗜好を1つの連続ベクトル、直近行動をSID列で渡す設計と、追加経路の効果を測るA/Bを分けて読む。 本番事例として読む価値は高い。ただし、経路全体のA/B改善をsoft promptや量子化だけの因果効果へ分解した実験ではない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>聴き慣れた番組への関心と、今このセッションで探したい話題は違う。§3は直近28日の番組別聴取が10分未満のものをnon-habitualと定義する。その中で、過去に一度も聴いていない番組がunfamiliar、過去には聴いた番組がfamiliarである。新番組の発見と、久しぶりの番組への復帰を区別する。</p>
+<p>推薦対象はエピソード、習慣の判定単位は番組である。この単位の違いを落とすと、新しいエピソードを聴いたことと新しい番組を発見したことを混同する。<a href="https://arxiv.org/html/2603.17540">一次資料：§3</a></p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>GLIDEはポッドキャストの内容を短い識別子列に変え、ユーザーの文脈から次の候補を生成する。長期嗜好、直近履歴、発見の指示を同じモデルに渡し、候補は既存の下流rankerへ送る。<a href="https://arxiv.org/html/2603.17540">一次資料：§4・§5.3</a></p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>この事例の判断単位は、生成器だけの順位精度より「候補の集合へ何が加わるか」にある。既存経路との重複、候補の新鮮さ、rankerが採用した理由を測りたい。既存のCF基盤を再利用しているため、履歴を短くした成果をLLM単体の能力と読むのは早い。</p></div></div>
+      </section>
+      <figure class="paper-svg teaching"><h3>生成器は追加の候補経路になる</h3><a href="../figures/glide-spotify-sid/figures/cascade.svg" aria-label="生成器は追加の候補経路になるを拡大"><img src="../figures/glide-spotify-sid/figures/cascade.svg" alt="生成器は追加の候補経路になる。§4.4・§5.3の処置を再構成。候補の採用比率と発見の因果効果は別の量。" loading="lazy"></a><figcaption>§4.4・§5.3の処置を再構成。候補の採用比率と発見の因果効果は別の量。 <a href="../figures/glide-spotify-sid/figures/cascade.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>内容のコードと、利用者の嗜好を別々に作る</h3>
+<p>GLIDEの基盤はLlama 3.2 1Bベース。エピソード側には、多言語BGE-M3の構造を使い、ポッドキャスト向けに調整した独自text encoderを置く。タイトルと説明を連続ベクトルにし、Residual K-Means（R-KMeans）で短い番号列へ変える。この番号列がSemantic ID（SID）である。<a href="https://arxiv.org/html/2603.17540">一次資料：§4.1・§5</a></p>
+<p>新しいエピソードには十分な視聴履歴がない。そのため著者は、アイテムのSIDには内容を使い、ユーザーの長期嗜好にはCFを使う。内容ベクトルは行動が増えるたびに更新する必要がないが、メタデータ、encoder、重心の更新でSIDは変わり得る。「内容ベースだから永久に安定」とは読めない。</p>
+<h3>先にSIDの意味を学び、その後に発見の指示を学ぶ</h3>
+<p>新しいSID語彙を追加しただけでは、Llamaはその番号がどの内容を表すか知らない。そこでSIDから説明文、説明文からSIDの双方向の生成を学習する。最初はbackboneを固定して新規token埋め込みだけを更新し、次に基盤の重みと埋め込みを固定してLoRAを学習する。LoRAはTransformerへの小さな追加パラメータによる適応である。この段階にユーザーsoft promptは混ぜない。<a href="https://arxiv.org/html/2603.17540">一次資料：§4.2</a></p>
+<p>推薦用のinstruction tuningでは、ユーザーCFの射影もモデルとともに学習する。system instructionの直後に1つのsoft tokenを置き、軽い文脈、直近SID履歴、発見の指示を渡す。familiar / unfamiliarを学習例の番組履歴に合わせることで、推論時にも指示で生成分布を切り替える。新番組への指示は分布の制御であり、任意の生成候補が必ず新番組になるという保証とは分けたい。<a href="https://arxiv.org/html/2603.17540">一次資料：§4.3</a></p>
+<h3>衝突したSIDは、資格を満たす人気エピソードへ解決する</h3>
+<p>有限のコードへ量子化すると、複数のエピソードが同じSIDになる場合がある。著者は、再生可能、地域で利用可能、現在の候補集合に未登録という条件を満たす中から、人気度で決定的に選ぶ。tie-breakerは日次更新する。衝突を解くための追加ID tokenを生成する方式と混同しない。<a href="https://arxiv.org/html/2603.17540">一次資料：§4.4.1</a></p>
+<p>research_botの批評：bucket内の類似度が高いほど、別エピソードを返す違和感は小さそうである。ただし同じ内容でも公開日や聴取済み状態は違う。人気度での解決は、希少な候補を出したい目的と衝突し得る。bucketのサイズ分布、衝突後に返されるエピソードの偏り、資格判定で空になる比率を追いたい。</p>
+<h3>R-KMeansの採用理由は、品質と学習の扱いやすさ</h3>
+<p>RQ-VAEはencoder・decoderと離散codebookを学習し、再構成などの目的で潜在空間も変える。対してR-KMeansは与えられた内容空間の残差を重心で近似する。著者はRQ-VAEのcode使用の偏りや調整の難しさを説明し、表2の検索品質とbucket内類似度も踏まえてR-KMeansを採用した。RQ-VAEが常に崩壊するという結果ではない。<a href="https://arxiv.org/html/2603.17540">一次資料：§5.2.2</a></p>
+<p>配信時は30 beamsで30候補を生成し、エピソードIDへ解決して既存rankerへ渡す。セッション開始などで生成・キャッシュし、必要な時点で利用する。論文は広いbeamに伴うCPU調整とアクセラレーター利用の問題も報告する。生成候補を増やすほど価値が増すとしても、その費用は入力token数だけでは決まらない。<a href="https://arxiv.org/html/2603.17540">一次資料：§4.4</a></p></div>      </section>
+      <figure class="paper-svg teaching"><h3>長期はsoft prompt、直近はSID履歴</h3><a href="../figures/glide-spotify-sid/figures/conditioning.svg" aria-label="長期はsoft prompt、直近はSID履歴を拡大"><img src="../figures/glide-spotify-sid/figures/conditioning.svg" alt="長期はsoft prompt、直近はSID履歴。§4.1–4.3と図2を再構成。SID側の内容ベクトルとユーザーCFを混同しない。" loading="lazy"></a><figcaption>§4.1–4.3と図2を再構成。SID側の内容ベクトルとユーザーCFを混同しない。 <a href="../figures/glide-spotify-sid/figures/conditioning.svg">図を拡大 ↗</a></figcaption></figure>
+      <figure class="paper-svg teaching"><h3>量子化の選択は衝突後の候補にも効く</h3><a href="../figures/glide-spotify-sid/figures/quantizers.svg" aria-label="量子化の選択は衝突後の候補にも効くを拡大"><img src="../figures/glide-spotify-sid/figures/quantizers.svg" alt="量子化の選択は衝突後の候補にも効く。§5.2.2・表2の報告値。R-KMeansの採用はこの運用条件での判断で、一般的な優劣を保証しない。" loading="lazy"></a><figcaption>§5.2.2・表2の報告値。R-KMeansの採用はこの運用条件での判断で、一般的な優劣を保証しない。 <a href="../figures/glide-spotify-sid/figures/quantizers.svg">図を拡大 ↗</a></figcaption></figure>
+<figure class="teaching teaching--equations" id="figure-residual" aria-labelledby="title-residual">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-residual">SIDは残差を順に近似した4つの番号</h3>
+  <ol class="equation-steps"><li><strong>初期入力</strong><div class="math-expression" tabindex="0" role="math" aria-label="r₀ = xₑ">r₀ = xₑ</div><p>xₑはエピソードのタイトルと説明から得た内容ベクトル。ユーザーCFとは別。</p></li><li><strong>最も近い重心</strong><div class="math-expression" tabindex="0" role="math" aria-label="cₘ = argminⱼ ‖rₘ₋₁ − μₘ,ⱼ‖₂">cₘ = argminⱼ ‖rₘ₋₁ − μₘ,ⱼ‖₂</div><p>各段mの256個の重心から1つを選ぶ。</p></li><li><strong>説明済みの成分を引く</strong><div class="math-expression" tabindex="0" role="math" aria-label="rₘ = rₘ₋₁ − μₘ,cₘ ; SID(e) = (c₁,c₂,c₃,c₄)">rₘ = rₘ₋₁ − μₘ,cₘ ; SID(e) = (c₁,c₂,c₃,c₄)</div><p>4段で4 tokens。段ごとに語彙を分けるため追加語彙は4×256=1,024。</p></li></ol>
+  <figcaption>論文の記号を用いた手順。番号自体に人手のカテゴリ名が付くわけではない。 <a href="https://arxiv.org/html/2603.17540">出典：§4.1.1・式(1)–(3) ↗</a></figcaption>
+</figure><figure class="teaching teaching--equations" id="figure-conditioning" aria-labelledby="title-conditioning">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-conditioning">長期と直近を同じ条件付き分布へ渡す</h3>
+  <ol class="equation-steps"><li><strong>長期嗜好の射影</strong><div class="math-expression" tabindex="0" role="math" aria-label="ṽᵤ = MLP₂(vᵤ) ∈ ℝ^(1 × dLLM)">ṽᵤ = MLP₂(vᵤ) ∈ ℝ^(1 × dLLM)</div><p>既存のユーザーCFベクトルを2層MLPで1 soft tokenへ写す。通常の文字tokenではない。</p></li><li><strong>候補の生成</strong><div class="math-expression" tabindex="0" role="math" aria-label="p(SID(e) | ṽᵤ, SID(Hrecent), context, instruction)">p(SID(e) | ṽᵤ, SID(Hrecent), context, instruction)</div><p>直近履歴は時間順。地域などの軽い文脈とfamiliar / unfamiliarの指示も条件にする。</p></li></ol>
+  <figcaption>soft promptの射影は推薦用instruction tuningで学習する。古い履歴全体の可逆圧縮を仮定しない。 <a href="https://arxiv.org/html/2603.17540">出典：§4.1.2–4.3 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>長期の協調フィルタリング（CF）は他の人との行動の共通性を圧縮し、直近のSID列は行動の順番を残す。この分業なら、毎回すべての履歴を文章化せずに済むと考えられる。一方、1ベクトルから消えた過去の細部は復元できるとは限らない。圧縮された嗜好と、その時々の指示が衝突する利用者での評価が次の課題になる。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>Homeの改善は追加経路を含むシステム全体の効果</h3>
+<p>著者は、英語圏市場の直近30日間に活動したポッドキャスト利用者を、ユーザー単位で無作為割付した。期間は21日、各群は約2,000万impressions。Homeでユーザー当たりのnon-habitual streamsが相対5.4%、新番組のnon-habitual streamsが14.3%増えたと報告する。本文の有意性表記はα &lt; 0.01。絶対増分、信頼区間、詳細な運用費用はこの記載からは確認できない。</p>
+<p>処置群の推薦の約34%がGLIDE由来という値は、採用された経路の比率である。34%が純増した推薦や、34%の因果的な貢献を意味するわけではない。下のtoyはこの区別を計算で示す。<a href="https://arxiv.org/html/2603.17540">一次資料：§5.3</a></p>
+<h3>条件によってはGLIDEが最良でない</h3>
+<p>§5.2の表1では、familiarのNDCG@30はSID-only比でSID + Textが+30.5%、GLIDEが+28.7%。全体で良いことと各層で最良であることは別である。表2のHR@30はRQ-VAE比でR-LFQが+4.76%、R-KMeansが+9.52%。同じSIDに複数件が入るbucketの平均cosine類似度は順に0.657、0.713、0.856である。R-KMeansがR-LFQより9.52%高いという比較ではない。<a href="https://arxiv.org/html/2603.17540">一次資料：表1・2</a></p></div>      </section>
+      <figure class="paper-svg teaching"><h3>A/Bの効果と経路比率を区別する</h3><a href="../figures/glide-spotify-sid/figures/ab-design.svg" aria-label="A/Bの効果と経路比率を区別するを拡大"><img src="../figures/glide-spotify-sid/figures/ab-design.svg" alt="A/Bの効果と経路比率を区別する。§5.3を再構成。著者報告の有意性表記はα&lt;0.01。費用・遅延の詳細や信頼区間は本文の記載から確認できない。" loading="lazy"></a><figcaption>§5.3を再構成。著者報告の有意性表記はα&lt;0.01。費用・遅延の詳細や信頼区間は本文の記載から確認できない。 <a href="../figures/glide-spotify-sid/figures/ab-design.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/glide-spotify-sid/run.py</code></p>
+<p>候補経路の比率と発見の増分を切り分ける期待値計算を行う。仮想100枠のうち34枠に追加経路のラベルを付け、元の発見確率を0.1に固定する。追加経路で初めて入る候補の確率を0.05、0.1、0.2に変える。重複候補は同じ結果を保つ仮定で、重複数も動かす。実ユーザーの反応は生成しない。</p>
+<p>補助実験は入力tokenの数え上げ。古い履歴件数を増やし、全文履歴・全SID履歴・1 soft tokenと直近SIDの入力長を比べる。1件30 text tokens、直近20件はtoyの仮定である。</p></div><div class="downloads"><a href="../downloads/glide-spotify-sid/run.py" download>実行コード</a><a href="../downloads/glide-spotify-sid/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/glide-spotify-sid">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>合成の期待値計算。34%は説明上固定した経路比率で、論文の効果量を再現した値ではない。</em></p>
+<h3>同じ経路比率でも増分は変わる</h3>
+<ul><li><strong>dataset</strong>: 仮想100推薦枠</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>channel_share_percent</th><th>overlap_slots</th><th>incremental_slots</th><th>new_candidate_discovery_probability</th><th>baseline_expected_events</th><th>treatment_expected_events</th><th>relative_lift_percent</th></tr></thead><tbody><tr><th scope='row'>同じ価値</th><td>34.0</td><td>0</td><td>34</td><td>0.1</td><td>10.0</td><td>10.0</td><td>0.0</td></tr><tr><th scope='row'>新候補の価値が高い</th><td>34.0</td><td>0</td><td>34</td><td>0.2</td><td>10.0</td><td>13.4</td><td>34.0</td></tr><tr><th scope='row'>新候補の価値が低い</th><td>34.0</td><td>0</td><td>34</td><td>0.05</td><td>10.0</td><td>8.3</td><td>-17.0</td></tr><tr><th scope='row'>候補がすべて重複</th><td>34.0</td><td>34</td><td>0</td><td>0.2</td><td>10.0</td><td>10.0</td><td>0.0</td></tr><tr><th scope='row'>半数が重複</th><td>34.0</td><td>17</td><td>17</td><td>0.2</td><td>10.0</td><td>11.7</td><td>17.0</td></tr></tbody></table></div>
+<h3>履歴の入力枠を数える</h3>
+<ul><li><strong>dataset</strong>: 1件30 text tokens・直近20件を仮定</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>old_events</th><th>recent_events</th><th>text_history_tokens</th><th>sid_history_tokens</th><th>soft_plus_recent_sid_tokens</th></tr></thead><tbody><tr><th scope='row'>0</th><td>0</td><td>20</td><td>600</td><td>80</td><td>81</td></tr><tr><th scope='row'>20</th><td>20</td><td>20</td><td>1200</td><td>160</td><td>81</td></tr><tr><th scope='row'>100</th><td>100</td><td>20</td><td>3600</td><td>480</td><td>81</td></tr><tr><th scope='row'>1000</th><td>1000</td><td>20</td><td>30600</td><td>4080</td><td>81</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成の期待値計算。34%は説明上固定した経路比率で、論文の効果量を再現した値ではない。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;同じ経路比率でも増分は変わる&quot;,
+      &quot;dataset&quot;: &quot;仮想100推薦枠&quot;,
+      &quot;metrics&quot;: {
+        &quot;同じ価値&quot;: {
+          &quot;channel_share_percent&quot;: 34.0,
+          &quot;overlap_slots&quot;: 0,
+          &quot;incremental_slots&quot;: 34,
+          &quot;new_candidate_discovery_probability&quot;: 0.1,
+          &quot;baseline_expected_events&quot;: 10.0,
+          &quot;treatment_expected_events&quot;: 10.0,
+          &quot;relative_lift_percent&quot;: 0.0
+        },
+        &quot;新候補の価値が高い&quot;: {
+          &quot;channel_share_percent&quot;: 34.0,
+          &quot;overlap_slots&quot;: 0,
+          &quot;incremental_slots&quot;: 34,
+          &quot;new_candidate_discovery_probability&quot;: 0.2,
+          &quot;baseline_expected_events&quot;: 10.0,
+          &quot;treatment_expected_events&quot;: 13.4,
+          &quot;relative_lift_percent&quot;: 34.0
+        },
+        &quot;新候補の価値が低い&quot;: {
+          &quot;channel_share_percent&quot;: 34.0,
+          &quot;overlap_slots&quot;: 0,
+          &quot;incremental_slots&quot;: 34,
+          &quot;new_candidate_discovery_probability&quot;: 0.05,
+          &quot;baseline_expected_events&quot;: 10.0,
+          &quot;treatment_expected_events&quot;: 8.3,
+          &quot;relative_lift_percent&quot;: -17.0
+        },
+        &quot;候補がすべて重複&quot;: {
+          &quot;channel_share_percent&quot;: 34.0,
+          &quot;overlap_slots&quot;: 34,
+          &quot;incremental_slots&quot;: 0,
+          &quot;new_candidate_discovery_probability&quot;: 0.2,
+          &quot;baseline_expected_events&quot;: 10.0,
+          &quot;treatment_expected_events&quot;: 10.0,
+          &quot;relative_lift_percent&quot;: 0.0
+        },
+        &quot;半数が重複&quot;: {
+          &quot;channel_share_percent&quot;: 34.0,
+          &quot;overlap_slots&quot;: 17,
+          &quot;incremental_slots&quot;: 17,
+          &quot;new_candidate_discovery_probability&quot;: 0.2,
+          &quot;baseline_expected_events&quot;: 10.0,
+          &quot;treatment_expected_events&quot;: 11.7,
+          &quot;relative_lift_percent&quot;: 17.0
+        }
+      }
+    },
+    {
+      &quot;name&quot;: &quot;履歴の入力枠を数える&quot;,
+      &quot;dataset&quot;: &quot;1件30 text tokens・直近20件を仮定&quot;,
+      &quot;metrics&quot;: {
+        &quot;0&quot;: {
+          &quot;old_events&quot;: 0,
+          &quot;recent_events&quot;: 20,
+          &quot;text_history_tokens&quot;: 600,
+          &quot;sid_history_tokens&quot;: 80,
+          &quot;soft_plus_recent_sid_tokens&quot;: 81
+        },
+        &quot;20&quot;: {
+          &quot;old_events&quot;: 20,
+          &quot;recent_events&quot;: 20,
+          &quot;text_history_tokens&quot;: 1200,
+          &quot;sid_history_tokens&quot;: 160,
+          &quot;soft_plus_recent_sid_tokens&quot;: 81
+        },
+        &quot;100&quot;: {
+          &quot;old_events&quot;: 100,
+          &quot;recent_events&quot;: 20,
+          &quot;text_history_tokens&quot;: 3600,
+          &quot;sid_history_tokens&quot;: 480,
+          &quot;soft_plus_recent_sid_tokens&quot;: 81
+        },
+        &quot;1000&quot;: {
+          &quot;old_events&quot;: 1000,
+          &quot;recent_events&quot;: 20,
+          &quot;text_history_tokens&quot;: 30600,
+          &quot;sid_history_tokens&quot;: 4080,
+          &quot;soft_plus_recent_sid_tokens&quot;: 81
+        }
+      }
+    }
+  ]
+}</code></pre></details><p>追加経路の比率を34%に固定しても、仮想の発見増分は−17%、0%、+34%となる。候補が全件重複する条件では増分は0%。入力長の例では古い100件と直近20件で全文3,600、全SID 480、soft promptと直近SIDは81 tokens。これは同じ情報を保持した証明でも、81/3,600の時間で動くという測定でもない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。候補経路の比率から因果効果は一意に決まらないという反例と、表現方式による入力枠の違いを確認した。全数値は決定的に再計算し、results.jsonへ保存する。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。Llama、CF射影、R-KMeans、RQ-VAEの学習、衝突率、実トークナイザー、遅延、オンライン発見指標は再現していない。学習を省いた疑似RQ-VAEを用意して、codebook collapseやR-KMeansの優越を主張することもしない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>run.pyは標準ライブラリだけで動く。channel_caseが期待イベント数、token_budgetが入力枠を計算する。共通ヘルパーやネットワークは不要。重複と確率を変更して反例を作れる。実サービスで必要なのは候補の重複除去、資格判定、ランキングと割付実験の整合であり、このtoyはそれらの実装ではない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>論点</th>
+<th>一次資料</th>
+<th>Labでの対応</th>
+<th>省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>残差量子化・long/short</td>
+<td><a href="https://arxiv.org/html/2603.17540">§4.1–4.3</a></td>
+<td>method.md・数式図・conditioning.svg</td>
+<td>モデル学習全体</td>
+</tr>
+<tr>
+<td>経路の追加と衝突</td>
+<td><a href="https://arxiv.org/html/2603.17540">§4.4・§5.3</a></td>
+<td>cascade.svg・run.pyのchannel_case</td>
+<td>実ranker・衝突の測定</td>
+</tr>
+<tr>
+<td>入力枠</td>
+<td><a href="https://arxiv.org/html/2603.17540">§4.1.1–4.1.2</a></td>
+<td>token_budget</td>
+<td>情報保持・時間測定</td>
+</tr>
+<tr>
+<td>量子化比較とA/B</td>
+<td><a href="https://arxiv.org/html/2603.17540">表2・§5.3</a></td>
+<td>quantizers.svg・ab-design.svg</td>
+<td>独立再現</td>
+</tr>
+</tbody>
+</table>
+<p>一次資料は2026-09-07 UTCにabsとHTMLのv1を確認した。正式タイトルと著者名はabsのAuthors欄を採用。公式コードの実体は未確認で、コードの行単位対応はない。非公開ログ、CF重み、encoderの重み、運用費用の詳細は検証不能。図はresearch_botによる教育用の再構成。</p>
+<p>関連：<a href="tgr.html">TGR</a>の追加候補経路、<a href="case-against-generation-retrieval.html">Metaの検索設計</a>、<a href="understanding-sids-isd.html">SIDのフィルタ診断</a>。これらの本番条件を同一とみなした比較は行っていない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>生成推薦は、既存の候補経路に何を足したのか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/glide-spotify-sid/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

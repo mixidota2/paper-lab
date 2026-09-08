@@ -1,0 +1,498 @@
+{
+  "note": "合成の固定SIDと固定確率。残存率の母集団は9例すべてで、論文の外部ranker top-k条件付き集計とは異なる。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "experiments": [
+    {
+      "name": "beam幅 1",
+      "dataset": "8 items・独立した学習遷移表と9評価例",
+      "n": 9,
+      "metrics": {
+        "通常beam": {
+          "remaining_target_rate": [
+            0.555556,
+            0.333333,
+            0.222222
+          ],
+          "toy_ndcg_at_2": 0.222222
+        },
+        "並べ替えだけ": {
+          "remaining_target_rate": [
+            0.555556,
+            0.333333,
+            0.222222
+          ],
+          "toy_ndcg_at_2": 0.222222
+        },
+        "prefix支援だけ": {
+          "remaining_target_rate": [
+            0.777778,
+            0.666667,
+            0.333333
+          ],
+          "toy_ndcg_at_2": 0.333333
+        },
+        "ISD型の両段階": {
+          "remaining_target_rate": [
+            0.777778,
+            0.666667,
+            0.333333
+          ],
+          "toy_ndcg_at_2": 0.333333
+        },
+        "逆順位の支援": {
+          "remaining_target_rate": [
+            0.444444,
+            0.0,
+            0.0
+          ],
+          "toy_ndcg_at_2": 0.0
+        }
+      }
+    },
+    {
+      "name": "beam幅 2",
+      "dataset": "8 items・独立した学習遷移表と9評価例",
+      "n": 9,
+      "metrics": {
+        "通常beam": {
+          "remaining_target_rate": [
+            1.0,
+            0.555556,
+            0.333333
+          ],
+          "toy_ndcg_at_2": 0.292326
+        },
+        "並べ替えだけ": {
+          "remaining_target_rate": [
+            1.0,
+            0.555556,
+            0.333333
+          ],
+          "toy_ndcg_at_2": 0.292326
+        },
+        "prefix支援だけ": {
+          "remaining_target_rate": [
+            1.0,
+            0.888889,
+            0.555556
+          ],
+          "toy_ndcg_at_2": 0.432532
+        },
+        "ISD型の両段階": {
+          "remaining_target_rate": [
+            1.0,
+            0.888889,
+            0.555556
+          ],
+          "toy_ndcg_at_2": 0.47354
+        },
+        "逆順位の支援": {
+          "remaining_target_rate": [
+            1.0,
+            0.111111,
+            0.0
+          ],
+          "toy_ndcg_at_2": 0.0
+        }
+      }
+    },
+    {
+      "name": "beam幅 4",
+      "dataset": "8 items・独立した学習遷移表と9評価例",
+      "n": 9,
+      "metrics": {
+        "通常beam": {
+          "remaining_target_rate": [
+            1.0,
+            1.0,
+            0.555556
+          ],
+          "toy_ndcg_at_2": 0.292326
+        },
+        "並べ替えだけ": {
+          "remaining_target_rate": [
+            1.0,
+            1.0,
+            0.555556
+          ],
+          "toy_ndcg_at_2": 0.292326
+        },
+        "prefix支援だけ": {
+          "remaining_target_rate": [
+            1.0,
+            1.0,
+            0.888889
+          ],
+          "toy_ndcg_at_2": 0.292326
+        },
+        "ISD型の両段階": {
+          "remaining_target_rate": [
+            1.0,
+            1.0,
+            0.888889
+          ],
+          "toy_ndcg_at_2": 0.47354
+        },
+        "逆順位の支援": {
+          "remaining_target_rate": [
+            1.0,
+            1.0,
+            0.222222
+          ],
+          "toy_ndcg_at_2": 0.0
+        }
+      }
+    },
+    {
+      "name": "beam幅 8",
+      "dataset": "8 items・独立した学習遷移表と9評価例",
+      "n": 9,
+      "metrics": {
+        "通常beam": {
+          "remaining_target_rate": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "toy_ndcg_at_2": 0.292326
+        },
+        "並べ替えだけ": {
+          "remaining_target_rate": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "toy_ndcg_at_2": 0.432532
+        },
+        "prefix支援だけ": {
+          "remaining_target_rate": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "toy_ndcg_at_2": 0.292326
+        },
+        "ISD型の両段階": {
+          "remaining_target_rate": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "toy_ndcg_at_2": 0.432532
+        },
+        "逆順位の支援": {
+          "remaining_target_rate": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "toy_ndcg_at_2": 0.0
+        }
+      }
+    }
+  ],
+  "example": {
+    "history": "x",
+    "evaluation_target": "e",
+    "baseline": {
+      "ranked_items": [
+        "a"
+      ],
+      "provider": [
+        "e",
+        "f",
+        "a"
+      ],
+      "trace": [
+        {
+          "depth": 1,
+          "prefixes": [
+            "0"
+          ],
+          "items": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ],
+          "extensions": [
+            {
+              "prefix": "0",
+              "mass": 0.72,
+              "fusion": 0.01639344
+            },
+            {
+              "prefix": "1",
+              "mass": 0.28,
+              "fusion": 0.01612903
+            }
+          ]
+        },
+        {
+          "depth": 2,
+          "prefixes": [
+            "00"
+          ],
+          "items": [
+            "a",
+            "b"
+          ],
+          "extensions": [
+            {
+              "prefix": "00",
+              "mass": 0.44,
+              "fusion": 0.01639344
+            },
+            {
+              "prefix": "01",
+              "mass": 0.28,
+              "fusion": 0.01612903
+            }
+          ]
+        },
+        {
+          "depth": 3,
+          "prefixes": [
+            "000"
+          ],
+          "items": [
+            "a"
+          ],
+          "extensions": [
+            {
+              "prefix": "000",
+              "mass": 0.24,
+              "fusion": 0.01639344
+            },
+            {
+              "prefix": "001",
+              "mass": 0.2,
+              "fusion": 0.01612903
+            }
+          ]
+        }
+      ]
+    },
+    "supported": {
+      "ranked_items": [
+        "e"
+      ],
+      "provider": [
+        "e",
+        "f",
+        "a"
+      ],
+      "trace": [
+        {
+          "depth": 1,
+          "prefixes": [
+            "1"
+          ],
+          "items": [
+            "e",
+            "f",
+            "g",
+            "h"
+          ],
+          "extensions": [
+            {
+              "prefix": "0",
+              "mass": 0.72,
+              "fusion": 0.03226646
+            },
+            {
+              "prefix": "1",
+              "mass": 0.28,
+              "fusion": 0.03252247
+            }
+          ]
+        },
+        {
+          "depth": 2,
+          "prefixes": [
+            "10"
+          ],
+          "items": [
+            "e",
+            "f"
+          ],
+          "extensions": [
+            {
+              "prefix": "10",
+              "mass": 0.18,
+              "fusion": 0.03278689
+            },
+            {
+              "prefix": "11",
+              "mass": 0.1,
+              "fusion": 0.01612903
+            }
+          ]
+        },
+        {
+          "depth": 3,
+          "prefixes": [
+            "100"
+          ],
+          "items": [
+            "e"
+          ],
+          "extensions": [
+            {
+              "prefix": "100",
+              "mass": 0.1,
+              "fusion": 0.03278689
+            },
+            {
+              "prefix": "101",
+              "mass": 0.08,
+              "fusion": 0.03225806
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "assumptions": {
+    "sids": {
+      "a": "000",
+      "b": "001",
+      "c": "010",
+      "d": "011",
+      "e": "100",
+      "f": "101",
+      "g": "110",
+      "h": "111"
+    },
+    "decoder_leaf_probabilities": {
+      "a": 0.24,
+      "b": 0.2,
+      "c": 0.16,
+      "d": 0.12,
+      "e": 0.1,
+      "f": 0.08,
+      "g": 0.06,
+      "h": 0.04
+    },
+    "training_transitions": {
+      "x": [
+        "e",
+        "e",
+        "e",
+        "e",
+        "e",
+        "e",
+        "e",
+        "e",
+        "e",
+        "e",
+        "e",
+        "e",
+        "f",
+        "f",
+        "f",
+        "f",
+        "f",
+        "f",
+        "f",
+        "f",
+        "a",
+        "a"
+      ],
+      "y": [
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "a",
+        "b",
+        "b",
+        "b",
+        "b",
+        "b",
+        "b",
+        "b",
+        "b",
+        "c",
+        "c"
+      ],
+      "z": [
+        "h",
+        "h",
+        "h",
+        "h",
+        "h",
+        "h",
+        "h",
+        "h",
+        "h",
+        "h",
+        "h",
+        "h",
+        "g",
+        "g",
+        "g",
+        "g",
+        "g",
+        "g",
+        "g",
+        "g",
+        "b",
+        "b"
+      ]
+    },
+    "test_pairs": [
+      [
+        "x",
+        "e"
+      ],
+      [
+        "x",
+        "f"
+      ],
+      [
+        "x",
+        "a"
+      ],
+      [
+        "y",
+        "a"
+      ],
+      [
+        "y",
+        "b"
+      ],
+      [
+        "y",
+        "d"
+      ],
+      [
+        "z",
+        "h"
+      ],
+      [
+        "z",
+        "g"
+      ],
+      [
+        "z",
+        "c"
+      ]
+    ],
+    "support_budget": 3,
+    "kappa": 60,
+    "cutoff": 2
+  }
+}

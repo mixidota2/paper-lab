@@ -109,11 +109,11 @@ def _metrics_table(metrics: dict[str, Any]) -> str:
             cells.append(f"<td colspan='{len(cols)}'>{_escape(str(spec))}</td>")
         body.append("<tr>" + "".join(cells) + "</tr>")
     return (
-        '<table class="metrics"><thead><tr><th>指標</th>'
+        '<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th>'
         + head
         + "</tr></thead><tbody>"
         + "".join(body)
-        + "</tbody></table>"
+        + "</tbody></table></div>"
     )
 
 
@@ -231,7 +231,7 @@ def build(
     for lab in labs:
         download_dir = site / "downloads" / lab.id
         download_dir.mkdir(parents=True)
-        for name in ("run.py", "results.json", "lab.yaml", "method.md"):
+        for name in ("run.py", "results.json", "lab.yaml", "method.md", "mapping.md"):
             source = lab.source_dir / name
             if source.is_file():
                 shutil.copy2(source, download_dir / name)
@@ -253,6 +253,7 @@ def build(
             verification_status_labels=VERIFICATION_STATUS_LABELS,
             topic_labels=TOPIC_LABELS,
             figures=rendered_figures,
+            standalone_toy=not (lab.source_dir / "run.py").is_file() or "_toy_common" not in (lab.source_dir / "run.py").read_text(encoding="utf-8"),
         )
         (papers_out / f"{lab.slug}.html").write_text(html, encoding="utf-8")
 

@@ -1,0 +1,119 @@
+id: execution-state-unlearning
+arxiv_id: '2609.04875'
+submitted: '2026-09-04'
+title: 'Forgetting Without Restarting: Execution-State Unlearning for Stateful LLM Agents'
+authors:
+- Chao Yao
+- Yangbo Wei
+- Zhen Huang
+- Junhong Qian
+- Chenle Chen
+- Shaoqiang Lu
+- Chen Wu
+- Lei He
+year: 2026
+topics:
+- ai-agent-systems
+- agent-architecture
+- evaluation
+urls:
+  paper: https://arxiv.org/abs/2609.04875
+  arxiv: https://arxiv.org/abs/2609.04875
+  pdf: https://arxiv.org/pdf/2609.04875
+  official_code: null
+verdict: Worth Reading
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- agent-architecture-and-harness
+status: published
+question: 記録を消した後も、エージェントの判断に影響は残るか
+summary: 忘却を「対象を最初から見なかった実行状態との一致」と定義する。汚染前の状態を再利用して後半を再実行し、文字列漏洩と行動への残留を別々に監査する。
+source_review:
+  checked: '2026-09-07'
+  url: https://arxiv.org/html/2609.04875
+  scope: 2026-09-08日報の対象。arXiv v1のabs・HTML本文を確認。数値は著者の報告であり独立再現ではない。
+figures:
+- path: figures/splice.svg
+  title: 汚染前の状態へ戻り、後半を作り直す
+  caption: Lemma 1–2・Algorithm 1を再構成。ステップ数はtoy。KVそのものをCPU実験で実装したわけではない。
+  after: method
+- path: figures/audit.svg
+  title: 文字列と行動を別軸で監査する
+  caption: run.pyの初期条件に基づく。文字列probeは3種類のいずれかでの検出。行動の差は対象なしの全再実行を基準に測る。
+  after: executable_understanding
+teaching_figures:
+- kind: equations
+  id: counterfactual
+  title: 「最初から見なかった状態」を比較対象にする
+  after: method
+  source: https://arxiv.org/html/2609.04875
+  locator: 式(1)・Definition 1・Theorem 1
+  rationale: 入力、演算、出力と適用条件を具体化する。
+  caption: 確率的生成では将来の行動分布の距離へ定義を緩める。ここで示す等号は決定的な場合。
+  steps:
+  - name: 状態の更新
+    formula: Rₜ = F(Rₜ₋₁, oₜ ; θ)
+    explanation: Rはtranscriptに限らずKV・要約・未確定計画など。θは固定。
+  - name: 忘却の定義
+    formula: U(RT, z) = R⁻ᶻT
+    explanation: 右辺は観測からzを除いて最初から再実行した状態。文字列がないだけでは不足。
+  - name: 同じ前半をつなぐ
+    formula: R̃τ₋₁ = Rτ₋₁ ; R̃ₜ = F(R̃ₜ₋₁, o⁻ᶻₜ ; θ)
+    explanation: 決定的な遷移と正しい反実仮想入力なら、帰納的に全再実行と一致する。
+- kind: equations
+  id: replay-cost
+  title: 費用は汚染後の長さで決まる
+  after: method
+  source: https://arxiv.org/html/2609.04875
+  locator: Corollary 1・Algorithm 1
+  rationale: 入力、演算、出力と適用条件を具体化する。
+  caption: token数や秒数の式ではない。下限は保守的なtaintモデルと許された操作の下での最悪時。
+  steps:
+  - name: 直前へ戻れる場合
+    formula: Cselective = T − τ + 1 ; Cfull = T
+    explanation: τは対象の最初の流入ステップ。数えるのはFの呼出し回数。
+  - name: checkpointが粗い場合
+    formula: c < τ ; C = T − c ≥ T − τ + 1
+    explanation: cがτ−1より前なら余分な前半も再実行する。正しさは保てても最小費用にはならない。
+interactives: []
+core_idea:
+  author_claim: 再構成できる実行状態について、対象zを除いた入力で最初から動いた状態との一致を忘却と定義する。Provenance-Guided Selective Replayはzの最初の流入点を探し、その直前へ戻って、zを除いた入力から後半の状態を再計算する。[一次資料：Definition
+    1・Algorithm 1](https://arxiv.org/html/2609.04875)
+  research_bot_interpretation: 忘却APIの責任は保存レコードだけでは閉じない。要約、未確定の計画、cacheまで同じ契約で管理する必要があると読める。ただし履歴の途中で人や外部サービスへ渡した影響まで戻せる契約ではない。アプリがその境界を把握しているかが採用前の論点になる。
+sections:
+  overview: 忘却を「対象を最初から見なかった実行状態との一致」と定義する。汚染前の状態を再利用して後半を再実行し、文字列漏洩と行動への残留を別々に監査する。 toyは秘密を文字列と行動フラグに分けて保持し、片方だけ消す監査が通ってしまう理由を示す。
+  problem: エージェントが秘密を読み、返答を作り、要約に残し、次の行動を計画したとする。元の記録を削除しても、それを読んで計算した状態は別に残る。さらに「その情報を忘れて」と追加すると、値を保持したまま出力を控えるだけかもしれない。論文は学習済み重みのunlearningではなく、会話の実行状態を対象にする。[一次資料：Introduction・Method](https://arxiv.org/html/2609.04875)
+  why_it_might_work: 対象が入る前は実世界と反実仮想の入力が同じなので、その時点の状態を共有できる。そこから同じ遷移規則へ対象除去済みの入力を渡せば、不要な情報だけでなく、それを使って作った計画も作り直せる。全要約を捨てるだけの方法に比べて、無関係な情報の欠落も抑えられるという理屈である。
+  evidence: '### タスクへの返答が無漏洩でも監査は終わらない
+
+
+    主実験はLlama-3.1-8B-Instruct、他系列はQwen2.5-7B-InstructとMistral-7B-Instruct-v0.3。LongMemEval由来100例、ToolSandbox由来100例、AgentDojo由来80例を、秘密を獲得して派生状態を作る脚本へ変換する。既存benchmarkをそのまま評価した値ではない。
+
+
+    表2の各suite 30例では、忘却指示のLeak@probesは1.00。これは6種のprobeのどれかで漏れたepisodeの比率であり、すべてのprobeで100%漏れたという意味ではない。表3の30
+    preference episodes × 2順序では、source redactionの回避率0.80、全再実行の基準は0.32、差は+0.48。理由の文字列漏洩は両方0だった。基準を0や0.5と仮定して差を出してはいけない。[一次資料：Experiments・表1–3](https://arxiv.org/html/2609.04875)
+
+
+    ### 再計算tokenの削減には追加の帰属仮定がある
+
+
+    表1は全再実行1,235 tokens、prefix cache付き202、選択的再実行133を報告する。1235/133は約9.3倍だが、202から133への差には後半の独立な処理を見分ける強いoracleを用いている。保守的なtaintモデルだけでこの追加削減が保証されるわけではない。独立seedの確率的監査で差が有意でない結果も、同値性の証明ではないと著者自身が留保する。[一次資料：表1・Exactness,
+    Efficiency, and Generality](https://arxiv.org/html/2609.04875)'
+  executable_understanding: '`uv run papers/execution-state-unlearning/run.py`
+
+
+    12ステップの決定的な状態機械で、8番目の観測に合成の秘密CANARY-731を入れる。transcript、memory、summary、KVに見立てた辞書履歴、Aを避ける行動フラグを保持する。各観測の無関係なsafe_valueも足し、忘却で有用な計算が失われていないか比べる。
+
+
+    記録削除、忘却指示、元入力除去、全層の秘密文字列除去、全再実行、選択的再実行を同じ汚染状態から比較する。probeはtask・introspection・summaryの3つで、動作はコードに固定した。実LLMの従順さや漏洩傾向を測っているわけではない。'
+  results: 通常のtask probeを抑える忘却指示でも、他probeと行動フラグは残った。全秘密文字列を除いた条件ではLeak@probesが0でも、行動はBのまま。選択的再実行は全再実行と状態全体が一致し、無関係な合計78を保持した。再計算は12回から5回へ減る。τ=1では12回、τ=12では1回。checkpointを4へ粗くすると8回になる。
+  what_we_verified: Mechanism PARTIAL。対象前のcheckpointからの再実行が、対象なしの全再実行と同じ辞書状態へ到達することを確認した。文字列probe、行動差分、有用な値、完全状態一致を別々に検査した。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。実際のattention KV、LLM生成、provenance抽出、確率分布の同値性、外部副作用、token単位の独立性判定は実装していない。スクリプト内の漏洩率は仮定した分岐の結果であり、論文の実測漏洩率を再現するものではない。
+  implementation: advanceが状態遷移F、sanitizeが秘密だけの除去、replayが後半の再計算、auditが監査を担当する。すべて標準ライブラリで実行し、入力やモデルへのAPI通信はない。流入点は観測のsecret
+    fieldで既知とし、provenance graphの自動発見は省く。実行中の外部作用もないためA2/A3を構成上満たす。
+  method: method.md
+  mapping: mapping.md

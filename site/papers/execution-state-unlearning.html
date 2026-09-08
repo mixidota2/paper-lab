@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="忘却を「対象を最初から見なかった実行状態との一致」と定義する。汚染前の状態を再利用して後半を再実行し、文字列漏洩と行動への残留を別々に監査する。">
+  <title>記録を消した後も、エージェントの判断に影響は残るか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-04</span></div>
+    <h1>記録を消した後も、エージェントの判断に影響は残るか</h1>
+    <p class="lede">忘却を「対象を最初から見なかった実行状態との一致」と定義する。汚染前の状態を再利用して後半を再実行し、文字列漏洩と行動への残留を別々に監査する。</p>
+    <details class="bibliography"><summary>原論文：Forgetting Without Restarting: Execution-State Unlearning for Stateful LLM Agents</summary><p>Chao Yao, Yangbo Wei, Zhen Huang, Junhong Qian, Chenle Chen, Shaoqiang Lu, Chen Wu, Lei He</p><p>2609.04875 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.04875">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.04875">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-07 · 2026-09-08日報の対象。arXiv v1のabs・HTML本文を確認。数値は著者の報告であり独立再現ではない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-counterfactual">「最初から見なかった状態」を比較対象にする</a><a href="#figure-replay-cost">費用は汚染後の長さで決まる</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>忘却を「対象を最初から見なかった実行状態との一致」と定義する。汚染前の状態を再利用して後半を再実行し、文字列漏洩と行動への残留を別々に監査する。 toyは秘密を文字列と行動フラグに分けて保持し、片方だけ消す監査が通ってしまう理由を示す。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>エージェントが秘密を読み、返答を作り、要約に残し、次の行動を計画したとする。元の記録を削除しても、それを読んで計算した状態は別に残る。さらに「その情報を忘れて」と追加すると、値を保持したまま出力を控えるだけかもしれない。論文は学習済み重みのunlearningではなく、会話の実行状態を対象にする。<a href="https://arxiv.org/html/2609.04875">一次資料：Introduction・Method</a></p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>再構成できる実行状態について、対象zを除いた入力で最初から動いた状態との一致を忘却と定義する。Provenance-Guided Selective Replayはzの最初の流入点を探し、その直前へ戻って、zを除いた入力から後半の状態を再計算する。<a href="https://arxiv.org/html/2609.04875">一次資料：Definition 1・Algorithm 1</a></p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>忘却APIの責任は保存レコードだけでは閉じない。要約、未確定の計画、cacheまで同じ契約で管理する必要があると読める。ただし履歴の途中で人や外部サービスへ渡した影響まで戻せる契約ではない。アプリがその境界を把握しているかが採用前の論点になる。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>汚染した後半のcacheをそのまま再利用しない</h3>
+<p>Transformerのkey/value cacheは、過去のtokenを処理した中間表現を保持する。対象zを読んだ後のtokenはzへ注意を向けて計算された可能性がある。対象の文字位置だけを抜いても、その後のcacheが対象非依存になるとは限らない。著者の保守的な依存モデルでは、対象が初めて入ったτ以降の派生状態を一括して再構成の対象にする。<a href="https://arxiv.org/html/2609.04875">一次資料：Lemma 2</a></p>
+<p>Provenance-Guided Selective Replayのprovenanceは「どの情報から何を作ったか」の記録である。観測、prompt、モデルturn、要約、tool planの親子関係をたどり、対象の最初の流入点と影響先を探す。任意の部分だけ安全だと推測して残す手法ではない。</p>
+<h3>crop、入力の除去、派生状態の再生成を1つの処理にする</h3>
+<p>Algorithm 1はまず対象とその派生物を無効化し、τより前の最新checkpointへ戻す。checkpointのtoken位置までKVをcropすると、そのprefixのcacheを再利用できる。そこから対象を除いた観測を読み直し、要約や計画を作り直す。論文の実装はHuggingFace Transformers上のprefill・generate・cropと、source IDを伝播するArtifactGraphを組み合わせる。<a href="https://arxiv.org/html/2609.04875">一次資料：Algorithm 1・Implementation and Setup</a></p>
+<p>入力が反実仮想でも変わらないと保証できるなら、記録済みの内容を新しいcacheへprefillしてよい。モデル由来の内容をすべてそのまま再投入してよいという意味ではない。とくに対象を含む要約は、文字列を消しただけでも判断が残り得る。</p>
+<h3>厳密な一致には3つの条件が要る</h3>
+<p>Theorem 1のA1は決定的な生成、または乱数源の固定。A2は再実行時の観測が対象なしの世界で得る観測と一致すること。A3はτ以降に確定した外部副作用がなく、環境snapshotなどで観測を再現できること。この条件があれば、同じ前半の状態と同じ遷移から後半も一致する。<a href="https://arxiv.org/html/2609.04875">一次資料：Theorem 1</a></p>
+<p>research_botの批評：A2が最も運用依存である。秘密を含む返答を見た人が次に別の質問をしたなら、実際の人の発言を再投入しても「秘密を見なかった人の発言」にはならない。送金や通知を実行済みなら、状態の再計算はその効果を取り消さない。shadow実行とcall-ID重複除去は再送防止には使えても、既存の副作用の消去を証明しない。</p>
+<h3>文字列、行動、無関係な価値を別々に照合する</h3>
+<p>Leak@probesは、同じ忘却後状態に複数の問いを当て、どれかで秘密が出るかを見る。通常の質問で出なくても、過去情報を列挙する問いでは出る場合がある。さらに、秘密の文字列をまったく書かずに特定の選択肢を避けることもできる。したがって行動を対象なしのreferenceと比べる監査が必要になる。<a href="https://arxiv.org/html/2609.04875">一次資料：Elicitation and Stochastic Audits・Behavioral Extraction</a></p>
+<p>無関係な予定や情報をすべて捨てると、秘密は出なくなるかもしれない。それでもreferenceが持つ有用な状態まで失えば、定義上の忘却を満たさない。toyでは無関係な累積値と辞書全体の一致も見る。ただし行動の分岐を手で書いているため、全状態の一致を確認できても実LLMの監査能力の証拠にはならない。</p>
+<h3>再計算回数とtoken節約は別の主張</h3>
+<p>T−τ+1は逐次状態遷移の回数であり、各遷移で何tokenをdecodeするかは数えない。著者は後半の独立なturnを識別する強いoracleを使ってprefillへ置き換え、prefix cacheのみより追加の節約を得る。保守的な依存記録しかない実装では、その節約まで見込まずに費用を積もりたい。<a href="https://arxiv.org/html/2609.04875">一次資料：Corollary 1・The T−τ+1 law</a></p></div>      </section>
+      <figure class="paper-svg teaching"><h3>汚染前の状態へ戻り、後半を作り直す</h3><a href="../figures/execution-state-unlearning/figures/splice.svg" aria-label="汚染前の状態へ戻り、後半を作り直すを拡大"><img src="../figures/execution-state-unlearning/figures/splice.svg" alt="汚染前の状態へ戻り、後半を作り直す。Lemma 1–2・Algorithm 1を再構成。ステップ数はtoy。KVそのものをCPU実験で実装したわけではない。" loading="lazy"></a><figcaption>Lemma 1–2・Algorithm 1を再構成。ステップ数はtoy。KVそのものをCPU実験で実装したわけではない。 <a href="../figures/execution-state-unlearning/figures/splice.svg">図を拡大 ↗</a></figcaption></figure>
+<figure class="teaching teaching--equations" id="figure-counterfactual" aria-labelledby="title-counterfactual">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-counterfactual">「最初から見なかった状態」を比較対象にする</h3>
+  <ol class="equation-steps"><li><strong>状態の更新</strong><div class="math-expression" tabindex="0" role="math" aria-label="Rₜ = F(Rₜ₋₁, oₜ ; θ)">Rₜ = F(Rₜ₋₁, oₜ ; θ)</div><p>Rはtranscriptに限らずKV・要約・未確定計画など。θは固定。</p></li><li><strong>忘却の定義</strong><div class="math-expression" tabindex="0" role="math" aria-label="U(RT, z) = R⁻ᶻT">U(RT, z) = R⁻ᶻT</div><p>右辺は観測からzを除いて最初から再実行した状態。文字列がないだけでは不足。</p></li><li><strong>同じ前半をつなぐ</strong><div class="math-expression" tabindex="0" role="math" aria-label="R̃τ₋₁ = Rτ₋₁ ; R̃ₜ = F(R̃ₜ₋₁, o⁻ᶻₜ ; θ)">R̃τ₋₁ = Rτ₋₁ ; R̃ₜ = F(R̃ₜ₋₁, o⁻ᶻₜ ; θ)</div><p>決定的な遷移と正しい反実仮想入力なら、帰納的に全再実行と一致する。</p></li></ol>
+  <figcaption>確率的生成では将来の行動分布の距離へ定義を緩める。ここで示す等号は決定的な場合。 <a href="https://arxiv.org/html/2609.04875">出典：式(1)・Definition 1・Theorem 1 ↗</a></figcaption>
+</figure><figure class="teaching teaching--equations" id="figure-replay-cost" aria-labelledby="title-replay-cost">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-replay-cost">費用は汚染後の長さで決まる</h3>
+  <ol class="equation-steps"><li><strong>直前へ戻れる場合</strong><div class="math-expression" tabindex="0" role="math" aria-label="Cselective = T − τ + 1 ; Cfull = T">Cselective = T − τ + 1 ; Cfull = T</div><p>τは対象の最初の流入ステップ。数えるのはFの呼出し回数。</p></li><li><strong>checkpointが粗い場合</strong><div class="math-expression" tabindex="0" role="math" aria-label="c &lt; τ ; C = T − c ≥ T − τ + 1">c &lt; τ ; C = T − c ≥ T − τ + 1</div><p>cがτ−1より前なら余分な前半も再実行する。正しさは保てても最小費用にはならない。</p></li></ol>
+  <figcaption>token数や秒数の式ではない。下限は保守的なtaintモデルと許された操作の下での最悪時。 <a href="https://arxiv.org/html/2609.04875">出典：Corollary 1・Algorithm 1 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>対象が入る前は実世界と反実仮想の入力が同じなので、その時点の状態を共有できる。そこから同じ遷移規則へ対象除去済みの入力を渡せば、不要な情報だけでなく、それを使って作った計画も作り直せる。全要約を捨てるだけの方法に比べて、無関係な情報の欠落も抑えられるという理屈である。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>タスクへの返答が無漏洩でも監査は終わらない</h3>
+<p>主実験はLlama-3.1-8B-Instruct、他系列はQwen2.5-7B-InstructとMistral-7B-Instruct-v0.3。LongMemEval由来100例、ToolSandbox由来100例、AgentDojo由来80例を、秘密を獲得して派生状態を作る脚本へ変換する。既存benchmarkをそのまま評価した値ではない。</p>
+<p>表2の各suite 30例では、忘却指示のLeak@probesは1.00。これは6種のprobeのどれかで漏れたepisodeの比率であり、すべてのprobeで100%漏れたという意味ではない。表3の30 preference episodes × 2順序では、source redactionの回避率0.80、全再実行の基準は0.32、差は+0.48。理由の文字列漏洩は両方0だった。基準を0や0.5と仮定して差を出してはいけない。<a href="https://arxiv.org/html/2609.04875">一次資料：Experiments・表1–3</a></p>
+<h3>再計算tokenの削減には追加の帰属仮定がある</h3>
+<p>表1は全再実行1,235 tokens、prefix cache付き202、選択的再実行133を報告する。1235/133は約9.3倍だが、202から133への差には後半の独立な処理を見分ける強いoracleを用いている。保守的なtaintモデルだけでこの追加削減が保証されるわけではない。独立seedの確率的監査で差が有意でない結果も、同値性の証明ではないと著者自身が留保する。<a href="https://arxiv.org/html/2609.04875">一次資料：表1・Exactness, Efficiency, and Generality</a></p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/execution-state-unlearning/run.py</code></p>
+<p>12ステップの決定的な状態機械で、8番目の観測に合成の秘密CANARY-731を入れる。transcript、memory、summary、KVに見立てた辞書履歴、Aを避ける行動フラグを保持する。各観測の無関係なsafe_valueも足し、忘却で有用な計算が失われていないか比べる。</p>
+<p>記録削除、忘却指示、元入力除去、全層の秘密文字列除去、全再実行、選択的再実行を同じ汚染状態から比較する。probeはtask・introspection・summaryの3つで、動作はコードに固定した。実LLMの従順さや漏洩傾向を測っているわけではない。</p></div><div class="downloads"><a href="../downloads/execution-state-unlearning/run.py" download>実行コード</a><a href="../downloads/execution-state-unlearning/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/execution-state-unlearning">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <figure class="paper-svg teaching"><h3>文字列と行動を別軸で監査する</h3><a href="../figures/execution-state-unlearning/figures/audit.svg" aria-label="文字列と行動を別軸で監査するを拡大"><img src="../figures/execution-state-unlearning/figures/audit.svg" alt="文字列と行動を別軸で監査する。run.pyの初期条件に基づく。文字列probeは3種類のいずれかでの検出。行動の差は対象なしの全再実行を基準に測る。" loading="lazy"></a><figcaption>run.pyの初期条件に基づく。文字列probeは3種類のいずれかでの検出。行動の差は対象なしの全再実行を基準に測る。 <a href="../figures/execution-state-unlearning/figures/audit.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>合成状態機械。KVは辞書の履歴でありTransformerではない。再計算は状態遷移回数だけを数え、token数・時間を測らない。</em></p>
+<h3>T=12, τ=8, checkpoint=7</h3>
+<ul><li><strong>dataset</strong>: 決定的な状態機械</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>task_string_leak</th><th>leak_at_probes</th><th>behavioral_choice</th><th>behavioral_mismatch</th><th>behavioral_answer_string_leak</th><th>safe_total</th><th>same_runtime_as_reference</th><th>recomputed_steps</th></tr></thead><tbody><tr><th scope='row'>削除なし</th><td>1</td><td>1</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>記録削除</th><td>1</td><td>1</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>忘却指示</th><td>0</td><td>1</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>元入力の除去</th><td>1</td><td>1</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>全文字列の除去</th><td>0</td><td>0</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>全再実行</th><td>0</td><td>0</td><td>A</td><td>0</td><td>0</td><td>78</td><td>True</td><td>12</td></tr><tr><th scope='row'>選択的再実行</th><td>0</td><td>0</td><td>A</td><td>0</td><td>0</td><td>78</td><td>True</td><td>5</td></tr></tbody></table></div>
+<h3>T=12, τ=1, checkpoint=0</h3>
+<ul><li><strong>dataset</strong>: 決定的な状態機械</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>task_string_leak</th><th>leak_at_probes</th><th>behavioral_choice</th><th>behavioral_mismatch</th><th>behavioral_answer_string_leak</th><th>safe_total</th><th>same_runtime_as_reference</th><th>recomputed_steps</th></tr></thead><tbody><tr><th scope='row'>削除なし</th><td>1</td><td>1</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>記録削除</th><td>1</td><td>1</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>忘却指示</th><td>0</td><td>1</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>元入力の除去</th><td>1</td><td>1</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>全文字列の除去</th><td>0</td><td>0</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>全再実行</th><td>0</td><td>0</td><td>A</td><td>0</td><td>0</td><td>78</td><td>True</td><td>12</td></tr><tr><th scope='row'>選択的再実行</th><td>0</td><td>0</td><td>A</td><td>0</td><td>0</td><td>78</td><td>True</td><td>12</td></tr></tbody></table></div>
+<h3>T=12, τ=12, checkpoint=11</h3>
+<ul><li><strong>dataset</strong>: 決定的な状態機械</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>task_string_leak</th><th>leak_at_probes</th><th>behavioral_choice</th><th>behavioral_mismatch</th><th>behavioral_answer_string_leak</th><th>safe_total</th><th>same_runtime_as_reference</th><th>recomputed_steps</th></tr></thead><tbody><tr><th scope='row'>削除なし</th><td>1</td><td>1</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>記録削除</th><td>1</td><td>1</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>忘却指示</th><td>0</td><td>1</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>元入力の除去</th><td>1</td><td>1</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>全文字列の除去</th><td>0</td><td>0</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>全再実行</th><td>0</td><td>0</td><td>A</td><td>0</td><td>0</td><td>78</td><td>True</td><td>12</td></tr><tr><th scope='row'>選択的再実行</th><td>0</td><td>0</td><td>A</td><td>0</td><td>0</td><td>78</td><td>True</td><td>1</td></tr></tbody></table></div>
+<h3>T=12, τ=8, checkpoint=4</h3>
+<ul><li><strong>dataset</strong>: 決定的な状態機械</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>task_string_leak</th><th>leak_at_probes</th><th>behavioral_choice</th><th>behavioral_mismatch</th><th>behavioral_answer_string_leak</th><th>safe_total</th><th>same_runtime_as_reference</th><th>recomputed_steps</th></tr></thead><tbody><tr><th scope='row'>削除なし</th><td>1</td><td>1</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>記録削除</th><td>1</td><td>1</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>忘却指示</th><td>0</td><td>1</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>元入力の除去</th><td>1</td><td>1</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>全文字列の除去</th><td>0</td><td>0</td><td>B</td><td>1</td><td>0</td><td>78</td><td>False</td><td>0</td></tr><tr><th scope='row'>全再実行</th><td>0</td><td>0</td><td>A</td><td>0</td><td>0</td><td>78</td><td>True</td><td>12</td></tr><tr><th scope='row'>選択的再実行</th><td>0</td><td>0</td><td>A</td><td>0</td><td>0</td><td>78</td><td>True</td><td>8</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成状態機械。KVは辞書の履歴でありTransformerではない。再計算は状態遷移回数だけを数え、token数・時間を測らない。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;T=12, τ=8, checkpoint=7&quot;,
+      &quot;dataset&quot;: &quot;決定的な状態機械&quot;,
+      &quot;metrics&quot;: {
+        &quot;削除なし&quot;: {
+          &quot;task_string_leak&quot;: 1,
+          &quot;leak_at_probes&quot;: 1,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;記録削除&quot;: {
+          &quot;task_string_leak&quot;: 1,
+          &quot;leak_at_probes&quot;: 1,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;忘却指示&quot;: {
+          &quot;task_string_leak&quot;: 0,
+          &quot;leak_at_probes&quot;: 1,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;元入力の除去&quot;: {
+          &quot;task_string_leak&quot;: 1,
+          &quot;leak_at_probes&quot;: 1,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;全文字列の除去&quot;: {
+          &quot;task_string_leak&quot;: 0,
+          &quot;leak_at_probes&quot;: 0,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;全再実行&quot;: {
+          &quot;task_string_leak&quot;: 0,
+          &quot;leak_at_probes&quot;: 0,
+          &quot;behavioral_choice&quot;: &quot;A&quot;,
+          &quot;behavioral_mismatch&quot;: 0,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: true,
+          &quot;recomputed_steps&quot;: 12
+        },
+        &quot;選択的再実行&quot;: {
+          &quot;task_string_leak&quot;: 0,
+          &quot;leak_at_probes&quot;: 0,
+          &quot;behavioral_choice&quot;: &quot;A&quot;,
+          &quot;behavioral_mismatch&quot;: 0,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: true,
+          &quot;recomputed_steps&quot;: 5
+        }
+      }
+    },
+    {
+      &quot;name&quot;: &quot;T=12, τ=1, checkpoint=0&quot;,
+      &quot;dataset&quot;: &quot;決定的な状態機械&quot;,
+      &quot;metrics&quot;: {
+        &quot;削除なし&quot;: {
+          &quot;task_string_leak&quot;: 1,
+          &quot;leak_at_probes&quot;: 1,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;記録削除&quot;: {
+          &quot;task_string_leak&quot;: 1,
+          &quot;leak_at_probes&quot;: 1,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;忘却指示&quot;: {
+          &quot;task_string_leak&quot;: 0,
+          &quot;leak_at_probes&quot;: 1,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;元入力の除去&quot;: {
+          &quot;task_string_leak&quot;: 1,
+          &quot;leak_at_probes&quot;: 1,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;全文字列の除去&quot;: {
+          &quot;task_string_leak&quot;: 0,
+          &quot;leak_at_probes&quot;: 0,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;全再実行&quot;: {
+          &quot;task_string_leak&quot;: 0,
+          &quot;leak_at_probes&quot;: 0,
+          &quot;behavioral_choice&quot;: &quot;A&quot;,
+          &quot;behavioral_mismatch&quot;: 0,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: true,
+          &quot;recomputed_steps&quot;: 12
+        },
+        &quot;選択的再実行&quot;: {
+          &quot;task_string_leak&quot;: 0,
+          &quot;leak_at_probes&quot;: 0,
+          &quot;behavioral_choice&quot;: &quot;A&quot;,
+          &quot;behavioral_mismatch&quot;: 0,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: true,
+          &quot;recomputed_steps&quot;: 12
+        }
+      }
+    },
+    {
+      &quot;name&quot;: &quot;T=12, τ=12, checkpoint=11&quot;,
+      &quot;dataset&quot;: &quot;決定的な状態機械&quot;,
+      &quot;metrics&quot;: {
+        &quot;削除なし&quot;: {
+          &quot;task_string_leak&quot;: 1,
+          &quot;leak_at_probes&quot;: 1,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;記録削除&quot;: {
+          &quot;task_string_leak&quot;: 1,
+          &quot;leak_at_probes&quot;: 1,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;忘却指示&quot;: {
+          &quot;task_string_leak&quot;: 0,
+          &quot;leak_at_probes&quot;: 1,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;元入力の除去&quot;: {
+          &quot;task_string_leak&quot;: 1,
+          &quot;leak_at_probes&quot;: 1,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;全文字列の除去&quot;: {
+          &quot;task_string_leak&quot;: 0,
+          &quot;leak_at_probes&quot;: 0,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;全再実行&quot;: {
+          &quot;task_string_leak&quot;: 0,
+          &quot;leak_at_probes&quot;: 0,
+          &quot;behavioral_choice&quot;: &quot;A&quot;,
+          &quot;behavioral_mismatch&quot;: 0,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: true,
+          &quot;recomputed_steps&quot;: 12
+        },
+        &quot;選択的再実行&quot;: {
+          &quot;task_string_leak&quot;: 0,
+          &quot;leak_at_probes&quot;: 0,
+          &quot;behavioral_choice&quot;: &quot;A&quot;,
+          &quot;behavioral_mismatch&quot;: 0,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: true,
+          &quot;recomputed_steps&quot;: 1
+        }
+      }
+    },
+    {
+      &quot;name&quot;: &quot;T=12, τ=8, checkpoint=4&quot;,
+      &quot;dataset&quot;: &quot;決定的な状態機械&quot;,
+      &quot;metrics&quot;: {
+        &quot;削除なし&quot;: {
+          &quot;task_string_leak&quot;: 1,
+          &quot;leak_at_probes&quot;: 1,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;記録削除&quot;: {
+          &quot;task_string_leak&quot;: 1,
+          &quot;leak_at_probes&quot;: 1,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;忘却指示&quot;: {
+          &quot;task_string_leak&quot;: 0,
+          &quot;leak_at_probes&quot;: 1,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;元入力の除去&quot;: {
+          &quot;task_string_leak&quot;: 1,
+          &quot;leak_at_probes&quot;: 1,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;全文字列の除去&quot;: {
+          &quot;task_string_leak&quot;: 0,
+          &quot;leak_at_probes&quot;: 0,
+          &quot;behavioral_choice&quot;: &quot;B&quot;,
+          &quot;behavioral_mismatch&quot;: 1,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: false,
+          &quot;recomputed_steps&quot;: 0
+        },
+        &quot;全再実行&quot;: {
+          &quot;task_string_leak&quot;: 0,
+          &quot;leak_at_probes&quot;: 0,
+          &quot;behavioral_choice&quot;: &quot;A&quot;,
+          &quot;behavioral_mismatch&quot;: 0,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: true,
+          &quot;recomputed_steps&quot;: 12
+        },
+        &quot;選択的再実行&quot;: {
+          &quot;task_string_leak&quot;: 0,
+          &quot;leak_at_probes&quot;: 0,
+          &quot;behavioral_choice&quot;: &quot;A&quot;,
+          &quot;behavioral_mismatch&quot;: 0,
+          &quot;behavioral_answer_string_leak&quot;: 0,
+          &quot;safe_total&quot;: 78,
+          &quot;same_runtime_as_reference&quot;: true,
+          &quot;recomputed_steps&quot;: 8
+        }
+      }
+    }
+  ],
+  &quot;cost_sweep&quot;: [
+    {
+      &quot;tau&quot;: 1,
+      &quot;full&quot;: 12,
+      &quot;selective&quot;: 12
+    },
+    {
+      &quot;tau&quot;: 2,
+      &quot;full&quot;: 12,
+      &quot;selective&quot;: 11
+    },
+    {
+      &quot;tau&quot;: 3,
+      &quot;full&quot;: 12,
+      &quot;selective&quot;: 10
+    },
+    {
+      &quot;tau&quot;: 4,
+      &quot;full&quot;: 12,
+      &quot;selective&quot;: 9
+    },
+    {
+      &quot;tau&quot;: 5,
+      &quot;full&quot;: 12,
+      &quot;selective&quot;: 8
+    },
+    {
+      &quot;tau&quot;: 6,
+      &quot;full&quot;: 12,
+      &quot;selective&quot;: 7
+    },
+    {
+      &quot;tau&quot;: 7,
+      &quot;full&quot;: 12,
+      &quot;selective&quot;: 6
+    },
+    {
+      &quot;tau&quot;: 8,
+      &quot;full&quot;: 12,
+      &quot;selective&quot;: 5
+    },
+    {
+      &quot;tau&quot;: 9,
+      &quot;full&quot;: 12,
+      &quot;selective&quot;: 4
+    },
+    {
+      &quot;tau&quot;: 10,
+      &quot;full&quot;: 12,
+      &quot;selective&quot;: 3
+    },
+    {
+      &quot;tau&quot;: 11,
+      &quot;full&quot;: 12,
+      &quot;selective&quot;: 2
+    },
+    {
+      &quot;tau&quot;: 12,
+      &quot;full&quot;: 12,
+      &quot;selective&quot;: 1
+    }
+  ],
+  &quot;probe_contract&quot;: &quot;task obeys silent; introspection reads symbolic kv; summary reads derived notes; choice reads avoid_a&quot;,
+  &quot;omissions&quot;: [
+    &quot;real LLM&quot;,
+    &quot;stochastic decoding&quot;,
+    &quot;provenance discovery&quot;,
+    &quot;external side effects&quot;,
+    &quot;token-level attribution&quot;
+  ]
+}</code></pre></details><p>通常のtask probeを抑える忘却指示でも、他probeと行動フラグは残った。全秘密文字列を除いた条件ではLeak@probesが0でも、行動はBのまま。選択的再実行は全再実行と状態全体が一致し、無関係な合計78を保持した。再計算は12回から5回へ減る。τ=1では12回、τ=12では1回。checkpointを4へ粗くすると8回になる。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。対象前のcheckpointからの再実行が、対象なしの全再実行と同じ辞書状態へ到達することを確認した。文字列probe、行動差分、有用な値、完全状態一致を別々に検査した。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。実際のattention KV、LLM生成、provenance抽出、確率分布の同値性、外部副作用、token単位の独立性判定は実装していない。スクリプト内の漏洩率は仮定した分岐の結果であり、論文の実測漏洩率を再現するものではない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>advanceが状態遷移F、sanitizeが秘密だけの除去、replayが後半の再計算、auditが監査を担当する。すべて標準ライブラリで実行し、入力やモデルへのAPI通信はない。流入点は観測のsecret fieldで既知とし、provenance graphの自動発見は省く。実行中の外部作用もないためA2/A3を構成上満たす。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>論点</th>
+<th>一次資料</th>
+<th>Labの対応</th>
+<th>省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>反実仮想の状態</td>
+<td><a href="https://arxiv.org/html/2609.04875">Definition 1・式(1)</a></td>
+<td>advance・audit・数式図</td>
+<td>実LLM・確率的生成</td>
+</tr>
+<tr>
+<td>cropと後半の再実行</td>
+<td><a href="https://arxiv.org/html/2609.04875">Algorithm 1</a></td>
+<td>replay・splice.svg</td>
+<td>KVは記号辞書。provenanceは既知</td>
+</tr>
+<tr>
+<td>複数probeと行動</td>
+<td><a href="https://arxiv.org/html/2609.04875">表2–3</a></td>
+<td>probes・audit・audit.svg</td>
+<td>probeは手書き。実攻撃の再現ではない</td>
+</tr>
+<tr>
+<td>最小費用</td>
+<td><a href="https://arxiv.org/html/2609.04875">Corollary 1</a></td>
+<td>experiment・cost_sweep</td>
+<td>token数・遅延は測定しない</td>
+</tr>
+</tbody>
+</table>
+<p>2026-09-07 UTCにarXiv v1のabs・HTMLを確認。公開公式コードの実体と行単位の照合は未確認。著者のoracleによる独立性ラベルが実運用でどの費用・精度で得られるかは検証できない。図はresearch_botによる教育用の再構成。</p>
+<p>関連：<a href="harness-bench.html">Harness-Bench</a>と<a href="scaffold-effects-gaia.html">GAIAのscaffold効果</a>が測る実行基盤の違いに、状態の取り消しという新しい評価軸を足す。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>記録を消した後も、エージェントの判断に影響は残るか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/execution-state-unlearning/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

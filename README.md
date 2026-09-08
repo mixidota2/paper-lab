@@ -1,6 +1,6 @@
 # Interactive Research Library
 
-一次資料を読み、仕組み・根拠・限界を日本語で説明する11件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
+一次資料を読み、仕組み・根拠・限界を日本語で説明する14件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
 
 公開先：https://mixidota2.github.io/paper-lab/
 
@@ -35,9 +35,13 @@ uv run python -m http.server --directory site 8000
 
 図と数式はHTMLで生成し、JSや数式CDNがなくても読めます。数式はUnicodeの添字・演算子と説明を使い、狭い画面では折り返します。行列だけは必要に応じて図の内部を横スクロールします。チャートは0起点の共通尺度と正確な数値を併記します。
 
-`interactives` は任意の配列です。既存の `flow` と `explorer` を必要な個数・順序で選べます。今回の11件では処理図の一律使用をやめ、4件だけに `explorer` を残しています。`explorer` は `title` と `caption` を持ち、`results.json` の計算済み全条件を表示します。JavaScriptは計算式を再実装せず、棒・系列・注記を更新します。キーボードで操作でき、JavaScript無効時にも初期値が残ります。
+`figures` には各Labの `figures/` に置いたSVGなどを指定できます。`path`、`title`、`caption` と任意の `after` を持ち、`after: method` なら手法の節の直後に図を表示します。挿入位置を指定しない参考図は末尾にまとめます。SVGには説明文とviewBoxを付け、拡大リンクも表示します。
+
+`interactives` は任意の配列です。既存の `flow` と `explorer` を必要な個数・順序で選べます。処理図の一律使用をやめ、4件だけに `explorer` を残しています。`explorer` は `title` と `caption` を持ち、`results.json` の計算済み全条件を表示します。JavaScriptは計算式を再実装せず、棒・系列・注記を更新します。キーボードで操作でき、JavaScript無効時にも初期値が残ります。
 
 `run.py` は各Labの入口、`papers/_toy_common.py` は11個の独立した小実験です。固定の勝敗表は使いません。ただし人工データ・仮定した費用・簡略な規則による説明であり、原論文のモデルを訓練したり性能を再現したりする実験ではありません。検証範囲は全LabでMechanism PARTIAL、Performance / Scaling / Production applicability NOT TESTEDです。
+
+2026-09-08追加分の `glide-spotify-sid`、`understanding-sids-isd`、`execution-state-unlearning` は、それぞれの `run.py` 単体で動きます。候補経路の比率と増分、SIDの枝刈りと順位融合、実行状態の再構成を扱います。結果はコードと同じフォルダーの `results.json` へ書き出します。
 
 ## ブラウザーと日本語の確認
 
