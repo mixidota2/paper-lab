@@ -1,0 +1,86 @@
+{
+  "note": "合成インターフェースの固定軌跡。勾配係数のみ計算し、方策は更新しない。未見スコア不変は設計上の対照であり、論文の帰無結果の再現ではない。",
+  "experiments": [
+    {
+      "name": "評価インターフェースを交換",
+      "metrics": {
+        "A": 0.625,
+        "B": 0.125,
+        "held_out": 0.0
+      }
+    },
+    {
+      "name": "非ゼロのadvantageを持つ軌跡",
+      "metrics": {
+        "Within": 4,
+        "Cross": 8
+      }
+    }
+  ],
+  "trajectories": [
+    {
+      "harness": "A",
+      "trace": "return 2",
+      "reward": 1,
+      "within": 0.0,
+      "cross": 0.774597
+    },
+    {
+      "harness": "A",
+      "trace": "return 2",
+      "reward": 1,
+      "within": 0.0,
+      "cross": 0.774597
+    },
+    {
+      "harness": "A",
+      "trace": "return 2",
+      "reward": 1,
+      "within": 0.0,
+      "cross": 0.774597
+    },
+    {
+      "harness": "A",
+      "trace": "return 2",
+      "reward": 1,
+      "within": 0.0,
+      "cross": 0.774597
+    },
+    {
+      "harness": "B",
+      "trace": "{\"answer\":2}",
+      "reward": 1,
+      "within": 1.732051,
+      "cross": 0.774597
+    },
+    {
+      "harness": "B",
+      "trace": "return 2",
+      "reward": 0,
+      "within": -0.57735,
+      "cross": -1.290994
+    },
+    {
+      "harness": "B",
+      "trace": "return 3",
+      "reward": 0,
+      "within": -0.57735,
+      "cross": -1.290994
+    },
+    {
+      "harness": "B",
+      "trace": "return 4",
+      "reward": 0,
+      "within": -0.57735,
+      "cross": -1.290994
+    }
+  ],
+  "held_out_before": 0.0,
+  "held_out_after_credit_only": 0.0,
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  }
+}

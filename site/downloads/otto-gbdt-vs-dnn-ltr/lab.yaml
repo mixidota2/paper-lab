@@ -1,0 +1,123 @@
+id: otto-gbdt-vs-dnn-ltr
+arxiv_id: '2507.20753'
+submitted: '2025-07-28'
+title: Industry Insights from Comparing Deep Learning and GBDT Models for E-Commerce Learning-to-Rank
+authors:
+- Yunus Lutz
+- Timo Wilm
+- Philipp Duwe
+year: 2025
+topics:
+- recommender-systems
+- retrieval
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2507.20753
+  arxiv: https://arxiv.org/abs/2507.20753
+  pdf: https://arxiv.org/pdf/2507.20753v1
+  official_code: null
+  doi: https://doi.org/10.1145/3705328.3748130
+verdict: Worth Reading
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads: []
+status: published
+question: 本番の木モデルを超えるために、ランキングを複雑にする必要はあるか
+summary: OTTOではTwo-Tower＋CEが本番LambdaMARTを上回った。8週間のA/Bでクリックは1.86%、売上は0.56%増え、販売点数は同水準だった。候補同士を比較するTransformerは、オフラインの注文指標で不利だった。
+source_review:
+  checked: '2026-09-09'
+  scope: 一次PDF本文・方法・結果・限界を確認。数値は著者報告と合成実験を区別。
+  pdf_sha256: 332a17c320df30bc1ddc309ab2bee81eb6ad5bb80f6f237959c45e762358aa18
+  url: https://arxiv.org/pdf/2507.20753v1
+core_idea:
+  author_claim: '著者は、本番運用向けに調整されたLightGBM LambdaMARTと3種類のDNNを比較した。Two-Tower＋Softmax CEはクリック順位と商品価値を改善し、注文順位を落とさなかったため、オンライン検証に選ばれた。
+
+
+    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2507.20753v1)'
+  research_bot_interpretation: この研究は「DNNに移行する価値があるか」には実務上の根拠を与える。ただしカテゴリ・テキストの埋め込みを含む構成全体の比較であり、同じ表現を入力したときの木とニューラルネットの優劣は切り分けていない。埋め込みを木にも与える比較を次に見たい。
+sections:
+  overview: OTTOではTwo-Tower＋CEが本番LambdaMARTを上回った。8週間のA/Bでクリックは1.86%、売上は0.56%増え、販売点数は同水準だった。候補同士を比較するTransformerは、オフラインの注文指標で不利だった。
+  problem: '検索リクエストごとに、上流の候補生成器が商品一覧を返す。その後に各商品を採点して並べ替えるのが、この論文のLTR（Learning-to-Rank）だ。候補生成をTwo-Tower検索へ置き換える研究ではない。
+
+
+    学習ラベルは表示された一覧へのクリックと注文で、どちらも複数の商品が正例になりうる。露出位置や既存rankerによって観測が偏るため、ログ上の順位指標だけで売上増加を断定できない。'
+  method: method.md
+  why_it_might_work: 商品と文脈を最後に内積で合わせるTTは、候補間の注意計算を必要としない。ランキングに必要な信号が各商品の特徴と文脈の適合度に十分含まれていれば、複雑な一覧相互作用の利点は小さくなる。この説明はresearch_botの仮説で、論文が相互作用の不要性を証明したわけではない。
+  evidence: '### 注文の順位を守ったTTがオンラインへ進んだ
+
+    時間順に分けた学習43M、テスト700kの検索ログを使う。すべての指標は15位までで、NDCG_clickとNDCG_orderは正例を上位に置けた度合い、AIV（Average Item Value）は商品価値を使った売上の代理指標だ（§6、表1）。
+
+
+    | CEモデル | NDCG_click | NDCG_order | AIV |
+
+    | --- | ---: | ---: | ---: |
+
+    | TT | +4.32% | 0.00% | +2.28% |
+
+    | CR | +4.32% | −0.30% | +2.28% |
+
+    | TR | +2.16% | −1.48% | +2.89% |
+
+
+    数値はLGBMに対する相対差。RNではTT/CR/TRの注文NDCGがそれぞれ−1.48%/−0.59%/−1.78%だった。AIVの上昇だけでは採用を決められない。
+
+
+    §6.2の8週間A/BはTT＋CEと本番LGBMの比較で、クリック+1.86%（t検定 p<0.0001）、売上+0.56%（p<0.01）、販売点数は同水準と報告する。CR/TRをオンラインで比較した結果ではない。信頼区間の正確な端点や割付規模は本文から確定できず、図から数値を推測して補っていない。
+
+
+    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2507.20753v1)'
+  executable_understanding: '8商品からなる合成検索一覧で、同じ2特徴・同じ線形スコア・同じ学習予算のままαを変える。クリックには「目を引く商品」と「注文する商品」を、注文には後者を正例として与える。学習160一覧とテスト240一覧は別seedで作り、NDCG@3を測る。
+
+
+    これは損失の重みを理解する実験で、TT・MLP・木の比較ではない。モデル比較も同時に小さく実装すると、特徴やチューニングの差が主題を隠すため、ここではαの効果に絞った。'
+  results: 合成テストの注文NDCG@3はα=0で0.980、α=1で0.600だった。クリックNDCGは0.752–0.767付近で、クリック損失を重くしてもこの順位指標が単調に上がるとは限らない。CEの最適化とNDCGの改善が同一ではないことにも注意したい。
+  what_we_verified: 合成条件ではαが大きくなると共有スコアの重みが変わり、注文順位の指標が影響を受ける。損失の係数を同じにするだけでは、両指標の維持を保証できない例を確認した。MechanismはPARTIAL。
+  what_we_did_not_verify: OTTOデータ、埋め込み学習、LambdaMART、配信費用、売上増加は未検証。αが実論文のTR不振の原因だったとは言えない。クリックと注文の人工的な競合の強さを変えるとtoyの曲線も変わる。導入判断には同じ特徴・候補・配信予算での比較と、自社A/Bが必要だ。
+  implementation: 'リポジトリのルートで `uv run papers/otto-gbdt-vs-dnn-ltr/run.py` を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの
+    `results.json` に保存する。
+
+
+    乱数を使う実験はseedを固定した。数値は論文の測定値と別に集計している。'
+  mapping: mapping.md
+figures:
+- path: figures/cascade.svg
+  title: Two-Towerを置くのは候補生成の後
+  caption: 原論文§4をもとに再構成。研究対象を緑の枠で示す。
+  after: problem
+- path: figures/architectures.svg
+  title: 特徴を結合する位置で比較する
+  caption: 原論文§4.1–6の教育用再図。TTの文脈側は商品側と同じ深いネットではなく線形層。
+  after: method
+teaching_figures:
+- kind: matrix
+  id: metric-map
+  title: オフラインの代理指標をオンラインで確かめる
+  after: evidence
+  caption: 左と右は関連するが同一の量ではない。相対差はTT＋CE対LGBM。
+  source: https://arxiv.org/pdf/2507.20753v1
+  locator: 表1、§6.2
+  rationale: 左と右は関連するが同一の量ではない。相対差はTT＋CE対LGBM。
+  columns:
+  - オフライン @15
+  - オンライン 8週間
+  rows:
+  - label: 反応
+    cells:
+    - NDCG_click +4.32%
+    - クリック数 +1.86%
+  - label: 注文
+    cells:
+    - NDCG_order 0.00%
+    - 販売点数は同水準
+  - label: 価値
+    cells:
+    - AIV +2.28%
+    - 売上 +0.56%
+interactives:
+- kind: explorer
+  title: αを動かして、注文順位への影響を見る
+  caption: 同じ特徴・同じモデルのまま、二つの教師信号の重みだけを変える。
+doi: 10.1145/3705328.3748130

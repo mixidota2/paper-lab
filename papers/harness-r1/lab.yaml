@@ -1,0 +1,116 @@
+id: harness-r1
+arxiv_id: '2608.02276'
+submitted: '2026-08-03'
+title: 'Harness-R1: Learning to Edit Executable Runtime Harnesses from Agent Failure Trajectories'
+authors:
+- Shuai Shao
+- Kangning Zhang
+- Qingyao Li
+- Shijian Wang
+- Hao Wang
+- Wenxiang Jiao
+- Yuan Lu
+- Yi Guo
+- Weiwen Liu
+- Weinan Zhang
+year: 2026
+topics:
+- ai-agent-systems
+- agent-architecture
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2608.02276
+  arxiv: https://arxiv.org/abs/2608.02276
+  pdf: https://arxiv.org/pdf/2608.02276v1
+  official_code: https://github.com/DeepExperience/Harness-R1
+verdict: Radar
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads: []
+status: published
+question: 失敗を見て実行環境を直す能力は、担当モデルに学習させられるか
+summary: Harness-R1は課題を解くtargetを固定し、その周囲の実行コードを直す9B engineerをSFT＋GRPOで学習する。3ベンチマークの平均成功率は44.3%から53.6%へ上昇。行動直前とfeedback後の介入が除去実験で大きく効いた。
+source_review:
+  checked: '2026-09-09'
+  scope: 一次PDF本文・方法・結果・限界を確認。数値は著者報告と合成実験を区別。
+  pdf_sha256: 606cdee79be0bf17313e811f920f364f3be1e729e50ce13f18f70b013e3552f3
+  url: https://arxiv.org/pdf/2608.02276v1
+core_idea:
+  author_claim: '著者は失敗trajectoryのbatchから実行可能なoverlayを生成し、同じ全課題を固定targetで再実行した改善をengineerの報酬にする。既存の編集器をpromptで使うだけでなく、編集方策の重みを実行結果で更新する点を提案する。
+
+
+    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2608.02276v1)'
+  research_bot_interpretation: Multi-Harness RLが課題を解く方策のcreditを変えるのに対し、こちらは修正を提案する方策を学習する。改善の所在が異なる。実行hookを通じてtargetの行動自体を変更できるため、「重みを固定した」は「同じ情報・操作条件で能力だけが上がった」と同義ではない。
+sections:
+  overview: Harness-R1は課題を解くtargetを固定し、その周囲の実行コードを直す9B engineerをSFT＋GRPOで学習する。3ベンチマークの平均成功率は44.3%から53.6%へ上昇。行動直前とfeedback後の介入が除去実験で大きく効いた。
+  problem: '入力が少し違うだけで止まる。たとえばLLMが正しい商品を選んでいても、toolが受け付けない引数形式を送り、戻ってきたエラーも読めなければ、同じ失敗を繰り返す。固定の自己反省promptを追加しても安定して改善するとは限らない。
+
+
+    そこでHarness-R1は、失敗記録を読む別モデルに、どこへ実行可能な修正を入れるかを学習させる。修正器を育てる研究だ。'
+  method: method.md
+  why_it_might_work: '行動前のvalidationは、モデルが誤る引数形式を環境へ渡す前に直す。feedback後には回復を試みる。この二つの処理が協調すれば、誤った操作の繰り返しを避けながら、次の判断に使う観測も読みやすい形へ戻せる。
+
+
+    promptを書き足すだけでは、操作が実行される瞬間の条件までは固定できない。どの介入が効くかは、失敗分布とtargetによる。'
+  evidence: '### 主表と介入位置の除去実験は、測定条件が異なる
+
+    表1はWebShop 500、ALFWorld 500、DBBench 300課題で成功率を評価し、3環境を等重みで平均する。default 44.3%、SFT-only engineer 46.4%、Harness-R1
+    53.6%。default比は+9.3 ppで、相対9.3%ではない。直接targetをSFTした場合も59.2%→64.2%となる。
+
+
+    図4bは固定patchの介入位置を一つずつ除く別の分析。full 53.1%、判断前なし52.5%、初期化なし52.2%、feedback後なし49.8%、行動直前なし49.2%、介入なし44.2%だった。ここに表1の53.6%を混ぜない。除去の差を足して総効果にすることもできない。
+
+
+    未見課題への図4aでは疎な失敗証拠からの平均改善+8.9 ppを報告する。これは主表のsame-batch目的とは別の根拠だ。Reflectionは2episodeのsuccess@2で、他のsuccess@1と単純順位比較できない。公式コードのURLは本文に明記されているが、このLabは大規模モデルを実行していない。
+
+
+    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2608.02276v1)'
+  executable_understanding: '固定スクリプトのtargetが商品lookupを行う。session未設定、alias、引数の大文字、入れ子feedbackという4故障を、別のルールベースengineerが失敗traceから見つけ、対応するhookを有効にする。修正後は最初から成功していた課題も再評価する。
+
+
+    証拠用20課題と、商品IDを変えた20課題を分ける。全hookと一箇所ずつ外した場合を比較する。実行処理は変わるがtarget関数は同じ。engineerの重み学習はなく、SFT/GRPOの再現とは呼ばない。'
+  results: 未見IDの20課題では、baseの成功率0.2が全hookで1.0になる。いずれか一つのhookを外すと0.8へ戻る。4故障型を同数で作ったため除去差は等しく、論文のpre-action優位を再現した数値ではない。
+  what_we_verified: 'targetは同じ関数のまま。周辺hookを変えると成否が変わり、故障に対応するhookを外すと改善が失われることを確認した。元の成功例への回帰も全batchで調べた。
+
+
+    確認した移植は未知の商品IDまでで、故障型は同じだ。'
+  what_we_did_not_verify: LLM、learned engineer、patchコードの自由生成、GRPO、未知の故障への汎化、本番適用性は未検証。toyの規則が識別できる故障だけを作っているため、100%成功しても現実の汎用修正能力を意味しない。自由なruntime編集を本番へ導入するなら、権限の範囲と回帰評価を別途検証する必要がある。
+  implementation: 'リポジトリのルートで `uv run papers/harness-r1/run.py` を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの `results.json`
+    に保存する。
+
+
+    乱数を使う実験はseedを固定した。数値は論文の測定値と別に集計している。'
+  mapping: mapping.md
+figures:
+- path: figures/engineer-target.svg
+  title: 課題を解く方策と、実行コードを直す方策を分ける
+  caption: 原論文図2・式1–4。WebShopはshaped rewardを使い、主結果では成功率を評価する。
+  after: method
+- path: figures/lifecycle.svg
+  title: prompt以外に、行動と観測にも介入する
+  caption: 原論文§3.1・付録Cの再図。hookはLLMの入力だけでなく、実際の操作や回復を変えられる。
+  after: method
+- path: figures/ablation.svg
+  title: 固定patchの介入位置を除去
+  caption: 原論文図4b。主表の53.6%とは別の固定patch分析。除去効果は加算できない。
+  after: evidence
+teaching_figures:
+- kind: equations
+  id: patch-reward
+  title: 失敗例だけを採点すると回帰を見逃す
+  after: method
+  caption: failure packetの入力は失敗のみだが、報酬を作る再実行は全課題。
+  source: https://arxiv.org/pdf/2608.02276v1
+  locator: 式1、Algorithm 1
+  rationale: failure packetの入力は失敗のみだが、報酬を作る再実行は全課題。
+  steps:
+  - name: 同じ全batchの差
+    formula: Δ_B(P) = meanᵢ∈B [Rᵢᴾ − Rᵢ⁰]
+    explanation: もともと成功していた課題を壊したpatchは減点される。
+  - name: engineerの群内比較
+    formula: A_k = (r_k − μ_B) / σ_B ; K=8
+    explanation: 同じpacketから作ったpatch同士を比較し、engineerだけを更新する。
+interactives: []

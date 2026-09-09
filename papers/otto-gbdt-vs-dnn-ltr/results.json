@@ -1,0 +1,148 @@
+{
+  "note": "合成データ。αで共有スコアの優先順位が変わる例。OTTOの性能、因果関係、モデル間優劣は未検証。",
+  "experiments": [
+    {
+      "name": "クリック損失の重みα",
+      "seed": [
+        19,
+        20
+      ],
+      "n": {
+        "train_queries": 160,
+        "test_queries": 240,
+        "items_per_query": 8
+      },
+      "metrics": {
+        "0": {
+          "NDCG_click@3": 0.767038,
+          "NDCG_order@3": 0.980009,
+          "weights": [
+            0.377655,
+            7.678537
+          ]
+        },
+        "0.25": {
+          "NDCG_click@3": 0.758673,
+          "NDCG_order@3": 0.9247,
+          "weights": [
+            0.834235,
+            4.428138
+          ]
+        },
+        "0.5": {
+          "NDCG_click@3": 0.761926,
+          "NDCG_order@3": 0.841611,
+          "weights": [
+            1.178915,
+            2.985007
+          ]
+        },
+        "0.75": {
+          "NDCG_click@3": 0.762502,
+          "NDCG_order@3": 0.723308,
+          "weights": [
+            1.550025,
+            2.212208
+          ]
+        },
+        "1": {
+          "NDCG_click@3": 0.751706,
+          "NDCG_order@3": 0.599897,
+          "weights": [
+            1.985611,
+            1.681083
+          ]
+        }
+      }
+    }
+  ],
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "explorer": {
+    "label": "クリック損失の重みα",
+    "unit": "",
+    "metric": "NDCG@3（合成テスト）",
+    "default": 0,
+    "frames": [
+      {
+        "value": 0.0,
+        "note": "合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。",
+        "bars": [
+          {
+            "label": "NDCG_click@3",
+            "value": 0.767038
+          },
+          {
+            "label": "NDCG_order@3",
+            "value": 0.980009
+          }
+        ],
+        "lines": []
+      },
+      {
+        "value": 0.25,
+        "note": "合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。",
+        "bars": [
+          {
+            "label": "NDCG_click@3",
+            "value": 0.758673
+          },
+          {
+            "label": "NDCG_order@3",
+            "value": 0.9247
+          }
+        ],
+        "lines": []
+      },
+      {
+        "value": 0.5,
+        "note": "合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。",
+        "bars": [
+          {
+            "label": "NDCG_click@3",
+            "value": 0.761926
+          },
+          {
+            "label": "NDCG_order@3",
+            "value": 0.841611
+          }
+        ],
+        "lines": []
+      },
+      {
+        "value": 0.75,
+        "note": "合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。",
+        "bars": [
+          {
+            "label": "NDCG_click@3",
+            "value": 0.762502
+          },
+          {
+            "label": "NDCG_order@3",
+            "value": 0.723308
+          }
+        ],
+        "lines": []
+      },
+      {
+        "value": 1.0,
+        "note": "合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。",
+        "bars": [
+          {
+            "label": "NDCG_click@3",
+            "value": 0.751706
+          },
+          {
+            "label": "NDCG_order@3",
+            "value": 0.599897
+          }
+        ],
+        "lines": []
+      }
+    ]
+  }
+}

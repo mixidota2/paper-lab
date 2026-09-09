@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="商品単位の重要度重みが不安定なとき、SIDの接頭辞ごとに確率を合算すれば、有効な標本が増える。精度改善の中心は粗粒度化で、木の固有の利点はdecoderから群の確率を安く取り出せることにある。">
+  <title>SIDの木は、ログで見えていない商品の評価をどこまで助けるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-08-28</span></div>
+    <h1>SIDの木は、ログで見えていない商品の評価をどこまで助けるか</h1>
+    <p class="lede">商品単位の重要度重みが不安定なとき、SIDの接頭辞ごとに確率を合算すれば、有効な標本が増える。精度改善の中心は粗粒度化で、木の固有の利点はdecoderから群の確率を安く取り出せることにある。</p>
+    <details class="bibliography"><summary>原論文：Off-Policy Evaluation for Semantic ID Recommenders: Does the Model&#39;s Own Code Hierarchy Help?</summary><p>Artem Betlei</p><p>2608.28905 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2608.28905">原典を読む ↗</a><a href="https://arxiv.org/pdf/2608.28905v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-09 · 一次PDF本文・方法・結果・限界を確認。数値は著者報告と合成実験を区別。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-bias-bound">粗くすると消えるのは群内の方策差</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>商品単位の重要度重みが不安定なとき、SIDの接頭辞ごとに確率を合算すれば、有効な標本が増える。精度改善の中心は粗粒度化で、木の固有の利点はdecoderから群の確率を安く取り出せることにある。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>既存方策π₀のログで候補方策πₑの報酬を推定するのがOPE（Off-Policy Evaluation）だ。商品aへの報酬rを <code>πₑ(a|x)/π₀(a|x)</code> 倍するIPSは、候補が好む商品を既存方策がほとんど出さないと不安定になる。ログ件数が大きくても、少数の巨大な重みが推定を支配する。</p>
+<p>対象は同じcatalogとSID tree上の方策変更。候補生成器の変更で新しい商品が行動集合に入る場合や、再tokenizeで木が変わる場合は対象外だ。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>接頭辞の長さで評価の解像度を変える</h3><a href="../figures/sid-ope-hierarchy/figures/sid-tree.svg" aria-label="接頭辞の長さで評価の解像度を変えるを拡大"><img src="../figures/sid-ope-hierarchy/figures/sid-tree.svg" alt="接頭辞の長さで評価の解像度を変える。原論文§2の再図。表示を簡潔にするため分岐を二つにした概念図で、論文のcodebook構成やtoyの64商品を描いたものではない。" loading="lazy"></a><figcaption>原論文§2の再図。表示を簡潔にするため分岐を二つにした概念図で、論文のcodebook構成やtoyの64商品を描いたものではない。 <a href="../figures/sid-ope-hierarchy/figures/sid-tree.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者はSIDのprefixをOPEの行動抽象化に使い、supportの回復と誤差低下を示す。同じ群数のflat clusteringでも精度差は有意でなく、階層の利点を確率取得の実行可能性と解像度の選択に位置付ける。</p>
+<p><a href="https://arxiv.org/pdf/2608.28905v1">一次資料：arXiv v1 本文</a></p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>SIDを「商品を生成する符号」から「評価する粒度を選ぶ仕組み」へ読み替える点が有用だ。ただし群の中で何を出すかを変えた差は粗粒度の評価から消える。新tokenizerや新しい候補集合まで比較できる万能のOPEではない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>商品ではなく、同じ接頭辞に属する群を重み付けする</h3>
+<p>商品のSIDを <code>c(a)=(c₁,…,c_L)</code> とし、先頭ℓ tokenが一致する商品群をCとする。群の確率は <code>π(C|x)=Σ_{a∈C}π(a|x)</code>。cluster IPSは <code>V̂_ℓ = (1/M) Σᵢ [πₑ(Cᵢ|xᵢ)/π₀(Cᵢ|xᵢ)] rᵢ</code> を計算する。SNIPSはMで割る代わりに重みの総和で割る（§2）。</p>
+<p>clusterの出現確率は補正されるが、群内の商品分布はlogging側のまま残る。したがって群内で報酬が同じ、またはtargetとloggingの条件付き分布が同じなら、粗粒度化による偏りは生まれない。群内で高報酬商品へ大きく移す変更は、浅いprefixでは見落としやすい。</p>
+<h3>decoderの確率積がcatalog全件の加算を代わりに担う</h3>
+<p>自己回帰decoderでは <code>π(c₁:ℓ|x) = ∏_{t=1}^ℓ π(c_t|x,c_&lt;t)</code>。正規化された同じtree方策なら、この積は下の葉の確率和と一致する。必要なのはℓ段の条件付き確率で、flat clusteringで群内の商品確率を足す処理と異なる。beam searchや後段rerankingを含む配信なら、その実際の選択方策と確率が一致しているかを別途確かめたい。</p>
+<h3>小さい平均量子化誤差だけでは、バイアス上限は小さくならない</h3>
+<p>命題3.1はraw cluster IPSについて、既知の確率、群のpositivity、埋め込みを通じた報酬、Lipschitz連続性を仮定する。上限は <code>|Bias(V̂_ℓ)| ≤ 2 L_q δ_max,ℓ E[TV_in,ℓ]</code>。L_qは埋め込み距離に対する報酬変化の上限、δ_maxは最も悪く再構成された商品の残差、TV_inはtargetで重み付けした群内分布のずれだ。</p>
+<p>平均二乗残差εを使うには <code>δ_max ≤ κ√ε</code> というcodebook依存の追加条件が必要。平均だけ良くしても外れた商品の残差は残りうる。この上限はSNIPS全般の誤差保証ではなく、論文も仮定が近似的なので機構の説明として用いる（§3）。</p>
+<p><a href="https://arxiv.org/pdf/2608.28905v1">一次資料：arXiv v1 本文</a></p></div>      </section>
+      <figure class="paper-svg teaching"><h3>全商品を列挙せず、prefixの確率を読む</h3><a href="../figures/sid-ope-hierarchy/figures/decoder-mass.svg" aria-label="全商品を列挙せず、prefixの確率を読むを拡大"><img src="../figures/sid-ope-hierarchy/figures/decoder-mass.svg" alt="全商品を列挙せず、prefixの確率を読む。原論文§2。数値は説明用で論文の測定値ではない。run.pyは別の64商品分布で積と和の一致を検証する。" loading="lazy"></a><figcaption>原論文§2。数値は説明用で論文の測定値ではない。run.pyは別の64商品分布で積と和の一致を検証する。 <a href="../figures/sid-ope-hierarchy/figures/decoder-mass.svg">図を拡大 ↗</a></figcaption></figure>
+<figure class="teaching teaching--equations" id="figure-bias-bound" aria-labelledby="title-bias-bound">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-bias-bound">粗くすると消えるのは群内の方策差</h3>
+  <ol class="equation-steps"><li><strong>重要度重み</strong><div class="math-expression" tabindex="0" role="math" aria-label="wᵢ = πₑ(Cᵢ|xᵢ) / π₀(Cᵢ|xᵢ)">wᵢ = πₑ(Cᵢ|xᵢ) / π₀(Cᵢ|xᵢ)</div><p>群の出現率をtargetに合わせる。群内の商品選択はlogging側のまま。</p></li><li><strong>条件付きバイアス上限</strong><div class="math-expression" tabindex="0" role="math" aria-label="|Bias| ≤ 2 L_q δ_max,ℓ E[TV_in,ℓ]">|Bias| ≤ 2 L_q δ_max,ℓ E[TV_in,ℓ]</div><p>群内の報酬変動と群内方策差の両方が小さければ偏りも小さい。既知確率・positivity・埋め込み仮定が必要。</p></li></ol>
+  <figcaption>上限の対象はraw cluster IPS。平均量子化誤差だけでは上限を決められない。 <a href="https://arxiv.org/pdf/2608.28905v1">出典：命題3.1 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>接頭辞を短くすると、同じ群に属する商品の観測を共有できる。重要度重みのばらつきが減る一方、群内の好みの違いを捨てる。この交換条件を深さで操作できると、観測の薄い段階では粗く、十分なsupportが得られた段階では細かく比較する設計につながる。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>本番のsupport診断と、制御実験の精度を区別する</h3>
+<p>本番ログでは商品ESSが生の件数のおよそ0.003倍まで落ちる。候補確率が記録されたsliceでは、greedy targetに対する粗粒度化でESSが約1.8倍になる（§4.2–4.3、付録表5）。本番ログにはランダム露出のoracleがなく、ここから推定精度は直接検証できない。</p>
+<p>KuaiRandのランダム露出データを二分し、一方から方策、他方からreward生成とoracleを作る。7,339商品、M=5,000、200seedでSNIPSのRMSEは商品粒度0.155、階層粒度0.087だった。ただし主要表の深さはoracleを使う別validation seedで選ばれ、実装可能な選択器の成績と分ける必要がある（表1）。</p>
+<p>ログだけで深さを選ぶSLOPEをMIPSに適用した列は、M=5,000でRMSE 0.109。oracle選択SNIPSの0.086とは推定器も違う（表3）。flat k-meansとの同群数比較では木の精度優位は確認されない。候補選択の改善も主に群間の確率を動かす方策で見られ、群内だけを変える方策では利点が失われる（表2）。Amazonの追加実験は自己選択されたratingを使うため、独立な因果的検証とは扱わない。</p>
+<p><a href="https://arxiv.org/pdf/2608.28905v1">一次資料：arXiv v1 本文</a></p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>64商品を4分木へ並べ、各大群で先頭商品に97%の条件付きlogging確率を与える。targetは群の配分と群内の好みを変える。600件×250seedの同じログから、深さ0/1/2/3でIPSとSNIPSを計算する。深さ3は商品、深さ0は全商品を一つにまとめる対照だ。</p>
+<p>真の期待報酬を既知にし、RMSE、IPS分散、厳密な期待バイアス、ESS、観測された群の割合を保存する。ESSは <code>(Σw)²/Σw²</code>。prefix確率の積と葉の和の一致も数値で確かめる。</p></div><div class="downloads"><a href="../downloads/sid-ope-hierarchy/run.py" download>実行コード</a><a href="../downloads/sid-ope-hierarchy/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/sid-ope-hierarchy">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section class="interactive" id="interactive-1" data-interactive="explorer">
+        <p class="figure-badge">合成実験 · Mechanism PARTIAL</p><h2>観測を共有する粒度と誤差を比べる</h2><p>全て同じ合成ログを使用。深さをoracleで選んだ運用成績とは扱わない。</p>
+        <script type="application/json" data-config>{"caption": "\u5168\u3066\u540c\u3058\u5408\u6210\u30ed\u30b0\u3092\u4f7f\u7528\u3002\u6df1\u3055\u3092oracle\u3067\u9078\u3093\u3060\u904b\u7528\u6210\u7e3e\u3068\u306f\u6271\u308f\u306a\u3044\u3002", "kind": "explorer", "title": "\u89b3\u6e2c\u3092\u5171\u6709\u3059\u308b\u7c92\u5ea6\u3068\u8aa4\u5dee\u3092\u6bd4\u3079\u308b"}</script>
+<script type="application/json" data-results>{"default": 0, "frames": [{"bars": [{"label": "IPS RMSE", "value": 0.340282}, {"label": "SNIPS RMSE", "value": 0.340282}], "lines": [], "note": "\u7fa4\u6570 1\u3001\u5e73\u5747ESS 600.0\u3001raw IPS\u306e\u53b3\u5bc6\u30d0\u30a4\u30a2\u30b9 -0.33948\u3002\u6df1\u30553\u306f\u5546\u54c1\u7c92\u5ea6\u3002", "value": 0}, {"bars": [{"label": "IPS RMSE", "value": 0.112125}, {"label": "SNIPS RMSE", "value": 0.102144}], "lines": [], "note": "\u7fa4\u6570 4\u3001\u5e73\u5747ESS 151.423\u3001raw IPS\u306e\u53b3\u5bc6\u30d0\u30a4\u30a2\u30b9 -0.09248\u3002\u6df1\u30553\u306f\u5546\u54c1\u7c92\u5ea6\u3002", "value": 1}, {"bars": [{"label": "IPS RMSE", "value": 0.487769}, {"label": "SNIPS RMSE", "value": 0.242586}], "lines": [], "note": "\u7fa4\u6570 16\u3001\u5e73\u5747ESS 6.94\u3001raw IPS\u306e\u53b3\u5bc6\u30d0\u30a4\u30a2\u30b9 -0.00815\u3002\u6df1\u30553\u306f\u5546\u54c1\u7c92\u5ea6\u3002", "value": 2}, {"bars": [{"label": "IPS RMSE", "value": 0.833368}, {"label": "SNIPS RMSE", "value": 0.28006}], "lines": [], "note": "\u7fa4\u6570 64\u3001\u5e73\u5747ESS 5.519\u3001raw IPS\u306e\u53b3\u5bc6\u30d0\u30a4\u30a2\u30b9 0.0\u3002\u6df1\u30553\u306f\u5546\u54c1\u7c92\u5ea6\u3002", "value": 3}], "label": "\u63a5\u982d\u8f9e\u306e\u6df1\u3055", "metric": "RMSE\uff08\u5c0f\u3055\u3044\u307b\u3069\u3088\u3044\uff09", "unit": ""}</script>        <div data-mount></div><div data-fallback>
+<p>接頭辞の深さ：0</p><ul><li>IPS RMSE：0.340282</li><li>SNIPS RMSE：0.340282</li></ul><p>群数 1、平均ESS 600.0、raw IPSの厳密バイアス -0.33948。深さ3は商品粒度。</p>        </div><p class="source-note">数値の出所：このLabの results.json。論文の測定値ではありません。</p>
+      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>64商品・既知確率の合成実験。深さ0は全商品を一群にまとめる対照、深さ3は商品IPS。実データのSID学習・深さ選択・本番性能は未検証。</em></p>
+<h3>粒度ごとの誤差と有効標本数</h3>
+<ul><li><strong>n</strong>: {'items': 64, 'logs_per_seed': 600, 'seeds': 250}</li><li><strong>seed</strong>: 0..249</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>clusters</th><th>IPS_RMSE</th><th>SNIPS_RMSE</th><th>IPS_variance</th><th>exact_IPS_bias</th><th>mean_ESS</th><th>observed_cluster_fraction</th></tr></thead><tbody><tr><th scope='row'>depth_0</th><td>1</td><td>0.340282</td><td>0.340282</td><td>0.000342</td><td>-0.33948</td><td>600.0</td><td>1.0</td></tr><tr><th scope='row'>depth_1</th><td>4</td><td>0.112125</td><td>0.102144</td><td>0.004101</td><td>-0.09248</td><td>151.423</td><td>1.0</td></tr><tr><th scope='row'>depth_2</th><td>16</td><td>0.487769</td><td>0.242586</td><td>0.232793</td><td>-0.00815</td><td>6.94</td><td>0.68175</td></tr><tr><th scope='row'>depth_3</th><td>64</td><td>0.833368</td><td>0.28006</td><td>0.689836</td><td>0.0</td><td>5.519</td><td>0.288438</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;64商品・既知確率の合成実験。深さ0は全商品を一群にまとめる対照、深さ3は商品IPS。実データのSID学習・深さ選択・本番性能は未検証。&quot;,
+  &quot;oracle_value&quot;: 0.5944,
+  &quot;decoder_mass_max_error&quot;: 0.0,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;粒度ごとの誤差と有効標本数&quot;,
+      &quot;seed&quot;: &quot;0..249&quot;,
+      &quot;n&quot;: {
+        &quot;items&quot;: 64,
+        &quot;logs_per_seed&quot;: 600,
+        &quot;seeds&quot;: 250
+      },
+      &quot;metrics&quot;: {
+        &quot;depth_0&quot;: {
+          &quot;clusters&quot;: 1,
+          &quot;IPS_RMSE&quot;: 0.340282,
+          &quot;SNIPS_RMSE&quot;: 0.340282,
+          &quot;IPS_variance&quot;: 0.000342,
+          &quot;exact_IPS_bias&quot;: -0.33948,
+          &quot;mean_ESS&quot;: 600.0,
+          &quot;observed_cluster_fraction&quot;: 1.0
+        },
+        &quot;depth_1&quot;: {
+          &quot;clusters&quot;: 4,
+          &quot;IPS_RMSE&quot;: 0.112125,
+          &quot;SNIPS_RMSE&quot;: 0.102144,
+          &quot;IPS_variance&quot;: 0.004101,
+          &quot;exact_IPS_bias&quot;: -0.09248,
+          &quot;mean_ESS&quot;: 151.423,
+          &quot;observed_cluster_fraction&quot;: 1.0
+        },
+        &quot;depth_2&quot;: {
+          &quot;clusters&quot;: 16,
+          &quot;IPS_RMSE&quot;: 0.487769,
+          &quot;SNIPS_RMSE&quot;: 0.242586,
+          &quot;IPS_variance&quot;: 0.232793,
+          &quot;exact_IPS_bias&quot;: -0.00815,
+          &quot;mean_ESS&quot;: 6.94,
+          &quot;observed_cluster_fraction&quot;: 0.68175
+        },
+        &quot;depth_3&quot;: {
+          &quot;clusters&quot;: 64,
+          &quot;IPS_RMSE&quot;: 0.833368,
+          &quot;SNIPS_RMSE&quot;: 0.28006,
+          &quot;IPS_variance&quot;: 0.689836,
+          &quot;exact_IPS_bias&quot;: 0.0,
+          &quot;mean_ESS&quot;: 5.519,
+          &quot;observed_cluster_fraction&quot;: 0.288438
+        }
+      }
+    }
+  ],
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;explorer&quot;: {
+    &quot;label&quot;: &quot;接頭辞の深さ&quot;,
+    &quot;unit&quot;: &quot;&quot;,
+    &quot;metric&quot;: &quot;RMSE（小さいほどよい）&quot;,
+    &quot;default&quot;: 0,
+    &quot;frames&quot;: [
+      {
+        &quot;value&quot;: 0,
+        &quot;note&quot;: &quot;群数 1、平均ESS 600.0、raw IPSの厳密バイアス -0.33948。深さ3は商品粒度。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;IPS RMSE&quot;,
+            &quot;value&quot;: 0.340282
+          },
+          {
+            &quot;label&quot;: &quot;SNIPS RMSE&quot;,
+            &quot;value&quot;: 0.340282
+          }
+        ],
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 1,
+        &quot;note&quot;: &quot;群数 4、平均ESS 151.423、raw IPSの厳密バイアス -0.09248。深さ3は商品粒度。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;IPS RMSE&quot;,
+            &quot;value&quot;: 0.112125
+          },
+          {
+            &quot;label&quot;: &quot;SNIPS RMSE&quot;,
+            &quot;value&quot;: 0.102144
+          }
+        ],
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 2,
+        &quot;note&quot;: &quot;群数 16、平均ESS 6.94、raw IPSの厳密バイアス -0.00815。深さ3は商品粒度。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;IPS RMSE&quot;,
+            &quot;value&quot;: 0.487769
+          },
+          {
+            &quot;label&quot;: &quot;SNIPS RMSE&quot;,
+            &quot;value&quot;: 0.242586
+          }
+        ],
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 3,
+        &quot;note&quot;: &quot;群数 64、平均ESS 5.519、raw IPSの厳密バイアス 0.0。深さ3は商品粒度。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;IPS RMSE&quot;,
+            &quot;value&quot;: 0.833368
+          },
+          {
+            &quot;label&quot;: &quot;SNIPS RMSE&quot;,
+            &quot;value&quot;: 0.28006
+          }
+        ],
+        &quot;lines&quot;: []
+      }
+    ]
+  }
+}</code></pre></details><p>商品粒度の平均ESSは5.519件、深さ1の4群では151.423件だった。SNIPSのRMSEは0.280から0.102へ下がる。一方、全体を1群にするとESSは600でもRMSEは0.340に悪化する。標本を共有し過ぎると、群内に埋もれた方策差を見落とす。これらはすべて合成実験の値。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>合成ログの平均ESS</h3><a href="../figures/sid-ope-hierarchy/figures/ess.svg" aria-label="合成ログの平均ESSを拡大"><img src="../figures/sid-ope-hierarchy/figures/ess.svg" alt="合成ログの平均ESS。results.json。各seedの600ログに対する重み由来のESS。生の件数と、有効な標本数は違う。" loading="lazy"></a><figcaption>results.json。各seedの600ログに対する重み由来のESS。生の件数と、有効な標本数は違う。 <a href="../figures/sid-ope-hierarchy/figures/ess.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>粗粒度化で重みが安定する一方、浅すぎる群では方策の違いが消えてバイアスが残る。既知のtoy分布に対する期待バイアスと、有限ログからのRMSEを別々に計算した。decoder massの一致は、この正規化treeで確認した。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>SID学習、埋め込みのLipschitz性、SLOPE、OffCEM、本番loggerの確率復元は未検証。toyでは全商品の確率が正で既知だ。ゼロsupportを持つ商品を観測なしに識別できるわけではない。深さは一つ選ばず全列を示し、oracleを見て選んだ値を運用成績と呼ばない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>リポジトリのルートで <code>uv run papers/sid-ope-hierarchy/run.py</code> を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの <code>results.json</code> に保存する。</p>
+<p>乱数を使う実験はseedを固定した。数値は論文の測定値と別に集計している。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>論文</th>
+<th>このLab</th>
+<th>省略・公式コード</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§2 cluster IPS/SNIPS</td>
+<td><code>cluster_masses</code>、<code>experiment</code></td>
+<td>contextなしのcatalog bandit</td>
+</tr>
+<tr>
+<td>prefix積の一致</td>
+<td><code>decoder_prefix</code></td>
+<td>本物のdecoderは学習せず、葉確率から条件付き確率を構成</td>
+</tr>
+<tr>
+<td>命題3.1</td>
+<td>方法節、exact_IPS_bias</td>
+<td>Lipschitz定数の推定や上限実証はしない</td>
+</tr>
+<tr>
+<td>§4 評価</td>
+<td>seed別RMSE/ESS</td>
+<td>論文データ・公式repo URLは未取得</td>
+</tr>
+</tbody>
+</table>
+<p>一次資料は <a href="https://arxiv.org/pdf/2608.28905v1">arXiv v1 PDF</a>。公式実装の実行は行っていない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>SIDの木は、ログで見えていない商品の評価をどこまで助けるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/sid-ope-hierarchy/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

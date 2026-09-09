@@ -1,0 +1,66 @@
+{
+  "note": "固定ルールの修正器と固定スクリプトのtarget。未見IDでも同じ故障型を使う。学習済み修正能力や新しい故障への汎化は未検証。",
+  "patch_hooks": [
+    "episode_init",
+    "post_feedback",
+    "pre_action",
+    "pre_decision"
+  ],
+  "experiments": [
+    {
+      "name": "未見の商品IDでhookを一つずつ外す",
+      "n": {
+        "evidence": 20,
+        "held_out": 20
+      },
+      "metrics": {
+        "base": 0.2,
+        "full": 1.0,
+        "without_episode_init": 0.8,
+        "without_pre_decision": 0.8,
+        "without_pre_action": 0.8,
+        "without_post_feedback": 0.8
+      }
+    }
+  ],
+  "failure_example": [
+    {
+      "step": 0,
+      "action": {
+        "tool": "lookup",
+        "key": "item1"
+      },
+      "response": {
+        "error": "session_missing"
+      }
+    },
+    {
+      "step": 1,
+      "action": {
+        "tool": "lookup",
+        "key": "item1"
+      },
+      "response": {
+        "error": "session_missing"
+      }
+    },
+    {
+      "step": 2,
+      "action": {
+        "tool": "lookup",
+        "key": "item1"
+      },
+      "response": {
+        "error": "session_missing"
+      }
+    }
+  ],
+  "full_batch_before": 0.2,
+  "full_batch_after": 1.0,
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  }
+}

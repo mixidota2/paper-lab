@@ -1,0 +1,2160 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AutoLRは推薦改善の調査からオフライン候補の提出までを自動化する。オンラインA/Bへの投入とLaunch Reviewは人が判断する。採択した測定値とコードを次の基準にするKEEPには、ノイズを進歩として固定する危険がある。">
+  <title>実験を自動で続ける仕組みは、誤った改善まで積み上げないか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-04</span></div>
+    <h1>実験を自動で続ける仕組みは、誤った改善まで積み上げないか</h1>
+    <p class="lede">AutoLRは推薦改善の調査からオフライン候補の提出までを自動化する。オンラインA/Bへの投入とLaunch Reviewは人が判断する。採択した測定値とコードを次の基準にするKEEPには、ノイズを進歩として固定する危険がある。</p>
+    <details class="bibliography"><summary>原論文：AutoLR: Automating the Path from Research to Launch Review in Industrial Recommender Systems</summary><p>Qi Zhang, Yanlin Chen, Wenchao Xiao</p><p>2609.04871 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.04871">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.04871v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-09 · 一次PDF本文・方法・結果・限界を確認。数値は著者報告と合成実験を区別。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-council-selector">案の審議と試行予算の選択を分ける</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>AutoLRは推薦改善の調査からオフライン候補の提出までを自動化する。オンラインA/Bへの投入とLaunch Reviewは人が判断する。採択した測定値とコードを次の基準にするKEEPには、ノイズを進歩として固定する危険がある。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>推薦モデルの改善は、論文を読むだけでもコードを書くだけでも完了しない。実装、訓練、ログ調査、オフライン評価を数日にわたってつなぎ、次の実験が使う基準を管理する必要がある。AutoLRが扱うのは、この長い開発過程だ。利用者へ直接推薦するLLMではない。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>自律化はオフライン候補の提出まで</h3><a href="../figures/autolr-dashen/figures/authority.svg" aria-label="自律化はオフライン候補の提出までを拡大"><img src="../figures/autolr-dashen/figures/authority.svg" alt="自律化はオフライン候補の提出まで。原論文図2・§3.1。Launch Reviewを自動で通過させるシステムではない。" loading="lazy"></a><figcaption>原論文図2・§3.1。Launch Reviewを自動で通過させるシステムではない。 <a href="../figures/autolr-dashen/figures/authority.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者はDASHENの2推薦場面で1,586件の完了評価を監査し、9件の本番Launch Reviewを報告した。専門家Council、証拠に基づく決定的な候補選択、層に分けた知識を組み合わせる一方、KEEPによる非再現的な改善の累積を問題として特定した。</p>
+<p><a href="https://arxiv.org/pdf/2609.04871v1">一次資料：arXiv v1 本文</a></p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>価値は「多数のエージェント」より、提案と確定操作の権限を分け、過去の失敗を次の選択へ戻す設計にある。ただしCouncilやselectorの単独効果を同じ予算の対照実験で示した研究ではない。自動化の成功と、採択規則の妥当性は別々に監査したい。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>Councilは案を出し、controllerが状態を確定する</h3>
+<p>専門家は同じ凍結briefingを読み、互いの初稿を見ずに提案する。役割は構造、特徴相互作用、系列、多タスク、損失、業務知識、実装可能性など。roundtableで案を整理し、adversarial reviewで前提や実装リスクを反証し、Coordinatorが仮説・変更可能なfile:symbol・検証方法・保護指標を持つ候補へまとめる（§3.2）。</p>
+<p>controllerは適格候補から多様性を保った有限windowを作り、その中をCouncilに順位付けさせる。window外の候補は選べない。過去の成功、期待改善、新規性、実現可能性、安定性、確信度、リスクを使うmemory gateを訓練前に通す。成功率の特徴量は <code>p̂ = (n_success+1)/(n_attempt+2)</code>。Beta(1,1)の疑似件数を使うが、posteriorからサンプルするThompson samplingではない（§3.3）。</p>
+<p>知識は外部研究、稼働中システムの事実、DASHENの業務知識に分ける。試行後の設定・patch・ログ・失敗・指標は実験memoryへ蓄積する。役割ごとに必要な情報を取り出し、全記録を毎回文脈へ詰め込まない。</p>
+<h3>KEEPだけが次の実験のtrunkを変える</h3>
+<p>現在のコードをT、候補patchをπとすると、<code>T_next = T ⊕ π</code> になるのはKEEP時だけ。PACKは候補と系譜を保持し、DISCARDは棄却する。保護指標を通り、オフライン差分Δsが閾値τ_keep以上ならKEEP_E1となる。E1は1回の測定で閾値を越えた意味で、確認済み効果ではない（式6–7）。</p>
+<p>任意の分散調整は <code>τ_impl = max(τ_keep, λσ̂)</code> だが、監査対象ではノイズ校正が無効で、互換のある反復評価profileも保持されていなかった。profile不足で昇格を止めるCALIBRATION_REQUIREDは著者が提案する将来の防止策で、稼働していた状態ではない（式8、§6.1）。</p>
+<p><a href="https://arxiv.org/pdf/2609.04871v1">一次資料：arXiv v1 本文</a></p></div>      </section>
+      <figure class="paper-svg teaching"><h3>測定値だけでなく、実験の出発点も変わる</h3><a href="../figures/autolr-dashen/figures/keep-ratchet.svg" aria-label="測定値だけでなく、実験の出発点も変わるを拡大"><img src="../figures/autolr-dashen/figures/keep-ratchet.svg" alt="測定値だけでなく、実験の出発点も変わる。原論文式6–8・§6.1の再構成。CALIBRATION_REQUIREDは提案であり、監査対象の稼働状態ではない。" loading="lazy"></a><figcaption>原論文式6–8・§6.1の再構成。CALIBRATION_REQUIREDは提案であり、監査対象の稼働状態ではない。 <a href="../figures/autolr-dashen/figures/keep-ratchet.svg">図を拡大 ↗</a></figcaption></figure>
+<figure class="teaching teaching--logic" id="figure-council-selector" aria-labelledby="title-council-selector">
+  <div class="figure-heading"><span class="eyebrow">LOGIC</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-council-selector">案の審議と試行予算の選択を分ける</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">Council</p><div class="diagram-nodes"><div class="diagram-node"><strong>独立案 → 統合</strong><p>同じbriefingで初稿を独立に作り、似た案を整理する。</p></div><div class="diagram-node"><strong>反証 → Coordinator</strong><p>リスクや前提を問い、変更面と検証条件を明記する。</p></div></div></div><div class="diagram-row"><p class="lane-label">Selector / controller</p><div class="diagram-nodes"><div class="diagram-node"><strong>有限window</strong><p>適格性、多様性、方向別capで候補を限定する。</p></div><div class="diagram-node"><strong>順位付け＋memory gate</strong><p>Councilの順位は助言。訓練開始前に履歴由来の証拠と制約を検証する。</p></div></div></div><div class="diagram-row"><p class="lane-label">記憶</p><div class="diagram-nodes"><div class="diagram-node"><strong>比較的安定な知識</strong><p>外部研究・本番システム・DASHEN業務知識。</p></div><div class="diagram-node"><strong>試行で変わる証拠</strong><p>設定・patch・ログ・失敗・offline/online結果。</p></div></div></div></div>
+  <figcaption>提案の質を議論する役割と、実行可能な候補集合を確定する役割を区別する。 <a href="https://arxiv.org/pdf/2609.04871v1">出典：§3.2–3.4、図3–6 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>有限の候補windowと機械的な検証は、モデルの提案を実行可能な範囲へ制限する。過去の失敗を残せば同じ無効案への再投資も減らせそうだ。一方、採択されたノイズがmemoryへ成功例として戻ると、次の提案まで偏る。記録を増やすだけでは信頼性は上がらず、どの証拠でtrunkを変えるかが要になる。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>本番の記録はあるが、効果を一つに合算できない</h3>
+<p>単列／2列feedと没入型video feedの記録を、実験pathの重複を除いて1,586件に整理した。9件のLaunch Reviewの相対liftを算術的に足すと、消費浸透率+5.75%、消費時間+10.83%、有効閲覧数VV+5.55%になる（§5、表1）。異なる施策・母集団の記述的な和であり、利用者全体への処置効果でも、複利の増加率でもない。</p>
+<p>通常iterationのAPI費はRMB 3–4と報告する。Claude Opus級からDeepSeek-V4-Pro/Flashの混成へ移行した後の観測で、2026年8月17日より前のAPI価格に基づく。モデル訓練計算と社内基盤費は含めない。harnessやloopも同時に変わっており、モデル変更だけの節約効果は識別できない。</p>
+<p>KEEP監査では過去の閾値情報が揃わず、10⁻³を共通の参照値として再評価した。これは各実験で実際に使われた閾値の復元ではない。欠けたguardrail payloadも「違反なし」と補完しない（§5.3、表2）。</p>
+<p><a href="https://arxiv.org/pdf/2609.04871v1">一次資料：arXiv v1 本文</a></p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>真の改善がゼロの候補を100回提案する。1回のノイズ付き差分が0.001を越えたら採択し、その差分を累積してtrunk IDを更新する規則と、独立25回の確認評価を追加する規則を比べる。200seedで同じノイズ列を両規則に渡す。</p>
+<p>追加gateはLabの例で、AutoLRの稼働実装ではない。表示するのは採択差分の和であり、同じ評価集合で直接測ったAUCの推移とは区別する。</p></div><div class="downloads"><a href="../downloads/autolr-dashen/run.py" download>実行コード</a><a href="../downloads/autolr-dashen/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/autolr-dashen">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>真の改善は全候補でゼロ。採択差分の和が増える失敗例。論文のAUCや実装済み防止策の性能を再現していない。</em></p>
+<h3>同じ候補ノイズ列でKEEP規則だけを比較</h3>
+<ul><li><strong>n</strong>: {'runs': 200, 'rounds': 100, 'repeats': 25}</li><li><strong>seed</strong>: 0..199</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>mean_keeps</th><th>mean_reported_gain</th><th>true_gain</th><th>runs_with_false_keep</th></tr></thead><tbody><tr><th scope='row'>one_run_keep</th><td>46.685</td><td>0.395542</td><td>0</td><td>200</td></tr><tr><th scope='row'>repeat_evidence_gate</th><td>0.04</td><td>0.000253</td><td>0</td><td>8</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;真の改善は全候補でゼロ。採択差分の和が増える失敗例。論文のAUCや実装済み防止策の性能を再現していない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;同じ候補ノイズ列でKEEP規則だけを比較&quot;,
+      &quot;seed&quot;: &quot;0..199&quot;,
+      &quot;n&quot;: {
+        &quot;runs&quot;: 200,
+        &quot;rounds&quot;: 100,
+        &quot;repeats&quot;: 25
+      },
+      &quot;metrics&quot;: {
+        &quot;one_run_keep&quot;: {
+          &quot;mean_keeps&quot;: 46.685,
+          &quot;mean_reported_gain&quot;: 0.395542,
+          &quot;true_gain&quot;: 0,
+          &quot;runs_with_false_keep&quot;: 200
+        },
+        &quot;repeat_evidence_gate&quot;: {
+          &quot;mean_keeps&quot;: 0.04,
+          &quot;mean_reported_gain&quot;: 0.000253,
+          &quot;true_gain&quot;: 0,
+          &quot;runs_with_false_keep&quot;: 8
+        }
+      }
+    }
+  ],
+  &quot;paths&quot;: {
+    &quot;one_run_keep&quot;: [
+      {
+        &quot;round&quot;: 1,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.009408,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.007371
+      },
+      {
+        &quot;round&quot;: 2,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.014296,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.000461
+      },
+      {
+        &quot;round&quot;: 3,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.022522,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.000656
+      },
+      {
+        &quot;round&quot;: 4,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.004209,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.010489
+      },
+      {
+        &quot;round&quot;: 5,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 5,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.003079,
+        &quot;reported_cumulative_gain&quot;: 0.003079,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.010903
+      },
+      {
+        &quot;round&quot;: 6,
+        &quot;parent&quot;: 5,
+        &quot;trunk&quot;: 6,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.006596,
+        &quot;reported_cumulative_gain&quot;: 0.009675,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.00398
+      },
+      {
+        &quot;round&quot;: 7,
+        &quot;parent&quot;: 6,
+        &quot;trunk&quot;: 6,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.024041,
+        &quot;reported_cumulative_gain&quot;: 0.009675,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.002205
+      },
+      {
+        &quot;round&quot;: 8,
+        &quot;parent&quot;: 6,
+        &quot;trunk&quot;: 8,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.018482,
+        &quot;reported_cumulative_gain&quot;: 0.028157,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.001624
+      },
+      {
+        &quot;round&quot;: 9,
+        &quot;parent&quot;: 8,
+        &quot;trunk&quot;: 9,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.007274,
+        &quot;reported_cumulative_gain&quot;: 0.035431,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.000152
+      },
+      {
+        &quot;round&quot;: 10,
+        &quot;parent&quot;: 9,
+        &quot;trunk&quot;: 10,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.019535,
+        &quot;reported_cumulative_gain&quot;: 0.054966,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.008293
+      },
+      {
+        &quot;round&quot;: 11,
+        &quot;parent&quot;: 10,
+        &quot;trunk&quot;: 10,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.00597,
+        &quot;reported_cumulative_gain&quot;: 0.054966,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.00455
+      },
+      {
+        &quot;round&quot;: 12,
+        &quot;parent&quot;: 10,
+        &quot;trunk&quot;: 10,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.000405,
+        &quot;reported_cumulative_gain&quot;: 0.054966,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.009569
+      },
+      {
+        &quot;round&quot;: 13,
+        &quot;parent&quot;: 10,
+        &quot;trunk&quot;: 13,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.015157,
+        &quot;reported_cumulative_gain&quot;: 0.070122,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.020783
+      },
+      {
+        &quot;round&quot;: 14,
+        &quot;parent&quot;: 13,
+        &quot;trunk&quot;: 13,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.005775,
+        &quot;reported_cumulative_gain&quot;: 0.070122,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.004522
+      },
+      {
+        &quot;round&quot;: 15,
+        &quot;parent&quot;: 13,
+        &quot;trunk&quot;: 13,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.014435,
+        &quot;reported_cumulative_gain&quot;: 0.070122,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.005603
+      },
+      {
+        &quot;round&quot;: 16,
+        &quot;parent&quot;: 13,
+        &quot;trunk&quot;: 13,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.021901,
+        &quot;reported_cumulative_gain&quot;: 0.070122,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.00113
+      },
+      {
+        &quot;round&quot;: 17,
+        &quot;parent&quot;: 13,
+        &quot;trunk&quot;: 13,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.00265,
+        &quot;reported_cumulative_gain&quot;: 0.070122,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.019322
+      },
+      {
+        &quot;round&quot;: 18,
+        &quot;parent&quot;: 13,
+        &quot;trunk&quot;: 13,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.001,
+        &quot;reported_cumulative_gain&quot;: 0.070122,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.001836
+      },
+      {
+        &quot;round&quot;: 19,
+        &quot;parent&quot;: 13,
+        &quot;trunk&quot;: 13,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.010701,
+        &quot;reported_cumulative_gain&quot;: 0.070122,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.010213
+      },
+      {
+        &quot;round&quot;: 20,
+        &quot;parent&quot;: 13,
+        &quot;trunk&quot;: 20,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.012998,
+        &quot;reported_cumulative_gain&quot;: 0.083121,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.011716
+      },
+      {
+        &quot;round&quot;: 21,
+        &quot;parent&quot;: 20,
+        &quot;trunk&quot;: 21,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.012195,
+        &quot;reported_cumulative_gain&quot;: 0.095316,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.021412
+      },
+      {
+        &quot;round&quot;: 22,
+        &quot;parent&quot;: 21,
+        &quot;trunk&quot;: 21,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.01373,
+        &quot;reported_cumulative_gain&quot;: 0.095316,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.002427
+      },
+      {
+        &quot;round&quot;: 23,
+        &quot;parent&quot;: 21,
+        &quot;trunk&quot;: 23,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.001122,
+        &quot;reported_cumulative_gain&quot;: 0.096438,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.017594
+      },
+      {
+        &quot;round&quot;: 24,
+        &quot;parent&quot;: 23,
+        &quot;trunk&quot;: 23,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.005235,
+        &quot;reported_cumulative_gain&quot;: 0.096438,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.005716
+      },
+      {
+        &quot;round&quot;: 25,
+        &quot;parent&quot;: 23,
+        &quot;trunk&quot;: 25,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.0118,
+        &quot;reported_cumulative_gain&quot;: 0.108238,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.013593
+      },
+      {
+        &quot;round&quot;: 26,
+        &quot;parent&quot;: 25,
+        &quot;trunk&quot;: 25,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.019804,
+        &quot;reported_cumulative_gain&quot;: 0.108238,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.002691
+      },
+      {
+        &quot;round&quot;: 27,
+        &quot;parent&quot;: 25,
+        &quot;trunk&quot;: 27,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.003106,
+        &quot;reported_cumulative_gain&quot;: 0.111344,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.001659
+      },
+      {
+        &quot;round&quot;: 28,
+        &quot;parent&quot;: 27,
+        &quot;trunk&quot;: 27,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.015179,
+        &quot;reported_cumulative_gain&quot;: 0.111344,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.012571
+      },
+      {
+        &quot;round&quot;: 29,
+        &quot;parent&quot;: 27,
+        &quot;trunk&quot;: 29,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.006875,
+        &quot;reported_cumulative_gain&quot;: 0.118219,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.000775
+      },
+      {
+        &quot;round&quot;: 30,
+        &quot;parent&quot;: 29,
+        &quot;trunk&quot;: 30,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.007869,
+        &quot;reported_cumulative_gain&quot;: 0.126088,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.000635
+      },
+      {
+        &quot;round&quot;: 31,
+        &quot;parent&quot;: 30,
+        &quot;trunk&quot;: 31,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.007078,
+        &quot;reported_cumulative_gain&quot;: 0.133166,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.001456
+      },
+      {
+        &quot;round&quot;: 32,
+        &quot;parent&quot;: 31,
+        &quot;trunk&quot;: 32,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.003185,
+        &quot;reported_cumulative_gain&quot;: 0.136351,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.002277
+      },
+      {
+        &quot;round&quot;: 33,
+        &quot;parent&quot;: 32,
+        &quot;trunk&quot;: 33,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.002664,
+        &quot;reported_cumulative_gain&quot;: 0.139016,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.005036
+      },
+      {
+        &quot;round&quot;: 34,
+        &quot;parent&quot;: 33,
+        &quot;trunk&quot;: 33,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.005594,
+        &quot;reported_cumulative_gain&quot;: 0.139016,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.000628
+      },
+      {
+        &quot;round&quot;: 35,
+        &quot;parent&quot;: 33,
+        &quot;trunk&quot;: 35,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.00693,
+        &quot;reported_cumulative_gain&quot;: 0.145946,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.007647
+      },
+      {
+        &quot;round&quot;: 36,
+        &quot;parent&quot;: 35,
+        &quot;trunk&quot;: 35,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.011699,
+        &quot;reported_cumulative_gain&quot;: 0.145946,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.002845
+      },
+      {
+        &quot;round&quot;: 37,
+        &quot;parent&quot;: 35,
+        &quot;trunk&quot;: 35,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.001491,
+        &quot;reported_cumulative_gain&quot;: 0.145946,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.012204
+      },
+      {
+        &quot;round&quot;: 38,
+        &quot;parent&quot;: 35,
+        &quot;trunk&quot;: 38,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.005193,
+        &quot;reported_cumulative_gain&quot;: 0.151139,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.01223
+      },
+      {
+        &quot;round&quot;: 39,
+        &quot;parent&quot;: 38,
+        &quot;trunk&quot;: 39,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.026901,
+        &quot;reported_cumulative_gain&quot;: 0.178041,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.026369
+      },
+      {
+        &quot;round&quot;: 40,
+        &quot;parent&quot;: 39,
+        &quot;trunk&quot;: 40,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.01311,
+        &quot;reported_cumulative_gain&quot;: 0.191151,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.00026
+      },
+      {
+        &quot;round&quot;: 41,
+        &quot;parent&quot;: 40,
+        &quot;trunk&quot;: 41,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.01956,
+        &quot;reported_cumulative_gain&quot;: 0.210711,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.027062
+      },
+      {
+        &quot;round&quot;: 42,
+        &quot;parent&quot;: 41,
+        &quot;trunk&quot;: 42,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.008408,
+        &quot;reported_cumulative_gain&quot;: 0.219119,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.012494
+      },
+      {
+        &quot;round&quot;: 43,
+        &quot;parent&quot;: 42,
+        &quot;trunk&quot;: 42,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.002175,
+        &quot;reported_cumulative_gain&quot;: 0.219119,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.004771
+      },
+      {
+        &quot;round&quot;: 44,
+        &quot;parent&quot;: 42,
+        &quot;trunk&quot;: 44,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.004885,
+        &quot;reported_cumulative_gain&quot;: 0.224004,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.001428
+      },
+      {
+        &quot;round&quot;: 45,
+        &quot;parent&quot;: 44,
+        &quot;trunk&quot;: 44,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.012501,
+        &quot;reported_cumulative_gain&quot;: 0.224004,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.00494
+      },
+      {
+        &quot;round&quot;: 46,
+        &quot;parent&quot;: 44,
+        &quot;trunk&quot;: 44,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.005527,
+        &quot;reported_cumulative_gain&quot;: 0.224004,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.013465
+      },
+      {
+        &quot;round&quot;: 47,
+        &quot;parent&quot;: 44,
+        &quot;trunk&quot;: 47,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.009643,
+        &quot;reported_cumulative_gain&quot;: 0.233648,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.009789
+      },
+      {
+        &quot;round&quot;: 48,
+        &quot;parent&quot;: 47,
+        &quot;trunk&quot;: 47,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.00239,
+        &quot;reported_cumulative_gain&quot;: 0.233648,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.005001
+      },
+      {
+        &quot;round&quot;: 49,
+        &quot;parent&quot;: 47,
+        &quot;trunk&quot;: 47,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.005218,
+        &quot;reported_cumulative_gain&quot;: 0.233648,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.009412
+      },
+      {
+        &quot;round&quot;: 50,
+        &quot;parent&quot;: 47,
+        &quot;trunk&quot;: 47,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.009178,
+        &quot;reported_cumulative_gain&quot;: 0.233648,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.001484
+      },
+      {
+        &quot;round&quot;: 51,
+        &quot;parent&quot;: 47,
+        &quot;trunk&quot;: 51,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.009502,
+        &quot;reported_cumulative_gain&quot;: 0.24315,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.018271
+      },
+      {
+        &quot;round&quot;: 52,
+        &quot;parent&quot;: 51,
+        &quot;trunk&quot;: 51,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.007496,
+        &quot;reported_cumulative_gain&quot;: 0.24315,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.020173
+      },
+      {
+        &quot;round&quot;: 53,
+        &quot;parent&quot;: 51,
+        &quot;trunk&quot;: 51,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.003761,
+        &quot;reported_cumulative_gain&quot;: 0.24315,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.013817
+      },
+      {
+        &quot;round&quot;: 54,
+        &quot;parent&quot;: 51,
+        &quot;trunk&quot;: 54,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.002579,
+        &quot;reported_cumulative_gain&quot;: 0.245728,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.000614
+      },
+      {
+        &quot;round&quot;: 55,
+        &quot;parent&quot;: 54,
+        &quot;trunk&quot;: 55,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.003883,
+        &quot;reported_cumulative_gain&quot;: 0.249611,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.003874
+      },
+      {
+        &quot;round&quot;: 56,
+        &quot;parent&quot;: 55,
+        &quot;trunk&quot;: 56,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.006263,
+        &quot;reported_cumulative_gain&quot;: 0.255875,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.002022
+      },
+      {
+        &quot;round&quot;: 57,
+        &quot;parent&quot;: 56,
+        &quot;trunk&quot;: 56,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.012163,
+        &quot;reported_cumulative_gain&quot;: 0.255875,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.009713
+      },
+      {
+        &quot;round&quot;: 58,
+        &quot;parent&quot;: 56,
+        &quot;trunk&quot;: 56,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.00379,
+        &quot;reported_cumulative_gain&quot;: 0.255875,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.011006
+      },
+      {
+        &quot;round&quot;: 59,
+        &quot;parent&quot;: 56,
+        &quot;trunk&quot;: 56,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.006926,
+        &quot;reported_cumulative_gain&quot;: 0.255875,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.003355
+      },
+      {
+        &quot;round&quot;: 60,
+        &quot;parent&quot;: 56,
+        &quot;trunk&quot;: 60,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.005031,
+        &quot;reported_cumulative_gain&quot;: 0.260906,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.003127
+      },
+      {
+        &quot;round&quot;: 61,
+        &quot;parent&quot;: 60,
+        &quot;trunk&quot;: 60,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.000356,
+        &quot;reported_cumulative_gain&quot;: 0.260906,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.005128
+      },
+      {
+        &quot;round&quot;: 62,
+        &quot;parent&quot;: 60,
+        &quot;trunk&quot;: 60,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.000881,
+        &quot;reported_cumulative_gain&quot;: 0.260906,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.002921
+      },
+      {
+        &quot;round&quot;: 63,
+        &quot;parent&quot;: 60,
+        &quot;trunk&quot;: 63,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.005445,
+        &quot;reported_cumulative_gain&quot;: 0.26635,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.002131
+      },
+      {
+        &quot;round&quot;: 64,
+        &quot;parent&quot;: 63,
+        &quot;trunk&quot;: 63,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.010238,
+        &quot;reported_cumulative_gain&quot;: 0.26635,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.002574
+      },
+      {
+        &quot;round&quot;: 65,
+        &quot;parent&quot;: 63,
+        &quot;trunk&quot;: 65,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.002629,
+        &quot;reported_cumulative_gain&quot;: 0.26898,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.018182
+      },
+      {
+        &quot;round&quot;: 66,
+        &quot;parent&quot;: 65,
+        &quot;trunk&quot;: 65,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.013858,
+        &quot;reported_cumulative_gain&quot;: 0.26898,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.007205
+      },
+      {
+        &quot;round&quot;: 67,
+        &quot;parent&quot;: 65,
+        &quot;trunk&quot;: 67,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.014241,
+        &quot;reported_cumulative_gain&quot;: 0.283221,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.004654
+      },
+      {
+        &quot;round&quot;: 68,
+        &quot;parent&quot;: 67,
+        &quot;trunk&quot;: 67,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.004959,
+        &quot;reported_cumulative_gain&quot;: 0.283221,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.016424
+      },
+      {
+        &quot;round&quot;: 69,
+        &quot;parent&quot;: 67,
+        &quot;trunk&quot;: 67,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -4e-05,
+        &quot;reported_cumulative_gain&quot;: 0.283221,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.015659
+      },
+      {
+        &quot;round&quot;: 70,
+        &quot;parent&quot;: 67,
+        &quot;trunk&quot;: 67,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.01325,
+        &quot;reported_cumulative_gain&quot;: 0.283221,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.004871
+      },
+      {
+        &quot;round&quot;: 71,
+        &quot;parent&quot;: 67,
+        &quot;trunk&quot;: 71,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.009526,
+        &quot;reported_cumulative_gain&quot;: 0.292747,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.000799
+      },
+      {
+        &quot;round&quot;: 72,
+        &quot;parent&quot;: 71,
+        &quot;trunk&quot;: 72,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.007556,
+        &quot;reported_cumulative_gain&quot;: 0.300304,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.003121
+      },
+      {
+        &quot;round&quot;: 73,
+        &quot;parent&quot;: 72,
+        &quot;trunk&quot;: 73,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.008073,
+        &quot;reported_cumulative_gain&quot;: 0.308377,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.02134
+      },
+      {
+        &quot;round&quot;: 74,
+        &quot;parent&quot;: 73,
+        &quot;trunk&quot;: 73,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.008012,
+        &quot;reported_cumulative_gain&quot;: 0.308377,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.010631
+      },
+      {
+        &quot;round&quot;: 75,
+        &quot;parent&quot;: 73,
+        &quot;trunk&quot;: 73,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.000918,
+        &quot;reported_cumulative_gain&quot;: 0.308377,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.000948
+      },
+      {
+        &quot;round&quot;: 76,
+        &quot;parent&quot;: 73,
+        &quot;trunk&quot;: 73,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.004587,
+        &quot;reported_cumulative_gain&quot;: 0.308377,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.005421
+      },
+      {
+        &quot;round&quot;: 77,
+        &quot;parent&quot;: 73,
+        &quot;trunk&quot;: 73,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.002333,
+        &quot;reported_cumulative_gain&quot;: 0.308377,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -1.9e-05
+      },
+      {
+        &quot;round&quot;: 78,
+        &quot;parent&quot;: 73,
+        &quot;trunk&quot;: 73,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.004286,
+        &quot;reported_cumulative_gain&quot;: 0.308377,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.018802
+      },
+      {
+        &quot;round&quot;: 79,
+        &quot;parent&quot;: 73,
+        &quot;trunk&quot;: 79,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.009674,
+        &quot;reported_cumulative_gain&quot;: 0.318051,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.008495
+      },
+      {
+        &quot;round&quot;: 80,
+        &quot;parent&quot;: 79,
+        &quot;trunk&quot;: 79,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.001242,
+        &quot;reported_cumulative_gain&quot;: 0.318051,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.003704
+      },
+      {
+        &quot;round&quot;: 81,
+        &quot;parent&quot;: 79,
+        &quot;trunk&quot;: 79,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.01041,
+        &quot;reported_cumulative_gain&quot;: 0.318051,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.018131
+      },
+      {
+        &quot;round&quot;: 82,
+        &quot;parent&quot;: 79,
+        &quot;trunk&quot;: 82,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.003371,
+        &quot;reported_cumulative_gain&quot;: 0.321422,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.0109
+      },
+      {
+        &quot;round&quot;: 83,
+        &quot;parent&quot;: 82,
+        &quot;trunk&quot;: 82,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.015998,
+        &quot;reported_cumulative_gain&quot;: 0.321422,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.003772
+      },
+      {
+        &quot;round&quot;: 84,
+        &quot;parent&quot;: 82,
+        &quot;trunk&quot;: 84,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.014639,
+        &quot;reported_cumulative_gain&quot;: 0.336061,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.007144
+      },
+      {
+        &quot;round&quot;: 85,
+        &quot;parent&quot;: 84,
+        &quot;trunk&quot;: 85,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.001649,
+        &quot;reported_cumulative_gain&quot;: 0.33771,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.003063
+      },
+      {
+        &quot;round&quot;: 86,
+        &quot;parent&quot;: 85,
+        &quot;trunk&quot;: 86,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.008379,
+        &quot;reported_cumulative_gain&quot;: 0.346089,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.001809
+      },
+      {
+        &quot;round&quot;: 87,
+        &quot;parent&quot;: 86,
+        &quot;trunk&quot;: 86,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.003025,
+        &quot;reported_cumulative_gain&quot;: 0.346089,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.007697
+      },
+      {
+        &quot;round&quot;: 88,
+        &quot;parent&quot;: 86,
+        &quot;trunk&quot;: 86,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.003634,
+        &quot;reported_cumulative_gain&quot;: 0.346089,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.004978
+      },
+      {
+        &quot;round&quot;: 89,
+        &quot;parent&quot;: 86,
+        &quot;trunk&quot;: 89,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.001879,
+        &quot;reported_cumulative_gain&quot;: 0.347968,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.014785
+      },
+      {
+        &quot;round&quot;: 90,
+        &quot;parent&quot;: 89,
+        &quot;trunk&quot;: 90,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.008133,
+        &quot;reported_cumulative_gain&quot;: 0.356101,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.010904
+      },
+      {
+        &quot;round&quot;: 91,
+        &quot;parent&quot;: 90,
+        &quot;trunk&quot;: 91,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.00518,
+        &quot;reported_cumulative_gain&quot;: 0.361281,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.00719
+      },
+      {
+        &quot;round&quot;: 92,
+        &quot;parent&quot;: 91,
+        &quot;trunk&quot;: 91,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.007199,
+        &quot;reported_cumulative_gain&quot;: 0.361281,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.000853
+      },
+      {
+        &quot;round&quot;: 93,
+        &quot;parent&quot;: 91,
+        &quot;trunk&quot;: 91,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.00703,
+        &quot;reported_cumulative_gain&quot;: 0.361281,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.011604
+      },
+      {
+        &quot;round&quot;: 94,
+        &quot;parent&quot;: 91,
+        &quot;trunk&quot;: 94,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.003282,
+        &quot;reported_cumulative_gain&quot;: 0.364563,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.00279
+      },
+      {
+        &quot;round&quot;: 95,
+        &quot;parent&quot;: 94,
+        &quot;trunk&quot;: 94,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.00175,
+        &quot;reported_cumulative_gain&quot;: 0.364563,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.006864
+      },
+      {
+        &quot;round&quot;: 96,
+        &quot;parent&quot;: 94,
+        &quot;trunk&quot;: 96,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.002307,
+        &quot;reported_cumulative_gain&quot;: 0.36687,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.011744
+      },
+      {
+        &quot;round&quot;: 97,
+        &quot;parent&quot;: 96,
+        &quot;trunk&quot;: 97,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.005757,
+        &quot;reported_cumulative_gain&quot;: 0.372627,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.002623
+      },
+      {
+        &quot;round&quot;: 98,
+        &quot;parent&quot;: 97,
+        &quot;trunk&quot;: 98,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.020533,
+        &quot;reported_cumulative_gain&quot;: 0.39316,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.003405
+      },
+      {
+        &quot;round&quot;: 99,
+        &quot;parent&quot;: 98,
+        &quot;trunk&quot;: 99,
+        &quot;keep&quot;: true,
+        &quot;observed_delta&quot;: 0.002042,
+        &quot;reported_cumulative_gain&quot;: 0.395202,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.009368
+      },
+      {
+        &quot;round&quot;: 100,
+        &quot;parent&quot;: 99,
+        &quot;trunk&quot;: 99,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.008869,
+        &quot;reported_cumulative_gain&quot;: 0.395202,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.008043
+      }
+    ],
+    &quot;repeat_evidence_gate&quot;: [
+      {
+        &quot;round&quot;: 1,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.009408,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.007371
+      },
+      {
+        &quot;round&quot;: 2,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.014296,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.000461
+      },
+      {
+        &quot;round&quot;: 3,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.022522,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.000656
+      },
+      {
+        &quot;round&quot;: 4,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.004209,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.010489
+      },
+      {
+        &quot;round&quot;: 5,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.003079,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.010903
+      },
+      {
+        &quot;round&quot;: 6,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.006596,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.00398
+      },
+      {
+        &quot;round&quot;: 7,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.024041,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.002205
+      },
+      {
+        &quot;round&quot;: 8,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.018482,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.001624
+      },
+      {
+        &quot;round&quot;: 9,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.007274,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.000152
+      },
+      {
+        &quot;round&quot;: 10,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.019535,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.008293
+      },
+      {
+        &quot;round&quot;: 11,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.00597,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.00455
+      },
+      {
+        &quot;round&quot;: 12,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.000405,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.009569
+      },
+      {
+        &quot;round&quot;: 13,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.015157,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.020783
+      },
+      {
+        &quot;round&quot;: 14,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.005775,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.004522
+      },
+      {
+        &quot;round&quot;: 15,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.014435,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.005603
+      },
+      {
+        &quot;round&quot;: 16,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.021901,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.00113
+      },
+      {
+        &quot;round&quot;: 17,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.00265,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.019322
+      },
+      {
+        &quot;round&quot;: 18,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.001,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.001836
+      },
+      {
+        &quot;round&quot;: 19,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.010701,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.010213
+      },
+      {
+        &quot;round&quot;: 20,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.012998,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.011716
+      },
+      {
+        &quot;round&quot;: 21,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.012195,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.021412
+      },
+      {
+        &quot;round&quot;: 22,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.01373,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.002427
+      },
+      {
+        &quot;round&quot;: 23,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.001122,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.017594
+      },
+      {
+        &quot;round&quot;: 24,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.005235,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.005716
+      },
+      {
+        &quot;round&quot;: 25,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.0118,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.013593
+      },
+      {
+        &quot;round&quot;: 26,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.019804,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.002691
+      },
+      {
+        &quot;round&quot;: 27,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.003106,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.001659
+      },
+      {
+        &quot;round&quot;: 28,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.015179,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.012571
+      },
+      {
+        &quot;round&quot;: 29,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.006875,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.000775
+      },
+      {
+        &quot;round&quot;: 30,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.007869,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.000635
+      },
+      {
+        &quot;round&quot;: 31,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.007078,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.001456
+      },
+      {
+        &quot;round&quot;: 32,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.003185,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.002277
+      },
+      {
+        &quot;round&quot;: 33,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.002664,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.005036
+      },
+      {
+        &quot;round&quot;: 34,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.005594,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.000628
+      },
+      {
+        &quot;round&quot;: 35,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.00693,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.007647
+      },
+      {
+        &quot;round&quot;: 36,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.011699,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.002845
+      },
+      {
+        &quot;round&quot;: 37,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.001491,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.012204
+      },
+      {
+        &quot;round&quot;: 38,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.005193,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.01223
+      },
+      {
+        &quot;round&quot;: 39,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.026901,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.026369
+      },
+      {
+        &quot;round&quot;: 40,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.01311,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.00026
+      },
+      {
+        &quot;round&quot;: 41,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.01956,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.027062
+      },
+      {
+        &quot;round&quot;: 42,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.008408,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.012494
+      },
+      {
+        &quot;round&quot;: 43,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.002175,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.004771
+      },
+      {
+        &quot;round&quot;: 44,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.004885,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.001428
+      },
+      {
+        &quot;round&quot;: 45,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.012501,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.00494
+      },
+      {
+        &quot;round&quot;: 46,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.005527,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.013465
+      },
+      {
+        &quot;round&quot;: 47,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.009643,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.009789
+      },
+      {
+        &quot;round&quot;: 48,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.00239,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.005001
+      },
+      {
+        &quot;round&quot;: 49,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.005218,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.009412
+      },
+      {
+        &quot;round&quot;: 50,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.009178,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.001484
+      },
+      {
+        &quot;round&quot;: 51,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.009502,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.018271
+      },
+      {
+        &quot;round&quot;: 52,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.007496,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.020173
+      },
+      {
+        &quot;round&quot;: 53,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.003761,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.013817
+      },
+      {
+        &quot;round&quot;: 54,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.002579,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.000614
+      },
+      {
+        &quot;round&quot;: 55,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.003883,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.003874
+      },
+      {
+        &quot;round&quot;: 56,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.006263,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.002022
+      },
+      {
+        &quot;round&quot;: 57,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.012163,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.009713
+      },
+      {
+        &quot;round&quot;: 58,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.00379,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.011006
+      },
+      {
+        &quot;round&quot;: 59,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.006926,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.003355
+      },
+      {
+        &quot;round&quot;: 60,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.005031,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.003127
+      },
+      {
+        &quot;round&quot;: 61,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.000356,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.005128
+      },
+      {
+        &quot;round&quot;: 62,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.000881,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.002921
+      },
+      {
+        &quot;round&quot;: 63,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.005445,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.002131
+      },
+      {
+        &quot;round&quot;: 64,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.010238,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.002574
+      },
+      {
+        &quot;round&quot;: 65,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.002629,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.018182
+      },
+      {
+        &quot;round&quot;: 66,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.013858,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.007205
+      },
+      {
+        &quot;round&quot;: 67,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.014241,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.004654
+      },
+      {
+        &quot;round&quot;: 68,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.004959,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.016424
+      },
+      {
+        &quot;round&quot;: 69,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -4e-05,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.015659
+      },
+      {
+        &quot;round&quot;: 70,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.01325,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.004871
+      },
+      {
+        &quot;round&quot;: 71,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.009526,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.000799
+      },
+      {
+        &quot;round&quot;: 72,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.007556,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.003121
+      },
+      {
+        &quot;round&quot;: 73,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.008073,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.02134
+      },
+      {
+        &quot;round&quot;: 74,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.008012,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.010631
+      },
+      {
+        &quot;round&quot;: 75,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.000918,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.000948
+      },
+      {
+        &quot;round&quot;: 76,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.004587,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.005421
+      },
+      {
+        &quot;round&quot;: 77,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.002333,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -1.9e-05
+      },
+      {
+        &quot;round&quot;: 78,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.004286,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.018802
+      },
+      {
+        &quot;round&quot;: 79,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.009674,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.008495
+      },
+      {
+        &quot;round&quot;: 80,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.001242,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.003704
+      },
+      {
+        &quot;round&quot;: 81,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.01041,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.018131
+      },
+      {
+        &quot;round&quot;: 82,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.003371,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.0109
+      },
+      {
+        &quot;round&quot;: 83,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.015998,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.003772
+      },
+      {
+        &quot;round&quot;: 84,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.014639,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.007144
+      },
+      {
+        &quot;round&quot;: 85,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.001649,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.003063
+      },
+      {
+        &quot;round&quot;: 86,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.008379,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.001809
+      },
+      {
+        &quot;round&quot;: 87,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.003025,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.007697
+      },
+      {
+        &quot;round&quot;: 88,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.003634,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.004978
+      },
+      {
+        &quot;round&quot;: 89,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.001879,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.014785
+      },
+      {
+        &quot;round&quot;: 90,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.008133,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.010904
+      },
+      {
+        &quot;round&quot;: 91,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.00518,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.00719
+      },
+      {
+        &quot;round&quot;: 92,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.007199,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.000853
+      },
+      {
+        &quot;round&quot;: 93,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.00703,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.011604
+      },
+      {
+        &quot;round&quot;: 94,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.003282,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.00279
+      },
+      {
+        &quot;round&quot;: 95,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.00175,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.006864
+      },
+      {
+        &quot;round&quot;: 96,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.002307,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.011744
+      },
+      {
+        &quot;round&quot;: 97,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.005757,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.002623
+      },
+      {
+        &quot;round&quot;: 98,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.020533,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: -0.003405
+      },
+      {
+        &quot;round&quot;: 99,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: 0.002042,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.009368
+      },
+      {
+        &quot;round&quot;: 100,
+        &quot;parent&quot;: 0,
+        &quot;trunk&quot;: 0,
+        &quot;keep&quot;: false,
+        &quot;observed_delta&quot;: -0.008869,
+        &quot;reported_cumulative_gain&quot;: 0.0,
+        &quot;true_gain&quot;: 0.0,
+        &quot;fresh_audit_delta&quot;: 0.008043
+      }
+    ]
+  },
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>下表は200seedの平均。one_run_keepの見かけの累積改善が正でも、全候補の真の改善はゼロのままだ。追加確認を使うrepeat_evidence_gateと、偽のKEEPを一度でも起こしたrun数を比較する。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>単調な線だけでは進歩を示せない</h3><a href="../figures/autolr-dashen/figures/ratchet-toy.svg" aria-label="単調な線だけでは進歩を示せないを拡大"><img src="../figures/autolr-dashen/figures/ratchet-toy.svg" alt="単調な線だけでは進歩を示せない。run.py / results.jsonの合成軌跡。真の改善は全候補ゼロ。採択差分を足す過程の反例であり、DASHENの指標推移を再現していない。" loading="lazy"></a><figcaption>run.py / results.jsonの合成軌跡。真の改善は全候補ゼロ。採択差分を足す過程の反例であり、DASHENの指標推移を再現していない。 <a href="../figures/autolr-dashen/figures/ratchet-toy.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>真値が改善しなくても、採択差分の累積は単調に増え、コード系譜が更新される。独立した再評価にはその上昇が引き継がれない。追加証拠のgateで偽のKEEPが減るかを、全seedの件数と平均で確認する。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>実DASHENの指標分布、候補生成、Council、GPU訓練、オンライン効果は未検証。toyの正規ノイズと独立反復は理想化で、共有データを繰り返し見る適応的過学習を表していない。反復評価gateだけで永続的な安全性を保証しない。実運用では校正profileの版、guardrail、確認後のcommitとrollbackまで設計する必要がある。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>リポジトリのルートで <code>uv run papers/autolr-dashen/run.py</code> を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの <code>results.json</code> に保存する。</p>
+<p>乱数を使う実験はseedを固定した。数値は論文の測定値と別に集計している。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>論文</th>
+<th>このLab</th>
+<th>省略・公式コード</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>式6–7 KEEPとtrunk</td>
+<td><code>simulate</code> のparent/trunk/path</td>
+<td>patch本体はIDに簡略化</td>
+</tr>
+<tr>
+<td>式8、§6.1 校正不足</td>
+<td><code>gated</code> 分岐</td>
+<td>25反復と3.5SEはLab独自。稼働実装の再現ではない</td>
+</tr>
+<tr>
+<td>§3 Council/selector</td>
+<td>方法節と役割図</td>
+<td>LLM未使用。公式repo URLは本文から確認できず</td>
+</tr>
+</tbody>
+</table>
+<p>一次資料は <a href="https://arxiv.org/pdf/2609.04871v1">arXiv v1 PDF</a>。公式実装の実行は行っていない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>実験を自動で続ける仕組みは、誤った改善まで積み上げないか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/autolr-dashen/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

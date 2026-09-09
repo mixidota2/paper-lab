@@ -1,0 +1,76 @@
+{
+  "note": "4商品の手計算可能な設定。効用は既知で推定しない。仮定一致時の誤差ゼロは構成上の結果であり、観測データへの精度保証ではない。",
+  "demand": [
+    100,
+    60,
+    40,
+    30
+  ],
+  "coefficients": [
+    [
+      0.0,
+      0.6000000000000001,
+      0.2,
+      0.0
+    ],
+    [
+      0.6,
+      0.0,
+      0.15,
+      0.0
+    ],
+    [
+      0.5142857142857143,
+      0.3857142857142858,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  ],
+  "removed_item": 0,
+  "independent": [
+    0,
+    60,
+    40,
+    30
+  ],
+  "adjusted": [
+    0,
+    120.0,
+    60.0,
+    30.0
+  ],
+  "lost_demand": 19.999999999999996,
+  "counterexample_actual": [
+    0,
+    80,
+    100,
+    30
+  ],
+  "experiments": [
+    {
+      "name": "商品A撤去後の需要補正",
+      "metrics": {
+        "assumption_matched": {
+          "independent_WMAPE": 0.380952,
+          "DT_WMAPE": 0.0
+        },
+        "within_set_preference_shift": {
+          "independent_WMAPE": 0.380952,
+          "DT_WMAPE": 0.380952
+        }
+      }
+    }
+  ],
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  }
+}

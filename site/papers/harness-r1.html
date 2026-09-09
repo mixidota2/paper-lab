@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Harness-R1は課題を解くtargetを固定し、その周囲の実行コードを直す9B engineerをSFT＋GRPOで学習する。3ベンチマークの平均成功率は44.3%から53.6%へ上昇。行動直前とfeedback後の介入が除去実験で大きく効いた。">
+  <title>失敗を見て実行環境を直す能力は、担当モデルに学習させられるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-08-03</span></div>
+    <h1>失敗を見て実行環境を直す能力は、担当モデルに学習させられるか</h1>
+    <p class="lede">Harness-R1は課題を解くtargetを固定し、その周囲の実行コードを直す9B engineerをSFT＋GRPOで学習する。3ベンチマークの平均成功率は44.3%から53.6%へ上昇。行動直前とfeedback後の介入が除去実験で大きく効いた。</p>
+    <details class="bibliography"><summary>原論文：Harness-R1: Learning to Edit Executable Runtime Harnesses from Agent Failure Trajectories</summary><p>Shuai Shao, Kangning Zhang, Qingyao Li, Shijian Wang, Hao Wang, Wenxiang Jiao, Yuan Lu, Yi Guo, Weiwen Liu, Weinan Zhang</p><p>2608.02276 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2608.02276">原典を読む ↗</a><a href="https://arxiv.org/pdf/2608.02276v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-09 · 一次PDF本文・方法・結果・限界を確認。数値は著者報告と合成実験を区別。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-patch-reward">失敗例だけを採点すると回帰を見逃す</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>Harness-R1は課題を解くtargetを固定し、その周囲の実行コードを直す9B engineerをSFT＋GRPOで学習する。3ベンチマークの平均成功率は44.3%から53.6%へ上昇。行動直前とfeedback後の介入が除去実験で大きく効いた。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>入力が少し違うだけで止まる。たとえばLLMが正しい商品を選んでいても、toolが受け付けない引数形式を送り、戻ってきたエラーも読めなければ、同じ失敗を繰り返す。固定の自己反省promptを追加しても安定して改善するとは限らない。</p>
+<p>そこでHarness-R1は、失敗記録を読む別モデルに、どこへ実行可能な修正を入れるかを学習させる。修正器を育てる研究だ。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は失敗trajectoryのbatchから実行可能なoverlayを生成し、同じ全課題を固定targetで再実行した改善をengineerの報酬にする。既存の編集器をpromptで使うだけでなく、編集方策の重みを実行結果で更新する点を提案する。</p>
+<p><a href="https://arxiv.org/pdf/2608.02276v1">一次資料：arXiv v1 本文</a></p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>Multi-Harness RLが課題を解く方策のcreditを変えるのに対し、こちらは修正を提案する方策を学習する。改善の所在が異なる。実行hookを通じてtargetの行動自体を変更できるため、「重みを固定した」は「同じ情報・操作条件で能力だけが上がった」と同義ではない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>engineerは解答を出さず、4つの介入箇所を編集する</h3>
+<p>targetは主実験でQwen3.5-9B。別の9B engineer（修正担当）が、失敗だけを圧縮した記録packetを読み、実行コードへの変更patchを一度だけ生成する。engineerは解答役ではない。修正を渡した後は、targetだけが環境で課題を解く。overlayはepisode初期化、判断前、行動直前、feedback後の4箇所へ入る（図2、§3.1、付録C）。</p>
+<p>初期化はcontextや状態を準備し、判断前は検索した手順や制約を渡す。行動直前は提案されたtool callを正規化・書換え・拒否し、feedback後は観測を解析して停滞から回復させる。文脈だけを編集する方式より広い実行権限を持つので、patchの検証と許可された返り値が重要になる。</p>
+<h3>成功していた課題も含めて再実行する</h3>
+<p>batch Bの元のrewardをR⁰、patch後をRᴾとすると、<code>Δ_B(P)=(1/|B|)Σᵢ(Rᵢᴾ−Rᵢ⁰)</code>。有効かつ完全に評価できたpatchにはこの差を、invalid/no-op/未完了にはゼロを与える。たとえば失敗4件を成功へ直しても、元の成功5件を壊せば全体では悪化する。この回帰を見逃さないよう、再実行は全batchを対象にする（式1）。</p>
+<p>初期の教師あり学習（SFT）には、GPT-5.5 teacherが提案し、実行検証を通った約1,000編集例を使う。RLは別課題splitの約1,500failure packetで学習する。1packetにつきK=8のpatchをsampleし、<code>A_k=(r_k−mean(r))/std(r)</code> と群内で標準化する。このadvantageをengineerのtoken確率比に掛けるclipped GRPOを使う。targetの重みへは逆伝播しない（式2–4、Algorithm 1）。</p>
+<p>WebShopの学習rewardはshaped score、ALFWorldとDBBenchは二値成功であり、全てを二値rewardだと理解してはいけない。主結果では3環境の成功率を等重みで平均する。</p>
+<h3>同じbatchでの改善と、未見課題への移植を分ける</h3>
+<p>主目的は失敗を見たbatchの同じ課題を再実行するtransductiveな改善。別課題・別targetへの適用は追加実験で扱う。未見targetへの転移では、そのtarget自身の失敗から新しいpatchを作るため、一つのpatchの万能性とは違う。</p>
+<p><a href="https://arxiv.org/pdf/2608.02276v1">一次資料：arXiv v1 本文</a></p></div>      </section>
+      <figure class="paper-svg teaching"><h3>課題を解く方策と、実行コードを直す方策を分ける</h3><a href="../figures/harness-r1/figures/engineer-target.svg" aria-label="課題を解く方策と、実行コードを直す方策を分けるを拡大"><img src="../figures/harness-r1/figures/engineer-target.svg" alt="課題を解く方策と、実行コードを直す方策を分ける。原論文図2・式1–4。WebShopはshaped rewardを使い、主結果では成功率を評価する。" loading="lazy"></a><figcaption>原論文図2・式1–4。WebShopはshaped rewardを使い、主結果では成功率を評価する。 <a href="../figures/harness-r1/figures/engineer-target.svg">図を拡大 ↗</a></figcaption></figure>
+      <figure class="paper-svg teaching"><h3>prompt以外に、行動と観測にも介入する</h3><a href="../figures/harness-r1/figures/lifecycle.svg" aria-label="prompt以外に、行動と観測にも介入するを拡大"><img src="../figures/harness-r1/figures/lifecycle.svg" alt="prompt以外に、行動と観測にも介入する。原論文§3.1・付録Cの再図。hookはLLMの入力だけでなく、実際の操作や回復を変えられる。" loading="lazy"></a><figcaption>原論文§3.1・付録Cの再図。hookはLLMの入力だけでなく、実際の操作や回復を変えられる。 <a href="../figures/harness-r1/figures/lifecycle.svg">図を拡大 ↗</a></figcaption></figure>
+<figure class="teaching teaching--equations" id="figure-patch-reward" aria-labelledby="title-patch-reward">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-patch-reward">失敗例だけを採点すると回帰を見逃す</h3>
+  <ol class="equation-steps"><li><strong>同じ全batchの差</strong><div class="math-expression" tabindex="0" role="math" aria-label="Δ_B(P) = meanᵢ∈B [Rᵢᴾ − Rᵢ⁰]">Δ_B(P) = meanᵢ∈B [Rᵢᴾ − Rᵢ⁰]</div><p>もともと成功していた課題を壊したpatchは減点される。</p></li><li><strong>engineerの群内比較</strong><div class="math-expression" tabindex="0" role="math" aria-label="A_k = (r_k − μ_B) / σ_B ; K=8">A_k = (r_k − μ_B) / σ_B ; K=8</div><p>同じpacketから作ったpatch同士を比較し、engineerだけを更新する。</p></li></ol>
+  <figcaption>failure packetの入力は失敗のみだが、報酬を作る再実行は全課題。 <a href="https://arxiv.org/pdf/2608.02276v1">出典：式1、Algorithm 1 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>行動前のvalidationは、モデルが誤る引数形式を環境へ渡す前に直す。feedback後には回復を試みる。この二つの処理が協調すれば、誤った操作の繰り返しを避けながら、次の判断に使う観測も読みやすい形へ戻せる。</p>
+<p>promptを書き足すだけでは、操作が実行される瞬間の条件までは固定できない。どの介入が効くかは、失敗分布とtargetによる。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>主表と介入位置の除去実験は、測定条件が異なる</h3>
+<p>表1はWebShop 500、ALFWorld 500、DBBench 300課題で成功率を評価し、3環境を等重みで平均する。default 44.3%、SFT-only engineer 46.4%、Harness-R1 53.6%。default比は+9.3 ppで、相対9.3%ではない。直接targetをSFTした場合も59.2%→64.2%となる。</p>
+<p>図4bは固定patchの介入位置を一つずつ除く別の分析。full 53.1%、判断前なし52.5%、初期化なし52.2%、feedback後なし49.8%、行動直前なし49.2%、介入なし44.2%だった。ここに表1の53.6%を混ぜない。除去の差を足して総効果にすることもできない。</p>
+<p>未見課題への図4aでは疎な失敗証拠からの平均改善+8.9 ppを報告する。これは主表のsame-batch目的とは別の根拠だ。Reflectionは2episodeのsuccess@2で、他のsuccess@1と単純順位比較できない。公式コードのURLは本文に明記されているが、このLabは大規模モデルを実行していない。</p>
+<p><a href="https://arxiv.org/pdf/2608.02276v1">一次資料：arXiv v1 本文</a></p></div>      </section>
+      <figure class="paper-svg teaching"><h3>固定patchの介入位置を除去</h3><a href="../figures/harness-r1/figures/ablation.svg" aria-label="固定patchの介入位置を除去を拡大"><img src="../figures/harness-r1/figures/ablation.svg" alt="固定patchの介入位置を除去。原論文図4b。主表の53.6%とは別の固定patch分析。除去効果は加算できない。" loading="lazy"></a><figcaption>原論文図4b。主表の53.6%とは別の固定patch分析。除去効果は加算できない。 <a href="../figures/harness-r1/figures/ablation.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>固定スクリプトのtargetが商品lookupを行う。session未設定、alias、引数の大文字、入れ子feedbackという4故障を、別のルールベースengineerが失敗traceから見つけ、対応するhookを有効にする。修正後は最初から成功していた課題も再評価する。</p>
+<p>証拠用20課題と、商品IDを変えた20課題を分ける。全hookと一箇所ずつ外した場合を比較する。実行処理は変わるがtarget関数は同じ。engineerの重み学習はなく、SFT/GRPOの再現とは呼ばない。</p></div><div class="downloads"><a href="../downloads/harness-r1/run.py" download>実行コード</a><a href="../downloads/harness-r1/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/harness-r1">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>固定ルールの修正器と固定スクリプトのtarget。未見IDでも同じ故障型を使う。学習済み修正能力や新しい故障への汎化は未検証。</em></p>
+<h3>未見の商品IDでhookを一つずつ外す</h3>
+<ul><li><strong>n</strong>: {'evidence': 20, 'held_out': 20}</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>base</th><td colspan='1'>0.2</td></tr><tr><th scope='row'>full</th><td colspan='1'>1.0</td></tr><tr><th scope='row'>without_episode_init</th><td colspan='1'>0.8</td></tr><tr><th scope='row'>without_pre_decision</th><td colspan='1'>0.8</td></tr><tr><th scope='row'>without_pre_action</th><td colspan='1'>0.8</td></tr><tr><th scope='row'>without_post_feedback</th><td colspan='1'>0.8</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;固定ルールの修正器と固定スクリプトのtarget。未見IDでも同じ故障型を使う。学習済み修正能力や新しい故障への汎化は未検証。&quot;,
+  &quot;patch_hooks&quot;: [
+    &quot;episode_init&quot;,
+    &quot;post_feedback&quot;,
+    &quot;pre_action&quot;,
+    &quot;pre_decision&quot;
+  ],
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;未見の商品IDでhookを一つずつ外す&quot;,
+      &quot;n&quot;: {
+        &quot;evidence&quot;: 20,
+        &quot;held_out&quot;: 20
+      },
+      &quot;metrics&quot;: {
+        &quot;base&quot;: 0.2,
+        &quot;full&quot;: 1.0,
+        &quot;without_episode_init&quot;: 0.8,
+        &quot;without_pre_decision&quot;: 0.8,
+        &quot;without_pre_action&quot;: 0.8,
+        &quot;without_post_feedback&quot;: 0.8
+      }
+    }
+  ],
+  &quot;failure_example&quot;: [
+    {
+      &quot;step&quot;: 0,
+      &quot;action&quot;: {
+        &quot;tool&quot;: &quot;lookup&quot;,
+        &quot;key&quot;: &quot;item1&quot;
+      },
+      &quot;response&quot;: {
+        &quot;error&quot;: &quot;session_missing&quot;
+      }
+    },
+    {
+      &quot;step&quot;: 1,
+      &quot;action&quot;: {
+        &quot;tool&quot;: &quot;lookup&quot;,
+        &quot;key&quot;: &quot;item1&quot;
+      },
+      &quot;response&quot;: {
+        &quot;error&quot;: &quot;session_missing&quot;
+      }
+    },
+    {
+      &quot;step&quot;: 2,
+      &quot;action&quot;: {
+        &quot;tool&quot;: &quot;lookup&quot;,
+        &quot;key&quot;: &quot;item1&quot;
+      },
+      &quot;response&quot;: {
+        &quot;error&quot;: &quot;session_missing&quot;
+      }
+    }
+  ],
+  &quot;full_batch_before&quot;: 0.2,
+  &quot;full_batch_after&quot;: 1.0,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>未見IDの20課題では、baseの成功率0.2が全hookで1.0になる。いずれか一つのhookを外すと0.8へ戻る。4故障型を同数で作ったため除去差は等しく、論文のpre-action優位を再現した数値ではない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>targetは同じ関数のまま。周辺hookを変えると成否が変わり、故障に対応するhookを外すと改善が失われることを確認した。元の成功例への回帰も全batchで調べた。</p>
+<p>確認した移植は未知の商品IDまでで、故障型は同じだ。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>LLM、learned engineer、patchコードの自由生成、GRPO、未知の故障への汎化、本番適用性は未検証。toyの規則が識別できる故障だけを作っているため、100%成功しても現実の汎用修正能力を意味しない。自由なruntime編集を本番へ導入するなら、権限の範囲と回帰評価を別途検証する必要がある。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>リポジトリのルートで <code>uv run papers/harness-r1/run.py</code> を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの <code>results.json</code> に保存する。</p>
+<p>乱数を使う実験はseedを固定した。数値は論文の測定値と別に集計している。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>論文</th>
+<th>このLab</th>
+<th>省略・公式コード</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>図2、付録C hooks</td>
+<td><code>run_task</code>、<code>HOOKS</code></td>
+<td>Pythonの固定hook集合に限定</td>
+</tr>
+<tr>
+<td>§3.1 failure packet</td>
+<td><code>engineer</code></td>
+<td>失敗型とhookのルール対応。学習なし</td>
+</tr>
+<tr>
+<td>式1 batch reward</td>
+<td><code>evaluate</code>、full_batch前後</td>
+<td>二値のtoy task</td>
+</tr>
+<tr>
+<td>図4b 除去実験</td>
+<td>without各hook</td>
+<td>合成20課題。論文数値とは別</td>
+</tr>
+<tr>
+<td>公式実装</td>
+<td><a href="https://github.com/DeepExperience/Harness-R1">DeepExperience/Harness-R1</a></td>
+<td>論文記載のURL。コード内部の対応・実行は未確認</td>
+</tr>
+</tbody>
+</table>
+<p>一次資料は <a href="https://arxiv.org/pdf/2608.02276v1">arXiv v1 PDF</a>。公式実装の実行は行っていない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>失敗を見て実行環境を直す能力は、担当モデルに学習させられるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/harness-r1/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

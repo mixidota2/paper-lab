@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="同じ多様な軌跡を学んでも、ハーネスをまたぐGRPOの報酬比較に移植性の上積みは観測されなかった。評価ハーネスによる平均solve rateの幅は約4.3倍で、学習レシピによる幅の約1.16倍より大きい。">
+  <title>ハーネスをまたいで報酬を比べると、未見の実行環境にも強くなるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-03</span></div>
+    <h1>ハーネスをまたいで報酬を比べると、未見の実行環境にも強くなるか</h1>
+    <p class="lede">同じ多様な軌跡を学んでも、ハーネスをまたぐGRPOの報酬比較に移植性の上積みは観測されなかった。評価ハーネスによる平均solve rateの幅は約4.3倍で、学習レシピによる幅の約1.16倍より大きい。</p>
+    <details class="bibliography"><summary>原論文：What Does Multi-Harness RL Learn? Credit Assignment and Portability in Coding Agents</summary><p>Chenqian Le, Jiayi Cheng, Qijia He, Runhao Li, Yinghao Li, Xupeng Chen</p><p>2609.04518 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.04518">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.04518v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-09 · 一次PDF本文・方法・結果・限界を確認。数値は著者報告と合成実験を区別。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-group-equations">advantageの平均をどこで引くか</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>同じ多様な軌跡を学んでも、ハーネスをまたぐGRPOの報酬比較に移植性の上積みは観測されなかった。評価ハーネスによる平均solve rateの幅は約4.3倍で、学習レシピによる幅の約1.16倍より大きい。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>同じコーディング方策でも、編集ツール、観測の形式、文脈管理、再試行規則が違えば成功率が変わる。複数のハーネスを使う学習には二つの選択がある。いくつの環境で経験を集めるかと、どの軌跡同士を報酬で比べるかだ。両者を一緒に変えると、改善原因が分からない。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は複数ハーネスへのexposure（経験）を固定し、WithinとCrossのcredit assignment（相対報酬の割当）だけを変えた。Crossのadvantageにはハーネスの識別情報が残るが、未見ハーネス上の追加改善は検出されなかった。</p>
+<p><a href="https://arxiv.org/pdf/2609.04518v1">一次資料：arXiv v1 本文</a></p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>既存のHarness-Benchが問う「どの実行環境で測ったか」を、学習側の比較群まで広げた研究と読める。ただし多ハーネス経験そのものの有効性を否定していない。小規模なQwen3-8B、固定データ再生、今回のハーネス群でCrossの追加効果を検出できなかった、という範囲を守るべきだ。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>WithinもCrossも、同じ4ハーネスの軌跡を読む</h3>
+<p>Aider、OpenHands、Qwen Code、SWE-agentでSWE-Gymの軌跡を集める。同一のQwen3-8Bの教師あり学習後checkpointから出発し、固定manifest、token、reward、loss mask、更新予算をそろえて再生する。主要RL群は183課題・5,543episode、81,216recordを共有し、実現したoptimizer stepは81,200（付録G、表7–8）。</p>
+<h3>違うのは平均と標準偏差を計算する範囲</h3>
+<p>たとえば同じ課題の8軌跡を、Aiderの4件とSWE-agentの4件に分けるか、8件で一群にするかを考える。軌跡eの課題をx、ハーネスをh、成功報酬をrとする。Withinは <code>A_e = (r_e − mean(r|x,h))/(std(r|x,h)+ε)</code>。Crossは <code>A_e = (r_e − mean(r|x))/(std(r|x)+ε)</code> で、同じ課題の別ハーネスまでまとめる。</p>
+<p>このAがGRPOの方策確率比に掛かる。全成功または全失敗の群は分散がゼロなので、Withinでは更新信号が消える。Crossなら別ハーネスとの成功率差が残りうる。これは推論能力の差だけでなく、ツール形式との相性でも生まれる。二値報酬では混合群内の成功は正、失敗は負になる。群を変えて常に符号が逆転するのではなく、ゼロだった信号が正または負になるケースが重要だ。</p>
+<h3>評価には学習時のフィードバックを使わない</h3>
+<p>SWE-bench Verifiedの500課題を、4つのsourceハーネスと学習に出さない最小weak-ReActハーネスで実行する。sealed oracleはepisodeごとの隔離環境でpatchを再実行し、モデルに見せたfeedback testと異なるhidden testで判定する。inline判定との食い違いが2.58%あり、すべて楽観方向だったため、論文の数字はoracle側だけで集計する（付録L）。</p>
+<p><a href="https://arxiv.org/pdf/2609.04518v1">一次資料：arXiv v1 本文</a></p></div>      </section>
+      <figure class="paper-svg teaching"><h3>経験を増やすことと報酬を比べることは別</h3><a href="../figures/multi-harness-rl/figures/credit-groups.svg" aria-label="経験を増やすことと報酬を比べることは別を拡大"><img src="../figures/multi-harness-rl/figures/credit-groups.svg" alt="経験を増やすことと報酬を比べることは別。教育用の合成8軌跡。式は原論文§3に対応し、数値はresults.jsonの丸め値。" loading="lazy"></a><figcaption>教育用の合成8軌跡。式は原論文§3に対応し、数値はresults.jsonの丸め値。 <a href="../figures/multi-harness-rl/figures/credit-groups.svg">図を拡大 ↗</a></figcaption></figure>
+<figure class="teaching teaching--equations" id="figure-group-equations" aria-labelledby="title-group-equations">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-group-equations">advantageの平均をどこで引くか</h3>
+  <ol class="equation-steps"><li><strong>Within</strong><div class="math-expression" tabindex="0" role="math" aria-label="A = (r − μ_task,harness) / (σ_task,harness + ε)">A = (r − μ_task,harness) / (σ_task,harness + ε)</div><p>同じ課題、同じハーネスの中で報酬を標準化する。</p></li><li><strong>Cross</strong><div class="math-expression" tabindex="0" role="math" aria-label="A = (r − μ_task) / (σ_task + ε)">A = (r − μ_task) / (σ_task + ε)</div><p>同じ課題の全ハーネスを一群にする。</p></li></ol>
+  <figcaption>比較群を変えることで、更新係数にハーネスの成功率差が入りうる。 <a href="https://arxiv.org/pdf/2609.04518v1">出典：§3 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>同じ課題でも、使いやすいハーネスで得た成功は高いadvantageになりやすい。方策はその構成で報酬を得る振る舞いへ寄せられる可能性がある。ただしadvantageからハーネスを分類できることだけでは、汎化を妨げる原因の証明にはならない。評価時のハーネス交換と組み合わせて読む必要がある。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>ハーネス交換の差と、creditの差を別々に読む</h3>
+<p>24,000件のsealed評価では、ハーネス別平均solve rateの範囲が2.14–9.27%（約4.3倍）だった。レシピ別平均の範囲の比は約1.16倍。これは平均の最大／最小比で、分散分解の寄与率ではない（§4）。</p>
+<p>未見ハーネスで1課題8試行に増やしたCross−Withinは+0.25 pp、95%区間は[−0.48,+1.02]。3学習seedをまとめた4試行条件では+0.16 pp、[−0.41,+0.72]だった（表2–4）。ゼロを含むので優越は示されないが、小さい正負の効果は残る。検出限界もあり、同等性試験の結論ではない。</p>
+<p>Crossのadvantageから元のハーネスを当てる分類器は、課題単位のout-of-fold評価でラベルshuffle基準より+4.48 pp。Withinは+0.02 ppだった（表9）。Withinのゼロadvantage比率は55.1%、Crossは0.0%（表7）。信号が増えても未見スコアの追加改善には結びつかなかった。訓練データの半分をon-policyで再収集した補助実験でも、結論は変わらなかった。</p>
+<p><a href="https://arxiv.org/pdf/2609.04518v1">一次資料：arXiv v1 本文</a></p></div>      </section>
+      <figure class="paper-svg teaching"><h3>平均solve rateの変動幅</h3><a href="../figures/multi-harness-rl/figures/dominance.svg" aria-label="平均solve rateの変動幅を拡大"><img src="../figures/multi-harness-rl/figures/dominance.svg" alt="平均solve rateの変動幅。原論文§4の報告値。効果の分散寄与率ではなく、各軸で平均を集計した範囲の比。" loading="lazy"></a><figcaption>原論文§4の報告値。効果の分散寄与率ではなく、各軸で平均を集計した範囲の比。 <a href="../figures/multi-harness-rl/figures/dominance.svg">図を拡大 ↗</a></figcaption></figure>
+      <figure class="paper-svg teaching"><h3>環境を交換して残る差を測る</h3><a href="../figures/multi-harness-rl/figures/portability.svg" aria-label="環境を交換して残る差を測るを拡大"><img src="../figures/multi-harness-rl/figures/portability.svg" alt="環境を交換して残る差を測る。原論文図1・表3–4・付録Lをもとに再構成。訓練課題と評価課題も分離する。" loading="lazy"></a><figcaption>原論文図1・表3–4・付録Lをもとに再構成。訓練課題と評価課題も分離する。 <a href="../figures/multi-harness-rl/figures/portability.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>固定スクリプトが出した8軌跡を、テキスト、JSON、XML風の3インターフェースで採点する。A/Bのsource報酬についてWithinとCrossのadvantageを計算し、軌跡ごとの値をresults.jsonに保存する。</p>
+<p>方策更新は実装しない。未見形式でのスコアが変わらないのは固定軌跡の対照であり、学習後の移植性を測った論文の帰無結果の再現ではない。</p></div><div class="downloads"><a href="../downloads/multi-harness-rl/run.py" download>実行コード</a><a href="../downloads/multi-harness-rl/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/multi-harness-rl">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>合成インターフェースの固定軌跡。勾配係数のみ計算し、方策は更新しない。未見スコア不変は設計上の対照であり、論文の帰無結果の再現ではない。</em></p>
+<h3>評価インターフェースを交換</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>A</th><td colspan='1'>0.625</td></tr><tr><th scope='row'>B</th><td colspan='1'>0.125</td></tr><tr><th scope='row'>held_out</th><td colspan='1'>0.0</td></tr></tbody></table></div>
+<h3>非ゼロのadvantageを持つ軌跡</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>Within</th><td colspan='1'>4</td></tr><tr><th scope='row'>Cross</th><td colspan='1'>8</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成インターフェースの固定軌跡。勾配係数のみ計算し、方策は更新しない。未見スコア不変は設計上の対照であり、論文の帰無結果の再現ではない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;評価インターフェースを交換&quot;,
+      &quot;metrics&quot;: {
+        &quot;A&quot;: 0.625,
+        &quot;B&quot;: 0.125,
+        &quot;held_out&quot;: 0.0
+      }
+    },
+    {
+      &quot;name&quot;: &quot;非ゼロのadvantageを持つ軌跡&quot;,
+      &quot;metrics&quot;: {
+        &quot;Within&quot;: 4,
+        &quot;Cross&quot;: 8
+      }
+    }
+  ],
+  &quot;trajectories&quot;: [
+    {
+      &quot;harness&quot;: &quot;A&quot;,
+      &quot;trace&quot;: &quot;return 2&quot;,
+      &quot;reward&quot;: 1,
+      &quot;within&quot;: 0.0,
+      &quot;cross&quot;: 0.774597
+    },
+    {
+      &quot;harness&quot;: &quot;A&quot;,
+      &quot;trace&quot;: &quot;return 2&quot;,
+      &quot;reward&quot;: 1,
+      &quot;within&quot;: 0.0,
+      &quot;cross&quot;: 0.774597
+    },
+    {
+      &quot;harness&quot;: &quot;A&quot;,
+      &quot;trace&quot;: &quot;return 2&quot;,
+      &quot;reward&quot;: 1,
+      &quot;within&quot;: 0.0,
+      &quot;cross&quot;: 0.774597
+    },
+    {
+      &quot;harness&quot;: &quot;A&quot;,
+      &quot;trace&quot;: &quot;return 2&quot;,
+      &quot;reward&quot;: 1,
+      &quot;within&quot;: 0.0,
+      &quot;cross&quot;: 0.774597
+    },
+    {
+      &quot;harness&quot;: &quot;B&quot;,
+      &quot;trace&quot;: &quot;{\&quot;answer\&quot;:2}&quot;,
+      &quot;reward&quot;: 1,
+      &quot;within&quot;: 1.732051,
+      &quot;cross&quot;: 0.774597
+    },
+    {
+      &quot;harness&quot;: &quot;B&quot;,
+      &quot;trace&quot;: &quot;return 2&quot;,
+      &quot;reward&quot;: 0,
+      &quot;within&quot;: -0.57735,
+      &quot;cross&quot;: -1.290994
+    },
+    {
+      &quot;harness&quot;: &quot;B&quot;,
+      &quot;trace&quot;: &quot;return 3&quot;,
+      &quot;reward&quot;: 0,
+      &quot;within&quot;: -0.57735,
+      &quot;cross&quot;: -1.290994
+    },
+    {
+      &quot;harness&quot;: &quot;B&quot;,
+      &quot;trace&quot;: &quot;return 4&quot;,
+      &quot;reward&quot;: 0,
+      &quot;within&quot;: -0.57735,
+      &quot;cross&quot;: -1.290994
+    }
+  ],
+  &quot;held_out_before&quot;: 0.0,
+  &quot;held_out_after_credit_only&quot;: 0.0,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>非ゼロのadvantageはWithinの4軌跡からCrossの8軌跡へ増えた。元のrewardは同じ。未見インターフェースでの成功率は前後とも0だが、方策を更新していないため設計上変化しない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>同じ軌跡・同じ報酬でも群の境界を変えると非ゼロの更新係数を持つ軌跡が増える。インターフェースだけを交換しても実行成否が変わる。この二点を独立に確認した。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>LLMのGRPO、SWE-bench、sealed oracleのコンテナ、seed間の学習分散は未実装。sourceハーネスへの適応やportable capabilityの獲得はNOT TESTED。少数のインターフェース例からハーネス一般の序列を導くこともできない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>リポジトリのルートで <code>uv run papers/multi-harness-rl/run.py</code> を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの <code>results.json</code> に保存する。</p>
+<p>乱数を使う実験はseedを固定した。数値は論文の測定値と別に集計している。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>論文</th>
+<th>このLab</th>
+<th>省略・公式コード</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3 群の定義</td>
+<td><code>advantages</code>、<code>experiment</code></td>
+<td>optimizer・確率比は計算しない</td>
+</tr>
+<tr>
+<td>§4–5 harness swap</td>
+<td><code>execute</code></td>
+<td>文字列の受理だけで課題を模す</td>
+</tr>
+<tr>
+<td>表7/9 信号監査</td>
+<td>trajectory別Within/Cross</td>
+<td>分類器・統計検定は未実行</td>
+</tr>
+<tr>
+<td>付録F/G 公開artifact記述</td>
+<td>本文を確認</td>
+<td>本文中のローカルartifact名は公開URLとみなさない。取得可能な公式repoは未確認</td>
+</tr>
+</tbody>
+</table>
+<p>一次資料は <a href="https://arxiv.org/pdf/2609.04518v1">arXiv v1 PDF</a>。公式実装の実行は行っていない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>ハーネスをまたいで報酬を比べると、未見の実行環境にも強くなるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/multi-harness-rl/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

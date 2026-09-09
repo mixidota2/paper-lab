@@ -1,0 +1,111 @@
+id: autolr-dashen
+arxiv_id: '2609.04871'
+submitted: '2026-09-04'
+title: 'AutoLR: Automating the Path from Research to Launch Review in Industrial Recommender Systems'
+authors:
+- Qi Zhang
+- Yanlin Chen
+- Wenchao Xiao
+year: 2026
+topics:
+- ml-systems
+- recommender-systems
+- ai-agent-systems
+urls:
+  paper: https://arxiv.org/abs/2609.04871
+  arxiv: https://arxiv.org/abs/2609.04871
+  pdf: https://arxiv.org/pdf/2609.04871v1
+  official_code: null
+verdict: Worth Reading
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads: []
+status: published
+question: 実験を自動で続ける仕組みは、誤った改善まで積み上げないか
+summary: AutoLRは推薦改善の調査からオフライン候補の提出までを自動化する。オンラインA/Bへの投入とLaunch Reviewは人が判断する。採択した測定値とコードを次の基準にするKEEPには、ノイズを進歩として固定する危険がある。
+source_review:
+  checked: '2026-09-09'
+  scope: 一次PDF本文・方法・結果・限界を確認。数値は著者報告と合成実験を区別。
+  pdf_sha256: df95936d14ece323d82c91b6980c2e1fec522ed8d7b573144a5be74826ed326d
+  url: https://arxiv.org/pdf/2609.04871v1
+core_idea:
+  author_claim: '著者はDASHENの2推薦場面で1,586件の完了評価を監査し、9件の本番Launch Reviewを報告した。専門家Council、証拠に基づく決定的な候補選択、層に分けた知識を組み合わせる一方、KEEPによる非再現的な改善の累積を問題として特定した。
+
+
+    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2609.04871v1)'
+  research_bot_interpretation: 価値は「多数のエージェント」より、提案と確定操作の権限を分け、過去の失敗を次の選択へ戻す設計にある。ただしCouncilやselectorの単独効果を同じ予算の対照実験で示した研究ではない。自動化の成功と、採択規則の妥当性は別々に監査したい。
+sections:
+  overview: AutoLRは推薦改善の調査からオフライン候補の提出までを自動化する。オンラインA/Bへの投入とLaunch Reviewは人が判断する。採択した測定値とコードを次の基準にするKEEPには、ノイズを進歩として固定する危険がある。
+  problem: 推薦モデルの改善は、論文を読むだけでもコードを書くだけでも完了しない。実装、訓練、ログ調査、オフライン評価を数日にわたってつなぎ、次の実験が使う基準を管理する必要がある。AutoLRが扱うのは、この長い開発過程だ。利用者へ直接推薦するLLMではない。
+  method: method.md
+  why_it_might_work: 有限の候補windowと機械的な検証は、モデルの提案を実行可能な範囲へ制限する。過去の失敗を残せば同じ無効案への再投資も減らせそうだ。一方、採択されたノイズがmemoryへ成功例として戻ると、次の提案まで偏る。記録を増やすだけでは信頼性は上がらず、どの証拠でtrunkを変えるかが要になる。
+  evidence: '### 本番の記録はあるが、効果を一つに合算できない
+
+    単列／2列feedと没入型video feedの記録を、実験pathの重複を除いて1,586件に整理した。9件のLaunch Reviewの相対liftを算術的に足すと、消費浸透率+5.75%、消費時間+10.83%、有効閲覧数VV+5.55%になる（§5、表1）。異なる施策・母集団の記述的な和であり、利用者全体への処置効果でも、複利の増加率でもない。
+
+
+    通常iterationのAPI費はRMB 3–4と報告する。Claude Opus級からDeepSeek-V4-Pro/Flashの混成へ移行した後の観測で、2026年8月17日より前のAPI価格に基づく。モデル訓練計算と社内基盤費は含めない。harnessやloopも同時に変わっており、モデル変更だけの節約効果は識別できない。
+
+
+    KEEP監査では過去の閾値情報が揃わず、10⁻³を共通の参照値として再評価した。これは各実験で実際に使われた閾値の復元ではない。欠けたguardrail payloadも「違反なし」と補完しない（§5.3、表2）。
+
+
+    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2609.04871v1)'
+  executable_understanding: '真の改善がゼロの候補を100回提案する。1回のノイズ付き差分が0.001を越えたら採択し、その差分を累積してtrunk IDを更新する規則と、独立25回の確認評価を追加する規則を比べる。200seedで同じノイズ列を両規則に渡す。
+
+
+    追加gateはLabの例で、AutoLRの稼働実装ではない。表示するのは採択差分の和であり、同じ評価集合で直接測ったAUCの推移とは区別する。'
+  results: 下表は200seedの平均。one_run_keepの見かけの累積改善が正でも、全候補の真の改善はゼロのままだ。追加確認を使うrepeat_evidence_gateと、偽のKEEPを一度でも起こしたrun数を比較する。
+  what_we_verified: 真値が改善しなくても、採択差分の累積は単調に増え、コード系譜が更新される。独立した再評価にはその上昇が引き継がれない。追加証拠のgateで偽のKEEPが減るかを、全seedの件数と平均で確認する。
+  what_we_did_not_verify: 実DASHENの指標分布、候補生成、Council、GPU訓練、オンライン効果は未検証。toyの正規ノイズと独立反復は理想化で、共有データを繰り返し見る適応的過学習を表していない。反復評価gateだけで永続的な安全性を保証しない。実運用では校正profileの版、guardrail、確認後のcommitとrollbackまで設計する必要がある。
+  implementation: 'リポジトリのルートで `uv run papers/autolr-dashen/run.py` を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの
+    `results.json` に保存する。
+
+
+    乱数を使う実験はseedを固定した。数値は論文の測定値と別に集計している。'
+  mapping: mapping.md
+figures:
+- path: figures/authority.svg
+  title: 自律化はオフライン候補の提出まで
+  caption: 原論文図2・§3.1。Launch Reviewを自動で通過させるシステムではない。
+  after: problem
+- path: figures/keep-ratchet.svg
+  title: 測定値だけでなく、実験の出発点も変わる
+  caption: 原論文式6–8・§6.1の再構成。CALIBRATION_REQUIREDは提案であり、監査対象の稼働状態ではない。
+  after: method
+- path: figures/ratchet-toy.svg
+  title: 単調な線だけでは進歩を示せない
+  caption: run.py / results.jsonの合成軌跡。真の改善は全候補ゼロ。採択差分を足す過程の反例であり、DASHENの指標推移を再現していない。
+  after: results
+teaching_figures:
+- kind: logic
+  id: council-selector
+  title: 案の審議と試行予算の選択を分ける
+  after: method
+  caption: 提案の質を議論する役割と、実行可能な候補集合を確定する役割を区別する。
+  source: https://arxiv.org/pdf/2609.04871v1
+  locator: §3.2–3.4、図3–6
+  rationale: 提案の質を議論する役割と、実行可能な候補集合を確定する役割を区別する。
+  rows:
+  - label: Council
+    nodes:
+    - title: 独立案 → 統合
+      text: 同じbriefingで初稿を独立に作り、似た案を整理する。
+    - title: 反証 → Coordinator
+      text: リスクや前提を問い、変更面と検証条件を明記する。
+  - label: Selector / controller
+    nodes:
+    - title: 有限window
+      text: 適格性、多様性、方向別capで候補を限定する。
+    - title: 順位付け＋memory gate
+      text: Councilの順位は助言。訓練開始前に履歴由来の証拠と制約を検証する。
+  - label: 記憶
+    nodes:
+    - title: 比較的安定な知識
+      text: 外部研究・本番システム・DASHEN業務知識。
+    - title: 試行で変わる証拠
+      text: 設定・patch・ログ・失敗・offline/online結果。
+interactives: []

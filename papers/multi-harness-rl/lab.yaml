@@ -1,0 +1,103 @@
+id: multi-harness-rl
+arxiv_id: '2609.04518'
+submitted: '2026-09-03'
+title: What Does Multi-Harness RL Learn? Credit Assignment and Portability in Coding Agents
+authors:
+- Chenqian Le
+- Jiayi Cheng
+- Qijia He
+- Runhao Li
+- Yinghao Li
+- Xupeng Chen
+year: 2026
+topics:
+- ai-agent-systems
+- agent-architecture
+- evaluation
+urls:
+  paper: https://arxiv.org/abs/2609.04518
+  arxiv: https://arxiv.org/abs/2609.04518
+  pdf: https://arxiv.org/pdf/2609.04518v1
+  official_code: null
+verdict: Worth Reading
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads: []
+status: published
+question: ハーネスをまたいで報酬を比べると、未見の実行環境にも強くなるか
+summary: 同じ多様な軌跡を学んでも、ハーネスをまたぐGRPOの報酬比較に移植性の上積みは観測されなかった。評価ハーネスによる平均solve rateの幅は約4.3倍で、学習レシピによる幅の約1.16倍より大きい。
+source_review:
+  checked: '2026-09-09'
+  scope: 一次PDF本文・方法・結果・限界を確認。数値は著者報告と合成実験を区別。
+  pdf_sha256: 0cfefab1693397193d1d406e47939097e2d9cf08939e0a6bda4b27a57d4b537b
+  url: https://arxiv.org/pdf/2609.04518v1
+core_idea:
+  author_claim: '著者は複数ハーネスへのexposure（経験）を固定し、WithinとCrossのcredit assignment（相対報酬の割当）だけを変えた。Crossのadvantageにはハーネスの識別情報が残るが、未見ハーネス上の追加改善は検出されなかった。
+
+
+    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2609.04518v1)'
+  research_bot_interpretation: 既存のHarness-Benchが問う「どの実行環境で測ったか」を、学習側の比較群まで広げた研究と読める。ただし多ハーネス経験そのものの有効性を否定していない。小規模なQwen3-8B、固定データ再生、今回のハーネス群でCrossの追加効果を検出できなかった、という範囲を守るべきだ。
+sections:
+  overview: 同じ多様な軌跡を学んでも、ハーネスをまたぐGRPOの報酬比較に移植性の上積みは観測されなかった。評価ハーネスによる平均solve rateの幅は約4.3倍で、学習レシピによる幅の約1.16倍より大きい。
+  problem: 同じコーディング方策でも、編集ツール、観測の形式、文脈管理、再試行規則が違えば成功率が変わる。複数のハーネスを使う学習には二つの選択がある。いくつの環境で経験を集めるかと、どの軌跡同士を報酬で比べるかだ。両者を一緒に変えると、改善原因が分からない。
+  method: method.md
+  why_it_might_work: 同じ課題でも、使いやすいハーネスで得た成功は高いadvantageになりやすい。方策はその構成で報酬を得る振る舞いへ寄せられる可能性がある。ただしadvantageからハーネスを分類できることだけでは、汎化を妨げる原因の証明にはならない。評価時のハーネス交換と組み合わせて読む必要がある。
+  evidence: '### ハーネス交換の差と、creditの差を別々に読む
+
+    24,000件のsealed評価では、ハーネス別平均solve rateの範囲が2.14–9.27%（約4.3倍）だった。レシピ別平均の範囲の比は約1.16倍。これは平均の最大／最小比で、分散分解の寄与率ではない（§4）。
+
+
+    未見ハーネスで1課題8試行に増やしたCross−Withinは+0.25 pp、95%区間は[−0.48,+1.02]。3学習seedをまとめた4試行条件では+0.16 pp、[−0.41,+0.72]だった（表2–4）。ゼロを含むので優越は示されないが、小さい正負の効果は残る。検出限界もあり、同等性試験の結論ではない。
+
+
+    Crossのadvantageから元のハーネスを当てる分類器は、課題単位のout-of-fold評価でラベルshuffle基準より+4.48 pp。Withinは+0.02 ppだった（表9）。Withinのゼロadvantage比率は55.1%、Crossは0.0%（表7）。信号が増えても未見スコアの追加改善には結びつかなかった。訓練データの半分をon-policyで再収集した補助実験でも、結論は変わらなかった。
+
+
+    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2609.04518v1)'
+  executable_understanding: '固定スクリプトが出した8軌跡を、テキスト、JSON、XML風の3インターフェースで採点する。A/Bのsource報酬についてWithinとCrossのadvantageを計算し、軌跡ごとの値をresults.jsonに保存する。
+
+
+    方策更新は実装しない。未見形式でのスコアが変わらないのは固定軌跡の対照であり、学習後の移植性を測った論文の帰無結果の再現ではない。'
+  results: 非ゼロのadvantageはWithinの4軌跡からCrossの8軌跡へ増えた。元のrewardは同じ。未見インターフェースでの成功率は前後とも0だが、方策を更新していないため設計上変化しない。
+  what_we_verified: 同じ軌跡・同じ報酬でも群の境界を変えると非ゼロの更新係数を持つ軌跡が増える。インターフェースだけを交換しても実行成否が変わる。この二点を独立に確認した。
+  what_we_did_not_verify: LLMのGRPO、SWE-bench、sealed oracleのコンテナ、seed間の学習分散は未実装。sourceハーネスへの適応やportable capabilityの獲得はNOT
+    TESTED。少数のインターフェース例からハーネス一般の序列を導くこともできない。
+  implementation: 'リポジトリのルートで `uv run papers/multi-harness-rl/run.py` を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの
+    `results.json` に保存する。
+
+
+    乱数を使う実験はseedを固定した。数値は論文の測定値と別に集計している。'
+  mapping: mapping.md
+figures:
+- path: figures/credit-groups.svg
+  title: 経験を増やすことと報酬を比べることは別
+  caption: 教育用の合成8軌跡。式は原論文§3に対応し、数値はresults.jsonの丸め値。
+  after: method
+- path: figures/dominance.svg
+  title: 平均solve rateの変動幅
+  caption: 原論文§4の報告値。効果の分散寄与率ではなく、各軸で平均を集計した範囲の比。
+  after: evidence
+- path: figures/portability.svg
+  title: 環境を交換して残る差を測る
+  caption: 原論文図1・表3–4・付録Lをもとに再構成。訓練課題と評価課題も分離する。
+  after: evidence
+teaching_figures:
+- kind: equations
+  id: group-equations
+  title: advantageの平均をどこで引くか
+  after: method
+  caption: 比較群を変えることで、更新係数にハーネスの成功率差が入りうる。
+  source: https://arxiv.org/pdf/2609.04518v1
+  locator: §3
+  rationale: 比較群を変えることで、更新係数にハーネスの成功率差が入りうる。
+  steps:
+  - name: Within
+    formula: A = (r − μ_task,harness) / (σ_task,harness + ε)
+    explanation: 同じ課題、同じハーネスの中で報酬を標準化する。
+  - name: Cross
+    formula: A = (r − μ_task) / (σ_task + ε)
+    explanation: 同じ課題の全ハーネスを一群にする。
+interactives: []

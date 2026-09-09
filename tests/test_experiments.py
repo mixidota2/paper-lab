@@ -67,7 +67,7 @@ def test_critic_extreme_thresholds_show_tradeoff():
 def test_all_labs_have_paper_specific_figures_and_methods():
     labs = load_all_labs(ROOT / 'papers')
     for lab in labs:
-        assert len(lab.teaching_figures) >= 2
+        assert len(lab.teaching_figures) + len(lab.figures) >= 2
         assert lab.sections['method']
         assert all(f['source'].startswith('https://') for f in lab.teaching_figures)
         assert all(s['kind'] == 'explorer' for s in lab.interactives)

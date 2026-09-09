@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Walmartは独立に作る需要予測へ、代替商品の需要流入を足すための係数を推定する。カテゴリ単位のlogitと代替候補への制限で100万超の商品規模を扱うが、検証は予測誤差の改善であり、棚変更の因果実験ではない。">
+  <title>商品を棚から外したとき、その需要はどの商品へ移るか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-08-13</span></div>
+    <h1>商品を棚から外したとき、その需要はどの商品へ移るか</h1>
+    <p class="lede">Walmartは独立に作る需要予測へ、代替商品の需要流入を足すための係数を推定する。カテゴリ単位のlogitと代替候補への制限で100万超の商品規模を扱うが、検証は予測誤差の改善であり、棚変更の因果実験ではない。</p>
+    <details class="bibliography"><summary>原論文：Demand Transfer Estimation at Scale via Restricted Logit Modeling</summary><p>Lakshya Garg, Deep Narayan Mishra, Swapnil Yadav, Haoan Wang, Sujal Alugubelli, Karthik Kumaran, Anupriya Sharma</p><p>2608.12680 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2608.12680">原典を読む ↗</a><a href="https://arxiv.org/pdf/2608.12680v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-09 · 一次PDF本文・方法・結果・限界を確認。数値は著者報告と合成実験を区別。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-sao-position">独立予測と棚の意思決定の間にDTを置く</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>Walmartは独立に作る需要予測へ、代替商品の需要流入を足すための係数を推定する。カテゴリ単位のlogitと代替候補への制限で100万超の商品規模を扱うが、検証は予測誤差の改善であり、棚変更の因果実験ではない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>SAO（Store Assortment Optimization）は棚に何を置くかと、いくつ置くかを決める。商品Aを外したとき、Aの予測需要を全て失うとは限らない。代替品Bへ移る分があるからだ。全ての品揃えについて個別に予測すると組合せ数が膨らむため、独立需要と転移係数を分ける。</p></div>      </section>
+<figure class="teaching teaching--architecture" id="figure-sao-position" aria-labelledby="title-sao-position">
+  <div class="figure-heading"><span class="eyebrow">ARCHITECTURE</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-sao-position">独立予測と棚の意思決定の間にDTを置く</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">予測と関係</p><div class="diagram-nodes"><div class="diagram-node"><strong>独立需要予測</strong><p>商品ごとの需要量を入力する。</p></div><div class="diagram-node"><strong>Restricted Logit</strong><p>カテゴリ効用と代替集合から転移係数を作る。</p></div></div></div><div class="diagram-row"><p class="lane-label">意思決定</p><div class="diagram-nodes"><div class="diagram-node"><strong>品揃え別の需要補正</strong><p>撤去候補から残る商品への流入を加える。</p></div><div class="diagram-node"><strong>SAO</strong><p>棚容量などの制約の下で品目と数量を選ぶ。実装はtoy対象外。</p></div></div></div></div>
+  <figcaption>論文の対象は需要転移係数。下流の最適化結果や棚変更の因果効果まで検証した図ではない。 <a href="https://arxiv.org/pdf/2608.12680v1">出典：§I、式1–3 ↗</a></figcaption>
+</figure>      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は需要転移係数を明示的に算出するRestricted Logitを提案する。全品揃えの組合せごとに予測する代わりに、カテゴリ別の効用と商品間の代替集合を推定し、独立予測へ補正を加える。</p>
+<p><a href="https://arxiv.org/pdf/2608.12680v1">一次資料：arXiv v1 本文</a></p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>既存の予測器と棚最適化器の間に、商品同士の依存を入れる部品として読める。ただし売上データから真の代替行動は直接見えない。予測誤差の低下は有用な傍証だが、撤去時の需要転移係数の正しさや、最適化した棚の売上効果をそのまま証明しない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>転移係数は出発商品から到着商品への割合</h3>
+<p>ρᵢⱼは商品iがなく、他の商品が利用可能なとき、iの需要がjへ移る確率を表す。自己転移はゼロ。代替関係は対称でも転移量は対称とは限らない。出発点の需要量、他の候補、購入断念率が違うためだ。</p>
+<p>代替集合Sᵢは購買履歴や商品属性から作る。Store Yule’s Q、顧客とbasketのodds ratio、オンライン行動、低販売・新商品の属性などを使い分ける。併買が多いだけなら補完財の可能性があり、顧客単位とbasket単位の関係を区別する。本文では高い代替性をscore&gt;0.6で制限する（§III、§IV）。</p>
+<h3>カテゴリで効用を学び、代替集合だけで正規化する</h3>
+<p>利用可能集合Oでの購入確率は <code>P(j|O)=exp(ηⱼ)/Σ_{k∈O}exp(η_k)</code>。店舗・商品・週の購入件数Zと、棚割計画と欠品記録の積集合から作る利用可能性Wを使う。カテゴリ別に <code>L(η)=ΣⱼKⱼηⱼ−Σₜmₜ log Σ_{i∈Sₜ}exp(ηᵢ)</code> を最大化する。Kは総購入件数、mは週の購入総数で、minorization–maximization法を用いる。NumPyで実装し、カテゴリ間をSparkで並列化する（§IV）。</p>
+<p>推論では <code>ρ̂ᵢⱼ=exp(η̂ⱼ)/Σ_{k∈Sᵢ,k≠i}exp(η̂_k)</code> として、代替集合の外をゼロにする（式11–13）。購入断念率ℓᵢは別の業務ルールで推定し、商品への最終転移割合を <code>(1−ℓᵢ)ρ̂ᵢⱼ</code> にする。toyもこの二段階を区別する。</p>
+<h3>IIAとneed stateの仮定が、再利用を可能にする</h3>
+<p>IIAはjとkの選択確率比が他の選択肢に依存しない仮定で、logitでは <code>P(j)/P(k)=exp(ηⱼ−η_k)</code> となる。カテゴリで推定した効用を狭い代替集合へ再利用できる理由だ。さらに購入断念と商品間switchingの独立性、初期の希望商品が同じneed stateなら切替先の分布も同じ、という仮定を置く。need stateは「顧客が満たしたい用途」を指す。</p>
+<p>単一撤去なら残る商品jの補正は <code>D̃ⱼ=D̂ⱼ+(1−ℓᵢ)ρ̂ᵢⱼD̂ᵢ</code>。複数の商品が同時に欠ける場合には、既に撤去した商品へ需要を流さない処理が必要で、この一段式を無条件に繰り返してはならない。</p>
+<p><a href="https://arxiv.org/pdf/2608.12680v1">一次資料：arXiv v1 本文</a></p></div>      </section>
+      <figure class="paper-svg teaching"><h3>係数を需要量に変換して読む</h3><a href="../figures/walmart-demand-transfer/figures/transfer.svg" aria-label="係数を需要量に変換して読むを拡大"><img src="../figures/walmart-demand-transfer/figures/transfer.svg" alt="係数を需要量に変換して読む。run.pyと同じ4商品の説明例。原論文式3・11–13と購入断念率の扱いに対応。" loading="lazy"></a><figcaption>run.pyと同じ4商品の説明例。原論文式3・11–13と購入断念率の扱いに対応。 <a href="../figures/walmart-demand-transfer/figures/transfer.svg">図を拡大 ↗</a></figcaption></figure>
+      <figure class="paper-svg teaching"><h3>計算を軽くする仮定が、表せる行動も制限する</h3><a href="../figures/walmart-demand-transfer/figures/restriction.svg" aria-label="計算を軽くする仮定が、表せる行動も制限するを拡大"><img src="../figures/walmart-demand-transfer/figures/restriction.svg" alt="計算を軽くする仮定が、表せる行動も制限する。原論文§III–IVをもとに再構成。S_Aは教育用の例。" loading="lazy"></a><figcaption>原論文§III–IVをもとに再構成。S_Aは教育用の例。 <a href="../figures/walmart-demand-transfer/figures/restriction.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>既存の予測器を全品揃えに合わせて作り直さず、代替候補に限った係数で相互作用を加えられる。集合が重なっていてもカテゴリの効用を再利用できるのが計算上の利点だ。ただし代替集合が誤っていたり、特定ブランドの購入者だけ切替先が違ったりすると、制限して正規化する段階で誤差が入る。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>WMAPEの改善は、係数の間接検証にとどまる</h3>
+<p>著者は1年の取引データで訓練し、最後の2か月をテストとして50カテゴリの代表店舗をbacktestする。表IIのWMAPEは以下の通り。比率なので0.28→0.21は7ポイントの減少である。</p>
+<table>
+<thead>
+<tr>
+<th>店舗</th>
+<th style="text-align: right;">独立予測</th>
+<th style="text-align: right;">DT補正</th>
+<th style="text-align: right;">差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td style="text-align: right;">0.28</td>
+<td style="text-align: right;">0.21</td>
+<td style="text-align: right;">−0.07</td>
+</tr>
+<tr>
+<td>B</td>
+<td style="text-align: right;">0.16</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">−0.06</td>
+</tr>
+<tr>
+<td>C</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">0.03</td>
+<td style="text-align: right;">+0.01</td>
+</tr>
+<tr>
+<td>D</td>
+<td style="text-align: right;">0.16</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">−0.08</td>
+</tr>
+<tr>
+<td>E</td>
+<td style="text-align: right;">0.18</td>
+<td style="text-align: right;">0.07</td>
+<td style="text-align: right;">−0.11</td>
+</tr>
+</tbody>
+</table>
+<p>一部は悪化している。WMAPEは非負需要なら <code>Σ|予測−実績|/Σ実績</code> と読めるが、店舗ごとの件数・信頼区間・全カテゴリの重み付き集約値は表から確定できない。</p>
+<p>100万超という記述は扱う商品universeの規模であり、同じ棚に100万商品を置く意味ではない。大規模運用の計算時間・メモリの比較表はなく、scaling曲線の再現もできない。本文は顧客の実際の切替を観測できないため、予測改善をproxy validationに使うと明記する（§V–VI）。</p>
+<p><a href="https://arxiv.org/pdf/2608.12680v1">一次資料：arXiv v1 本文</a></p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>A/B/C/Dの4商品を用意し、Aの需要100のうち20%は購入断念、残りは効用比3:1のB/Cへ流す。独立予測[100,60,40,30]からAを撤去すると、補正需要は[0,120,60,30]、失われる需要は20となる。Dは代替集合外で変わらない。</p>
+<p>効用は推定せず明示的に与える。仮定と同じ過程を真値にした場合に加え、群内の好みが変わってB/Cへの流れが逆方向になる例も比較する。toyのWMAPEは論文表IIの再現ではない。</p></div><div class="downloads"><a href="../downloads/walmart-demand-transfer/run.py" download>実行コード</a><a href="../downloads/walmart-demand-transfer/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/walmart-demand-transfer">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>4商品の手計算可能な設定。効用は既知で推定しない。仮定一致時の誤差ゼロは構成上の結果であり、観測データへの精度保証ではない。</em></p>
+<h3>商品A撤去後の需要補正</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>independent_WMAPE</th><th>DT_WMAPE</th></tr></thead><tbody><tr><th scope='row'>assumption_matched</th><td>0.380952</td><td>0.0</td></tr><tr><th scope='row'>within_set_preference_shift</th><td>0.380952</td><td>0.380952</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;4商品の手計算可能な設定。効用は既知で推定しない。仮定一致時の誤差ゼロは構成上の結果であり、観測データへの精度保証ではない。&quot;,
+  &quot;demand&quot;: [
+    100,
+    60,
+    40,
+    30
+  ],
+  &quot;coefficients&quot;: [
+    [
+      0.0,
+      0.6000000000000001,
+      0.2,
+      0.0
+    ],
+    [
+      0.6,
+      0.0,
+      0.15,
+      0.0
+    ],
+    [
+      0.5142857142857143,
+      0.3857142857142858,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  ],
+  &quot;removed_item&quot;: 0,
+  &quot;independent&quot;: [
+    0,
+    60,
+    40,
+    30
+  ],
+  &quot;adjusted&quot;: [
+    0,
+    120.0,
+    60.0,
+    30.0
+  ],
+  &quot;lost_demand&quot;: 19.999999999999996,
+  &quot;counterexample_actual&quot;: [
+    0,
+    80,
+    100,
+    30
+  ],
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;商品A撤去後の需要補正&quot;,
+      &quot;metrics&quot;: {
+        &quot;assumption_matched&quot;: {
+          &quot;independent_WMAPE&quot;: 0.380952,
+          &quot;DT_WMAPE&quot;: 0.0
+        },
+        &quot;within_set_preference_shift&quot;: {
+          &quot;independent_WMAPE&quot;: 0.380952,
+          &quot;DT_WMAPE&quot;: 0.380952
+        }
+      }
+    }
+  ],
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>仮定一致の真値では、独立予測のWMAPEは0.381、DT補正は0。群内の好みを変えた対照では両方0.381となり、補正の利点が消える。ゼロ誤差は既知の生成規則を使ったためで、推定器の精度を示す結果ではない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>需要の保存（残存需要＋購入断念＝撤去前需要）、集合外への転移ゼロ、購入断念後の正規化を確認した。群内選好がずれる対照例では補正誤差が残る。推定済み係数をどう使うかの理解はPARTIAL。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>効用推定、代替scoreの学習、欠品の内生性、同時撤去、100万商品での計算量は未検証。仮定一致時のtoy誤差ゼロは生成規則を知っているためで、予測性能の証拠ではない。実運用では代替集合の妥当性と欠品・販促・棚位置の影響を分け、棚変更を実験で評価する必要がある。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>リポジトリのルートで <code>uv run papers/walmart-demand-transfer/run.py</code> を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの <code>results.json</code> に保存する。</p>
+<p>乱数を使う実験はseedを固定した。数値は論文の測定値と別に集計している。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>論文</th>
+<th>このLab</th>
+<th>省略・公式コード</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>式11–13</td>
+<td><code>coefficients</code></td>
+<td>効用は既知、MM推定を省略</td>
+</tr>
+<tr>
+<td>§IV 購入断念</td>
+<td><code>loyalty</code></td>
+<td>業務ルールの推定は省略</td>
+</tr>
+<tr>
+<td>式3、§V 予測補正</td>
+<td><code>remove_one</code></td>
+<td>単一撤去のみ</td>
+</tr>
+<tr>
+<td>§V WMAPE</td>
+<td><code>experiment</code></td>
+<td>合成真値。公式repo URLは本文から確認できず</td>
+</tr>
+</tbody>
+</table>
+<p>一次資料は <a href="https://arxiv.org/pdf/2608.12680v1">arXiv v1 PDF</a>。公式実装の実行は行っていない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>商品を棚から外したとき、その需要はどの商品へ移るか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/walmart-demand-transfer/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

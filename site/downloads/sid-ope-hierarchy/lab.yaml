@@ -1,0 +1,104 @@
+id: sid-ope-hierarchy
+arxiv_id: '2608.28905'
+submitted: '2026-08-28'
+title: 'Off-Policy Evaluation for Semantic ID Recommenders: Does the Model''s Own Code Hierarchy Help?'
+authors:
+- Artem Betlei
+year: 2026
+topics:
+- recommender-systems
+- generative-recommendation
+- evaluation
+urls:
+  paper: https://arxiv.org/abs/2608.28905
+  arxiv: https://arxiv.org/abs/2608.28905
+  pdf: https://arxiv.org/pdf/2608.28905v1
+  official_code: null
+verdict: Radar
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads: []
+status: published
+question: SIDの木は、ログで見えていない商品の評価をどこまで助けるか
+summary: 商品単位の重要度重みが不安定なとき、SIDの接頭辞ごとに確率を合算すれば、有効な標本が増える。精度改善の中心は粗粒度化で、木の固有の利点はdecoderから群の確率を安く取り出せることにある。
+source_review:
+  checked: '2026-09-09'
+  scope: 一次PDF本文・方法・結果・限界を確認。数値は著者報告と合成実験を区別。
+  pdf_sha256: fe2c8170b649faa9e1f67310f6e4b45fe787c141a5df1b59d6ff7c387ba4e326
+  url: https://arxiv.org/pdf/2608.28905v1
+core_idea:
+  author_claim: '著者はSIDのprefixをOPEの行動抽象化に使い、supportの回復と誤差低下を示す。同じ群数のflat clusteringでも精度差は有意でなく、階層の利点を確率取得の実行可能性と解像度の選択に位置付ける。
+
+
+    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2608.28905v1)'
+  research_bot_interpretation: SIDを「商品を生成する符号」から「評価する粒度を選ぶ仕組み」へ読み替える点が有用だ。ただし群の中で何を出すかを変えた差は粗粒度の評価から消える。新tokenizerや新しい候補集合まで比較できる万能のOPEではない。
+sections:
+  overview: 商品単位の重要度重みが不安定なとき、SIDの接頭辞ごとに確率を合算すれば、有効な標本が増える。精度改善の中心は粗粒度化で、木の固有の利点はdecoderから群の確率を安く取り出せることにある。
+  problem: '既存方策π₀のログで候補方策πₑの報酬を推定するのがOPE（Off-Policy Evaluation）だ。商品aへの報酬rを `πₑ(a|x)/π₀(a|x)` 倍するIPSは、候補が好む商品を既存方策がほとんど出さないと不安定になる。ログ件数が大きくても、少数の巨大な重みが推定を支配する。
+
+
+    対象は同じcatalogとSID tree上の方策変更。候補生成器の変更で新しい商品が行動集合に入る場合や、再tokenizeで木が変わる場合は対象外だ。'
+  method: method.md
+  why_it_might_work: 接頭辞を短くすると、同じ群に属する商品の観測を共有できる。重要度重みのばらつきが減る一方、群内の好みの違いを捨てる。この交換条件を深さで操作できると、観測の薄い段階では粗く、十分なsupportが得られた段階では細かく比較する設計につながる。
+  evidence: '### 本番のsupport診断と、制御実験の精度を区別する
+
+    本番ログでは商品ESSが生の件数のおよそ0.003倍まで落ちる。候補確率が記録されたsliceでは、greedy targetに対する粗粒度化でESSが約1.8倍になる（§4.2–4.3、付録表5）。本番ログにはランダム露出のoracleがなく、ここから推定精度は直接検証できない。
+
+
+    KuaiRandのランダム露出データを二分し、一方から方策、他方からreward生成とoracleを作る。7,339商品、M=5,000、200seedでSNIPSのRMSEは商品粒度0.155、階層粒度0.087だった。ただし主要表の深さはoracleを使う別validation
+    seedで選ばれ、実装可能な選択器の成績と分ける必要がある（表1）。
+
+
+    ログだけで深さを選ぶSLOPEをMIPSに適用した列は、M=5,000でRMSE 0.109。oracle選択SNIPSの0.086とは推定器も違う（表3）。flat k-meansとの同群数比較では木の精度優位は確認されない。候補選択の改善も主に群間の確率を動かす方策で見られ、群内だけを変える方策では利点が失われる（表2）。Amazonの追加実験は自己選択されたratingを使うため、独立な因果的検証とは扱わない。
+
+
+    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2608.28905v1)'
+  executable_understanding: '64商品を4分木へ並べ、各大群で先頭商品に97%の条件付きlogging確率を与える。targetは群の配分と群内の好みを変える。600件×250seedの同じログから、深さ0/1/2/3でIPSとSNIPSを計算する。深さ3は商品、深さ0は全商品を一つにまとめる対照だ。
+
+
+    真の期待報酬を既知にし、RMSE、IPS分散、厳密な期待バイアス、ESS、観測された群の割合を保存する。ESSは `(Σw)²/Σw²`。prefix確率の積と葉の和の一致も数値で確かめる。'
+  results: 商品粒度の平均ESSは5.519件、深さ1の4群では151.423件だった。SNIPSのRMSEは0.280から0.102へ下がる。一方、全体を1群にするとESSは600でもRMSEは0.340に悪化する。標本を共有し過ぎると、群内に埋もれた方策差を見落とす。これらはすべて合成実験の値。
+  what_we_verified: 粗粒度化で重みが安定する一方、浅すぎる群では方策の違いが消えてバイアスが残る。既知のtoy分布に対する期待バイアスと、有限ログからのRMSEを別々に計算した。decoder massの一致は、この正規化treeで確認した。
+  what_we_did_not_verify: SID学習、埋め込みのLipschitz性、SLOPE、OffCEM、本番loggerの確率復元は未検証。toyでは全商品の確率が正で既知だ。ゼロsupportを持つ商品を観測なしに識別できるわけではない。深さは一つ選ばず全列を示し、oracleを見て選んだ値を運用成績と呼ばない。
+  implementation: 'リポジトリのルートで `uv run papers/sid-ope-hierarchy/run.py` を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの
+    `results.json` に保存する。
+
+
+    乱数を使う実験はseedを固定した。数値は論文の測定値と別に集計している。'
+  mapping: mapping.md
+figures:
+- path: figures/sid-tree.svg
+  title: 接頭辞の長さで評価の解像度を変える
+  caption: 原論文§2の再図。表示を簡潔にするため分岐を二つにした概念図で、論文のcodebook構成やtoyの64商品を描いたものではない。
+  after: problem
+- path: figures/decoder-mass.svg
+  title: 全商品を列挙せず、prefixの確率を読む
+  caption: 原論文§2。数値は説明用で論文の測定値ではない。run.pyは別の64商品分布で積と和の一致を検証する。
+  after: method
+- path: figures/ess.svg
+  title: 合成ログの平均ESS
+  caption: results.json。各seedの600ログに対する重み由来のESS。生の件数と、有効な標本数は違う。
+  after: results
+teaching_figures:
+- kind: equations
+  id: bias-bound
+  title: 粗くすると消えるのは群内の方策差
+  after: method
+  caption: 上限の対象はraw cluster IPS。平均量子化誤差だけでは上限を決められない。
+  source: https://arxiv.org/pdf/2608.28905v1
+  locator: 命題3.1
+  rationale: 上限の対象はraw cluster IPS。平均量子化誤差だけでは上限を決められない。
+  steps:
+  - name: 重要度重み
+    formula: wᵢ = πₑ(Cᵢ|xᵢ) / π₀(Cᵢ|xᵢ)
+    explanation: 群の出現率をtargetに合わせる。群内の商品選択はlogging側のまま。
+  - name: 条件付きバイアス上限
+    formula: '|Bias| ≤ 2 L_q δ_max,ℓ E[TV_in,ℓ]'
+    explanation: 群内の報酬変動と群内方策差の両方が小さければ偏りも小さい。既知確率・positivity・埋め込み仮定が必要。
+interactives:
+- kind: explorer
+  title: 観測を共有する粒度と誤差を比べる
+  caption: 全て同じ合成ログを使用。深さをoracleで選んだ運用成績とは扱わない。

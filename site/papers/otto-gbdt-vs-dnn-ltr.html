@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="OTTOではTwo-Tower＋CEが本番LambdaMARTを上回った。8週間のA/Bでクリックは1.86%、売上は0.56%増え、販売点数は同水準だった。候補同士を比較するTransformerは、オフラインの注文指標で不利だった。">
+  <title>本番の木モデルを超えるために、ランキングを複雑にする必要はあるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2025-07-28</span></div>
+    <h1>本番の木モデルを超えるために、ランキングを複雑にする必要はあるか</h1>
+    <p class="lede">OTTOではTwo-Tower＋CEが本番LambdaMARTを上回った。8週間のA/Bでクリックは1.86%、売上は0.56%増え、販売点数は同水準だった。候補同士を比較するTransformerは、オフラインの注文指標で不利だった。</p>
+    <details class="bibliography"><summary>原論文：Industry Insights from Comparing Deep Learning and GBDT Models for E-Commerce Learning-to-Rank</summary><p>Yunus Lutz, Timo Wilm, Philipp Duwe</p><p>2507.20753 · 2025</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2507.20753">原典を読む ↗</a><a href="https://arxiv.org/pdf/2507.20753v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-09 · 一次PDF本文・方法・結果・限界を確認。数値は著者報告と合成実験を区別。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-metric-map">オフラインの代理指標をオンラインで確かめる</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>OTTOではTwo-Tower＋CEが本番LambdaMARTを上回った。8週間のA/Bでクリックは1.86%、売上は0.56%増え、販売点数は同水準だった。候補同士を比較するTransformerは、オフラインの注文指標で不利だった。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>検索リクエストごとに、上流の候補生成器が商品一覧を返す。その後に各商品を採点して並べ替えるのが、この論文のLTR（Learning-to-Rank）だ。候補生成をTwo-Tower検索へ置き換える研究ではない。</p>
+<p>学習ラベルは表示された一覧へのクリックと注文で、どちらも複数の商品が正例になりうる。露出位置や既存rankerによって観測が偏るため、ログ上の順位指標だけで売上増加を断定できない。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>Two-Towerを置くのは候補生成の後</h3><a href="../figures/otto-gbdt-vs-dnn-ltr/figures/cascade.svg" aria-label="Two-Towerを置くのは候補生成の後を拡大"><img src="../figures/otto-gbdt-vs-dnn-ltr/figures/cascade.svg" alt="Two-Towerを置くのは候補生成の後。原論文§4をもとに再構成。研究対象を緑の枠で示す。" loading="lazy"></a><figcaption>原論文§4をもとに再構成。研究対象を緑の枠で示す。 <a href="../figures/otto-gbdt-vs-dnn-ltr/figures/cascade.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は、本番運用向けに調整されたLightGBM LambdaMARTと3種類のDNNを比較した。Two-Tower＋Softmax CEはクリック順位と商品価値を改善し、注文順位を落とさなかったため、オンライン検証に選ばれた。</p>
+<p><a href="https://arxiv.org/pdf/2507.20753v1">一次資料：arXiv v1 本文</a></p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>この研究は「DNNに移行する価値があるか」には実務上の根拠を与える。ただしカテゴリ・テキストの埋め込みを含む構成全体の比較であり、同じ表現を入力したときの木とニューラルネットの優劣は切り分けていない。埋め込みを木にも与える比較を次に見たい。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>商品と文脈の結合位置が3方式の違いを生む</h3>
+<p>数値特徴は価格・割引率・過去の反応などを正規化する。カテゴリは128次元の埋め込み、テキストは単語埋め込みを加算した512次元の表現を使う。商品側のbackboneは幅1024、3層。各層は線形変換、Dropout、ReLU、LayerNormと残差接続からなる（§4–6）。</p>
+<p>Two-Tower（TT）は商品をbackbone、文脈を別の線形層へ渡し、<code>sᵢ = h_cᵀ h_pᵢ</code> で採点する。商品表現を先に計算しておける。ただし価格など変化する特徴の更新は必要だ。Cross-Encoder（CR）は商品と文脈を連結し、backboneと出力層で採点する。Transformer（TR）はこれに候補一覧の自己注意を加える。位置符号化を使わず、1層・1headの注意表現 <code>h_t</code> とCRの表現 <code>h_z</code> を <code>(1+h_t) ⊙ h_z</code> で結合して出力する。</p>
+<h3>正例数をそろえても、クリックと注文の難しさはそろわない</h3>
+<p>正例数を <code>P = Σᵢyᵢ</code> とすると、CEは <code>ỹᵢ = yᵢ/P</code> を目標分布にし、<code>L_CE = −Σᵢỹᵢ log softmax(s)ᵢ</code> を最小化する。RankNet（RN）は正例と負例のスコア差を扱うペア損失をPで割る。正例が多い一覧の寄与を抑えるためだ。Pがゼロの一覧の扱いは本文だけでは明確でないため、このLabのtoyは両ラベルに正例がある一覧だけを作る。</p>
+<p>両方式とも <code>L = α L_click + (1−α) L_order</code> とし、論文のαは0.5。係数が同じでも、ラベル頻度や勾配の大きさが等しいとは限らない。著者はクリックへの偏りとαの設定を注文指標悪化の候補理由に挙げるが、αの比較実験で確定した原因ではない。</p>
+<p>比較するLambdaMARTは400本、深さ上限12、葉数25、学習率0.1、LambdaRank目的関数。DNNの「単純」はTTという結合方式の意味であり、数個のパラメータしかないモデルを指さない。</p>
+<p><a href="https://arxiv.org/pdf/2507.20753v1">一次資料：arXiv v1 本文</a></p></div>      </section>
+      <figure class="paper-svg teaching"><h3>特徴を結合する位置で比較する</h3><a href="../figures/otto-gbdt-vs-dnn-ltr/figures/architectures.svg" aria-label="特徴を結合する位置で比較するを拡大"><img src="../figures/otto-gbdt-vs-dnn-ltr/figures/architectures.svg" alt="特徴を結合する位置で比較する。原論文§4.1–6の教育用再図。TTの文脈側は商品側と同じ深いネットではなく線形層。" loading="lazy"></a><figcaption>原論文§4.1–6の教育用再図。TTの文脈側は商品側と同じ深いネットではなく線形層。 <a href="../figures/otto-gbdt-vs-dnn-ltr/figures/architectures.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>商品と文脈を最後に内積で合わせるTTは、候補間の注意計算を必要としない。ランキングに必要な信号が各商品の特徴と文脈の適合度に十分含まれていれば、複雑な一覧相互作用の利点は小さくなる。この説明はresearch_botの仮説で、論文が相互作用の不要性を証明したわけではない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>注文の順位を守ったTTがオンラインへ進んだ</h3>
+<p>時間順に分けた学習43M、テスト700kの検索ログを使う。すべての指標は15位までで、NDCG_clickとNDCG_orderは正例を上位に置けた度合い、AIV（Average Item Value）は商品価値を使った売上の代理指標だ（§6、表1）。</p>
+<table>
+<thead>
+<tr>
+<th>CEモデル</th>
+<th style="text-align: right;">NDCG_click</th>
+<th style="text-align: right;">NDCG_order</th>
+<th style="text-align: right;">AIV</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TT</td>
+<td style="text-align: right;">+4.32%</td>
+<td style="text-align: right;">0.00%</td>
+<td style="text-align: right;">+2.28%</td>
+</tr>
+<tr>
+<td>CR</td>
+<td style="text-align: right;">+4.32%</td>
+<td style="text-align: right;">−0.30%</td>
+<td style="text-align: right;">+2.28%</td>
+</tr>
+<tr>
+<td>TR</td>
+<td style="text-align: right;">+2.16%</td>
+<td style="text-align: right;">−1.48%</td>
+<td style="text-align: right;">+2.89%</td>
+</tr>
+</tbody>
+</table>
+<p>数値はLGBMに対する相対差。RNではTT/CR/TRの注文NDCGがそれぞれ−1.48%/−0.59%/−1.78%だった。AIVの上昇だけでは採用を決められない。</p>
+<p>§6.2の8週間A/BはTT＋CEと本番LGBMの比較で、クリック+1.86%（t検定 p&lt;0.0001）、売上+0.56%（p&lt;0.01）、販売点数は同水準と報告する。CR/TRをオンラインで比較した結果ではない。信頼区間の正確な端点や割付規模は本文から確定できず、図から数値を推測して補っていない。</p>
+<p><a href="https://arxiv.org/pdf/2507.20753v1">一次資料：arXiv v1 本文</a></p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-metric-map" aria-labelledby="title-metric-map">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-metric-map">オフラインの代理指標をオンラインで確かめる</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="オフラインの代理指標をオンラインで確かめるの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">オフライン @15</th><th scope="col">オンライン 8週間</th></tr></thead><tbody><tr><th scope="row">反応</th><td class="">NDCG_click +4.32%</td><td class="">クリック数 +1.86%</td></tr><tr><th scope="row">注文</th><td class="">NDCG_order 0.00%</td><td class="">販売点数は同水準</td></tr><tr><th scope="row">価値</th><td class="">AIV +2.28%</td><td class="">売上 +0.56%</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>左と右は関連するが同一の量ではない。相対差はTT＋CE対LGBM。 <a href="https://arxiv.org/pdf/2507.20753v1">出典：表1、§6.2 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>8商品からなる合成検索一覧で、同じ2特徴・同じ線形スコア・同じ学習予算のままαを変える。クリックには「目を引く商品」と「注文する商品」を、注文には後者を正例として与える。学習160一覧とテスト240一覧は別seedで作り、NDCG@3を測る。</p>
+<p>これは損失の重みを理解する実験で、TT・MLP・木の比較ではない。モデル比較も同時に小さく実装すると、特徴やチューニングの差が主題を隠すため、ここではαの効果に絞った。</p></div><div class="downloads"><a href="../downloads/otto-gbdt-vs-dnn-ltr/run.py" download>実行コード</a><a href="../downloads/otto-gbdt-vs-dnn-ltr/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/otto-gbdt-vs-dnn-ltr">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section class="interactive" id="interactive-1" data-interactive="explorer">
+        <p class="figure-badge">合成実験 · Mechanism PARTIAL</p><h2>αを動かして、注文順位への影響を見る</h2><p>同じ特徴・同じモデルのまま、二つの教師信号の重みだけを変える。</p>
+        <script type="application/json" data-config>{"caption": "\u540c\u3058\u7279\u5fb4\u30fb\u540c\u3058\u30e2\u30c7\u30eb\u306e\u307e\u307e\u3001\u4e8c\u3064\u306e\u6559\u5e2b\u4fe1\u53f7\u306e\u91cd\u307f\u3060\u3051\u3092\u5909\u3048\u308b\u3002", "kind": "explorer", "title": "\u03b1\u3092\u52d5\u304b\u3057\u3066\u3001\u6ce8\u6587\u9806\u4f4d\u3078\u306e\u5f71\u97ff\u3092\u898b\u308b"}</script>
+<script type="application/json" data-results>{"default": 0, "frames": [{"bars": [{"label": "NDCG_click@3", "value": 0.767038}, {"label": "NDCG_order@3", "value": 0.980009}], "lines": [], "note": "\u5408\u6210\u306e\u5171\u6709\u7dda\u5f62\u30b9\u30b3\u30a2\u3002\u03b1\u3060\u3051\u3092\u5909\u3048\u305f\u7d50\u679c\u3067\u3001OTTO\u3084DNN\u306e\u6027\u80fd\u3067\u306f\u306a\u3044\u3002", "value": 0.0}, {"bars": [{"label": "NDCG_click@3", "value": 0.758673}, {"label": "NDCG_order@3", "value": 0.9247}], "lines": [], "note": "\u5408\u6210\u306e\u5171\u6709\u7dda\u5f62\u30b9\u30b3\u30a2\u3002\u03b1\u3060\u3051\u3092\u5909\u3048\u305f\u7d50\u679c\u3067\u3001OTTO\u3084DNN\u306e\u6027\u80fd\u3067\u306f\u306a\u3044\u3002", "value": 0.25}, {"bars": [{"label": "NDCG_click@3", "value": 0.761926}, {"label": "NDCG_order@3", "value": 0.841611}], "lines": [], "note": "\u5408\u6210\u306e\u5171\u6709\u7dda\u5f62\u30b9\u30b3\u30a2\u3002\u03b1\u3060\u3051\u3092\u5909\u3048\u305f\u7d50\u679c\u3067\u3001OTTO\u3084DNN\u306e\u6027\u80fd\u3067\u306f\u306a\u3044\u3002", "value": 0.5}, {"bars": [{"label": "NDCG_click@3", "value": 0.762502}, {"label": "NDCG_order@3", "value": 0.723308}], "lines": [], "note": "\u5408\u6210\u306e\u5171\u6709\u7dda\u5f62\u30b9\u30b3\u30a2\u3002\u03b1\u3060\u3051\u3092\u5909\u3048\u305f\u7d50\u679c\u3067\u3001OTTO\u3084DNN\u306e\u6027\u80fd\u3067\u306f\u306a\u3044\u3002", "value": 0.75}, {"bars": [{"label": "NDCG_click@3", "value": 0.751706}, {"label": "NDCG_order@3", "value": 0.599897}], "lines": [], "note": "\u5408\u6210\u306e\u5171\u6709\u7dda\u5f62\u30b9\u30b3\u30a2\u3002\u03b1\u3060\u3051\u3092\u5909\u3048\u305f\u7d50\u679c\u3067\u3001OTTO\u3084DNN\u306e\u6027\u80fd\u3067\u306f\u306a\u3044\u3002", "value": 1.0}], "label": "\u30af\u30ea\u30c3\u30af\u640d\u5931\u306e\u91cd\u307f\u03b1", "metric": "NDCG@3\uff08\u5408\u6210\u30c6\u30b9\u30c8\uff09", "unit": ""}</script>        <div data-mount></div><div data-fallback>
+<p>クリック損失の重みα：0.0</p><ul><li>NDCG_click@3：0.767038</li><li>NDCG_order@3：0.980009</li></ul><p>合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。</p>        </div><p class="source-note">数値の出所：このLabの results.json。論文の測定値ではありません。</p>
+      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>合成データ。αで共有スコアの優先順位が変わる例。OTTOの性能、因果関係、モデル間優劣は未検証。</em></p>
+<h3>クリック損失の重みα</h3>
+<ul><li><strong>n</strong>: {'train_queries': 160, 'test_queries': 240, 'items_per_query': 8}</li><li><strong>seed</strong>: [19, 20]</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>NDCG_click@3</th><th>NDCG_order@3</th><th>weights</th></tr></thead><tbody><tr><th scope='row'>0</th><td>0.767038</td><td>0.980009</td><td>[0.377655, 7.678537]</td></tr><tr><th scope='row'>0.25</th><td>0.758673</td><td>0.9247</td><td>[0.834235, 4.428138]</td></tr><tr><th scope='row'>0.5</th><td>0.761926</td><td>0.841611</td><td>[1.178915, 2.985007]</td></tr><tr><th scope='row'>0.75</th><td>0.762502</td><td>0.723308</td><td>[1.550025, 2.212208]</td></tr><tr><th scope='row'>1</th><td>0.751706</td><td>0.599897</td><td>[1.985611, 1.681083]</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成データ。αで共有スコアの優先順位が変わる例。OTTOの性能、因果関係、モデル間優劣は未検証。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;クリック損失の重みα&quot;,
+      &quot;seed&quot;: [
+        19,
+        20
+      ],
+      &quot;n&quot;: {
+        &quot;train_queries&quot;: 160,
+        &quot;test_queries&quot;: 240,
+        &quot;items_per_query&quot;: 8
+      },
+      &quot;metrics&quot;: {
+        &quot;0&quot;: {
+          &quot;NDCG_click@3&quot;: 0.767038,
+          &quot;NDCG_order@3&quot;: 0.980009,
+          &quot;weights&quot;: [
+            0.377655,
+            7.678537
+          ]
+        },
+        &quot;0.25&quot;: {
+          &quot;NDCG_click@3&quot;: 0.758673,
+          &quot;NDCG_order@3&quot;: 0.9247,
+          &quot;weights&quot;: [
+            0.834235,
+            4.428138
+          ]
+        },
+        &quot;0.5&quot;: {
+          &quot;NDCG_click@3&quot;: 0.761926,
+          &quot;NDCG_order@3&quot;: 0.841611,
+          &quot;weights&quot;: [
+            1.178915,
+            2.985007
+          ]
+        },
+        &quot;0.75&quot;: {
+          &quot;NDCG_click@3&quot;: 0.762502,
+          &quot;NDCG_order@3&quot;: 0.723308,
+          &quot;weights&quot;: [
+            1.550025,
+            2.212208
+          ]
+        },
+        &quot;1&quot;: {
+          &quot;NDCG_click@3&quot;: 0.751706,
+          &quot;NDCG_order@3&quot;: 0.599897,
+          &quot;weights&quot;: [
+            1.985611,
+            1.681083
+          ]
+        }
+      }
+    }
+  ],
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;explorer&quot;: {
+    &quot;label&quot;: &quot;クリック損失の重みα&quot;,
+    &quot;unit&quot;: &quot;&quot;,
+    &quot;metric&quot;: &quot;NDCG@3（合成テスト）&quot;,
+    &quot;default&quot;: 0,
+    &quot;frames&quot;: [
+      {
+        &quot;value&quot;: 0.0,
+        &quot;note&quot;: &quot;合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;NDCG_click@3&quot;,
+            &quot;value&quot;: 0.767038
+          },
+          {
+            &quot;label&quot;: &quot;NDCG_order@3&quot;,
+            &quot;value&quot;: 0.980009
+          }
+        ],
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 0.25,
+        &quot;note&quot;: &quot;合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;NDCG_click@3&quot;,
+            &quot;value&quot;: 0.758673
+          },
+          {
+            &quot;label&quot;: &quot;NDCG_order@3&quot;,
+            &quot;value&quot;: 0.9247
+          }
+        ],
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 0.5,
+        &quot;note&quot;: &quot;合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;NDCG_click@3&quot;,
+            &quot;value&quot;: 0.761926
+          },
+          {
+            &quot;label&quot;: &quot;NDCG_order@3&quot;,
+            &quot;value&quot;: 0.841611
+          }
+        ],
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 0.75,
+        &quot;note&quot;: &quot;合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;NDCG_click@3&quot;,
+            &quot;value&quot;: 0.762502
+          },
+          {
+            &quot;label&quot;: &quot;NDCG_order@3&quot;,
+            &quot;value&quot;: 0.723308
+          }
+        ],
+        &quot;lines&quot;: []
+      },
+      {
+        &quot;value&quot;: 1.0,
+        &quot;note&quot;: &quot;合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;NDCG_click@3&quot;,
+            &quot;value&quot;: 0.751706
+          },
+          {
+            &quot;label&quot;: &quot;NDCG_order@3&quot;,
+            &quot;value&quot;: 0.599897
+          }
+        ],
+        &quot;lines&quot;: []
+      }
+    ]
+  }
+}</code></pre></details><p>合成テストの注文NDCG@3はα=0で0.980、α=1で0.600だった。クリックNDCGは0.752–0.767付近で、クリック損失を重くしてもこの順位指標が単調に上がるとは限らない。CEの最適化とNDCGの改善が同一ではないことにも注意したい。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>合成条件ではαが大きくなると共有スコアの重みが変わり、注文順位の指標が影響を受ける。損失の係数を同じにするだけでは、両指標の維持を保証できない例を確認した。MechanismはPARTIAL。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>OTTOデータ、埋め込み学習、LambdaMART、配信費用、売上増加は未検証。αが実論文のTR不振の原因だったとは言えない。クリックと注文の人工的な競合の強さを変えるとtoyの曲線も変わる。導入判断には同じ特徴・候補・配信予算での比較と、自社A/Bが必要だ。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>リポジトリのルートで <code>uv run papers/otto-gbdt-vs-dnn-ltr/run.py</code> を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの <code>results.json</code> に保存する。</p>
+<p>乱数を使う実験はseedを固定した。数値は論文の測定値と別に集計している。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>論文</th>
+<th>このLab</th>
+<th>省略・公式コード</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§5.2 CEとα</td>
+<td><code>fit</code>、<code>softmax</code></td>
+<td>線形2特徴に簡略化。RNとDNNは未実装</td>
+</tr>
+<tr>
+<td>§6.1 順位評価</td>
+<td><code>ndcg</code></td>
+<td>toyは@3、論文は@15</td>
+</tr>
+<tr>
+<td>§6.2 オンライン</td>
+<td>根拠節のみ</td>
+<td>本番実験はNOT TESTED。一次本文から公式実装URLは確認できず</td>
+</tr>
+</tbody>
+</table>
+<p>一次資料は <a href="https://arxiv.org/pdf/2507.20753v1">arXiv v1 PDF</a>。公式実装の実行は行っていない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>本番の木モデルを超えるために、ランキングを複雑にする必要はあるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/otto-gbdt-vs-dnn-ltr/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

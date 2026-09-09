@@ -1,0 +1,120 @@
+id: walmart-demand-transfer
+arxiv_id: '2608.12680'
+submitted: '2026-08-13'
+title: Demand Transfer Estimation at Scale via Restricted Logit Modeling
+authors:
+- Lakshya Garg
+- Deep Narayan Mishra
+- Swapnil Yadav
+- Haoan Wang
+- Sujal Alugubelli
+- Karthik Kumaran
+- Anupriya Sharma
+year: 2026
+topics:
+- demand-forecasting
+- retail-optimization
+urls:
+  paper: https://arxiv.org/abs/2608.12680
+  arxiv: https://arxiv.org/abs/2608.12680
+  pdf: https://arxiv.org/pdf/2608.12680v1
+  official_code: null
+verdict: Radar
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads: []
+status: published
+question: 商品を棚から外したとき、その需要はどの商品へ移るか
+summary: Walmartは独立に作る需要予測へ、代替商品の需要流入を足すための係数を推定する。カテゴリ単位のlogitと代替候補への制限で100万超の商品規模を扱うが、検証は予測誤差の改善であり、棚変更の因果実験ではない。
+source_review:
+  checked: '2026-09-09'
+  scope: 一次PDF本文・方法・結果・限界を確認。数値は著者報告と合成実験を区別。
+  pdf_sha256: 330644d46127279c73357e68a722dc28a52d4bd30a13b4f69ca5a75b948c86e9
+  url: https://arxiv.org/pdf/2608.12680v1
+core_idea:
+  author_claim: '著者は需要転移係数を明示的に算出するRestricted Logitを提案する。全品揃えの組合せごとに予測する代わりに、カテゴリ別の効用と商品間の代替集合を推定し、独立予測へ補正を加える。
+
+
+    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2608.12680v1)'
+  research_bot_interpretation: 既存の予測器と棚最適化器の間に、商品同士の依存を入れる部品として読める。ただし売上データから真の代替行動は直接見えない。予測誤差の低下は有用な傍証だが、撤去時の需要転移係数の正しさや、最適化した棚の売上効果をそのまま証明しない。
+sections:
+  overview: Walmartは独立に作る需要予測へ、代替商品の需要流入を足すための係数を推定する。カテゴリ単位のlogitと代替候補への制限で100万超の商品規模を扱うが、検証は予測誤差の改善であり、棚変更の因果実験ではない。
+  problem: SAO（Store Assortment Optimization）は棚に何を置くかと、いくつ置くかを決める。商品Aを外したとき、Aの予測需要を全て失うとは限らない。代替品Bへ移る分があるからだ。全ての品揃えについて個別に予測すると組合せ数が膨らむため、独立需要と転移係数を分ける。
+  method: method.md
+  why_it_might_work: 既存の予測器を全品揃えに合わせて作り直さず、代替候補に限った係数で相互作用を加えられる。集合が重なっていてもカテゴリの効用を再利用できるのが計算上の利点だ。ただし代替集合が誤っていたり、特定ブランドの購入者だけ切替先が違ったりすると、制限して正規化する段階で誤差が入る。
+  evidence: '### WMAPEの改善は、係数の間接検証にとどまる
+
+    著者は1年の取引データで訓練し、最後の2か月をテストとして50カテゴリの代表店舗をbacktestする。表IIのWMAPEは以下の通り。比率なので0.28→0.21は7ポイントの減少である。
+
+
+    | 店舗 | 独立予測 | DT補正 | 差 |
+
+    | --- | ---: | ---: | ---: |
+
+    | A | 0.28 | 0.21 | −0.07 |
+
+    | B | 0.16 | 0.10 | −0.06 |
+
+    | C | 0.02 | 0.03 | +0.01 |
+
+    | D | 0.16 | 0.08 | −0.08 |
+
+    | E | 0.18 | 0.07 | −0.11 |
+
+
+    一部は悪化している。WMAPEは非負需要なら `Σ|予測−実績|/Σ実績` と読めるが、店舗ごとの件数・信頼区間・全カテゴリの重み付き集約値は表から確定できない。
+
+
+    100万超という記述は扱う商品universeの規模であり、同じ棚に100万商品を置く意味ではない。大規模運用の計算時間・メモリの比較表はなく、scaling曲線の再現もできない。本文は顧客の実際の切替を観測できないため、予測改善をproxy
+    validationに使うと明記する（§V–VI）。
+
+
+    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2608.12680v1)'
+  executable_understanding: 'A/B/C/Dの4商品を用意し、Aの需要100のうち20%は購入断念、残りは効用比3:1のB/Cへ流す。独立予測[100,60,40,30]からAを撤去すると、補正需要は[0,120,60,30]、失われる需要は20となる。Dは代替集合外で変わらない。
+
+
+    効用は推定せず明示的に与える。仮定と同じ過程を真値にした場合に加え、群内の好みが変わってB/Cへの流れが逆方向になる例も比較する。toyのWMAPEは論文表IIの再現ではない。'
+  results: 仮定一致の真値では、独立予測のWMAPEは0.381、DT補正は0。群内の好みを変えた対照では両方0.381となり、補正の利点が消える。ゼロ誤差は既知の生成規則を使ったためで、推定器の精度を示す結果ではない。
+  what_we_verified: 需要の保存（残存需要＋購入断念＝撤去前需要）、集合外への転移ゼロ、購入断念後の正規化を確認した。群内選好がずれる対照例では補正誤差が残る。推定済み係数をどう使うかの理解はPARTIAL。
+  what_we_did_not_verify: 効用推定、代替scoreの学習、欠品の内生性、同時撤去、100万商品での計算量は未検証。仮定一致時のtoy誤差ゼロは生成規則を知っているためで、予測性能の証拠ではない。実運用では代替集合の妥当性と欠品・販促・棚位置の影響を分け、棚変更を実験で評価する必要がある。
+  implementation: 'リポジトリのルートで `uv run papers/walmart-demand-transfer/run.py` を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの
+    `results.json` に保存する。
+
+
+    乱数を使う実験はseedを固定した。数値は論文の測定値と別に集計している。'
+  mapping: mapping.md
+figures:
+- path: figures/transfer.svg
+  title: 係数を需要量に変換して読む
+  caption: run.pyと同じ4商品の説明例。原論文式3・11–13と購入断念率の扱いに対応。
+  after: method
+- path: figures/restriction.svg
+  title: 計算を軽くする仮定が、表せる行動も制限する
+  caption: 原論文§III–IVをもとに再構成。S_Aは教育用の例。
+  after: method
+teaching_figures:
+- kind: architecture
+  id: sao-position
+  title: 独立予測と棚の意思決定の間にDTを置く
+  after: problem
+  caption: 論文の対象は需要転移係数。下流の最適化結果や棚変更の因果効果まで検証した図ではない。
+  source: https://arxiv.org/pdf/2608.12680v1
+  locator: §I、式1–3
+  rationale: 論文の対象は需要転移係数。下流の最適化結果や棚変更の因果効果まで検証した図ではない。
+  rows:
+  - label: 予測と関係
+    nodes:
+    - title: 独立需要予測
+      text: 商品ごとの需要量を入力する。
+    - title: Restricted Logit
+      text: カテゴリ効用と代替集合から転移係数を作る。
+  - label: 意思決定
+    nodes:
+    - title: 品揃え別の需要補正
+      text: 撤去候補から残る商品への流入を加える。
+    - title: SAO
+      text: 棚容量などの制約の下で品目と数量を選ぶ。実装はtoy対象外。
+interactives: []

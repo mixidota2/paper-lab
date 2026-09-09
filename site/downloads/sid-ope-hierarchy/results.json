@@ -1,0 +1,128 @@
+{
+  "note": "64商品・既知確率の合成実験。深さ0は全商品を一群にまとめる対照、深さ3は商品IPS。実データのSID学習・深さ選択・本番性能は未検証。",
+  "oracle_value": 0.5944,
+  "decoder_mass_max_error": 0.0,
+  "experiments": [
+    {
+      "name": "粒度ごとの誤差と有効標本数",
+      "seed": "0..249",
+      "n": {
+        "items": 64,
+        "logs_per_seed": 600,
+        "seeds": 250
+      },
+      "metrics": {
+        "depth_0": {
+          "clusters": 1,
+          "IPS_RMSE": 0.340282,
+          "SNIPS_RMSE": 0.340282,
+          "IPS_variance": 0.000342,
+          "exact_IPS_bias": -0.33948,
+          "mean_ESS": 600.0,
+          "observed_cluster_fraction": 1.0
+        },
+        "depth_1": {
+          "clusters": 4,
+          "IPS_RMSE": 0.112125,
+          "SNIPS_RMSE": 0.102144,
+          "IPS_variance": 0.004101,
+          "exact_IPS_bias": -0.09248,
+          "mean_ESS": 151.423,
+          "observed_cluster_fraction": 1.0
+        },
+        "depth_2": {
+          "clusters": 16,
+          "IPS_RMSE": 0.487769,
+          "SNIPS_RMSE": 0.242586,
+          "IPS_variance": 0.232793,
+          "exact_IPS_bias": -0.00815,
+          "mean_ESS": 6.94,
+          "observed_cluster_fraction": 0.68175
+        },
+        "depth_3": {
+          "clusters": 64,
+          "IPS_RMSE": 0.833368,
+          "SNIPS_RMSE": 0.28006,
+          "IPS_variance": 0.689836,
+          "exact_IPS_bias": 0.0,
+          "mean_ESS": 5.519,
+          "observed_cluster_fraction": 0.288438
+        }
+      }
+    }
+  ],
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "explorer": {
+    "label": "接頭辞の深さ",
+    "unit": "",
+    "metric": "RMSE（小さいほどよい）",
+    "default": 0,
+    "frames": [
+      {
+        "value": 0,
+        "note": "群数 1、平均ESS 600.0、raw IPSの厳密バイアス -0.33948。深さ3は商品粒度。",
+        "bars": [
+          {
+            "label": "IPS RMSE",
+            "value": 0.340282
+          },
+          {
+            "label": "SNIPS RMSE",
+            "value": 0.340282
+          }
+        ],
+        "lines": []
+      },
+      {
+        "value": 1,
+        "note": "群数 4、平均ESS 151.423、raw IPSの厳密バイアス -0.09248。深さ3は商品粒度。",
+        "bars": [
+          {
+            "label": "IPS RMSE",
+            "value": 0.112125
+          },
+          {
+            "label": "SNIPS RMSE",
+            "value": 0.102144
+          }
+        ],
+        "lines": []
+      },
+      {
+        "value": 2,
+        "note": "群数 16、平均ESS 6.94、raw IPSの厳密バイアス -0.00815。深さ3は商品粒度。",
+        "bars": [
+          {
+            "label": "IPS RMSE",
+            "value": 0.487769
+          },
+          {
+            "label": "SNIPS RMSE",
+            "value": 0.242586
+          }
+        ],
+        "lines": []
+      },
+      {
+        "value": 3,
+        "note": "群数 64、平均ESS 5.519、raw IPSの厳密バイアス 0.0。深さ3は商品粒度。",
+        "bars": [
+          {
+            "label": "IPS RMSE",
+            "value": 0.833368
+          },
+          {
+            "label": "SNIPS RMSE",
+            "value": 0.28006
+          }
+        ],
+        "lines": []
+      }
+    ]
+  }
+}
