@@ -1,0 +1,73 @@
+{
+  "kind": "synthetic mechanism illustration",
+  "seed": "deterministic",
+  "localization": {
+    "true_root": 1,
+    "recency": 5,
+    "frequency": 4,
+    "dependency": 1,
+    "missing_edge_counterexample": 3
+  },
+  "adherence_proxy": {
+    "one_shot": {
+      "mean_guidance_state": 0.28822773388880474,
+      "fires": [],
+      "trace": [
+        0.82,
+        0.6723999999999999,
+        0.5513679999999999,
+        0.4521217599999999,
+        0.37073984319999986,
+        0.3040066714239999,
+        0.2492854705676799,
+        0.2044140858654975,
+        0.16761955040970794,
+        0.1374480313359605,
+        0.1127073856954876,
+        0.09242005627029982,
+        0.07578444614164585,
+        0.062143245836149594,
+        0.05095746158564266
+      ]
+    },
+    "checkpoints": {
+      "mean_guidance_state": 0.7450047999999999,
+      "fires": [
+        4,
+        8,
+        12
+      ],
+      "trace": [
+        0.82,
+        0.6723999999999999,
+        0.5513679999999999,
+        1.0,
+        0.82,
+        0.6723999999999999,
+        0.5513679999999999,
+        1.0,
+        0.82,
+        0.6723999999999999,
+        0.5513679999999999,
+        1.0,
+        0.82,
+        0.6723999999999999,
+        0.5513679999999999
+      ]
+    }
+  },
+  "guards": {
+    "no_evidence": false,
+    "cooldown": false,
+    "complete": false,
+    "after_write": false,
+    "loop_after_write": true
+  },
+  "not_tested": [
+    "HGT",
+    "Isolation Forest",
+    "LLM analyst/verifier",
+    "tau-bench repair",
+    "production interventions"
+  ]
+}

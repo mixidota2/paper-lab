@@ -1,0 +1,111 @@
+id: tagr-live-sid
+arxiv_id: '2608.24034'
+submitted: '2026-08-25'
+title: 'TAGR: Temporally Adaptive Generative Recommendation for Industrial Live-Streaming Advertising'
+authors:
+- Wencai Ye
+- Guangyi Liu
+- Chaoyi Wang
+- Wenbin Luo
+- Shengyu Wang
+- Mingjie Sun
+- Peng Wang
+- Quanming Yao
+- Wenjin Wu
+- Peng Jiang
+year: 2026
+topics:
+- recommender-systems
+- generative-recommendation
+- retrieval
+urls:
+  paper: https://arxiv.org/abs/2608.24034
+  arxiv: https://arxiv.org/abs/2608.24034
+  pdf: https://arxiv.org/pdf/2608.24034
+  official_code: null
+verdict: Worth Reading
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- generative-rec-vs-retrieval
+status: published
+question: 同じ配信の中で商品が変わるとき、SIDを何に固定するか
+summary: TAGRは語彙を固定したままライブ広告のSID割当を更新し、行動履歴と選好学習も別の周期で更新する。10%トラフィック、4000万人超のA/Bで売上+16.1%を報告する。役割は下流ランキングへ渡す候補検索である。
+source_review:
+  checked: '2026-09-11'
+  scope: 提供PDFを主資料に、arXiv HTMLの対応箇所を照合。著者報告の独立再現ではない。
+  url: https://arxiv.org/html/2608.24034
+  pdf_version: v1
+  pdf_sha256: 83d64f9378e7d59f9e6c7752748c8b5f065cd03de61fd0a41d9be04280104539
+core_idea:
+  author_claim: 著者は、LSIDによる対象更新、IAGによる意図表現と教師重み、IOPOによる間欠的な現方策更新を組み合わせる。Kuaishouのライブ広告でLRE率+8.5%、SCC率+7.4%、広告売上+16.1%をDLRM比で報告する（§4）。
+  research_bot_interpretation: 更新周期は一つではない。対象、意図、方策を分けて考える。語彙固定でも割当が動けば履歴ラベルと索引の時間的一貫性は難しくなる。売上差をSID更新だけに帰属せず、表現学習、重みづけ、下流教師の組合せとして読む必要がある。
+sections:
+  overview: TAGRは語彙を固定したままライブ広告のSID割当を更新し、行動履歴と選好学習も別の周期で更新する。10%トラフィック、4000万人超のA/Bで売上+16.1%を報告する。役割は下流ランキングへ渡す候補検索である。
+  problem: 配信ルームIDが同じでも、紹介する商品や映像が変われば検索対象の意味は変わる。SIDを開始時のままにすると、新しい商品を求めるユーザーが古い意味のIDを生成する。ユーザー側でも入室と注文では行動の密度も意図も違う。
+  why_it_might_work: 語彙を固定すればdecoderの出力空間を維持でき、割当だけを更新すれば現在の内容を索引へ反映できる。NTPを挟む選好更新は、報酬に偏る学習を実行動へ引き戻す可能性がある。ただし更新頻度を下げれば常に良くなるわけではなく、急な環境変化には追随が遅れる。
+  evidence: '### 下流をそろえた候補検索の比較
+
+    原典Table 1は同じ下流filtering/rankingと同等のtraffic bucketを用いる。DLRMは複数チャネルの二塔型検索基準系であり、TAGRが最終ランカーまで置換した比較ではない。複数週のランダム化A/Bは10%トラフィック、4000万人超（§4.3）。
+
+
+    | 累積構成 | 売上のDLRM比 |
+
+    | --- | ---: |
+
+    | OneRec v2 | +6.1% |
+
+    | LSID | +9.9% |
+
+    | +MSI | +11.2% |
+
+    | +MF-NTP | +13.5% |
+
+    | +BA-GRPO | +14.7% |
+
+    | +VA-GRPO（Full） | +16.1% |
+
+
+    FullのLRE率は+8.5%、SCC率は+7.4%。いずれも相対変化で、パーセントポイントではない。累積追加の順序に依存するため、個別要素の独立した因果効果には分解できない。DLRMのoffline HRは評価形式が違うため原典も掲載しない。
+
+
+    ### SIDの衝突と安定性は別の指標
+
+    Table 2ではStatic SIDがCpr=1.42、Col=0.42、Stability=100%、Full LSIDが1.01、0.02、90%。Stabilityはセッション中に第1階層が変わらない広告の割合であり、全SIDが不変という意味ではない。第3階層に配信者hashを入れる効果も含む。
+
+
+    原典の定義では、N個の広告、U個の使用SID、複数広告を持つSID数Mに対してCpr=N/U、Col=M/Uとなる。このときN≥U+MなのでCpr≥1+Colのはずだ。ところがDynamic SIDの報告値は1.36と0.39で、この関係を満たさない。集計母集団や平均方法の違いがあるかは本文から確認できない。Fullの1.01と0.02も丸め前の値が必要であり、数値の整合性は未解決とする。
+
+
+    Table 4のNTP lossはoff-policy 1.79、continuous on-policy 1.68、IOPO 1.53。Stability列はloss spikeの有無で定義され、SID安定性とは異なる。原典はlow/moderate/highと表示し、割合の実数は示さない。[一次資料：§4、Tables
+    1–4](https://arxiv.org/html/2608.24034)。'
+  executable_understanding: '`uv run papers/tagr-live-sid/run.py`
+
+
+    4広告を固定中心0,1,2,3へ最近傍で割り当てる。途中で特徴を広げる条件と、一点へ集める反例を走らせる。Cpr、Col、割当維持率、現在特徴との二乗誤差を計算する。別のスカラー例ではNTP目標を0、報酬目標を±1とし、毎stepの報酬更新と5stepごとの更新を比較する。'
+  results: 特徴を広げる条件では静的割当のCpr=2、Col=1に対し更新後は1、0になる。一点へ集める反例では更新後Cpr=4、Col=1となり、更新は衝突減少を保証しない。スカラー例の報酬更新は60回対12回である。更新回数が異なるため、lossが低くても同予算のIOPO優位を示したことにはならない。
+  what_we_verified: Mechanism PARTIAL。固定語彙への再割当、衝突の定義、鮮度と安定性のトレードオフを合成例で確認した。更新を疎にすると教師あり目標への摂動が減る例も確認したが、報酬品質は測定していない。
+  what_we_did_not_verify: 本番レイテンシー、売上、QPSはNOT TESTED。原典のL20 GPU当たり2500超QPS、検索100ms未満は著者報告。toyはCPU上の最近傍量子化で、学習済みRQ-KMeans、hash、ユーザー協調情報、GRPO、索引伝播の遅延を省略する。報告されたCpr/Colの整合性も未確認。
+  implementation: '`scenario()` が同じ変更後特徴で静的割当と更新割当を評価する。`schedule()` は20stepのwarm-up後に報酬摂動を追加し、全loss系列と更新回数を保存する。GRPOの実装と誤解しないよう、合成摂動モデルとして独立させた。'
+  method: method.md
+  mapping: '| 原典の機構 | Labの対応 | 省略したもの |
+
+    | --- | --- | --- |
+
+    | [PDF・HTML](https://arxiv.org/html/2608.24034) の手法節 | method.md と出典つきSVG | 原図の複製ではなく説明用に再構成 |
+
+    | 部分機構の合成例 | run.py → results.json | 本番データ、ニューラルモデル、論文の性能再現 |
+
+    | 公式実装 | 原典内で実行可能な公式コードURLを確認できず | 公式実装との同等性は未検証 |'
+figures:
+- path: figures/clocks.svg
+  title: 対象・意図・方策を、それぞれの周期で更新する
+  caption: §2–3から再構成。語彙を保つことと、広告への割当を保つことは異なる。
+  after: method
+- path: figures/collision.svg
+  title: ID更新の利点は、衝突数だけでは決まらない
+  caption: run.pyの合成4広告。中心は固定。広告の内容が同じ領域へ集まれば、更新後に衝突が増える反例も成立する。
+  after: results

@@ -1,0 +1,92 @@
+{
+  "kind": "synthetic mechanism illustration",
+  "seed": "deterministic",
+  "metrics": {
+    "shared": {
+      "interest_mse": 2.5,
+      "value_mse": 2.5
+    },
+    "task_conditioned": {
+      "interest_mse": 0.0,
+      "value_mse": 0.0
+    }
+  },
+  "alignment": [
+    {
+      "step": 0,
+      "kl_teacher_generator": 1.9853054691715397,
+      "top2_disagreement": 1.0,
+      "generator": [
+        0.6439142598879724,
+        0.23688281808991013,
+        0.08714431874203257,
+        0.03205860328008499
+      ],
+      "teacher": [
+        0.03205860328008499,
+        0.08714431874203257,
+        0.23688281808991013,
+        0.6439142598879724
+      ]
+    },
+    {
+      "step": 10,
+      "kl_teacher_generator": 0.7815816938701511,
+      "top2_disagreement": 1.0,
+      "generator": [
+        0.39242662539994666,
+        0.27005230756725157,
+        0.1758424200506373,
+        0.1616786469821645
+      ],
+      "teacher": [
+        0.03205860328008499,
+        0.08714431874203257,
+        0.23688281808991013,
+        0.6439142598879724
+      ]
+    },
+    {
+      "step": 50,
+      "kl_teacher_generator": 0.03436535616545226,
+      "top2_disagreement": 0.0,
+      "generator": [
+        0.09219016364464891,
+        0.11087313151262973,
+        0.1970691646411637,
+        0.5998675402015577
+      ],
+      "teacher": [
+        0.03205860328008499,
+        0.08714431874203257,
+        0.23688281808991013,
+        0.6439142598879724
+      ]
+    },
+    {
+      "step": 200,
+      "kl_teacher_generator": 0.0007428244983350325,
+      "top2_disagreement": 0.0,
+      "generator": [
+        0.039171252261502996,
+        0.084641913714935,
+        0.23430190475057,
+        0.641884929272992
+      ],
+      "teacher": [
+        0.03205860328008499,
+        0.08714431874203257,
+        0.23688281808991013,
+        0.6439142598879724
+      ]
+    }
+  ],
+  "counterexample": "A wrong teacher is also imitated; missing candidates cannot be recovered.",
+  "not_tested": [
+    "causal attention",
+    "interest coverage",
+    "production eCPM",
+    "latency",
+    "GMV"
+  ]
+}

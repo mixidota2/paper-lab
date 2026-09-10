@@ -9,6 +9,9 @@ from paper_lab.models import LabError, load_all_labs, load_lab
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED = {
+    "oneranker-ads": "2603.02999",
+    "tagr-live-sid": "2608.24034",
+    "agenttether-repair": "2607.06273",
     "gryphon-ilsm": "2606.08604",
     "gryphon-v2-cascade": "2608.06213",
     "revise-recovery": "2609.00643",
@@ -38,7 +41,7 @@ def test_library_has_the_full_registry_catalog_and_a_doi_only_paper():
     labs = load_all_labs(ROOT / "papers")
     arxiv_labs = {lab.id: lab.arxiv_id for lab in labs if lab.arxiv_id}
     assert arxiv_labs == EXPECTED
-    assert len(labs) == 23
+    assert len(labs) == 26
     assert all(lab.urls.arxiv == f"https://arxiv.org/abs/{lab.arxiv_id}" for lab in labs if lab.arxiv_id)
     shelf = next(lab for lab in labs if lab.id == "whole-foods-shelf")
     assert not shelf.arxiv_id

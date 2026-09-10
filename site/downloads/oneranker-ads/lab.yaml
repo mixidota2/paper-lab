@@ -1,0 +1,120 @@
+id: oneranker-ads
+arxiv_id: '2603.02999'
+submitted: '2026-03-03'
+title: 'OneRanker: Unified Generation and Ranking with One Model in Industrial Advertising Recommendation'
+authors:
+- Dekai Sun
+- Yiming Liu
+- Jiafan Zhou
+- Xun Liu
+- Chenchen Yu
+- Yi Li
+- Jun Zhang
+- Huan Yu
+- Jie Jiang
+year: 2026
+topics:
+- recommender-systems
+- generative-recommendation
+- retrieval
+urls:
+  paper: https://arxiv.org/abs/2603.02999
+  arxiv: https://arxiv.org/abs/2603.02999
+  pdf: https://arxiv.org/pdf/2603.02999
+  official_code: null
+verdict: Must Read
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- generative-rec-vs-retrieval
+status: published
+question: 興味の広さを保ちながら、生成候補を広告価値に寄せられるか
+summary: OneRankerは興味と広告価値の出力を分け、生成時の表現をランキングへ渡す。Weixin ChannelsのA/Bでは生成モデル＋別学習ランカーを基準に改善を報告した。広告の全カスケードを撤去した証拠とは区別して読む。
+source_review:
+  checked: '2026-09-11'
+  scope: 提供PDFを主資料に、arXiv HTMLの対応箇所を照合。著者報告の独立再現ではない。
+  url: https://arxiv.org/html/2603.02999
+  pdf_version: v3
+  pdf_sha256: a70aaa10f70e0ab568bcc5af083a4ac532dd7af0012cce17ade2cd747ecd9930
+core_idea:
+  author_claim: 著者は、タスクトークンによる出力空間の分離、クラスタ中心による粗い候補意識、候補単位のランキングを一体化する。生成とランキングの入力を共有し、ランキングの軟らかい教師分布を生成へ戻す。A/B後の100%展開を報告する（§3、§4.4）。
+  research_bot_interpretation: 価値の高い広告が候補生成で落ちれば、後段の優秀なランカーでも救えない。DCはこの境界を学習で動かす設計と読める。ただし教師が誤る場合や候補集合に偏りがある場合、整合性だけが高まっても利益は改善しない。Gryphon-v2との比較では、モデル数より実際に置換したサービング範囲を確認したい。
+sections:
+  overview: OneRankerは興味と広告価値の出力を分け、生成時の表現をランキングへ渡す。Weixin ChannelsのA/Bでは生成モデル＋別学習ランカーを基準に改善を報告した。広告の全カスケードを撤去した証拠とは区別して読む。
+  problem: クリックと価値はずれる。単一の出力へ両方の目的を押し込むと競合し、別モデルへ完全に分けると生成中に価値の情報が届かない。共有と分離の境界が問題になる。
+  why_it_might_work: 興味タスクの出力を維持したまま価値用の経路を追加すれば、価値重視の学習が興味の表現を直接置き換える圧力を減らせる。Fake Item Tokensは全候補との詳細な相互作用を避けつつ、アイテム空間のどの領域を好むかを表せる。これは設計上の推論で、共有層の勾配競合が消える保証ではない。
+  evidence: '### 大きな差はStep 3の追加にある
+
+    以下は提供PDF Table 2の著者報告。HR@5を比較すると、Step 2から候補単位のランキングへ進む差が、DC単独の差より大きい。
+
+
+    | 構成 | HR@5 | NDCG@5 |
+
+    | --- | ---: | ---: |
+
+    | S2、TargetとMDAを除去 | 0.5066 | 0.7275 |
+
+    | S2、Targetを除去 | 0.5203 | 0.7285 |
+
+    | S2 | 0.5448 | 0.7440 |
+
+    | S3 ranker only | 0.6157 | 0.7849 |
+
+    | S2 token injectionを除去 | 0.6161 | 0.7858 |
+
+    | DCを除去 | 0.6173 | 0.7865 |
+
+    | Full | 0.6213 | 0.7904 |
+
+
+    原典§4.2.1の説明文は0.6161と0.6173に対応する追加要素をTable 2と逆に説明している。本Labは表の行名を採用した。したがって本文の説明を根拠に、個別要素の寄与を細かく断定しない。Table 3ではS2のHR@5がCross-Attention先行の除去で0.5277、異種マスクの除去で0.5335になる。
+
+
+    ### +1.34%は全トラフィック共通の効果ではない
+
+    Table 4の基準系は生成＋別学習ランカー。GMV-Normalはクリック／コンバージョン最適化広告のGMVである。
+
+
+    | A/Bのtraffic phase | GMV-Normal相対変化 | 95% CI | 全GMV相対変化 |
+
+    | --- | ---: | --- | ---: |
+
+    | 5% | +1.3427% | [0.1637%, 2.5216%] | +0.4067% |
+
+    | 20% | +0.6446% | [0.2139%, 1.0754%] | +0.7796% |
+
+    | 80% | +0.3500% | [0.0188%, 0.6812%] | +0.0843% |
+
+
+    5%と80%の全GMVのCIは0をまたぐ。著者は80%段階にtraffic coverageの現象があると記すが、補正方法は詳述しない。100%展開は採用の証拠であり、その段階で+1.34%を再測定したという意味ではない。会議名・DOIにテンプレート文字列が残るため、出版先は確定情報として扱わない。[一次資料：§4、Tables
+    2–4](https://arxiv.org/html/2603.02999)。'
+  executable_understanding: '`uv run papers/oneranker-ads/run.py`
+
+
+    第一の例は同じ入力xに興味目標x、価値目標−xを与える回帰である。共有出力とタスク別出力の最適解を比較する。第二の例は4候補を固定し、教師のsoftmax分布への交差エントロピーで生成logitを200回更新する。温度1、学習率0.2。'
+  results: 共有出力の興味・価値MSEはともに2.5、タスク別ではともに0になる。これは追加した出力自由度による差で、興味coverage改善の実証ではない。DCの例ではtop-2不一致率が1から0へ下がる。下のJSONには途中のKLと確率も保存する。
+  what_we_verified: Mechanism PARTIAL。矛盾する目標を一つの出力で表す制約と、固定候補内で教師分布を模倣する更新を確認した。タスクトークン、causal mask、Fake Item Tokens自体の有効性はこのtoyでは検証していない。
+  what_we_did_not_verify: 本番eCPM、GMV、興味coverage、スケール、レイテンシーはNOT TESTED。教師の校正、候補外の高価値広告、複数タスクの共有勾配も未検証。Figure 3の曲線から精密な数値は読み取らず、順位一致が増えるという著者の観察に留める。
+  implementation: '`conflict()` は解析的最適解の損失を計算し、`align()` は交差エントロピーの勾配p−qで更新する。教師は固定する。出力を増やす実験と、分布を寄せる実験は分けた。数値はすべて合成データ由来。'
+  method: method.md
+  mapping: '| 原典の機構 | Labの対応 | 省略したもの |
+
+    | --- | --- | --- |
+
+    | [PDF・HTML](https://arxiv.org/html/2603.02999) の手法節 | method.md と出典つきSVG | 原図の複製ではなく説明用に再構成 |
+
+    | 部分機構の合成例 | run.py → results.json | 本番データ、ニューラルモデル、論文の性能再現 |
+
+    | 公式実装 | 原典内で実行可能な公式コードURLを確認できず | 公式実装との同等性は未検証 |'
+figures:
+- path: figures/stack.svg
+  title: 統合するのは生成とランキングの接続
+  caption: 原典Figure 2・§4.4を基に再構成。DCの矢印は学習時、KVの矢印は表現の受け渡し。
+  after: core_idea
+- path: figures/mask.svg
+  title: タスクの順序とクラスタの可視性は別に決める
+  caption: §3.2.3のマスク規則。行がQuery、列が読む相手。中心は実候補の代わりに粗い領域を表す。
+  after: method

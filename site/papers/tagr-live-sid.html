@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="TAGRは語彙を固定したままライブ広告のSID割当を更新し、行動履歴と選好学習も別の周期で更新する。10%トラフィック、4000万人超のA/Bで売上+16.1%を報告する。役割は下流ランキングへ渡す候補検索である。">
+  <title>同じ配信の中で商品が変わるとき、SIDを何に固定するか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-08-25</span></div>
+    <h1>同じ配信の中で商品が変わるとき、SIDを何に固定するか</h1>
+    <p class="lede">TAGRは語彙を固定したままライブ広告のSID割当を更新し、行動履歴と選好学習も別の周期で更新する。10%トラフィック、4000万人超のA/Bで売上+16.1%を報告する。役割は下流ランキングへ渡す候補検索である。</p>
+    <details class="bibliography"><summary>原論文：TAGR: Temporally Adaptive Generative Recommendation for Industrial Live-Streaming Advertising</summary><p>Wencai Ye, Guangyi Liu, Chaoyi Wang, Wenbin Luo, Shengyu Wang, Mingjie Sun, Peng Wang, Quanming Yao, Wenjin Wu, Peng Jiang</p><p>2608.24034 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2608.24034">原典を読む ↗</a><a href="https://arxiv.org/pdf/2608.24034">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-11 · 提供PDFを主資料に、arXiv HTMLの対応箇所を照合。著者報告の独立再現ではない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>TAGRは語彙を固定したままライブ広告のSID割当を更新し、行動履歴と選好学習も別の周期で更新する。10%トラフィック、4000万人超のA/Bで売上+16.1%を報告する。役割は下流ランキングへ渡す候補検索である。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>配信ルームIDが同じでも、紹介する商品や映像が変われば検索対象の意味は変わる。SIDを開始時のままにすると、新しい商品を求めるユーザーが古い意味のIDを生成する。ユーザー側でも入室と注文では行動の密度も意図も違う。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は、LSIDによる対象更新、IAGによる意図表現と教師重み、IOPOによる間欠的な現方策更新を組み合わせる。Kuaishouのライブ広告でLRE率+8.5%、SCC率+7.4%、広告売上+16.1%をDLRM比で報告する（§4）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>更新周期は一つではない。対象、意図、方策を分けて考える。語彙固定でも割当が動けば履歴ラベルと索引の時間的一貫性は難しくなる。売上差をSID更新だけに帰属せず、表現学習、重みづけ、下流教師の組合せとして読む必要がある。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>LSIDはユーザーごとのIDにしない</h3>
+<p>scene encoderは配信者の過去の販売スタイル、現在の映像、場面特徴を読む。product encoderは商品テキスト、属性、注文状態などを読む。user encoderは長期興味とprofileを扱う。三つともReLUつきMLPで共有空間へ写す（§2.2）。</p>
+<p><code>L_align = L_U2S + L_U2P + L_S2P</code></p>
+<p>入室でuser–scene、カートクリックでuser–product、共起でscene–productを対照学習する。割当には次の融合表現を使う。</p>
+<p><code>z_live(t) = normalize(α s(t) + β p(t))</code></p>
+<p><code>y_a(t) = RQ-KMeans(z_live(t)) = (s₁,…,s_D)</code></p>
+<p>協調情報は表現学習に入るが、同じ時刻の広告はリクエストによらず共通のIDを持つ。最終階層には配信者を考慮したhash bucketを使う。現行広告は毎分再符号化し、正規の割当をstorageへ書き、数秒以内に双方向LSID–LiveID索引へ伝える（§3.2）。固定するのは語彙だ。広告への割当は動く。</p>
+<h3>入室履歴を複数の幅でまとめ、注文履歴は別に読む</h3>
+<p>IAGは軽量TransformerであるLazy Decoderを使う。MSIでは直近の入室列をstride 1,2,10で連続ブロックへまとめ、それぞれ射影と位置表現を加える。stride 10は10件ごとに1件を抜く説明ではなく、10件を連結して一つの表現を作る式である。like、cart、orderは別ストリームとして符号化し、入室の複数スケールと長期profileに連結する。</p>
+<p><code>Pθ(y|M_u(t)) = Π_l Pθ(s_l | s_&lt;l, M_u(t))</code></p>
+<p>MF-NTPはどのログを強く学ぶかを決める。</p>
+<p><code>w(x) = w_feedback(x) · w_user(x) · w_eCPM(x)</code></p>
+<p><code>L_NTP = −[Σ_x w(x) Σ_l γ_l log Pθ(s_l|s_&lt;l,M_u(t_x))] / [Σ_x w(x) Σ_l γ_l]</code></p>
+<p>feedbackは閲覧後の深い行動、userは価値層、eCPMは分位で正規化した商業価値を表す。実装では重みを正規化・clipする。将来の行動は学習時の重みにだけ使い、リクエスト時の入力へ漏らさない（Eq. (5)）。</p>
+<h3>IOPOは候補の鮮度と更新頻度を分ける</h3>
+<p>warm-upではNTPとReward Modelを学ぶ。その後は現方策で候補群を生成し、短いGRPO更新をT stepごとに行う。間のstepではログに対するNTPを続ける。BA-GRPOは行動への一致を、VA-GRPOは商業価値を加える。候補群内の報酬を平均と標準偏差で正規化し、clipしたadvantageをlog方策確率へ掛ける。</p>
+<p><code>r_va = r_post + β_va r_eCPM</code>、<code>A_va = clip((r_va − μ_va)/(σ_va+ε))</code></p>
+<p>Reward Modelは下層のLSID embeddingを共有する。post-exposure LREは実ユーザーfeedback、eCPM教師は本番fine-ranking scoreである。報酬計算ではstop-gradientを使う。したがって商業価値の信号は既存ランカーにも依存する。</p>
+<p>サービングはbeam searchで256個のLSIDを生成し、稼働中LiveIDへ解決して下流filtering/rankingへ渡す。静的SIDを扱う<a href="glide-spotify-sid.html">GLIDE</a>や<a href="gryphon-ilsm.html">Gryphon</a>との比較点は対象の変化であり、<a href="tgr.html">TGR</a>と同様に置換範囲を明示して読む。</p>
+<p><a href="https://arxiv.org/html/2608.24034">一次資料：§2–3、Eq. (1)–(14)、Figure 4</a>。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>対象・意図・方策を、それぞれの周期で更新する</h3><a href="../figures/tagr-live-sid/figures/clocks.svg" aria-label="対象・意図・方策を、それぞれの周期で更新するを拡大"><img src="../figures/tagr-live-sid/figures/clocks.svg" alt="対象・意図・方策を、それぞれの周期で更新する。§2–3から再構成。語彙を保つことと、広告への割当を保つことは異なる。" loading="lazy"></a><figcaption>§2–3から再構成。語彙を保つことと、広告への割当を保つことは異なる。 <a href="../figures/tagr-live-sid/figures/clocks.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>語彙を固定すればdecoderの出力空間を維持でき、割当だけを更新すれば現在の内容を索引へ反映できる。NTPを挟む選好更新は、報酬に偏る学習を実行動へ引き戻す可能性がある。ただし更新頻度を下げれば常に良くなるわけではなく、急な環境変化には追随が遅れる。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>下流をそろえた候補検索の比較</h3>
+<p>原典Table 1は同じ下流filtering/rankingと同等のtraffic bucketを用いる。DLRMは複数チャネルの二塔型検索基準系であり、TAGRが最終ランカーまで置換した比較ではない。複数週のランダム化A/Bは10%トラフィック、4000万人超（§4.3）。</p>
+<table>
+<thead>
+<tr>
+<th>累積構成</th>
+<th style="text-align: right;">売上のDLRM比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OneRec v2</td>
+<td style="text-align: right;">+6.1%</td>
+</tr>
+<tr>
+<td>LSID</td>
+<td style="text-align: right;">+9.9%</td>
+</tr>
+<tr>
+<td>+MSI</td>
+<td style="text-align: right;">+11.2%</td>
+</tr>
+<tr>
+<td>+MF-NTP</td>
+<td style="text-align: right;">+13.5%</td>
+</tr>
+<tr>
+<td>+BA-GRPO</td>
+<td style="text-align: right;">+14.7%</td>
+</tr>
+<tr>
+<td>+VA-GRPO（Full）</td>
+<td style="text-align: right;">+16.1%</td>
+</tr>
+</tbody>
+</table>
+<p>FullのLRE率は+8.5%、SCC率は+7.4%。いずれも相対変化で、パーセントポイントではない。累積追加の順序に依存するため、個別要素の独立した因果効果には分解できない。DLRMのoffline HRは評価形式が違うため原典も掲載しない。</p>
+<h3>SIDの衝突と安定性は別の指標</h3>
+<p>Table 2ではStatic SIDがCpr=1.42、Col=0.42、Stability=100%、Full LSIDが1.01、0.02、90%。Stabilityはセッション中に第1階層が変わらない広告の割合であり、全SIDが不変という意味ではない。第3階層に配信者hashを入れる効果も含む。</p>
+<p>原典の定義では、N個の広告、U個の使用SID、複数広告を持つSID数Mに対してCpr=N/U、Col=M/Uとなる。このときN≥U+MなのでCpr≥1+Colのはずだ。ところがDynamic SIDの報告値は1.36と0.39で、この関係を満たさない。集計母集団や平均方法の違いがあるかは本文から確認できない。Fullの1.01と0.02も丸め前の値が必要であり、数値の整合性は未解決とする。</p>
+<p>Table 4のNTP lossはoff-policy 1.79、continuous on-policy 1.68、IOPO 1.53。Stability列はloss spikeの有無で定義され、SID安定性とは異なる。原典はlow/moderate/highと表示し、割合の実数は示さない。<a href="https://arxiv.org/html/2608.24034">一次資料：§4、Tables 1–4</a>。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/tagr-live-sid/run.py</code></p>
+<p>4広告を固定中心0,1,2,3へ最近傍で割り当てる。途中で特徴を広げる条件と、一点へ集める反例を走らせる。Cpr、Col、割当維持率、現在特徴との二乗誤差を計算する。別のスカラー例ではNTP目標を0、報酬目標を±1とし、毎stepの報酬更新と5stepごとの更新を比較する。</p></div><div class="downloads"><a href="../downloads/tagr-live-sid/run.py" download>実行コード</a><a href="../downloads/tagr-live-sid/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/tagr-live-sid">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><details><summary>生の results.json</summary><pre><code>{
+  &quot;kind&quot;: &quot;synthetic mechanism illustration&quot;,
+  &quot;seed&quot;: &quot;deterministic&quot;,
+  &quot;spread&quot;: {
+    &quot;features_after&quot;: [
+      0.05,
+      1.05,
+      2.05,
+      3.05
+    ],
+    &quot;static_ids&quot;: [
+      0,
+      0,
+      1,
+      1
+    ],
+    &quot;refreshed_ids&quot;: [
+      0,
+      1,
+      2,
+      3
+    ],
+    &quot;static&quot;: {
+      &quot;cpr&quot;: 2.0,
+      &quot;col&quot;: 1.0,
+      &quot;assignment_stability&quot;: 1.0,
+      &quot;semantic_mse&quot;: 1.6024999999999998
+    },
+    &quot;refreshed&quot;: {
+      &quot;cpr&quot;: 1.0,
+      &quot;col&quot;: 0.0,
+      &quot;assignment_stability&quot;: 0.25,
+      &quot;semantic_mse&quot;: 0.0024999999999999922
+    }
+  },
+  &quot;collapse_counterexample&quot;: {
+    &quot;features_after&quot;: [
+      0.05,
+      0.05,
+      0.05,
+      0.05
+    ],
+    &quot;static_ids&quot;: [
+      0,
+      0,
+      1,
+      1
+    ],
+    &quot;refreshed_ids&quot;: [
+      0,
+      0,
+      0,
+      0
+    ],
+    &quot;static&quot;: {
+      &quot;cpr&quot;: 2.0,
+      &quot;col&quot;: 1.0,
+      &quot;assignment_stability&quot;: 1.0,
+      &quot;semantic_mse&quot;: 0.45249999999999996
+    },
+    &quot;refreshed&quot;: {
+      &quot;cpr&quot;: 4.0,
+      &quot;col&quot;: 1.0,
+      &quot;assignment_stability&quot;: 0.5,
+      &quot;semantic_mse&quot;: 0.0025000000000000005
+    }
+  },
+  &quot;schedules&quot;: {
+    &quot;continuous&quot;: {
+      &quot;reward_updates&quot;: 60,
+      &quot;mean_supervised_loss_after_warmup&quot;: 0.20867400303472253,
+      &quot;peak_supervised_loss&quot;: 0.36,
+      &quot;loss_trace&quot;: [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.36,
+        0.16646400000000003,
+        0.22037391359999997,
+        0.20230132875263995,
+        0.2080004432642704,
+        0.20616811348626118,
+        0.20675357703027314,
+        0.20656613838093027,
+        0.20662610950043758,
+        0.2066069177951711,
+        0.20661305904388108,
+        0.2066110938343636,
+        0.20661172270039238,
+        0.20661152146315906,
+        0.20661158585906306,
+        0.20661156525237268,
+        0.20661157184651338,
+        0.20661156973638847,
+        0.2066115704116284,
+        0.20661157019555162,
+        0.20661157026469623,
+        0.20661157024256993,
+        0.20661157024965027,
+        0.2066115702473846,
+        0.20661157024810953,
+        0.2066115702478777,
+        0.20661157024795185,
+        0.20661157024792806,
+        0.20661157024793564,
+        0.20661157024793322,
+        0.20661157024793408,
+        0.20661157024793378,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392,
+        0.20661157024793392
+      ]
+    },
+    &quot;intermittent&quot;: {
+      &quot;reward_updates&quot;: 12,
+      &quot;mean_supervised_loss_after_warmup&quot;: 0.14244494846501626,
+      &quot;peak_supervised_loss&quot;: 0.36,
+      &quot;loss_trace&quot;: [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.36,
+        0.2304,
+        0.147456,
+        0.09437184000000001,
+        0.060397977600000013,
+        0.27181291290624005,
+        0.1739602642599936,
+        0.1113345691263959,
+        0.07125412424089338,
+        0.04560263951417177,
+        0.2826673760987312,
+        0.18090712070318796,
+        0.11578055725004027,
+        0.07409955664002578,
+        0.0474237162496165,
+        0.2812325584905875,
+        0.17998883743397598,
+        0.11519285595774462,
+        0.07372342781295654,
+        0.047182993800292186,
+        0.2814204150035057,
+        0.18010906560224366,
+        0.11526980198543593,
+        0.07377267327067899,
+        0.04721451089323455,
+        0.28139578870293896,
+        0.18009330476988097,
+        0.11525971505272382,
+        0.07376621763374325,
+        0.04721037928559568,
+        0.28139901646004545,
+        0.1800953705344291,
+        0.11526103714203463,
+        0.07376706377090217,
+        0.04721092081337739,
+        0.2813985933904118,
+        0.18009509976986351,
+        0.11526086385271267,
+        0.0737669528657361,
+        0.047210849834071096,
+        0.2813986488429769,
+        0.1800951352595052,
+        0.11526088656608331,
+        0.07376696740229333,
+        0.047210859137467726,
+        0.28139864157469785,
+        0.18009513060780663,
+        0.11526088358899622,
+        0.07376696549695759,
+        0.04721085791805286,
+        0.28139864252736574,
+        0.18009513121751408,
+        0.115260883979209,
+        0.07376696574669377,
+        0.047210858077884006,
+        0.28139864240249757,
+        0.18009513113759842,
+        0.11526088392806298,
+        0.07376696571396031,
+        0.0472108580569346
+      ]
+    }
+  },
+  &quot;not_tested&quot;: [
+    &quot;RQ-KMeans&quot;,
+    &quot;collaborative alignment&quot;,
+    &quot;GRPO reward&quot;,
+    &quot;production latency&quot;,
+    &quot;revenue&quot;
+  ]
+}</code></pre></details><p>特徴を広げる条件では静的割当のCpr=2、Col=1に対し更新後は1、0になる。一点へ集める反例では更新後Cpr=4、Col=1となり、更新は衝突減少を保証しない。スカラー例の報酬更新は60回対12回である。更新回数が異なるため、lossが低くても同予算のIOPO優位を示したことにはならない。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>ID更新の利点は、衝突数だけでは決まらない</h3><a href="../figures/tagr-live-sid/figures/collision.svg" aria-label="ID更新の利点は、衝突数だけでは決まらないを拡大"><img src="../figures/tagr-live-sid/figures/collision.svg" alt="ID更新の利点は、衝突数だけでは決まらない。run.pyの合成4広告。中心は固定。広告の内容が同じ領域へ集まれば、更新後に衝突が増える反例も成立する。" loading="lazy"></a><figcaption>run.pyの合成4広告。中心は固定。広告の内容が同じ領域へ集まれば、更新後に衝突が増える反例も成立する。 <a href="../figures/tagr-live-sid/figures/collision.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。固定語彙への再割当、衝突の定義、鮮度と安定性のトレードオフを合成例で確認した。更新を疎にすると教師あり目標への摂動が減る例も確認したが、報酬品質は測定していない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>本番レイテンシー、売上、QPSはNOT TESTED。原典のL20 GPU当たり2500超QPS、検索100ms未満は著者報告。toyはCPU上の最近傍量子化で、学習済みRQ-KMeans、hash、ユーザー協調情報、GRPO、索引伝播の遅延を省略する。報告されたCpr/Colの整合性も未確認。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>scenario()</code> が同じ変更後特徴で静的割当と更新割当を評価する。<code>schedule()</code> は20stepのwarm-up後に報酬摂動を追加し、全loss系列と更新回数を保存する。GRPOの実装と誤解しないよう、合成摂動モデルとして独立させた。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>原典の機構</th>
+<th>Labの対応</th>
+<th>省略したもの</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://arxiv.org/html/2608.24034">PDF・HTML</a> の手法節</td>
+<td>method.md と出典つきSVG</td>
+<td>原図の複製ではなく説明用に再構成</td>
+</tr>
+<tr>
+<td>部分機構の合成例</td>
+<td>run.py → results.json</td>
+<td>本番データ、ニューラルモデル、論文の性能再現</td>
+</tr>
+<tr>
+<td>公式実装</td>
+<td>原典内で実行可能な公式コードURLを確認できず</td>
+<td>公式実装との同等性は未検証</td>
+</tr>
+</tbody>
+</table></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>同じ配信の中で商品が変わるとき、SIDを何に固定するか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/tagr-live-sid/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

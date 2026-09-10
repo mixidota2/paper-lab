@@ -1,0 +1,105 @@
+id: agenttether-repair
+arxiv_id: '2607.06273'
+submitted: '2026-07-07'
+title: 'AgentTether: Graph-Guided Diagnosis and Runtime Intervention for Reliable LLM Agent Operations'
+authors:
+- Chenyu Zhao
+- Shenglin Zhang
+- Wenwei Gu
+- Yongqian Sun
+- Dan Pei
+- Chetan Bansal
+- Saravan Rajmohan
+- Minghua Ma
+year: 2026
+topics:
+- ai-agent-systems
+- agent-architecture
+urls:
+  paper: https://arxiv.org/abs/2607.06273
+  arxiv: https://arxiv.org/abs/2607.06273
+  pdf: https://arxiv.org/pdf/2607.06273
+  official_code: https://anonymous.4open.science/r/AgentTether-9416/
+verdict: Radar
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- agent-architecture-and-harness
+status: published
+question: 失敗原因を伝えたあと、長い再実行で修正を守らせるには
+summary: AgentTetherは凍結したエージェントの外側で、終了後の原因診断と再実行中の介入を分ける。τ-bench Bankingの初回失敗83件では、診断のみの39件から介入つき49件へ修復が増えた。一方で介入により失敗へ転じた例もある。
+source_review:
+  checked: '2026-09-11'
+  scope: 提供PDFを主資料に、arXiv HTMLの対応箇所を照合。著者報告の独立再現ではない。
+  url: https://arxiv.org/html/2607.06273
+  pdf_version: v1
+  pdf_sha256: cea3202f209976220a0269ff6b047f6bfb6c0b5293e9065d751df768cedc8916
+core_idea:
+  author_claim: 著者は実行をTransition Unitsへ整理し、Critical Transition Graphで疑わしい依存経路を絞る。診断をRepair Memoryに残し、再実行中はCheck→Decide→Injectで逸脱を補正する。モデルと環境を変更せず、最大3回の修復を評価する（§III–IV）。
+  research_bot_interpretation: 診断だけでは足りない。修正を守り続ける能力も測りたい。共有artifactやerror signatureに基づくグラフは診断の手掛かりにはなるが、因果関係の証明ではない。特に書き込み後のhookでは、すでに起きた副作用を取り消せない。
+sections:
+  overview: AgentTetherは凍結したエージェントの外側で、終了後の原因診断と再実行中の介入を分ける。τ-bench Bankingの初回失敗83件では、診断のみの39件から介入つき49件へ修復が増えた。一方で介入により失敗へ転じた例もある。
+  problem: 誤った口座を選んだあと、そのIDを送金処理が引き継いで最後に失敗する場合、最後のエラーだけを直しても原因は残る。注意も長くは続かない。原典はこの二つを、終了後の診断と実行中の監督に分ける。
+  why_it_might_work: 依存をたどれば、エラーが多い場所とエラーの出発点を分けられる可能性がある。解決済みの制約を記憶し、未解決のものだけを確認すれば、同じ修正を繰り返す負担も減らせる。ただし診断役と検証役の誤りは残り、介入が正しい行動を妨げる場合もある。
+  evidence: '### 修復率の分母は初回に失敗したタスク
+
+    原典はQwen3.7-maxでRetail、Airline、Bankingの計261タスクを実行し、初回失敗123件を修復対象にする。Bankingは97件中83件が対象。最大3回の追加実行を許す。以下はTable
+    Iの著者報告。
+
+
+    | Bankingの方法 | 修復数 / 83 | 修復率 | 平均時間 |
+
+    | --- | ---: | ---: | ---: |
+
+    | Blind retry | 22 | 26.51% | 21.38分 |
+
+    | Reflexion | 22 | 26.51% | 19.36分 |
+
+    | Post-run only | 39 | 46.99% | 17.88分 |
+
+    | AgentTether | 49 | 59.04% | 20.88分 |
+
+
+    全領域では85/123=69.11%。これは全タスク成功率ではない。GPT-5.4 Bankingでも初回失敗86件中56件、65.12%を修復したが、失敗集合はモデルごとに違う。基盤モデルの順位比較には使えない。
+
+
+    ### 介入の純増10件の裏に、悪化3件がある
+
+    Bankingでは介入ありだけが成功した13件、診断のみが成功した3件で、差は10件。対応ありのMcNemar検定はp=0.021。Retailは純増1件、Airlineは純増0件である（Table III）。Bankingの改善13件に限る平均介入回数は11.3回、悪化3件では29.3回。これは選ばれた事例の集計で、production
+    fleetの介入率ではない。
+
+
+    診断のみの再実行173件では、指示への最初の違反を数える生存曲線が全体で13step時点に50%を下回り、Bankingでは8stepで下回る（Figure 3）。毎stepの独立した遵守率とは異なる。診断位置の中央値誤差は5.5
+    TU、Recencyは6.0、Frequencyは10.0（§IV-B）。グラフが真の原因を常に特定できたわけではない。[一次資料：§II、§IV、Tables I–III](https://arxiv.org/html/2607.06273)。'
+  executable_understanding: '`uv run papers/agenttether-repair/run.py`
+
+
+    6個のTUに既知の依存を置き、TU1の誤った引数がTU3を経てTU5の失敗になる。無関係な枝にはエラーを多く置く。直近、頻度、依存祖先をたどる方法を比較する。別の例では指示状態を毎step0.82倍に減衰させ、閾値0.55を下回ると最短3step間隔で戻す。'
+  results: 直近はTU5、頻度はTU4、依存をたどる方法は真の原因TU1を選ぶ。TU1→TU3の辺を欠落させるとTU3を誤選択する。checkpointは合成の指示状態を維持するが、原典のfirst-violation生存曲線とは異なる量である。すでに違反した実行を再び遵守扱いにする推計ではない。
+  what_we_verified: Mechanism PARTIAL。既知グラフ上の原因候補探索、欠落辺の反例、cooldown、証拠なしの拒否、完了後の停止、書き込み後はloopのみ許す条件を確認した。指示状態を戻す効果は仮定として与えており、LLMの遵守改善を実証していない。
+  what_we_did_not_verify: HGT、Isolation Forest、診断LLM、verifier、τ-benchの修復率、本番介入率はNOT TESTED。原典の匿名コードURLは記載を確認したが実行していない。tool-return
+    hookはツール実行後なので、送金などの副作用を事前に遮断する保証はない。
+  implementation: '`localize()` は失敗の祖先集合にある異常TUのうち最も早いものを選ぶ教材用規則。原典のHGTとLLMによる帰責を代替する実装ではない。`guard()` は最小の条件式、`adherence()`
+    は決定的な減衰モデルとして切り分けた。'
+  method: method.md
+  mapping: '| 原典の機構 | Labの対応 | 省略したもの |
+
+    | --- | --- | --- |
+
+    | [PDF・HTML](https://arxiv.org/html/2607.06273) の手法節 | method.md と出典つきSVG | 原図の複製ではなく説明用に再構成 |
+
+    | 部分機構の合成例 | run.py → results.json | 本番データ、ニューラルモデル、論文の性能再現 |
+
+    | 公式実装 | 原典に匿名公開URLの記載あり。リンク先の実行は未確認 | 公式実装との同等性は未検証 |'
+figures:
+- path: figures/ctg.svg
+  title: 最後の失敗から、引き継がれた引数をたどる
+  caption: 原典Figure 4の考え方をrun.pyの6 TUへ写した合成例。赤は原因の経路、灰色は無関係な枝。
+  after: core_idea
+- path: figures/guards.svg
+  title: 診断は次の試行へ、介入は証拠のある場面へ
+  caption: §III-C–Dを基に再構成。外部ツールの実行後に動くhookは、過去の副作用を取り消さない。
+  after: method

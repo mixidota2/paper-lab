@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AgentTetherは凍結したエージェントの外側で、終了後の原因診断と再実行中の介入を分ける。τ-bench Bankingの初回失敗83件では、診断のみの39件から介入つき49件へ修復が増えた。一方で介入により失敗へ転じた例もある。">
+  <title>失敗原因を伝えたあと、長い再実行で修正を守らせるには | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-07-07</span></div>
+    <h1>失敗原因を伝えたあと、長い再実行で修正を守らせるには</h1>
+    <p class="lede">AgentTetherは凍結したエージェントの外側で、終了後の原因診断と再実行中の介入を分ける。τ-bench Bankingの初回失敗83件では、診断のみの39件から介入つき49件へ修復が増えた。一方で介入により失敗へ転じた例もある。</p>
+    <details class="bibliography"><summary>原論文：AgentTether: Graph-Guided Diagnosis and Runtime Intervention for Reliable LLM Agent Operations</summary><p>Chenyu Zhao, Shenglin Zhang, Wenwei Gu, Yongqian Sun, Dan Pei, Chetan Bansal, Saravan Rajmohan, Minghua Ma</p><p>2607.06273 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2607.06273">原典を読む ↗</a><a href="https://arxiv.org/pdf/2607.06273">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-11 · 提供PDFを主資料に、arXiv HTMLの対応箇所を照合。著者報告の独立再現ではない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>AgentTetherは凍結したエージェントの外側で、終了後の原因診断と再実行中の介入を分ける。τ-bench Bankingの初回失敗83件では、診断のみの39件から介入つき49件へ修復が増えた。一方で介入により失敗へ転じた例もある。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>誤った口座を選んだあと、そのIDを送金処理が引き継いで最後に失敗する場合、最後のエラーだけを直しても原因は残る。注意も長くは続かない。原典はこの二つを、終了後の診断と実行中の監督に分ける。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は実行をTransition Unitsへ整理し、Critical Transition Graphで疑わしい依存経路を絞る。診断をRepair Memoryに残し、再実行中はCheck→Decide→Injectで逸脱を補正する。モデルと環境を変更せず、最大3回の修復を評価する（§III–IV）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>診断だけでは足りない。修正を守り続ける能力も測りたい。共有artifactやerror signatureに基づくグラフは診断の手掛かりにはなるが、因果関係の証明ではない。特に書き込み後のhookでは、すでに起きた副作用を取り消せない。</p></div></div>
+      </section>
+      <figure class="paper-svg teaching"><h3>最後の失敗から、引き継がれた引数をたどる</h3><a href="../figures/agenttether-repair/figures/ctg.svg" aria-label="最後の失敗から、引き継がれた引数をたどるを拡大"><img src="../figures/agenttether-repair/figures/ctg.svg" alt="最後の失敗から、引き継がれた引数をたどる。原典Figure 4の考え方をrun.pyの6 TUへ写した合成例。赤は原因の経路、灰色は無関係な枝。" loading="lazy"></a><figcaption>原典Figure 4の考え方をrun.pyの6 TUへ写した合成例。赤は原因の経路、灰色は無関係な枝。 <a href="../figures/agenttether-repair/figures/ctg.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>TUは一回の判断と、その結果を結ぶ</h3>
+<p><code>TU_k = (o_k, b_k, a_k, f_k)</code></p>
+<p>oは観測、bはbeliefとしての推論、aはツール名と引数または応答、fは実行feedbackである。SDKへのbefore/after hookから取得したtraceを、この単位へまとめる。Critical Transition Graph（CTG）は実行順の辺と、共有artifactやerror signatureに基づく依存の辺を持つ。直前のTUだけが原因候補になる構造ではない（§III-B–C）。</p>
+<h3>学習済みの正常像と、実行内の外れ値を併用する</h3>
+<p>正常像を先に学ぶ。Heterogeneous Graph Transformer（HGT）は外部の成功軌跡21,143件から、TUとその周囲のspan、metric、log、verificationなどを型つきノードとして読み、telemetryの辺の復元と、隠されたtoolやstatusなどの属性予測を通じて正常な関係を学習する。推論時にはその二種類のsurpriseを平均し、scoreの最大の落差で異常候補を切る。τ-benchの履歴を学習する設定ではなく、外部の成功軌跡を用いる。</p>
+<p>実行内の外れ値も探す。Isolation Forestには、TUの入出次数などの構造、実行状態とfeedbackの不整合、同じ部分目標やツール群を共有する連続区間のエラー比率など、一つの実行から抽出した25次元の特徴を渡す。二つの検出結果は別の証拠面として保持し、その和集合を局所的な証拠へ絞る。診断LLMは依存を逆にたどり、根本原因、回復可能な経路から外れた転換点、回復のヒントを返す。</p>
+<p>実験設定はHGT hidden dimension 52、20 epochs、batch 128、Isolation Forest 100 trees、最大sample 256。補助の診断・検証・評価役はDeepSeek-V4-Proに固定し、修復されるエージェントと分ける。モデル名と設定は原典§IV-Aの記載であり、本LabはAPIを呼ばない。</p>
+<h3>診断を、その場で使える小さな修正へ変える</h3>
+<p>Repair Memoryはfixed/unresolvedを次の試行へ運ぶ。指示は失敗した操作の種類や制約を示すが、正解の引数をそのまま渡す設計ではない。初回は観察だけ。失敗してから修復へ入る。</p>
+<table>
+<thead>
+<tr>
+<th>段階</th>
+<th>判断すること</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Check</td>
+<td>同じ呼び出しの反復、意図からの逸脱、期待する修正の未実施、忘れた指示</td>
+</tr>
+<tr>
+<td>Decide</td>
+<td>証拠とactive guidanceがあるか、cooldownや回数上限に触れないか、最小の介入か</td>
+</tr>
+<tr>
+<td>Inject</td>
+<td>tool resultへ追記するか、text responseに対してsynthetic user messageを入れて再開するか</td>
+</tr>
+</tbody>
+</table>
+<p>意図逸脱はembeddingの非類似度で測り、破壊的操作は閾値0.35、通常0.50、情報取得0.55。高リスク候補はLLM verifierが確認する。tool-return側では5stepの指数移動平均（α=0.3）を使う。修正完了後は介入を止め、期待した状態変更の後はloop以外の介入を抑える。これらは誤検出の被害を抑える規則であり、成功の保証ではない（§III-D、§IV-A）。</p>
+<h3>REVISEとは、回復のきっかけと根拠が違う</h3>
+<p><a href="revise-recovery.html">REVISE Lab</a>は実行途中の指示変更を受け、どの計算結果が最新版でも有効かを追う。AgentTetherは失敗した行動を診断し、次の試行での逸脱を抑える。前者の再利用に必要な妥当性証拠と、後者のLLMを含む診断の確からしさは同じ保証ではない。この対比はresearch_botの整理で、両手法の直接比較実験はない。</p>
+<p><a href="https://arxiv.org/html/2607.06273">一次資料：§III–IV、Figure 4</a>。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>診断は次の試行へ、介入は証拠のある場面へ</h3><a href="../figures/agenttether-repair/figures/guards.svg" aria-label="診断は次の試行へ、介入は証拠のある場面へを拡大"><img src="../figures/agenttether-repair/figures/guards.svg" alt="診断は次の試行へ、介入は証拠のある場面へ。§III-C–Dを基に再構成。外部ツールの実行後に動くhookは、過去の副作用を取り消さない。" loading="lazy"></a><figcaption>§III-C–Dを基に再構成。外部ツールの実行後に動くhookは、過去の副作用を取り消さない。 <a href="../figures/agenttether-repair/figures/guards.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>依存をたどれば、エラーが多い場所とエラーの出発点を分けられる可能性がある。解決済みの制約を記憶し、未解決のものだけを確認すれば、同じ修正を繰り返す負担も減らせる。ただし診断役と検証役の誤りは残り、介入が正しい行動を妨げる場合もある。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>修復率の分母は初回に失敗したタスク</h3>
+<p>原典はQwen3.7-maxでRetail、Airline、Bankingの計261タスクを実行し、初回失敗123件を修復対象にする。Bankingは97件中83件が対象。最大3回の追加実行を許す。以下はTable Iの著者報告。</p>
+<table>
+<thead>
+<tr>
+<th>Bankingの方法</th>
+<th style="text-align: right;">修復数 / 83</th>
+<th style="text-align: right;">修復率</th>
+<th style="text-align: right;">平均時間</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Blind retry</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">26.51%</td>
+<td style="text-align: right;">21.38分</td>
+</tr>
+<tr>
+<td>Reflexion</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">26.51%</td>
+<td style="text-align: right;">19.36分</td>
+</tr>
+<tr>
+<td>Post-run only</td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">46.99%</td>
+<td style="text-align: right;">17.88分</td>
+</tr>
+<tr>
+<td>AgentTether</td>
+<td style="text-align: right;">49</td>
+<td style="text-align: right;">59.04%</td>
+<td style="text-align: right;">20.88分</td>
+</tr>
+</tbody>
+</table>
+<p>全領域では85/123=69.11%。これは全タスク成功率ではない。GPT-5.4 Bankingでも初回失敗86件中56件、65.12%を修復したが、失敗集合はモデルごとに違う。基盤モデルの順位比較には使えない。</p>
+<h3>介入の純増10件の裏に、悪化3件がある</h3>
+<p>Bankingでは介入ありだけが成功した13件、診断のみが成功した3件で、差は10件。対応ありのMcNemar検定はp=0.021。Retailは純増1件、Airlineは純増0件である（Table III）。Bankingの改善13件に限る平均介入回数は11.3回、悪化3件では29.3回。これは選ばれた事例の集計で、production fleetの介入率ではない。</p>
+<p>診断のみの再実行173件では、指示への最初の違反を数える生存曲線が全体で13step時点に50%を下回り、Bankingでは8stepで下回る（Figure 3）。毎stepの独立した遵守率とは異なる。診断位置の中央値誤差は5.5 TU、Recencyは6.0、Frequencyは10.0（§IV-B）。グラフが真の原因を常に特定できたわけではない。<a href="https://arxiv.org/html/2607.06273">一次資料：§II、§IV、Tables I–III</a>。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/agenttether-repair/run.py</code></p>
+<p>6個のTUに既知の依存を置き、TU1の誤った引数がTU3を経てTU5の失敗になる。無関係な枝にはエラーを多く置く。直近、頻度、依存祖先をたどる方法を比較する。別の例では指示状態を毎step0.82倍に減衰させ、閾値0.55を下回ると最短3step間隔で戻す。</p></div><div class="downloads"><a href="../downloads/agenttether-repair/run.py" download>実行コード</a><a href="../downloads/agenttether-repair/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/agenttether-repair">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><details><summary>生の results.json</summary><pre><code>{
+  &quot;kind&quot;: &quot;synthetic mechanism illustration&quot;,
+  &quot;seed&quot;: &quot;deterministic&quot;,
+  &quot;localization&quot;: {
+    &quot;true_root&quot;: 1,
+    &quot;recency&quot;: 5,
+    &quot;frequency&quot;: 4,
+    &quot;dependency&quot;: 1,
+    &quot;missing_edge_counterexample&quot;: 3
+  },
+  &quot;adherence_proxy&quot;: {
+    &quot;one_shot&quot;: {
+      &quot;mean_guidance_state&quot;: 0.28822773388880474,
+      &quot;fires&quot;: [],
+      &quot;trace&quot;: [
+        0.82,
+        0.6723999999999999,
+        0.5513679999999999,
+        0.4521217599999999,
+        0.37073984319999986,
+        0.3040066714239999,
+        0.2492854705676799,
+        0.2044140858654975,
+        0.16761955040970794,
+        0.1374480313359605,
+        0.1127073856954876,
+        0.09242005627029982,
+        0.07578444614164585,
+        0.062143245836149594,
+        0.05095746158564266
+      ]
+    },
+    &quot;checkpoints&quot;: {
+      &quot;mean_guidance_state&quot;: 0.7450047999999999,
+      &quot;fires&quot;: [
+        4,
+        8,
+        12
+      ],
+      &quot;trace&quot;: [
+        0.82,
+        0.6723999999999999,
+        0.5513679999999999,
+        1.0,
+        0.82,
+        0.6723999999999999,
+        0.5513679999999999,
+        1.0,
+        0.82,
+        0.6723999999999999,
+        0.5513679999999999,
+        1.0,
+        0.82,
+        0.6723999999999999,
+        0.5513679999999999
+      ]
+    }
+  },
+  &quot;guards&quot;: {
+    &quot;no_evidence&quot;: false,
+    &quot;cooldown&quot;: false,
+    &quot;complete&quot;: false,
+    &quot;after_write&quot;: false,
+    &quot;loop_after_write&quot;: true
+  },
+  &quot;not_tested&quot;: [
+    &quot;HGT&quot;,
+    &quot;Isolation Forest&quot;,
+    &quot;LLM analyst/verifier&quot;,
+    &quot;tau-bench repair&quot;,
+    &quot;production interventions&quot;
+  ]
+}</code></pre></details><p>直近はTU5、頻度はTU4、依存をたどる方法は真の原因TU1を選ぶ。TU1→TU3の辺を欠落させるとTU3を誤選択する。checkpointは合成の指示状態を維持するが、原典のfirst-violation生存曲線とは異なる量である。すでに違反した実行を再び遵守扱いにする推計ではない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。既知グラフ上の原因候補探索、欠落辺の反例、cooldown、証拠なしの拒否、完了後の停止、書き込み後はloopのみ許す条件を確認した。指示状態を戻す効果は仮定として与えており、LLMの遵守改善を実証していない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>HGT、Isolation Forest、診断LLM、verifier、τ-benchの修復率、本番介入率はNOT TESTED。原典の匿名コードURLは記載を確認したが実行していない。tool-return hookはツール実行後なので、送金などの副作用を事前に遮断する保証はない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>localize()</code> は失敗の祖先集合にある異常TUのうち最も早いものを選ぶ教材用規則。原典のHGTとLLMによる帰責を代替する実装ではない。<code>guard()</code> は最小の条件式、<code>adherence()</code> は決定的な減衰モデルとして切り分けた。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>原典の機構</th>
+<th>Labの対応</th>
+<th>省略したもの</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://arxiv.org/html/2607.06273">PDF・HTML</a> の手法節</td>
+<td>method.md と出典つきSVG</td>
+<td>原図の複製ではなく説明用に再構成</td>
+</tr>
+<tr>
+<td>部分機構の合成例</td>
+<td>run.py → results.json</td>
+<td>本番データ、ニューラルモデル、論文の性能再現</td>
+</tr>
+<tr>
+<td>公式実装</td>
+<td>原典に匿名公開URLの記載あり。リンク先の実行は未確認</td>
+<td>公式実装との同等性は未検証</td>
+</tr>
+</tbody>
+</table></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>失敗原因を伝えたあと、長い再実行で修正を守らせるには</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/agenttether-repair/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

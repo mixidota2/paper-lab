@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="OneRankerは興味と広告価値の出力を分け、生成時の表現をランキングへ渡す。Weixin ChannelsのA/Bでは生成モデル＋別学習ランカーを基準に改善を報告した。広告の全カスケードを撤去した証拠とは区別して読む。">
+  <title>興味の広さを保ちながら、生成候補を広告価値に寄せられるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-03-03</span></div>
+    <h1>興味の広さを保ちながら、生成候補を広告価値に寄せられるか</h1>
+    <p class="lede">OneRankerは興味と広告価値の出力を分け、生成時の表現をランキングへ渡す。Weixin ChannelsのA/Bでは生成モデル＋別学習ランカーを基準に改善を報告した。広告の全カスケードを撤去した証拠とは区別して読む。</p>
+    <details class="bibliography"><summary>原論文：OneRanker: Unified Generation and Ranking with One Model in Industrial Advertising Recommendation</summary><p>Dekai Sun, Yiming Liu, Jiafan Zhou, Xun Liu, Chenchen Yu, Yi Li, Jun Zhang, Huan Yu, Jie Jiang</p><p>2603.02999 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2603.02999">原典を読む ↗</a><a href="https://arxiv.org/pdf/2603.02999">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-11 · 提供PDFを主資料に、arXiv HTMLの対応箇所を照合。著者報告の独立再現ではない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>OneRankerは興味と広告価値の出力を分け、生成時の表現をランキングへ渡す。Weixin ChannelsのA/Bでは生成モデル＋別学習ランカーを基準に改善を報告した。広告の全カスケードを撤去した証拠とは区別して読む。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>クリックと価値はずれる。単一の出力へ両方の目的を押し込むと競合し、別モデルへ完全に分けると生成中に価値の情報が届かない。共有と分離の境界が問題になる。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は、タスクトークンによる出力空間の分離、クラスタ中心による粗い候補意識、候補単位のランキングを一体化する。生成とランキングの入力を共有し、ランキングの軟らかい教師分布を生成へ戻す。A/B後の100%展開を報告する（§3、§4.4）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>価値の高い広告が候補生成で落ちれば、後段の優秀なランカーでも救えない。DCはこの境界を学習で動かす設計と読める。ただし教師が誤る場合や候補集合に偏りがある場合、整合性だけが高まっても利益は改善しない。Gryphon-v2との比較では、モデル数より実際に置換したサービング範囲を確認したい。</p></div></div>
+      </section>
+      <figure class="paper-svg teaching"><h3>統合するのは生成とランキングの接続</h3><a href="../figures/oneranker-ads/figures/stack.svg" aria-label="統合するのは生成とランキングの接続を拡大"><img src="../figures/oneranker-ads/figures/stack.svg" alt="統合するのは生成とランキングの接続。原典Figure 2・§4.4を基に再構成。DCの矢印は学習時、KVの矢印は表現の受け渡し。" loading="lazy"></a><figcaption>原典Figure 2・§4.4を基に再構成。DCの矢印は学習時、KVの矢印は表現の受け渡し。 <a href="../figures/oneranker-ads/figures/stack.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>3段の接続で、候補生成と価値推定を結ぶ</h3>
+<p>Step 1はユーザー履歴から複数の興味表現を作る生成基盤である。原典はHSTU/GPR系を比較対象とし、U/C/X/I（ユーザー・コンテンツ・文脈・アイテム）で履歴を時系列に並べる。Step 2はその出力をKey/Valueに、タスクトークンとFake Item TokensをQueryにする。Cross-Attentionで履歴を読み、その後にSelf-Attentionを行う（§3.1–3.2）。</p>
+<p>タスクは表示→クリック→コンバージョン→価値の順序を持つ。参照は一方向だ。後段から前段を読む。タスクごとに独立した予測ヘッドを置き、興味ヘッドはクリック等を、価値ヘッドは価値重みつきサンプリングを学習する。たとえばクリックへつながる候補を広く拾う経路と、広告価値を重視して拾う経路を同じ履歴表現から学習しても、予測ヘッドを分けておけば、一つの出力に二種類の順位を同時に表させる必要はなくなる。これがMTPの出力を分ける狙いだ。</p>
+<h3>Fakeは架空の広告ではなく、アイテム空間の代表点</h3>
+<p>全アイテムをK-meansでまとめたk個の中心fを使う。タスクはすべての中心を読め、中心もすべてのタスクを読める。一方、異なる中心同士は読めない。これが異種マスクであり、Query全体へ通常の三角マスクを一律に適用する説明では不十分になる。</p>
+<p>タスク表現Tᵢと各中心Fⱼを連結してMLPへ通し、k次元の出力を足すとs_target⁽ⁱ⁾になる。候補アイテム側では各中心とのcos類似度cを付ける。Eq. (1)–(4)の要点は次の内積である。</p>
+<p><code>e_user = [e_task ; s_target]</code>、<code>e_item_enhanced = [e_item ; c]</code></p>
+<p><code>score(u,item) = e_task · e_item + Σ_l s_target,l c_l</code></p>
+<p>前半は意味の一致。後半は領域への好みだ。生成前に特定候補の詳細をすべて読む必要はないが、中心が粗すぎれば細かな商品差は残る。</p>
+<h3>ランカーには実候補と生成途中の状態を渡す</h3>
+<p>Step 3はランキング用トークンと生成した候補をQueryにし、Step 1とStep 2の出力をKey/Valueとして再利用する。1層のランキングdecoderと軽いMLPが候補ごとのスカラーを出す。候補同士は見えず、各候補はランキングトークンを読める。生成時の粗い対象意識を、ここで実候補への詳細な相互作用に置き換える（§3.3）。</p>
+<p><code>L_total = α L_MTP + β L_rank + γ L_DC</code></p>
+<p><code>L_rank = −E_(i,j)[1(y_i &gt; y_j) log σ(s_i − s_j)]</code></p>
+<p><code>q_i = softmax(s_i / τ)</code>、<code>L_DC = −Σ_(i∈C) q_i log πθ(i|u)</code></p>
+<p>ランキングはeCPMラベルyの大小をBPRで学ぶ。DCは現在の候補集合Cで正規化したランキングスコアを教師にする。最後の式はEq. (10)の期待値を候補上の重みつき和として示したもの。SIDの尤度学習も残す。DCだけで動くモデルではない。Eq. (9)の報酬と参照方策へのKLを用いる目的から、サンプリングの不安定さを避ける教師あり代理損失へ進む説明である。</p>
+<p><a href="https://arxiv.org/html/2603.02999">一次資料：§3、Eq. (1)–(10)、Figure 2</a>。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>タスクの順序とクラスタの可視性は別に決める</h3><a href="../figures/oneranker-ads/figures/mask.svg" aria-label="タスクの順序とクラスタの可視性は別に決めるを拡大"><img src="../figures/oneranker-ads/figures/mask.svg" alt="タスクの順序とクラスタの可視性は別に決める。§3.2.3のマスク規則。行がQuery、列が読む相手。中心は実候補の代わりに粗い領域を表す。" loading="lazy"></a><figcaption>§3.2.3のマスク規則。行がQuery、列が読む相手。中心は実候補の代わりに粗い領域を表す。 <a href="../figures/oneranker-ads/figures/mask.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>興味タスクの出力を維持したまま価値用の経路を追加すれば、価値重視の学習が興味の表現を直接置き換える圧力を減らせる。Fake Item Tokensは全候補との詳細な相互作用を避けつつ、アイテム空間のどの領域を好むかを表せる。これは設計上の推論で、共有層の勾配競合が消える保証ではない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>大きな差はStep 3の追加にある</h3>
+<p>以下は提供PDF Table 2の著者報告。HR@5を比較すると、Step 2から候補単位のランキングへ進む差が、DC単独の差より大きい。</p>
+<table>
+<thead>
+<tr>
+<th>構成</th>
+<th style="text-align: right;">HR@5</th>
+<th style="text-align: right;">NDCG@5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S2、TargetとMDAを除去</td>
+<td style="text-align: right;">0.5066</td>
+<td style="text-align: right;">0.7275</td>
+</tr>
+<tr>
+<td>S2、Targetを除去</td>
+<td style="text-align: right;">0.5203</td>
+<td style="text-align: right;">0.7285</td>
+</tr>
+<tr>
+<td>S2</td>
+<td style="text-align: right;">0.5448</td>
+<td style="text-align: right;">0.7440</td>
+</tr>
+<tr>
+<td>S3 ranker only</td>
+<td style="text-align: right;">0.6157</td>
+<td style="text-align: right;">0.7849</td>
+</tr>
+<tr>
+<td>S2 token injectionを除去</td>
+<td style="text-align: right;">0.6161</td>
+<td style="text-align: right;">0.7858</td>
+</tr>
+<tr>
+<td>DCを除去</td>
+<td style="text-align: right;">0.6173</td>
+<td style="text-align: right;">0.7865</td>
+</tr>
+<tr>
+<td>Full</td>
+<td style="text-align: right;">0.6213</td>
+<td style="text-align: right;">0.7904</td>
+</tr>
+</tbody>
+</table>
+<p>原典§4.2.1の説明文は0.6161と0.6173に対応する追加要素をTable 2と逆に説明している。本Labは表の行名を採用した。したがって本文の説明を根拠に、個別要素の寄与を細かく断定しない。Table 3ではS2のHR@5がCross-Attention先行の除去で0.5277、異種マスクの除去で0.5335になる。</p>
+<h3>+1.34%は全トラフィック共通の効果ではない</h3>
+<p>Table 4の基準系は生成＋別学習ランカー。GMV-Normalはクリック／コンバージョン最適化広告のGMVである。</p>
+<table>
+<thead>
+<tr>
+<th>A/Bのtraffic phase</th>
+<th style="text-align: right;">GMV-Normal相対変化</th>
+<th>95% CI</th>
+<th style="text-align: right;">全GMV相対変化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5%</td>
+<td style="text-align: right;">+1.3427%</td>
+<td>[0.1637%, 2.5216%]</td>
+<td style="text-align: right;">+0.4067%</td>
+</tr>
+<tr>
+<td>20%</td>
+<td style="text-align: right;">+0.6446%</td>
+<td>[0.2139%, 1.0754%]</td>
+<td style="text-align: right;">+0.7796%</td>
+</tr>
+<tr>
+<td>80%</td>
+<td style="text-align: right;">+0.3500%</td>
+<td>[0.0188%, 0.6812%]</td>
+<td style="text-align: right;">+0.0843%</td>
+</tr>
+</tbody>
+</table>
+<p>5%と80%の全GMVのCIは0をまたぐ。著者は80%段階にtraffic coverageの現象があると記すが、補正方法は詳述しない。100%展開は採用の証拠であり、その段階で+1.34%を再測定したという意味ではない。会議名・DOIにテンプレート文字列が残るため、出版先は確定情報として扱わない。<a href="https://arxiv.org/html/2603.02999">一次資料：§4、Tables 2–4</a>。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/oneranker-ads/run.py</code></p>
+<p>第一の例は同じ入力xに興味目標x、価値目標−xを与える回帰である。共有出力とタスク別出力の最適解を比較する。第二の例は4候補を固定し、教師のsoftmax分布への交差エントロピーで生成logitを200回更新する。温度1、学習率0.2。</p></div><div class="downloads"><a href="../downloads/oneranker-ads/run.py" download>実行コード</a><a href="../downloads/oneranker-ads/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/oneranker-ads">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><details><summary>生の results.json</summary><pre><code>{
+  &quot;kind&quot;: &quot;synthetic mechanism illustration&quot;,
+  &quot;seed&quot;: &quot;deterministic&quot;,
+  &quot;metrics&quot;: {
+    &quot;shared&quot;: {
+      &quot;interest_mse&quot;: 2.5,
+      &quot;value_mse&quot;: 2.5
+    },
+    &quot;task_conditioned&quot;: {
+      &quot;interest_mse&quot;: 0.0,
+      &quot;value_mse&quot;: 0.0
+    }
+  },
+  &quot;alignment&quot;: [
+    {
+      &quot;step&quot;: 0,
+      &quot;kl_teacher_generator&quot;: 1.9853054691715397,
+      &quot;top2_disagreement&quot;: 1.0,
+      &quot;generator&quot;: [
+        0.6439142598879724,
+        0.23688281808991013,
+        0.08714431874203257,
+        0.03205860328008499
+      ],
+      &quot;teacher&quot;: [
+        0.03205860328008499,
+        0.08714431874203257,
+        0.23688281808991013,
+        0.6439142598879724
+      ]
+    },
+    {
+      &quot;step&quot;: 10,
+      &quot;kl_teacher_generator&quot;: 0.7815816938701511,
+      &quot;top2_disagreement&quot;: 1.0,
+      &quot;generator&quot;: [
+        0.39242662539994666,
+        0.27005230756725157,
+        0.1758424200506373,
+        0.1616786469821645
+      ],
+      &quot;teacher&quot;: [
+        0.03205860328008499,
+        0.08714431874203257,
+        0.23688281808991013,
+        0.6439142598879724
+      ]
+    },
+    {
+      &quot;step&quot;: 50,
+      &quot;kl_teacher_generator&quot;: 0.03436535616545226,
+      &quot;top2_disagreement&quot;: 0.0,
+      &quot;generator&quot;: [
+        0.09219016364464891,
+        0.11087313151262973,
+        0.1970691646411637,
+        0.5998675402015577
+      ],
+      &quot;teacher&quot;: [
+        0.03205860328008499,
+        0.08714431874203257,
+        0.23688281808991013,
+        0.6439142598879724
+      ]
+    },
+    {
+      &quot;step&quot;: 200,
+      &quot;kl_teacher_generator&quot;: 0.0007428244983350325,
+      &quot;top2_disagreement&quot;: 0.0,
+      &quot;generator&quot;: [
+        0.039171252261502996,
+        0.084641913714935,
+        0.23430190475057,
+        0.641884929272992
+      ],
+      &quot;teacher&quot;: [
+        0.03205860328008499,
+        0.08714431874203257,
+        0.23688281808991013,
+        0.6439142598879724
+      ]
+    }
+  ],
+  &quot;counterexample&quot;: &quot;A wrong teacher is also imitated; missing candidates cannot be recovered.&quot;,
+  &quot;not_tested&quot;: [
+    &quot;causal attention&quot;,
+    &quot;interest coverage&quot;,
+    &quot;production eCPM&quot;,
+    &quot;latency&quot;,
+    &quot;GMV&quot;
+  ]
+}</code></pre></details><p>共有出力の興味・価値MSEはともに2.5、タスク別ではともに0になる。これは追加した出力自由度による差で、興味coverage改善の実証ではない。DCの例ではtop-2不一致率が1から0へ下がる。下のJSONには途中のKLと確率も保存する。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。矛盾する目標を一つの出力で表す制約と、固定候補内で教師分布を模倣する更新を確認した。タスクトークン、causal mask、Fake Item Tokens自体の有効性はこのtoyでは検証していない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>本番eCPM、GMV、興味coverage、スケール、レイテンシーはNOT TESTED。教師の校正、候補外の高価値広告、複数タスクの共有勾配も未検証。Figure 3の曲線から精密な数値は読み取らず、順位一致が増えるという著者の観察に留める。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>conflict()</code> は解析的最適解の損失を計算し、<code>align()</code> は交差エントロピーの勾配p−qで更新する。教師は固定する。出力を増やす実験と、分布を寄せる実験は分けた。数値はすべて合成データ由来。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>原典の機構</th>
+<th>Labの対応</th>
+<th>省略したもの</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://arxiv.org/html/2603.02999">PDF・HTML</a> の手法節</td>
+<td>method.md と出典つきSVG</td>
+<td>原図の複製ではなく説明用に再構成</td>
+</tr>
+<tr>
+<td>部分機構の合成例</td>
+<td>run.py → results.json</td>
+<td>本番データ、ニューラルモデル、論文の性能再現</td>
+</tr>
+<tr>
+<td>公式実装</td>
+<td>原典内で実行可能な公式コードURLを確認できず</td>
+<td>公式実装との同等性は未検証</td>
+</tr>
+</tbody>
+</table></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>興味の広さを保ちながら、生成候補を広告価値に寄せられるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/oneranker-ads/lab.yaml" download>このページの原データ</a></footer>
+</body></html>
