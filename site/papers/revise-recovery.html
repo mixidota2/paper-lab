@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="REVISE は変更した値と実際の依存関係を照合し、無効になった枝だけを再計算する。再利用には妥当性の証拠が必要で、依存情報が足りなければ suffix や全体再実行へ戻る。">
+  <title>実行途中の指示変更で、どの作業なら残せるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-01</span></div>
+    <h1>実行途中の指示変更で、どの作業なら残せるか</h1>
+    <p class="lede">REVISE は変更した値と実際の依存関係を照合し、無効になった枝だけを再計算する。再利用には妥当性の証拠が必要で、依存情報が足りなければ suffix や全体再実行へ戻る。</p>
+    <details class="bibliography"><summary>原論文：REVISE: Validity-Guided Recovery for Online Revisions in Agent Workflows</summary><p>Ruoling Qi, Xuaner Wu, Penghang Liu, Jian Chen, Yirui Liu</p><p>2609.00643 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.00643">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.00643">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-10 · 提供PDFと arXiv HTML を照合。2609.00643。独立再現ではない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>REVISE は変更した値と実際の依存関係を照合し、無効になった枝だけを再計算する。再利用には妥当性の証拠が必要で、依存情報が足りなければ suffix や全体再実行へ戻る。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><h3>変更より後の仕事を全部捨てると、独立な枝まで失う</h3>
+<p>たとえば旅行案で予算だけが変わったとき、ホテルの選択と総額はやり直す必要がある。一方、予算を読んでいない街の説明は残せるかもしれない。実行順で最初の衝突から後ろを捨てる suffix 方式は、その説明も巻き込む。</p>
+<p>ただし、街の説明を出す経路自体が予算で切り替わっていれば依存がある。値の読み取りだけでなく、どの分岐を通ったかという control 依存も追う必要がある。これは推論精度を上げる手法ではなく、指示変更後の状態を正しくそろえる runtime の研究である。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は進行中の agent workflow を対象に、変更の影響を data/control 依存へ伝播し、完了済み・実行中・未着手の作業を処理し分ける。評価した実行は最新版の oracle と一致し、局所変更では restart や suffix より呼び出しを減らした。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>「変更に関係なさそう」という会話上の判断では再利用を許せない。ある枝が読んだフィールドをすべて記録できても、その枝を選んだ分岐条件や外部ツールへ渡した値を取りこぼしていれば、変更後もそのまま結果を公開してよいという証拠にはならない。省ける仕事が減っても、証拠が弱いときに広くやり直す性質が必要だ。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>変更したパスと、実際に読んだパスを照合する</h3>
+<p>workflow を DAG G=(V,E) とし、artifact ごとに版番号を持つ。読み取り selector (a,p,c) は artifact、内部のパス、data/control の区別を記録する。revision e=(a,v,v+1,op,Δ) は変更されたパス集合 Δ を運ぶ。古い版への revision は受け入れない。</p>
+<p>構造化された状態を read-only proxy で包み、フィールド参照では leaf path、列挙では集合の <code>#members</code> を記録する。親子のパスは重なりとして扱い、要素の追加・削除はその集合の membership 読み取りと照合する。直接の読者から現在有効な子孫へ影響を伝播する。</p>
+<pre><code class="language-text">Direct = {n : Δ intersects (Rdata(n) ∪ Rcontrol(n))}
+Affected = Direct ∪ active descendants(Direct)
+reuse(x) ⇒ valid(x) ∧ effectSafe(x)            原典 Eq. (1)
+</code></pre>
+<p>最初の2式は Lab の整理である。原典 §3.2 の記述を集合で表した。依存が不明な読者は保守的な集合に入れ、再計算範囲を広げる。</p>
+<h3>完了・実行中・未着手では、取り消す操作が違う</h3>
+<p>無効な実行中の呼び出しは cancel、未着手なら avoid、必要な処理を新しい版で recompute する。有効性を示せる実行中の枝は continue、完了済みは reuse。許可は暫定である。</p>
+<h3>公開する直前に、最終的な読み取り履歴を検査する</h3>
+<p>変更が来た時点ではまだ読んでいなかった値を、後から読む場合がある。revision 時点だけの判定ではこの late read を見落とす。実行は immutable snapshot を使い、次の証明書を蓄積する。</p>
+<pre><code class="language-text">Cx = (id, vstart, Rdata, Rcontrol, P, mode)      原典 Eq. (2)
+</code></pre>
+<p>P は親 attempt の識別子、mode は complete/coarse/unknown。commit では開始後の全変更と最終的な read set を照合し、親が現在の committed attempt か確かめる。revision と commit は同じ lock で直列化する。外部への作用は検査が通るまで staged のまま保持する。不可逆な作用や証拠の欠落は明示的な処理または停止を必要とする。<a href="https://arxiv.org/html/2609.00643">一次資料：§3</a>。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>実行順の後半より、依存の枝をたどる</h3><a href="../figures/revise-recovery/figures/impact.svg" aria-label="実行順の後半より、依存の枝をたどるを拡大"><img src="../figures/revise-recovery/figures/impact.svg" alt="実行順の後半より、依存の枝をたどる。Lab の6ノード DAG。赤は budget 変更の影響範囲。青緑の枝は有効性を確認できるときだけ保持する。" loading="lazy"></a><figcaption>Lab の6ノード DAG。赤は budget 変更の影響範囲。青緑の枝は有効性を確認できるときだけ保持する。 <a href="../figures/revise-recovery/figures/impact.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>同じ依存情報を使う suffix と比べれば、selective は影響を受けない途中の枝を残せる。変更が局所的で、分岐が独立し、依存記録が細かいほど差が出る。直列の処理や全体に影響する変更では、正しく動いても節約できない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>oracle 一致は、最新版への回復を測る</h3>
+<p>Table 1 の15939実行は最新版／全体再実行の oracle と一致し、古い output・effect は0と報告する。内訳には15000の GPU serving 実行と300の敵対的な順序の実行が含まれる。これは in-process の validity と effect safety の評価で、分散合意や crash recovery の保証ではない。</p>
+<h3>呼び出し削減とレイテンシーは別に読む</h3>
+<p>Qwen3-14B と SGLang を用いた10ノードの LangGraph アプリでは次の結果になる。数値は Table 5 の著者報告であり、本 Lab の toy とは無関係。</p>
+<table>
+<thead>
+<tr>
+<th>回復方法</th>
+<th style="text-align: right;">model calls</th>
+<th style="text-align: right;">completion tokens</th>
+<th style="text-align: right;">E2E p50</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>full restart</td>
+<td style="text-align: right;">10.0</td>
+<td style="text-align: right;">80.0</td>
+<td style="text-align: right;">719 ms</td>
+</tr>
+<tr>
+<td>earliest-conflict suffix</td>
+<td style="text-align: right;">7.8</td>
+<td style="text-align: right;">62.4</td>
+<td style="text-align: right;">711 ms</td>
+</tr>
+<tr>
+<td>REVISE</td>
+<td style="text-align: right;">4.4</td>
+<td style="text-align: right;">35.2</td>
+<td style="text-align: right;">669 ms</td>
+</tr>
+</tbody>
+</table>
+<p>共有 cache を消していないため、著者は calls と生成 token を主指標、model-wall を副次指標にする。LLMCompiler の local 条件では calls が6.00→5.19→3.56。global/untracked 条件では全方式6.00に戻る（Table 7）。情報が欠けたら全体をやり直す。安全な再利用を証明できない場合の動作である。</p>
+<p>SWE-chat の観察は実行中に修正できる時間窓を示すが、完全な依存記録がなく安全な再利用量までは示せない。手動監査30件も出現率を推定する標本ではない。負荷実験の goodput 改善は逼迫時に現れ、通常負荷へ一律に外挿できない。<a href="https://arxiv.org/html/2609.00643">一次資料：§2、§4、Appendix A</a>。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/revise-recovery/run.py</code></p>
+<p>6ノードの DAG を A,B,C,D,E,F の順に並べる。A→C は予算、B→D は都市、E は文体を読む独立な枝で、F が結合する。予算を変更すると A,C,F が無効になる。全体再実行、最初の衝突以降の suffix、依存に沿う selective で再計算集合と最新版の値を比較する。</p>
+<p>全フィールドの変更と依存情報 unknown も走らせる。別の certificate 検査で late read、古い親、情報欠落、安全でない effect を拒否し、有効な sibling を通す。ライフサイクル操作は計画を出すだけで、実際の並行 cancel は行わない。</p></div><div class="downloads"><a href="../downloads/revise-recovery/run.py" download>実行コード</a><a href="../downloads/revise-recovery/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/revise-recovery">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>合成 DAG の決定的再実行。call はノード再計算数。並行実行・LLM token・本番効果は測っていない。</em></p>
+<h3>budget の局所変更</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>calls</th><th>oracle_equal</th></tr></thead><tbody><tr><th scope='row'>restart</th><td>6</td><td>True</td></tr><tr><th scope='row'>suffix</th><td>6</td><td>True</td></tr><tr><th scope='row'>selective</th><td>3</td><td>True</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成 DAG の決定的再実行。call はノード再計算数。並行実行・LLM token・本番効果は測っていない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;budget の局所変更&quot;,
+      &quot;metrics&quot;: {
+        &quot;restart&quot;: {
+          &quot;calls&quot;: 6,
+          &quot;oracle_equal&quot;: true
+        },
+        &quot;suffix&quot;: {
+          &quot;calls&quot;: 6,
+          &quot;oracle_equal&quot;: true
+        },
+        &quot;selective&quot;: {
+          &quot;calls&quot;: 3,
+          &quot;oracle_equal&quot;: true
+        }
+      }
+    }
+  ],
+  &quot;cases&quot;: [
+    {
+      &quot;delta&quot;: [
+        &quot;budget&quot;
+      ],
+      &quot;provenance&quot;: &quot;complete&quot;,
+      &quot;policies&quot;: {
+        &quot;restart&quot;: {
+          &quot;recomputed&quot;: [
+            &quot;A&quot;,
+            &quot;B&quot;,
+            &quot;C&quot;,
+            &quot;D&quot;,
+            &quot;E&quot;,
+            &quot;F&quot;
+          ],
+          &quot;calls&quot;: 6,
+          &quot;oracle_equal&quot;: true
+        },
+        &quot;suffix&quot;: {
+          &quot;recomputed&quot;: [
+            &quot;A&quot;,
+            &quot;B&quot;,
+            &quot;C&quot;,
+            &quot;D&quot;,
+            &quot;E&quot;,
+            &quot;F&quot;
+          ],
+          &quot;calls&quot;: 6,
+          &quot;oracle_equal&quot;: true
+        },
+        &quot;selective&quot;: {
+          &quot;recomputed&quot;: [
+            &quot;A&quot;,
+            &quot;C&quot;,
+            &quot;F&quot;
+          ],
+          &quot;calls&quot;: 3,
+          &quot;oracle_equal&quot;: true
+        }
+      },
+      &quot;lifecycle_plan&quot;: {
+        &quot;A&quot;: &quot;recompute&quot;,
+        &quot;B&quot;: &quot;reuse&quot;,
+        &quot;C&quot;: &quot;cancel&quot;,
+        &quot;D&quot;: &quot;continue&quot;,
+        &quot;E&quot;: &quot;reuse&quot;,
+        &quot;F&quot;: &quot;avoid&quot;
+      }
+    },
+    {
+      &quot;delta&quot;: [
+        &quot;budget&quot;,
+        &quot;city&quot;,
+        &quot;style&quot;
+      ],
+      &quot;provenance&quot;: &quot;complete&quot;,
+      &quot;policies&quot;: {
+        &quot;restart&quot;: {
+          &quot;recomputed&quot;: [
+            &quot;A&quot;,
+            &quot;B&quot;,
+            &quot;C&quot;,
+            &quot;D&quot;,
+            &quot;E&quot;,
+            &quot;F&quot;
+          ],
+          &quot;calls&quot;: 6,
+          &quot;oracle_equal&quot;: true
+        },
+        &quot;suffix&quot;: {
+          &quot;recomputed&quot;: [
+            &quot;A&quot;,
+            &quot;B&quot;,
+            &quot;C&quot;,
+            &quot;D&quot;,
+            &quot;E&quot;,
+            &quot;F&quot;
+          ],
+          &quot;calls&quot;: 6,
+          &quot;oracle_equal&quot;: true
+        },
+        &quot;selective&quot;: {
+          &quot;recomputed&quot;: [
+            &quot;A&quot;,
+            &quot;B&quot;,
+            &quot;C&quot;,
+            &quot;D&quot;,
+            &quot;E&quot;,
+            &quot;F&quot;
+          ],
+          &quot;calls&quot;: 6,
+          &quot;oracle_equal&quot;: true
+        }
+      },
+      &quot;lifecycle_plan&quot;: {
+        &quot;A&quot;: &quot;recompute&quot;,
+        &quot;B&quot;: &quot;recompute&quot;,
+        &quot;C&quot;: &quot;cancel&quot;,
+        &quot;D&quot;: &quot;cancel&quot;,
+        &quot;E&quot;: &quot;recompute&quot;,
+        &quot;F&quot;: &quot;avoid&quot;
+      }
+    },
+    {
+      &quot;delta&quot;: [
+        &quot;budget&quot;
+      ],
+      &quot;provenance&quot;: &quot;unknown&quot;,
+      &quot;policies&quot;: {
+        &quot;restart&quot;: {
+          &quot;recomputed&quot;: [
+            &quot;A&quot;,
+            &quot;B&quot;,
+            &quot;C&quot;,
+            &quot;D&quot;,
+            &quot;E&quot;,
+            &quot;F&quot;
+          ],
+          &quot;calls&quot;: 6,
+          &quot;oracle_equal&quot;: true
+        },
+        &quot;suffix&quot;: {
+          &quot;recomputed&quot;: [
+            &quot;A&quot;,
+            &quot;B&quot;,
+            &quot;C&quot;,
+            &quot;D&quot;,
+            &quot;E&quot;,
+            &quot;F&quot;
+          ],
+          &quot;calls&quot;: 6,
+          &quot;oracle_equal&quot;: true
+        },
+        &quot;selective&quot;: {
+          &quot;recomputed&quot;: [
+            &quot;A&quot;,
+            &quot;B&quot;,
+            &quot;C&quot;,
+            &quot;D&quot;,
+            &quot;E&quot;,
+            &quot;F&quot;
+          ],
+          &quot;calls&quot;: 6,
+          &quot;oracle_equal&quot;: true
+        }
+      },
+      &quot;lifecycle_plan&quot;: {
+        &quot;A&quot;: &quot;recompute&quot;,
+        &quot;B&quot;: &quot;recompute&quot;,
+        &quot;C&quot;: &quot;cancel&quot;,
+        &quot;D&quot;: &quot;cancel&quot;,
+        &quot;E&quot;: &quot;recompute&quot;,
+        &quot;F&quot;: &quot;avoid&quot;
+      }
+    }
+  ],
+  &quot;commit_checks&quot;: {
+    &quot;late_read_rejected&quot;: true,
+    &quot;valid_sibling_accepted&quot;: true,
+    &quot;obsolete_parent_rejected&quot;: true,
+    &quot;unknown_rejected&quot;: true,
+    &quot;unsafe_effect_rejected&quot;: true
+  }
+}</code></pre></details><p>予算だけの変更では restart/suffix が6ノード、selective が3ノードを再計算し、出力はすべて最新版の全体再計算と一致する。全体変更または unknown では selective も6ノードになる。呼び出し単価は同じと仮定し、時間や token の削減率へは換算しない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。固定 DAG での影響伝播、非連続な枝の保持、unknown 時の全体再計算、5種類の commit 条件を確認した。確認はこの合成例に限る。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>再利用の許可は commit まで暫定</h3><a href="../figures/revise-recovery/figures/certificate.svg" aria-label="再利用の許可は commit まで暫定を拡大"><img src="../figures/revise-recovery/figures/certificate.svg" alt="再利用の許可は commit まで暫定。原典 Eq. (1)–(2)・§3.3 を基に再構成。実行開始後の変更と最終 read set を照合する。" loading="lazy"></a><figcaption>原典 Eq. (1)–(2)・§3.3 を基に再構成。実行開始後の変更と最終 read set を照合する。 <a href="../figures/revise-recovery/figures/certificate.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>LLM の非決定性、動的な分岐、proxy による依存取得、membership の更新、実 cancel、revision/commit の race、外部サービスの副作用、crash recovery は NOT TESTED。toy の snapshot は純粋な値であり、実運用の証明書や lock を代替しない。原典の匿名 artifact package の公開先は確認できず、実験の独立再実行はしていない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>affected()</code> が data 依存と子孫をたどり、<code>execute()</code> がキャッシュを使って選択的に再計算する。<code>commit_valid()</code> は検査条件を純粋関数で表す。一般の REVISE runtime の実装ではなく、原典 §3 の境界を説明するための標準ライブラリだけのモデルである。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>この Lab</th>
+<th>省略・公式実装</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://arxiv.org/html/2609.00643">原典 HTML</a>・提供 PDF</td>
+<td>method の式と図は原典から描き直し</td>
+<td>原典の数値と toy の数値を分離</td>
+</tr>
+<tr>
+<td>手法の最小機構</td>
+<td><code>run.py</code> と <code>results.json</code></td>
+<td>ニューラルモデル・本番データを省略</td>
+</tr>
+<tr>
+<td>公式コード</td>
+<td>原典で実行可能な公開URLを確認できず</td>
+<td>公式実装との一致は未検証</td>
+</tr>
+</tbody>
+</table></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>実行途中の指示変更で、どの作業なら残せるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/revise-recovery/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

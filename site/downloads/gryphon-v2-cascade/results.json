@@ -1,0 +1,119 @@
+{
+  "note": "合成分布の被覆を調べる線形 MAE toy。pair labels も教師から構成し、独立なユーザー品質を測らない。Production NOT TESTED。",
+  "experiments": [
+    {
+      "name": "候補源の被覆と教師への一致",
+      "metrics": {
+        "impressions only": {
+          "weights": [
+            0.8,
+            0.0
+          ],
+          "rollout_teacher_mae": 0.42,
+          "impression_pair_accuracy_proxy": 1.0,
+          "teacher_mae": 0.3,
+          "pair_accuracy_proxy": 0.725
+        },
+        "rollouts only": {
+          "weights": [
+            0.0,
+            -0.6
+          ],
+          "rollout_teacher_mae": 0.0,
+          "impression_pair_accuracy_proxy": 0.0,
+          "teacher_mae": 0.48,
+          "pair_accuracy_proxy": 0.575
+        },
+        "mix": {
+          "weights": [
+            0.8,
+            -0.6
+          ],
+          "rollout_teacher_mae": 0.0,
+          "impression_pair_accuracy_proxy": 1.0,
+          "teacher_mae": 0.0,
+          "pair_accuracy_proxy": 1.0
+        }
+      }
+    }
+  ],
+  "controls": {
+    "steps": 2400,
+    "initial_weights": [
+      0,
+      0
+    ],
+    "loss": "sum of per-source mean absolute errors",
+    "test_points": [
+      [
+        -0.9,
+        -0.8
+      ],
+      [
+        -0.9,
+        -0.2
+      ],
+      [
+        -0.9,
+        0.2
+      ],
+      [
+        -0.9,
+        0.8
+      ],
+      [
+        -0.3,
+        -0.8
+      ],
+      [
+        -0.3,
+        -0.2
+      ],
+      [
+        -0.3,
+        0.2
+      ],
+      [
+        -0.3,
+        0.8
+      ],
+      [
+        0.3,
+        -0.8
+      ],
+      [
+        0.3,
+        -0.2
+      ],
+      [
+        0.3,
+        0.2
+      ],
+      [
+        0.3,
+        0.8
+      ],
+      [
+        0.9,
+        -0.8
+      ],
+      [
+        0.9,
+        -0.2
+      ],
+      [
+        0.9,
+        0.2
+      ],
+      [
+        0.9,
+        0.8
+      ]
+    ],
+    "teacher_weights": [
+      0.8,
+      -0.6
+    ],
+    "learned_generator": false
+  }
+}

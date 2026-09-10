@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Gryphon-v2 は候補生成と最終順位付けを一つのモデルにまとめる。Yandex Music の A/B では active users +1.41%、総聴取時間 +1.62%を報告。改善はシステム全体の比較で、蒸留だけの因果効果ではない。">
+  <title>重い教師を配信せず、候補生成から最終順位まで担えるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-08-06</span></div>
+    <h1>重い教師を配信せず、候補生成から最終順位まで担えるか</h1>
+    <p class="lede">Gryphon-v2 は候補生成と最終順位付けを一つのモデルにまとめる。Yandex Music の A/B では active users +1.41%、総聴取時間 +1.62%を報告。改善はシステム全体の比較で、蒸留だけの因果効果ではない。</p>
+    <details class="bibliography"><summary>原論文：Gryphon-v2: One Model in Place of a Cascade — Generate-and-Rank Recommender with Rollout Distillation</summary><p>Anna Lipkina, Daria Tikhonovich, Viktor Yanush, Mariia Ulianova, Oleg Sorokin, Vladislav Dodonov, Ilya Murzin, Denis Burshtein, Nikolay Savushkin</p><p>2608.06213 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2608.06213">原典を読む ↗</a><a href="https://arxiv.org/pdf/2608.06213">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-10 · 提供PDFと arXiv HTML を照合。2608.06213。独立再現ではない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>Gryphon-v2 は候補生成と最終順位付けを一つのモデルにまとめる。Yandex Music の A/B では active users +1.41%、総聴取時間 +1.62%を報告。改善はシステム全体の比較で、蒸留だけの因果効果ではない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><h3>候補に入る曲と、表示したい曲は一致しない</h3>
+<p>SID の生成確率は次曲予測のための信号であり、like・skip など複数の目的を調整した最終順位とは異なる。先行 Gryphon は曲単位のスコアを持っても、本番 ranker を必要としていた。</p>
+<p>v2 は重い Teacher Ranker の好みを、軽い Ranking Module に移す。教師の方が優れた本番 A/B を得たとの記載はあるが、その対照実験の結果は本論文に掲載されていない。教師の優位を独立に監査できる証拠と、蒸留後のシステムの評価は分けて扱う。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>最終 ranker まで配信経路から外す</h3><a href="../figures/gryphon-v2-cascade/figures/serving.svg" aria-label="最終 ranker まで配信経路から外すを拡大"><img src="../figures/gryphon-v2-cascade/figures/serving.svg" alt="最終 ranker まで配信経路から外す。原典 Figure 1・Table 4 を基に再構成。教師は学習時のみ。候補数は著者の配信設定。" loading="lazy"></a><figcaption>原典 Figure 1・Table 4 を基に再構成。教師は学習時のみ。候補数は著者の配信設定。 <a href="../figures/gryphon-v2-cascade/figures/serving.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>共有 encoder、SID decoder、Ranking Module を共同学習する。現在の decoder が生成する候補と、過去に表示された曲の両方を Teacher Ranker が採点し、そのスコアを蒸留する。教師は学習時だけ使い、配信では15超の候補生成器・prerank・最終 ranker を一つのモデルに置き換える。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>候補分布が鍵になる。<a href="gryphon-ilsm.html">先行 Gryphon</a> の次曲予測から、最終順位を教える教師へ変えた点が大きい。TeacherRecall の上昇はこの移植の成功を示すが、教師の偏りまで継承する可能性がある。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>履歴を一度読み、生成と採点が同じ状態列を使う</h3>
+<p>Eᵤ=Encodehist(Hᵤ) は履歴を読んだ状態列。双方向 encoder 7層、decoder 2層、Ranking Module 1層、隠れ幅1024、全体0.5Bパラメーターを使う。学生の履歴は最大2048イベント、教師は最大8000イベント。教師の重い履歴計算は配信経路に入らない。</p>
+<p>decoder はカタログ trie に制約した beam search で有効な SID を生成する。SID は3 codebook、各32000要素。配信時は1024 SID を曲へ展開し、最大1200曲に抑える。上限を超える場合は低尤度 SID とその衝突集合をまとめて外す。したがって最終採点の前にも候補選別の影響が残る。</p>
+<pre><code class="language-text">pθ(σ|u) = ∏ᵦ pθ(sᵦ | s&lt;ᵦ, Eᵤ)
+Iᵤ = ∪σ∈retained beam { i : Φ(i)=σ }
+eᵢ = Encodeitem(item ID, SID prefix n-grams)
+ranking heads = RankingModule(Eᵤ, eᵢ)
+</code></pre>
+<p>曲表現は曲 ID と SID 接頭辞の n-gram を multi-hash embedding で表す。候補を query にして共有履歴を読み、タスク別スコアを出す。最終順位は教師と同じ固定の組み合わせを使うが、組み合わせの具体的な重みは確認した本文にない。SID の尤度は候補の採否に使い、最終順位は曲単位で決める。</p>
+<h3>Rollout Distillation は二つの平均誤差を足す</h3>
+<p>Gᵤ は現在の decoder を各 training step で走らせた候補、Mᵤ は同じ request の表示ログ。両方を同じ教師が採点する。r̂ᵗ は学生、rT,ᵗ は教師、T は順位付けタスクの集合である。</p>
+<pre><code class="language-text">Lroll = (1/|T|) Σₜ (1/|Gᵤ|) Σᵢ∈Gᵤ |r̂ᵗᵤᵢ − rT,ᵗᵤᵢ|
+Limpr = (1/|T|) Σₜ (1/|Mᵤ|) Σᵢ∈Mᵤ |r̂ᵗᵤᵢ − rT,ᵗᵤᵢ|
+L = LNTP + Lroll + Limpr
+</code></pre>
+<p>LNTP は正の表示曲の SID を学ぶ next-token prediction 損失。順位の教師信号は Teacher Ranker のスコアだけであり、表示ログのラベルを Ranking Module に直接与える方式ではない。異なる候補の90%超が rollout 由来でも、損失は候補源ごとに正規化して係数1で足す。損失は90対10ではない。</p>
+<p>NTP は decoder と encoder を、蒸留は Ranking Module と encoder を更新する。beam search には勾配を流さない。policy gradient も使わない。<a href="https://arxiv.org/html/2608.06213">一次資料：§3、Appendix A</a>。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>候補数の比率と損失の重みは違う</h3><a href="../figures/gryphon-v2-cascade/figures/distillation.svg" aria-label="候補数の比率と損失の重みは違うを拡大"><img src="../figures/gryphon-v2-cascade/figures/distillation.svg" alt="候補数の比率と損失の重みは違う。原典 §3.6–3.7 を基に再構成。候補源ごとの平均 MAE を係数1で加える。" loading="lazy"></a><figcaption>原典 §3.6–3.7 を基に再構成。候補源ごとの平均 MAE を係数1で加える。 <a href="../figures/gryphon-v2-cascade/figures/distillation.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>表示ログだけで学ぶと、旧システムが見せた候補に教師信号が偏る。rollout は学生自身が配信で出す候補の採点を練習させる。一方、表示曲を残せば現在の生成器が拾わない曲も教師から学べる。これは分布の被覆についての解釈であり、混合すれば常に両指標が改善するという一般則ではない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>候補源を変えると、違う評価軸が動く</h3>
+<p>下表は原典 Table 3 の点推定。R は Recall@1000、T-R は TeacherRecall@10。WPA は like &gt; play &gt; skip &gt; dislike のラベル順序を使い、ラベル重みの差で加重した pair accuracy である。</p>
+<table>
+<thead>
+<tr>
+<th>蒸留候補</th>
+<th style="text-align: right;">R</th>
+<th style="text-align: right;">T-R</th>
+<th style="text-align: right;">WPA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>rollout + impressions</td>
+<td style="text-align: right;">0.8615</td>
+<td style="text-align: right;">0.5654</td>
+<td style="text-align: right;">0.5892</td>
+</tr>
+<tr>
+<td>rollout only</td>
+<td style="text-align: right;">0.8610</td>
+<td style="text-align: right;">0.5618</td>
+<td style="text-align: right;">0.5730</td>
+</tr>
+<tr>
+<td>impressions only</td>
+<td style="text-align: right;">0.8663</td>
+<td style="text-align: right;">0.2983</td>
+<td style="text-align: right;">0.5872</td>
+</tr>
+</tbody>
+</table>
+<p>表示ログだけでは教師の top-10 への一致が低く、rollout だけでは表示ログ上の WPA が下がる。表の差は正式な有意差を意味しない。配信設定は MAE・学習 beam 32で固定され、後から比較した MSE が一部指標で良かったことはオンライン検証ではない。</p>
+<h3>教師一致とユーザー品質を別々に読む</h3>
+<p>TeacherRecall@k = |Topk(student) ∩ Topk(teacher)| / k は、同じ生成候補内での一致率。教師への忠実度を測る。独立な推薦品質は測らない。WPA も旧 cascade の露出方針で得たログに限定される。原典 Table 1 の学生 WPA 0.5892 と教師0.6199は学習期間も2週間対1年で、対等な条件の比較ではない。</p>
+<p>オンラインでは対象ユーザーの8%ずつを control と treatment に割り当てる。active users は1日の聴取7分以上で定義され、+1.41%。TLT は+1.62%、いずれも p&lt;0.001 と報告する。レイテンシーは同程度で、ミリ秒単位の内訳は示されない。蒸留・構造変更・オンライン更新を含む全体の効果である。<a href="https://arxiv.org/html/2608.06213">一次資料：Table 1–4、§5–6</a>。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>本番の相対差と、その解釈の境界</h3><a href="../figures/gryphon-v2-cascade/figures/online.svg" aria-label="本番の相対差と、その解釈の境界を拡大"><img src="../figures/gryphon-v2-cascade/figures/online.svg" alt="本番の相対差と、その解釈の境界。原典 Table 2・§6。いずれも著者報告で p&lt;0.001。蒸留単独の効果ではない。" loading="lazy"></a><figcaption>原典 Table 2・§6。いずれも著者報告で p&lt;0.001。蒸留単独の効果ではない。 <a href="../figures/gryphon-v2-cascade/figures/online.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/gryphon-v2-cascade/run.py</code></p>
+<p>2特徴の線形学生を、固定の線形教師 y=0.8x₁−0.6x₂ に MAE で近づける。表示候補では x₂=0、rollout 候補では x₁=0 と意図して分ける。impression-only、rollout-only、両方の3条件を同じ初期値・2400更新で比較する。各候補源で平均してから足す。</p>
+<p>学習と異なる座標で教師誤差と pair accuracy proxy を測る。proxy の正解順も教師から作るため、論文のユーザーラベルによる WPA と同一ではない。衝突と再採点の例は <a href="gryphon-ilsm.html#executable_understanding">ILSM Lab</a> で実行できる。</p></div><div class="downloads"><a href="../downloads/gryphon-v2-cascade/run.py" download>実行コード</a><a href="../downloads/gryphon-v2-cascade/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/gryphon-v2-cascade">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>合成分布の被覆を調べる線形 MAE toy。pair labels も教師から構成し、独立なユーザー品質を測らない。Production NOT TESTED。</em></p>
+<h3>候補源の被覆と教師への一致</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>weights</th><th>rollout_teacher_mae</th><th>impression_pair_accuracy_proxy</th><th>teacher_mae</th><th>pair_accuracy_proxy</th></tr></thead><tbody><tr><th scope='row'>impressions only</th><td>[0.8, 0.0]</td><td>0.42</td><td>1.0</td><td>0.3</td><td>0.725</td></tr><tr><th scope='row'>rollouts only</th><td>[0.0, -0.6]</td><td>0.0</td><td>0.0</td><td>0.48</td><td>0.575</td></tr><tr><th scope='row'>mix</th><td>[0.8, -0.6]</td><td>0.0</td><td>1.0</td><td>0.0</td><td>1.0</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成分布の被覆を調べる線形 MAE toy。pair labels も教師から構成し、独立なユーザー品質を測らない。Production NOT TESTED。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;候補源の被覆と教師への一致&quot;,
+      &quot;metrics&quot;: {
+        &quot;impressions only&quot;: {
+          &quot;weights&quot;: [
+            0.8,
+            0.0
+          ],
+          &quot;rollout_teacher_mae&quot;: 0.42,
+          &quot;impression_pair_accuracy_proxy&quot;: 1.0,
+          &quot;teacher_mae&quot;: 0.3,
+          &quot;pair_accuracy_proxy&quot;: 0.725
+        },
+        &quot;rollouts only&quot;: {
+          &quot;weights&quot;: [
+            0.0,
+            -0.6
+          ],
+          &quot;rollout_teacher_mae&quot;: 0.0,
+          &quot;impression_pair_accuracy_proxy&quot;: 0.0,
+          &quot;teacher_mae&quot;: 0.48,
+          &quot;pair_accuracy_proxy&quot;: 0.575
+        },
+        &quot;mix&quot;: {
+          &quot;weights&quot;: [
+            0.8,
+            -0.6
+          ],
+          &quot;rollout_teacher_mae&quot;: 0.0,
+          &quot;impression_pair_accuracy_proxy&quot;: 1.0,
+          &quot;teacher_mae&quot;: 0.0,
+          &quot;pair_accuracy_proxy&quot;: 1.0
+        }
+      }
+    }
+  ],
+  &quot;controls&quot;: {
+    &quot;steps&quot;: 2400,
+    &quot;initial_weights&quot;: [
+      0,
+      0
+    ],
+    &quot;loss&quot;: &quot;sum of per-source mean absolute errors&quot;,
+    &quot;test_points&quot;: [
+      [
+        -0.9,
+        -0.8
+      ],
+      [
+        -0.9,
+        -0.2
+      ],
+      [
+        -0.9,
+        0.2
+      ],
+      [
+        -0.9,
+        0.8
+      ],
+      [
+        -0.3,
+        -0.8
+      ],
+      [
+        -0.3,
+        -0.2
+      ],
+      [
+        -0.3,
+        0.2
+      ],
+      [
+        -0.3,
+        0.8
+      ],
+      [
+        0.3,
+        -0.8
+      ],
+      [
+        0.3,
+        -0.2
+      ],
+      [
+        0.3,
+        0.2
+      ],
+      [
+        0.3,
+        0.8
+      ],
+      [
+        0.9,
+        -0.8
+      ],
+      [
+        0.9,
+        -0.2
+      ],
+      [
+        0.9,
+        0.2
+      ],
+      [
+        0.9,
+        0.8
+      ]
+    ],
+    &quot;teacher_weights&quot;: [
+      0.8,
+      -0.6
+    ],
+    &quot;learned_generator&quot;: false
+  }
+}</code></pre></details><p>片方の候補源だけでは、観測しない特徴の重みが初期値0のまま残る。混合すると両方向の教師信号を学べる。この例では、片方の候補源からは一方の特徴がまったく観測できないように入力を作っているので、混合による改善をそのまま本番の候補分布へ当てはめたり、原典 Table 3 の差の大きさを予測したりはできない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。候補源別に正規化した MAE と、入力分布の被覆が教師再現へ与える影響を CPU toy で確認した。生成器の学習や rollout の更新は含まない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability は NOT TESTED。原典の集約 A/B から個別部品の効果は分離できない。長期の満足度、アーティスト多様性、tail coverage、露出集中も未評価と記載される。教師単独の A/B の詳細、最終スコアの重み、絶対レイテンシー、本番ログは独立検証できない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>fit()</code> は MAE の subgradient を標準ライブラリで計算する。<code>evaluate()</code> は未使用座標で誤差と順序を計算する。原典 §3.6 の候補源別損失だけを移し、Transformer・複数タスク・実 decoder・オンライン更新を省略した。教師が誤る場合の実ユーザー品質は扱わない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>この Lab</th>
+<th>省略・公式実装</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://arxiv.org/html/2608.06213">原典 HTML</a>・提供 PDF</td>
+<td>method の式と図は原典から描き直し</td>
+<td>原典の数値と toy の数値を分離</td>
+</tr>
+<tr>
+<td>手法の最小機構</td>
+<td><code>run.py</code> と <code>results.json</code></td>
+<td>ニューラルモデル・本番データを省略</td>
+</tr>
+<tr>
+<td>公式コード</td>
+<td>原典で実行可能な公開URLを確認できず</td>
+<td>公式実装との一致は未検証</td>
+</tr>
+</tbody>
+</table></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>重い教師を配信せず、候補生成から最終順位まで担えるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/gryphon-v2-cascade/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

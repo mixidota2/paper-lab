@@ -1,0 +1,122 @@
+id: gryphon-v2-cascade
+arxiv_id: '2608.06213'
+submitted: '2026-08-06'
+title: 'Gryphon-v2: One Model in Place of a Cascade — Generate-and-Rank Recommender with Rollout Distillation'
+authors:
+- Anna Lipkina
+- Daria Tikhonovich
+- Viktor Yanush
+- Mariia Ulianova
+- Oleg Sorokin
+- Vladislav Dodonov
+- Ilya Murzin
+- Denis Burshtein
+- Nikolay Savushkin
+year: 2026
+topics:
+- recommender-systems
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2608.06213
+  arxiv: https://arxiv.org/abs/2608.06213
+  pdf: https://arxiv.org/pdf/2608.06213
+  official_code: null
+verdict: Must Read
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- generative-rec-vs-retrieval
+- when-complex-ranking-is-worth-it
+status: published
+question: 重い教師を配信せず、候補生成から最終順位まで担えるか
+summary: Gryphon-v2 は候補生成と最終順位付けを一つのモデルにまとめる。Yandex Music の A/B では active users +1.41%、総聴取時間 +1.62%を報告。改善はシステム全体の比較で、蒸留だけの因果効果ではない。
+source_review:
+  checked: '2026-09-10'
+  scope: 提供PDFと arXiv HTML を照合。2608.06213。独立再現ではない。
+  url: https://arxiv.org/html/2608.06213
+  pdf_version: v1
+  pdf_sha256: c580e7ce8e7da1a1cb50c59f42c82061bec6c39066726a64a06bea0eaba4d425
+core_idea:
+  author_claim: 共有 encoder、SID decoder、Ranking Module を共同学習する。現在の decoder が生成する候補と、過去に表示された曲の両方を Teacher Ranker
+    が採点し、そのスコアを蒸留する。教師は学習時だけ使い、配信では15超の候補生成器・prerank・最終 ranker を一つのモデルに置き換える。
+  research_bot_interpretation: 候補分布が鍵になる。[先行 Gryphon](gryphon-ilsm.html) の次曲予測から、最終順位を教える教師へ変えた点が大きい。TeacherRecall
+    の上昇はこの移植の成功を示すが、教師の偏りまで継承する可能性がある。
+sections:
+  overview: Gryphon-v2 は候補生成と最終順位付けを一つのモデルにまとめる。Yandex Music の A/B では active users +1.41%、総聴取時間 +1.62%を報告。改善はシステム全体の比較で、蒸留だけの因果効果ではない。
+  problem: '### 候補に入る曲と、表示したい曲は一致しない
+
+    SID の生成確率は次曲予測のための信号であり、like・skip など複数の目的を調整した最終順位とは異なる。先行 Gryphon は曲単位のスコアを持っても、本番 ranker を必要としていた。
+
+
+    v2 は重い Teacher Ranker の好みを、軽い Ranking Module に移す。教師の方が優れた本番 A/B を得たとの記載はあるが、その対照実験の結果は本論文に掲載されていない。教師の優位を独立に監査できる証拠と、蒸留後のシステムの評価は分けて扱う。'
+  method: method.md
+  why_it_might_work: 表示ログだけで学ぶと、旧システムが見せた候補に教師信号が偏る。rollout は学生自身が配信で出す候補の採点を練習させる。一方、表示曲を残せば現在の生成器が拾わない曲も教師から学べる。これは分布の被覆についての解釈であり、混合すれば常に両指標が改善するという一般則ではない。
+  evidence: '### 候補源を変えると、違う評価軸が動く
+
+    下表は原典 Table 3 の点推定。R は Recall@1000、T-R は TeacherRecall@10。WPA は like > play > skip > dislike のラベル順序を使い、ラベル重みの差で加重した
+    pair accuracy である。
+
+
+    | 蒸留候補 | R | T-R | WPA |
+
+    | --- | ---: | ---: | ---: |
+
+    | rollout + impressions | 0.8615 | 0.5654 | 0.5892 |
+
+    | rollout only | 0.8610 | 0.5618 | 0.5730 |
+
+    | impressions only | 0.8663 | 0.2983 | 0.5872 |
+
+
+    表示ログだけでは教師の top-10 への一致が低く、rollout だけでは表示ログ上の WPA が下がる。表の差は正式な有意差を意味しない。配信設定は MAE・学習 beam 32で固定され、後から比較した MSE
+    が一部指標で良かったことはオンライン検証ではない。
+
+
+    ### 教師一致とユーザー品質を別々に読む
+
+    TeacherRecall@k = |Topk(student) ∩ Topk(teacher)| / k は、同じ生成候補内での一致率。教師への忠実度を測る。独立な推薦品質は測らない。WPA も旧 cascade
+    の露出方針で得たログに限定される。原典 Table 1 の学生 WPA 0.5892 と教師0.6199は学習期間も2週間対1年で、対等な条件の比較ではない。
+
+
+    オンラインでは対象ユーザーの8%ずつを control と treatment に割り当てる。active users は1日の聴取7分以上で定義され、+1.41%。TLT は+1.62%、いずれも p<0.001
+    と報告する。レイテンシーは同程度で、ミリ秒単位の内訳は示されない。蒸留・構造変更・オンライン更新を含む全体の効果である。[一次資料：Table 1–4、§5–6](https://arxiv.org/html/2608.06213)。'
+  executable_understanding: '`uv run papers/gryphon-v2-cascade/run.py`
+
+
+    2特徴の線形学生を、固定の線形教師 y=0.8x₁−0.6x₂ に MAE で近づける。表示候補では x₂=0、rollout 候補では x₁=0 と意図して分ける。impression-only、rollout-only、両方の3条件を同じ初期値・2400更新で比較する。各候補源で平均してから足す。
+
+
+    学習と異なる座標で教師誤差と pair accuracy proxy を測る。proxy の正解順も教師から作るため、論文のユーザーラベルによる WPA と同一ではない。衝突と再採点の例は [ILSM Lab](gryphon-ilsm.html#executable_understanding)
+    で実行できる。'
+  results: 片方の候補源だけでは、観測しない特徴の重みが初期値0のまま残る。混合すると両方向の教師信号を学べる。この例では、片方の候補源からは一方の特徴がまったく観測できないように入力を作っているので、混合による改善をそのまま本番の候補分布へ当てはめたり、原典
+    Table 3 の差の大きさを予測したりはできない。
+  what_we_verified: Mechanism PARTIAL。候補源別に正規化した MAE と、入力分布の被覆が教師再現へ与える影響を CPU toy で確認した。生成器の学習や rollout の更新は含まない。
+  what_we_did_not_verify: Performance / Scaling / Production applicability は NOT TESTED。原典の集約 A/B から個別部品の効果は分離できない。長期の満足度、アーティスト多様性、tail
+    coverage、露出集中も未評価と記載される。教師単独の A/B の詳細、最終スコアの重み、絶対レイテンシー、本番ログは独立検証できない。
+  implementation: '`fit()` は MAE の subgradient を標準ライブラリで計算する。`evaluate()` は未使用座標で誤差と順序を計算する。原典 §3.6 の候補源別損失だけを移し、Transformer・複数タスク・実
+    decoder・オンライン更新を省略した。教師が誤る場合の実ユーザー品質は扱わない。'
+  mapping: '| 原論文 | この Lab | 省略・公式実装 |
+
+    | --- | --- | --- |
+
+    | [原典 HTML](https://arxiv.org/html/2608.06213)・提供 PDF | method の式と図は原典から描き直し | 原典の数値と toy の数値を分離 |
+
+    | 手法の最小機構 | `run.py` と `results.json` | ニューラルモデル・本番データを省略 |
+
+    | 公式コード | 原典で実行可能な公開URLを確認できず | 公式実装との一致は未検証 |'
+figures:
+- path: figures/serving.svg
+  title: 最終 ranker まで配信経路から外す
+  caption: 原典 Figure 1・Table 4 を基に再構成。教師は学習時のみ。候補数は著者の配信設定。
+  after: problem
+- path: figures/distillation.svg
+  title: 候補数の比率と損失の重みは違う
+  caption: 原典 §3.6–3.7 を基に再構成。候補源ごとの平均 MAE を係数1で加える。
+  after: method
+- path: figures/online.svg
+  title: 本番の相対差と、その解釈の境界
+  caption: 原典 Table 2・§6。いずれも著者報告で p<0.001。蒸留単独の効果ではない。
+  after: evidence

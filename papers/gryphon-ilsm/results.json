@@ -1,0 +1,202 @@
+{
+  "note": "合成例。手で設定した item score による再順位付け。ILSM 学習・論文性能・本番適用は未検証。",
+  "experiments": [
+    {
+      "name": "同じ候補集合で比較（全3 SID）",
+      "metrics": {
+        "Recall@2": {
+          "beam": 0.5,
+          "item score": 1.0
+        }
+      }
+    }
+  ],
+  "cases": [
+    {
+      "beam_width": 1,
+      "reverse_ties": false,
+      "pool": [
+        "A",
+        "B"
+      ],
+      "beam_order": [
+        "A",
+        "B"
+      ],
+      "item_order": [
+        "B",
+        "A"
+      ],
+      "beam_recall@2": 0.5,
+      "item_recall@2": 0.5,
+      "reachable_recall_ceiling": 0.5,
+      "item_scores": {
+        "A": 0.1,
+        "B": 0.9
+      },
+      "sid_likelihoods": {
+        "11": 0.48
+      }
+    },
+    {
+      "beam_width": 1,
+      "reverse_ties": true,
+      "pool": [
+        "A",
+        "B"
+      ],
+      "beam_order": [
+        "B",
+        "A"
+      ],
+      "item_order": [
+        "B",
+        "A"
+      ],
+      "beam_recall@2": 0.5,
+      "item_recall@2": 0.5,
+      "reachable_recall_ceiling": 0.5,
+      "item_scores": {
+        "A": 0.1,
+        "B": 0.9
+      },
+      "sid_likelihoods": {
+        "11": 0.48
+      }
+    },
+    {
+      "beam_width": 2,
+      "reverse_ties": false,
+      "pool": [
+        "A",
+        "B",
+        "C"
+      ],
+      "beam_order": [
+        "A",
+        "B",
+        "C"
+      ],
+      "item_order": [
+        "B",
+        "C",
+        "A"
+      ],
+      "beam_recall@2": 0.5,
+      "item_recall@2": 0.5,
+      "reachable_recall_ceiling": 0.5,
+      "item_scores": {
+        "A": 0.1,
+        "B": 0.9,
+        "C": 0.2
+      },
+      "sid_likelihoods": {
+        "11": 0.48,
+        "21": 0.36000000000000004
+      }
+    },
+    {
+      "beam_width": 2,
+      "reverse_ties": true,
+      "pool": [
+        "A",
+        "B",
+        "C"
+      ],
+      "beam_order": [
+        "B",
+        "A",
+        "C"
+      ],
+      "item_order": [
+        "B",
+        "C",
+        "A"
+      ],
+      "beam_recall@2": 0.5,
+      "item_recall@2": 0.5,
+      "reachable_recall_ceiling": 0.5,
+      "item_scores": {
+        "A": 0.1,
+        "B": 0.9,
+        "C": 0.2
+      },
+      "sid_likelihoods": {
+        "11": 0.48,
+        "21": 0.36000000000000004
+      }
+    },
+    {
+      "beam_width": 3,
+      "reverse_ties": false,
+      "pool": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "beam_order": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "item_order": [
+        "B",
+        "D",
+        "C",
+        "A"
+      ],
+      "beam_recall@2": 0.5,
+      "item_recall@2": 1.0,
+      "reachable_recall_ceiling": 1.0,
+      "item_scores": {
+        "A": 0.1,
+        "B": 0.9,
+        "C": 0.2,
+        "D": 0.8
+      },
+      "sid_likelihoods": {
+        "11": 0.48,
+        "21": 0.36000000000000004,
+        "12": 0.12
+      }
+    },
+    {
+      "beam_width": 3,
+      "reverse_ties": true,
+      "pool": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "beam_order": [
+        "B",
+        "A",
+        "C",
+        "D"
+      ],
+      "item_order": [
+        "B",
+        "D",
+        "C",
+        "A"
+      ],
+      "beam_recall@2": 0.5,
+      "item_recall@2": 1.0,
+      "reachable_recall_ceiling": 1.0,
+      "item_scores": {
+        "A": 0.1,
+        "B": 0.9,
+        "C": 0.2,
+        "D": 0.8
+      },
+      "sid_likelihoods": {
+        "11": 0.48,
+        "21": 0.36000000000000004,
+        "12": 0.12
+      }
+    }
+  ]
+}

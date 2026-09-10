@@ -1,0 +1,104 @@
+id: gryphon-ilsm
+arxiv_id: '2606.08604'
+submitted: '2026-06-09'
+title: 'Gryphon: A Unified Architecture for Semantic-ID Generation and Item-Level Scoring in Industrial Recommendations'
+authors:
+- Daria Tikhonovich
+- Oleg Sorokin
+- Vladislav Dodonov
+- Mariia Ulianova
+- Ilya Murzin
+year: 2026
+topics:
+- recommender-systems
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2606.08604
+  arxiv: https://arxiv.org/abs/2606.08604
+  pdf: https://arxiv.org/pdf/2606.08604
+  official_code: null
+verdict: Worth Reading
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- generative-rec-vs-retrieval
+- when-complex-ranking-is-worth-it
+status: published
+question: SID の確率が同じ曲を、どう順位付けするか
+summary: Gryphon は生成した SID を曲へ展開し、曲ごとのスコアで候補を選び直す。履歴表現は共有するが、実験では最終 ranker を残す。TLT の有意な改善を示した論文としては読めない。
+source_review:
+  checked: '2026-09-10'
+  scope: 提供PDFと arXiv HTML を照合。2606.08604。独立再現ではない。
+  url: https://arxiv.org/html/2606.08604
+  pdf_version: v2
+  pdf_sha256: 2233a9b455e5c9985a86f53548e6169337808b0ce7ea76a72ec9e884a37cc43b
+core_idea:
+  author_claim: 著者は、SID の尤度と曲の関連度のずれを、共有エンコーダーを使う Item-Level Scoring Module（ILSM）で補う。同じ候補集合を採点し直す比較と、候補生成・事前順位付けを置き換える本番
+    A/B を示す。
+  research_bot_interpretation: まず、候補の範囲を確認したい。生成された SID に対応する曲をすべて展開しても正解が含まれないなら、いくら曲ごとの採点を改善しても、そのユーザーの正解曲を上位には戻せない。最終
+    ranker を外せるかは、次の [Gryphon-v2](gryphon-v2-cascade.html) が教師による蒸留で扱う別の問いになる。
+sections:
+  overview: Gryphon は生成した SID を曲へ展開し、曲ごとのスコアで候補を選び直す。履歴表現は共有するが、実験では最終 ranker を残す。TLT の有意な改善を示した論文としては読めない。
+  problem: '### 同じ SID に入った曲には、尤度だけでは差が付かない
+
+    意味に基づく短いトークン列を曲に割り当てる仕組みが Semantic ID（SID）である。生成器はユーザー履歴から次の曲の SID を予測する。ところが評価するのは曲であり、トークン列ではない。
+
+
+    複数の曲が同じ SID に割り当てられる衝突では、曲の好みが違っても beam score は完全に同じになる。衝突がなくても、早い段階の接頭辞の予測が後続の探索を左右する。著者はこの2点を構造上のずれとして扱う。末尾に識別トークンを足す方法も比較するが、動的なカタログで解決用の語彙を増やし続ける運用を問題にしている。'
+  method: method.md
+  why_it_might_work: 曲 ID を含むクエリーがあれば、同じ SID の曲にも別のスコアを与えられる。履歴を再度エンコードしないため、全候補に重いモデルを別々にかけるより計算を共有しやすい。ただし関連度を学べる特徴と教師信号があることが前提で、別スコアを持つだけでは改善は保証されない。
+  evidence: '### Table 2 は同じ候補から採点だけを変える
+
+    著者は K=2048 の同じ beam 候補を比較する。下表の SID-level と item-level は評価単位が違うため、すべてを曲の Recall として並べ替えてはいけない。
+
+
+    | Table 2 の採点 | Recall@1000 | 読み方 |
+
+    | --- | ---: | --- |
+
+    | SID-level / beam | 0.8404 | SID を正解単位にした値 |
+
+    | item-level / beam | 0.8209 | 衝突を曲へ展開すると低下 |
+
+    | item-level / ILSM | 0.8552 | 同じ候補内で曲を再選択 |
+
+
+    最後の値が SID-level の値を超えるのは、元の上位1000 SID より下にある候補からも曲を昇格させるため。カタログ全体から見失った曲を救った意味ではない。複数 seed の正式な有意差検定はなく、予備実験の変動幅は約
+    ±0.003 と記載される。
+
+
+    ### 本番では最終 ranker へ渡す候補を減らした
+
+    7日間、対象ユーザーの4%を treatment に割り当てる。15超の候補生成器と prerank を Gryphon に置換し、同じ最終 ranker に渡す候補を3000から1000に減らす。主指標 TLT は
+    +0.25%で有意差なし。active-user ratio +0.43%、unfinished tracks −1.3% は p<0.001 の著者報告である。同等性は未証明である。[一次資料：Table 2–3、§4](https://arxiv.org/html/2606.08604)。'
+  executable_understanding: '`uv run papers/gryphon-ilsm/run.py`
+
+
+    4曲・3 SID の合成例を使う。A と B は同じ SID で尤度0.48、C は0.36、D は0.12。正解は B と D とする。手で与えた曲スコアは B、D、C、A の順になる。候補集合を固定した比較に加え、beam
+    幅を1・2・3と変えて到達できる正解の上限を計算する。衝突内の tie-break も逆順で再実行する。'
+  results: 全 SID を残す条件では Recall@2 が0.5から1.0になる。beam 幅を狭めて D を落とすと、再採点後も1.0には届かない。これは反例である。学習による改善率は測っていない。
+  what_we_verified: Mechanism PARTIAL。SID の同点、同じ候補集合内の再順位付け、候補から脱落した曲は回復できないという境界を確認した。
+  what_we_did_not_verify: ILSM の学習、曲 ID の汎化、コールドスタート、カタログ更新、実測レイテンシー、本番の TLT は NOT TESTED。独立なラベルで scorer を学習していないので、手で設定したスコアが得られるかも未検証である。
+  implementation: 標準ライブラリだけの `run.py` 単体で動く。`experiment()` が SID の確率積、衝突展開、同点処理、Recall を計算する。原典 §3.2 の cross-attention
+    と §3.3 の sampled softmax は説明だけにとどめ、toy では明示的なスコアに置き換えた。
+  mapping: '| 原論文 | この Lab | 省略・公式実装 |
+
+    | --- | --- | --- |
+
+    | [原典 HTML](https://arxiv.org/html/2606.08604)・提供 PDF | method の式と図は原典から描き直し | 原典の数値と toy の数値を分離 |
+
+    | 手法の最小機構 | `run.py` と `results.json` | ニューラルモデル・本番データを省略 |
+
+    | 公式コード | 原典で実行可能な公開URLを確認できず | 公式実装との一致は未検証 |'
+figures:
+- path: figures/collision.svg
+  title: 同点を解いても、候補外の曲は戻せない
+  caption: Lab の合成4曲。原典 §2 の衝突と尤度のずれを説明するための数値で、論文結果ではない。
+  after: problem
+- path: figures/inference.svg
+  title: ILSM は候補の選別、最終 ranker は残る
+  caption: 原典 §3–4 の配信図を再構成。v2 と異なり、同じ本番 ranker に1000候補を渡す。
+  after: method

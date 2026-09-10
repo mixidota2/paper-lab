@@ -1,0 +1,186 @@
+{
+  "note": "合成 DAG の決定的再実行。call はノード再計算数。並行実行・LLM token・本番効果は測っていない。",
+  "experiments": [
+    {
+      "name": "budget の局所変更",
+      "metrics": {
+        "restart": {
+          "calls": 6,
+          "oracle_equal": true
+        },
+        "suffix": {
+          "calls": 6,
+          "oracle_equal": true
+        },
+        "selective": {
+          "calls": 3,
+          "oracle_equal": true
+        }
+      }
+    }
+  ],
+  "cases": [
+    {
+      "delta": [
+        "budget"
+      ],
+      "provenance": "complete",
+      "policies": {
+        "restart": {
+          "recomputed": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ],
+          "calls": 6,
+          "oracle_equal": true
+        },
+        "suffix": {
+          "recomputed": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ],
+          "calls": 6,
+          "oracle_equal": true
+        },
+        "selective": {
+          "recomputed": [
+            "A",
+            "C",
+            "F"
+          ],
+          "calls": 3,
+          "oracle_equal": true
+        }
+      },
+      "lifecycle_plan": {
+        "A": "recompute",
+        "B": "reuse",
+        "C": "cancel",
+        "D": "continue",
+        "E": "reuse",
+        "F": "avoid"
+      }
+    },
+    {
+      "delta": [
+        "budget",
+        "city",
+        "style"
+      ],
+      "provenance": "complete",
+      "policies": {
+        "restart": {
+          "recomputed": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ],
+          "calls": 6,
+          "oracle_equal": true
+        },
+        "suffix": {
+          "recomputed": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ],
+          "calls": 6,
+          "oracle_equal": true
+        },
+        "selective": {
+          "recomputed": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ],
+          "calls": 6,
+          "oracle_equal": true
+        }
+      },
+      "lifecycle_plan": {
+        "A": "recompute",
+        "B": "recompute",
+        "C": "cancel",
+        "D": "cancel",
+        "E": "recompute",
+        "F": "avoid"
+      }
+    },
+    {
+      "delta": [
+        "budget"
+      ],
+      "provenance": "unknown",
+      "policies": {
+        "restart": {
+          "recomputed": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ],
+          "calls": 6,
+          "oracle_equal": true
+        },
+        "suffix": {
+          "recomputed": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ],
+          "calls": 6,
+          "oracle_equal": true
+        },
+        "selective": {
+          "recomputed": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ],
+          "calls": 6,
+          "oracle_equal": true
+        }
+      },
+      "lifecycle_plan": {
+        "A": "recompute",
+        "B": "recompute",
+        "C": "cancel",
+        "D": "cancel",
+        "E": "recompute",
+        "F": "avoid"
+      }
+    }
+  ],
+  "commit_checks": {
+    "late_read_rejected": true,
+    "valid_sibling_accepted": true,
+    "obsolete_parent_rejected": true,
+    "unknown_rejected": true,
+    "unsafe_effect_rejected": true
+  }
+}

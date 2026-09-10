@@ -1,0 +1,113 @@
+id: revise-recovery
+arxiv_id: '2609.00643'
+submitted: '2026-09-01'
+title: 'REVISE: Validity-Guided Recovery for Online Revisions in Agent Workflows'
+authors:
+- Ruoling Qi
+- Xuaner Wu
+- Penghang Liu
+- Jian Chen
+- Yirui Liu
+year: 2026
+topics:
+- agent-systems
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2609.00643
+  arxiv: https://arxiv.org/abs/2609.00643
+  pdf: https://arxiv.org/pdf/2609.00643
+  official_code: null
+verdict: Radar
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- agent-architecture-and-harness
+status: published
+question: 実行途中の指示変更で、どの作業なら残せるか
+summary: REVISE は変更した値と実際の依存関係を照合し、無効になった枝だけを再計算する。再利用には妥当性の証拠が必要で、依存情報が足りなければ suffix や全体再実行へ戻る。
+source_review:
+  checked: '2026-09-10'
+  scope: 提供PDFと arXiv HTML を照合。2609.00643。独立再現ではない。
+  url: https://arxiv.org/html/2609.00643
+  pdf_version: v1
+  pdf_sha256: d504946558c5725bbcdff7dc48fd42f2cdc9549d9fa6bf303ab574252d1a6813
+core_idea:
+  author_claim: 著者は進行中の agent workflow を対象に、変更の影響を data/control 依存へ伝播し、完了済み・実行中・未着手の作業を処理し分ける。評価した実行は最新版の oracle
+    と一致し、局所変更では restart や suffix より呼び出しを減らした。
+  research_bot_interpretation: 「変更に関係なさそう」という会話上の判断では再利用を許せない。ある枝が読んだフィールドをすべて記録できても、その枝を選んだ分岐条件や外部ツールへ渡した値を取りこぼしていれば、変更後もそのまま結果を公開してよいという証拠にはならない。省ける仕事が減っても、証拠が弱いときに広くやり直す性質が必要だ。
+sections:
+  overview: REVISE は変更した値と実際の依存関係を照合し、無効になった枝だけを再計算する。再利用には妥当性の証拠が必要で、依存情報が足りなければ suffix や全体再実行へ戻る。
+  problem: '### 変更より後の仕事を全部捨てると、独立な枝まで失う
+
+    たとえば旅行案で予算だけが変わったとき、ホテルの選択と総額はやり直す必要がある。一方、予算を読んでいない街の説明は残せるかもしれない。実行順で最初の衝突から後ろを捨てる suffix 方式は、その説明も巻き込む。
+
+
+    ただし、街の説明を出す経路自体が予算で切り替わっていれば依存がある。値の読み取りだけでなく、どの分岐を通ったかという control 依存も追う必要がある。これは推論精度を上げる手法ではなく、指示変更後の状態を正しくそろえる
+    runtime の研究である。'
+  method: method.md
+  why_it_might_work: 同じ依存情報を使う suffix と比べれば、selective は影響を受けない途中の枝を残せる。変更が局所的で、分岐が独立し、依存記録が細かいほど差が出る。直列の処理や全体に影響する変更では、正しく動いても節約できない。
+  evidence: '### oracle 一致は、最新版への回復を測る
+
+    Table 1 の15939実行は最新版／全体再実行の oracle と一致し、古い output・effect は0と報告する。内訳には15000の GPU serving 実行と300の敵対的な順序の実行が含まれる。これは
+    in-process の validity と effect safety の評価で、分散合意や crash recovery の保証ではない。
+
+
+    ### 呼び出し削減とレイテンシーは別に読む
+
+    Qwen3-14B と SGLang を用いた10ノードの LangGraph アプリでは次の結果になる。数値は Table 5 の著者報告であり、本 Lab の toy とは無関係。
+
+
+    | 回復方法 | model calls | completion tokens | E2E p50 |
+
+    | --- | ---: | ---: | ---: |
+
+    | full restart | 10.0 | 80.0 | 719 ms |
+
+    | earliest-conflict suffix | 7.8 | 62.4 | 711 ms |
+
+    | REVISE | 4.4 | 35.2 | 669 ms |
+
+
+    共有 cache を消していないため、著者は calls と生成 token を主指標、model-wall を副次指標にする。LLMCompiler の local 条件では calls が6.00→5.19→3.56。global/untracked
+    条件では全方式6.00に戻る（Table 7）。情報が欠けたら全体をやり直す。安全な再利用を証明できない場合の動作である。
+
+
+    SWE-chat の観察は実行中に修正できる時間窓を示すが、完全な依存記録がなく安全な再利用量までは示せない。手動監査30件も出現率を推定する標本ではない。負荷実験の goodput 改善は逼迫時に現れ、通常負荷へ一律に外挿できない。[一次資料：§2、§4、Appendix
+    A](https://arxiv.org/html/2609.00643)。'
+  executable_understanding: '`uv run papers/revise-recovery/run.py`
+
+
+    6ノードの DAG を A,B,C,D,E,F の順に並べる。A→C は予算、B→D は都市、E は文体を読む独立な枝で、F が結合する。予算を変更すると A,C,F が無効になる。全体再実行、最初の衝突以降の suffix、依存に沿う
+    selective で再計算集合と最新版の値を比較する。
+
+
+    全フィールドの変更と依存情報 unknown も走らせる。別の certificate 検査で late read、古い親、情報欠落、安全でない effect を拒否し、有効な sibling を通す。ライフサイクル操作は計画を出すだけで、実際の並行
+    cancel は行わない。'
+  results: 予算だけの変更では restart/suffix が6ノード、selective が3ノードを再計算し、出力はすべて最新版の全体再計算と一致する。全体変更または unknown では selective
+    も6ノードになる。呼び出し単価は同じと仮定し、時間や token の削減率へは換算しない。
+  what_we_verified: Mechanism PARTIAL。固定 DAG での影響伝播、非連続な枝の保持、unknown 時の全体再計算、5種類の commit 条件を確認した。確認はこの合成例に限る。
+  what_we_did_not_verify: LLM の非決定性、動的な分岐、proxy による依存取得、membership の更新、実 cancel、revision/commit の race、外部サービスの副作用、crash
+    recovery は NOT TESTED。toy の snapshot は純粋な値であり、実運用の証明書や lock を代替しない。原典の匿名 artifact package の公開先は確認できず、実験の独立再実行はしていない。
+  implementation: '`affected()` が data 依存と子孫をたどり、`execute()` がキャッシュを使って選択的に再計算する。`commit_valid()` は検査条件を純粋関数で表す。一般の
+    REVISE runtime の実装ではなく、原典 §3 の境界を説明するための標準ライブラリだけのモデルである。'
+  mapping: '| 原論文 | この Lab | 省略・公式実装 |
+
+    | --- | --- | --- |
+
+    | [原典 HTML](https://arxiv.org/html/2609.00643)・提供 PDF | method の式と図は原典から描き直し | 原典の数値と toy の数値を分離 |
+
+    | 手法の最小機構 | `run.py` と `results.json` | ニューラルモデル・本番データを省略 |
+
+    | 公式コード | 原典で実行可能な公開URLを確認できず | 公式実装との一致は未検証 |'
+figures:
+- path: figures/impact.svg
+  title: 実行順の後半より、依存の枝をたどる
+  caption: Lab の6ノード DAG。赤は budget 変更の影響範囲。青緑の枝は有効性を確認できるときだけ保持する。
+  after: method
+- path: figures/certificate.svg
+  title: 再利用の許可は commit まで暫定
+  caption: 原典 Eq. (1)–(2)・§3.3 を基に再構成。実行開始後の変更と最終 read set を照合する。
+  after: what_we_verified

@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Gryphon は生成した SID を曲へ展開し、曲ごとのスコアで候補を選び直す。履歴表現は共有するが、実験では最終 ranker を残す。TLT の有意な改善を示した論文としては読めない。">
+  <title>SID の確率が同じ曲を、どう順位付けするか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-06-09</span></div>
+    <h1>SID の確率が同じ曲を、どう順位付けするか</h1>
+    <p class="lede">Gryphon は生成した SID を曲へ展開し、曲ごとのスコアで候補を選び直す。履歴表現は共有するが、実験では最終 ranker を残す。TLT の有意な改善を示した論文としては読めない。</p>
+    <details class="bibliography"><summary>原論文：Gryphon: A Unified Architecture for Semantic-ID Generation and Item-Level Scoring in Industrial Recommendations</summary><p>Daria Tikhonovich, Oleg Sorokin, Vladislav Dodonov, Mariia Ulianova, Ilya Murzin</p><p>2606.08604 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2606.08604">原典を読む ↗</a><a href="https://arxiv.org/pdf/2606.08604">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-10 · 提供PDFと arXiv HTML を照合。2606.08604。独立再現ではない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>Gryphon は生成した SID を曲へ展開し、曲ごとのスコアで候補を選び直す。履歴表現は共有するが、実験では最終 ranker を残す。TLT の有意な改善を示した論文としては読めない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><h3>同じ SID に入った曲には、尤度だけでは差が付かない</h3>
+<p>意味に基づく短いトークン列を曲に割り当てる仕組みが Semantic ID（SID）である。生成器はユーザー履歴から次の曲の SID を予測する。ところが評価するのは曲であり、トークン列ではない。</p>
+<p>複数の曲が同じ SID に割り当てられる衝突では、曲の好みが違っても beam score は完全に同じになる。衝突がなくても、早い段階の接頭辞の予測が後続の探索を左右する。著者はこの2点を構造上のずれとして扱う。末尾に識別トークンを足す方法も比較するが、動的なカタログで解決用の語彙を増やし続ける運用を問題にしている。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>同点を解いても、候補外の曲は戻せない</h3><a href="../figures/gryphon-ilsm/figures/collision.svg" aria-label="同点を解いても、候補外の曲は戻せないを拡大"><img src="../figures/gryphon-ilsm/figures/collision.svg" alt="同点を解いても、候補外の曲は戻せない。Lab の合成4曲。原典 §2 の衝突と尤度のずれを説明するための数値で、論文結果ではない。" loading="lazy"></a><figcaption>Lab の合成4曲。原典 §2 の衝突と尤度のずれを説明するための数値で、論文結果ではない。 <a href="../figures/gryphon-ilsm/figures/collision.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は、SID の尤度と曲の関連度のずれを、共有エンコーダーを使う Item-Level Scoring Module（ILSM）で補う。同じ候補集合を採点し直す比較と、候補生成・事前順位付けを置き換える本番 A/B を示す。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>まず、候補の範囲を確認したい。生成された SID に対応する曲をすべて展開しても正解が含まれないなら、いくら曲ごとの採点を改善しても、そのユーザーの正解曲を上位には戻せない。最終 ranker を外せるかは、次の <a href="gryphon-v2-cascade.html">Gryphon-v2</a> が教師による蒸留で扱う別の問いになる。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>生成は候補を提案し、ILSM が曲を選ぶ</h3>
+<p>ユーザー履歴を双方向 Transformer で一度読み、状態列 Eᵤ を decoder と ILSM が共有する。SID σ=(s₁,…,sL) の確率と対数スコアは次の関係にある。</p>
+<pre><code class="language-text">pθ(σ|u) = ∏ᵦ pθ(sᵦ | u, s&lt;ᵦ)
+ℓθ(σ|u) = Σᵦ log pθ(sᵦ | u, s&lt;ᵦ)
+Cσ = {i : Φ(i)=σ}       Iᵤ = ∪σ∈beam Cσ
+</code></pre>
+<p>Cσ は衝突する曲の集合。Cσ 内は全曲が同点になる。beam 内の SID を曲へ展開した Iᵤ に対して、曲の表現 eᵢ をクエリーとして履歴を読む cross-attention と MLP を適用する。</p>
+<pre><code class="language-text">eᵢ = Titem(Φ(i), hᵢ)
+rφ(u,i) = fφ(Eᵤ, eᵢ)
+TopN(u) = TopNᵢ∈Iᵤ rφ(u,i)
+</code></pre>
+<p>一般形の hᵢ は曲 ID・属性・内容を含められるが、報告実験の ILSM は曲 ID だけを使う。追加特徴による優位を避ける比較である。Gryphon は encoder 7層、decoder 2層、ILSM 1層。Vanilla GR の decoder 3層のうち1層を ILSM に置き換え、パラメーター数と推論時間の差を1%未満と報告する。</p>
+<h3>次の曲を当てる損失を、二つの経路で学ぶ</h3>
+<p>生成側は正解 SID の負の対数尤度 Lgen を最小化する。ILSM は in-batch の負例集合 B⁻ を使い、サンプリング確率 Qᵢ を補正した sampled softmax で次の曲を学習する。</p>
+<pre><code class="language-text">zᵢ = rφ(u,i)/τ − log Qᵢ
+LNIP = −log [ exp(zᵢ₊) / Σⱼ∈{i₊}∪B⁻ exp(zⱼ) ]
+L = Lgen + λ LNIP                 （報告実験は λ=1）
+</code></pre>
+<p>τ は温度、Qᵢ は曲が負例として現れる頻度に対応する確率。共有 encoder は両方の損失を受ける。推薦後の多目的なユーザー価値を直接学んだ実験ではない。<a href="https://arxiv.org/html/2606.08604">一次資料：§2–3、§4.1.3</a>。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>ILSM は候補の選別、最終 ranker は残る</h3><a href="../figures/gryphon-ilsm/figures/inference.svg" aria-label="ILSM は候補の選別、最終 ranker は残るを拡大"><img src="../figures/gryphon-ilsm/figures/inference.svg" alt="ILSM は候補の選別、最終 ranker は残る。原典 §3–4 の配信図を再構成。v2 と異なり、同じ本番 ranker に1000候補を渡す。" loading="lazy"></a><figcaption>原典 §3–4 の配信図を再構成。v2 と異なり、同じ本番 ranker に1000候補を渡す。 <a href="../figures/gryphon-ilsm/figures/inference.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>曲 ID を含むクエリーがあれば、同じ SID の曲にも別のスコアを与えられる。履歴を再度エンコードしないため、全候補に重いモデルを別々にかけるより計算を共有しやすい。ただし関連度を学べる特徴と教師信号があることが前提で、別スコアを持つだけでは改善は保証されない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>Table 2 は同じ候補から採点だけを変える</h3>
+<p>著者は K=2048 の同じ beam 候補を比較する。下表の SID-level と item-level は評価単位が違うため、すべてを曲の Recall として並べ替えてはいけない。</p>
+<table>
+<thead>
+<tr>
+<th>Table 2 の採点</th>
+<th style="text-align: right;">Recall@1000</th>
+<th>読み方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SID-level / beam</td>
+<td style="text-align: right;">0.8404</td>
+<td>SID を正解単位にした値</td>
+</tr>
+<tr>
+<td>item-level / beam</td>
+<td style="text-align: right;">0.8209</td>
+<td>衝突を曲へ展開すると低下</td>
+</tr>
+<tr>
+<td>item-level / ILSM</td>
+<td style="text-align: right;">0.8552</td>
+<td>同じ候補内で曲を再選択</td>
+</tr>
+</tbody>
+</table>
+<p>最後の値が SID-level の値を超えるのは、元の上位1000 SID より下にある候補からも曲を昇格させるため。カタログ全体から見失った曲を救った意味ではない。複数 seed の正式な有意差検定はなく、予備実験の変動幅は約 ±0.003 と記載される。</p>
+<h3>本番では最終 ranker へ渡す候補を減らした</h3>
+<p>7日間、対象ユーザーの4%を treatment に割り当てる。15超の候補生成器と prerank を Gryphon に置換し、同じ最終 ranker に渡す候補を3000から1000に減らす。主指標 TLT は +0.25%で有意差なし。active-user ratio +0.43%、unfinished tracks −1.3% は p&lt;0.001 の著者報告である。同等性は未証明である。<a href="https://arxiv.org/html/2606.08604">一次資料：Table 2–3、§4</a>。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/gryphon-ilsm/run.py</code></p>
+<p>4曲・3 SID の合成例を使う。A と B は同じ SID で尤度0.48、C は0.36、D は0.12。正解は B と D とする。手で与えた曲スコアは B、D、C、A の順になる。候補集合を固定した比較に加え、beam 幅を1・2・3と変えて到達できる正解の上限を計算する。衝突内の tie-break も逆順で再実行する。</p></div><div class="downloads"><a href="../downloads/gryphon-ilsm/run.py" download>実行コード</a><a href="../downloads/gryphon-ilsm/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/gryphon-ilsm">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>合成例。手で設定した item score による再順位付け。ILSM 学習・論文性能・本番適用は未検証。</em></p>
+<h3>同じ候補集合で比較（全3 SID）</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>beam</th><th>item score</th></tr></thead><tbody><tr><th scope='row'>Recall@2</th><td>0.5</td><td>1.0</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成例。手で設定した item score による再順位付け。ILSM 学習・論文性能・本番適用は未検証。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;同じ候補集合で比較（全3 SID）&quot;,
+      &quot;metrics&quot;: {
+        &quot;Recall@2&quot;: {
+          &quot;beam&quot;: 0.5,
+          &quot;item score&quot;: 1.0
+        }
+      }
+    }
+  ],
+  &quot;cases&quot;: [
+    {
+      &quot;beam_width&quot;: 1,
+      &quot;reverse_ties&quot;: false,
+      &quot;pool&quot;: [
+        &quot;A&quot;,
+        &quot;B&quot;
+      ],
+      &quot;beam_order&quot;: [
+        &quot;A&quot;,
+        &quot;B&quot;
+      ],
+      &quot;item_order&quot;: [
+        &quot;B&quot;,
+        &quot;A&quot;
+      ],
+      &quot;beam_recall@2&quot;: 0.5,
+      &quot;item_recall@2&quot;: 0.5,
+      &quot;reachable_recall_ceiling&quot;: 0.5,
+      &quot;item_scores&quot;: {
+        &quot;A&quot;: 0.1,
+        &quot;B&quot;: 0.9
+      },
+      &quot;sid_likelihoods&quot;: {
+        &quot;11&quot;: 0.48
+      }
+    },
+    {
+      &quot;beam_width&quot;: 1,
+      &quot;reverse_ties&quot;: true,
+      &quot;pool&quot;: [
+        &quot;A&quot;,
+        &quot;B&quot;
+      ],
+      &quot;beam_order&quot;: [
+        &quot;B&quot;,
+        &quot;A&quot;
+      ],
+      &quot;item_order&quot;: [
+        &quot;B&quot;,
+        &quot;A&quot;
+      ],
+      &quot;beam_recall@2&quot;: 0.5,
+      &quot;item_recall@2&quot;: 0.5,
+      &quot;reachable_recall_ceiling&quot;: 0.5,
+      &quot;item_scores&quot;: {
+        &quot;A&quot;: 0.1,
+        &quot;B&quot;: 0.9
+      },
+      &quot;sid_likelihoods&quot;: {
+        &quot;11&quot;: 0.48
+      }
+    },
+    {
+      &quot;beam_width&quot;: 2,
+      &quot;reverse_ties&quot;: false,
+      &quot;pool&quot;: [
+        &quot;A&quot;,
+        &quot;B&quot;,
+        &quot;C&quot;
+      ],
+      &quot;beam_order&quot;: [
+        &quot;A&quot;,
+        &quot;B&quot;,
+        &quot;C&quot;
+      ],
+      &quot;item_order&quot;: [
+        &quot;B&quot;,
+        &quot;C&quot;,
+        &quot;A&quot;
+      ],
+      &quot;beam_recall@2&quot;: 0.5,
+      &quot;item_recall@2&quot;: 0.5,
+      &quot;reachable_recall_ceiling&quot;: 0.5,
+      &quot;item_scores&quot;: {
+        &quot;A&quot;: 0.1,
+        &quot;B&quot;: 0.9,
+        &quot;C&quot;: 0.2
+      },
+      &quot;sid_likelihoods&quot;: {
+        &quot;11&quot;: 0.48,
+        &quot;21&quot;: 0.36000000000000004
+      }
+    },
+    {
+      &quot;beam_width&quot;: 2,
+      &quot;reverse_ties&quot;: true,
+      &quot;pool&quot;: [
+        &quot;A&quot;,
+        &quot;B&quot;,
+        &quot;C&quot;
+      ],
+      &quot;beam_order&quot;: [
+        &quot;B&quot;,
+        &quot;A&quot;,
+        &quot;C&quot;
+      ],
+      &quot;item_order&quot;: [
+        &quot;B&quot;,
+        &quot;C&quot;,
+        &quot;A&quot;
+      ],
+      &quot;beam_recall@2&quot;: 0.5,
+      &quot;item_recall@2&quot;: 0.5,
+      &quot;reachable_recall_ceiling&quot;: 0.5,
+      &quot;item_scores&quot;: {
+        &quot;A&quot;: 0.1,
+        &quot;B&quot;: 0.9,
+        &quot;C&quot;: 0.2
+      },
+      &quot;sid_likelihoods&quot;: {
+        &quot;11&quot;: 0.48,
+        &quot;21&quot;: 0.36000000000000004
+      }
+    },
+    {
+      &quot;beam_width&quot;: 3,
+      &quot;reverse_ties&quot;: false,
+      &quot;pool&quot;: [
+        &quot;A&quot;,
+        &quot;B&quot;,
+        &quot;C&quot;,
+        &quot;D&quot;
+      ],
+      &quot;beam_order&quot;: [
+        &quot;A&quot;,
+        &quot;B&quot;,
+        &quot;C&quot;,
+        &quot;D&quot;
+      ],
+      &quot;item_order&quot;: [
+        &quot;B&quot;,
+        &quot;D&quot;,
+        &quot;C&quot;,
+        &quot;A&quot;
+      ],
+      &quot;beam_recall@2&quot;: 0.5,
+      &quot;item_recall@2&quot;: 1.0,
+      &quot;reachable_recall_ceiling&quot;: 1.0,
+      &quot;item_scores&quot;: {
+        &quot;A&quot;: 0.1,
+        &quot;B&quot;: 0.9,
+        &quot;C&quot;: 0.2,
+        &quot;D&quot;: 0.8
+      },
+      &quot;sid_likelihoods&quot;: {
+        &quot;11&quot;: 0.48,
+        &quot;21&quot;: 0.36000000000000004,
+        &quot;12&quot;: 0.12
+      }
+    },
+    {
+      &quot;beam_width&quot;: 3,
+      &quot;reverse_ties&quot;: true,
+      &quot;pool&quot;: [
+        &quot;A&quot;,
+        &quot;B&quot;,
+        &quot;C&quot;,
+        &quot;D&quot;
+      ],
+      &quot;beam_order&quot;: [
+        &quot;B&quot;,
+        &quot;A&quot;,
+        &quot;C&quot;,
+        &quot;D&quot;
+      ],
+      &quot;item_order&quot;: [
+        &quot;B&quot;,
+        &quot;D&quot;,
+        &quot;C&quot;,
+        &quot;A&quot;
+      ],
+      &quot;beam_recall@2&quot;: 0.5,
+      &quot;item_recall@2&quot;: 1.0,
+      &quot;reachable_recall_ceiling&quot;: 1.0,
+      &quot;item_scores&quot;: {
+        &quot;A&quot;: 0.1,
+        &quot;B&quot;: 0.9,
+        &quot;C&quot;: 0.2,
+        &quot;D&quot;: 0.8
+      },
+      &quot;sid_likelihoods&quot;: {
+        &quot;11&quot;: 0.48,
+        &quot;21&quot;: 0.36000000000000004,
+        &quot;12&quot;: 0.12
+      }
+    }
+  ]
+}</code></pre></details><p>全 SID を残す条件では Recall@2 が0.5から1.0になる。beam 幅を狭めて D を落とすと、再採点後も1.0には届かない。これは反例である。学習による改善率は測っていない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。SID の同点、同じ候補集合内の再順位付け、候補から脱落した曲は回復できないという境界を確認した。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>ILSM の学習、曲 ID の汎化、コールドスタート、カタログ更新、実測レイテンシー、本番の TLT は NOT TESTED。独立なラベルで scorer を学習していないので、手で設定したスコアが得られるかも未検証である。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけの <code>run.py</code> 単体で動く。<code>experiment()</code> が SID の確率積、衝突展開、同点処理、Recall を計算する。原典 §3.2 の cross-attention と §3.3 の sampled softmax は説明だけにとどめ、toy では明示的なスコアに置き換えた。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>この Lab</th>
+<th>省略・公式実装</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://arxiv.org/html/2606.08604">原典 HTML</a>・提供 PDF</td>
+<td>method の式と図は原典から描き直し</td>
+<td>原典の数値と toy の数値を分離</td>
+</tr>
+<tr>
+<td>手法の最小機構</td>
+<td><code>run.py</code> と <code>results.json</code></td>
+<td>ニューラルモデル・本番データを省略</td>
+</tr>
+<tr>
+<td>公式コード</td>
+<td>原典で実行可能な公開URLを確認できず</td>
+<td>公式実装との一致は未検証</td>
+</tr>
+</tbody>
+</table></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>SID の確率が同じ曲を、どう順位付けするか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/gryphon-ilsm/lab.yaml" download>このページの原データ</a></footer>
+</body></html>
