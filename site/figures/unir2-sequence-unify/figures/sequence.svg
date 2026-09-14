@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 490" role="img" aria-labelledby="title"><title id="title">一つの系列、二つの読み方</title><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#586c78"/></marker></defs><rect width="560" height="490" fill="#f7faf9"/><style>text{font-family:system-ui,sans-serif;fill:#183640;font-size:19px}.small{font-size:16px}.head{font-size:23px;font-weight:700}</style>
+<text x="24" y="35" class="head">一つの系列、二つの読み方</text>
+<rect x="28" y="62" width="504" height="88" rx="10" fill="#e2efea" stroke="#a6bdb5"/>
+<text x="42" y="89" class="">P：動画・ライブ履歴 ＋ プロフィール</text>
+<text x="42" y="116" class="">種類別projection ＋ type embedding</text>
+<path d="M280 150 L280 176" fill="none" stroke="#586c78" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="28" y="178" width="504" height="88" rx="10" fill="#e2efea" stroke="#a6bdb5"/>
+<text x="42" y="205" class="">T_gen：BOS → q1 → q2 → q3</text>
+<text x="42" y="232" class="">次SIDの予測　／　末尾状態はrankerへ</text>
+<path d="M280 266 L280 292" fill="none" stroke="#586c78" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="28" y="294" width="504" height="88" rx="10" fill="#e2efea" stroke="#a6bdb5"/>
+<text x="42" y="321" class="">T_rank：候補属性・content・交差統計</text>
+<text x="42" y="348" class="">item tokensをqueryにして特徴を融合</text>
+<text x="38" y="415" class="">h_lastSID ＋ h_rank ＋ 元のu/v特徴</text>
+<text x="38" y="445" class="">→ MMoE → CTR / LVTR / GTR</text><text x="24" y="474" class="small">research_bot · 一次資料を基に説明用に再構成</text></svg>

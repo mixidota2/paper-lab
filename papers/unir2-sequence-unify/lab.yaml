@@ -1,0 +1,115 @@
+id: unir2-sequence-unify
+arxiv_id: '2607.24439'
+submitted: '2026-07-27'
+title: Unifying Generative Recall and Multi-Objective Ranking in a Single Decoder-Only Sequence
+authors:
+- Ruochen Yang
+- Shuang Wen
+- Pengbo Xu
+- Yusheng Huang
+- Jiangxia Cao
+- Shuang Yang
+- Zhaojie Liu
+- Jiawei Sheng
+- Tingwen Liu
+year: 2026
+topics:
+- recommender-systems
+- generative-recommendation
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2607.24439
+  arxiv: https://arxiv.org/abs/2607.24439
+  pdf: https://arxiv.org/pdf/2607.24439
+  official_code: null
+verdict: Must Read
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- generative-rec-vs-retrieval
+status: published
+question: 生成の途中表現をランキングへ渡し、勾配の干渉を抑えられるか
+summary: UniR²はユーザー文脈、SID軌跡、item featuresを一つのdecoder系列へ置く。Kuaishouの2週間・5% A/BではOneLive recallと本番pre-rankを同時に置換した。全カスケードの撤去とは区別し、可視範囲・勾配・KV再利用の境界を読む。
+source_review:
+  checked: '2026-09-14'
+  scope: 提供PDFを通読し、arXiv書誌と照合。数値は著者報告であり、独立再現ではない。
+  url: https://arxiv.org/abs/2607.24439
+  pdf_version: v1
+  pdf_sha256: e7c26cba40e46839074045cb3636f5e179ab4a01be62a42803a9c1f19587ecf8
+core_idea:
+  author_claim: 著者は、SIDを生成した過程を層ごとの特徴融合へ渡すことで、候補IDだけを引き渡す際の情報損失を減らすと主張する。DQ-PCAがタスク別の参照範囲を作り、ranking側のLoRAが生成backboneを保護しながら特徴融合を調整する（§4–5）。
+  research_bot_interpretation: 注目したいのは更新の境界だ。共有する表現と更新するパラメータを別々に設計している。ただし疎なembeddingは両タスクで共有されるため、すべての干渉が消えるとは読めない。OneRankerのKV受け渡し＋DCと、同一系列内でSID軌跡を読む方式は異なる。Gryphon-v2の全カスケード置換とも適用範囲が違う。
+sections:
+  overview: UniR²はユーザー文脈、SID軌跡、item featuresを一つのdecoder系列へ置く。Kuaishouの2週間・5% A/BではOneLive recallと本番pre-rankを同時に置換した。全カスケードの撤去とは区別し、可視範囲・勾配・KV再利用の境界を読む。
+  method: method.md
+  problem: 生成recallはSIDの条件付き分布を学び、ランキングはクリック・長時間視聴・ギフトなどの識別を学ぶ。候補IDだけでは文脈が落ちる。別ランカーでは長い履歴を再計算する。一方、全特徴を生成側へ見せると、未生成のSIDや候補属性が正解を漏らす。単に系列を連結するだけでは解決しない。
+  why_it_might_work: 生成したSIDのhidden stateには、プロフィールと履歴を条件にその候補へ至った情報が残る。ranking側はそれを読み、候補属性と相互作用させる。履歴を省いても役立つという仮説はここにある。LoRAは共有射影からの小さなずれを許すが、低rankの更新で必要な相互作用を表せるかはデータに依存する。attentionの集中を示すFigure
+    4だけで因果的な説明が確定するわけではない。
+  evidence: '### オンラインで置換したのはrecallとpre-rank
+
+    以下は§6.4の著者報告。2026年6月に開始した2週間・5% trafficのA/Bで、OneLive-based recall＋production pre-rankingを基準とする。
+
+
+    | サービス | 指標 | 相対変化 |
+
+    | --- | --- | ---: |
+
+    | Kuaishou | play volume | +1.177% |
+
+    | Kuaishou | follow rate | +0.655% |
+
+    | Kuaishou | like rate | +2.560% |
+
+    | Kuaishou Lite | gifting users | +0.717% |
+
+    | Kuaishou Lite | gifting intention | +1.567% |
+
+    | Kuaishou Lite | total gifting amount | +2.569% |
+
+
+    この節には各指標の信頼区間や検定結果が示されていない。gifting intentionの厳密な計測定義も確認できない。2週間の正の差から長期定着や他ドメインの効果を推定しない。
+
+
+    ### 分離を外すと生成とランキングが逆方向へ動く
+
+    Table 1のClick HR@128はOneLive 0.8284、PROMISE 0.8416、UniR² 0.8741。Table 2のCTR AUCは本番HoME系baseline 0.8450から0.8513へ上がる。
+
+
+    Table 3でDQ-PCAとstop-gradientを同時に除くと、生成損失は+30.10%、HR@1は−44.39%、ranking損失は−3.83%。ただし除去は二要素同時だ。個別効果は分からない。LoRA除去ではranking損失が+7.05%。履歴をrankingにも読ませる構成は15.39G
+    FLOPs、標準構成は9.37Gで、精度と計算量の交換を選んでいる。
+
+
+    原典の注意点：Table 3のUniR²行のCTR/GTR AUC（0.8450/0.9541）はTable 2のbaselineと同じで、Table 2のUniR²値と一致しない。条件差の説明を確認できず、両表の絶対値を混ぜない。Figure
+    6の推論時間−54.29%は著者のパイプライン比較であり、絶対msやP99ではない。[一次資料：§6、Tables 1–3、Figure 6](https://arxiv.org/pdf/2607.24439v1)。'
+  executable_understanding: '`uv run papers/unir2-sequence-unify/run.py`
+
+
+    mask toyは2履歴token、1プロフィール、BOS＋3 SID、2 item tokensを使う。行をquery、列をkeyとして、遮断した値を大きく変えても生成側の集計が変わらないことを確認する。学習toyは次token確率の目標0.8、ranking目標0.2という人工的な競合を与え、同じscalar
+    adapterを両条件に置く。200回、学習率0.1で更新する。'
+  results: 生成の事前学習点から始め、joint gradientではranking BCEが下がる一方、NTP交差エントロピーが増える。分離条件ではbaseを生成損失だけで更新し、ranking用adapterを動かすためNTPは初期値を保つ。これは固定した矛盾目標での結果で、常に共同学習が悪いという意味ではない。
+  what_we_verified: Mechanism PARTIAL。生成側の未来・item情報の遮断と、ranking側の履歴除外を規則として確認した。adapterの自由度は同じにした。その条件でranking
+    gradientをbaseから切り、生成側の損失を保てる合成例を実行した。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Transformer、実際の低rank
+    Q/K/V、共有embedding、MMoE、sampling masksは実装していない。KV reuseのメモリ量、CPU/GPU並行処理、オンライン指標も未測定。次に調べたいのは、共有embeddingを通る干渉と、履歴の圧縮で失われる短期意図である。
+  implementation: '`visibility()` が許可行列、`seesaw()` が解析的なCE勾配p−yを実装する。両条件とも同じ初期base=log(4)、adapter=0で始める。scalar
+    adapterはLoRAの更新境界を説明する代用品であり、行列分解の検証には使わない。'
+figures:
+- path: figures/sequence.svg
+  title: 候補IDに加え、生成の軌跡を同じ系列に残す
+  caption: §4.1・Figure 2を基に説明用に再構成。SIDの末尾状態もランキングへ渡す。
+  after: core_idea
+- path: figures/mask.svg
+  title: rankingが直接読むのはプロフィール以降
+  caption: 式7–10の許可行列。緑は参照可、灰は遮断。履歴tokenのquery計算を示す図ではない。
+  after: method
+- path: figures/isolation.svg
+  title: 前向きの共有と逆伝播の分離
+  caption: 式17–18を再構成。疎なembeddingの共有は別経路として残る。
+  after: why_it_might_work
+- path: figures/serving.svg
+  title: ランキングをstrategy filterの待ち時間へ重ねる
+  caption: §5.2・Figure 3を再構成。横幅は実測時間を表さない。
+  after: evidence

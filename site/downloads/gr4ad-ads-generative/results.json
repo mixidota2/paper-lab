@@ -1,0 +1,514 @@
+{
+  "note": "合成データ640広告、10 seeds。学習済みUAE・balanced k-means・MGMRの再現ではない。性能と本番はNOT TESTED。",
+  "experiments": [
+    {
+      "name": "最終層に数値IDを入れると同一内容を区別できるか",
+      "metrics": {
+        "hash_bins=4": {
+          "rq_collision_pct": 100.0,
+          "hash_collision_pct": 92.623,
+          "code_space": 128
+        },
+        "hash_bins=16": {
+          "rq_collision_pct": 100.0,
+          "hash_collision_pct": 51.12,
+          "code_space": 512
+        },
+        "hash_bins=64": {
+          "rq_collision_pct": 100.0,
+          "hash_collision_pct": 15.386,
+          "code_space": 2048
+        }
+      }
+    }
+  ],
+  "runs": {
+    "4": [
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 86,
+          "compression": 7.441860465116279,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 127,
+          "compression": 5.039370078740157,
+          "collision_pct": 93.7007874015748,
+          "items_in_collisions_pct": 98.75
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 90,
+          "compression": 7.111111111111111,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 125,
+          "compression": 5.12,
+          "collision_pct": 90.4,
+          "items_in_collisions_pct": 98.125
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 86,
+          "compression": 7.441860465116279,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 124,
+          "compression": 5.161290322580645,
+          "collision_pct": 87.90322580645162,
+          "items_in_collisions_pct": 97.65625
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 90,
+          "compression": 7.111111111111111,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 126,
+          "compression": 5.079365079365079,
+          "collision_pct": 92.06349206349206,
+          "items_in_collisions_pct": 98.4375
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 92,
+          "compression": 6.956521739130435,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 126,
+          "compression": 5.079365079365079,
+          "collision_pct": 94.44444444444444,
+          "items_in_collisions_pct": 98.90625
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 85,
+          "compression": 7.529411764705882,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 122,
+          "compression": 5.245901639344262,
+          "collision_pct": 86.0655737704918,
+          "items_in_collisions_pct": 97.34375
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 90,
+          "compression": 7.111111111111111,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 126,
+          "compression": 5.079365079365079,
+          "collision_pct": 93.65079365079364,
+          "items_in_collisions_pct": 98.75
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 89,
+          "compression": 7.191011235955056,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 125,
+          "compression": 5.12,
+          "collision_pct": 93.6,
+          "items_in_collisions_pct": 98.75
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 95,
+          "compression": 6.7368421052631575,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 125,
+          "compression": 5.12,
+          "collision_pct": 98.4,
+          "items_in_collisions_pct": 99.6875
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 98,
+          "compression": 6.530612244897959,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 125,
+          "compression": 5.12,
+          "collision_pct": 96.0,
+          "items_in_collisions_pct": 99.21875
+        }
+      }
+    ],
+    "16": [
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 86,
+          "compression": 7.441860465116279,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 355,
+          "compression": 1.8028169014084507,
+          "collision_pct": 52.394366197183096,
+          "items_in_collisions_pct": 73.59375
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 90,
+          "compression": 7.111111111111111,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 350,
+          "compression": 1.8285714285714285,
+          "collision_pct": 51.142857142857146,
+          "items_in_collisions_pct": 73.28125
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 86,
+          "compression": 7.441860465116279,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 350,
+          "compression": 1.8285714285714285,
+          "collision_pct": 50.857142857142854,
+          "items_in_collisions_pct": 73.125
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 90,
+          "compression": 7.111111111111111,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 346,
+          "compression": 1.8497109826589595,
+          "collision_pct": 52.89017341040463,
+          "items_in_collisions_pct": 74.53125
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 92,
+          "compression": 6.956521739130435,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 358,
+          "compression": 1.7877094972067038,
+          "collision_pct": 50.27932960893855,
+          "items_in_collisions_pct": 72.1875
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 85,
+          "compression": 7.529411764705882,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 334,
+          "compression": 1.9161676646706587,
+          "collision_pct": 53.89221556886228,
+          "items_in_collisions_pct": 75.9375
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 90,
+          "compression": 7.111111111111111,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 357,
+          "compression": 1.792717086834734,
+          "collision_pct": 49.85994397759104,
+          "items_in_collisions_pct": 72.03125
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 89,
+          "compression": 7.191011235955056,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 351,
+          "compression": 1.8233618233618234,
+          "collision_pct": 51.28205128205128,
+          "items_in_collisions_pct": 73.28125
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 95,
+          "compression": 6.7368421052631575,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 360,
+          "compression": 1.7777777777777777,
+          "collision_pct": 49.44444444444444,
+          "items_in_collisions_pct": 71.5625
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 98,
+          "compression": 6.530612244897959,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 358,
+          "compression": 1.7877094972067038,
+          "collision_pct": 49.16201117318436,
+          "items_in_collisions_pct": 71.5625
+        }
+      }
+    ],
+    "64": [
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 86,
+          "compression": 7.441860465116279,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 549,
+          "compression": 1.1657559198542806,
+          "collision_pct": 15.118397085610201,
+          "items_in_collisions_pct": 27.1875
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 90,
+          "compression": 7.111111111111111,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 543,
+          "compression": 1.1786372007366483,
+          "collision_pct": 15.837937384898716,
+          "items_in_collisions_pct": 28.59375
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 86,
+          "compression": 7.441860465116279,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 538,
+          "compression": 1.1895910780669146,
+          "collision_pct": 16.542750929368033,
+          "items_in_collisions_pct": 29.84375
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 90,
+          "compression": 7.111111111111111,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 545,
+          "compression": 1.1743119266055047,
+          "collision_pct": 15.229357798165132,
+          "items_in_collisions_pct": 27.8125
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 92,
+          "compression": 6.956521739130435,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 550,
+          "compression": 1.1636363636363636,
+          "collision_pct": 14.363636363636367,
+          "items_in_collisions_pct": 26.40625
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 85,
+          "compression": 7.529411764705882,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 537,
+          "compression": 1.191806331471136,
+          "collision_pct": 15.642458100558654,
+          "items_in_collisions_pct": 29.21875
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 90,
+          "compression": 7.111111111111111,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 545,
+          "compression": 1.1743119266055047,
+          "collision_pct": 15.412844036697248,
+          "items_in_collisions_pct": 27.96875
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 89,
+          "compression": 7.191011235955056,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 548,
+          "compression": 1.167883211678832,
+          "collision_pct": 14.41605839416058,
+          "items_in_collisions_pct": 26.71875
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 95,
+          "compression": 6.7368421052631575,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 539,
+          "compression": 1.1873840445269017,
+          "collision_pct": 16.512059369202227,
+          "items_in_collisions_pct": 29.6875
+        }
+      },
+      {
+        "rq": {
+          "items": 640,
+          "unique_sids": 98,
+          "compression": 6.530612244897959,
+          "collision_pct": 100.0,
+          "items_in_collisions_pct": 100.0
+        },
+        "hash": {
+          "items": 640,
+          "unique_sids": 548,
+          "compression": 1.167883211678832,
+          "collision_pct": 14.78102189781022,
+          "items_in_collisions_pct": 27.03125
+        }
+      }
+    ]
+  },
+  "definition": "Col = 1 - singleton occupied SIDs / occupied SIDs; hash collision is still possible"
+}

@@ -1,0 +1,1475 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Auto-RecSysは数日単位の推薦実験を非同期に進め、実行手順と研究上の知見を別のループで蓄積する。1モデル31反復の運用修正は平均4.0→1.3、baseline更新を挟んで0.5へ低下した。主な根拠は運用ログであり、学習時間や推薦性能の改善実験ではない。">
+  <title>数日かかる研究を自動化するとき、何を記憶し何をコードで確定するか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-10</span></div>
+    <h1>数日かかる研究を自動化するとき、何を記憶し何をコードで確定するか</h1>
+    <p class="lede">Auto-RecSysは数日単位の推薦実験を非同期に進め、実行手順と研究上の知見を別のループで蓄積する。1モデル31反復の運用修正は平均4.0→1.3、baseline更新を挟んで0.5へ低下した。主な根拠は運用ログであり、学習時間や推薦性能の改善実験ではない。</p>
+    <details class="bibliography"><summary>原論文：Auto-RecSys: Harnessing Autonomous Research Agents for Industry-Scale Recommender Systems</summary><p>Ming Li, Dai Li, Xuying Ning, Bo Sun, Rui Li, Yi Zhang, Silvia Gong, Xuan Cao, Rui Li, Cornelia Carapcea, Qunshu Zhang, Zhigang Wang, Yinglong Xia, Xue Feng, Andy Wang</p><p>2609.10922 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.10922">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.10922">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-14 · 提供PDFを通読し、arXiv書誌と照合。数値は著者報告であり、独立再現ではない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>Auto-RecSysは数日単位の推薦実験を非同期に進め、実行手順と研究上の知見を別のループで蓄積する。1モデル31反復の運用修正は平均4.0→1.3、baseline更新を挟んで0.5へ低下した。主な根拠は運用ログであり、学習時間や推薦性能の改善実験ではない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>推薦モデルの変更は大きな設定群、GPU世代、package版、権限、warm-start checkpointに依存し、1サイクルに3〜7日かかるという。会話を一つ維持する方法では、server leaseやsession終了を越えられない。待っている間に別案を進めても、状態と比較baselineが混ざれば結果を信用できなくなる。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者はMetaの大規模推薦研究で、複数serverの非同期実行、中央memory、自然言語のskillと決定的scriptの分離を組み合わせる。playbookへ原因と対処を残すと同種の運用失敗を避けられ、人が1案に費やす作業時間を減らせると報告する（§2–7）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>価値は実験を速く学習させることより、人が付き添う時間を減らす点にある。良い研究案が増えたかは別の問いだ。AutoLRのKEEP ratchetがどの差分を次のtrunkへ採用するかを管理するのに対し、本論文は長期実験を途切れず実行し、手順を蓄積する境界を詳しく扱う。</p></div></div>
+      </section>
+      <figure class="paper-svg teaching"><h3>手順の改善と仮説の改善を別の記憶へ戻す</h3><a href="../figures/auto-recsys-harness/figures/loops.svg" aria-label="手順の改善と仮説の改善を別の記憶へ戻すを拡大"><img src="../figures/auto-recsys-harness/figures/loops.svg" alt="手順の改善と仮説の改善を別の記憶へ戻す。Figure 1、§3–5を基に再構成。運用上の成功と研究上の成功を区別する。" loading="lazy"></a><figcaption>Figure 1、§3–5を基に再構成。運用上の成功と研究上の成功を区別する。 <a href="../figures/auto-recsys-harness/figures/loops.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>待ち時間をまたぐ単位は会話ではなく実験の状態</h3>
+<p>実験は <code>ideating → implementing → validating → training → analyzing</code> を進む。training失敗からdebuggingへ分岐し、結果から次のideatingへ戻る。案ごとにstate fileを持たせる。別案は別々に進める。serverも段階も揃えなくてよい。共通baselineとtraining date rangeを揃えて比較する（§3、§5.2）。</p>
+<p>中央memoryにはglobal registry、案別state、baseline履歴、append-onlyのexperiment history、案のbacklog、model別playbook、knowledge base、session trajectoryを置く。job IDやcommit hashも保存する。会話だけには残さない。案別の分離で影響範囲は狭まる。ただしglobal registryの競合は残る。</p>
+<h3>skillは次の判断を教え、scriptは正確な状態を確定する</h3>
+<p>自然言語skillは各段階の目的、判断基準、escalation条件を説明する。LLMが次の操作を選ぶ。決定的scriptが入力と遷移前提を検査し、API操作やatomicな状態更新を行う。scriptの戻り値から次の判断へ進む。この分離がcognitive-procedural separationである（§2.2）。</p>
+<p>知識には三つの寿命がある。model共通のorchestrator skillは研究の進め方を定義する。model固有のplaybookは主要file、configuration規則、validation command、submission recipe、dead ends、proven strategiesを持つ。案別stateにはその実験だけのcommit、job、validation結果、verdictを残す。手順と今回の値を分ける。</p>
+<h3>二つのループは異なる失敗を覚える</h3>
+<p>Execution Evolution Loopは「なぜjobが通らなかったか」を学ぶ。trajectoryから失敗の原因と修正、成功したtoolの順序、hardwareやpackageの条件をplaybookへ追記する。単にerror文字列を貯めるより、次の試行で何を避けるべきかを説明できる。</p>
+<p>Idea Evolution Loopは「なぜ仮説が効かなかったか」を学ぶ。baselineとの差をpositive/neutral/negativeに分類し、構造化した教訓とともにhistoryへ追加する。次の提案はmodelのarchitecture・task heads・featuresと過去の結果を参照し、重複や既知の失敗を避ける。新モデルへ移すのは型だ。hardware条件などの内容は人と確認して埋め直す（§4.4–5）。</p>
+<p>この論文の手法の中心は新しいNNや損失関数ではない。LLM名や対象モデルの具体的な設定は確認できず、式で能力を推定することもできない。図では状態の遷移と知識の更新先を明確にする。</p>
+<h3>sessionが落ちても成果物を探して続ける</h3>
+<p>新sessionはregistryとactive ideaのstateを読み、前sessionのtrajectoryから経緯を復元する。training中ならremote jobをpollし、次の処理へ進む（§6.2）。§7.3の事例では別serverのcheckoutに元commitがなくても、stateに保存されたdraft diffを共有review systemから取得して続行した。ログに何をしたか書くだけでなく、コード成果物へ到達できることが復旧の条件になる。</p>
+<p>research_botの批評として、atomic writeは単一更新の途中破損を防いでも、複数writerのlost updateを自動的に防がない。所有権移譲、冪等なjob投入、baselineの版を含む比較条件を別途確認したい。</p>
+<h3>human bandwidthとwall-clockを分けて測る</h3>
+<p>人の作業時間Hは、review・復旧などに注意を使った時間の和である。経過時間Wはqueueやtrainingの待ちを含む。以下は本Labの測定定義であり、原論文の数式ではない。</p>
+<p><code>H = Σ_j (review_minutes_j + recovery_attention_j)</code></p>
+<p><code>W = max_j finish_time_j − min_j start_time_j</code></p>
+<p>非同期化はWや単位期間の完了件数へ、playbook成熟は主にHへ効く。ただし並列化が同じ未知の失敗を重複させる場合もある。toyではその費用を隠さない。</p>
+<p><a href="autolr-dashen.html">AutoLR</a>のKEEPは採用した差分だけを次のtrunkへ反映する仕組みである。Auto-RecSysのpositive verdictを同じ採用保証と扱わない。次に試すなら、運用のzero-fix率と研究案の再測定成功率を別々に記録し、失敗の少ない実行が有益な探索につながったかを調べたい。</p>
+<p><a href="https://arxiv.org/pdf/2609.10922v1">一次資料：arXiv v1</a></p></div>      </section>
+      <figure class="paper-svg teaching"><h3>判断の文章と正確な状態を分ける</h3><a href="../figures/auto-recsys-harness/figures/boundary.svg" aria-label="判断の文章と正確な状態を分けるを拡大"><img src="../figures/auto-recsys-harness/figures/boundary.svg" alt="判断の文章と正確な状態を分ける。§2.2、§6。下段のHITLは§2.1の4箇所を表示し、§7.1との差を注記。" loading="lazy"></a><figcaption>§2.2、§6。下段のHITLは§2.1の4箇所を表示し、§7.1との差を注記。 <a href="../figures/auto-recsys-harness/figures/boundary.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>繰り返す失敗がカテゴリにまとまるなら、原因と修正を再利用するだけでも人の介入を減らせる。自然言語は理由と適用条件を伝える。scriptは値を確定する。job IDや状態遷移を正確に保存する役割だ。両者を分ければLLMにすべての精密な更新を任せずに済む。一方、中央registryへの同時書き込みや古いplaybookの適用条件は、個別案のファイル分離だけで解決しない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>31反復の指標は「運用上の修正」を数える</h3>
+<p>§7.2のmajor fix stepはjob再投入、hardware・権限の誤り、package不一致、metadata修正、baseline refreshなどの復旧行動である。案を実装する際の推論やコードdebuggingは除外する。したがって「全作業の失敗回数」ではない。</p>
+<table>
+<thead>
+<tr>
+<th>phase</th>
+<th>反復</th>
+<th>著者報告</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bootstrap</td>
+<td>1–4</td>
+<td>平均4.0 major fixes</td>
+</tr>
+<tr>
+<td>Stabilized</td>
+<td>5–20</td>
+<td>平均1.3 major fixes</td>
+</tr>
+<tr>
+<td>MC3 Revalidation</td>
+<td>21–25</td>
+<td>5反復すべてで運用復旧が必要</td>
+</tr>
+<tr>
+<td>MC3 Native</td>
+<td>26–31</td>
+<td>平均0.5、6反復中5反復でzero-fix</td>
+</tr>
+</tbody>
+</table>
+<p>21反復目でgraph-mode compilation、新embedding module、task adaptersを含むbaselineへ変わった。hardware・権限・package・upstream revisionの条件も変わり、既存の手順が通じなくなった。その後は新たな失敗を取り込み回復したという。移行phaseの平均値は本文に数値記載を確認できないため、Figure 4から精密値を作らない。</p>
+<p>これは1モデルの時系列観察で、memoryを無効にした対照群ではない。モデルや案の難度、人の習熟、基盤修正が同時に変わり得る。4.0→0.5をplaybook単独の因果効果としない。</p>
+<h3>人の時間の短縮は定性的な報告が中心</h3>
+<p>§7.1は手作業のhours〜daysに対し、HITLではminutes、同じ注意量で十数案を扱えると記す。測定表や分散はない。trainingの長さは短縮しないと明記する。</p>
+<p>原典内の粒度にも注意したい。§2.1はidea選択・code review・training投入・results reviewの4 checkpoints、§7.1はidea選択・implementation reviewの2 checkpointsを挙げる。どの運用設定を測ったかは明確でない。また§7.2にはdead-end table 19 entriesと、playbook累積49 dead ends／17 error-fix patternsという異なる件数が並ぶ。範囲や時点の違いを特定できないため、同じ母数として図示しない。<a href="https://arxiv.org/pdf/2609.10922v1">一次資料：§2.1、§7、Figure 4</a>。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>基準モデルが変わると手順を学び直す</h3><a href="../figures/auto-recsys-harness/figures/reliability.svg" aria-label="基準モデルが変わると手順を学び直すを拡大"><img src="../figures/auto-recsys-harness/figures/reliability.svg" alt="基準モデルが変わると手順を学び直す。§7.2・Figure 4の本文記載値のみ。移行期の平均は未記載として空ける。" loading="lazy"></a><figcaption>§7.2・Figure 4の本文記載値のみ。移行期の平均は未記載として空ける。 <a href="../figures/auto-recsys-harness/figures/reliability.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/auto-recsys-harness/run.py</code></p>
+<p>31件の仮想実験を4 workerへ割り当てる。学習2880分、復旧1件30分、人のreview8分＋復旧1件12分はすべてLabの仮定。完了した実験だけがplaybookへ教訓を追加する。baselineは21件目にAからBへ変える。memoryなし、baseline別memory、版を無視するmemory、1 workerでの実行を比較する。</p></div><div class="downloads"><a href="../downloads/auto-recsys-harness/run.py" download>実行コード</a><a href="../downloads/auto-recsys-harness/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/auto-recsys-harness">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>全時間・失敗系列はLabの仮定。原論文31反復の復元ではない。自然言語の学習能力と分散基盤はNOT TESTED。</em></p>
+<h3>人の作業時間と経過時間を分ける</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>human_minutes</th><th>wall_clock_minutes</th><th>major_fixes</th></tr></thead><tbody><tr><th scope='row'>no_memory</th><td>1748</td><td>24000</td><td>125</td></tr><tr><th scope='row'>versioned_memory</th><td>644</td><td>23280</td><td>33</td></tr><tr><th scope='row'>unversioned_memory</th><td>452</td><td>23160</td><td>17</td></tr><tr><th scope='row'>serial_memory</th><td>356</td><td>89550</td><td>9</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;全時間・失敗系列はLabの仮定。原論文31反復の復元ではない。自然言語の学習能力と分散基盤はNOT TESTED。&quot;,
+  &quot;assumptions&quot;: {
+    &quot;training_minutes&quot;: 2880,
+    &quot;recovery_minutes_per_fix&quot;: 30,
+    &quot;review_human_minutes&quot;: 8,
+    &quot;human_minutes_per_fix&quot;: 12,
+    &quot;parallel_workers&quot;: 4,
+    &quot;baseline_change_iteration&quot;: 21
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;人の作業時間と経過時間を分ける&quot;,
+      &quot;metrics&quot;: {
+        &quot;no_memory&quot;: {
+          &quot;human_minutes&quot;: 1748,
+          &quot;wall_clock_minutes&quot;: 24000,
+          &quot;major_fixes&quot;: 125
+        },
+        &quot;versioned_memory&quot;: {
+          &quot;human_minutes&quot;: 644,
+          &quot;wall_clock_minutes&quot;: 23280,
+          &quot;major_fixes&quot;: 33
+        },
+        &quot;unversioned_memory&quot;: {
+          &quot;human_minutes&quot;: 452,
+          &quot;wall_clock_minutes&quot;: 23160,
+          &quot;major_fixes&quot;: 17
+        },
+        &quot;serial_memory&quot;: {
+          &quot;human_minutes&quot;: 356,
+          &quot;wall_clock_minutes&quot;: 89550,
+          &quot;major_fixes&quot;: 9
+        }
+      }
+    }
+  ],
+  &quot;runs&quot;: {
+    &quot;no_memory&quot;: {
+      &quot;human_minutes&quot;: 1748,
+      &quot;wall_clock_minutes&quot;: 24000,
+      &quot;major_fixes&quot;: 125,
+      &quot;trace&quot;: [
+        {
+          &quot;iteration&quot;: 1,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 0,
+          &quot;finish_min&quot;: 3000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 2,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 0,
+          &quot;finish_min&quot;: 3000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 3,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 0,
+          &quot;finish_min&quot;: 3000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 4,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 0,
+          &quot;finish_min&quot;: 3000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 5,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 3000,
+          &quot;finish_min&quot;: 6000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 6,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 3000,
+          &quot;finish_min&quot;: 6000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 7,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 3000,
+          &quot;finish_min&quot;: 6000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 8,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 3000,
+          &quot;finish_min&quot;: 6000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 9,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 6000,
+          &quot;finish_min&quot;: 9000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 10,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 6000,
+          &quot;finish_min&quot;: 9000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 11,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 6000,
+          &quot;finish_min&quot;: 9000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 12,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 6000,
+          &quot;finish_min&quot;: 9000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 13,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 9000,
+          &quot;finish_min&quot;: 12000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 14,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 9000,
+          &quot;finish_min&quot;: 12000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 15,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 9000,
+          &quot;finish_min&quot;: 12000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 16,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 9000,
+          &quot;finish_min&quot;: 12000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 17,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 12000,
+          &quot;finish_min&quot;: 15000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 18,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 12000,
+          &quot;finish_min&quot;: 15000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 19,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 12000,
+          &quot;finish_min&quot;: 15000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 20,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 12000,
+          &quot;finish_min&quot;: 15000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 21,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 15000,
+          &quot;finish_min&quot;: 18000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 22,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 15000,
+          &quot;finish_min&quot;: 18000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 23,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 15000,
+          &quot;finish_min&quot;: 18000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 24,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 15000,
+          &quot;finish_min&quot;: 18000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 25,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 18000,
+          &quot;finish_min&quot;: 21000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 26,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 18000,
+          &quot;finish_min&quot;: 21000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 27,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 18000,
+          &quot;finish_min&quot;: 21000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 28,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 18000,
+          &quot;finish_min&quot;: 21030,
+          &quot;major_fixes&quot;: 5,
+          &quot;human_min&quot;: 68,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 29,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 21000,
+          &quot;finish_min&quot;: 24000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 30,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 21000,
+          &quot;finish_min&quot;: 24000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 31,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 21000,
+          &quot;finish_min&quot;: 24000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        }
+      ]
+    },
+    &quot;versioned_memory&quot;: {
+      &quot;human_minutes&quot;: 644,
+      &quot;wall_clock_minutes&quot;: 23280,
+      &quot;major_fixes&quot;: 33,
+      &quot;trace&quot;: [
+        {
+          &quot;iteration&quot;: 1,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 0,
+          &quot;finish_min&quot;: 3000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 2,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 0,
+          &quot;finish_min&quot;: 3000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 3,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 0,
+          &quot;finish_min&quot;: 3000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 4,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 0,
+          &quot;finish_min&quot;: 3000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 5,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 3000,
+          &quot;finish_min&quot;: 5880,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 6,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 3000,
+          &quot;finish_min&quot;: 5880,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 7,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 3000,
+          &quot;finish_min&quot;: 5880,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 8,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 3000,
+          &quot;finish_min&quot;: 5880,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 9,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 5880,
+          &quot;finish_min&quot;: 8760,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 10,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 5880,
+          &quot;finish_min&quot;: 8760,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 11,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 5880,
+          &quot;finish_min&quot;: 8760,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 12,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 5880,
+          &quot;finish_min&quot;: 8760,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 13,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 8760,
+          &quot;finish_min&quot;: 11640,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 14,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 8760,
+          &quot;finish_min&quot;: 11640,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 15,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 8760,
+          &quot;finish_min&quot;: 11640,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 16,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 8760,
+          &quot;finish_min&quot;: 11640,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 17,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 11640,
+          &quot;finish_min&quot;: 14520,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 18,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 11640,
+          &quot;finish_min&quot;: 14520,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 19,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 11640,
+          &quot;finish_min&quot;: 14520,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 20,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 11640,
+          &quot;finish_min&quot;: 14520,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 21,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 14520,
+          &quot;finish_min&quot;: 17520,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 22,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 14520,
+          &quot;finish_min&quot;: 17520,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 23,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 14520,
+          &quot;finish_min&quot;: 17520,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 24,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 14520,
+          &quot;finish_min&quot;: 17520,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 25,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 17520,
+          &quot;finish_min&quot;: 20400,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 26,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 17520,
+          &quot;finish_min&quot;: 20400,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 27,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 17520,
+          &quot;finish_min&quot;: 20400,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 28,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 17520,
+          &quot;finish_min&quot;: 20430,
+          &quot;major_fixes&quot;: 1,
+          &quot;human_min&quot;: 20,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 29,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 20400,
+          &quot;finish_min&quot;: 23280,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 30,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 20400,
+          &quot;finish_min&quot;: 23280,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 31,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 20400,
+          &quot;finish_min&quot;: 23280,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        }
+      ]
+    },
+    &quot;unversioned_memory&quot;: {
+      &quot;human_minutes&quot;: 452,
+      &quot;wall_clock_minutes&quot;: 23160,
+      &quot;major_fixes&quot;: 17,
+      &quot;trace&quot;: [
+        {
+          &quot;iteration&quot;: 1,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 0,
+          &quot;finish_min&quot;: 3000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 2,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 0,
+          &quot;finish_min&quot;: 3000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 3,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 0,
+          &quot;finish_min&quot;: 3000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 4,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 0,
+          &quot;finish_min&quot;: 3000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 5,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 3000,
+          &quot;finish_min&quot;: 5880,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 6,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 3000,
+          &quot;finish_min&quot;: 5880,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 7,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 3000,
+          &quot;finish_min&quot;: 5880,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 8,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 3000,
+          &quot;finish_min&quot;: 5880,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 9,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 5880,
+          &quot;finish_min&quot;: 8760,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 10,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 5880,
+          &quot;finish_min&quot;: 8760,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 11,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 5880,
+          &quot;finish_min&quot;: 8760,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 12,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 5880,
+          &quot;finish_min&quot;: 8760,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 13,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 8760,
+          &quot;finish_min&quot;: 11640,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 14,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 8760,
+          &quot;finish_min&quot;: 11640,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 15,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 8760,
+          &quot;finish_min&quot;: 11640,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 16,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 8760,
+          &quot;finish_min&quot;: 11640,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 17,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 11640,
+          &quot;finish_min&quot;: 14520,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 18,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 11640,
+          &quot;finish_min&quot;: 14520,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 19,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 11640,
+          &quot;finish_min&quot;: 14520,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 20,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 11640,
+          &quot;finish_min&quot;: 14520,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 21,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 14520,
+          &quot;finish_min&quot;: 17400,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: true
+        },
+        {
+          &quot;iteration&quot;: 22,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 14520,
+          &quot;finish_min&quot;: 17400,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: true
+        },
+        {
+          &quot;iteration&quot;: 23,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 14520,
+          &quot;finish_min&quot;: 17400,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: true
+        },
+        {
+          &quot;iteration&quot;: 24,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 14520,
+          &quot;finish_min&quot;: 17400,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: true
+        },
+        {
+          &quot;iteration&quot;: 25,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 17400,
+          &quot;finish_min&quot;: 20280,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: true
+        },
+        {
+          &quot;iteration&quot;: 26,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 17400,
+          &quot;finish_min&quot;: 20280,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: true
+        },
+        {
+          &quot;iteration&quot;: 27,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 17400,
+          &quot;finish_min&quot;: 20280,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: true
+        },
+        {
+          &quot;iteration&quot;: 28,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 3,
+          &quot;start_min&quot;: 17400,
+          &quot;finish_min&quot;: 20310,
+          &quot;major_fixes&quot;: 1,
+          &quot;human_min&quot;: 20,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 29,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 20280,
+          &quot;finish_min&quot;: 23160,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: true
+        },
+        {
+          &quot;iteration&quot;: 30,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 1,
+          &quot;start_min&quot;: 20280,
+          &quot;finish_min&quot;: 23160,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: true
+        },
+        {
+          &quot;iteration&quot;: 31,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 2,
+          &quot;start_min&quot;: 20280,
+          &quot;finish_min&quot;: 23160,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: true
+        }
+      ]
+    },
+    &quot;serial_memory&quot;: {
+      &quot;human_minutes&quot;: 356,
+      &quot;wall_clock_minutes&quot;: 89550,
+      &quot;major_fixes&quot;: 9,
+      &quot;trace&quot;: [
+        {
+          &quot;iteration&quot;: 1,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 0,
+          &quot;finish_min&quot;: 3000,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 2,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 3000,
+          &quot;finish_min&quot;: 5880,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 3,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 5880,
+          &quot;finish_min&quot;: 8760,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 4,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 8760,
+          &quot;finish_min&quot;: 11640,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 5,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 11640,
+          &quot;finish_min&quot;: 14520,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 6,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 14520,
+          &quot;finish_min&quot;: 17400,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 7,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 17400,
+          &quot;finish_min&quot;: 20280,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 8,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 20280,
+          &quot;finish_min&quot;: 23160,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 9,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 23160,
+          &quot;finish_min&quot;: 26040,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 10,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 26040,
+          &quot;finish_min&quot;: 28920,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 11,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 28920,
+          &quot;finish_min&quot;: 31800,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 12,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 31800,
+          &quot;finish_min&quot;: 34680,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 13,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 34680,
+          &quot;finish_min&quot;: 37560,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 14,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 37560,
+          &quot;finish_min&quot;: 40440,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 15,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 40440,
+          &quot;finish_min&quot;: 43320,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 16,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 43320,
+          &quot;finish_min&quot;: 46200,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 17,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 46200,
+          &quot;finish_min&quot;: 49080,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 18,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 49080,
+          &quot;finish_min&quot;: 51960,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 19,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 51960,
+          &quot;finish_min&quot;: 54840,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 20,
+          &quot;baseline&quot;: &quot;A&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 54840,
+          &quot;finish_min&quot;: 57720,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 21,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 57720,
+          &quot;finish_min&quot;: 60720,
+          &quot;major_fixes&quot;: 4,
+          &quot;human_min&quot;: 56,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 22,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 60720,
+          &quot;finish_min&quot;: 63600,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 23,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 63600,
+          &quot;finish_min&quot;: 66480,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 24,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 66480,
+          &quot;finish_min&quot;: 69360,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 25,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 69360,
+          &quot;finish_min&quot;: 72240,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 26,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 72240,
+          &quot;finish_min&quot;: 75120,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 27,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 75120,
+          &quot;finish_min&quot;: 78000,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 28,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 78000,
+          &quot;finish_min&quot;: 80910,
+          &quot;major_fixes&quot;: 1,
+          &quot;human_min&quot;: 20,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 29,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 80910,
+          &quot;finish_min&quot;: 83790,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 30,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 83790,
+          &quot;finish_min&quot;: 86670,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        },
+        {
+          &quot;iteration&quot;: 31,
+          &quot;baseline&quot;: &quot;B&quot;,
+          &quot;worker&quot;: 0,
+          &quot;start_min&quot;: 86670,
+          &quot;finish_min&quot;: 89550,
+          &quot;major_fixes&quot;: 0,
+          &quot;human_min&quot;: 8,
+          &quot;unsafe_reuse&quot;: false
+        }
+      ]
+    }
+  }
+}</code></pre></details><p>memoryが成熟すると既知カテゴリの修正が減り、baseline変更後は再学習が必要になる。並行実行では先行jobが完了するまで教訓を読めず、同じ失敗を複数workerが踏む。版を無視する条件は見かけの修正数が少ないが、新baselineに古い知識を適用するためunsafe_reuseを立てる。小さい数字だけを良い結果と扱わない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。完了時刻より前の知識を参照しないこと、baseline別の記憶で移行時に失敗が戻ること、人の作業時間と経過時間が別の量であることを合成規則で確認した。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。自然言語から失敗原因を抽出する能力、LLMの実行能力、実際の人時、分散storageの競合制御、推薦精度、実験案の新規性は未検証。基盤LLMの具体的なモデル名・版、対象推薦モデルの再現可能な設定、公開ログと公式実装URLは本文で確認できない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>simulate()</code> は完了時刻つきのカテゴリ集合をmemoryとして使い、各jobの開始時点でsnapshotを作る。自然言語のplaybookを完全に理解するという強い仮定を置く。baseline別keyは本Labの安全側の設計で、原論文の実装を復元したものではない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>原典</th>
+<th>Labの対応</th>
+<th>省略・確認範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§2–3、Figure 1</td>
+<td>loops.svg / boundary.svg</td>
+<td>LLMと実際のstate machineの実装なし</td>
+</tr>
+<tr>
+<td>§4、§6</td>
+<td>method.md、simulate()</td>
+<td>自然言語理解をカテゴリ集合で代用</td>
+</tr>
+<tr>
+<td>§7.2、Figure 4</td>
+<td>reliability.svg、evidence</td>
+<td>phase集計のみ。反復別の値は捏造しない</td>
+</tr>
+<tr>
+<td>§7.1</td>
+<td>toyのhuman_minutes / wall_clock_minutes</td>
+<td>時間は仮定。著者の人時の再現ではない</td>
+</tr>
+<tr>
+<td>baseline shift</td>
+<td>baseline別memoryの感度分析</td>
+<td>本Lab独自の版管理規則</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード：提供論文とarXiv書誌内で実行可能な公式実装URLを確認できなかった。公式コードとの同等性は未検証。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>数日かかる研究を自動化するとき、何を記憶し何をコードで確定するか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/auto-recsys-harness/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

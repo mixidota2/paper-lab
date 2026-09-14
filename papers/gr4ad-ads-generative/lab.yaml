@@ -1,0 +1,143 @@
+id: gr4ad-ads-generative
+arxiv_id: '2602.22732'
+submitted: '2026-02-26'
+title: Generative Recommendation for Large-Scale Advertising
+authors:
+- Ben Xue
+- Dan Liu
+- Lixiang Wang
+- Mingjie Sun
+- Peng Wang
+- Pengfei Zhang
+- Shaoyun Shi
+- Tianyu Xu
+- Yunhao Sha
+- Zhiqiang Liu
+- Bo Kong
+- Bo Wang
+- Hang Yang
+- Jieting Xue
+- Junhao Wang
+- Shengyu Wang
+- Shuping Hui
+- Wencai Ye
+- Xiao Lin
+- Yongzhi Li
+- Yuhang Chen
+- Zhihui Yin
+- Quan Chen
+- Shiyang Wen
+- Wenjin Wu
+- Han Li
+- Guorui Zhou
+- Changcheng Li
+- Peng Jiang
+- Kun Gai
+year: 2026
+topics:
+- recommender-systems
+- generative-recommendation
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2602.22732
+  arxiv: https://arxiv.org/abs/2602.22732
+  pdf: https://arxiv.org/pdf/2602.22732
+  official_code: null
+verdict: Worth Reading
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- generative-rec-vs-retrieval
+status: published
+question: 広告の価値学習とbeam探索を、同じ配信予算の中でどう両立するか
+summary: GR4ADは広告SID、価値に沿う学習、短い系列の復号、負荷に応じたbeam幅を合わせて設計する。Table 1の最終構成は収益+4.28%（対DLRM）、QPS+117%（対OneRec-V2）。比較基準を分けて、400M超ユーザーへの展開という著者報告を読む。
+source_review:
+  checked: '2026-09-14'
+  scope: 提供PDFを通読し、arXiv書誌と照合。数値は著者報告であり、独立再現ではない。
+  url: https://arxiv.org/abs/2602.22732
+  pdf_version: v3
+  pdf_sha256: a3bcb5f9096bfc22cdb51871bb353992cd8a0ee1a8156c5846c668432450b279
+core_idea:
+  author_claim: 著者はUA-SIDで広告固有の情報を符号化し、VSLとRSPOで興味と価値を学び、LazyARとDBSで配信費用を抑える。Kuaishou広告に0.16Bモデルを全面展開し、L20あたり500超QPS・100ms未満の推論を報告する（§4）。
+  research_bot_interpretation: 個別の新型decoderだけを評価すると論点を外す。候補の識別、価値の教師、探索量の配分を合わせた改善である。ただしstackの差分表だけでは要素間の相互作用まで分離できない。報酬モデルの誤差や露出の偏りがあると、listwise整合性を上げても真の収益が上がるとは限らない。
+sections:
+  overview: GR4ADは広告SID、価値に沿う学習、短い系列の復号、負荷に応じたbeam幅を合わせて設計する。Table 1の最終構成は収益+4.28%（対DLRM）、QPS+117%（対OneRec-V2）。比較基準を分けて、400M超ユーザーへの展開という著者報告を読む。
+  method: method.md
+  problem: 同じ動画を使う広告でも、advertiserやconversion typeが違えば配信先と価値は変わる。内容だけのSIDでは識別できず、クリック履歴の模倣だけでは価値の高い候補を十分に探索できない。しかも後半のSIDでは多数のbeamを処理するため、予測が容易な階層へ計算を使いすぎる。
+  why_it_might_work: UA-SIDは意味情報と数値的な業務識別を分担する。LazyARは前段の文脈処理をbeam間で共有し、多数候補に必要な後段だけを逐次化する。RSPOが価値の相対順位を学び、DBSが余裕のある時間帯の探索を増やす。この連携には合理性があるが、hashの追加だけで価値が学べるわけではない。
+  evidence: '### 収益とQPSは異なる基準に対する変化
+
+    提供PDF v3 Table 1の値。収益列はDLRM、QPS列はOneRec-V2（GR-Base）を基準とする。各行はstackへの追加で、単独要素のランダム化比較とは限らない。
+
+
+    | 構成 | 収益：対DLRM | QPS：対GR-Base |
+
+    | --- | ---: | ---: |
+
+    | OneRec-V2 | +1.68% | 基準 |
+
+    | + UA-SID | +1.92% | 0% |
+
+    | + VSL | +2.80% | −25% |
+
+    | + VSL + DPO | +3.16% | −25% |
+
+    | + VSL + GRPO | +3.21% | −25% |
+
+    | + VSL + RSPO | +3.86% | −25% |
+
+    | + Unified VSL & RSPO（UVR） | +4.01% | −25% |
+
+    | + UVR + DBS | +4.32% | +20% |
+
+    | + UVR + DBS + DeepSeek-MTP | +3.98% | +117% |
+
+    | GR4AD：UVR + DBS + LazyAR | +4.28% | +117% |
+
+
+    最終行は収益最大の行ではない。DBSまでの構成に比べ、LazyARは収益liftを0.04ポイント下げ、throughputを増やしている。abstractの「up to 4.2%」は概数なので、ここでは表の精度を保つ。QPSをDLRM比+117%と読み替えない。
+
+
+    ### 衝突率は何を分母にするか
+
+    Table 2では、RQ-KmeansのCpr/Colは3.54/85.44%、MR追加で1.78/59.72%、MG＋MRで1.07/18.26%。符号空間は4096³から16384×4096×1024へ変わり、総容量は同じ。Colは「使われたSIDのうち、複数itemに対応するSIDの割合」である（Appendix
+    A.3）。広告の何%が衝突したかとは異なる。
+
+
+    元のembeddingのphoto-to-photo R@1はQARM 0.541、Qwen3-VL-7B 0.769、instruction tuning＋co-occurrence learning後のUAE
+    0.896。これは同じ広告商品に属する画像を探す評価で、オンライン収益そのものではない。
+
+
+    Table 4のDBW比較では固定[512,512,512]に対し、[128,256,512]が収益−0.15%／QPS+45%。第3層だけ128へ縮めると収益−0.85%／QPS+5%。最終候補数を保ちながら前半を節約する意味が見える。Table
+    1のDBSは時間帯制御も含むため、この−0.15%と直接混ぜない。[一次資料：Tables 1, 2, 4](https://arxiv.org/pdf/2602.22732v3)。'
+  executable_understanding: '`uv run papers/gr4ad-ads-generative/run.py`
+
+
+    160種の合成contentにそれぞれ4 advertiserを付け、640広告を作る。固定中心による3段の残差量子化と、最終段を数値IDのSHA-256 hashへ置換した方式を比較する。10
+    seeds、hash bins=4/16/64を計算する。bins=4だけが同じ符号空間での比較で、16/64は容量を増やす感度分析である。'
+  results: 同じcontentに複数広告を付けたため、内容だけのSIDはすべて衝突を含む。hashで区別できる広告は増えるが、有限bucketでは再衝突する。表示するColは原典の分母に合わせ、item基準の割合もJSONに保存する。数値は論文の18.26%を再現するために調整していない。
+  what_we_verified: Mechanism PARTIAL。意味が同じでも数値IDで分けられることと、hash幅による再衝突を合成例で確認した。Colの分母がitem数と異なることも計算した。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。UAEの学習、balanced
+    k-means、RSPO、LazyARの実速度、広告収益は未検証。A/Bの信頼区間と割付期間の詳細を確認できない。全面展開と400M超ユーザーという記述は著者報告であり、独立監査ではない。
+  implementation: '`nearest()` は固定中心への量子化、`experiment()` は同一prefixを保って最終層だけを差し替える。`collision_metrics()`
+    は占有SIDとitemの両方を分母にした指標を返す。訓練で最適化したcodebookではないため、MGMR全体の品質を測る用途には使わない。'
+figures:
+- path: figures/tokenization.svg
+  title: 意味の残差と業務上の識別を別の層へ置く
+  caption: Figure 2・Table 2を再構成。最後の1024*はhash層。
+  after: core_idea
+- path: figures/lazyar.svg
+  title: 候補ごとの逐次計算を後半3層へ寄せる
+  caption: §3.2・§5.1のL=9、K=6。図は依存関係で、処理時間の縮尺ではない。
+  after: method
+- path: figures/uvr.svg
+  title: 順位のずれでVSLとRSPOの比重を変える
+  caption: 式19–22を再構成。大きいAではVSL重視、小さいAではRL重視。
+  after: why_it_might_work
+- path: figures/serving.svg
+  title: 最終候補数を保って前半のbeamを細くする
+  caption: Table 4の値は固定[512,512,512]比。TABSの時間帯調整とは分けて読む。
+  after: evidence

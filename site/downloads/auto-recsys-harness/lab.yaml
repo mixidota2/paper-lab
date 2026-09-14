@@ -1,0 +1,111 @@
+id: auto-recsys-harness
+arxiv_id: '2609.10922'
+submitted: '2026-09-10'
+title: 'Auto-RecSys: Harnessing Autonomous Research Agents for Industry-Scale Recommender Systems'
+authors:
+- Ming Li
+- Dai Li
+- Xuying Ning
+- Bo Sun
+- Rui Li
+- Yi Zhang
+- Silvia Gong
+- Xuan Cao
+- Rui Li
+- Cornelia Carapcea
+- Qunshu Zhang
+- Zhigang Wang
+- Yinglong Xia
+- Xue Feng
+- Andy Wang
+year: 2026
+topics:
+- ai-agent-systems
+- agent-architecture
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2609.10922
+  arxiv: https://arxiv.org/abs/2609.10922
+  pdf: https://arxiv.org/pdf/2609.10922
+  official_code: null
+verdict: Worth Reading
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- agent-architecture-and-harness
+status: published
+question: 数日かかる研究を自動化するとき、何を記憶し何をコードで確定するか
+summary: Auto-RecSysは数日単位の推薦実験を非同期に進め、実行手順と研究上の知見を別のループで蓄積する。1モデル31反復の運用修正は平均4.0→1.3、baseline更新を挟んで0.5へ低下した。主な根拠は運用ログであり、学習時間や推薦性能の改善実験ではない。
+source_review:
+  checked: '2026-09-14'
+  scope: 提供PDFを通読し、arXiv書誌と照合。数値は著者報告であり、独立再現ではない。
+  url: https://arxiv.org/abs/2609.10922
+  pdf_version: v1
+  pdf_sha256: f4a5656658f30151b8399cb7e06826cea95b8a62162527682a37a19697b6bbf9
+core_idea:
+  author_claim: 著者はMetaの大規模推薦研究で、複数serverの非同期実行、中央memory、自然言語のskillと決定的scriptの分離を組み合わせる。playbookへ原因と対処を残すと同種の運用失敗を避けられ、人が1案に費やす作業時間を減らせると報告する（§2–7）。
+  research_bot_interpretation: 価値は実験を速く学習させることより、人が付き添う時間を減らす点にある。良い研究案が増えたかは別の問いだ。AutoLRのKEEP ratchetがどの差分を次のtrunkへ採用するかを管理するのに対し、本論文は長期実験を途切れず実行し、手順を蓄積する境界を詳しく扱う。
+sections:
+  overview: Auto-RecSysは数日単位の推薦実験を非同期に進め、実行手順と研究上の知見を別のループで蓄積する。1モデル31反復の運用修正は平均4.0→1.3、baseline更新を挟んで0.5へ低下した。主な根拠は運用ログであり、学習時間や推薦性能の改善実験ではない。
+  method: method.md
+  problem: 推薦モデルの変更は大きな設定群、GPU世代、package版、権限、warm-start checkpointに依存し、1サイクルに3〜7日かかるという。会話を一つ維持する方法では、server
+    leaseやsession終了を越えられない。待っている間に別案を進めても、状態と比較baselineが混ざれば結果を信用できなくなる。
+  why_it_might_work: 繰り返す失敗がカテゴリにまとまるなら、原因と修正を再利用するだけでも人の介入を減らせる。自然言語は理由と適用条件を伝える。scriptは値を確定する。job IDや状態遷移を正確に保存する役割だ。両者を分ければLLMにすべての精密な更新を任せずに済む。一方、中央registryへの同時書き込みや古いplaybookの適用条件は、個別案のファイル分離だけで解決しない。
+  evidence: '### 31反復の指標は「運用上の修正」を数える
+
+    §7.2のmajor fix stepはjob再投入、hardware・権限の誤り、package不一致、metadata修正、baseline refreshなどの復旧行動である。案を実装する際の推論やコードdebuggingは除外する。したがって「全作業の失敗回数」ではない。
+
+
+    | phase | 反復 | 著者報告 |
+
+    | --- | --- | --- |
+
+    | Bootstrap | 1–4 | 平均4.0 major fixes |
+
+    | Stabilized | 5–20 | 平均1.3 major fixes |
+
+    | MC3 Revalidation | 21–25 | 5反復すべてで運用復旧が必要 |
+
+    | MC3 Native | 26–31 | 平均0.5、6反復中5反復でzero-fix |
+
+
+    21反復目でgraph-mode compilation、新embedding module、task adaptersを含むbaselineへ変わった。hardware・権限・package・upstream
+    revisionの条件も変わり、既存の手順が通じなくなった。その後は新たな失敗を取り込み回復したという。移行phaseの平均値は本文に数値記載を確認できないため、Figure 4から精密値を作らない。
+
+
+    これは1モデルの時系列観察で、memoryを無効にした対照群ではない。モデルや案の難度、人の習熟、基盤修正が同時に変わり得る。4.0→0.5をplaybook単独の因果効果としない。
+
+
+    ### 人の時間の短縮は定性的な報告が中心
+
+    §7.1は手作業のhours〜daysに対し、HITLではminutes、同じ注意量で十数案を扱えると記す。測定表や分散はない。trainingの長さは短縮しないと明記する。
+
+
+    原典内の粒度にも注意したい。§2.1はidea選択・code review・training投入・results reviewの4 checkpoints、§7.1はidea選択・implementation
+    reviewの2 checkpointsを挙げる。どの運用設定を測ったかは明確でない。また§7.2にはdead-end table 19 entriesと、playbook累積49 dead ends／17
+    error-fix patternsという異なる件数が並ぶ。範囲や時点の違いを特定できないため、同じ母数として図示しない。[一次資料：§2.1、§7、Figure 4](https://arxiv.org/pdf/2609.10922v1)。'
+  executable_understanding: '`uv run papers/auto-recsys-harness/run.py`
+
+
+    31件の仮想実験を4 workerへ割り当てる。学習2880分、復旧1件30分、人のreview8分＋復旧1件12分はすべてLabの仮定。完了した実験だけがplaybookへ教訓を追加する。baselineは21件目にAからBへ変える。memoryなし、baseline別memory、版を無視するmemory、1
+    workerでの実行を比較する。'
+  results: memoryが成熟すると既知カテゴリの修正が減り、baseline変更後は再学習が必要になる。並行実行では先行jobが完了するまで教訓を読めず、同じ失敗を複数workerが踏む。版を無視する条件は見かけの修正数が少ないが、新baselineに古い知識を適用するためunsafe_reuseを立てる。小さい数字だけを良い結果と扱わない。
+  what_we_verified: Mechanism PARTIAL。完了時刻より前の知識を参照しないこと、baseline別の記憶で移行時に失敗が戻ること、人の作業時間と経過時間が別の量であることを合成規則で確認した。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。自然言語から失敗原因を抽出する能力、LLMの実行能力、実際の人時、分散storageの競合制御、推薦精度、実験案の新規性は未検証。基盤LLMの具体的なモデル名・版、対象推薦モデルの再現可能な設定、公開ログと公式実装URLは本文で確認できない。
+  implementation: '`simulate()` は完了時刻つきのカテゴリ集合をmemoryとして使い、各jobの開始時点でsnapshotを作る。自然言語のplaybookを完全に理解するという強い仮定を置く。baseline別keyは本Labの安全側の設計で、原論文の実装を復元したものではない。'
+figures:
+- path: figures/loops.svg
+  title: 手順の改善と仮説の改善を別の記憶へ戻す
+  caption: Figure 1、§3–5を基に再構成。運用上の成功と研究上の成功を区別する。
+  after: core_idea
+- path: figures/boundary.svg
+  title: 判断の文章と正確な状態を分ける
+  caption: §2.2、§6。下段のHITLは§2.1の4箇所を表示し、§7.1との差を注記。
+  after: method
+- path: figures/reliability.svg
+  title: 基準モデルが変わると手順を学び直す
+  caption: §7.2・Figure 4の本文記載値のみ。移行期の平均は未記載として空ける。
+  after: evidence

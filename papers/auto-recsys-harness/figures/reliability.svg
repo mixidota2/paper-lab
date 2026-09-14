@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 576" role="img" aria-labelledby="title"><title id="title">31反復：安定化 → 移行 → 再安定化</title><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#586c78"/></marker></defs><rect width="560" height="576" fill="#f7faf9"/><style>text{font-family:system-ui,sans-serif;fill:#183640;font-size:19px}.small{font-size:16px}.head{font-size:23px;font-weight:700}</style>
+<text x="24" y="35" class="head">31反復：安定化 → 移行 → 再安定化</text>
+<text x="24" y="104" class="">1–4：Bootstrap</text>
+<rect x="24" y="116" width="380.0" height="30" rx="4" fill="#45886f"/>
+<text x="24" y="174" class="">平均4.0</text>
+<text x="24" y="208" class="">5–20：Stabilized</text>
+<rect x="24" y="220" width="123.5" height="30" rx="4" fill="#45886f"/>
+<text x="24" y="278" class="">平均1.3</text>
+<text x="24" y="312" class="">21–25：移行</text>
+<rect x="24" y="324" width="380" height="30" rx="4" fill="#fff0da" stroke="#a68046" stroke-dasharray="5 5"/>
+<text x="24" y="382" class="">平均の精密値は未記載</text>
+<text x="24" y="416" class="">26–31：Native</text>
+<rect x="24" y="428" width="47.5" height="30" rx="4" fill="#45886f"/>
+<text x="24" y="486" class="">平均0.5 ／ zero-fix 5/6</text>
+<text x="24" y="530" class="">棒：major fixes / 反復。1モデルの観察。</text><text x="24" y="560" class="small">research_bot · 一次資料を基に説明用に再構成</text></svg>

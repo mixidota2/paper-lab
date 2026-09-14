@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 466" role="img" aria-labelledby="title"><title id="title">UVR：模倣と価値探索の配分</title><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#586c78"/></marker></defs><rect width="560" height="466" fill="#f7faf9"/><style>text{font-family:system-ui,sans-serif;fill:#183640;font-size:19px}.small{font-size:16px}.head{font-size:23px;font-weight:700}</style>
+<text x="24" y="35" class="head">UVR：模倣と価値探索の配分</text>
+<rect x="24" y="65" width="512" height="86" rx="10" fill="#e2efea" stroke="#a6bdb5"/>
+<text x="38" y="92" class="">モデル確率の順位 r_p ／ 報酬順位 r_v</text>
+<text x="38" y="119" class="">A = |r_p − r_v| / (n − 1)</text>
+<path d="M238 151 L145 192" fill="none" stroke="#586c78" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M321 151 L413 192" fill="none" stroke="#586c78" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="24" y="202" width="246" height="145" rx="10" fill="#e2efea" stroke="#a6bdb5"/>
+<text x="38" y="229" class="">Aが大きい</text>
+<text x="38" y="256" class="">VSLの比重を増す</text>
+<text x="38" y="283" class="">価値を加味した</text>
+<text x="38" y="310" class="">履歴の模倣</text>
+<rect x="290" y="202" width="246" height="145" rx="10" fill="#fff0da" stroke="#a6bdb5"/>
+<text x="304" y="229" class="">Aが小さい</text>
+<text x="304" y="256" class="">RSPOの比重を増す</text>
+<text x="304" y="283" class="">listの相対順位を</text>
+<text x="304" y="310" class="">価値へ合わせる</text>
+<text x="24" y="390" class="">注意：順位の一致 ≠ 報酬の校正</text>
+<text x="24" y="421" class="">報酬モデルの誤りは別に検証する。</text><text x="24" y="450" class="small">research_bot · 一次資料を基に説明用に再構成</text></svg>

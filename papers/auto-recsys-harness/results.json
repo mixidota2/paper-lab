@@ -1,0 +1,1308 @@
+{
+  "note": "全時間・失敗系列はLabの仮定。原論文31反復の復元ではない。自然言語の学習能力と分散基盤はNOT TESTED。",
+  "assumptions": {
+    "training_minutes": 2880,
+    "recovery_minutes_per_fix": 30,
+    "review_human_minutes": 8,
+    "human_minutes_per_fix": 12,
+    "parallel_workers": 4,
+    "baseline_change_iteration": 21
+  },
+  "experiments": [
+    {
+      "name": "人の作業時間と経過時間を分ける",
+      "metrics": {
+        "no_memory": {
+          "human_minutes": 1748,
+          "wall_clock_minutes": 24000,
+          "major_fixes": 125
+        },
+        "versioned_memory": {
+          "human_minutes": 644,
+          "wall_clock_minutes": 23280,
+          "major_fixes": 33
+        },
+        "unversioned_memory": {
+          "human_minutes": 452,
+          "wall_clock_minutes": 23160,
+          "major_fixes": 17
+        },
+        "serial_memory": {
+          "human_minutes": 356,
+          "wall_clock_minutes": 89550,
+          "major_fixes": 9
+        }
+      }
+    }
+  ],
+  "runs": {
+    "no_memory": {
+      "human_minutes": 1748,
+      "wall_clock_minutes": 24000,
+      "major_fixes": 125,
+      "trace": [
+        {
+          "iteration": 1,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 0,
+          "finish_min": 3000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 2,
+          "baseline": "A",
+          "worker": 1,
+          "start_min": 0,
+          "finish_min": 3000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 3,
+          "baseline": "A",
+          "worker": 2,
+          "start_min": 0,
+          "finish_min": 3000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 4,
+          "baseline": "A",
+          "worker": 3,
+          "start_min": 0,
+          "finish_min": 3000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 5,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 3000,
+          "finish_min": 6000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 6,
+          "baseline": "A",
+          "worker": 1,
+          "start_min": 3000,
+          "finish_min": 6000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 7,
+          "baseline": "A",
+          "worker": 2,
+          "start_min": 3000,
+          "finish_min": 6000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 8,
+          "baseline": "A",
+          "worker": 3,
+          "start_min": 3000,
+          "finish_min": 6000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 9,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 6000,
+          "finish_min": 9000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 10,
+          "baseline": "A",
+          "worker": 1,
+          "start_min": 6000,
+          "finish_min": 9000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 11,
+          "baseline": "A",
+          "worker": 2,
+          "start_min": 6000,
+          "finish_min": 9000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 12,
+          "baseline": "A",
+          "worker": 3,
+          "start_min": 6000,
+          "finish_min": 9000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 13,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 9000,
+          "finish_min": 12000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 14,
+          "baseline": "A",
+          "worker": 1,
+          "start_min": 9000,
+          "finish_min": 12000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 15,
+          "baseline": "A",
+          "worker": 2,
+          "start_min": 9000,
+          "finish_min": 12000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 16,
+          "baseline": "A",
+          "worker": 3,
+          "start_min": 9000,
+          "finish_min": 12000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 17,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 12000,
+          "finish_min": 15000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 18,
+          "baseline": "A",
+          "worker": 1,
+          "start_min": 12000,
+          "finish_min": 15000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 19,
+          "baseline": "A",
+          "worker": 2,
+          "start_min": 12000,
+          "finish_min": 15000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 20,
+          "baseline": "A",
+          "worker": 3,
+          "start_min": 12000,
+          "finish_min": 15000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 21,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 15000,
+          "finish_min": 18000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 22,
+          "baseline": "B",
+          "worker": 1,
+          "start_min": 15000,
+          "finish_min": 18000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 23,
+          "baseline": "B",
+          "worker": 2,
+          "start_min": 15000,
+          "finish_min": 18000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 24,
+          "baseline": "B",
+          "worker": 3,
+          "start_min": 15000,
+          "finish_min": 18000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 25,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 18000,
+          "finish_min": 21000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 26,
+          "baseline": "B",
+          "worker": 1,
+          "start_min": 18000,
+          "finish_min": 21000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 27,
+          "baseline": "B",
+          "worker": 2,
+          "start_min": 18000,
+          "finish_min": 21000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 28,
+          "baseline": "B",
+          "worker": 3,
+          "start_min": 18000,
+          "finish_min": 21030,
+          "major_fixes": 5,
+          "human_min": 68,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 29,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 21000,
+          "finish_min": 24000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 30,
+          "baseline": "B",
+          "worker": 1,
+          "start_min": 21000,
+          "finish_min": 24000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 31,
+          "baseline": "B",
+          "worker": 2,
+          "start_min": 21000,
+          "finish_min": 24000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        }
+      ]
+    },
+    "versioned_memory": {
+      "human_minutes": 644,
+      "wall_clock_minutes": 23280,
+      "major_fixes": 33,
+      "trace": [
+        {
+          "iteration": 1,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 0,
+          "finish_min": 3000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 2,
+          "baseline": "A",
+          "worker": 1,
+          "start_min": 0,
+          "finish_min": 3000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 3,
+          "baseline": "A",
+          "worker": 2,
+          "start_min": 0,
+          "finish_min": 3000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 4,
+          "baseline": "A",
+          "worker": 3,
+          "start_min": 0,
+          "finish_min": 3000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 5,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 3000,
+          "finish_min": 5880,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 6,
+          "baseline": "A",
+          "worker": 1,
+          "start_min": 3000,
+          "finish_min": 5880,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 7,
+          "baseline": "A",
+          "worker": 2,
+          "start_min": 3000,
+          "finish_min": 5880,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 8,
+          "baseline": "A",
+          "worker": 3,
+          "start_min": 3000,
+          "finish_min": 5880,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 9,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 5880,
+          "finish_min": 8760,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 10,
+          "baseline": "A",
+          "worker": 1,
+          "start_min": 5880,
+          "finish_min": 8760,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 11,
+          "baseline": "A",
+          "worker": 2,
+          "start_min": 5880,
+          "finish_min": 8760,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 12,
+          "baseline": "A",
+          "worker": 3,
+          "start_min": 5880,
+          "finish_min": 8760,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 13,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 8760,
+          "finish_min": 11640,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 14,
+          "baseline": "A",
+          "worker": 1,
+          "start_min": 8760,
+          "finish_min": 11640,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 15,
+          "baseline": "A",
+          "worker": 2,
+          "start_min": 8760,
+          "finish_min": 11640,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 16,
+          "baseline": "A",
+          "worker": 3,
+          "start_min": 8760,
+          "finish_min": 11640,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 17,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 11640,
+          "finish_min": 14520,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 18,
+          "baseline": "A",
+          "worker": 1,
+          "start_min": 11640,
+          "finish_min": 14520,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 19,
+          "baseline": "A",
+          "worker": 2,
+          "start_min": 11640,
+          "finish_min": 14520,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 20,
+          "baseline": "A",
+          "worker": 3,
+          "start_min": 11640,
+          "finish_min": 14520,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 21,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 14520,
+          "finish_min": 17520,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 22,
+          "baseline": "B",
+          "worker": 1,
+          "start_min": 14520,
+          "finish_min": 17520,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 23,
+          "baseline": "B",
+          "worker": 2,
+          "start_min": 14520,
+          "finish_min": 17520,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 24,
+          "baseline": "B",
+          "worker": 3,
+          "start_min": 14520,
+          "finish_min": 17520,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 25,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 17520,
+          "finish_min": 20400,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 26,
+          "baseline": "B",
+          "worker": 1,
+          "start_min": 17520,
+          "finish_min": 20400,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 27,
+          "baseline": "B",
+          "worker": 2,
+          "start_min": 17520,
+          "finish_min": 20400,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 28,
+          "baseline": "B",
+          "worker": 3,
+          "start_min": 17520,
+          "finish_min": 20430,
+          "major_fixes": 1,
+          "human_min": 20,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 29,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 20400,
+          "finish_min": 23280,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 30,
+          "baseline": "B",
+          "worker": 1,
+          "start_min": 20400,
+          "finish_min": 23280,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 31,
+          "baseline": "B",
+          "worker": 2,
+          "start_min": 20400,
+          "finish_min": 23280,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        }
+      ]
+    },
+    "unversioned_memory": {
+      "human_minutes": 452,
+      "wall_clock_minutes": 23160,
+      "major_fixes": 17,
+      "trace": [
+        {
+          "iteration": 1,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 0,
+          "finish_min": 3000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 2,
+          "baseline": "A",
+          "worker": 1,
+          "start_min": 0,
+          "finish_min": 3000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 3,
+          "baseline": "A",
+          "worker": 2,
+          "start_min": 0,
+          "finish_min": 3000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 4,
+          "baseline": "A",
+          "worker": 3,
+          "start_min": 0,
+          "finish_min": 3000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 5,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 3000,
+          "finish_min": 5880,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 6,
+          "baseline": "A",
+          "worker": 1,
+          "start_min": 3000,
+          "finish_min": 5880,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 7,
+          "baseline": "A",
+          "worker": 2,
+          "start_min": 3000,
+          "finish_min": 5880,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 8,
+          "baseline": "A",
+          "worker": 3,
+          "start_min": 3000,
+          "finish_min": 5880,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 9,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 5880,
+          "finish_min": 8760,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 10,
+          "baseline": "A",
+          "worker": 1,
+          "start_min": 5880,
+          "finish_min": 8760,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 11,
+          "baseline": "A",
+          "worker": 2,
+          "start_min": 5880,
+          "finish_min": 8760,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 12,
+          "baseline": "A",
+          "worker": 3,
+          "start_min": 5880,
+          "finish_min": 8760,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 13,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 8760,
+          "finish_min": 11640,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 14,
+          "baseline": "A",
+          "worker": 1,
+          "start_min": 8760,
+          "finish_min": 11640,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 15,
+          "baseline": "A",
+          "worker": 2,
+          "start_min": 8760,
+          "finish_min": 11640,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 16,
+          "baseline": "A",
+          "worker": 3,
+          "start_min": 8760,
+          "finish_min": 11640,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 17,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 11640,
+          "finish_min": 14520,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 18,
+          "baseline": "A",
+          "worker": 1,
+          "start_min": 11640,
+          "finish_min": 14520,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 19,
+          "baseline": "A",
+          "worker": 2,
+          "start_min": 11640,
+          "finish_min": 14520,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 20,
+          "baseline": "A",
+          "worker": 3,
+          "start_min": 11640,
+          "finish_min": 14520,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 21,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 14520,
+          "finish_min": 17400,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": true
+        },
+        {
+          "iteration": 22,
+          "baseline": "B",
+          "worker": 1,
+          "start_min": 14520,
+          "finish_min": 17400,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": true
+        },
+        {
+          "iteration": 23,
+          "baseline": "B",
+          "worker": 2,
+          "start_min": 14520,
+          "finish_min": 17400,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": true
+        },
+        {
+          "iteration": 24,
+          "baseline": "B",
+          "worker": 3,
+          "start_min": 14520,
+          "finish_min": 17400,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": true
+        },
+        {
+          "iteration": 25,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 17400,
+          "finish_min": 20280,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": true
+        },
+        {
+          "iteration": 26,
+          "baseline": "B",
+          "worker": 1,
+          "start_min": 17400,
+          "finish_min": 20280,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": true
+        },
+        {
+          "iteration": 27,
+          "baseline": "B",
+          "worker": 2,
+          "start_min": 17400,
+          "finish_min": 20280,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": true
+        },
+        {
+          "iteration": 28,
+          "baseline": "B",
+          "worker": 3,
+          "start_min": 17400,
+          "finish_min": 20310,
+          "major_fixes": 1,
+          "human_min": 20,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 29,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 20280,
+          "finish_min": 23160,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": true
+        },
+        {
+          "iteration": 30,
+          "baseline": "B",
+          "worker": 1,
+          "start_min": 20280,
+          "finish_min": 23160,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": true
+        },
+        {
+          "iteration": 31,
+          "baseline": "B",
+          "worker": 2,
+          "start_min": 20280,
+          "finish_min": 23160,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": true
+        }
+      ]
+    },
+    "serial_memory": {
+      "human_minutes": 356,
+      "wall_clock_minutes": 89550,
+      "major_fixes": 9,
+      "trace": [
+        {
+          "iteration": 1,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 0,
+          "finish_min": 3000,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 2,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 3000,
+          "finish_min": 5880,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 3,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 5880,
+          "finish_min": 8760,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 4,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 8760,
+          "finish_min": 11640,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 5,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 11640,
+          "finish_min": 14520,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 6,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 14520,
+          "finish_min": 17400,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 7,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 17400,
+          "finish_min": 20280,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 8,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 20280,
+          "finish_min": 23160,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 9,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 23160,
+          "finish_min": 26040,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 10,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 26040,
+          "finish_min": 28920,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 11,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 28920,
+          "finish_min": 31800,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 12,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 31800,
+          "finish_min": 34680,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 13,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 34680,
+          "finish_min": 37560,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 14,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 37560,
+          "finish_min": 40440,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 15,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 40440,
+          "finish_min": 43320,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 16,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 43320,
+          "finish_min": 46200,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 17,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 46200,
+          "finish_min": 49080,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 18,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 49080,
+          "finish_min": 51960,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 19,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 51960,
+          "finish_min": 54840,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 20,
+          "baseline": "A",
+          "worker": 0,
+          "start_min": 54840,
+          "finish_min": 57720,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 21,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 57720,
+          "finish_min": 60720,
+          "major_fixes": 4,
+          "human_min": 56,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 22,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 60720,
+          "finish_min": 63600,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 23,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 63600,
+          "finish_min": 66480,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 24,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 66480,
+          "finish_min": 69360,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 25,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 69360,
+          "finish_min": 72240,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 26,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 72240,
+          "finish_min": 75120,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 27,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 75120,
+          "finish_min": 78000,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 28,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 78000,
+          "finish_min": 80910,
+          "major_fixes": 1,
+          "human_min": 20,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 29,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 80910,
+          "finish_min": 83790,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 30,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 83790,
+          "finish_min": 86670,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        },
+        {
+          "iteration": 31,
+          "baseline": "B",
+          "worker": 0,
+          "start_min": 86670,
+          "finish_min": 89550,
+          "major_fixes": 0,
+          "human_min": 8,
+          "unsafe_reuse": false
+        }
+      ]
+    }
+  }
+}

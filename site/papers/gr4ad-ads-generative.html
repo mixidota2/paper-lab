@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GR4ADは広告SID、価値に沿う学習、短い系列の復号、負荷に応じたbeam幅を合わせて設計する。Table 1の最終構成は収益+4.28%（対DLRM）、QPS+117%（対OneRec-V2）。比較基準を分けて、400M超ユーザーへの展開という著者報告を読む。">
+  <title>広告の価値学習とbeam探索を、同じ配信予算の中でどう両立するか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-02-26</span></div>
+    <h1>広告の価値学習とbeam探索を、同じ配信予算の中でどう両立するか</h1>
+    <p class="lede">GR4ADは広告SID、価値に沿う学習、短い系列の復号、負荷に応じたbeam幅を合わせて設計する。Table 1の最終構成は収益+4.28%（対DLRM）、QPS+117%（対OneRec-V2）。比較基準を分けて、400M超ユーザーへの展開という著者報告を読む。</p>
+    <details class="bibliography"><summary>原論文：Generative Recommendation for Large-Scale Advertising</summary><p>Ben Xue, Dan Liu, Lixiang Wang, Mingjie Sun, Peng Wang, Pengfei Zhang, Shaoyun Shi, Tianyu Xu, Yunhao Sha, Zhiqiang Liu, Bo Kong, Bo Wang, Hang Yang, Jieting Xue, Junhao Wang, Shengyu Wang, Shuping Hui, Wencai Ye, Xiao Lin, Yongzhi Li, Yuhang Chen, Zhihui Yin, Quan Chen, Shiyang Wen, Wenjin Wu, Han Li, Guorui Zhou, Changcheng Li, Peng Jiang, Kun Gai</p><p>2602.22732 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2602.22732">原典を読む ↗</a><a href="https://arxiv.org/pdf/2602.22732">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-14 · 提供PDFを通読し、arXiv書誌と照合。数値は著者報告であり、独立再現ではない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>GR4ADは広告SID、価値に沿う学習、短い系列の復号、負荷に応じたbeam幅を合わせて設計する。Table 1の最終構成は収益+4.28%（対DLRM）、QPS+117%（対OneRec-V2）。比較基準を分けて、400M超ユーザーへの展開という著者報告を読む。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>同じ動画を使う広告でも、advertiserやconversion typeが違えば配信先と価値は変わる。内容だけのSIDでは識別できず、クリック履歴の模倣だけでは価値の高い候補を十分に探索できない。しかも後半のSIDでは多数のbeamを処理するため、予測が容易な階層へ計算を使いすぎる。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者はUA-SIDで広告固有の情報を符号化し、VSLとRSPOで興味と価値を学び、LazyARとDBSで配信費用を抑える。Kuaishou広告に0.16Bモデルを全面展開し、L20あたり500超QPS・100ms未満の推論を報告する（§4）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>個別の新型decoderだけを評価すると論点を外す。候補の識別、価値の教師、探索量の配分を合わせた改善である。ただしstackの差分表だけでは要素間の相互作用まで分離できない。報酬モデルの誤差や露出の偏りがあると、listwise整合性を上げても真の収益が上がるとは限らない。</p></div></div>
+      </section>
+      <figure class="paper-svg teaching"><h3>意味の残差と業務上の識別を別の層へ置く</h3><a href="../figures/gr4ad-ads-generative/figures/tokenization.svg" aria-label="意味の残差と業務上の識別を別の層へ置くを拡大"><img src="../figures/gr4ad-ads-generative/figures/tokenization.svg" alt="意味の残差と業務上の識別を別の層へ置く。Figure 2・Table 2を再構成。最後の1024*はhash層。" loading="lazy"></a><figcaption>Figure 2・Table 2を再構成。最後の1024*はhash層。 <a href="../figures/gr4ad-ads-generative/figures/tokenization.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>UA-SIDは動画だけでなく商品と広告主を読む</h3>
+<p>広告の表現UAEは、動画の視覚・ASR・OCRなど、商品の価格・title、advertiserの地域や属性を統合する。原典Table 2はbackboneをQwen3-VL-7Bと表記する。本Labではこのモデル名を原文に従って記し、別の公開モデル名へ補正しない。instruction tuningに加え、同時出現するVideo/Product/Advertiserの組を正例、batch内の他例を負例とするInfoNCEで表現を学ぶ（§3.1、式1）。</p>
+<p>残差量子化は各段で近い中心を選び、残差を次段へ渡す。MRは初期のcodebookを大きくし、意味の大きな違いを先に分ける。各段はbalanced k-meansで利用の偏りを抑える。MGはitem/account IDやconversion typeなどをhashし、最後の数値層へ置く。同じ意味の広告を業務上区別する役割を持つ（Figure 2）。hashなので衝突ゼロの保証はない。</p>
+<h3>VSLは価値を加味した模倣、RSPOはlistの相対順位を学ぶ</h3>
+<p>VSLはSIDの次token予測に、等頻度bucketへ離散化したeCPM tokenの予測を加える。このtokenはSIDの後に置かれ、生成広告の並べ替えに使える。ユーザーの長期広告価値と行動の深さの積をsample weightにする。</p>
+<p><code>L_NTP = −Σ_t log p(s_t | s_&lt;t, X) − λ_e log p(v_bucket | y, X)</code></p>
+<p><code>L_VSL = E[w_user w_behavior (L_NTP + λ_mtp L_MTP)]</code></p>
+<p>MTP補助損失は、後述の前tokenを注入しない経路にも予測力を持たせる。SID出力を当てるだけで前半層を使わなくなるのを避ける狙いがある。</p>
+<p>RSPOは報酬v_i（eCPM）の低い候補集合 <code>E_i = {j : v_j &lt; v_i}</code> に対して、次の損失を使う。式16を読みやすく置き換えると、</p>
+<p><code>a_ij = β[log pθ(y_j|X) − C_ij log p_ref(y_j|X) − log pθ(y_i|X) + C_ij log p_ref(y_i|X)]</code></p>
+<p><code>L_RSPO = E_i log₂(1 + Σ_(j∈E_i) M_ij exp(a_ij))</code></p>
+<p>ここで <code>M_ij = (1/D_|i−j| − 1/D_(|i−j|+1)) |G_i−G_j|</code>、<code>D_i=log₂(1+i)</code>、<code>G_i=(2^v_i−1)/Z</code>、Zはideal DCGである。RSPOでは、例えば報酬順位1位の広告が3位の広告より低いscoreになると損失が増える。順位間隔と価値差に応じて重みが変わる。単純なchosen/rejectedの二者比較よりlist全体を扱う。</p>
+<p>C_ijは参照分布が利用可能で信頼できるとき1、それ以外は0。原典式18は対象集合内の平均log確率比が閾値δ未満かで判定する。別pipeline由来のsampleや古い参照分布を扱う工夫である。Appendix A.1のNDCGcostの上界という議論は、このscoreと重みの定義に関するもので、真の収益改善の保証ではない。</p>
+<h3>UVRは順位のずれで学習の配分を変える</h3>
+<p>モデル確率の順位r_pと報酬順位r_vから <code>A(i)=|r_p(i)−r_v(i)|/(n−1)</code> を計算する。ずれが大きいとVSL、小さいとRLを強める。</p>
+<p><code>w_VSL(i)=w₀ exp[A(i) log(1+v_i)]</code></p>
+<p><code>w_RL(i)=w₀ Z_max (1−A(i))</code></p>
+<p><code>L=E_i[w_VSL(i)L_VSL(i)+w_RL(i)L_RSPO(i)]</code></p>
+<p>著者はこれを安定した興味分布と価値探索の調整と説明する（式19–22）。research_botの批評として、順位の一致だけではユーザー満足も報酬の校正も分からない。報酬モデルが同じ誤りを繰り返せばAが小さくても危うい。</p>
+<h3>LazyARは前tokenの注入を後ろへ遅らせる</h3>
+<p>通常のARは前tokenのembeddingを最初の層へ入れ、各SID段で全decoderを計算する。LazyARではposition embeddingから先頭K層の状態mを先に計算し、<code>Fuse(m,s)=W_f[m ⊙ (W_g s); s]</code> で前tokenを注入する。その後L−K層を逐次実行する（式5–11）。層はOneRec-V2に従うcross-attention、self-attention、FFNとpre-layer normで構成する。</p>
+<p>実験構成はL=9、K=6。前半6層は各生成位置について先に計算でき、beam間で共有する。後半3層が候補別の逐次処理を担う。第1SIDの生成は全層を通す。短いSIDと大きなbeamに適した節約であり、長文の通常LLM decodingへそのまま一般化しない。</p>
+<h3>DBSは階層ごとの幅と時間帯ごとの幅を変える</h3>
+<p>Dynamic Beam Widthは[512,512,512]を[128,256,512]へ変え、最終候補数を保って前半を縮める。TABSは混雑時のbeamを維持し、閑散時に60%増やして余剰計算を探索へ回す。<code>B_t=B_base f(Q_t,C_avail)</code> の関数形は詳述されないため、完全なcontrollerは再実装できない（§4.2）。</p>
+<p>reward systemでは実露出から学んだ価値モデルで、より広いbeamと探索により得た候補を採点する。そのログとVSLログで継続学習し、servingへパラメータを同期する。新規広告はUA-SID↔item indexへ追加する。<a href="tagr-live-sid.html">TAGR</a>が扱う時間変化に応じたSID更新は別の軸であり、GR4ADのhashによる識別と補完的に検討できる。</p>
+<p><a href="https://arxiv.org/pdf/2602.22732v3">一次資料：arXiv v3</a></p></div>      </section>
+      <figure class="paper-svg teaching"><h3>候補ごとの逐次計算を後半3層へ寄せる</h3><a href="../figures/gr4ad-ads-generative/figures/lazyar.svg" aria-label="候補ごとの逐次計算を後半3層へ寄せるを拡大"><img src="../figures/gr4ad-ads-generative/figures/lazyar.svg" alt="候補ごとの逐次計算を後半3層へ寄せる。§3.2・§5.1のL=9、K=6。図は依存関係で、処理時間の縮尺ではない。" loading="lazy"></a><figcaption>§3.2・§5.1のL=9、K=6。図は依存関係で、処理時間の縮尺ではない。 <a href="../figures/gr4ad-ads-generative/figures/lazyar.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>UA-SIDは意味情報と数値的な業務識別を分担する。LazyARは前段の文脈処理をbeam間で共有し、多数候補に必要な後段だけを逐次化する。RSPOが価値の相対順位を学び、DBSが余裕のある時間帯の探索を増やす。この連携には合理性があるが、hashの追加だけで価値が学べるわけではない。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>順位のずれでVSLとRSPOの比重を変える</h3><a href="../figures/gr4ad-ads-generative/figures/uvr.svg" aria-label="順位のずれでVSLとRSPOの比重を変えるを拡大"><img src="../figures/gr4ad-ads-generative/figures/uvr.svg" alt="順位のずれでVSLとRSPOの比重を変える。式19–22を再構成。大きいAではVSL重視、小さいAではRL重視。" loading="lazy"></a><figcaption>式19–22を再構成。大きいAではVSL重視、小さいAではRL重視。 <a href="../figures/gr4ad-ads-generative/figures/uvr.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>収益とQPSは異なる基準に対する変化</h3>
+<p>提供PDF v3 Table 1の値。収益列はDLRM、QPS列はOneRec-V2（GR-Base）を基準とする。各行はstackへの追加で、単独要素のランダム化比較とは限らない。</p>
+<table>
+<thead>
+<tr>
+<th>構成</th>
+<th style="text-align: right;">収益：対DLRM</th>
+<th style="text-align: right;">QPS：対GR-Base</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OneRec-V2</td>
+<td style="text-align: right;">+1.68%</td>
+<td style="text-align: right;">基準</td>
+</tr>
+<tr>
+<td>+ UA-SID</td>
+<td style="text-align: right;">+1.92%</td>
+<td style="text-align: right;">0%</td>
+</tr>
+<tr>
+<td>+ VSL</td>
+<td style="text-align: right;">+2.80%</td>
+<td style="text-align: right;">−25%</td>
+</tr>
+<tr>
+<td>+ VSL + DPO</td>
+<td style="text-align: right;">+3.16%</td>
+<td style="text-align: right;">−25%</td>
+</tr>
+<tr>
+<td>+ VSL + GRPO</td>
+<td style="text-align: right;">+3.21%</td>
+<td style="text-align: right;">−25%</td>
+</tr>
+<tr>
+<td>+ VSL + RSPO</td>
+<td style="text-align: right;">+3.86%</td>
+<td style="text-align: right;">−25%</td>
+</tr>
+<tr>
+<td>+ Unified VSL &amp; RSPO（UVR）</td>
+<td style="text-align: right;">+4.01%</td>
+<td style="text-align: right;">−25%</td>
+</tr>
+<tr>
+<td>+ UVR + DBS</td>
+<td style="text-align: right;">+4.32%</td>
+<td style="text-align: right;">+20%</td>
+</tr>
+<tr>
+<td>+ UVR + DBS + DeepSeek-MTP</td>
+<td style="text-align: right;">+3.98%</td>
+<td style="text-align: right;">+117%</td>
+</tr>
+<tr>
+<td>GR4AD：UVR + DBS + LazyAR</td>
+<td style="text-align: right;">+4.28%</td>
+<td style="text-align: right;">+117%</td>
+</tr>
+</tbody>
+</table>
+<p>最終行は収益最大の行ではない。DBSまでの構成に比べ、LazyARは収益liftを0.04ポイント下げ、throughputを増やしている。abstractの「up to 4.2%」は概数なので、ここでは表の精度を保つ。QPSをDLRM比+117%と読み替えない。</p>
+<h3>衝突率は何を分母にするか</h3>
+<p>Table 2では、RQ-KmeansのCpr/Colは3.54/85.44%、MR追加で1.78/59.72%、MG＋MRで1.07/18.26%。符号空間は4096³から16384×4096×1024へ変わり、総容量は同じ。Colは「使われたSIDのうち、複数itemに対応するSIDの割合」である（Appendix A.3）。広告の何%が衝突したかとは異なる。</p>
+<p>元のembeddingのphoto-to-photo R@1はQARM 0.541、Qwen3-VL-7B 0.769、instruction tuning＋co-occurrence learning後のUAE 0.896。これは同じ広告商品に属する画像を探す評価で、オンライン収益そのものではない。</p>
+<p>Table 4のDBW比較では固定[512,512,512]に対し、[128,256,512]が収益−0.15%／QPS+45%。第3層だけ128へ縮めると収益−0.85%／QPS+5%。最終候補数を保ちながら前半を節約する意味が見える。Table 1のDBSは時間帯制御も含むため、この−0.15%と直接混ぜない。<a href="https://arxiv.org/pdf/2602.22732v3">一次資料：Tables 1, 2, 4</a>。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>最終候補数を保って前半のbeamを細くする</h3><a href="../figures/gr4ad-ads-generative/figures/serving.svg" aria-label="最終候補数を保って前半のbeamを細くするを拡大"><img src="../figures/gr4ad-ads-generative/figures/serving.svg" alt="最終候補数を保って前半のbeamを細くする。Table 4の値は固定[512,512,512]比。TABSの時間帯調整とは分けて読む。" loading="lazy"></a><figcaption>Table 4の値は固定[512,512,512]比。TABSの時間帯調整とは分けて読む。 <a href="../figures/gr4ad-ads-generative/figures/serving.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/gr4ad-ads-generative/run.py</code></p>
+<p>160種の合成contentにそれぞれ4 advertiserを付け、640広告を作る。固定中心による3段の残差量子化と、最終段を数値IDのSHA-256 hashへ置換した方式を比較する。10 seeds、hash bins=4/16/64を計算する。bins=4だけが同じ符号空間での比較で、16/64は容量を増やす感度分析である。</p></div><div class="downloads"><a href="../downloads/gr4ad-ads-generative/run.py" download>実行コード</a><a href="../downloads/gr4ad-ads-generative/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/gr4ad-ads-generative">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>合成データ640広告、10 seeds。学習済みUAE・balanced k-means・MGMRの再現ではない。性能と本番はNOT TESTED。</em></p>
+<h3>最終層に数値IDを入れると同一内容を区別できるか</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>rq_collision_pct</th><th>hash_collision_pct</th><th>code_space</th></tr></thead><tbody><tr><th scope='row'>hash_bins=4</th><td>100.0</td><td>92.623</td><td>128</td></tr><tr><th scope='row'>hash_bins=16</th><td>100.0</td><td>51.12</td><td>512</td></tr><tr><th scope='row'>hash_bins=64</th><td>100.0</td><td>15.386</td><td>2048</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成データ640広告、10 seeds。学習済みUAE・balanced k-means・MGMRの再現ではない。性能と本番はNOT TESTED。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;最終層に数値IDを入れると同一内容を区別できるか&quot;,
+      &quot;metrics&quot;: {
+        &quot;hash_bins=4&quot;: {
+          &quot;rq_collision_pct&quot;: 100.0,
+          &quot;hash_collision_pct&quot;: 92.623,
+          &quot;code_space&quot;: 128
+        },
+        &quot;hash_bins=16&quot;: {
+          &quot;rq_collision_pct&quot;: 100.0,
+          &quot;hash_collision_pct&quot;: 51.12,
+          &quot;code_space&quot;: 512
+        },
+        &quot;hash_bins=64&quot;: {
+          &quot;rq_collision_pct&quot;: 100.0,
+          &quot;hash_collision_pct&quot;: 15.386,
+          &quot;code_space&quot;: 2048
+        }
+      }
+    }
+  ],
+  &quot;runs&quot;: {
+    &quot;4&quot;: [
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 86,
+          &quot;compression&quot;: 7.441860465116279,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 127,
+          &quot;compression&quot;: 5.039370078740157,
+          &quot;collision_pct&quot;: 93.7007874015748,
+          &quot;items_in_collisions_pct&quot;: 98.75
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 90,
+          &quot;compression&quot;: 7.111111111111111,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 125,
+          &quot;compression&quot;: 5.12,
+          &quot;collision_pct&quot;: 90.4,
+          &quot;items_in_collisions_pct&quot;: 98.125
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 86,
+          &quot;compression&quot;: 7.441860465116279,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 124,
+          &quot;compression&quot;: 5.161290322580645,
+          &quot;collision_pct&quot;: 87.90322580645162,
+          &quot;items_in_collisions_pct&quot;: 97.65625
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 90,
+          &quot;compression&quot;: 7.111111111111111,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 126,
+          &quot;compression&quot;: 5.079365079365079,
+          &quot;collision_pct&quot;: 92.06349206349206,
+          &quot;items_in_collisions_pct&quot;: 98.4375
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 92,
+          &quot;compression&quot;: 6.956521739130435,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 126,
+          &quot;compression&quot;: 5.079365079365079,
+          &quot;collision_pct&quot;: 94.44444444444444,
+          &quot;items_in_collisions_pct&quot;: 98.90625
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 85,
+          &quot;compression&quot;: 7.529411764705882,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 122,
+          &quot;compression&quot;: 5.245901639344262,
+          &quot;collision_pct&quot;: 86.0655737704918,
+          &quot;items_in_collisions_pct&quot;: 97.34375
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 90,
+          &quot;compression&quot;: 7.111111111111111,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 126,
+          &quot;compression&quot;: 5.079365079365079,
+          &quot;collision_pct&quot;: 93.65079365079364,
+          &quot;items_in_collisions_pct&quot;: 98.75
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 89,
+          &quot;compression&quot;: 7.191011235955056,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 125,
+          &quot;compression&quot;: 5.12,
+          &quot;collision_pct&quot;: 93.6,
+          &quot;items_in_collisions_pct&quot;: 98.75
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 95,
+          &quot;compression&quot;: 6.7368421052631575,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 125,
+          &quot;compression&quot;: 5.12,
+          &quot;collision_pct&quot;: 98.4,
+          &quot;items_in_collisions_pct&quot;: 99.6875
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 98,
+          &quot;compression&quot;: 6.530612244897959,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 125,
+          &quot;compression&quot;: 5.12,
+          &quot;collision_pct&quot;: 96.0,
+          &quot;items_in_collisions_pct&quot;: 99.21875
+        }
+      }
+    ],
+    &quot;16&quot;: [
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 86,
+          &quot;compression&quot;: 7.441860465116279,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 355,
+          &quot;compression&quot;: 1.8028169014084507,
+          &quot;collision_pct&quot;: 52.394366197183096,
+          &quot;items_in_collisions_pct&quot;: 73.59375
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 90,
+          &quot;compression&quot;: 7.111111111111111,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 350,
+          &quot;compression&quot;: 1.8285714285714285,
+          &quot;collision_pct&quot;: 51.142857142857146,
+          &quot;items_in_collisions_pct&quot;: 73.28125
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 86,
+          &quot;compression&quot;: 7.441860465116279,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 350,
+          &quot;compression&quot;: 1.8285714285714285,
+          &quot;collision_pct&quot;: 50.857142857142854,
+          &quot;items_in_collisions_pct&quot;: 73.125
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 90,
+          &quot;compression&quot;: 7.111111111111111,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 346,
+          &quot;compression&quot;: 1.8497109826589595,
+          &quot;collision_pct&quot;: 52.89017341040463,
+          &quot;items_in_collisions_pct&quot;: 74.53125
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 92,
+          &quot;compression&quot;: 6.956521739130435,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 358,
+          &quot;compression&quot;: 1.7877094972067038,
+          &quot;collision_pct&quot;: 50.27932960893855,
+          &quot;items_in_collisions_pct&quot;: 72.1875
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 85,
+          &quot;compression&quot;: 7.529411764705882,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 334,
+          &quot;compression&quot;: 1.9161676646706587,
+          &quot;collision_pct&quot;: 53.89221556886228,
+          &quot;items_in_collisions_pct&quot;: 75.9375
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 90,
+          &quot;compression&quot;: 7.111111111111111,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 357,
+          &quot;compression&quot;: 1.792717086834734,
+          &quot;collision_pct&quot;: 49.85994397759104,
+          &quot;items_in_collisions_pct&quot;: 72.03125
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 89,
+          &quot;compression&quot;: 7.191011235955056,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 351,
+          &quot;compression&quot;: 1.8233618233618234,
+          &quot;collision_pct&quot;: 51.28205128205128,
+          &quot;items_in_collisions_pct&quot;: 73.28125
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 95,
+          &quot;compression&quot;: 6.7368421052631575,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 360,
+          &quot;compression&quot;: 1.7777777777777777,
+          &quot;collision_pct&quot;: 49.44444444444444,
+          &quot;items_in_collisions_pct&quot;: 71.5625
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 98,
+          &quot;compression&quot;: 6.530612244897959,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 358,
+          &quot;compression&quot;: 1.7877094972067038,
+          &quot;collision_pct&quot;: 49.16201117318436,
+          &quot;items_in_collisions_pct&quot;: 71.5625
+        }
+      }
+    ],
+    &quot;64&quot;: [
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 86,
+          &quot;compression&quot;: 7.441860465116279,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 549,
+          &quot;compression&quot;: 1.1657559198542806,
+          &quot;collision_pct&quot;: 15.118397085610201,
+          &quot;items_in_collisions_pct&quot;: 27.1875
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 90,
+          &quot;compression&quot;: 7.111111111111111,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 543,
+          &quot;compression&quot;: 1.1786372007366483,
+          &quot;collision_pct&quot;: 15.837937384898716,
+          &quot;items_in_collisions_pct&quot;: 28.59375
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 86,
+          &quot;compression&quot;: 7.441860465116279,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 538,
+          &quot;compression&quot;: 1.1895910780669146,
+          &quot;collision_pct&quot;: 16.542750929368033,
+          &quot;items_in_collisions_pct&quot;: 29.84375
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 90,
+          &quot;compression&quot;: 7.111111111111111,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 545,
+          &quot;compression&quot;: 1.1743119266055047,
+          &quot;collision_pct&quot;: 15.229357798165132,
+          &quot;items_in_collisions_pct&quot;: 27.8125
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 92,
+          &quot;compression&quot;: 6.956521739130435,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 550,
+          &quot;compression&quot;: 1.1636363636363636,
+          &quot;collision_pct&quot;: 14.363636363636367,
+          &quot;items_in_collisions_pct&quot;: 26.40625
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 85,
+          &quot;compression&quot;: 7.529411764705882,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 537,
+          &quot;compression&quot;: 1.191806331471136,
+          &quot;collision_pct&quot;: 15.642458100558654,
+          &quot;items_in_collisions_pct&quot;: 29.21875
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 90,
+          &quot;compression&quot;: 7.111111111111111,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 545,
+          &quot;compression&quot;: 1.1743119266055047,
+          &quot;collision_pct&quot;: 15.412844036697248,
+          &quot;items_in_collisions_pct&quot;: 27.96875
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 89,
+          &quot;compression&quot;: 7.191011235955056,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 548,
+          &quot;compression&quot;: 1.167883211678832,
+          &quot;collision_pct&quot;: 14.41605839416058,
+          &quot;items_in_collisions_pct&quot;: 26.71875
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 95,
+          &quot;compression&quot;: 6.7368421052631575,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 539,
+          &quot;compression&quot;: 1.1873840445269017,
+          &quot;collision_pct&quot;: 16.512059369202227,
+          &quot;items_in_collisions_pct&quot;: 29.6875
+        }
+      },
+      {
+        &quot;rq&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 98,
+          &quot;compression&quot;: 6.530612244897959,
+          &quot;collision_pct&quot;: 100.0,
+          &quot;items_in_collisions_pct&quot;: 100.0
+        },
+        &quot;hash&quot;: {
+          &quot;items&quot;: 640,
+          &quot;unique_sids&quot;: 548,
+          &quot;compression&quot;: 1.167883211678832,
+          &quot;collision_pct&quot;: 14.78102189781022,
+          &quot;items_in_collisions_pct&quot;: 27.03125
+        }
+      }
+    ]
+  },
+  &quot;definition&quot;: &quot;Col = 1 - singleton occupied SIDs / occupied SIDs; hash collision is still possible&quot;
+}</code></pre></details><p>同じcontentに複数広告を付けたため、内容だけのSIDはすべて衝突を含む。hashで区別できる広告は増えるが、有限bucketでは再衝突する。表示するColは原典の分母に合わせ、item基準の割合もJSONに保存する。数値は論文の18.26%を再現するために調整していない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。意味が同じでも数値IDで分けられることと、hash幅による再衝突を合成例で確認した。Colの分母がitem数と異なることも計算した。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。UAEの学習、balanced k-means、RSPO、LazyARの実速度、広告収益は未検証。A/Bの信頼区間と割付期間の詳細を確認できない。全面展開と400M超ユーザーという記述は著者報告であり、独立監査ではない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>nearest()</code> は固定中心への量子化、<code>experiment()</code> は同一prefixを保って最終層だけを差し替える。<code>collision_metrics()</code> は占有SIDとitemの両方を分母にした指標を返す。訓練で最適化したcodebookではないため、MGMR全体の品質を測る用途には使わない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>原典</th>
+<th>Labの対応</th>
+<th>省略・確認範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3.1、Figure 2</td>
+<td>tokenization.svg、experiment()</td>
+<td>MLLM・学習済みcodebook・balanced k-meansなし</td>
+</tr>
+<tr>
+<td>Appendix A.3、式34</td>
+<td>collision_metrics()</td>
+<td>Colとitem基準の違いを確認</td>
+</tr>
+<tr>
+<td>§3.2、Figure 3</td>
+<td>lazyar.svg、method.md</td>
+<td>NN計算・速度測定なし</td>
+</tr>
+<tr>
+<td>§3.3–3.4</td>
+<td>method.mdの式、uvr.svg</td>
+<td>VSL/RSPO学習は未実装</td>
+</tr>
+<tr>
+<td>§4.2、Table 4</td>
+<td>serving.svg、evidence</td>
+<td>報告値の転記。DBSの再現ではない</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード：提供論文とarXiv書誌内で実行可能な公式実装URLを確認できなかった。公式コードとの同等性は未検証。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>広告の価値学習とbeam探索を、同じ配信予算の中でどう両立するか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/gr4ad-ads-generative/lab.yaml" download>このページの原データ</a></footer>
+</body></html>
