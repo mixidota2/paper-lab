@@ -1,0 +1,243 @@
+id: quasid-collision-qualified-sid
+arxiv_id: '2603.00632'
+submitted: '2026-02-28'
+title: 'Stop Treating Collisions Equally: Qualification-Aware Semantic ID Learning for Recommendation at Industrial
+  Scale'
+authors:
+- Zheng Hu
+- Yuxin Chen
+- Yongsen Pan
+- Xu Yuan
+- Yuting Yin
+- Daoyuan Wang
+- Boyang Xia
+- Zefei Luo
+- Hongyang Wang
+- Songhao Ni
+- Dongxu Liang
+- Jun Wang
+- Shimin Cai
+- Tao Zhou
+- Fuji Ren
+- Wenwu Ou
+year: 2026
+topics:
+- recommender-systems
+- evaluation
+- generative-recommendation
+urls:
+  paper: https://arxiv.org/abs/2603.00632
+  arxiv: https://arxiv.org/abs/2603.00632
+  pdf: https://arxiv.org/pdf/2603.00632v1
+  official_code: null
+verdict: Worth Reading
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- 2026-09-15-recommendation
+status: published
+question: SIDが重なったとき、本当に引き離すべき組はどれか
+summary: QuaSIDは、SIDの重なりから反発対象を選ぶ学習法である。同一itemと協調正例をmaskで除き、完全衝突と部分衝突に異なる幾何マージンを課す。KuaishouはrankingのGMV-S2 +2.38%、cold-start
+  retrievalの注文数+6.42%を報告する。衝突ゼロの保証と、害のある衝突を減らす学習を区別する。
+source_review:
+  checked: '2026-09-15'
+  url: https://arxiv.org/html/2603.00632v1
+  scope: arXiv v1の全文HTMLを通読。本文・全表・図の説明・末尾の付録（存在する場合）を確認。PDF原版との画像照合は未実施。
+  version: v1
+core_idea:
+  author_claim: 著者は、反発対象を限定するCVPM（Conflict-Aware Valid Pair Masking）と、Hamming距離に応じたHaMR（Hamming-guided Margin Repulsion）を提案する。再構成・残差量子化・協調contrastive
+    lossとともに学習し、推薦に必要な近さを保ちながら不適切な重なりを減らすと主張する（§4）。
+  research_bot_interpretation: 「qualified」は意味の正しさを保証する認証ではない。同一IDと構築済み正例を除外した残りを候補衝突と扱う、観測可能な規則である。未観測の良い関係は残り得る。コードの一意性だけを目標にすると、一般化に役立つ共有まで消すため、推薦指標と合わせて評価したい。
+sections:
+  overview: QuaSIDは、SIDの重なりから反発対象を選ぶ学習法である。同一itemと協調正例をmaskで除き、完全衝突と部分衝突に異なる幾何マージンを課す。KuaishouはrankingのGMV-S2 +2.38%、cold-start
+    retrievalの注文数+6.42%を報告する。衝突ゼロの保証と、害のある衝突を減らす学習を区別する。
+  method: method.md
+  problem: 同じSIDが付いた2例でも、異なる商品を誤って一緒にした場合と、同一商品の重複サンプリングでは意味が違う。協調学習で近付けたいtrigger–targetの正例もある。低いHamming距離をすべて反発させると、contrastive
+    lossと逆向きの学習信号を作ってしまう。
+  why_it_might_work: Hamming距離は離散コードでの混同を検出し、cosine距離は連続encoderへ勾配を渡す。両者をつなぐことで、単なる再構成誤差が見落とす混同へ圧力を掛けられる。CVPMは既知の良い重なりを保護する。もっとも、現在のコードが等しい理由を完全には分類できず、反発を強めすぎると意味の近さを壊す。
+  evidence: '### 同じTIGERでtokenizerを比べる
+
+
+    Amazon-BeautyとToys & Gamesの5-core、leave-one-out評価。文字属性はSentence-T5-XXLで埋め込み、全方式でTIGERを使う。5 seedsの平均で、offlineは3層×256コード、産業設定は4層×1024コード。Table
+    2のBeauty NDCG@10はRQ-Kmeans 0.0211、QuaSID 0.0230。Toysは0.0213対0.0225である。
+
+
+    Table 5でCVPMを外すとBeauty NDCG@5が0.0193→0.0181、HaMRを外すと0.0170になる。一方、Table 3のRQ-OPQ＋HaMRはToys HR@5が0.0228→0.0227へわずかに低下する。全方式・全指標の一律改善ではない。[Tables
+    2–5](https://arxiv.org/html/2603.00632v1#S5)
+
+
+    ### entropyを上げれば推薦が良くなるとは限らない
+
+
+    SID composition entropyはコード利用の多様性である。ToysのSimRQはentropy 9.3688でRQ-Kmeansの9.3460より高いが、NDCG@10は0.0190で0.0213より低い。HaMRだけを足した方式で、QuaSIDよりentropyが高くなる例もある。意味・協調信号と識別の両方が要るという解釈を支えるが、相関だけで因果機構は確定しない。
+
+
+    ### GMV-S2はシナリオ別の売上指標
+
+
+    5日間、約5%のtraffic、2000万人超を含むtreatmentをランダム割付したA/B。GMV-S1/S2はシナリオ別のGMVであり、第二段rankerの改善率という意味ではない。rankingへのSID特徴追加はGMV-S2
+    +2.38%、generative retrievalのtokenizer置換は+0.55%。介入位置が違うので足し合わせない。
+
+
+    cold-startの100vv / 600vvは、最初の48時間でviewが100未満 / 600未満の動画。互いに排他的な群とは読めない。retrieval 100vvの注文数+6.42%は新規ユーザー全体の効果ではない。著者は表4の全結果を有意とするが、信頼区間や正確なp値は示していない。[§5.4、Table
+    4](https://arxiv.org/html/2603.00632v1#S5.SS4)
+
+
+    上記は一次資料の著者報告であり、このLabの合成実験値とは分けている。'
+  executable_understanding: '`uv run papers/quasid-collision-qualified-sid/run.py`
+
+
+    trigger3件とtarget3件を連結した6例で、同一item・構築正例・完全衝突・部分衝突・半径外を区別する。全ordered pairについてmaskと群別平均を計算し、maskなしと比較する。別の2次元例では一方の方向を固定し、hinge
+    lossの勾配で他方の角度を80回更新する。'
+  results: CVPMを有効にすると同一itemと構築正例の反発が0になる。完全衝突は距離0.8、部分衝突は0.5に達するとhingeが消える。角度の更新では連続距離が増えるが、固定したSIDは変わらない。したがってこの教材での離散衝突減少はNOT
+    OBSERVEDである。これはQuaSID全体への反証ではなく、実装していない離散再割当の効果を計上しないための表示である。
+  what_we_verified: CONFIRMED：CVPMの同一ID・正例除外、Hamming半径の境界、群ごとの平均、空集合でも有限のloss、0.8/0.5のhinge条件。Mechanism PARTIAL：encoderの角度に掛かる力まで。固定SIDでの衝突減少はNOT
+    OBSERVED。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Sentence-T5-XXL、Swingの正例構築、RQ
+    codebook・decoderの学習、STE、TIGER、KuaishouのGMVは未検証。CVPMが真の意味衝突を完全に判定するとは確認していない。任意のquantizerにHaMRを足せるとも断定しない。Table
+    3は同じend-to-end勾配学習に属さないRQ-Kmeansを除いている。
+  implementation: '`qualified()` は連結batchの位置とitem IDから式8のmaskを作る。`pair_loss()` は式11–12、`hamr()` は式13の完全・部分集合をそれぞれ平均する。両群を一括で平均しない。`angular_update()`
+    は片方を固定した2次元方向の更新で、全モデルのSGDではない。`results.json`にはpairごとの距離・判定・lossを残す。'
+teaching_figures:
+- id: collision-taxonomy
+  kind: matrix
+  title: 同じコードでも、離すべき組は違う
+  after: core_idea
+  locator: §4.2 / Figure 3
+  caption: 4 tokenの例を再構成。qualifiedは観測可能な除外規則を通ったという意味。
+  rationale: 4 tokenの例を再構成。qualifiedは観測可能な除外規則を通ったという意味。
+  columns:
+  - SIDの例
+  - CVPM
+  - 扱い
+  rows:
+  - label: 同じitemの再出現
+    cells:
+    - 1111 ↔ 1111
+    - 除外
+    - 反発しない
+  - label: 構築した協調正例
+    cells:
+    - 1111 ↔ 1111
+    - 除外
+    - contrastiveの近さを守る
+  - label: 別item・正例ではない
+    cells:
+    - 1111 ↔ 1111
+    - 対象
+    - 完全衝突：margin .8
+  - label: 別item・正例ではない
+    cells:
+    - 1111 ↔ 1122
+    - 対象
+    - H=2：産業R=2で部分衝突
+  - label: 半径の外
+    cells:
+    - 1111 ↔ 2222
+    - 対象だがH>R
+    - HaMRは0
+  source: https://arxiv.org/html/2603.00632v1
+- id: qualified-margin
+  kind: equations
+  title: 離散の重なりを、連続空間の反発へ変える
+  after: method
+  locator: 式8–14 / Appendix A.2
+  caption: 原式の条件付けと正規化を保ち、記号をUnicodeで表記。
+  rationale: 原式の条件付けと正規化を保ち、記号をUnicodeで表記。
+  steps:
+  - name: 除外・式8
+    formula: Mᵢⱼ = Mⁱ²ⁱᵢⱼ Mⁱᵗᵉᵐᵢⱼ; Mⁱᵗᵉᵐᵢⱼ = 𝟙[id(i) ≠ id(j)]
+    explanation: Mⁱ²ⁱは対応するtrigger–target正例で0、それ以外で1。
+  - name: 距離・式9–10
+    formula: Hᵢⱼ = Σₗ₌₁ᴸ 𝟙[sᵢ⁽ˡ⁾ ≠ sⱼ⁽ˡ⁾]; Dᵢⱼ = 1 − eᵢᵀeⱼ
+    explanation: eはzをL2正規化したvector。
+  - name: 衝突の2群
+    formula: 'Ωfull = {(i,j): Hᵢⱼ=0 ∧ Mᵢⱼ=1}; Ωpartial = {(i,j): 0<Hᵢⱼ≤R ∧ Mᵢⱼ=1}'
+    explanation: 同一itemと正例を除いてから群へ入れる。
+  - name: hinge・式11–12
+    formula: Lfull(i,j)=max(0,mfull−Dᵢⱼ); Lpartial(i,j)=max(0,mpartial−Dᵢⱼ)
+    explanation: mfull=.8 ≥ mpartial=.5。閾値以上へ離れたpairは0。
+  - name: 群別平均・式13
+    formula: LHaMR = λfull ΣΩfull Lfull / (|Ωfull|+ε) + λpartial ΣΩpartial Lpartial / (|Ωpartial|+ε)
+    explanation: ε>0で空集合も扱う。toyの重みは.2 / .1。
+  - name: 総損失・式14
+    formula: L = Lrec + Lrq + LHaMR + Lcl
+    explanation: 再構成とRQの忠実性、協調関係、反発を同時に最適化する。
+  source: https://arxiv.org/html/2603.00632v1
+- id: online-surfaces
+  kind: matrix
+  title: SIDを入れた段階ごとに効果を読む
+  after: evidence
+  locator: Table 4
+  caption: 本番比の相対変化。GMV-S1/S2は別scenarioのGMV。
+  rationale: 本番比の相対変化。GMV-S1/S2は別scenarioのGMV。
+  columns:
+  - 注文数
+  - GMV-S1
+  - GMV-S2
+  rows:
+  - label: Generative retrieval
+    cells:
+    - +0.21%
+    - +1.03%
+    - +0.55%
+  - label: Ranking
+    cells:
+    - +0.20%
+    - +1.44%
+    - +2.38%
+  source: https://arxiv.org/html/2603.00632v1
+- id: cold-start
+  kind: matrix
+  title: 最初の48時間、低viewの動画への効果
+  after: evidence
+  locator: Table 4 / §5.4
+  caption: 100vvは100未満、600vvは600未満。GPMは1000露出当たりGMV。
+  rationale: 100vvは100未満、600vvは600未満。GPMは1000露出当たりGMV。
+  columns:
+  - 注文数
+  - GMV
+  - GPM
+  rows:
+  - label: 通常Retrieval
+    cells:
+    - +1.09%
+    - +1.69%
+    - +3.25%
+  - label: Retrieval 100vv
+    cells:
+    - +6.42%
+    - +4.67%
+    - +0.21%
+  - label: Retrieval 600vv
+    cells:
+    - +4.69%
+    - +3.11%
+    - +0.53%
+  - label: Ranking 100vv
+    cells:
+    - +1.77%
+    - +4.10%
+    - +2.99%
+  - label: Ranking 600vv
+    cells:
+    - +2.64%
+    - +3.88%
+    - +2.78%
+  source: https://arxiv.org/html/2603.00632v1
+interactives:
+- kind: explorer
+  title: 角度を広げると、いつ反発が止まるか
+  caption: 完全・部分衝突のhingeを同じ角度で比較する。同一item・協調正例はmaskにより0。式11–12の計算で、オンライン成果ではない。
+figures:
+- path: figures/geometry.svg
+  title: 連続距離と離散衝突は別に測る
+  caption: 式10–12からθ=arccos(1−m)を計算。原論文の測定図ではない。
+  after: method
+- path: figures/online.svg
+  title: GMV-S2の2つのA/B
+  caption: Table 4。5日間、約5% trafficの著者報告。Labで独立検証した成果ではない。
+  after: evidence

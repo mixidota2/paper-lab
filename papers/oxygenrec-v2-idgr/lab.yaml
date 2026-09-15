@@ -1,0 +1,223 @@
+id: oxygenrec-v2-idgr
+arxiv_id: '2607.24255'
+submitted: '2026-07-27'
+title: 'OxygenREC-v2: Internalizing Discrimination into Generative Recommendation'
+authors:
+- Guo Tang
+- Hanye Wu
+- Changjiang Han
+- Qingyang Li
+- Ming Zhang
+- Xiangyu Qian
+- Yanchen Qiao
+- Huanjie Wang
+- Zhi Ma
+- Zhen Li
+- Yaqiang Zang
+- Pinghua Gong
+year: 2026
+topics:
+- recommender-systems
+- evaluation
+- generative-recommendation
+urls:
+  paper: https://arxiv.org/abs/2607.24255
+  arxiv: https://arxiv.org/abs/2607.24255
+  pdf: https://arxiv.org/pdf/2607.24255v1
+  official_code: null
+verdict: Must Read
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- 2026-09-15-recommendation
+status: published
+question: 行動を生成前に指定し、未来情報を推論へ漏らさず学習へ使えるか
+summary: JD.comのOxygenREC-v2は、click・cart・orderの指示でSID生成を条件付ける。学習時には実ログとの一致と、未来行動を見た同一backboneの教師を使う。IDGRの焦点は行動信号を入れる位置にある。6つの配信面のA/Bを読み分け、外部報酬モデルの除去をサービス全体のカスケード撤去へ広げない。
+source_review:
+  checked: '2026-09-15'
+  url: https://arxiv.org/html/2607.24255v1
+  scope: arXiv v1の全文HTMLを通読。本文・全表・図の説明・末尾の付録（存在する場合）を確認。PDF原版との画像照合は未実施。
+  version: v1
+core_idea:
+  author_claim: 著者はIDGR（Internalizing Discrimination into Generative Recommendation）として、入力の行動指示と行動重み付き学習を提案する。追加学習のEA-TOSDは、検証可能な軌跡報酬と、教師のentropyに応じた2種類の自己蒸留を組み合わせる。単一backboneを保ち、外部の行動scorerを不要にするという主張である（§4）。
+  research_bot_interpretation: 候補を生成する前に目的を渡す設計と、生成済み候補の採点を分けて読むと違いが明確になる。ただし条件付き生成もログにない選好を保証しない。未来prefixは訓練だけに置く必要があり、外部報酬モデルがなくても、ログの偏りや損失重みの選択は残る。
+sections:
+  overview: JD.comのOxygenREC-v2は、click・cart・orderの指示でSID生成を条件付ける。学習時には実ログとの一致と、未来行動を見た同一backboneの教師を使う。IDGRの焦点は行動信号を入れる位置にある。6つの配信面のA/Bを読み分け、外部報酬モデルの除去をサービス全体のカスケード撤去へ広げない。
+  method: method.md
+  problem: クリックされやすい商品と購入されやすい商品は一致しない。生成後にrankerで点を付けても、beamから消えた商品は戻らない。一方、生成損失と識別headの損失を共有backboneで最適化すると、その重みの調整が必要になる。原論文はこの2つの経路と、生成の入口に行動を置く経路を比較する（Figure
+    1、Appendix C）。
+  why_it_might_work: 行動指示は最初のSID tokenから参照されるため、粗い商品カテゴリを選ぶ段階で目的を変えられる。未来を見た教師は疎な完全一致報酬を補う。低entropy位置では特定tokenの方向を、高entropy位置では複数候補への確率を伝える。ただしentropyは正しさの証明ではない。自信のある誤りや、未来ログ自体の偏りまで自動で除去する機構ではない。
+  evidence: '### 全指標でProxy-RMに勝ったわけではない
+
+
+    Table 1のHR@1はv1 PT-only 4.62%、Proxy-RM 5.54%、v2 5.64%。HR@512は43.24%、43.09%、44.14%である。v1からのHR@1差は**1.02ポイント**で、相対1.02%ではない。v2は7指標中6指標でProxy-RMを上回るが、HR@128は33.76%対33.89%で下回る。
+
+
+    ### 追加学習のどこが効いたか
+
+
+    Table 4ではFKL除去でHR@512が44.14%から43.80%へ落ちる。一方、VRだけでもHR@1は5.64%で完全構成と同じ。すべての項がすべての指標を改善したとは読めない。Table 5では低・高entropy各20%の選択が各100%より良いが、20%はこの条件の実測結果であり普遍的な最適値ではない。
+
+
+    ### 6面のA/Bは母集団と更新内容を分ける
+
+
+    配信面ごとに5–20%のtraffic、5–8日間。表の比較対象は当時の本番モデルで、要旨ではOxygenREC-v1比と要約される。feed・floorの事前学習更新と、RecForUでの追加学習更新は同じ介入ではない。下表の星印はp<0.05、無印は有意差未確認。特に−2.34%のGMVを「退化なし」と証明したとは扱わない。本文では丸めた−2.3%、p=0.23と説明される。
+
+
+    要旨のGMV +2.8–6.8%は表6の全範囲ではない。ホーム面の+21.21%や負の面も残す。[一次資料：Tables 1–6、§5–6](https://arxiv.org/html/2607.24255v1#S6)。'
+  executable_understanding: '`uv run papers/oxygenrec-v2-idgr/run.py`
+
+
+    同一文脈の3つの候補群を仮定し、行動別に600件ずつ合成ログを抽出する。平滑化した条件付き頻度と、行動を無視してpoolした頻度を比較する。別の16語彙・3位置の計算では8本の軌跡をstudentから抽出し、幾何重みの報酬で1本を選ぶ。教師分布は人工的に与え、低・中・高entropyの経路と損失を計算する。'
+  results: 指示を変えると条件付き頻度が変わり、poolした対照では変わらない。これはデータ生成時に仮定した行動差を学習できるという確認である。教師の低・高entropyの間には蒸留しない帯域がある。表示するVR・SD・FKLは選択軌跡に対する値で、モデル改善量ではない。
+  what_we_verified: CONFIRMED：固定seedでの再計算、報酬の正規化、entropy閾値の厳密な不等号、選択token数での損失正規化。MechanismはPARTIAL：式の有限例を確認した範囲に限る。行動指示を学ぶTransformerや、同一backboneから作る教師は実装していない。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。JD.comログ、3B-A1B MoE、近未来prefixの実データ生成、EA-TOSDの勾配学習、オンライン売上は未検証。公式実装へのリンクは確認した原論文・書誌に見当たらない。§5はofflineを3Bと記す一方、Appendix
+    G.2は0.7Bとする。この食い違いは解消できず、offline規模を断定しない。
+  implementation: '`instruction_probe()` はLaplace平滑化した頻度学習、`reward()` は式6、`gates()` は式9–10の判定、`losses()` は式11–13の数値を返す。教師は固定配列なので自己蒸留そのものの再現ではない。JSONのweighted_without_SFTにはSFT
+    anchorを含めない。原論文Algorithm 1はSFTを並行して加えるため、総学習損失と混同しない。'
+teaching_figures:
+- id: paradigms
+  kind: matrix
+  title: 行動をいつ使うかで、変えられる対象が違う
+  after: core_idea
+  locator: Figure 1 / Appendix C
+  caption: 生成前の条件、学習の採点、生成後の採点を並べる。
+  rationale: 生成前の条件、学習の採点、生成後の採点を並べる。
+  columns:
+  - 方式
+  - 行動信号の入口
+  - 作用
+  rows:
+  - label: 外部RM
+    cells:
+    - OneRec / OneMall型
+    - 生成後に別rankerが報酬
+    - 方策の追加学習
+  - label: 生成・識別の共同学習
+    cells:
+    - GDM / Suffix Head
+    - 出力headへ行動loss
+    - 共有表現と候補内の順位
+  - label: IDGR
+    cells:
+    - OxygenREC-v2
+    - prefix Iᵦ＋ログ一致＋EA-TOSD
+    - 最初のtokenから条件付け
+  source: https://arxiv.org/html/2607.24255v1
+- id: entropy-losses
+  kind: equations
+  title: 最良軌跡の報酬と、2つの蒸留経路
+  after: method
+  locator: 式3、5–13 / Algorithm 1
+  caption: 原式の条件付けと正規化を保ち、記号をUnicodeで表記。
+  rationale: 原式の条件付けと正規化を保ち、記号をUnicodeで表記。
+  steps:
+  - name: 条件付き生成・式3
+    formula: pθ(Y | X, Iₛ, Iᵣ, Iᵦ), Iᵦ = ψ(Emb(b))
+    explanation: Iᵦが全生成位置の入力になる。
+  - name: 幾何報酬・式5–7
+    formula: ωₜ = γᵗ⁻¹ / Σⱼ₌₁ᴸ γʲ⁻¹; Rᵢ = Σₜ₌₁ᴸ ωₜ 𝟙[ŷᵢ,ₜ = y*ₜ]; k = argmaxᵢ Rᵢ; LVR = E[−Rₖ Σₜ log πS(ŷₖ,ₜ | X,
+      ŷₖ,<ₜ)]
+    explanation: 一致はtoken単位。選択軌跡の全tokenをRₖで重み付けする。
+  - name: 教師の確信度・式8–10
+    formula: Aₜ = log πT(ŷₜ | X,F,ŷ<ₜ) − log πS(ŷₜ | X,ŷ<ₜ); Hᵀₜ = −Σᵥ πT(v | X,F,ŷ<ₜ) log πT(v | X,F,ŷ<ₜ)
+    explanation: gˡₜ=𝟙[Hᵀₜ<τₗ]、gʰₜ=𝟙[Hᵀₜ>τₕ]。各gをΣⱼgⱼ+εで割った値がg̃。
+  - name: 低entropy・式11
+    formula: LSD = E[−Σₜ g̃ˡₜ sg(Aₜ) log πS(ŷₜ | X,ŷ<ₜ)]
+    explanation: advantage側へ勾配を戻さない。負のadvantageもあり得る。
+  - name: 高entropy・式12
+    formula: LFKL = E[Σₜ g̃ʰₜ DKL(πT(· | X,F,ŷ<ₜ) ∥ πS(· | X,ŷ<ₜ))]
+    explanation: 向きはteacherからstudent。複数の妥当な候補の質量を伝える。
+  - name: 結合・式13とAlgorithm 1
+    formula: LEA-TOSD = λ LVR + β LSD + ζ LFKL
+    explanation: 既定λ=.1、β=ζ=.01。Algorithm 1ではさらにλsft LSFTを加える。
+  source: https://arxiv.org/html/2607.24255v1
+- id: instruction-probe
+  kind: matrix
+  title: 固定文脈へ別の行動を強制する
+  after: method
+  locator: Table 8
+  caption: 著者報告のHR@512（%）。Actualは実際のtarget行動による条件付け。
+  rationale: 著者報告のHR@512（%）。Actualは実際のtarget行動による条件付け。
+  columns:
+  - click部分集合
+  - cart部分集合
+  - order部分集合
+  rows:
+  - label: Actual
+    cells:
+    - '42.99'
+    - '48.29'
+    - '53.02'
+  - label: Force click
+    cells:
+    - '42.99'
+    - '46.65'
+    - '48.33'
+  - label: Force cart
+    cells:
+    - '40.20'
+    - '48.29'
+    - '50.02'
+  - label: Force order
+    cells:
+    - '34.54'
+    - '44.85'
+    - '53.01'
+  source: https://arxiv.org/html/2607.24255v1
+- id: surface-results
+  kind: matrix
+  title: 6面のA/B：有意差と負の値も残す
+  after: evidence
+  locator: Table 6 / §6.3
+  caption: すべて本番比の相対変化。*はp<0.05。RecForUは本文では商品詳細面と説明される。
+  rationale: すべて本番比の相対変化。*はp<0.05。RecForUは本文では商品詳細面と説明される。
+  columns:
+  - UCTR
+  - UCTCVR
+  - GMV
+  rows:
+  - label: 1 Budget & Free Shipping / homepage
+    cells:
+    - +0.09%
+    - +3.62%*
+    - +21.21%*
+  - label: 2 Billion Subsidy / feed
+    cells:
+    - +0.08%
+    - +1.61%*
+    - +2.80%
+  - label: 3 Budget & Free Shipping / feed
+    cells:
+    - +1.39%*
+    - +4.44%*
+    - +6.86%
+  - label: 4 Seckill / feed
+    cells:
+    - +0.01%
+    - +2.90%*
+    - +1.09%
+  - label: 5 Add-to-Cart Overlay
+    cells:
+    - −0.34%
+    - +2.15%*
+    - −2.34%
+  - label: 6 RecForU
+    cells:
+    - −0.03%
+    - +0.56%
+    - +4.25%*
+  source: https://arxiv.org/html/2607.24255v1
+interactives:
+- kind: explorer
+  title: 指示だけを変えて候補の確率を見る
+  caption: 3種類の人工ログから学んだ頻度表。表8の再現値ではなく、行動を入力に持つ場合と持たない場合の違いを調べる。
+figures:
+- path: figures/privilege.svg
+  title: 未来情報の境界
+  caption: 式8–12・Appendix Eを再構成。teacherの6 token offsetを合わせて損失を取る。
+  after: core_idea

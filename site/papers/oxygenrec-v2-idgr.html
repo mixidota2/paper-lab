@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="JD.comのOxygenREC-v2は、click・cart・orderの指示でSID生成を条件付ける。学習時には実ログとの一致と、未来行動を見た同一backboneの教師を使う。IDGRの焦点は行動信号を入れる位置にある。6つの配信面のA/Bを読み分け、外部報酬モデルの除去をサービス全体のカスケード撤去へ広げない。">
+  <title>行動を生成前に指定し、未来情報を推論へ漏らさず学習へ使えるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-07-27</span></div>
+    <h1>行動を生成前に指定し、未来情報を推論へ漏らさず学習へ使えるか</h1>
+    <p class="lede">JD.comのOxygenREC-v2は、click・cart・orderの指示でSID生成を条件付ける。学習時には実ログとの一致と、未来行動を見た同一backboneの教師を使う。IDGRの焦点は行動信号を入れる位置にある。6つの配信面のA/Bを読み分け、外部報酬モデルの除去をサービス全体のカスケード撤去へ広げない。</p>
+    <details class="bibliography"><summary>原論文：OxygenREC-v2: Internalizing Discrimination into Generative Recommendation</summary><p>Guo Tang, Hanye Wu, Changjiang Han, Qingyang Li, Ming Zhang, Xiangyu Qian, Yanchen Qiao, Huanjie Wang, Zhi Ma, Zhen Li, Yaqiang Zang, Pinghua Gong</p><p>2607.24255 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2607.24255">原典を読む ↗</a><a href="https://arxiv.org/pdf/2607.24255v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-15 · arXiv v1の全文HTMLを通読。本文・全表・図の説明・末尾の付録（存在する場合）を確認。PDF原版との画像照合は未実施。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-paradigms">行動をいつ使うかで、変えられる対象が違う</a><a href="#figure-entropy-losses">最良軌跡の報酬と、2つの蒸留経路</a><a href="#figure-instruction-probe">固定文脈へ別の行動を強制する</a><a href="#figure-surface-results">6面のA/B：有意差と負の値も残す</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>JD.comのOxygenREC-v2は、click・cart・orderの指示でSID生成を条件付ける。学習時には実ログとの一致と、未来行動を見た同一backboneの教師を使う。IDGRの焦点は行動信号を入れる位置にある。6つの配信面のA/Bを読み分け、外部報酬モデルの除去をサービス全体のカスケード撤去へ広げない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>クリックされやすい商品と購入されやすい商品は一致しない。生成後にrankerで点を付けても、beamから消えた商品は戻らない。一方、生成損失と識別headの損失を共有backboneで最適化すると、その重みの調整が必要になる。原論文はこの2つの経路と、生成の入口に行動を置く経路を比較する（Figure 1、Appendix C）。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者はIDGR（Internalizing Discrimination into Generative Recommendation）として、入力の行動指示と行動重み付き学習を提案する。追加学習のEA-TOSDは、検証可能な軌跡報酬と、教師のentropyに応じた2種類の自己蒸留を組み合わせる。単一backboneを保ち、外部の行動scorerを不要にするという主張である（§4）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>候補を生成する前に目的を渡す設計と、生成済み候補の採点を分けて読むと違いが明確になる。ただし条件付き生成もログにない選好を保証しない。未来prefixは訓練だけに置く必要があり、外部報酬モデルがなくても、ログの偏りや損失重みの選択は残る。</p></div></div>
+      </section>
+      <figure class="paper-svg teaching"><h3>未来情報の境界</h3><a href="../figures/oxygenrec-v2-idgr/figures/privilege.svg" aria-label="未来情報の境界を拡大"><img src="../figures/oxygenrec-v2-idgr/figures/privilege.svg" alt="未来情報の境界。式8–12・Appendix Eを再構成。teacherの6 token offsetを合わせて損失を取る。" loading="lazy"></a><figcaption>式8–12・Appendix Eを再構成。teacherの6 token offsetを合わせて損失を取る。 <a href="../figures/oxygenrec-v2-idgr/figures/privilege.svg">図を拡大 ↗</a></figcaption></figure>
+<figure class="teaching teaching--matrix" id="figure-paradigms" aria-labelledby="title-paradigms">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-paradigms">行動をいつ使うかで、変えられる対象が違う</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="行動をいつ使うかで、変えられる対象が違うの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">方式</th><th scope="col">行動信号の入口</th><th scope="col">作用</th></tr></thead><tbody><tr><th scope="row">外部RM</th><td class="">OneRec / OneMall型</td><td class="">生成後に別rankerが報酬</td><td class="">方策の追加学習</td></tr><tr><th scope="row">生成・識別の共同学習</th><td class="">GDM / Suffix Head</td><td class="">出力headへ行動loss</td><td class="">共有表現と候補内の順位</td></tr><tr><th scope="row">IDGR</th><td class="">OxygenREC-v2</td><td class="">prefix Iᵦ＋ログ一致＋EA-TOSD</td><td class="">最初のtokenから条件付け</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>生成前の条件、学習の採点、生成後の採点を並べる。 <a href="https://arxiv.org/html/2607.24255v1">出典：Figure 1 / Appendix C ↗</a></figcaption>
+</figure>      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>3段のSIDを出すencoder–decoderに、行動のprefixを足す</h3>
+<p>商品を残差量子化した3つのtokenで表す。各codebookは8192、ユーザーの短期履歴・長期履歴・profileをencoderへ渡す。decoderはscene指示Iₛ、近傍時間でLLMが作るreasoning埋め込みIᵣ、行動指示Iᵦを読む。オンライン構成は3Bパラメータ中1Bが活性化するMoEである。<a href="https://arxiv.org/html/2607.24255v1#S3">§3、Appendix G</a></p>
+<p>Iᵦは自然言語の自由入力ではない。click・cart・orderに予約tokenを割り当て、共通embedding tableから読み、2層の射影ψを通す。Appendix B.2ではLeakyReLU（負側0.01）とdropoutを使う。prefixは[BOS, Iₛ, Iᵣ, Iᵦ]。学習時は実ログの行動、配信時は面の目的を指定する。</p>
+<h3>露出だけのtargetを除き、行動と教師信号をそろえる</h3>
+<p>重複行動の優先順位はorder &gt; cart &gt; click &gt; exposure。各targetを展開し、露出だけの例を落とす。既定の重みはclick=1.2、cart=1.5、order=2.0である。listwiseではN個の商品をL=3N tokenへ展開する。式6の幾何重みは平坦化したt全体に掛かる表記であり、このLabでも商品ごとに重みをリセットしない。</p>
+<h3>同じモデルでも、教師だけが未来を読む</h3>
+<p>教師は同じbackboneへFを追加する。Fはtⱼ&gt;t₀を満たす未来targetから最大2商品、各3 tokenを採り、固定6 tokenへpaddingする。studentにはFを渡さない。教師側の予測位置は6 token分のoffsetを合わせる。Appendix Eの表10はexposureをdefaultと記すが、表3で良いのはexposure-onlyを除いたClick版である。default表記と最良結果を同一視しない。</p>
+<p>疎な一致報酬で最良軌跡を選び、その軌跡上で教師を評価する。teacherのentropy Hᵀ&lt;0.75ならSD、Hᵀ&gt;2.6ならforward KL。中間帯と閾値に等しい点には、該当する蒸留を掛けない。高entropyを単に捨てる設計ではない。<a href="https://arxiv.org/html/2607.24255v1#S4">式5–13、Algorithm 1</a></p>
+<h3>指示のprobeは「注文だけ指定すれば万能」を否定する</h3>
+<p>下表は同じ評価文脈に異なるIᵦを強制した結果。orderを強制するとorder部分集合を保つ一方、click部分集合のHR@512は42.99から34.54へ下がる。目的を変えた結果なので、全ユーザーへorder指示を固定する根拠にはならない。Figure 4のLDAは行動ラベルを使った射影であり、教師なしで自然に分離した証拠とは区別する。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-entropy-losses" aria-labelledby="title-entropy-losses">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-entropy-losses">最良軌跡の報酬と、2つの蒸留経路</h3>
+  <ol class="equation-steps"><li><strong>条件付き生成・式3</strong><div class="math-expression" tabindex="0" role="math" aria-label="pθ(Y | X, Iₛ, Iᵣ, Iᵦ), Iᵦ = ψ(Emb(b))">pθ(Y | X, Iₛ, Iᵣ, Iᵦ), Iᵦ = ψ(Emb(b))</div><p>Iᵦが全生成位置の入力になる。</p></li><li><strong>幾何報酬・式5–7</strong><div class="math-expression" tabindex="0" role="math" aria-label="ωₜ = γᵗ⁻¹ / Σⱼ₌₁ᴸ γʲ⁻¹; Rᵢ = Σₜ₌₁ᴸ ωₜ 𝟙[ŷᵢ,ₜ = y*ₜ]; k = argmaxᵢ Rᵢ; LVR = E[−Rₖ Σₜ log πS(ŷₖ,ₜ | X, ŷₖ,&lt;ₜ)]">ωₜ = γᵗ⁻¹ / Σⱼ₌₁ᴸ γʲ⁻¹; Rᵢ = Σₜ₌₁ᴸ ωₜ 𝟙[ŷᵢ,ₜ = y*ₜ]; k = argmaxᵢ Rᵢ; LVR = E[−Rₖ Σₜ log πS(ŷₖ,ₜ | X, ŷₖ,&lt;ₜ)]</div><p>一致はtoken単位。選択軌跡の全tokenをRₖで重み付けする。</p></li><li><strong>教師の確信度・式8–10</strong><div class="math-expression" tabindex="0" role="math" aria-label="Aₜ = log πT(ŷₜ | X,F,ŷ&lt;ₜ) − log πS(ŷₜ | X,ŷ&lt;ₜ); Hᵀₜ = −Σᵥ πT(v | X,F,ŷ&lt;ₜ) log πT(v | X,F,ŷ&lt;ₜ)">Aₜ = log πT(ŷₜ | X,F,ŷ&lt;ₜ) − log πS(ŷₜ | X,ŷ&lt;ₜ); Hᵀₜ = −Σᵥ πT(v | X,F,ŷ&lt;ₜ) log πT(v | X,F,ŷ&lt;ₜ)</div><p>gˡₜ=𝟙[Hᵀₜ&lt;τₗ]、gʰₜ=𝟙[Hᵀₜ&gt;τₕ]。各gをΣⱼgⱼ+εで割った値がg̃。</p></li><li><strong>低entropy・式11</strong><div class="math-expression" tabindex="0" role="math" aria-label="LSD = E[−Σₜ g̃ˡₜ sg(Aₜ) log πS(ŷₜ | X,ŷ&lt;ₜ)]">LSD = E[−Σₜ g̃ˡₜ sg(Aₜ) log πS(ŷₜ | X,ŷ&lt;ₜ)]</div><p>advantage側へ勾配を戻さない。負のadvantageもあり得る。</p></li><li><strong>高entropy・式12</strong><div class="math-expression" tabindex="0" role="math" aria-label="LFKL = E[Σₜ g̃ʰₜ DKL(πT(· | X,F,ŷ&lt;ₜ) ∥ πS(· | X,ŷ&lt;ₜ))]">LFKL = E[Σₜ g̃ʰₜ DKL(πT(· | X,F,ŷ&lt;ₜ) ∥ πS(· | X,ŷ&lt;ₜ))]</div><p>向きはteacherからstudent。複数の妥当な候補の質量を伝える。</p></li><li><strong>結合・式13とAlgorithm 1</strong><div class="math-expression" tabindex="0" role="math" aria-label="LEA-TOSD = λ LVR + β LSD + ζ LFKL">LEA-TOSD = λ LVR + β LSD + ζ LFKL</div><p>既定λ=.1、β=ζ=.01。Algorithm 1ではさらにλsft LSFTを加える。</p></li></ol>
+  <figcaption>原式の条件付けと正規化を保ち、記号をUnicodeで表記。 <a href="https://arxiv.org/html/2607.24255v1">出典：式3、5–13 / Algorithm 1 ↗</a></figcaption>
+</figure><figure class="teaching teaching--matrix" id="figure-instruction-probe" aria-labelledby="title-instruction-probe">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-instruction-probe">固定文脈へ別の行動を強制する</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="固定文脈へ別の行動を強制するの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">click部分集合</th><th scope="col">cart部分集合</th><th scope="col">order部分集合</th></tr></thead><tbody><tr><th scope="row">Actual</th><td class="">42.99</td><td class="">48.29</td><td class="">53.02</td></tr><tr><th scope="row">Force click</th><td class="">42.99</td><td class="">46.65</td><td class="">48.33</td></tr><tr><th scope="row">Force cart</th><td class="">40.20</td><td class="">48.29</td><td class="">50.02</td></tr><tr><th scope="row">Force order</th><td class="">34.54</td><td class="">44.85</td><td class="">53.01</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>著者報告のHR@512（%）。Actualは実際のtarget行動による条件付け。 <a href="https://arxiv.org/html/2607.24255v1">出典：Table 8 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>行動指示は最初のSID tokenから参照されるため、粗い商品カテゴリを選ぶ段階で目的を変えられる。未来を見た教師は疎な完全一致報酬を補う。低entropy位置では特定tokenの方向を、高entropy位置では複数候補への確率を伝える。ただしentropyは正しさの証明ではない。自信のある誤りや、未来ログ自体の偏りまで自動で除去する機構ではない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>全指標でProxy-RMに勝ったわけではない</h3>
+<p>Table 1のHR@1はv1 PT-only 4.62%、Proxy-RM 5.54%、v2 5.64%。HR@512は43.24%、43.09%、44.14%である。v1からのHR@1差は<strong>1.02ポイント</strong>で、相対1.02%ではない。v2は7指標中6指標でProxy-RMを上回るが、HR@128は33.76%対33.89%で下回る。</p>
+<h3>追加学習のどこが効いたか</h3>
+<p>Table 4ではFKL除去でHR@512が44.14%から43.80%へ落ちる。一方、VRだけでもHR@1は5.64%で完全構成と同じ。すべての項がすべての指標を改善したとは読めない。Table 5では低・高entropy各20%の選択が各100%より良いが、20%はこの条件の実測結果であり普遍的な最適値ではない。</p>
+<h3>6面のA/Bは母集団と更新内容を分ける</h3>
+<p>配信面ごとに5–20%のtraffic、5–8日間。表の比較対象は当時の本番モデルで、要旨ではOxygenREC-v1比と要約される。feed・floorの事前学習更新と、RecForUでの追加学習更新は同じ介入ではない。下表の星印はp&lt;0.05、無印は有意差未確認。特に−2.34%のGMVを「退化なし」と証明したとは扱わない。本文では丸めた−2.3%、p=0.23と説明される。</p>
+<p>要旨のGMV +2.8–6.8%は表6の全範囲ではない。ホーム面の+21.21%や負の面も残す。<a href="https://arxiv.org/html/2607.24255v1#S6">一次資料：Tables 1–6、§5–6</a>。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-surface-results" aria-labelledby="title-surface-results">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-surface-results">6面のA/B：有意差と負の値も残す</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="6面のA/B：有意差と負の値も残すの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">UCTR</th><th scope="col">UCTCVR</th><th scope="col">GMV</th></tr></thead><tbody><tr><th scope="row">1 Budget &amp; Free Shipping / homepage</th><td class="">+0.09%</td><td class="">+3.62%*</td><td class="">+21.21%*</td></tr><tr><th scope="row">2 Billion Subsidy / feed</th><td class="">+0.08%</td><td class="">+1.61%*</td><td class="">+2.80%</td></tr><tr><th scope="row">3 Budget &amp; Free Shipping / feed</th><td class="">+1.39%*</td><td class="">+4.44%*</td><td class="">+6.86%</td></tr><tr><th scope="row">4 Seckill / feed</th><td class="">+0.01%</td><td class="">+2.90%*</td><td class="">+1.09%</td></tr><tr><th scope="row">5 Add-to-Cart Overlay</th><td class="">−0.34%</td><td class="">+2.15%*</td><td class="">−2.34%</td></tr><tr><th scope="row">6 RecForU</th><td class="">−0.03%</td><td class="">+0.56%</td><td class="">+4.25%*</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>すべて本番比の相対変化。*はp&lt;0.05。RecForUは本文では商品詳細面と説明される。 <a href="https://arxiv.org/html/2607.24255v1">出典：Table 6 / §6.3 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/oxygenrec-v2-idgr/run.py</code></p>
+<p>同一文脈の3つの候補群を仮定し、行動別に600件ずつ合成ログを抽出する。平滑化した条件付き頻度と、行動を無視してpoolした頻度を比較する。別の16語彙・3位置の計算では8本の軌跡をstudentから抽出し、幾何重みの報酬で1本を選ぶ。教師分布は人工的に与え、低・中・高entropyの経路と損失を計算する。</p></div><div class="downloads"><a href="../downloads/oxygenrec-v2-idgr/run.py" download>実行コード</a><a href="../downloads/oxygenrec-v2-idgr/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/oxygenrec-v2-idgr">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section class="interactive" id="interactive-1" data-interactive="explorer">
+        <p class="figure-badge">合成実験 · Mechanism PARTIAL</p><h2>指示だけを変えて候補の確率を見る</h2><p>3種類の人工ログから学んだ頻度表。表8の再現値ではなく、行動を入力に持つ場合と持たない場合の違いを調べる。</p>
+        <script type="application/json" data-config>{"caption": "3\u7a2e\u985e\u306e\u4eba\u5de5\u30ed\u30b0\u304b\u3089\u5b66\u3093\u3060\u983b\u5ea6\u8868\u3002\u88688\u306e\u518d\u73fe\u5024\u3067\u306f\u306a\u304f\u3001\u884c\u52d5\u3092\u5165\u529b\u306b\u6301\u3064\u5834\u5408\u3068\u6301\u305f\u306a\u3044\u5834\u5408\u306e\u9055\u3044\u3092\u8abf\u3079\u308b\u3002", "kind": "explorer", "title": "\u6307\u793a\u3060\u3051\u3092\u5909\u3048\u3066\u5019\u88dc\u306e\u78ba\u7387\u3092\u898b\u308b"}</script>
+<script type="application/json" data-results>{"default": 0, "frames": [{"bars": [{"label": "\u5408\u6210\u5019\u88dc\u7fa4 1", "value": 70.315091}, {"label": "\u5408\u6210\u5019\u88dc\u7fa4 2", "value": 19.237148}, {"label": "\u5408\u6210\u5019\u88dc\u7fa4 3", "value": 10.447761}], "lines": [], "note": "\u6307\u793a=click\u3002\u540c\u3058\u6587\u8108\u3067\u5b66\u7fd2\u6e08\u307f\u983b\u5ea6\u8868\u306e\u6761\u4ef6\u3060\u3051\u3092\u5909\u66f4\u3002\u696d\u52d9\u4e0a\u306e\u884c\u52d5\u78ba\u7387\u3084HR\u3067\u306f\u306a\u3044\u3002", "value": 0}, {"bars": [{"label": "\u5408\u6210\u5019\u88dc\u7fa4 1", "value": 16.583748}, {"label": "\u5408\u6210\u5019\u88dc\u7fa4 2", "value": 66.003317}, {"label": "\u5408\u6210\u5019\u88dc\u7fa4 3", "value": 17.412935}], "lines": [], "note": "\u6307\u793a=cart\u3002\u540c\u3058\u6587\u8108\u3067\u5b66\u7fd2\u6e08\u307f\u983b\u5ea6\u8868\u306e\u6761\u4ef6\u3060\u3051\u3092\u5909\u66f4\u3002\u696d\u52d9\u4e0a\u306e\u884c\u52d5\u78ba\u7387\u3084HR\u3067\u306f\u306a\u3044\u3002", "value": 1}, {"bars": [{"label": "\u5408\u6210\u5019\u88dc\u7fa4 1", "value": 7.960199}, {"label": "\u5408\u6210\u5019\u88dc\u7fa4 2", "value": 18.905473}, {"label": "\u5408\u6210\u5019\u88dc\u7fa4 3", "value": 73.134328}], "lines": [], "note": "\u6307\u793a=order\u3002\u540c\u3058\u6587\u8108\u3067\u5b66\u7fd2\u6e08\u307f\u983b\u5ea6\u8868\u306e\u6761\u4ef6\u3060\u3051\u3092\u5909\u66f4\u3002\u696d\u52d9\u4e0a\u306e\u884c\u52d5\u78ba\u7387\u3084HR\u3067\u306f\u306a\u3044\u3002", "value": 2}], "label": "\u884c\u52d5\u6307\u793a\uff080=click / 1=cart / 2=order\uff09", "metric": "\u5408\u6210\u5019\u88dc\u7fa4\u306e\u78ba\u7387\uff08%\uff09", "unit": ""}</script>        <div data-mount></div><div data-fallback>
+<p>行動指示（0=click / 1=cart / 2=order）：0</p><ul><li>合成候補群 1：70.315091</li><li>合成候補群 2：19.237148</li><li>合成候補群 3：10.447761</li></ul><p>指示=click。同じ文脈で学習済み頻度表の条件だけを変更。業務上の行動確率やHRではない。</p>        </div><p class="source-note">数値の出所：このLabの results.json。論文の測定値ではありません。</p>
+      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>合成ログの条件付き頻度と式6・8–13の算術検証。MoE、自己蒸留の学習、JD.comの成果は再現していない。</em></p>
+<h3>選択軌跡に対する損失の計算</h3>
+<ul><li><strong>seed</strong>: 15</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>VR</th><td colspan='1'>4.07360421</td></tr><tr><th scope='row'>SD</th><td colspan='1'>2.21004531</td></tr><tr><th scope='row'>FKL</th><td colspan='1'>0.08520686</td></tr><tr><th scope='row'>weighted_without_SFT</th><td colspan='1'>0.43031294</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;seed&quot;: 15,
+  &quot;note&quot;: &quot;合成ログの条件付き頻度と式6・8–13の算術検証。MoE、自己蒸留の学習、JD.comの成果は再現していない。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;checks&quot;: {
+    &quot;finite_loss_and_routing&quot;: &quot;CONFIRMED&quot;,
+    &quot;full_EA_TOSD_training&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;選択軌跡に対する損失の計算&quot;,
+      &quot;seed&quot;: 15,
+      &quot;metrics&quot;: {
+        &quot;VR&quot;: 4.07360421,
+        &quot;SD&quot;: 2.21004531,
+        &quot;FKL&quot;: 0.08520686,
+        &quot;weighted_without_SFT&quot;: 0.43031294
+      }
+    }
+  ],
+  &quot;candidate_trajectories&quot;: [
+    [
+      15,
+      0,
+      10
+    ],
+    [
+      0,
+      15,
+      0
+    ],
+    [
+      13,
+      9,
+      13
+    ],
+    [
+      15,
+      1,
+      3
+    ],
+    [
+      10,
+      2,
+      2
+    ],
+    [
+      1,
+      13,
+      13
+    ],
+    [
+      12,
+      1,
+      14
+    ],
+    [
+      6,
+      1,
+      5
+    ]
+  ],
+  &quot;selected&quot;: [
+    0,
+    15,
+    0
+  ],
+  &quot;loss_terms&quot;: {
+    &quot;VR&quot;: 4.073604210256413,
+    &quot;SD&quot;: 2.21004531032739,
+    &quot;FKL&quot;: 0.08520685850459747,
+    &quot;weighted_without_SFT&quot;: 0.4303129427139612,
+    &quot;routes&quot;: [
+      {
+        &quot;entropy&quot;: 0.7404363144605619,
+        &quot;low&quot;: 1,
+        &quot;high&quot;: 0
+      },
+      {
+        &quot;entropy&quot;: 2.297841787670582,
+        &quot;low&quot;: 0,
+        &quot;high&quot;: 0
+      },
+      {
+        &quot;entropy&quot;: 2.772588722239781,
+        &quot;low&quot;: 0,
+        &quot;high&quot;: 1
+      }
+    ]
+  },
+  &quot;instruction_probabilities&quot;: [
+    [
+      0.703150912106136,
+      0.19237147595356552,
+      0.1044776119402985
+    ],
+    [
+      0.16583747927031509,
+      0.6600331674958541,
+      0.17412935323383086
+    ],
+    [
+      0.07960199004975124,
+      0.1890547263681592,
+      0.7313432835820896
+    ]
+  ],
+  &quot;unconditioned&quot;: [
+    [
+      0.3161967938087341,
+      0.34715312327252623,
+      0.33665008291873966
+    ],
+    [
+      0.3161967938087341,
+      0.34715312327252623,
+      0.33665008291873966
+    ],
+    [
+      0.3161967938087341,
+      0.34715312327252623,
+      0.33665008291873966
+    ]
+  ],
+  &quot;explorer&quot;: {
+    &quot;label&quot;: &quot;行動指示（0=click / 1=cart / 2=order）&quot;,
+    &quot;unit&quot;: &quot;&quot;,
+    &quot;metric&quot;: &quot;合成候補群の確率（%）&quot;,
+    &quot;default&quot;: 0,
+    &quot;frames&quot;: [
+      {
+        &quot;value&quot;: 0,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成候補群 1&quot;,
+            &quot;value&quot;: 70.315091
+          },
+          {
+            &quot;label&quot;: &quot;合成候補群 2&quot;,
+            &quot;value&quot;: 19.237148
+          },
+          {
+            &quot;label&quot;: &quot;合成候補群 3&quot;,
+            &quot;value&quot;: 10.447761
+          }
+        ],
+        &quot;note&quot;: &quot;指示=click。同じ文脈で学習済み頻度表の条件だけを変更。業務上の行動確率やHRではない。&quot;
+      },
+      {
+        &quot;value&quot;: 1,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成候補群 1&quot;,
+            &quot;value&quot;: 16.583748
+          },
+          {
+            &quot;label&quot;: &quot;合成候補群 2&quot;,
+            &quot;value&quot;: 66.003317
+          },
+          {
+            &quot;label&quot;: &quot;合成候補群 3&quot;,
+            &quot;value&quot;: 17.412935
+          }
+        ],
+        &quot;note&quot;: &quot;指示=cart。同じ文脈で学習済み頻度表の条件だけを変更。業務上の行動確率やHRではない。&quot;
+      },
+      {
+        &quot;value&quot;: 2,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;合成候補群 1&quot;,
+            &quot;value&quot;: 7.960199
+          },
+          {
+            &quot;label&quot;: &quot;合成候補群 2&quot;,
+            &quot;value&quot;: 18.905473
+          },
+          {
+            &quot;label&quot;: &quot;合成候補群 3&quot;,
+            &quot;value&quot;: 73.134328
+          }
+        ],
+        &quot;note&quot;: &quot;指示=order。同じ文脈で学習済み頻度表の条件だけを変更。業務上の行動確率やHRではない。&quot;
+      }
+    ]
+  }
+}</code></pre></details><p>指示を変えると条件付き頻度が変わり、poolした対照では変わらない。これはデータ生成時に仮定した行動差を学習できるという確認である。教師の低・高entropyの間には蒸留しない帯域がある。表示するVR・SD・FKLは選択軌跡に対する値で、モデル改善量ではない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>CONFIRMED：固定seedでの再計算、報酬の正規化、entropy閾値の厳密な不等号、選択token数での損失正規化。MechanismはPARTIAL：式の有限例を確認した範囲に限る。行動指示を学ぶTransformerや、同一backboneから作る教師は実装していない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。JD.comログ、3B-A1B MoE、近未来prefixの実データ生成、EA-TOSDの勾配学習、オンライン売上は未検証。公式実装へのリンクは確認した原論文・書誌に見当たらない。§5はofflineを3Bと記す一方、Appendix G.2は0.7Bとする。この食い違いは解消できず、offline規模を断定しない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>instruction_probe()</code> はLaplace平滑化した頻度学習、<code>reward()</code> は式6、<code>gates()</code> は式9–10の判定、<code>losses()</code> は式11–13の数値を返す。教師は固定配列なので自己蒸留そのものの再現ではない。JSONのweighted_without_SFTにはSFT anchorを含めない。原論文Algorithm 1はSFTを並行して加えるため、総学習損失と混同しない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>原論文の場所</th>
+<th>Labの対応</th>
+<th>実装の範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Figure 1、Appendix C</td>
+<td>3方式の比較</td>
+<td>推論入力と出力採点の境界を図示</td>
+</tr>
+<tr>
+<td>式3–4、Appendix B</td>
+<td>行動指示probe</td>
+<td><code>instruction_probe()</code> は頻度モデルのみ</td>
+</tr>
+<tr>
+<td>式5–7</td>
+<td>軌跡選択</td>
+<td><code>reward()</code>、8本の人工rollout</td>
+</tr>
+<tr>
+<td>式8–13、Algorithm 1</td>
+<td>entropy routingと損失</td>
+<td><code>gates()</code>、<code>losses()</code>。SFT・勾配学習なし</td>
+</tr>
+<tr>
+<td>Table 6</td>
+<td>面別A/B</td>
+<td>著者報告値。独立再現なし</td>
+</tr>
+<tr>
+<td>Table 8</td>
+<td>強制指示の表</td>
+<td>原論文値。toyと別表示</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://arxiv.org/html/2607.24255v1">全文v1</a>を本文からAppendix Hまで確認した。公式コードは原論文・arXiv書誌で未確認。<code>run.py</code>はこのLab独自の教材で、公式実装ではない。</p>
+<p>出典上の留保：§5のoffline 3BとG.2の0.7B、Table 10のdefaultとTable 3の最良教師は区別した。Table 6をabstractのGMV範囲で置き換えない。v1からのシステム更新であり、サービス全体のカスケード撤去を確認した資料としては使わない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>行動を生成前に指定し、未来情報を推論へ漏らさず学習へ使えるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/oxygenrec-v2-idgr/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

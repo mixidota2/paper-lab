@@ -1,0 +1,188 @@
+id: recevolve-autonomous-rec
+arxiv_id: '2609.01622'
+submitted: '2026-07-20'
+title: 'RecEvolve: A Knowledge-Driven Autonomous Agent System for Recommender Systems'
+authors:
+- Weidi Pan
+- He Ma
+- Shuhao Ye
+- Palaksh Rungta
+- David McPeek
+- Junyi Jiao
+- Arnab Bhadury
+- Mingyan Gao
+- Onkar Dalal
+year: 2026
+topics:
+- recommender-systems
+- evaluation
+- ai-agent-systems
+urls:
+  paper: https://arxiv.org/abs/2609.01622
+  arxiv: https://arxiv.org/abs/2609.01622
+  pdf: https://arxiv.org/pdf/2609.01622v1
+  official_code: null
+verdict: Worth Reading
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- 2026-09-15-recommendation
+status: published
+question: 自律探索で改善したのはモデルか、それとも評価問題の易しさか
+summary: GoogleのRecEvolveは、本番Two-Tower検索モデルの仮説・批評・実装・学習・評価をOrchestratorでつなぐ。著者報告は41実験、最終NDCG@50が0.4796から0.5751、オンライン満足度+3.77%。同時に、batchを8kから1kへ減らすと評価だけが易しくなる問題も発見された。KEEPとVCS
+  rollbackの条件、評価候補の固定を中心に読む。
+source_review:
+  checked: '2026-09-15'
+  url: https://arxiv.org/html/2609.01622v1
+  scope: arXiv v1の全文HTMLを通読。本文・全表・図の説明・末尾の付録（存在する場合）を確認。PDF原版との画像照合は未実施。
+  version: v1
+core_idea:
+  author_claim: 著者は、状態を集約するOrchestratorとstatelessなIdeator・Critic・Coding Agentを組み合わせ、産業規模のモデル改良を継続できると主張する。最良構成へ改善を積み重ね、主指標と補助指標を満たす変更だけをKEEPする（Algorithm
+    1）。
+  research_bot_interpretation: 探索の速さだけでなく、比較条件をどこで固定するかが採用時の要点になる。VCSは実装を戻せるが、指標の意味が変わったことを自動で理解するわけではない。別探索sessionのbatch縮小は人間が発見してrollbackしており、評価契約を自動監査できた証拠ではない。
+sections:
+  overview: GoogleのRecEvolveは、本番Two-Tower検索モデルの仮説・批評・実装・学習・評価をOrchestratorでつなぐ。著者報告は41実験、最終NDCG@50が0.4796から0.5751、オンライン満足度+3.77%。同時に、batchを8kから1kへ減らすと評価だけが易しくなる問題も発見された。KEEPとVCS
+    rollbackの条件、評価候補の固定を中心に読む。
+  method: method.md
+  problem: 成熟したTwo-Towerでも、temperature・損失の重み・feature interaction・学習率には調整余地がある。1回3時間超の分散学習を伴うため、人が仮説を列挙して試すだけでは探索数が限られる。しかし自律化すると、改善しやすい代理指標へ探索が集中し、評価条件の抜け道まで利用し得る。
+  why_it_might_work: Orchestratorが必要な履歴とドメイン知識を毎回渡せば、専門agentの文脈を短く保てる。各実験のspec・批評・job ID・分析を残すことで、中断後の再開も支えられる。温度と視聴時間重みのような相互依存を連続して試す利点はある。ただし過去の失敗を再提案した事例があり、記録の存在と知識の利用は別である。
+  evidence: '### 最終構成は単独アイデアの効果ではない
+
+
+    約2日、5並行threadで41件の実験を完了した。短期probeの候補を2M-stepのfull trainingで確認する。Table 1の経路は累積構成であり、41個すべての成績を示す表ではない。温度の学習、視聴時間重み、DCN
+    V2、Gated Dense、Cosine Decayを順に組み込んだ結果である。
+
+
+    Table 1のNDCG@50は0.4796→0.4996→0.5529→0.5751。MRR@50は0.3514→0.3626→0.4173→0.4440。最終NDCG差は相対約19.9%。Figure 4の学習曲線はMAP@50で、NDCGの時系列ではない。[§4–5.1、Table
+    1](https://arxiv.org/html/2609.01622v1#S5)
+
+
+    ### Cold-Start −16.50%は発見までの時間短縮
+
+
+    オンラインの満足度+3.77%、Unique Content +7.44%とともに、Cold-Start Improvement −16.50%を報告する。本文は新しいitemの発見が速くなる意味だと明記する。cold-startの精度が16.5%悪化したわけではない。ただし発見の判定、満足度の算式、A/B期間・traffic割付・信頼区間は本文に十分示されない。新規ユーザーの精度とも読み替えない。[§5.7、Table
+    2](https://arxiv.org/html/2609.01622v1#S5.SS7)
+
+
+    ### 自律ループが解決しきらなかった問題
+
+
+    小予算では最大3.0の攻めた学習率を好み、短期収束に偏る。失敗仮説の再探索や、Idea 40後の停滞も記録される。提案された将来の二段階surrogate評価を、すでに完成した機能として図示しない。
+
+
+    上記は一次資料の著者報告であり、このLabの合成実験値とは分けている。'
+  executable_understanding: '`uv run papers/recevolve-autonomous-rec/run.py`
+
+
+    4 seeds × 128 queryで正例scoreと7999個の負例scoreを一度作り、1000・2000・4000・8000候補のNDCG@50を計算する。小さい集合は大きい集合のprefixで、正例もscoreも固定する。さらに人工的な5候補で事前失敗・job失敗・候補数変更・補助指標退化・正当な改善の分岐を実行する。'
+  results: 同じscoreでも、負例を減らすだけで平均NDCG@50が上がる。これは表現学習の改善ではない。候補数監査を外したfixtureではsmaller_batchをKEEPし、監査を入れるとROLLBACKする。監査はLab側の追加提案である。数値の判定器だけでreward
+    hackingを防げないことを示す。
+  what_we_verified: CONFIRMED：入れ子の候補集合で負例を増やしても正例順位が改善しないこと、rollback時に最良状態が保持されること、補助指標の閾値を満たさない候補が採択されないこと。Mechanism
+    PARTIAL：評価監査と状態遷移だけを実行した。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。実LLMの発案・coding、Googleの非公開Two-Tower、TPU実行、VCS操作、オンライン満足度は再現していない。基盤LLMの具体名・モデルサイズ・prompt全文・公式実装は確認した本文と書誌では特定できない。人間探索に対する因果的な優位や計算費用対効果も未検証。
+  implementation: '`score_query()` は正例1件のrankからNDCGを求め、`candidate_probe()` が固定scoreの候補数比較を行う。`decide()` はAlgorithm
+    1の採択条件に候補数監査を追加する。`lifecycle()` は辞書のsnapshotで状態を戻す教材であり、gitを操作しない。traceにはbeforeとafterを保存し、採択された状態が後続候補の基準になる。'
+teaching_figures:
+- id: orchestrator
+  kind: architecture
+  title: 状態を持つのは中央のOrchestrator
+  after: core_idea
+  locator: Figures 1–2 / §3
+  caption: 専門agentの役割と中央の記憶を分ける。
+  rationale: 専門agentの役割と中央の記憶を分ける。
+  rows:
+  - label: 中央の状態
+    nodes:
+    - title: Orchestrator
+      text: 基準モデル、Knowledge Base、queue、実験履歴を保持。
+    - title: 分離したworkspace
+      text: spec・批評・manifest・job ID・分析を保存。
+  - label: 提案から実装
+    nodes:
+    - title: Ideator ↔ Critic
+      text: 必要な履歴を受け取り、仮説と批評を往復。
+    - title: Coding Agent
+      text: 承認済み仮説を候補コードへ反映。
+  - label: 学習から更新
+    nodes:
+    - title: Compute Cluster
+      text: 事前検証後にbranchを作り、分散jobを実行。
+    - title: KEEP / rollback
+      text: 指標条件を満たせば基準更新。失敗・退化なら復元。
+  source: https://arxiv.org/html/2609.01622v1
+- id: keep-rule
+  kind: equations
+  title: 探索の定式化とKEEPの条件
+  after: method
+  locator: 式1–2 / Algorithm 1 / §5.2（最終段はLab導出）
+  caption: 原式の条件付けと正規化を保ち、記号をUnicodeで表記。
+  rationale: 原式の条件付けと正規化を保ち、記号をUnicodeで表記。
+  steps:
+  - name: 最適化対象・式1
+    formula: M* = argmax M∈ℳ f(M,𝒟)
+    explanation: 評価が高価なので全構成は試せない。
+  - name: 知識に条件付けた探索・式2
+    formula: Mₜ ← π(𝒦ₜ, {M₁,…,Mₜ₋₁})
+    explanation: πは論文の抽象表現。特定の強化学習algorithmが実装されたという意味ではない。
+  - name: 採択・Algorithm 1 line 20
+    formula: γ(ΦNS) > τ + ε  ∧  γ(ΦAux) ≥ Threshold
+    explanation: 採択時にM*とτを更新し、VCS_Commit()とLog KEEP。事前検証失敗、job失敗、条件未達はVCS_Rollback()。
+  - name: 候補数の効果・Labの導出
+    formula: rank = 1 + Σⱼ 𝟙[sⱼ ≥ s⁺]; NDCG@K = 𝟙[rank ≤ K] / log₂(rank+1)
+    explanation: 正例1件の合成評価。負例を除くだけでrankは悪化しない。これは原論文の番号付き式ではない。
+  source: https://arxiv.org/html/2609.01622v1
+- id: trajectory
+  kind: chart
+  title: 公開された4点で累積改善を追う
+  after: evidence
+  locator: Table 1 / Figure 3
+  caption: idea番号は探索の順序。棒は最終学習後のNDCG@50で、MAP@50の学習曲線とは異なる。
+  rationale: idea番号は探索の順序。棒は最終学習後のNDCG@50で、MAP@50の学習曲線とは異なる。
+  unit: NDCG@50
+  maximum: 0.6
+  bars:
+  - label: 0 Baseline
+    value: 0.4796
+  - label: 2 Learnable Temperature
+    value: 0.4996
+  - label: 18 Watch-Time Weighted
+    value: 0.5529
+  - label: 40 Winner / Cosine Decay
+    value: 0.5751
+  source: https://arxiv.org/html/2609.01622v1
+- id: online-meaning
+  kind: matrix
+  title: オンライン指標の符号を読む
+  after: evidence
+  locator: Table 2 / §5.7
+  caption: すべて著者報告の本番比。詳細な算式・不確実性は未開示。
+  rationale: すべて著者報告の本番比。詳細な算式・不確実性は未開示。
+  columns:
+  - 相対変化
+  - 意味
+  rows:
+  - label: User Satisfaction
+    cells:
+    - +3.77%
+    - 満足度指標の増加
+  - label: Cold-Start Improvement
+    cells:
+    - −16.50%
+    - 新itemを発見するまでの時間短縮
+  - label: Unique Content
+    cells:
+    - +7.44%
+    - 固有コンテンツ指標の増加
+  source: https://arxiv.org/html/2609.01622v1
+figures:
+- path: figures/lifecycle.svg
+  title: KEEPとrollbackの分岐
+  caption: Algorithm 1を再構成。失敗・退化の復元と、採択時のcommitを分けた。LabはVCSを実行しない。
+  after: method
+- path: figures/candidate-set.svg
+  title: 評価問題そのものが易しくなる
+  caption: §5.2の仕組みを再構成。実験は入れ子の候補集合でscoreを固定。棒の長さは定量表現ではない。
+  after: problem

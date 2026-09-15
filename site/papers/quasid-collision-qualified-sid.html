@@ -1,0 +1,1335 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="QuaSIDは、SIDの重なりから反発対象を選ぶ学習法である。同一itemと協調正例をmaskで除き、完全衝突と部分衝突に異なる幾何マージンを課す。KuaishouはrankingのGMV-S2 +2.38%、cold-start retrievalの注文数+6.42%を報告する。衝突ゼロの保証と、害のある衝突を減らす学習を区別する。">
+  <title>SIDが重なったとき、本当に引き離すべき組はどれか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-02-28</span></div>
+    <h1>SIDが重なったとき、本当に引き離すべき組はどれか</h1>
+    <p class="lede">QuaSIDは、SIDの重なりから反発対象を選ぶ学習法である。同一itemと協調正例をmaskで除き、完全衝突と部分衝突に異なる幾何マージンを課す。KuaishouはrankingのGMV-S2 +2.38%、cold-start retrievalの注文数+6.42%を報告する。衝突ゼロの保証と、害のある衝突を減らす学習を区別する。</p>
+    <details class="bibliography"><summary>原論文：Stop Treating Collisions Equally: Qualification-Aware Semantic ID Learning for Recommendation at Industrial Scale</summary><p>Zheng Hu, Yuxin Chen, Yongsen Pan, Xu Yuan, Yuting Yin, Daoyuan Wang, Boyang Xia, Zefei Luo, Hongyang Wang, Songhao Ni, Dongxu Liang, Jun Wang, Shimin Cai, Tao Zhou, Fuji Ren, Wenwu Ou</p><p>2603.00632 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2603.00632">原典を読む ↗</a><a href="https://arxiv.org/pdf/2603.00632v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-15 · arXiv v1の全文HTMLを通読。本文・全表・図の説明・末尾の付録（存在する場合）を確認。PDF原版との画像照合は未実施。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-collision-taxonomy">同じコードでも、離すべき組は違う</a><a href="#figure-qualified-margin">離散の重なりを、連続空間の反発へ変える</a><a href="#figure-online-surfaces">SIDを入れた段階ごとに効果を読む</a><a href="#figure-cold-start">最初の48時間、低viewの動画への効果</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>QuaSIDは、SIDの重なりから反発対象を選ぶ学習法である。同一itemと協調正例をmaskで除き、完全衝突と部分衝突に異なる幾何マージンを課す。KuaishouはrankingのGMV-S2 +2.38%、cold-start retrievalの注文数+6.42%を報告する。衝突ゼロの保証と、害のある衝突を減らす学習を区別する。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>同じSIDが付いた2例でも、異なる商品を誤って一緒にした場合と、同一商品の重複サンプリングでは意味が違う。協調学習で近付けたいtrigger–targetの正例もある。低いHamming距離をすべて反発させると、contrastive lossと逆向きの学習信号を作ってしまう。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は、反発対象を限定するCVPM（Conflict-Aware Valid Pair Masking）と、Hamming距離に応じたHaMR（Hamming-guided Margin Repulsion）を提案する。再構成・残差量子化・協調contrastive lossとともに学習し、推薦に必要な近さを保ちながら不適切な重なりを減らすと主張する（§4）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>「qualified」は意味の正しさを保証する認証ではない。同一IDと構築済み正例を除外した残りを候補衝突と扱う、観測可能な規則である。未観測の良い関係は残り得る。コードの一意性だけを目標にすると、一般化に役立つ共有まで消すため、推薦指標と合わせて評価したい。</p></div></div>
+      </section>
+<figure class="teaching teaching--matrix" id="figure-collision-taxonomy" aria-labelledby="title-collision-taxonomy">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-collision-taxonomy">同じコードでも、離すべき組は違う</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="同じコードでも、離すべき組は違うの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">SIDの例</th><th scope="col">CVPM</th><th scope="col">扱い</th></tr></thead><tbody><tr><th scope="row">同じitemの再出現</th><td class="">1111 ↔ 1111</td><td class="">除外</td><td class="">反発しない</td></tr><tr><th scope="row">構築した協調正例</th><td class="">1111 ↔ 1111</td><td class="">除外</td><td class="">contrastiveの近さを守る</td></tr><tr><th scope="row">別item・正例ではない</th><td class="">1111 ↔ 1111</td><td class="">対象</td><td class="">完全衝突：margin .8</td></tr><tr><th scope="row">別item・正例ではない</th><td class="">1111 ↔ 1122</td><td class="">対象</td><td class="">H=2：産業R=2で部分衝突</td></tr><tr><th scope="row">半径の外</th><td class="">1111 ↔ 2222</td><td class="">対象だがH&gt;R</td><td class="">HaMRは0</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>4 tokenの例を再構成。qualifiedは観測可能な除外規則を通ったという意味。 <a href="https://arxiv.org/html/2603.00632v1">出典：§4.2 / Figure 3 ↗</a></figcaption>
+</figure>      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>再構成だけでなく、協調関係と衝突を同時に学ぶ</h3>
+<p>shared encoder fθがmultimodal特徴xᵢをzᵢへ写す。残差量子化器が各層のcodeを選び、量子化ベクトルの和からdecoder hφが元特徴を再構成する。離散選択にはstraight-through estimator（順伝播は離散、逆伝播は連続の近似）を使う。これにSwingで作ったtrigger–target正例のdual-tower contrastive学習を加える。<a href="https://arxiv.org/html/2603.00632v1#S4.SS1">§4.1</a></p>
+<p>産業側の特徴は説明文、ASR transcript、key-frame画像をmultimodal LLMで埋め込む。具体的な産業encoder名は本文では特定されない。offlineのSentence-T5-XXLと同一だとは仮定しない。</p>
+<h3>CVPMは2種類の良い重なりを除く</h3>
+<p>B個のtriggerを先に、対応するB個のtargetを後に並べる。iとi+Bの構築正例を除外し、同一IDの全出現組も除く。後者は自己pairと重複サンプルを含む。ここで使うHaMR用maskと、InfoNCEで同じtrigger IDの偽負例を除くmaskは用途が異なる。どちらもMという記号が使われるが、同一配列として実装しない。</p>
+<p>残ったpairを完全衝突H=0と、0&lt;H≤Rの部分衝突へ分ける。offlineはR=1、onlineはR=2。半径内でHが1から2へ変わるたびに連続的な係数を掛ける式ではなく、完全・部分の2群でmarginと重みを切り替える。<a href="https://arxiv.org/html/2603.00632v1#S4.SS2">§4.2、Appendix A.2</a></p>
+<h3>幾何マージンは一意のSIDを直接割り当てない</h3>
+<p>正規化embedding間のcosine距離D=1−eᵢᵀeⱼがmargin未満なら反発する。mfull=.8、mpartial=.5なので、完全衝突の方が大きく離す。HaMRは連続空間を変えて次の量子化を促す。lossが0でも、固定codebookの境界を必ず跨ぐとは限らない。有限のコード空間で一意性を保証する構成規則とは別の仕組みである。</p>
+<h3>既存Labとの接点は、異なる介入位置にある</h3>
+<table>
+<thead>
+<tr>
+<th>手法</th>
+<th>主に変える場所</th>
+<th>QuaSIDとの違い</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="understanding-sids-isd.html">ISD</a></td>
+<td>固定SIDのbeam探索へ外部順位を注入</td>
+<td>tokenizerの衝突学習は変えない</td>
+</tr>
+<tr>
+<td><a href="gr4ad-ads-generative.html">GR4AD / UA-SID</a></td>
+<td>意味コードに業務上のhash識別を加える</td>
+<td>有限hashには再衝突があり、mask付き反発とは異なる</td>
+</tr>
+<tr>
+<td><a href="tagr-live-sid.html">TAGR</a></td>
+<td>固定語彙への割当を時間変化に合わせて更新</td>
+<td>主眼はライブ内容の鮮度。QuaSIDは反発を掛ける組を選ぶ</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/2607.11392">CRID</a></td>
+<td>semantic clusterとbusiness-valueの順位でDocIDを構成</td>
+<td>cluster内の順位で区別する設計。一意IDの構成と幾何正則化を分ける</td>
+</tr>
+</tbody>
+</table>
+<p>この比較は読書メモであり、QuaSID論文のhead-to-head比較ではない。Labの次の検証案は、同じ候補予算で有害pairの識別精度、残存衝突、推薦品質を一緒に測ること。SID entropyだけを採択指標にしない。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>連続距離と離散衝突は別に測る</h3><a href="../figures/quasid-collision-qualified-sid/figures/geometry.svg" aria-label="連続距離と離散衝突は別に測るを拡大"><img src="../figures/quasid-collision-qualified-sid/figures/geometry.svg" alt="連続距離と離散衝突は別に測る。式10–12からθ=arccos(1−m)を計算。原論文の測定図ではない。" loading="lazy"></a><figcaption>式10–12からθ=arccos(1−m)を計算。原論文の測定図ではない。 <a href="../figures/quasid-collision-qualified-sid/figures/geometry.svg">図を拡大 ↗</a></figcaption></figure>
+<figure class="teaching teaching--equations" id="figure-qualified-margin" aria-labelledby="title-qualified-margin">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-qualified-margin">離散の重なりを、連続空間の反発へ変える</h3>
+  <ol class="equation-steps"><li><strong>除外・式8</strong><div class="math-expression" tabindex="0" role="math" aria-label="Mᵢⱼ = Mⁱ²ⁱᵢⱼ Mⁱᵗᵉᵐᵢⱼ; Mⁱᵗᵉᵐᵢⱼ = 𝟙[id(i) ≠ id(j)]">Mᵢⱼ = Mⁱ²ⁱᵢⱼ Mⁱᵗᵉᵐᵢⱼ; Mⁱᵗᵉᵐᵢⱼ = 𝟙[id(i) ≠ id(j)]</div><p>Mⁱ²ⁱは対応するtrigger–target正例で0、それ以外で1。</p></li><li><strong>距離・式9–10</strong><div class="math-expression" tabindex="0" role="math" aria-label="Hᵢⱼ = Σₗ₌₁ᴸ 𝟙[sᵢ⁽ˡ⁾ ≠ sⱼ⁽ˡ⁾]; Dᵢⱼ = 1 − eᵢᵀeⱼ">Hᵢⱼ = Σₗ₌₁ᴸ 𝟙[sᵢ⁽ˡ⁾ ≠ sⱼ⁽ˡ⁾]; Dᵢⱼ = 1 − eᵢᵀeⱼ</div><p>eはzをL2正規化したvector。</p></li><li><strong>衝突の2群</strong><div class="math-expression" tabindex="0" role="math" aria-label="Ωfull = {(i,j): Hᵢⱼ=0 ∧ Mᵢⱼ=1}; Ωpartial = {(i,j): 0&lt;Hᵢⱼ≤R ∧ Mᵢⱼ=1}">Ωfull = {(i,j): Hᵢⱼ=0 ∧ Mᵢⱼ=1}; Ωpartial = {(i,j): 0&lt;Hᵢⱼ≤R ∧ Mᵢⱼ=1}</div><p>同一itemと正例を除いてから群へ入れる。</p></li><li><strong>hinge・式11–12</strong><div class="math-expression" tabindex="0" role="math" aria-label="Lfull(i,j)=max(0,mfull−Dᵢⱼ); Lpartial(i,j)=max(0,mpartial−Dᵢⱼ)">Lfull(i,j)=max(0,mfull−Dᵢⱼ); Lpartial(i,j)=max(0,mpartial−Dᵢⱼ)</div><p>mfull=.8 ≥ mpartial=.5。閾値以上へ離れたpairは0。</p></li><li><strong>群別平均・式13</strong><div class="math-expression" tabindex="0" role="math" aria-label="LHaMR = λfull ΣΩfull Lfull / (|Ωfull|+ε) + λpartial ΣΩpartial Lpartial / (|Ωpartial|+ε)">LHaMR = λfull ΣΩfull Lfull / (|Ωfull|+ε) + λpartial ΣΩpartial Lpartial / (|Ωpartial|+ε)</div><p>ε&gt;0で空集合も扱う。toyの重みは.2 / .1。</p></li><li><strong>総損失・式14</strong><div class="math-expression" tabindex="0" role="math" aria-label="L = Lrec + Lrq + LHaMR + Lcl">L = Lrec + Lrq + LHaMR + Lcl</div><p>再構成とRQの忠実性、協調関係、反発を同時に最適化する。</p></li></ol>
+  <figcaption>原式の条件付けと正規化を保ち、記号をUnicodeで表記。 <a href="https://arxiv.org/html/2603.00632v1">出典：式8–14 / Appendix A.2 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>Hamming距離は離散コードでの混同を検出し、cosine距離は連続encoderへ勾配を渡す。両者をつなぐことで、単なる再構成誤差が見落とす混同へ圧力を掛けられる。CVPMは既知の良い重なりを保護する。もっとも、現在のコードが等しい理由を完全には分類できず、反発を強めすぎると意味の近さを壊す。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>同じTIGERでtokenizerを比べる</h3>
+<p>Amazon-BeautyとToys &amp; Gamesの5-core、leave-one-out評価。文字属性はSentence-T5-XXLで埋め込み、全方式でTIGERを使う。5 seedsの平均で、offlineは3層×256コード、産業設定は4層×1024コード。Table 2のBeauty NDCG@10はRQ-Kmeans 0.0211、QuaSID 0.0230。Toysは0.0213対0.0225である。</p>
+<p>Table 5でCVPMを外すとBeauty NDCG@5が0.0193→0.0181、HaMRを外すと0.0170になる。一方、Table 3のRQ-OPQ＋HaMRはToys HR@5が0.0228→0.0227へわずかに低下する。全方式・全指標の一律改善ではない。<a href="https://arxiv.org/html/2603.00632v1#S5">Tables 2–5</a></p>
+<h3>entropyを上げれば推薦が良くなるとは限らない</h3>
+<p>SID composition entropyはコード利用の多様性である。ToysのSimRQはentropy 9.3688でRQ-Kmeansの9.3460より高いが、NDCG@10は0.0190で0.0213より低い。HaMRだけを足した方式で、QuaSIDよりentropyが高くなる例もある。意味・協調信号と識別の両方が要るという解釈を支えるが、相関だけで因果機構は確定しない。</p>
+<h3>GMV-S2はシナリオ別の売上指標</h3>
+<p>5日間、約5%のtraffic、2000万人超を含むtreatmentをランダム割付したA/B。GMV-S1/S2はシナリオ別のGMVであり、第二段rankerの改善率という意味ではない。rankingへのSID特徴追加はGMV-S2 +2.38%、generative retrievalのtokenizer置換は+0.55%。介入位置が違うので足し合わせない。</p>
+<p>cold-startの100vv / 600vvは、最初の48時間でviewが100未満 / 600未満の動画。互いに排他的な群とは読めない。retrieval 100vvの注文数+6.42%は新規ユーザー全体の効果ではない。著者は表4の全結果を有意とするが、信頼区間や正確なp値は示していない。<a href="https://arxiv.org/html/2603.00632v1#S5.SS4">§5.4、Table 4</a></p>
+<p>上記は一次資料の著者報告であり、このLabの合成実験値とは分けている。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>GMV-S2の2つのA/B</h3><a href="../figures/quasid-collision-qualified-sid/figures/online.svg" aria-label="GMV-S2の2つのA/Bを拡大"><img src="../figures/quasid-collision-qualified-sid/figures/online.svg" alt="GMV-S2の2つのA/B。Table 4。5日間、約5% trafficの著者報告。Labで独立検証した成果ではない。" loading="lazy"></a><figcaption>Table 4。5日間、約5% trafficの著者報告。Labで独立検証した成果ではない。 <a href="../figures/quasid-collision-qualified-sid/figures/online.svg">図を拡大 ↗</a></figcaption></figure>
+<figure class="teaching teaching--matrix" id="figure-online-surfaces" aria-labelledby="title-online-surfaces">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-online-surfaces">SIDを入れた段階ごとに効果を読む</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="SIDを入れた段階ごとに効果を読むの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">注文数</th><th scope="col">GMV-S1</th><th scope="col">GMV-S2</th></tr></thead><tbody><tr><th scope="row">Generative retrieval</th><td class="">+0.21%</td><td class="">+1.03%</td><td class="">+0.55%</td></tr><tr><th scope="row">Ranking</th><td class="">+0.20%</td><td class="">+1.44%</td><td class="">+2.38%</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>本番比の相対変化。GMV-S1/S2は別scenarioのGMV。 <a href="https://arxiv.org/html/2603.00632v1">出典：Table 4 ↗</a></figcaption>
+</figure><figure class="teaching teaching--matrix" id="figure-cold-start" aria-labelledby="title-cold-start">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-cold-start">最初の48時間、低viewの動画への効果</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="最初の48時間、低viewの動画への効果の表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">注文数</th><th scope="col">GMV</th><th scope="col">GPM</th></tr></thead><tbody><tr><th scope="row">通常Retrieval</th><td class="">+1.09%</td><td class="">+1.69%</td><td class="">+3.25%</td></tr><tr><th scope="row">Retrieval 100vv</th><td class="">+6.42%</td><td class="">+4.67%</td><td class="">+0.21%</td></tr><tr><th scope="row">Retrieval 600vv</th><td class="">+4.69%</td><td class="">+3.11%</td><td class="">+0.53%</td></tr><tr><th scope="row">Ranking 100vv</th><td class="">+1.77%</td><td class="">+4.10%</td><td class="">+2.99%</td></tr><tr><th scope="row">Ranking 600vv</th><td class="">+2.64%</td><td class="">+3.88%</td><td class="">+2.78%</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>100vvは100未満、600vvは600未満。GPMは1000露出当たりGMV。 <a href="https://arxiv.org/html/2603.00632v1">出典：Table 4 / §5.4 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/quasid-collision-qualified-sid/run.py</code></p>
+<p>trigger3件とtarget3件を連結した6例で、同一item・構築正例・完全衝突・部分衝突・半径外を区別する。全ordered pairについてmaskと群別平均を計算し、maskなしと比較する。別の2次元例では一方の方向を固定し、hinge lossの勾配で他方の角度を80回更新する。</p></div><div class="downloads"><a href="../downloads/quasid-collision-qualified-sid/run.py" download>実行コード</a><a href="../downloads/quasid-collision-qualified-sid/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/quasid-collision-qualified-sid">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section class="interactive" id="interactive-1" data-interactive="explorer">
+        <p class="figure-badge">合成実験 · Mechanism PARTIAL</p><h2>角度を広げると、いつ反発が止まるか</h2><p>完全・部分衝突のhingeを同じ角度で比較する。同一item・協調正例はmaskにより0。式11–12の計算で、オンライン成果ではない。</p>
+        <script type="application/json" data-config>{"caption": "\u5b8c\u5168\u30fb\u90e8\u5206\u885d\u7a81\u306ehinge\u3092\u540c\u3058\u89d2\u5ea6\u3067\u6bd4\u8f03\u3059\u308b\u3002\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b\u306fmask\u306b\u3088\u308a0\u3002\u5f0f11\u201312\u306e\u8a08\u7b97\u3067\u3001\u30aa\u30f3\u30e9\u30a4\u30f3\u6210\u679c\u3067\u306f\u306a\u3044\u3002", "kind": "explorer", "title": "\u89d2\u5ea6\u3092\u5e83\u3052\u308b\u3068\u3001\u3044\u3064\u53cd\u767a\u304c\u6b62\u307e\u308b\u304b"}</script>
+<script type="application/json" data-results>{"default": 2, "frames": [{"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.8}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.5}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=0\u5ea6\u3001cosine\u8ddd\u96e2=0.0000\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 0}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.7848077530122081}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.484807753012208}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=10\u5ea6\u3001cosine\u8ddd\u96e2=0.0152\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 10}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.7396926207859085}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.43969262078590843}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=20\u5ea6\u3001cosine\u8ddd\u96e2=0.0603\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 20}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.6660254037844388}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.3660254037844387}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=30\u5ea6\u3001cosine\u8ddd\u96e2=0.1340\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 30}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.5660444431189781}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.266044443118978}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=40\u5ea6\u3001cosine\u8ddd\u96e2=0.2340\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 40}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.4427876096865394}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.14278760968653936}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=50\u5ea6\u3001cosine\u8ddd\u96e2=0.3572\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 50}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.30000000000000016}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 1.1102230246251565e-16}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=60\u5ea6\u3001cosine\u8ddd\u96e2=0.5000\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 60}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.14202014332566892}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=70\u5ea6\u3001cosine\u8ddd\u96e2=0.6580\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 70}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=80\u5ea6\u3001cosine\u8ddd\u96e2=0.8264\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 80}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=90\u5ea6\u3001cosine\u8ddd\u96e2=1.0000\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 90}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=100\u5ea6\u3001cosine\u8ddd\u96e2=1.1736\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 100}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=110\u5ea6\u3001cosine\u8ddd\u96e2=1.3420\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 110}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=120\u5ea6\u3001cosine\u8ddd\u96e2=1.5000\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 120}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=130\u5ea6\u3001cosine\u8ddd\u96e2=1.6428\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 130}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=140\u5ea6\u3001cosine\u8ddd\u96e2=1.7660\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 140}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=150\u5ea6\u3001cosine\u8ddd\u96e2=1.8660\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 150}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=160\u5ea6\u3001cosine\u8ddd\u96e2=1.9397\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 160}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=170\u5ea6\u3001cosine\u8ddd\u96e2=1.9848\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 170}, {"bars": [{"label": "\u5b8c\u5168\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u90e8\u5206\u885d\u7a81\u306ehinge", "value": 0.0}, {"label": "\u540c\u4e00item\u30fb\u5354\u8abf\u6b63\u4f8b", "value": 0.0}], "lines": [], "note": "\u89d2\u5ea6=180\u5ea6\u3001cosine\u8ddd\u96e2=2.0000\u3002SID\u306eHamming\u8ddd\u96e2\u306f\u56fa\u5b9a\u3002\u96e2\u6563\u30b3\u30fc\u30c9\u306e\u518d\u5272\u5f53\u306f\u884c\u308f\u306a\u3044\u3002", "value": 180}], "label": "encoder\u4e0a\u306e2\u70b9\u306e\u89d2\u5ea6", "metric": "\u91cd\u307f\u3092\u639b\u3051\u308b\u524d\u306epair hinge", "unit": "\u5ea6"}</script>        <div data-mount></div><div data-fallback>
+<p>encoder上の2点の角度：20度</p><ul><li>完全衝突のhinge：0.7396926207859085</li><li>部分衝突のhinge：0.43969262078590843</li><li>同一item・協調正例：0.0</li></ul><p>角度=20度、cosine距離=0.0603。SIDのHamming距離は固定。離散コードの再割当は行わない。</p>        </div><p class="source-note">数値の出所：このLabの results.json。論文の測定値ではありません。</p>
+      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>式8–13のmask、群別平均、角度方向の反発だけを実装。SIDは固定し、量子化器と推薦器は学習しない。</em></p>
+<h3>群別平均と反発前後</h3>
+<ul><li><strong>n</strong>: 6</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>masked_HaMR</th><td colspan='1'>0.2000767804034249</td></tr><tr><th scope='row'>unmasked_HaMR</th><td colspan='1'>0.20153588725423646</td></tr><tr><th scope='row'>initial_distance</th><td colspan='1'>0.019933422158758374</td></tr><tr><th scope='row'>final_distance</th><td colspan='1'>0.8230481700932332</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;式8–13のmask、群別平均、角度方向の反発だけを実装。SIDは固定し、量子化器と推薦器は学習しない。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;checks&quot;: {
+    &quot;benign_mask_and_margin&quot;: &quot;CONFIRMED&quot;,
+    &quot;discrete_collision_reduction_in_fixed_SIDs&quot;: &quot;NOT OBSERVED&quot;,
+    &quot;online_GMV&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;群別平均と反発前後&quot;,
+      &quot;n&quot;: 6,
+      &quot;metrics&quot;: {
+        &quot;masked_HaMR&quot;: 0.2000767804034249,
+        &quot;unmasked_HaMR&quot;: 0.20153588725423646,
+        &quot;initial_distance&quot;: 0.019933422158758374,
+        &quot;final_distance&quot;: 0.8230481700932332
+      }
+    }
+  ],
+  &quot;masked&quot;: {
+    &quot;loss&quot;: 0.2000767804034249,
+    &quot;counts&quot;: {
+      &quot;full&quot;: 2,
+      &quot;partial&quot;: 14
+    },
+    &quot;pairs&quot;: [
+      {
+        &quot;i&quot;: 0,
+        &quot;j&quot;: 1,
+        &quot;hamming&quot;: 0,
+        &quot;distance&quot;: 0.0,
+        &quot;qualified&quot;: false,
+        &quot;loss&quot;: 0.0
+      },
+      {
+        &quot;i&quot;: 0,
+        &quot;j&quot;: 2,
+        &quot;hamming&quot;: 1,
+        &quot;distance&quot;: 0.0049958347219741794,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.4950041652780258
+      },
+      {
+        &quot;i&quot;: 0,
+        &quot;j&quot;: 3,
+        &quot;hamming&quot;: 0,
+        &quot;distance&quot;: 0.011228922063957758,
+        &quot;qualified&quot;: false,
+        &quot;loss&quot;: 0.0
+      },
+      {
+        &quot;i&quot;: 0,
+        &quot;j&quot;: 4,
+        &quot;hamming&quot;: 2,
+        &quot;distance&quot;: 0.019933422158758374,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.4800665778412416
+      },
+      {
+        &quot;i&quot;: 0,
+        &quot;j&quot;: 5,
+        &quot;hamming&quot;: 4,
+        &quot;distance&quot;: 0.9292627983322971,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.0
+      },
+      {
+        &quot;i&quot;: 1,
+        &quot;j&quot;: 2,
+        &quot;hamming&quot;: 1,
+        &quot;distance&quot;: 0.0049958347219741794,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.4950041652780258
+      },
+      {
+        &quot;i&quot;: 1,
+        &quot;j&quot;: 3,
+        &quot;hamming&quot;: 0,
+        &quot;distance&quot;: 0.011228922063957758,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.7887710779360423
+      },
+      {
+        &quot;i&quot;: 1,
+        &quot;j&quot;: 4,
+        &quot;hamming&quot;: 2,
+        &quot;distance&quot;: 0.019933422158758374,
+        &quot;qualified&quot;: false,
+        &quot;loss&quot;: 0.0
+      },
+      {
+        &quot;i&quot;: 1,
+        &quot;j&quot;: 5,
+        &quot;hamming&quot;: 4,
+        &quot;distance&quot;: 0.9292627983322971,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.0
+      },
+      {
+        &quot;i&quot;: 2,
+        &quot;j&quot;: 3,
+        &quot;hamming&quot;: 1,
+        &quot;distance&quot;: 0.0012497396050337173,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.4987502603949663
+      },
+      {
+        &quot;i&quot;: 2,
+        &quot;j&quot;: 4,
+        &quot;hamming&quot;: 1,
+        &quot;distance&quot;: 0.0049958347219741794,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.4950041652780258
+      },
+      {
+        &quot;i&quot;: 2,
+        &quot;j&quot;: 5,
+        &quot;hamming&quot;: 3,
+        &quot;distance&quot;: 0.8300328570997589,
+        &quot;qualified&quot;: false,
+        &quot;loss&quot;: 0.0
+      },
+      {
+        &quot;i&quot;: 3,
+        &quot;j&quot;: 4,
+        &quot;hamming&quot;: 2,
+        &quot;distance&quot;: 0.0012497396050337173,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.4987502603949663
+      },
+      {
+        &quot;i&quot;: 3,
+        &quot;j&quot;: 5,
+        &quot;hamming&quot;: 4,
+        &quot;distance&quot;: 0.7809933129069585,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.0
+      },
+      {
+        &quot;i&quot;: 4,
+        &quot;j&quot;: 5,
+        &quot;hamming&quot;: 2,
+        &quot;distance&quot;: 0.7325011713754126,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.0
+      }
+    ]
+  },
+  &quot;unmasked&quot;: {
+    &quot;loss&quot;: 0.20153588725423646,
+    &quot;counts&quot;: {
+      &quot;full&quot;: 6,
+      &quot;partial&quot;: 16
+    },
+    &quot;pairs&quot;: [
+      {
+        &quot;i&quot;: 0,
+        &quot;j&quot;: 1,
+        &quot;hamming&quot;: 0,
+        &quot;distance&quot;: 0.0,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.8
+      },
+      {
+        &quot;i&quot;: 0,
+        &quot;j&quot;: 2,
+        &quot;hamming&quot;: 1,
+        &quot;distance&quot;: 0.0049958347219741794,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.4950041652780258
+      },
+      {
+        &quot;i&quot;: 0,
+        &quot;j&quot;: 3,
+        &quot;hamming&quot;: 0,
+        &quot;distance&quot;: 0.011228922063957758,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.7887710779360423
+      },
+      {
+        &quot;i&quot;: 0,
+        &quot;j&quot;: 4,
+        &quot;hamming&quot;: 2,
+        &quot;distance&quot;: 0.019933422158758374,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.4800665778412416
+      },
+      {
+        &quot;i&quot;: 0,
+        &quot;j&quot;: 5,
+        &quot;hamming&quot;: 4,
+        &quot;distance&quot;: 0.9292627983322971,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.0
+      },
+      {
+        &quot;i&quot;: 1,
+        &quot;j&quot;: 2,
+        &quot;hamming&quot;: 1,
+        &quot;distance&quot;: 0.0049958347219741794,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.4950041652780258
+      },
+      {
+        &quot;i&quot;: 1,
+        &quot;j&quot;: 3,
+        &quot;hamming&quot;: 0,
+        &quot;distance&quot;: 0.011228922063957758,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.7887710779360423
+      },
+      {
+        &quot;i&quot;: 1,
+        &quot;j&quot;: 4,
+        &quot;hamming&quot;: 2,
+        &quot;distance&quot;: 0.019933422158758374,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.4800665778412416
+      },
+      {
+        &quot;i&quot;: 1,
+        &quot;j&quot;: 5,
+        &quot;hamming&quot;: 4,
+        &quot;distance&quot;: 0.9292627983322971,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.0
+      },
+      {
+        &quot;i&quot;: 2,
+        &quot;j&quot;: 3,
+        &quot;hamming&quot;: 1,
+        &quot;distance&quot;: 0.0012497396050337173,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.4987502603949663
+      },
+      {
+        &quot;i&quot;: 2,
+        &quot;j&quot;: 4,
+        &quot;hamming&quot;: 1,
+        &quot;distance&quot;: 0.0049958347219741794,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.4950041652780258
+      },
+      {
+        &quot;i&quot;: 2,
+        &quot;j&quot;: 5,
+        &quot;hamming&quot;: 3,
+        &quot;distance&quot;: 0.8300328570997589,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.0
+      },
+      {
+        &quot;i&quot;: 3,
+        &quot;j&quot;: 4,
+        &quot;hamming&quot;: 2,
+        &quot;distance&quot;: 0.0012497396050337173,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.4987502603949663
+      },
+      {
+        &quot;i&quot;: 3,
+        &quot;j&quot;: 5,
+        &quot;hamming&quot;: 4,
+        &quot;distance&quot;: 0.7809933129069585,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.0
+      },
+      {
+        &quot;i&quot;: 4,
+        &quot;j&quot;: 5,
+        &quot;hamming&quot;: 2,
+        &quot;distance&quot;: 0.7325011713754126,
+        &quot;qualified&quot;: true,
+        &quot;loss&quot;: 0.0
+      }
+    ]
+  },
+  &quot;angular_trace&quot;: [
+    {
+      &quot;step&quot;: 0,
+      &quot;angle&quot;: 0.2,
+      &quot;distance&quot;: 0.019933422158758374,
+      &quot;loss&quot;: 0.7800665778412417
+    },
+    {
+      &quot;step&quot;: 1,
+      &quot;angle&quot;: 0.21986693307950614,
+      &quot;distance&quot;: 0.02407352016558939,
+      &quot;loss&quot;: 0.7759264798344107
+    },
+    {
+      &quot;step&quot;: 2,
+      &quot;angle&quot;: 0.24167690922759388,
+      &quot;distance&quot;: 0.029061996401633983,
+      &quot;loss&quot;: 0.7709380035983661
+    },
+    {
+      &quot;step&quot;: 3,
+      &quot;angle&quot;: 0.265610022934009,
+      &quot;distance&quot;: 0.03506744933791717,
+      &quot;loss&quot;: 0.7649325506620829
+    },
+    {
+      &quot;step&quot;: 4,
+      &quot;angle&quot;: 0.2918598177280196,
+      &quot;distance&quot;: 0.04228960044325736,
+      &quot;loss&quot;: 0.7577103995567427
+    },
+    {
+      &quot;step&quot;: 5,
+      &quot;angle&quot;: 0.3206332065762009,
+      &quot;distance&quot;: 0.05096395781731733,
+      &quot;loss&quot;: 0.7490360421826827
+    },
+    {
+      &quot;step&quot;: 6,
+      &quot;angle&quot;: 0.3521499625384235,
+      &quot;distance&quot;: 0.06136667507390081,
+      &quot;loss&quot;: 0.7386333249260992
+    },
+    {
+      &quot;step&quot;: 7,
+      &quot;angle&quot;: 0.38664162549313996,
+      &quot;distance&quot;: 0.07381934333310847,
+      &quot;loss&quot;: 0.7261806566668916
+    },
+    {
+      &quot;step&quot;: 8,
+      &quot;angle&quot;: 0.42434963408761306,
+      &quot;distance&quot;: 0.08869330035712664,
+      &quot;loss&quot;: 0.7113066996428734
+    },
+    {
+      &quot;step&quot;: 9,
+      &quot;angle&quot;: 0.465522452692369,
+      &quot;distance&quot;: 0.10641283606989771,
+      &quot;loss&quot;: 0.6935871639301023
+    },
+    {
+      &quot;step&quot;: 10,
+      &quot;angle&quot;: 0.51041142466315,
+      &quot;distance&quot;: 0.12745641437277977,
+      &quot;loss&quot;: 0.6725435856272203
+    },
+    {
+      &quot;step&quot;: 11,
+      &quot;angle&quot;: 0.5592650520802409,
+      &quot;distance&quot;: 0.15235472365231728,
+      &quot;loss&quot;: 0.6476452763476828
+    },
+    {
+      &quot;step&quot;: 12,
+      &quot;angle&quot;: 0.6123213886938312,
+      &quot;distance&quot;: 0.1816840374823323,
+      &quot;loss&quot;: 0.6183159625176677
+    },
+    {
+      &quot;step&quot;: 13,
+      &quot;angle&quot;: 0.6697982523425015,
+      &quot;distance&quot;: 0.21605306760337717,
+      &quot;loss&quot;: 0.5839469323966229
+    },
+    {
+      &quot;step&quot;: 14,
+      &quot;angle&quot;: 0.7318810363639937,
+      &quot;distance&quot;: 0.2560813212729577,
+      &quot;loss&quot;: 0.5439186787270424
+    },
+    {
+      &quot;step&quot;: 15,
+      &quot;angle&quot;: 0.7987080518174023,
+      &quot;distance&quot;: 0.302367085459734,
+      &quot;loss&quot;: 0.49763291454026604
+    },
+    {
+      &quot;step&quot;: 16,
+      &quot;angle&quot;: 0.870353590167676,
+      &quot;distance&quot;: 0.35544375226141334,
+      &quot;loss&quot;: 0.4445562477385867
+    },
+    {
+      &quot;step&quot;: 17,
+      &quot;angle&quot;: 0.9468092795243978,
+      &quot;distance&quot;: 0.41572449440078385,
+      &quot;loss&quot;: 0.3842755055992162
+    },
+    {
+      &quot;step&quot;: 18,
+      &quot;angle&quot;: 1.027964817447375,
+      &quot;distance&quot;: 0.48343746247055,
+      &quot;loss&quot;: 0.31656253752945007
+    },
+    {
+      &quot;step&quot;: 19,
+      &quot;angle&quot;: 1.1135897638602712,
+      &quot;distance&quot;: 0.5585566881651589,
+      &quot;loss&quot;: 0.24144331183484113
+    },
+    {
+      &quot;step&quot;: 20,
+      &quot;angle&quot;: 1.2033186779535716,
+      &quot;distance&quot;: 0.6407373728461039,
+      &quot;loss&quot;: 0.15926262715389616
+    },
+    {
+      &quot;step&quot;: 21,
+      &quot;angle&quot;: 1.2966423279427615,
+      &quot;distance&quot;: 0.7292673729441919,
+      &quot;loss&quot;: 0.07073262705580818
+    },
+    {
+      &quot;step&quot;: 22,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 23,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 24,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 25,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 26,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 27,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 28,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 29,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 30,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 31,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 32,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 33,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 34,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 35,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 36,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 37,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 38,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 39,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 40,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 41,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 42,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 43,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 44,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 45,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 46,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 47,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 48,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 49,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 50,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 51,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 52,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 53,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 54,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 55,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 56,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 57,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 58,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 59,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 60,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 61,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 62,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 63,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 64,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 65,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 66,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 67,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 68,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 69,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 70,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 71,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 72,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 73,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 74,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 75,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 76,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 77,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 78,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 79,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    },
+    {
+      &quot;step&quot;: 80,
+      &quot;angle&quot;: 1.3929077861636343,
+      &quot;distance&quot;: 0.8230481700932332,
+      &quot;loss&quot;: 0
+    }
+  ],
+  &quot;explorer&quot;: {
+    &quot;label&quot;: &quot;encoder上の2点の角度&quot;,
+    &quot;unit&quot;: &quot;度&quot;,
+    &quot;metric&quot;: &quot;重みを掛ける前のpair hinge&quot;,
+    &quot;default&quot;: 2,
+    &quot;frames&quot;: [
+      {
+        &quot;value&quot;: 0,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.8
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.5
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=0度、cosine距離=0.0000。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 10,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.7848077530122081
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.484807753012208
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=10度、cosine距離=0.0152。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 20,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.7396926207859085
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.43969262078590843
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=20度、cosine距離=0.0603。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 30,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.6660254037844388
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.3660254037844387
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=30度、cosine距離=0.1340。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 40,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.5660444431189781
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.266044443118978
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=40度、cosine距離=0.2340。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 50,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.4427876096865394
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.14278760968653936
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=50度、cosine距離=0.3572。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 60,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.30000000000000016
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 1.1102230246251565e-16
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=60度、cosine距離=0.5000。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 70,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.14202014332566892
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=70度、cosine距離=0.6580。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 80,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=80度、cosine距離=0.8264。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 90,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=90度、cosine距離=1.0000。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 100,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=100度、cosine距離=1.1736。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 110,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=110度、cosine距離=1.3420。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 120,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=120度、cosine距離=1.5000。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 130,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=130度、cosine距離=1.6428。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 140,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=140度、cosine距離=1.7660。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 150,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=150度、cosine距離=1.8660。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 160,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=160度、cosine距離=1.9397。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 170,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=170度、cosine距離=1.9848。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      },
+      {
+        &quot;value&quot;: 180,
+        &quot;lines&quot;: [],
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;完全衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;部分衝突のhinge&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;同一item・協調正例&quot;,
+            &quot;value&quot;: 0.0
+          }
+        ],
+        &quot;note&quot;: &quot;角度=180度、cosine距離=2.0000。SIDのHamming距離は固定。離散コードの再割当は行わない。&quot;
+      }
+    ]
+  }
+}</code></pre></details><p>CVPMを有効にすると同一itemと構築正例の反発が0になる。完全衝突は距離0.8、部分衝突は0.5に達するとhingeが消える。角度の更新では連続距離が増えるが、固定したSIDは変わらない。したがってこの教材での離散衝突減少はNOT OBSERVEDである。これはQuaSID全体への反証ではなく、実装していない離散再割当の効果を計上しないための表示である。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>CONFIRMED：CVPMの同一ID・正例除外、Hamming半径の境界、群ごとの平均、空集合でも有限のloss、0.8/0.5のhinge条件。Mechanism PARTIAL：encoderの角度に掛かる力まで。固定SIDでの衝突減少はNOT OBSERVED。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。Sentence-T5-XXL、Swingの正例構築、RQ codebook・decoderの学習、STE、TIGER、KuaishouのGMVは未検証。CVPMが真の意味衝突を完全に判定するとは確認していない。任意のquantizerにHaMRを足せるとも断定しない。Table 3は同じend-to-end勾配学習に属さないRQ-Kmeansを除いている。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>qualified()</code> は連結batchの位置とitem IDから式8のmaskを作る。<code>pair_loss()</code> は式11–12、<code>hamr()</code> は式13の完全・部分集合をそれぞれ平均する。両群を一括で平均しない。<code>angular_update()</code> は片方を固定した2次元方向の更新で、全モデルのSGDではない。<code>results.json</code>にはpairごとの距離・判定・lossを残す。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>原論文の場所</th>
+<th>Labの対応</th>
+<th>範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>式1–7、Figure 2</td>
+<td>tokenizer＋協調学習の説明</td>
+<td>full modelの学習は未実装</td>
+</tr>
+<tr>
+<td>式8、§4.2.1</td>
+<td><code>qualified()</code></td>
+<td>正例の位置と同一itemの除外</td>
+</tr>
+<tr>
+<td>式9–13</td>
+<td><code>pair_loss()</code> / <code>hamr()</code></td>
+<td>Hamming、cosine、群別平均を計算</td>
+</tr>
+<tr>
+<td>式14</td>
+<td>4損失の結合図</td>
+<td>再構成・RQ・contrastiveはtoyに含めない</td>
+</tr>
+<tr>
+<td>Table 4</td>
+<td>online cardsとcold-start表</td>
+<td>著者報告。介入ごとに分離</td>
+</tr>
+<tr>
+<td>Appendix A.2</td>
+<td>半径とmargin</td>
+<td>産業R=2、mfull=.8、mpartial=.5をtoyへ使用</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://arxiv.org/html/2603.00632v1">全文v1</a>を本文からAppendix A.2まで通読。QuaSID自身の公式コードは本文・書誌で未確認。Appendix A.2が挙げる<a href="https://github.com/EdoardoBotta/RQ-VAE-Recommender">基盤実装 RQ-VAE-Recommender</a>は別プロジェクトであり、QuaSIDの公式公開実装として登録していない。Labのコードは独自作成。</p>
+<p><a href="https://arxiv.org/html/2607.11392#S2.SS1">CRID一次資料</a>の§2.1を確認し、cluster内の順位による一意性と日次更新を手法の位置付けに参照した。ISD・GR4AD・TAGRは既存Labの原典対応を参照し、結果を転用しない。原論文HTMLの仮置きDOI・会議テンプレート情報は正式書誌として採用しない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>SIDが重なったとき、本当に引き離すべき組はどれか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/quasid-collision-qualified-sid/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

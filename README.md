@@ -1,6 +1,6 @@
 # Interactive Research Library
 
-一次資料を読み、仕組み・根拠・限界を日本語で説明する20件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
+一次資料を読み、仕組み・根拠・限界を日本語で説明する32件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
 
 公開先：https://mixidota2.github.io/paper-lab/
 
@@ -65,3 +65,7 @@ uv run skills/natural-japanese/scripts/lint.py --genre tech --json /tmp/lab-pros
 ## 公開と資料の限界
 
 `origin/main` へのpushでGitHub Actionsが再生成し、GitHub Pagesへ公開します。2026-09-07の改修では、Amazon Scienceが公開するWhole Foods論文の全4ページPDFを確認できました。因果効果の詳細な実証結果は本文で省略され、図の売上値も非公開・正規化されているため、独立再現や実店舗での増収確認はできていません。
+
+## 2026-09-15追加分
+
+OxygenREC-v2 / IDGR、RecEvolve、QuaSIDの3件を追加。各 `papers/<slug>/` にREADME・lab.yaml・method.md・mapping.md・run.py・results.jsonを置き、図も同じディレクトリで管理する。行動指示と蒸留損失、固定scoreの候補集合監査、CVPMと幾何マージンをそれぞれ検証する。産業モデルの学習とオンライン性能はNOT TESTED。

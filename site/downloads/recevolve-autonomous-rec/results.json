@@ -1,0 +1,245 @@
+{
+  "note": "同じモデルscoreで候補だけを減らす合成実験。実エージェント、VCS、TPUは使用しない。候補数監査はLabの提案で、論文の自動検知実績ではない。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "checks": {
+    "candidate_set_inflation": "CONFIRMED",
+    "production_agent_replication": "NOT TESTED"
+  },
+  "experiments": [
+    {
+      "name": "固定scoreで候補数だけを変更",
+      "dataset": "合成：4 seeds × 128 queries",
+      "metrics": {
+        "1000": 0.36055062,
+        "2000": 0.26670756,
+        "4000": 0.18043543,
+        "8000": 0.11386686
+      }
+    }
+  ],
+  "per_seed": [
+    {
+      "1000": 0.3473870853529219,
+      "2000": 0.2701994804798246,
+      "4000": 0.18158978648132224,
+      "8000": 0.11506772289629774
+    },
+    {
+      "1000": 0.33856969603954146,
+      "2000": 0.23577585118609418,
+      "4000": 0.16008934587121063,
+      "8000": 0.09486329766929395
+    },
+    {
+      "1000": 0.3817860225486611,
+      "2000": 0.2801997610542063,
+      "4000": 0.18577304943959724,
+      "8000": 0.12073916703049045
+    },
+    {
+      "1000": 0.37445965955744265,
+      "2000": 0.28065513522584834,
+      "4000": 0.19428953349598638,
+      "8000": 0.12479726554478604
+    }
+  ],
+  "guarded_trace": [
+    {
+      "name": "invalid",
+      "status": "ROLLBACK",
+      "reason": "事前検証に失敗",
+      "before": {
+        "valid": true,
+        "success": true,
+        "candidates": 8000,
+        "ndcg": 0.4,
+        "aux": 0.6
+      },
+      "after": {
+        "valid": true,
+        "success": true,
+        "candidates": 8000,
+        "ndcg": 0.4,
+        "aux": 0.6
+      }
+    },
+    {
+      "name": "oom",
+      "status": "ROLLBACK",
+      "reason": "訓練ジョブに失敗",
+      "before": {
+        "valid": true,
+        "success": true,
+        "candidates": 8000,
+        "ndcg": 0.4,
+        "aux": 0.6
+      },
+      "after": {
+        "valid": true,
+        "success": true,
+        "candidates": 8000,
+        "ndcg": 0.4,
+        "aux": 0.6
+      }
+    },
+    {
+      "name": "smaller_batch",
+      "status": "ROLLBACK",
+      "reason": "比較候補数が変化（Labで追加した監査）",
+      "before": {
+        "valid": true,
+        "success": true,
+        "candidates": 8000,
+        "ndcg": 0.4,
+        "aux": 0.6
+      },
+      "after": {
+        "valid": true,
+        "success": true,
+        "candidates": 8000,
+        "ndcg": 0.4,
+        "aux": 0.6
+      }
+    },
+    {
+      "name": "aux_regression",
+      "status": "ROLLBACK",
+      "reason": "改善幅または補助指標が不足",
+      "before": {
+        "valid": true,
+        "success": true,
+        "candidates": 8000,
+        "ndcg": 0.4,
+        "aux": 0.6
+      },
+      "after": {
+        "valid": true,
+        "success": true,
+        "candidates": 8000,
+        "ndcg": 0.4,
+        "aux": 0.6
+      }
+    },
+    {
+      "name": "valid_gain",
+      "status": "KEEP",
+      "reason": "主指標と補助指標の条件を満たす",
+      "before": {
+        "valid": true,
+        "success": true,
+        "candidates": 8000,
+        "ndcg": 0.4,
+        "aux": 0.6
+      },
+      "after": {
+        "valid": true,
+        "success": true,
+        "candidates": 8000,
+        "ndcg": 0.45,
+        "aux": 0.6
+      }
+    }
+  ],
+  "unguarded_trace": [
+    {
+      "name": "invalid",
+      "status": "ROLLBACK",
+      "reason": "事前検証に失敗",
+      "before": {
+        "valid": true,
+        "success": true,
+        "candidates": 8000,
+        "ndcg": 0.4,
+        "aux": 0.6
+      },
+      "after": {
+        "valid": true,
+        "success": true,
+        "candidates": 8000,
+        "ndcg": 0.4,
+        "aux": 0.6
+      }
+    },
+    {
+      "name": "oom",
+      "status": "ROLLBACK",
+      "reason": "訓練ジョブに失敗",
+      "before": {
+        "valid": true,
+        "success": true,
+        "candidates": 8000,
+        "ndcg": 0.4,
+        "aux": 0.6
+      },
+      "after": {
+        "valid": true,
+        "success": true,
+        "candidates": 8000,
+        "ndcg": 0.4,
+        "aux": 0.6
+      }
+    },
+    {
+      "name": "smaller_batch",
+      "status": "KEEP",
+      "reason": "主指標と補助指標の条件を満たす",
+      "before": {
+        "valid": true,
+        "success": true,
+        "candidates": 8000,
+        "ndcg": 0.4,
+        "aux": 0.6
+      },
+      "after": {
+        "valid": true,
+        "success": true,
+        "candidates": 1000,
+        "ndcg": 0.8,
+        "aux": 0.6
+      }
+    },
+    {
+      "name": "aux_regression",
+      "status": "ROLLBACK",
+      "reason": "改善幅または補助指標が不足",
+      "before": {
+        "valid": true,
+        "success": true,
+        "candidates": 1000,
+        "ndcg": 0.8,
+        "aux": 0.6
+      },
+      "after": {
+        "valid": true,
+        "success": true,
+        "candidates": 1000,
+        "ndcg": 0.8,
+        "aux": 0.6
+      }
+    },
+    {
+      "name": "valid_gain",
+      "status": "ROLLBACK",
+      "reason": "改善幅または補助指標が不足",
+      "before": {
+        "valid": true,
+        "success": true,
+        "candidates": 1000,
+        "ndcg": 0.8,
+        "aux": 0.6
+      },
+      "after": {
+        "valid": true,
+        "success": true,
+        "candidates": 1000,
+        "ndcg": 0.8,
+        "aux": 0.6
+      }
+    }
+  ]
+}

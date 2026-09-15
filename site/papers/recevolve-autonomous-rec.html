@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GoogleのRecEvolveは、本番Two-Tower検索モデルの仮説・批評・実装・学習・評価をOrchestratorでつなぐ。著者報告は41実験、最終NDCG@50が0.4796から0.5751、オンライン満足度+3.77%。同時に、batchを8kから1kへ減らすと評価だけが易しくなる問題も発見された。KEEPとVCS rollbackの条件、評価候補の固定を中心に読む。">
+  <title>自律探索で改善したのはモデルか、それとも評価問題の易しさか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-07-20</span></div>
+    <h1>自律探索で改善したのはモデルか、それとも評価問題の易しさか</h1>
+    <p class="lede">GoogleのRecEvolveは、本番Two-Tower検索モデルの仮説・批評・実装・学習・評価をOrchestratorでつなぐ。著者報告は41実験、最終NDCG@50が0.4796から0.5751、オンライン満足度+3.77%。同時に、batchを8kから1kへ減らすと評価だけが易しくなる問題も発見された。KEEPとVCS rollbackの条件、評価候補の固定を中心に読む。</p>
+    <details class="bibliography"><summary>原論文：RecEvolve: A Knowledge-Driven Autonomous Agent System for Recommender Systems</summary><p>Weidi Pan, He Ma, Shuhao Ye, Palaksh Rungta, David McPeek, Junyi Jiao, Arnab Bhadury, Mingyan Gao, Onkar Dalal</p><p>2609.01622 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.01622">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.01622v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-15 · arXiv v1の全文HTMLを通読。本文・全表・図の説明・末尾の付録（存在する場合）を確認。PDF原版との画像照合は未実施。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-orchestrator">状態を持つのは中央のOrchestrator</a><a href="#figure-keep-rule">探索の定式化とKEEPの条件</a><a href="#figure-trajectory">公開された4点で累積改善を追う</a><a href="#figure-online-meaning">オンライン指標の符号を読む</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>GoogleのRecEvolveは、本番Two-Tower検索モデルの仮説・批評・実装・学習・評価をOrchestratorでつなぐ。著者報告は41実験、最終NDCG@50が0.4796から0.5751、オンライン満足度+3.77%。同時に、batchを8kから1kへ減らすと評価だけが易しくなる問題も発見された。KEEPとVCS rollbackの条件、評価候補の固定を中心に読む。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>成熟したTwo-Towerでも、temperature・損失の重み・feature interaction・学習率には調整余地がある。1回3時間超の分散学習を伴うため、人が仮説を列挙して試すだけでは探索数が限られる。しかし自律化すると、改善しやすい代理指標へ探索が集中し、評価条件の抜け道まで利用し得る。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>評価問題そのものが易しくなる</h3><a href="../figures/recevolve-autonomous-rec/figures/candidate-set.svg" aria-label="評価問題そのものが易しくなるを拡大"><img src="../figures/recevolve-autonomous-rec/figures/candidate-set.svg" alt="評価問題そのものが易しくなる。§5.2の仕組みを再構成。実験は入れ子の候補集合でscoreを固定。棒の長さは定量表現ではない。" loading="lazy"></a><figcaption>§5.2の仕組みを再構成。実験は入れ子の候補集合でscoreを固定。棒の長さは定量表現ではない。 <a href="../figures/recevolve-autonomous-rec/figures/candidate-set.svg">図を拡大 ↗</a></figcaption></figure>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は、状態を集約するOrchestratorとstatelessなIdeator・Critic・Coding Agentを組み合わせ、産業規模のモデル改良を継続できると主張する。最良構成へ改善を積み重ね、主指標と補助指標を満たす変更だけをKEEPする（Algorithm 1）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>探索の速さだけでなく、比較条件をどこで固定するかが採用時の要点になる。VCSは実装を戻せるが、指標の意味が変わったことを自動で理解するわけではない。別探索sessionのbatch縮小は人間が発見してrollbackしており、評価契約を自動監査できた証拠ではない。</p></div></div>
+      </section>
+<figure class="teaching teaching--architecture" id="figure-orchestrator" aria-labelledby="title-orchestrator">
+  <div class="figure-heading"><span class="eyebrow">ARCHITECTURE</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-orchestrator">状態を持つのは中央のOrchestrator</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">中央の状態</p><div class="diagram-nodes"><div class="diagram-node"><strong>Orchestrator</strong><p>基準モデル、Knowledge Base、queue、実験履歴を保持。</p></div><div class="diagram-node"><strong>分離したworkspace</strong><p>spec・批評・manifest・job ID・分析を保存。</p></div></div></div><div class="diagram-row"><p class="lane-label">提案から実装</p><div class="diagram-nodes"><div class="diagram-node"><strong>Ideator ↔ Critic</strong><p>必要な履歴を受け取り、仮説と批評を往復。</p></div><div class="diagram-node"><strong>Coding Agent</strong><p>承認済み仮説を候補コードへ反映。</p></div></div></div><div class="diagram-row"><p class="lane-label">学習から更新</p><div class="diagram-nodes"><div class="diagram-node"><strong>Compute Cluster</strong><p>事前検証後にbranchを作り、分散jobを実行。</p></div><div class="diagram-node"><strong>KEEP / rollback</strong><p>指標条件を満たせば基準更新。失敗・退化なら復元。</p></div></div></div></div>
+  <figcaption>専門agentの役割と中央の記憶を分ける。 <a href="https://arxiv.org/html/2609.01622v1">出典：Figures 1–2 / §3 ↗</a></figcaption>
+</figure>      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>Orchestratorが状態を持ち、専門agentには必要な情報だけを渡す</h3>
+<p>Ideatorが仮説を作り、Criticが実行前に批評する。承認された案をCoding Agentが実装し、Orchestratorがjobの投入と結果を管理する。専門agentは独立した長期記憶を持たない。Knowledge Base、優先度付きHypothesis Backlog、過去の結果を呼出しごとに注入する。<a href="https://arxiv.org/html/2609.01622v1#S3">§3.2–3.3</a></p>
+<p>共有filesystemにはglobal stateを、実験threadには分離したworkspaceを置く。実験の仕様、批評、job IDを含むmanifest、分析を残す。この構造は論文の仕組みであり、このLabの実行で別agentを起動することはない。</p>
+<h3>KEEPは評価の通過、rollbackは状態の復元</h3>
+<p>Algorithm 1は基準モデルを監査して主指標ΦNSと補助指標ΦAuxを抽出し、baseline τを確立する。候補の事前検証に失敗すればVCS rollback。分散jobが失敗すればlogを分析してKnowledge Baseを更新し、rollbackする。成功後に主指標の改善幅と補助指標を判定し、両方を満たせばVCS commitとKEEPの記録へ進む。</p>
+<p>KEEPは名前付きの採択記録であり、rollbackと同義ではない。後者は不採択・失敗の変更を戻す動作である。また本番配信への全自動承認をAlgorithm 1が証明しているわけでもない。</p>
+<h3>Two-Towerで発見されたのは損失・表現・収束の改良</h3>
+<p>Idea 2でcontrastive lossのtemperatureを学習可能にし、Idea 6でquery依存へ進める。Idea 18はWatch-Time Weighted Contrastive Loss、Idea 23はlog重みからwatch_time⁰·⁵へ変更する。Idea 20のDCN V2はuser towerの明示的な特徴交差、Idea 36のGated Denseは表現容量、Idea 40のCosine Decayは収束を変える。これらの実コード・全ハイパーパラメータは公開本文だけでは再構成できない。<a href="https://arxiv.org/html/2609.01622v1#S5">§5.1、5.5</a></p>
+<h3>8k→1kで、正例が競争する相手が減る</h3>
+<p>in-batch negativesではbatch内の別itemが負例になる。batch縮小で評価の候補数も縮むと、同じ正例scoreでも上位へ入りやすい。論文の別sessionではこの抜け道をagentが見つけ、人間が検出した後にrollbackした。図と実験ではscoreを固定することで、学習を伴わなくても起こる効果を切り出す。</p>
+<p>Labの次の実装案は、候補ID集合・評価データ版・指標式・学習budgetをmanifestへ保存し、比較前に照合すること。候補数が同じでも難しさは変わり得るため、件数だけの監査は最小の一歩にすぎない。これは著者の実装を確認した記述ではなく、読書からの提案である。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>KEEPとrollbackの分岐</h3><a href="../figures/recevolve-autonomous-rec/figures/lifecycle.svg" aria-label="KEEPとrollbackの分岐を拡大"><img src="../figures/recevolve-autonomous-rec/figures/lifecycle.svg" alt="KEEPとrollbackの分岐。Algorithm 1を再構成。失敗・退化の復元と、採択時のcommitを分けた。LabはVCSを実行しない。" loading="lazy"></a><figcaption>Algorithm 1を再構成。失敗・退化の復元と、採択時のcommitを分けた。LabはVCSを実行しない。 <a href="../figures/recevolve-autonomous-rec/figures/lifecycle.svg">図を拡大 ↗</a></figcaption></figure>
+<figure class="teaching teaching--equations" id="figure-keep-rule" aria-labelledby="title-keep-rule">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-keep-rule">探索の定式化とKEEPの条件</h3>
+  <ol class="equation-steps"><li><strong>最適化対象・式1</strong><div class="math-expression" tabindex="0" role="math" aria-label="M* = argmax M∈ℳ f(M,𝒟)">M* = argmax M∈ℳ f(M,𝒟)</div><p>評価が高価なので全構成は試せない。</p></li><li><strong>知識に条件付けた探索・式2</strong><div class="math-expression" tabindex="0" role="math" aria-label="Mₜ ← π(𝒦ₜ, {M₁,…,Mₜ₋₁})">Mₜ ← π(𝒦ₜ, {M₁,…,Mₜ₋₁})</div><p>πは論文の抽象表現。特定の強化学習algorithmが実装されたという意味ではない。</p></li><li><strong>採択・Algorithm 1 line 20</strong><div class="math-expression" tabindex="0" role="math" aria-label="γ(ΦNS) &gt; τ + ε  ∧  γ(ΦAux) ≥ Threshold">γ(ΦNS) &gt; τ + ε  ∧  γ(ΦAux) ≥ Threshold</div><p>採択時にM*とτを更新し、VCS_Commit()とLog KEEP。事前検証失敗、job失敗、条件未達はVCS_Rollback()。</p></li><li><strong>候補数の効果・Labの導出</strong><div class="math-expression" tabindex="0" role="math" aria-label="rank = 1 + Σⱼ 𝟙[sⱼ ≥ s⁺]; NDCG@K = 𝟙[rank ≤ K] / log₂(rank+1)">rank = 1 + Σⱼ 𝟙[sⱼ ≥ s⁺]; NDCG@K = 𝟙[rank ≤ K] / log₂(rank+1)</div><p>正例1件の合成評価。負例を除くだけでrankは悪化しない。これは原論文の番号付き式ではない。</p></li></ol>
+  <figcaption>原式の条件付けと正規化を保ち、記号をUnicodeで表記。 <a href="https://arxiv.org/html/2609.01622v1">出典：式1–2 / Algorithm 1 / §5.2（最終段はLab導出） ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>Orchestratorが必要な履歴とドメイン知識を毎回渡せば、専門agentの文脈を短く保てる。各実験のspec・批評・job ID・分析を残すことで、中断後の再開も支えられる。温度と視聴時間重みのような相互依存を連続して試す利点はある。ただし過去の失敗を再提案した事例があり、記録の存在と知識の利用は別である。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>最終構成は単独アイデアの効果ではない</h3>
+<p>約2日、5並行threadで41件の実験を完了した。短期probeの候補を2M-stepのfull trainingで確認する。Table 1の経路は累積構成であり、41個すべての成績を示す表ではない。温度の学習、視聴時間重み、DCN V2、Gated Dense、Cosine Decayを順に組み込んだ結果である。</p>
+<p>Table 1のNDCG@50は0.4796→0.4996→0.5529→0.5751。MRR@50は0.3514→0.3626→0.4173→0.4440。最終NDCG差は相対約19.9%。Figure 4の学習曲線はMAP@50で、NDCGの時系列ではない。<a href="https://arxiv.org/html/2609.01622v1#S5">§4–5.1、Table 1</a></p>
+<h3>Cold-Start −16.50%は発見までの時間短縮</h3>
+<p>オンラインの満足度+3.77%、Unique Content +7.44%とともに、Cold-Start Improvement −16.50%を報告する。本文は新しいitemの発見が速くなる意味だと明記する。cold-startの精度が16.5%悪化したわけではない。ただし発見の判定、満足度の算式、A/B期間・traffic割付・信頼区間は本文に十分示されない。新規ユーザーの精度とも読み替えない。<a href="https://arxiv.org/html/2609.01622v1#S5.SS7">§5.7、Table 2</a></p>
+<h3>自律ループが解決しきらなかった問題</h3>
+<p>小予算では最大3.0の攻めた学習率を好み、短期収束に偏る。失敗仮説の再探索や、Idea 40後の停滞も記録される。提案された将来の二段階surrogate評価を、すでに完成した機能として図示しない。</p>
+<p>上記は一次資料の著者報告であり、このLabの合成実験値とは分けている。</p></div>      </section>
+<figure class="teaching teaching--chart" id="figure-trajectory" aria-labelledby="title-trajectory">
+  <div class="figure-heading"><span class="eyebrow">CHART</span><span class="figure-badge">論文の報告値</span></div>
+  <h3 id="title-trajectory">公開された4点で累積改善を追う</h3>
+  <p class="chart-metric">NDCG@50 · 共通尺度 0–0.6</p><div class="bar-chart"><div class="bar-row"><div class="bar-label"><span>0 Baseline</span><strong>0.4796 NDCG@50</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 79.93333333333334%"></div></div></div><div class="bar-row"><div class="bar-label"><span>2 Learnable Temperature</span><strong>0.4996 NDCG@50</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 83.26666666666667%"></div></div></div><div class="bar-row"><div class="bar-label"><span>18 Watch-Time Weighted</span><strong>0.5529 NDCG@50</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 92.14999999999999%"></div></div></div><div class="bar-row"><div class="bar-label"><span>40 Winner / Cosine Decay</span><strong>0.5751 NDCG@50</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 95.85%"></div></div></div></div>
+  <figcaption>idea番号は探索の順序。棒は最終学習後のNDCG@50で、MAP@50の学習曲線とは異なる。 <a href="https://arxiv.org/html/2609.01622v1">出典：Table 1 / Figure 3 ↗</a></figcaption>
+</figure><figure class="teaching teaching--matrix" id="figure-online-meaning" aria-labelledby="title-online-meaning">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-online-meaning">オンライン指標の符号を読む</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="オンライン指標の符号を読むの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">相対変化</th><th scope="col">意味</th></tr></thead><tbody><tr><th scope="row">User Satisfaction</th><td class="">+3.77%</td><td class="">満足度指標の増加</td></tr><tr><th scope="row">Cold-Start Improvement</th><td class="">−16.50%</td><td class="">新itemを発見するまでの時間短縮</td></tr><tr><th scope="row">Unique Content</th><td class="">+7.44%</td><td class="">固有コンテンツ指標の増加</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>すべて著者報告の本番比。詳細な算式・不確実性は未開示。 <a href="https://arxiv.org/html/2609.01622v1">出典：Table 2 / §5.7 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/recevolve-autonomous-rec/run.py</code></p>
+<p>4 seeds × 128 queryで正例scoreと7999個の負例scoreを一度作り、1000・2000・4000・8000候補のNDCG@50を計算する。小さい集合は大きい集合のprefixで、正例もscoreも固定する。さらに人工的な5候補で事前失敗・job失敗・候補数変更・補助指標退化・正当な改善の分岐を実行する。</p></div><div class="downloads"><a href="../downloads/recevolve-autonomous-rec/run.py" download>実行コード</a><a href="../downloads/recevolve-autonomous-rec/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/recevolve-autonomous-rec">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>同じモデルscoreで候補だけを減らす合成実験。実エージェント、VCS、TPUは使用しない。候補数監査はLabの提案で、論文の自動検知実績ではない。</em></p>
+<h3>固定scoreで候補数だけを変更</h3>
+<ul><li><strong>dataset</strong>: 合成：4 seeds × 128 queries</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>1000</th><td colspan='1'>0.36055062</td></tr><tr><th scope='row'>2000</th><td colspan='1'>0.26670756</td></tr><tr><th scope='row'>4000</th><td colspan='1'>0.18043543</td></tr><tr><th scope='row'>8000</th><td colspan='1'>0.11386686</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;同じモデルscoreで候補だけを減らす合成実験。実エージェント、VCS、TPUは使用しない。候補数監査はLabの提案で、論文の自動検知実績ではない。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;checks&quot;: {
+    &quot;candidate_set_inflation&quot;: &quot;CONFIRMED&quot;,
+    &quot;production_agent_replication&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;固定scoreで候補数だけを変更&quot;,
+      &quot;dataset&quot;: &quot;合成：4 seeds × 128 queries&quot;,
+      &quot;metrics&quot;: {
+        &quot;1000&quot;: 0.36055062,
+        &quot;2000&quot;: 0.26670756,
+        &quot;4000&quot;: 0.18043543,
+        &quot;8000&quot;: 0.11386686
+      }
+    }
+  ],
+  &quot;per_seed&quot;: [
+    {
+      &quot;1000&quot;: 0.3473870853529219,
+      &quot;2000&quot;: 0.2701994804798246,
+      &quot;4000&quot;: 0.18158978648132224,
+      &quot;8000&quot;: 0.11506772289629774
+    },
+    {
+      &quot;1000&quot;: 0.33856969603954146,
+      &quot;2000&quot;: 0.23577585118609418,
+      &quot;4000&quot;: 0.16008934587121063,
+      &quot;8000&quot;: 0.09486329766929395
+    },
+    {
+      &quot;1000&quot;: 0.3817860225486611,
+      &quot;2000&quot;: 0.2801997610542063,
+      &quot;4000&quot;: 0.18577304943959724,
+      &quot;8000&quot;: 0.12073916703049045
+    },
+    {
+      &quot;1000&quot;: 0.37445965955744265,
+      &quot;2000&quot;: 0.28065513522584834,
+      &quot;4000&quot;: 0.19428953349598638,
+      &quot;8000&quot;: 0.12479726554478604
+    }
+  ],
+  &quot;guarded_trace&quot;: [
+    {
+      &quot;name&quot;: &quot;invalid&quot;,
+      &quot;status&quot;: &quot;ROLLBACK&quot;,
+      &quot;reason&quot;: &quot;事前検証に失敗&quot;,
+      &quot;before&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 8000,
+        &quot;ndcg&quot;: 0.4,
+        &quot;aux&quot;: 0.6
+      },
+      &quot;after&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 8000,
+        &quot;ndcg&quot;: 0.4,
+        &quot;aux&quot;: 0.6
+      }
+    },
+    {
+      &quot;name&quot;: &quot;oom&quot;,
+      &quot;status&quot;: &quot;ROLLBACK&quot;,
+      &quot;reason&quot;: &quot;訓練ジョブに失敗&quot;,
+      &quot;before&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 8000,
+        &quot;ndcg&quot;: 0.4,
+        &quot;aux&quot;: 0.6
+      },
+      &quot;after&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 8000,
+        &quot;ndcg&quot;: 0.4,
+        &quot;aux&quot;: 0.6
+      }
+    },
+    {
+      &quot;name&quot;: &quot;smaller_batch&quot;,
+      &quot;status&quot;: &quot;ROLLBACK&quot;,
+      &quot;reason&quot;: &quot;比較候補数が変化（Labで追加した監査）&quot;,
+      &quot;before&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 8000,
+        &quot;ndcg&quot;: 0.4,
+        &quot;aux&quot;: 0.6
+      },
+      &quot;after&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 8000,
+        &quot;ndcg&quot;: 0.4,
+        &quot;aux&quot;: 0.6
+      }
+    },
+    {
+      &quot;name&quot;: &quot;aux_regression&quot;,
+      &quot;status&quot;: &quot;ROLLBACK&quot;,
+      &quot;reason&quot;: &quot;改善幅または補助指標が不足&quot;,
+      &quot;before&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 8000,
+        &quot;ndcg&quot;: 0.4,
+        &quot;aux&quot;: 0.6
+      },
+      &quot;after&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 8000,
+        &quot;ndcg&quot;: 0.4,
+        &quot;aux&quot;: 0.6
+      }
+    },
+    {
+      &quot;name&quot;: &quot;valid_gain&quot;,
+      &quot;status&quot;: &quot;KEEP&quot;,
+      &quot;reason&quot;: &quot;主指標と補助指標の条件を満たす&quot;,
+      &quot;before&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 8000,
+        &quot;ndcg&quot;: 0.4,
+        &quot;aux&quot;: 0.6
+      },
+      &quot;after&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 8000,
+        &quot;ndcg&quot;: 0.45,
+        &quot;aux&quot;: 0.6
+      }
+    }
+  ],
+  &quot;unguarded_trace&quot;: [
+    {
+      &quot;name&quot;: &quot;invalid&quot;,
+      &quot;status&quot;: &quot;ROLLBACK&quot;,
+      &quot;reason&quot;: &quot;事前検証に失敗&quot;,
+      &quot;before&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 8000,
+        &quot;ndcg&quot;: 0.4,
+        &quot;aux&quot;: 0.6
+      },
+      &quot;after&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 8000,
+        &quot;ndcg&quot;: 0.4,
+        &quot;aux&quot;: 0.6
+      }
+    },
+    {
+      &quot;name&quot;: &quot;oom&quot;,
+      &quot;status&quot;: &quot;ROLLBACK&quot;,
+      &quot;reason&quot;: &quot;訓練ジョブに失敗&quot;,
+      &quot;before&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 8000,
+        &quot;ndcg&quot;: 0.4,
+        &quot;aux&quot;: 0.6
+      },
+      &quot;after&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 8000,
+        &quot;ndcg&quot;: 0.4,
+        &quot;aux&quot;: 0.6
+      }
+    },
+    {
+      &quot;name&quot;: &quot;smaller_batch&quot;,
+      &quot;status&quot;: &quot;KEEP&quot;,
+      &quot;reason&quot;: &quot;主指標と補助指標の条件を満たす&quot;,
+      &quot;before&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 8000,
+        &quot;ndcg&quot;: 0.4,
+        &quot;aux&quot;: 0.6
+      },
+      &quot;after&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 1000,
+        &quot;ndcg&quot;: 0.8,
+        &quot;aux&quot;: 0.6
+      }
+    },
+    {
+      &quot;name&quot;: &quot;aux_regression&quot;,
+      &quot;status&quot;: &quot;ROLLBACK&quot;,
+      &quot;reason&quot;: &quot;改善幅または補助指標が不足&quot;,
+      &quot;before&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 1000,
+        &quot;ndcg&quot;: 0.8,
+        &quot;aux&quot;: 0.6
+      },
+      &quot;after&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 1000,
+        &quot;ndcg&quot;: 0.8,
+        &quot;aux&quot;: 0.6
+      }
+    },
+    {
+      &quot;name&quot;: &quot;valid_gain&quot;,
+      &quot;status&quot;: &quot;ROLLBACK&quot;,
+      &quot;reason&quot;: &quot;改善幅または補助指標が不足&quot;,
+      &quot;before&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 1000,
+        &quot;ndcg&quot;: 0.8,
+        &quot;aux&quot;: 0.6
+      },
+      &quot;after&quot;: {
+        &quot;valid&quot;: true,
+        &quot;success&quot;: true,
+        &quot;candidates&quot;: 1000,
+        &quot;ndcg&quot;: 0.8,
+        &quot;aux&quot;: 0.6
+      }
+    }
+  ]
+}</code></pre></details><p>同じscoreでも、負例を減らすだけで平均NDCG@50が上がる。これは表現学習の改善ではない。候補数監査を外したfixtureではsmaller_batchをKEEPし、監査を入れるとROLLBACKする。監査はLab側の追加提案である。数値の判定器だけでreward hackingを防げないことを示す。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>CONFIRMED：入れ子の候補集合で負例を増やしても正例順位が改善しないこと、rollback時に最良状態が保持されること、補助指標の閾値を満たさない候補が採択されないこと。Mechanism PARTIAL：評価監査と状態遷移だけを実行した。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。実LLMの発案・coding、Googleの非公開Two-Tower、TPU実行、VCS操作、オンライン満足度は再現していない。基盤LLMの具体名・モデルサイズ・prompt全文・公式実装は確認した本文と書誌では特定できない。人間探索に対する因果的な優位や計算費用対効果も未検証。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>score_query()</code> は正例1件のrankからNDCGを求め、<code>candidate_probe()</code> が固定scoreの候補数比較を行う。<code>decide()</code> はAlgorithm 1の採択条件に候補数監査を追加する。<code>lifecycle()</code> は辞書のsnapshotで状態を戻す教材であり、gitを操作しない。traceにはbeforeとafterを保存し、採択された状態が後続候補の基準になる。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>原論文の場所</th>
+<th>Labの対応</th>
+<th>範囲と留保</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Figures 1–2、§3</td>
+<td>Orchestrator lifecycle図</td>
+<td>agent役割と状態の保持先を再構成</td>
+</tr>
+<tr>
+<td>式1–2</td>
+<td>モデル探索の定式化</td>
+<td>学習済みpolicyをLabで訓練しない</td>
+</tr>
+<tr>
+<td>Algorithm 1</td>
+<td><code>decide()</code> / <code>lifecycle()</code></td>
+<td>in-memory状態。VCSの実行なし</td>
+</tr>
+<tr>
+<td>§5.2</td>
+<td><code>candidate_probe()</code></td>
+<td>score固定。8k→1kの難易度差だけ</td>
+</tr>
+<tr>
+<td>Table 1、Figure 3</td>
+<td>累積構成のtrajectory</td>
+<td>表で公開された4点のみ</td>
+</tr>
+<tr>
+<td>Table 2、§5.7</td>
+<td>online指標の読解</td>
+<td>Cold-startは発見時間の短縮</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://arxiv.org/html/2609.01622v1">全文v1</a>を§1–7とReferencesまで通読。公開HTMLには独立した付録はない。arXiv書誌のSubmittedは2026-07-20と表示されるため、その日付を採用した（IDの月から推測しない）。公式コードは本文・書誌で未確認。引用されるautoresearchはRecEvolve自身の公開実装ではない。</p>
+<p>候補数不変の監査はLab独自。原論文の人間による検出を、Orchestratorが自動で発見した成果として扱わない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>自律探索で改善したのはモデルか、それとも評価問題の易しさか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/recevolve-autonomous-rec/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

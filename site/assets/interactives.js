@@ -137,7 +137,7 @@
       head.append(hr); const body=el('tbody');
       f.bars.forEach(b => {const tr=el('tr');const th=el('th','',b.label);th.scope='row';tr.append(th,el('td','',number(b.value)));body.append(tr);});
       table.append(caption,head,body);tableMount.append(table);
-      if (f.lines.length) {
+      if (f.lines && f.lines.length) {
         drawLines(traces, f.lines, `${id}-plot`);
         const traceTable = el('table');
         const header=el('thead'); const row=el('tr');
