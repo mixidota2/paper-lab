@@ -230,3 +230,24 @@ body{background:white}
 
 .metrics { table-layout:auto; }
 .metrics th, .metrics td { min-width:6.5rem; }
+
+/* Distinct, paper-shaped teaching controls; keep reading order on narrow screens. */
+.paper-probe { overflow-wrap: anywhere; }
+.probe-controls { display:flex; flex-wrap:wrap; gap:1rem; align-items:center; margin:1rem 0; }
+.paper-probe label { display:block; font-weight:600; }
+.paper-probe select { max-width:100%; min-height:44px; margin:.35rem; padding:.4rem .75rem; border:1px solid #7a8e94; border-radius:6px; background:#fff; color:#183c43; font:inherit; }
+.paper-probe input[type=range] { width:100%; min-height:44px; accent-color:#176d73; }
+.paper-probe input[type=checkbox] { width:20px; height:20px; vertical-align:middle; }
+.candidate-paths { display:grid; gap:.6rem; }
+.candidate-path { border-left:5px solid #176d73; padding:.8rem; background:#e4f2ee; font-variant-numeric:tabular-nums; }
+.candidate-path.invalid { border-color:#b45035; background:#fbece4; }
+.item-chips { display:flex; flex-wrap:wrap; gap:.4rem; }
+.item-chips span { padding:.35rem .6rem; border:1px solid #ccd8d7; border-radius:4px; }
+.item-chips .target { color:#fff; background:#176d73; border:2px solid #083d42; }
+.share-track { display:flex; height:24px; border-radius:4px; overflow:hidden; }
+.share-track span:first-child { background:#176d73; }
+.share-track span:last-child { background:#d0e2df; }
+.share-row { margin:1.2rem 0; }
+.threshold-track { position:relative; height:15px; background:linear-gradient(to right,#efcabe 0%,#efcabe 82.35%,#b4dfce 82.35%); margin:2rem 0 2.5rem; }
+.threshold-track span { position:absolute; top:18px; transform:translateX(-50%); }
+.threshold-track i { position:absolute; top:-6px; width:4px; height:27px; background:#153e48; transform:translateX(-50%); }

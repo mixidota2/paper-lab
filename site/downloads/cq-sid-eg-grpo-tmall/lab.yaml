@@ -1,0 +1,208 @@
+id: cq-sid-eg-grpo-tmall
+arxiv_id: '2605.14434'
+submitted: '2026-05-14'
+title: Efficient Generative Retrieval for E-commerce Search with Semantic Cluster
+  IDs and Expert-Guided RL
+authors:
+- Jianbo Zhu
+- Xing Fang
+- Jing Wang
+- Mingmin Jin
+- Bokang Wang
+- Guangxin Song
+- Zhenyu Xie
+- Junjie Bai
+year: 2026
+topics:
+- generative-recommendation
+- recommender-systems
+urls:
+  paper: https://arxiv.org/abs/2605.14434
+  arxiv: https://arxiv.org/abs/2605.14434
+  pdf: https://arxiv.org/pdf/2605.14434v1
+  official_code: null
+verdict: Worth Reading
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+status: published
+related_threads: []
+question: CQ-SID：商品群を生成し、Tmallの既存ランキングにつなぐ
+summary: TmallAPPのCQ-SIDは、一つのSIDから意味の近い商品群を取り出す召回チャネルだ。カテゴリ制約とquery-item対照学習で群を作り、EG-GRPOで既存の露出・クリックに合わせる。2週間のA/BでGMV
+  +1.15%、UCTCVR +0.40%。購入の72.63%という値はチャネル構成比で、改善率ではない。
+source_review:
+  checked: '2026-09-15'
+  scope: 一次PDF v1の本文・全付録を確認。著者報告と合成実験を分離。
+  pdf_sha256: 8790cce2464f481475da38312b72d72237ef1ae37b105a921b3a40565534731d
+  url: https://arxiv.org/pdf/2605.14434v1
+core_idea:
+  author_claim: 著者はCategory-and-Query constrained Semantic ID（CQ-SID）とExpert-Guided
+    GRPO（EG-GRPO）により、検索召回の精度・候補の広がり・計算量を両立できると主張する。生成召回は既存のmulti-channel recallとrankingへ組み込む（§1、§3–4）。
+  research_bot_interpretation: ここでの設計判断は「IDの衝突をすべてなくす」より、意味の近い商品を一緒に呼ぶことにある。後段の選別が前提なので、beamを減らせても商品展開やrankingの費用は残る。専門家SIDの注入は教師信号の補強であり、未知の良い商品を発見できた証拠とは分ける。
+sections:
+  overview: TmallAPPのCQ-SIDは、一つのSIDから意味の近い商品群を取り出す召回チャネルだ。カテゴリ制約とquery-item対照学習で群を作り、EG-GRPOで既存の露出・クリックに合わせる。2週間のA/BでGMV
+    +1.15%、UCTCVR +0.40%。購入の72.63%という値はチャネル構成比で、改善率ではない。
+  problem: '巨大な検索商品集合から最終表示までを直接生成すると、必要な精度を低遅延で保ちにくい。本論文は生成を召回段に限定し、既存の粗いranking・精密rankingを使うhybrid構成を採る。SIDを一意IDにすると、小さなbeamでは呼び出せる商品数も少ない。逆に群を大きくし過ぎると、人気群が候補枠を占める。
+
+
+    学習ログの購入・クリックは疎で、同じ報酬ばかりの生成群ではGRPOの相対advantageがなくなる。群の意味構造と学習信号の薄さを別々に扱う必要がある。'
+  why_it_might_work: カテゴリで大枠を揃え、queryと商品の表現を近づけると、同じSIDを共有する商品の検索意図が揃いやすい。一つの生成で複数商品を出せるため、同じ候補件数を得るbeamを減らせる。expert
+    SIDは低品質な生成群にも報酬差を作る。ただし注入により学習分布が変わり、ログ方策が選んだ商品への依存も残る。
+  evidence: '### beamを揃える比較と商品数を揃える比較を分ける
+
+
+    CQ-SIDは37.5Mサンプルで学習し、query評価201k、個人化評価170kを用いる。表1の非個人化click hitrateはbeam=100でRQ-VAE
+    0.5199、CQ-SID 0.6181。ただし同じbeamでも候補商品数は一致しない。表2のtop-1K truncationではCQ-SIDがbeam=30で0.4422、RQ-VAEが65で0.4275。商品効率scoreで切るオフライン評価と、粗rankingで切るオンライン処理も同一ではない。
+
+
+    個人化した表3のtop-1KではCQ-SIDがbeam=160で0.7984、RQ-VAEが195で0.7607。beam削減は17.95%。これをそのまま遅延削減率に換算しない。
+
+
+    ### EG-GRPOの改善幅は小さい
+
+
+    表4では標準GRPO（K=0）のclk@1は0.1510→0.1519だが、clk@10は0.5206→0.5196、平均露出coverage pvr@10は0.4371→0.4360と下がる。K=2では0.1524
+    / 0.5221 / 0.4377。著者は深いbeamでのmode concentrationをcollapseと解釈するが、表は小幅な指標差を示すもので、全面的な学習破綻を測ったものではない。
+
+
+    ### オンラインのliftとチャネル構成比は別の分母
+
+
+    §4.5は2週間のA/BでGMV +1.15%、UCTCVR +0.40%を報告する。UCTCVRの詳細な集計定義や割付比率、区間推定は本文に明記されない。全面展開後の生成チャネル比率は露出50.25%、クリック58.96%、購入72.63%。この構成比をA/B
+    liftや独占的な因果寄与と扱わない。平均end-to-end latencyは約40ms、8 GPUで200 QPS超、availability 99.9%、動的beamは20/50/100。p95遅延やGPU機種別の曲線はない。[一次資料
+    §4](https://arxiv.org/pdf/2605.14434v1)
+
+
+    <figure class="teaching"><h3>生成チャネルの構成比と、残りのチャネル</h3><p>著者報告 §4.5。各行の分母は全チャネルの露出・クリック・購入。A/Bの改善率ではない。</p><div
+    class="share-row"><p>露出：生成 50.25% / その他 49.75%</p><div class="share-track" role="img"
+    aria-label="露出の生成チャネル構成比50.25%"><span style="width:50.25%"></span><span style="width:49.75%"></span></div></div><div
+    class="share-row"><p>クリック：生成 58.96% / その他 41.04%</p><div class="share-track" role="img"
+    aria-label="クリックの生成チャネル構成比58.96%"><span style="width:58.96%"></span><span style="width:41.04%"></span></div></div><div
+    class="share-row"><p>購入：生成 72.63% / その他 27.37%</p><div class="share-track" role="img"
+    aria-label="購入の生成チャネル構成比72.63%"><span style="width:72.63%"></span><span style="width:27.370000000000005%"></span></div></div><figcaption>濃色＝生成、淡色＝その他（100%から計算）。複数チャネル間の重複帰属の詳細は本文にない。<a
+    href="https://arxiv.org/pdf/2605.14434v1">出典：§4.5</a></figcaption></figure>'
+  executable_understanding: '6つの人工クラスタを作り、各クラスタを10商品へ展開する。生成beamを増やした後、商品効率を模した固定scoreで20商品に切る。beamを増やすとtargetが落ちる反例を追う。別の実験では5つのSIDに報酬0.1/0.5/1.0を与え、8生成サンプルへK=0/2/4のexpertを加える。2,000群のadvantageと、旧方策上の一歩のlogit勾配を計算する。
+
+
+    <div class="paper-probe teaching" data-paper-probe="cq-sid-eg-grpo-tmall"><h3>商品を群で呼び、20件へ切り詰める</h3><p>合成6クラスタ×10商品。targetは23。商品番号が大きいほど高い効率scoreを与えた反例である。</p>
+
+    <div class="probe-controls"><label>生成beam<select data-cluster-beam><option>1</option><option>2</option><option
+    selected>3</option><option>4</option><option>6</option></select></label></div><div
+    data-probe-output aria-live="polite"><p>初期値：beam=3。30商品へ展開し、20商品へ制限。target=23は残る。</p></div>
+
+    <h4>expert SIDを混ぜると、群の報酬差が生まれる</h4><label>注入数K<select data-expert><option>0</option><option
+    selected>2</option><option>4</option></select></label><p>この例の生成8件はすべて報酬0.1、expertは報酬1.0。値は正規化advantage。</p><div
+    data-expert-output aria-live="polite">K=2：生成のadvantageは−0.5、expertは2.0。</div><script
+    type="application/json" data-probe-data>{"note": "人工SID群で展開件数と正規化advantageを計算。学習崩壊や実際の検索精度は再現していない。",
+    "experiments": [{"name": "疎報酬の8サンプルにexpertを注入", "dataset": "five synthetic SID
+    outcomes", "seed": 16, "n": 2000, "metrics": {"K=0": {"zero_advantage_fraction":
+    0.842, "mean_positive_sid_logit_gradient": 0.053388}, "K=2": {"zero_advantage_fraction":
+    0.0, "mean_positive_sid_logit_gradient": 0.390471}, "K=4": {"zero_advantage_fraction":
+    0.0, "mean_positive_sid_logit_gradient": 0.43707}}}], "frames": [{"beam": 1, "unique_items":
+    1, "cluster_items": 10, "after_cap": 10, "target_retained": false, "selected":
+    [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]}, {"beam": 2, "unique_items": 2, "cluster_items":
+    20, "after_cap": 20, "target_retained": false, "selected": [19, 18, 17, 16, 15,
+    14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]}, {"beam": 3, "unique_items":
+    3, "cluster_items": 30, "after_cap": 20, "target_retained": true, "selected":
+    [29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10]},
+    {"beam": 4, "unique_items": 4, "cluster_items": 40, "after_cap": 20, "target_retained":
+    true, "selected": [39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25,
+    24, 23, 22, 21, 20]}, {"beam": 6, "unique_items": 6, "cluster_items": 60, "after_cap":
+    20, "target_retained": false, "selected": [59, 58, 57, 56, 55, 54, 53, 52, 51,
+    50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40]}], "group_examples": {"0": [0.0, 0.0,
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "2": [-0.4999999861111114, -0.4999999861111114,
+    -0.4999999861111114, -0.4999999861111114, -0.4999999861111114, -0.4999999861111114,
+    -0.4999999861111114, -0.4999999861111114, 1.999999944444446, 1.999999944444446],
+    "4": [-0.707106764519881, -0.707106764519881, -0.707106764519881, -0.707106764519881,
+    -0.707106764519881, -0.707106764519881, -0.707106764519881, -0.707106764519881,
+    1.4142135290397626, 1.4142135290397626, 1.4142135290397626, 1.4142135290397626]},
+    "cluster_split": {"120": [40, 40, 40], "5001": [51, 50, 50, 50, 50, 50, 50, 50,
+    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]}}</script><p class="source-note">出所：run.pyが計算したresults.json。論文の性能再現ではない。JavaScript無効時は初期条件を表示する。</p></div>'
+  results: 合成疎報酬群で全advantageがゼロになる割合はK=0で84.2%、K=2/4で0%。positive SIDのlogit勾配合計の平均は0.053388→0.390471→0.437070だった。これは初期勾配の計算であり、収束や多様性改善は測っていない。商品展開の例ではtarget=23がbeam=3/4で残り、beam=6でtop-20から落ちる。
+  what_we_verified: クラスタからの商品展開、後段の件数制限による非単調なtarget保持、同報酬群のadvantage消失、expert注入時の報酬差と一歩の勾配を確認した。群分割では上限100群のため、5,001商品なら最大51商品が残る境界も確認する。
+  what_we_did_not_verify: カテゴリ表現学習、EMA codebook、Qwen2.5-0.5BのSFT、複数stepのEG-GRPO、GRPO
+    collapseの実際の発生、CTR/CVR/GMV、40msのservingは未再現。ログのselection bias、商品展開の重複帰属、オンラインrankingの実装は不明。
+  method: method.md
+  mapping: mapping.md
+  implementation: '`uv run papers/cq-sid-eg-grpo-tmall/run.py` をリポジトリのルートで実行する。Python標準ライブラリのみを使い、CPUで完了する。結果はコードと同じ場所の
+    `results.json` に保存する。乱数を使う箇所はseedを固定した。ダウンロードしたrun.pyも単体で動く。'
+teaching_figures:
+- kind: equations
+  id: cq-quantization
+  title: カテゴリ制約とexpertの役割を分ける
+  after: method
+  locator: 式1・7・9–10
+  caption: 記号を分けて、どの量を学習・計算するかを追う。
+  rationale: 記号を分けて、どの量を学習・計算するかを追う。
+  steps:
+  - name: 第1段
+    formula: kᵢ¹ = CategoryID(i)（既知）; argminⱼ ‖rᵢ⁰−eⱼ¹‖²（未知）
+    explanation: 残差の近さだけに任せず、既知のカテゴリを固定する。
+  - name: 学習
+    formula: L = L_recon + β L_commit + γ L_Bi-InfoNCE
+    explanation: 表現を復元し、queryと商品を近づける。
+  - name: 群のadvantage
+    formula: A(oᵢ) = (R(oᵢ) − mean R)/(std R + ε)
+    explanation: 生成群とexpert群を一緒に正規化。全報酬が同じならA=0。
+  - name: 更新
+    formula: L = −mean min(ρᵢ Aᵢ, clip(ρᵢ,1−ε,1+ε) Aᵢ)
+    explanation: ρは新旧方策の出力確率比。toyはρ=1の初期勾配だけを調べる。
+  source: https://arxiv.org/pdf/2605.14434v1
+- kind: matrix
+  id: cluster-vs-unique
+  title: SIDひとつから何件の商品を呼ぶか
+  after: problem
+  locator: §3.1–3.4
+  caption: 概念比較。群の大きさは一定ではなく、最終候補数は展開と切り詰めで決まる。
+  rationale: 概念比較。群の大きさは一定ではなく、最終候補数は展開と切り詰めで決まる。
+  columns:
+  - 一意IDを使う設計
+  - CQ-SID
+  rows:
+  - label: 生成の単位
+    cells:
+    - 1 ID → 1商品
+    - 1 SID → 意味の近い商品群
+  - label: 同じbeam幅
+    cells:
+    - 商品数はbeam幅に制約される
+    - 複数商品へ展開するため多くなり得る
+  - label: 最後の識別
+    cells:
+    - IDで識別
+    - SID-to-itemsと既存ranking
+  - label: 大きすぎる群
+    cells:
+    - 共有しない
+    - 50件を目安にsuffix分割、最大100群
+  source: https://arxiv.org/pdf/2605.14434v1
+- kind: matrix
+  id: beam-budget
+  title: beamを減らせた比較と、40msの運用条件
+  after: evidence
+  locator: 表2–3・§4.5
+  caption: 40msを各beamの個別測定へ割り当てない。表のbeamはオフライン、20/50/100はオンラインの設定。
+  rationale: 40msを各beamの個別測定へ割り当てない。表のbeamはオフライン、20/50/100はオンラインの設定。
+  columns:
+  - RQ-VAE
+  - CQ-SID
+  rows:
+  - label: 非個人化 top-1K
+    cells:
+    - beam 65 / hitrate 0.4275
+    - beam 30 / hitrate 0.4422
+  - label: 個人化 top-1K
+    cells:
+    - beam 195 / hitrate 0.7607
+    - beam 160 / hitrate 0.7984
+  - label: オンライン
+    cells:
+    - 比較遅延なし
+    - 動的beam 20/50/100、平均約40ms
+  source: https://arxiv.org/pdf/2605.14434v1

@@ -1,6 +1,6 @@
 # Interactive Research Library
 
-一次資料を読み、仕組み・根拠・限界を日本語で説明する32件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
+一次資料を読み、仕組み・根拠・限界を日本語で説明する35件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
 
 公開先：https://mixidota2.github.io/paper-lab/
 
@@ -69,3 +69,6 @@ uv run skills/natural-japanese/scripts/lint.py --genre tech --json /tmp/lab-pros
 ## 2026-09-15追加分
 
 OxygenREC-v2 / IDGR、RecEvolve、QuaSIDの3件を追加。各 `papers/<slug>/` にREADME・lab.yaml・method.md・mapping.md・run.py・results.jsonを置き、図も同じディレクトリで管理する。行動指示と蒸留損失、固定scoreの候補集合監査、CVPMと幾何マージンをそれぞれ検証する。産業モデルの学習とオンライン性能はNOT TESTED。
+
+
+2026-09-16：UniVA / CQ-SID・EG-GRPO / Intervention Paradoxを追加。商用SIDとGARの枝選び、クラスタ展開とexpert注入、介入の損益分岐点を、それぞれ異なる操作図で確認する。3本とも一次PDFを通読し、UniVAのv1/v2トラフィック比率の違い、チャネル構成比とA/B liftの区別、介入論文内の数値不整合を明記した。各run.pyは独立実行できる。

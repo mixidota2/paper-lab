@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="広告の生成確率が高くても、配信できて収益につながるとは限らない。TencentのUniVAは商用属性をSIDの末尾へ入れ、生成と価値の2ヘッドを融合し、リクエスト別の有効な枝だけを探索する。WeChat ChannelsでGMV +1.50%を報告。実験比率はv1の5%からv2の20%へ記述が変わっており、版を区別して読む。">
+  <title>UniVA：広告の価値を、SID・枝選び・配信制約で揃える | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-05-07</span></div>
+    <h1>UniVA：広告の価値を、SID・枝選び・配信制約で揃える</h1>
+    <p class="lede">広告の生成確率が高くても、配信できて収益につながるとは限らない。TencentのUniVAは商用属性をSIDの末尾へ入れ、生成と価値の2ヘッドを融合し、リクエスト別の有効な枝だけを探索する。WeChat ChannelsでGMV +1.50%を報告。実験比率はv1の5%からv2の20%へ記述が変わっており、版を区別して読む。</p>
+    <details class="bibliography"><summary>原論文：UniVA: Unified Value Alignment for Generative Recommendation in Online Advertising at Tencent</summary><p>Xinxun Zhang, Yuling Xiong, Yangru Huang, Jiale Zhou, Zhengkai Guo, Zhennan Pang, Junbang Huo, Jingwen Wang, Xuyang Sun, Enming Zhang, Jiaguang Jin, Changping Wang, Yi Li, Jun Zhang, Xiao Yan, Jiawei Jiang, Jie Jiang</p><p>2605.05803 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2605.05803">原典を読む ↗</a><a href="https://arxiv.org/pdf/2605.05803v2">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-15 · 一次PDF v2の本文・全付録を確認。著者報告と合成実験を分離。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-csid-anatomy">CSIDの上位は意味、末尾は商用の区分</a><a href="#figure-gar-math">価値を足し、有効な枝で正規化する</a><a href="#figure-trie-count">beam=300で残った有効SID経路</a><a href="#figure-univa-ablation">累積構成のHR@100改善</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>広告の生成確率が高くても、配信できて収益につながるとは限らない。TencentのUniVAは商用属性をSIDの末尾へ入れ、生成と価値の2ヘッドを融合し、リクエスト別の有効な枝だけを探索する。WeChat ChannelsでGMV +1.50%を報告。実験比率はv1の5%からv2の20%へ記述が変わっており、版を区別して読む。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>広告の内容が似ていても、最適化目標、ROI目標、業種、bidは違う。意味だけのSIDでは同じ葉に価値の違う広告が集まる。さらに生成尤度だけで枝を切ると、高い収益が見込める広告を早い段階で落とす。グローバルな木で候補を出してから配信可否を調べる方式では、無効候補がbeamを消費する。</p>
+<p>UniVAが対象にするのは広告の生成推薦系である。GMVは広告経由の取引総額で、広告主の入札額やプラットフォームの収益そのものとは区別する。</p></div>      </section>
+<figure class="teaching teaching--architecture" id="figure-csid-anatomy" aria-labelledby="title-csid-anatomy">
+  <div class="figure-heading"><span class="eyebrow">ARCHITECTURE</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-csid-anatomy">CSIDの上位は意味、末尾は商用の区分</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">意味の2段</p><div class="diagram-nodes"><div class="diagram-node"><strong>SID₁ / SID₂</strong><p>multimodal表現 → RQ-KMeans+。粗い意味のまとまりを保つ。</p></div></div></div><div class="diagram-row"><p class="lane-label">商用の末尾</p><div class="diagram-nodes"><div class="diagram-node"><strong>属性の組 k</strong><p>最適化目標 × ROI目標 × 業種。希少な組はfallbackへ。</p></div><div class="diagram-node"><strong>組ごとのbid分位点</strong><p>等頻度binを割り当て、ψ(k, bin)を末尾tokenにする。</p></div></div></div><div class="diagram-row"><p class="lane-label">葉の解決</p><div class="diagram-nodes"><div class="diagram-node"><strong>複数広告 → 適格集合</strong><p>I(x)と交差を取り、残った広告の最大bidで解決する。</p></div></div></div></div>
+  <figcaption>原論文v2を説明用に再構成。入札binは属性の組の内側で決める。 <a href="https://arxiv.org/pdf/2605.05803v2">出典：図2・式1–8 ↗</a></figcaption>
+</figure>      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者はCommercial SID、Generation-as-Ranking（GAR）、personalized trieを組み合わせ、商用価値が符号化・探索・配信の途中で失われる問題を抑えると主張する。工業データのHR@100はGPRベースに対して相対37.04%改善した（v2 表2）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>読む価値は「生成後に高価値広告を探す」前に、価値のある枝を残す設計にある。ただし比較対象は先行する広告GRのGPRであり、複数候補生成器を揃えた従来カスケード全体の削除実験ではない。後段をすべて撤去できた証拠と読むのは広げ過ぎだ。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>Commercial SIDは末尾を「属性の組×入札bin」に替える</h3>
+<p>テキスト・画像・動画由来の意味をRQ-KMeans+で量子化し、上位2段を残す。最終段は最適化目標o、ROI目標r、業種cを圧縮した組k=(o′,r′,c′)と、その組の中でのbid分位点から作る。全体でbidだけを切る方式ではない。v2付録F.1では属性の区分数は25・8・10、3件未満の組はfallbackへ統合。各組に3〜25binを配り、語彙予算2048の下でtoken entropyを最大化する。付録CのClassify-then-Bin＋等頻度分割はH=7.487、実語彙1939だった。</p>
+<p>同じCSIDを複数の広告が共有する。配信時には適格な広告だけを葉に残し、その葉の最大bid広告を選ぶ。CSIDを一意の商品IDや、入札の絶対値をそのまま表す数値と見なさない。</p>
+<h3>生成ヘッドとaction-valueヘッドが同じdecoderを使う</h3>
+<p>HSTU encoderはUser・Organic・Environment・Item tokenを受け取る。decoderはencoderへのcross-attention、causal self-attention、sparse MoEを使い、MoRの中間層を反復共有する。Fullは埋め込み256、実効6層、64 routed expertsのTop-16、80M decoder parameters。encoderを含むモデル総数ではない。</p>
+<p>生成ヘッドは次tokenのlogit o_gen、価値ヘッドはprefixでtoken aを選んだ後の商用return qφを出す。GARはo_gen+α_l qφを加算する。α_lはvalidationで選び、オンラインでは固定する。値の単位・較正が違うため、単にbidをlogitへ足す手法ではない。<a href="https://arxiv.org/pdf/2605.05803v2">v2 式15–16</a></p>
+<h3>eCPMを終端報酬にし、価値ヘッドを配信にも残す</h3>
+<p>SLの次token交差エントロピーとRLのbatchを交互に使う。RLでは旧方策のbeamと価値誘導MCTSで軌跡を集め、production rankingのpCTR・pCVR部品を固定したoffline simulatorで終端eCPMを計算する。request内で平均を引き標準偏差で割る。PPOは生成方策を更新し、価値ヘッドはreturnへ回帰する。baseline V_oldは有効token上の旧方策確率でq_oldを平均する。MCTSとsimulatorはオンラインでは動かない。</p>
+<p>maskをGAR logitへ加えてからsoftmaxを取り、その対数をprefixに沿って累積する。日次で約500万creativeのライブラリを作り、targeting、広告の配信状態、creative制約でrequest別trieを得る。独立したオンラインrerankerを呼ばないという主張は、この生成経路内の設計についてのものだ。<a href="https://arxiv.org/pdf/2605.05803v2">v2 §3.3–3.4、付録B/F</a></p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-gar-math" aria-labelledby="title-gar-math">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-gar-math">価値を足し、有効な枝で正規化する</h3>
+  <ol class="equation-steps"><li><strong>CSID</strong><div class="math-expression" tabindex="0" role="math" aria-label="sᴸ = ψ(k, bₖ(bid))">sᴸ = ψ(k, bₖ(bid))</div><p>上位L−1段は意味。末尾は属性群と群内binの一組。</p></li><li><strong>GAR</strong><div class="math-expression" tabindex="0" role="math" aria-label="ℓ_GAR[a] = o_gen[a] + αₗ qφ(s&lt;l,a;x)">ℓ_GAR[a] = o_gen[a] + αₗ qφ(s&lt;l,a;x)</div><p>qはrequest条件付きの将来return。α=0でもRL済み生成方策は残る。</p></li><li><strong>配信</strong><div class="math-expression" tabindex="0" role="math" aria-label="log π̃(a) = log softmax(ℓ_GAR + mₓ)[a]">log π̃(a) = log softmax(ℓ_GAR + mₓ)[a]</div><p>mₓは有効なら0、無効なら−∞。各prefixで正規化し、log確率の和でbeamを選ぶ。</p></li><li><strong>RL</strong><div class="math-expression" tabindex="0" role="math" aria-label="L_RL = L_PPO + λᵥ E[(qφ − Ĝ)²]">L_RL = L_PPO + λᵥ E[(qφ − Ĝ)²]</div><p>終端eCPM由来の固定targetへ回帰。生成方策と価値を同時に学ぶ。</p></li></ol>
+  <figcaption>記号を分けて、どの量を学習・計算するかを追う。 <a href="https://arxiv.org/pdf/2605.05803v2">出典：v2 式6・16・19・23–24 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>商用属性の似た広告を同じ入札分布内で区切れば、末尾tokenの教師信号が混ざりにくい。価値推定をprefixの選択へ戻すと、最後まで生成される前に消えていた枝へ計算を配れる。有効性のmaskは価値を推定せず、探索予算を配信可能な枝へ限定する。この3つは別の失敗を減らすため、組み合わせに意味がある。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>オフラインの増分にはモデル拡張も含まれる</h3>
+<p>v2 表2は累積構成の比較だ。CSIDのみの相対HR@100は+5.78%、Sparse MoEまでで+18.40%、eCPM-aware RLとGARを加えると+32.01%、Full UniVAで+37.04%。最後の差にはdecoderの62M→80M、8.5G→23.2G FLOPsも含む。GAR単独の寄与へ分解できない。AmazonのIndustrial/Officeでは広告属性がないためCSIDを構築せず、ratingを効用の代理として使う。</p>
+<h3>同じbeamでも、無効枝を切る時点で残る数が変わる</h3>
+<p>v2 §4.4は同じfused scorer、beam=300で比較し、global探索後のfilterは有効SID 48、personalized trieは300と報告する。平均bidは1.29→11.44。これは有効SID経路数とbidの診断であり、GMVの直接測定でも全リクエストでの保証でもない。</p>
+<h3>5%と20%は原論文の版差</h3>
+<p><a href="https://arxiv.org/pdf/2605.05803v1">初版v1 表3</a>は2026年3月7〜11日、5% traffic、GARなし+1.03%、あり+1.50% GMV。指定された<a href="https://arxiv.org/pdf/2605.05803v2">v2 表4・§4.5</a>は同じ期間を20%と記し、V0 +0.22%、V1 +0.36%、V2 +1.03%、V3 +1.50%を示す。比率変更の理由は本文から確定できない。v2のV3はPPO化とGAR導入を同時に含む。GMV(normal)はROI広告を除いた指標で、Fullは+1.42%。各値は同時期のproduction baselineに対する相対liftである。</p>
+<p><a href="https://arxiv.org/pdf/2605.05803v2">一次資料：UniVA v2 本文・付録</a></p></div>      </section>
+<figure class="teaching teaching--chart" id="figure-trie-count" aria-labelledby="title-trie-count">
+  <div class="figure-heading"><span class="eyebrow">CHART</span><span class="figure-badge">論文の報告値</span></div>
+  <h3 id="title-trie-count">beam=300で残った有効SID経路</h3>
+  <p class="chart-metric">経路 · 共通尺度 0–300</p><div class="bar-chart"><div class="bar-row"><div class="bar-label"><span>global探索 → filter</span><strong>48 経路</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 16.0%"></div></div></div><div class="bar-row"><div class="bar-label"><span>personalized trie</span><strong>300 経路</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 100.0%"></div></div></div></div>
+  <figcaption>著者報告。同じfused scorerを使う比較。300は一意広告数や全リクエストでの下限ではない。 <a href="https://arxiv.org/pdf/2605.05803v2">出典：§4.4 ↗</a></figcaption>
+</figure><figure class="teaching teaching--chart" id="figure-univa-ablation" aria-labelledby="title-univa-ablation">
+  <div class="figure-heading"><span class="eyebrow">CHART</span><span class="figure-badge">論文の報告値</span></div>
+  <h3 id="title-univa-ablation">累積構成のHR@100改善</h3>
+  <p class="chart-metric">% 相対 · 共通尺度 0–40</p><div class="bar-chart"><div class="bar-row"><div class="bar-label"><span>CSID</span><strong>5.78 % 相対</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 14.45%"></div></div></div><div class="bar-row"><div class="bar-label"><span>Sparse MoEまで</span><strong>18.4 % 相対</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 45.99999999999999%"></div></div></div><div class="bar-row"><div class="bar-label"><span>eCPM RL + GAR</span><strong>32.01 % 相対</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 80.025%"></div></div></div><div class="bar-row"><div class="bar-label"><span>Full（容量も拡大）</span><strong>37.04 % 相対</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 92.6%"></div></div></div></div>
+  <figcaption>すべてGPR+SID Decoder比。差分を各部品の独立した因果効果と見なさない。 <a href="https://arxiv.org/pdf/2605.05803v2">出典：表2 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>16広告を同じ意味prefixに置き、商用属性2群と群内の等頻度2binで分ける。入札の群内二乗偏差を比較する。別の深さ2の人工木では、生成logitと与えた価値を加え、softmaxの対数を累積してbeamを選ぶ。α、beam幅、事前の有効性maskを変えて、残る経路を表示する。価値は手で与えた説明用の値で、学習済みqではない。</p>
+<div class="paper-probe teaching" data-paper-probe="univa-commercial-sid-gar"><h3>GARの枝選びを操作する</h3><p>合成した木：Aは生成logitが高く、Bは価値が高い。Xは配信不可。深さ2でlog確率を累積する。</p>
+<div class="probe-controls"><label>価値の係数 α<select data-alpha><option>0</option><option>0.25</option><option selected>0.5</option><option>1</option></select></label><label>beam幅<select data-beam><option>1</option><option selected>2</option><option>3</option></select></label><label><input type="checkbox" data-mask checked>探索前に無効枝を除く</label></div>
+<div data-probe-output aria-live="polite"><p>初期値：α=0.5、beam=2、personalized trie。有効経路はB/b1とA/a1。</p></div><script type="application/json" data-probe-data>{"note": "合成16広告と深さ2の人工木。CSID学習、PPO、GMVの再現ではない。", "experiments": [{"name": "属性別の等頻度binで入札の群内分散を比較", "dataset": "synthetic distinct bids", "n": 16, "metrics": {"semantic_only_variance": 675.1875, "classify_then_bin_variance": 63.125}}], "ads": [{"id": 0, "semantic": "game/rpg", "key": "conversion", "bid": 1.0, "csid": ["game/rpg", "conversion", 0]}, {"id": 1, "semantic": "game/rpg", "key": "conversion", "bid": 2.0, "csid": ["game/rpg", "conversion", 0]}, {"id": 2, "semantic": "game/rpg", "key": "conversion", "bid": 3.0, "csid": ["game/rpg", "conversion", 0]}, {"id": 3, "semantic": "game/rpg", "key": "conversion", "bid": 4.0, "csid": ["game/rpg", "conversion", 0]}, {"id": 4, "semantic": "game/rpg", "key": "conversion", "bid": 5.0, "csid": ["game/rpg", "conversion", 1]}, {"id": 5, "semantic": "game/rpg", "key": "conversion", "bid": 6.0, "csid": ["game/rpg", "conversion", 1]}, {"id": 6, "semantic": "game/rpg", "key": "conversion", "bid": 7.0, "csid": ["game/rpg", "conversion", 1]}, {"id": 7, "semantic": "game/rpg", "key": "conversion", "bid": 8.0, "csid": ["game/rpg", "conversion", 1]}, {"id": 8, "semantic": "game/rpg", "key": "roi", "bid": 10.0, "csid": ["game/rpg", "roi", 0]}, {"id": 9, "semantic": "game/rpg", "key": "roi", "bid": 20.0, "csid": ["game/rpg", "roi", 0]}, {"id": 10, "semantic": "game/rpg", "key": "roi", "bid": 30.0, "csid": ["game/rpg", "roi", 0]}, {"id": 11, "semantic": "game/rpg", "key": "roi", "bid": 40.0, "csid": ["game/rpg", "roi", 0]}, {"id": 12, "semantic": "game/rpg", "key": "roi", "bid": 50.0, "csid": ["game/rpg", "roi", 1]}, {"id": 13, "semantic": "game/rpg", "key": "roi", "bid": 60.0, "csid": ["game/rpg", "roi", 1]}, {"id": 14, "semantic": "game/rpg", "key": "roi", "bid": 70.0, "csid": ["game/rpg", "roi", 1]}, {"id": 15, "semantic": "game/rpg", "key": "roi", "bid": 80.0, "csid": ["game/rpg", "roi", 1]}], "frames": [{"alpha": 0.0, "width": 1, "personalized": false, "candidates": [{"path": "X/x1", "score": -0.720868, "valid": false}], "valid_count": 0}, {"alpha": 0.0, "width": 1, "personalized": true, "candidates": [{"path": "A/a1", "score": -0.313262, "valid": true}], "valid_count": 1}, {"alpha": 0.0, "width": 2, "personalized": false, "candidates": [{"path": "X/x1", "score": -0.720868, "valid": false}, {"path": "A/a1", "score": -1.720868, "valid": true}], "valid_count": 1}, {"alpha": 0.0, "width": 2, "personalized": true, "candidates": [{"path": "A/a1", "score": -0.313262, "valid": true}, {"path": "B/b1", "score": -1.626523, "valid": true}], "valid_count": 2}, {"alpha": 0.0, "width": 3, "personalized": false, "candidates": [{"path": "X/x1", "score": -0.720868, "valid": false}, {"path": "A/a1", "score": -1.720868, "valid": true}, {"path": "X/x2", "score": -1.720868, "valid": false}], "valid_count": 1}, {"alpha": 0.0, "width": 3, "personalized": true, "candidates": [{"path": "A/a1", "score": -0.313262, "valid": true}, {"path": "B/b1", "score": -1.626523, "valid": true}, {"path": "B/b2", "score": -2.626523, "valid": true}], "valid_count": 3}, {"alpha": 0.25, "width": 1, "personalized": false, "candidates": [{"path": "X/x1", "score": -0.467633, "valid": false}], "valid_count": 0}, {"alpha": 0.25, "width": 1, "personalized": true, "candidates": [{"path": "A/a1", "score": -0.575939, "valid": true}], "valid_count": 1}, {"alpha": 0.25, "width": 2, "personalized": false, "candidates": [{"path": "X/x1", "score": -0.467633, "valid": false}, {"path": "X/x2", "score": -1.717633, "valid": false}], "valid_count": 0}, {"alpha": 0.25, "width": 2, "personalized": true, "candidates": [{"path": "A/a1", "score": -0.575939, "valid": true}, {"path": "B/b1", "score": -1.077869, "valid": true}], "valid_count": 2}, {"alpha": 0.25, "width": 3, "personalized": false, "candidates": [{"path": "X/x1", "score": -0.467633, "valid": false}, {"path": "X/x2", "score": -1.717633, "valid": false}, {"path": "A/a1", "score": -2.54266, "valid": true}], "valid_count": 1}, {"alpha": 0.25, "width": 3, "personalized": true, "candidates": [{"path": "A/a1", "score": -0.575939, "valid": true}, {"path": "B/b1", "score": -1.077869, "valid": true}, {"path": "B/b2", "score": -2.327869, "valid": true}], "valid_count": 3}, {"alpha": 0.5, "width": 1, "personalized": false, "candidates": [{"path": "X/x1", "score": -0.325286, "valid": false}], "valid_count": 0}, {"alpha": 0.5, "width": 1, "personalized": true, "candidates": [{"path": "B/b1", "score": -0.67549, "valid": true}], "valid_count": 1}, {"alpha": 0.5, "width": 2, "personalized": false, "candidates": [{"path": "X/x1", "score": -0.325286, "valid": false}, {"path": "X/x2", "score": -1.825286, "valid": false}], "valid_count": 0}, {"alpha": 0.5, "width": 2, "personalized": true, "candidates": [{"path": "B/b1", "score": -0.67549, "valid": true}, {"path": "A/a1", "score": -0.974077, "valid": true}], "valid_count": 2}, {"alpha": 0.5, "width": 3, "personalized": false, "candidates": [{"path": "X/x1", "score": -0.325286, "valid": false}, {"path": "X/x2", "score": -1.825286, "valid": false}, {"path": "B/b1", "score": -2.825286, "valid": true}], "valid_count": 1}, {"alpha": 0.5, "width": 3, "personalized": true, "candidates": [{"path": "B/b1", "score": -0.67549, "valid": true}, {"path": "A/a1", "score": -0.974077, "valid": true}, {"path": "B/b2", "score": -2.17549, "valid": true}], "valid_count": 3}, {"alpha": 1.0, "width": 1, "personalized": false, "candidates": [{"path": "X/x1", "score": -0.181913, "valid": false}], "valid_count": 0}, {"alpha": 1.0, "width": 1, "personalized": true, "candidates": [{"path": "B/b1", "score": -0.253856, "valid": true}], "valid_count": 1}, {"alpha": 1.0, "width": 2, "personalized": false, "candidates": [{"path": "X/x1", "score": -0.181913, "valid": false}, {"path": "X/x2", "score": -2.181913, "valid": false}], "valid_count": 0}, {"alpha": 1.0, "width": 2, "personalized": true, "candidates": [{"path": "B/b1", "score": -0.253856, "valid": true}, {"path": "A/a1", "score": -2.126928, "valid": true}], "valid_count": 2}, {"alpha": 1.0, "width": 3, "personalized": false, "candidates": [{"path": "X/x1", "score": -0.181913, "valid": false}, {"path": "X/x2", "score": -2.181913, "valid": false}, {"path": "B/b1", "score": -3.181913, "valid": true}], "valid_count": 1}, {"alpha": 1.0, "width": 3, "personalized": true, "candidates": [{"path": "B/b1", "score": -0.253856, "valid": true}, {"path": "A/a1", "score": -2.126928, "valid": true}, {"path": "B/b2", "score": -2.253856, "valid": true}], "valid_count": 3}]}</script><p class="source-note">出所：run.pyが計算したresults.json。論文の性能再現ではない。JavaScript無効時は初期条件を表示する。</p></div></div><div class="downloads"><a href="../downloads/univa-commercial-sid-gar/run.py" download>実行コード</a><a href="../downloads/univa-commercial-sid-gar/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/univa-commercial-sid-gar">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>合成16広告と深さ2の人工木。CSID学習、PPO、GMVの再現ではない。</em></p>
+<h3>属性別の等頻度binで入札の群内分散を比較</h3>
+<ul><li><strong>dataset</strong>: synthetic distinct bids</li><li><strong>n</strong>: 16</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>semantic_only_variance</th><td colspan='1'>675.1875</td></tr><tr><th scope='row'>classify_then_bin_variance</th><td colspan='1'>63.125</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成16広告と深さ2の人工木。CSID学習、PPO、GMVの再現ではない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;属性別の等頻度binで入札の群内分散を比較&quot;,
+      &quot;dataset&quot;: &quot;synthetic distinct bids&quot;,
+      &quot;n&quot;: 16,
+      &quot;metrics&quot;: {
+        &quot;semantic_only_variance&quot;: 675.1875,
+        &quot;classify_then_bin_variance&quot;: 63.125
+      }
+    }
+  ],
+  &quot;ads&quot;: [
+    {
+      &quot;id&quot;: 0,
+      &quot;semantic&quot;: &quot;game/rpg&quot;,
+      &quot;key&quot;: &quot;conversion&quot;,
+      &quot;bid&quot;: 1.0,
+      &quot;csid&quot;: [
+        &quot;game/rpg&quot;,
+        &quot;conversion&quot;,
+        0
+      ]
+    },
+    {
+      &quot;id&quot;: 1,
+      &quot;semantic&quot;: &quot;game/rpg&quot;,
+      &quot;key&quot;: &quot;conversion&quot;,
+      &quot;bid&quot;: 2.0,
+      &quot;csid&quot;: [
+        &quot;game/rpg&quot;,
+        &quot;conversion&quot;,
+        0
+      ]
+    },
+    {
+      &quot;id&quot;: 2,
+      &quot;semantic&quot;: &quot;game/rpg&quot;,
+      &quot;key&quot;: &quot;conversion&quot;,
+      &quot;bid&quot;: 3.0,
+      &quot;csid&quot;: [
+        &quot;game/rpg&quot;,
+        &quot;conversion&quot;,
+        0
+      ]
+    },
+    {
+      &quot;id&quot;: 3,
+      &quot;semantic&quot;: &quot;game/rpg&quot;,
+      &quot;key&quot;: &quot;conversion&quot;,
+      &quot;bid&quot;: 4.0,
+      &quot;csid&quot;: [
+        &quot;game/rpg&quot;,
+        &quot;conversion&quot;,
+        0
+      ]
+    },
+    {
+      &quot;id&quot;: 4,
+      &quot;semantic&quot;: &quot;game/rpg&quot;,
+      &quot;key&quot;: &quot;conversion&quot;,
+      &quot;bid&quot;: 5.0,
+      &quot;csid&quot;: [
+        &quot;game/rpg&quot;,
+        &quot;conversion&quot;,
+        1
+      ]
+    },
+    {
+      &quot;id&quot;: 5,
+      &quot;semantic&quot;: &quot;game/rpg&quot;,
+      &quot;key&quot;: &quot;conversion&quot;,
+      &quot;bid&quot;: 6.0,
+      &quot;csid&quot;: [
+        &quot;game/rpg&quot;,
+        &quot;conversion&quot;,
+        1
+      ]
+    },
+    {
+      &quot;id&quot;: 6,
+      &quot;semantic&quot;: &quot;game/rpg&quot;,
+      &quot;key&quot;: &quot;conversion&quot;,
+      &quot;bid&quot;: 7.0,
+      &quot;csid&quot;: [
+        &quot;game/rpg&quot;,
+        &quot;conversion&quot;,
+        1
+      ]
+    },
+    {
+      &quot;id&quot;: 7,
+      &quot;semantic&quot;: &quot;game/rpg&quot;,
+      &quot;key&quot;: &quot;conversion&quot;,
+      &quot;bid&quot;: 8.0,
+      &quot;csid&quot;: [
+        &quot;game/rpg&quot;,
+        &quot;conversion&quot;,
+        1
+      ]
+    },
+    {
+      &quot;id&quot;: 8,
+      &quot;semantic&quot;: &quot;game/rpg&quot;,
+      &quot;key&quot;: &quot;roi&quot;,
+      &quot;bid&quot;: 10.0,
+      &quot;csid&quot;: [
+        &quot;game/rpg&quot;,
+        &quot;roi&quot;,
+        0
+      ]
+    },
+    {
+      &quot;id&quot;: 9,
+      &quot;semantic&quot;: &quot;game/rpg&quot;,
+      &quot;key&quot;: &quot;roi&quot;,
+      &quot;bid&quot;: 20.0,
+      &quot;csid&quot;: [
+        &quot;game/rpg&quot;,
+        &quot;roi&quot;,
+        0
+      ]
+    },
+    {
+      &quot;id&quot;: 10,
+      &quot;semantic&quot;: &quot;game/rpg&quot;,
+      &quot;key&quot;: &quot;roi&quot;,
+      &quot;bid&quot;: 30.0,
+      &quot;csid&quot;: [
+        &quot;game/rpg&quot;,
+        &quot;roi&quot;,
+        0
+      ]
+    },
+    {
+      &quot;id&quot;: 11,
+      &quot;semantic&quot;: &quot;game/rpg&quot;,
+      &quot;key&quot;: &quot;roi&quot;,
+      &quot;bid&quot;: 40.0,
+      &quot;csid&quot;: [
+        &quot;game/rpg&quot;,
+        &quot;roi&quot;,
+        0
+      ]
+    },
+    {
+      &quot;id&quot;: 12,
+      &quot;semantic&quot;: &quot;game/rpg&quot;,
+      &quot;key&quot;: &quot;roi&quot;,
+      &quot;bid&quot;: 50.0,
+      &quot;csid&quot;: [
+        &quot;game/rpg&quot;,
+        &quot;roi&quot;,
+        1
+      ]
+    },
+    {
+      &quot;id&quot;: 13,
+      &quot;semantic&quot;: &quot;game/rpg&quot;,
+      &quot;key&quot;: &quot;roi&quot;,
+      &quot;bid&quot;: 60.0,
+      &quot;csid&quot;: [
+        &quot;game/rpg&quot;,
+        &quot;roi&quot;,
+        1
+      ]
+    },
+    {
+      &quot;id&quot;: 14,
+      &quot;semantic&quot;: &quot;game/rpg&quot;,
+      &quot;key&quot;: &quot;roi&quot;,
+      &quot;bid&quot;: 70.0,
+      &quot;csid&quot;: [
+        &quot;game/rpg&quot;,
+        &quot;roi&quot;,
+        1
+      ]
+    },
+    {
+      &quot;id&quot;: 15,
+      &quot;semantic&quot;: &quot;game/rpg&quot;,
+      &quot;key&quot;: &quot;roi&quot;,
+      &quot;bid&quot;: 80.0,
+      &quot;csid&quot;: [
+        &quot;game/rpg&quot;,
+        &quot;roi&quot;,
+        1
+      ]
+    }
+  ],
+  &quot;frames&quot;: [
+    {
+      &quot;alpha&quot;: 0.0,
+      &quot;width&quot;: 1,
+      &quot;personalized&quot;: false,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;X/x1&quot;,
+          &quot;score&quot;: -0.720868,
+          &quot;valid&quot;: false
+        }
+      ],
+      &quot;valid_count&quot;: 0
+    },
+    {
+      &quot;alpha&quot;: 0.0,
+      &quot;width&quot;: 1,
+      &quot;personalized&quot;: true,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;A/a1&quot;,
+          &quot;score&quot;: -0.313262,
+          &quot;valid&quot;: true
+        }
+      ],
+      &quot;valid_count&quot;: 1
+    },
+    {
+      &quot;alpha&quot;: 0.0,
+      &quot;width&quot;: 2,
+      &quot;personalized&quot;: false,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;X/x1&quot;,
+          &quot;score&quot;: -0.720868,
+          &quot;valid&quot;: false
+        },
+        {
+          &quot;path&quot;: &quot;A/a1&quot;,
+          &quot;score&quot;: -1.720868,
+          &quot;valid&quot;: true
+        }
+      ],
+      &quot;valid_count&quot;: 1
+    },
+    {
+      &quot;alpha&quot;: 0.0,
+      &quot;width&quot;: 2,
+      &quot;personalized&quot;: true,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;A/a1&quot;,
+          &quot;score&quot;: -0.313262,
+          &quot;valid&quot;: true
+        },
+        {
+          &quot;path&quot;: &quot;B/b1&quot;,
+          &quot;score&quot;: -1.626523,
+          &quot;valid&quot;: true
+        }
+      ],
+      &quot;valid_count&quot;: 2
+    },
+    {
+      &quot;alpha&quot;: 0.0,
+      &quot;width&quot;: 3,
+      &quot;personalized&quot;: false,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;X/x1&quot;,
+          &quot;score&quot;: -0.720868,
+          &quot;valid&quot;: false
+        },
+        {
+          &quot;path&quot;: &quot;A/a1&quot;,
+          &quot;score&quot;: -1.720868,
+          &quot;valid&quot;: true
+        },
+        {
+          &quot;path&quot;: &quot;X/x2&quot;,
+          &quot;score&quot;: -1.720868,
+          &quot;valid&quot;: false
+        }
+      ],
+      &quot;valid_count&quot;: 1
+    },
+    {
+      &quot;alpha&quot;: 0.0,
+      &quot;width&quot;: 3,
+      &quot;personalized&quot;: true,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;A/a1&quot;,
+          &quot;score&quot;: -0.313262,
+          &quot;valid&quot;: true
+        },
+        {
+          &quot;path&quot;: &quot;B/b1&quot;,
+          &quot;score&quot;: -1.626523,
+          &quot;valid&quot;: true
+        },
+        {
+          &quot;path&quot;: &quot;B/b2&quot;,
+          &quot;score&quot;: -2.626523,
+          &quot;valid&quot;: true
+        }
+      ],
+      &quot;valid_count&quot;: 3
+    },
+    {
+      &quot;alpha&quot;: 0.25,
+      &quot;width&quot;: 1,
+      &quot;personalized&quot;: false,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;X/x1&quot;,
+          &quot;score&quot;: -0.467633,
+          &quot;valid&quot;: false
+        }
+      ],
+      &quot;valid_count&quot;: 0
+    },
+    {
+      &quot;alpha&quot;: 0.25,
+      &quot;width&quot;: 1,
+      &quot;personalized&quot;: true,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;A/a1&quot;,
+          &quot;score&quot;: -0.575939,
+          &quot;valid&quot;: true
+        }
+      ],
+      &quot;valid_count&quot;: 1
+    },
+    {
+      &quot;alpha&quot;: 0.25,
+      &quot;width&quot;: 2,
+      &quot;personalized&quot;: false,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;X/x1&quot;,
+          &quot;score&quot;: -0.467633,
+          &quot;valid&quot;: false
+        },
+        {
+          &quot;path&quot;: &quot;X/x2&quot;,
+          &quot;score&quot;: -1.717633,
+          &quot;valid&quot;: false
+        }
+      ],
+      &quot;valid_count&quot;: 0
+    },
+    {
+      &quot;alpha&quot;: 0.25,
+      &quot;width&quot;: 2,
+      &quot;personalized&quot;: true,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;A/a1&quot;,
+          &quot;score&quot;: -0.575939,
+          &quot;valid&quot;: true
+        },
+        {
+          &quot;path&quot;: &quot;B/b1&quot;,
+          &quot;score&quot;: -1.077869,
+          &quot;valid&quot;: true
+        }
+      ],
+      &quot;valid_count&quot;: 2
+    },
+    {
+      &quot;alpha&quot;: 0.25,
+      &quot;width&quot;: 3,
+      &quot;personalized&quot;: false,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;X/x1&quot;,
+          &quot;score&quot;: -0.467633,
+          &quot;valid&quot;: false
+        },
+        {
+          &quot;path&quot;: &quot;X/x2&quot;,
+          &quot;score&quot;: -1.717633,
+          &quot;valid&quot;: false
+        },
+        {
+          &quot;path&quot;: &quot;A/a1&quot;,
+          &quot;score&quot;: -2.54266,
+          &quot;valid&quot;: true
+        }
+      ],
+      &quot;valid_count&quot;: 1
+    },
+    {
+      &quot;alpha&quot;: 0.25,
+      &quot;width&quot;: 3,
+      &quot;personalized&quot;: true,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;A/a1&quot;,
+          &quot;score&quot;: -0.575939,
+          &quot;valid&quot;: true
+        },
+        {
+          &quot;path&quot;: &quot;B/b1&quot;,
+          &quot;score&quot;: -1.077869,
+          &quot;valid&quot;: true
+        },
+        {
+          &quot;path&quot;: &quot;B/b2&quot;,
+          &quot;score&quot;: -2.327869,
+          &quot;valid&quot;: true
+        }
+      ],
+      &quot;valid_count&quot;: 3
+    },
+    {
+      &quot;alpha&quot;: 0.5,
+      &quot;width&quot;: 1,
+      &quot;personalized&quot;: false,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;X/x1&quot;,
+          &quot;score&quot;: -0.325286,
+          &quot;valid&quot;: false
+        }
+      ],
+      &quot;valid_count&quot;: 0
+    },
+    {
+      &quot;alpha&quot;: 0.5,
+      &quot;width&quot;: 1,
+      &quot;personalized&quot;: true,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;B/b1&quot;,
+          &quot;score&quot;: -0.67549,
+          &quot;valid&quot;: true
+        }
+      ],
+      &quot;valid_count&quot;: 1
+    },
+    {
+      &quot;alpha&quot;: 0.5,
+      &quot;width&quot;: 2,
+      &quot;personalized&quot;: false,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;X/x1&quot;,
+          &quot;score&quot;: -0.325286,
+          &quot;valid&quot;: false
+        },
+        {
+          &quot;path&quot;: &quot;X/x2&quot;,
+          &quot;score&quot;: -1.825286,
+          &quot;valid&quot;: false
+        }
+      ],
+      &quot;valid_count&quot;: 0
+    },
+    {
+      &quot;alpha&quot;: 0.5,
+      &quot;width&quot;: 2,
+      &quot;personalized&quot;: true,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;B/b1&quot;,
+          &quot;score&quot;: -0.67549,
+          &quot;valid&quot;: true
+        },
+        {
+          &quot;path&quot;: &quot;A/a1&quot;,
+          &quot;score&quot;: -0.974077,
+          &quot;valid&quot;: true
+        }
+      ],
+      &quot;valid_count&quot;: 2
+    },
+    {
+      &quot;alpha&quot;: 0.5,
+      &quot;width&quot;: 3,
+      &quot;personalized&quot;: false,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;X/x1&quot;,
+          &quot;score&quot;: -0.325286,
+          &quot;valid&quot;: false
+        },
+        {
+          &quot;path&quot;: &quot;X/x2&quot;,
+          &quot;score&quot;: -1.825286,
+          &quot;valid&quot;: false
+        },
+        {
+          &quot;path&quot;: &quot;B/b1&quot;,
+          &quot;score&quot;: -2.825286,
+          &quot;valid&quot;: true
+        }
+      ],
+      &quot;valid_count&quot;: 1
+    },
+    {
+      &quot;alpha&quot;: 0.5,
+      &quot;width&quot;: 3,
+      &quot;personalized&quot;: true,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;B/b1&quot;,
+          &quot;score&quot;: -0.67549,
+          &quot;valid&quot;: true
+        },
+        {
+          &quot;path&quot;: &quot;A/a1&quot;,
+          &quot;score&quot;: -0.974077,
+          &quot;valid&quot;: true
+        },
+        {
+          &quot;path&quot;: &quot;B/b2&quot;,
+          &quot;score&quot;: -2.17549,
+          &quot;valid&quot;: true
+        }
+      ],
+      &quot;valid_count&quot;: 3
+    },
+    {
+      &quot;alpha&quot;: 1.0,
+      &quot;width&quot;: 1,
+      &quot;personalized&quot;: false,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;X/x1&quot;,
+          &quot;score&quot;: -0.181913,
+          &quot;valid&quot;: false
+        }
+      ],
+      &quot;valid_count&quot;: 0
+    },
+    {
+      &quot;alpha&quot;: 1.0,
+      &quot;width&quot;: 1,
+      &quot;personalized&quot;: true,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;B/b1&quot;,
+          &quot;score&quot;: -0.253856,
+          &quot;valid&quot;: true
+        }
+      ],
+      &quot;valid_count&quot;: 1
+    },
+    {
+      &quot;alpha&quot;: 1.0,
+      &quot;width&quot;: 2,
+      &quot;personalized&quot;: false,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;X/x1&quot;,
+          &quot;score&quot;: -0.181913,
+          &quot;valid&quot;: false
+        },
+        {
+          &quot;path&quot;: &quot;X/x2&quot;,
+          &quot;score&quot;: -2.181913,
+          &quot;valid&quot;: false
+        }
+      ],
+      &quot;valid_count&quot;: 0
+    },
+    {
+      &quot;alpha&quot;: 1.0,
+      &quot;width&quot;: 2,
+      &quot;personalized&quot;: true,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;B/b1&quot;,
+          &quot;score&quot;: -0.253856,
+          &quot;valid&quot;: true
+        },
+        {
+          &quot;path&quot;: &quot;A/a1&quot;,
+          &quot;score&quot;: -2.126928,
+          &quot;valid&quot;: true
+        }
+      ],
+      &quot;valid_count&quot;: 2
+    },
+    {
+      &quot;alpha&quot;: 1.0,
+      &quot;width&quot;: 3,
+      &quot;personalized&quot;: false,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;X/x1&quot;,
+          &quot;score&quot;: -0.181913,
+          &quot;valid&quot;: false
+        },
+        {
+          &quot;path&quot;: &quot;X/x2&quot;,
+          &quot;score&quot;: -2.181913,
+          &quot;valid&quot;: false
+        },
+        {
+          &quot;path&quot;: &quot;B/b1&quot;,
+          &quot;score&quot;: -3.181913,
+          &quot;valid&quot;: true
+        }
+      ],
+      &quot;valid_count&quot;: 1
+    },
+    {
+      &quot;alpha&quot;: 1.0,
+      &quot;width&quot;: 3,
+      &quot;personalized&quot;: true,
+      &quot;candidates&quot;: [
+        {
+          &quot;path&quot;: &quot;B/b1&quot;,
+          &quot;score&quot;: -0.253856,
+          &quot;valid&quot;: true
+        },
+        {
+          &quot;path&quot;: &quot;A/a1&quot;,
+          &quot;score&quot;: -2.126928,
+          &quot;valid&quot;: true
+        },
+        {
+          &quot;path&quot;: &quot;B/b2&quot;,
+          &quot;score&quot;: -2.253856,
+          &quot;valid&quot;: true
+        }
+      ],
+      &quot;valid_count&quot;: 3
+    }
+  ]
+}</code></pre></details><p>合成16広告の群内分散は675.1875→63.125。意味prefixを固定して商用群を細分化したため小さくなる。人工木ではα=0・beam=1のglobal探索が無効なX/x1を残す一方、personalized探索はA/a1を返す。α=0.5ではpersonalized探索がB/b1へ切り替わる。価値と有効性は独立に効いている。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>等頻度binの構成、固定価値を使うGARの加算、prefixごとの正規化、有効prefixのmask、beam幅と経路の関係を実行した。比較の入力と結果はresults.jsonに残す。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>RQ-KMeans+、HSTU、MoE/MoR、PPO、MCTS、商用語彙の最適配分は学習・再現していない。実入札、配信filter、eCPM simulator、オンラインGMV、遅延、全カスケード削除は未検証。CSID更新に伴うbid変動、長期満足度、公平性も実験していない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>uv run papers/univa-commercial-sid-gar/run.py</code> をリポジトリのルートで実行する。Python標準ライブラリのみを使い、CPUで完了する。結果はコードと同じ場所の <code>results.json</code> に保存する。乱数を使う箇所はseedを固定した。ダウンロードしたrun.pyも単体で動く。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文と実装の対応</h1>
+<p>一次資料：<a href="https://arxiv.org/pdf/2605.05803v2">PDF v2</a>。公式実装へのリンクは確認した一次論文内に見つからなかった。下記はこのLab独自の説明用実装であり、公式コードではない。</p>
+<table>
+<thead>
+<tr>
+<th>原論文の箇所</th>
+<th>Labの対応</th>
+<th>確認の範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v2 §3.1、式1–8、付録C/F.1</td>
+<td>CSID anatomy、run.py tokenize / dispersion</td>
+<td>属性を2群、binを2つに固定。語彙entropy最大化は未実装</td>
+</tr>
+<tr>
+<td>v2 §3.2、式15–16</td>
+<td>GAR数式、beam</td>
+<td>与えたlogitとqを融合。ニューラル学習なし</td>
+</tr>
+<tr>
+<td>v2 §3.3、付録B</td>
+<td>方法本文</td>
+<td>PPO/MCTS/eCPMは読解のみ</td>
+</tr>
+<tr>
+<td>v2 §3.4、式21–24</td>
+<td>beamのprefix mask</td>
+<td>人工木の配信可否のみ</td>
+</tr>
+<tr>
+<td>v2 §4.4</td>
+<td>trie比較図</td>
+<td>48 / 300は著者の報告値</td>
+</tr>
+<tr>
+<td>v1 表3 / v2 表4</td>
+<td>Evidenceの版差</td>
+<td>v1 5%、v2 20%。理由は未確定</td>
+</tr>
+<tr>
+<td>v2 表2、付録F.1</td>
+<td>累積ablation図</td>
+<td>容量増加を伴う。多段候補生成の削除実験ではない</td>
+</tr>
+</tbody>
+</table></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>UniVA：広告の価値を、SID・枝選び・配信制約で揃える</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/univa-commercial-sid-gar/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

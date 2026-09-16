@@ -1,0 +1,626 @@
+{
+  "note": "合成16広告と深さ2の人工木。CSID学習、PPO、GMVの再現ではない。",
+  "experiments": [
+    {
+      "name": "属性別の等頻度binで入札の群内分散を比較",
+      "dataset": "synthetic distinct bids",
+      "n": 16,
+      "metrics": {
+        "semantic_only_variance": 675.1875,
+        "classify_then_bin_variance": 63.125
+      }
+    }
+  ],
+  "ads": [
+    {
+      "id": 0,
+      "semantic": "game/rpg",
+      "key": "conversion",
+      "bid": 1.0,
+      "csid": [
+        "game/rpg",
+        "conversion",
+        0
+      ]
+    },
+    {
+      "id": 1,
+      "semantic": "game/rpg",
+      "key": "conversion",
+      "bid": 2.0,
+      "csid": [
+        "game/rpg",
+        "conversion",
+        0
+      ]
+    },
+    {
+      "id": 2,
+      "semantic": "game/rpg",
+      "key": "conversion",
+      "bid": 3.0,
+      "csid": [
+        "game/rpg",
+        "conversion",
+        0
+      ]
+    },
+    {
+      "id": 3,
+      "semantic": "game/rpg",
+      "key": "conversion",
+      "bid": 4.0,
+      "csid": [
+        "game/rpg",
+        "conversion",
+        0
+      ]
+    },
+    {
+      "id": 4,
+      "semantic": "game/rpg",
+      "key": "conversion",
+      "bid": 5.0,
+      "csid": [
+        "game/rpg",
+        "conversion",
+        1
+      ]
+    },
+    {
+      "id": 5,
+      "semantic": "game/rpg",
+      "key": "conversion",
+      "bid": 6.0,
+      "csid": [
+        "game/rpg",
+        "conversion",
+        1
+      ]
+    },
+    {
+      "id": 6,
+      "semantic": "game/rpg",
+      "key": "conversion",
+      "bid": 7.0,
+      "csid": [
+        "game/rpg",
+        "conversion",
+        1
+      ]
+    },
+    {
+      "id": 7,
+      "semantic": "game/rpg",
+      "key": "conversion",
+      "bid": 8.0,
+      "csid": [
+        "game/rpg",
+        "conversion",
+        1
+      ]
+    },
+    {
+      "id": 8,
+      "semantic": "game/rpg",
+      "key": "roi",
+      "bid": 10.0,
+      "csid": [
+        "game/rpg",
+        "roi",
+        0
+      ]
+    },
+    {
+      "id": 9,
+      "semantic": "game/rpg",
+      "key": "roi",
+      "bid": 20.0,
+      "csid": [
+        "game/rpg",
+        "roi",
+        0
+      ]
+    },
+    {
+      "id": 10,
+      "semantic": "game/rpg",
+      "key": "roi",
+      "bid": 30.0,
+      "csid": [
+        "game/rpg",
+        "roi",
+        0
+      ]
+    },
+    {
+      "id": 11,
+      "semantic": "game/rpg",
+      "key": "roi",
+      "bid": 40.0,
+      "csid": [
+        "game/rpg",
+        "roi",
+        0
+      ]
+    },
+    {
+      "id": 12,
+      "semantic": "game/rpg",
+      "key": "roi",
+      "bid": 50.0,
+      "csid": [
+        "game/rpg",
+        "roi",
+        1
+      ]
+    },
+    {
+      "id": 13,
+      "semantic": "game/rpg",
+      "key": "roi",
+      "bid": 60.0,
+      "csid": [
+        "game/rpg",
+        "roi",
+        1
+      ]
+    },
+    {
+      "id": 14,
+      "semantic": "game/rpg",
+      "key": "roi",
+      "bid": 70.0,
+      "csid": [
+        "game/rpg",
+        "roi",
+        1
+      ]
+    },
+    {
+      "id": 15,
+      "semantic": "game/rpg",
+      "key": "roi",
+      "bid": 80.0,
+      "csid": [
+        "game/rpg",
+        "roi",
+        1
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "alpha": 0.0,
+      "width": 1,
+      "personalized": false,
+      "candidates": [
+        {
+          "path": "X/x1",
+          "score": -0.720868,
+          "valid": false
+        }
+      ],
+      "valid_count": 0
+    },
+    {
+      "alpha": 0.0,
+      "width": 1,
+      "personalized": true,
+      "candidates": [
+        {
+          "path": "A/a1",
+          "score": -0.313262,
+          "valid": true
+        }
+      ],
+      "valid_count": 1
+    },
+    {
+      "alpha": 0.0,
+      "width": 2,
+      "personalized": false,
+      "candidates": [
+        {
+          "path": "X/x1",
+          "score": -0.720868,
+          "valid": false
+        },
+        {
+          "path": "A/a1",
+          "score": -1.720868,
+          "valid": true
+        }
+      ],
+      "valid_count": 1
+    },
+    {
+      "alpha": 0.0,
+      "width": 2,
+      "personalized": true,
+      "candidates": [
+        {
+          "path": "A/a1",
+          "score": -0.313262,
+          "valid": true
+        },
+        {
+          "path": "B/b1",
+          "score": -1.626523,
+          "valid": true
+        }
+      ],
+      "valid_count": 2
+    },
+    {
+      "alpha": 0.0,
+      "width": 3,
+      "personalized": false,
+      "candidates": [
+        {
+          "path": "X/x1",
+          "score": -0.720868,
+          "valid": false
+        },
+        {
+          "path": "A/a1",
+          "score": -1.720868,
+          "valid": true
+        },
+        {
+          "path": "X/x2",
+          "score": -1.720868,
+          "valid": false
+        }
+      ],
+      "valid_count": 1
+    },
+    {
+      "alpha": 0.0,
+      "width": 3,
+      "personalized": true,
+      "candidates": [
+        {
+          "path": "A/a1",
+          "score": -0.313262,
+          "valid": true
+        },
+        {
+          "path": "B/b1",
+          "score": -1.626523,
+          "valid": true
+        },
+        {
+          "path": "B/b2",
+          "score": -2.626523,
+          "valid": true
+        }
+      ],
+      "valid_count": 3
+    },
+    {
+      "alpha": 0.25,
+      "width": 1,
+      "personalized": false,
+      "candidates": [
+        {
+          "path": "X/x1",
+          "score": -0.467633,
+          "valid": false
+        }
+      ],
+      "valid_count": 0
+    },
+    {
+      "alpha": 0.25,
+      "width": 1,
+      "personalized": true,
+      "candidates": [
+        {
+          "path": "A/a1",
+          "score": -0.575939,
+          "valid": true
+        }
+      ],
+      "valid_count": 1
+    },
+    {
+      "alpha": 0.25,
+      "width": 2,
+      "personalized": false,
+      "candidates": [
+        {
+          "path": "X/x1",
+          "score": -0.467633,
+          "valid": false
+        },
+        {
+          "path": "X/x2",
+          "score": -1.717633,
+          "valid": false
+        }
+      ],
+      "valid_count": 0
+    },
+    {
+      "alpha": 0.25,
+      "width": 2,
+      "personalized": true,
+      "candidates": [
+        {
+          "path": "A/a1",
+          "score": -0.575939,
+          "valid": true
+        },
+        {
+          "path": "B/b1",
+          "score": -1.077869,
+          "valid": true
+        }
+      ],
+      "valid_count": 2
+    },
+    {
+      "alpha": 0.25,
+      "width": 3,
+      "personalized": false,
+      "candidates": [
+        {
+          "path": "X/x1",
+          "score": -0.467633,
+          "valid": false
+        },
+        {
+          "path": "X/x2",
+          "score": -1.717633,
+          "valid": false
+        },
+        {
+          "path": "A/a1",
+          "score": -2.54266,
+          "valid": true
+        }
+      ],
+      "valid_count": 1
+    },
+    {
+      "alpha": 0.25,
+      "width": 3,
+      "personalized": true,
+      "candidates": [
+        {
+          "path": "A/a1",
+          "score": -0.575939,
+          "valid": true
+        },
+        {
+          "path": "B/b1",
+          "score": -1.077869,
+          "valid": true
+        },
+        {
+          "path": "B/b2",
+          "score": -2.327869,
+          "valid": true
+        }
+      ],
+      "valid_count": 3
+    },
+    {
+      "alpha": 0.5,
+      "width": 1,
+      "personalized": false,
+      "candidates": [
+        {
+          "path": "X/x1",
+          "score": -0.325286,
+          "valid": false
+        }
+      ],
+      "valid_count": 0
+    },
+    {
+      "alpha": 0.5,
+      "width": 1,
+      "personalized": true,
+      "candidates": [
+        {
+          "path": "B/b1",
+          "score": -0.67549,
+          "valid": true
+        }
+      ],
+      "valid_count": 1
+    },
+    {
+      "alpha": 0.5,
+      "width": 2,
+      "personalized": false,
+      "candidates": [
+        {
+          "path": "X/x1",
+          "score": -0.325286,
+          "valid": false
+        },
+        {
+          "path": "X/x2",
+          "score": -1.825286,
+          "valid": false
+        }
+      ],
+      "valid_count": 0
+    },
+    {
+      "alpha": 0.5,
+      "width": 2,
+      "personalized": true,
+      "candidates": [
+        {
+          "path": "B/b1",
+          "score": -0.67549,
+          "valid": true
+        },
+        {
+          "path": "A/a1",
+          "score": -0.974077,
+          "valid": true
+        }
+      ],
+      "valid_count": 2
+    },
+    {
+      "alpha": 0.5,
+      "width": 3,
+      "personalized": false,
+      "candidates": [
+        {
+          "path": "X/x1",
+          "score": -0.325286,
+          "valid": false
+        },
+        {
+          "path": "X/x2",
+          "score": -1.825286,
+          "valid": false
+        },
+        {
+          "path": "B/b1",
+          "score": -2.825286,
+          "valid": true
+        }
+      ],
+      "valid_count": 1
+    },
+    {
+      "alpha": 0.5,
+      "width": 3,
+      "personalized": true,
+      "candidates": [
+        {
+          "path": "B/b1",
+          "score": -0.67549,
+          "valid": true
+        },
+        {
+          "path": "A/a1",
+          "score": -0.974077,
+          "valid": true
+        },
+        {
+          "path": "B/b2",
+          "score": -2.17549,
+          "valid": true
+        }
+      ],
+      "valid_count": 3
+    },
+    {
+      "alpha": 1.0,
+      "width": 1,
+      "personalized": false,
+      "candidates": [
+        {
+          "path": "X/x1",
+          "score": -0.181913,
+          "valid": false
+        }
+      ],
+      "valid_count": 0
+    },
+    {
+      "alpha": 1.0,
+      "width": 1,
+      "personalized": true,
+      "candidates": [
+        {
+          "path": "B/b1",
+          "score": -0.253856,
+          "valid": true
+        }
+      ],
+      "valid_count": 1
+    },
+    {
+      "alpha": 1.0,
+      "width": 2,
+      "personalized": false,
+      "candidates": [
+        {
+          "path": "X/x1",
+          "score": -0.181913,
+          "valid": false
+        },
+        {
+          "path": "X/x2",
+          "score": -2.181913,
+          "valid": false
+        }
+      ],
+      "valid_count": 0
+    },
+    {
+      "alpha": 1.0,
+      "width": 2,
+      "personalized": true,
+      "candidates": [
+        {
+          "path": "B/b1",
+          "score": -0.253856,
+          "valid": true
+        },
+        {
+          "path": "A/a1",
+          "score": -2.126928,
+          "valid": true
+        }
+      ],
+      "valid_count": 2
+    },
+    {
+      "alpha": 1.0,
+      "width": 3,
+      "personalized": false,
+      "candidates": [
+        {
+          "path": "X/x1",
+          "score": -0.181913,
+          "valid": false
+        },
+        {
+          "path": "X/x2",
+          "score": -2.181913,
+          "valid": false
+        },
+        {
+          "path": "B/b1",
+          "score": -3.181913,
+          "valid": true
+        }
+      ],
+      "valid_count": 1
+    },
+    {
+      "alpha": 1.0,
+      "width": 3,
+      "personalized": true,
+      "candidates": [
+        {
+          "path": "B/b1",
+          "score": -0.253856,
+          "valid": true
+        },
+        {
+          "path": "A/a1",
+          "score": -2.126928,
+          "valid": true
+        },
+        {
+          "path": "B/b2",
+          "score": -2.253856,
+          "valid": true
+        }
+      ],
+      "valid_count": 3
+    }
+  ]
+}

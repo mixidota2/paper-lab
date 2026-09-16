@@ -188,3 +188,43 @@
     }
   });
 })();
+
+// Paper-specific probes use saved Python results; no performance values are simulated in the UI.
+document.querySelectorAll('[data-paper-probe]').forEach(root => {
+  const data = JSON.parse(root.querySelector('[data-probe-data]').textContent);
+  const output = root.querySelector('[data-probe-output]');
+  const paragraph = text => { const p = document.createElement('p'); p.textContent = text; return p; };
+  const update = () => {
+    output.replaceChildren();
+    if (root.dataset.paperProbe === 'univa-commercial-sid-gar') {
+      const alpha = Number(root.querySelector('[data-alpha]').value);
+      const width = Number(root.querySelector('[data-beam]').value);
+      const masked = root.querySelector('[data-mask]').checked;
+      const f = data.frames.find(f => f.alpha === alpha && f.width === width && f.personalized === masked);
+      output.append(paragraph(`α=${alpha} / beam=${width} / ${masked ? 'personalized trie' : 'global → 事後filter'}：有効経路 ${f.valid_count} 件`));
+      const paths = document.createElement('div'); paths.className = 'candidate-paths';
+      f.candidates.forEach(c => {const el = document.createElement('div'); el.className = `candidate-path ${c.valid ? 'valid' : 'invalid'}`; el.textContent = `${c.path} ｜ log score ${c.score.toFixed(3)} ｜ ${c.valid ? '配信可' : '事後除外'}`; paths.append(el);});
+      output.append(paths);
+    } else if (root.dataset.paperProbe === 'cq-sid-eg-grpo-tmall') {
+      const width = Number(root.querySelector('[data-cluster-beam]').value);
+      const f = data.frames.find(f => f.beam === width);
+      output.append(paragraph(`一意IDなら${f.unique_items}商品。クラスタなら${f.cluster_items}商品 → top-20後 ${f.after_cap}商品。`));
+      const chips = document.createElement('div'); chips.className = 'item-chips';
+      f.selected.forEach(n => {const chip = document.createElement('span'); chip.textContent = n; if (n===23) chip.className='target'; chips.append(chip);});
+      output.append(chips, paragraph(`target=23：${f.target_retained ? '残る' : '落ちる'}。候補の追加が切り詰め後の保持を保証するわけではない。`));
+      const k = root.querySelector('[data-expert]').value;
+      const values = data.group_examples[k];
+      root.querySelector('[data-expert-output]').textContent = `K=${k}：生成8件のadvantage ${values[0].toFixed(3)}${Number(k) ? ` / expert ${k}件のadvantage ${values[8].toFixed(3)}` : ' / 報酬差がなく、更新信号はゼロ'}`;
+    } else {
+      const p = Number(root.querySelector('[data-failure]').value);
+      const f = data.frames[p];
+      root.querySelector('[data-p-value]').textContent = `${p}%`;
+      root.querySelector('[data-p-marker]').style.left = `${p}%`;
+      output.append(paragraph(`100タスク当たり 回復 ${f.recovered_per_100.toFixed(2)} − 破壊 ${f.disrupted_per_100.toFixed(2)} = ${f.delta_pp > 0 ? '+' : ''}${f.delta_pp.toFixed(2)}ポイント`));
+      output.append(paragraph(f.delta_pp > 0 ? '仮定した率では改善側。ただしpilotの不確かさと安全余裕を別に調べる。' : f.delta_pp < 0 ? '仮定した率では悪化側。常時介入を見送る条件。' : '期待差はゼロ。'));
+      if (p === 0 || p === 100) output.append(paragraph('端点：このtask群だけからはrかdを推定できない。表示は外部から率を固定した感度分析。'));
+    }
+  };
+  root.querySelectorAll('select,input').forEach(el => el.addEventListener('input',update));
+  update();
+});

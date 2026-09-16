@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="TmallAPPのCQ-SIDは、一つのSIDから意味の近い商品群を取り出す召回チャネルだ。カテゴリ制約とquery-item対照学習で群を作り、EG-GRPOで既存の露出・クリックに合わせる。2週間のA/BでGMV +1.15%、UCTCVR +0.40%。購入の72.63%という値はチャネル構成比で、改善率ではない。">
+  <title>CQ-SID：商品群を生成し、Tmallの既存ランキングにつなぐ | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-05-14</span></div>
+    <h1>CQ-SID：商品群を生成し、Tmallの既存ランキングにつなぐ</h1>
+    <p class="lede">TmallAPPのCQ-SIDは、一つのSIDから意味の近い商品群を取り出す召回チャネルだ。カテゴリ制約とquery-item対照学習で群を作り、EG-GRPOで既存の露出・クリックに合わせる。2週間のA/BでGMV +1.15%、UCTCVR +0.40%。購入の72.63%という値はチャネル構成比で、改善率ではない。</p>
+    <details class="bibliography"><summary>原論文：Efficient Generative Retrieval for E-commerce Search with Semantic Cluster IDs and Expert-Guided RL</summary><p>Jianbo Zhu, Xing Fang, Jing Wang, Mingmin Jin, Bokang Wang, Guangxin Song, Zhenyu Xie, Junjie Bai</p><p>2605.14434 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2605.14434">原典を読む ↗</a><a href="https://arxiv.org/pdf/2605.14434v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-15 · 一次PDF v1の本文・全付録を確認。著者報告と合成実験を分離。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-cq-quantization">カテゴリ制約とexpertの役割を分ける</a><a href="#figure-cluster-vs-unique">SIDひとつから何件の商品を呼ぶか</a><a href="#figure-beam-budget">beamを減らせた比較と、40msの運用条件</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>TmallAPPのCQ-SIDは、一つのSIDから意味の近い商品群を取り出す召回チャネルだ。カテゴリ制約とquery-item対照学習で群を作り、EG-GRPOで既存の露出・クリックに合わせる。2週間のA/BでGMV +1.15%、UCTCVR +0.40%。購入の72.63%という値はチャネル構成比で、改善率ではない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>巨大な検索商品集合から最終表示までを直接生成すると、必要な精度を低遅延で保ちにくい。本論文は生成を召回段に限定し、既存の粗いranking・精密rankingを使うhybrid構成を採る。SIDを一意IDにすると、小さなbeamでは呼び出せる商品数も少ない。逆に群を大きくし過ぎると、人気群が候補枠を占める。</p>
+<p>学習ログの購入・クリックは疎で、同じ報酬ばかりの生成群ではGRPOの相対advantageがなくなる。群の意味構造と学習信号の薄さを別々に扱う必要がある。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-cluster-vs-unique" aria-labelledby="title-cluster-vs-unique">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-cluster-vs-unique">SIDひとつから何件の商品を呼ぶか</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="SIDひとつから何件の商品を呼ぶかの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">一意IDを使う設計</th><th scope="col">CQ-SID</th></tr></thead><tbody><tr><th scope="row">生成の単位</th><td class="">1 ID → 1商品</td><td class="">1 SID → 意味の近い商品群</td></tr><tr><th scope="row">同じbeam幅</th><td class="">商品数はbeam幅に制約される</td><td class="">複数商品へ展開するため多くなり得る</td></tr><tr><th scope="row">最後の識別</th><td class="">IDで識別</td><td class="">SID-to-itemsと既存ranking</td></tr><tr><th scope="row">大きすぎる群</th><td class="">共有しない</td><td class="">50件を目安にsuffix分割、最大100群</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>概念比較。群の大きさは一定ではなく、最終候補数は展開と切り詰めで決まる。 <a href="https://arxiv.org/pdf/2605.14434v1">出典：§3.1–3.4 ↗</a></figcaption>
+</figure>      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者はCategory-and-Query constrained Semantic ID（CQ-SID）とExpert-Guided GRPO（EG-GRPO）により、検索召回の精度・候補の広がり・計算量を両立できると主張する。生成召回は既存のmulti-channel recallとrankingへ組み込む（§1、§3–4）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>ここでの設計判断は「IDの衝突をすべてなくす」より、意味の近い商品を一緒に呼ぶことにある。後段の選別が前提なので、beamを減らせても商品展開やrankingの費用は残る。専門家SIDの注入は教師信号の補強であり、未知の良い商品を発見できた証拠とは分ける。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>1段目はカテゴリ、残り2段は残差の近さで決める</h3>
+<p>CQ-SIDはRQ-VAEを土台とし、1,711の有効カテゴリを最初の量子化に使う。既知カテゴリの商品はそのカテゴリIDを強制的に選び、未知の場合は最近傍codeへ割り当てる。codebookは2048×1024×1024。第2・第3段は残差の最近傍を取り、EMAで更新し、使われないcodeをrestartする。</p>
+<p>query-itemの双方向InfoNCEを加え、再構成誤差＋commitment＋対照損失で学習する。実験設定はβ=1、γ=0.001、温度τ=0.1。queryのない商品では対照項をmaskする。意味の近い商品を同じSIDへ集めるため、一意IDは要求しない。<a href="https://arxiv.org/pdf/2605.14434v1">式1–7</a></p>
+<p>50商品を超すSIDは、G=min(ceil(c/50),100)の群へランダム分割し、第3段へgroup suffixを付ける。これは上限100群のため、必ず各群50以下になる保証ではない。語彙の残差量子化と、この後処理の群分割は別工程だ。</p>
+<h3>Qwen2.5-0.5Bを3段階のSFTからEG-GRPOへ進める</h3>
+<p>商品title→SID、query→SID、user+query→SIDの順にSFTする。query段ではクリック・購入に対応するSIDを3つsample。個人化段では性別・年齢帯・関連カテゴリの最近のクリックSIDも入力する。最後に既存rankingとの整合を狙うEG-GRPOを行う。</p>
+<p>報酬は購入またはクリック1.0、露出のみ0.5、有効SIDのみ0.1、無効0。順位の上から最初に該当する条件を使い、加算しない。通常8出力の群へ、クリックまたは露出集合からK個の正解SIDをpseudo-generated outputとして注入する。広げた群で平均・標準偏差を計算し、clipped policy gradientへ入れる。expertはオンラインに正解を渡す仕掛けではない。<a href="https://arxiv.org/pdf/2605.14434v1">式8–10、Algorithm 2</a></p>
+<p>式10の掲載式にはKL項がない一方、§4.1の設定はKL weight=1.0と記す。完全な学習lossやoff-policy注入の補正を再構成できたとは扱わない。</p>
+<h3>日次の商品集合と既存rankingが残る</h3>
+<p>数億商品の全量から効率の良い約2,100万商品を選び、SID-to-items lookupを作る。新しい商品を日次でクラスタに追加する。生成されたSIDを商品へ展開し、既存の複数召回チャネルとrankingへ渡す。40msはこの配置での平均値だ。</p>
+<p><a href="oxygenrec-v2-idgr.html">OxygenREC-v2 Lab</a>は行動指示と未来情報を使う教師からの蒸留が主題で、expert SIDを群へ注入する本論文とは教師信号の入れ方が違う。<a href="https://arxiv.org/abs/2607.18796">TSGR</a>は表現・候補順位に価値を入れ、<a href="https://arxiv.org/abs/2607.11392">CRID</a>はclusterと群内business-value順位をDocIDへ符号化する。本論文の「群を呼んで既存rankingへ渡す」判断と比較できるが、同条件の直接比較結果ではない。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-cq-quantization" aria-labelledby="title-cq-quantization">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-cq-quantization">カテゴリ制約とexpertの役割を分ける</h3>
+  <ol class="equation-steps"><li><strong>第1段</strong><div class="math-expression" tabindex="0" role="math" aria-label="kᵢ¹ = CategoryID(i)（既知）; argminⱼ ‖rᵢ⁰−eⱼ¹‖²（未知）">kᵢ¹ = CategoryID(i)（既知）; argminⱼ ‖rᵢ⁰−eⱼ¹‖²（未知）</div><p>残差の近さだけに任せず、既知のカテゴリを固定する。</p></li><li><strong>学習</strong><div class="math-expression" tabindex="0" role="math" aria-label="L = L_recon + β L_commit + γ L_Bi-InfoNCE">L = L_recon + β L_commit + γ L_Bi-InfoNCE</div><p>表現を復元し、queryと商品を近づける。</p></li><li><strong>群のadvantage</strong><div class="math-expression" tabindex="0" role="math" aria-label="A(oᵢ) = (R(oᵢ) − mean R)/(std R + ε)">A(oᵢ) = (R(oᵢ) − mean R)/(std R + ε)</div><p>生成群とexpert群を一緒に正規化。全報酬が同じならA=0。</p></li><li><strong>更新</strong><div class="math-expression" tabindex="0" role="math" aria-label="L = −mean min(ρᵢ Aᵢ, clip(ρᵢ,1−ε,1+ε) Aᵢ)">L = −mean min(ρᵢ Aᵢ, clip(ρᵢ,1−ε,1+ε) Aᵢ)</div><p>ρは新旧方策の出力確率比。toyはρ=1の初期勾配だけを調べる。</p></li></ol>
+  <figcaption>記号を分けて、どの量を学習・計算するかを追う。 <a href="https://arxiv.org/pdf/2605.14434v1">出典：式1・7・9–10 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>カテゴリで大枠を揃え、queryと商品の表現を近づけると、同じSIDを共有する商品の検索意図が揃いやすい。一つの生成で複数商品を出せるため、同じ候補件数を得るbeamを減らせる。expert SIDは低品質な生成群にも報酬差を作る。ただし注入により学習分布が変わり、ログ方策が選んだ商品への依存も残る。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>beamを揃える比較と商品数を揃える比較を分ける</h3>
+<p>CQ-SIDは37.5Mサンプルで学習し、query評価201k、個人化評価170kを用いる。表1の非個人化click hitrateはbeam=100でRQ-VAE 0.5199、CQ-SID 0.6181。ただし同じbeamでも候補商品数は一致しない。表2のtop-1K truncationではCQ-SIDがbeam=30で0.4422、RQ-VAEが65で0.4275。商品効率scoreで切るオフライン評価と、粗rankingで切るオンライン処理も同一ではない。</p>
+<p>個人化した表3のtop-1KではCQ-SIDがbeam=160で0.7984、RQ-VAEが195で0.7607。beam削減は17.95%。これをそのまま遅延削減率に換算しない。</p>
+<h3>EG-GRPOの改善幅は小さい</h3>
+<p>表4では標準GRPO（K=0）のclk@1は0.1510→0.1519だが、clk@10は0.5206→0.5196、平均露出coverage pvr@10は0.4371→0.4360と下がる。K=2では0.1524 / 0.5221 / 0.4377。著者は深いbeamでのmode concentrationをcollapseと解釈するが、表は小幅な指標差を示すもので、全面的な学習破綻を測ったものではない。</p>
+<h3>オンラインのliftとチャネル構成比は別の分母</h3>
+<p>§4.5は2週間のA/BでGMV +1.15%、UCTCVR +0.40%を報告する。UCTCVRの詳細な集計定義や割付比率、区間推定は本文に明記されない。全面展開後の生成チャネル比率は露出50.25%、クリック58.96%、購入72.63%。この構成比をA/B liftや独占的な因果寄与と扱わない。平均end-to-end latencyは約40ms、8 GPUで200 QPS超、availability 99.9%、動的beamは20/50/100。p95遅延やGPU機種別の曲線はない。<a href="https://arxiv.org/pdf/2605.14434v1">一次資料 §4</a></p>
+<figure class="teaching"><h3>生成チャネルの構成比と、残りのチャネル</h3><p>著者報告 §4.5。各行の分母は全チャネルの露出・クリック・購入。A/Bの改善率ではない。</p><div class="share-row"><p>露出：生成 50.25% / その他 49.75%</p><div class="share-track" role="img" aria-label="露出の生成チャネル構成比50.25%"><span style="width:50.25%"></span><span style="width:49.75%"></span></div></div><div class="share-row"><p>クリック：生成 58.96% / その他 41.04%</p><div class="share-track" role="img" aria-label="クリックの生成チャネル構成比58.96%"><span style="width:58.96%"></span><span style="width:41.04%"></span></div></div><div class="share-row"><p>購入：生成 72.63% / その他 27.37%</p><div class="share-track" role="img" aria-label="購入の生成チャネル構成比72.63%"><span style="width:72.63%"></span><span style="width:27.370000000000005%"></span></div></div><figcaption>濃色＝生成、淡色＝その他（100%から計算）。複数チャネル間の重複帰属の詳細は本文にない。<a href="https://arxiv.org/pdf/2605.14434v1">出典：§4.5</a></figcaption></figure></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-beam-budget" aria-labelledby="title-beam-budget">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-beam-budget">beamを減らせた比較と、40msの運用条件</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="beamを減らせた比較と、40msの運用条件の表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">RQ-VAE</th><th scope="col">CQ-SID</th></tr></thead><tbody><tr><th scope="row">非個人化 top-1K</th><td class="">beam 65 / hitrate 0.4275</td><td class="">beam 30 / hitrate 0.4422</td></tr><tr><th scope="row">個人化 top-1K</th><td class="">beam 195 / hitrate 0.7607</td><td class="">beam 160 / hitrate 0.7984</td></tr><tr><th scope="row">オンライン</th><td class="">比較遅延なし</td><td class="">動的beam 20/50/100、平均約40ms</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>40msを各beamの個別測定へ割り当てない。表のbeamはオフライン、20/50/100はオンラインの設定。 <a href="https://arxiv.org/pdf/2605.14434v1">出典：表2–3・§4.5 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>6つの人工クラスタを作り、各クラスタを10商品へ展開する。生成beamを増やした後、商品効率を模した固定scoreで20商品に切る。beamを増やすとtargetが落ちる反例を追う。別の実験では5つのSIDに報酬0.1/0.5/1.0を与え、8生成サンプルへK=0/2/4のexpertを加える。2,000群のadvantageと、旧方策上の一歩のlogit勾配を計算する。</p>
+<div class="paper-probe teaching" data-paper-probe="cq-sid-eg-grpo-tmall"><h3>商品を群で呼び、20件へ切り詰める</h3><p>合成6クラスタ×10商品。targetは23。商品番号が大きいほど高い効率scoreを与えた反例である。</p>
+<div class="probe-controls"><label>生成beam<select data-cluster-beam><option>1</option><option>2</option><option selected>3</option><option>4</option><option>6</option></select></label></div><div data-probe-output aria-live="polite"><p>初期値：beam=3。30商品へ展開し、20商品へ制限。target=23は残る。</p></div>
+<h4>expert SIDを混ぜると、群の報酬差が生まれる</h4><label>注入数K<select data-expert><option>0</option><option selected>2</option><option>4</option></select></label><p>この例の生成8件はすべて報酬0.1、expertは報酬1.0。値は正規化advantage。</p><div data-expert-output aria-live="polite">K=2：生成のadvantageは−0.5、expertは2.0。</div><script type="application/json" data-probe-data>{"note": "人工SID群で展開件数と正規化advantageを計算。学習崩壊や実際の検索精度は再現していない。", "experiments": [{"name": "疎報酬の8サンプルにexpertを注入", "dataset": "five synthetic SID outcomes", "seed": 16, "n": 2000, "metrics": {"K=0": {"zero_advantage_fraction": 0.842, "mean_positive_sid_logit_gradient": 0.053388}, "K=2": {"zero_advantage_fraction": 0.0, "mean_positive_sid_logit_gradient": 0.390471}, "K=4": {"zero_advantage_fraction": 0.0, "mean_positive_sid_logit_gradient": 0.43707}}}], "frames": [{"beam": 1, "unique_items": 1, "cluster_items": 10, "after_cap": 10, "target_retained": false, "selected": [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]}, {"beam": 2, "unique_items": 2, "cluster_items": 20, "after_cap": 20, "target_retained": false, "selected": [19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]}, {"beam": 3, "unique_items": 3, "cluster_items": 30, "after_cap": 20, "target_retained": true, "selected": [29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10]}, {"beam": 4, "unique_items": 4, "cluster_items": 40, "after_cap": 20, "target_retained": true, "selected": [39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20]}, {"beam": 6, "unique_items": 6, "cluster_items": 60, "after_cap": 20, "target_retained": false, "selected": [59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40]}], "group_examples": {"0": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "2": [-0.4999999861111114, -0.4999999861111114, -0.4999999861111114, -0.4999999861111114, -0.4999999861111114, -0.4999999861111114, -0.4999999861111114, -0.4999999861111114, 1.999999944444446, 1.999999944444446], "4": [-0.707106764519881, -0.707106764519881, -0.707106764519881, -0.707106764519881, -0.707106764519881, -0.707106764519881, -0.707106764519881, -0.707106764519881, 1.4142135290397626, 1.4142135290397626, 1.4142135290397626, 1.4142135290397626]}, "cluster_split": {"120": [40, 40, 40], "5001": [51, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]}}</script><p class="source-note">出所：run.pyが計算したresults.json。論文の性能再現ではない。JavaScript無効時は初期条件を表示する。</p></div></div><div class="downloads"><a href="../downloads/cq-sid-eg-grpo-tmall/run.py" download>実行コード</a><a href="../downloads/cq-sid-eg-grpo-tmall/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/cq-sid-eg-grpo-tmall">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>人工SID群で展開件数と正規化advantageを計算。学習崩壊や実際の検索精度は再現していない。</em></p>
+<h3>疎報酬の8サンプルにexpertを注入</h3>
+<ul><li><strong>dataset</strong>: five synthetic SID outcomes</li><li><strong>n</strong>: 2000</li><li><strong>seed</strong>: 16</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>zero_advantage_fraction</th><th>mean_positive_sid_logit_gradient</th></tr></thead><tbody><tr><th scope='row'>K=0</th><td>0.842</td><td>0.053388</td></tr><tr><th scope='row'>K=2</th><td>0.0</td><td>0.390471</td></tr><tr><th scope='row'>K=4</th><td>0.0</td><td>0.43707</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;人工SID群で展開件数と正規化advantageを計算。学習崩壊や実際の検索精度は再現していない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;疎報酬の8サンプルにexpertを注入&quot;,
+      &quot;dataset&quot;: &quot;five synthetic SID outcomes&quot;,
+      &quot;seed&quot;: 16,
+      &quot;n&quot;: 2000,
+      &quot;metrics&quot;: {
+        &quot;K=0&quot;: {
+          &quot;zero_advantage_fraction&quot;: 0.842,
+          &quot;mean_positive_sid_logit_gradient&quot;: 0.053388
+        },
+        &quot;K=2&quot;: {
+          &quot;zero_advantage_fraction&quot;: 0.0,
+          &quot;mean_positive_sid_logit_gradient&quot;: 0.390471
+        },
+        &quot;K=4&quot;: {
+          &quot;zero_advantage_fraction&quot;: 0.0,
+          &quot;mean_positive_sid_logit_gradient&quot;: 0.43707
+        }
+      }
+    }
+  ],
+  &quot;frames&quot;: [
+    {
+      &quot;beam&quot;: 1,
+      &quot;unique_items&quot;: 1,
+      &quot;cluster_items&quot;: 10,
+      &quot;after_cap&quot;: 10,
+      &quot;target_retained&quot;: false,
+      &quot;selected&quot;: [
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1,
+        0
+      ]
+    },
+    {
+      &quot;beam&quot;: 2,
+      &quot;unique_items&quot;: 2,
+      &quot;cluster_items&quot;: 20,
+      &quot;after_cap&quot;: 20,
+      &quot;target_retained&quot;: false,
+      &quot;selected&quot;: [
+        19,
+        18,
+        17,
+        16,
+        15,
+        14,
+        13,
+        12,
+        11,
+        10,
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1,
+        0
+      ]
+    },
+    {
+      &quot;beam&quot;: 3,
+      &quot;unique_items&quot;: 3,
+      &quot;cluster_items&quot;: 30,
+      &quot;after_cap&quot;: 20,
+      &quot;target_retained&quot;: true,
+      &quot;selected&quot;: [
+        29,
+        28,
+        27,
+        26,
+        25,
+        24,
+        23,
+        22,
+        21,
+        20,
+        19,
+        18,
+        17,
+        16,
+        15,
+        14,
+        13,
+        12,
+        11,
+        10
+      ]
+    },
+    {
+      &quot;beam&quot;: 4,
+      &quot;unique_items&quot;: 4,
+      &quot;cluster_items&quot;: 40,
+      &quot;after_cap&quot;: 20,
+      &quot;target_retained&quot;: true,
+      &quot;selected&quot;: [
+        39,
+        38,
+        37,
+        36,
+        35,
+        34,
+        33,
+        32,
+        31,
+        30,
+        29,
+        28,
+        27,
+        26,
+        25,
+        24,
+        23,
+        22,
+        21,
+        20
+      ]
+    },
+    {
+      &quot;beam&quot;: 6,
+      &quot;unique_items&quot;: 6,
+      &quot;cluster_items&quot;: 60,
+      &quot;after_cap&quot;: 20,
+      &quot;target_retained&quot;: false,
+      &quot;selected&quot;: [
+        59,
+        58,
+        57,
+        56,
+        55,
+        54,
+        53,
+        52,
+        51,
+        50,
+        49,
+        48,
+        47,
+        46,
+        45,
+        44,
+        43,
+        42,
+        41,
+        40
+      ]
+    }
+  ],
+  &quot;group_examples&quot;: {
+    &quot;0&quot;: [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    &quot;2&quot;: [
+      -0.4999999861111114,
+      -0.4999999861111114,
+      -0.4999999861111114,
+      -0.4999999861111114,
+      -0.4999999861111114,
+      -0.4999999861111114,
+      -0.4999999861111114,
+      -0.4999999861111114,
+      1.999999944444446,
+      1.999999944444446
+    ],
+    &quot;4&quot;: [
+      -0.707106764519881,
+      -0.707106764519881,
+      -0.707106764519881,
+      -0.707106764519881,
+      -0.707106764519881,
+      -0.707106764519881,
+      -0.707106764519881,
+      -0.707106764519881,
+      1.4142135290397626,
+      1.4142135290397626,
+      1.4142135290397626,
+      1.4142135290397626
+    ]
+  },
+  &quot;cluster_split&quot;: {
+    &quot;120&quot;: [
+      40,
+      40,
+      40
+    ],
+    &quot;5001&quot;: [
+      51,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      50
+    ]
+  }
+}</code></pre></details><p>合成疎報酬群で全advantageがゼロになる割合はK=0で84.2%、K=2/4で0%。positive SIDのlogit勾配合計の平均は0.053388→0.390471→0.437070だった。これは初期勾配の計算であり、収束や多様性改善は測っていない。商品展開の例ではtarget=23がbeam=3/4で残り、beam=6でtop-20から落ちる。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>クラスタからの商品展開、後段の件数制限による非単調なtarget保持、同報酬群のadvantage消失、expert注入時の報酬差と一歩の勾配を確認した。群分割では上限100群のため、5,001商品なら最大51商品が残る境界も確認する。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>カテゴリ表現学習、EMA codebook、Qwen2.5-0.5BのSFT、複数stepのEG-GRPO、GRPO collapseの実際の発生、CTR/CVR/GMV、40msのservingは未再現。ログのselection bias、商品展開の重複帰属、オンラインrankingの実装は不明。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>uv run papers/cq-sid-eg-grpo-tmall/run.py</code> をリポジトリのルートで実行する。Python標準ライブラリのみを使い、CPUで完了する。結果はコードと同じ場所の <code>results.json</code> に保存する。乱数を使う箇所はseedを固定した。ダウンロードしたrun.pyも単体で動く。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文と実装の対応</h1>
+<p>一次資料：<a href="https://arxiv.org/pdf/2605.14434v1">PDF v1</a>。公式実装へのリンクは確認した一次論文内に見つからなかった。下記はこのLab独自の説明用実装であり、公式コードではない。</p>
+<table>
+<thead>
+<tr>
+<th>原論文の箇所</th>
+<th>Labの対応</th>
+<th>確認の範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3.1、式1–7</td>
+<td>method、量子化の式</td>
+<td>RQ-VAE/EMA/InfoNCEは説明のみ</td>
+</tr>
+<tr>
+<td>Algorithm 1</td>
+<td>run.py split_cluster</td>
+<td>均等な分割件数。ランダムな商品割当は省略</td>
+</tr>
+<tr>
+<td>§3.2</td>
+<td>学習段階の本文</td>
+<td>Qwen2.5-0.5Bを学習していない</td>
+</tr>
+<tr>
+<td>式8–10、Algorithm 2</td>
+<td>advantages / gradient_probe</td>
+<td>合成groupの初期勾配。完全なGRPOではない</td>
+</tr>
+<tr>
+<td>表1–3</td>
+<td>beam比較表、商品展開の操作</td>
+<td>toy scoreは説明用。hitrate再現ではない</td>
+</tr>
+<tr>
+<td>表4</td>
+<td>EvidenceのK=0/2比較</td>
+<td>collapseは著者解釈。toyは学習崩壊を検証しない</td>
+</tr>
+<tr>
+<td>§4.5</td>
+<td>チャネル比率の積み上げ棒</td>
+<td>50.25/58.96/72.63%は構成比。GMV/UCTCVR liftと分離</td>
+</tr>
+</tbody>
+</table></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>CQ-SID：商品群を生成し、Tmallの既存ランキングにつなぐ</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/cq-sid-eg-grpo-tmall/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

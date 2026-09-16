@@ -1,0 +1,1119 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Writerの研究は、失敗予測のAUROCが約0.94でも実行途中の介入が有害になり得ると示す。必要なのは救えた失敗と壊した成功の対応比較だ。MiniMax-M2.1のHotPotQAでは64%→38%（−26ポイント）、Qwen-3-8BのALFWorldでは5.8%→8.6%（+2.8ポイント）。いずれもベンチマーク実験で、稼働中の製品全体の成功率ではない。">
+  <title>介入の逆説：失敗を当てても、止めるほど成功が減ることがある | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-02-03</span></div>
+    <h1>介入の逆説：失敗を当てても、止めるほど成功が減ることがある</h1>
+    <p class="lede">Writerの研究は、失敗予測のAUROCが約0.94でも実行途中の介入が有害になり得ると示す。必要なのは救えた失敗と壊した成功の対応比較だ。MiniMax-M2.1のHotPotQAでは64%→38%（−26ポイント）、Qwen-3-8BのALFWorldでは5.8%→8.6%（+2.8ポイント）。いずれもベンチマーク実験で、稼働中の製品全体の成功率ではない。</p>
+    <details class="bibliography"><summary>原論文：Accurate Failure Prediction in Agents Does Not Imply Effective Failure Prevention</summary><p>Rakshith Vasudev, Melisa Russak, Dan Bikel, Waseem Alshikh</p><p>2602.03338 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2602.03338">原典を読む ↗</a><a href="https://arxiv.org/pdf/2602.03338v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-15 · 一次PDF v1の本文・全付録を確認。著者報告と合成実験を分離。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-intervention-accounting">回復の利益から、壊した成功を引く</a><a href="#figure-paired-outcomes">同じtaskを介入なし・ありで比べる</a><a href="#figure-pilot-gate">50タスクは判断の出発点で、安全の保証ではない</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>Writerの研究は、失敗予測のAUROCが約0.94でも実行途中の介入が有害になり得ると示す。必要なのは救えた失敗と壊した成功の対応比較だ。MiniMax-M2.1のHotPotQAでは64%→38%（−26ポイント）、Qwen-3-8BのALFWorldでは5.8%→8.6%（+2.8ポイント）。いずれもベンチマーク実験で、稼働中の製品全体の成功率ではない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>予測器が「この行動は失敗につながる」と正しく警告しても、agentが修正に成功するとは限らない。正解へ進んでいた実行が警告で迷い、検索や再試行を繰り返す場合もある。したがって、失敗を見抜く能力と介入後の成功率を別々に測る必要がある。</p>
+<p>同じ初期条件のtaskで、介入なし・ありの二つを実行する。途中の警告数ではなく、最終成功の組を数える。比較対象はsmolagents上のHotPotQA、GAIA、ALFWorldで、業務fleetへの無作為割付ではない。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-paired-outcomes" aria-labelledby="title-paired-outcomes">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-paired-outcomes">同じtaskを介入なし・ありで比べる</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="同じtaskを介入なし・ありで比べるの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">介入あり：失敗</th><th scope="col">介入あり：成功</th></tr></thead><tbody><tr><th scope="row">介入なし：失敗</th><td class="">A：失敗のまま</td><td class="">C：回復</td></tr><tr><th scope="row">介入なし：成功</th><td class="">B：破壊</td><td class="">D：成功のまま</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>表の1件は最終task結果の対応組。途中の介入回数を入れない。 <a href="https://arxiv.org/pdf/2602.03338v1">出典：§1・付録D ↗</a></figcaption>
+</figure>      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は失敗率p、失敗から回復する率r、成功を壊す率dをpilotで推定し、p &gt; d/(r+d)を介入導入の判断に使う。50タスクのALFWorld pilotで改善方向を予測し、202タスクの評価で小幅な改善を報告した。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>AUROCは失敗の順序づけを評価するが、警告や巻き戻しを受けたモデルがどう振る舞うかは測らない。pilotの主目的を「介入しない方がよい条件を見つける」と置く点が有用だ。ただし同じデータから計算した式の一致は会計恒等式で、別の分布への予測能力をそれだけで証明しない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>2×2の結果表から、母数の異なる率を作る</h3>
+<p>Aは両方失敗、Bは介入なしで成功・ありで失敗、Cは介入なしで失敗・ありで成功、Dは両方成功。F=A+C、S=B+D、N=F+Sと置く。回復率r=C/Fと破壊率d=B/Sは分母が違う。回復件数Cと破壊件数Bの比とは一致しない。</p>
+<p>成功率差は(C+D)/N−(B+D)/N=(C−B)/N。これにC=Fr、B=Sdを代入するとp r−(1−p)dになる。r+d&gt;0なら、改善の境界はp*=d/(r+d)。これはtask群のbaseline失敗率の境界であり、個々のactionに介入するcriticの閾値τ=0.6とは別の量だ。<a href="https://arxiv.org/pdf/2602.03338v1">式1–4</a></p>
+<h3>ROLLBACKとAPPENDで、訂正の受け方が変わる</h3>
+<p>実験のagent backboneはQwen-3-8B、GLM-4.7、MiniMax-M2.1。ROLLBACKは直前actionを取り消し環境状態を復元して再試行、APPENDはactionを実行したまま警告を追加する。各taskのaction予算は15、介入予算は3。criticはQwen3-0.6B、温度Tをモデル別validationの負の対数尤度で合わせる。</p>
+<p>Qwen3-14B criticの4設定も試すが、最良AUROC 0.927は0.6Bの0.936を超えない。これは同データ条件の識別性能比較で、大きいcriticは一般に役立たないという結論ではない。HotPotQAのτ sweepでも最良τ=0.7はbaseline 57%に対して54%。閾値だけで取り戻せなかった条件がある。<a href="https://arxiv.org/pdf/2602.03338v1">§3、§5</a></p>
+<h3>原論文内の不整合は、定義と表を優先して読む</h3>
+<p>§4の「回復件数が破壊件数より多い」をd/r&lt;1と結ぶ記述は、分母の違う率では成立しない。正しい条件はp r&gt;(1−p)dである。付録GのMiniMaxの7.3:1という比も、付録D表21のr≈0.12・d≈0.35（約2.9）とは整合しないため、このLabの計算には使わない。</p>
+<p>ALFWorld本文にはfull評価のROLLBACKも+4.7ポイントという記載があるが、表4・17は非較正ROLLBACK 7.9−5.8=+2.1ポイントを示す。+4.7はpilotの記載と分離し、本評価の代表値には表のAPPEND +2.8を採る。また「ALFWorldで悪化なし」は表4のGLM Cal+App −1.3ポイント等と一致しない。oracleの本文の範囲も表10と違うため、表10のHotPotQAでは介入+4.0〜7.7、Best-of-2 +6.7〜11.0ポイントと限定して読む。oracleは実装済みの達成性能ではない。</p>
+<h3>修復技法の優劣より先に、導入前後の成功を対応させる</h3>
+<p><a href="agenttether-repair.html">AgentTether Lab</a>は診断に基づく修復、<a href="revise-recovery.html">REVISE Lab</a>は実行中の指示変更に伴う妥当性と再利用を扱う。本論文は特定の修復技法を置き換えるのでなく、その技法を入れた結果のBとCを測る判断枠として読める。直接の比較実験はない。</p>
+<p><a href="https://arxiv.org/abs/2512.04123">MAP（Measuring Agents in Production）</a>は開発者の調査・事例を通じて本番の運用を調べる研究だ。MAPの運用実態と、この論文のベンチマーク成功率は母集団が違う。人間への引き継ぎを含む製品の安全性へ、ここでのr/dや−26ポイントを直接当てはめない。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-intervention-accounting" aria-labelledby="title-intervention-accounting">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-intervention-accounting">回復の利益から、壊した成功を引く</h3>
+  <ol class="equation-steps"><li><strong>失敗側</strong><div class="math-expression" tabindex="0" role="math" aria-label="p = (A+C)/N, r = C/(A+C)">p = (A+C)/N, r = C/(A+C)</div><p>介入なしで失敗したtaskのうち何割を救ったか。</p></li><li><strong>成功側</strong><div class="math-expression" tabindex="0" role="math" aria-label="d = B/(B+D)">d = B/(B+D)</div><p>介入なしなら成功したtaskのうち何割を壊したか。</p></li><li><strong>差分</strong><div class="math-expression" tabindex="0" role="math" aria-label="ΔSuccess = p r − (1−p)d = (C−B)/N">ΔSuccess = p r − (1−p)d = (C−B)/N</div><p>両方成功・両方失敗は差分から消える。</p></li><li><strong>境界</strong><div class="math-expression" tabindex="0" role="math" aria-label="p* = d/(r+d), 改善条件 p &gt; p*">p* = d/(r+d), 改善条件 p &gt; p*</div><p>r+d=0なら差分0で閾値未定義。F=0またはS=0なら対応する条件付き率は推定不能。</p></li></ol>
+  <figcaption>記号を分けて、どの量を学習・計算するかを追う。 <a href="https://arxiv.org/pdf/2602.03338v1">出典：§1 式1–4 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>失敗が多い環境では救える軌跡の母数が大きく、成功が多い環境では壊し得る軌跡の母数が大きい。rとdだけを比べず、それぞれに失敗率pと成功率1−pを掛けると、どちらが最終件数を支配するかが分かる。高精度なcriticでも、この母数とagentの反応を飛ばして導入可否は決められない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>0.94は1,372個のheld-out sample上の識別性能</h3>
+<p>Qwen3-0.6B＋LoRA rank 16のcriticを、HotPotQA/GAIAの7,636 trajectory stepsで学習する。最終taskの成功・失敗を各軌跡の教師に使い、task単位で158/19/21にtrain/validation/testを分ける。表1の総合AUROCは0.936、F1は0.963（held-out 1,372 samples）。0.94は丸めた値であり、50タスクpilotの成績ではない。</p>
+<h3>−26ポイントはMiniMax、+2.8ポイントはQwenの別条件</h3>
+<p>表4のHotPotQA 100タスクではMiniMax-M2.1が64.0%から非較正ROLLBACKの38.0%へ下がる。GLM-4.7の同条件は70.3%→70.3%。GAIAは30タスクで、MiniMaxの最良介入でも46.7%→16.7%（−30ポイント）。モデルにより反応は大きく違う。</p>
+<p>ALFWorldは202タスク×3 seeds。Qwen-3-8Bの非較正APPENDが5.8%→8.6%、+2.8ポイント、本文報告p=0.014。paired task bootstrapを10,000回行い、介入条件間の多重比較にはHolm–Bonferroniを使うと付録Cに記す。ただしこのp値の補正状態は明確でなく、検出可能幅約±4ポイントに近い改善として著者も方向性の証拠に留める。</p>
+<h3>50タスクpilotの率を、本評価の率へ置き換えない</h3>
+<p>pilotはQwenで成功10.7%±1.9%、p≈89%、r≈12%、d≈56%、p*≈82%と報告。202タスク評価のbaseline 5.8%とは別の集計である。単一の50タスクから10.7%が出る集計の詳細も十分でない。criticはALFWorld軌跡で学習していないが、温度較正には同domainのvalidationを使う。<a href="https://arxiv.org/pdf/2602.03338v1">一次資料 §3–4、付録A/C</a></p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>A/B/C/Dの小さい整数組を列挙し、直接の成功率差(C−B)/Nとp r−(1−p)dが一致するか検証する。操作図ではr=0.12、d=0.56を固定し、baseline失敗率pだけを動かす。さらに、この既知の確率から50タスクのpilotを2,000回生成し、有限標本で判断が揺れる程度を見る。AUROCやLLMの振る舞いは生成しない。</p>
+<div class="paper-probe teaching" data-paper-probe="intervention-paradox"><h3>失敗率pと、介入の損益分岐点</h3><p>r=12%、d=56%を固定した感度分析。p*は82.35%。criticのaction閾値τを調節する操作ではない。</p><label>介入なしの失敗率p：<output data-p-value>89%</output><input data-failure type="range" min="0" max="100" value="89" step="1"></label>
+<div class="threshold-track" aria-hidden="true"><span style="left:82.352941%">p*</span><i data-p-marker style="left:89%"></i></div><div data-probe-output aria-live="polite"><p>初期値：100タスク当たり回復10.68、破壊6.16、差分+4.52ポイント。有限標本での安全保証ではない。</p></div><script type="application/json" data-probe-data>{"note": "既知のBernoulli確率による合成pilot。論文の軌跡、AUROC、p値の再現ではない。", "experiments": [{"name": "50タスクpilotの判断のばらつき", "dataset": "synthetic paired outcomes", "n": 2000, "seed": "0..1999", "metrics": {"true_delta_pp": 4.52, "positive_observed_fraction": 0.73, "undefined_rate_fraction": 0.0035, "pilot_delta_pp_2.5_percentile": -6.0, "pilot_delta_pp_97.5_percentile": 16.0, "max_accounting_error": 2.220446049250313e-16}}], "frames": [{"p": 0.0, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 0.0, "disrupted_per_100": 56.00000000000001, "delta_pp": -56.0}, {"p": 0.01, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 0.12, "disrupted_per_100": 55.440000000000005, "delta_pp": -55.32}, {"p": 0.02, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 0.24, "disrupted_per_100": 54.88, "delta_pp": -54.64}, {"p": 0.03, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 0.36, "disrupted_per_100": 54.32000000000001, "delta_pp": -53.96}, {"p": 0.04, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 0.48, "disrupted_per_100": 53.760000000000005, "delta_pp": -53.28}, {"p": 0.05, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 0.6, "disrupted_per_100": 53.2, "delta_pp": -52.6}, {"p": 0.06, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 0.72, "disrupted_per_100": 52.64000000000001, "delta_pp": -51.92}, {"p": 0.07, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 0.84, "disrupted_per_100": 52.080000000000005, "delta_pp": -51.24}, {"p": 0.08, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 0.96, "disrupted_per_100": 51.52, "delta_pp": -50.56}, {"p": 0.09, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 1.08, "disrupted_per_100": 50.96000000000001, "delta_pp": -49.88}, {"p": 0.1, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 1.2, "disrupted_per_100": 50.400000000000006, "delta_pp": -49.2}, {"p": 0.11, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 1.3199999999999998, "disrupted_per_100": 49.84, "delta_pp": -48.52}, {"p": 0.12, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 1.44, "disrupted_per_100": 49.28, "delta_pp": -47.84}, {"p": 0.13, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 1.56, "disrupted_per_100": 48.720000000000006, "delta_pp": -47.16}, {"p": 0.14, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 1.68, "disrupted_per_100": 48.160000000000004, "delta_pp": -46.48}, {"p": 0.15, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 1.7999999999999998, "disrupted_per_100": 47.6, "delta_pp": -45.8}, {"p": 0.16, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 1.92, "disrupted_per_100": 47.040000000000006, "delta_pp": -45.12}, {"p": 0.17, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 2.04, "disrupted_per_100": 46.480000000000004, "delta_pp": -44.44}, {"p": 0.18, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 2.16, "disrupted_per_100": 45.92, "delta_pp": -43.76}, {"p": 0.19, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 2.28, "disrupted_per_100": 45.36000000000001, "delta_pp": -43.08}, {"p": 0.2, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 2.4, "disrupted_per_100": 44.800000000000004, "delta_pp": -42.4}, {"p": 0.21, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 2.52, "disrupted_per_100": 44.24, "delta_pp": -41.72}, {"p": 0.22, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 2.6399999999999997, "disrupted_per_100": 43.68000000000001, "delta_pp": -41.04}, {"p": 0.23, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 2.76, "disrupted_per_100": 43.120000000000005, "delta_pp": -40.36}, {"p": 0.24, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 2.88, "disrupted_per_100": 42.56, "delta_pp": -39.68}, {"p": 0.25, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 3.0, "disrupted_per_100": 42.00000000000001, "delta_pp": -39.0}, {"p": 0.26, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 3.12, "disrupted_per_100": 41.440000000000005, "delta_pp": -38.32}, {"p": 0.27, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 3.2399999999999998, "disrupted_per_100": 40.88, "delta_pp": -37.64}, {"p": 0.28, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 3.36, "disrupted_per_100": 40.32000000000001, "delta_pp": -36.96}, {"p": 0.29, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 3.48, "disrupted_per_100": 39.760000000000005, "delta_pp": -36.28}, {"p": 0.3, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 3.5999999999999996, "disrupted_per_100": 39.2, "delta_pp": -35.6}, {"p": 0.31, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 3.7199999999999998, "disrupted_per_100": 38.64, "delta_pp": -34.92}, {"p": 0.32, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 3.84, "disrupted_per_100": 38.080000000000005, "delta_pp": -34.24}, {"p": 0.33, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 3.96, "disrupted_per_100": 37.52, "delta_pp": -33.56}, {"p": 0.34, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 4.08, "disrupted_per_100": 36.96, "delta_pp": -32.88}, {"p": 0.35, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 4.2, "disrupted_per_100": 36.400000000000006, "delta_pp": -32.2}, {"p": 0.36, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 4.32, "disrupted_per_100": 35.84, "delta_pp": -31.52}, {"p": 0.37, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 4.4399999999999995, "disrupted_per_100": 35.28, "delta_pp": -30.84}, {"p": 0.38, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 4.56, "disrupted_per_100": 34.720000000000006, "delta_pp": -30.16}, {"p": 0.39, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 4.68, "disrupted_per_100": 34.160000000000004, "delta_pp": -29.48}, {"p": 0.4, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 4.8, "disrupted_per_100": 33.6, "delta_pp": -28.8}, {"p": 0.41, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 4.92, "disrupted_per_100": 33.040000000000006, "delta_pp": -28.12}, {"p": 0.42, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 5.04, "disrupted_per_100": 32.480000000000004, "delta_pp": -27.44}, {"p": 0.43, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 5.16, "disrupted_per_100": 31.92, "delta_pp": -26.76}, {"p": 0.44, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 5.279999999999999, "disrupted_per_100": 31.360000000000003, "delta_pp": -26.08}, {"p": 0.45, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 5.3999999999999995, "disrupted_per_100": 30.800000000000004, "delta_pp": -25.4}, {"p": 0.46, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 5.52, "disrupted_per_100": 30.240000000000002, "delta_pp": -24.72}, {"p": 0.47, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 5.64, "disrupted_per_100": 29.680000000000003, "delta_pp": -24.04}, {"p": 0.48, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 5.76, "disrupted_per_100": 29.120000000000005, "delta_pp": -23.36}, {"p": 0.49, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 5.88, "disrupted_per_100": 28.560000000000002, "delta_pp": -22.68}, {"p": 0.5, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 6.0, "disrupted_per_100": 28.000000000000004, "delta_pp": -22.0}, {"p": 0.51, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 6.12, "disrupted_per_100": 27.44, "delta_pp": -21.32}, {"p": 0.52, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 6.24, "disrupted_per_100": 26.880000000000003, "delta_pp": -20.64}, {"p": 0.53, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 6.359999999999999, "disrupted_per_100": 26.320000000000004, "delta_pp": -19.96}, {"p": 0.54, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 6.4799999999999995, "disrupted_per_100": 25.76, "delta_pp": -19.28}, {"p": 0.55, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 6.6, "disrupted_per_100": 25.200000000000003, "delta_pp": -18.6}, {"p": 0.56, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 6.72, "disrupted_per_100": 24.64, "delta_pp": -17.92}, {"p": 0.57, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 6.84, "disrupted_per_100": 24.080000000000002, "delta_pp": -17.24}, {"p": 0.58, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 6.96, "disrupted_per_100": 23.520000000000003, "delta_pp": -16.56}, {"p": 0.59, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 7.08, "disrupted_per_100": 22.96, "delta_pp": -15.88}, {"p": 0.6, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 7.199999999999999, "disrupted_per_100": 22.400000000000002, "delta_pp": -15.2}, {"p": 0.61, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 7.319999999999999, "disrupted_per_100": 21.840000000000003, "delta_pp": -14.52}, {"p": 0.62, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 7.4399999999999995, "disrupted_per_100": 21.28, "delta_pp": -13.84}, {"p": 0.63, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 7.56, "disrupted_per_100": 20.720000000000002, "delta_pp": -13.16}, {"p": 0.64, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 7.68, "disrupted_per_100": 20.160000000000004, "delta_pp": -12.48}, {"p": 0.65, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 7.8, "disrupted_per_100": 19.6, "delta_pp": -11.8}, {"p": 0.66, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 7.92, "disrupted_per_100": 19.040000000000003, "delta_pp": -11.12}, {"p": 0.67, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 8.04, "disrupted_per_100": 18.48, "delta_pp": -10.44}, {"p": 0.68, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 8.16, "disrupted_per_100": 17.92, "delta_pp": -9.76}, {"p": 0.69, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 8.28, "disrupted_per_100": 17.360000000000003, "delta_pp": -9.08}, {"p": 0.7, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 8.4, "disrupted_per_100": 16.8, "delta_pp": -8.4}, {"p": 0.71, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 8.52, "disrupted_per_100": 16.240000000000002, "delta_pp": -7.72}, {"p": 0.72, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 8.64, "disrupted_per_100": 15.680000000000001, "delta_pp": -7.04}, {"p": 0.73, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 8.76, "disrupted_per_100": 15.120000000000001, "delta_pp": -6.36}, {"p": 0.74, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 8.879999999999999, "disrupted_per_100": 14.560000000000002, "delta_pp": -5.68}, {"p": 0.75, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 9.0, "disrupted_per_100": 14.000000000000002, "delta_pp": -5.0}, {"p": 0.76, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 9.12, "disrupted_per_100": 13.440000000000001, "delta_pp": -4.32}, {"p": 0.77, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 9.24, "disrupted_per_100": 12.88, "delta_pp": -3.64}, {"p": 0.78, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 9.36, "disrupted_per_100": 12.32, "delta_pp": -2.96}, {"p": 0.79, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 9.48, "disrupted_per_100": 11.760000000000002, "delta_pp": -2.28}, {"p": 0.8, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 9.6, "disrupted_per_100": 11.200000000000001, "delta_pp": -1.6}, {"p": 0.81, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 9.719999999999999, "disrupted_per_100": 10.64, "delta_pp": -0.92}, {"p": 0.82, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 9.84, "disrupted_per_100": 10.080000000000002, "delta_pp": -0.24}, {"p": 0.83, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 9.959999999999999, "disrupted_per_100": 9.520000000000001, "delta_pp": 0.44}, {"p": 0.84, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 10.08, "disrupted_per_100": 8.96, "delta_pp": 1.12}, {"p": 0.85, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 10.2, "disrupted_per_100": 8.4, "delta_pp": 1.8}, {"p": 0.86, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 10.32, "disrupted_per_100": 7.840000000000001, "delta_pp": 2.48}, {"p": 0.87, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 10.44, "disrupted_per_100": 7.280000000000001, "delta_pp": 3.16}, {"p": 0.88, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 10.559999999999999, "disrupted_per_100": 6.720000000000001, "delta_pp": 3.84}, {"p": 0.89, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 10.68, "disrupted_per_100": 6.16, "delta_pp": 4.52}, {"p": 0.9, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 10.799999999999999, "disrupted_per_100": 5.6000000000000005, "delta_pp": 5.2}, {"p": 0.91, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 10.92, "disrupted_per_100": 5.040000000000001, "delta_pp": 5.88}, {"p": 0.92, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 11.04, "disrupted_per_100": 4.48, "delta_pp": 6.56}, {"p": 0.93, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 11.16, "disrupted_per_100": 3.9200000000000004, "delta_pp": 7.24}, {"p": 0.94, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 11.28, "disrupted_per_100": 3.3600000000000003, "delta_pp": 7.92}, {"p": 0.95, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 11.4, "disrupted_per_100": 2.8000000000000003, "delta_pp": 8.6}, {"p": 0.96, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 11.52, "disrupted_per_100": 2.24, "delta_pp": 9.28}, {"p": 0.97, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 11.639999999999999, "disrupted_per_100": 1.6800000000000002, "delta_pp": 9.96}, {"p": 0.98, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 11.76, "disrupted_per_100": 1.12, "delta_pp": 10.64}, {"p": 0.99, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 11.879999999999999, "disrupted_per_100": 0.56, "delta_pp": 11.32}, {"p": 1.0, "r": 0.12, "d": 0.56, "threshold": 0.823529411764706, "recovered_per_100": 12.0, "disrupted_per_100": 0.0, "delta_pp": 12.0}], "example_pilot": {"n": 50, "p": 0.92, "r": 0.15217391304347827, "d": 0.5, "threshold": 0.7666666666666666, "delta": 0.1}, "edge_cases": {"all_success": {"n": 50, "p": 0.0, "r": null, "d": 0.04, "threshold": null, "delta": -0.04}, "all_failure": {"n": 50, "p": 1.0, "r": 0.1, "d": null, "threshold": null, "delta": 0.1}, "no_change": {"n": 50, "p": 0.5, "r": 0.0, "d": 0.0, "threshold": null, "delta": 0.0}}}</script><p class="source-note">出所：run.pyが計算したresults.json。論文の性能再現ではない。JavaScript無効時は初期条件を表示する。</p></div></div><div class="downloads"><a href="../downloads/intervention-paradox/run.py" download>実行コード</a><a href="../downloads/intervention-paradox/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/intervention-paradox">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+<figure class="teaching teaching--logic" id="figure-pilot-gate" aria-labelledby="title-pilot-gate">
+  <div class="figure-heading"><span class="eyebrow">LOGIC</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-pilot-gate">50タスクは判断の出発点で、安全の保証ではない</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">1 対応比較</p><div class="diagram-nodes"><div class="diagram-node"><strong>同じdomain・モデル・介入</strong><p>50〜100 taskを介入あり/なしで実行し、A/B/C/Dを数える。</p></div></div></div><div class="diagram-row"><p class="lane-label">2 推定できるか</p><div class="diagram-nodes"><div class="diagram-node"><strong>成功側か失敗側が空</strong><p>rかdを推定できない。効果差は数えられるが閾値には外挿しない。</p></div><div class="diagram-node"><strong>両側の観測がある</strong><p>p、r、d、p*と不確かさを計算する。</p></div></div></div><div class="diagram-row"><p class="lane-label">3 判定</p><div class="diagram-nodes"><div class="diagram-node"><strong>p ≤ p* / 差が不確か</strong><p>常時介入を見送り、追加pilotや完了後の選択を検討する。</p></div><div class="diagram-node"><strong>p &gt; p* + 安全余裕</strong><p>限定した条件で検証を進める。余裕の普遍的な値は論文にない。</p></div></div></div></div>
+  <figcaption>著者のpilot手順を再構成。不確かなら追加検証する分岐はLabの運用上の解釈。 <a href="https://arxiv.org/pdf/2602.03338v1">出典：図1・§7–8 ↗</a></figcaption>
+</figure>      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>既知のBernoulli確率による合成pilot。論文の軌跡、AUROC、p値の再現ではない。</em></p>
+<h3>50タスクpilotの判断のばらつき</h3>
+<ul><li><strong>dataset</strong>: synthetic paired outcomes</li><li><strong>n</strong>: 2000</li><li><strong>seed</strong>: 0..1999</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>true_delta_pp</th><td colspan='1'>4.52</td></tr><tr><th scope='row'>positive_observed_fraction</th><td colspan='1'>0.73</td></tr><tr><th scope='row'>undefined_rate_fraction</th><td colspan='1'>0.0035</td></tr><tr><th scope='row'>pilot_delta_pp_2.5_percentile</th><td colspan='1'>-6.0</td></tr><tr><th scope='row'>pilot_delta_pp_97.5_percentile</th><td colspan='1'>16.0</td></tr><tr><th scope='row'>max_accounting_error</th><td colspan='1'>2.220446049250313e-16</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;既知のBernoulli確率による合成pilot。論文の軌跡、AUROC、p値の再現ではない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;50タスクpilotの判断のばらつき&quot;,
+      &quot;dataset&quot;: &quot;synthetic paired outcomes&quot;,
+      &quot;n&quot;: 2000,
+      &quot;seed&quot;: &quot;0..1999&quot;,
+      &quot;metrics&quot;: {
+        &quot;true_delta_pp&quot;: 4.52,
+        &quot;positive_observed_fraction&quot;: 0.73,
+        &quot;undefined_rate_fraction&quot;: 0.0035,
+        &quot;pilot_delta_pp_2.5_percentile&quot;: -6.0,
+        &quot;pilot_delta_pp_97.5_percentile&quot;: 16.0,
+        &quot;max_accounting_error&quot;: 2.220446049250313e-16
+      }
+    }
+  ],
+  &quot;frames&quot;: [
+    {
+      &quot;p&quot;: 0.0,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 0.0,
+      &quot;disrupted_per_100&quot;: 56.00000000000001,
+      &quot;delta_pp&quot;: -56.0
+    },
+    {
+      &quot;p&quot;: 0.01,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 0.12,
+      &quot;disrupted_per_100&quot;: 55.440000000000005,
+      &quot;delta_pp&quot;: -55.32
+    },
+    {
+      &quot;p&quot;: 0.02,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 0.24,
+      &quot;disrupted_per_100&quot;: 54.88,
+      &quot;delta_pp&quot;: -54.64
+    },
+    {
+      &quot;p&quot;: 0.03,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 0.36,
+      &quot;disrupted_per_100&quot;: 54.32000000000001,
+      &quot;delta_pp&quot;: -53.96
+    },
+    {
+      &quot;p&quot;: 0.04,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 0.48,
+      &quot;disrupted_per_100&quot;: 53.760000000000005,
+      &quot;delta_pp&quot;: -53.28
+    },
+    {
+      &quot;p&quot;: 0.05,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 0.6,
+      &quot;disrupted_per_100&quot;: 53.2,
+      &quot;delta_pp&quot;: -52.6
+    },
+    {
+      &quot;p&quot;: 0.06,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 0.72,
+      &quot;disrupted_per_100&quot;: 52.64000000000001,
+      &quot;delta_pp&quot;: -51.92
+    },
+    {
+      &quot;p&quot;: 0.07,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 0.84,
+      &quot;disrupted_per_100&quot;: 52.080000000000005,
+      &quot;delta_pp&quot;: -51.24
+    },
+    {
+      &quot;p&quot;: 0.08,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 0.96,
+      &quot;disrupted_per_100&quot;: 51.52,
+      &quot;delta_pp&quot;: -50.56
+    },
+    {
+      &quot;p&quot;: 0.09,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 1.08,
+      &quot;disrupted_per_100&quot;: 50.96000000000001,
+      &quot;delta_pp&quot;: -49.88
+    },
+    {
+      &quot;p&quot;: 0.1,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 1.2,
+      &quot;disrupted_per_100&quot;: 50.400000000000006,
+      &quot;delta_pp&quot;: -49.2
+    },
+    {
+      &quot;p&quot;: 0.11,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 1.3199999999999998,
+      &quot;disrupted_per_100&quot;: 49.84,
+      &quot;delta_pp&quot;: -48.52
+    },
+    {
+      &quot;p&quot;: 0.12,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 1.44,
+      &quot;disrupted_per_100&quot;: 49.28,
+      &quot;delta_pp&quot;: -47.84
+    },
+    {
+      &quot;p&quot;: 0.13,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 1.56,
+      &quot;disrupted_per_100&quot;: 48.720000000000006,
+      &quot;delta_pp&quot;: -47.16
+    },
+    {
+      &quot;p&quot;: 0.14,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 1.68,
+      &quot;disrupted_per_100&quot;: 48.160000000000004,
+      &quot;delta_pp&quot;: -46.48
+    },
+    {
+      &quot;p&quot;: 0.15,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 1.7999999999999998,
+      &quot;disrupted_per_100&quot;: 47.6,
+      &quot;delta_pp&quot;: -45.8
+    },
+    {
+      &quot;p&quot;: 0.16,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 1.92,
+      &quot;disrupted_per_100&quot;: 47.040000000000006,
+      &quot;delta_pp&quot;: -45.12
+    },
+    {
+      &quot;p&quot;: 0.17,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 2.04,
+      &quot;disrupted_per_100&quot;: 46.480000000000004,
+      &quot;delta_pp&quot;: -44.44
+    },
+    {
+      &quot;p&quot;: 0.18,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 2.16,
+      &quot;disrupted_per_100&quot;: 45.92,
+      &quot;delta_pp&quot;: -43.76
+    },
+    {
+      &quot;p&quot;: 0.19,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 2.28,
+      &quot;disrupted_per_100&quot;: 45.36000000000001,
+      &quot;delta_pp&quot;: -43.08
+    },
+    {
+      &quot;p&quot;: 0.2,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 2.4,
+      &quot;disrupted_per_100&quot;: 44.800000000000004,
+      &quot;delta_pp&quot;: -42.4
+    },
+    {
+      &quot;p&quot;: 0.21,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 2.52,
+      &quot;disrupted_per_100&quot;: 44.24,
+      &quot;delta_pp&quot;: -41.72
+    },
+    {
+      &quot;p&quot;: 0.22,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 2.6399999999999997,
+      &quot;disrupted_per_100&quot;: 43.68000000000001,
+      &quot;delta_pp&quot;: -41.04
+    },
+    {
+      &quot;p&quot;: 0.23,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 2.76,
+      &quot;disrupted_per_100&quot;: 43.120000000000005,
+      &quot;delta_pp&quot;: -40.36
+    },
+    {
+      &quot;p&quot;: 0.24,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 2.88,
+      &quot;disrupted_per_100&quot;: 42.56,
+      &quot;delta_pp&quot;: -39.68
+    },
+    {
+      &quot;p&quot;: 0.25,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 3.0,
+      &quot;disrupted_per_100&quot;: 42.00000000000001,
+      &quot;delta_pp&quot;: -39.0
+    },
+    {
+      &quot;p&quot;: 0.26,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 3.12,
+      &quot;disrupted_per_100&quot;: 41.440000000000005,
+      &quot;delta_pp&quot;: -38.32
+    },
+    {
+      &quot;p&quot;: 0.27,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 3.2399999999999998,
+      &quot;disrupted_per_100&quot;: 40.88,
+      &quot;delta_pp&quot;: -37.64
+    },
+    {
+      &quot;p&quot;: 0.28,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 3.36,
+      &quot;disrupted_per_100&quot;: 40.32000000000001,
+      &quot;delta_pp&quot;: -36.96
+    },
+    {
+      &quot;p&quot;: 0.29,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 3.48,
+      &quot;disrupted_per_100&quot;: 39.760000000000005,
+      &quot;delta_pp&quot;: -36.28
+    },
+    {
+      &quot;p&quot;: 0.3,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 3.5999999999999996,
+      &quot;disrupted_per_100&quot;: 39.2,
+      &quot;delta_pp&quot;: -35.6
+    },
+    {
+      &quot;p&quot;: 0.31,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 3.7199999999999998,
+      &quot;disrupted_per_100&quot;: 38.64,
+      &quot;delta_pp&quot;: -34.92
+    },
+    {
+      &quot;p&quot;: 0.32,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 3.84,
+      &quot;disrupted_per_100&quot;: 38.080000000000005,
+      &quot;delta_pp&quot;: -34.24
+    },
+    {
+      &quot;p&quot;: 0.33,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 3.96,
+      &quot;disrupted_per_100&quot;: 37.52,
+      &quot;delta_pp&quot;: -33.56
+    },
+    {
+      &quot;p&quot;: 0.34,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 4.08,
+      &quot;disrupted_per_100&quot;: 36.96,
+      &quot;delta_pp&quot;: -32.88
+    },
+    {
+      &quot;p&quot;: 0.35,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 4.2,
+      &quot;disrupted_per_100&quot;: 36.400000000000006,
+      &quot;delta_pp&quot;: -32.2
+    },
+    {
+      &quot;p&quot;: 0.36,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 4.32,
+      &quot;disrupted_per_100&quot;: 35.84,
+      &quot;delta_pp&quot;: -31.52
+    },
+    {
+      &quot;p&quot;: 0.37,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 4.4399999999999995,
+      &quot;disrupted_per_100&quot;: 35.28,
+      &quot;delta_pp&quot;: -30.84
+    },
+    {
+      &quot;p&quot;: 0.38,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 4.56,
+      &quot;disrupted_per_100&quot;: 34.720000000000006,
+      &quot;delta_pp&quot;: -30.16
+    },
+    {
+      &quot;p&quot;: 0.39,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 4.68,
+      &quot;disrupted_per_100&quot;: 34.160000000000004,
+      &quot;delta_pp&quot;: -29.48
+    },
+    {
+      &quot;p&quot;: 0.4,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 4.8,
+      &quot;disrupted_per_100&quot;: 33.6,
+      &quot;delta_pp&quot;: -28.8
+    },
+    {
+      &quot;p&quot;: 0.41,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 4.92,
+      &quot;disrupted_per_100&quot;: 33.040000000000006,
+      &quot;delta_pp&quot;: -28.12
+    },
+    {
+      &quot;p&quot;: 0.42,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 5.04,
+      &quot;disrupted_per_100&quot;: 32.480000000000004,
+      &quot;delta_pp&quot;: -27.44
+    },
+    {
+      &quot;p&quot;: 0.43,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 5.16,
+      &quot;disrupted_per_100&quot;: 31.92,
+      &quot;delta_pp&quot;: -26.76
+    },
+    {
+      &quot;p&quot;: 0.44,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 5.279999999999999,
+      &quot;disrupted_per_100&quot;: 31.360000000000003,
+      &quot;delta_pp&quot;: -26.08
+    },
+    {
+      &quot;p&quot;: 0.45,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 5.3999999999999995,
+      &quot;disrupted_per_100&quot;: 30.800000000000004,
+      &quot;delta_pp&quot;: -25.4
+    },
+    {
+      &quot;p&quot;: 0.46,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 5.52,
+      &quot;disrupted_per_100&quot;: 30.240000000000002,
+      &quot;delta_pp&quot;: -24.72
+    },
+    {
+      &quot;p&quot;: 0.47,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 5.64,
+      &quot;disrupted_per_100&quot;: 29.680000000000003,
+      &quot;delta_pp&quot;: -24.04
+    },
+    {
+      &quot;p&quot;: 0.48,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 5.76,
+      &quot;disrupted_per_100&quot;: 29.120000000000005,
+      &quot;delta_pp&quot;: -23.36
+    },
+    {
+      &quot;p&quot;: 0.49,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 5.88,
+      &quot;disrupted_per_100&quot;: 28.560000000000002,
+      &quot;delta_pp&quot;: -22.68
+    },
+    {
+      &quot;p&quot;: 0.5,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 6.0,
+      &quot;disrupted_per_100&quot;: 28.000000000000004,
+      &quot;delta_pp&quot;: -22.0
+    },
+    {
+      &quot;p&quot;: 0.51,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 6.12,
+      &quot;disrupted_per_100&quot;: 27.44,
+      &quot;delta_pp&quot;: -21.32
+    },
+    {
+      &quot;p&quot;: 0.52,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 6.24,
+      &quot;disrupted_per_100&quot;: 26.880000000000003,
+      &quot;delta_pp&quot;: -20.64
+    },
+    {
+      &quot;p&quot;: 0.53,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 6.359999999999999,
+      &quot;disrupted_per_100&quot;: 26.320000000000004,
+      &quot;delta_pp&quot;: -19.96
+    },
+    {
+      &quot;p&quot;: 0.54,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 6.4799999999999995,
+      &quot;disrupted_per_100&quot;: 25.76,
+      &quot;delta_pp&quot;: -19.28
+    },
+    {
+      &quot;p&quot;: 0.55,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 6.6,
+      &quot;disrupted_per_100&quot;: 25.200000000000003,
+      &quot;delta_pp&quot;: -18.6
+    },
+    {
+      &quot;p&quot;: 0.56,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 6.72,
+      &quot;disrupted_per_100&quot;: 24.64,
+      &quot;delta_pp&quot;: -17.92
+    },
+    {
+      &quot;p&quot;: 0.57,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 6.84,
+      &quot;disrupted_per_100&quot;: 24.080000000000002,
+      &quot;delta_pp&quot;: -17.24
+    },
+    {
+      &quot;p&quot;: 0.58,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 6.96,
+      &quot;disrupted_per_100&quot;: 23.520000000000003,
+      &quot;delta_pp&quot;: -16.56
+    },
+    {
+      &quot;p&quot;: 0.59,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 7.08,
+      &quot;disrupted_per_100&quot;: 22.96,
+      &quot;delta_pp&quot;: -15.88
+    },
+    {
+      &quot;p&quot;: 0.6,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 7.199999999999999,
+      &quot;disrupted_per_100&quot;: 22.400000000000002,
+      &quot;delta_pp&quot;: -15.2
+    },
+    {
+      &quot;p&quot;: 0.61,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 7.319999999999999,
+      &quot;disrupted_per_100&quot;: 21.840000000000003,
+      &quot;delta_pp&quot;: -14.52
+    },
+    {
+      &quot;p&quot;: 0.62,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 7.4399999999999995,
+      &quot;disrupted_per_100&quot;: 21.28,
+      &quot;delta_pp&quot;: -13.84
+    },
+    {
+      &quot;p&quot;: 0.63,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 7.56,
+      &quot;disrupted_per_100&quot;: 20.720000000000002,
+      &quot;delta_pp&quot;: -13.16
+    },
+    {
+      &quot;p&quot;: 0.64,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 7.68,
+      &quot;disrupted_per_100&quot;: 20.160000000000004,
+      &quot;delta_pp&quot;: -12.48
+    },
+    {
+      &quot;p&quot;: 0.65,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 7.8,
+      &quot;disrupted_per_100&quot;: 19.6,
+      &quot;delta_pp&quot;: -11.8
+    },
+    {
+      &quot;p&quot;: 0.66,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 7.92,
+      &quot;disrupted_per_100&quot;: 19.040000000000003,
+      &quot;delta_pp&quot;: -11.12
+    },
+    {
+      &quot;p&quot;: 0.67,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 8.04,
+      &quot;disrupted_per_100&quot;: 18.48,
+      &quot;delta_pp&quot;: -10.44
+    },
+    {
+      &quot;p&quot;: 0.68,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 8.16,
+      &quot;disrupted_per_100&quot;: 17.92,
+      &quot;delta_pp&quot;: -9.76
+    },
+    {
+      &quot;p&quot;: 0.69,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 8.28,
+      &quot;disrupted_per_100&quot;: 17.360000000000003,
+      &quot;delta_pp&quot;: -9.08
+    },
+    {
+      &quot;p&quot;: 0.7,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 8.4,
+      &quot;disrupted_per_100&quot;: 16.8,
+      &quot;delta_pp&quot;: -8.4
+    },
+    {
+      &quot;p&quot;: 0.71,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 8.52,
+      &quot;disrupted_per_100&quot;: 16.240000000000002,
+      &quot;delta_pp&quot;: -7.72
+    },
+    {
+      &quot;p&quot;: 0.72,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 8.64,
+      &quot;disrupted_per_100&quot;: 15.680000000000001,
+      &quot;delta_pp&quot;: -7.04
+    },
+    {
+      &quot;p&quot;: 0.73,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 8.76,
+      &quot;disrupted_per_100&quot;: 15.120000000000001,
+      &quot;delta_pp&quot;: -6.36
+    },
+    {
+      &quot;p&quot;: 0.74,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 8.879999999999999,
+      &quot;disrupted_per_100&quot;: 14.560000000000002,
+      &quot;delta_pp&quot;: -5.68
+    },
+    {
+      &quot;p&quot;: 0.75,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 9.0,
+      &quot;disrupted_per_100&quot;: 14.000000000000002,
+      &quot;delta_pp&quot;: -5.0
+    },
+    {
+      &quot;p&quot;: 0.76,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 9.12,
+      &quot;disrupted_per_100&quot;: 13.440000000000001,
+      &quot;delta_pp&quot;: -4.32
+    },
+    {
+      &quot;p&quot;: 0.77,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 9.24,
+      &quot;disrupted_per_100&quot;: 12.88,
+      &quot;delta_pp&quot;: -3.64
+    },
+    {
+      &quot;p&quot;: 0.78,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 9.36,
+      &quot;disrupted_per_100&quot;: 12.32,
+      &quot;delta_pp&quot;: -2.96
+    },
+    {
+      &quot;p&quot;: 0.79,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 9.48,
+      &quot;disrupted_per_100&quot;: 11.760000000000002,
+      &quot;delta_pp&quot;: -2.28
+    },
+    {
+      &quot;p&quot;: 0.8,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 9.6,
+      &quot;disrupted_per_100&quot;: 11.200000000000001,
+      &quot;delta_pp&quot;: -1.6
+    },
+    {
+      &quot;p&quot;: 0.81,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 9.719999999999999,
+      &quot;disrupted_per_100&quot;: 10.64,
+      &quot;delta_pp&quot;: -0.92
+    },
+    {
+      &quot;p&quot;: 0.82,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 9.84,
+      &quot;disrupted_per_100&quot;: 10.080000000000002,
+      &quot;delta_pp&quot;: -0.24
+    },
+    {
+      &quot;p&quot;: 0.83,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 9.959999999999999,
+      &quot;disrupted_per_100&quot;: 9.520000000000001,
+      &quot;delta_pp&quot;: 0.44
+    },
+    {
+      &quot;p&quot;: 0.84,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 10.08,
+      &quot;disrupted_per_100&quot;: 8.96,
+      &quot;delta_pp&quot;: 1.12
+    },
+    {
+      &quot;p&quot;: 0.85,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 10.2,
+      &quot;disrupted_per_100&quot;: 8.4,
+      &quot;delta_pp&quot;: 1.8
+    },
+    {
+      &quot;p&quot;: 0.86,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 10.32,
+      &quot;disrupted_per_100&quot;: 7.840000000000001,
+      &quot;delta_pp&quot;: 2.48
+    },
+    {
+      &quot;p&quot;: 0.87,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 10.44,
+      &quot;disrupted_per_100&quot;: 7.280000000000001,
+      &quot;delta_pp&quot;: 3.16
+    },
+    {
+      &quot;p&quot;: 0.88,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 10.559999999999999,
+      &quot;disrupted_per_100&quot;: 6.720000000000001,
+      &quot;delta_pp&quot;: 3.84
+    },
+    {
+      &quot;p&quot;: 0.89,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 10.68,
+      &quot;disrupted_per_100&quot;: 6.16,
+      &quot;delta_pp&quot;: 4.52
+    },
+    {
+      &quot;p&quot;: 0.9,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 10.799999999999999,
+      &quot;disrupted_per_100&quot;: 5.6000000000000005,
+      &quot;delta_pp&quot;: 5.2
+    },
+    {
+      &quot;p&quot;: 0.91,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 10.92,
+      &quot;disrupted_per_100&quot;: 5.040000000000001,
+      &quot;delta_pp&quot;: 5.88
+    },
+    {
+      &quot;p&quot;: 0.92,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 11.04,
+      &quot;disrupted_per_100&quot;: 4.48,
+      &quot;delta_pp&quot;: 6.56
+    },
+    {
+      &quot;p&quot;: 0.93,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 11.16,
+      &quot;disrupted_per_100&quot;: 3.9200000000000004,
+      &quot;delta_pp&quot;: 7.24
+    },
+    {
+      &quot;p&quot;: 0.94,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 11.28,
+      &quot;disrupted_per_100&quot;: 3.3600000000000003,
+      &quot;delta_pp&quot;: 7.92
+    },
+    {
+      &quot;p&quot;: 0.95,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 11.4,
+      &quot;disrupted_per_100&quot;: 2.8000000000000003,
+      &quot;delta_pp&quot;: 8.6
+    },
+    {
+      &quot;p&quot;: 0.96,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 11.52,
+      &quot;disrupted_per_100&quot;: 2.24,
+      &quot;delta_pp&quot;: 9.28
+    },
+    {
+      &quot;p&quot;: 0.97,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 11.639999999999999,
+      &quot;disrupted_per_100&quot;: 1.6800000000000002,
+      &quot;delta_pp&quot;: 9.96
+    },
+    {
+      &quot;p&quot;: 0.98,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 11.76,
+      &quot;disrupted_per_100&quot;: 1.12,
+      &quot;delta_pp&quot;: 10.64
+    },
+    {
+      &quot;p&quot;: 0.99,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 11.879999999999999,
+      &quot;disrupted_per_100&quot;: 0.56,
+      &quot;delta_pp&quot;: 11.32
+    },
+    {
+      &quot;p&quot;: 1.0,
+      &quot;r&quot;: 0.12,
+      &quot;d&quot;: 0.56,
+      &quot;threshold&quot;: 0.823529411764706,
+      &quot;recovered_per_100&quot;: 12.0,
+      &quot;disrupted_per_100&quot;: 0.0,
+      &quot;delta_pp&quot;: 12.0
+    }
+  ],
+  &quot;example_pilot&quot;: {
+    &quot;n&quot;: 50,
+    &quot;p&quot;: 0.92,
+    &quot;r&quot;: 0.15217391304347827,
+    &quot;d&quot;: 0.5,
+    &quot;threshold&quot;: 0.7666666666666666,
+    &quot;delta&quot;: 0.1
+  },
+  &quot;edge_cases&quot;: {
+    &quot;all_success&quot;: {
+      &quot;n&quot;: 50,
+      &quot;p&quot;: 0.0,
+      &quot;r&quot;: null,
+      &quot;d&quot;: 0.04,
+      &quot;threshold&quot;: null,
+      &quot;delta&quot;: -0.04
+    },
+    &quot;all_failure&quot;: {
+      &quot;n&quot;: 50,
+      &quot;p&quot;: 1.0,
+      &quot;r&quot;: 0.1,
+      &quot;d&quot;: null,
+      &quot;threshold&quot;: null,
+      &quot;delta&quot;: 0.1
+    },
+    &quot;no_change&quot;: {
+      &quot;n&quot;: 50,
+      &quot;p&quot;: 0.5,
+      &quot;r&quot;: 0.0,
+      &quot;d&quot;: 0.0,
+      &quot;threshold&quot;: null,
+      &quot;delta&quot;: 0.0
+    }
+  }
+}</code></pre></details><p>恒等式の最大誤差は2.23×10⁻¹⁶未満。仮定したp=0.89、r=0.12、d=0.56では真の成功率差は+4.52ポイントだが、50タスクpilotで観測差が正だったのは73.0%。観測差の経験的2.5〜97.5 percentileは−6〜+16ポイント。0.35%では条件付き率または閾値を推定できなかった。この範囲は論文の信頼区間ではない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>対応した最終結果の数え方と閾値を計算し、全成功・全失敗・変化ゼロの境界を分けた。合成pilotで、正の期待効果があっても50タスクでは導入判断を誤り得ることを確かめた。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>criticの学習、AUROC、LoRA、温度較正、ROLLBACKの環境復元、APPENDの実際のLLM反応、論文p値は未再現。50タスクで安全を保証する手法ではない。domain移行時にr/dを持ち越せるか、AgentTether等の複雑な修復でも同じ率になるかは未検証。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>uv run papers/intervention-paradox/run.py</code> をリポジトリのルートで実行する。Python標準ライブラリのみを使い、CPUで完了する。結果はコードと同じ場所の <code>results.json</code> に保存する。乱数を使う箇所はseedを固定した。ダウンロードしたrun.pyも単体で動く。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文と実装の対応</h1>
+<p>一次資料：<a href="https://arxiv.org/pdf/2602.03338v1">PDF v1</a>。公式実装へのリンクは確認した一次論文内に見つからなかった。下記はこのLab独自の説明用実装であり、公式コードではない。</p>
+<table>
+<thead>
+<tr>
+<th>原論文の箇所</th>
+<th>Labの対応</th>
+<th>確認の範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§1 式1–4、付録D</td>
+<td>accounting、数式と2×2表</td>
+<td>最終taskの対応結果。イベント回数ではない</td>
+</tr>
+<tr>
+<td>§3 表1–2</td>
+<td>critic説明</td>
+<td>AUROC 0.936は著者報告。再学習なし</td>
+</tr>
+<tr>
+<td>§4 表4、付録A 表17</td>
+<td>Evidenceの−26 / +2.8ポイント</td>
+<td>別モデル・別benchmark・別介入条件</td>
+</tr>
+<tr>
+<td>図1、§4/7</td>
+<td>simulate_pilot、判断図</td>
+<td>p=.89/r=.12/d=.56を仮定。原軌跡は未入手</td>
+</tr>
+<tr>
+<td>§4と付録D/Gの不整合</td>
+<td>methodの注記</td>
+<td>C/Bとr/dを区別し、式1–4を採用</td>
+</tr>
+<tr>
+<td>§5.5 表10</td>
+<td>oracle説明</td>
+<td>完全な失敗予測/選択という上限。実用性能ではない</td>
+</tr>
+<tr>
+<td>§8、付録C</td>
+<td>限界、合成pilot分布</td>
+<td>論文のbootstrap p値や区間推定を再現していない</td>
+</tr>
+</tbody>
+</table></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>介入の逆説：失敗を当てても、止めるほど成功が減ることがある</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/intervention-paradox/lab.yaml" download>このページの原データ</a></footer>
+</body></html>
