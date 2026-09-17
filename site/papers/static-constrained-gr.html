@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="STATICは許可されたSID集合のtrieをdense tableとCSRへ変換する。YouTubeのTPU v6e実験で制約処理0.033ms/step、3Bモデル推論の約0.25%。有効SIDを出すだけでなく「直近7日」の集合へ生成を限定できる点が主題だ。">
+  <title>STATIC：業務制約のtrieを、アクセラレータで読める配列へ変える | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-02-26</span></div>
+    <h1>STATIC：業務制約のtrieを、アクセラレータで読める配列へ変える</h1>
+    <p class="lede">STATICは許可されたSID集合のtrieをdense tableとCSRへ変換する。YouTubeのTPU v6e実験で制約処理0.033ms/step、3Bモデル推論の約0.25%。有効SIDを出すだけでなく「直近7日」の集合へ生成を限定できる点が主題だ。</p>
+    <details class="bibliography"><summary>原論文：Vectorizing the Trie: Efficient Constrained Decoding for LLM-based Generative Retrieval on Accelerators</summary><p>Su, Zhengyang, Katsman, Isay, Wang, Yueqi, He, Ruining, Heldt, Lukasz, Keshavan, Raghunandan, Wang, Shao-Chuan, Yi, Xinyang, Gao, Mingyan, Dalal, Onkar, Hong, Lichan, Chi, Ed, Han, Ningren</p><p>2602.22647 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2602.22647">原典を読む ↗</a><a href="https://arxiv.org/pdf/2602.22647v2">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-17 · 版を固定した一次PDF本文と関連表・付録を照合。著者報告と人工実験を分離。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-method-equations">式と操作の対応</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>STATICは許可されたSID集合のtrieをdense tableとCSRへ変換する。YouTubeのTPU v6e実験で制約処理0.033ms/step、3Bモデル推論の約0.25%。有効SIDを出すだけでなく「直近7日」の集合へ生成を限定できる点が主題だ。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>SIDとして有効でも古い動画なら、鮮度チャネルの候補にはならない。生成後にfilterすると、少数のbeamをすべて失う場合がある。許可集合のprefixだけを辿ればこの問題を避けられるが、CPU trieのpointer追跡とdevice間同期が遅い。</p>
+<p>STATICはモデルの精度を変える新しい損失ではなく、厳密な集合制約を安く実行する方式だ。推論前に対象集合を作る費用、集合を更新する費用、prefixが共有される度合いも運用上の条件になる。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は、trieを静的な疎遷移配列へ平坦化し、vectorized kernelで各beamの有効な次tokenを取得すれば、TPU/GPUで厳密な業務制約を小さな追加時間で実行できると主張する（§4）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>高速化は制約を実用にする条件であり、CTRを直接増やすモデル変更ではない。online liftは鮮度制約を導入したチャネルの効果を含む。同じ有効集合に対してCPU trieをCSRへ置換するだけなら、候補の意味は変わらないはずだ。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>許可集合Cを先に定める</h3>
+<p>§4.1。SID長L、語彙V、許可された系列集合Cに対し、<code>F_t(prefix,v)=1{∃c∈C: prefix+v は c のprefix}</code> とする。無効な次tokenのlog確率を−∞へ落とす。SID一般のvalidityと、鮮度・在庫・カテゴリなどで限定したCへの所属は別の判定だ。</p>
+<p>Algorithm 1はまずLogSoftmaxを計算し、その後にmaskを適用する。制約後に再正規化するとprefix間のbeam scoreが変わるため、この順序も対応表に残す。最小実験はscoreの再正規化を扱わず、許可経路そのものを全列挙する。</p>
+<h3>trieをCSRの三配列へ写す</h3>
+<p>§4.2。各prefixへstate番号sを割り当て、<code>T[s,v]=next_state</code> を疎行列として持つ。<code>indptr[s]:indptr[s+1]</code> がそのstateの子の範囲、列番号がtoken、値が次stateになる。論文の0はsinkを表す。Labの簡略実装はroot=0とし、無効遷移をFalseで返すので、この番号規約だけは異なる。</p>
+<p>最初のd層はdense maskとstate table、残りをCSRにする。実験はd=2、V=2048なので最初のtableは2048²。VNTKは層ごとの最大分岐数で固定長sliceを読み、paddingの有効範囲をmaskする。beamを選び直した後は対応するstateも同じ順でgatherする。Appendix Aではtokenと遷移先をstackしたCSRによるread削減を説明している。</p>
+<h3>遅延測定の条件</h3>
+<p>§5.1–2。Gemini系、PLUMに近いdense 3Bモデル、SID長8、beam70、batch2/chip、TPU v6e。全候補は約100M–1B、制約集合は直近7日の高品質動画約20M。表1の時間は各decode stepの制約追加処理であり、モデルforward全体の時間ではない。</p>
+<p>CPU trie baselineにはTPU↔CPU同期を含む。PPV Exactは全2048 logitsを検査し、Approximateはtop50だけを検査する。後者やfalse positiveを許すhash bitmapとは厳密性が一致しない。</p>
+<p>出典：<a href="https://arxiv.org/pdf/2602.22647v2">2602.22647v2</a>。上記で「Lab」とした式・条件は説明用の補助である。</p>
+<figure class="teaching batch17"><h3>同じSIDでも、有効集合と業務集合は違う</h3><div class="b17-cards"><div><strong>全valid SID</strong><p>000 / 001 / 010 / 100 / 111</p></div><div><strong>fresh集合 C</strong><p>001 / 111 の2件だけ。古いvalid SIDは除外する。</p></div><div><strong>prefix 0 の次token</strong><p>0だけが可能。01はvalid catalogにあってもfreshにはない。</p></div></div><figcaption>人工2値・3段ID。§4の集合制約を教えるための例で、YouTubeの実SIDではない。</figcaption></figure></div>      </section>
+<figure class="teaching teaching--equations" id="figure-method-equations" aria-labelledby="title-method-equations">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-method-equations">式と操作の対応</h3>
+  <ol class="equation-steps"><li><strong>prefix集合</strong><div class="math-expression" tabindex="0" role="math" aria-label="F(prefix,v)=1{∃c∈C: prefix+v ⊑ c}">F(prefix,v)=1{∃c∈C: prefix+v ⊑ c}</div><p>業務で許可した集合Cの中だけを探索。</p></li><li><strong>CSR</strong><div class="math-expression" tabindex="0" role="math" aria-label="children(s)=indices[indptr[s]:indptr[s+1]]">children(s)=indices[indptr[s]:indptr[s+1]]</div><p>遷移先stateを並行した配列から読む。</p></li><li><strong>mask</strong><div class="math-expression" tabindex="0" role="math" aria-label="log p′(v)=log p(v) if F=1; −∞ otherwise">log p′(v)=log p(v) if F=1; −∞ otherwise</div><p>Algorithm 1はLogSoftmax後にmaskを適用する。</p></li></ol>
+  <figcaption>各記号が担う役割を分けて読む。 <a href="https://arxiv.org/pdf/2602.22647v2">出典：§4、Algorithm 1 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>【解釈】prefixを整数stateにし、連続した配列から子をまとめて読むと、CPUへのcallbackと不規則なpointer移動を避けられる。初期の密な層はdense lookup、深い疎な層はCSRに分けるため、全SID空間の巨大なmaskを保持する必要もない。</p>
+<p>一方、集合がrequestごとに大きく変わる場合にはindexの構築・保持が問題になる。kernel時間の短さだけでは、すべての個別業務制約が無料になるとは言えない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>kernelの比較とonline効果を分ける</h3>
+<p>表1は100 trialsの平均で、CPU Trie +31.3ms、PPV Exact +34.1ms、Hash Bitmap +12.3ms、PPV Approximate +1.56ms、STATIC +0.033ms/step。948倍はCPU Trie比の制約処理。全推薦の948倍高速化ではない。0.25%は3B推論時間に対する追加処理の割合である。</p>
+<p>§5.4・表2のHome Feed実験は「Last 7 Days」制約。著者は100% complianceを報告する。7 Day Fresh Views +5.1%（95% CI [5.0,5.2]%）、3 Day Fresh Views +2.9%（[2.8,3.0]%）、CTR +0.15%（[0.01,0.29]%）、strategic user segment satisfaction +0.15%（[0.03,0.27]%）。7日はコンテンツの鮮度閾値で、A/Bの実施日数ではない。</p>
+<h3>制約技術の役割を混同しない</h3>
+<p>NEZHAのinvalid-SID filterは、無効なID列を排除する問題との比較になる。STATICは業務上の部分集合を事前に定め、そのprefix内を辿る。<a href="univa-commercial-sid-gar.html">UniVA</a>のpersonalized valid-path trieは広告適格性と価値を組み合わせる。<a href="flashtrie-gpu-beam.html">FlashTrie</a>はGPU上でbeam処理全体をまとめる。対象集合、score、hardware、測定範囲が違うので0.033msと数msを直接競わせない。</p>
+<figure class="teaching batch17"><h3>制約処理の追加時間だけを比較する</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>方式</th><th>追加ms/step</th><th>厳密性</th></tr></thead><tbody><tr><td>CPU Trie</td><td>31.3</td><td>同じtrie制約</td></tr><tr><td>PPV Exact</td><td>34.1</td><td>全2048 logits検査</td></tr><tr><td>Hash Bitmap</td><td>12.3</td><td>false positiveあり</td></tr><tr><td>PPV Approximate</td><td>1.56</td><td>top50だけ</td></tr><tr><td>STATIC</td><td>0.033</td><td>厳密な集合制約</td></tr></tbody></table></div><div class="b17-budget"><span style="flex:99.75">モデル等の推論時間</span><b style="flex:.25" title="約0.25%">│</b></div><p>追加分は推論時間の約0.25%。棒は説明用の比率表示で、各工程の詳細計測を補ったものではない。</p><figcaption>§5.1–2・表1。3B / TPU v6e / batch2 / beam70 / fresh約20M。baseline比のend-to-end時間ではない。</figcaption></figure>
+
+<p><a href="https://arxiv.org/pdf/2602.22647v2">一次資料：版を固定したPDF</a>。図表の箇所とSHA-256は末尾の対応表を参照。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>5個の有効SIDのうち2個だけをfreshとする。2値・3段の全prefixを列挙してCSRと集合定義を照合する。同じ固定scoreでtop-1後filterとfresh集合内top-1を比べ、前者が空になる例を確かめる。</p>
+<figure class="teaching batch17"><h3>人工fresh集合のCSRを読む</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>配列</th><th>値</th></tr></thead><tbody><tr><td>indptr</td><td>[0, 2, 3, 4, 4, 5, 6, 6]</td></tr><tr><td>tokens</td><td>[0, 1, 0, 1, 1, 1]</td></tr><tr><td>next_state</td><td>[1, 4, 2, 3, 5, 6]</td></tr></tbody></table></div><figcaption>rootのstate=0。indptrの隣り合う値で子の区間を切り出す。原論文のsink=0規約とは異なる。</figcaption></figure></div><div class="downloads"><a href="../downloads/static-constrained-gr/run.py" download>実行コード</a><a href="../downloads/static-constrained-gr/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/static-constrained-gr">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>2値・3段の人工IDをCPUで全列挙。STATICのTPU kernelや遅延を再現する実験ではない。</em></p>
+<h3>有効SIDと鮮度制約を分ける</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>生成後filterの件数</th><td colspan='1'>0</td></tr><tr><th scope='row'>制約内top-1の件数</th><td colspan='1'>1</td></tr><tr><th scope='row'>照合したprefix数</th><td colspan='1'>15</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;2値・3段の人工IDをCPUで全列挙。STATICのTPU kernelや遅延を再現する実験ではない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;有効SIDと鮮度制約を分ける&quot;,
+      &quot;metrics&quot;: {
+        &quot;生成後filterの件数&quot;: 0,
+        &quot;制約内top-1の件数&quot;: 1,
+        &quot;照合したprefix数&quot;: 15
+      }
+    }
+  ],
+  &quot;csr&quot;: {
+    &quot;indptr&quot;: [
+      0,
+      2,
+      3,
+      4,
+      4,
+      5,
+      6,
+      6
+    ],
+    &quot;tokens&quot;: [
+      0,
+      1,
+      0,
+      1,
+      1,
+      1
+    ],
+    &quot;next_state&quot;: [
+      1,
+      4,
+      2,
+      3,
+      5,
+      6
+    ]
+  },
+  &quot;post_filter&quot;: [],
+  &quot;constrained&quot;: [
+    [
+      0,
+      0,
+      1
+    ]
+  ],
+  &quot;checks&quot;: {
+    &quot;csr_prefix_equivalence&quot;: &quot;CONFIRMED&quot;,
+    &quot;fresh_subset_compliance&quot;: &quot;CONFIRMED&quot;,
+    &quot;accelerator_speed&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>Mechanism: PARTIAL</strong>。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。</p>
+<p>実験の入力と全出力はrun.pyとresults.jsonから確認できる。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>TPU/GPU kernel、dense前段、VNTK固定長slice、8-token・20M集合のメモリ、本番freshness更新、遅延、CTRはNOT TESTED。CPUの小さなCSR参照実装から948倍を再現したとは言わない。</p>
+<p><strong>Performance / Scaling / Production applicability: NOT TESTED</strong>。一次資料の報告値との照合は、報告された本番効果の独立再現を意味しない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけの独立実験。repository rootで <code>uv run papers/static-constrained-gr/run.py</code> を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。</p>
+<p><a href="../downloads/static-constrained-gr/run.py">実行コード</a>・<a href="../downloads/static-constrained-gr/results.json">全結果</a>・<a href="../downloads/static-constrained-gr/README.md">README</a>・<a href="../downloads/static-constrained-gr/method.md">方法</a>・<a href="../downloads/static-constrained-gr/mapping.md">対応表</a>を保存できる。</p>
+<p>公式実装を取得し、READMEとindex/decodingの対応を確認した。commit <code>ac18fa1870ac45e0a3559090a0ea9ec005226cf5</code>。JAX/PyTorch実装自体の実行はNOT TESTED。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>確認日：2026-09-17。一次PDF：<a href="https://arxiv.org/pdf/2602.22647v2">2602.22647v2.pdf</a>。arXiv初回日：2026/02/26、確認版の日付：2026/07/20。</p>
+<p>SHA-256：<code>1a50773da5416592e35b3dd62e35d81dac91c64e04cc179c3d28bae252ab0bad</code></p>
+<p>保存先：<code>/workspace/research-bot/tmp-scout/2026-09-17/2602.22647v2.pdf</code>。既存HTMLを発見用に使い、上記の版を固定したPDF本文・関連する表と付録で照合した。図はこのLabで作った説明図で、元論文の画像コピーではない。</p>
+<table>
+<thead>
+<tr>
+<th>原論文の箇所</th>
+<th>確認対象</th>
+<th>Labと省略範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§4.1–4.2、図1</td>
+<td>prefix制約とCSR変換</td>
+<td>run.py: build / walk。dense lookupは省略</td>
+</tr>
+<tr>
+<td>§4.3–4.4、Algorithm 1–2、Appendix A</td>
+<td>maskとVNTK、beam state更新</td>
+<td>method.md。accelerator kernelは未実装</td>
+</tr>
+<tr>
+<td>§5.1–5.4、表1–2、Appendix D</td>
+<td>latency条件とonline鮮度</td>
+<td>Evidence・時間の比較図</td>
+</tr>
+<tr>
+<td>公式static_decoding/csr_utils.py、decoding_jax.py、decoding_pt.py</td>
+<td>index構築とJAX/PyTorch推論</td>
+<td>公式コードを参照。Labは依存を持たないCPU模型</td>
+</tr>
+</tbody>
+</table>
+<h2>公式コード</h2>
+<p>公式実装を取得し、READMEとindex/decodingの対応を確認した。commit <code>ac18fa1870ac45e0a3559090a0ea9ec005226cf5</code>。JAX/PyTorch実装自体の実行はNOT TESTED。</p>
+<p><a href="https://github.com/youtube/static-constraint-decoding">公式repository</a>。<code>static_decoding/csr_utils.py</code> がindex構築、<code>decoding_jax.py</code> / <code>decoding_pt.py</code> が推論側。</p>
+<h2>独立再現の境界</h2>
+<p>TPU/GPU kernel、dense前段、VNTK固定長slice、8-token・20M集合のメモリ、本番freshness更新、遅延、CTRはNOT TESTED。CPUの小さなCSR参照実装から948倍を再現したとは言わない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>STATIC：業務制約のtrieを、アクセラレータで読める配列へ変える</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/static-constrained-gr/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

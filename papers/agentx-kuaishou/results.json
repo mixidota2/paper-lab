@@ -1,0 +1,96 @@
+{
+  "note": "人工の効果とCIを使う判定表。実験案生成、LLM評価、オンラインA/Bは実行しない。閾値と14日窓はLabの仮定。",
+  "experiments": [
+    {
+      "name": "同じ主効果でも判定は変わる",
+      "metrics": {
+        "利益あり": {
+          "判定": "KEEP",
+          "理由": "効果・有意性・guardrailを通過"
+        },
+        "重大な副作用": {
+          "判定": "DISCARD",
+          "理由": "重大な悪化"
+        },
+        "中程度の副作用": {
+          "判定": "EXTEND",
+          "理由": "人の例外審査が必要"
+        },
+        "短期": {
+          "判定": "EXTEND",
+          "理由": "観測窓が不足"
+        },
+        "不確実": {
+          "判定": "EXTEND",
+          "理由": "改善を確定できない"
+        }
+      }
+    }
+  ],
+  "decisions": {
+    "利益あり": {
+      "verdict": "KEEP",
+      "reason": "効果・有意性・guardrailを通過",
+      "effect": 0.3,
+      "ci_low": 0.1,
+      "guardrail": "clear",
+      "window_days": 14,
+      "method": "入力CIを判定する模型。統計推定は未実装"
+    },
+    "重大な副作用": {
+      "verdict": "DISCARD",
+      "reason": "重大な悪化",
+      "effect": 0.3,
+      "ci_low": 0.1,
+      "guardrail": "severe",
+      "window_days": 14,
+      "method": "入力CIを判定する模型。統計推定は未実装"
+    },
+    "中程度の副作用": {
+      "verdict": "EXTEND",
+      "reason": "人の例外審査が必要",
+      "effect": 0.3,
+      "ci_low": 0.1,
+      "guardrail": "moderate",
+      "window_days": 14,
+      "method": "入力CIを判定する模型。統計推定は未実装"
+    },
+    "短期": {
+      "verdict": "EXTEND",
+      "reason": "観測窓が不足",
+      "effect": 0.3,
+      "ci_low": 0.1,
+      "guardrail": "clear",
+      "window_days": 3,
+      "method": "入力CIを判定する模型。統計推定は未実装"
+    },
+    "不確実": {
+      "verdict": "EXTEND",
+      "reason": "改善を確定できない",
+      "effect": 0.3,
+      "ci_low": -0.1,
+      "guardrail": "clear",
+      "window_days": 14,
+      "method": "入力CIを判定する模型。統計推定は未実装"
+    }
+  },
+  "replay": {
+    "改善": {
+      "delta": 0.133333,
+      "accepted": true
+    },
+    "unsafe": {
+      "delta": 0.133333,
+      "accepted": false
+    },
+    "退行": {
+      "delta": -0.033333,
+      "accepted": false
+    }
+  },
+  "checks": {
+    "veto_and_escalation": "CONFIRMED",
+    "paired_replay_gate": "CONFIRMED",
+    "agent_productivity": "NOT TESTED"
+  }
+}

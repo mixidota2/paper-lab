@@ -1,0 +1,159 @@
+{
+  "note": "人工の2段NAR確率表。GPU測定ではなく、beamによる枝落ちとprefix検査の差を計算する。",
+  "experiments": [
+    {
+      "name": "同じ確率表でbeam幅を変更",
+      "metrics": {
+        "1": {
+          "最良経路確率": 0.06,
+          "返却件数": 1
+        },
+        "2": {
+          "最良経路確率": 0.24,
+          "返却件数": 2
+        },
+        "3": {
+          "最良経路確率": 0.24,
+          "返却件数": 3
+        },
+        "4": {
+          "最良経路確率": 0.24,
+          "返却件数": 4
+        }
+      }
+    }
+  ],
+  "beams": {
+    "1": [
+      {
+        "path": [
+          0,
+          0
+        ],
+        "probability": 0.06,
+        "valid": true
+      }
+    ],
+    "2": [
+      {
+        "path": [
+          1,
+          2
+        ],
+        "probability": 0.24,
+        "valid": true
+      },
+      {
+        "path": [
+          0,
+          0
+        ],
+        "probability": 0.06,
+        "valid": true
+      }
+    ],
+    "3": [
+      {
+        "path": [
+          1,
+          2
+        ],
+        "probability": 0.24,
+        "valid": true
+      },
+      {
+        "path": [
+          0,
+          0
+        ],
+        "probability": 0.06,
+        "valid": true
+      },
+      {
+        "path": [
+          0,
+          1
+        ],
+        "probability": 0.06,
+        "valid": true
+      }
+    ],
+    "4": [
+      {
+        "path": [
+          1,
+          2
+        ],
+        "probability": 0.24,
+        "valid": true
+      },
+      {
+        "path": [
+          0,
+          0
+        ],
+        "probability": 0.06,
+        "valid": true
+      },
+      {
+        "path": [
+          0,
+          1
+        ],
+        "probability": 0.06,
+        "valid": true
+      },
+      {
+        "path": [
+          2,
+          0
+        ],
+        "probability": 0.01,
+        "valid": true
+      }
+    ]
+  },
+  "depth_only": [
+    {
+      "path": [
+        0,
+        2
+      ],
+      "probability": 0.48,
+      "valid": false
+    },
+    {
+      "path": [
+        1,
+        2
+      ],
+      "probability": 0.24,
+      "valid": true
+    },
+    {
+      "path": [
+        2,
+        2
+      ],
+      "probability": 0.08,
+      "valid": false
+    },
+    {
+      "path": [
+        0,
+        0
+      ],
+      "probability": 0.06,
+      "valid": true
+    }
+  ],
+  "exhaustive_best": [
+    1,
+    2
+  ],
+  "checks": {
+    "prefix_compliance": "CONFIRMED",
+    "wide_beam_recovers_best_in_toy": "CONFIRMED",
+    "gpu_latency": "NOT TESTED"
+  }
+}

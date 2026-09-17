@@ -228,3 +228,24 @@ document.querySelectorAll('[data-paper-probe]').forEach(root => {
   root.querySelectorAll('select,input').forEach(el => el.addEventListener('input',update));
   update();
 });
+
+// Two distinct controls: reading published SLO points and a synthetic GFSA gate.
+document.querySelectorAll('[data-b17]').forEach(panel => {
+  const data = JSON.parse(panel.querySelector('[data-values]').textContent);
+  const control = panel.querySelector('[data-control]');
+  const output = panel.querySelector('[data-output]');
+  const update = () => {
+    if (panel.dataset.b17 === 'slo') {
+      const limit = Number(control.value);
+      const feasible = data.filter(row => row[3] <= limit);
+      const row = feasible.at(-1);
+      output.textContent = row ? `p99上限${limit}ms：表の条件を満たす最大BWは${row[0]}。GPU p99=${row[3]}ms、平均=${row[2]}ms、P@100=${row[4]}。著者の実測点から選択。` : '表の実測点に条件を満たすものはない。';
+    } else {
+      const row = data[Number(control.value)];
+      output.textContent = `w=${row.weight}：共有attention [${row.shared_attention.map(x=>x.toFixed(3)).join(', ')}]。SID側pool [${row.sid_pooled.map(x=>x.toFixed(3)).join(', ')}]、ID側pool [${row.item_pooled.map(x=>x.toFixed(3)).join(', ')}]。対照整列の寄与=${row.weighted_alignment_loss.toFixed(4)}。人工例。`;
+    }
+  };
+  control.addEventListener('input', update);
+  control.addEventListener('change', update);
+  update();
+});

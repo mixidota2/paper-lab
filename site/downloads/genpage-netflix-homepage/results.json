@@ -1,0 +1,122 @@
+{
+  "note": "固定scoreによる人工ページ。forward回数は演算回数の模型で、実測遅延ではない。",
+  "experiments": [
+    {
+      "name": "候補境界と行末の条件付け",
+      "metrics": {
+        "無制約": {
+          "forward回数": 8,
+          "候補違反": 6
+        },
+        "全逐次": {
+          "forward回数": 8,
+          "候補違反": 0
+        },
+        "先頭1件のみ逐次": {
+          "forward回数": 6,
+          "候補違反": 0
+        },
+        "行全体を一括": {
+          "forward回数": 4,
+          "候補違反": 0
+        }
+      }
+    }
+  ],
+  "cases": {
+    "無制約": {
+      "page": [
+        {
+          "row": "comedy",
+          "items": [
+            "OUT",
+            "OUT",
+            "OUT"
+          ]
+        },
+        {
+          "row": "drama",
+          "items": [
+            "OUT",
+            "OUT",
+            "OUT"
+          ]
+        }
+      ],
+      "forward_calls": 8,
+      "candidate_violations": 6
+    },
+    "全逐次": {
+      "page": [
+        {
+          "row": "comedy",
+          "items": [
+            "A",
+            "C",
+            "B"
+          ]
+        },
+        {
+          "row": "drama",
+          "items": [
+            "D",
+            "E",
+            "F"
+          ]
+        }
+      ],
+      "forward_calls": 8,
+      "candidate_violations": 0
+    },
+    "先頭1件のみ逐次": {
+      "page": [
+        {
+          "row": "comedy",
+          "items": [
+            "A",
+            "C",
+            "B"
+          ]
+        },
+        {
+          "row": "drama",
+          "items": [
+            "D",
+            "E",
+            "F"
+          ]
+        }
+      ],
+      "forward_calls": 6,
+      "candidate_violations": 0
+    },
+    "行全体を一括": {
+      "page": [
+        {
+          "row": "comedy",
+          "items": [
+            "A",
+            "B",
+            "C"
+          ]
+        },
+        {
+          "row": "drama",
+          "items": [
+            "D",
+            "E",
+            "F"
+          ]
+        }
+      ],
+      "forward_calls": 4,
+      "candidate_violations": 0
+    }
+  },
+  "checks": {
+    "candidate_boundary": "CONFIRMED",
+    "hybrid_matches_full_in_this_case": "CONFIRMED",
+    "whole_page_optimality": "NOT TESTED",
+    "production_latency": "NOT TESTED"
+  }
+}

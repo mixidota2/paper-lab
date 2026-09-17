@@ -1,0 +1,128 @@
+id: static-constrained-gr
+arxiv_id: '2602.22647'
+submitted: '2026-02-26'
+title: 'Vectorizing the Trie: Efficient Constrained Decoding for LLM-based Generative Retrieval on Accelerators'
+authors:
+- Su, Zhengyang
+- Katsman, Isay
+- Wang, Yueqi
+- He, Ruining
+- Heldt, Lukasz
+- Keshavan, Raghunandan
+- Wang, Shao-Chuan
+- Yi, Xinyang
+- Gao, Mingyan
+- Dalal, Onkar
+- Hong, Lichan
+- Chi, Ed
+- Han, Ningren
+year: 2026
+topics:
+- recommender-systems
+- generative-recommendation
+urls:
+  paper: https://arxiv.org/abs/2602.22647
+  arxiv: https://arxiv.org/abs/2602.22647
+  pdf: https://arxiv.org/pdf/2602.22647v2
+  official_code: https://github.com/youtube/static-constraint-decoding
+verdict: Watch
+status: published
+question: STATIC：業務制約のtrieを、アクセラレータで読める配列へ変える
+summary: STATICは許可されたSID集合のtrieをdense tableとCSRへ変換する。YouTubeのTPU v6e実験で制約処理0.033ms/step、3Bモデル推論の約0.25%。有効SIDを出すだけでなく「直近7日」の集合へ生成を限定できる点が主題だ。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-09-17'
+  scope: 版を固定した一次PDF本文と関連表・付録を照合。著者報告と人工実験を分離。
+  url: https://arxiv.org/pdf/2602.22647v2
+  pdf_sha256: 1a50773da5416592e35b3dd62e35d81dac91c64e04cc179c3d28bae252ab0bad
+  version: 2602.22647v2
+core_idea:
+  author_claim: 著者は、trieを静的な疎遷移配列へ平坦化し、vectorized kernelで各beamの有効な次tokenを取得すれば、TPU/GPUで厳密な業務制約を小さな追加時間で実行できると主張する（§4）。
+  research_bot_interpretation: 高速化は制約を実用にする条件であり、CTRを直接増やすモデル変更ではない。online liftは鮮度制約を導入したチャネルの効果を含む。同じ有効集合に対してCPU
+    trieをCSRへ置換するだけなら、候補の意味は変わらないはずだ。
+sections:
+  problem: 'SIDとして有効でも古い動画なら、鮮度チャネルの候補にはならない。生成後にfilterすると、少数のbeamをすべて失う場合がある。許可集合のprefixだけを辿ればこの問題を避けられるが、CPU trieのpointer追跡とdevice間同期が遅い。
+
+
+    STATICはモデルの精度を変える新しい損失ではなく、厳密な集合制約を安く実行する方式だ。推論前に対象集合を作る費用、集合を更新する費用、prefixが共有される度合いも運用上の条件になる。'
+  evidence: '### kernelの比較とonline効果を分ける
+
+
+    表1は100 trialsの平均で、CPU Trie +31.3ms、PPV Exact +34.1ms、Hash Bitmap +12.3ms、PPV Approximate +1.56ms、STATIC +0.033ms/step。948倍はCPU
+    Trie比の制約処理。全推薦の948倍高速化ではない。0.25%は3B推論時間に対する追加処理の割合である。
+
+
+    §5.4・表2のHome Feed実験は「Last 7 Days」制約。著者は100% complianceを報告する。7 Day Fresh Views +5.1%（95% CI [5.0,5.2]%）、3 Day
+    Fresh Views +2.9%（[2.8,3.0]%）、CTR +0.15%（[0.01,0.29]%）、strategic user segment satisfaction +0.15%（[0.03,0.27]%）。7日はコンテンツの鮮度閾値で、A/Bの実施日数ではない。
+
+
+    ### 制約技術の役割を混同しない
+
+
+    NEZHAのinvalid-SID filterは、無効なID列を排除する問題との比較になる。STATICは業務上の部分集合を事前に定め、そのprefix内を辿る。[UniVA](univa-commercial-sid-gar.html)のpersonalized
+    valid-path trieは広告適格性と価値を組み合わせる。[FlashTrie](flashtrie-gpu-beam.html)はGPU上でbeam処理全体をまとめる。対象集合、score、hardware、測定範囲が違うので0.033msと数msを直接競わせない。
+
+
+    <figure class="teaching batch17"><h3>制約処理の追加時間だけを比較する</h3><div class="matrix-scroll" tabindex="0" role="region"
+    aria-label="比較表"><table><thead><tr><th>方式</th><th>追加ms/step</th><th>厳密性</th></tr></thead><tbody><tr><td>CPU
+    Trie</td><td>31.3</td><td>同じtrie制約</td></tr><tr><td>PPV Exact</td><td>34.1</td><td>全2048 logits検査</td></tr><tr><td>Hash
+    Bitmap</td><td>12.3</td><td>false positiveあり</td></tr><tr><td>PPV Approximate</td><td>1.56</td><td>top50だけ</td></tr><tr><td>STATIC</td><td>0.033</td><td>厳密な集合制約</td></tr></tbody></table></div><div
+    class="b17-budget"><span style="flex:99.75">モデル等の推論時間</span><b style="flex:.25" title="約0.25%">│</b></div><p>追加分は推論時間の約0.25%。棒は説明用の比率表示で、各工程の詳細計測を補ったものではない。</p><figcaption>§5.1–2・表1。3B
+    / TPU v6e / batch2 / beam70 / fresh約20M。baseline比のend-to-end時間ではない。</figcaption></figure>
+
+
+    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2602.22647v2)。図表の箇所とSHA-256は末尾の対応表を参照。'
+  overview: STATICは許可されたSID集合のtrieをdense tableとCSRへ変換する。YouTubeのTPU v6e実験で制約処理0.033ms/step、3Bモデル推論の約0.25%。有効SIDを出すだけでなく「直近7日」の集合へ生成を限定できる点が主題だ。
+  why_it_might_work: '【解釈】prefixを整数stateにし、連続した配列から子をまとめて読むと、CPUへのcallbackと不規則なpointer移動を避けられる。初期の密な層はdense lookup、深い疎な層はCSRに分けるため、全SID空間の巨大なmaskを保持する必要もない。
+
+
+    一方、集合がrequestごとに大きく変わる場合にはindexの構築・保持が問題になる。kernel時間の短さだけでは、すべての個別業務制約が無料になるとは言えない。'
+  method: method.md
+  executable_understanding: '5個の有効SIDのうち2個だけをfreshとする。2値・3段の全prefixを列挙してCSRと集合定義を照合する。同じ固定scoreでtop-1後filterとfresh集合内top-1を比べ、前者が空になる例を確かめる。
+
+
+    <figure class="teaching batch17"><h3>人工fresh集合のCSRを読む</h3><div class="matrix-scroll" tabindex="0" role="region"
+    aria-label="比較表"><table><thead><tr><th>配列</th><th>値</th></tr></thead><tbody><tr><td>indptr</td><td>[0, 2, 3,
+    4, 4, 5, 6, 6]</td></tr><tr><td>tokens</td><td>[0, 1, 0, 1, 1, 1]</td></tr><tr><td>next_state</td><td>[1, 4,
+    2, 3, 5, 6]</td></tr></tbody></table></div><figcaption>rootのstate=0。indptrの隣り合う値で子の区間を切り出す。原論文のsink=0規約とは異なる。</figcaption></figure>'
+  results: 人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。
+  what_we_verified: '**Mechanism: PARTIAL**。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。
+
+
+    実験の入力と全出力はrun.pyとresults.jsonから確認できる。'
+  what_we_did_not_verify: 'TPU/GPU kernel、dense前段、VNTK固定長slice、8-token・20M集合のメモリ、本番freshness更新、遅延、CTRはNOT TESTED。CPUの小さなCSR参照実装から948倍を再現したとは言わない。
+
+
+    **Performance / Scaling / Production applicability: NOT TESTED**。一次資料の報告値との照合は、報告された本番効果の独立再現を意味しない。'
+  implementation: '標準ライブラリだけの独立実験。repository rootで `uv run papers/static-constrained-gr/run.py` を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。
+
+
+    [実行コード](../downloads/static-constrained-gr/run.py)・[全結果](../downloads/static-constrained-gr/results.json)・[README](../downloads/static-constrained-gr/README.md)・[方法](../downloads/static-constrained-gr/method.md)・[対応表](../downloads/static-constrained-gr/mapping.md)を保存できる。
+
+
+    公式実装を取得し、READMEとindex/decodingの対応を確認した。commit `ac18fa1870ac45e0a3559090a0ea9ec005226cf5`。JAX/PyTorch実装自体の実行はNOT
+    TESTED。'
+  mapping: mapping.md
+teaching_figures:
+- kind: equations
+  id: method-equations
+  title: 式と操作の対応
+  after: method
+  caption: 各記号が担う役割を分けて読む。
+  rationale: 演算と制約の対象を明確にする。
+  source: https://arxiv.org/pdf/2602.22647v2
+  locator: §4、Algorithm 1
+  steps:
+  - name: prefix集合
+    formula: 'F(prefix,v)=1{∃c∈C: prefix+v ⊑ c}'
+    explanation: 業務で許可した集合Cの中だけを探索。
+  - name: CSR
+    formula: children(s)=indices[indptr[s]:indptr[s+1]]
+    explanation: 遷移先stateを並行した配列から読む。
+  - name: mask
+    formula: log p′(v)=log p(v) if F=1; −∞ otherwise
+    explanation: Algorithm 1はLogSoftmax後にmaskを適用する。

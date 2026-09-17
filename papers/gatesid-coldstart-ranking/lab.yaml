@@ -1,0 +1,113 @@
+id: gatesid-coldstart-ranking
+arxiv_id: '2603.22916'
+submitted: '2026-03-24'
+title: 'GateSID: Adaptive Gating for Balancing Semantic and Collaborative Signals in Recommendation'
+authors:
+- Zhu, Hai
+- Yu, Yantao
+- Shen, Lei
+- Wang, Bing
+- Zeng, Xiaoyi
+year: 2026
+topics:
+- recommender-systems
+- generative-recommendation
+urls:
+  paper: https://arxiv.org/abs/2603.22916
+  arxiv: https://arxiv.org/abs/2603.22916
+  pdf: https://arxiv.org/pdf/2603.22916v2
+  official_code: null
+verdict: Watch
+status: published
+question: GateSID：新商品ほど意味を借り、成熟商品では行動を残す
+summary: GateSIDはSIDをranking特徴として使い、商品の成熟度に応じて意味と行動のattentionを混ぜる。生成decodeの手法ではない。Alibaba Internationalの2週間・総traffic
+  20%のA/BでGMV +2.6%、新商品（20日未満）+5.6%、追加遅延5ms未満を報告する。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-09-17'
+  scope: 版を固定した一次PDF本文と関連表・付録を照合。著者報告と人工実験を分離。
+  url: https://arxiv.org/pdf/2603.22916v2
+  pdf_sha256: 7b0100bbcba779768f491bfd2ee809c224a7ba3e8db5bb640dca057fdaa9f208
+  version: 2603.22916v2
+core_idea:
+  author_claim: 著者はGFSAで意味側と行動側のattention分布を共有し、同じgateでGRCAの対照整列強度を調整すれば、cold-startを補いつつ成熟商品の協調表現を保てると主張する（§3）。
+  research_bot_interpretation: SIDの利点を生成推薦の利点と同一視しない例だ。gateは日数だけの決め打ち関数ではなく、ID embeddingと統計特徴から学習する。新商品に大きいgateが望ましいという設計意図と、全商品で単調なgate曲線が測れたという主張を分ける。
+sections:
+  problem: '新商品はクリックや購入履歴が少なく、ID embeddingが十分に育たない。一方、人気商品には豊かな協調信号があり、意味表現を強く混ぜると細かな嗜好差を消す場合がある。全商品で固定の融合比を使うことが問題になる。
+
+
+    GateSIDは候補商品を既に持つranking段で動く。target商品と履歴のSIDを使ってattentionを計算するため、SIDをtokenごとに生成して候補を探すGRとは入出力も遅延要因も異なる。'
+  evidence: '### rankingの指標とcohort
+
+
+    §4.1–4.2・表1。10億超のproduction logsを時間で分割し、最新日をvalidation/testに使う。CTR、CTCVRのAUC/GAUCを評価。cold-startは掲載20日未満、popularは300日超。AUCの表には0–1表記もあり、差のpercentage
+    pointと相対liftを混ぜない。
+
+
+    表2は固定平均、Concat+MLP、gate融合とgate入力のablation。表3–4はmultimodal表現とSID、attention構成、codebook設定の比較。表5は一律の対照整列とGRCAを比較する。これらは「SIDを使えば必ずGRへ移行すべき」という証拠ではない。
+
+
+    ### オンラインは2週間・総traffic 20%
+
+
+    §4.8。GMV +2.6%、CTR +1.1%、Order +1.6%、追加遅延5ms未満。掲載20日未満の新商品でGMV +5.6%。新商品効果の分母はそのcohortであり、全体GMVへの5.6ポイント寄与ではない。本文は総trafficの20%と記すが、各armへ20%ずつとまでは記していない。CI、p値、latency
+    percentileは未報告。
+
+
+    [QuaSID](quasid-collision-qualified-sid.html)の表現品質、[GLIDE](glide-spotify-sid.html)のcold-start候補生成と併せて読むと、意味表現をどこで使うかを比較できる。GateSIDの役割は候補にscoreを付ける側である。
+
+
+    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2603.22916v2)。図表の箇所とSHA-256は末尾の対応表を参照。'
+  overview: 'GateSIDはSIDをranking特徴として使い、商品の成熟度に応じて意味と行動のattentionを混ぜる。生成decodeの手法ではない。Alibaba Internationalの2週間・総traffic
+    20%のA/BでGMV +2.6%、新商品（20日未満）+5.6%、追加遅延5ms未満を報告する。
+
+
+    <figure class="teaching batch17"><h3>SIDを使う場所：GateSIDはranking側</h3><div class="matrix-scroll" tabindex="0" role="region"
+    aria-label="比較表"><table><thead><tr><th>設計</th><th>入力</th><th>出力</th><th>SIDの役割</th></tr></thead><tbody><tr><td>GateSID</td><td>ユーザー履歴＋候補商品</td><td>CTR
+    / CTCVR score</td><td>候補と履歴の意味特徴</td></tr><tr><td>生成推薦</td><td>ユーザー文脈＋prefix</td><td>次SID token</td><td>候補を辿る出力列</td></tr></tbody></table></div><figcaption>§3・図2に基づく役割の比較。SID利用そのものが生成decodeを意味するわけではない。</figcaption></figure>'
+  why_it_might_work: '【解釈】意味の近い商品でSIDを共有すると、希少商品も共有codebookへのgradientを使える。GFSAで同じ履歴位置の重みを両表現へ適用すれば、意味と行動が別々の履歴だけを参照するずれを減らせる。
+
+
+    GRCAをgateで弱めれば、成熟商品の表現を過度に同じ意味clusterへ引き寄せにくい。ただしどの信号がcold-startで有効かは商品領域に依存する。gateの解釈には日数だけでなく露出・クリックの偏りも関わる。'
+  method: method.md
+  executable_understanding: 固定した2種類のattention logitsと履歴embeddingを使い、wを0から1まで動かす。共有attentionを両履歴へ適用した結果と、同じwで重み付けしたInfoNCEを計算する。成熟度からwを学習した曲線は作らない。
+  results: 人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。
+  what_we_verified: '**Mechanism: PARTIAL**。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。
+
+
+    実験の入力と全出力はrun.pyとresults.jsonから確認できる。'
+  what_we_did_not_verify: 'RQ-VAE学習、maturity gate学習、CTR/CTCVRのranking学習、AUC、online GMV、5ms制約はNOT TESTED。固定gateでの凸結合を確認しただけで、本番のcold-start改善を検証したわけではない。
+
+
+    **Performance / Scaling / Production applicability: NOT TESTED**。一次資料の報告値との照合は、報告された本番効果の独立再現を意味しない。'
+  implementation: '標準ライブラリだけの独立実験。repository rootで `uv run papers/gatesid-coldstart-ranking/run.py` を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。
+
+
+    [実行コード](../downloads/gatesid-coldstart-ranking/run.py)・[全結果](../downloads/gatesid-coldstart-ranking/results.json)・[README](../downloads/gatesid-coldstart-ranking/README.md)・[方法](../downloads/gatesid-coldstart-ranking/method.md)・[対応表](../downloads/gatesid-coldstart-ranking/mapping.md)を保存できる。
+
+
+    確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。'
+  mapping: mapping.md
+teaching_figures:
+- kind: equations
+  id: method-equations
+  title: 式と操作の対応
+  after: method
+  caption: 各記号が担う役割を分けて読む。
+  rationale: 演算と制約の対象を明確にする。
+  source: https://arxiv.org/pdf/2603.22916v2
+  locator: 式4–11
+  steps:
+  - name: gate
+    formula: w=σ(MLP([e_item ⊕ F_stat]))
+    explanation: ID表現と掲載期間・露出・クリックなどから学習。
+  - name: GFSA
+    formula: S_fused=w S_sid+(1−w)S_item
+    explanation: 同じ分布を両方の履歴表現へ適用する。
+  - name: GRCA
+    formula: L=L_rank+λ·mean_i[w_i ℓ_cl(i)]
+    explanation: 意味の比率と整列の強さを同じgateで制御。

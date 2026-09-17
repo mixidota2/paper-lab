@@ -1,0 +1,62 @@
+{
+  "note": "人工分布。CoAの属性予測、RQモデルの学習、Shopeeの精度は再現しない。",
+  "experiments": [
+    {
+      "name": "属性条件付きエントロピー",
+      "metrics": {
+        "属性なし(bit)": 2.0,
+        "属性あり(bit)": 1.0,
+        "減少(bit)": 1.0
+      }
+    },
+    {
+      "name": "Bayesの分母を省くと順位が逆転する",
+      "metrics": {
+        "商品A": {
+          "p(f|u)": 0.9,
+          "p(y=1|f,u)": 0.2,
+          "p(f|y=1,u)": 0.6923076923076924
+        },
+        "商品B": {
+          "p(f|u)": 0.1,
+          "p(y=1|f,u)": 0.8,
+          "p(f|y=1,u)": 0.30769230769230776
+        }
+      }
+    }
+  ],
+  "capacity": {
+    "before": [
+      8,
+      4
+    ],
+    "after": [
+      6,
+      6
+    ],
+    "capacity": 6.300000000000001,
+    "feasible": true
+  },
+  "infeasible_heavy_item": {
+    "before": [
+      20,
+      1
+    ],
+    "after": [
+      20,
+      1
+    ],
+    "capacity": 11.025,
+    "feasible": false
+  },
+  "bayes_corrected": [
+    0.2,
+    0.8000000000000002
+  ],
+  "checks": {
+    "conditional_entropy_identity": "CONFIRMED",
+    "unconditional_ranking_equivalence": "NOT OBSERVED",
+    "capacity_for_heavy_item": "NOT OBSERVED",
+    "production_performance": "NOT TESTED"
+  }
+}

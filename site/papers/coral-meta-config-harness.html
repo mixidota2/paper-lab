@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CORALは候補源の予算やsegment別のserving処理を、数日ごとに更新するMetaのharness。videoのR3でsessions +0.16%、watch time +0.15%、追加serving費用なし。別surfaceの44%は初回の削減額の増加率であり、総費用−44%ではない。">
+  <title>CORAL：推薦の設定を、予算内で継続的に見直す | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-02</span></div>
+    <h1>CORAL：推薦の設定を、予算内で継続的に見直す</h1>
+    <p class="lede">CORALは候補源の予算やsegment別のserving処理を、数日ごとに更新するMetaのharness。videoのR3でsessions +0.16%、watch time +0.15%、追加serving費用なし。別surfaceの44%は初回の削減額の増加率であり、総費用−44%ではない。</p>
+    <details class="bibliography"><summary>原論文：CORAL: An LLM-Native Harness for Production Recommender Systems</summary><p>Azhar, Muhammad Rafay, Zhou, Yuhang, Jiang, Gilbert, Wang, Yuchen, Sharma, Rahul, DeSousa, Matthew, Liu, Jiayi, Guo, Xin, Zhang, Lizhu, Fan, Xiangjun</p><p>2609.02730 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.02730">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.02730v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-17 · 版を固定した一次PDF本文と関連表・付録を照合。著者報告と人工実験を分離。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-method-equations">式と操作の対応</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>CORALは候補源の予算やsegment別のserving処理を、数日ごとに更新するMetaのharness。videoのR3でsessions +0.16%、watch time +0.15%、追加serving費用なし。別surfaceの44%は初回の削減額の増加率であり、総費用−44%ではない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>候補源の質やユーザー構成は変わるが、候補数の配分やserving treatmentは手作業で決めたまま残りやすい。モデル自体を再学習しても、この設定が古ければ計算予算を使う場所がずれる。</p>
+<p>CORALは個々のrequestで推薦を生成しない。既存の推薦器を囲むcontrol planeとして、連続値の予算multiplierや離散的なtreatmentを変更する。online学習器の重み更新や自律的なproductionコード書換えとも区別する。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は、観測・記憶・LLM提案・数値optimizer・配信・効果測定を固定周期で回せば、追加のモデル学習なしに設定を継続改善できると主張する（§3–5）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>中心はLLMだけの最適化能力より、何を変えられるか、予算を誰が保証するか、測定結果をどう戻すかという契約だ。AgentXより変更範囲が狭く、その分、数値的な実行可能性を保証しやすい。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>非定常な予算付き最適化として表す</h3>
+<p>§3・式1–2。control unit iの設定s_iをまとめ、時点tの目的J_tと費用c_tに対し、<code>s*_t=argmax_s J_t(s), subject to c_t(s)≤B</code>。狙いは固定した一つの最適点への収束より、移動する最適点に対する累積損失 <code>Σ_t[J_t(s*_t)−J_t(s_t)]</code> を減らすこと。これを最小化する保証やregret boundを証明した論文ではない。</p>
+<p>LLMは集約観測o_tと記憶M_tから提案を作る。数値optimizerが許容集合への最も近い設定を返す。提案が既に予算内なら変更しない（§4.2）。距離関数やoptimizerの詳細は開示されないため、Labでは明示したEuclidean projectionに限定する。</p>
+<h3>固定順序で回し、三種類の記憶を持つ</h3>
+<p>§4.1–4.3。observation storeは運用統計、assessment storeは言語化した評価、decision storeは適用設定と帰属した結果を保持する。analysis→retrieval→attribution→提案→optimizer→applyを固定順で実行し、制御フローをLLMに任せない。実装の周期k=3日、記憶m=3 cyclesは合理的な初期値として選び、最適化した値ではない。</p>
+<p>Appendix A・図2のpromptは各unitのbounded adjustment、rationale、confidenceと全体assessmentをJSONで返す。retrievalの例ではsourceごとの連続multiplier、servingの例ではuser segmentごとの離散menuから選ぶ。実行は自律でも人の監督が残る。</p>
+<h3>配信費用とLLM費用を分ける</h3>
+<p>§6・式3は <code>Cost=(T/k)·C·(τ_in p_in+τ_out p_out)</code>。呼出し回数Cはdecision group数に依存し、利用者のrequest数には比例しない。表2はretrievalで約10 calls/cycle、入力約1500・出力約2500 tokens/call、servingで約8 calls、入力約2000・出力約2500。token usageはlogされておらず、これらは推定。数十USDという費用も実測請求額ではない。</p>
+<p>出典：<a href="https://arxiv.org/pdf/2609.02730v1">2609.02730v1</a>。上記で「Lab」とした式・条件は説明用の補助である。</p>
+<figure class="teaching batch17"><h3>提案と予算保証の責任を分ける</h3><div class="b17-cards"><div><strong>観測・記憶</strong><p>source / segmentの統計、前回設定、帰属結果。m=3 cycles。</p></div><div><strong>LLMの提案</strong><p>連続multiplierまたは離散menu。理由とconfidenceを添える。</p></div><div><strong>数値optimizer</strong><p>予算内ならそのまま。超過なら最も近い実行可能な設定へ。</p></div><div><strong>配信と測定</strong><p>k=3日周期。A/Bまたは観測結果を記憶へ戻す。人の監督は残る。</p></div></div><figcaption>§3–4・図1。数値optimizerがengagementの改善まで保証する図ではない。</figcaption></figure></div>      </section>
+<figure class="teaching teaching--equations" id="figure-method-equations" aria-labelledby="title-method-equations">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-method-equations">式と操作の対応</h3>
+  <ol class="equation-steps"><li><strong>目的</strong><div class="math-expression" tabindex="0" role="math" aria-label="s*_t=argmax J_t(s), c_t(s)≤B">s*_t=argmax J_t(s), c_t(s)≤B</div><p>時点ごとに最適設定は変わる。最適性保証は未提示。</p></li><li><strong>Labの射影</strong><div class="math-expression" tabindex="0" role="math" aria-label="s=argmin_{x≥0,Σx≤B} ||x−proposal||²">s=argmin_{x≥0,Σx≤B} ||x−proposal||²</div><p>この距離と単価はLabの仮定。原論文のoptimizer詳細は非公開。</p></li><li><strong>費用</strong><div class="math-expression" tabindex="0" role="math" aria-label="Cost=(T/k)C(τ_in p_in+τ_out p_out)">Cost=(T/k)C(τ_in p_in+τ_out p_out)</div><p>request数には比例しないLLM費用。token数は著者推定。</p></li></ol>
+  <figcaption>各記号が担う役割を分けて読む。 <a href="https://arxiv.org/pdf/2609.02730v1">出典：式1–3、§4.2 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>【解釈】言語モデルは定性的な運用情報を解釈し、数値ツールは予算を保証する、という分業に意味がある。過去の提案と結果を記憶すれば、前回のやりすぎを戻す判断もできる。</p>
+<p>ただし予算内であることはengagement改善の保証ではない。before/afterだけのattributionは季節性や上流変更と混ざる。A/Bが利用可能な場合のtreatment effectと、記憶に残るagent自身の解釈を同じ確度で扱わない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>videoのR1→R3は単調な改善ではない</h3>
+<p>§5.1・表1。R1はzero-shotでwatch time +0.13%、sessionsはneutral。R2は配分を動かしすぎて両指標neutral。複数decision cyclesをまとめたR3はwatch time +0.15%、全ユーザーのvideo-viewing sessions +0.16%、largest marketのsessions +0.77%。neutralは有意差を検出しなかった意味で、効果が厳密に0だった証明ではない。</p>
+<p>sessionsは少なくとも1回video viewを含むapp visit。A/Bは数百万人規模と記されるが、各roundのCI、割付比率、試験期間、共通controlの細部は非公開。new low-signal cohortのsessions +0.23%は後続のsegment別配分であり、global R3と分母が違う。</p>
+<h3>別surfaceの44%は削減額の増加</h3>
+<p>§5.2。初回は一部segmentへのtreatment配分で、年率換算数百万USDのserving費用を削減。2回目に対象segmentを広げ、初回の節約額を44%増やした。engagementは統計的に変わらなかった。したがって <code>saving₂=1.44×saving₁</code> であり、<code>cost₂=0.56×cost₀</code> とは読めない。総費用に対する削減率は算出できない。</p>
+<p>これは別serviceへ同じharnessの構成を適用した事例で、同じ学習済み配分をそのまま移した実験ではない。RecSys 2026 OARSの位置付けを持つ報告だが、ここで照合した資料はarXiv v1。<a href="agentx-kuaishou.html">AgentX</a>のcode/DSL開発、<a href="recevolve-autonomous-rec.html">RecEvolve</a>のarchitecture探索と比べ、CORALは既存の設定menuの内側で変更する。</p>
+<figure class="teaching batch17"><h3>R2のneutralも残して、roundを読む</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>指標</th><th>R1</th><th>R2</th><th>R3</th></tr></thead><tbody><tr><td>watch time</td><td>+0.13%</td><td>neutral</td><td>+0.15%</td></tr><tr><td>sessions / 全体</td><td>neutral</td><td>neutral</td><td>+0.16%</td></tr><tr><td>sessions / 最大市場</td><td>neutral</td><td>neutral</td><td>+0.77%</td></tr></tbody></table></div><div class="b17-cards"><div><strong>別surfaceの初回節約額をSとすると</strong><p>次回は1.44S。元費用Cに対する削減率は、S/Cがないと分からない。</p></div><div><strong>人工例：C=100、S=10</strong><p>次回節約14.4、残る費用85.6。論文の実金額ではない。</p></div></div><figcaption>§5.1・表1、§5.2。neutralを0%の棒として描かない。44%の分母は初回節約額。</figcaption></figure>
+
+<p><a href="https://arxiv.org/pdf/2609.02730v1">一次資料：版を固定したPDF</a>。図表の箇所とSHA-256は末尾の対応表を参照。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>3つの手作り予算提案を、非負・合計10以下の集合へEuclidean projectionする。既に実行可能な提案は保存する。離散menuも全列挙で最も近い実行可能な構成を選ぶ。初回節約10・元費用100という人工値で「節約額44%増」の分母を示す。</p>
+<figure class="teaching batch17"><h3>提案を変えると、予算超過分だけ射影される</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>提案</th><th>適用した設定</th><th>合計費用</th></tr></thead><tbody><tr><td>[4, 3, 2]</td><td>[4, 3, 2]</td><td>9</td></tr><tr><td>[8, 7, 5]</td><td>[4.667, 3.667, 1.667]</td><td>10.0</td></tr><tr><td>[1, 1, 1]</td><td>[1, 1, 1]</td><td>3</td></tr></tbody></table></div><figcaption>run.pyの人工計算。予算10、非負、単価一定。実行可能な提案は同じまま。</figcaption></figure></div><div class="downloads"><a href="../downloads/coral-meta-config-harness/run.py" download>実行コード</a><a href="../downloads/coral-meta-config-harness/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/coral-meta-config-harness">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>提案は手作り。LLM・実トラフィック・学習効果は含まない。ユークリッド距離と単価一定はLabの仮定。</em></p>
+<h3>予算10へ射影する数値ツール</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>提案費用</th><th>配信費用</th></tr></thead><tbody><tr><th scope='row'>1</th><td>9</td><td>9</td></tr><tr><th scope='row'>2</th><td>20</td><td>10.0</td></tr><tr><th scope='row'>3</th><td>3</td><td>3</td></tr></tbody></table></div>
+<h3>削減額44%増の分母</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>元の費用</th><td colspan='1'>100.0</td></tr><tr><th scope='row'>初回の削減額</th><td colspan='1'>10.0</td></tr><tr><th scope='row'>次回の削減額</th><td colspan='1'>14.399999999999999</td></tr><tr><th scope='row'>次回の費用</th><td colspan='1'>85.6</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;提案は手作り。LLM・実トラフィック・学習効果は含まない。ユークリッド距離と単価一定はLabの仮定。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;予算10へ射影する数値ツール&quot;,
+      &quot;metrics&quot;: {
+        &quot;1&quot;: {
+          &quot;提案費用&quot;: 9,
+          &quot;配信費用&quot;: 9
+        },
+        &quot;2&quot;: {
+          &quot;提案費用&quot;: 20,
+          &quot;配信費用&quot;: 10.0
+        },
+        &quot;3&quot;: {
+          &quot;提案費用&quot;: 3,
+          &quot;配信費用&quot;: 3
+        }
+      }
+    },
+    {
+      &quot;name&quot;: &quot;削減額44%増の分母&quot;,
+      &quot;metrics&quot;: {
+        &quot;元の費用&quot;: 100.0,
+        &quot;初回の削減額&quot;: 10.0,
+        &quot;次回の削減額&quot;: 14.399999999999999,
+        &quot;次回の費用&quot;: 85.6
+      }
+    }
+  ],
+  &quot;frames&quot;: [
+    {
+      &quot;proposal&quot;: [
+        4,
+        3,
+        2
+      ],
+      &quot;deployed&quot;: [
+        4,
+        3,
+        2
+      ],
+      &quot;cost&quot;: 9
+    },
+    {
+      &quot;proposal&quot;: [
+        8,
+        7,
+        5
+      ],
+      &quot;deployed&quot;: [
+        4.666666666666667,
+        3.666666666666667,
+        1.666666666666667
+      ],
+      &quot;cost&quot;: 10.0
+    },
+    {
+      &quot;proposal&quot;: [
+        1,
+        1,
+        1
+      ],
+      &quot;deployed&quot;: [
+        1,
+        1,
+        1
+      ],
+      &quot;cost&quot;: 3
+    }
+  ],
+  &quot;discrete_treatment&quot;: [
+    1,
+    1,
+    1
+  ],
+  &quot;checks&quot;: {
+    &quot;budget_feasibility&quot;: &quot;CONFIRMED&quot;,
+    &quot;already_feasible_identity&quot;: &quot;CONFIRMED&quot;,
+    &quot;continual_policy_improvement&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>Mechanism: PARTIAL</strong>。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。</p>
+<p>実験の入力と全出力はrun.pyとresults.jsonから確認できる。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>LLM推論、attribution、人の監督の削減、時系列のpolicy改善、online A/B、実際のserving costはNOT TESTED。予算射影が成功しても、目的関数Jの改善は確認していない。</p>
+<p><strong>Performance / Scaling / Production applicability: NOT TESTED</strong>。一次資料の報告値との照合は、報告された本番効果の独立再現を意味しない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけの独立実験。repository rootで <code>uv run papers/coral-meta-config-harness/run.py</code> を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。</p>
+<p><a href="../downloads/coral-meta-config-harness/run.py">実行コード</a>・<a href="../downloads/coral-meta-config-harness/results.json">全結果</a>・<a href="../downloads/coral-meta-config-harness/README.md">README</a>・<a href="../downloads/coral-meta-config-harness/method.md">方法</a>・<a href="../downloads/coral-meta-config-harness/mapping.md">対応表</a>を保存できる。</p>
+<p>確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>確認日：2026-09-17。一次PDF：<a href="https://arxiv.org/pdf/2609.02730v1">2609.02730v1.pdf</a>。arXiv初回日：2026/09/02、確認版の日付：2026/09/02。</p>
+<p>SHA-256：<code>e5a796ede0b8653df5c58f7e8ab6a5cfa7e165afb60c34df2d216a952b65aae2</code></p>
+<p>保存先：<code>/workspace/research-bot/tmp-scout/2026-09-17/2609.02730v1.pdf</code>。既存HTMLを発見用に使い、上記の版を固定したPDF本文・関連する表と付録で照合した。図はこのLabで作った説明図で、元論文の画像コピーではない。</p>
+<table>
+<thead>
+<tr>
+<th>原論文の箇所</th>
+<th>確認対象</th>
+<th>Labと省略範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3、式1–2</td>
+<td>非定常制約付き設定最適化</td>
+<td>method.md。regret計測は未実装</td>
+</tr>
+<tr>
+<td>§4.1–4.3、図1、Appendix A・図2・表3</td>
+<td>記憶、bounded proposal、数値optimizer</td>
+<td>run.py: project / discrete。LLMは手作り提案へ置換</td>
+</tr>
+<tr>
+<td>§5.1、表1</td>
+<td>video R1–R3とcohort</td>
+<td>Evidence・round比較表</td>
+</tr>
+<tr>
+<td>§5.2、§6・式3・表2</td>
+<td>節約額44%増、推定token費用</td>
+<td>run.py: compute。金額は人工例</td>
+</tr>
+</tbody>
+</table>
+<h2>公式コード</h2>
+<p>確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。</p>
+<h2>独立再現の境界</h2>
+<p>LLM推論、attribution、人の監督の削減、時系列のpolicy改善、online A/B、実際のserving costはNOT TESTED。予算射影が成功しても、目的関数Jの改善は確認していない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>CORAL：推薦の設定を、予算内で継続的に見直す</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/coral-meta-config-harness/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

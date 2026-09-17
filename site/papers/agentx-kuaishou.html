@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AgentXは発案、実装、オンライン評価、harness更新を閉じた開発ループにする。3 workers・3週間で374案から10件のlaunchable results。8倍の同時実験と3.7倍のworker-weekあたり価値は運用観察であり、同じ案を人とagentへ割り付けた比較ではない。">
+  <title>AgentX：発案数と採用率を分けて、推薦開発の自動化を読む | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-06-25</span></div>
+    <h1>AgentX：発案数と採用率を分けて、推薦開発の自動化を読む</h1>
+    <p class="lede">AgentXは発案、実装、オンライン評価、harness更新を閉じた開発ループにする。3 workers・3週間で374案から10件のlaunchable results。8倍の同時実験と3.7倍のworker-weekあたり価値は運用観察であり、同じ案を人とagentへ割り付けた比較ではない。</p>
+    <details class="bibliography"><summary>原論文：AgentX: Towards Agent-Driven Self-Iteration of Industrial Recommender Systems</summary><p>Lao, Changxin, Pan, Fei, Ma, Guozhuang, Li, Han, Lin, Huihuang, Shi, Jijun, Zhao, Kangzhi, Gai, Kun, Zhou, Mo, Zhou, Qinqin, Chen, Quan, Yang, Ruochen, Bie, Shifu, Yi, Shijie, Yang, Shuang, Yang, Shuo, Li, Wenhao, Xie, Wentao, Lv, Xiao, Wang, Xuming, Wang, Yijun, Chen, Yiming, Huang, Yusheng, Wang, Zhongyuan, Zhao, Zibo, Zhuang, Zijie, Xia, Baoning, Liu, Chao, Ma, Chaoyi, He, Chubo, Cong, Dawei, Jiang, Feng, Wang, Gang, Xia, Guilin, Xu, Hanwen, Xie, Jiahong, Qiao, Jiahui, Liang, Jian, Yue, Jiangfan, Wang, Jing, Yang, Jinghan, Jia, Jinghui, Qin, Kan, Wang, Lei, Li, Ming, Song, Peilin, Xu, Pengbo, Luo, Qiang, Tang, Ruiming, Liu, Shiyang, Jin, Shuxian, Wang, Tao, Zhang, Tao, Gao, Xiang, Li, Xianghan, Luo, Yingsong, Ning, Yiwen, Liu, Yongcheng, Liu, Yueyang, Guo, Yuan, Liu, Zhaojie, Cui, Zhenkai</p><p>2606.26859 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2606.26859">原典を読む ↗</a><a href="https://arxiv.org/pdf/2606.26859v2">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-17 · 版を固定した一次PDF本文と関連表・付録を照合。著者報告と人工実験を分離。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-method-equations">式と操作の対応</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>AgentXは発案、実装、オンライン評価、harness更新を閉じた開発ループにする。3 workers・3週間で374案から10件のlaunchable results。8倍の同時実験と3.7倍のworker-weekあたり価値は運用観察であり、同じ案を人とagentへ割り付けた比較ではない。</p>
+<figure class="teaching batch17"><h3>374案のどこで止まったか</h3><div class="b17-funnel"><div style="--stage:100%"><strong>374</strong> 発案</div><div style="--stage:75%"><strong>106</strong> review通過</div><div style="--stage:65%"><strong>100</strong> code・launch</div><div style="--stage:35%"><strong>10</strong> launchable result</div></div><p>374→106：28.34% ／ 106→100：94.3% ／ 100→10：表の報告9.9%</p><figcaption>§8・表5・式10。棒幅は段階を見分ける模式表現で、件数に比例しない。整数からの最終比率は10%。丸め・集計差は本文で解消されていない。</figcaption></figure></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>推薦の改善案があっても、実装、dry-run、trafficの確保、A/Bの観測、採用判断が詰まれば実験数は増えない。AgentXはこの実行待ちを並列化する。変更対象はproductionのcodeやDSL、戦略parameterで、会話で推薦結果を返すagentではない。</p>
+<p>発案の良さと実行速度は別の軸だ。人間が選び抜いた案の採用率を、agentが大量生成した案の採用率と直接比較して、能力全般の優劣は決められない。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は、Brainstorm、Developing、Evaluation、Harness Evolutionの四段階により、経験を再利用しながら推薦開発の処理量を増やせると主張する。負のA/Bも次の探索の制約へ変換する（§3–7）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>価値は「毎案が優秀」より、production契約を守って多数の案を試し、失敗を記憶する仕組みにある。著者もsenior engineerの1案あたりhit rateが約1.9倍高いと認めている。開発ループ内のA/Bと、開発者としての人間対agentの因果比較を区別する。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>四段階に異なる証拠を要求する</h3>
+<p>Brainstorm（§4）は過去実験、architecture、データ分析、外部研究から仮説を作り、変更可能性と重複を検査する。Developing（§5）はrepositoryの実装規約と依存関係に沿ってpatchを作り、コンパイル、動作、dry-run、実験投入契約を確認する。Evaluation（§6）は段階的に配信し、観測窓を満たしたA/Bを評価する。</p>
+<p>KEEPには最小効果量、有意性、許容できるguardrailのすべてが必要。判定recordは <code>verdict, primary_effect, guardrail_status, statistical_method, observation_window, caveats</code> を持つ。重大な悪化はblock、中程度は人の例外審査、観察用指標はmonitoringとする。単一指標が少し悪化したら必ずDISCARDする設計ではない。複数の事業指標を合わせた経済価値の交換指標も使う（§6.3）。</p>
+<p>失敗recordには原因、pipeline段、目的、segment、変更leverを付け、次のBrainstormから検索可能にする。EXTENDは観測不足・不確実性を保持するために必要であり、KEEPの弱い言い換えではない。</p>
+<h3>SGPOは数値勾配でモデルを訓練する手法ではない</h3>
+<p>§7.1、式7–9。評価agentがtraceとrubricから自然言語の診断gを作り、refinement agentが対象subagentのharness hをh′へ局所更新する。</p>
+<p><code>(loss_text, g) = Evaluator(h, traces, rubrics)</code></p>
+<p><code>h′ = Refiner(h, g)</code></p>
+<p><code>admit(h′) ⇔ mean[J(h′, task)−J(h, task)] &gt; ε AND Safe(h′−h)</code></p>
+<p>新旧harnessを同じreplay tasksで評価する点が重要だ。SGPO-Iはsession trace、SGPO-IIは過去MRをrequirement-only taskに変えたcoding replayを使う。後者は答えのpatchを実行agentから隠す。schema、tool境界、人のreview条件を壊す更新は採用しない。学習済みLLMの重み更新や、オンラインA/Bの代替ではない。</p>
+<h3>funnelの分母を固定する</h3>
+<p>表5・式10は <code>374 → 106 → 100 → 10</code>。案→review通過、通過→code/launch、launch→LRという条件付き比率である。表の丸め値9.9%を、整数10/100の10%と完全一致させるために改変しない。10/374は約2.67%で、別のAutoML poolのfunnel（§8後半）とは混ぜない。</p>
+<p>出典：<a href="https://arxiv.org/pdf/2606.26859v2">2606.26859v2</a>。上記で「Lab」とした式・条件は説明用の補助である。</p>
+<figure class="teaching batch17"><h3>同じ主効果でも、採用判定は変わる</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>条件</th><th>判定の方向</th><th>残す情報</th></tr></thead><tbody><tr><td>主効果・有意性・guardrail通過</td><td>KEEP</td><td>効果、窓、統計手法</td></tr><tr><td>観測不足・不確実</td><td>EXTEND</td><td>延長理由と残る不確実性</td></tr><tr><td>重大な副作用</td><td>DISCARD / hard block</td><td>影響segmentと失敗原因</td></tr><tr><td>中程度のguardrail警告</td><td>人の例外審査</td><td>交換条件と承認の根拠</td></tr></tbody></table></div><figcaption>§6.3–6.4。中程度の警告を自動DISCARDにしない。下の実験では審査待ちをEXTENDで表す。</figcaption></figure></div>      </section>
+<figure class="teaching teaching--equations" id="figure-method-equations" aria-labelledby="title-method-equations">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-method-equations">式と操作の対応</h3>
+  <ol class="equation-steps"><li><strong>採用</strong><div class="math-expression" tabindex="0" role="math" aria-label="KEEP ⇒ effect≥δ ∧ significant ∧ acceptable_guardrails">KEEP ⇒ effect≥δ ∧ significant ∧ acceptable_guardrails</div><p>観測窓と例外審査の情報も判定に残す。</p></li><li><strong>paired replay</strong><div class="math-expression" tabindex="0" role="math" aria-label="ΔJ=mean_j[J(h′,task_j)−J(h,task_j)]">ΔJ=mean_j[J(h′,task_j)−J(h,task_j)]</div><p>同じtaskで新旧のharnessを比較する。</p></li><li><strong>更新</strong><div class="math-expression" tabindex="0" role="math" aria-label="accept ⇔ ΔJ&gt;ε ∧ Safe(Δh)">accept ⇔ ΔJ&gt;ε ∧ Safe(Δh)</div><p>自然言語の診断を利用する。数値gradientでLLM重みを更新しない。</p></li></ol>
+  <figcaption>各記号が担う役割を分けて読む。 <a href="https://arxiv.org/pdf/2606.26859v2">出典：§6.3、式7–9 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>【解釈】検証済みのrepository知識、実験lock、dry-run、観測窓を明示すると、実装のやり直しと同じ失敗の再発を減らせる。独立した工程へ案を流すため、一本ずつ完了を待つ手順より同時実験を持ちやすい。</p>
+<p>ただしworkerを増やしてもtraffic、parameter lock、レビュー帯域は有限だ。表6では却下268案の64.7%がparameter-resource conflict。著者の「platform側の問題」という分類は、agentの事前確認能力を改善する余地がないことを意味しない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>観察された処理量と1案の質</h3>
+<p>§8・表5–8。3 workersで3週間、Main Feed 361案→8 LR、Life Service 13案→2 LR。worker-week単位の比較では同時実験12対1.5（8倍）、LR 1.1対0.08、累積app-time gain 0.0623%対0.0167%（約3.7倍）。1案あたりrollout率は2.7%対5.1%で人間が高い。</p>
+<p>これは同じ案集合、同じtraffic予算、同じ経験年数を揃えたrandomized human-agent比較ではない。期間中のskill蓄積や運用改善も含む。SGPOのpaired replayと、この生産性比較は評価単位が異なる。</p>
+<h3>business impactと再現の境界</h3>
+<p>Main Feedの累積user app consumption time +0.561%、Life Serviceの年率換算revenueはRMB 100 million超（§8）。一つの共通A/B treatmentの効果量として合算し直さず、累積運用成果として扱う。年率換算は実現済みの1年分売上ではない。元データ、CI、個々のrollout間の重なりは公開されず、このLabでは独立検証できない。</p>
+<p><a href="autolr-dashen.html">AutoLR</a>のKEEPと比較すると、AgentXは発案からproduction投入までを広く扱う。<a href="recevolve-autonomous-rec.html">RecEvolve</a>と共通するのは、offline scoreだけで採用を決めず、実行可能性と本番評価を閉ループに入れる点だ。</p>
+<p><a href="https://arxiv.org/pdf/2606.26859v2">一次資料：版を固定したPDF</a>。図表の箇所とSHA-256は末尾の対応表を参照。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>同じ主効果とCIに対し、guardrailがclear、moderate、severeの場合、観測が短い場合、有意でない場合を比較する。別に同一3-taskの新旧score差でSGPOの採否を計算する。効果閾値0.2、最小14日は説明用の仮定で、AgentXの固定規定ではない。</p>
+<figure class="teaching batch17"><h3>判定recordを開く</h3><details><summary>利益あり：KEEP</summary><pre>{
+  &quot;verdict&quot;: &quot;KEEP&quot;,
+  &quot;reason&quot;: &quot;効果・有意性・guardrailを通過&quot;,
+  &quot;effect&quot;: 0.3,
+  &quot;ci_low&quot;: 0.1,
+  &quot;guardrail&quot;: &quot;clear&quot;,
+  &quot;window_days&quot;: 14,
+  &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;
+}</pre></details><details><summary>重大な副作用：DISCARD</summary><pre>{
+  &quot;verdict&quot;: &quot;DISCARD&quot;,
+  &quot;reason&quot;: &quot;重大な悪化&quot;,
+  &quot;effect&quot;: 0.3,
+  &quot;ci_low&quot;: 0.1,
+  &quot;guardrail&quot;: &quot;severe&quot;,
+  &quot;window_days&quot;: 14,
+  &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;
+}</pre></details><details><summary>中程度の副作用：EXTEND</summary><pre>{
+  &quot;verdict&quot;: &quot;EXTEND&quot;,
+  &quot;reason&quot;: &quot;人の例外審査が必要&quot;,
+  &quot;effect&quot;: 0.3,
+  &quot;ci_low&quot;: 0.1,
+  &quot;guardrail&quot;: &quot;moderate&quot;,
+  &quot;window_days&quot;: 14,
+  &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;
+}</pre></details><details><summary>短期：EXTEND</summary><pre>{
+  &quot;verdict&quot;: &quot;EXTEND&quot;,
+  &quot;reason&quot;: &quot;観測窓が不足&quot;,
+  &quot;effect&quot;: 0.3,
+  &quot;ci_low&quot;: 0.1,
+  &quot;guardrail&quot;: &quot;clear&quot;,
+  &quot;window_days&quot;: 3,
+  &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;
+}</pre></details><details><summary>不確実：EXTEND</summary><pre>{
+  &quot;verdict&quot;: &quot;EXTEND&quot;,
+  &quot;reason&quot;: &quot;改善を確定できない&quot;,
+  &quot;effect&quot;: 0.3,
+  &quot;ci_low&quot;: -0.1,
+  &quot;guardrail&quot;: &quot;clear&quot;,
+  &quot;window_days&quot;: 14,
+  &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;
+}</pre></details><figcaption>人工値。moderateは人の審査待ちとしてEXTEND。実際の統計検定は実行しない。</figcaption></figure></div><div class="downloads"><a href="../downloads/agentx-kuaishou/run.py" download>実行コード</a><a href="../downloads/agentx-kuaishou/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/agentx-kuaishou">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>人工の効果とCIを使う判定表。実験案生成、LLM評価、オンラインA/Bは実行しない。閾値と14日窓はLabの仮定。</em></p>
+<h3>同じ主効果でも判定は変わる</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>判定</th><th>理由</th></tr></thead><tbody><tr><th scope='row'>利益あり</th><td>KEEP</td><td>効果・有意性・guardrailを通過</td></tr><tr><th scope='row'>重大な副作用</th><td>DISCARD</td><td>重大な悪化</td></tr><tr><th scope='row'>中程度の副作用</th><td>EXTEND</td><td>人の例外審査が必要</td></tr><tr><th scope='row'>短期</th><td>EXTEND</td><td>観測窓が不足</td></tr><tr><th scope='row'>不確実</th><td>EXTEND</td><td>改善を確定できない</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;人工の効果とCIを使う判定表。実験案生成、LLM評価、オンラインA/Bは実行しない。閾値と14日窓はLabの仮定。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;同じ主効果でも判定は変わる&quot;,
+      &quot;metrics&quot;: {
+        &quot;利益あり&quot;: {
+          &quot;判定&quot;: &quot;KEEP&quot;,
+          &quot;理由&quot;: &quot;効果・有意性・guardrailを通過&quot;
+        },
+        &quot;重大な副作用&quot;: {
+          &quot;判定&quot;: &quot;DISCARD&quot;,
+          &quot;理由&quot;: &quot;重大な悪化&quot;
+        },
+        &quot;中程度の副作用&quot;: {
+          &quot;判定&quot;: &quot;EXTEND&quot;,
+          &quot;理由&quot;: &quot;人の例外審査が必要&quot;
+        },
+        &quot;短期&quot;: {
+          &quot;判定&quot;: &quot;EXTEND&quot;,
+          &quot;理由&quot;: &quot;観測窓が不足&quot;
+        },
+        &quot;不確実&quot;: {
+          &quot;判定&quot;: &quot;EXTEND&quot;,
+          &quot;理由&quot;: &quot;改善を確定できない&quot;
+        }
+      }
+    }
+  ],
+  &quot;decisions&quot;: {
+    &quot;利益あり&quot;: {
+      &quot;verdict&quot;: &quot;KEEP&quot;,
+      &quot;reason&quot;: &quot;効果・有意性・guardrailを通過&quot;,
+      &quot;effect&quot;: 0.3,
+      &quot;ci_low&quot;: 0.1,
+      &quot;guardrail&quot;: &quot;clear&quot;,
+      &quot;window_days&quot;: 14,
+      &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;
+    },
+    &quot;重大な副作用&quot;: {
+      &quot;verdict&quot;: &quot;DISCARD&quot;,
+      &quot;reason&quot;: &quot;重大な悪化&quot;,
+      &quot;effect&quot;: 0.3,
+      &quot;ci_low&quot;: 0.1,
+      &quot;guardrail&quot;: &quot;severe&quot;,
+      &quot;window_days&quot;: 14,
+      &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;
+    },
+    &quot;中程度の副作用&quot;: {
+      &quot;verdict&quot;: &quot;EXTEND&quot;,
+      &quot;reason&quot;: &quot;人の例外審査が必要&quot;,
+      &quot;effect&quot;: 0.3,
+      &quot;ci_low&quot;: 0.1,
+      &quot;guardrail&quot;: &quot;moderate&quot;,
+      &quot;window_days&quot;: 14,
+      &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;
+    },
+    &quot;短期&quot;: {
+      &quot;verdict&quot;: &quot;EXTEND&quot;,
+      &quot;reason&quot;: &quot;観測窓が不足&quot;,
+      &quot;effect&quot;: 0.3,
+      &quot;ci_low&quot;: 0.1,
+      &quot;guardrail&quot;: &quot;clear&quot;,
+      &quot;window_days&quot;: 3,
+      &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;
+    },
+    &quot;不確実&quot;: {
+      &quot;verdict&quot;: &quot;EXTEND&quot;,
+      &quot;reason&quot;: &quot;改善を確定できない&quot;,
+      &quot;effect&quot;: 0.3,
+      &quot;ci_low&quot;: -0.1,
+      &quot;guardrail&quot;: &quot;clear&quot;,
+      &quot;window_days&quot;: 14,
+      &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;
+    }
+  },
+  &quot;replay&quot;: {
+    &quot;改善&quot;: {
+      &quot;delta&quot;: 0.133333,
+      &quot;accepted&quot;: true
+    },
+    &quot;unsafe&quot;: {
+      &quot;delta&quot;: 0.133333,
+      &quot;accepted&quot;: false
+    },
+    &quot;退行&quot;: {
+      &quot;delta&quot;: -0.033333,
+      &quot;accepted&quot;: false
+    }
+  },
+  &quot;checks&quot;: {
+    &quot;veto_and_escalation&quot;: &quot;CONFIRMED&quot;,
+    &quot;paired_replay_gate&quot;: &quot;CONFIRMED&quot;,
+    &quot;agent_productivity&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>Mechanism: PARTIAL</strong>。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。</p>
+<p>実験の入力と全出力はrun.pyとresults.jsonから確認できる。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>LLMによる発案・coding、統計推定器、production rollout、SGPOの改善率、workerのスケーリング、人間との同条件比較はNOT TESTED。guardrail recordの計算は機構の一部だけである。</p>
+<p><strong>Performance / Scaling / Production applicability: NOT TESTED</strong>。一次資料の報告値との照合は、報告された本番効果の独立再現を意味しない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけの独立実験。repository rootで <code>uv run papers/agentx-kuaishou/run.py</code> を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。</p>
+<p><a href="../downloads/agentx-kuaishou/run.py">実行コード</a>・<a href="../downloads/agentx-kuaishou/results.json">全結果</a>・<a href="../downloads/agentx-kuaishou/README.md">README</a>・<a href="../downloads/agentx-kuaishou/method.md">方法</a>・<a href="../downloads/agentx-kuaishou/mapping.md">対応表</a>を保存できる。</p>
+<p>確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>確認日：2026-09-17。一次PDF：<a href="https://arxiv.org/pdf/2606.26859v2">2606.26859v2.pdf</a>。arXiv初回日：2026/06/25、確認版の日付：2026/06/26。</p>
+<p>SHA-256：<code>637fd4c1c9737acc05db71095cb15f9ef05d9402b0f97601194b8dbb0abba97f</code></p>
+<p>保存先：<code>/workspace/research-bot/tmp-scout/2026-09-17/2606.26859v2.pdf</code>。既存HTMLを発見用に使い、上記の版を固定したPDF本文・関連する表と付録で照合した。図はこのLabで作った説明図で、元論文の画像コピーではない。</p>
+<table>
+<thead>
+<tr>
+<th>原論文の箇所</th>
+<th>確認対象</th>
+<th>Labと省略範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§4–5</td>
+<td>Brainstorm / Developingの契約</td>
+<td>method.md。LLMとrepository操作は未実装</td>
+</tr>
+<tr>
+<td>§6.3–6.4</td>
+<td>KEEP / EXTEND / DISCARD、負結果の記憶</td>
+<td>run.py: judge。入力済みCIと人工threshold</td>
+</tr>
+<tr>
+<td>§7.1、式7–9</td>
+<td>SGPOの局所変更とpaired replay</td>
+<td>run.py: admit。rubric評価は手作り</td>
+</tr>
+<tr>
+<td>§8、表5–8、式10</td>
+<td>374案funnel、worker-week比較</td>
+<td>Evidenceとfunnel図。観察比較として記載</td>
+</tr>
+</tbody>
+</table>
+<h2>公式コード</h2>
+<p>確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。</p>
+<h2>独立再現の境界</h2>
+<p>LLMによる発案・coding、統計推定器、production rollout、SGPOの改善率、workerのスケーリング、人間との同条件比較はNOT TESTED。guardrail recordの計算は機構の一部だけである。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>AgentX：発案数と採用率を分けて、推薦開発の自動化を読む</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/agentx-kuaishou/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

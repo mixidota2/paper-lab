@@ -1,0 +1,186 @@
+id: agentx-kuaishou
+arxiv_id: '2606.26859'
+submitted: '2026-06-25'
+title: 'AgentX: Towards Agent-Driven Self-Iteration of Industrial Recommender Systems'
+authors:
+- Lao, Changxin
+- Pan, Fei
+- Ma, Guozhuang
+- Li, Han
+- Lin, Huihuang
+- Shi, Jijun
+- Zhao, Kangzhi
+- Gai, Kun
+- Zhou, Mo
+- Zhou, Qinqin
+- Chen, Quan
+- Yang, Ruochen
+- Bie, Shifu
+- Yi, Shijie
+- Yang, Shuang
+- Yang, Shuo
+- Li, Wenhao
+- Xie, Wentao
+- Lv, Xiao
+- Wang, Xuming
+- Wang, Yijun
+- Chen, Yiming
+- Huang, Yusheng
+- Wang, Zhongyuan
+- Zhao, Zibo
+- Zhuang, Zijie
+- Xia, Baoning
+- Liu, Chao
+- Ma, Chaoyi
+- He, Chubo
+- Cong, Dawei
+- Jiang, Feng
+- Wang, Gang
+- Xia, Guilin
+- Xu, Hanwen
+- Xie, Jiahong
+- Qiao, Jiahui
+- Liang, Jian
+- Yue, Jiangfan
+- Wang, Jing
+- Yang, Jinghan
+- Jia, Jinghui
+- Qin, Kan
+- Wang, Lei
+- Li, Ming
+- Song, Peilin
+- Xu, Pengbo
+- Luo, Qiang
+- Tang, Ruiming
+- Liu, Shiyang
+- Jin, Shuxian
+- Wang, Tao
+- Zhang, Tao
+- Gao, Xiang
+- Li, Xianghan
+- Luo, Yingsong
+- Ning, Yiwen
+- Liu, Yongcheng
+- Liu, Yueyang
+- Guo, Yuan
+- Liu, Zhaojie
+- Cui, Zhenkai
+year: 2026
+topics:
+- recommender-systems
+- ai-agent-systems
+urls:
+  paper: https://arxiv.org/abs/2606.26859
+  arxiv: https://arxiv.org/abs/2606.26859
+  pdf: https://arxiv.org/pdf/2606.26859v2
+  official_code: null
+verdict: Worth Reading
+status: published
+question: AgentX：発案数と採用率を分けて、推薦開発の自動化を読む
+summary: AgentXは発案、実装、オンライン評価、harness更新を閉じた開発ループにする。3 workers・3週間で374案から10件のlaunchable results。8倍の同時実験と3.7倍のworker-weekあたり価値は運用観察であり、同じ案を人とagentへ割り付けた比較ではない。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-09-17'
+  scope: 版を固定した一次PDF本文と関連表・付録を照合。著者報告と人工実験を分離。
+  url: https://arxiv.org/pdf/2606.26859v2
+  pdf_sha256: 637fd4c1c9737acc05db71095cb15f9ef05d9402b0f97601194b8dbb0abba97f
+  version: 2606.26859v2
+core_idea:
+  author_claim: 著者は、Brainstorm、Developing、Evaluation、Harness Evolutionの四段階により、経験を再利用しながら推薦開発の処理量を増やせると主張する。負のA/Bも次の探索の制約へ変換する（§3–7）。
+  research_bot_interpretation: 価値は「毎案が優秀」より、production契約を守って多数の案を試し、失敗を記憶する仕組みにある。著者もsenior engineerの1案あたりhit rateが約1.9倍高いと認めている。開発ループ内のA/Bと、開発者としての人間対agentの因果比較を区別する。
+sections:
+  problem: '推薦の改善案があっても、実装、dry-run、trafficの確保、A/Bの観測、採用判断が詰まれば実験数は増えない。AgentXはこの実行待ちを並列化する。変更対象はproductionのcodeやDSL、戦略parameterで、会話で推薦結果を返すagentではない。
+
+
+    発案の良さと実行速度は別の軸だ。人間が選び抜いた案の採用率を、agentが大量生成した案の採用率と直接比較して、能力全般の優劣は決められない。'
+  evidence: '### 観察された処理量と1案の質
+
+
+    §8・表5–8。3 workersで3週間、Main Feed 361案→8 LR、Life Service 13案→2 LR。worker-week単位の比較では同時実験12対1.5（8倍）、LR 1.1対0.08、累積app-time
+    gain 0.0623%対0.0167%（約3.7倍）。1案あたりrollout率は2.7%対5.1%で人間が高い。
+
+
+    これは同じ案集合、同じtraffic予算、同じ経験年数を揃えたrandomized human-agent比較ではない。期間中のskill蓄積や運用改善も含む。SGPOのpaired replayと、この生産性比較は評価単位が異なる。
+
+
+    ### business impactと再現の境界
+
+
+    Main Feedの累積user app consumption time +0.561%、Life Serviceの年率換算revenueはRMB 100 million超（§8）。一つの共通A/B treatmentの効果量として合算し直さず、累積運用成果として扱う。年率換算は実現済みの1年分売上ではない。元データ、CI、個々のrollout間の重なりは公開されず、このLabでは独立検証できない。
+
+
+    [AutoLR](autolr-dashen.html)のKEEPと比較すると、AgentXは発案からproduction投入までを広く扱う。[RecEvolve](recevolve-autonomous-rec.html)と共通するのは、offline
+    scoreだけで採用を決めず、実行可能性と本番評価を閉ループに入れる点だ。
+
+
+    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2606.26859v2)。図表の箇所とSHA-256は末尾の対応表を参照。'
+  overview: 'AgentXは発案、実装、オンライン評価、harness更新を閉じた開発ループにする。3 workers・3週間で374案から10件のlaunchable results。8倍の同時実験と3.7倍のworker-weekあたり価値は運用観察であり、同じ案を人とagentへ割り付けた比較ではない。
+
+
+    <figure class="teaching batch17"><h3>374案のどこで止まったか</h3><div class="b17-funnel"><div style="--stage:100%"><strong>374</strong>
+    発案</div><div style="--stage:75%"><strong>106</strong> review通過</div><div style="--stage:65%"><strong>100</strong>
+    code・launch</div><div style="--stage:35%"><strong>10</strong> launchable result</div></div><p>374→106：28.34%
+    ／ 106→100：94.3% ／ 100→10：表の報告9.9%</p><figcaption>§8・表5・式10。棒幅は段階を見分ける模式表現で、件数に比例しない。整数からの最終比率は10%。丸め・集計差は本文で解消されていない。</figcaption></figure>'
+  why_it_might_work: '【解釈】検証済みのrepository知識、実験lock、dry-run、観測窓を明示すると、実装のやり直しと同じ失敗の再発を減らせる。独立した工程へ案を流すため、一本ずつ完了を待つ手順より同時実験を持ちやすい。
+
+
+    ただしworkerを増やしてもtraffic、parameter lock、レビュー帯域は有限だ。表6では却下268案の64.7%がparameter-resource conflict。著者の「platform側の問題」という分類は、agentの事前確認能力を改善する余地がないことを意味しない。'
+  method: method.md
+  executable_understanding: "同じ主効果とCIに対し、guardrailがclear、moderate、severeの場合、観測が短い場合、有意でない場合を比較する。別に同一3-taskの新旧score差でSGPOの採否を計算する。効果閾値0.2、最小14日は説明用の仮定で、AgentXの固定規定ではない。\n\
+    \n<figure class=\"teaching batch17\"><h3>判定recordを開く</h3><details><summary>利益あり：KEEP</summary><pre>{\n  &quot;verdict&quot;:\
+    \ &quot;KEEP&quot;,\n  &quot;reason&quot;: &quot;効果・有意性・guardrailを通過&quot;,\n  &quot;effect&quot;: 0.3,\n  &quot;ci_low&quot;:\
+    \ 0.1,\n  &quot;guardrail&quot;: &quot;clear&quot;,\n  &quot;window_days&quot;: 14,\n  &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;\n\
+    }</pre></details><details><summary>重大な副作用：DISCARD</summary><pre>{\n  &quot;verdict&quot;: &quot;DISCARD&quot;,\n\
+    \  &quot;reason&quot;: &quot;重大な悪化&quot;,\n  &quot;effect&quot;: 0.3,\n  &quot;ci_low&quot;: 0.1,\n  &quot;guardrail&quot;:\
+    \ &quot;severe&quot;,\n  &quot;window_days&quot;: 14,\n  &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;\n\
+    }</pre></details><details><summary>中程度の副作用：EXTEND</summary><pre>{\n  &quot;verdict&quot;: &quot;EXTEND&quot;,\n\
+    \  &quot;reason&quot;: &quot;人の例外審査が必要&quot;,\n  &quot;effect&quot;: 0.3,\n  &quot;ci_low&quot;: 0.1,\n  &quot;guardrail&quot;:\
+    \ &quot;moderate&quot;,\n  &quot;window_days&quot;: 14,\n  &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;\n\
+    }</pre></details><details><summary>短期：EXTEND</summary><pre>{\n  &quot;verdict&quot;: &quot;EXTEND&quot;,\n \
+    \ &quot;reason&quot;: &quot;観測窓が不足&quot;,\n  &quot;effect&quot;: 0.3,\n  &quot;ci_low&quot;: 0.1,\n  &quot;guardrail&quot;:\
+    \ &quot;clear&quot;,\n  &quot;window_days&quot;: 3,\n  &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;\n\
+    }</pre></details><details><summary>不確実：EXTEND</summary><pre>{\n  &quot;verdict&quot;: &quot;EXTEND&quot;,\n\
+    \  &quot;reason&quot;: &quot;改善を確定できない&quot;,\n  &quot;effect&quot;: 0.3,\n  &quot;ci_low&quot;: -0.1,\n  &quot;guardrail&quot;:\
+    \ &quot;clear&quot;,\n  &quot;window_days&quot;: 14,\n  &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;\n\
+    }</pre></details><figcaption>人工値。moderateは人の審査待ちとしてEXTEND。実際の統計検定は実行しない。</figcaption></figure>"
+  results: 人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。
+  what_we_verified: '**Mechanism: PARTIAL**。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。
+
+
+    実験の入力と全出力はrun.pyとresults.jsonから確認できる。'
+  what_we_did_not_verify: 'LLMによる発案・coding、統計推定器、production rollout、SGPOの改善率、workerのスケーリング、人間との同条件比較はNOT TESTED。guardrail
+    recordの計算は機構の一部だけである。
+
+
+    **Performance / Scaling / Production applicability: NOT TESTED**。一次資料の報告値との照合は、報告された本番効果の独立再現を意味しない。'
+  implementation: '標準ライブラリだけの独立実験。repository rootで `uv run papers/agentx-kuaishou/run.py` を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。
+
+
+    [実行コード](../downloads/agentx-kuaishou/run.py)・[全結果](../downloads/agentx-kuaishou/results.json)・[README](../downloads/agentx-kuaishou/README.md)・[方法](../downloads/agentx-kuaishou/method.md)・[対応表](../downloads/agentx-kuaishou/mapping.md)を保存できる。
+
+
+    確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。'
+  mapping: mapping.md
+teaching_figures:
+- kind: equations
+  id: method-equations
+  title: 式と操作の対応
+  after: method
+  caption: 各記号が担う役割を分けて読む。
+  rationale: 演算と制約の対象を明確にする。
+  source: https://arxiv.org/pdf/2606.26859v2
+  locator: §6.3、式7–9
+  steps:
+  - name: 採用
+    formula: KEEP ⇒ effect≥δ ∧ significant ∧ acceptable_guardrails
+    explanation: 観測窓と例外審査の情報も判定に残す。
+  - name: paired replay
+    formula: ΔJ=mean_j[J(h′,task_j)−J(h,task_j)]
+    explanation: 同じtaskで新旧のharnessを比較する。
+  - name: 更新
+    formula: accept ⇔ ΔJ>ε ∧ Safe(Δh)
+    explanation: 自然言語の診断を利用する。数値gradientでLLM重みを更新しない。

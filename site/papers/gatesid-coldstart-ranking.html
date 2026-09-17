@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GateSIDはSIDをranking特徴として使い、商品の成熟度に応じて意味と行動のattentionを混ぜる。生成decodeの手法ではない。Alibaba Internationalの2週間・総traffic 20%のA/BでGMV +2.6%、新商品（20日未満）+5.6%、追加遅延5ms未満を報告する。">
+  <title>GateSID：新商品ほど意味を借り、成熟商品では行動を残す | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-03-24</span></div>
+    <h1>GateSID：新商品ほど意味を借り、成熟商品では行動を残す</h1>
+    <p class="lede">GateSIDはSIDをranking特徴として使い、商品の成熟度に応じて意味と行動のattentionを混ぜる。生成decodeの手法ではない。Alibaba Internationalの2週間・総traffic 20%のA/BでGMV +2.6%、新商品（20日未満）+5.6%、追加遅延5ms未満を報告する。</p>
+    <details class="bibliography"><summary>原論文：GateSID: Adaptive Gating for Balancing Semantic and Collaborative Signals in Recommendation</summary><p>Zhu, Hai, Yu, Yantao, Shen, Lei, Wang, Bing, Zeng, Xiaoyi</p><p>2603.22916 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2603.22916">原典を読む ↗</a><a href="https://arxiv.org/pdf/2603.22916v2">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-17 · 版を固定した一次PDF本文と関連表・付録を照合。著者報告と人工実験を分離。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-method-equations">式と操作の対応</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>GateSIDはSIDをranking特徴として使い、商品の成熟度に応じて意味と行動のattentionを混ぜる。生成decodeの手法ではない。Alibaba Internationalの2週間・総traffic 20%のA/BでGMV +2.6%、新商品（20日未満）+5.6%、追加遅延5ms未満を報告する。</p>
+<figure class="teaching batch17"><h3>SIDを使う場所：GateSIDはranking側</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>設計</th><th>入力</th><th>出力</th><th>SIDの役割</th></tr></thead><tbody><tr><td>GateSID</td><td>ユーザー履歴＋候補商品</td><td>CTR / CTCVR score</td><td>候補と履歴の意味特徴</td></tr><tr><td>生成推薦</td><td>ユーザー文脈＋prefix</td><td>次SID token</td><td>候補を辿る出力列</td></tr></tbody></table></div><figcaption>§3・図2に基づく役割の比較。SID利用そのものが生成decodeを意味するわけではない。</figcaption></figure></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>新商品はクリックや購入履歴が少なく、ID embeddingが十分に育たない。一方、人気商品には豊かな協調信号があり、意味表現を強く混ぜると細かな嗜好差を消す場合がある。全商品で固定の融合比を使うことが問題になる。</p>
+<p>GateSIDは候補商品を既に持つranking段で動く。target商品と履歴のSIDを使ってattentionを計算するため、SIDをtokenごとに生成して候補を探すGRとは入出力も遅延要因も異なる。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者はGFSAで意味側と行動側のattention分布を共有し、同じgateでGRCAの対照整列強度を調整すれば、cold-startを補いつつ成熟商品の協調表現を保てると主張する（§3）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>SIDの利点を生成推薦の利点と同一視しない例だ。gateは日数だけの決め打ち関数ではなく、ID embeddingと統計特徴から学習する。新商品に大きいgateが望ましいという設計意図と、全商品で単調なgate曲線が測れたという主張を分ける。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>4段のSIDをrankingへ入力する</h3>
+<p>§3.1・式1–2。multimodal表現をRQ-VAEで4段、各256 codeへ量子化する。SID embeddingを連結してranking学習で調整する。RQ-VAEは10 epochs、batch4096、codebook embedding64。ranking側SID embeddingは32、AdamW、3層ReLU MLPでCTRとCTCVRを扱う（§4.1.3）。</p>
+<h3>GFSAはattention分布を混ぜる</h3>
+<p>§3.2・Algorithm 1、式4–8。商品のID embedding e_itemと統計特徴F_statを連結し、<code>w=σ(MLP([e_item ⊕ F_stat]))</code>。統計特徴には掲載期間、直近1週間の露出・クリックが入る。</p>
+<p>意味内と行動内で別々にattentionを作る：<code>S_sid=softmax(Q_sid K_sidᵀ/√d)</code>、<code>S_item=softmax(Q_item K_itemᵀ/√d)</code>。</p>
+<p>その後に <code>S_fused=w S_sid+(1−w)S_item</code> とし、<code>h_sid=S_fused H_sid</code>、<code>h_item=S_fused H_item</code> を連結してranking層へ渡す。他モダリティのKeyに直接Queryを当てるcross-attentionでも、最終embeddingを単純平均するだけでもない。</p>
+<h3>GRCAは同じgateで整列を調整する</h3>
+<p>§3.3・式9–11。同じ商品のSID/ID表現をpositive、batch内の別商品をnegativeにして <code>ℓ_cl(i)=−log[exp(sim(e_sid_i,e_item_i)/τ)/Σ_j exp(sim(e_sid_i,e_item_j)/τ)]</code> を計算する。</p>
+<p><code>L_total=L_rank+λ |B|⁻¹ Σ_i w_i ℓ_cl(i)</code>、実験λ=0.1。wが大きい商品では意味の寄与と対照整列がともに強くなる。wは学習結果なので、掲載20日で機械的に切り替える関数ではない。20日は評価cohortの境界だ。</p>
+<p>出典：<a href="https://arxiv.org/pdf/2603.22916v2">2603.22916v2</a>。上記で「Lab」とした式・条件は説明用の補助である。</p>
+<figure class="teaching batch17"><h3>gateを動かして、履歴の重みと整列強度を見る</h3><div data-b17="gate"><label>意味側の重みw（人工入力）<input data-control type="range" min="0" max="4" value="2" step="1"></label><p data-output aria-live="polite">w=0.5：両分布を等しく混ぜる。日数から学習したgateではない。</p><script type="application/json" data-values>[{"weight": 0, "sid_attention": [0.7869860421615985, 0.10650697891920076, 0.10650697891920076], "item_attention": [0.10650697891920076, 0.10650697891920076, 0.7869860421615985], "shared_attention": [0.10650697891920076, 0.10650697891920076, 0.7869860421615985], "sid_pooled": [0.15976046837880115, 0.8402395316211989], "item_pooled": [0.10650697891920077, 0.8934930210807993], "weighted_alignment_loss": 0.0}, {"weight": 0.25, "sid_attention": [0.7869860421615985, 0.10650697891920076, 0.10650697891920076], "item_attention": [0.10650697891920076, 0.10650697891920076, 0.7869860421615985], "shared_attention": [0.2766267447298002, 0.10650697891920076, 0.6168662763509991], "sid_pooled": [0.3298802341894006, 0.6701197658105995], "item_pooled": [0.24260279156768033, 0.7573972084323197], "weighted_alignment_loss": 0.0309682395923419}, {"weight": 0.5, "sid_attention": [0.7869860421615985, 0.10650697891920076, 0.10650697891920076], "item_attention": [0.10650697891920076, 0.10650697891920076, 0.7869860421615985], "shared_attention": [0.44674651054039966, 0.10650697891920076, 0.44674651054039966], "sid_pooled": [0.5, 0.5], "item_pooled": [0.3786986042161599, 0.6213013957838402], "weighted_alignment_loss": 0.0619364791846838}, {"weight": 0.75, "sid_attention": [0.7869860421615985, 0.10650697891920076, 0.10650697891920076], "item_attention": [0.10650697891920076, 0.10650697891920076, 0.7869860421615985], "shared_attention": [0.6168662763509991, 0.10650697891920076, 0.2766267447298002], "sid_pooled": [0.6701197658105995, 0.3298802341894006], "item_pooled": [0.5147944168646394, 0.48520558313536066], "weighted_alignment_loss": 0.09290471877702569}, {"weight": 1, "sid_attention": [0.7869860421615985, 0.10650697891920076, 0.10650697891920076], "item_attention": [0.10650697891920076, 0.10650697891920076, 0.7869860421615985], "shared_attention": [0.7869860421615985, 0.10650697891920076, 0.10650697891920076], "sid_pooled": [0.8402395316211989, 0.15976046837880115], "item_pooled": [0.650890229513119, 0.3491097704868811], "weighted_alignment_loss": 0.1238729583693676}]</script></div><p>S_sid → <strong>w</strong> ／ S_item → <strong>1−w</strong> → S_fused → 両方の履歴をpool → ranking</p><p>同じw → w × InfoNCE → ranking lossに加える</p><figcaption>§3.2–3.3、式4–11の人工数値例。sliderは成熟日数や実測AUCを表さない。</figcaption></figure></div>      </section>
+<figure class="teaching teaching--equations" id="figure-method-equations" aria-labelledby="title-method-equations">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-method-equations">式と操作の対応</h3>
+  <ol class="equation-steps"><li><strong>gate</strong><div class="math-expression" tabindex="0" role="math" aria-label="w=σ(MLP([e_item ⊕ F_stat]))">w=σ(MLP([e_item ⊕ F_stat]))</div><p>ID表現と掲載期間・露出・クリックなどから学習。</p></li><li><strong>GFSA</strong><div class="math-expression" tabindex="0" role="math" aria-label="S_fused=w S_sid+(1−w)S_item">S_fused=w S_sid+(1−w)S_item</div><p>同じ分布を両方の履歴表現へ適用する。</p></li><li><strong>GRCA</strong><div class="math-expression" tabindex="0" role="math" aria-label="L=L_rank+λ·mean_i[w_i ℓ_cl(i)]">L=L_rank+λ·mean_i[w_i ℓ_cl(i)]</div><p>意味の比率と整列の強さを同じgateで制御。</p></li></ol>
+  <figcaption>各記号が担う役割を分けて読む。 <a href="https://arxiv.org/pdf/2603.22916v2">出典：式4–11 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>【解釈】意味の近い商品でSIDを共有すると、希少商品も共有codebookへのgradientを使える。GFSAで同じ履歴位置の重みを両表現へ適用すれば、意味と行動が別々の履歴だけを参照するずれを減らせる。</p>
+<p>GRCAをgateで弱めれば、成熟商品の表現を過度に同じ意味clusterへ引き寄せにくい。ただしどの信号がcold-startで有効かは商品領域に依存する。gateの解釈には日数だけでなく露出・クリックの偏りも関わる。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>rankingの指標とcohort</h3>
+<p>§4.1–4.2・表1。10億超のproduction logsを時間で分割し、最新日をvalidation/testに使う。CTR、CTCVRのAUC/GAUCを評価。cold-startは掲載20日未満、popularは300日超。AUCの表には0–1表記もあり、差のpercentage pointと相対liftを混ぜない。</p>
+<p>表2は固定平均、Concat+MLP、gate融合とgate入力のablation。表3–4はmultimodal表現とSID、attention構成、codebook設定の比較。表5は一律の対照整列とGRCAを比較する。これらは「SIDを使えば必ずGRへ移行すべき」という証拠ではない。</p>
+<h3>オンラインは2週間・総traffic 20%</h3>
+<p>§4.8。GMV +2.6%、CTR +1.1%、Order +1.6%、追加遅延5ms未満。掲載20日未満の新商品でGMV +5.6%。新商品効果の分母はそのcohortであり、全体GMVへの5.6ポイント寄与ではない。本文は総trafficの20%と記すが、各armへ20%ずつとまでは記していない。CI、p値、latency percentileは未報告。</p>
+<p><a href="quasid-collision-qualified-sid.html">QuaSID</a>の表現品質、<a href="glide-spotify-sid.html">GLIDE</a>のcold-start候補生成と併せて読むと、意味表現をどこで使うかを比較できる。GateSIDの役割は候補にscoreを付ける側である。</p>
+<p><a href="https://arxiv.org/pdf/2603.22916v2">一次資料：版を固定したPDF</a>。図表の箇所とSHA-256は末尾の対応表を参照。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>固定した2種類のattention logitsと履歴embeddingを使い、wを0から1まで動かす。共有attentionを両履歴へ適用した結果と、同じwで重み付けしたInfoNCEを計算する。成熟度からwを学習した曲線は作らない。</p></div><div class="downloads"><a href="../downloads/gatesid-coldstart-ranking/run.py" download>実行コード</a><a href="../downloads/gatesid-coldstart-ranking/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/gatesid-coldstart-ranking">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>gateを外から与える人工attention。経過日数からgateを学習した実測曲線ではない。</em></p>
+<h3>同じgateでattentionと整列強度を制御</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>最初の履歴への重み</th><th>最後の履歴への重み</th><th>対照損失への寄与</th></tr></thead><tbody><tr><th scope='row'>0</th><td>0.106507</td><td>0.786986</td><td>0.0</td></tr><tr><th scope='row'>0.25</th><td>0.276627</td><td>0.616866</td><td>0.030968</td></tr><tr><th scope='row'>0.5</th><td>0.446747</td><td>0.446747</td><td>0.061936</td></tr><tr><th scope='row'>0.75</th><td>0.616866</td><td>0.276627</td><td>0.092905</td></tr><tr><th scope='row'>1</th><td>0.786986</td><td>0.106507</td><td>0.123873</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;gateを外から与える人工attention。経過日数からgateを学習した実測曲線ではない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;同じgateでattentionと整列強度を制御&quot;,
+      &quot;metrics&quot;: {
+        &quot;0&quot;: {
+          &quot;最初の履歴への重み&quot;: 0.106507,
+          &quot;最後の履歴への重み&quot;: 0.786986,
+          &quot;対照損失への寄与&quot;: 0.0
+        },
+        &quot;0.25&quot;: {
+          &quot;最初の履歴への重み&quot;: 0.276627,
+          &quot;最後の履歴への重み&quot;: 0.616866,
+          &quot;対照損失への寄与&quot;: 0.030968
+        },
+        &quot;0.5&quot;: {
+          &quot;最初の履歴への重み&quot;: 0.446747,
+          &quot;最後の履歴への重み&quot;: 0.446747,
+          &quot;対照損失への寄与&quot;: 0.061936
+        },
+        &quot;0.75&quot;: {
+          &quot;最初の履歴への重み&quot;: 0.616866,
+          &quot;最後の履歴への重み&quot;: 0.276627,
+          &quot;対照損失への寄与&quot;: 0.092905
+        },
+        &quot;1&quot;: {
+          &quot;最初の履歴への重み&quot;: 0.786986,
+          &quot;最後の履歴への重み&quot;: 0.106507,
+          &quot;対照損失への寄与&quot;: 0.123873
+        }
+      }
+    }
+  ],
+  &quot;cases&quot;: [
+    {
+      &quot;weight&quot;: 0,
+      &quot;sid_attention&quot;: [
+        0.7869860421615985,
+        0.10650697891920076,
+        0.10650697891920076
+      ],
+      &quot;item_attention&quot;: [
+        0.10650697891920076,
+        0.10650697891920076,
+        0.7869860421615985
+      ],
+      &quot;shared_attention&quot;: [
+        0.10650697891920076,
+        0.10650697891920076,
+        0.7869860421615985
+      ],
+      &quot;sid_pooled&quot;: [
+        0.15976046837880115,
+        0.8402395316211989
+      ],
+      &quot;item_pooled&quot;: [
+        0.10650697891920077,
+        0.8934930210807993
+      ],
+      &quot;weighted_alignment_loss&quot;: 0.0
+    },
+    {
+      &quot;weight&quot;: 0.25,
+      &quot;sid_attention&quot;: [
+        0.7869860421615985,
+        0.10650697891920076,
+        0.10650697891920076
+      ],
+      &quot;item_attention&quot;: [
+        0.10650697891920076,
+        0.10650697891920076,
+        0.7869860421615985
+      ],
+      &quot;shared_attention&quot;: [
+        0.2766267447298002,
+        0.10650697891920076,
+        0.6168662763509991
+      ],
+      &quot;sid_pooled&quot;: [
+        0.3298802341894006,
+        0.6701197658105995
+      ],
+      &quot;item_pooled&quot;: [
+        0.24260279156768033,
+        0.7573972084323197
+      ],
+      &quot;weighted_alignment_loss&quot;: 0.0309682395923419
+    },
+    {
+      &quot;weight&quot;: 0.5,
+      &quot;sid_attention&quot;: [
+        0.7869860421615985,
+        0.10650697891920076,
+        0.10650697891920076
+      ],
+      &quot;item_attention&quot;: [
+        0.10650697891920076,
+        0.10650697891920076,
+        0.7869860421615985
+      ],
+      &quot;shared_attention&quot;: [
+        0.44674651054039966,
+        0.10650697891920076,
+        0.44674651054039966
+      ],
+      &quot;sid_pooled&quot;: [
+        0.5,
+        0.5
+      ],
+      &quot;item_pooled&quot;: [
+        0.3786986042161599,
+        0.6213013957838402
+      ],
+      &quot;weighted_alignment_loss&quot;: 0.0619364791846838
+    },
+    {
+      &quot;weight&quot;: 0.75,
+      &quot;sid_attention&quot;: [
+        0.7869860421615985,
+        0.10650697891920076,
+        0.10650697891920076
+      ],
+      &quot;item_attention&quot;: [
+        0.10650697891920076,
+        0.10650697891920076,
+        0.7869860421615985
+      ],
+      &quot;shared_attention&quot;: [
+        0.6168662763509991,
+        0.10650697891920076,
+        0.2766267447298002
+      ],
+      &quot;sid_pooled&quot;: [
+        0.6701197658105995,
+        0.3298802341894006
+      ],
+      &quot;item_pooled&quot;: [
+        0.5147944168646394,
+        0.48520558313536066
+      ],
+      &quot;weighted_alignment_loss&quot;: 0.09290471877702569
+    },
+    {
+      &quot;weight&quot;: 1,
+      &quot;sid_attention&quot;: [
+        0.7869860421615985,
+        0.10650697891920076,
+        0.10650697891920076
+      ],
+      &quot;item_attention&quot;: [
+        0.10650697891920076,
+        0.10650697891920076,
+        0.7869860421615985
+      ],
+      &quot;shared_attention&quot;: [
+        0.7869860421615985,
+        0.10650697891920076,
+        0.10650697891920076
+      ],
+      &quot;sid_pooled&quot;: [
+        0.8402395316211989,
+        0.15976046837880115
+      ],
+      &quot;item_pooled&quot;: [
+        0.650890229513119,
+        0.3491097704868811
+      ],
+      &quot;weighted_alignment_loss&quot;: 0.1238729583693676
+    }
+  ],
+  &quot;checks&quot;: {
+    &quot;shared_attention_convexity&quot;: &quot;CONFIRMED&quot;,
+    &quot;alignment_weight_coupling&quot;: &quot;CONFIRMED&quot;,
+    &quot;learned_maturity_gate&quot;: &quot;NOT TESTED&quot;,
+    &quot;ranking_auc&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>Mechanism: PARTIAL</strong>。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。</p>
+<p>実験の入力と全出力はrun.pyとresults.jsonから確認できる。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>RQ-VAE学習、maturity gate学習、CTR/CTCVRのranking学習、AUC、online GMV、5ms制約はNOT TESTED。固定gateでの凸結合を確認しただけで、本番のcold-start改善を検証したわけではない。</p>
+<p><strong>Performance / Scaling / Production applicability: NOT TESTED</strong>。一次資料の報告値との照合は、報告された本番効果の独立再現を意味しない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけの独立実験。repository rootで <code>uv run papers/gatesid-coldstart-ranking/run.py</code> を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。</p>
+<p><a href="../downloads/gatesid-coldstart-ranking/run.py">実行コード</a>・<a href="../downloads/gatesid-coldstart-ranking/results.json">全結果</a>・<a href="../downloads/gatesid-coldstart-ranking/README.md">README</a>・<a href="../downloads/gatesid-coldstart-ranking/method.md">方法</a>・<a href="../downloads/gatesid-coldstart-ranking/mapping.md">対応表</a>を保存できる。</p>
+<p>確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>確認日：2026-09-17。一次PDF：<a href="https://arxiv.org/pdf/2603.22916v2">2603.22916v2.pdf</a>。arXiv初回日：2026/03/24、確認版の日付：2026/07/09。</p>
+<p>SHA-256：<code>7b0100bbcba779768f491bfd2ee809c224a7ba3e8db5bb640dca057fdaa9f208</code></p>
+<p>保存先：<code>/workspace/research-bot/tmp-scout/2026-09-17/2603.22916v2.pdf</code>。既存HTMLを発見用に使い、上記の版を固定したPDF本文・関連する表と付録で照合した。図はこのLabで作った説明図で、元論文の画像コピーではない。</p>
+<table>
+<thead>
+<tr>
+<th>原論文の箇所</th>
+<th>確認対象</th>
+<th>Labと省略範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3.1、式1–2、§4.1.3</td>
+<td>RQ-VAE 4×256とranking構成</td>
+<td>method.md。量子化学習は未実装</td>
+</tr>
+<tr>
+<td>§3.2、式4–8、Algorithm 1</td>
+<td>GFSAの共有attention</td>
+<td>run.py: gfsa / softmax</td>
+</tr>
+<tr>
+<td>§3.3、式9–11</td>
+<td>GRCAのgate付きInfoNCE</td>
+<td>run.py: info_nce / compute</td>
+</tr>
+<tr>
+<td>§4.2・4.8、表1–5</td>
+<td>cohort、ablation、online結果</td>
+<td>Evidence。新商品と全体の分母を分離</td>
+</tr>
+</tbody>
+</table>
+<h2>公式コード</h2>
+<p>確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。</p>
+<h2>独立再現の境界</h2>
+<p>RQ-VAE学習、maturity gate学習、CTR/CTCVRのranking学習、AUC、online GMV、5ms制約はNOT TESTED。固定gateでの凸結合を確認しただけで、本番のcold-start改善を検証したわけではない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>GateSID：新商品ほど意味を借り、成熟商品では行動を残す</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/gatesid-coldstart-ranking/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

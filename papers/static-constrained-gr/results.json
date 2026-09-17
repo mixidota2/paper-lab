@@ -1,0 +1,54 @@
+{
+  "note": "2値・3段の人工IDをCPUで全列挙。STATICのTPU kernelや遅延を再現する実験ではない。",
+  "experiments": [
+    {
+      "name": "有効SIDと鮮度制約を分ける",
+      "metrics": {
+        "生成後filterの件数": 0,
+        "制約内top-1の件数": 1,
+        "照合したprefix数": 15
+      }
+    }
+  ],
+  "csr": {
+    "indptr": [
+      0,
+      2,
+      3,
+      4,
+      4,
+      5,
+      6,
+      6
+    ],
+    "tokens": [
+      0,
+      1,
+      0,
+      1,
+      1,
+      1
+    ],
+    "next_state": [
+      1,
+      4,
+      2,
+      3,
+      5,
+      6
+    ]
+  },
+  "post_filter": [],
+  "constrained": [
+    [
+      0,
+      0,
+      1
+    ]
+  ],
+  "checks": {
+    "csr_prefix_equivalence": "CONFIRMED",
+    "fresh_subset_compliance": "CONFIRMED",
+    "accelerator_speed": "NOT TESTED"
+  }
+}

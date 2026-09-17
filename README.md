@@ -1,6 +1,6 @@
 # Interactive Research Library
 
-一次資料を読み、仕組み・根拠・限界を日本語で説明する35件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
+一次資料を読み、仕組み・根拠・限界を日本語で説明する42件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
 
 公開先：https://mixidota2.github.io/paper-lab/
 
@@ -72,3 +72,10 @@ OxygenREC-v2 / IDGR、RecEvolve、QuaSIDの3件を追加。各 `papers/<slug>/` 
 
 
 2026-09-16：UniVA / CQ-SID・EG-GRPO / Intervention Paradoxを追加。商用SIDとGARの枝選び、クラスタ展開とexpert注入、介入の損益分岐点を、それぞれ異なる操作図で確認する。3本とも一次PDFを通読し、UniVAのv1/v2トラフィック比率の違い、チャネル構成比とA/B liftの区別、介入論文内の数値不整合を明記した。各run.pyは独立実行できる。
+
+
+## 2026-09-17追加分
+
+GenPage、UniRec、AgentX、STATIC、FlashTrie、GateSID、CORALの7本を追加。一次PDFの版・SHA-256・節と表の対応を各mapping.mdへ記録した。候補集合の境界、面別の改善率、観察的な生産性比較、制約処理の計測範囲、rankingでのSID利用、費用削減額の分母を分けて説明する。
+
+各run.pyは標準ライブラリだけで動く。人工実験のCONFIRMEDは限定した計算命題に適用し、MechanismはPARTIAL、本番性能・スケーリング・本番適用性はNOT TESTED。UniRecのBayes式と実行不能なcapacity条件には反例も残した。FlashTrieのSLO操作は表1・6の実測点を使い、新しい遅延測定とは扱わない。

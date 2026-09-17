@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GenPageは行と作品の並びをdecoder-only Transformerで生成する。オンラインで試した約200MのWBCモデルは、既存の行・作品候補集合を使う。14日A/Bの最良variantで主指標+0.24%、end-to-end遅延−20%。候補生成まで全面置換した証拠とは分けて読む。">
+  <title>GenPage：候補集合の内側で、Netflixのホームを一つの列として作る | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-06-30</span></div>
+    <h1>GenPage：候補集合の内側で、Netflixのホームを一つの列として作る</h1>
+    <p class="lede">GenPageは行と作品の並びをdecoder-only Transformerで生成する。オンラインで試した約200MのWBCモデルは、既存の行・作品候補集合を使う。14日A/Bの最良variantで主指標+0.24%、end-to-end遅延−20%。候補生成まで全面置換した証拠とは分けて読む。</p>
+    <details class="bibliography"><summary>原論文：GenPage: Towards End-to-End Generative Homepage Construction at Netflix</summary><p>Wang, Lequn, Pan, Jiangwei, Baltrunas, Linas</p><p>2606.31031 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2606.31031">原典を読む ↗</a><a href="https://arxiv.org/pdf/2606.31031v2">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-17 · 版を固定した一次PDF本文と関連表・付録を照合。著者報告と人工実験を分離。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-method-equations">式と操作の対応</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>GenPageは行と作品の並びをdecoder-only Transformerで生成する。オンラインで試した約200MのWBCモデルは、既存の行・作品候補集合を使う。14日A/Bの最良variantで主指標+0.24%、end-to-end遅延−20%。候補生成まで全面置換した証拠とは分けて読む。</p>
+<figure class="teaching batch17"><h3>既存pipelineを、どこまで一つに畳むか</h3><div class="b17-cards"><div><strong>既存の候補集合</strong><p>行・作品の適格性と候補生成を継承する。ここがonline試験の外側の境界。</p></div><div><strong>GenPage 約200M / WBC</strong><p>promptと既出ページを読む → 行を選ぶ → 先頭作品を逐次生成 → 行末をまとめて選ぶ。</p></div><div><strong>配信するホーム</strong><p>重複・位置固定・カテゴリ制約を適用した行の並び。次のpaginationは直近反応を含む。</p></div></div><details><summary>promptの中身を開く</summary><div class="b17-cards"><div><strong>履歴</strong><p>作品ID / 行動 / 時間bucket / 継続時間bucket</p></div><div><strong>profile・request</strong><p>言語 / kids・adult / device / 時間帯</p></div><div><strong>既出のページ</strong><p>直前の行と作品、最新の反応</p></div></div></details><figcaption>§2・図1、§6.3–4、§8をもとにした説明図。GryphonのSID候補生成を組み込んだ図ではない。</figcaption></figure></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>Netflixのホームでは、作品単体の良さに加え、どの行を先に置くか、同じ作品が重複しないか、直前の行で視聴が始まるかが効く。行と作品を別々に評価する多段構成では、各段の目的が揃わず、特徴計算も重くなる。GenPageはこの組み立てを一つの系列予測へ寄せる。</p>
+<p>ただし「end-to-end」の範囲が重要だ。§8のA/Bでは既存productionのrow/entity候補集合を引き継ぐ。候補の適格性判断には依然として外側の仕組みがある。Gryphon型のopen-catalog SID生成を唯一のcandidate generatorにした試験、と読み替えられない。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は、文脈とホーム全体をtoken列へ変換すれば、個別のランキングモデル群を一つのTransformerへ集約できると主張する。WBCで即時の作品価値を学び、将来はRLでページ全体の価値を最適化する（§4–6）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>このオンライン結果の焦点は、候補集合内の選択とレイアウトの統合にある。学習目的がWBCなら、出力を逐次生成していても目的関数はtoken単位だ。ページ相互作用を直接最適化したRLの成果として+0.24%を扱わない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>promptとresponseを同じtoken空間に置く</h3>
+<p>§2・図1。履歴は作品ID、行動種別、経過時間bucket、継続時間bucketへ分ける。言語・profile種別、device・時間帯も専用tokenにする。長すぎるimpression履歴には手作業の要約が残る。ページ側は行ID→作品IDの繰り返しで、左から右、上から下へ並べる。paginationでは前回の行と最新反応を文脈へ追加する。</p>
+<p>§4のモデルはdecoder-only Transformer。入力embeddingと出力projectionを共有しない。softmaxを使う事前学習とsigmoidを使うWBCで適切なlogit尺度が異なるためだ。オンラインモデルは約200M parameters。</p>
+<h3>NTP、WBC、RLは目的が異なる</h3>
+<p>事前学習は好意的な反応を得たproductionページのnext-token prediction。以下は本文の説明を記号化したもので、原論文に番号付きで掲載された式ではない。</p>
+<p><code>L_NTP = −Σ_t log pθ(y_t | context, y_&lt;t)</code></p>
+<p>WBCでは報酬rの符号から二値ラベルb、絶対的な大きさから重みwを作り、該当tokenのlogit zに対して <code>L_WBC = −Σ w[b log σ(z) + (1−b)log(1−σ(z))]</code> を最小化する。露出した行にも作品報酬を集約したtargetを付け、追加のランダム負例も使う（§5.2）。</p>
+<p>RLはDr. GRPO、verl、vLLMを使用。実反応を数値化するreward systemと、未配信ページの価値を予測するTransformer reward modelを区別する。policyとreferenceは事前学習checkpointから初期化し、KL罰則で元の分布から離れすぎないようにする（§5.3）。オンラインで評価したのはWBCだけである。</p>
+<h3>業務制約と更新周期を推論に組み込む</h3>
+<p><code>z′_v = z_v + m_v</code>、適格なら <code>m_v=0</code>、不適格なら <code>m_v=−∞</code>。位置固定、重複除去、行カテゴリとの整合を各stepで強制する（§6.3）。候補集合の存在とmaskの存在は両立する。</p>
+<p>hybrid row decodingは先頭の数作品だけ逐次生成し、残りを一回のforwardから得たscoreで選ぶ（§6.4）。行末の各作品が直前の全作品に条件付くわけではない。日次の継続学習は最新データと過去データを混ぜ、大きな学習更新を別周期で行う。新作品にはcontent embeddingとの融合、metadataの文脈注入、fallback tokenを使う（§6.1–2）。</p>
+<p>出典：<a href="https://arxiv.org/pdf/2606.31031v2">2606.31031v2</a>。上記で「Lab」とした式・条件は説明用の補助である。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-method-equations" aria-labelledby="title-method-equations">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-method-equations">式と操作の対応</h3>
+  <ol class="equation-steps"><li><strong>系列化</strong><div class="math-expression" tabindex="0" role="math" aria-label="p(page|context)=Π_t p(y_t|context,y_&lt;t)">p(page|context)=Π_t p(y_t|context,y_&lt;t)</div><p>生成時の条件付け。WBCの学習目的と同じ意味ではない。</p></li><li><strong>WBC</strong><div class="math-expression" tabindex="0" role="math" aria-label="L=−Σ w[b log σ(z)+(1−b)log(1−σ(z))]">L=−Σ w[b log σ(z)+(1−b)log(1−σ(z))]</div><p>§5.2の文章をLabで記号化。報酬の符号と大きさを分ける。</p></li><li><strong>mask</strong><div class="math-expression" tabindex="0" role="math" aria-label="z′_v=z_v+m_v, m_v∈{0,−∞}">z′_v=z_v+m_v, m_v∈{0,−∞}</div><p>候補集合と業務規則に反するtokenを出さない。</p></li></ol>
+  <figcaption>各記号が担う役割を分けて読む。 <a href="https://arxiv.org/pdf/2606.31031v2">出典：§5.2・§6.3（文章の記号化） ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>【解釈】先に選んだ行・作品が次の予測に入るため、独立したスコアの足し算より文脈を使いやすい。作品と行を各1 tokenにすれば、業務制約をlogit maskに直結できる。モデルを大きくする前に文脈を豊かにするという観察も、この情報不足の説明と整合する。</p>
+<p>一方、WBCは露出ログと内部reward systemを受け継ぐ。ランダム負例は未露出作品の過大評価を抑えるが、人気への事前バイアスも入る。RLのオフライン報酬上昇は、学習に使ったreward modelで評価しているため独立した裏付けには弱い。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>14日A/B：最良variantとその区間</h3>
+<p>§8・図6。約200MのWBCを成熟したproductionホーム推薦と比較した。5 variantsは負例量や学習impressionの選別が異なる。全variantでp&lt;0.001、最良variantは相対+0.24%、95% CI [0.17%, 0.30%]。図は14日間の推移だが、このLabでは日次点を推測して描かず、最終値だけを使う。主指標はlaunch判断に使うcore engagementで、詳細な定義、割付比率、ユーザー数は開示されない。</p>
+<p>遅延−20%はbaseline比のend-to-end serving latency。mask単体の高速化率やGPU kernelの時間ではない。著者はランキング段数と特徴計算の削減、tokenization、hybrid decodeを理由に挙げるが、各要因の寄与を分離したオンライン試験ではない。</p>
+<h3>事前学習と文脈の効果は比較条件を読む</h3>
+<p>表1では事前学習あり/なしのWBC lossが0.321/0.333、row AUC 0.884/0.879、entity AUC 0.920/0.910。図3–4の容量と文脈の比較は同一snapshotの一つの実験ではなく、文脈側は段階ごとの相対改善を累積している。RLの多様性上昇（図5）はオフライン。作品カテゴリの露出配分にも意図しない変化があり、著者自身が調査課題としている。</p>
+<figure class="teaching batch17"><h3>14日目の相対liftと95% CI</h3><div class="b17-ci" role="img" aria-label="最良variantの相対lift0.24%、95%信頼区間0.17から0.30%。0から0.35%の軸"><span class="b17-ci-range"></span><span class="b17-ci-point">●</span></div><div class="b17-ci-labels"><span>0%</span><strong>0.24% [0.17, 0.30]</strong><span>0.35%</span></div><p>最良variant / p&lt;0.001 / baseline＝productionホーム推薦</p><figcaption>§8・図6の最終値。5 variantsの日次点は復元していない。横棒は95% CIで、個々の利用者の効果分布ではない。</figcaption></figure>
+
+<p><a href="https://arxiv.org/pdf/2606.31031v2">一次資料：版を固定したPDF</a>。図表の箇所とSHA-256は末尾の対応表を参照。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>2行×3作品の人工ホームに候補外の高score作品を置く。同じscore関数で無制約、全逐次、先頭1件のみ逐次、行全体一括を比較する。Aを選ぶとCのscoreが上がる設定により、行内条件付けが変わる場面を作る。forward回数は計算手順の数で、20%の遅延再現ではない。</p>
+<figure class="teaching batch17"><h3>同じscoreで生成手順を変える</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>設定</th><th>行ごとの作品</th><th>forward回数</th><th>候補違反</th></tr></thead><tbody><tr><td>無制約</td><td>OUT,OUT,OUT / OUT,OUT,OUT</td><td>8</td><td>6</td></tr><tr><td>全逐次</td><td>A,C,B / D,E,F</td><td>8</td><td>0</td></tr><tr><td>先頭1件のみ逐次</td><td>A,C,B / D,E,F</td><td>6</td><td>0</td></tr><tr><td>行全体を一括</td><td>A,B,C / D,E,F</td><td>4</td><td>0</td></tr></tbody></table></div><figcaption>run.pyの実行結果。OUTは候補外の人工作品。回数の削減を実測遅延の削減率には換算しない。</figcaption></figure></div><div class="downloads"><a href="../downloads/genpage-netflix-homepage/run.py" download>実行コード</a><a href="../downloads/genpage-netflix-homepage/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/genpage-netflix-homepage">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>固定scoreによる人工ページ。forward回数は演算回数の模型で、実測遅延ではない。</em></p>
+<h3>候補境界と行末の条件付け</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>forward回数</th><th>候補違反</th></tr></thead><tbody><tr><th scope='row'>無制約</th><td>8</td><td>6</td></tr><tr><th scope='row'>全逐次</th><td>8</td><td>0</td></tr><tr><th scope='row'>先頭1件のみ逐次</th><td>6</td><td>0</td></tr><tr><th scope='row'>行全体を一括</th><td>4</td><td>0</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;固定scoreによる人工ページ。forward回数は演算回数の模型で、実測遅延ではない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;候補境界と行末の条件付け&quot;,
+      &quot;metrics&quot;: {
+        &quot;無制約&quot;: {
+          &quot;forward回数&quot;: 8,
+          &quot;候補違反&quot;: 6
+        },
+        &quot;全逐次&quot;: {
+          &quot;forward回数&quot;: 8,
+          &quot;候補違反&quot;: 0
+        },
+        &quot;先頭1件のみ逐次&quot;: {
+          &quot;forward回数&quot;: 6,
+          &quot;候補違反&quot;: 0
+        },
+        &quot;行全体を一括&quot;: {
+          &quot;forward回数&quot;: 4,
+          &quot;候補違反&quot;: 0
+        }
+      }
+    }
+  ],
+  &quot;cases&quot;: {
+    &quot;無制約&quot;: {
+      &quot;page&quot;: [
+        {
+          &quot;row&quot;: &quot;comedy&quot;,
+          &quot;items&quot;: [
+            &quot;OUT&quot;,
+            &quot;OUT&quot;,
+            &quot;OUT&quot;
+          ]
+        },
+        {
+          &quot;row&quot;: &quot;drama&quot;,
+          &quot;items&quot;: [
+            &quot;OUT&quot;,
+            &quot;OUT&quot;,
+            &quot;OUT&quot;
+          ]
+        }
+      ],
+      &quot;forward_calls&quot;: 8,
+      &quot;candidate_violations&quot;: 6
+    },
+    &quot;全逐次&quot;: {
+      &quot;page&quot;: [
+        {
+          &quot;row&quot;: &quot;comedy&quot;,
+          &quot;items&quot;: [
+            &quot;A&quot;,
+            &quot;C&quot;,
+            &quot;B&quot;
+          ]
+        },
+        {
+          &quot;row&quot;: &quot;drama&quot;,
+          &quot;items&quot;: [
+            &quot;D&quot;,
+            &quot;E&quot;,
+            &quot;F&quot;
+          ]
+        }
+      ],
+      &quot;forward_calls&quot;: 8,
+      &quot;candidate_violations&quot;: 0
+    },
+    &quot;先頭1件のみ逐次&quot;: {
+      &quot;page&quot;: [
+        {
+          &quot;row&quot;: &quot;comedy&quot;,
+          &quot;items&quot;: [
+            &quot;A&quot;,
+            &quot;C&quot;,
+            &quot;B&quot;
+          ]
+        },
+        {
+          &quot;row&quot;: &quot;drama&quot;,
+          &quot;items&quot;: [
+            &quot;D&quot;,
+            &quot;E&quot;,
+            &quot;F&quot;
+          ]
+        }
+      ],
+      &quot;forward_calls&quot;: 6,
+      &quot;candidate_violations&quot;: 0
+    },
+    &quot;行全体を一括&quot;: {
+      &quot;page&quot;: [
+        {
+          &quot;row&quot;: &quot;comedy&quot;,
+          &quot;items&quot;: [
+            &quot;A&quot;,
+            &quot;B&quot;,
+            &quot;C&quot;
+          ]
+        },
+        {
+          &quot;row&quot;: &quot;drama&quot;,
+          &quot;items&quot;: [
+            &quot;D&quot;,
+            &quot;E&quot;,
+            &quot;F&quot;
+          ]
+        }
+      ],
+      &quot;forward_calls&quot;: 4,
+      &quot;candidate_violations&quot;: 0
+    }
+  },
+  &quot;checks&quot;: {
+    &quot;candidate_boundary&quot;: &quot;CONFIRMED&quot;,
+    &quot;hybrid_matches_full_in_this_case&quot;: &quot;CONFIRMED&quot;,
+    &quot;whole_page_optimality&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_latency&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>Mechanism: PARTIAL</strong>。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。</p>
+<p>実験の入力と全出力はrun.pyとresults.jsonから確認できる。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Netflixデータ、reward system、200Mモデルの学習、ページ満足度、RLのオンライン効果、Gryphonとの実験比較はNOT TESTED。人工例でhybridと全逐次が一致しても、任意の相互作用で一致する保証はない。</p>
+<p><strong>Performance / Scaling / Production applicability: NOT TESTED</strong>。一次資料の報告値との照合は、報告された本番効果の独立再現を意味しない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけの独立実験。repository rootで <code>uv run papers/genpage-netflix-homepage/run.py</code> を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。</p>
+<p><a href="../downloads/genpage-netflix-homepage/run.py">実行コード</a>・<a href="../downloads/genpage-netflix-homepage/results.json">全結果</a>・<a href="../downloads/genpage-netflix-homepage/README.md">README</a>・<a href="../downloads/genpage-netflix-homepage/method.md">方法</a>・<a href="../downloads/genpage-netflix-homepage/mapping.md">対応表</a>を保存できる。</p>
+<p>確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>確認日：2026-09-17。一次PDF：<a href="https://arxiv.org/pdf/2606.31031v2">2606.31031v2.pdf</a>。arXiv初回日：2026/06/30、確認版の日付：2026/08/01。</p>
+<p>SHA-256：<code>98bd7a0c0b96943c794450e1883397c6318c6bdcf02b9fedc868516a1561847f</code></p>
+<p>保存先：<code>/workspace/research-bot/tmp-scout/2026-09-17/2606.31031v2.pdf</code>。既存HTMLを発見用に使い、上記の版を固定したPDF本文・関連する表と付録で照合した。図はこのLabで作った説明図で、元論文の画像コピーではない。</p>
+<table>
+<thead>
+<tr>
+<th>原論文の箇所</th>
+<th>確認対象</th>
+<th>Labと省略範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§2・図1、§4</td>
+<td>prompt/pageのtoken化、約200Mのモデル</td>
+<td>method.md、prompt図。tokenizerの実装は省略</td>
+</tr>
+<tr>
+<td>§5.1–3・表1</td>
+<td>NTP / WBC / Dr. GRPOの区別</td>
+<td>method.md。学習・報酬モデルは未実装</td>
+</tr>
+<tr>
+<td>§6.3–4</td>
+<td>業務mask、hybrid row decode</td>
+<td>run.py: decode / score</td>
+</tr>
+<tr>
+<td>§8・図6</td>
+<td>候補集合、14日A/B、CI、遅延</td>
+<td>Evidenceと最終CI図。オンライン再現なし</td>
+</tr>
+</tbody>
+</table>
+<h2>公式コード</h2>
+<p>確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。</p>
+<h2>独立再現の境界</h2>
+<p>Netflixデータ、reward system、200Mモデルの学習、ページ満足度、RLのオンライン効果、Gryphonとの実験比較はNOT TESTED。人工例でhybridと全逐次が一致しても、任意の相互作用で一致する保証はない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>GenPage：候補集合の内側で、Netflixのホームを一つの列として作る</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/genpage-netflix-homepage/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

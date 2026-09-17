@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="UniRecは属性→SIDの順に生成し、候補生成とrankingの統合を狙う。Shopeeの各bucket 20%のA/BでOverall PVCTR +5.37%、orders +4.76%、GMV +5.60%。属性条件付きの不確実性低下は理解しやすい一方、本文のBayesによるランキング同値性には追加条件が要る。">
+  <title>UniRec：SIDで失った属性を、生成の途中に戻す | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-04-14</span></div>
+    <h1>UniRec：SIDで失った属性を、生成の途中に戻す</h1>
+    <p class="lede">UniRecは属性→SIDの順に生成し、候補生成とrankingの統合を狙う。Shopeeの各bucket 20%のA/BでOverall PVCTR +5.37%、orders +4.76%、GMV +5.60%。属性条件付きの不確実性低下は理解しやすい一方、本文のBayesによるランキング同値性には追加条件が要る。</p>
+    <details class="bibliography"><summary>原論文：UniRec: Bridging the Expressive Gap between Generative and Discriminative Recommendation via Chain-of-Attribute</summary><p>Wang, Ziliang, Lin, Gaoyun, Wang, Xuesi, Liang, Shaoqiang, Huang, Yili, Bian, Weijie, Zhang, Li, Cai, Mingchen, Dong, Jian, Zhang, Guanxing</p><p>2604.12234 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2604.12234">原典を読む ↗</a><a href="https://arxiv.org/pdf/2604.12234v4">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-17 · 版を固定した一次PDF本文と関連表・付録を照合。著者報告と人工実験を分離。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-method-equations">式と操作の対応</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>UniRecは属性→SIDの順に生成し、候補生成とrankingの統合を狙う。Shopeeの各bucket 20%のA/BでOverall PVCTR +5.37%、orders +4.76%、GMV +5.60%。属性条件付きの不確実性低下は理解しやすい一方、本文のBayesによるランキング同値性には追加条件が要る。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>判別rankingは候補のカテゴリやsellerなどを直接見て、ユーザーとの組合せを評価できる。SIDだけを生成するモデルでは、圧縮時に失った属性を予測の途中で参照しにくい。さらに人気が一部のprefixへ集中すると、beamの枠を同じ領域が占める。</p>
+<p>UniRecはこの情報不足と露出集中を別の部品で扱う。CoAが属性を補い、capacity-constrained SIDが露出負荷を調整し、CDCが推薦面とprefixの組合せを伝える。属性を先に生成する発想にはGRACEという先行例があり、発想自体を本論文の独占的な新規性とはしない。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者はCoAが生成と判別のfeature coverageの差を縮め、条件付きentropyを下げると主張する。capacity制約、CDC、RFT+DPOを加え、OneRec-V2より高いHRとオンライン改善を報告する（§3–4）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>属性を持つ生成経路が有用という実証と、生成確率だけで判別rankingと同値という理論主張を分けたい。式3には一般にはp(f|u)の分母が必要だ。また実際のCoA設定はL2→L3カテゴリであり、sellerとbrandを常に生成した実験ではない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>構成は属性2段＋SID3段</h3>
+<p>§4.1.1の設定では、SIDは3層、各codebook K=4000、capacity許容τ=1.05。CoAはカテゴリL2→L3を先に生成する。本文のcategory/seller/brandは一般的な属性候補で、実験の全使用属性を意味しない。</p>
+<p>§3.5のbackboneはdecoder-onlyに履歴へのcross-attentionを加えた構成。d_model=256、行動履歴200、multimodal SID系列100、cross-attention 3層×8 heads、SwiGLUのMMoE-FFN 4 experts。各stepのRank HeadにはSENetとMaskNetを使い、prefix embedding、Content Summary、ユーザー集約表現を渡す。履歴がKey/Value、task・属性・SID列がQueryになる。</p>
+<h3>露出capacityとCoAの式</h3>
+<p>式1–2は <code>V_k = Σ_{i:z_i=k} w_i</code>、<code>C_cap = Σ_i w_i / K</code> とし、再構成誤差 <code>Σ_i ||x_i−μ_z_i||²</code> を <code>V_k ≤ τ C_cap</code> の下で最小化する。Algorithm 1は最近傍割当の後、過負荷clusterから余裕のあるclusterへ移す近似解法。</p>
+<p>式5のCoAは <code>p(a,s|u)=Π_j p(a_j|a_&lt;j,u) Π_l p(s_l|s_&lt;l,a,u)</code>。式6のentropy差は <code>H(S_l|S_&lt;l,U)−H(S_l|S_&lt;l,A,U)=I(S_l;A|S_&lt;l,U)≥0</code>。これは分布上の平均の恒等式で、すべての生成prefixで精度が上がる保証ではない。</p>
+<h3>Bayes同値性で落ちている条件</h3>
+<p>【Labの検討】式3は <code>p(y|f,u) ∝ p(f|y,u)p(y|u)</code> と書くが、fを変えて順位を比較するなら <code>p(y|f,u)=p(f|y,u)p(y|u)/p(f|u)</code> が一般形である。p(f|u)が一定、またはその補正を行うという条件が要る。人工例では人気商品Aの事前確率0.9・engagement 0.2、希少商品Bは0.1・0.8とする。p(f|y=1,u)だけで並べるとAが上位になり、判別scoreの順位と逆転する。CoAの実験上の有効性を否定する反例ではなく、同値性の適用範囲を限定する反例だ。</p>
+<h3>CDCと目的関数</h3>
+<p>Task-Conditioned BOSは面と行動目的を開始tokenに埋め込む。Content Summary（式7）はprefix属性・SIDの組を複数hashで共有embeddingへ写し、各Rank Headへ渡す。実験は3 hash、hash次元64。単なる長いprompt化ではなく、組合せを明示する補助特徴である。</p>
+<p>RFTはGMVなどの予測価値をbatch内で正規化・clipしてNTPを重み付けする（式21–24）。DPOは同一request内のpurchase &gt; click &gt; exposureの対を比較し、referenceに対するlog確率比の差へlog-sigmoidを適用する（式25–27）。両損失の重みは20:3、DPO β=0.1。式28では最終SID層以外をstop-gradientにし、prefixの予測を保つ。</p>
+<p>出典：<a href="https://arxiv.org/pdf/2604.12234v4">2604.12234v4</a>。上記で「Lab」とした式・条件は説明用の補助である。</p>
+<figure class="teaching batch17"><h3>どこで属性と履歴が出会うか</h3><div class="b17-cards"><div><strong>履歴 → Key / Value</strong><p>200行動と100のmultimodal SID系列。ユーザーの情報を保持する。</p></div><div><strong>BOS → L2 → L3 → s₀ → s₁ → s₂</strong><p>taskで開始し、カテゴリを先に予測。各SIDは属性とprefixに条件付く。</p></div><div><strong>各stepのRank Head</strong><p>cross-attention出力 + prefix + hash Content Summary + ユーザー集約 → SENet / MaskNet。</p></div></div><figcaption>§3.4–3.5・図1、§4.1.1。seller/brandは一般例で、ここでは実験設定のL2→L3を示す。</figcaption></figure></div>      </section>
+<figure class="teaching teaching--equations" id="figure-method-equations" aria-labelledby="title-method-equations">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-method-equations">式と操作の対応</h3>
+  <ol class="equation-steps"><li><strong>capacity</strong><div class="math-expression" tabindex="0" role="math" aria-label="V_k=Σ_{i:z_i=k}w_i ≤ τ·Σ_i w_i/K">V_k=Σ_{i:z_i=k}w_i ≤ τ·Σ_i w_i/K</div><p>商品数ではなく露出重みの合計。</p></li><li><strong>entropy</strong><div class="math-expression" tabindex="0" role="math" aria-label="H(S|P,U)−H(S|P,A,U)=I(S;A|P,U)">H(S|P,U)−H(S|P,A,U)=I(S;A|P,U)</div><p>属性を条件に加えた平均の不確実性低下。</p></li><li><strong>Bayes補正</strong><div class="math-expression" tabindex="0" role="math" aria-label="p(y|f,u)=p(f|y,u)p(y|u)/p(f|u)">p(y|f,u)=p(f|y,u)p(y|u)/p(f|u)</div><p>f間のrankingには分母が一般に必要。これは式3へのLabの検討。</p></li></ol>
+  <figcaption>各記号が担う役割を分けて読む。 <a href="https://arxiv.org/pdf/2604.12234v4">出典：式1–6 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>【解釈】属性とSIDが相関するなら、属性を知った後の平均的な条件付きentropyは小さくなる。ただし正解属性を与えるteacher forcingと、誤る可能性のある属性を生成する推論は違う。属性段で落とした商品は後段SIDだけでは戻せない。</p>
+<p>露出量をcapacityとして扱う設計は、商品数を揃えるだけでは防げない集中に対応する。一方、一つの商品の露出重みがcapacity上限を超える場合、商品を分割しない制約問題は実行不能になる。貪欲repairが常に成功するとは限らない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>露出の87.9%は「上位10%の2段prefix」が分母</h3>
+<p>図2では上位10%のs₀ tokenが全露出の33.24%、(s₀,s₁)の組が87.90%、3段の組が89.62%を占める。商品上位10%の比率でも、すべてのSIDで共通する比率でもない。</p>
+<p>表1は9日間のproductionログを使い、同じ0.05BのOneRec-V2とUniRecを比較。全サンプルのHR@50は0.438→0.537（相対22.6%）、order subsetは0.582→0.672（相対15.5%）。表2では属性なしのHR@50 0.458に対してL2→L3は0.537。これはCoA全体の比較で、真の属性を知る理想条件だけを比べたものではない。表3のRQ-KMeans置換は0.481、BOS除去は0.493、Content Summary除去は0.485。</p>
+<h3>オンラインの面別結果を混ぜない</h3>
+<p>§4.2・表5はmain feedとlanding pageで、対照は判別型の多段推薦、各bucketにユーザーtraffic 20%。Overall orders +4.76%、GMV +5.60%、PVCTR +5.37%。面別値は下表の通り。LandingのPVCTRは未報告であり、0%ではない。試験日数、CI、p値、個々の段を削除した配信構成の詳細は本文にない。</p>
+<p>著者はcandidate generationとrankingの統合を述べるが、既存サービスのどのfilter・後処理まで消えたかは確定できない。既存Labの<a href="oxygenrec-v2-idgr.html">OxygenREC-v2</a>の制御・蒸留、<a href="https://arxiv.org/abs/2508.20900">OneRec</a>の系列化、<a href="understanding-sids-isd.html">ISD</a>のSID情報分析とは、補う場所が異なる。比較数値を論文横断の優劣には使わない。</p>
+<figure class="teaching batch17"><h3>prefixが深くなると露出が集中する</h3><div class="b17-meter"><span>上位10%のs₀</span><meter min="0" max="100" value="33.24">33.24</meter><strong>33.24%</strong></div><div class="b17-meter"><span>上位10%の(s₀,s₁)</span><meter min="0" max="100" value="87.9">87.9</meter><strong>87.9%</strong></div><div class="b17-meter"><span>上位10%の(s₀,s₁,s₂)</span><meter min="0" max="100" value="89.62">89.62</meter><strong>89.62%</strong></div><figcaption>図2。分母は全露出、抽出単位は各行に書いたtokenまたは組合せ。capacity制約導入前の分布。</figcaption></figure>
+
+<figure class="teaching batch17"><h3>表5：面ごとの相対改善</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>指標</th><th>Overall</th><th>Feed</th><th>Landing</th></tr></thead><tbody><tr><td>orders</td><td>+4.76%</td><td>+4.27%</td><td>+5.78%</td></tr><tr><td>GMV</td><td>+5.60%</td><td>+5.42%</td><td>+6.19%</td></tr><tr><td>PVCTR</td><td>+5.37%</td><td>+5.37%</td><td>未報告</td></tr></tbody></table></div><figcaption>§4.2・表5。各bucket 20%。Overallは単純平均として再計算しない。</figcaption></figure>
+
+<p><a href="https://arxiv.org/pdf/2604.12234v4">一次資料：版を固定したPDF</a>。図表の箇所とSHA-256は末尾の対応表を参照。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>属性を完全観測できる4-token分布のentropyを計算し、露出capacityの貪欲repairを試す。大きすぎる単一商品の実行不能例も残す。さらにBayesの分母を省くと順位が反転する2商品の確率表を、補正あり/なしで比較する。</p></div><div class="downloads"><a href="../downloads/unirec-chain-of-attribute/run.py" download>実行コード</a><a href="../downloads/unirec-chain-of-attribute/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/unirec-chain-of-attribute">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>人工分布。CoAの属性予測、RQモデルの学習、Shopeeの精度は再現しない。</em></p>
+<h3>属性条件付きエントロピー</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>属性なし(bit)</th><td colspan='1'>2.0</td></tr><tr><th scope='row'>属性あり(bit)</th><td colspan='1'>1.0</td></tr><tr><th scope='row'>減少(bit)</th><td colspan='1'>1.0</td></tr></tbody></table></div>
+<h3>Bayesの分母を省くと順位が逆転する</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>p(f|u)</th><th>p(y=1|f,u)</th><th>p(f|y=1,u)</th></tr></thead><tbody><tr><th scope='row'>商品A</th><td>0.9</td><td>0.2</td><td>0.6923076923076924</td></tr><tr><th scope='row'>商品B</th><td>0.1</td><td>0.8</td><td>0.30769230769230776</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;人工分布。CoAの属性予測、RQモデルの学習、Shopeeの精度は再現しない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;属性条件付きエントロピー&quot;,
+      &quot;metrics&quot;: {
+        &quot;属性なし(bit)&quot;: 2.0,
+        &quot;属性あり(bit)&quot;: 1.0,
+        &quot;減少(bit)&quot;: 1.0
+      }
+    },
+    {
+      &quot;name&quot;: &quot;Bayesの分母を省くと順位が逆転する&quot;,
+      &quot;metrics&quot;: {
+        &quot;商品A&quot;: {
+          &quot;p(f|u)&quot;: 0.9,
+          &quot;p(y=1|f,u)&quot;: 0.2,
+          &quot;p(f|y=1,u)&quot;: 0.6923076923076924
+        },
+        &quot;商品B&quot;: {
+          &quot;p(f|u)&quot;: 0.1,
+          &quot;p(y=1|f,u)&quot;: 0.8,
+          &quot;p(f|y=1,u)&quot;: 0.30769230769230776
+        }
+      }
+    }
+  ],
+  &quot;capacity&quot;: {
+    &quot;before&quot;: [
+      8,
+      4
+    ],
+    &quot;after&quot;: [
+      6,
+      6
+    ],
+    &quot;capacity&quot;: 6.300000000000001,
+    &quot;feasible&quot;: true
+  },
+  &quot;infeasible_heavy_item&quot;: {
+    &quot;before&quot;: [
+      20,
+      1
+    ],
+    &quot;after&quot;: [
+      20,
+      1
+    ],
+    &quot;capacity&quot;: 11.025,
+    &quot;feasible&quot;: false
+  },
+  &quot;bayes_corrected&quot;: [
+    0.2,
+    0.8000000000000002
+  ],
+  &quot;checks&quot;: {
+    &quot;conditional_entropy_identity&quot;: &quot;CONFIRMED&quot;,
+    &quot;unconditional_ranking_equivalence&quot;: &quot;NOT OBSERVED&quot;,
+    &quot;capacity_for_heavy_item&quot;: &quot;NOT OBSERVED&quot;,
+    &quot;production_performance&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>Mechanism: PARTIAL</strong>。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。</p>
+<p>無条件のranking同値性と、重すぎる単一商品のcapacity充足は<strong>NOT OBSERVED</strong>。失敗例を隠さず残した。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>属性予測の誤り、full training、beam recall、RFT/DPOの学習、Shopee A/B、段ごとの削除効果はNOT TESTED。entropyの減少だけからCTR上昇や生成・判別の同値性を結論しない。</p>
+<p><strong>Performance / Scaling / Production applicability: NOT TESTED</strong>。一次資料の報告値との照合は、報告された本番効果の独立再現を意味しない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけの独立実験。repository rootで <code>uv run papers/unirec-chain-of-attribute/run.py</code> を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。</p>
+<p><a href="../downloads/unirec-chain-of-attribute/run.py">実行コード</a>・<a href="../downloads/unirec-chain-of-attribute/results.json">全結果</a>・<a href="../downloads/unirec-chain-of-attribute/README.md">README</a>・<a href="../downloads/unirec-chain-of-attribute/method.md">方法</a>・<a href="../downloads/unirec-chain-of-attribute/mapping.md">対応表</a>を保存できる。</p>
+<p>確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>確認日：2026-09-17。一次PDF：<a href="https://arxiv.org/pdf/2604.12234v4">2604.12234v4.pdf</a>。arXiv初回日：2026/04/14、確認版の日付：2026/04/30。</p>
+<p>SHA-256：<code>338c6b948306f69053f4dd5b0fbff1c5f7440c2ec22d0ba4f1d9e4dbed19da78</code></p>
+<p>保存先：<code>/workspace/research-bot/tmp-scout/2026-09-17/2604.12234v4.pdf</code>。既存HTMLを発見用に使い、上記の版を固定したPDF本文・関連する表と付録で照合した。図はこのLabで作った説明図で、元論文の画像コピーではない。</p>
+<table>
+<thead>
+<tr>
+<th>原論文の箇所</th>
+<th>確認対象</th>
+<th>Labと省略範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3.2、式1–2、Algorithm 1、図2</td>
+<td>露出capacityとprefix集中</td>
+<td>run.py: capacity_repair。固定中心・1層へ簡略化</td>
+</tr>
+<tr>
+<td>§3.3、式3–6、表2</td>
+<td>Bayes、CoA、entropy</td>
+<td>run.py: entropy / compute。分母の反例はLab独自</td>
+</tr>
+<tr>
+<td>§3.4–3.6、式7–28</td>
+<td>CDC、cross-attention、RFT+DPO</td>
+<td>method.md。モデル・学習は省略</td>
+</tr>
+<tr>
+<td>§4.1–4.2、表1・3・5</td>
+<td>offline比較と面別A/B</td>
+<td>Evidence。online段削除の詳細は不明</td>
+</tr>
+</tbody>
+</table>
+<h2>公式コード</h2>
+<p>確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。</p>
+<h2>独立再現の境界</h2>
+<p>属性予測の誤り、full training、beam recall、RFT/DPOの学習、Shopee A/B、段ごとの削除効果はNOT TESTED。entropyの減少だけからCTR上昇や生成・判別の同値性を結論しない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>UniRec：SIDで失った属性を、生成の途中に戻す</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/unirec-chain-of-attribute/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

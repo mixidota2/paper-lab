@@ -251,3 +251,28 @@ body{background:white}
 .threshold-track { position:relative; height:15px; background:linear-gradient(to right,#efcabe 0%,#efcabe 82.35%,#b4dfce 82.35%); margin:2rem 0 2.5rem; }
 .threshold-track span { position:absolute; top:18px; transform:translateX(-50%); }
 .threshold-track i { position:absolute; top:-6px; width:4px; height:27px; background:#153e48; transform:translateX(-50%); }
+
+/* 2026-09-17: paper-specific evidence panels, with readable mobile tables. */
+.batch17 { overflow-wrap: anywhere; }
+.b17-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:12px; margin:16px 0; }
+.b17-cards > div { border:1px solid #c5d7de; border-top:4px solid #18756d; border-radius:8px; padding:16px; background:#f2f8f8; color:#16353e; }
+.b17-cards p { margin-bottom:0; }
+.batch17 details { padding:12px; margin:10px 0; border:1px solid #c5d7de; border-radius:8px; }
+.batch17 summary { cursor:pointer; font-weight:650; }
+.batch17 table { width:100%; border-collapse:collapse; min-width:440px; }
+.batch17 td,.batch17 th { text-align:left; padding:10px 12px; border-bottom:1px solid #c5d7de; }
+.b17-ci { height:60px; margin:20px 10px 0; position:relative; border-bottom:2px solid #63818a; }
+.b17-ci-range { position:absolute; left:48.5714%; width:37.1429%; top:28px; height:8px; background:#18756d; border-radius:4px; }
+.b17-ci-point { position:absolute; left:68.5714%; top:12px; transform:translateX(-50%); font-size:28px; color:#9a3c21; }
+.b17-ci-labels { display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px; font-size:.9rem; }
+.b17-funnel { display:flex; flex-direction:column; align-items:center; gap:9px; }
+.b17-funnel > div { width:var(--stage); min-width:175px; box-sizing:border-box; padding:16px; border-radius:8px; background:#173f57; color:white; text-align:center; }
+.b17-funnel strong { font-size:1.5rem; display:block; }
+.b17-meter { display:grid; grid-template-columns:minmax(110px,1fr) minmax(50px,1fr) 65px; align-items:center; gap:10px; padding:12px 0; }
+.b17-meter meter { width:100%; height:26px; }
+.b17-budget { display:flex; min-height:42px; background:#e6eef3; color:#173f57; border-radius:6px; overflow:hidden; }
+.b17-budget span { padding:10px; }
+.b17-budget b { background:#9a3c21; color:white; }
+.batch17 [data-output] { border-left:4px solid #18756d; background:#f2f8f8; color:#16353e; padding:14px; min-height:3em; }
+.batch17 select { max-width:100%; margin:10px; padding:8px; }
+.batch17 input[type=range] { display:block; width:100%; margin:18px 0; }
