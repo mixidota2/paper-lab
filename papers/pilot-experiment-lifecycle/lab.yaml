@@ -72,7 +72,7 @@ sections:
   executable_understanding: '同じlaunch / promote / deliverイベントに対して、権限・data health・独立確認の有無を変える。baselineの「依頼があればそのまま進む」処理と比べると、guardのある状態機械は承認のないlaunchや確認前deliveryを通さない。certificateは手作りであり、統計engineを再実装していない。
 
 
-    記憶では同じtask Aを10回記録する条件と、A・B・Cの独立証拠を比較する。approvedへの閾値3はLabの仮定で、論文の固定値ではない。処置前segmentによる10人の分岐と最小leaf比率も確認し、表9の算術を別途再計算する。
+    記憶では同じtask Aを10回記録する条件と、A・B・Cの独立証拠を比較する。approvedへの閾値3はLabの仮定で、論文の固定値ではない。反証が来た時点の状態は保持し、その後に支持が増えても昇格は再開しない。支持・反証・inconclusiveの観測を順序ごと保存する。supersessionと規定に基づく対立解消は省略しており、Curator全体の実装ではない。処置前segmentによる10人の分岐と最小leaf比率も確認し、表9の算術を別途再計算する。
 
 
     <figure class="teaching batch18"><h3>同じcommandでも、進める条件は違う</h3><div data-b18="lifecycle"><label>条件
@@ -85,15 +85,13 @@ sections:
     → event=deliver → delivered<\/p>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure><figure
     class="teaching batch18"><h3>task内の反復と、taskをまたぐ確認を区別する</h3><div data-b18="memory"><label>条件 <select><option
     value="0">1 task</option><option value="1">同一taskを10回</option><option value="2">独立2 task</option><option
-    value="3">独立3 task</option><option value="4">inconclusive追加</option><option value="5">反証あり</option></select></label><div
+    value="3">独立3 task</option><option value="4">inconclusive追加</option><option value="5">反証あり</option><option value="6">supported後の反証</option><option value="7">approved後の反証</option><option value="8">対立後に支持を追加</option></select></label><div
     data-output aria-live="polite"><p>state=draft、独立した支持task=1、未解決の対立=なし。</p></div><script type="application/json"
-    data-frames>["<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>",
-    "<p>state=supported、独立した支持task=2、未解決の対立=なし。<\/p>", "<p>state=approved、独立した支持task=3、未解決の対立=なし。<\/p>",
-    "<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=あり。<\/p>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure>'
+    data-frames>["<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=supported、独立した支持task=2、未解決の対立=なし。<\/p>", "<p>state=approved、独立した支持task=3、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=あり。<\/p>", "<p>state=supported、独立した支持task=2、未解決の対立=あり。<\/p>", "<p>state=approved、独立した支持task=3、未解決の対立=あり。<\/p>", "<p>state=supported、独立した支持task=3、未解決の対立=あり。<\/p>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure>'
   results: 下の数値はLabの人工計算。著者報告のオンライン指標とは分けて読む。
   what_we_verified: '**Mechanism: PARTIAL**。人工条件の計算と境界条件を確認した。results.jsonのCONFIRMEDは小さな計算命題にだけ適用する。原論文の学習済みモデルや産業環境を再現した意味ではない。'
   what_we_did_not_verify: 'LLMの候補品質、逐次検定、多重比較補正、sample ratio mismatch検出、実trafficの承認workflow、PolicyTreeの5
-    action全実装、memoryの自動反証統合は未検証。人工guardが動くことからIPV改善や自律実験の安全性は導けない。
+    action全実装、memoryのsupersessionと規定に基づく対立解消は未実装。人工guardが動くことからIPV改善や自律実験の安全性は導けない。
 
 
     **Performance / Scaling / Production applicability: NOT TESTED**。'

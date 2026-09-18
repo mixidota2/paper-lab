@@ -84,3 +84,17 @@ def test_pilot_permission_and_independent_confirmation():
     assert m.route({},True)=='default_bundle'
     assert not m.admissible([])
     assert not m.admissible([{'segment':'focused'}]*9+[{}])
+
+@pytest.mark.parametrize('supports,state',[(1,'draft'),(2,'supported'),(3,'approved')])
+def test_memory_contradiction_retains_state_and_blocks_later_promotion(supports,state):
+    m=module(2)
+    prior=[(str(i),'positive') for i in range(supports)]
+    for later in [[], [('later','positive')]*5+[('another','positive')]]:
+        evidence=prior+[('opposing','negative')]+later+[('neutral','inconclusive')]
+        result=m.memory(iter(evidence))
+        assert result['state']==state
+        assert result['conflict'] is True
+        assert result['observations']==evidence
+        assert result['sources']==supports+(2 if later else 0)
+    assert m.memory(prior+[('neutral','inconclusive')])['state']==state
+    assert m.memory(prior*10)['state']==state

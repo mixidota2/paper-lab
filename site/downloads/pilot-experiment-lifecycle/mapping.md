@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | §3.1–3.4、図2–3、表2 | lifecycle状態図と権限 | transition。certificateは入力済み。統計engineなし |
 | §4.1、図4、式2–3 | PolicyTreeとChampion/Challenger | route / admissible。splitのみの人工例 |
-| §5.1–5.2、表5 | draft → supported → approved | memory。独立task数と対立だけ。閾値3はLab仮定 |
+| §5.1–5.2、表5 | draft → supported → approved | memory。独立task数と逐次観測を保存。反証時の状態を保持し昇格停止。閾値3はLab仮定。supersession・規定に基づく対立解消は省略 |
 | §6、表6–7 | ROAM比較・day 5全bucket | 著者報告を転記。A/B未実行 |
 | 表8・§6.3.1 | 計画中の2×2 | NOT TESTED。推定値を置かない |
 | 表9・§6.3.2 | Search Efficiency | 8/15、14/15を算術確認 |

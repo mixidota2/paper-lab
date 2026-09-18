@@ -22,13 +22,24 @@ def memory(evidence, approval_tasks=3):
     """Threshold 3 is a LAB choice; paper leaves governed threshold configurable."""
     if approval_tasks<2:
         raise ValueError('need independent confirmation')
-    positive={task for task,outcome in evidence if outcome=='positive'}
-    negative={task for task,outcome in evidence if outcome=='negative'}
-    # Inconclusive is neither negative nor positive. Conflict freezes advancement.
-    if negative:
-        return {'state':'draft','conflict':True,'sources':len(positive)}
-    state='approved' if len(positive)>=approval_tasks else 'supported' if len(positive)>=2 else 'draft'
-    return {'state':state,'conflict':False,'sources':len(positive)}
+    # One claim/scope, chronological observations; this is not a full Curator.
+    # Supersession and governed conflict resolution are intentionally omitted.
+    positive=set()
+    observations=[]
+    state='draft'
+    conflict=False
+    for task,outcome in evidence:
+        observations.append((task,outcome))
+        if outcome=='negative':
+            conflict=True
+        elif outcome=='positive':
+            positive.add(task)
+            if not conflict:
+                state=('approved' if len(positive)>=approval_tasks else
+                       'supported' if len(positive)>=2 else 'draft')
+        # Inconclusive is neutral. Conflict retains state and freezes advancement.
+    return {'state':state,'conflict':conflict,'sources':len(positive),
+            'observations':observations}
 
 
 def route(user, split=False):
@@ -52,7 +63,10 @@ def compute():
     trace=[{'name':n,'before':s,'event':e,'after':transition(s,e,h,a,c)} for n,s,e,h,a,c in scenarios]
     evidence_sets=[[('A','positive')],[('A','positive')]*10,[('A','positive'),('B','positive')],
                   [('A','positive'),('B','positive'),('C','positive')],
-                  [('A','positive'),('B','inconclusive')],[('A','positive'),('B','negative')]]
+                  [('A','positive'),('B','inconclusive')],[('A','positive'),('B','negative')],
+                  [('A','positive'),('B','positive'),('C','negative')],
+                  [('A','positive'),('B','positive'),('C','positive'),('D','negative')],
+                  [('A','positive'),('B','positive'),('C','negative'),('D','positive')]]
     memories=[{'evidence':e,**memory(e)} for e in evidence_sets]
     return {'note':'状態遷移・事前segment・独立task数の人工例。ManagerやPlannerの推論、p値、信頼区間、本番効果は計算していない。承認閾値3はLabの仮定。',
       'verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},

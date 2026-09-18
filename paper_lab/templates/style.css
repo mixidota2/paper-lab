@@ -291,3 +291,9 @@ body{background:white}
 .b18-tree { text-align:center; border-top:2px dashed #b47b36; padding-top:1rem; }
 [data-b18] select { display:block; width:100%; max-width:34rem; padding:.7rem; margin:.5rem 0 1rem; font:inherit; }
 [data-b18] [data-output] { min-width:0; overflow-wrap:anywhere; }
+
+/* September 18 tables keep readable columns inside their scroll regions. */
+.batch18 .matrix-scroll table { table-layout:auto; min-width:32rem; }
+.batch18 .matrix-scroll th, .batch18 .matrix-scroll td { overflow-wrap:normal; }
+[data-b18="schedule"] table { width:max-content; min-width:100%; table-layout:auto; }
+[data-b18="schedule"] th, [data-b18="schedule"] td { white-space:nowrap; min-width:3.5rem; }

@@ -98,7 +98,13 @@
       ],
       "state": "draft",
       "conflict": false,
-      "sources": 1
+      "sources": 1,
+      "observations": [
+        [
+          "A",
+          "positive"
+        ]
+      ]
     },
     {
       "evidence": [
@@ -145,7 +151,49 @@
       ],
       "state": "draft",
       "conflict": false,
-      "sources": 1
+      "sources": 1,
+      "observations": [
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ]
+      ]
     },
     {
       "evidence": [
@@ -160,7 +208,17 @@
       ],
       "state": "supported",
       "conflict": false,
-      "sources": 2
+      "sources": 2,
+      "observations": [
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "B",
+          "positive"
+        ]
+      ]
     },
     {
       "evidence": [
@@ -179,7 +237,21 @@
       ],
       "state": "approved",
       "conflict": false,
-      "sources": 3
+      "sources": 3,
+      "observations": [
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "B",
+          "positive"
+        ],
+        [
+          "C",
+          "positive"
+        ]
+      ]
     },
     {
       "evidence": [
@@ -194,7 +266,17 @@
       ],
       "state": "draft",
       "conflict": false,
-      "sources": 1
+      "sources": 1,
+      "observations": [
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "B",
+          "inconclusive"
+        ]
+      ]
     },
     {
       "evidence": [
@@ -209,7 +291,132 @@
       ],
       "state": "draft",
       "conflict": true,
-      "sources": 1
+      "sources": 1,
+      "observations": [
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "B",
+          "negative"
+        ]
+      ]
+    },
+    {
+      "evidence": [
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "B",
+          "positive"
+        ],
+        [
+          "C",
+          "negative"
+        ]
+      ],
+      "state": "supported",
+      "conflict": true,
+      "sources": 2,
+      "observations": [
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "B",
+          "positive"
+        ],
+        [
+          "C",
+          "negative"
+        ]
+      ]
+    },
+    {
+      "evidence": [
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "B",
+          "positive"
+        ],
+        [
+          "C",
+          "positive"
+        ],
+        [
+          "D",
+          "negative"
+        ]
+      ],
+      "state": "approved",
+      "conflict": true,
+      "sources": 3,
+      "observations": [
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "B",
+          "positive"
+        ],
+        [
+          "C",
+          "positive"
+        ],
+        [
+          "D",
+          "negative"
+        ]
+      ]
+    },
+    {
+      "evidence": [
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "B",
+          "positive"
+        ],
+        [
+          "C",
+          "negative"
+        ],
+        [
+          "D",
+          "positive"
+        ]
+      ],
+      "state": "supported",
+      "conflict": true,
+      "sources": 3,
+      "observations": [
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "B",
+          "positive"
+        ],
+        [
+          "C",
+          "negative"
+        ],
+        [
+          "D",
+          "positive"
+        ]
+      ]
     }
   ],
   "tree": {

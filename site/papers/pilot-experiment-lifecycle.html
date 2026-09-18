@@ -50,10 +50,12 @@
 <p>ROAMもLLM agentであり、非agent baselineではない。ROAMはpage0 / pagingそれぞれのCTR・IPV・CVR・GMVの4次元、計8次元の値を全体へ一律適用する。PILOTは同じ基本parameter空間をsegment別に適用するPolicyTree、checkpoint、最低調整quota、事前登録した仮説と判断基準を加える。制御方法と探索空間の両方が変わっている。</p>
 <h3>Memory Curator：1回の有意な結果を、再利用可能な知識に飛躍させない</h3>
 <p>Strategy Evidenceはfrom/to bundleとpopulation scope、Methodology Experienceはoperationとscenario条件をkeyとして記録する。taskごとのbranchへ書き、終了後にmain memoryへ照合してmergeする（§5）。task内で強いcertificateが得られても、新しい記憶はdraftから始まる。</p>
-<p>同じscopeで独立taskによる一致が1つ増えるとsupportedへ、規定のcross-task閾値を満たし重大な未解決反証がなければapprovedへ進む。supportedはhintとして使え、approvedはstrategy recallや候補優先度などの助言に自律利用できる。同じtaskの複製は独立証拠にならない。反証は保存し、必要なら元のclaimをsupersededと記録する。新しい反対claimもdraftから始める。inconclusiveは否定的な証拠とは別の結果である。</p>
+<p>同じscopeで独立taskによる一致が1つ増えるとsupportedへ、規定のcross-task閾値を満たし重大な未解決反証がなければapprovedへ進む。supportedはhintとして使え、approvedはstrategy recallや候補優先度などの助言に自律利用できる。同じtaskの複製は独立証拠にならない。孤立した反証だけで既存の状態を自動的に消去・反転しない。支持と反証をともに保存し、規定の対立解消手続きで再評価する。必要なら元のclaimをsupersededと記録する。新しい反対claimもdraftから始める。inconclusiveは否定的な証拠とは別の結果である。</p>
 <figure class="teaching batch18"><h3>実験の状態機械：失敗と保留の経路も残す</h3><ol class="b18-lifecycle"><li><strong>仕様・playbookをfreeze</strong><p>予算、feature、判断基準、権限を固定</p></li><li><strong>候補の検査 → 承認 → observe</strong><p>Champion + 1 action。データの健全性を先に確認</p></li><li><strong>continue / reject / promote</strong><p>異常ならpause。rejectならChampionを維持</p></li><li><strong>目標到達 → 段階拡大 → 独立確認 → delivery</strong><p>searchの勝ちだけでは配信を確定しない</p></li></ol><figcaption>図2・3、§3.1–3.4を要約した状態図。すべてのwire commandを列挙した実装図ではない。</figcaption></figure>
 <figure class="teaching batch18"><h3>PolicyTree：固定baselineと探索基準を分ける</h3><div class="b18-cards"><div><strong>固定baseline T₀</strong><p>全roundのtotal効果の原点。動かさない。</p></div><div><strong>Champion T*</strong><p>epoch中は固定。新しい提案のstep効果を測る。</p></div><div><strong>Challenger T*ₐ</strong><p>登録済みsegmentでsplit、または1つのleafのbundleを変更。</p></div></div><div class="b18-tree"><strong>処置前のsegmentはfocusedか？</strong><div class="b18-cards"><div>yes → intent_bundle</div><div>no / missing → default_bundle</div></div></div><figcaption>上段は§4.1・図3–4。下段はrun.pyの10人の人工木。3人と7人に分岐し、元は全員default。</figcaption></figure>
-<figure class="teaching batch18"><h3>記憶の昇格には、別taskの証拠が要る</h3><div class="b18-cards"><div><strong>draft</strong><p>1つのtask。大標本・有意差でもここから開始。</p></div><div><strong>supported</strong><p>同じscopeの独立taskで一致を確認。hintに使える。</p></div><div><strong>approved</strong><p>規定の確認閾値を満たし、重大な反証が未解決でない。</p></div></div><p>同じtaskを10回保存 → 証拠は1件。inconclusive → 反証とは分けて保存。対立 → 昇格を止め、理由を記録。</p><figcaption>§5.2。approvedでも安全policyやtask仕様の上位権限にはならない。</figcaption></figure></div>      </section>
+<figure class="teaching batch18"><h3>記憶の昇格には、別taskの証拠が要る</h3><div class="b18-cards"><div><strong>draft</strong><p>1つのtask。大標本・有意差でもここから開始。</p></div><div><strong>supported</strong><p>同じscopeの独立taskで一致を確認。hintに使える。</p></div><div><strong>approved</strong><p>規定の確認閾値を満たし、重大な反証が未解決でない。</p></div></div><p>同じtaskを10回保存 → 証拠は1件。inconclusive → 反証とは分けて保存。対立 → 昇格を止め、理由を記録。</p><figcaption>§5.2。approvedでも安全policyやtask仕様の上位権限にはならない。</figcaption></figure>
+
+<p>Labでは単一claimの観測を順に処理する。反証時の状態を保持して以後の昇格を止め、inconclusiveも含めて観測を保存する。approvedへの閾値3は説明用の仮定。supersessionと規定に基づく対立解消は省略しており、Memory Curator全体は実装していない。</p></div>      </section>
 <figure class="teaching teaching--equations" id="figure-pilot-objective" aria-labelledby="title-pilot-objective">
   <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
   <h3 id="title-pilot-objective">基準を固定して、探索と知識を評価する</h3>
@@ -77,9 +79,9 @@
       <section id="executable_understanding" class="note-section">
         <h2>実行可能な理解</h2>
 <div class="prose"><p>同じlaunch / promote / deliverイベントに対して、権限・data health・独立確認の有無を変える。baselineの「依頼があればそのまま進む」処理と比べると、guardのある状態機械は承認のないlaunchや確認前deliveryを通さない。certificateは手作りであり、統計engineを再実装していない。</p>
-<p>記憶では同じtask Aを10回記録する条件と、A・B・Cの独立証拠を比較する。approvedへの閾値3はLabの仮定で、論文の固定値ではない。処置前segmentによる10人の分岐と最小leaf比率も確認し、表9の算術を別途再計算する。</p>
+<p>記憶では同じtask Aを10回記録する条件と、A・B・Cの独立証拠を比較する。approvedへの閾値3はLabの仮定で、論文の固定値ではない。反証が来た時点の状態は保持し、その後に支持が増えても昇格は再開しない。支持・反証・inconclusiveの観測を順序ごと保存する。supersessionと規定に基づく対立解消は省略しており、Curator全体の実装ではない。処置前segmentによる10人の分岐と最小leaf比率も確認し、表9の算術を別途再計算する。</p>
 <figure class="teaching batch18"><h3>同じcommandでも、進める条件は違う</h3><div data-b18="lifecycle"><label>条件 <select><option value="0">権限なしの開始</option><option value="1">承認済みの開始</option><option value="2">異常時のpromote</option><option value="3">証明済みのpromote</option><option value="4">独立確認なし</option><option value="5">承認と独立確認あり</option></select></label><div data-output aria-live="polite"><p>権限なしの開始：frozen → event=launch → frozen</p></div><script type="application/json" data-frames>["<p>権限なしの開始：frozen → event=launch → frozen<\/p>", "<p>承認済みの開始：frozen → event=launch → observe<\/p>", "<p>異常時のpromote：observe → event=promote → paused<\/p>", "<p>証明済みのpromote：observe → event=promote → confirm<\/p>", "<p>独立確認なし：confirm → event=deliver → confirm<\/p>", "<p>承認と独立確認あり：confirm → event=deliver → delivered<\/p>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure>
-<figure class="teaching batch18"><h3>task内の反復と、taskをまたぐ確認を区別する</h3><div data-b18="memory"><label>条件 <select><option value="0">1 task</option><option value="1">同一taskを10回</option><option value="2">独立2 task</option><option value="3">独立3 task</option><option value="4">inconclusive追加</option><option value="5">反証あり</option></select></label><div data-output aria-live="polite"><p>state=draft、独立した支持task=1、未解決の対立=なし。</p></div><script type="application/json" data-frames>["<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=supported、独立した支持task=2、未解決の対立=なし。<\/p>", "<p>state=approved、独立した支持task=3、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=あり。<\/p>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure></div><div class="downloads"><a href="../downloads/pilot-experiment-lifecycle/run.py" download>実行コード</a><a href="../downloads/pilot-experiment-lifecycle/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/pilot-experiment-lifecycle">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+<figure class="teaching batch18"><h3>task内の反復と、taskをまたぐ確認を区別する</h3><div data-b18="memory"><label>条件 <select><option value="0">1 task</option><option value="1">同一taskを10回</option><option value="2">独立2 task</option><option value="3">独立3 task</option><option value="4">inconclusive追加</option><option value="5">反証あり</option><option value="6">supported後の反証</option><option value="7">approved後の反証</option><option value="8">対立後に支持を追加</option></select></label><div data-output aria-live="polite"><p>state=draft、独立した支持task=1、未解決の対立=なし。</p></div><script type="application/json" data-frames>["<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=supported、独立した支持task=2、未解決の対立=なし。<\/p>", "<p>state=approved、独立した支持task=3、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=あり。<\/p>", "<p>state=supported、独立した支持task=2、未解決の対立=あり。<\/p>", "<p>state=approved、独立した支持task=3、未解決の対立=あり。<\/p>", "<p>state=supported、独立した支持task=3、未解決の対立=あり。<\/p>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure></div><div class="downloads"><a href="../downloads/pilot-experiment-lifecycle/run.py" download>実行コード</a><a href="../downloads/pilot-experiment-lifecycle/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/pilot-experiment-lifecycle">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
       <section id="results" class="note-section">
         <h2>結果</h2>
 <div class="prose"><p class="callout-body"><em>状態遷移・事前segment・独立task数の人工例。ManagerやPlannerの推論、p値、信頼区間、本番効果は計算していない。承認閾値3はLabの仮定。</em></p>
@@ -187,7 +189,13 @@
       ],
       &quot;state&quot;: &quot;draft&quot;,
       &quot;conflict&quot;: false,
-      &quot;sources&quot;: 1
+      &quot;sources&quot;: 1,
+      &quot;observations&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ]
+      ]
     },
     {
       &quot;evidence&quot;: [
@@ -234,7 +242,49 @@
       ],
       &quot;state&quot;: &quot;draft&quot;,
       &quot;conflict&quot;: false,
-      &quot;sources&quot;: 1
+      &quot;sources&quot;: 1,
+      &quot;observations&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ]
+      ]
     },
     {
       &quot;evidence&quot;: [
@@ -249,7 +299,17 @@
       ],
       &quot;state&quot;: &quot;supported&quot;,
       &quot;conflict&quot;: false,
-      &quot;sources&quot;: 2
+      &quot;sources&quot;: 2,
+      &quot;observations&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;B&quot;,
+          &quot;positive&quot;
+        ]
+      ]
     },
     {
       &quot;evidence&quot;: [
@@ -268,7 +328,21 @@
       ],
       &quot;state&quot;: &quot;approved&quot;,
       &quot;conflict&quot;: false,
-      &quot;sources&quot;: 3
+      &quot;sources&quot;: 3,
+      &quot;observations&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;B&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;C&quot;,
+          &quot;positive&quot;
+        ]
+      ]
     },
     {
       &quot;evidence&quot;: [
@@ -283,7 +357,17 @@
       ],
       &quot;state&quot;: &quot;draft&quot;,
       &quot;conflict&quot;: false,
-      &quot;sources&quot;: 1
+      &quot;sources&quot;: 1,
+      &quot;observations&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;B&quot;,
+          &quot;inconclusive&quot;
+        ]
+      ]
     },
     {
       &quot;evidence&quot;: [
@@ -298,7 +382,132 @@
       ],
       &quot;state&quot;: &quot;draft&quot;,
       &quot;conflict&quot;: true,
-      &quot;sources&quot;: 1
+      &quot;sources&quot;: 1,
+      &quot;observations&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;B&quot;,
+          &quot;negative&quot;
+        ]
+      ]
+    },
+    {
+      &quot;evidence&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;B&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;C&quot;,
+          &quot;negative&quot;
+        ]
+      ],
+      &quot;state&quot;: &quot;supported&quot;,
+      &quot;conflict&quot;: true,
+      &quot;sources&quot;: 2,
+      &quot;observations&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;B&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;C&quot;,
+          &quot;negative&quot;
+        ]
+      ]
+    },
+    {
+      &quot;evidence&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;B&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;C&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;D&quot;,
+          &quot;negative&quot;
+        ]
+      ],
+      &quot;state&quot;: &quot;approved&quot;,
+      &quot;conflict&quot;: true,
+      &quot;sources&quot;: 3,
+      &quot;observations&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;B&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;C&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;D&quot;,
+          &quot;negative&quot;
+        ]
+      ]
+    },
+    {
+      &quot;evidence&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;B&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;C&quot;,
+          &quot;negative&quot;
+        ],
+        [
+          &quot;D&quot;,
+          &quot;positive&quot;
+        ]
+      ],
+      &quot;state&quot;: &quot;supported&quot;,
+      &quot;conflict&quot;: true,
+      &quot;sources&quot;: 3,
+      &quot;observations&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;B&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;C&quot;,
+          &quot;negative&quot;
+        ],
+        [
+          &quot;D&quot;,
+          &quot;positive&quot;
+        ]
+      ]
     }
   ],
   &quot;tree&quot;: {
@@ -340,7 +549,7 @@
 <div class="prose"><p><strong>Mechanism: PARTIAL</strong>。人工条件の計算と境界条件を確認した。results.jsonのCONFIRMEDは小さな計算命題にだけ適用する。原論文の学習済みモデルや産業環境を再現した意味ではない。</p></div>      </section>
       <section id="what_we_did_not_verify" class="note-section">
         <h2>検証していないこと</h2>
-<div class="prose"><p>LLMの候補品質、逐次検定、多重比較補正、sample ratio mismatch検出、実trafficの承認workflow、PolicyTreeの5 action全実装、memoryの自動反証統合は未検証。人工guardが動くことからIPV改善や自律実験の安全性は導けない。</p>
+<div class="prose"><p>LLMの候補品質、逐次検定、多重比較補正、sample ratio mismatch検出、実trafficの承認workflow、PolicyTreeの5 action全実装、memoryのsupersessionと規定に基づく対立解消は未実装。人工guardが動くことからIPV改善や自律実験の安全性は導けない。</p>
 <p><strong>Performance / Scaling / Production applicability: NOT TESTED</strong>。</p></div>      </section>
       <section id="implementation" class="note-section">
         <h2>実装</h2>
@@ -373,7 +582,7 @@
 <tr>
 <td>§5.1–5.2、表5</td>
 <td>draft → supported → approved</td>
-<td>memory。独立task数と対立だけ。閾値3はLab仮定</td>
+<td>memory。独立task数と逐次観測を保存。反証時の状態を保持し昇格停止。閾値3はLab仮定。supersession・規定に基づく対立解消は省略</td>
 </tr>
 <tr>
 <td>§6、表6–7</td>

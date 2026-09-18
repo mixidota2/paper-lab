@@ -23,8 +23,10 @@ lab.yaml、method.md、mapping.md、run.py、results.jsonが原本。site/は生
 
 **Mechanism: PARTIAL**。人工条件の計算と境界条件を確認した。results.jsonのCONFIRMEDは小さな計算命題にだけ適用する。原論文の学習済みモデルや産業環境を再現した意味ではない。
 
-LLMの候補品質、逐次検定、多重比較補正、sample ratio mismatch検出、実trafficの承認workflow、PolicyTreeの5 action全実装、memoryの自動反証統合は未検証。人工guardが動くことからIPV改善や自律実験の安全性は導けない。
+LLMの候補品質、逐次検定、多重比較補正、sample ratio mismatch検出、実trafficの承認workflow、PolicyTreeの5 action全実装、memoryのsupersessionと規定に基づく対立解消は未実装。人工guardが動くことからIPV改善や自律実験の安全性は導けない。
 
 Performance / Scaling / Production applicability: NOT TESTED。モデル学習とオンラインA/Bは実行していない。
 
 [一次PDF](https://arxiv.org/pdf/2608.18637v1)。版・ハッシュ・節とコードの対応はmapping.md。公式コードは確認範囲で案内を見つけられず、実行していない。
+
+記憶の小実験は証拠を順番に読み、反証が来た時点の状態を保持して昇格を止める。その後の支持も含め、全観測を保存する。同一taskの複製は昇格に寄与せず、inconclusiveは中立。approvedの閾値3はLabの仮定で、論文の固定値ではない。Curator全体の再現ではない。
