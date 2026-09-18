@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="PILOTはExperiment Manager・Search Planner・Memory Curatorを、決定的な安全・統計・権限の境界で囲む。Taobaoの前後比較でbest-bucket IPVはROAM +1.00%に対し+1.40%、探索条件の達成率は53.3%から93.3%。設計は具体的だが、Manager×Plannerの2×2比較は未実施なのでWatchとする。">
+  <title>PILOT：提案するagentから、実験を運営するagentへ | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-08-19</span></div>
+    <h1>PILOT：提案するagentから、実験を運営するagentへ</h1>
+    <p class="lede">PILOTはExperiment Manager・Search Planner・Memory Curatorを、決定的な安全・統計・権限の境界で囲む。Taobaoの前後比較でbest-bucket IPVはROAM +1.00%に対し+1.40%、探索条件の達成率は53.3%から93.3%。設計は具体的だが、Manager×Plannerの2×2比較は未実施なのでWatchとする。</p>
+    <details class="bibliography"><summary>原論文：PILOT Technical Report</summary><p>PILOT Team</p><p>2608.18637 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2608.18637">原典を読む ↗</a><a href="https://arxiv.org/pdf/2608.18637v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-18 · 一次PDFの手法、実験、関連図表と付録を照合。著者報告と人工計算を区別し、未公開の設定を補わない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-pilot-objective">基準を固定して、探索と知識を評価する</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>PILOTはExperiment Manager・Search Planner・Memory Curatorを、決定的な安全・統計・権限の境界で囲む。Taobaoの前後比較でbest-bucket IPVはROAM +1.00%に対し+1.40%、探索条件の達成率は53.3%から93.3%。設計は具体的だが、Manager×Plannerの2×2比較は未実施なのでWatchとする。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>指標が悪くなったらparameterを変えるだけでは、何も変えないbucketと、頻繁に変えすぎて証拠が残らないbucketが生じる。PILOTは「どの候補か」だけでなく、「いつ観察を閉じるか」「何を独立確認するか」「どの経験を次へ持ち越すか」を扱う。</p>
+<p><a href="dream-taobao-agentic-control.html">DREAM</a>のrequest向け制御、<a href="coral-meta-config-harness.html">CORAL</a>の設定更新、<a href="agentx-kuaishou.html">AgentX</a>のcode開発と並べると、PILOTの責務は実験lifecycleにある。ROAMもagentなので、ここからagent一般が人より優れるという結論は出ない。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は、Managerによる能動的な実験運営、Plannerによるsegment別探索、Curatorによる経験蓄積が、反応的なROAMより探索の進捗を増やすと主張する。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>決定的なサービスが判断可能な選択肢を先に限定する設計に注目したい。within-taskの有意性とcross-taskの記憶の確信度を分ける設計は再利用しやすい。一方、比較実験はその設計の個別寄与まで裏づけていない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>3つの役割と、変更できない境界</h3>
+<p>Experiment Managerはtaskの受付、観察、異常対応、終了後の振り返りを進める。Search PlannerはManagerに呼ばれたときだけ候補を提案し、Memory Curatorは終了したtaskから経験を抽出する。Curatorは非同期で失敗を隔離するため、記憶の保存が失敗しても当該実験の統計的結論は変わらない。採用LLMの具体的なcheckpointやparameter数は確認範囲で明記されておらず、DREAMのQwen3をPILOTへ当てはめない。</p>
+<p>task仕様Tは目的、指標、予算、観察期間、登録済みfeatureとstrategy、権限を含む。incomplete → awaiting → ready → frozenと固め、runtimeのplaybookも固定する。安全・統計policy &gt; task仕様 &gt; playbook &gt; approvedな方法論 &gt; 暫定hint &gt; agentの推論という優先順を守る。学習した記憶が上位規則を書き換えることはない（§3.1）。</p>
+<p>実行可能なcommandを列挙するManager Guard、状態を唯一書き込むState Committer、変更不能なcertificateを出すStatistics Engineが、LLMの選択を囲む。Contract Builderは観測前に判断基準を固定し、Action EnumeratorとCandidate Validatorは探索可能なactionと提案の適合性を管理する（表2）。判断と強制を同じLLMへ任せないのが設計の中心である。</p>
+<h3>観察期間を、都合のよいliftで切らない</h3>
+<p>Managerは固定した観察計画に沿ってmetricsを収集し、freshness、成熟度、sample size、割付の異常を調べる。closeするかの判断時点ではliftの向きを隠し、「もう少しで有意だから待つ」「良い日だけ切り出す」を許さない。noiseらしい異常はdiagnostic-onlyにして窓を延長、反復やhard bound違反はpauseして人へ戻す（§3.2）。</p>
+<p>roundはcontinue、reject、promoteで処理する。rejectならChampionは変わらず、promoteなら勝ったChallengerを次の基準にする。目標達成後も段階的なscale-upと独立Dconfirmでの確認があり、search期間のデータだけではproduction deliveryを確定しない。deploy、traffic拡大、仕様変更などには人の承認が必要と本文に明記される。「実験cycle中の人の介入なし」というabstractの結果記述を、無制限の権限と読まない。</p>
+<h3>PolicyTree：同じ8次元の設定を、誰に適用するかも探す</h3>
+<p>各leafにstrategy bundleを持つ決定木で、登録済みの処置前featureだけを使ってユーザーを分岐する。全ユーザーは必ず1つのleafへ着地し、missing値の扱いも事前に定義する。木の深さ、leaf数、最小母集団比率、利用feature数、round数とtraffic予算には上限がある（§4.1）。</p>
+<p>固定baseline T₀は実験を通して動かさない。Champion T<em>は現在の確認済み基準、Challengerはそこへatomic actionを1つだけ加えた木。actionはsplit、prune、hashExpand、collapse、updateStrategyの5種類。Plannerは許可集合A(T</em>)の外の操作を作れない。Δtotalは固定baselineとの差、Δstepは現在のChampionとの差なので、基準の混同を避ける。</p>
+<p>ROAMもLLM agentであり、非agent baselineではない。ROAMはpage0 / pagingそれぞれのCTR・IPV・CVR・GMVの4次元、計8次元の値を全体へ一律適用する。PILOTは同じ基本parameter空間をsegment別に適用するPolicyTree、checkpoint、最低調整quota、事前登録した仮説と判断基準を加える。制御方法と探索空間の両方が変わっている。</p>
+<h3>Memory Curator：1回の有意な結果を、再利用可能な知識に飛躍させない</h3>
+<p>Strategy Evidenceはfrom/to bundleとpopulation scope、Methodology Experienceはoperationとscenario条件をkeyとして記録する。taskごとのbranchへ書き、終了後にmain memoryへ照合してmergeする（§5）。task内で強いcertificateが得られても、新しい記憶はdraftから始まる。</p>
+<p>同じscopeで独立taskによる一致が1つ増えるとsupportedへ、規定のcross-task閾値を満たし重大な未解決反証がなければapprovedへ進む。supportedはhintとして使え、approvedはstrategy recallや候補優先度などの助言に自律利用できる。同じtaskの複製は独立証拠にならない。反証は保存し、必要なら元のclaimをsupersededと記録する。新しい反対claimもdraftから始める。inconclusiveは否定的な証拠とは別の結果である。</p>
+<figure class="teaching batch18"><h3>実験の状態機械：失敗と保留の経路も残す</h3><ol class="b18-lifecycle"><li><strong>仕様・playbookをfreeze</strong><p>予算、feature、判断基準、権限を固定</p></li><li><strong>候補の検査 → 承認 → observe</strong><p>Champion + 1 action。データの健全性を先に確認</p></li><li><strong>continue / reject / promote</strong><p>異常ならpause。rejectならChampionを維持</p></li><li><strong>目標到達 → 段階拡大 → 独立確認 → delivery</strong><p>searchの勝ちだけでは配信を確定しない</p></li></ol><figcaption>図2・3、§3.1–3.4を要約した状態図。すべてのwire commandを列挙した実装図ではない。</figcaption></figure>
+<figure class="teaching batch18"><h3>PolicyTree：固定baselineと探索基準を分ける</h3><div class="b18-cards"><div><strong>固定baseline T₀</strong><p>全roundのtotal効果の原点。動かさない。</p></div><div><strong>Champion T*</strong><p>epoch中は固定。新しい提案のstep効果を測る。</p></div><div><strong>Challenger T*ₐ</strong><p>登録済みsegmentでsplit、または1つのleafのbundleを変更。</p></div></div><div class="b18-tree"><strong>処置前のsegmentはfocusedか？</strong><div class="b18-cards"><div>yes → intent_bundle</div><div>no / missing → default_bundle</div></div></div><figcaption>上段は§4.1・図3–4。下段はrun.pyの10人の人工木。3人と7人に分岐し、元は全員default。</figcaption></figure>
+<figure class="teaching batch18"><h3>記憶の昇格には、別taskの証拠が要る</h3><div class="b18-cards"><div><strong>draft</strong><p>1つのtask。大標本・有意差でもここから開始。</p></div><div><strong>supported</strong><p>同じscopeの独立taskで一致を確認。hintに使える。</p></div><div><strong>approved</strong><p>規定の確認閾値を満たし、重大な反証が未解決でない。</p></div></div><p>同じtaskを10回保存 → 証拠は1件。inconclusive → 反証とは分けて保存。対立 → 昇格を止め、理由を記録。</p><figcaption>§5.2。approvedでも安全policyやtask仕様の上位権限にはならない。</figcaption></figure></div>      </section>
+<figure class="teaching teaching--equations" id="figure-pilot-objective" aria-labelledby="title-pilot-objective">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-pilot-objective">基準を固定して、探索と知識を評価する</h3>
+  <ol class="equation-steps"><li><strong>全体効果</strong><div class="math-expression" tabindex="0" role="math" aria-label="Δtotal(T)=E[Y(T)]−E[Y(T₀)]">Δtotal(T)=E[Y(T)]−E[Y(T₀)]</div><p>固定baselineはround間で変えない。</p></li><li><strong>1操作の効果</strong><div class="math-expression" tabindex="0" role="math" aria-label="Δstep(a)=E[Y(T*ₐ)]−E[Y(T*)]">Δstep(a)=E[Y(T*ₐ)]−E[Y(T*)]</div><p>Championをepoch内で固定して比べる。</p></li><li><strong>探索可能な木</strong><div class="math-expression" tabindex="0" role="math" aria-label="depth≤dmax ; leaves≤Lmax ; w(leaf)≥wmin">depth≤dmax ; leaves≤Lmax ; w(leaf)≥wmin</div><p>処置前featureと登録済みbundleの範囲だけを探索する。</p></li><li><strong>探索の達成率</strong><div class="math-expression" tabindex="0" role="math" aria-label="Search Efficiency=Σbucket Σcondition I[達成]/(3B)">Search Efficiency=Σbucket Σcondition I[達成]/(3B)</div><p>B=5。PILOT 14/15、ROAM 8/15。速度や勝率ではない。</p></li></ol>
+  <figcaption>式の対象と仮定を分けて読む。 <a href="https://arxiv.org/pdf/2608.18637v1">出典：§4.1 式2–3、§6.3.2 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>【解釈】観測前に判断基準を固定し、同じtaskの反復を記憶の独立証拠に数えなければ、都合のよい結果だけを学ぶ循環を抑えられる。PolicyTreeは全体一律調整では相殺されるsegment差を利用できるが、細分化しすぎると統計powerを失う。leaf比率や探索予算の制約が必要になる。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>最良bucketの比較は、agentの因果効果を分離しない</h3>
+<p>Taobaoの5 bucketでROAMを7日、PILOTを最初の5日報告した前後比較。best IPVは+1.00%から+1.40%、Core IPVは+0.90%から+1.60%。共通基準からのliftであり、「PILOTがROAMよりIPVを40%増やした」とは言えない。baseline比の改善幅が0.40 percentage points増えた比較である。</p>
+<p>表7のPILOT day 5ではbucket 23がIPV +1.40%、Core IPV +1.60%、取引数+0.95%、取引金額+1.50%。取引数の最大+0.96%はbucket 25。本文の総括はこれら最大値をまとめて記すため、全指標が同じbucketで最大になったとは読まない。bucket 21の取引数−0.13%も消さない。</p>
+<h3>Search Efficiencyの分母は、5 bucket × 3条件</h3>
+<p>「目標超過」「再設定1回以下で安定読取」「探索に純進捗」の各binary条件を足す。ROAMは1+4+3=8、PILOTは4+5+5=14で、8/15=53.3%から14/15=93.3%、40 percentage points増（表9）。計算速度や提案1件あたりの成功率ではない。また表7のday 5断面でIPVが1%を超えるのは3 bucketで、表9の4/5は期間内の目標超過の評価と区別する。</p>
+<p>§6.3は比較がbefore/afterで非ランダムと明記する。Managerだけ、Plannerだけ、両方、どちらもなしを比べる2×2（表8）は計画であり未実施。per-action観測modelの校正と比較可能なscoringが実施条件。したがって現時点でManager・Planner・Curator個別の増分を数値化できない。traffic構成、時期、探索空間の変更、best-bucket選択の影響が残る。</p>
+<figure class="teaching batch18"><h3>全5 bucketを見て、最大値の寄せ集めを避ける</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>bucket</th><th>IPV</th><th>Core IPV</th><th>取引数</th><th>取引金額</th></tr></thead><tbody><tr><td>21</td><td>+0.39%</td><td>+0.52%</td><td>−0.13%</td><td>+0.40%</td></tr><tr><td>22</td><td>+1.31%</td><td>+1.48%</td><td>+0.54%</td><td>+1.35%</td></tr><tr><td>23</td><td>+1.40%</td><td>+1.60%</td><td>+0.95%</td><td>+1.50%</td></tr><tr><td>24</td><td>+1.11%</td><td>+1.25%</td><td>+0.52%</td><td>+1.20%</td></tr><tr><td>25</td><td>+0.68%</td><td>+0.80%</td><td>+0.96%</td><td>+1.10%</td></tr></tbody></table></div><figcaption>表7のday 5。ROAMとの同時ランダム比較ではない。</figcaption></figure>
+<figure class="teaching batch18"><h3>未実施の2×2：何がまだ切り分けられていないか</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>lifecycle</th><th>Plannerなし</th><th>Plannerあり</th></tr></thead><tbody><tr><td>決定的制御のみ</td><td>A：未実施</td><td>B：未実施</td></tr><tr><td>Managerあり</td><td>C：未実施</td><td>D：配備構成。ただし2×2として未実施</td></tr></tbody></table></div><figcaption>表8・§6.3.1。B−A、C−A、D−B、D−Cを比べる計画。空欄に推定値を入れない。</figcaption></figure>
+
+<p><a href="https://arxiv.org/pdf/2608.18637v1">一次資料：版を固定したPDF</a>。図・表・式と実装の対応は末尾のmappingを参照。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>同じlaunch / promote / deliverイベントに対して、権限・data health・独立確認の有無を変える。baselineの「依頼があればそのまま進む」処理と比べると、guardのある状態機械は承認のないlaunchや確認前deliveryを通さない。certificateは手作りであり、統計engineを再実装していない。</p>
+<p>記憶では同じtask Aを10回記録する条件と、A・B・Cの独立証拠を比較する。approvedへの閾値3はLabの仮定で、論文の固定値ではない。処置前segmentによる10人の分岐と最小leaf比率も確認し、表9の算術を別途再計算する。</p>
+<figure class="teaching batch18"><h3>同じcommandでも、進める条件は違う</h3><div data-b18="lifecycle"><label>条件 <select><option value="0">権限なしの開始</option><option value="1">承認済みの開始</option><option value="2">異常時のpromote</option><option value="3">証明済みのpromote</option><option value="4">独立確認なし</option><option value="5">承認と独立確認あり</option></select></label><div data-output aria-live="polite"><p>権限なしの開始：frozen → event=launch → frozen</p></div><script type="application/json" data-frames>["<p>権限なしの開始：frozen → event=launch → frozen<\/p>", "<p>承認済みの開始：frozen → event=launch → observe<\/p>", "<p>異常時のpromote：observe → event=promote → paused<\/p>", "<p>証明済みのpromote：observe → event=promote → confirm<\/p>", "<p>独立確認なし：confirm → event=deliver → confirm<\/p>", "<p>承認と独立確認あり：confirm → event=deliver → delivered<\/p>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure>
+<figure class="teaching batch18"><h3>task内の反復と、taskをまたぐ確認を区別する</h3><div data-b18="memory"><label>条件 <select><option value="0">1 task</option><option value="1">同一taskを10回</option><option value="2">独立2 task</option><option value="3">独立3 task</option><option value="4">inconclusive追加</option><option value="5">反証あり</option></select></label><div data-output aria-live="polite"><p>state=draft、独立した支持task=1、未解決の対立=なし。</p></div><script type="application/json" data-frames>["<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=supported、独立した支持task=2、未解決の対立=なし。<\/p>", "<p>state=approved、独立した支持task=3、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=あり。<\/p>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure></div><div class="downloads"><a href="../downloads/pilot-experiment-lifecycle/run.py" download>実行コード</a><a href="../downloads/pilot-experiment-lifecycle/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/pilot-experiment-lifecycle">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>状態遷移・事前segment・独立task数の人工例。ManagerやPlannerの推論、p値、信頼区間、本番効果は計算していない。承認閾値3はLabの仮定。</em></p>
+<h3>同じeventでも権限と証拠で遷移を分ける</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>前</th><th>後</th></tr></thead><tbody><tr><th scope='row'>権限なしの開始</th><td>frozen</td><td>frozen</td></tr><tr><th scope='row'>承認済みの開始</th><td>frozen</td><td>observe</td></tr><tr><th scope='row'>異常時のpromote</th><td>observe</td><td>paused</td></tr><tr><th scope='row'>証明済みのpromote</th><td>observe</td><td>confirm</td></tr><tr><th scope='row'>独立確認なし</th><td>confirm</td><td>confirm</td></tr><tr><th scope='row'>承認と独立確認あり</th><td>confirm</td><td>delivered</td></tr></tbody></table></div>
+<h3>表9の分母15を確認</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>満たした条件</th><th>率</th></tr></thead><tbody><tr><th scope='row'>ROAM</th><td>8</td><td>53.33</td></tr><tr><th scope='row'>PILOT</th><td>14</td><td>93.33</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;状態遷移・事前segment・独立task数の人工例。ManagerやPlannerの推論、p値、信頼区間、本番効果は計算していない。承認閾値3はLabの仮定。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;同じeventでも権限と証拠で遷移を分ける&quot;,
+      &quot;metrics&quot;: {
+        &quot;権限なしの開始&quot;: {
+          &quot;前&quot;: &quot;frozen&quot;,
+          &quot;後&quot;: &quot;frozen&quot;
+        },
+        &quot;承認済みの開始&quot;: {
+          &quot;前&quot;: &quot;frozen&quot;,
+          &quot;後&quot;: &quot;observe&quot;
+        },
+        &quot;異常時のpromote&quot;: {
+          &quot;前&quot;: &quot;observe&quot;,
+          &quot;後&quot;: &quot;paused&quot;
+        },
+        &quot;証明済みのpromote&quot;: {
+          &quot;前&quot;: &quot;observe&quot;,
+          &quot;後&quot;: &quot;confirm&quot;
+        },
+        &quot;独立確認なし&quot;: {
+          &quot;前&quot;: &quot;confirm&quot;,
+          &quot;後&quot;: &quot;confirm&quot;
+        },
+        &quot;承認と独立確認あり&quot;: {
+          &quot;前&quot;: &quot;confirm&quot;,
+          &quot;後&quot;: &quot;delivered&quot;
+        }
+      }
+    },
+    {
+      &quot;name&quot;: &quot;表9の分母15を確認&quot;,
+      &quot;metrics&quot;: {
+        &quot;ROAM&quot;: {
+          &quot;満たした条件&quot;: 8,
+          &quot;率&quot;: 53.33
+        },
+        &quot;PILOT&quot;: {
+          &quot;満たした条件&quot;: 14,
+          &quot;率&quot;: 93.33
+        }
+      }
+    }
+  ],
+  &quot;trace&quot;: [
+    {
+      &quot;name&quot;: &quot;権限なしの開始&quot;,
+      &quot;before&quot;: &quot;frozen&quot;,
+      &quot;event&quot;: &quot;launch&quot;,
+      &quot;after&quot;: &quot;frozen&quot;
+    },
+    {
+      &quot;name&quot;: &quot;承認済みの開始&quot;,
+      &quot;before&quot;: &quot;frozen&quot;,
+      &quot;event&quot;: &quot;launch&quot;,
+      &quot;after&quot;: &quot;observe&quot;
+    },
+    {
+      &quot;name&quot;: &quot;異常時のpromote&quot;,
+      &quot;before&quot;: &quot;observe&quot;,
+      &quot;event&quot;: &quot;promote&quot;,
+      &quot;after&quot;: &quot;paused&quot;
+    },
+    {
+      &quot;name&quot;: &quot;証明済みのpromote&quot;,
+      &quot;before&quot;: &quot;observe&quot;,
+      &quot;event&quot;: &quot;promote&quot;,
+      &quot;after&quot;: &quot;confirm&quot;
+    },
+    {
+      &quot;name&quot;: &quot;独立確認なし&quot;,
+      &quot;before&quot;: &quot;confirm&quot;,
+      &quot;event&quot;: &quot;deliver&quot;,
+      &quot;after&quot;: &quot;confirm&quot;
+    },
+    {
+      &quot;name&quot;: &quot;承認と独立確認あり&quot;,
+      &quot;before&quot;: &quot;confirm&quot;,
+      &quot;event&quot;: &quot;deliver&quot;,
+      &quot;after&quot;: &quot;delivered&quot;
+    }
+  ],
+  &quot;memories&quot;: [
+    {
+      &quot;evidence&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ]
+      ],
+      &quot;state&quot;: &quot;draft&quot;,
+      &quot;conflict&quot;: false,
+      &quot;sources&quot;: 1
+    },
+    {
+      &quot;evidence&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ]
+      ],
+      &quot;state&quot;: &quot;draft&quot;,
+      &quot;conflict&quot;: false,
+      &quot;sources&quot;: 1
+    },
+    {
+      &quot;evidence&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;B&quot;,
+          &quot;positive&quot;
+        ]
+      ],
+      &quot;state&quot;: &quot;supported&quot;,
+      &quot;conflict&quot;: false,
+      &quot;sources&quot;: 2
+    },
+    {
+      &quot;evidence&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;B&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;C&quot;,
+          &quot;positive&quot;
+        ]
+      ],
+      &quot;state&quot;: &quot;approved&quot;,
+      &quot;conflict&quot;: false,
+      &quot;sources&quot;: 3
+    },
+    {
+      &quot;evidence&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;B&quot;,
+          &quot;inconclusive&quot;
+        ]
+      ],
+      &quot;state&quot;: &quot;draft&quot;,
+      &quot;conflict&quot;: false,
+      &quot;sources&quot;: 1
+    },
+    {
+      &quot;evidence&quot;: [
+        [
+          &quot;A&quot;,
+          &quot;positive&quot;
+        ],
+        [
+          &quot;B&quot;,
+          &quot;negative&quot;
+        ]
+      ],
+      &quot;state&quot;: &quot;draft&quot;,
+      &quot;conflict&quot;: true,
+      &quot;sources&quot;: 1
+    }
+  ],
+  &quot;tree&quot;: {
+    &quot;baseline&quot;: [
+      &quot;default_bundle&quot;,
+      &quot;default_bundle&quot;,
+      &quot;default_bundle&quot;,
+      &quot;default_bundle&quot;,
+      &quot;default_bundle&quot;,
+      &quot;default_bundle&quot;,
+      &quot;default_bundle&quot;,
+      &quot;default_bundle&quot;,
+      &quot;default_bundle&quot;,
+      &quot;default_bundle&quot;
+    ],
+    &quot;proposal&quot;: [
+      &quot;intent_bundle&quot;,
+      &quot;intent_bundle&quot;,
+      &quot;intent_bundle&quot;,
+      &quot;default_bundle&quot;,
+      &quot;default_bundle&quot;,
+      &quot;default_bundle&quot;,
+      &quot;default_bundle&quot;,
+      &quot;default_bundle&quot;,
+      &quot;default_bundle&quot;,
+      &quot;default_bundle&quot;
+    ],
+    &quot;admissible&quot;: true
+  },
+  &quot;checks&quot;: {
+    &quot;unapproved_launch_blocked&quot;: &quot;CONFIRMED&quot;,
+    &quot;independent_confirmation_required&quot;: &quot;CONFIRMED&quot;,
+    &quot;duplicate_task_no_promotion&quot;: &quot;CONFIRMED&quot;,
+    &quot;causal_manager_gain&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>下の数値はLabの人工計算。著者報告のオンライン指標とは分けて読む。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>Mechanism: PARTIAL</strong>。人工条件の計算と境界条件を確認した。results.jsonのCONFIRMEDは小さな計算命題にだけ適用する。原論文の学習済みモデルや産業環境を再現した意味ではない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>LLMの候補品質、逐次検定、多重比較補正、sample ratio mismatch検出、実trafficの承認workflow、PolicyTreeの5 action全実装、memoryの自動反証統合は未検証。人工guardが動くことからIPV改善や自律実験の安全性は導けない。</p>
+<p><strong>Performance / Scaling / Production applicability: NOT TESTED</strong>。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけの独立した小実験。リポジトリのルートで <code>uv run papers/pilot-experiment-lifecycle/run.py</code> を実行すると、同じフォルダーの <code>results.json</code> を更新する。外部APIやモデル取得は不要。UIはその計算済み結果を表示し、別の推定器をJavaScriptで動かさない。</p>
+<p><a href="../downloads/pilot-experiment-lifecycle/run.py">実行コード</a>・<a href="../downloads/pilot-experiment-lifecycle/results.json">全結果</a>・<a href="../downloads/pilot-experiment-lifecycle/README.md">README</a>・<a href="../downloads/pilot-experiment-lifecycle/method.md">手法</a>・<a href="../downloads/pilot-experiment-lifecycle/lab.yaml">lab.yaml</a>・<a href="../downloads/pilot-experiment-lifecycle/mapping.md">対応表</a>を保存できる。</p>
+<p>照合した一次PDFとarXiv書誌に、取得可能な公式実装への案内は確認できなかった。公式コードの独立実行はNOT TESTED。ここにあるコードは公式実装の移植ではない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文・公式コード対応</h1>
+<p>一次資料：<a href="https://arxiv.org/pdf/2608.18637v1">2608.18637v1</a>。確認日：2026-09-18。PDF SHA-256：<code>43850e56b4c5d51af05899f8d1d927a3bf45720450e700f9c96f377bb9d8ac2c</code>。</p>
+<table>
+<thead>
+<tr>
+<th>論文の箇所</th>
+<th>このLab</th>
+<th>最小コード / 省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3.1–3.4、図2–3、表2</td>
+<td>lifecycle状態図と権限</td>
+<td>transition。certificateは入力済み。統計engineなし</td>
+</tr>
+<tr>
+<td>§4.1、図4、式2–3</td>
+<td>PolicyTreeとChampion/Challenger</td>
+<td>route / admissible。splitのみの人工例</td>
+</tr>
+<tr>
+<td>§5.1–5.2、表5</td>
+<td>draft → supported → approved</td>
+<td>memory。独立task数と対立だけ。閾値3はLab仮定</td>
+</tr>
+<tr>
+<td>§6、表6–7</td>
+<td>ROAM比較・day 5全bucket</td>
+<td>著者報告を転記。A/B未実行</td>
+</tr>
+<tr>
+<td>表8・§6.3.1</td>
+<td>計画中の2×2</td>
+<td>NOT TESTED。推定値を置かない</td>
+</tr>
+<tr>
+<td>表9・§6.3.2</td>
+<td>Search Efficiency</td>
+<td>8/15、14/15を算術確認</td>
+</tr>
+</tbody>
+</table>
+<p>本文の最大取引数+0.96%は表7のbucket 25、最大IPV+1.40%はbucket 23。表9の期間内4/5と表7のday 5での3/5を区別した。モデル名と統計実装の欠落を他論文から埋めていない。</p>
+<p>公式コード：一次PDFと書誌で案内を確認できず、取得・実行はNOT TESTED。run.pyは説明のための独立実装。PDFは指定cacheに1回取得し、本文抽出を再利用した。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>PILOT：提案するagentから、実験を運営するagentへ</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/pilot-experiment-lifecycle/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

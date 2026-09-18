@@ -1,0 +1,162 @@
+id: ogr-once-generated-ranked
+arxiv_id: '2608.17613'
+submitted: '2026-08-18'
+title: 'Once Generated, Ranked: End-to-End Generative Slate Recommendation with Unified Semantic-Collaborative
+  IDs'
+authors:
+- Yang Hu
+- Jiayi Guo
+- Jingui Ma
+- Ning Li
+- Jiangling Qin
+- Yanming Li
+- Yang Deng
+- Xiaoshuang Chen
+- Kaiqiao Zhan
+year: 2026
+topics:
+- recommender-systems
+- generative-recommendation
+urls:
+  paper: https://arxiv.org/abs/2608.17613
+  arxiv: https://arxiv.org/abs/2608.17613
+  pdf: https://arxiv.org/pdf/2608.17613v1
+  official_code: null
+verdict: Must Read
+status: published
+question: OGR：生成した時点で、表示順も決まっている
+summary: OGRは表示するslate全体を順序付きで生成する。TUSIDで意味と共起をSIDへ統合し、GL2Pが位置間の好みを計画、SPAがslate単位の反応へ合わせる。Kuaishouの3%トラフィックで有効視聴+1.120%。ただし約2.2倍は依存経路の理論比であり、本番遅延の測定値ではない。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-09-18'
+  version: 2608.17613v1
+  pdf_sha256: b570cccdb371d4bc1fe7249338b7c449cade0ffe78218482daf7d9f6100c5db2
+  url: https://arxiv.org/pdf/2608.17613v1
+  scope: 一次PDFの手法、実験、関連図表と付録を照合。著者報告と人工計算を区別し、未公開の設定を補わない。
+core_idea:
+  author_claim: 著者は、推薦に適したSID、listwise planner、slate preference alignmentを組み合わせ、候補生成とrankingを分けずに順序付きslateを作れると主張する。
+  research_bot_interpretation: 設計上の要点は、位置間依存をSID tokenの直列鎖から潜在的な好みの計画へ移すことにある。意味・共起の表現改善、依存経路の短縮、報酬の整列は別の効能なので、各々の根拠で判断したい。
+sections:
+  overview: OGRは表示するslate全体を順序付きで生成する。TUSIDで意味と共起をSIDへ統合し、GL2Pが位置間の好みを計画、SPAがslate単位の反応へ合わせる。Kuaishouの3%トラフィックで有効視聴+1.120%。ただし約2.2倍は依存経路の理論比であり、本番遅延の測定値ではない。
+  problem: '従来の候補生成→ranking→rerankingでは、後段がどれほど優秀でも候補にないitemは表示できない。次itemのSID生成だけに置き換えても、上位K候補を並べればslateの相互作用まで学べるわけではない。OGRは「どのitemか」と「何番目に置くか」を同じ生成器の責務にする。
+
+
+    [GenPage](genpage-netflix-homepage.html)はhomepageの行と配置、[UniRec](unirec-chain-of-attribute.html)はECの生成型cascade統合を扱う。OGRの単位はshort-videoの表示slateであり、同じページ生成と一括りにしない。[Gryphon](gryphon-v2-cascade.html)のsole
+    candidate generatorという役割とも異なる。これらを同じcatalog・K・遅延制約で比較した実験はない。'
+  method: method.md
+  why_it_might_work: 【解釈】意味枝を残して共起だけを信頼度で弱めれば、履歴の少ないitemを不安定な行動信号で壊しにくい。潜在表現で次位置を計画できればdecode待ちを減らせる。SPAは補助目的の暴走を抑える。ただしplannerの連続表現が正確か、観測されたslate以外にも報酬が一般化するかは別問題である。
+  evidence: '### オフラインの改善は、比較先とdatasetを分ける
+
+
+    表1のIndustrial NDCG@5はOGR 0.0633、最良baselineのSeq2Slate 0.0427で約48.2%増。KuaiRecはOGR 0.1303、PRM 0.1024で約27.2%増。OneRecとの差ではない。時系列leave-five-out、K=5、seed
+    2025–2029の5回平均。offlineの順位改善は露出policyや評価集合に依存し、オンラインの有効視聴増と同じ量ではない。
+
+
+    表3では属性の単純加算がbase SIDより悪化する。情報を増やせばよいわけではない。表4ではplannerを外した分のparameterをencoder/decoderへ再配分しても低下する。ただし各部品の相互作用を全組合せで調べた設計ではない。
+
+
+    ### 3%トラフィック・1週間のA/B
+
+
+    既存システム比でEffective Views +1.120%、Comments +2.954%、Likes +0.505%、Forwards +1.255%。本文のOnline A/B Testingと表10に期間を記載。信頼区間、検定、指標の絶対値やinvalid
+    SID率、end-to-end serving latencyの表は確認できない。3%は全ユーザーへの全面展開を意味しない。
+
+
+    Fig.3の実測throughputはTIGER-Beam比2.43倍、OneRec-Beam比2.49倍。K×DからK+Dへの20/9≈2.22倍は理想化したcritical pathの比で、実測throughputでも総演算量削減率でもない。Top-5は深さDだが、代替next-itemの上位候補を返すため、slateの位置間依存を直接モデル化するOGRとは仕事が違う。
+
+
+    <figure class="teaching batch18"><h3>除去実験：効いた部品と、悪化した融合を残す</h3><div class="matrix-scroll" tabindex="0"
+    role="region" aria-label="比較表"><table><thead><tr><th>条件</th><th>dataset</th><th>NDCG@5</th></tr></thead><tbody><tr><td>base
+    RQ-KMeans</td><td>KuaiRec</td><td>0.1162</td></tr><tr><td>属性を単純加算</td><td>KuaiRec</td><td>0.1096</td></tr><tr><td>cross-attention
+    + gate</td><td>KuaiRec</td><td>0.1198</td></tr><tr><td>CCE concat、CAWなし</td><td>KuaiRec</td><td>0.1298</td></tr><tr><td>TUSID
+    full</td><td>KuaiRec</td><td>0.1303</td></tr><tr><td>GL2P + SPA full</td><td>Industrial</td><td>0.0633</td></tr><tr><td>plannerなし</td><td>Industrial</td><td>0.0359</td></tr><tr><td>SPAなし</td><td>Industrial</td><td>0.0419</td></tr><tr><td>主報酬なし</td><td>Industrial</td><td>0.0467</td></tr><tr><td>補助報酬なし</td><td>Industrial</td><td>0.0554</td></tr><tr><td>保守的正則化なし</td><td>Industrial</td><td>0.0312</td></tr></tbody></table></div><figcaption>表3・4。datasetをまたぐ値を同じablation系列として比較しない。</figcaption></figure>
+
+
+    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2608.17613v1)。図・表・式と実装の対応は末尾のmappingを参照。'
+  executable_understanding: '同じK・Dを持つ逐次decodeと、各位置に独立laneを与えたpipelineを比較する。時間単位は仮定であり、GPUの測定ではない。K=1ではplannerの追加分だけ遅くなる反例も残す。CountSketchは3人の手作り履歴でdistinct
+    usersを数え、CAWのcold-start端点を検査する。報酬は同じ標準化値に単純和と式15を適用して、符号の逆転を比べる。
+
+
+    <figure class="teaching batch18"><h3>復号の時刻表：短くなるのは依存経路</h3><div data-b18="schedule"><label>条件 <select><option
+    value="0">K=5, D=4</option><option value="1">K=1, D=4</option><option value="2">K=5, D=1</option><option
+    value="3">K=10, D=4</option></select></label><div data-output aria-live="polite"><p>K=5、D=4：逐次20段
+    → pipeline 9段。比2.222。OGRの総仕事は25単位。</p><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>lane</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr></thead><tbody><tr><td>planner</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>—</td><td>—</td><td>—</td><td>—</td></tr><tr><td>位置1</td><td>·</td><td>SID1</td><td>SID2</td><td>SID3</td><td>SID4</td><td>·</td><td>·</td><td>·</td><td>·</td></tr><tr><td>位置2</td><td>·</td><td>·</td><td>SID1</td><td>SID2</td><td>SID3</td><td>SID4</td><td>·</td><td>·</td><td>·</td></tr><tr><td>位置3</td><td>·</td><td>·</td><td>·</td><td>SID1</td><td>SID2</td><td>SID3</td><td>SID4</td><td>·</td><td>·</td></tr><tr><td>位置4</td><td>·</td><td>·</td><td>·</td><td>·</td><td>SID1</td><td>SID2</td><td>SID3</td><td>SID4</td><td>·</td></tr><tr><td>位置5</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>SID1</td><td>SID2</td><td>SID3</td><td>SID4</td></tr></tbody></table></div></div><script
+    type="application/json" data-frames>["<p>K=5、D=4：逐次20段 → pipeline 9段。比2.222。OGRの総仕事は25単位。<\/p><div
+    class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"比較表\"><table><thead><tr><th>lane<\/th><th>1<\/th><th>2<\/th><th>3<\/th><th>4<\/th><th>5<\/th><th>6<\/th><th>7<\/th><th>8<\/th><th>9<\/th><\/tr><\/thead><tbody><tr><td>planner<\/td><td>1<\/td><td>2<\/td><td>3<\/td><td>4<\/td><td>5<\/td><td>—<\/td><td>—<\/td><td>—<\/td><td>—<\/td><\/tr><tr><td>位置1<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置2<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置3<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><\/tr><tr><td>位置5<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><\/tr><\/tbody><\/table><\/div>",
+    "<p>K=1、D=4：逐次4段 → pipeline 5段。比0.800。OGRの総仕事は5単位。<\/p><div class=\"matrix-scroll\" tabindex=\"0\"
+    role=\"region\" aria-label=\"比較表\"><table><thead><tr><th>lane<\/th><th>1<\/th><th>2<\/th><th>3<\/th><th>4<\/th><th>5<\/th><\/tr><\/thead><tbody><tr><td>planner<\/td><td>1<\/td><td>—<\/td><td>—<\/td><td>—<\/td><td>—<\/td><\/tr><tr><td>位置1<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><\/tr><\/tbody><\/table><\/div>",
+    "<p>K=5、D=1：逐次5段 → pipeline 6段。比0.833。OGRの総仕事は10単位。<\/p><div class=\"matrix-scroll\" tabindex=\"0\"
+    role=\"region\" aria-label=\"比較表\"><table><thead><tr><th>lane<\/th><th>1<\/th><th>2<\/th><th>3<\/th><th>4<\/th><th>5<\/th><th>6<\/th><\/tr><\/thead><tbody><tr><td>planner<\/td><td>1<\/td><td>2<\/td><td>3<\/td><td>4<\/td><td>5<\/td><td>—<\/td><\/tr><tr><td>位置1<\/td><td>·<\/td><td>SID1<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置2<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置3<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>·<\/td><\/tr><tr><td>位置5<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><\/tr><\/tbody><\/table><\/div>",
+    "<p>K=10、D=4：逐次40段 → pipeline 14段。比2.857。OGRの総仕事は50単位。<\/p><div class=\"matrix-scroll\" tabindex=\"0\"
+    role=\"region\" aria-label=\"比較表\"><table><thead><tr><th>lane<\/th><th>1<\/th><th>2<\/th><th>3<\/th><th>4<\/th><th>5<\/th><th>6<\/th><th>7<\/th><th>8<\/th><th>9<\/th><th>10<\/th><th>11<\/th><th>12<\/th><th>13<\/th><th>14<\/th><\/tr><\/thead><tbody><tr><td>planner<\/td><td>1<\/td><td>2<\/td><td>3<\/td><td>4<\/td><td>5<\/td><td>6<\/td><td>7<\/td><td>8<\/td><td>9<\/td><td>10<\/td><td>—<\/td><td>—<\/td><td>—<\/td><td>—<\/td><\/tr><tr><td>位置1<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置2<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置3<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置5<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置6<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置7<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置8<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置9<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><\/tr><tr><td>位置10<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><\/tr><\/tbody><\/table><\/div>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure><figure
+    class="teaching batch18"><h3>主報酬と補助報酬が対立したらどうなるか</h3><div data-b18="reward"><label>条件 <select><option
+    value="0">主1 / 補助2</option><option value="1">主1 / 補助-2</option><option value="2">主-1 / 補助2</option><option
+    value="3">主-1 / 補助-2</option><option value="4">主0 / 補助3</option><option value="5">主1 / 補助0</option></select></label><div
+    data-output aria-live="polite"><p>主=1、補助=2。単純和=3。SPAのκ=0.5、校正後Δ=2.0。</p></div><script type="application/json"
+    data-frames>["<p>主=1、補助=2。単純和=3。SPAのκ=0.5、校正後Δ=2.0。<\/p>", "<p>主=1、補助=-2。単純和=-1。SPAのκ=0.0、校正後Δ=1.0。<\/p>",
+    "<p>主=-1、補助=2。単純和=1。SPAのκ=0.0、校正後Δ=-1.0。<\/p>", "<p>主=-1、補助=-2。単純和=-3。SPAのκ=0.5、校正後Δ=-2.0。<\/p>",
+    "<p>主=0、補助=3。単純和=3。SPAのκ=0.0、校正後Δ=0.0。<\/p>", "<p>主=1、補助=0。単純和=1。SPAのκ=0.0、校正後Δ=1.0。<\/p>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure>'
+  results: 下の数値はLabの人工計算。著者報告のオンライン指標とは分けて読む。
+  what_we_verified: '**Mechanism: PARTIAL**。人工条件の計算と境界条件を確認した。results.jsonのCONFIRMEDは小さな計算命題にだけ適用する。原論文の学習済みモデルや産業環境を再現した意味ではない。'
+  what_we_did_not_verify: '融合部・SASRec・Transformer・RQ-KMeansの学習、SPA更新、実ログの露出bias、無効SID処理、online A/B、GPU
+    throughputは検証していない。sketchの衝突が1回のhashで必ず相殺するとも主張しない。
+
+
+    **Performance / Scaling / Production applicability: NOT TESTED**。'
+  implementation: '標準ライブラリだけの独立した小実験。リポジトリのルートで `uv run papers/ogr-once-generated-ranked/run.py` を実行すると、同じフォルダーの
+    `results.json` を更新する。外部APIやモデル取得は不要。UIはその計算済み結果を表示し、別の推定器をJavaScriptで動かさない。
+
+
+    [実行コード](../downloads/ogr-once-generated-ranked/run.py)・[全結果](../downloads/ogr-once-generated-ranked/results.json)・[README](../downloads/ogr-once-generated-ranked/README.md)・[手法](../downloads/ogr-once-generated-ranked/method.md)・[lab.yaml](../downloads/ogr-once-generated-ranked/lab.yaml)・[対応表](../downloads/ogr-once-generated-ranked/mapping.md)を保存できる。
+
+
+    照合した一次PDFとarXiv書誌に、取得可能な公式実装への案内は確認できなかった。公式コードの独立実行はNOT TESTED。ここにあるコードは公式実装の移植ではない。'
+  mapping: mapping.md
+teaching_figures:
+- id: ogr-equations
+  kind: equations
+  title: TUSIDとSPAの式を分解する
+  after: method
+  caption: 式の対象と仮定を分けて読む。
+  rationale: 演算と制御の境界を具体化する。
+  locator: 式5–7、15–18
+  steps:
+  - name: 局所共起
+    formula: Cᵢ[h(j)] += σ(j)/|p−q|
+    explanation: shared hashで共通近傍を保存。無関係な衝突項が0になるのは符号乱数に関する期待値。
+  - name: 協調の信頼度
+    formula: αᵢ = 0.35 log(1+Uᵢ)/(log(1+Uᵢ)+0.5)
+    explanation: distinct usersが0ならα=0。
+  - name: 重み付き連結
+    formula: eᵤₙᵢ = [√(1−α)eₛₑₘ ; √α e꜀ₒₗ]
+    explanation: 各枝が単位normなら連結後も単位norm。
+  - name: 報酬の校正
+    formula: Δ = δpri + κ δaux
+    explanation: 同符号ならκ=min(|δpri|,|δaux|)/max(|δpri|,|δaux|,ε)、それ以外0。
+  - name: 保守的な更新
+    formula: LSPA = Lclip + 0.05 KL(q₀ || qθ) + 0.1 Lsup
+    explanation: 候補slate集合上のKL。全catalog分布の厳密なKLではない。
+  source: https://arxiv.org/pdf/2608.17613v1
+- id: ogr-online
+  kind: chart
+  title: オンライン：既存システム比の相対lift
+  after: evidence
+  caption: 一次資料の著者報告。Labで測定した値ではない。
+  rationale: 共通尺度で差と分母を読む。
+  locator: Online A/B Testing、表10
+  maximum: 3
+  unit: '%'
+  bars:
+  - label: Effective Views
+    value: 1.12
+  - label: Comments
+    value: 2.954
+  - label: Likes
+    value: 0.505
+  - label: Forwards
+    value: 1.255
+  source: https://arxiv.org/pdf/2608.17613v1

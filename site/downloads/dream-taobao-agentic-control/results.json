@@ -1,0 +1,231 @@
+{
+  "note": "手作りstrategyを同じdefaultと比較する契約実験。TTL・重み・容量2はLabの仮定。実際のLLM・Intent推定・A/Bは未実行。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "experiments": [
+    {
+      "name": "defaultと局所overrideの比較",
+      "metrics": {
+        "未設定": {
+          "status": "fallback: missing",
+          "ctr": 1.0,
+          "ipv": 1.0,
+          "cvr": 1.0,
+          "gmv": 1.0,
+          "scatter": 3
+        },
+        "有効": {
+          "status": "override",
+          "ctr": 1.0,
+          "ipv": 1.4,
+          "cvr": 1.0,
+          "gmv": 1.0,
+          "scatter": 1
+        },
+        "期限切れ": {
+          "status": "fallback: expired",
+          "ctr": 1.0,
+          "ipv": 1.0,
+          "cvr": 1.0,
+          "gmv": 1.0,
+          "scatter": 3
+        },
+        "範囲外": {
+          "status": "fallback: level range",
+          "ctr": 1.0,
+          "ipv": 1.0,
+          "cvr": 1.0,
+          "gmv": 1.0,
+          "scatter": 3
+        },
+        "未許可field": {
+          "status": "fallback: allowlist",
+          "ctr": 1.0,
+          "ipv": 1.0,
+          "cvr": 1.0,
+          "gmv": 1.0,
+          "scatter": 3
+        },
+        "bool値": {
+          "status": "fallback: level range",
+          "ctr": 1.0,
+          "ipv": 1.0,
+          "cvr": 1.0,
+          "gmv": 1.0,
+          "scatter": 3
+        }
+      }
+    },
+    {
+      "name": "表7の累積liftの算術",
+      "metrics": {
+        "IPV": {
+          "rerank": 2.06,
+          "rerank+rank": 2.71,
+          "差（percentage points）": 0.65,
+          "比の変化（%）": 0.6369
+        },
+        "GMV": {
+          "rerank": 0.88,
+          "rerank+rank": 1.31,
+          "差（percentage points）": 0.43,
+          "比の変化（%）": 0.4262
+        },
+        "PV": {
+          "rerank": 1.03,
+          "rerank+rank": 1.04,
+          "差（percentage points）": 0.01,
+          "比の変化（%）": 0.0099
+        }
+      }
+    }
+  ],
+  "cases": [
+    {
+      "name": "未設定",
+      "bundle": null,
+      "parameters": {
+        "ctr": 1.0,
+        "ipv": 1.0,
+        "cvr": 1.0,
+        "gmv": 1.0,
+        "scatter": 3
+      },
+      "status": "fallback: missing"
+    },
+    {
+      "name": "有効",
+      "bundle": {
+        "version": 1,
+        "expires": 120,
+        "boost": {
+          "ipv": 2
+        },
+        "category": -2
+      },
+      "parameters": {
+        "ctr": 1.0,
+        "ipv": 1.4,
+        "cvr": 1.0,
+        "gmv": 1.0,
+        "scatter": 1
+      },
+      "status": "override"
+    },
+    {
+      "name": "期限切れ",
+      "bundle": {
+        "version": 1,
+        "expires": 99,
+        "boost": {
+          "ipv": 2
+        },
+        "category": -2
+      },
+      "parameters": {
+        "ctr": 1.0,
+        "ipv": 1.0,
+        "cvr": 1.0,
+        "gmv": 1.0,
+        "scatter": 3
+      },
+      "status": "fallback: expired"
+    },
+    {
+      "name": "範囲外",
+      "bundle": {
+        "version": 1,
+        "expires": 120,
+        "boost": {
+          "ipv": 3
+        },
+        "category": -2
+      },
+      "parameters": {
+        "ctr": 1.0,
+        "ipv": 1.0,
+        "cvr": 1.0,
+        "gmv": 1.0,
+        "scatter": 3
+      },
+      "status": "fallback: level range"
+    },
+    {
+      "name": "未許可field",
+      "bundle": {
+        "version": 1,
+        "expires": 120,
+        "boost": {
+          "ipv": 2
+        },
+        "category": -2,
+        "shell": "write-global"
+      },
+      "parameters": {
+        "ctr": 1.0,
+        "ipv": 1.0,
+        "cvr": 1.0,
+        "gmv": 1.0,
+        "scatter": 3
+      },
+      "status": "fallback: allowlist"
+    },
+    {
+      "name": "bool値",
+      "bundle": {
+        "version": 1,
+        "expires": 120,
+        "boost": {
+          "ipv": true
+        },
+        "category": -2
+      },
+      "parameters": {
+        "ctr": 1.0,
+        "ipv": 1.0,
+        "cvr": 1.0,
+        "gmv": 1.0,
+        "scatter": 3
+      },
+      "status": "fallback: level range"
+    }
+  ],
+  "trigger_trace": [
+    {
+      "score": 0.1,
+      "invoke": false,
+      "remaining": 2
+    },
+    {
+      "score": 0.8,
+      "invoke": true,
+      "remaining": 1
+    },
+    {
+      "score": 0.4,
+      "invoke": false,
+      "remaining": 1
+    },
+    {
+      "score": 0.9,
+      "invoke": true,
+      "remaining": 0
+    },
+    {
+      "score": 0.7,
+      "invoke": false,
+      "remaining": 0
+    }
+  ],
+  "reward_tie": 0,
+  "checks": {
+    "invalid_defaults": "CONFIRMED",
+    "local_override": "CONFIRMED",
+    "budget_gate": "CONFIRMED",
+    "business_lift": "NOT TESTED"
+  }
+}

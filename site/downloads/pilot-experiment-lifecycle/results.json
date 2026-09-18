@@ -1,0 +1,248 @@
+{
+  "note": "状態遷移・事前segment・独立task数の人工例。ManagerやPlannerの推論、p値、信頼区間、本番効果は計算していない。承認閾値3はLabの仮定。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "experiments": [
+    {
+      "name": "同じeventでも権限と証拠で遷移を分ける",
+      "metrics": {
+        "権限なしの開始": {
+          "前": "frozen",
+          "後": "frozen"
+        },
+        "承認済みの開始": {
+          "前": "frozen",
+          "後": "observe"
+        },
+        "異常時のpromote": {
+          "前": "observe",
+          "後": "paused"
+        },
+        "証明済みのpromote": {
+          "前": "observe",
+          "後": "confirm"
+        },
+        "独立確認なし": {
+          "前": "confirm",
+          "後": "confirm"
+        },
+        "承認と独立確認あり": {
+          "前": "confirm",
+          "後": "delivered"
+        }
+      }
+    },
+    {
+      "name": "表9の分母15を確認",
+      "metrics": {
+        "ROAM": {
+          "満たした条件": 8,
+          "率": 53.33
+        },
+        "PILOT": {
+          "満たした条件": 14,
+          "率": 93.33
+        }
+      }
+    }
+  ],
+  "trace": [
+    {
+      "name": "権限なしの開始",
+      "before": "frozen",
+      "event": "launch",
+      "after": "frozen"
+    },
+    {
+      "name": "承認済みの開始",
+      "before": "frozen",
+      "event": "launch",
+      "after": "observe"
+    },
+    {
+      "name": "異常時のpromote",
+      "before": "observe",
+      "event": "promote",
+      "after": "paused"
+    },
+    {
+      "name": "証明済みのpromote",
+      "before": "observe",
+      "event": "promote",
+      "after": "confirm"
+    },
+    {
+      "name": "独立確認なし",
+      "before": "confirm",
+      "event": "deliver",
+      "after": "confirm"
+    },
+    {
+      "name": "承認と独立確認あり",
+      "before": "confirm",
+      "event": "deliver",
+      "after": "delivered"
+    }
+  ],
+  "memories": [
+    {
+      "evidence": [
+        [
+          "A",
+          "positive"
+        ]
+      ],
+      "state": "draft",
+      "conflict": false,
+      "sources": 1
+    },
+    {
+      "evidence": [
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "A",
+          "positive"
+        ]
+      ],
+      "state": "draft",
+      "conflict": false,
+      "sources": 1
+    },
+    {
+      "evidence": [
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "B",
+          "positive"
+        ]
+      ],
+      "state": "supported",
+      "conflict": false,
+      "sources": 2
+    },
+    {
+      "evidence": [
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "B",
+          "positive"
+        ],
+        [
+          "C",
+          "positive"
+        ]
+      ],
+      "state": "approved",
+      "conflict": false,
+      "sources": 3
+    },
+    {
+      "evidence": [
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "B",
+          "inconclusive"
+        ]
+      ],
+      "state": "draft",
+      "conflict": false,
+      "sources": 1
+    },
+    {
+      "evidence": [
+        [
+          "A",
+          "positive"
+        ],
+        [
+          "B",
+          "negative"
+        ]
+      ],
+      "state": "draft",
+      "conflict": true,
+      "sources": 1
+    }
+  ],
+  "tree": {
+    "baseline": [
+      "default_bundle",
+      "default_bundle",
+      "default_bundle",
+      "default_bundle",
+      "default_bundle",
+      "default_bundle",
+      "default_bundle",
+      "default_bundle",
+      "default_bundle",
+      "default_bundle"
+    ],
+    "proposal": [
+      "intent_bundle",
+      "intent_bundle",
+      "intent_bundle",
+      "default_bundle",
+      "default_bundle",
+      "default_bundle",
+      "default_bundle",
+      "default_bundle",
+      "default_bundle",
+      "default_bundle"
+    ],
+    "admissible": true
+  },
+  "checks": {
+    "unapproved_launch_blocked": "CONFIRMED",
+    "independent_confirmation_required": "CONFIRMED",
+    "duplicate_task_no_promotion": "CONFIRMED",
+    "causal_manager_gain": "NOT TESTED"
+  }
+}

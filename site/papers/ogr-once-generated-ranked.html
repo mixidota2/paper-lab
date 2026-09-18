@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="OGRは表示するslate全体を順序付きで生成する。TUSIDで意味と共起をSIDへ統合し、GL2Pが位置間の好みを計画、SPAがslate単位の反応へ合わせる。Kuaishouの3%トラフィックで有効視聴+1.120%。ただし約2.2倍は依存経路の理論比であり、本番遅延の測定値ではない。">
+  <title>OGR：生成した時点で、表示順も決まっている | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-08-18</span></div>
+    <h1>OGR：生成した時点で、表示順も決まっている</h1>
+    <p class="lede">OGRは表示するslate全体を順序付きで生成する。TUSIDで意味と共起をSIDへ統合し、GL2Pが位置間の好みを計画、SPAがslate単位の反応へ合わせる。Kuaishouの3%トラフィックで有効視聴+1.120%。ただし約2.2倍は依存経路の理論比であり、本番遅延の測定値ではない。</p>
+    <details class="bibliography"><summary>原論文：Once Generated, Ranked: End-to-End Generative Slate Recommendation with Unified Semantic-Collaborative IDs</summary><p>Yang Hu, Jiayi Guo, Jingui Ma, Ning Li, Jiangling Qin, Yanming Li, Yang Deng, Xiaoshuang Chen, Kaiqiao Zhan</p><p>2608.17613 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2608.17613">原典を読む ↗</a><a href="https://arxiv.org/pdf/2608.17613v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-18 · 一次PDFの手法、実験、関連図表と付録を照合。著者報告と人工計算を区別し、未公開の設定を補わない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-ogr-equations">TUSIDとSPAの式を分解する</a><a href="#figure-ogr-online">オンライン：既存システム比の相対lift</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>OGRは表示するslate全体を順序付きで生成する。TUSIDで意味と共起をSIDへ統合し、GL2Pが位置間の好みを計画、SPAがslate単位の反応へ合わせる。Kuaishouの3%トラフィックで有効視聴+1.120%。ただし約2.2倍は依存経路の理論比であり、本番遅延の測定値ではない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>従来の候補生成→ranking→rerankingでは、後段がどれほど優秀でも候補にないitemは表示できない。次itemのSID生成だけに置き換えても、上位K候補を並べればslateの相互作用まで学べるわけではない。OGRは「どのitemか」と「何番目に置くか」を同じ生成器の責務にする。</p>
+<p><a href="genpage-netflix-homepage.html">GenPage</a>はhomepageの行と配置、<a href="unirec-chain-of-attribute.html">UniRec</a>はECの生成型cascade統合を扱う。OGRの単位はshort-videoの表示slateであり、同じページ生成と一括りにしない。<a href="gryphon-v2-cascade.html">Gryphon</a>のsole candidate generatorという役割とも異なる。これらを同じcatalog・K・遅延制約で比較した実験はない。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者は、推薦に適したSID、listwise planner、slate preference alignmentを組み合わせ、候補生成とrankingを分けずに順序付きslateを作れると主張する。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>設計上の要点は、位置間依存をSID tokenの直列鎖から潜在的な好みの計画へ移すことにある。意味・共起の表現改善、依存経路の短縮、報酬の整列は別の効能なので、各々の根拠で判断したい。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>TUSID：意味と共起を、量子化する前にまとめる</h3>
+<p>動画の画像・音声・文章をMLLMで符号化し、Brand、Category、供給側のB-tags、需要側のC-tagsを共有text encoderで符号化する。MLLM側をqueryとするcross-attentionで属性を集約し、sigmoid gate付き残差として足す。単純な平均ではなく、動画ごとに属性の寄与を調節する。これをSASRecのitem embeddingとして使い、次item予測損失と残差のL2正則化で融合部を学習する（式2–4）。MLLMとtext encoderの具体的な製品名・checkpointは確認範囲では示されていない。</p>
+<p>次に、正の反応を含む学習prefixだけから近傍共起を集める。中心item iの周囲ω=5以内にあるjを、距離の逆数1/|p−q|で重み付けする。CountSketch-based Collaborative Encoding（CCE）は、共通hash hと符号hash σを使ってこの疎なitem間関係を256 bucketへ圧縮する。符号付きlog変換、正規化、固定random projectionで128次元へ移す。検証・testの履歴を混ぜないことが前提になる。</p>
+<p>同じitemに寄与した異なるユーザー数Uを数え、Confidence-Aware Weighting（CAW）で協調枝の重みαを抑える。同じユーザーの反復はsketch量を増やし得るが、Uは1人として数える。意味枝と協調枝を各々正規化し、√(1−α)と√αで重み付けして連結する。α上限は0.35、τ=0.5。最後にRQ-KMeansで4段・各1,024 codeのSIDに量子化する。U=0では意味枝だけが残る。共起の強さと信頼度を別々に扱う設計である。</p>
+<h3>GL2P：表示順を計画してから、各位置のSIDを並行して伸ばす</h3>
+<p>履歴encoderは4層・8 head・hidden 512、FFN 2,048。最大履歴128件のSID embeddingを深さ方向に足し、時間embeddingを加える。List-Wise Preference PlannerとPosition-Wise SID Decoderはそれぞれ2層・8 head・hidden 512、FFN 2,048。plannerはcausal attentionで先行位置を参照し、履歴にはcross-attentionする。decoderのbeam幅は20（表10）。</p>
+<p>学習時は正解SID embeddingの合計を右へずらしてplannerへ入れるteacher forcing。推論時は前の位置の潜在表現pを次へ渡すため、itemの全SID確定を待たずに次の位置を計画できる。位置mのpが出たら、その位置のD tokenを自己回帰で復号する。異なる位置のSID鎖はpがあれば並行処理できるが、同じSID内の深さ方向は直列のまま。</p>
+<p>露出順と反応順の2種類の教師slateを使い、Lsup=Lsid,exposure+0.3 Lsid,feedbackで学ぶ。出力はすでに順序を持つslateなので、候補を別rankerへ渡して初めて表示順を得る「generate then rank」と責務が違う。生成先の全itemを無条件に利用できる保証や、無効SID処理の詳細までは示されていない。</p>
+<h3>SPA：補助報酬が主目的を逆転させないようにする</h3>
+<p>主報酬は位置ごとの有効視聴+0.10、完視聴+0.15、like+0.20、share+0.15、即skip−0.15、dislike−0.25のslate平均。補助報酬は意味的多様性0.90と新規性0.10。ユーザー内の候補集合で各報酬を平均0・分散1に標準化し、主と補助の符号が一致する場合だけ補助を加える（式15）。補助の値が大きいという理由だけで主報酬の向きを反転させない。</p>
+<p>学習は参照policyとの尤度比をclipし、候補分布のKLと教師データのreplayも加える。clip幅0.1、KL重み0.05、replay重み0.1。更新するのはplannerとSID decoderで、他は固定する。これは報酬への過剰適合を抑える設計だが、報酬そのものの妥当性までは保証しない。</p>
+<p><strong>付録5の限定が重要。</strong> 本文のCandidate Rolloutsはbeamでslateを組み立てる説明だが、実験で報酬を校正する集合Aは露出log内の完全なslateだけと付録が明記する。未露出・反実仮想のslateに観測反応を割り当てない。ユーザーに2つ以上のlogged slateがない場合は除外し、一定値の報酬成分は標準化後0にする。このLabも、未露出slateの報酬を作らない。</p>
+<figure class="teaching batch18"><h3>融合する場所を追う</h3><div class="b18-cards"><div><strong>意味枝：学習する</strong><p>MLLM → 属性cross-attention → gate残差。SASRec損失で推薦向けに調整。</p></div><div><strong>協調枝：学習prefixから集計</strong><p>近傍共起 → signed CountSketch → signed log → 正規化 → 固定射影。</p></div><div><strong>CAW → RQ-KMeans</strong><p>distinct usersでαを決め、重み付き連結後に4段SIDへ。</p></div></div><figcaption>図2、式2–7、付録4・表9を説明用に再構成。MLLMの名称は補っていない。</figcaption></figure></div>      </section>
+<figure class="teaching teaching--equations" id="figure-ogr-equations" aria-labelledby="title-ogr-equations">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-ogr-equations">TUSIDとSPAの式を分解する</h3>
+  <ol class="equation-steps"><li><strong>局所共起</strong><div class="math-expression" tabindex="0" role="math" aria-label="Cᵢ[h(j)] += σ(j)/|p−q|">Cᵢ[h(j)] += σ(j)/|p−q|</div><p>shared hashで共通近傍を保存。無関係な衝突項が0になるのは符号乱数に関する期待値。</p></li><li><strong>協調の信頼度</strong><div class="math-expression" tabindex="0" role="math" aria-label="αᵢ = 0.35 log(1+Uᵢ)/(log(1+Uᵢ)+0.5)">αᵢ = 0.35 log(1+Uᵢ)/(log(1+Uᵢ)+0.5)</div><p>distinct usersが0ならα=0。</p></li><li><strong>重み付き連結</strong><div class="math-expression" tabindex="0" role="math" aria-label="eᵤₙᵢ = [√(1−α)eₛₑₘ ; √α e꜀ₒₗ]">eᵤₙᵢ = [√(1−α)eₛₑₘ ; √α e꜀ₒₗ]</div><p>各枝が単位normなら連結後も単位norm。</p></li><li><strong>報酬の校正</strong><div class="math-expression" tabindex="0" role="math" aria-label="Δ = δpri + κ δaux">Δ = δpri + κ δaux</div><p>同符号ならκ=min(|δpri|,|δaux|)/max(|δpri|,|δaux|,ε)、それ以外0。</p></li><li><strong>保守的な更新</strong><div class="math-expression" tabindex="0" role="math" aria-label="LSPA = Lclip + 0.05 KL(q₀ || qθ) + 0.1 Lsup">LSPA = Lclip + 0.05 KL(q₀ || qθ) + 0.1 Lsup</div><p>候補slate集合上のKL。全catalog分布の厳密なKLではない。</p></li></ol>
+  <figcaption>式の対象と仮定を分けて読む。 <a href="https://arxiv.org/pdf/2608.17613v1">出典：式5–7、15–18 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>【解釈】意味枝を残して共起だけを信頼度で弱めれば、履歴の少ないitemを不安定な行動信号で壊しにくい。潜在表現で次位置を計画できればdecode待ちを減らせる。SPAは補助目的の暴走を抑える。ただしplannerの連続表現が正確か、観測されたslate以外にも報酬が一般化するかは別問題である。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><h3>オフラインの改善は、比較先とdatasetを分ける</h3>
+<p>表1のIndustrial NDCG@5はOGR 0.0633、最良baselineのSeq2Slate 0.0427で約48.2%増。KuaiRecはOGR 0.1303、PRM 0.1024で約27.2%増。OneRecとの差ではない。時系列leave-five-out、K=5、seed 2025–2029の5回平均。offlineの順位改善は露出policyや評価集合に依存し、オンラインの有効視聴増と同じ量ではない。</p>
+<p>表3では属性の単純加算がbase SIDより悪化する。情報を増やせばよいわけではない。表4ではplannerを外した分のparameterをencoder/decoderへ再配分しても低下する。ただし各部品の相互作用を全組合せで調べた設計ではない。</p>
+<h3>3%トラフィック・1週間のA/B</h3>
+<p>既存システム比でEffective Views +1.120%、Comments +2.954%、Likes +0.505%、Forwards +1.255%。本文のOnline A/B Testingと表10に期間を記載。信頼区間、検定、指標の絶対値やinvalid SID率、end-to-end serving latencyの表は確認できない。3%は全ユーザーへの全面展開を意味しない。</p>
+<p>Fig.3の実測throughputはTIGER-Beam比2.43倍、OneRec-Beam比2.49倍。K×DからK+Dへの20/9≈2.22倍は理想化したcritical pathの比で、実測throughputでも総演算量削減率でもない。Top-5は深さDだが、代替next-itemの上位候補を返すため、slateの位置間依存を直接モデル化するOGRとは仕事が違う。</p>
+<figure class="teaching batch18"><h3>除去実験：効いた部品と、悪化した融合を残す</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>条件</th><th>dataset</th><th>NDCG@5</th></tr></thead><tbody><tr><td>base RQ-KMeans</td><td>KuaiRec</td><td>0.1162</td></tr><tr><td>属性を単純加算</td><td>KuaiRec</td><td>0.1096</td></tr><tr><td>cross-attention + gate</td><td>KuaiRec</td><td>0.1198</td></tr><tr><td>CCE concat、CAWなし</td><td>KuaiRec</td><td>0.1298</td></tr><tr><td>TUSID full</td><td>KuaiRec</td><td>0.1303</td></tr><tr><td>GL2P + SPA full</td><td>Industrial</td><td>0.0633</td></tr><tr><td>plannerなし</td><td>Industrial</td><td>0.0359</td></tr><tr><td>SPAなし</td><td>Industrial</td><td>0.0419</td></tr><tr><td>主報酬なし</td><td>Industrial</td><td>0.0467</td></tr><tr><td>補助報酬なし</td><td>Industrial</td><td>0.0554</td></tr><tr><td>保守的正則化なし</td><td>Industrial</td><td>0.0312</td></tr></tbody></table></div><figcaption>表3・4。datasetをまたぐ値を同じablation系列として比較しない。</figcaption></figure>
+
+<p><a href="https://arxiv.org/pdf/2608.17613v1">一次資料：版を固定したPDF</a>。図・表・式と実装の対応は末尾のmappingを参照。</p></div>      </section>
+<figure class="teaching teaching--chart" id="figure-ogr-online" aria-labelledby="title-ogr-online">
+  <div class="figure-heading"><span class="eyebrow">CHART</span><span class="figure-badge">論文の報告値</span></div>
+  <h3 id="title-ogr-online">オンライン：既存システム比の相対lift</h3>
+  <p class="chart-metric">% · 共通尺度 0–3</p><div class="bar-chart"><div class="bar-row"><div class="bar-label"><span>Effective Views</span><strong>1.12 %</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 37.333333333333336%"></div></div></div><div class="bar-row"><div class="bar-label"><span>Comments</span><strong>2.954 %</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 98.46666666666668%"></div></div></div><div class="bar-row"><div class="bar-label"><span>Likes</span><strong>0.505 %</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 16.833333333333332%"></div></div></div><div class="bar-row"><div class="bar-label"><span>Forwards</span><strong>1.255 %</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 41.83333333333333%"></div></div></div></div>
+  <figcaption>一次資料の著者報告。Labで測定した値ではない。 <a href="https://arxiv.org/pdf/2608.17613v1">出典：Online A/B Testing、表10 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>同じK・Dを持つ逐次decodeと、各位置に独立laneを与えたpipelineを比較する。時間単位は仮定であり、GPUの測定ではない。K=1ではplannerの追加分だけ遅くなる反例も残す。CountSketchは3人の手作り履歴でdistinct usersを数え、CAWのcold-start端点を検査する。報酬は同じ標準化値に単純和と式15を適用して、符号の逆転を比べる。</p>
+<figure class="teaching batch18"><h3>復号の時刻表：短くなるのは依存経路</h3><div data-b18="schedule"><label>条件 <select><option value="0">K=5, D=4</option><option value="1">K=1, D=4</option><option value="2">K=5, D=1</option><option value="3">K=10, D=4</option></select></label><div data-output aria-live="polite"><p>K=5、D=4：逐次20段 → pipeline 9段。比2.222。OGRの総仕事は25単位。</p><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>lane</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr></thead><tbody><tr><td>planner</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>—</td><td>—</td><td>—</td><td>—</td></tr><tr><td>位置1</td><td>·</td><td>SID1</td><td>SID2</td><td>SID3</td><td>SID4</td><td>·</td><td>·</td><td>·</td><td>·</td></tr><tr><td>位置2</td><td>·</td><td>·</td><td>SID1</td><td>SID2</td><td>SID3</td><td>SID4</td><td>·</td><td>·</td><td>·</td></tr><tr><td>位置3</td><td>·</td><td>·</td><td>·</td><td>SID1</td><td>SID2</td><td>SID3</td><td>SID4</td><td>·</td><td>·</td></tr><tr><td>位置4</td><td>·</td><td>·</td><td>·</td><td>·</td><td>SID1</td><td>SID2</td><td>SID3</td><td>SID4</td><td>·</td></tr><tr><td>位置5</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>SID1</td><td>SID2</td><td>SID3</td><td>SID4</td></tr></tbody></table></div></div><script type="application/json" data-frames>["<p>K=5、D=4：逐次20段 → pipeline 9段。比2.222。OGRの総仕事は25単位。<\/p><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"比較表\"><table><thead><tr><th>lane<\/th><th>1<\/th><th>2<\/th><th>3<\/th><th>4<\/th><th>5<\/th><th>6<\/th><th>7<\/th><th>8<\/th><th>9<\/th><\/tr><\/thead><tbody><tr><td>planner<\/td><td>1<\/td><td>2<\/td><td>3<\/td><td>4<\/td><td>5<\/td><td>—<\/td><td>—<\/td><td>—<\/td><td>—<\/td><\/tr><tr><td>位置1<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置2<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置3<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><\/tr><tr><td>位置5<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><\/tr><\/tbody><\/table><\/div>", "<p>K=1、D=4：逐次4段 → pipeline 5段。比0.800。OGRの総仕事は5単位。<\/p><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"比較表\"><table><thead><tr><th>lane<\/th><th>1<\/th><th>2<\/th><th>3<\/th><th>4<\/th><th>5<\/th><\/tr><\/thead><tbody><tr><td>planner<\/td><td>1<\/td><td>—<\/td><td>—<\/td><td>—<\/td><td>—<\/td><\/tr><tr><td>位置1<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><\/tr><\/tbody><\/table><\/div>", "<p>K=5、D=1：逐次5段 → pipeline 6段。比0.833。OGRの総仕事は10単位。<\/p><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"比較表\"><table><thead><tr><th>lane<\/th><th>1<\/th><th>2<\/th><th>3<\/th><th>4<\/th><th>5<\/th><th>6<\/th><\/tr><\/thead><tbody><tr><td>planner<\/td><td>1<\/td><td>2<\/td><td>3<\/td><td>4<\/td><td>5<\/td><td>—<\/td><\/tr><tr><td>位置1<\/td><td>·<\/td><td>SID1<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置2<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置3<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>·<\/td><\/tr><tr><td>位置5<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><\/tr><\/tbody><\/table><\/div>", "<p>K=10、D=4：逐次40段 → pipeline 14段。比2.857。OGRの総仕事は50単位。<\/p><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"比較表\"><table><thead><tr><th>lane<\/th><th>1<\/th><th>2<\/th><th>3<\/th><th>4<\/th><th>5<\/th><th>6<\/th><th>7<\/th><th>8<\/th><th>9<\/th><th>10<\/th><th>11<\/th><th>12<\/th><th>13<\/th><th>14<\/th><\/tr><\/thead><tbody><tr><td>planner<\/td><td>1<\/td><td>2<\/td><td>3<\/td><td>4<\/td><td>5<\/td><td>6<\/td><td>7<\/td><td>8<\/td><td>9<\/td><td>10<\/td><td>—<\/td><td>—<\/td><td>—<\/td><td>—<\/td><\/tr><tr><td>位置1<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置2<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置3<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置5<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置6<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置7<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置8<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><td>·<\/td><\/tr><tr><td>位置9<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><td>·<\/td><\/tr><tr><td>位置10<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>·<\/td><td>SID1<\/td><td>SID2<\/td><td>SID3<\/td><td>SID4<\/td><\/tr><\/tbody><\/table><\/div>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure>
+<figure class="teaching batch18"><h3>主報酬と補助報酬が対立したらどうなるか</h3><div data-b18="reward"><label>条件 <select><option value="0">主1 / 補助2</option><option value="1">主1 / 補助-2</option><option value="2">主-1 / 補助2</option><option value="3">主-1 / 補助-2</option><option value="4">主0 / 補助3</option><option value="5">主1 / 補助0</option></select></label><div data-output aria-live="polite"><p>主=1、補助=2。単純和=3。SPAのκ=0.5、校正後Δ=2.0。</p></div><script type="application/json" data-frames>["<p>主=1、補助=2。単純和=3。SPAのκ=0.5、校正後Δ=2.0。<\/p>", "<p>主=1、補助=-2。単純和=-1。SPAのκ=0.0、校正後Δ=1.0。<\/p>", "<p>主=-1、補助=2。単純和=1。SPAのκ=0.0、校正後Δ=-1.0。<\/p>", "<p>主=-1、補助=-2。単純和=-3。SPAのκ=0.5、校正後Δ=-2.0。<\/p>", "<p>主=0、補助=3。単純和=3。SPAのκ=0.0、校正後Δ=0.0。<\/p>", "<p>主=1、補助=0。単純和=1。SPAのκ=0.0、校正後Δ=1.0。<\/p>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure></div><div class="downloads"><a href="../downloads/ogr-once-generated-ranked/run.py" download>実行コード</a><a href="../downloads/ogr-once-generated-ranked/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/ogr-once-generated-ranked">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>人工入力と単位時間の依存グラフ。推薦精度・実測速度・学習を再現していない。CountSketch後の学習と量子化は省略。</em></p>
+<h3>依存経路と総仕事量を分ける</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>逐次</th><th>pipeline</th><th>比</th><th>OGR総演算</th></tr></thead><tbody><tr><th scope='row'>K=5,D=4</th><td>20</td><td>9</td><td>2.2222</td><td>25</td></tr><tr><th scope='row'>K=1,D=4</th><td>4</td><td>5</td><td>0.8</td><td>5</td></tr><tr><th scope='row'>K=5,D=1</th><td>5</td><td>6</td><td>0.8333</td><td>10</td></tr><tr><th scope='row'>K=10,D=4</th><td>40</td><td>14</td><td>2.8571</td><td>50</td></tr></tbody></table></div>
+<h3>同じ標準化報酬に単純和とSPAを適用</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>primary</th><th>auxiliary</th><th>kappa</th><th>naive_sum</th><th>calibrated</th></tr></thead><tbody><tr><th scope='row'>0</th><td>1</td><td>2</td><td>0.5</td><td>3</td><td>2.0</td></tr><tr><th scope='row'>1</th><td>1</td><td>-2</td><td>0.0</td><td>-1</td><td>1.0</td></tr><tr><th scope='row'>2</th><td>-1</td><td>2</td><td>0.0</td><td>1</td><td>-1.0</td></tr><tr><th scope='row'>3</th><td>-1</td><td>-2</td><td>0.5</td><td>-3</td><td>-2.0</td></tr><tr><th scope='row'>4</th><td>0</td><td>3</td><td>0.0</td><td>3</td><td>0.0</td></tr><tr><th scope='row'>5</th><td>1</td><td>0</td><td>0.0</td><td>1</td><td>1.0</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;人工入力と単位時間の依存グラフ。推薦精度・実測速度・学習を再現していない。CountSketch後の学習と量子化は省略。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;依存経路と総仕事量を分ける&quot;,
+      &quot;metrics&quot;: {
+        &quot;K=5,D=4&quot;: {
+          &quot;逐次&quot;: 20,
+          &quot;pipeline&quot;: 9,
+          &quot;比&quot;: 2.2222,
+          &quot;OGR総演算&quot;: 25
+        },
+        &quot;K=1,D=4&quot;: {
+          &quot;逐次&quot;: 4,
+          &quot;pipeline&quot;: 5,
+          &quot;比&quot;: 0.8,
+          &quot;OGR総演算&quot;: 5
+        },
+        &quot;K=5,D=1&quot;: {
+          &quot;逐次&quot;: 5,
+          &quot;pipeline&quot;: 6,
+          &quot;比&quot;: 0.8333,
+          &quot;OGR総演算&quot;: 10
+        },
+        &quot;K=10,D=4&quot;: {
+          &quot;逐次&quot;: 40,
+          &quot;pipeline&quot;: 14,
+          &quot;比&quot;: 2.8571,
+          &quot;OGR総演算&quot;: 50
+        }
+      }
+    },
+    {
+      &quot;name&quot;: &quot;同じ標準化報酬に単純和とSPAを適用&quot;,
+      &quot;metrics&quot;: {
+        &quot;0&quot;: {
+          &quot;primary&quot;: 1,
+          &quot;auxiliary&quot;: 2,
+          &quot;kappa&quot;: 0.5,
+          &quot;naive_sum&quot;: 3,
+          &quot;calibrated&quot;: 2.0
+        },
+        &quot;1&quot;: {
+          &quot;primary&quot;: 1,
+          &quot;auxiliary&quot;: -2,
+          &quot;kappa&quot;: 0.0,
+          &quot;naive_sum&quot;: -1,
+          &quot;calibrated&quot;: 1.0
+        },
+        &quot;2&quot;: {
+          &quot;primary&quot;: -1,
+          &quot;auxiliary&quot;: 2,
+          &quot;kappa&quot;: 0.0,
+          &quot;naive_sum&quot;: 1,
+          &quot;calibrated&quot;: -1.0
+        },
+        &quot;3&quot;: {
+          &quot;primary&quot;: -1,
+          &quot;auxiliary&quot;: -2,
+          &quot;kappa&quot;: 0.5,
+          &quot;naive_sum&quot;: -3,
+          &quot;calibrated&quot;: -2.0
+        },
+        &quot;4&quot;: {
+          &quot;primary&quot;: 0,
+          &quot;auxiliary&quot;: 3,
+          &quot;kappa&quot;: 0.0,
+          &quot;naive_sum&quot;: 3,
+          &quot;calibrated&quot;: 0.0
+        },
+        &quot;5&quot;: {
+          &quot;primary&quot;: 1,
+          &quot;auxiliary&quot;: 0,
+          &quot;kappa&quot;: 0.0,
+          &quot;naive_sum&quot;: 1,
+          &quot;calibrated&quot;: 1.0
+        }
+      }
+    }
+  ],
+  &quot;schedules&quot;: [
+    {
+      &quot;k&quot;: 5,
+      &quot;d&quot;: 4,
+      &quot;serial&quot;: 20,
+      &quot;pipeline&quot;: 9,
+      &quot;total_operations&quot;: 25,
+      &quot;ratio&quot;: 2.2222222222222223,
+      &quot;lanes&quot;: [
+        [
+          2,
+          3,
+          4,
+          5
+        ],
+        [
+          3,
+          4,
+          5,
+          6
+        ],
+        [
+          4,
+          5,
+          6,
+          7
+        ],
+        [
+          5,
+          6,
+          7,
+          8
+        ],
+        [
+          6,
+          7,
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      &quot;k&quot;: 1,
+      &quot;d&quot;: 4,
+      &quot;serial&quot;: 4,
+      &quot;pipeline&quot;: 5,
+      &quot;total_operations&quot;: 5,
+      &quot;ratio&quot;: 0.8,
+      &quot;lanes&quot;: [
+        [
+          2,
+          3,
+          4,
+          5
+        ]
+      ]
+    },
+    {
+      &quot;k&quot;: 5,
+      &quot;d&quot;: 1,
+      &quot;serial&quot;: 5,
+      &quot;pipeline&quot;: 6,
+      &quot;total_operations&quot;: 10,
+      &quot;ratio&quot;: 0.8333333333333334,
+      &quot;lanes&quot;: [
+        [
+          2
+        ],
+        [
+          3
+        ],
+        [
+          4
+        ],
+        [
+          5
+        ],
+        [
+          6
+        ]
+      ]
+    },
+    {
+      &quot;k&quot;: 10,
+      &quot;d&quot;: 4,
+      &quot;serial&quot;: 40,
+      &quot;pipeline&quot;: 14,
+      &quot;total_operations&quot;: 50,
+      &quot;ratio&quot;: 2.857142857142857,
+      &quot;lanes&quot;: [
+        [
+          2,
+          3,
+          4,
+          5
+        ],
+        [
+          3,
+          4,
+          5,
+          6
+        ],
+        [
+          4,
+          5,
+          6,
+          7
+        ],
+        [
+          5,
+          6,
+          7,
+          8
+        ],
+        [
+          6,
+          7,
+          8,
+          9
+        ],
+        [
+          7,
+          8,
+          9,
+          10
+        ],
+        [
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          9,
+          10,
+          11,
+          12
+        ],
+        [
+          10,
+          11,
+          12,
+          13
+        ],
+        [
+          11,
+          12,
+          13,
+          14
+        ]
+      ]
+    }
+  ],
+  &quot;reward_cases&quot;: [
+    {
+      &quot;primary&quot;: 1,
+      &quot;auxiliary&quot;: 2,
+      &quot;kappa&quot;: 0.5,
+      &quot;naive_sum&quot;: 3,
+      &quot;calibrated&quot;: 2.0
+    },
+    {
+      &quot;primary&quot;: 1,
+      &quot;auxiliary&quot;: -2,
+      &quot;kappa&quot;: 0.0,
+      &quot;naive_sum&quot;: -1,
+      &quot;calibrated&quot;: 1.0
+    },
+    {
+      &quot;primary&quot;: -1,
+      &quot;auxiliary&quot;: 2,
+      &quot;kappa&quot;: 0.0,
+      &quot;naive_sum&quot;: 1,
+      &quot;calibrated&quot;: -1.0
+    },
+    {
+      &quot;primary&quot;: -1,
+      &quot;auxiliary&quot;: -2,
+      &quot;kappa&quot;: 0.5,
+      &quot;naive_sum&quot;: -3,
+      &quot;calibrated&quot;: -2.0
+    },
+    {
+      &quot;primary&quot;: 0,
+      &quot;auxiliary&quot;: 3,
+      &quot;kappa&quot;: 0.0,
+      &quot;naive_sum&quot;: 3,
+      &quot;calibrated&quot;: 0.0
+    },
+    {
+      &quot;primary&quot;: 1,
+      &quot;auxiliary&quot;: 0,
+      &quot;kappa&quot;: 0.0,
+      &quot;naive_sum&quot;: 1,
+      &quot;calibrated&quot;: 1.0
+    }
+  ],
+  &quot;fusion&quot;: [
+    {
+      &quot;users&quot;: 0,
+      &quot;alpha&quot;: 0.0,
+      &quot;norm_squared&quot;: 1.0
+    },
+    {
+      &quot;users&quot;: 1,
+      &quot;alpha&quot;: 0.20332907553125815,
+      &quot;norm_squared&quot;: 1.0000000000000002
+    },
+    {
+      &quot;users&quot;: 2,
+      &quot;alpha&quot;: 0.24053005457264312,
+      &quot;norm_squared&quot;: 1.0000000000000002
+    },
+    {
+      &quot;users&quot;: 10,
+      &quot;alpha&quot;: 0.28961134425985996,
+      &quot;norm_squared&quot;: 1.0
+    },
+    {
+      &quot;users&quot;: 100,
+      &quot;alpha&quot;: 0.3157877073621585,
+      &quot;norm_squared&quot;: 1.0
+    }
+  ],
+  &quot;sketch&quot;: {
+    &quot;A&quot;: [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      2.0,
+      0.0
+    ],
+    &quot;B&quot;: [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      2.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    &quot;C&quot;: [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    &quot;D&quot;: [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  &quot;distinct_users&quot;: {
+    &quot;A&quot;: 2,
+    &quot;B&quot;: 1,
+    &quot;C&quot;: 1,
+    &quot;D&quot;: 0
+  },
+  &quot;checks&quot;: {
+    &quot;unit_cost_dependency_depth&quot;: &quot;CONFIRMED&quot;,
+    &quot;primary_sign_preserved&quot;: &quot;CONFIRMED&quot;,
+    &quot;unit_branch_norm&quot;: &quot;CONFIRMED&quot;,
+    &quot;ranking_quality&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>下の数値はLabの人工計算。著者報告のオンライン指標とは分けて読む。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>Mechanism: PARTIAL</strong>。人工条件の計算と境界条件を確認した。results.jsonのCONFIRMEDは小さな計算命題にだけ適用する。原論文の学習済みモデルや産業環境を再現した意味ではない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>融合部・SASRec・Transformer・RQ-KMeansの学習、SPA更新、実ログの露出bias、無効SID処理、online A/B、GPU throughputは検証していない。sketchの衝突が1回のhashで必ず相殺するとも主張しない。</p>
+<p><strong>Performance / Scaling / Production applicability: NOT TESTED</strong>。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけの独立した小実験。リポジトリのルートで <code>uv run papers/ogr-once-generated-ranked/run.py</code> を実行すると、同じフォルダーの <code>results.json</code> を更新する。外部APIやモデル取得は不要。UIはその計算済み結果を表示し、別の推定器をJavaScriptで動かさない。</p>
+<p><a href="../downloads/ogr-once-generated-ranked/run.py">実行コード</a>・<a href="../downloads/ogr-once-generated-ranked/results.json">全結果</a>・<a href="../downloads/ogr-once-generated-ranked/README.md">README</a>・<a href="../downloads/ogr-once-generated-ranked/method.md">手法</a>・<a href="../downloads/ogr-once-generated-ranked/lab.yaml">lab.yaml</a>・<a href="../downloads/ogr-once-generated-ranked/mapping.md">対応表</a>を保存できる。</p>
+<p>照合した一次PDFとarXiv書誌に、取得可能な公式実装への案内は確認できなかった。公式コードの独立実行はNOT TESTED。ここにあるコードは公式実装の移植ではない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文・公式コード対応</h1>
+<p>一次資料：<a href="https://arxiv.org/pdf/2608.17613v1">2608.17613v1</a>。確認日：2026-09-18。PDF SHA-256：<code>b570cccdb371d4bc1fe7249338b7c449cade0ffe78218482daf7d9f6100c5db2</code>。</p>
+<table>
+<thead>
+<tr>
+<th>論文の箇所</th>
+<th>このLab</th>
+<th>最小コード / 省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>図2、式2–7、付録4、表9</td>
+<td>TUSID融合図・CAW式</td>
+<td>sketch / confidence / fuse。SASRec、射影、量子化の学習は省略</td>
+</tr>
+<tr>
+<td>図1、式8–13、表10</td>
+<td>GL2P・時刻表</td>
+<td>schedule。単位時間・無制限laneというLab仮定</td>
+</tr>
+<tr>
+<td>式15–18、付録5、表8</td>
+<td>校正切替図</td>
+<td>calibrate / standardize。policy更新なし</td>
+</tr>
+<tr>
+<td>表1・3・4、Fig.3</td>
+<td>offline・ablation・throughput</td>
+<td>著者報告値の転記。独立再現なし</td>
+</tr>
+<tr>
+<td>Online A/B、表10</td>
+<td>3%・1週間のオンライン結果</td>
+<td>本番接続なし</td>
+</tr>
+</tbody>
+</table>
+<p>本文のrollout説明と付録5の運用範囲を併記した。実験の報酬はexposure-onlyで、未露出slateの反応を推定したとは読まない。K+Dは同コストstageを仮定した依存深さ。学習・beam幅・GPU資源・通信を含む実測遅延を計算していない。</p>
+<p>公式コード：一次PDFと書誌で案内を確認できず、取得・実行はNOT TESTED。run.pyは説明のための独立実装。PDFは指定cacheに1回取得し、本文抽出を再利用した。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>OGR：生成した時点で、表示順も決まっている</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/ogr-once-generated-ranked/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

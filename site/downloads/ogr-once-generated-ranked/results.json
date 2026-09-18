@@ -1,0 +1,397 @@
+{
+  "note": "人工入力と単位時間の依存グラフ。推薦精度・実測速度・学習を再現していない。CountSketch後の学習と量子化は省略。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "experiments": [
+    {
+      "name": "依存経路と総仕事量を分ける",
+      "metrics": {
+        "K=5,D=4": {
+          "逐次": 20,
+          "pipeline": 9,
+          "比": 2.2222,
+          "OGR総演算": 25
+        },
+        "K=1,D=4": {
+          "逐次": 4,
+          "pipeline": 5,
+          "比": 0.8,
+          "OGR総演算": 5
+        },
+        "K=5,D=1": {
+          "逐次": 5,
+          "pipeline": 6,
+          "比": 0.8333,
+          "OGR総演算": 10
+        },
+        "K=10,D=4": {
+          "逐次": 40,
+          "pipeline": 14,
+          "比": 2.8571,
+          "OGR総演算": 50
+        }
+      }
+    },
+    {
+      "name": "同じ標準化報酬に単純和とSPAを適用",
+      "metrics": {
+        "0": {
+          "primary": 1,
+          "auxiliary": 2,
+          "kappa": 0.5,
+          "naive_sum": 3,
+          "calibrated": 2.0
+        },
+        "1": {
+          "primary": 1,
+          "auxiliary": -2,
+          "kappa": 0.0,
+          "naive_sum": -1,
+          "calibrated": 1.0
+        },
+        "2": {
+          "primary": -1,
+          "auxiliary": 2,
+          "kappa": 0.0,
+          "naive_sum": 1,
+          "calibrated": -1.0
+        },
+        "3": {
+          "primary": -1,
+          "auxiliary": -2,
+          "kappa": 0.5,
+          "naive_sum": -3,
+          "calibrated": -2.0
+        },
+        "4": {
+          "primary": 0,
+          "auxiliary": 3,
+          "kappa": 0.0,
+          "naive_sum": 3,
+          "calibrated": 0.0
+        },
+        "5": {
+          "primary": 1,
+          "auxiliary": 0,
+          "kappa": 0.0,
+          "naive_sum": 1,
+          "calibrated": 1.0
+        }
+      }
+    }
+  ],
+  "schedules": [
+    {
+      "k": 5,
+      "d": 4,
+      "serial": 20,
+      "pipeline": 9,
+      "total_operations": 25,
+      "ratio": 2.2222222222222223,
+      "lanes": [
+        [
+          2,
+          3,
+          4,
+          5
+        ],
+        [
+          3,
+          4,
+          5,
+          6
+        ],
+        [
+          4,
+          5,
+          6,
+          7
+        ],
+        [
+          5,
+          6,
+          7,
+          8
+        ],
+        [
+          6,
+          7,
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      "k": 1,
+      "d": 4,
+      "serial": 4,
+      "pipeline": 5,
+      "total_operations": 5,
+      "ratio": 0.8,
+      "lanes": [
+        [
+          2,
+          3,
+          4,
+          5
+        ]
+      ]
+    },
+    {
+      "k": 5,
+      "d": 1,
+      "serial": 5,
+      "pipeline": 6,
+      "total_operations": 10,
+      "ratio": 0.8333333333333334,
+      "lanes": [
+        [
+          2
+        ],
+        [
+          3
+        ],
+        [
+          4
+        ],
+        [
+          5
+        ],
+        [
+          6
+        ]
+      ]
+    },
+    {
+      "k": 10,
+      "d": 4,
+      "serial": 40,
+      "pipeline": 14,
+      "total_operations": 50,
+      "ratio": 2.857142857142857,
+      "lanes": [
+        [
+          2,
+          3,
+          4,
+          5
+        ],
+        [
+          3,
+          4,
+          5,
+          6
+        ],
+        [
+          4,
+          5,
+          6,
+          7
+        ],
+        [
+          5,
+          6,
+          7,
+          8
+        ],
+        [
+          6,
+          7,
+          8,
+          9
+        ],
+        [
+          7,
+          8,
+          9,
+          10
+        ],
+        [
+          8,
+          9,
+          10,
+          11
+        ],
+        [
+          9,
+          10,
+          11,
+          12
+        ],
+        [
+          10,
+          11,
+          12,
+          13
+        ],
+        [
+          11,
+          12,
+          13,
+          14
+        ]
+      ]
+    }
+  ],
+  "reward_cases": [
+    {
+      "primary": 1,
+      "auxiliary": 2,
+      "kappa": 0.5,
+      "naive_sum": 3,
+      "calibrated": 2.0
+    },
+    {
+      "primary": 1,
+      "auxiliary": -2,
+      "kappa": 0.0,
+      "naive_sum": -1,
+      "calibrated": 1.0
+    },
+    {
+      "primary": -1,
+      "auxiliary": 2,
+      "kappa": 0.0,
+      "naive_sum": 1,
+      "calibrated": -1.0
+    },
+    {
+      "primary": -1,
+      "auxiliary": -2,
+      "kappa": 0.5,
+      "naive_sum": -3,
+      "calibrated": -2.0
+    },
+    {
+      "primary": 0,
+      "auxiliary": 3,
+      "kappa": 0.0,
+      "naive_sum": 3,
+      "calibrated": 0.0
+    },
+    {
+      "primary": 1,
+      "auxiliary": 0,
+      "kappa": 0.0,
+      "naive_sum": 1,
+      "calibrated": 1.0
+    }
+  ],
+  "fusion": [
+    {
+      "users": 0,
+      "alpha": 0.0,
+      "norm_squared": 1.0
+    },
+    {
+      "users": 1,
+      "alpha": 0.20332907553125815,
+      "norm_squared": 1.0000000000000002
+    },
+    {
+      "users": 2,
+      "alpha": 0.24053005457264312,
+      "norm_squared": 1.0000000000000002
+    },
+    {
+      "users": 10,
+      "alpha": 0.28961134425985996,
+      "norm_squared": 1.0
+    },
+    {
+      "users": 100,
+      "alpha": 0.3157877073621585,
+      "norm_squared": 1.0
+    }
+  ],
+  "sketch": {
+    "A": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      2.0,
+      0.0
+    ],
+    "B": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      2.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "C": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "D": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "distinct_users": {
+    "A": 2,
+    "B": 1,
+    "C": 1,
+    "D": 0
+  },
+  "checks": {
+    "unit_cost_dependency_depth": "CONFIRMED",
+    "primary_sign_preserved": "CONFIRMED",
+    "unit_branch_norm": "CONFIRMED",
+    "ranking_quality": "NOT TESTED"
+  }
+}

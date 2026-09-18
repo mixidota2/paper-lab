@@ -43,7 +43,7 @@ def main():
                 if width in [360,1440]:
                     page.screenshot(path=f'/tmp/{slug}-{width}-17.png',full_page=True)
             page.goto((ROOT/'site/index.html').as_uri())
-            assert page.locator('[data-paper]').count()==42
+            assert page.locator('[data-paper]').count()==len(list((ROOT/'papers').glob('*/lab.yaml')))
             for slug in SLUGS:
                 assert page.locator(f'a[href="papers/{slug}.html"]').count()>=1
             page.close()

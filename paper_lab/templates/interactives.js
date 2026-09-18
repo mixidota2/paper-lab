@@ -249,3 +249,13 @@ document.querySelectorAll('[data-b17]').forEach(panel => {
   control.addEventListener('change', update);
   update();
 });
+
+// September 18: render precomputed Python experiment frames, without recomputing results.
+document.querySelectorAll('[data-b18]').forEach(root => {
+  const frames = JSON.parse(root.querySelector('[data-frames]').textContent);
+  const select = root.querySelector('select');
+  const output = root.querySelector('[data-output]');
+  const update = () => { output.innerHTML = frames[Number(select.value)]; };
+  select.addEventListener('change', update);
+  update();
+});

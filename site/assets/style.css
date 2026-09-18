@@ -276,3 +276,18 @@ body{background:white}
 .batch17 [data-output] { border-left:4px solid #18756d; background:#f2f8f8; color:#16353e; padding:14px; min-height:3em; }
 .batch17 select { max-width:100%; margin:10px; padding:8px; }
 .batch17 input[type=range] { display:block; width:100%; margin:18px 0; }
+
+/* Paper-shaped teaching figures for the September 18 batch. */
+.batch18 { overflow: hidden; }
+.b18-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr)); gap:.8rem; margin:1rem 0; }
+.b18-cards > div { border:1px solid var(--line,#cbd5d1); border-radius:10px; padding:1rem; background:var(--surface,#f4f7f5); min-width:0; overflow-wrap:anywhere; }
+.b18-cards p { margin:.5rem 0 0; }
+.b18-control { border:2px solid #37776d; border-radius:10px; padding:1rem; background:#edf7f4; color:#203d37; }
+.b18-arrow { text-align:center; font-weight:700; }
+.b18-funnel { display:grid; gap:.6rem; margin:1rem 0; }
+.b18-funnel > div { width:var(--w); min-width:min(100%,250px); box-sizing:border-box; margin:auto; background:#e3f1ef; border-left:5px solid #397c70; padding:1rem; color:#203d37; }
+.b18-lifecycle { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:1rem; padding-left:1.6rem; }
+.b18-lifecycle li { padding:.8rem; border-top:4px solid #b47b36; background:#fbf4e8; color:#473521; }
+.b18-tree { text-align:center; border-top:2px dashed #b47b36; padding-top:1rem; }
+[data-b18] select { display:block; width:100%; max-width:34rem; padding:.7rem; margin:.5rem 0 1rem; font:inherit; }
+[data-b18] [data-output] { min-width:0; overflow-wrap:anywhere; }

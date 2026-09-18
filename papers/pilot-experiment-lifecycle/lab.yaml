@@ -1,0 +1,130 @@
+id: pilot-experiment-lifecycle
+arxiv_id: '2608.18637'
+submitted: '2026-08-19'
+title: PILOT Technical Report
+authors:
+- PILOT Team
+year: 2026
+topics:
+- recommender-systems
+- ai-agent-systems
+urls:
+  paper: https://arxiv.org/abs/2608.18637
+  arxiv: https://arxiv.org/abs/2608.18637
+  pdf: https://arxiv.org/pdf/2608.18637v1
+  official_code: null
+verdict: Watch
+status: published
+question: PILOT：提案するagentから、実験を運営するagentへ
+summary: PILOTはExperiment Manager・Search Planner・Memory Curatorを、決定的な安全・統計・権限の境界で囲む。Taobaoの前後比較でbest-bucket
+  IPVはROAM +1.00%に対し+1.40%、探索条件の達成率は53.3%から93.3%。設計は具体的だが、Manager×Plannerの2×2比較は未実施なのでWatchとする。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-09-18'
+  version: 2608.18637v1
+  pdf_sha256: 43850e56b4c5d51af05899f8d1d927a3bf45720450e700f9c96f377bb9d8ac2c
+  url: https://arxiv.org/pdf/2608.18637v1
+  scope: 一次PDFの手法、実験、関連図表と付録を照合。著者報告と人工計算を区別し、未公開の設定を補わない。
+core_idea:
+  author_claim: 著者は、Managerによる能動的な実験運営、Plannerによるsegment別探索、Curatorによる経験蓄積が、反応的なROAMより探索の進捗を増やすと主張する。
+  research_bot_interpretation: 決定的なサービスが判断可能な選択肢を先に限定する設計に注目したい。within-taskの有意性とcross-taskの記憶の確信度を分ける設計は再利用しやすい。一方、比較実験はその設計の個別寄与まで裏づけていない。
+sections:
+  overview: PILOTはExperiment Manager・Search Planner・Memory Curatorを、決定的な安全・統計・権限の境界で囲む。Taobaoの前後比較でbest-bucket
+    IPVはROAM +1.00%に対し+1.40%、探索条件の達成率は53.3%から93.3%。設計は具体的だが、Manager×Plannerの2×2比較は未実施なのでWatchとする。
+  problem: '指標が悪くなったらparameterを変えるだけでは、何も変えないbucketと、頻繁に変えすぎて証拠が残らないbucketが生じる。PILOTは「どの候補か」だけでなく、「いつ観察を閉じるか」「何を独立確認するか」「どの経験を次へ持ち越すか」を扱う。
+
+
+    [DREAM](dream-taobao-agentic-control.html)のrequest向け制御、[CORAL](coral-meta-config-harness.html)の設定更新、[AgentX](agentx-kuaishou.html)のcode開発と並べると、PILOTの責務は実験lifecycleにある。ROAMもagentなので、ここからagent一般が人より優れるという結論は出ない。'
+  method: method.md
+  why_it_might_work: 【解釈】観測前に判断基準を固定し、同じtaskの反復を記憶の独立証拠に数えなければ、都合のよい結果だけを学ぶ循環を抑えられる。PolicyTreeは全体一律調整では相殺されるsegment差を利用できるが、細分化しすぎると統計powerを失う。leaf比率や探索予算の制約が必要になる。
+  evidence: '### 最良bucketの比較は、agentの因果効果を分離しない
+
+
+    Taobaoの5 bucketでROAMを7日、PILOTを最初の5日報告した前後比較。best IPVは+1.00%から+1.40%、Core IPVは+0.90%から+1.60%。共通基準からのliftであり、「PILOTがROAMよりIPVを40%増やした」とは言えない。baseline比の改善幅が0.40
+    percentage points増えた比較である。
+
+
+    表7のPILOT day 5ではbucket 23がIPV +1.40%、Core IPV +1.60%、取引数+0.95%、取引金額+1.50%。取引数の最大+0.96%はbucket 25。本文の総括はこれら最大値をまとめて記すため、全指標が同じbucketで最大になったとは読まない。bucket
+    21の取引数−0.13%も消さない。
+
+
+    ### Search Efficiencyの分母は、5 bucket × 3条件
+
+
+    「目標超過」「再設定1回以下で安定読取」「探索に純進捗」の各binary条件を足す。ROAMは1+4+3=8、PILOTは4+5+5=14で、8/15=53.3%から14/15=93.3%、40
+    percentage points増（表9）。計算速度や提案1件あたりの成功率ではない。また表7のday 5断面でIPVが1%を超えるのは3 bucketで、表9の4/5は期間内の目標超過の評価と区別する。
+
+
+    §6.3は比較がbefore/afterで非ランダムと明記する。Managerだけ、Plannerだけ、両方、どちらもなしを比べる2×2（表8）は計画であり未実施。per-action観測modelの校正と比較可能なscoringが実施条件。したがって現時点でManager・Planner・Curator個別の増分を数値化できない。traffic構成、時期、探索空間の変更、best-bucket選択の影響が残る。
+
+
+    <figure class="teaching batch18"><h3>全5 bucketを見て、最大値の寄せ集めを避ける</h3><div class="matrix-scroll" tabindex="0"
+    role="region" aria-label="比較表"><table><thead><tr><th>bucket</th><th>IPV</th><th>Core IPV</th><th>取引数</th><th>取引金額</th></tr></thead><tbody><tr><td>21</td><td>+0.39%</td><td>+0.52%</td><td>−0.13%</td><td>+0.40%</td></tr><tr><td>22</td><td>+1.31%</td><td>+1.48%</td><td>+0.54%</td><td>+1.35%</td></tr><tr><td>23</td><td>+1.40%</td><td>+1.60%</td><td>+0.95%</td><td>+1.50%</td></tr><tr><td>24</td><td>+1.11%</td><td>+1.25%</td><td>+0.52%</td><td>+1.20%</td></tr><tr><td>25</td><td>+0.68%</td><td>+0.80%</td><td>+0.96%</td><td>+1.10%</td></tr></tbody></table></div><figcaption>表7のday
+    5。ROAMとの同時ランダム比較ではない。</figcaption></figure><figure class="teaching batch18"><h3>未実施の2×2：何がまだ切り分けられていないか</h3><div
+    class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>lifecycle</th><th>Plannerなし</th><th>Plannerあり</th></tr></thead><tbody><tr><td>決定的制御のみ</td><td>A：未実施</td><td>B：未実施</td></tr><tr><td>Managerあり</td><td>C：未実施</td><td>D：配備構成。ただし2×2として未実施</td></tr></tbody></table></div><figcaption>表8・§6.3.1。B−A、C−A、D−B、D−Cを比べる計画。空欄に推定値を入れない。</figcaption></figure>
+
+
+    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2608.18637v1)。図・表・式と実装の対応は末尾のmappingを参照。'
+  executable_understanding: '同じlaunch / promote / deliverイベントに対して、権限・data health・独立確認の有無を変える。baselineの「依頼があればそのまま進む」処理と比べると、guardのある状態機械は承認のないlaunchや確認前deliveryを通さない。certificateは手作りであり、統計engineを再実装していない。
+
+
+    記憶では同じtask Aを10回記録する条件と、A・B・Cの独立証拠を比較する。approvedへの閾値3はLabの仮定で、論文の固定値ではない。処置前segmentによる10人の分岐と最小leaf比率も確認し、表9の算術を別途再計算する。
+
+
+    <figure class="teaching batch18"><h3>同じcommandでも、進める条件は違う</h3><div data-b18="lifecycle"><label>条件
+    <select><option value="0">権限なしの開始</option><option value="1">承認済みの開始</option><option value="2">異常時のpromote</option><option
+    value="3">証明済みのpromote</option><option value="4">独立確認なし</option><option value="5">承認と独立確認あり</option></select></label><div
+    data-output aria-live="polite"><p>権限なしの開始：frozen → event=launch → frozen</p></div><script type="application/json"
+    data-frames>["<p>権限なしの開始：frozen → event=launch → frozen<\/p>", "<p>承認済みの開始：frozen → event=launch →
+    observe<\/p>", "<p>異常時のpromote：observe → event=promote → paused<\/p>", "<p>証明済みのpromote：observe →
+    event=promote → confirm<\/p>", "<p>独立確認なし：confirm → event=deliver → confirm<\/p>", "<p>承認と独立確認あり：confirm
+    → event=deliver → delivered<\/p>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure><figure
+    class="teaching batch18"><h3>task内の反復と、taskをまたぐ確認を区別する</h3><div data-b18="memory"><label>条件 <select><option
+    value="0">1 task</option><option value="1">同一taskを10回</option><option value="2">独立2 task</option><option
+    value="3">独立3 task</option><option value="4">inconclusive追加</option><option value="5">反証あり</option></select></label><div
+    data-output aria-live="polite"><p>state=draft、独立した支持task=1、未解決の対立=なし。</p></div><script type="application/json"
+    data-frames>["<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>",
+    "<p>state=supported、独立した支持task=2、未解決の対立=なし。<\/p>", "<p>state=approved、独立した支持task=3、未解決の対立=なし。<\/p>",
+    "<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=あり。<\/p>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure>'
+  results: 下の数値はLabの人工計算。著者報告のオンライン指標とは分けて読む。
+  what_we_verified: '**Mechanism: PARTIAL**。人工条件の計算と境界条件を確認した。results.jsonのCONFIRMEDは小さな計算命題にだけ適用する。原論文の学習済みモデルや産業環境を再現した意味ではない。'
+  what_we_did_not_verify: 'LLMの候補品質、逐次検定、多重比較補正、sample ratio mismatch検出、実trafficの承認workflow、PolicyTreeの5
+    action全実装、memoryの自動反証統合は未検証。人工guardが動くことからIPV改善や自律実験の安全性は導けない。
+
+
+    **Performance / Scaling / Production applicability: NOT TESTED**。'
+  implementation: '標準ライブラリだけの独立した小実験。リポジトリのルートで `uv run papers/pilot-experiment-lifecycle/run.py` を実行すると、同じフォルダーの
+    `results.json` を更新する。外部APIやモデル取得は不要。UIはその計算済み結果を表示し、別の推定器をJavaScriptで動かさない。
+
+
+    [実行コード](../downloads/pilot-experiment-lifecycle/run.py)・[全結果](../downloads/pilot-experiment-lifecycle/results.json)・[README](../downloads/pilot-experiment-lifecycle/README.md)・[手法](../downloads/pilot-experiment-lifecycle/method.md)・[lab.yaml](../downloads/pilot-experiment-lifecycle/lab.yaml)・[対応表](../downloads/pilot-experiment-lifecycle/mapping.md)を保存できる。
+
+
+    照合した一次PDFとarXiv書誌に、取得可能な公式実装への案内は確認できなかった。公式コードの独立実行はNOT TESTED。ここにあるコードは公式実装の移植ではない。'
+  mapping: mapping.md
+teaching_figures:
+- id: pilot-objective
+  kind: equations
+  title: 基準を固定して、探索と知識を評価する
+  after: method
+  caption: 式の対象と仮定を分けて読む。
+  rationale: 演算と制御の境界を具体化する。
+  locator: §4.1 式2–3、§6.3.2
+  steps:
+  - name: 全体効果
+    formula: Δtotal(T)=E[Y(T)]−E[Y(T₀)]
+    explanation: 固定baselineはround間で変えない。
+  - name: 1操作の効果
+    formula: Δstep(a)=E[Y(T*ₐ)]−E[Y(T*)]
+    explanation: Championをepoch内で固定して比べる。
+  - name: 探索可能な木
+    formula: depth≤dmax ; leaves≤Lmax ; w(leaf)≥wmin
+    explanation: 処置前featureと登録済みbundleの範囲だけを探索する。
+  - name: 探索の達成率
+    formula: Search Efficiency=Σbucket Σcondition I[達成]/(3B)
+    explanation: B=5。PILOT 14/15、ROAM 8/15。速度や勝率ではない。
+  source: https://arxiv.org/pdf/2608.18637v1
