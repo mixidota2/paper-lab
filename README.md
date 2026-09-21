@@ -1,6 +1,6 @@
 # Interactive Research Library
 
-一次資料を読み、仕組み・根拠・限界を日本語で説明する45件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
+一次資料を読み、仕組み・根拠・限界を日本語で説明する51件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
 
 公開先：https://mixidota2.github.io/paper-lab/
 
@@ -86,3 +86,16 @@ GenPage、UniRec、AgentX、STATIC、FlashTrie、GateSID、CORALの7本を追加
 OGR、DREAM、PILOTの3本を追加。OGRはSID融合・依存経路・報酬校正、DREAMは既存cascadeへの制御と局所override、PILOTは実験lifecycleとcross-task memoryを図と小実験で確認する。各run.pyは標準ライブラリだけで独立実行できる。一次PDFの版・SHA-256と節の対応はmapping.mdに記録した。
 
 OGRの理論的な依存深さと実測throughput、DREAMの累積lift、PILOTの非ランダムな前後比較と未実施の2×2を分けて記載。MechanismはPARTIAL、本番性能・スケーリング・本番適用性はNOT TESTED。
+
+## 2026-09-21追加分
+
+生成推薦の移行範囲を比べる6本。各Labは一次論文の版とhash、実行コード、結果、原典対応表を含みます。
+
+- Must: [LIGE-GR](papers/lige-gr-meta-listwise/README.md) — 既存rankerに列の文脈・価値・探索を追加。
+- Must: [Sona](papers/sona-yandex-music/README.md) — 8k履歴と蒸留でcascadeを置換。
+- Worth: [Wolt UVR](papers/uvr-wolt-trial-reorder/README.md) — TransformerのlogitとCatBoostでtrial/reorderを調整。
+- Radar: [PushDualGen](papers/pushdualgen-kuaishou/README.md) — SIDを先に、任意のcopyを後に生成。
+- Radar: [SnapLGR](papers/snaplgr-snapchat/README.md) — Qwen3-0.6Bとbatch serving。
+- Radar: [SIDScope](papers/sidscope-diagnostics/README.md) — 対応表と生成traceの診断。公式quickstartも実行。
+
+追加検査: `uv run pytest tests/test_september21_labs.py`、`uv run --with playwright tests/browser_september21.py`。後者は `/opt/google/chrome/chrome` を使用します。実験の本番性能・scalingはNOT TESTEDです。

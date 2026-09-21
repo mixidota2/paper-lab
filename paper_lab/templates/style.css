@@ -297,3 +297,35 @@ body{background:white}
 .batch18 .matrix-scroll th, .batch18 .matrix-scroll td { overflow-wrap:normal; }
 [data-b18="schedule"] table { width:max-content; min-width:100%; table-layout:auto; }
 [data-b18="schedule"] th, [data-b18="schedule"] td { white-space:nowrap; min-width:3.5rem; }
+
+/* September 21: paper-specific research displays, with readable mobile fallback. */
+.batch21 { min-width:0; }
+.batch21 select { max-width:100%; padding:.65rem; margin:.5rem 0 1rem; font:inherit; }
+.batch21 [data-output] { min-width:0; }
+.batch21 th,.batch21 td { min-width:7rem; overflow-wrap:normal; word-break:normal; }
+.b21-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:.7rem; margin:1rem 0; }
+.b21-cards>div { border:1px solid #bed0cd; border-radius:10px; padding:1rem; background:#f1f7f4; }
+.b21-cards strong { color:#135e52; }
+.b21-search { padding-left:1.5rem; }
+.b21-search li { padding:.65rem; margin:.4rem 0; border-left:3px solid #c78747; background:#faf4eb; }
+.b21-search code { white-space:normal; overflow-wrap:anywhere; }
+.b21-history { display:grid; grid-template-columns:3fr 1fr; gap:.5rem; margin:1rem 0; }
+.b21-history>div { padding:1rem; border-radius:8px; }
+.b21-history .old { background:#e5e9ef; }
+.b21-history .recent { background:#d6eee4; }
+.b21-history .deep { min-height:125px; border-bottom:7px double #2b7564; }
+.b21-history .bridge { grid-column:1/-1; background:#f4eee2; }
+.b21-frontier { display:grid; gap:.8rem; }
+.b21-frontier>div { padding:.8rem; border-left:4px solid #416e92; background:#eef4f8; }
+.b21-frontier label { display:block; margin-top:.4rem; }
+.b21-frontier meter { width:35%; min-width:60px; height:1.1rem; }
+.b21-tokens { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin:1rem 0; }
+.b21-tokens span { border:1px solid #83a596; padding:.8rem; border-radius:8px; background:#eaf5ed; }
+.b21-tokens .muted { background:#eee; color:#555; border-style:dashed; }
+.b21-serving { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.b21-serving section { padding:1rem; border-top:5px solid #427267; background:#eff6f2; }
+.b21-serving section+section { border-color:#af7339; background:#fbf1e5; }
+@media(max-width:560px) { .b21-history { grid-template-columns:1.5fr 1fr; } .b21-history>div { padding:.7rem; } .b21-serving { grid-template-columns:1fr; } }
+/* Preserve method names as words inside horizontally scrollable new Lab tables. */
+.paper-body:has(.batch21) .teaching-matrix th,
+.paper-body:has(.batch21) .teaching-matrix td { min-width:8rem; word-break:normal; overflow-wrap:normal; }

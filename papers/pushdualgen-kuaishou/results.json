@@ -1,0 +1,56 @@
+{
+  "note": "合成頻度モデル。copyはSIDの後なので省略しても先のSIDは同一。説明の忠実性やQwen品質は未検証。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "experiments": [
+    {
+      "name": "copy省略と表現融合",
+      "metrics": {
+        "baseline_user_only": {
+          "ranking": [
+            "familiar",
+            "mixed",
+            "discovery"
+          ]
+        },
+        "user_plus_SID": {
+          "ranking": [
+            "discovery",
+            "mixed",
+            "familiar"
+          ]
+        }
+      }
+    }
+  ],
+  "decode_trace": {
+    "music": {
+      "copy_on": {
+        "sid": "s0",
+        "copy": "歌の続きを聴く",
+        "steps": 8
+      },
+      "copy_off": {
+        "sid": "s0",
+        "copy": "",
+        "steps": 1
+      }
+    },
+    "food": {
+      "copy_on": {
+        "sid": "s1",
+        "copy": "料理を見る",
+        "steps": 6
+      },
+      "copy_off": {
+        "sid": "s1",
+        "copy": "",
+        "steps": 1
+      }
+    }
+  }
+}

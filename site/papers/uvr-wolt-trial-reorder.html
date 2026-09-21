@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="UVRは双方向TransformerのlogitをCatBoostへ渡す。V1はtrial +5.5%、CVR +0.16%。V2はtrialを伸ばす一方、reorder MRRが6カ国中5カ国で後退した。">
+  <title>新しい店を勧めるほど、いつもの店を見つけにくくなるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-14</span></div>
+    <h1>新しい店を勧めるほど、いつもの店を見つけにくくなるか</h1>
+    <p class="lede">UVRは双方向TransformerのlogitをCatBoostへ渡す。V1はtrial +5.5%、CVR +0.16%。V2はtrialを伸ばす一方、reorder MRRが6カ国中5カ国で後退した。</p>
+    <details class="bibliography"><summary>原論文：Balancing Trial and Reorder: A Hybrid Sequential Transformer–GBDT Ranker for On-Demand Delivery</summary><p>Marcel Kurovski, Attila Nagy, Steffen Klempau, Aleksandr Fedintsev</p><p>2609.16407 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.16407">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.16407v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-21 · arXiv v1の全文HTML・数式・表・付録を確認。著者報告と合成実験を区別。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-versions">V1・V2・V3で変わるもの</a><a href="#figure-country-tradeoff">平均に隠れる再注文の損失</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>WoltのUniversal Venue Ranker（UVR）は、購入履歴を読む双方向Transformerのlogitを、CatBoostの特徴量に加える。V1の2週間・50:50 A/BではMerchant Trial Rate +5.5%、Global CVR +0.16%（p=0.017）。V2でtrialをさらに重視すると、再注文のオフラインMRRは6カ国中5カ国で旧productionを下回った。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>配達できない店舗は、好みに合っていても候補にできない。営業時間、距離、配達員、混雑で候補集合はrequestごとに変わる。また、いつもの店から買うreorderと、新しい店を試すtrialでは必要な順位が違う。平均MRRだけを最適化すると、利用頻度の高い再注文が学習を支配しやすい。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-versions" aria-labelledby="title-versions">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-versions">V1・V2・V3で変わるもの</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="V1・V2・V3で変わるものの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">対象</th><th scope="col">ranker損失</th><th scope="col">追加</th></tr></thead><tbody><tr><th scope="row">V1</th><td class="">飲食店</td><td class="">PairLogit</td><td class="">logit + context</td></tr><tr><th scope="row">V2</th><td class="">飲食店</td><td class="">YetiRankPairwise:NDCG</td><td class="">smoothing・trial weighting</td></tr><tr><th scope="row">V3</th><td class="">飲食店 + 小売</td><td class="">同上・領域別CatBoost</td><td class="">共有classifier・product line</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>原典の説明・報告値を学習用に再構成。独立再現ではない。 <a href="https://arxiv.org/html/2609.16407v1">出典：Table 3 / §4.4 ↗</a></figcaption>
+</figure>      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>履歴classifierとcontext・contentを扱うGBDTを組み合わせ、trial-aware weightingで運用点を選ぶ。V3で飲食店と小売の履歴を共有し、4つの旧rankerを統合した。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>国別学習と領域間共有を分けて読む。sequenceモデル対GBDTという二者択一より、どの信号をどこで学習し、何をガードレールにするかが実務上の焦点になる。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>国ごとに学習し、領域をまたいで履歴を使う</h3>
+<p>V1/V2のclassifierは4層・4 head・幅128、FFN幅160のencoder-only Transformer。BERT4Rec型の双方向attentionを使い、直近購入の店舗IDとproduct lineだけをmaskする。request時刻とH3位置は既知なので残す。targetの正解product lineを入力すると漏洩になる。V3は4層のまま6 head・幅192・FFN幅384へ拡大する。</p>
+<p>店舗、product line、週、曜日、時刻、H3 cellの埋め込みと、log変換した経過時間を使う。全店舗のlogitを1回のforwardで出し、配達可能な候補のlogitだけを取り出す。CatBoostはこの1スカラーにrating、CVR、距離、配送料、click履歴、平均basketなどを加える。最終scoreは g(i)=CatBoost(hᵢ,xᵢ)。Transformerだけで最終順位を作る設計ではない。</p>
+<p>転移するのは同じ国の飲食店と小売の履歴である。国ごとに語彙とモデルを学習し、国間転移の実験はしていない。V3でも構造の異なる特徴を扱うため、飲食店と小売のCatBoostは別に持つ。「4 rankerを一つへ統合」は配信システム全体の記述で、木モデルが一個になったという意味ではない。</p>
+<h3>trialの重みと漏洩防止を明示する</h3>
+<p>classifierのlabel smoothingはε=0.2。正解の質量を1−ε、各クラスへε/|domain|を配り、w_new &gt; w_cs &gt; w_recでCEを重み付けする。V1のrankerはPairLogit、V2/V3はYetiRankPairwiseのNDCG mode。購入labelはtrial/reorderで同じとし、trialの優先度はsession重みへ置く。clickは購入より弱い段階labelにする。</p>
+<p>rankerは直近30日のうち28日を学習、次の1日をvalidation、最後の1日をtestに使う。classifierの学習を2日前で切り、ranker評価日の正解がlogitへ漏れないようにする。購入なしsessionを除外しているため、このオフライン評価だけで全sessionのCVRは説明できない。</p>
+<figure class="teaching batch21"><h3>trialを押すほど、reorderを失う領域がある</h3><div class="b21-frontier"><div><strong>重み比 1</strong><label>trial MRR <meter min="0" max="1" value="0.5"></meter> 0.5</label><label>reorder MRR <meter min="0" max="1" value="1.0"></meter> 1.0</label></div><div><strong>重み比 2</strong><label>trial MRR <meter min="0" max="1" value="0.73361"></meter> 0.73361</label><label>reorder MRR <meter min="0" max="1" value="0.75899"></meter> 0.75899</label></div><div><strong>重み比 3</strong><label>trial MRR <meter min="0" max="1" value="1.0"></meter> 1.0</label><label>reorder MRR <meter min="0" max="1" value="0.5"></meter> 0.5</label></div><div><strong>重み比 5</strong><label>trial MRR <meter min="0" max="1" value="1.0"></meter> 1.0</label><label>reorder MRR <meter min="0" max="1" value="0.5"></meter> 0.5</label></div></div><figcaption>run.pyの合成400 test sessions。原典Appendix Aの150 retrainの数値を模写したものではない。</figcaption></figure></div>      </section>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>履歴の長期パターンをTransformerで圧縮し、配送料や距離の非線形な条件を木で扱えば、役割を分けて運用できる。<a href="otto-gbdt-vs-dnn-ltr.html">OTTOのGBDT対DNN</a>の「どちらを選ぶか」に対し、ここでは組み合わせ方が問いになる。<a href="rest-sequence-ranking.html">REST</a>とも、sequence表現の計算場所と最終rankerの責任を比べたい。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料の著者報告。</p>
+<p><a href="https://arxiv.org/html/2609.16407v1">原典 Tables 3–5・§6</a> の著者報告。全テストはuser-level 50:50。V1/V2は上位10カ国で2週間、V3は全稼働国で3週間。</p>
+<table>
+<thead>
+<tr>
+<th>版・control</th>
+<th style="text-align: right;">Merchant Trial Rate</th>
+<th style="text-align: right;">Global CVR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>V1 vs FPR+SPR/CSR</td>
+<td style="text-align: right;">+5.5%</td>
+<td style="text-align: right;">+0.16%, p=0.017</td>
+</tr>
+<tr>
+<td>V2 vs V1</td>
+<td style="text-align: right;">+0.45%</td>
+<td style="text-align: right;">−0.05%, p=0.398</td>
+</tr>
+<tr>
+<td>V3 vs V2+RR</td>
+<td style="text-align: right;">小売 +1.31%</td>
+<td style="text-align: right;">+0.04%, p=0.457</td>
+</tr>
+</tbody>
+</table>
+<p>trialの差はα=0.05で有意。V2/V3のCVRは有意差を確認していない。「変化しないことを証明した」とは言えない。V3のads revenueは−0.43%で、事業指標の交換条件も残る。</p>
+<p>V2の旧production比trial MRRは+12.5%〜+30.3%。reorderはFINのみ+6.7%、他は−1.4%〜−27.3%。同じ表のV1 trialは+7.5%〜+19.8%なので、12–30%をV1へ帰属させない。seed間のばらつきも平均upliftの約10–30%ある。運用点はreorder回帰−15%以内を目指すが、DEUでは条件を満たす点がなかった。</p>
+<p>日次学習はFlyte/Kubernetes、推論はCPU、feature取得等を含むp99は約60ms。classifierは学習時に見た店舗だけを識別するため、新店追加も日次更新の理由になる。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-country-tradeoff" aria-labelledby="title-country-tradeoff">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-country-tradeoff">平均に隠れる再注文の損失</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="平均に隠れる再注文の損失の表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">trial MRR</th><th scope="col">reorder MRR</th></tr></thead><tbody><tr><th scope="row">ISR</th><td class="">+30.3%</td><td class="">−12.5%</td></tr><tr><th scope="row">GRC</th><td class="">+22.3%</td><td class="">−7.8%</td></tr><tr><th scope="row">DEU</th><td class="">+29.0%</td><td class="">−27.3%</td></tr><tr><th scope="row">FIN</th><td class="">+12.5%</td><td class="">+6.7%</td></tr><tr><th scope="row">HUN</th><td class="">+14.3%</td><td class="">−1.4%</td></tr><tr><th scope="row">DNK</th><td class="">+14.5%</td><td class="">−5.8%</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>原典の説明・報告値を学習用に再構成。独立再現ではない。 <a href="https://arxiv.org/html/2609.16407v1">出典：Table 4：V2 ranker vs production ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>同じ合成logit・距離特徴を使い、pairwise logistic lossのtrial/reorder重み比だけを1、2、3、5へ変える。未使用400sessionで両群MRRを分けて測る。全店舗で最高logitの店が配達不可なら除外されることと、smoothed targetの総和も検査する。これは学習できる線形代理で、CatBoostやTransformerの再実装ではない。</p></div><div class="downloads"><a href="../downloads/uvr-wolt-trial-reorder/run.py" download>実行コード</a><a href="../downloads/uvr-wolt-trial-reorder/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/uvr-wolt-trial-reorder">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>合成2候補のpairwise線形代理。比率の効果と配達可能集合の境界を確認。UVRの精度再現ではない。</em></p>
+<h3>trial重みを変え、未使用400セッションで再注文との交換条件を見る</h3>
+<ul><li><strong>seed</strong>: 22</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>trial_MRR</th><th>reorder_MRR</th></tr></thead><tbody><tr><th scope='row'>1</th><td>0.5</td><td>1.0</td></tr><tr><th scope='row'>2</th><td>0.73361</td><td>0.75899</td></tr><tr><th scope='row'>3</th><td>1.0</td><td>0.5</td></tr><tr><th scope='row'>5</th><td>1.0</td><td>0.5</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成2候補のpairwise線形代理。比率の効果と配達可能集合の境界を確認。UVRの精度再現ではない。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;trial重みを変え、未使用400セッションで再注文との交換条件を見る&quot;,
+      &quot;seed&quot;: 22,
+      &quot;metrics&quot;: {
+        &quot;1&quot;: {
+          &quot;trial_MRR&quot;: 0.5,
+          &quot;reorder_MRR&quot;: 1.0
+        },
+        &quot;2&quot;: {
+          &quot;trial_MRR&quot;: 0.73361,
+          &quot;reorder_MRR&quot;: 0.75899
+        },
+        &quot;3&quot;: {
+          &quot;trial_MRR&quot;: 1.0,
+          &quot;reorder_MRR&quot;: 0.5
+        },
+        &quot;5&quot;: {
+          &quot;trial_MRR&quot;: 1.0,
+          &quot;reorder_MRR&quot;: 0.5
+        }
+      }
+    }
+  ],
+  &quot;smoothed_target&quot;: [
+    0.05,
+    0.8500000000000001,
+    0.05,
+    0.05
+  ],
+  &quot;availability_example&quot;: {
+    &quot;1&quot;: 2,
+    &quot;2&quot;: 1
+  }
+}</code></pre></details><p>以下はこのLabの実行結果。上のEvidenceに載せた著者報告のA/Bとは、データも評価対象も異なる。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。固定した2候補の曖昧な意図分布で、重み比を上げるとtrial MRRは0.5から1.0、reorder MRRは1.0から0.5へ動いた。重みで目的を変える操作の確認であり、trial性能向上の一般的な証拠ではない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。実CatBoost、双方向Transformer、国別データ、配信60ms、A/Bを再現していない。原典も、同条件でlogitを抜くablationと領域別Transformerを用いた対照を未実施としており、V3の改善をcross-domain transferだけに帰属できない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>fit()</code>はsession重み付きpairwise線形学習、<code>metrics()</code>はtrial/reorder別MRR、<code>smooth_target()</code>と<code>eligible_scores()</code>は学習labelと配達可能集合の境界。条件を固定した操作実験である。</p>
+<p>Python標準ライブラリだけで実行する。乱数を使う実験はseedを固定し、結果をコードと同じ場所に保存する。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>一次資料: <a href="https://arxiv.org/html/2609.16407v1">Balancing Trial and Reorder: A Hybrid Sequential Transformer–GBDT Ranker for On-Demand Delivery</a>。本文・実験・限界・付録を確認（2026-09-21）。キャッシュは <code>/tmp/research-2026-09-21/2609.16407.html</code>。HTML SHA-256: <code>3efd76e9194c61d61c912b4d1c25fb6dfa874f66ca6c5bf6a6ccfb18220468e2</code>。</p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>Labの対応</th>
+<th>意図した省略・境界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§4.1–4.3 / Fig. 2</td>
+<td>モデルと特徴の解説</td>
+<td>国間転移は主張しない</td>
+</tr>
+<tr>
+<td>Eq. 6 / §4.4</td>
+<td>smooth_target / fit</td>
+<td>linear pairwise代理。CatBoostは省略</td>
+</tr>
+<tr>
+<td>Appendix A</td>
+<td>重み比の可視化</td>
+<td>公式150 retrainの再現ではない</td>
+</tr>
+<tr>
+<td>Table 5</td>
+<td>版別A/B表</td>
+<td>control・期間・対象を分離</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード: 確認した本文に、このシステムの学習・配信を再実行できる公開実装へのリンクは見つからなかった。公開の有無を網羅的に調べたという意味ではない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>新しい店を勧めるほど、いつもの店を見つけにくくなるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/uvr-wolt-trial-reorder/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

@@ -1,0 +1,26 @@
+{
+  "source": "https://github.com/jdding/sidscope/tree/v1.0.1",
+  "archive_sha256": "852f79c01075708fa0b9161bd686e31a7dc3a37ff7ef3d1b0625c5ed5b39a525",
+  "mapping_sha256": "5ada9e4f9782dc12cb931fd54af86ac59fc78b65101d789d99b0fc984321dcaf",
+  "official_preflight_status": "passed",
+  "official_metrics": [
+    {
+      "d1_entropy": "1.554585;2.522055;1.280672",
+      "d1_level_count": 3,
+      "d1_unique_codes": "3;6;3",
+      "d3_depth1_mean_collab_recall": 1.0,
+      "d3_depth1_weighted_collab_recall": 1.0,
+      "d4_head_sid_unique_ratio": 1.0,
+      "d4_mid_sid_unique_ratio": 1.0,
+      "d4_tail_sid_unique_ratio": 1.0,
+      "dataset": "mini_music",
+      "duplicate_sid_rate": 0.08333333333333337,
+      "full_collision_rate": 0.16666666666666666,
+      "method": "mini_music_export",
+      "prefix_counts": "3;6;11",
+      "sid_length": 3,
+      "unique_sid": 11
+    }
+  ],
+  "scope": "Official 12-item reviewer quickstart, not a production map or all released evidence."
+}

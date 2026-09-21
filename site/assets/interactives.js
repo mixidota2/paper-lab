@@ -259,3 +259,13 @@ document.querySelectorAll('[data-b18]').forEach(root => {
   select.addEventListener('change', update);
   update();
 });
+
+// Paper-specific September 21 displays use precomputed experiment traces.
+document.querySelectorAll('[data-b21]').forEach(root => {
+  const frames = JSON.parse(root.querySelector('[data-frames]').textContent);
+  const select = root.querySelector('select');
+  const output = root.querySelector('[data-output]');
+  const update = () => { output.innerHTML = frames[Number(select.value)]; };
+  select.addEventListener('change', update);
+  update();
+});

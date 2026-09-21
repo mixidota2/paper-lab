@@ -1,0 +1,49 @@
+{
+  "note": "合成特徴の分布差だけを検証。teacherの正しさ、Transformer、オンライン効果は未検証。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "experiments": [
+    {
+      "name": "同じ未使用rollout候補で教師との一致を測る",
+      "seed": 13,
+      "metrics": {
+        "impressions_only": {
+          "heldout_MAE": 1.852796,
+          "pair_accuracy": 0.791317,
+          "weights": [
+            0.3066000000000008,
+            1.19817232164864,
+            0.0
+          ]
+        },
+        "rollouts_only": {
+          "heldout_MAE": 0.008625,
+          "pair_accuracy": 0.99916,
+          "weights": [
+            0.27524999999999233,
+            1.2007094878281808,
+            -1.7841752297663573
+          ]
+        },
+        "both_source_means": {
+          "heldout_MAE": 0.026649,
+          "pair_accuracy": 1.0,
+          "weights": [
+            0.2822999999999959,
+            1.204629540416139,
+            -1.8080687861408393
+          ]
+        }
+      }
+    }
+  ],
+  "attention_pair_counts": {
+    "seven_full_layers": 469762048,
+    "compression_proxy": 121634816,
+    "note": "式の項数。FLOPs・壁時計時間ではない。"
+  }
+}

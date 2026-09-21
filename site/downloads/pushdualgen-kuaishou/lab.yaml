@@ -1,0 +1,113 @@
+id: pushdualgen-kuaishou
+arxiv_id: '2608.07989'
+submitted: '2026-08-08'
+title: 'PushDualGen: Enabling LLMs to Generate Semantic IDs with Interpretable Copy for Industrial Push Recommendation'
+authors:
+- Manjia Lin
+- Da Li
+- Yan Wang
+- Kuaishou team
+year: 2026
+topics:
+- recommender-systems
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2608.07989
+  arxiv: https://arxiv.org/abs/2608.07989
+  pdf: https://arxiv.org/pdf/2608.07989v1
+  official_code: null
+verdict: Watch
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- generative-rec-vs-retrieval
+- when-complex-ranking-is-worth-it
+status: published
+question: 通知の候補を先に決め、説明文は必要なときだけ生成できるか
+summary: Qwen3-0.6BがSID→任意copyを生成し、Top-20 SIDsの表現を既存user特徴へ融合する。pushの14日A/BでEPR +8.50%、Dislike Rate −37.70%。
+source_review:
+  checked: '2026-09-21'
+  scope: arXiv v1の全文HTML・数式・表・付録を確認。著者報告と合成実験を区別。
+  url: https://arxiv.org/html/2608.07989v1
+  version: v1
+  html_sha256: d9b5a6a513a106135d568004ffd4adcc31579c92052b59ab6da94388839fe89c
+core_idea:
+  author_claim: parallel SIDで履歴を圧縮し、SID-firstの二段生成でcopyをskip可能にする。生成信号と既存user特徴を融合してANN検索へ渡す。
+  research_bot_interpretation: 追加の生成経路を既存推薦へ接続する点で[LIGE-GR](lige-gr-meta-listwise.html)と比較できる。ただし変更場所はpushの候補表現であり、列内の順序最適化ではない。
+sections:
+  overview: PushDualGenはKuaishouのpush通知向け推薦で、先にSID、その後に任意のcopyを生成する。14日間、platform trafficの計15%を均等に割り当てたA/Bで、Effective
+    Play Rateは+8.50%、Dislike Rateは−37.70%。feed全体を生成器へ置き換えた実験ではない。
+  problem: クリックの先で、期待に応えられるかが問題になる。長い履歴を文字で入力し、候補を決める前に説明文まで生成すると、通知の内容を選ぶための計算と待ち時間が増えてしまう。クリック履歴だけでは全嗜好を表せないため、生成したSIDを既存のオンライン特徴へ融合する。
+  method: method.md
+  why_it_might_work: SIDを先に生成すれば、説明を見たい場面だけcopyを続けられる。推論で省略できても、学習時のcopy損失はSIDを意味に結び付ける補助信号になりうる。ただし、後から出た文章はモデルがその動画を選んだ因果的理由の証明ではない。既存user表現と融合するので、push
+    clickだけにない行動信号も残せる。
+  evidence: '一次資料の著者報告。
+
+
+    [原典 §4・Tables 1–2](https://arxiv.org/html/2608.07989v1)。計15%のtrafficを等分し、約150M usersを含む14日間の比較。CUPEDを使い、主要4指標はp<0.05と報告される。
+
+
+    | 指標 | control → treatment | 相対差 |
+
+    | --- | --- | ---: |
+
+    | Click PV | 82.04M → 82.39M | +0.43% |
+
+    | DAU | 414.89M → 415.08M | +0.05% |
+
+    | Effective Play Rate | 64.46% → 69.94% | +8.50% |
+
+    | Dislike Rate | 0.053% → 0.033% | −37.70% |
+
+
+    EPRの絶対差は+5.48 percentage points。−37.70%は小さなdislike率の相対変化で、不満の全種類が37.70%減ったという測定ではない。DAUの集計値と約150Mの割当usersについて、本文だけでは集計母数の関係を十分に特定できないため、人数へ換算しない。
+
+
+    SID Pass@20はfull 0.422、SID adaptationなし0.366、parallel SIDなし0.401。これはオフラインSID予測で、copy省略だけのオンライン因果効果は報告されていない。'
+  executable_understanding: 有限の履歴→SID→copy頻度モデルで、同じ履歴からcopy on/offを実行する。SID不変と出力単位削減を確認し、別の3動画の内積検索でuser-onlyとuser+SIDを比較する。Qwen学習や通知文の品質を擬似的な精度値で代用しない。
+  what_we_verified: Mechanism PARTIAL。2つの履歴条件でcopyを省略しても先行SIDが変わらない。固定ベクトルの融合で候補順が変わることを確認した。文字単位のstep数は説明用で、壁時計の高速化率ではない。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Omniの圧縮学習、parallel K-means、Qwen3のadaptationとSFT、ANN
+    recall、copyの忠実性、通知の頻度制御、A/Bは未再現。原典§6にcopy then SIDという記述があるが、§3.2の式と結論はSID then copyで一致するため、ここでは後者を採用した。
+  implementation: '`decode()`は経験頻度でSIDを選んだ後にcopyを選ぶ。`rank(beta)`はEq. 7の融合を内積全探索で例示する。ANN indexは省略。
+
+
+    Python標準ライブラリだけで実行する。乱数を使う実験はseedを固定し、結果をコードと同じ場所に保存する。'
+  results: 以下はこのLabの実行結果。上のEvidenceに載せた著者報告のA/Bとは、データも評価対象も異なる。
+  mapping: mapping.md
+teaching_figures:
+- kind: equations
+  id: dual-factor
+  title: 後半のcopyを止められる条件付き分解
+  after: method
+  caption: 原典の説明・報告値を学習用に再構成。独立再現ではない。
+  source: https://arxiv.org/html/2608.07989v1
+  locator: Eqs. 4–7
+  rationale: 後半のcopyを止められる条件付き分解
+  steps:
+  - name: 先に候補を決める
+    formula: P(SID,copy | X) = P(SID | X) P(copy | X,SID)
+    explanation: copyは後続条件。訓練での共有重みへの影響は残る。
+  - name: 既存user特徴との融合
+    formula: e′ᵤ = eᵤ + eₛ → ANN(e′ᵤ, eᵥ)
+    explanation: Top-20 SIDをeₛへencode。実運用の係数は両方1。
+- kind: chart
+  id: push-rate
+  title: post-clickの改善を通知clickと分けて読む
+  after: evidence
+  caption: 原典の説明・報告値を学習用に再構成。独立再現ではない。
+  source: https://arxiv.org/html/2608.07989v1
+  locator: Table 1
+  rationale: post-clickの改善を通知clickと分けて読む
+  unit: 相対改善 %
+  maximum: 10
+  bars:
+  - label: Click PV
+    value: 0.43
+  - label: DAU
+    value: 0.05
+  - label: Effective Play Rate
+    value: 8.5
+results: results.json

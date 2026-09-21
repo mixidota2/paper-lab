@@ -1,0 +1,374 @@
+{
+  "note": "合成7候補・3枠。学習済みCA、実測レイテンシー、本番liftは再現しない。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "experiments": [
+    {
+      "name": "制約付き探索と候補切り詰め",
+      "metrics": {
+        "pointwise": {
+          "value": 14.732,
+          "evaluations": 17
+        },
+        "CA_beam1": {
+          "value": 14.732,
+          "evaluations": 17
+        },
+        "golden_beam6": {
+          "value": 21.754,
+          "evaluations": 72
+        },
+        "trimmed_top3": {
+          "value": 21.754,
+          "evaluations": 12
+        },
+        "timeout": {
+          "value": 14.732,
+          "evaluations": 17
+        }
+      }
+    }
+  ],
+  "runs": {
+    "pointwise": {
+      "path": [
+        0,
+        2,
+        1
+      ],
+      "own_objective": 27.0,
+      "shared_survival_value": 14.732,
+      "evaluations": 17,
+      "fallback": false,
+      "trace": [
+        {
+          "position": 1,
+          "expanded": 7,
+          "kept": [
+            [
+              0
+            ]
+          ],
+          "cutoff": 10.0
+        },
+        {
+          "position": 2,
+          "expanded": 5,
+          "kept": [
+            [
+              0,
+              2
+            ]
+          ],
+          "cutoff": 18.0
+        },
+        {
+          "position": 3,
+          "expanded": 5,
+          "kept": [
+            [
+              0,
+              2,
+              1
+            ]
+          ],
+          "cutoff": 27.0
+        }
+      ]
+    },
+    "CA_beam1": {
+      "path": [
+        0,
+        2,
+        1
+      ],
+      "own_objective": 24.0,
+      "shared_survival_value": 14.732,
+      "evaluations": 17,
+      "fallback": false,
+      "trace": [
+        {
+          "position": 1,
+          "expanded": 7,
+          "kept": [
+            [
+              0
+            ]
+          ],
+          "cutoff": 10.0
+        },
+        {
+          "position": 2,
+          "expanded": 5,
+          "kept": [
+            [
+              0,
+              2
+            ]
+          ],
+          "cutoff": 18.0
+        },
+        {
+          "position": 3,
+          "expanded": 5,
+          "kept": [
+            [
+              0,
+              2,
+              1
+            ]
+          ],
+          "cutoff": 24.0
+        }
+      ]
+    },
+    "golden_beam6": {
+      "path": [
+        2,
+        1,
+        0
+      ],
+      "own_objective": 21.754,
+      "shared_survival_value": 21.754,
+      "evaluations": 72,
+      "fallback": false,
+      "trace": [
+        {
+          "position": 1,
+          "expanded": 7,
+          "kept": [
+            [
+              1
+            ],
+            [
+              2
+            ],
+            [
+              3
+            ],
+            [
+              4
+            ],
+            [
+              0
+            ],
+            [
+              5
+            ]
+          ],
+          "cutoff": 13.55
+        },
+        {
+          "position": 2,
+          "expanded": 35,
+          "kept": [
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              1,
+              4
+            ],
+            [
+              4,
+              1
+            ]
+          ],
+          "cutoff": 21.145831686625883
+        },
+        {
+          "position": 3,
+          "expanded": 30,
+          "kept": [
+            [
+              2,
+              1,
+              0
+            ],
+            [
+              1,
+              2,
+              0
+            ],
+            [
+              3,
+              1,
+              0
+            ],
+            [
+              4,
+              1,
+              2
+            ],
+            [
+              2,
+              1,
+              4
+            ],
+            [
+              1,
+              4,
+              2
+            ]
+          ],
+          "cutoff": 20.628
+        }
+      ]
+    },
+    "trimmed_top3": {
+      "path": [
+        2,
+        1,
+        0
+      ],
+      "own_objective": 21.754,
+      "shared_survival_value": 21.754,
+      "evaluations": 12,
+      "fallback": false,
+      "trace": [
+        {
+          "position": 1,
+          "expanded": 3,
+          "kept": [
+            [
+              1
+            ],
+            [
+              2
+            ],
+            [
+              0
+            ]
+          ],
+          "cutoff": 14.725
+        },
+        {
+          "position": 2,
+          "expanded": 5,
+          "kept": [
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "cutoff": 18.590332225792466
+        },
+        {
+          "position": 3,
+          "expanded": 4,
+          "kept": [
+            [
+              2,
+              1,
+              0
+            ],
+            [
+              1,
+              2,
+              0
+            ],
+            [
+              1,
+              0,
+              2
+            ],
+            [
+              0,
+              2,
+              1
+            ]
+          ],
+          "cutoff": 14.732000000000001
+        }
+      ]
+    },
+    "timeout": {
+      "path": [
+        0,
+        2,
+        1
+      ],
+      "own_objective": 27.0,
+      "shared_survival_value": 14.732,
+      "evaluations": 17,
+      "fallback": true,
+      "trace": [
+        {
+          "position": 1,
+          "expanded": 7,
+          "kept": [
+            [
+              0
+            ]
+          ],
+          "cutoff": 10.0
+        },
+        {
+          "position": 2,
+          "expanded": 5,
+          "kept": [
+            [
+              0,
+              2
+            ]
+          ],
+          "cutoff": 18.0
+        },
+        {
+          "position": 3,
+          "expanded": 5,
+          "kept": [
+            [
+              0,
+              2,
+              1
+            ]
+          ],
+          "cutoff": 27.0
+        }
+      ],
+      "aborted_evaluations": 3
+    }
+  },
+  "oracle": {
+    "path": [
+      4,
+      2,
+      0
+    ],
+    "value": 22.512
+  }
+}

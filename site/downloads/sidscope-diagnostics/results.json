@@ -1,0 +1,120 @@
+{
+  "note": "既定入力は説明用6 item。--mappingで実際のJSONを診断できる。D3は渡された重み付き辺で計算し、公式の近傍抽出は省略。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "experiments": [
+    {
+      "name": "衝突修復とcheckpoint引き継ぎは別",
+      "metrics": {
+        "old": {
+          "items": 6,
+          "unique_leaves": 5,
+          "collision_item_rate": 0.3333333333333333,
+          "duplicate_SID_rate": 0.16666666666666663,
+          "profiles": [
+            {
+              "depth": 1,
+              "active_prefixes": 3,
+              "entropy_bits": 1.459148,
+              "collision_item_rate": 0.8333333333333334,
+              "weighted_prefix_alignment": 0.8333333333333334,
+              "max_fanout": 3
+            },
+            {
+              "depth": 2,
+              "active_prefixes": 5,
+              "entropy_bits": 2.251629,
+              "collision_item_rate": 0.3333333333333333,
+              "weighted_prefix_alignment": 0.0,
+              "max_fanout": 2
+            }
+          ],
+          "common_items": 0,
+          "code_churn": null,
+          "D4": "NOT TESTED: popularity input omitted",
+          "generator_handoff": "NOT TESTED: mapping alone cannot validate checkpoint reuse"
+        },
+        "repaired": {
+          "items": 6,
+          "unique_leaves": 6,
+          "collision_item_rate": 0.0,
+          "duplicate_SID_rate": 0.0,
+          "profiles": [
+            {
+              "depth": 1,
+              "active_prefixes": 3,
+              "entropy_bits": 1.459148,
+              "collision_item_rate": 0.8333333333333334,
+              "weighted_prefix_alignment": 0.8333333333333334,
+              "max_fanout": 3
+            },
+            {
+              "depth": 2,
+              "active_prefixes": 6,
+              "entropy_bits": 2.584963,
+              "collision_item_rate": 0.0,
+              "weighted_prefix_alignment": 0.0,
+              "max_fanout": 3
+            }
+          ],
+          "common_items": 6,
+          "code_churn": 0.16666666666666666,
+          "D4": "NOT TESTED: popularity input omitted",
+          "generator_handoff": "NOT TESTED: mapping alone cannot validate checkpoint reuse"
+        }
+      }
+    }
+  ],
+  "official_quickstart_mapping": {
+    "items": 12,
+    "unique_leaves": 11,
+    "collision_item_rate": 0.16666666666666666,
+    "duplicate_SID_rate": 0.08333333333333337,
+    "profiles": [
+      {
+        "depth": 1,
+        "active_prefixes": 3,
+        "entropy_bits": 1.554585,
+        "collision_item_rate": 1.0,
+        "weighted_prefix_alignment": null,
+        "max_fanout": 3
+      },
+      {
+        "depth": 2,
+        "active_prefixes": 6,
+        "entropy_bits": 2.522055,
+        "collision_item_rate": 0.9166666666666666,
+        "weighted_prefix_alignment": null,
+        "max_fanout": 2
+      },
+      {
+        "depth": 3,
+        "active_prefixes": 11,
+        "entropy_bits": 3.418296,
+        "collision_item_rate": 0.16666666666666666,
+        "weighted_prefix_alignment": null,
+        "max_fanout": 3
+      }
+    ],
+    "common_items": 0,
+    "code_churn": null,
+    "D4": "NOT TESTED: popularity input omitted",
+    "generator_handoff": "NOT TESTED: mapping alone cannot validate checkpoint reuse"
+  },
+  "trace_before": {
+    "valid_paths": 2,
+    "ambiguous_paths": 1,
+    "target_path_survives": true,
+    "unique_item_hit": false
+  },
+  "trace_after": {
+    "valid_paths": 2,
+    "ambiguous_paths": 0,
+    "target_path_survives": true,
+    "unique_item_hit": true
+  }
+}

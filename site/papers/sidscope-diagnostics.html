@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SIDScopeは利用率・衝突・prefix整合・更新・生成traceを診断する資源。trie内の有効pathと一意item取得を区別し、mapping修復後のcheckpoint再利用を別途検証する。">
+  <title>SIDの対応表を受け取ったら、学習を始める前に何を確かめるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-08-19</span></div>
+    <h1>SIDの対応表を受け取ったら、学習を始める前に何を確かめるか</h1>
+    <p class="lede">SIDScopeは利用率・衝突・prefix整合・更新・生成traceを診断する資源。trie内の有効pathと一意item取得を区別し、mapping修復後のcheckpoint再利用を別途検証する。</p>
+    <details class="bibliography"><summary>原論文：SIDScope: A Diagnostic Resource for Semantic-ID Interfaces in Generative Recommendation</summary><p>Jiandong Ding, Huijie Qin, Tiandeng Wu, Yi Cao</p><p>2608.18779 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2608.18779">原典を読む ↗</a><a href="https://arxiv.org/pdf/2608.18779v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-21 · arXiv v1の全文HTML・数式・表・付録を確認。著者報告と合成実験を区別。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-diagnostic-decisions">観測値から、次に確かめる対象を選ぶ</a><a href="#figure-trace-gap">有効なコードを当てても、一意itemには届かない</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>SIDScopeは、item→SID対応表を受け取ったときに使う診断資源である。利用率、衝突、prefixの行動整合、人気別の解像度、trie構造、更新差、生成traceを分ける。オンラインA/Bはない。公式v1.0.1にはadapter、固定結果、CPU verifierがある。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>trieで有効なSIDを生成しても、そのSIDが複数itemを指していれば正解itemを一意に取れない。逆に衝突ゼロでも、prefixに行動上の近さがなければ探索の手掛かりになりにくい。対応表を更新して欠損を埋めても、旧checkpointが新しいコードの意味を知るとは限らない。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>source-traced mappingを共通contractへ正規化し、D1–D7でaddressability、prefix exposure、refresh、traceを診断する。D3の予測力はprefixを使う機構に条件付けられる。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><a href="quasid-collision-qualified-sid.html">QuaSID</a>と合わせ、衝突を減らす設計と、衝突や更新の影響を受け入れ時に点検する手順を分けて蓄積したい。<a href="snaplgr-snapchat.html">SnapLGR</a>のSID→動画展開にも直結する。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>mappingを、出典と評価条件ごと受け取る</h3>
+<p>artifactはitem集合I、対応c、provenance Pに、任意のmetadata・interaction・refresh・traceを添える。C0出典、C1 schema、C2 join、C3診断の実行、C4 hashと再実行、C5比較上の役割という6段階を通す。欠けた証拠があれば、計算できる診断の範囲を狭める。</p>
+<p>D1はcode/prefixの使用数・entropy・偏り、D2は同じ完全SIDやprefixを共有するitem率、D3は行動上の近傍pairが同じprefixへ入る率。D4は人気head/mid/tailの一意SID比、D5はdepth・fan-out・active prefix・重複SID率。D6は共通itemでの更新churn、D7は生成pathからitemへ戻したときの状態を記録する。</p>
+<figure class="teaching batch21" data-b21="diagnostics"><h3>衝突率とprefix alignmentは、違う問題を見る</h3><label>条件を選ぶ <select><option value="0">衝突のあるmapping</option><option value="1">bだけを新しいleafへ移す</option></select></label><div data-output aria-live="polite"><div class="b21-cards "><div><strong>items</strong><p>6</p></div><div><strong>一意のleaf数</strong><p>5</p></div><div><strong>D2 衝突item率</strong><p>33.3%</p></div><div><strong>D5 重複SID率</strong><p>16.7%</p></div></div><div class="matrix-scroll" tabindex="0"><table><thead><tr><th>depth</th><th>prefix数</th><th>entropy bits</th><th>D3</th></tr></thead><tbody><tr><th>1</th><td>3</td><td>1.459148</td><td>0.833</td></tr><tr><th>2</th><td>5</td><td>2.251629</td><td>0.0</td></tr></tbody></table></div><p>generator handoff: NOT TESTED。コードが整っても、checkpointの出力先が正しくなる保証はない。</p></div><script type="application/json" data-frames>["<div class=\"b21-cards \"><div><strong>items<\/strong><p>6<\/p><\/div><div><strong>一意のleaf数<\/strong><p>5<\/p><\/div><div><strong>D2 衝突item率<\/strong><p>33.3%<\/p><\/div><div><strong>D5 重複SID率<\/strong><p>16.7%<\/p><\/div><\/div><div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>depth<\/th><th>prefix数<\/th><th>entropy bits<\/th><th>D3<\/th><\/tr><\/thead><tbody><tr><th>1<\/th><td>3<\/td><td>1.459148<\/td><td>0.833<\/td><\/tr><tr><th>2<\/th><td>5<\/td><td>2.251629<\/td><td>0.0<\/td><\/tr><\/tbody><\/table><\/div><p>generator handoff: NOT TESTED。コードが整っても、checkpointの出力先が正しくなる保証はない。<\/p>", "<div class=\"b21-cards \"><div><strong>items<\/strong><p>6<\/p><\/div><div><strong>一意のleaf数<\/strong><p>6<\/p><\/div><div><strong>D2 衝突item率<\/strong><p>0.0%<\/p><\/div><div><strong>D5 重複SID率<\/strong><p>0.0%<\/p><\/div><\/div><div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>depth<\/th><th>prefix数<\/th><th>entropy bits<\/th><th>D3<\/th><\/tr><\/thead><tbody><tr><th>1<\/th><td>3<\/td><td>1.459148<\/td><td>0.833<\/td><\/tr><tr><th>2<\/th><td>6<\/td><td>2.584963<\/td><td>0.0<\/td><\/tr><\/tbody><\/table><\/div><p>generator handoff: NOT TESTED。コードが整っても、checkpointの出力先が正しくなる保証はない。<\/p>"]</script><figcaption>run.pyの6 item fixture。D2は衝突した全item、D5は不足したleaf数を分母itemsで割る。公式benchmarkではない。</figcaption></figure>
+
+<p>D3(k)=Σᵢⱼ wᵢⱼ 1[prefixₖ(cᵢ)=prefixₖ(cⱼ)] / Σᵢⱼ wᵢⱼ。近傍を作るuser数・item数・pair budgetとdepthを固定する。原典の公開CLI既定はm=20、user当たりU=200、pair budget B=2,000,000。Table 4はm=5、U=50、B=10,000の別protocolであり、そのまま数値を混ぜない。</p>
+<p>D7では有効path、曖昧path、stale、重複item/path、uncertaintyなどを分ける。targetのコードがbeamに残るpath survivalと、そのコードがtargetだけへ戻るunique-item hitには別の分母・条件がある。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-diagnostic-decisions" aria-labelledby="title-diagnostic-decisions">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-diagnostic-decisions">観測値から、次に確かめる対象を選ぶ</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="観測値から、次に確かめる対象を選ぶの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">見えるもの</th><th scope="col">次の確認</th></tr></thead><tbody><tr><th scope="row">D1 / D5</th><td class="">使用数・entropy・fan-out</td><td class="">容量配分と構造。ただしlatencyは別</td></tr><tr><th scope="row">D2</th><td class="">同じleafのitem数</td><td class="">resolver・人気偏り・衝突group</td></tr><tr><th scope="row">D3 / D4</th><td class="">行動近傍・tail解像度</td><td class="">prefix exposureと人気別の評価</td></tr><tr><th scope="row">D6</th><td class="">コード更新のchurn</td><td class="">checkpointの再評価と適応</td></tr><tr><th scope="row">D7</th><td class="">path→itemのtrace</td><td class="">曖昧性・重複・target survival</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>原典の説明・報告値を学習用に再構成。独立再現ではない。 <a href="https://arxiv.org/html/2608.18779v1">出典：§3.4 / Fig. 1 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p><a href="quasid-collision-qualified-sid.html">QuaSID</a>の衝突を条件付きで評価する発想を、tokenizerを受け入れ、更新し、generatorへ渡す作業へ広げられる。D3がよい理由を「prefixを実際に候補探索に使うから」と限定すれば、診断から次の実験を選びやすい。全generatorのNDCGを予測する万能scoreにすると、原典が示す適用範囲を超える。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料の著者報告。</p>
+<p><a href="https://arxiv.org/html/2608.18779v1">原典 Tables 4–7・§8</a>。8つの実行可能なrouteと追加のauditable snapshotを区別する。異なるcatalog・depthの行をtokenizer順位表として扱わない。</p>
+<p>D3とprefix candidate recallの相関は8 exportsでρ=0.976。ただしcatalog単位の5群で集計するとρ=0.900、exact p=0.083。学習済みSID generatorのNDCGとの相関は−0.564〜0.205で安定せず、prefix診断から本番品質への一般化は確認されていない。</p>
+<p>constrained beamではGRID/P5のpath survival 6.4%に対してunique-item hitは3.4%（差3.0pp）。別foldは5.0%対3.0%、DIGERは6.6%対5.4%。1.2–3.0は相対%ではなくpercentage pointsである。</p>
+<p>DACT 0.6→0.7では275 itemのSID欠損を埋めたが、共通9,610 itemの23.6%のコードが変わった。旧modelのnew-item Recall@20は0のまま。適応学習3 seedは宣言したhandoff gateを通った。旧itemのmapping-only差の区間は0をまたぐため、「mapping更新が品質を悪化させることを証明」とはしない。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-trace-gap" aria-labelledby="title-trace-gap">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-trace-gap">有効なコードを当てても、一意itemには届かない</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="有効なコードを当てても、一意itemには届かないの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">path survives</th><th scope="col">unique-item hit</th><th scope="col">差</th></tr></thead><tbody><tr><th scope="row">GRID/P5 fold 0</th><td class="">6.4%</td><td class="">3.4%</td><td class="">3.0pp</td></tr><tr><th scope="row">GRID/P5 fold 1</th><td class="">5.0%</td><td class="">3.0%</td><td class="">2.0pp</td></tr><tr><th scope="row">DIGER sensitivity</th><td class="">6.6%</td><td class="">5.4%</td><td class="">1.2pp</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>原典の説明・報告値を学習用に再構成。独立再現ではない。 <a href="https://arxiv.org/html/2608.18779v1">出典：Table 6 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>run.py</code>はJSONの実対応表を読み、prefix使用数・entropy・衝突item率・重複SID率・任意の重み付きpair整合・旧mappingとのchurnを計算する。既定は説明用6 itemで、公式benchmarkとは別。CLIでは任意の実mapをそのまま診断できる。</p>
+<pre><code class="language-sh">uv run papers/sidscope-diagnostics/run.py --mapping map.json --previous old.json --pairs pairs.json --out /tmp/my-diagnostics.json
+</code></pre>
+<p>mapは <code>{"item-a":[0,1],"item-b":[0,2]}</code>、pairsは <code>[["item-a","item-b",3]]</code>。D3の近傍抽出は外で済ませる。popularityがないのでD4はNOT TESTED、traceがなければgenerator品質も出さない。</p>
+<p>既定実行は公式MIT公開の12 item mapにも独立診断を適用する。公式quickstartは別途実行済みで、確認値とhashを<code>official-check.json</code>、利用条件を<code>NOTICE.txt</code>に保存した。</p></div><div class="downloads"><a href="../downloads/sidscope-diagnostics/run.py" download>実行コード</a><a href="../downloads/sidscope-diagnostics/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/sidscope-diagnostics">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>既定入力は説明用6 item。--mappingで実際のJSONを診断できる。D3は渡された重み付き辺で計算し、公式の近傍抽出は省略。</em></p>
+<h3>衝突修復とcheckpoint引き継ぎは別</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>items</th><th>unique_leaves</th><th>collision_item_rate</th><th>duplicate_SID_rate</th><th>profiles</th><th>common_items</th><th>code_churn</th><th>D4</th><th>generator_handoff</th></tr></thead><tbody><tr><th scope='row'>old</th><td>6</td><td>5</td><td>0.3333333333333333</td><td>0.16666666666666663</td><td>[{'depth': 1, 'active_prefixes': 3, 'entropy_bits': 1.459148, 'collision_item_rate': 0.8333333333333334, 'weighted_prefix_alignment': 0.8333333333333334, 'max_fanout': 3}, {'depth': 2, 'active_prefixes': 5, 'entropy_bits': 2.251629, 'collision_item_rate': 0.3333333333333333, 'weighted_prefix_alignment': 0.0, 'max_fanout': 2}]</td><td>0</td><td>None</td><td>NOT TESTED: popularity input omitted</td><td>NOT TESTED: mapping alone cannot validate checkpoint reuse</td></tr><tr><th scope='row'>repaired</th><td>6</td><td>6</td><td>0.0</td><td>0.0</td><td>[{'depth': 1, 'active_prefixes': 3, 'entropy_bits': 1.459148, 'collision_item_rate': 0.8333333333333334, 'weighted_prefix_alignment': 0.8333333333333334, 'max_fanout': 3}, {'depth': 2, 'active_prefixes': 6, 'entropy_bits': 2.584963, 'collision_item_rate': 0.0, 'weighted_prefix_alignment': 0.0, 'max_fanout': 3}]</td><td>6</td><td>0.16666666666666666</td><td>NOT TESTED: popularity input omitted</td><td>NOT TESTED: mapping alone cannot validate checkpoint reuse</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;既定入力は説明用6 item。--mappingで実際のJSONを診断できる。D3は渡された重み付き辺で計算し、公式の近傍抽出は省略。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;衝突修復とcheckpoint引き継ぎは別&quot;,
+      &quot;metrics&quot;: {
+        &quot;old&quot;: {
+          &quot;items&quot;: 6,
+          &quot;unique_leaves&quot;: 5,
+          &quot;collision_item_rate&quot;: 0.3333333333333333,
+          &quot;duplicate_SID_rate&quot;: 0.16666666666666663,
+          &quot;profiles&quot;: [
+            {
+              &quot;depth&quot;: 1,
+              &quot;active_prefixes&quot;: 3,
+              &quot;entropy_bits&quot;: 1.459148,
+              &quot;collision_item_rate&quot;: 0.8333333333333334,
+              &quot;weighted_prefix_alignment&quot;: 0.8333333333333334,
+              &quot;max_fanout&quot;: 3
+            },
+            {
+              &quot;depth&quot;: 2,
+              &quot;active_prefixes&quot;: 5,
+              &quot;entropy_bits&quot;: 2.251629,
+              &quot;collision_item_rate&quot;: 0.3333333333333333,
+              &quot;weighted_prefix_alignment&quot;: 0.0,
+              &quot;max_fanout&quot;: 2
+            }
+          ],
+          &quot;common_items&quot;: 0,
+          &quot;code_churn&quot;: null,
+          &quot;D4&quot;: &quot;NOT TESTED: popularity input omitted&quot;,
+          &quot;generator_handoff&quot;: &quot;NOT TESTED: mapping alone cannot validate checkpoint reuse&quot;
+        },
+        &quot;repaired&quot;: {
+          &quot;items&quot;: 6,
+          &quot;unique_leaves&quot;: 6,
+          &quot;collision_item_rate&quot;: 0.0,
+          &quot;duplicate_SID_rate&quot;: 0.0,
+          &quot;profiles&quot;: [
+            {
+              &quot;depth&quot;: 1,
+              &quot;active_prefixes&quot;: 3,
+              &quot;entropy_bits&quot;: 1.459148,
+              &quot;collision_item_rate&quot;: 0.8333333333333334,
+              &quot;weighted_prefix_alignment&quot;: 0.8333333333333334,
+              &quot;max_fanout&quot;: 3
+            },
+            {
+              &quot;depth&quot;: 2,
+              &quot;active_prefixes&quot;: 6,
+              &quot;entropy_bits&quot;: 2.584963,
+              &quot;collision_item_rate&quot;: 0.0,
+              &quot;weighted_prefix_alignment&quot;: 0.0,
+              &quot;max_fanout&quot;: 3
+            }
+          ],
+          &quot;common_items&quot;: 6,
+          &quot;code_churn&quot;: 0.16666666666666666,
+          &quot;D4&quot;: &quot;NOT TESTED: popularity input omitted&quot;,
+          &quot;generator_handoff&quot;: &quot;NOT TESTED: mapping alone cannot validate checkpoint reuse&quot;
+        }
+      }
+    }
+  ],
+  &quot;official_quickstart_mapping&quot;: {
+    &quot;items&quot;: 12,
+    &quot;unique_leaves&quot;: 11,
+    &quot;collision_item_rate&quot;: 0.16666666666666666,
+    &quot;duplicate_SID_rate&quot;: 0.08333333333333337,
+    &quot;profiles&quot;: [
+      {
+        &quot;depth&quot;: 1,
+        &quot;active_prefixes&quot;: 3,
+        &quot;entropy_bits&quot;: 1.554585,
+        &quot;collision_item_rate&quot;: 1.0,
+        &quot;weighted_prefix_alignment&quot;: null,
+        &quot;max_fanout&quot;: 3
+      },
+      {
+        &quot;depth&quot;: 2,
+        &quot;active_prefixes&quot;: 6,
+        &quot;entropy_bits&quot;: 2.522055,
+        &quot;collision_item_rate&quot;: 0.9166666666666666,
+        &quot;weighted_prefix_alignment&quot;: null,
+        &quot;max_fanout&quot;: 2
+      },
+      {
+        &quot;depth&quot;: 3,
+        &quot;active_prefixes&quot;: 11,
+        &quot;entropy_bits&quot;: 3.418296,
+        &quot;collision_item_rate&quot;: 0.16666666666666666,
+        &quot;weighted_prefix_alignment&quot;: null,
+        &quot;max_fanout&quot;: 3
+      }
+    ],
+    &quot;common_items&quot;: 0,
+    &quot;code_churn&quot;: null,
+    &quot;D4&quot;: &quot;NOT TESTED: popularity input omitted&quot;,
+    &quot;generator_handoff&quot;: &quot;NOT TESTED: mapping alone cannot validate checkpoint reuse&quot;
+  },
+  &quot;trace_before&quot;: {
+    &quot;valid_paths&quot;: 2,
+    &quot;ambiguous_paths&quot;: 1,
+    &quot;target_path_survives&quot;: true,
+    &quot;unique_item_hit&quot;: false
+  },
+  &quot;trace_after&quot;: {
+    &quot;valid_paths&quot;: 2,
+    &quot;ambiguous_paths&quot;: 0,
+    &quot;target_path_survives&quot;: true,
+    &quot;unique_item_hit&quot;: true
+  }
+}</code></pre></details><p>以下はこのLabの実行結果。上のEvidenceに載せた著者報告のA/Bとは、データも評価対象も異なる。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。6 item中2 itemが同じleafに入るとD2=2/6、D5=1/6になること、pathが有効でも曖昧な場合はunique-item hitにならないことを確認した。固定depthと非負整数codeを検査し、input hashを保存する。公式v1.0.1のreviewer quickstartを実行し、preflight passedとD1–D5出力を確認。公開12 item入力のleaf数11、D2=2/12、D5=1/12、prefix数3/6/11は独立実装と一致した。これは本番mappingではない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。公式の全route、125,000 trace、4,999 bootstrap、学習済みgeneratorのhandoff、online A/Bは再現しない。独立実装の範囲は一部の診断に限る。D4や公式の近傍抽出・provenance admissionは省略する。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>validate()</code>はmapの形式、<code>diagnose()</code>はprefix/leafの集計、<code>trace()</code>はSID→itemの曖昧性を扱う。公式packageのimport名は互換性のため<code>sidinspector</code>のまま。公式の関数対応とrelease hashはmapping.mdに記録する。</p>
+<p>Python標準ライブラリだけで実行する。乱数を使う実験はseedを固定し、結果をコードと同じ場所に保存する。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>一次資料: <a href="https://arxiv.org/html/2608.18779v1">SIDScope: A Diagnostic Resource for Semantic-ID Interfaces in Generative Recommendation</a>。本文・実験・限界・付録を確認（2026-09-21）。キャッシュは <code>/tmp/research-2026-09-21/2608.18779.html</code>。HTML SHA-256: <code>8043cc1a9924d9a3fd53d1d786c74d17dc91844fbd59550df933fb87c5c16fa8</code>。</p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>Labの対応</th>
+<th>意図した省略・境界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3.2 / D1,D2,D5</td>
+<td>diagnose</td>
+<td>Gini・popularity D4は省略</td>
+</tr>
+<tr>
+<td>§3.2 / D3</td>
+<td>weighted_prefix_alignment</td>
+<td>入力pairを使用。公式近傍抽出は省略</td>
+</tr>
+<tr>
+<td>§6.3 / D6</td>
+<td>previous / code_churn</td>
+<td>checkpoint適応は未検証</td>
+</tr>
+<tr>
+<td>§5 / D7</td>
+<td>trace</td>
+<td>最小のvalid/ambiguous/target会計のみ</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード: <a href="https://github.com/jdding/sidscope/tree/v1.0.1">https://github.com/jdding/sidscope/tree/v1.0.1</a>。v1.0.1を取得して確認。</p>
+<h2>公式コードの実行確認</h2>
+<p><code>uv run --project /tmp/research-2026-09-21/SIDscope-1.0.1 /tmp/research-2026-09-21/SIDscope-1.0.1/examples/run_reviewer_quickstart.py</code> を実行しpreflight passed、D1–D5出力を確認。12 itemの公開quickstart入力であり、本番catalogではない。</p>
+<p>独立実装のleaf数11、D2=2/12、D5=1/12、prefix数3/6/11が公式と一致。公式D1 entropyは各level単独、Labはprefix entropyなので、depth 2以降のentropyを同値比較しない。D3の公式近傍抽出は再実装していない。</p>
+<table>
+<thead>
+<tr>
+<th>公式 v1.0.1</th>
+<th>Lab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>src/sidinspector/metrics.py::collision</code></td>
+<td><code>diagnose</code> のcollision_item_rate</td>
+</tr>
+<tr>
+<td><code>metrics.py::deployment_cost</code></td>
+<td>unique_leaves / duplicate_SID_rate / active_prefixes</td>
+</tr>
+<tr>
+<td><code>metrics.py::alignment</code></td>
+<td>入力済みpairに対する部分実装</td>
+</tr>
+<tr>
+<td><code>src/sidinspector/d7_trace.py</code></td>
+<td><code>trace</code> のvalid/ambiguous/unique判定だけ</td>
+</tr>
+</tbody>
+</table>
+<p>release archive SHA-256: <code>852f79c01075708fa0b9161bd686e31a7dc3a37ff7ef3d1b0625c5ed5b39a525</code>。入力CSV SHA-256: <code>5ada9e4f9782dc12cb931fd54af86ac59fc78b65101d789d99b0fc984321dcaf</code>。公式実行の記録は <code>official-check.json</code>、入力例のMIT licenseは <code>NOTICE.txt</code>。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>SIDの対応表を受け取ったら、学習を始める前に何を確かめるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/sidscope-diagnostics/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

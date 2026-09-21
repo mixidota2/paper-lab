@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Sonaは8,192件の履歴を共有し、深い処理を直近2,048件へ集中する。My Vibeの各群15%・7日A/BでAU +4.53%。全流量展開とcatalog coverageは未解決。">
+  <title>候補生成から最終順位まで、長い履歴を一度だけ読んで決められるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-08-11</span></div>
+    <h1>候補生成から最終順位まで、長い履歴を一度だけ読んで決められるか</h1>
+    <p class="lede">Sonaは8,192件の履歴を共有し、深い処理を直近2,048件へ集中する。My Vibeの各群15%・7日A/BでAU +4.53%。全流量展開とcatalog coverageは未解決。</p>
+    <details class="bibliography"><summary>原論文：Sona Technical Report</summary><p>Sona Team</p><p>2608.11015 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2608.11015">原典を読む ↗</a><a href="https://arxiv.org/pdf/2608.11015v2">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-21 · arXiv v2の全文HTML・数式・表・付録を確認。著者報告と合成実験を区別。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-two-losses">生成尤度と教師の順位は、別の損失で学ぶ</a><a href="#figure-history-results">履歴を延ばす利得と圧縮の小さな損失</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>Sonaは候補生成・prerank・最終rankを、共有履歴encoder、SID decoder、Ranking Moduleを持つ一つの配信モデルへまとめる。My Vibeのスマートスピーカー面で、各群15%・7日間の最終A/BはActive Users +4.53%、Total Listening Time +6.30%。論文時点で全流量には展開しておらず、catalog coverage低下を課題としている。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>音楽では同じ曲を繰り返し聴くこと自体に価値があり、動画feedと同じ重複抑制は当てはまらない。次の曲を当てる生成尤度だけでは、likeや聴き続ける価値に沿う順序を作れない。一方、重いteacherを各requestに出すと配信コストが高い。長い履歴を保持しつつ、teacherの採点を軽いRanking Moduleへ移す必要がある。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>生成と順位を共有encoderで共同学習し、重いteacherの採点をRanking Moduleへ蒸留する。最終実験では推薦cascade全体を置換した。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><a href="gryphon-v2-cascade.html">Gryphon-v2</a>で追った生成・順位の統合を、tokenizer、長期履歴、teacherの事前学習、オンライン更新の詳細まで示す報告。構成要素ごとのA/B寄与は限定して読む。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>SIDを提案し、曲に戻してから採点する</h3>
+<p>固定Qwen2.5-Omniが先頭90秒の音声mel-spectrogramと曲名・artist・tagをencodeする。4層・4 head・幅512のTransformerで協調信号を加え、256次元へpoolingする。InfoNCEと元content表現へのalignment（重み0.1）を使う。残差K-meansの3段×32,000コードでSIDを作る。</p>
+<p>配信encoderのmemory Kは一度だけ計算する。2層のcausal decoderが3つのSID tokenを生成し、trieで無効prefixを遮断する。同じSIDに複数曲が入る場合は全曲へ展開し、4層のcross-attentionを持つRanking Moduleがitem ID、SID各段、prefix n-gramを使って採点する。</p>
+<p>共有表現でも、生成と順位のheadは別である。</p>
+<figure class="teaching batch21"><h3>8,192件を見せるが、深く処理するのは直近2,048件</h3><div class="b21-history"><div class="old">過去6,144件<br>長期block O</div><div class="recent">直近2,048件<br>recent block R</div><div class="bridge">① O ⇄ R：両方向のcross-attention</div><div class="bridge">② 全8,192件：self-attentionを1層</div><div class="old">X<sub>O</sub>を保持</div><div class="recent deep">③ recentだけ7層<br>H<sub>R</sub></div><div class="bridge">④ K = [X<sub>O</sub>; H<sub>R</sub>] → decoder と Ranking Module</div></div><figcaption>原典 Fig. 3.2・§3.3。長期履歴を捨てる圧縮ではなく、処理の深さを配分する。</figcaption></figure>
+
+<h3>teacherが知る順序を、今のdecoderが出す候補へ移す</h3>
+<p>teacherは10層causal履歴encoderと6層candidate scorerを持つ。まずnext-item predictionで事前学習し、like &gt; play &gt; skip &gt; dislikeの隣接pairをlogistic lossで学習する。補助headはBCE。最終配信にはteacherを置かない。</p>
+<p>studentの損失は NTP + rollout候補の平均MAE + impression候補の平均MAE。候補数を全部まとめて平均する式ではない。訓練rollout beamは32、評価・配信beamは1,024。教師の採点は現在のdecoder候補へ追従するため、生成器が変わったときの分布差を埋めやすい。</p>
+<p>イベントから配信重み更新までは中央値45分、p99で60分。15分のsession attributionと10分のcheckpoint配布を含む。teacherのrefreshは24時間ごと。GPUではTriton Inference Server、固定shapeのCUDA graph、torch.compile、bfloat16、beam向けtop-kと短いKV用kernelを使う。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-two-losses" aria-labelledby="title-two-losses">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-two-losses">生成尤度と教師の順位は、別の損失で学ぶ</h3>
+  <ol class="equation-steps"><li><strong>正例SIDの生成</strong><div class="math-expression" tabindex="0" role="math" aria-label="L = L_NTP + L_rollout + L_impression">L = L_NTP + L_rollout + L_impression</div><p>NTPはpositive impressionsのみ。</p></li><li><strong>候補源ごとの平均</strong><div class="math-expression" tabindex="0" role="math" aria-label="L_source = Σ_head mean_c |RM(c) − Teacher(c)|">L_source = Σ_head mean_c |RM(c) − Teacher(c)|</div><p>rolloutとimpressionは別々に平均する。教師は凍結。</p></li><li><strong>教師との順序一致</strong><div class="math-expression" tabindex="0" role="math" aria-label="TeacherRecall@k = |Topk(RM) ∩ Topk(Teacher)| / k">TeacherRecall@k = |Topk(RM) ∩ Topk(Teacher)| / k</div><p>同じ生成候補pool内で測る。catalog全体の正解recallとは異なる。</p></li></ol>
+  <figcaption>原典の説明・報告値を学習用に再構成。独立再現ではない。 <a href="https://arxiv.org/html/2608.11015v2">出典：§4.2 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>古い履歴もmemoryに残せば、直近だけでは分からない嗜好を生成と順位の双方で使える。計算をrecentへ集中するのは、その情報を全層で混ぜ直す費用を避けるためだ。蒸留の候補をrolloutと実表示の両方にすれば、生成分布への追従とログに残る行動の両方を扱える。ただし、教師と一致することは利用者の満足度と一致することを意味しない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料の著者報告。</p>
+<p><a href="https://arxiv.org/html/2608.11015v2">原典 §7・Tables 7.6–7.12</a> の著者報告。最終A/Bの相対差はAU +4.53%、聴取時間+6.30%、Likes +11.42%、Repeat commands +17.99%、Deeply Engaged Users +7.37%。最終表はすべてp&lt;0.01。Repeatは発話等のコマンド指標で、一般的な曲の重複率ではない。</p>
+<figure class="teaching batch21"><h3>5つのA/Bは、段階を外せるかを別々に確かめる</h3><div class="matrix-scroll" tabindex="0"><table><thead><tr><th>実験</th><th>配信側の変更</th><th>各群の比率</th><th>読むべき差</th></tr></thead><tbody><tr><th>1</th><td>enc–dec + teacher、Likes重みを変更</td><td>5%</td><td>重みαのAU +1.83%</td></tr><tr><th>2</th><td>teacherへSID特徴を追加</td><td>4%</td><td>SIDありAU +2.23%</td></tr><tr><th>3</th><td>teacherでrankのみ / 生成も置換</td><td>3%</td><td>AU +1.22% / +2.72%</td></tr><tr><th>4</th><td>蒸留RM / さらにteacherでrerank</td><td>8%</td><td>AU +1.41% / +2.81%</td></tr><tr><th>5</th><td>8k + History Compression + RM</td><td>15%</td><td>AU +4.53%、7日</td></tr></tbody></table></div><figcaption>原典 Tables 7.8–7.12。すべて各実験のproduction control比。実験間の差を介入の因果効果とみなさない。</figcaption></figure>
+
+<p><a href="gryphon-v2-cascade.html">Gryphon-v2</a>のAU +1.41%は、この報告の実験4に対応する値で、最終Sonaとの直接対決ではない。実験4と5の差から「履歴だけで+3.12ポイント」とは結論できない。Argusに対する2.35倍も、過去のAU改善+1.93%との改善幅の比で、利用者数やモデル精度が2.35倍になったわけではない。</p>
+<p>オフラインではimpressions onlyのTeacher Recall@10は0.2983、rollouts + impressionsは0.5654。2k・RMなしの0.0381から、4層RMでは0.6005へ上がる。8k full attentionは0.6586、History Compressionは0.6474で、完全に同じ精度ではない。WPAは圧縮版0.6033、full版0.6029。指標間で優劣が違う。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-history-results" aria-labelledby="title-history-results">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-history-results">履歴を延ばす利得と圧縮の小さな損失</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="履歴を延ばす利得と圧縮の小さな損失の表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">Teacher R@10</th><th scope="col">Target R@1000</th><th scope="col">WPA</th></tr></thead><tbody><tr><th scope="row">2k / RM4</th><td class="">0.6005</td><td class="">0.8656</td><td class="">0.5937</td></tr><tr><th scope="row">8k full / RM4</th><td class="">0.6586</td><td class="">0.8722</td><td class="">0.6029</td></tr><tr><th scope="row">8k compression / RM4</th><td class="">0.6474</td><td class="">0.8709</td><td class="">0.6033</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>原典の説明・報告値を学習用に再構成。独立再現ではない。 <a href="https://arxiv.org/html/2608.11015v2">出典：Table 7.7 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>解析的teacherを同じ線形studentへ蒸留し、impressions only、rollouts only、両source平均の和を比較する。学習で使わないrollout候補120件でMAEとpair accuracyを測る。別に履歴attentionの項数を計算するが、これは計算構造の比較で、論文の「約半分の推論費用」を再測定した値ではない。</p></div><div class="downloads"><a href="../downloads/sona-yandex-music/run.py" download>実行コード</a><a href="../downloads/sona-yandex-music/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/sona-yandex-music">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>合成特徴の分布差だけを検証。teacherの正しさ、Transformer、オンライン効果は未検証。</em></p>
+<h3>同じ未使用rollout候補で教師との一致を測る</h3>
+<ul><li><strong>seed</strong>: 13</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>heldout_MAE</th><th>pair_accuracy</th><th>weights</th></tr></thead><tbody><tr><th scope='row'>impressions_only</th><td>1.852796</td><td>0.791317</td><td>[0.3066000000000008, 1.19817232164864, 0.0]</td></tr><tr><th scope='row'>rollouts_only</th><td>0.008625</td><td>0.99916</td><td>[0.27524999999999233, 1.2007094878281808, -1.7841752297663573]</td></tr><tr><th scope='row'>both_source_means</th><td>0.026649</td><td>1.0</td><td>[0.2822999999999959, 1.204629540416139, -1.8080687861408393]</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成特徴の分布差だけを検証。teacherの正しさ、Transformer、オンライン効果は未検証。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;同じ未使用rollout候補で教師との一致を測る&quot;,
+      &quot;seed&quot;: 13,
+      &quot;metrics&quot;: {
+        &quot;impressions_only&quot;: {
+          &quot;heldout_MAE&quot;: 1.852796,
+          &quot;pair_accuracy&quot;: 0.791317,
+          &quot;weights&quot;: [
+            0.3066000000000008,
+            1.19817232164864,
+            0.0
+          ]
+        },
+        &quot;rollouts_only&quot;: {
+          &quot;heldout_MAE&quot;: 0.008625,
+          &quot;pair_accuracy&quot;: 0.99916,
+          &quot;weights&quot;: [
+            0.27524999999999233,
+            1.2007094878281808,
+            -1.7841752297663573
+          ]
+        },
+        &quot;both_source_means&quot;: {
+          &quot;heldout_MAE&quot;: 0.026649,
+          &quot;pair_accuracy&quot;: 1.0,
+          &quot;weights&quot;: [
+            0.2822999999999959,
+            1.204629540416139,
+            -1.8080687861408393
+          ]
+        }
+      }
+    }
+  ],
+  &quot;attention_pair_counts&quot;: {
+    &quot;seven_full_layers&quot;: 469762048,
+    &quot;compression_proxy&quot;: 121634816,
+    &quot;note&quot;: &quot;式の項数。FLOPs・壁時計時間ではない。&quot;
+  }
+}</code></pre></details><p>合成条件では両sourceのpair accuracyは1.0、impressions onlyは約0.791。両sourceのMAEはrollouts onlyより大きく、全指標で勝ったとは言えない。impression側で一つの特徴が常に0という設計なので、その特徴の係数を学べない状況を意図的に作っている。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。候補分布を変えると、同じteacher・studentでも未使用候補との一致が変わることを確認した。2つのsourceで個別に平均を取り、Eq. §4.2どおり加算した。seedと訓練回数を固定した。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Transformer、Qwen tokenizer、残差量子化、NTPとの共有勾配、実catalog collision、45分の更新loopは未検証。Performance / Scaling / Production applicabilityはNOT TESTED。数カ月の長期効果、他の推薦面、catalog coverage回復も原典の未解決事項である。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>train()</code>は線形studentのMAE subgradient、<code>teacher()</code>は固定の解析式、<code>compute()</code>は未使用候補での比較。teacherが一年のログを学習する部分と、本番の二つのheadは省略した。</p>
+<p>Python標準ライブラリだけで実行する。乱数を使う実験はseedを固定し、結果をコードと同じ場所に保存する。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>一次資料: <a href="https://arxiv.org/html/2608.11015v2">Sona Technical Report</a>。本文・実験・限界・付録を確認（2026-09-21）。キャッシュは <code>/tmp/research-2026-09-21/2608.11015.html</code>。HTML SHA-256: <code>023ab189b8f8f192cb2fcb2040cfc6d7e302ccb4efcbcd97b4148cc4cbc7376e</code>。</p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>Labの対応</th>
+<th>意図した省略・境界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fig. 3.2 / §3.3</td>
+<td>history図・attention_pair_counts</td>
+<td>実FLOPsとレイテンシーは未計測</td>
+</tr>
+<tr>
+<td>§4.2</td>
+<td>train / teacher</td>
+<td>線形代理、NTP・二headを省略</td>
+</tr>
+<tr>
+<td>Tables 7.8–7.12</td>
+<td>実験1–5の段階図</td>
+<td>別実験の差は因果効果ではない</td>
+</tr>
+<tr>
+<td>§8</td>
+<td>未検証事項</td>
+<td>全流量・長期・coverageは未解決</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード: 確認した本文に、このシステムの学習・配信を再実行できる公開実装へのリンクは見つからなかった。公開の有無を網羅的に調べたという意味ではない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>候補生成から最終順位まで、長い履歴を一度だけ読んで決められるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/sona-yandex-music/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

@@ -1,0 +1,27 @@
+{
+  "note": "30個の合成SID、各2動画。valueと正解が一致する条件と逆転条件を比較。Snapのvalue重みを推定していない。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "experiments": [
+    {
+      "name": "同じSID hitでも動画hitは変わる",
+      "seed": 41,
+      "metrics": {
+        "first_item": {
+          "SID_hit": 1.0,
+          "video_hit": 0.4666666666666667,
+          "opposite_target_hit": 0.5333333333333333
+        },
+        "value_weighted": {
+          "SID_hit": 1.0,
+          "video_hit": 1.0,
+          "opposite_target_hit": 0.0
+        }
+      }
+    }
+  ]
+}

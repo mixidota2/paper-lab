@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="LIGE-GRは既存候補poolの中で列を生成する追加型の設計。beam 1の7日A/BでReels視聴時間+1.14%、FB+0.72%。FB視聴回数−0.52%も併記する。">
+  <title>既存rankerを残したまま、推薦する順番を学習できるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-16</span></div>
+    <h1>既存rankerを残したまま、推薦する順番を学習できるか</h1>
+    <p class="lede">LIGE-GRは既存候補poolの中で列を生成する追加型の設計。beam 1の7日A/BでReels視聴時間+1.14%、FB+0.72%。FB視聴回数−0.52%も併記する。</p>
+    <details class="bibliography"><summary>原論文：LIGE-GR: A Smooth Leap from Ranking to Generative Recommendation in the LLM Era</summary><p>Venkat Srinivas, Chenzhang He, Sam Woodmansee, Meta team</p><p>2609.18148 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.18148">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.18148v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-21 · arXiv v1の全文HTML・数式・表・付録を確認。著者報告と合成実験を区別。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-list-value">到達確率を価値と探索へ渡す</a><a href="#figure-migration">何を置き換える研究か</a><a href="#figure-beam-ablation">beamを広げる効果と評価関数の効果</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>成熟したpointwise rankerを保ったまま、選んだ動画同士の関係を順位に反映する。LIGE-GRの価値は、既存の予測・業務制約・運用責任を使い続けられる移行経路にある。Instagram ReelsとFacebook Videoで7日間のA/Bを実施し、Time spentは+1.14%と+0.72%。ただし、これはCAを使うbeam 1の基本構成である。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>高得点の動画を独立に並べても、似た話題が連続すれば後続動画の価値は変わる。従来のcontrol layer（CL）は多様性や禁止条件を補うが、予測自体は選択済みの列を見ていない。そこで、数百件の既存候補poolから約10件の列を作る部分を更新する。全カタログからSIDを生成する問題までは解いていない。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-migration" aria-labelledby="title-migration">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-migration">何を置き換える研究か</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="何を置き換える研究かの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">候補空間</th><th scope="col">残すもの</th><th scope="col">生成の責任</th></tr></thead><tbody><tr><th scope="row">LIGE-GR</th><td class="">既存の数百候補</td><td class="">retrieval・CF・CL</td><td class="">候補内の順序列</td></tr><tr><th scope="row">Sona / Gryphon-v2</th><td class="">SIDからカタログ候補</td><td class="">業務制約</td><td class="">候補生成と最終rank</td></tr><tr><th scope="row">OGR / GenPage</th><td class="">各論文のslate空間</td><td class="">固有の制約・表現</td><td class="">slate生成の統合</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>LIGE-GR本文と関連Labを基に整理した比較メモ。Sona・Gryphon-v2・OGR・GenPageへのリンクは本文の核心に掲載。 <a href="https://arxiv.org/html/2609.18148v1">出典：§1–2・§7 ↗</a></figcaption>
+</figure>      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>CFの表現をCAが選択済みprefixで更新し、ListVMをPaletteで最大化する。既存CLとCFを保持するため、追加部分を停止して元の順位付けへ戻せる。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><a href="sona-yandex-music.html">Sona</a>・<a href="gryphon-v2-cascade.html">Gryphon-v2</a>のcascade置換とは移行単位が違う。<a href="ogr-once-generated-ranked.html">OGR</a>・<a href="genpage-netflix-homepage.html">GenPage</a>のslate統合とも、候補空間と生成責任を分けて比較したい。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>CFを一度計算し、CAだけを位置ごとに動かす</h3>
+<p>既存のcontext-free predictor（CF）が作ったユーザー・動画の中間表現を保存する。4層・4 headのGPT型causal Transformerであるcontext-aware predictor（CA）は、その表現と選択済みprefixを読み、like、skip、continueなどを予測し直す。CFはここではcollaborative filteringの略ではない。</p>
+<p>ListVM vanillaはCAによるitemVMとCLの和を全位置で足す。golden版は、その位置まで視聴が続く確率を掛ける。Paletteは各prefixを許可された未選択候補へ拡張し、累積価値と将来価値の和Qでtop-bを残す。論文はRLとして解釈するが、将来価値は別の価値ネットワークを学習したものではなく、既存の予測から作る閉形式の推定である。</p>
+<p>duration-aware推定では、直前動画の継続確率を平均動画長へ換算する。長い動画の「全編後に残る確率」を後続位置ごとに繰り返すと、短い動画ばかり有利になるためだ。長期満足度の推定ではない。</p>
+<figure class="teaching batch21" data-b21="palette"><h3>Paletteの枝刈りと候補poolの切り詰めを分ける</h3><label>条件を選ぶ <select><option value="0">pointwise</option><option value="1">CA_beam1</option><option value="2">golden_beam6</option><option value="3">trimmed_top3</option><option value="4">timeout</option></select></label><div data-output aria-live="polite"><div class="b21-tokens"><span>0：候補</span><span>1：候補</span><span>2：候補</span><span>3：候補</span><span>4：候補</span><span>5：候補</span><span>6：候補</span></div><div class="b21-cards "><div><strong>選択列</strong><p>0 → 2 → 1</p></div><div><strong>共通の継続重み付き価値</strong><p>14.732</p></div><div><strong>評価回数</strong><p>17</p></div></div><ol class="b21-search"><li><strong>位置 1</strong> 7枝を評価 → 1枝を保持<br><code>[[0]]</code></li><li><strong>位置 2</strong> 5枝を評価 → 1枝を保持<br><code>[[0, 2]]</code></li><li><strong>位置 3</strong> 5枝を評価 → 1枝を保持<br><code>[[0, 2, 1]]</code></li></ol><p>同じ目的で全順列を調べたoracleは <strong>4 → 2 → 0、価値22.512</strong>。top-3 poolは候補4を落とすため、この最適列を探索できない。</p></div><script type="application/json" data-frames>["<div class=\"b21-tokens\"><span>0：候補<\/span><span>1：候補<\/span><span>2：候補<\/span><span>3：候補<\/span><span>4：候補<\/span><span>5：候補<\/span><span>6：候補<\/span><\/div><div class=\"b21-cards \"><div><strong>選択列<\/strong><p>0 → 2 → 1<\/p><\/div><div><strong>共通の継続重み付き価値<\/strong><p>14.732<\/p><\/div><div><strong>評価回数<\/strong><p>17<\/p><\/div><\/div><ol class=\"b21-search\"><li><strong>位置 1<\/strong> 7枝を評価 → 1枝を保持<br><code>[[0]]<\/code><\/li><li><strong>位置 2<\/strong> 5枝を評価 → 1枝を保持<br><code>[[0, 2]]<\/code><\/li><li><strong>位置 3<\/strong> 5枝を評価 → 1枝を保持<br><code>[[0, 2, 1]]<\/code><\/li><\/ol><p>同じ目的で全順列を調べたoracleは <strong>4 → 2 → 0、価値22.512<\/strong>。top-3 poolは候補4を落とすため、この最適列を探索できない。<\/p>", "<div class=\"b21-tokens\"><span>0：候補<\/span><span>1：候補<\/span><span>2：候補<\/span><span>3：候補<\/span><span>4：候補<\/span><span>5：候補<\/span><span>6：候補<\/span><\/div><div class=\"b21-cards \"><div><strong>選択列<\/strong><p>0 → 2 → 1<\/p><\/div><div><strong>共通の継続重み付き価値<\/strong><p>14.732<\/p><\/div><div><strong>評価回数<\/strong><p>17<\/p><\/div><\/div><ol class=\"b21-search\"><li><strong>位置 1<\/strong> 7枝を評価 → 1枝を保持<br><code>[[0]]<\/code><\/li><li><strong>位置 2<\/strong> 5枝を評価 → 1枝を保持<br><code>[[0, 2]]<\/code><\/li><li><strong>位置 3<\/strong> 5枝を評価 → 1枝を保持<br><code>[[0, 2, 1]]<\/code><\/li><\/ol><p>同じ目的で全順列を調べたoracleは <strong>4 → 2 → 0、価値22.512<\/strong>。top-3 poolは候補4を落とすため、この最適列を探索できない。<\/p>", "<div class=\"b21-tokens\"><span>0：候補<\/span><span>1：候補<\/span><span>2：候補<\/span><span>3：候補<\/span><span>4：候補<\/span><span>5：候補<\/span><span>6：候補<\/span><\/div><div class=\"b21-cards \"><div><strong>選択列<\/strong><p>2 → 1 → 0<\/p><\/div><div><strong>共通の継続重み付き価値<\/strong><p>21.754<\/p><\/div><div><strong>評価回数<\/strong><p>72<\/p><\/div><\/div><ol class=\"b21-search\"><li><strong>位置 1<\/strong> 7枝を評価 → 6枝を保持<br><code>[[1], [2], [3], [4], [0], [5]]<\/code><\/li><li><strong>位置 2<\/strong> 35枝を評価 → 6枝を保持<br><code>[[1, 2], [2, 1], [3, 1], [1, 3], [1, 4], [4, 1]]<\/code><\/li><li><strong>位置 3<\/strong> 30枝を評価 → 6枝を保持<br><code>[[2, 1, 0], [1, 2, 0], [3, 1, 0], [4, 1, 2], [2, 1, 4], [1, 4, 2]]<\/code><\/li><\/ol><p>同じ目的で全順列を調べたoracleは <strong>4 → 2 → 0、価値22.512<\/strong>。top-3 poolは候補4を落とすため、この最適列を探索できない。<\/p>", "<div class=\"b21-tokens\"><span>0：候補<\/span><span>1：候補<\/span><span>2：候補<\/span><span class=\"muted\">3：除外<\/span><span class=\"muted\">4：除外<\/span><span class=\"muted\">5：除外<\/span><span class=\"muted\">6：除外<\/span><\/div><div class=\"b21-cards \"><div><strong>選択列<\/strong><p>2 → 1 → 0<\/p><\/div><div><strong>共通の継続重み付き価値<\/strong><p>21.754<\/p><\/div><div><strong>評価回数<\/strong><p>12<\/p><\/div><\/div><ol class=\"b21-search\"><li><strong>位置 1<\/strong> 3枝を評価 → 3枝を保持<br><code>[[1], [2], [0]]<\/code><\/li><li><strong>位置 2<\/strong> 5枝を評価 → 5枝を保持<br><code>[[1, 2], [2, 1], [0, 2], [2, 0], [1, 0]]<\/code><\/li><li><strong>位置 3<\/strong> 4枝を評価 → 4枝を保持<br><code>[[2, 1, 0], [1, 2, 0], [1, 0, 2], [0, 2, 1]]<\/code><\/li><\/ol><p>同じ目的で全順列を調べたoracleは <strong>4 → 2 → 0、価値22.512<\/strong>。top-3 poolは候補4を落とすため、この最適列を探索できない。<\/p>", "<div class=\"b21-tokens\"><span>0：候補<\/span><span>1：候補<\/span><span>2：候補<\/span><span>3：候補<\/span><span>4：候補<\/span><span>5：候補<\/span><span>6：候補<\/span><\/div><div class=\"b21-cards \"><div><strong>選択列<\/strong><p>0 → 2 → 1<\/p><\/div><div><strong>共通の継続重み付き価値<\/strong><p>14.732<\/p><\/div><div><strong>評価回数<\/strong><p>17（復帰側のみ）<\/p><\/div><\/div><ol class=\"b21-search\"><li><strong>位置 1<\/strong> 7枝を評価 → 1枝を保持<br><code>[[0]]<\/code><\/li><li><strong>位置 2<\/strong> 5枝を評価 → 1枝を保持<br><code>[[0, 2]]<\/code><\/li><li><strong>位置 3<\/strong> 5枝を評価 → 1枝を保持<br><code>[[0, 2, 1]]<\/code><\/li><\/ol><p>予算超過でCFへ復帰。中断までの評価回数は 3。復帰時は候補を再encodeしない想定。<\/p><p>同じ目的で全順列を調べたoracleは <strong>4 → 2 → 0、価値22.512<\/strong>。top-3 poolは候補4を落とすため、この最適列を探索できない。<\/p>"]</script><figcaption>run.py / results.json の合成7候補・3枠。候補0→1の隣接を禁止。Metaの実データ・処理時間ではない。</figcaption></figure>
+
+<h3>切り戻しを構成として持つ</h3>
+<p>CA→CF、継続確率→1、将来価値→0、beam→1とすれば従来のgreedyへ戻る。beam 1にするだけではCAの影響が残る。時間切れやCA失敗時にも保存済みCFから復帰する。候補poolの上位約1/3だけをCAへ渡す工夫は、beam内の枝刈りとは別の削減である。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-list-value" aria-labelledby="title-list-value">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-list-value">到達確率を価値と探索へ渡す</h3>
+  <ol class="equation-steps"><li><strong>その位置まで届く確率</strong><div class="math-expression" tabindex="0" role="math" aria-label="p(Vₜ) = p(Vₜ₋₁) × CAcontinue(u,vₜ | Vₜ₋₁)">p(Vₜ) = p(Vₜ₋₁) × CAcontinue(u,vₜ | Vₜ₋₁)</div><p>p(空列)=1。動画単体の確率と累積到達確率を分ける。</p></li><li><strong>列の期待価値</strong><div class="math-expression" tabindex="0" role="math" aria-label="ListVMgolden(V) = Σₜ p(Vₜ₋₁) [itemVM(CAₜ) + CLₜ]">ListVMgolden(V) = Σₜ p(Vₜ₋₁) [itemVM(CAₜ) + CLₜ]</div><p>CL=−∞の候補は加算前に除外する。</p></li><li><strong>探索の判定</strong><div class="math-expression" tabindex="0" role="math" aria-label="Q(Vₜ) = ListVMgolden(Vₜ) + s̄ Σⱼ qₜ^(j d̄/dₜ)">Q(Vₜ) = ListVMgolden(Vₜ) + s̄ Σⱼ qₜ^(j d̄/dₜ)</div><p>残り位置j=1…T−t。全長では将来項は0。</p></li></ol>
+  <figcaption>原典の説明・報告値を学習用に再構成。独立再現ではない。 <a href="https://arxiv.org/html/2609.18148v1">出典：§3.2–3.3 / Eqs. 9–14 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>重いCFを各位置で再計算せず、小さいCAに列内の飽和や補完関係だけを担わせるので、既存rankerの精度を捨てずに探索を追加しやすい。継続確率の重み付けは、到達されない後半の価値を過大評価しにくくする。一方、候補poolの外に正解がある場合は回復できず、継続確率の誤差は後半へ累積する。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料の著者報告。</p>
+<p><a href="https://arxiv.org/html/2609.18148v1">原典 §4–5・Tables 1–4</a> の著者報告。Reelsはcontrol/treatment各1.5%、FBはtreatment約2%と同程度のcontrolで、両方7日間。Time spentの差は両面でp&lt;0.001。</p>
+<table>
+<thead>
+<tr>
+<th>指標</th>
+<th style="text-align: right;">Reels</th>
+<th style="text-align: right;">Facebook Video</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Time spent</td>
+<td style="text-align: right;">+1.14%</td>
+<td style="text-align: right;">+0.72%</td>
+</tr>
+<tr>
+<td>Video views</td>
+<td style="text-align: right;">+2.28%</td>
+<td style="text-align: right;">−0.52%</td>
+</tr>
+<tr>
+<td>Likes / reactions</td>
+<td style="text-align: right;">+2.65%</td>
+<td style="text-align: right;">+1.59%</td>
+</tr>
+<tr>
+<td>Sessions</td>
+<td style="text-align: right;">+0.11%</td>
+<td style="text-align: right;">+0.07%</td>
+</tr>
+</tbody>
+</table>
+<p>FBは視聴時間が増えても視聴回数が減る。体験全体の改善を、全指標の一方向の改善と言い換えない。Reelsの構成診断では72時間未満の新しい動画の割合も−0.66%だった。</p>
+<p>追加推論資源は基本構成でCF部分の約10%。サービス全体の計算量の10%ではない。Reelsのend-to-end request latencyは約+7%、FBの平均serving latencyは約+2.2%で、定義が違うため直接比較しない。pool削減による60–80%はCA経路のthroughput増加であり、処理時間60–80%削減ではない。beam 6はbeam 1の約2.1倍の追加資源を要し、CF比約20%は導出値である。</p>
+<p>Table 3ではCAを共通に、beam 6のみへの変更はTime spent +0.05%。golden + duration-awareのbeam 6は+0.69%だった。各行はbeam 1に対する独立比較で、+1.14%へ単純に足さない。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-beam-ablation" aria-labelledby="title-beam-ablation">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-beam-ablation">beamを広げる効果と評価関数の効果</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="beamを広げる効果と評価関数の効果の表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">目的</th><th scope="col">beam</th><th scope="col">TS差 vs beam 1</th></tr></thead><tbody><tr><th scope="row">基本</th><td class="">vanilla</td><td class="">1</td><td class="">基準</td></tr><tr><th scope="row">探索だけ</th><td class="">vanilla</td><td class="">6</td><td class="">+0.05%</td></tr><tr><th scope="row">継続・動画長も考慮</th><td class="">golden + Fdur</td><td class="">6</td><td class="">+0.69%</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>原典の説明・報告値を学習用に再構成。独立再現ではない。 <a href="https://arxiv.org/html/2609.18148v1">出典：Table 3 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>同じ7候補・3枠・禁止条件でpointwise、CA beam 1、golden beam 6、top-3 pool、時間予算超過を比較する。小さい全順列oracleも計算する。予測値は固定した人工値であり、探索がよい列を見つけてもCAを学習できた証拠にはならない。<code>uv run papers/lige-gr-meta-listwise/run.py</code>。</p></div><div class="downloads"><a href="../downloads/lige-gr-meta-listwise/run.py" download>実行コード</a><a href="../downloads/lige-gr-meta-listwise/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/lige-gr-meta-listwise">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>合成7候補・3枠。学習済みCA、実測レイテンシー、本番liftは再現しない。</em></p>
+<h3>制約付き探索と候補切り詰め</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th><th>evaluations</th></tr></thead><tbody><tr><th scope='row'>pointwise</th><td>14.732</td><td>17</td></tr><tr><th scope='row'>CA_beam1</th><td>14.732</td><td>17</td></tr><tr><th scope='row'>golden_beam6</th><td>21.754</td><td>72</td></tr><tr><th scope='row'>trimmed_top3</th><td>21.754</td><td>12</td></tr><tr><th scope='row'>timeout</th><td>14.732</td><td>17</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成7候補・3枠。学習済みCA、実測レイテンシー、本番liftは再現しない。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;制約付き探索と候補切り詰め&quot;,
+      &quot;metrics&quot;: {
+        &quot;pointwise&quot;: {
+          &quot;value&quot;: 14.732,
+          &quot;evaluations&quot;: 17
+        },
+        &quot;CA_beam1&quot;: {
+          &quot;value&quot;: 14.732,
+          &quot;evaluations&quot;: 17
+        },
+        &quot;golden_beam6&quot;: {
+          &quot;value&quot;: 21.754,
+          &quot;evaluations&quot;: 72
+        },
+        &quot;trimmed_top3&quot;: {
+          &quot;value&quot;: 21.754,
+          &quot;evaluations&quot;: 12
+        },
+        &quot;timeout&quot;: {
+          &quot;value&quot;: 14.732,
+          &quot;evaluations&quot;: 17
+        }
+      }
+    }
+  ],
+  &quot;runs&quot;: {
+    &quot;pointwise&quot;: {
+      &quot;path&quot;: [
+        0,
+        2,
+        1
+      ],
+      &quot;own_objective&quot;: 27.0,
+      &quot;shared_survival_value&quot;: 14.732,
+      &quot;evaluations&quot;: 17,
+      &quot;fallback&quot;: false,
+      &quot;trace&quot;: [
+        {
+          &quot;position&quot;: 1,
+          &quot;expanded&quot;: 7,
+          &quot;kept&quot;: [
+            [
+              0
+            ]
+          ],
+          &quot;cutoff&quot;: 10.0
+        },
+        {
+          &quot;position&quot;: 2,
+          &quot;expanded&quot;: 5,
+          &quot;kept&quot;: [
+            [
+              0,
+              2
+            ]
+          ],
+          &quot;cutoff&quot;: 18.0
+        },
+        {
+          &quot;position&quot;: 3,
+          &quot;expanded&quot;: 5,
+          &quot;kept&quot;: [
+            [
+              0,
+              2,
+              1
+            ]
+          ],
+          &quot;cutoff&quot;: 27.0
+        }
+      ]
+    },
+    &quot;CA_beam1&quot;: {
+      &quot;path&quot;: [
+        0,
+        2,
+        1
+      ],
+      &quot;own_objective&quot;: 24.0,
+      &quot;shared_survival_value&quot;: 14.732,
+      &quot;evaluations&quot;: 17,
+      &quot;fallback&quot;: false,
+      &quot;trace&quot;: [
+        {
+          &quot;position&quot;: 1,
+          &quot;expanded&quot;: 7,
+          &quot;kept&quot;: [
+            [
+              0
+            ]
+          ],
+          &quot;cutoff&quot;: 10.0
+        },
+        {
+          &quot;position&quot;: 2,
+          &quot;expanded&quot;: 5,
+          &quot;kept&quot;: [
+            [
+              0,
+              2
+            ]
+          ],
+          &quot;cutoff&quot;: 18.0
+        },
+        {
+          &quot;position&quot;: 3,
+          &quot;expanded&quot;: 5,
+          &quot;kept&quot;: [
+            [
+              0,
+              2,
+              1
+            ]
+          ],
+          &quot;cutoff&quot;: 24.0
+        }
+      ]
+    },
+    &quot;golden_beam6&quot;: {
+      &quot;path&quot;: [
+        2,
+        1,
+        0
+      ],
+      &quot;own_objective&quot;: 21.754,
+      &quot;shared_survival_value&quot;: 21.754,
+      &quot;evaluations&quot;: 72,
+      &quot;fallback&quot;: false,
+      &quot;trace&quot;: [
+        {
+          &quot;position&quot;: 1,
+          &quot;expanded&quot;: 7,
+          &quot;kept&quot;: [
+            [
+              1
+            ],
+            [
+              2
+            ],
+            [
+              3
+            ],
+            [
+              4
+            ],
+            [
+              0
+            ],
+            [
+              5
+            ]
+          ],
+          &quot;cutoff&quot;: 13.55
+        },
+        {
+          &quot;position&quot;: 2,
+          &quot;expanded&quot;: 35,
+          &quot;kept&quot;: [
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              1,
+              4
+            ],
+            [
+              4,
+              1
+            ]
+          ],
+          &quot;cutoff&quot;: 21.145831686625883
+        },
+        {
+          &quot;position&quot;: 3,
+          &quot;expanded&quot;: 30,
+          &quot;kept&quot;: [
+            [
+              2,
+              1,
+              0
+            ],
+            [
+              1,
+              2,
+              0
+            ],
+            [
+              3,
+              1,
+              0
+            ],
+            [
+              4,
+              1,
+              2
+            ],
+            [
+              2,
+              1,
+              4
+            ],
+            [
+              1,
+              4,
+              2
+            ]
+          ],
+          &quot;cutoff&quot;: 20.628
+        }
+      ]
+    },
+    &quot;trimmed_top3&quot;: {
+      &quot;path&quot;: [
+        2,
+        1,
+        0
+      ],
+      &quot;own_objective&quot;: 21.754,
+      &quot;shared_survival_value&quot;: 21.754,
+      &quot;evaluations&quot;: 12,
+      &quot;fallback&quot;: false,
+      &quot;trace&quot;: [
+        {
+          &quot;position&quot;: 1,
+          &quot;expanded&quot;: 3,
+          &quot;kept&quot;: [
+            [
+              1
+            ],
+            [
+              2
+            ],
+            [
+              0
+            ]
+          ],
+          &quot;cutoff&quot;: 14.725
+        },
+        {
+          &quot;position&quot;: 2,
+          &quot;expanded&quot;: 5,
+          &quot;kept&quot;: [
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          &quot;cutoff&quot;: 18.590332225792466
+        },
+        {
+          &quot;position&quot;: 3,
+          &quot;expanded&quot;: 4,
+          &quot;kept&quot;: [
+            [
+              2,
+              1,
+              0
+            ],
+            [
+              1,
+              2,
+              0
+            ],
+            [
+              1,
+              0,
+              2
+            ],
+            [
+              0,
+              2,
+              1
+            ]
+          ],
+          &quot;cutoff&quot;: 14.732000000000001
+        }
+      ]
+    },
+    &quot;timeout&quot;: {
+      &quot;path&quot;: [
+        0,
+        2,
+        1
+      ],
+      &quot;own_objective&quot;: 27.0,
+      &quot;shared_survival_value&quot;: 14.732,
+      &quot;evaluations&quot;: 17,
+      &quot;fallback&quot;: true,
+      &quot;trace&quot;: [
+        {
+          &quot;position&quot;: 1,
+          &quot;expanded&quot;: 7,
+          &quot;kept&quot;: [
+            [
+              0
+            ]
+          ],
+          &quot;cutoff&quot;: 10.0
+        },
+        {
+          &quot;position&quot;: 2,
+          &quot;expanded&quot;: 5,
+          &quot;kept&quot;: [
+            [
+              0,
+              2
+            ]
+          ],
+          &quot;cutoff&quot;: 18.0
+        },
+        {
+          &quot;position&quot;: 3,
+          &quot;expanded&quot;: 5,
+          &quot;kept&quot;: [
+            [
+              0,
+              2,
+              1
+            ]
+          ],
+          &quot;cutoff&quot;: 27.0
+        }
+      ],
+      &quot;aborted_evaluations&quot;: 3
+    }
+  },
+  &quot;oracle&quot;: {
+    &quot;path&quot;: [
+      4,
+      2,
+      0
+    ],
+    &quot;value&quot;: 22.512
+  }
+}</code></pre></details><p>同じ継続重み付き目的で、pointwiseとCA beam 1はともに14.732（CA単独の順位改善はNOT OBSERVED）。golden beam 6は21.754へ上がるが、全順列oracleの22.512には届かない。top-3 poolもこのbeam設定では21.754のまま、評価回数は72から12へ減る。ただし候補4を除くのでoracleの列は失われる。これは演算回数の比較で、GPU throughputの再現ではない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。有限候補で重複と禁止遷移を排除し、継続確率に沿って価値を累積した。時間切れ時の列がpointwise baselineと一致することをassertで確認。全順列の最大値と比較できる。候補削減が探索可能な列を狭める様子も記録した。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。CAの学習、実ログでのNE、A/B差、GPU throughput、実時間timeout、鮮度・creator多様性への効果は再現していない。将来価値推定が許容的な上界である保証もなく、有限beamは最適性を保証しない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>score()</code>はEq. 9の到達確率積、<code>future()</code>はEq. 12/14、<code>decode()</code>はAlgorithm 1/2の制約付き拡張と復帰を表す。candidateのgroupによる減点はLab独自のCA代理。実装をPaletteの公式版と呼ばない。</p>
+<p>Python標準ライブラリだけで実行する。乱数を使う実験はseedを固定し、結果をコードと同じ場所に保存する。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>一次資料: <a href="https://arxiv.org/html/2609.18148v1">LIGE-GR: A Smooth Leap from Ranking to Generative Recommendation in the LLM Era</a>。本文・実験・限界・付録を確認（2026-09-21）。キャッシュは <code>/tmp/research-2026-09-21/2609.18148.html</code>。HTML SHA-256: <code>fdef5a1acc124ad2687d95b0964e4c27ab599f62ffdc1568f5f5131b5513ed7f</code>。</p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>Labの対応</th>
+<th>意図した省略・境界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fig. 3 / §3.1</td>
+<td>CA/CFの解説</td>
+<td>Transformer学習は省略</td>
+</tr>
+<tr>
+<td>Eqs. 9–14 / Algorithm 1</td>
+<td>score / future / decode</td>
+<td>CAは人工値、CLは説明用規則</td>
+</tr>
+<tr>
+<td>Algorithm 2 / §4.3</td>
+<td>timeout / trimmed_top3</td>
+<td>時計・GPU・配信は省略</td>
+</tr>
+<tr>
+<td>Tables 2–4</td>
+<td>Evidence</td>
+<td>著者報告値。Lab出力とは別</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード: 確認した本文に、このシステムの学習・配信を再実行できる公開実装へのリンクは見つからなかった。公開の有無を網羅的に調べたという意味ではない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>既存rankerを残したまま、推薦する順番を学習できるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/lige-gr-meta-listwise/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

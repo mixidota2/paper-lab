@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Qwen3-0.6BがSID→任意copyを生成し、Top-20 SIDsの表現を既存user特徴へ融合する。pushの14日A/BでEPR +8.50%、Dislike Rate −37.70%。">
+  <title>通知の候補を先に決め、説明文は必要なときだけ生成できるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-08-08</span></div>
+    <h1>通知の候補を先に決め、説明文は必要なときだけ生成できるか</h1>
+    <p class="lede">Qwen3-0.6BがSID→任意copyを生成し、Top-20 SIDsの表現を既存user特徴へ融合する。pushの14日A/BでEPR +8.50%、Dislike Rate −37.70%。</p>
+    <details class="bibliography"><summary>原論文：PushDualGen: Enabling LLMs to Generate Semantic IDs with Interpretable Copy for Industrial Push Recommendation</summary><p>Manjia Lin, Da Li, Yan Wang, Kuaishou team</p><p>2608.07989 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2608.07989">原典を読む ↗</a><a href="https://arxiv.org/pdf/2608.07989v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-21 · arXiv v1の全文HTML・数式・表・付録を確認。著者報告と合成実験を区別。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-dual-factor">後半のcopyを止められる条件付き分解</a><a href="#figure-push-rate">post-clickの改善を通知clickと分けて読む</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>PushDualGenはKuaishouのpush通知向け推薦で、先にSID、その後に任意のcopyを生成する。14日間、platform trafficの計15%を均等に割り当てたA/Bで、Effective Play Rateは+8.50%、Dislike Rateは−37.70%。feed全体を生成器へ置き換えた実験ではない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>クリックの先で、期待に応えられるかが問題になる。長い履歴を文字で入力し、候補を決める前に説明文まで生成すると、通知の内容を選ぶための計算と待ち時間が増えてしまう。クリック履歴だけでは全嗜好を表せないため、生成したSIDを既存のオンライン特徴へ融合する。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>parallel SIDで履歴を圧縮し、SID-firstの二段生成でcopyをskip可能にする。生成信号と既存user特徴を融合してANN検索へ渡す。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>追加の生成経路を既存推薦へ接続する点で<a href="lige-gr-meta-listwise.html">LIGE-GR</a>と比較できる。ただし変更場所はpushの候補表現であり、列内の順序最適化ではない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>parallel SIDの作り方と、出力の順序を分ける</h3>
+<p>Qwen2.5-Omni-3Bに8個のlearnable compression tokenを置き、動画を8つの埋め込みslotへ圧縮する。各slotを独立に512 centroidのK-meansで量子化し、8 tokenのSIDにする。残差を次の段へ渡すRQとは異なる。parallelなのは表現slotの構成であり、SIDとcopyが同時に出るという意味ではない。</p>
+<p>生成backboneはQwen3-0.6B。Text2SIDとSID2TextでSIDと文章を対応付け、元の語彙embeddingを凍結してSID token embeddingを学習する。次にuser profile、recency、履歴からSIDを予測し、区切りtokenの後ろにcopyを続ける。損失は Lgen = LSID + λcopy Lcopy。高頻度の2–4 gramなどをまとめるMulti-token Bindingでは、元token embeddingの平均で新tokenを初期化する。</p>
+<figure class="teaching batch21" data-b21="dual"><h3>SIDが先なら、copy生成を省いても候補を変えない</h3><label>条件を選ぶ <select><option value="0">copyを生成</option><option value="1">copyをskip</option></select></label><div data-output aria-live="polite"><div class="b21-tokens"><span>履歴 music</span><b>→</b><span>SID s0</span><b>→</b><span class="">歌の続きを聴く</span></div><p>合成の逐次出力単位 8。先に決まるSIDは同じ。文字数を使った操作数で、GPU時間ではない。</p></div><script type="application/json" data-frames>["<div class=\"b21-tokens\"><span>履歴 music<\/span><b>→<\/b><span>SID s0<\/span><b>→<\/b><span class=\"\">歌の続きを聴く<\/span><\/div><p>合成の逐次出力単位 8。先に決まるSIDは同じ。文字数を使った操作数で、GPU時間ではない。<\/p>", "<div class=\"b21-tokens\"><span>履歴 music<\/span><b>→<\/b><span>SID s0<\/span><b>→<\/b><span class=\"muted\">copyを省略<\/span><\/div><p>合成の逐次出力単位 1。先に決まるSIDは同じ。文字数を使った操作数で、GPU時間ではない。<\/p>"]</script><figcaption>原典 §3.2の条件付き分解を有限頻度モデルで例示。下流ANNの入力はSID由来の表現。</figcaption></figure>
+
+<h3>本番ではSIDをuser表現へ足し、ANNで検索する</h3>
+<p>生成Top-20 SIDsをencoderでeₛへ変換し、既存user特徴eᵤと e′ᵤ=αeᵤ+βeₛ で融合する。実利用ではα=β=1。候補動画のeᵥを持つcollectionへANN検索する。したがって、「生成SIDを一意の動画IDへ戻せば完了」という配信構成ではない。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-dual-factor" aria-labelledby="title-dual-factor">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-dual-factor">後半のcopyを止められる条件付き分解</h3>
+  <ol class="equation-steps"><li><strong>先に候補を決める</strong><div class="math-expression" tabindex="0" role="math" aria-label="P(SID,copy | X) = P(SID | X) P(copy | X,SID)">P(SID,copy | X) = P(SID | X) P(copy | X,SID)</div><p>copyは後続条件。訓練での共有重みへの影響は残る。</p></li><li><strong>既存user特徴との融合</strong><div class="math-expression" tabindex="0" role="math" aria-label="e′ᵤ = eᵤ + eₛ → ANN(e′ᵤ, eᵥ)">e′ᵤ = eᵤ + eₛ → ANN(e′ᵤ, eᵥ)</div><p>Top-20 SIDをeₛへencode。実運用の係数は両方1。</p></li></ol>
+  <figcaption>原典の説明・報告値を学習用に再構成。独立再現ではない。 <a href="https://arxiv.org/html/2608.07989v1">出典：Eqs. 4–7 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>SIDを先に生成すれば、説明を見たい場面だけcopyを続けられる。推論で省略できても、学習時のcopy損失はSIDを意味に結び付ける補助信号になりうる。ただし、後から出た文章はモデルがその動画を選んだ因果的理由の証明ではない。既存user表現と融合するので、push clickだけにない行動信号も残せる。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料の著者報告。</p>
+<p><a href="https://arxiv.org/html/2608.07989v1">原典 §4・Tables 1–2</a>。計15%のtrafficを等分し、約150M usersを含む14日間の比較。CUPEDを使い、主要4指標はp&lt;0.05と報告される。</p>
+<table>
+<thead>
+<tr>
+<th>指標</th>
+<th>control → treatment</th>
+<th style="text-align: right;">相対差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Click PV</td>
+<td>82.04M → 82.39M</td>
+<td style="text-align: right;">+0.43%</td>
+</tr>
+<tr>
+<td>DAU</td>
+<td>414.89M → 415.08M</td>
+<td style="text-align: right;">+0.05%</td>
+</tr>
+<tr>
+<td>Effective Play Rate</td>
+<td>64.46% → 69.94%</td>
+<td style="text-align: right;">+8.50%</td>
+</tr>
+<tr>
+<td>Dislike Rate</td>
+<td>0.053% → 0.033%</td>
+<td style="text-align: right;">−37.70%</td>
+</tr>
+</tbody>
+</table>
+<p>EPRの絶対差は+5.48 percentage points。−37.70%は小さなdislike率の相対変化で、不満の全種類が37.70%減ったという測定ではない。DAUの集計値と約150Mの割当usersについて、本文だけでは集計母数の関係を十分に特定できないため、人数へ換算しない。</p>
+<p>SID Pass@20はfull 0.422、SID adaptationなし0.366、parallel SIDなし0.401。これはオフラインSID予測で、copy省略だけのオンライン因果効果は報告されていない。</p></div>      </section>
+<figure class="teaching teaching--chart" id="figure-push-rate" aria-labelledby="title-push-rate">
+  <div class="figure-heading"><span class="eyebrow">CHART</span><span class="figure-badge">論文の報告値</span></div>
+  <h3 id="title-push-rate">post-clickの改善を通知clickと分けて読む</h3>
+  <p class="chart-metric">相対改善 % · 共通尺度 0–10</p><div class="bar-chart"><div class="bar-row"><div class="bar-label"><span>Click PV</span><strong>0.43 相対改善 %</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 4.3%"></div></div></div><div class="bar-row"><div class="bar-label"><span>DAU</span><strong>0.05 相対改善 %</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 0.5%"></div></div></div><div class="bar-row"><div class="bar-label"><span>Effective Play Rate</span><strong>8.5 相対改善 %</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 85.0%"></div></div></div></div>
+  <figcaption>原典の説明・報告値を学習用に再構成。独立再現ではない。 <a href="https://arxiv.org/html/2608.07989v1">出典：Table 1 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>有限の履歴→SID→copy頻度モデルで、同じ履歴からcopy on/offを実行する。SID不変と出力単位削減を確認し、別の3動画の内積検索でuser-onlyとuser+SIDを比較する。Qwen学習や通知文の品質を擬似的な精度値で代用しない。</p></div><div class="downloads"><a href="../downloads/pushdualgen-kuaishou/run.py" download>実行コード</a><a href="../downloads/pushdualgen-kuaishou/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/pushdualgen-kuaishou">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>合成頻度モデル。copyはSIDの後なので省略しても先のSIDは同一。説明の忠実性やQwen品質は未検証。</em></p>
+<h3>copy省略と表現融合</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>ranking</th></tr></thead><tbody><tr><th scope='row'>baseline_user_only</th><td>['familiar', 'mixed', 'discovery']</td></tr><tr><th scope='row'>user_plus_SID</th><td>['discovery', 'mixed', 'familiar']</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;合成頻度モデル。copyはSIDの後なので省略しても先のSIDは同一。説明の忠実性やQwen品質は未検証。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;copy省略と表現融合&quot;,
+      &quot;metrics&quot;: {
+        &quot;baseline_user_only&quot;: {
+          &quot;ranking&quot;: [
+            &quot;familiar&quot;,
+            &quot;mixed&quot;,
+            &quot;discovery&quot;
+          ]
+        },
+        &quot;user_plus_SID&quot;: {
+          &quot;ranking&quot;: [
+            &quot;discovery&quot;,
+            &quot;mixed&quot;,
+            &quot;familiar&quot;
+          ]
+        }
+      }
+    }
+  ],
+  &quot;decode_trace&quot;: {
+    &quot;music&quot;: {
+      &quot;copy_on&quot;: {
+        &quot;sid&quot;: &quot;s0&quot;,
+        &quot;copy&quot;: &quot;歌の続きを聴く&quot;,
+        &quot;steps&quot;: 8
+      },
+      &quot;copy_off&quot;: {
+        &quot;sid&quot;: &quot;s0&quot;,
+        &quot;copy&quot;: &quot;&quot;,
+        &quot;steps&quot;: 1
+      }
+    },
+    &quot;food&quot;: {
+      &quot;copy_on&quot;: {
+        &quot;sid&quot;: &quot;s1&quot;,
+        &quot;copy&quot;: &quot;料理を見る&quot;,
+        &quot;steps&quot;: 6
+      },
+      &quot;copy_off&quot;: {
+        &quot;sid&quot;: &quot;s1&quot;,
+        &quot;copy&quot;: &quot;&quot;,
+        &quot;steps&quot;: 1
+      }
+    }
+  }
+}</code></pre></details><p>以下はこのLabの実行結果。上のEvidenceに載せた著者報告のA/Bとは、データも評価対象も異なる。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。2つの履歴条件でcopyを省略しても先行SIDが変わらない。固定ベクトルの融合で候補順が変わることを確認した。文字単位のstep数は説明用で、壁時計の高速化率ではない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。Omniの圧縮学習、parallel K-means、Qwen3のadaptationとSFT、ANN recall、copyの忠実性、通知の頻度制御、A/Bは未再現。原典§6にcopy then SIDという記述があるが、§3.2の式と結論はSID then copyで一致するため、ここでは後者を採用した。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>decode()</code>は経験頻度でSIDを選んだ後にcopyを選ぶ。<code>rank(beta)</code>はEq. 7の融合を内積全探索で例示する。ANN indexは省略。</p>
+<p>Python標準ライブラリだけで実行する。乱数を使う実験はseedを固定し、結果をコードと同じ場所に保存する。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>一次資料: <a href="https://arxiv.org/html/2608.07989v1">PushDualGen: Enabling LLMs to Generate Semantic IDs with Interpretable Copy for Industrial Push Recommendation</a>。本文・実験・限界・付録を確認（2026-09-21）。キャッシュは <code>/tmp/research-2026-09-21/2608.07989.html</code>。HTML SHA-256: <code>d9b5a6a513a106135d568004ffd4adcc31579c92052b59ab6da94388839fe89c</code>。</p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>Labの対応</th>
+<th>意図した省略・境界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fig. 1 / Appendix A</td>
+<td>8 slot × 512の解説</td>
+<td>Omni学習と量子化は省略</td>
+</tr>
+<tr>
+<td>Eqs. 4–6</td>
+<td>decode / skip切替</td>
+<td>有限頻度モデル。説明の忠実性は未検証</td>
+</tr>
+<tr>
+<td>Eq. 7</td>
+<td>rank(beta)</td>
+<td>全探索内積。ANN・実user特徴は省略</td>
+</tr>
+<tr>
+<td>Tables 1–2</td>
+<td>Evidence</td>
+<td>15%は計、各群15%ではない</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード: 確認した本文に、このシステムの学習・配信を再実行できる公開実装へのリンクは見つからなかった。公開の有無を網羅的に調べたという意味ではない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>通知の候補を先に決め、説明文は必要なときだけ生成できるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/pushdualgen-kuaishou/lab.yaml" download>このページの原データ</a></footer>
+</body></html>
