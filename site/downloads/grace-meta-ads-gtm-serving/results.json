@@ -1,0 +1,72 @@
+{
+  "note": "4広告の人工targeting。CPUの論理検査でありGH200速度や実pass rateは再現しない。",
+  "scope": {
+    "conservative_no_false_negative_fixture": "CONFIRMED",
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "request_mask": 9,
+  "ads": {
+    "a": 5,
+    "b": 10,
+    "c": 9,
+    "d": 6
+  },
+  "prefix_masks": {
+    "mixed": 15,
+    "eligible": 9,
+    "wrong": 6
+  },
+  "coarse": {
+    "mixed": true,
+    "eligible": true,
+    "wrong": false
+  },
+  "exact": {
+    "mixed": [],
+    "eligible": [
+      "c"
+    ],
+    "wrong": []
+  },
+  "beam": {
+    "CD_only": [
+      "mixed",
+      "wrong"
+    ],
+    "GTM": [
+      "mixed",
+      "eligible"
+    ]
+  },
+  "bloom_8bit_false_positives": [
+    "city-6",
+    "city-7",
+    "city-46",
+    "city-48",
+    "city-54",
+    "city-55",
+    "city-56",
+    "city-74",
+    "city-81",
+    "city-82",
+    "city-94",
+    "city-98"
+  ],
+  "experiments": [
+    {
+      "name": "beam 2の枠をrequest条件で使い直す",
+      "metrics": {
+        "eligible_ads_after_exact": {
+          "CD_only": 0,
+          "GTM": 1
+        },
+        "mixed_prefix_false_positive": {
+          "observed": true
+        }
+      }
+    }
+  ]
+}

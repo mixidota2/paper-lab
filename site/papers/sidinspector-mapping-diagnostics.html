@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="item→SIDのmappingを共通契約へ揃え、利用率・衝突・行動近傍・人気配分・構造費用を分離。collision-freeでも意味のあるprefixとは限らない。">
+  <title>generatorを学習する前に、SID住所表の何を検査できるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-06-09</span></div>
+    <h1>generatorを学習する前に、SID住所表の何を検査できるか</h1>
+    <p class="lede">item→SIDのmappingを共通契約へ揃え、利用率・衝突・行動近傍・人気配分・構造費用を分離。collision-freeでも意味のあるprefixとは限らない。</p>
+    <details class="bibliography"><summary>原論文：SIDInspector: A Mapping-First Diagnostic Resource for Semantic-ID Tokenizers</summary><p>Jiandong Ding, Heng Chang, Huijie Qin, Tianying Liu</p><p>2606.10375 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2606.10375">原典を読む ↗</a><a href="https://arxiv.org/pdf/2606.10375v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-22 · 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-probe-contract">何があれば測れて、何は測れないか</a><a href="#figure-alias-math">一意SIDの数だけでは衝突item率は分からない</a><a href="#figure-address-vs-neighbor">Musicalでは住所の一意性と近傍保持が分かれた</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>SIDが全商品に割り当てられていても、同じIDへ多数の商品が集まる場合も、IDが一意でもprefixに意味がない場合もある。SIDInspectorはgeneratorを動かす前に、この住所表を点検するtooling研究。online liftを示した論文ではなく、入力artifactを検査できる共通interfaceと診断の分離が成果である。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>tokenizerの公開物はcheckpoint、codebook、item indexなど形が揃わない。IDの重複やjoin欠落を残したまま下流Recallだけを見ると、どこで問題が起きたか分からない。まずstable item key、離散token、同じ診断対象集合、metadata/interactionとのjoinを揃える必要がある。可変長codeはpadding/maskと実長を記録できるが、実serving挙動にはtraceが必要となる。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>export済みSID mappingとjoin可能なmetadata・interactionを検証し、D1–D5の診断を学習loopから独立して実行する。D6はrefresh間の変化、D7はgenerator traceの入力拡張。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><a href="sidscope-diagnostics.html">SIDScope</a>と共通する診断軸が多く、新しいtokenizerの性能改善と読むべきではない。本Labでは小さいadapter契約と、同じitem集合で「住所の一意性」と「行動近傍の保存」を分ける実用上の入口を重視する。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>adapterは学習recipeではない</h3>
+<p>必須はsid_assignments(item_id, sid_0, …, sid_L)。method/datasetラベルとprovenanceを添え、metadata、interaction、refresh pair、generator traceを同じitem keyへjoinする。key重複、missing code、深さ不一致、item countの不一致を先に拒否する。検査前の壊れたtableを診断値へ平均して隠さない。</p>
+<h3>D1–D5が測る対象</h3>
+<p>D1はlevelごとの利用code数、entropy、不均衡、prefix数。D2はfull SIDを共有するbucketに入ったitemの割合で、重複したcode値の個数とは違う。D3はtrain interactionから作ったco-occurrence top-k近傍のうち、同prefixを保つ割合。edge重み付きとitem平均を分ける。metadata purityは補助的な文脈であり、行動的一致の代用ではない。</p>
+<p>D4はpopularityでhead/mid/tailを分け、unique SID配分やprefix構造を点検する。D5は深さ・active prefix・fan-out等の構造費用を記録する。生成model・GPU・beamを測らずに、D5からserving latencyを主張しない。</p>
+<h3>一意住所と近傍を、同じitem集合で比べる</h3>
+<p>主比較はGRID/RQ-KMeans-styleとReSID/GAOQの23,742 Musical item。RQ-minは小さい参照adapter、category-prefixやhash-collideは診断を動かすcontrolである。LETTERとLC-Recはreleased item-indexを読み込めることの確認で、同じitem集合の性能順位へ加えない。</p>
+<p>D6はpaired refresh mappingのchurnを計算する実装済み拡張。D7はgenerator traceが渡されたときのinterface hookで、本文の実証対象ではない。<a href="varg-tmall-value-generative-retrieval.html">VARG</a>のように日次住所固定を採る場合、D6で旧item churnと新itemのalias増加を別に追うという接続が考えられる。これはLab側の運用解釈である。</p>
+<p><a href="sidscope-diagnostics.html">SIDScope</a>もmapping・alias・prefix・handoffを扱うため、診断名の数を新規性と数えない。SIDInspectorを選ぶ具体的な理由は、手元のexportを小さい契約へ変換してD1–D5へ通せるかで判断したい。</p></div>      </section>
+      <figure class="paper-svg teaching paper-svg--scroll"><h3>同じ6商品で、住所の一意性と近傍を分離する</h3><a href="../figures/sidinspector-mapping-diagnostics/mapping-grid.svg" aria-label="同じ6商品で、住所の一意性と近傍を分離するを拡大"><img src="../figures/sidinspector-mapping-diagnostics/mapping-grid.svg" alt="同じ6商品で、住所の一意性と近傍を分離する。run.pyの3つの人工mapping。色はprefix、D3は固定行動pairの回収。" loading="lazy"></a><figcaption>run.pyの3つの人工mapping。色はprefix、D3は固定行動pairの回収。 狭い画面では図の中を横にスクロールできます。 <a href="../figures/sidinspector-mapping-diagnostics/mapping-grid.svg">図を拡大 ↗</a></figcaption></figure>
+<figure class="teaching teaching--matrix" id="figure-probe-contract" aria-labelledby="title-probe-contract">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-probe-contract">何があれば測れて、何は測れないか</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="何があれば測れて、何は測れないかの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">必要入力</th><th scope="col">測れるもの</th><th scope="col">境界</th></tr></thead><tbody><tr><th scope="row">D1/D2/D5</th><td class="">item→SID</td><td class="">利用・alias・構造</td><td class="">下流品質とmsは未測定</td></tr><tr><th scope="row">D3/D4</th><td class="">interaction + popularity</td><td class="">近傍・tail配分</td><td class="">露出偏りを含む</td></tr><tr><th scope="row">D6</th><td class="">同itemのrefresh pair</td><td class="">住所変化</td><td class="">今回の主表とは別</td></tr><tr><th scope="row">D7</th><td class="">generator trace</td><td class="">生成path診断</td><td class="">本文では入力hook</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2606.10375v1">出典：§2–3 ↗</a></figcaption>
+</figure><figure class="teaching teaching--equations" id="figure-alias-math" aria-labelledby="title-alias-math">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-alias-math">一意SIDの数だけでは衝突item率は分からない</h3>
+  <ol class="equation-steps"><li><strong>alias集合</strong><div class="math-expression" tabindex="0" role="math" aria-label="A(c) = {i : z(i)=c}">A(c) = {i : z(i)=c}</div><p>同じfull SIDを共有するitemを集める。</p></li><li><strong>item単位の衝突率</strong><div class="math-expression" tabindex="0" role="math" aria-label="D2 = |I|⁻¹ Σᵢ 1[|A(z(i))|&gt;1]">D2 = |I|⁻¹ Σᵢ 1[|A(z(i))|&gt;1]</div><p>3 itemが1 codeを共有すれば、3 itemすべてを数える。</p></li><li><strong>weighted prefix recovery</strong><div class="math-expression" tabindex="0" role="math" aria-label="D3ℓ = Σᵢⱼ wᵢⱼ 1[pℓ(i)=pℓ(j)] / Σᵢⱼ wᵢⱼ">D3ℓ = Σᵢⱼ wᵢⱼ 1[pℓ(i)=pℓ(j)] / Σᵢⱼ wᵢⱼ</div><p>近傍edgeとdepthを揃えて比較する。</p></li></ol>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2606.10375v1">出典：§3 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈: modelの学習前に失敗を発見できれば、大きいgeneratorを回してからmapping欠落に気付く手戻りを減らせる。D2とD3を別々に測ると、単にleafを増やす対策とprefixの構造を変える対策を分けられる。ただしco-occurrenceも履歴の露出やtaxonomyに依存し、高いD3が因果的に推薦を改善する保証はない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料 <a href="https://arxiv.org/pdf/2606.10375v1">PDF §4、Tables 1–3</a> の著者報告。同じMusical 23,742 itemでGRID-style feature-textはunique full SID 3,749、D2 alias item率0.977、D3-L1 0.055。capacityを増やすとunique 9,874、D2 0.779、D3 0.080。ReSID/GAOQはunique 23,742、D2 0、D3 0.154。</p>
+<p>決定的なcategory-prefix controlはD2 0、D3 0.447。一意性では同じでも近傍保持が異なる。ただしcategory controlは学習済みtokenizerではなく、ReSIDより優れた推薦モデルと結論できない。GRIDもcontrolled exportで、全pipelineの公式追試ではない。</p>
+<p>LETTER/LC-Recは別のInstruments 9,922 item、双方unique 9,897。D3は0.109/0.052。同じ商品集合ではないのでMusical表に混ぜない。fixed-rerankerの補助実験はD3とcandidate recoveryの関連を示すが、trained generatorやA/Bの証拠ではない。</p>
+<p>版の差: 今回読んだPDF v1 §5の公開tagは<code>sidinspector-cikm2026-resource-v0.6</code>。取得した公式main READMEはv1.0を案内していた。PDFの報告値を現在版で再実行したとは扱わず、両者を区別して記録する。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-address-vs-neighbor" aria-labelledby="title-address-vs-neighbor">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-address-vs-neighbor">Musicalでは住所の一意性と近傍保持が分かれた</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="Musicalでは住所の一意性と近傍保持が分かれたの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">unique full SID</th><th scope="col">D2 alias item率</th><th scope="col">D3-L1</th></tr></thead><tbody><tr><th scope="row">GRID-style ft</th><td class="">3,749</td><td class="">0.977</td><td class="">0.055</td></tr><tr><th scope="row">capacity増</th><td class="">9,874</td><td class="">0.779</td><td class="">0.080</td></tr><tr><th scope="row">ReSID/GAOQ</th><td class="">23,742</td><td class="">0</td><td class="">0.154</td></tr><tr><th scope="row">category control</th><td class="">23,742</td><td class="">0</td><td class="">0.447</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2606.10375v1">出典：Table 2 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/sidinspector-mapping-diagnostics/run.py</code>。同じ6 item・同じco-occurrence edgeに、衝突あり、衝突なし/近傍不一致、衝突なし/近傍一致の3 mappingを与える。先に欠落・duplicate key・深さ不一致を拒否し、D1–D5を計算する。</p></div><div class="downloads"><a href="../downloads/sidinspector-mapping-diagnostics/run.py" download>実行コード</a><a href="../downloads/sidinspector-mapping-diagnostics/plot.py" download>plot.py</a><a href="../downloads/sidinspector-mapping-diagnostics/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/sidinspector-mapping-diagnostics">GitHubで開く ↗</a></div><p class="source-note">実行コードと補助ファイル（plot.py）を同じフォルダーへ保存して実行してください。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>同じ6 itemと固定co-occurrence edgeの診断。公式tokenizerの再学習・A/Bはしていない。</em></p>
+<h3>同じcollision-freeでもprefixの意味は異なる</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>alias_item_rate</th><th>neighbor_recovery</th><th>tail_capacity</th></tr></thead><tbody><tr><th scope='row'>aliased</th><td>0.6666666666666666</td><td>1.0</td><td>0.6666666666666666</td></tr><tr><th scope='row'>unique_unaligned</th><td>0.0</td><td>0.0</td><td>1.0</td></tr><tr><th scope='row'>unique_aligned</th><td>0.0</td><td>1.0</td><td>1.0</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;同じ6 itemと固定co-occurrence edgeの診断。公式tokenizerの再学習・A/Bはしていない。&quot;,
+  &quot;scope&quot;: {
+    &quot;mapping_contract&quot;: &quot;CONFIRMED&quot;,
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;maps&quot;: {
+    &quot;aliased&quot;: {
+      &quot;a&quot;: [
+        0,
+        0
+      ],
+      &quot;b&quot;: [
+        0,
+        0
+      ],
+      &quot;c&quot;: [
+        1,
+        0
+      ],
+      &quot;d&quot;: [
+        1,
+        1
+      ],
+      &quot;e&quot;: [
+        2,
+        0
+      ],
+      &quot;f&quot;: [
+        2,
+        0
+      ]
+    },
+    &quot;unique_unaligned&quot;: {
+      &quot;a&quot;: [
+        0,
+        0
+      ],
+      &quot;b&quot;: [
+        1,
+        0
+      ],
+      &quot;c&quot;: [
+        2,
+        0
+      ],
+      &quot;d&quot;: [
+        0,
+        1
+      ],
+      &quot;e&quot;: [
+        1,
+        1
+      ],
+      &quot;f&quot;: [
+        2,
+        1
+      ]
+    },
+    &quot;unique_aligned&quot;: {
+      &quot;a&quot;: [
+        0,
+        0
+      ],
+      &quot;b&quot;: [
+        0,
+        1
+      ],
+      &quot;c&quot;: [
+        1,
+        0
+      ],
+      &quot;d&quot;: [
+        1,
+        1
+      ],
+      &quot;e&quot;: [
+        2,
+        0
+      ],
+      &quot;f&quot;: [
+        2,
+        1
+      ]
+    }
+  },
+  &quot;profiles&quot;: {
+    &quot;aliased&quot;: {
+      &quot;D1&quot;: [
+        {
+          &quot;used&quot;: 3,
+          &quot;entropy_bits&quot;: 1.584962500721156
+        },
+        {
+          &quot;used&quot;: 2,
+          &quot;entropy_bits&quot;: 0.6500224216483541
+        }
+      ],
+      &quot;D2_alias_item_rate&quot;: 0.6666666666666666,
+      &quot;D3_L1_weighted&quot;: 1.0,
+      &quot;D4_tail_unique_ratio&quot;: 0.6666666666666666,
+      &quot;D5_active_prefixes&quot;: [
+        3,
+        4
+      ],
+      &quot;D5_max_fanout&quot;: 3
+    },
+    &quot;unique_unaligned&quot;: {
+      &quot;D1&quot;: [
+        {
+          &quot;used&quot;: 3,
+          &quot;entropy_bits&quot;: 1.584962500721156
+        },
+        {
+          &quot;used&quot;: 2,
+          &quot;entropy_bits&quot;: 1.0
+        }
+      ],
+      &quot;D2_alias_item_rate&quot;: 0.0,
+      &quot;D3_L1_weighted&quot;: 0.0,
+      &quot;D4_tail_unique_ratio&quot;: 1.0,
+      &quot;D5_active_prefixes&quot;: [
+        3,
+        6
+      ],
+      &quot;D5_max_fanout&quot;: 3
+    },
+    &quot;unique_aligned&quot;: {
+      &quot;D1&quot;: [
+        {
+          &quot;used&quot;: 3,
+          &quot;entropy_bits&quot;: 1.584962500721156
+        },
+        {
+          &quot;used&quot;: 2,
+          &quot;entropy_bits&quot;: 1.0
+        }
+      ],
+      &quot;D2_alias_item_rate&quot;: 0.0,
+      &quot;D3_L1_weighted&quot;: 1.0,
+      &quot;D4_tail_unique_ratio&quot;: 1.0,
+      &quot;D5_active_prefixes&quot;: [
+        3,
+        6
+      ],
+      &quot;D5_max_fanout&quot;: 3
+    }
+  },
+  &quot;rejected&quot;: [
+    &quot;missing or extra item&quot;,
+    &quot;duplicate item key&quot;,
+    &quot;inconsistent depth&quot;
+  ],
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;同じcollision-freeでもprefixの意味は異なる&quot;,
+      &quot;metrics&quot;: {
+        &quot;aliased&quot;: {
+          &quot;alias_item_rate&quot;: 0.6666666666666666,
+          &quot;neighbor_recovery&quot;: 1.0,
+          &quot;tail_capacity&quot;: 0.6666666666666666
+        },
+        &quot;unique_unaligned&quot;: {
+          &quot;alias_item_rate&quot;: 0.0,
+          &quot;neighbor_recovery&quot;: 0.0,
+          &quot;tail_capacity&quot;: 1.0
+        },
+        &quot;unique_aligned&quot;: {
+          &quot;alias_item_rate&quot;: 0.0,
+          &quot;neighbor_recovery&quot;: 1.0,
+          &quot;tail_capacity&quot;: 1.0
+        }
+      }
+    }
+  ]
+}</code></pre></details><p>人工mappingの衝突item率は2/3→0へ減らせるが、prefixを交差させた一意mappingのD3は0。行動pairを同prefixに置く一意mappingはD3=1。両者ともfull SIDは一意であり、addressabilityとbehavioral alignmentが別であることを確認した。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。人工入力の契約違反拒否、非singleton bucketに属するitem比率、重み付き近傍回収、tailの一意SID比率、prefix数とfan-outを確認。局所計算はCONFIRMED。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability NOT TESTED。公式packageの全gate、GRID/ReSID/LETTER/LC-Rec export、co-occurrence構築のsampling、generatorのRecall/NDCG、latencyとonline A/Bは未実行。D2の衝突率だけから衝突の害を判断しない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>validate()</code>がadapter契約の小部分、<code>probe()</code>がD1–D5の人工診断。D1のused数は語彙budgetがないため絶対利用率に変換せず、D5のfan-outをmsへ換算しない。D3は固定edge集合のweighted scoreで、per-item平均とは異なる。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>一次資料: <a href="https://arxiv.org/pdf/2606.10375v1">SIDInspector: A Mapping-First Diagnostic Resource for Semantic-ID Tokenizers</a>、arXiv v1。2026-09-22確認。PDF SHA-256: <code>4fc33c243ac3dae6dcd04666b3ab85a677fcdc089531c5e8edd77aff78300cb5</code>。取得済みPDFは <code>/tmp/research-2026-09-22/2606.10375v1.pdf</code> を再利用した。</p>
+<table>
+<thead>
+<tr>
+<th>原典 / 公式入口</th>
+<th>Lab</th>
+<th>省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§2 / sidinspector.preflight</td>
+<td>validate</td>
+<td>全schema・provenance検証</td>
+</tr>
+<tr>
+<td>§3 / sidinspector.metrics</td>
+<td>probe</td>
+<td>train userからのbounded top-k構築</td>
+</tr>
+<tr>
+<td>Table 2</td>
+<td>Evidence</td>
+<td>各tokenizerの生成</td>
+</tr>
+<tr>
+<td>§5 / examples/minimal_adapter.py</td>
+<td>READMEの実行入口確認</td>
+<td>公式package gateは未実行</td>
+</tr>
+<tr>
+<td>tools/verify_package.py</td>
+<td>次段階の公式検証先</td>
+<td>clean-check追試は未実施</td>
+</tr>
+</tbody>
+</table>
+<p>PDF記載v0.6と、2026-09-22取得main READMEのv1.0は別版。公式READMEのSHA-256は取得記録として下記に記す。</p>
+<p>公式公開先: <a href="https://github.com/jdding/sidinspector">https://github.com/jdding/sidinspector</a>。READMEを確認したが、全実験の再実行はしていない。</p>
+<p>公式main README SHA-256: <code>ab9e9927ddf8d74725746714634c727f5255ec4b5f897272f2ad8a88a7f5fed0</code>。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>generatorを学習する前に、SID住所表の何を検査できるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/sidinspector-mapping-diagnostics/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

@@ -1,0 +1,152 @@
+id: evopilot-verify-dont-trust-autoresearch
+arxiv_id: '2609.21257'
+title: 'Verify, Don’t Trust: Agentic Model Development for Video Discovery Retrieval
+  at Scale'
+authors:
+- Hao Fu
+- Baiting Zhu
+- Minglei Chen
+- Yinjie Huang
+- Shuai Ding
+year: 2026
+topics:
+- ai-agent-systems
+- ml-systems
+- evaluation
+urls:
+  arxiv: https://arxiv.org/abs/2609.21257
+  paper: https://arxiv.org/abs/2609.21257
+  pdf: https://arxiv.org/pdf/2609.21257v1
+  official_code: null
+verdict: Watch
+status: published
+question: 完了した二つの実験を、比較してよい証拠にする条件は何か
+summary: 37日間のVDD研究で、−22 ppという誤った比較をhuman gateが棄却。評価器修正後、matched-lineageで+3.20 pp、別の7日A/BでGSRR
+  +0.66%相対差。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads: []
+source_review:
+  checked: '2026-09-22'
+  version: v1
+  pdf_sha256: 5f1e410fd37a0188628871d4cd241ab3bf8dcd4af0dfae1043f1c82aec90f913
+  url: https://arxiv.org/pdf/2609.21257v1
+  scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。
+core_idea:
+  author_claim: 各runの完了やlineageだけでは比較の妥当性を保証しない。承認済みcontrastとartifactから実現した条件を照合し、比較単位でfail-closedに受理する。
+  research_bot_interpretation: '[AURA](aura-disney-agentic-rec-diagnosis.html)は何を直すべきかを診断し、EvoPilotは修正を比べた測定が有効かを検査する。[PILOT](pilot-experiment-lifecycle.html)の非同期実験運用や[AgentX](agentx-kuaishou.html)のkeep判定にも、比較条件が揃ったかという前提を追加できる。'
+sections:
+  overview: interaction headで精度が22 pp落ちたという結論は、controlだけ3,000件を評価していたため無効だった。宣言は両群K=600でも、実現した出力数が違った。EvoPilotの中心はagentを増やすことより、承認した差分とartifactの実現値を比較して記録することにある。最初に問題を捕まえたのはhuman
+    gateで、自動identity guardは事後強化だった。
+  problem: 長いML実験はsource、data、training、publish、index、evaluatorをまたぐ。各runが成功し、どのrevisionで実行したか分かっても、二つのrunが同じ測定をしているとは限らない。code変更がno-op、eval日がtrainに混入、K/Pが宣言と不一致、といった問題を「modelが悪い」という結果から切り分ける必要がある。
+  why_it_might_work: '解釈: proposalを実行権限や証拠と混同せず、typed adapterで実行し、artifactを独立verifierへ渡すと、agentの説明だけで比較を通しにくくなる。前回の失敗をmemoryに保存するだけでは防止策にならない。次回のartifactや状態遷移に適用できる検査へ変換して初めて強制力を持つ。evaluatorの意味自体が正しいかは人間の確認が残る。'
+  evidence: '一次資料 [PDF §5、Tables 1–6](https://arxiv.org/pdf/2609.21257v1) の著者報告。37日・7方向・20承認round。記録が揃う部分集合は9
+    round・29 variantで、22 train、22 publish、27 evaluateの計71論理stage。27/29はこの部分集合でscientific
+    resultまで完了した割合であり、20 round全体の成功率ではない。
+
+
+    −22 ppの旧比較はcontrol K_eff=3000、treatment K_eff=600。宣言は両方600だった。修正後の同じ(P,K)=(3000,600)再試験は+4.8
+    ppだが、base modelも変わりbundled effect。後のmatched-lineage比較はcheckpointとK=3000を固定し、control
+    P=3000/head off、treatment P=6000/head onで+3.20 pp。head offのtop-KはPに不変という性質を使った、選定運用点でのhead効果である。
+
+
+    別のaccount-randomized A/BはUS/Canada VDD-pivot slice、7日観測＋別の7日pre-period。GSRR +0.66%相対差で、著者は統計的有意と報告する。guardrail結果は保存datasetにない。これは選ばれたmodel変更の効果であり、EvoPilotを使うことの生産性や因果的優位性のRCTではない。
+
+
+    10組のclean/fault replayは全clean受理・全fault拒否。ただしfunnel/evaluator identity等3組はpost-study強化の検査で、全37日間に自動検知していたわけではない。'
+  executable_understanding: '`uv run papers/evopilot-verify-dont-trust-autoresearch/run.py`。出力Kを無視する壊れたevaluatorと修正版へK=1/600を与える。別に同じbase/data/evaluatorと承認差分を照合し、depth不一致・evaluator変更・data変更・no-op・証拠欠落を注入して拒否を確かめる。'
+  results: 壊れた人工evaluatorはK=1と600で同じhit率1.0。修正版は0.01/0.20へ分かれる。5種類のfaultはすべて拒否し、clean
+    pairだけ機械検査を通過。human_reviewはpendingのまま記録するので、機械検査の成功を人間の承認済みと扱わない。原典の−22 ppを人工実験で再現するよう値を設定していない。
+  what_we_verified: Mechanism PARTIAL。実現Kの反証probeと、pairの許可外差分・no-op・欠落の拒否は人工artifactでCONFIRMED。canonical
+    recordのhashも計算する。
+  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。本番MBR学習、数億動画index、37日agent運用、offline
+    +3.20 pp、online +0.66%は再現していない。local hashは遠隔artifactの真正性を保証しない。
+  implementation: '`evaluate()`がK契約の破壊・修正、`verify()`が承認差分と必須証拠の確認。`durable_record`はcontrol/treatment・allowed_diff・判定・human
+    statusを一緒に保存する。実際のworkflow adapter、atomic state更新、remote再開・tool権限は省略する。'
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: timeline
+  id: incident
+  title: −22 ppから+3.20 ppまでに、比較条件を修復した
+  after: evidence
+  locator: §5.2–5.3 / Table 6
+  rationale: −22 ppから+3.20 ppまでに、比較条件を修復した
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2609.21257v1
+  rows:
+  - label: 旧autoresearch
+    nodes:
+    - title: 宣言K=600
+      text: controlだけK_eff=3000
+    - title: −22 pp
+      text: headの悪化と誤帰属
+  - label: EvoPilot導入
+    nodes:
+    - title: human gate
+      text: 比較不成立を検出
+    - title: K=1反証probe
+      text: 旧evaluatorは出力数を変えていなかった
+  - label: 修正後
+    nodes:
+    - title: 再試験 +4.8 pp
+      text: baseも変化した複合効果
+    - title: matched-lineage +3.20 pp
+      text: K=3000固定。headの選定運用点
+  - label: 別のオンライン検証
+    nodes:
+    - title: 7日A/B
+      text: GSRR +0.66% relative
+    - title: 事後guard
+      text: identity検査をreplayで確認
+- kind: equations
+  id: admission
+  title: 機械検査と人間の意味確認を両方必要にする
+  after: method
+  locator: Eq. 3 / §5.1
+  rationale: 機械検査と人間の意味確認を両方必要にする
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2609.21257v1
+  steps:
+  - name: 比較の受理
+    formula: A(c,t;R) = 1[VerifyR(c,t)] × 1[ReviewR(c,t)]
+    explanation: run単位の成功だけでは両項を満たせない。
+  - name: オンライン指標
+    formula: GSRR = qualifying eligible pivot sessions / eligible pivot sessions
+    explanation: offline hit-rateとは母集団も意味も違う。
+  - name: 相対lift
+    formula: lift = (GSRRt − GSRRc) / GSRRc
+    explanation: +0.66%を+0.66 percentage pointへ変換しない。
+- kind: matrix
+  id: proof-layers
+  title: 証拠の段階を飛ばさない
+  after: problem
+  locator: Table 1 / §4.2
+  rationale: 証拠の段階を飛ばさない
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2609.21257v1
+  columns:
+  - 確認できること
+  - まだ保証しないこと
+  rows:
+  - label: run完了
+    cells:
+    - terminal metricがある
+    - 比較条件が同じ
+  - label: lineage
+    cells:
+    - revisionへ遡れる
+    - その差分が許可済み
+  - label: pair verifier
+    cells:
+    - artifactの実現差を照合
+    - metricの意味が妥当
+  - label: human review
+    cells:
+    - 意味と例外を判断
+    - 将来の全faultを防ぐ
+results: results.json
+submitted: '2026-09-18'

@@ -1,0 +1,96 @@
+{
+  "note": "人工artifactのpair検証。論文の−22 pp、+3.20 pp、オンラインGSRRは入力していない。",
+  "scope": {
+    "mutation_rejection": "CONFIRMED",
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "decisions": {
+    "valid": [],
+    "depth_mismatch": [
+      "undeclared_effective_k"
+    ],
+    "eval_drift": [
+      "undeclared_evaluator"
+    ],
+    "data_drift": [
+      "undeclared_data"
+    ],
+    "no_op": [
+      "no_op"
+    ],
+    "missing": [
+      "missing_evidence"
+    ]
+  },
+  "extreme_k_probe": {
+    "broken": [
+      {
+        "declared_k": 1,
+        "effective_k": 3000,
+        "hit_rate": 1.0
+      },
+      {
+        "declared_k": 600,
+        "effective_k": 3000,
+        "hit_rate": 1.0
+      }
+    ],
+    "fixed": [
+      {
+        "declared_k": 1,
+        "effective_k": 1,
+        "hit_rate": 0.01
+      },
+      {
+        "declared_k": 600,
+        "effective_k": 600,
+        "hit_rate": 0.2
+      }
+    ]
+  },
+  "durable_record": {
+    "control": {
+      "base": "checkpoint-1",
+      "data": "snapshot-1",
+      "evaluator": "fixed-v2",
+      "effective_k": 600,
+      "head": false,
+      "status": "success",
+      "artifact": "sha-control"
+    },
+    "treatment": {
+      "base": "checkpoint-1",
+      "data": "snapshot-1",
+      "evaluator": "fixed-v2",
+      "effective_k": 600,
+      "head": true,
+      "status": "success",
+      "artifact": "sha-treatment"
+    },
+    "allowed_diff": [
+      "head"
+    ],
+    "reasons": [],
+    "human_review": "pending",
+    "record_sha256": "db0e76e34bd1f903a2f84ceede7667754c91bb05e56ccc87997a48204043861e"
+  },
+  "experiments": [
+    {
+      "name": "完了した2 runでも比較を拒否する",
+      "metrics": {
+        "clean_admitted_mechanically": {
+          "count": 1
+        },
+        "faults_rejected": {
+          "count": 5
+        },
+        "human_admission": {
+          "status": "pending"
+        }
+      }
+    }
+  ]
+}

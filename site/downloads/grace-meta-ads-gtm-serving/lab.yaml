@@ -1,0 +1,165 @@
+id: grace-meta-ads-gtm-serving
+arxiv_id: '2608.00938'
+title: 'GRACE: Generative Recommender Acceleration Engine for Real-Time Ads Retrieval'
+authors:
+- Zhou Fang
+- Yuhang Huang
+- Ang Zhang
+- Yihan He
+- Ruichao Xiao
+- Chao Li
+- Yavuz Yetim
+- Sibyl Yang
+- Xiaohan Wei
+- Fei Tian
+- Liang Wang
+- Liyuan Li
+- Nathan Yan
+- Gaoxiang Liu
+year: 2026
+topics:
+- recommender-systems
+- ml-systems
+urls:
+  arxiv: https://arxiv.org/abs/2608.00938
+  paper: https://arxiv.org/abs/2608.00938
+  pdf: https://arxiv.org/pdf/2608.00938v1
+  official_code: null
+verdict: Watch
+status: published
+question: 存在する広告と、この要求で配信できる広告をどう分けるか
+summary: SIDのbeam内に要求別targetingを入れ、最終広告pass率を23.55→40.42%へ改善。固定beam decoderの197.7→17.8
+  msと、GTM込み全体P99 53.6 msは別測定。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- generative-rec-vs-retrieval
+source_review:
+  checked: '2026-09-22'
+  version: v1
+  pdf_sha256: 4b0fb0a46d634f111450e471f1b5236435b68c59d03e8ccd03601bc176cadfae
+  url: https://arxiv.org/pdf/2608.00938v1
+  scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。
+core_idea:
+  author_claim: Generative Target Matching（GTM）はSID prefixへ広告のtargeting条件をまとめ、request別maskをconstrained
+    decodingへ加える。別に広いbeamと短い系列向けのGPU kernelを最適化する。
+  research_bot_interpretation: '[STATIC](static-constrained-gr.html)がカタログ内で成立するSID
+    pathを高速に判定し、[FlashTrie](flashtrie-gpu-beam.html)がTrie制約とbeam処理のGPU効率を問うのに対し、GRACEは「そのrequestで配信可能か」を追加する。合法性・適格性・計算効率を別々の検証項目にできる。'
+sections:
+  overview: 生成した広告が存在していても、地域や年齢など広告主の条件を満たすとは限らない。後から大半を捨てるとbeam枠を浪費する。GRACEは広告の条件をSIDの途中prefixへ集約し、配信できそうな枝にbeamを使う。集約は保守的な近似なので、最終広告単位の検査を残す。
+  problem: カタログのvalidityは「SIDが広告へ戻るか」、eligibilityは「今回のuser/requestが広告の条件を満たすか」。後者は要求ごとに変わる。prefixに複数広告を集約すると属性間の相関が失われ、各属性の条件を満たす広告が別々に存在するだけでもprefixが通る。この偽陽性を管理しつつ、広いbeamを低遅延で処理するのが問題となる。
+  why_it_might_work: '解釈: 完全に不適格な枝を早く落とせば、同じbeam数でも最終検査を通る候補へ探索資源を使える。bitmaskとBloomはpacked演算に向く。一方、集約ORが飽和すると枝刈りは効かず、細かく分割するとmatcher参照が増える。低いmask
+    fill率だけを最適化しても、全体のpass率やlatencyがよくなるとは限らない。'
+  evidence: '一次資料 [PDF §6、Tables 2–6](https://arxiv.org/pdf/2608.00938v1) の著者報告。CD
+    onlyからCD+GTMへ、全requestの最終ad-level pass率は23.55→40.42%（+16.87 pp）。これは広告のengagementや売上のA/Bではない。
+
+
+    Table 6はNVIDIA GH200、batch 16のP50/P99。固定beam (1,1024,1024,1024)でdecoder P99 197.7→17.8
+    ms、所要時間は約1/11.1。full model P99は220.1→40.5 ms。この行には完全なGTM費用は入っていない。
+
+
+    動的beam (1,512,1024,1024)へ移し、lookup・CD・bitmask・Bloomを含めたD3はdecoder P50/P99 25.0/27.3
+    ms、full model 51.0/53.6 ms。したがって「GTM込みdecoderが17.8 ms」とは書けない。cross-attentionはFA3比68.0倍、self-attentionは強いbaseline比23.4〜25.8倍というkernel測定で、サービス全体の倍率ではない。
+
+
+    static k-wayはmaskの飽和を減らしても、未分割CD+GTMを最終pass率で上回らなかった。細分化の追加照会費用もあり、著者は未分割を運用点として選ぶ。'
+  executable_understanding: '`uv run papers/grace-meta-ads-gtm-serving/run.py`。4広告の国×年齢条件をprefixでORし、属性相関による偽陽性と最終広告検査の必要性を確かめる。同じscore・beam
+    2でCD onlyとGTMを比較。8-bitに縮小したBloomではhash偽陽性も観測する。'
+  results: 人工例でCD onlyは上位2prefixを取り、exact検査後の適格広告は0。GTMは明らかに不適格な枝を除き、適格広告cを含むprefixへ枠を使って1広告が残る。US若年とCA成人のORはUS成人requestを通すが、その混合prefixのexact結果は空。GTMが最終判定を置換しないことが分かる。
+  what_we_verified: Mechanism PARTIAL。人工4要求で、適格広告を持つprefixがOR検査を通ることはCONFIRMED。属性相関の偽陽性、Bloomの偽陽性、同一beamの枠再配分を実行した。
+  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。GH200
+    kernel、KV cache、production targeting全条件、実pass率、広告A/Bは未実行。CPUの4広告を23.55→40.42%の再現とは呼ばない。
+  implementation: '`match()`はpacked subset検査、`union()`はprefixへのOR、`bloom()`は固定SHA-256由来の3
+    hash位置を持つ説明用実装。論文の実Bloom hash設計を復元したものではない。exact検査はこのLabの国・年齢属性に限定する。'
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: matrix
+  id: target-truth
+  title: ORで失われる属性の相関
+  after: method
+  locator: §4.2 / Fig. 3
+  rationale: ORで失われる属性の相関
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2608.00938v1
+  columns:
+  - 国
+  - 年齢
+  - US成人に配信可能
+  rows:
+  - label: 広告a
+    cells:
+    - US
+    - 若年
+    - 不可
+  - label: 広告b
+    cells:
+    - CA
+    - 成人
+    - 不可
+  - label: prefix OR
+    cells:
+    - US または CA
+    - 若年 または 成人
+    - 近似検査は通過
+  - label: 最終広告検査
+    cells:
+    - 広告ごと
+    - 全属性を確認
+    - a/bとも棄却
+- kind: equations
+  id: target-math
+  title: prefixの可能性と広告の適格性を分ける
+  after: method
+  locator: §4.1–4.3
+  rationale: prefixの可能性と広告の適格性を分ける
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2608.00938v1
+  steps:
+  - name: 集約
+    formula: mask(p) = ORₐ∈A(p) mask(a)
+    explanation: 配下の条件を一つのmatcherへまとめる。
+  - name: 要求別の候補token
+    formula: pass(p,u) = 1[(mask(p) AND mask(u)) = mask(u)]
+    explanation: この近似とcatalog-valid CDを同時に満たす枝を残す。
+  - name: k-way
+    formula: passₖ(p,u) = ORⱼ pass(partitionⱼ(p),u)
+    explanation: partition内の相関損失は残り、matcher参照は増える。
+- kind: matrix
+  id: latency
+  title: 同じdecoder高速化でも測定範囲が違う
+  after: evidence
+  locator: Table 6
+  rationale: 同じdecoder高速化でも測定範囲が違う
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2608.00938v1
+  columns:
+  - beam
+  - decoder P99 ms
+  - full P99 ms
+  rows:
+  - label: L0 FA2
+    cells:
+    - 固定
+    - '197.7'
+    - '220.1'
+  - label: L4 paged KV
+    cells:
+    - 固定
+    - '17.8'
+    - '40.5'
+  - label: D0
+    cells:
+    - 動的
+    - '15.8'
+    - '35.8'
+  - label: D3 +CD +GTM
+    cells:
+    - 動的
+    - '27.3'
+    - '53.6'
+results: results.json
+submitted: '2026-08-02'

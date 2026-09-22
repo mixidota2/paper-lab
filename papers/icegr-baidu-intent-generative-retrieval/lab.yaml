@@ -1,0 +1,174 @@
+id: icegr-baidu-intent-generative-retrieval
+arxiv_id: '2608.29652'
+title: 'ICEGR: An Intent-Coherent End-to-End Generative Retrieval Framework for E-commerce
+  Search'
+authors:
+- Jiayi Tuo
+- Hehan Li
+- Dongjun Fu
+- Xin Lu
+- Ling Zhuang
+- Fuwei Zhang
+- Meifang Li
+- Peizhi Xu
+- Hanmeng Liu
+- Shuanglong Li
+- Liwei Qian
+- Yanbiao Ma
+- Fuzhen Zhuang
+year: 2026
+topics:
+- recommender-systems
+- ml-systems
+urls:
+  arxiv: https://arxiv.org/abs/2608.29652
+  paper: https://arxiv.org/abs/2608.29652
+  pdf: https://arxiv.org/pdf/2608.29652v1
+  official_code: null
+verdict: Watch
+status: published
+question: 価値を学ばせても、検索意図との一致を保てるか
+summary: Baidu検索でintent-aware SID、合成query SFT、関連性を守る選好学習を統合。2週・20% A/BでCTR +3.52%、注文
+  +15.96%、GMV +7.53%。最終表示への直接挿入枠を持つ。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- generative-rec-vs-retrieval
+source_review:
+  checked: '2026-09-22'
+  version: v1
+  pdf_sha256: b58ae102b84c0215671d3b02b33c904aebb99fe270ff48c5fc5e48d35d95cdd3
+  url: https://arxiv.org/pdf/2608.29652v1
+  scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。
+core_idea:
+  author_claim: 商品contentだけのSID、低露出商品のquery不足、business preferenceによる意図の逸脱を、IA-SID・SQE-SFT・RCPOの3段階で抑える。
+  research_bot_interpretation: '[VARG](varg-tmall-value-generative-retrieval.html)は価値順の第3
+    tokenとranker報酬、ICEGRは全学習段階でquery意図を守る。どちらも関連性と価値を扱うが、ICEGRの一部結果は最終表示へ直接入り、VARGはfinal
+    rankerへ渡す。同じEC検索でも責任範囲とcontrolが異なり、GMVの倍率では優劣を決められない。'
+sections:
+  overview: 「恋人への贈り物」には口紅とネックレスの両方が適する。商品contentの類似性だけで住所を作ると、このquery共通性を失う。ICEGRはco-clickと過去queryをSIDへ入れ、少数露出商品にも合成queryを与え、選好学習でも関連性を守る。Baiduの0.5Bモデルのオンライン成績は有望だが、改善の主因をtokenizerだけに帰さない。
+  problem: SID構築は商品説明、SFTはitem→SIDの暗記、選好最適化は人気や売上、と別々の信号を使うとquery意図が途中で薄れる。real query→SIDだけでは露出の少ない商品に教師が不足する。click
+    graphも露出の影響を含み、未露出商品の正しい需要を直接知っているわけではない。
+  why_it_might_work: '解釈: co-click graphはcontentが違う補完候補を近付け、synthetic queryは商品暗記を検索文からのretrievalへ近付ける。関連性が十分な候補同士でbusiness
+    preferenceを比較すれば、売上が高いだけの無関係商品へ流れにくい。一方、合成queryは実userの語彙分布とずれ、graphは人気偏りを増幅しうる。anchorとconfidence
+    gateはこの依存を抑えるために読む。'
+  evidence: '一次資料 [PDF §4、Tables 2–5](https://arxiv.org/pdf/2608.29652v1) の著者報告。約3カ月の検索log、12.8M
+    query・14.6M商品。最終日をtestとし、SID等もpre-testだけから構築。offlineは20,000 queryで比較する。
+
+
+    | 累積追加 | Recall@20 | NDCG@20 |
+
+    | --- | ---: | ---: |
+
+    | ProdGR | 0.4247 | 0.2318 |
+
+    | +SQE-SFT | 0.4954 | 0.2784 |
+
+    | +IA-SID | 0.5006 | 0.2841 |
+
+    | +RCPO | 0.5169 | 0.2935 |
+
+
+    Recall@20 +21.7%、NDCG@20 +26.6%は相対差。累積追加順でSQE-SFTがRecall改善の76.7%を占める。これは順序に依存する分解で、各部品の独立寄与ではない。query–product
+    alignmentをbase encoderへ戻すとRecall@20 0.4179、RCPOのβを固定するとNDCG@20が7.36%低下する。
+
+
+    オンラインは0.5B、2週間、live traffic 20%。既存MCAへICEGRを追加し、一部top-kを最終impression listへ直接挿入。残りは既存の関連性filter・rankへ回す。CTR
+    +3.52%、Order Volume +15.96%、GMV +7.53%、Show PV +8.84%、Long-click Rate +5.27%、商品landing
+    PV +8.75%。絶対Kや信頼区間は公開されていない。VARGのreserved final-ranker quotaと同一条件ではない。'
+  executable_understanding: '`uv run papers/icegr-baidu-intent-generative-retrieval/run.py`。口紅・ネックレス・修理の人工embeddingで、query共通edgeの3-step伝播とanchorを計算する。businessだけの選択と簡易relevance
+    gateを比べ、Eq. 9のmarginごとの係数も計算する。'
+  results: 人工の贈り物pairの距離は√2から約0.486へ縮む。businessだけなら無関連のrepair、関連性0.8以上の簡易gateではnecklaceを選ぶ。margin
+    −1/0/+1でβ倍率は1.8/1/0.2となる。この選択gateはSRA/BPRを説明する代理で、公式pair構築そのものではない。
+  what_we_verified: Mechanism PARTIAL。Eq. 3のanchor付き伝播、anchor=1で元表現を保持する端点、Eq. 9の係数範囲とmarginに対する単調減少はCONFIRMED。
+  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。8B
+    embedding・0.5B retrieval・0.6B relevance modelの学習、合成queryの品質、RQ-KMeans、DPO収束、Baidu
+    A/Bは未実行。本文はmodelサイズを示すが、base checkpointの名前までは確認できないため推測しない。
+  implementation: '`propagate()`は正規化隣接行列とEq. 3、`beta_factor()`はEq. 9。候補gateの閾値0.8は人工例の設定で、公式hyperparameterではない。公式の量子化・pair
+    sampling・SFTを省略した境界を明示する。'
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: equations
+  id: intent-equations
+  title: 意図を表現へ入れる場所と、選好を制御する場所
+  after: method
+  locator: Eqs. 2–5, 9–11
+  rationale: 意図を表現へ入れる場所と、選好を制御する場所
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2608.29652v1
+  steps:
+  - name: query共通edge
+    formula: wᵢⱼ = Σq √(nᵢq nⱼq)
+    explanation: 同queryからのco-clickを使う。content類似度だけではない。
+  - name: 元表現へのanchor
+    formula: Hᵗ = (1−αg) ÂHᵗ⁻¹ + αgX
+    explanation: αg=0.2、3 step。graphだけへ流れ切らない。
+  - name: margin係数
+    formula: βeff = β · clip(1 + log((2−Δr)/(2+Δr)), 0.2, 1.8)
+    explanation: Δrは正例・負例のcomposite score差。欠損時は倍率1。
+  - name: 選好loss
+    formula: L = −E[log σ(βeff Δθ) + ηsft log πθ(s⁺|q)/|s⁺|]
+    explanation: Δθはpolicy/referenceの正負log比差。
+- kind: matrix
+  id: gain-ladder
+  title: 大きい追加効果は合成queryの段階にある
+  after: evidence
+  locator: Table 2
+  rationale: 大きい追加効果は合成queryの段階にある
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2608.29652v1
+  columns:
+  - Recall@20
+  - 前段からの差 pp
+  rows:
+  - label: ProdGR
+    cells:
+    - 42.47%
+    - 基準
+  - label: +SQE-SFT
+    cells:
+    - 49.54%
+    - '+7.07'
+  - label: +IA-SID
+    cells:
+    - 50.06%
+    - '+0.52'
+  - label: +RCPO
+    cells:
+    - 51.69%
+    - '+1.63'
+- kind: matrix
+  id: intent-value
+  title: VARGとICEGRでは生成結果の受け渡し先が違う
+  after: problem
+  locator: §4.5 / VARG Fig. 1
+  rationale: VARGとICEGRでは生成結果の受け渡し先が違う
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2608.29652v1
+  columns:
+  - IDの軸
+  - 教師
+  - 本番の接続
+  rows:
+  - label: VARG
+    cells:
+    - 意味prefix + 価値rank
+    - 3-stage SFT + Prefix-GRPO
+    - 既存final rankerへ予約枠
+  - label: ICEGR
+    cells:
+    - query intent + RQ-KMeans
+    - synthetic/real SFT + RCPO
+    - 一部top-kを最終表示へ
+results: results.json
+submitted: '2026-08-30'
+figures:
+- path: margin-curve.svg
+  title: RCPOのmargin係数を曲線で読む
+  caption: Eq. 9の計算曲線。online効果の曲線ではない。
+  after: method
+  layout: scroll

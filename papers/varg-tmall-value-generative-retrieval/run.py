@@ -5,8 +5,8 @@ from pathlib import Path
 from collections import Counter
 
 
-def eb(buys, clicks, prior=.1, strength=5):
-    return (buys + strength * prior) / (clicks + strength)
+def eb(buys, clicks, prior=.1, strength=5, carts=0, cart_weight=.5):
+    return (buys + cart_weight * carts + strength * prior) / (clicks + strength)
 
 
 def assign(values, old=None):

@@ -1,0 +1,164 @@
+id: sidinspector-mapping-diagnostics
+arxiv_id: '2606.10375'
+title: 'SIDInspector: A Mapping-First Diagnostic Resource for Semantic-ID Tokenizers'
+authors:
+- Jiandong Ding
+- Heng Chang
+- Huijie Qin
+- Tianying Liu
+year: 2026
+topics:
+- recommender-systems
+- ml-systems
+urls:
+  arxiv: https://arxiv.org/abs/2606.10375
+  paper: https://arxiv.org/abs/2606.10375
+  pdf: https://arxiv.org/pdf/2606.10375v1
+  official_code: https://github.com/jdding/sidinspector
+verdict: Watch
+status: published
+question: generatorを学習する前に、SID住所表の何を検査できるか
+summary: item→SIDのmappingを共通契約へ揃え、利用率・衝突・行動近傍・人気配分・構造費用を分離。collision-freeでも意味のあるprefixとは限らない。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- generative-rec-vs-retrieval
+source_review:
+  checked: '2026-09-22'
+  version: v1
+  pdf_sha256: 4fc33c243ac3dae6dcd04666b3ab85a677fcdc089531c5e8edd77aff78300cb5
+  url: https://arxiv.org/pdf/2606.10375v1
+  scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。
+core_idea:
+  author_claim: export済みSID mappingとjoin可能なmetadata・interactionを検証し、D1–D5の診断を学習loopから独立して実行する。D6はrefresh間の変化、D7はgenerator
+    traceの入力拡張。
+  research_bot_interpretation: '[SIDScope](sidscope-diagnostics.html)と共通する診断軸が多く、新しいtokenizerの性能改善と読むべきではない。本Labでは小さいadapter契約と、同じitem集合で「住所の一意性」と「行動近傍の保存」を分ける実用上の入口を重視する。'
+sections:
+  overview: SIDが全商品に割り当てられていても、同じIDへ多数の商品が集まる場合も、IDが一意でもprefixに意味がない場合もある。SIDInspectorはgeneratorを動かす前に、この住所表を点検するtooling研究。online
+    liftを示した論文ではなく、入力artifactを検査できる共通interfaceと診断の分離が成果である。
+  problem: tokenizerの公開物はcheckpoint、codebook、item indexなど形が揃わない。IDの重複やjoin欠落を残したまま下流Recallだけを見ると、どこで問題が起きたか分からない。まずstable
+    item key、離散token、同じ診断対象集合、metadata/interactionとのjoinを揃える必要がある。可変長codeはpadding/maskと実長を記録できるが、実serving挙動にはtraceが必要となる。
+  why_it_might_work: '解釈: modelの学習前に失敗を発見できれば、大きいgeneratorを回してからmapping欠落に気付く手戻りを減らせる。D2とD3を別々に測ると、単にleafを増やす対策とprefixの構造を変える対策を分けられる。ただしco-occurrenceも履歴の露出やtaxonomyに依存し、高いD3が因果的に推薦を改善する保証はない。'
+  evidence: '一次資料 [PDF §4、Tables 1–3](https://arxiv.org/pdf/2606.10375v1) の著者報告。同じMusical
+    23,742 itemでGRID-style feature-textはunique full SID 3,749、D2 alias item率0.977、D3-L1
+    0.055。capacityを増やすとunique 9,874、D2 0.779、D3 0.080。ReSID/GAOQはunique 23,742、D2
+    0、D3 0.154。
+
+
+    決定的なcategory-prefix controlはD2 0、D3 0.447。一意性では同じでも近傍保持が異なる。ただしcategory controlは学習済みtokenizerではなく、ReSIDより優れた推薦モデルと結論できない。GRIDもcontrolled
+    exportで、全pipelineの公式追試ではない。
+
+
+    LETTER/LC-Recは別のInstruments 9,922 item、双方unique 9,897。D3は0.109/0.052。同じ商品集合ではないのでMusical表に混ぜない。fixed-rerankerの補助実験はD3とcandidate
+    recoveryの関連を示すが、trained generatorやA/Bの証拠ではない。
+
+
+    版の差: 今回読んだPDF v1 §5の公開tagは`sidinspector-cikm2026-resource-v0.6`。取得した公式main READMEはv1.0を案内していた。PDFの報告値を現在版で再実行したとは扱わず、両者を区別して記録する。'
+  executable_understanding: '`uv run papers/sidinspector-mapping-diagnostics/run.py`。同じ6
+    item・同じco-occurrence edgeに、衝突あり、衝突なし/近傍不一致、衝突なし/近傍一致の3 mappingを与える。先に欠落・duplicate
+    key・深さ不一致を拒否し、D1–D5を計算する。'
+  results: 人工mappingの衝突item率は2/3→0へ減らせるが、prefixを交差させた一意mappingのD3は0。行動pairを同prefixに置く一意mappingはD3=1。両者ともfull
+    SIDは一意であり、addressabilityとbehavioral alignmentが別であることを確認した。
+  what_we_verified: Mechanism PARTIAL。人工入力の契約違反拒否、非singleton bucketに属するitem比率、重み付き近傍回収、tailの一意SID比率、prefix数とfan-outを確認。局所計算はCONFIRMED。
+  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。公式packageの全gate、GRID/ReSID/LETTER/LC-Rec
+    export、co-occurrence構築のsampling、generatorのRecall/NDCG、latencyとonline A/Bは未実行。D2の衝突率だけから衝突の害を判断しない。
+  implementation: '`validate()`がadapter契約の小部分、`probe()`がD1–D5の人工診断。D1のused数は語彙budgetがないため絶対利用率に変換せず、D5のfan-outをmsへ換算しない。D3は固定edge集合のweighted
+    scoreで、per-item平均とは異なる。'
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: matrix
+  id: probe-contract
+  title: 何があれば測れて、何は測れないか
+  after: method
+  locator: §2–3
+  rationale: 何があれば測れて、何は測れないか
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2606.10375v1
+  columns:
+  - 必要入力
+  - 測れるもの
+  - 境界
+  rows:
+  - label: D1/D2/D5
+    cells:
+    - item→SID
+    - 利用・alias・構造
+    - 下流品質とmsは未測定
+  - label: D3/D4
+    cells:
+    - interaction + popularity
+    - 近傍・tail配分
+    - 露出偏りを含む
+  - label: D6
+    cells:
+    - 同itemのrefresh pair
+    - 住所変化
+    - 今回の主表とは別
+  - label: D7
+    cells:
+    - generator trace
+    - 生成path診断
+    - 本文では入力hook
+- kind: equations
+  id: alias-math
+  title: 一意SIDの数だけでは衝突item率は分からない
+  after: method
+  locator: §3
+  rationale: 一意SIDの数だけでは衝突item率は分からない
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2606.10375v1
+  steps:
+  - name: alias集合
+    formula: 'A(c) = {i : z(i)=c}'
+    explanation: 同じfull SIDを共有するitemを集める。
+  - name: item単位の衝突率
+    formula: D2 = |I|⁻¹ Σᵢ 1[|A(z(i))|>1]
+    explanation: 3 itemが1 codeを共有すれば、3 itemすべてを数える。
+  - name: weighted prefix recovery
+    formula: D3ℓ = Σᵢⱼ wᵢⱼ 1[pℓ(i)=pℓ(j)] / Σᵢⱼ wᵢⱼ
+    explanation: 近傍edgeとdepthを揃えて比較する。
+- kind: matrix
+  id: address-vs-neighbor
+  title: Musicalでは住所の一意性と近傍保持が分かれた
+  after: evidence
+  locator: Table 2
+  rationale: Musicalでは住所の一意性と近傍保持が分かれた
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2606.10375v1
+  columns:
+  - unique full SID
+  - D2 alias item率
+  - D3-L1
+  rows:
+  - label: GRID-style ft
+    cells:
+    - 3,749
+    - '0.977'
+    - '0.055'
+  - label: capacity増
+    cells:
+    - 9,874
+    - '0.779'
+    - '0.080'
+  - label: ReSID/GAOQ
+    cells:
+    - 23,742
+    - '0'
+    - '0.154'
+  - label: category control
+    cells:
+    - 23,742
+    - '0'
+    - '0.447'
+results: results.json
+submitted: '2026-06-09'
+figures:
+- path: mapping-grid.svg
+  title: 同じ6商品で、住所の一意性と近傍を分離する
+  caption: run.pyの3つの人工mapping。色はprefix、D3は固定行動pairの回収。
+  after: method
+  layout: scroll

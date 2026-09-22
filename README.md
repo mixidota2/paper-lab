@@ -1,6 +1,6 @@
 # Interactive Research Library
 
-一次資料を読み、仕組み・根拠・限界を日本語で説明する54件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
+一次資料を読み、仕組み・根拠・限界を日本語で説明する58件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
 
 公開先：https://mixidota2.github.io/paper-lab/
 
@@ -35,7 +35,7 @@ uv run python -m http.server --directory site 8000
 
 図と数式はHTMLで生成し、JSや数式CDNがなくても読めます。数式はUnicodeの添字・演算子と説明を使い、狭い画面では折り返します。行列だけは必要に応じて図の内部を横スクロールします。チャートは0起点の共通尺度と正確な数値を併記します。
 
-`figures` には各Labの `figures/` に置いたSVGなどを指定できます。`path`、`title`、`caption` と任意の `after` を持ち、`after: method` なら手法の節の直後に図を表示します。挿入位置を指定しない参考図は末尾にまとめます。SVGには説明文とviewBoxを付け、拡大リンクも表示します。
+`figures` には各Labの `figures/` に置いたSVGなどを指定できます。`path`、`title`、`caption` と任意の `after` を持ち、`after: method` なら手法の節の直後に図を表示します。挿入位置を指定しない参考図は末尾にまとめます。SVGには説明文とviewBoxを付け、拡大リンクも表示します。文字の多い図は `layout: scroll` で最小表示幅を保ち、電話の画面では図内を横にスクロールできます。
 
 `interactives` は任意の配列です。既存の `flow` と `explorer` を必要な個数・順序で選べます。処理図を一律には使わず、条件の比較が理解を助けるLabにだけ `explorer` を置きます。`explorer` は `title` と `caption` を持ち、`results.json` の計算済み全条件を表示します。JavaScriptは計算式を再実装せず、棒・系列・注記を更新します。キーボードで操作でき、JavaScript無効時にも初期値が残ります。
 
@@ -103,3 +103,5 @@ OGRの理論的な依存深さと実測throughput、DREAMの累積lift、PILOT�
 ## 2026-09-22：検索の価値・注文の完納・修正前の診断
 
 [VARG](https://mixidota2.github.io/paper-lab/papers/varg-tmall-value-generative-retrieval.html)、[Accuracy Is Not Service](https://mixidota2.github.io/paper-lab/papers/accuracy-not-service-intermittent-demand.html)、[AURA](https://mixidota2.github.io/paper-lab/papers/aura-disney-agentic-rec-diagnosis.html)を追加。住所の安定性、精度と完納の順位散布図、診断から修正を保留する判断を扱います。各PDFの版・ハッシュと実行範囲はmappingに記録しています。
+
+Radarとして[GRACE](https://mixidota2.github.io/paper-lab/papers/grace-meta-ads-gtm-serving.html)、[ICEGR](https://mixidota2.github.io/paper-lab/papers/icegr-baidu-intent-generative-retrieval.html)、[EvoPilot](https://mixidota2.github.io/paper-lab/papers/evopilot-verify-dont-trust-autoresearch.html)、[SIDInspector](https://mixidota2.github.io/paper-lab/papers/sidinspector-mapping-diagnostics.html)も追加。request別mask、margin係数、評価器不具合の時系列、住所表の診断を図で追えます。`uv run --with playwright tests/browser_september22.py` で7本のresponsive表示を確認できます。

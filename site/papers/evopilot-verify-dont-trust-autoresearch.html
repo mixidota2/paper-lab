@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="37日間のVDD研究で、−22 ppという誤った比較をhuman gateが棄却。評価器修正後、matched-lineageで+3.20 pp、別の7日A/BでGSRR +0.66%相対差。">
+  <title>完了した二つの実験を、比較してよい証拠にする条件は何か | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-18</span></div>
+    <h1>完了した二つの実験を、比較してよい証拠にする条件は何か</h1>
+    <p class="lede">37日間のVDD研究で、−22 ppという誤った比較をhuman gateが棄却。評価器修正後、matched-lineageで+3.20 pp、別の7日A/BでGSRR +0.66%相対差。</p>
+    <details class="bibliography"><summary>原論文：Verify, Don’t Trust: Agentic Model Development for Video Discovery Retrieval at Scale</summary><p>Hao Fu, Baiting Zhu, Minglei Chen, Yinjie Huang, Shuai Ding</p><p>2609.21257 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.21257">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.21257v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-22 · 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-incident">−22 ppから+3.20 ppまでに、比較条件を修復した</a><a href="#figure-admission">機械検査と人間の意味確認を両方必要にする</a><a href="#figure-proof-layers">証拠の段階を飛ばさない</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>interaction headで精度が22 pp落ちたという結論は、controlだけ3,000件を評価していたため無効だった。宣言は両群K=600でも、実現した出力数が違った。EvoPilotの中心はagentを増やすことより、承認した差分とartifactの実現値を比較して記録することにある。最初に問題を捕まえたのはhuman gateで、自動identity guardは事後強化だった。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>長いML実験はsource、data、training、publish、index、evaluatorをまたぐ。各runが成功し、どのrevisionで実行したか分かっても、二つのrunが同じ測定をしているとは限らない。code変更がno-op、eval日がtrainに混入、K/Pが宣言と不一致、といった問題を「modelが悪い」という結果から切り分ける必要がある。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-proof-layers" aria-labelledby="title-proof-layers">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-proof-layers">証拠の段階を飛ばさない</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="証拠の段階を飛ばさないの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">確認できること</th><th scope="col">まだ保証しないこと</th></tr></thead><tbody><tr><th scope="row">run完了</th><td class="">terminal metricがある</td><td class="">比較条件が同じ</td></tr><tr><th scope="row">lineage</th><td class="">revisionへ遡れる</td><td class="">その差分が許可済み</td></tr><tr><th scope="row">pair verifier</th><td class="">artifactの実現差を照合</td><td class="">metricの意味が妥当</td></tr><tr><th scope="row">human review</th><td class="">意味と例外を判断</td><td class="">将来の全faultを防ぐ</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2609.21257v1">出典：Table 1 / §4.2 ↗</a></figcaption>
+</figure>      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>各runの完了やlineageだけでは比較の妥当性を保証しない。承認済みcontrastとartifactから実現した条件を照合し、比較単位でfail-closedに受理する。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><a href="aura-disney-agentic-rec-diagnosis.html">AURA</a>は何を直すべきかを診断し、EvoPilotは修正を比べた測定が有効かを検査する。<a href="pilot-experiment-lifecycle.html">PILOT</a>の非同期実験運用や<a href="agentx-kuaishou.html">AgentX</a>のkeep判定にも、比較条件が揃ったかという前提を追加できる。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>実験対象はtwo-towerとinteraction head</h3>
+<p>Video Deep Diveはseed動画の後に関連動画を探す面。model-based retrieval（MBR）はrequest towerとcandidate towerからANN affinityを作り、上位P件へcandidate-conditioned interaction headを適用し、最終K件を残す。Pはheadへ入る候補数、Kはretrieval出力数である。</p>
+<p>two-towerとheadは共同学習した同じcheckpointに含まれる。headを推論時に切る比較は学習からheadを削除する比較とは違う。indexとcandidate embeddingは時間単位で更新するが、neural weightsを毎時再学習するという意味ではない。</p>
+<h3>実行手順と証拠の受理を分離する</h3>
+<p>versioned domain skillはconfig探索、small preflight、train→publish-for-evaluation→evaluateのDAGと再開手順を定義する。typed adapterが承認variantを具体的操作へ結ぶ。workerは隔離環境で実行し、verifierがartifactを読み、analystが仮説treeを更新、plannerが次round案を作る。人間が毎round承認する。</p>
+<p>計画・変更・結果統合・修復はClaude Opus 4.7/4.8、限定されたread-only監視はClaude Haiku。これらは本文に記載されたagent modelであり、推薦modelのbackbone名ではない。各役割はpromptまたはhash、model alias、session、status等を記録する。</p>
+<h3>許された差分だけが実現したか調べる</h3>
+<p>round protocol Rはcommon base、data pin、evaluator、metric、必須terminal artifact、許可差分、停止条件を指定する。両runが成功し、artifactの実現値が仕様と一致し、非treatment部分が同等であることを確認。どれかが欠ければreject。人間のmetric意味確認を掛け合わせて初めてadmitする。</p>
+<p>memoryにはevent ledger、過去結果、incident catalog、実験記述が残る。ただしmemoryのlessonは助言であり、検査として実装されるまでgateを代替しない。初期incidentを自動guardが検知したという読みは避ける。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-admission" aria-labelledby="title-admission">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-admission">機械検査と人間の意味確認を両方必要にする</h3>
+  <ol class="equation-steps"><li><strong>比較の受理</strong><div class="math-expression" tabindex="0" role="math" aria-label="A(c,t;R) = 1[VerifyR(c,t)] × 1[ReviewR(c,t)]">A(c,t;R) = 1[VerifyR(c,t)] × 1[ReviewR(c,t)]</div><p>run単位の成功だけでは両項を満たせない。</p></li><li><strong>オンライン指標</strong><div class="math-expression" tabindex="0" role="math" aria-label="GSRR = qualifying eligible pivot sessions / eligible pivot sessions">GSRR = qualifying eligible pivot sessions / eligible pivot sessions</div><p>offline hit-rateとは母集団も意味も違う。</p></li><li><strong>相対lift</strong><div class="math-expression" tabindex="0" role="math" aria-label="lift = (GSRRt − GSRRc) / GSRRc">lift = (GSRRt − GSRRc) / GSRRc</div><p>+0.66%を+0.66 percentage pointへ変換しない。</p></li></ol>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2609.21257v1">出典：Eq. 3 / §5.1 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈: proposalを実行権限や証拠と混同せず、typed adapterで実行し、artifactを独立verifierへ渡すと、agentの説明だけで比較を通しにくくなる。前回の失敗をmemoryに保存するだけでは防止策にならない。次回のartifactや状態遷移に適用できる検査へ変換して初めて強制力を持つ。evaluatorの意味自体が正しいかは人間の確認が残る。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料 <a href="https://arxiv.org/pdf/2609.21257v1">PDF §5、Tables 1–6</a> の著者報告。37日・7方向・20承認round。記録が揃う部分集合は9 round・29 variantで、22 train、22 publish、27 evaluateの計71論理stage。27/29はこの部分集合でscientific resultまで完了した割合であり、20 round全体の成功率ではない。</p>
+<p>−22 ppの旧比較はcontrol K_eff=3000、treatment K_eff=600。宣言は両方600だった。修正後の同じ(P,K)=(3000,600)再試験は+4.8 ppだが、base modelも変わりbundled effect。後のmatched-lineage比較はcheckpointとK=3000を固定し、control P=3000/head off、treatment P=6000/head onで+3.20 pp。head offのtop-KはPに不変という性質を使った、選定運用点でのhead効果である。</p>
+<p>別のaccount-randomized A/BはUS/Canada VDD-pivot slice、7日観測＋別の7日pre-period。GSRR +0.66%相対差で、著者は統計的有意と報告する。guardrail結果は保存datasetにない。これは選ばれたmodel変更の効果であり、EvoPilotを使うことの生産性や因果的優位性のRCTではない。</p>
+<p>10組のclean/fault replayは全clean受理・全fault拒否。ただしfunnel/evaluator identity等3組はpost-study強化の検査で、全37日間に自動検知していたわけではない。</p></div>      </section>
+<figure class="teaching teaching--timeline" id="figure-incident" aria-labelledby="title-incident">
+  <div class="figure-heading"><span class="eyebrow">TIMELINE</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-incident">−22 ppから+3.20 ppまでに、比較条件を修復した</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">旧autoresearch</p><div class="diagram-nodes"><div class="diagram-node"><strong>宣言K=600</strong><p>controlだけK_eff=3000</p></div><div class="diagram-node"><strong>−22 pp</strong><p>headの悪化と誤帰属</p></div></div></div><div class="diagram-row"><p class="lane-label">EvoPilot導入</p><div class="diagram-nodes"><div class="diagram-node"><strong>human gate</strong><p>比較不成立を検出</p></div><div class="diagram-node"><strong>K=1反証probe</strong><p>旧evaluatorは出力数を変えていなかった</p></div></div></div><div class="diagram-row"><p class="lane-label">修正後</p><div class="diagram-nodes"><div class="diagram-node"><strong>再試験 +4.8 pp</strong><p>baseも変化した複合効果</p></div><div class="diagram-node"><strong>matched-lineage +3.20 pp</strong><p>K=3000固定。headの選定運用点</p></div></div></div><div class="diagram-row"><p class="lane-label">別のオンライン検証</p><div class="diagram-nodes"><div class="diagram-node"><strong>7日A/B</strong><p>GSRR +0.66% relative</p></div><div class="diagram-node"><strong>事後guard</strong><p>identity検査をreplayで確認</p></div></div></div></div>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2609.21257v1">出典：§5.2–5.3 / Table 6 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/evopilot-verify-dont-trust-autoresearch/run.py</code>。出力Kを無視する壊れたevaluatorと修正版へK=1/600を与える。別に同じbase/data/evaluatorと承認差分を照合し、depth不一致・evaluator変更・data変更・no-op・証拠欠落を注入して拒否を確かめる。</p></div><div class="downloads"><a href="../downloads/evopilot-verify-dont-trust-autoresearch/run.py" download>実行コード</a><a href="../downloads/evopilot-verify-dont-trust-autoresearch/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/evopilot-verify-dont-trust-autoresearch">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>人工artifactのpair検証。論文の−22 pp、+3.20 pp、オンラインGSRRは入力していない。</em></p>
+<h3>完了した2 runでも比較を拒否する</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>count</th><th>status</th></tr></thead><tbody><tr><th scope='row'>clean_admitted_mechanically</th><td>1</td><td></td></tr><tr><th scope='row'>faults_rejected</th><td>5</td><td></td></tr><tr><th scope='row'>human_admission</th><td></td><td>pending</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;人工artifactのpair検証。論文の−22 pp、+3.20 pp、オンラインGSRRは入力していない。&quot;,
+  &quot;scope&quot;: {
+    &quot;mutation_rejection&quot;: &quot;CONFIRMED&quot;,
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;decisions&quot;: {
+    &quot;valid&quot;: [],
+    &quot;depth_mismatch&quot;: [
+      &quot;undeclared_effective_k&quot;
+    ],
+    &quot;eval_drift&quot;: [
+      &quot;undeclared_evaluator&quot;
+    ],
+    &quot;data_drift&quot;: [
+      &quot;undeclared_data&quot;
+    ],
+    &quot;no_op&quot;: [
+      &quot;no_op&quot;
+    ],
+    &quot;missing&quot;: [
+      &quot;missing_evidence&quot;
+    ]
+  },
+  &quot;extreme_k_probe&quot;: {
+    &quot;broken&quot;: [
+      {
+        &quot;declared_k&quot;: 1,
+        &quot;effective_k&quot;: 3000,
+        &quot;hit_rate&quot;: 1.0
+      },
+      {
+        &quot;declared_k&quot;: 600,
+        &quot;effective_k&quot;: 3000,
+        &quot;hit_rate&quot;: 1.0
+      }
+    ],
+    &quot;fixed&quot;: [
+      {
+        &quot;declared_k&quot;: 1,
+        &quot;effective_k&quot;: 1,
+        &quot;hit_rate&quot;: 0.01
+      },
+      {
+        &quot;declared_k&quot;: 600,
+        &quot;effective_k&quot;: 600,
+        &quot;hit_rate&quot;: 0.2
+      }
+    ]
+  },
+  &quot;durable_record&quot;: {
+    &quot;control&quot;: {
+      &quot;base&quot;: &quot;checkpoint-1&quot;,
+      &quot;data&quot;: &quot;snapshot-1&quot;,
+      &quot;evaluator&quot;: &quot;fixed-v2&quot;,
+      &quot;effective_k&quot;: 600,
+      &quot;head&quot;: false,
+      &quot;status&quot;: &quot;success&quot;,
+      &quot;artifact&quot;: &quot;sha-control&quot;
+    },
+    &quot;treatment&quot;: {
+      &quot;base&quot;: &quot;checkpoint-1&quot;,
+      &quot;data&quot;: &quot;snapshot-1&quot;,
+      &quot;evaluator&quot;: &quot;fixed-v2&quot;,
+      &quot;effective_k&quot;: 600,
+      &quot;head&quot;: true,
+      &quot;status&quot;: &quot;success&quot;,
+      &quot;artifact&quot;: &quot;sha-treatment&quot;
+    },
+    &quot;allowed_diff&quot;: [
+      &quot;head&quot;
+    ],
+    &quot;reasons&quot;: [],
+    &quot;human_review&quot;: &quot;pending&quot;,
+    &quot;record_sha256&quot;: &quot;db0e76e34bd1f903a2f84ceede7667754c91bb05e56ccc87997a48204043861e&quot;
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;完了した2 runでも比較を拒否する&quot;,
+      &quot;metrics&quot;: {
+        &quot;clean_admitted_mechanically&quot;: {
+          &quot;count&quot;: 1
+        },
+        &quot;faults_rejected&quot;: {
+          &quot;count&quot;: 5
+        },
+        &quot;human_admission&quot;: {
+          &quot;status&quot;: &quot;pending&quot;
+        }
+      }
+    }
+  ]
+}</code></pre></details><p>壊れた人工evaluatorはK=1と600で同じhit率1.0。修正版は0.01/0.20へ分かれる。5種類のfaultはすべて拒否し、clean pairだけ機械検査を通過。human_reviewはpendingのまま記録するので、機械検査の成功を人間の承認済みと扱わない。原典の−22 ppを人工実験で再現するよう値を設定していない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。実現Kの反証probeと、pairの許可外差分・no-op・欠落の拒否は人工artifactでCONFIRMED。canonical recordのhashも計算する。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability NOT TESTED。本番MBR学習、数億動画index、37日agent運用、offline +3.20 pp、online +0.66%は再現していない。local hashは遠隔artifactの真正性を保証しない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>evaluate()</code>がK契約の破壊・修正、<code>verify()</code>が承認差分と必須証拠の確認。<code>durable_record</code>はcontrol/treatment・allowed_diff・判定・human statusを一緒に保存する。実際のworkflow adapter、atomic state更新、remote再開・tool権限は省略する。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>一次資料: <a href="https://arxiv.org/pdf/2609.21257v1">Verify, Don’t Trust: Agentic Model Development for Video Discovery Retrieval at Scale</a>、arXiv v1。2026-09-22確認。PDF SHA-256: <code>5f1e410fd37a0188628871d4cd241ab3bf8dcd4af0dfae1043f1c82aec90f913</code>。取得済みPDFは <code>/tmp/research-2026-09-22/2609.21257v1.pdf</code> を再利用した。</p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>Lab</th>
+<th>省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3 P/K</td>
+<td>evaluate</td>
+<td>ANN・two-tower・head</td>
+</tr>
+<tr>
+<td>Eq. 3 / §4.2</td>
+<td>verify + human_review pending</td>
+<td>remote attestation・人間判断</td>
+</tr>
+<tr>
+<td>§5.2 / Table 5</td>
+<td>fault mutation</td>
+<td>原典10 fixtureの全再現</td>
+</tr>
+<tr>
+<td>§5.3 / Table 6</td>
+<td>incident timeline</td>
+<td>学習比較の再実行</td>
+</tr>
+<tr>
+<td>§5.4</td>
+<td>online evidence</td>
+<td>guardrail欠落、product A/B未追試</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード: 確認したPDFに本手法の公開実装へのリンクは見つからなかった。公開の有無を網羅的に保証するものではない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>完了した二つの実験を、比較してよい証拠にする条件は何か</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/evopilot-verify-dont-trust-autoresearch/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

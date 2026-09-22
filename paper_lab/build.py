@@ -253,6 +253,7 @@ def build(
             verification_status_labels=VERIFICATION_STATUS_LABELS,
             topic_labels=TOPIC_LABELS,
             figures=rendered_figures,
+            local_experiment_files=[name for name in ("plot.py", "author-orderbook.csv") if (lab.source_dir / name).is_file()],
             standalone_toy=not (lab.source_dir / "run.py").is_file() or "_toy_common" not in (lab.source_dir / "run.py").read_text(encoding="utf-8"),
         )
         (papers_out / f"{lab.slug}.html").write_text(html, encoding="utf-8")

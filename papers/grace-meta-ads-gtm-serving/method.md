@@ -1,0 +1,17 @@
+### 小型encoder–decoderを、4 token・広いbeamに合わせる
+
+GRACEは特定のLLM checkpoint名を提示する研究ではない。encoder–decoder Transformerを対象とし、実験decoderは3層、16 heads、head幅128、語彙512、SID長4。評価ではInterFormer-style encoderが128 context tokenを作り、各beamが同じencoder K/Vを読む。
+
+cross-attentionではbeamをquery次元へまとめて共有K/Vの再読込を減らす。self-attentionは短い系列向けのcoalesced/fused kernelを使い、paged KVでbeamの並べ替え時に大きいtensorをコピーしない。top-k・beam拡張と動的beamも組み合わせる。これらはGTMの精度効果と別の計算上の工夫である。
+
+### 低cardinalityはbitmask、高cardinalityはBloom
+
+国・年齢などの条件をbit範囲へ割り当て、prefix配下の広告maskをORする。user属性のbitがすべて含まれれば通す。配下に適格広告があれば、この検査は通る。ただし通過したprefixに適格広告があるとは限らない。異なる広告の属性を組み合わせた偽陽性が生じる。
+
+場所など高cardinality条件は256 bit（int64×4）のBloomを用いる。request側の複数locationのうち一つでも包含検査を通れば候補となる。OR集約の偽陽性にhash衝突も加わる。論文は後段のad-level検査を維持し、SID-levelの効果を最終広告pass率で評価している。
+
+### maskを細分化すればよいとは限らない
+
+k-way partitionは広告群を分けて複数matcherを持ち、どれか一つが通ればprefixを残す。国と年齢の不正な組合せを減らせるが、照会回数とstorageが増える。CSRのchild array、SID token、matcher-table IDを並べ、同一matcherをdedupすることで保存量を抑える。kernelは安いbitmaskから試し、失敗ならBloomを読まない。
+
+<figure class="teaching" data-b21><h3>requestを変えると、同じprefixの判定が変わる</h3><label>対象user <select><option value="0">US・若年</option><option value="1">US・成人</option><option value="2">CA・若年</option><option value="3">CA・成人</option></select></label><div data-output aria-live="polite"><p>要求：US・若年。左から成人・若年・CA・USのbit。</p><div class="matrix-scroll" tabindex="0"><table><thead><tr><th>対象</th><th>mask</th><th>近似pass</th><th>適格広告</th></tr></thead><tbody><tr><td>mixed</td><td><code>1111</code></td><td>通過</td><td>a</td></tr><tr><td>eligible</td><td><code>1001</code></td><td>棄却</td><td>なし</td></tr><tr><td>wrong</td><td><code>0110</code></td><td>棄却</td><td>なし</td></tr></tbody></table></div></div><script type="application/json" data-frames>["<p>要求：US・若年。左から成人・若年・CA・USのbit。<\/p><div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>対象<\/th><th>mask<\/th><th>近似pass<\/th><th>適格広告<\/th><\/tr><\/thead><tbody><tr><td>mixed<\/td><td><code>1111<\/code><\/td><td>通過<\/td><td>a<\/td><\/tr><tr><td>eligible<\/td><td><code>1001<\/code><\/td><td>棄却<\/td><td>なし<\/td><\/tr><tr><td>wrong<\/td><td><code>0110<\/code><\/td><td>棄却<\/td><td>なし<\/td><\/tr><\/tbody><\/table><\/div>", "<p>要求：US・成人。左から成人・若年・CA・USのbit。<\/p><div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>対象<\/th><th>mask<\/th><th>近似pass<\/th><th>適格広告<\/th><\/tr><\/thead><tbody><tr><td>mixed<\/td><td><code>1111<\/code><\/td><td>通過<\/td><td>なし<\/td><\/tr><tr><td>eligible<\/td><td><code>1001<\/code><\/td><td>通過<\/td><td>c<\/td><\/tr><tr><td>wrong<\/td><td><code>0110<\/code><\/td><td>棄却<\/td><td>なし<\/td><\/tr><\/tbody><\/table><\/div>", "<p>要求：CA・若年。左から成人・若年・CA・USのbit。<\/p><div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>対象<\/th><th>mask<\/th><th>近似pass<\/th><th>適格広告<\/th><\/tr><\/thead><tbody><tr><td>mixed<\/td><td><code>1111<\/code><\/td><td>通過<\/td><td>なし<\/td><\/tr><tr><td>eligible<\/td><td><code>1001<\/code><\/td><td>棄却<\/td><td>なし<\/td><\/tr><tr><td>wrong<\/td><td><code>0110<\/code><\/td><td>通過<\/td><td>d<\/td><\/tr><\/tbody><\/table><\/div>", "<p>要求：CA・成人。左から成人・若年・CA・USのbit。<\/p><div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>対象<\/th><th>mask<\/th><th>近似pass<\/th><th>適格広告<\/th><\/tr><\/thead><tbody><tr><td>mixed<\/td><td><code>1111<\/code><\/td><td>通過<\/td><td>b<\/td><\/tr><tr><td>eligible<\/td><td><code>1001<\/code><\/td><td>棄却<\/td><td>なし<\/td><\/tr><tr><td>wrong<\/td><td><code>0110<\/code><\/td><td>棄却<\/td><td>なし<\/td><\/tr><\/tbody><\/table><\/div>"]</script><figcaption>run.pyの広告maskを使用。mixedは全要求を通すが、exact結果は空になる場合がある。</figcaption></figure>

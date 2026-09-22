@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Baidu検索でintent-aware SID、合成query SFT、関連性を守る選好学習を統合。2週・20% A/BでCTR +3.52%、注文 +15.96%、GMV +7.53%。最終表示への直接挿入枠を持つ。">
+  <title>価値を学ばせても、検索意図との一致を保てるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-08-30</span></div>
+    <h1>価値を学ばせても、検索意図との一致を保てるか</h1>
+    <p class="lede">Baidu検索でintent-aware SID、合成query SFT、関連性を守る選好学習を統合。2週・20% A/BでCTR +3.52%、注文 +15.96%、GMV +7.53%。最終表示への直接挿入枠を持つ。</p>
+    <details class="bibliography"><summary>原論文：ICEGR: An Intent-Coherent End-to-End Generative Retrieval Framework for E-commerce Search</summary><p>Jiayi Tuo, Hehan Li, Dongjun Fu, Xin Lu, Ling Zhuang, Fuwei Zhang, Meifang Li, Peizhi Xu, Hanmeng Liu, Shuanglong Li, Liwei Qian, Yanbiao Ma, Fuzhen Zhuang</p><p>2608.29652 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2608.29652">原典を読む ↗</a><a href="https://arxiv.org/pdf/2608.29652v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-22 · 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-intent-equations">意図を表現へ入れる場所と、選好を制御する場所</a><a href="#figure-gain-ladder">大きい追加効果は合成queryの段階にある</a><a href="#figure-intent-value">VARGとICEGRでは生成結果の受け渡し先が違う</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>「恋人への贈り物」には口紅とネックレスの両方が適する。商品contentの類似性だけで住所を作ると、このquery共通性を失う。ICEGRはco-clickと過去queryをSIDへ入れ、少数露出商品にも合成queryを与え、選好学習でも関連性を守る。Baiduの0.5Bモデルのオンライン成績は有望だが、改善の主因をtokenizerだけに帰さない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>SID構築は商品説明、SFTはitem→SIDの暗記、選好最適化は人気や売上、と別々の信号を使うとquery意図が途中で薄れる。real query→SIDだけでは露出の少ない商品に教師が不足する。click graphも露出の影響を含み、未露出商品の正しい需要を直接知っているわけではない。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-intent-value" aria-labelledby="title-intent-value">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-intent-value">VARGとICEGRでは生成結果の受け渡し先が違う</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="VARGとICEGRでは生成結果の受け渡し先が違うの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">IDの軸</th><th scope="col">教師</th><th scope="col">本番の接続</th></tr></thead><tbody><tr><th scope="row">VARG</th><td class="">意味prefix + 価値rank</td><td class="">3-stage SFT + Prefix-GRPO</td><td class="">既存final rankerへ予約枠</td></tr><tr><th scope="row">ICEGR</th><td class="">query intent + RQ-KMeans</td><td class="">synthetic/real SFT + RCPO</td><td class="">一部top-kを最終表示へ</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2608.29652v1">出典：§4.5 / VARG Fig. 1 ↗</a></figcaption>
+</figure>      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>商品contentだけのSID、低露出商品のquery不足、business preferenceによる意図の逸脱を、IA-SID・SQE-SFT・RCPOの3段階で抑える。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><a href="varg-tmall-value-generative-retrieval.html">VARG</a>は価値順の第3 tokenとranker報酬、ICEGRは全学習段階でquery意図を守る。どちらも関連性と価値を扱うが、ICEGRの一部結果は最終表示へ直接入り、VARGはfinal rankerへ渡す。同じEC検索でも責任範囲とcontrolが異なり、GMVの倍率では優劣を決められない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>量子化前に検索で結ばれる商品を集める</h3>
+<p>8BのEC適応embedding modelでquery–product InfoNCEを学び、co-click graphを作る。edgeは同じqueryからのclick数の幾何平均を合計する。対称正規化した隣接行列で3回伝播し、各回0.2の元embeddingを混ぜる。</p>
+<p>さらに各商品の歴史query embeddingをclick頻度で加重平均する。query数に基づくη=min(1,log(|Qᵢ|+1)/log(51))をかけてgraph表現へ加算し、L2正規化する。fusion λ=1、最終256次元。3層・各1,024 codeのRQ-KMeansでSIDを作る。VARGの第3 tokenの価値順とは異なり、3層とも残差量子化である。</p>
+<h3>商品の暗記課題をqueryの教師へ変換する</h3>
+<p>SQE-SFTはcatalogからSPU、brand、category、series、model、attributeを抽出する。商品名・category・variantを指定するqueryと、属性条件付きqueryを作り、正規化・dedup・validity filteringを行う。Stage 1 synthetic→SID、Stage 2 real→SIDの共通目的で学ぶ。低露出商品のquery教師を増やすことが狙いであり、実際にそのqueryでclickされた証拠を増やす操作ではない。</p>
+<h3>RCPOは関連性を守りながら比較の強さを変える</h3>
+<p>0.6B relevance modelのSRSと、click・purchase・GMVからcategory平均へ平滑化したSBPを用いる。SRAは関連性で選好方向を決め、BPRは関連性の近い候補間でbusiness順を決める。SRS/SBPを[0,1]へ揃えた等重み平均rからΔr=r⁺−r⁻を計算する。</p>
+<p>βeffは大きい正marginほど小さくなる。既にoffline根拠が明白なpairへの重複した更新を弱め、僅差のpairを強くする設計である。ただしβはsigmoid内の係数なので、実際のgradientの大きさは現在のpolicy比にも依存する。正解SIDへのlength-normalized SFT項も残す。</p>
+<p>backboneはoffline比較・onlineとも0.5B。1.5/3/7Bでも検討するが、本文で確認できるのはサイズであり、Qwenなどの固有model名を補わない。</p></div>      </section>
+      <figure class="paper-svg teaching paper-svg--scroll"><h3>RCPOのmargin係数を曲線で読む</h3><a href="../figures/icegr-baidu-intent-generative-retrieval/margin-curve.svg" aria-label="RCPOのmargin係数を曲線で読むを拡大"><img src="../figures/icegr-baidu-intent-generative-retrieval/margin-curve.svg" alt="RCPOのmargin係数を曲線で読む。Eq. 9の計算曲線。online効果の曲線ではない。" loading="lazy"></a><figcaption>Eq. 9の計算曲線。online効果の曲線ではない。 狭い画面では図の中を横にスクロールできます。 <a href="../figures/icegr-baidu-intent-generative-retrieval/margin-curve.svg">図を拡大 ↗</a></figcaption></figure>
+<figure class="teaching teaching--equations" id="figure-intent-equations" aria-labelledby="title-intent-equations">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-intent-equations">意図を表現へ入れる場所と、選好を制御する場所</h3>
+  <ol class="equation-steps"><li><strong>query共通edge</strong><div class="math-expression" tabindex="0" role="math" aria-label="wᵢⱼ = Σq √(nᵢq nⱼq)">wᵢⱼ = Σq √(nᵢq nⱼq)</div><p>同queryからのco-clickを使う。content類似度だけではない。</p></li><li><strong>元表現へのanchor</strong><div class="math-expression" tabindex="0" role="math" aria-label="Hᵗ = (1−αg) ÂHᵗ⁻¹ + αgX">Hᵗ = (1−αg) ÂHᵗ⁻¹ + αgX</div><p>αg=0.2、3 step。graphだけへ流れ切らない。</p></li><li><strong>margin係数</strong><div class="math-expression" tabindex="0" role="math" aria-label="βeff = β · clip(1 + log((2−Δr)/(2+Δr)), 0.2, 1.8)">βeff = β · clip(1 + log((2−Δr)/(2+Δr)), 0.2, 1.8)</div><p>Δrは正例・負例のcomposite score差。欠損時は倍率1。</p></li><li><strong>選好loss</strong><div class="math-expression" tabindex="0" role="math" aria-label="L = −E[log σ(βeff Δθ) + ηsft log πθ(s⁺|q)/|s⁺|]">L = −E[log σ(βeff Δθ) + ηsft log πθ(s⁺|q)/|s⁺|]</div><p>Δθはpolicy/referenceの正負log比差。</p></li></ol>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2608.29652v1">出典：Eqs. 2–5, 9–11 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈: co-click graphはcontentが違う補完候補を近付け、synthetic queryは商品暗記を検索文からのretrievalへ近付ける。関連性が十分な候補同士でbusiness preferenceを比較すれば、売上が高いだけの無関係商品へ流れにくい。一方、合成queryは実userの語彙分布とずれ、graphは人気偏りを増幅しうる。anchorとconfidence gateはこの依存を抑えるために読む。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料 <a href="https://arxiv.org/pdf/2608.29652v1">PDF §4、Tables 2–5</a> の著者報告。約3カ月の検索log、12.8M query・14.6M商品。最終日をtestとし、SID等もpre-testだけから構築。offlineは20,000 queryで比較する。</p>
+<table>
+<thead>
+<tr>
+<th>累積追加</th>
+<th style="text-align: right;">Recall@20</th>
+<th style="text-align: right;">NDCG@20</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ProdGR</td>
+<td style="text-align: right;">0.4247</td>
+<td style="text-align: right;">0.2318</td>
+</tr>
+<tr>
+<td>+SQE-SFT</td>
+<td style="text-align: right;">0.4954</td>
+<td style="text-align: right;">0.2784</td>
+</tr>
+<tr>
+<td>+IA-SID</td>
+<td style="text-align: right;">0.5006</td>
+<td style="text-align: right;">0.2841</td>
+</tr>
+<tr>
+<td>+RCPO</td>
+<td style="text-align: right;">0.5169</td>
+<td style="text-align: right;">0.2935</td>
+</tr>
+</tbody>
+</table>
+<p>Recall@20 +21.7%、NDCG@20 +26.6%は相対差。累積追加順でSQE-SFTがRecall改善の76.7%を占める。これは順序に依存する分解で、各部品の独立寄与ではない。query–product alignmentをbase encoderへ戻すとRecall@20 0.4179、RCPOのβを固定するとNDCG@20が7.36%低下する。</p>
+<p>オンラインは0.5B、2週間、live traffic 20%。既存MCAへICEGRを追加し、一部top-kを最終impression listへ直接挿入。残りは既存の関連性filter・rankへ回す。CTR +3.52%、Order Volume +15.96%、GMV +7.53%、Show PV +8.84%、Long-click Rate +5.27%、商品landing PV +8.75%。絶対Kや信頼区間は公開されていない。VARGのreserved final-ranker quotaと同一条件ではない。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-gain-ladder" aria-labelledby="title-gain-ladder">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-gain-ladder">大きい追加効果は合成queryの段階にある</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="大きい追加効果は合成queryの段階にあるの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">Recall@20</th><th scope="col">前段からの差 pp</th></tr></thead><tbody><tr><th scope="row">ProdGR</th><td class="">42.47%</td><td class="">基準</td></tr><tr><th scope="row">+SQE-SFT</th><td class="">49.54%</td><td class="">+7.07</td></tr><tr><th scope="row">+IA-SID</th><td class="">50.06%</td><td class="">+0.52</td></tr><tr><th scope="row">+RCPO</th><td class="">51.69%</td><td class="">+1.63</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2608.29652v1">出典：Table 2 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/icegr-baidu-intent-generative-retrieval/run.py</code>。口紅・ネックレス・修理の人工embeddingで、query共通edgeの3-step伝播とanchorを計算する。businessだけの選択と簡易relevance gateを比べ、Eq. 9のmarginごとの係数も計算する。</p></div><div class="downloads"><a href="../downloads/icegr-baidu-intent-generative-retrieval/run.py" download>実行コード</a><a href="../downloads/icegr-baidu-intent-generative-retrieval/plot.py" download>plot.py</a><a href="../downloads/icegr-baidu-intent-generative-retrieval/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/icegr-baidu-intent-generative-retrieval">GitHubで開く ↗</a></div><p class="source-note">実行コードと補助ファイル（plot.py）を同じフォルダーへ保存して実行してください。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>人工3商品。Eq. 3と9の算術、関連性gateの意義を確認。ICEGRの学習・A/B再現ではない。</em></p>
+<h3>意図で結ぶ2商品の距離と関連性制約</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>before</th><th>after</th><th>business_only</th><th>relevance_gate</th></tr></thead><tbody><tr><th scope='row'>gift_pair_distance</th><td>1.4142135623730951</td><td>0.4864894654563448</td><td></td><td></td></tr><tr><th scope='row'>chosen</th><td></td><td></td><td>repair</td><td>necklace</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;人工3商品。Eq. 3と9の算術、関連性gateの意義を確認。ICEGRの学習・A/B再現ではない。&quot;,
+  &quot;scope&quot;: {
+    &quot;calibration_monotonicity&quot;: &quot;CONFIRMED&quot;,
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;embeddings&quot;: {
+    &quot;content&quot;: [
+      [
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0
+      ],
+      [
+        -1.0,
+        0.0
+      ]
+    ],
+    &quot;after_graph&quot;: [
+      [
+        0.32800000000000007,
+        0.6720000000000002
+      ],
+      [
+        0.6720000000000002,
+        0.32800000000000007
+      ],
+      [
+        -0.2,
+        0.0
+      ]
+    ]
+  },
+  &quot;calibration&quot;: [
+    {
+      &quot;margin&quot;: -1,
+      &quot;factor&quot;: 1.8
+    },
+    {
+      &quot;margin&quot;: -0.5,
+      &quot;factor&quot;: 1.5108256237659907
+    },
+    {
+      &quot;margin&quot;: 0,
+      &quot;factor&quot;: 1.0
+    },
+    {
+      &quot;margin&quot;: 0.5,
+      &quot;factor&quot;: 0.4891743762340093
+    },
+    {
+      &quot;margin&quot;: 1,
+      &quot;factor&quot;: 0.2
+    }
+  ],
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;意図で結ぶ2商品の距離と関連性制約&quot;,
+      &quot;metrics&quot;: {
+        &quot;gift_pair_distance&quot;: {
+          &quot;before&quot;: 1.4142135623730951,
+          &quot;after&quot;: 0.4864894654563448
+        },
+        &quot;chosen&quot;: {
+          &quot;business_only&quot;: &quot;repair&quot;,
+          &quot;relevance_gate&quot;: &quot;necklace&quot;
+        }
+      }
+    }
+  ]
+}</code></pre></details><p>人工の贈り物pairの距離は√2から約0.486へ縮む。businessだけなら無関連のrepair、関連性0.8以上の簡易gateではnecklaceを選ぶ。margin −1/0/+1でβ倍率は1.8/1/0.2となる。この選択gateはSRA/BPRを説明する代理で、公式pair構築そのものではない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。Eq. 3のanchor付き伝播、anchor=1で元表現を保持する端点、Eq. 9の係数範囲とmarginに対する単調減少はCONFIRMED。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability NOT TESTED。8B embedding・0.5B retrieval・0.6B relevance modelの学習、合成queryの品質、RQ-KMeans、DPO収束、Baidu A/Bは未実行。本文はmodelサイズを示すが、base checkpointの名前までは確認できないため推測しない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>propagate()</code>は正規化隣接行列とEq. 3、<code>beta_factor()</code>はEq. 9。候補gateの閾値0.8は人工例の設定で、公式hyperparameterではない。公式の量子化・pair sampling・SFTを省略した境界を明示する。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>一次資料: <a href="https://arxiv.org/pdf/2608.29652v1">ICEGR: An Intent-Coherent End-to-End Generative Retrieval Framework for E-commerce Search</a>、arXiv v1。2026-09-22確認。PDF SHA-256: <code>b58ae102b84c0215671d3b02b33c904aebb99fe270ff48c5fc5e48d35d95cdd3</code>。取得済みPDFは <code>/tmp/research-2026-09-22/2608.29652v1.pdf</code> を再利用した。</p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>Lab</th>
+<th>省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Eqs. 2–3</td>
+<td>propagate</td>
+<td>click log、8B encoder</td>
+</tr>
+<tr>
+<td>Eqs. 4–8</td>
+<td>method</td>
+<td>fusion・量子化・合成query生成</td>
+</tr>
+<tr>
+<td>Eq. 9</td>
+<td>beta_factor</td>
+<td>DPO optimizer・reference policy</td>
+</tr>
+<tr>
+<td>§3.3 SRA/BPR</td>
+<td>relevance gateの人工例</td>
+<td>正式pair選定規則の全再現</td>
+</tr>
+<tr>
+<td>Tables 2,5</td>
+<td>Evidence</td>
+<td>neural学習・A/B再現なし</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード: 確認したPDFに本手法の公開実装へのリンクは見つからなかった。公開の有無を網羅的に保証するものではない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>価値を学ばせても、検索意図との一致を保てるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/icegr-baidu-intent-generative-retrieval/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

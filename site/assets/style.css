@@ -329,3 +329,8 @@ body{background:white}
 /* Preserve method names as words inside horizontally scrollable new Lab tables. */
 .paper-body:has(.batch21) .teaching-matrix th,
 .paper-body:has(.batch21) .teaching-matrix td { min-width:8rem; word-break:normal; overflow-wrap:normal; }
+
+/* Keep the September 22 scientific labels readable on narrow screens. */
+.paper-svg--scroll { min-width: 0; }
+.paper-svg--scroll > a { display: block; max-width: 100%; overflow-x: auto; }
+.paper-svg--scroll img { min-width: 42rem; }

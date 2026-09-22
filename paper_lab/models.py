@@ -373,7 +373,10 @@ def _parse_figures(value: Any, paper_dir: Path) -> list[dict[str, str]]:
         after = item.get("after", "")
         if after and after not in dict(STANDARD_SECTIONS):
             raise LabError(f"{paper_dir}/lab.yaml: unknown figure placement")
-        figures.append({"path": path, "title": title, "caption": caption, "after": after})
+        layout = item.get("layout", "")
+        if layout not in ("", "scroll"):
+            raise LabError(f"{paper_dir}/lab.yaml: unknown figure layout")
+        figures.append({"path": path, "title": title, "caption": caption, "after": after, "layout": layout})
     return figures
 
 

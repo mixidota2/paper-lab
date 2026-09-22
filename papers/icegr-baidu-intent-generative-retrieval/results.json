@@ -1,0 +1,77 @@
+{
+  "note": "人工3商品。Eq. 3と9の算術、関連性gateの意義を確認。ICEGRの学習・A/B再現ではない。",
+  "scope": {
+    "calibration_monotonicity": "CONFIRMED",
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "embeddings": {
+    "content": [
+      [
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0
+      ],
+      [
+        -1.0,
+        0.0
+      ]
+    ],
+    "after_graph": [
+      [
+        0.32800000000000007,
+        0.6720000000000002
+      ],
+      [
+        0.6720000000000002,
+        0.32800000000000007
+      ],
+      [
+        -0.2,
+        0.0
+      ]
+    ]
+  },
+  "calibration": [
+    {
+      "margin": -1,
+      "factor": 1.8
+    },
+    {
+      "margin": -0.5,
+      "factor": 1.5108256237659907
+    },
+    {
+      "margin": 0,
+      "factor": 1.0
+    },
+    {
+      "margin": 0.5,
+      "factor": 0.4891743762340093
+    },
+    {
+      "margin": 1,
+      "factor": 0.2
+    }
+  ],
+  "experiments": [
+    {
+      "name": "意図で結ぶ2商品の距離と関連性制約",
+      "metrics": {
+        "gift_pair_distance": {
+          "before": 1.4142135623730951,
+          "after": 0.4864894654563448
+        },
+        "chosen": {
+          "business_only": "repair",
+          "relevance_gate": "necklace"
+        }
+      }
+    }
+  ]
+}

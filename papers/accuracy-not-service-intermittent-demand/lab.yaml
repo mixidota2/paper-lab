@@ -34,7 +34,7 @@ source_review:
   scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。
 core_idea:
   author_claim: 同一在庫方策で手法を比較すると、間欠需要の強い部品契約で精度順位とservice順位が逆転する。偏りの方向を診断し、Chronos-2の非ゼロ条件付き正規化でserviceを改善する。
-  research_bot_interpretation: '[Contextual Deconvolution](contextual-deconvolution.html)が在庫費用との整合、[VN2](vn2-stockout-catboost.html)が予測と発注policyの組を問うのに対し、本論文は固定policyで予測の偏りを切り分ける。ChronosFlow-ICGPSのような予測分布から意思決定への接続も、COFRと費用を同時に測って初めて比較できる。'
+  research_bot_interpretation: '[Contextual Deconvolution](contextual-deconvolution.html)は在庫費用との整合、[VN2](vn2-stockout-catboost.html)は予測と発注policyの組を問う。本論文は固定policyで予測の偏りを切り分ける。[ChronosFlow-ICGPS](https://arxiv.org/abs/2605.14840)は発注量に依存して打ち切られた需要を生成補完する研究で、観測需要に対する正規化補正とは問題が異なる。これらを接続するなら、潜在需要の回復、COFR、在庫費用を別々に評価したい。'
 sections:
   overview: 少しずつ外す予測より、余分に見積もる予測の方が注文を完納できる場合がある。本論文の対象は月次の間欠・塊状需要を持つ物流部品。38手法を同じ補充規則へ入れると、20,330件の実注文で精度と完納の順位が逆向きになった。これは「精度を捨てればよい」という結論ではない。追加在庫を含む意思決定の評価が必要になる。
   problem: 精度benchmarkは4,021品目、注文評価はそのうち3,828品目・41 platform。Chronos補正の集計は4,558品目で、同じ分母ではない。1注文の全明細が揃った場合だけ成功と数えるCOFRでは、一品の不足が注文全体の失敗になる。RAFとM5には実multi-item
@@ -149,8 +149,10 @@ figures:
   title: 精度順位と注文COFR順位の散布図
   caption: 公式industrial_orderbook_38.csvの38手法。各軸は1位が良い。モデル再実行ではなく凍結集計の再描画。
   after: evidence
+  layout: scroll
 - path: recentering.svg
   title: 非ゼロ条件付き正規化を人工系列で追う
   caption: run.py / plot.pyの人工10点。論文Fig. 5のデータではない。
   after: method
+  layout: scroll
 submitted: '2026-09-12'

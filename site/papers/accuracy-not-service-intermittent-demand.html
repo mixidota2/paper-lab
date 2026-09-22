@@ -32,7 +32,7 @@
       <section id="core_idea" class="note-section">
         <h2>核心</h2>
         <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>同一在庫方策で手法を比較すると、間欠需要の強い部品契約で精度順位とservice順位が逆転する。偏りの方向を診断し、Chronos-2の非ゼロ条件付き正規化でserviceを改善する。</p></div></div>
-        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><a href="contextual-deconvolution.html">Contextual Deconvolution</a>が在庫費用との整合、<a href="vn2-stockout-catboost.html">VN2</a>が予測と発注policyの組を問うのに対し、本論文は固定policyで予測の偏りを切り分ける。ChronosFlow-ICGPSのような予測分布から意思決定への接続も、COFRと費用を同時に測って初めて比較できる。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><a href="contextual-deconvolution.html">Contextual Deconvolution</a>は在庫費用との整合、<a href="vn2-stockout-catboost.html">VN2</a>は予測と発注policyの組を問う。本論文は固定policyで予測の偏りを切り分ける。<a href="https://arxiv.org/abs/2605.14840">ChronosFlow-ICGPS</a>は発注量に依存して打ち切られた需要を生成補完する研究で、観測需要に対する正規化補正とは問題が異なる。これらを接続するなら、潜在需要の回復、COFR、在庫費用を別々に評価したい。</p></div></div>
       </section>
       <section id="method" class="note-section">
         <h2>モデル / 手法</h2>
@@ -46,7 +46,7 @@
 <h3>非ゼロ平均へ移すと、入力と逆変換の両方が変わる</h3>
 <p>Chronos-2の(x−mean)/stdを、正需要だけのmean/stdへ置き換える。未来の正需要を使わず、各originの学習contextだけから統計を求める。全ゼロなら中心0、scaleが0ならmodelのε。arcsinhが有効なら逆arcsinhの後で保存した中心とscaleへ戻す。</p>
 <p>下の例は8割ゼロ、正値2と6。平均0.8に対し正値平均4.0となる。正規化出力が0の定数代理を逆変換すれば0.8/4.0に分かれるが、これはChronosの予測値ではない。実モデルは変換後の全系列を処理するため、平均を置き換えただけで同じ改善が出る保証はない。</p></div>      </section>
-      <figure class="paper-svg teaching"><h3>非ゼロ条件付き正規化を人工系列で追う</h3><a href="../figures/accuracy-not-service-intermittent-demand/recentering.svg" aria-label="非ゼロ条件付き正規化を人工系列で追うを拡大"><img src="../figures/accuracy-not-service-intermittent-demand/recentering.svg" alt="非ゼロ条件付き正規化を人工系列で追う。run.py / plot.pyの人工10点。論文Fig. 5のデータではない。" loading="lazy"></a><figcaption>run.py / plot.pyの人工10点。論文Fig. 5のデータではない。 <a href="../figures/accuracy-not-service-intermittent-demand/recentering.svg">図を拡大 ↗</a></figcaption></figure>
+      <figure class="paper-svg teaching paper-svg--scroll"><h3>非ゼロ条件付き正規化を人工系列で追う</h3><a href="../figures/accuracy-not-service-intermittent-demand/recentering.svg" aria-label="非ゼロ条件付き正規化を人工系列で追うを拡大"><img src="../figures/accuracy-not-service-intermittent-demand/recentering.svg" alt="非ゼロ条件付き正規化を人工系列で追う。run.py / plot.pyの人工10点。論文Fig. 5のデータではない。" loading="lazy"></a><figcaption>run.py / plot.pyの人工10点。論文Fig. 5のデータではない。 狭い画面では図の中を横にスクロールできます。 <a href="../figures/accuracy-not-service-intermittent-demand/recentering.svg">図を拡大 ↗</a></figcaption></figure>
 <figure class="teaching teaching--equations" id="figure-decision" aria-labelledby="title-decision">
   <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
   <h3 id="title-decision">予測から契約指標まで、3段階を区別する</h3>
@@ -111,7 +111,7 @@
 </table>
 <p>90%はpolicyの目標で、実現充足率でも信頼水準でもない。Table VIの別origin集合では0.834→0.955、77.8→92.4%となる。提示数値と異なる再測定値を混ぜない。補正後も80-of-80契約基準は満たさない。</p>
 <p>RUFは5,000品目の公開合成panel。実品目の集約templateから発生×量を生成し、class・zero率の一致を最大10回で検査する。非cold-startの84%がgateを通る。周辺分布と依存の整合は認証対象だが、機密の実注文そのものではない。38手法でρ=−0.47、補正MASE 0.765→0.807とproxy +17.6〜21.4 ppを報告する。LabではRUF全38手法を再実行していない。</p></div>      </section>
-      <figure class="paper-svg teaching"><h3>精度順位と注文COFR順位の散布図</h3><a href="../figures/accuracy-not-service-intermittent-demand/rank-scatter.svg" aria-label="精度順位と注文COFR順位の散布図を拡大"><img src="../figures/accuracy-not-service-intermittent-demand/rank-scatter.svg" alt="精度順位と注文COFR順位の散布図。公式industrial_orderbook_38.csvの38手法。各軸は1位が良い。モデル再実行ではなく凍結集計の再描画。" loading="lazy"></a><figcaption>公式industrial_orderbook_38.csvの38手法。各軸は1位が良い。モデル再実行ではなく凍結集計の再描画。 <a href="../figures/accuracy-not-service-intermittent-demand/rank-scatter.svg">図を拡大 ↗</a></figcaption></figure>
+      <figure class="paper-svg teaching paper-svg--scroll"><h3>精度順位と注文COFR順位の散布図</h3><a href="../figures/accuracy-not-service-intermittent-demand/rank-scatter.svg" aria-label="精度順位と注文COFR順位の散布図を拡大"><img src="../figures/accuracy-not-service-intermittent-demand/rank-scatter.svg" alt="精度順位と注文COFR順位の散布図。公式industrial_orderbook_38.csvの38手法。各軸は1位が良い。モデル再実行ではなく凍結集計の再描画。" loading="lazy"></a><figcaption>公式industrial_orderbook_38.csvの38手法。各軸は1位が良い。モデル再実行ではなく凍結集計の再描画。 狭い画面では図の中を横にスクロールできます。 <a href="../figures/accuracy-not-service-intermittent-demand/rank-scatter.svg">図を拡大 ↗</a></figcaption></figure>
 <figure class="teaching teaching--matrix" id="figure-regimes" aria-labelledby="title-regimes">
   <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
   <h3 id="title-regimes">順位相関の符号は需要regimeで変わる</h3>
@@ -120,7 +120,7 @@
   <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2609.13840v1">出典：§IV-A / Fig. 3 ↗</a></figcaption>
 </figure>      <section id="executable_understanding" class="note-section">
         <h2>実行可能な理解</h2>
-<div class="prose"><p><code>uv run papers/accuracy-not-service-intermittent-demand/run.py</code>。固定seedの4品目・144人工注文を同一順序・同一補充規則でreplayし、予測倍率を変えてMAE・COFR・平均在庫を測る。別に正規化と逆変換、全ゼロ・単一正値の端点を確認する。公式公開CSVによる38手法の順位散布図は著者集計の再描画であり、この人工replayとは別。</p></div><div class="downloads"><a href="../downloads/accuracy-not-service-intermittent-demand/run.py" download>実行コード</a><a href="../downloads/accuracy-not-service-intermittent-demand/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/accuracy-not-service-intermittent-demand">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+<div class="prose"><p><code>uv run papers/accuracy-not-service-intermittent-demand/run.py</code>。固定seedの4品目・144人工注文を同一順序・同一補充規則でreplayし、予測倍率を変えてMAE・COFR・平均在庫を測る。別に正規化と逆変換、全ゼロ・単一正値の端点を確認する。公式公開CSVによる38手法の順位散布図は著者集計の再描画であり、この人工replayとは別。</p></div><div class="downloads"><a href="../downloads/accuracy-not-service-intermittent-demand/run.py" download>実行コード</a><a href="../downloads/accuracy-not-service-intermittent-demand/plot.py" download>plot.py</a><a href="../downloads/accuracy-not-service-intermittent-demand/author-orderbook.csv" download>author-orderbook.csv</a><a href="../downloads/accuracy-not-service-intermittent-demand/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/accuracy-not-service-intermittent-demand">GitHubで開く ↗</a></div><p class="source-note">実行コードと補助ファイル（plot.py、author-orderbook.csv）を同じフォルダーへ保存して実行してください。</p>      </section>
       <section id="results" class="note-section">
         <h2>結果</h2>
 <div class="prose"><p class="callout-body"><em>固定seedの人工注文。論文38手法・RUF・Chronos-2の再現ではない。MAEを使用し論文MASEと区別。</em></p>

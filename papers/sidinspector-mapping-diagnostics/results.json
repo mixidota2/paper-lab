@@ -1,0 +1,179 @@
+{
+  "note": "同じ6 itemと固定co-occurrence edgeの診断。公式tokenizerの再学習・A/Bはしていない。",
+  "scope": {
+    "mapping_contract": "CONFIRMED",
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "maps": {
+    "aliased": {
+      "a": [
+        0,
+        0
+      ],
+      "b": [
+        0,
+        0
+      ],
+      "c": [
+        1,
+        0
+      ],
+      "d": [
+        1,
+        1
+      ],
+      "e": [
+        2,
+        0
+      ],
+      "f": [
+        2,
+        0
+      ]
+    },
+    "unique_unaligned": {
+      "a": [
+        0,
+        0
+      ],
+      "b": [
+        1,
+        0
+      ],
+      "c": [
+        2,
+        0
+      ],
+      "d": [
+        0,
+        1
+      ],
+      "e": [
+        1,
+        1
+      ],
+      "f": [
+        2,
+        1
+      ]
+    },
+    "unique_aligned": {
+      "a": [
+        0,
+        0
+      ],
+      "b": [
+        0,
+        1
+      ],
+      "c": [
+        1,
+        0
+      ],
+      "d": [
+        1,
+        1
+      ],
+      "e": [
+        2,
+        0
+      ],
+      "f": [
+        2,
+        1
+      ]
+    }
+  },
+  "profiles": {
+    "aliased": {
+      "D1": [
+        {
+          "used": 3,
+          "entropy_bits": 1.584962500721156
+        },
+        {
+          "used": 2,
+          "entropy_bits": 0.6500224216483541
+        }
+      ],
+      "D2_alias_item_rate": 0.6666666666666666,
+      "D3_L1_weighted": 1.0,
+      "D4_tail_unique_ratio": 0.6666666666666666,
+      "D5_active_prefixes": [
+        3,
+        4
+      ],
+      "D5_max_fanout": 3
+    },
+    "unique_unaligned": {
+      "D1": [
+        {
+          "used": 3,
+          "entropy_bits": 1.584962500721156
+        },
+        {
+          "used": 2,
+          "entropy_bits": 1.0
+        }
+      ],
+      "D2_alias_item_rate": 0.0,
+      "D3_L1_weighted": 0.0,
+      "D4_tail_unique_ratio": 1.0,
+      "D5_active_prefixes": [
+        3,
+        6
+      ],
+      "D5_max_fanout": 3
+    },
+    "unique_aligned": {
+      "D1": [
+        {
+          "used": 3,
+          "entropy_bits": 1.584962500721156
+        },
+        {
+          "used": 2,
+          "entropy_bits": 1.0
+        }
+      ],
+      "D2_alias_item_rate": 0.0,
+      "D3_L1_weighted": 1.0,
+      "D4_tail_unique_ratio": 1.0,
+      "D5_active_prefixes": [
+        3,
+        6
+      ],
+      "D5_max_fanout": 3
+    }
+  },
+  "rejected": [
+    "missing or extra item",
+    "duplicate item key",
+    "inconsistent depth"
+  ],
+  "experiments": [
+    {
+      "name": "同じcollision-freeでもprefixの意味は異なる",
+      "metrics": {
+        "aliased": {
+          "alias_item_rate": 0.6666666666666666,
+          "neighbor_recovery": 1.0,
+          "tail_capacity": 0.6666666666666666
+        },
+        "unique_unaligned": {
+          "alias_item_rate": 0.0,
+          "neighbor_recovery": 0.0,
+          "tail_capacity": 1.0
+        },
+        "unique_aligned": {
+          "alias_item_rate": 0.0,
+          "neighbor_recovery": 1.0,
+          "tail_capacity": 1.0
+        }
+      }
+    }
+  ]
+}

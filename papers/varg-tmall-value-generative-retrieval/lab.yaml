@@ -75,8 +75,8 @@ sections:
 
     Table 5でQ2I-GMV Recall@1は行動報酬だけで+2.19 pp。ranker・関連性追加が+0.21 pp、prefix重みがさらに+0.08
     ppである。Prefix-GRPO全体の改善をprefix重み単独の効果にしない。探索的な軽量decoderの11.1倍QPSは主A/Bに使われておらず、HRも低下する。'
-  executable_understanding: '`uv run papers/varg-tmall-value-generative-retrieval/run.py`。同じ人工prefix内で、新商品DをA/B間へ挿入する。全面並べ替えと既存住所固定を比べ、衝突率と旧住所保持率を別々に測る。報酬の非法・空slot・購入・関連性の分岐、端点のLO分布も計算する。'
-  results: 4商品の例で全面並べ替えは旧住所保持率1/3、固定更新は1。固定更新の衝突item率は1/2になる。これはBとDが住所を共有する設計の代償。初期の衝突率は0。非法出力に購入情報を与えても報酬−2、空slotなら−1となり、他の信号を加算しない。
+  executable_understanding: '`uv run papers/varg-tmall-value-generative-retrieval/run.py`。同じ人工prefix内で、新商品DをA/B間へ挿入する。全面並べ替えと既存住所固定を比べ、衝突率と旧住所保持率を別々に測る。報酬の書式違反・空slot・購入・関連性の分岐、端点のLO分布も計算する。'
+  results: 4商品の例で全面並べ替えは旧住所保持率1/3、固定更新は1。固定更新の衝突item率は1/2になる。これはBとDが住所を共有する設計の代償。初期の衝突率は0。書式が不正な出力に購入情報を与えても報酬−2、空slotなら−1となり、他の信号を加算しない。
   what_we_verified: Mechanism PARTIAL。Eq. 6の範囲切り詰め、既存住所の不変性、item単位の衝突率、報酬gate、LO端点の正規化を人工fixtureで確認した。これらの局所不変条件はCONFIRMED。
   what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。RQ-VAE・Q2I表現、Qwen2.5の学習、GRPOの収束、51.43M商品でのslot負荷、GMV・HRの再現はしていない。日次更新後も全IDがcollision-freeという主張は原論文にもない。
   implementation: '`assign()`がEq. 6、`eb()`が平滑化、`ordinal()`がEq. 11の局所分布、`reward()`がEqs.
