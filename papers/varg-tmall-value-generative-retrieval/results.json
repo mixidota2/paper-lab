@@ -1,0 +1,88 @@
+{
+  "note": "人工4商品・1 prefix。学習済みモデルのHRやGMVを再現していない。",
+  "scope": {
+    "address_invariants": "CONFIRMED",
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "experiments": [
+    {
+      "name": "新商品DをAとBの間へ追加",
+      "metrics": {
+        "old_address_retention": {
+          "reorder": 0.3333333333333333,
+          "frozen": 1.0
+        },
+        "alias_item_rate": {
+          "initial": 0,
+          "full_reorder": 0.0,
+          "frozen": 0.5
+        }
+      }
+    }
+  ],
+  "maps": {
+    "initial": {
+      "A": 0,
+      "B": 1,
+      "C": 2
+    },
+    "full_reorder": {
+      "A": 0,
+      "D": 1,
+      "B": 2,
+      "C": 3
+    },
+    "frozen": {
+      "A": 0,
+      "D": 1,
+      "B": 1,
+      "C": 2
+    }
+  },
+  "reward_probes": [
+    {
+      "state": "malformed",
+      "behavior": "buy",
+      "reward": -2.0
+    },
+    {
+      "state": "unoccupied",
+      "behavior": "buy",
+      "reward": -1.0
+    },
+    {
+      "state": "occupied",
+      "behavior": "buy",
+      "reward": 3.1740123323485343
+    },
+    {
+      "state": "occupied",
+      "behavior": "click",
+      "reward": 1.1740123323485343
+    },
+    {
+      "state": "occupied",
+      "behavior": null,
+      "reward": 0.2540123323485344
+    }
+  ],
+  "ordinal_edge": {
+    "0": 0.6439142598879724,
+    "1": 0.23688281808991013,
+    "2": 0.08714431874203257,
+    "3": 0.03205860328008499
+  },
+  "eb_sparse_example": {
+    "raw_1_of_1": 1.0,
+    "smoothed_1_of_1": 0.25
+  },
+  "branch_weights": {
+    "1": 0.1,
+    "2": 0.4,
+    "4": 0.7,
+    "8": 1.0
+  }
+}

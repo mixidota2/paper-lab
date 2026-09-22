@@ -1,6 +1,6 @@
 # Interactive Research Library
 
-一次資料を読み、仕組み・根拠・限界を日本語で説明する51件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
+一次資料を読み、仕組み・根拠・限界を日本語で説明する54件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
 
 公開先：https://mixidota2.github.io/paper-lab/
 
@@ -99,3 +99,7 @@ OGRの理論的な依存深さと実測throughput、DREAMの累積lift、PILOT�
 - Radar: [SIDScope](papers/sidscope-diagnostics/README.md) — 対応表と生成traceの診断。公式quickstartも実行。
 
 追加検査: `uv run pytest tests/test_september21_labs.py`、`uv run --with playwright tests/browser_september21.py`。後者は `/opt/google/chrome/chrome` を使用します。実験の本番性能・scalingはNOT TESTEDです。
+
+## 2026-09-22：検索の価値・注文の完納・修正前の診断
+
+[VARG](https://mixidota2.github.io/paper-lab/papers/varg-tmall-value-generative-retrieval.html)、[Accuracy Is Not Service](https://mixidota2.github.io/paper-lab/papers/accuracy-not-service-intermittent-demand.html)、[AURA](https://mixidota2.github.io/paper-lab/papers/aura-disney-agentic-rec-diagnosis.html)を追加。住所の安定性、精度と完納の順位散布図、診断から修正を保留する判断を扱います。各PDFの版・ハッシュと実行範囲はmappingに記録しています。

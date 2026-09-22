@@ -1,0 +1,159 @@
+id: aura-disney-agentic-rec-diagnosis
+arxiv_id: '2609.16625'
+title: 'AURA: Agentic Diagnosis and Refinement for Production Recommender Systems
+  at Scale'
+authors:
+- SungGeun Kim
+- Abhinav Narain
+- Daniel Nemirovsky
+year: 2026
+topics:
+- ai-agent-systems
+- recommender-systems
+- evaluation
+urls:
+  paper: https://arxiv.org/abs/2609.16625
+  pdf: https://arxiv.org/pdf/2609.16625v1
+  official_code: null
+  arxiv: https://arxiv.org/abs/2609.16625
+verdict: Worth Reading
+status: published
+question: コードを変える前に、誰のどんな失敗を直すのか説明できるか
+summary: Disneyの2 platformで約10万sessionずつを診断。25項目rubricは15→23、17→24へ改善したが、genre修正の順位改善は未実証。診断と出荷判断を切り離す。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads: []
+source_review:
+  checked: '2026-09-22'
+  version: v1
+  pdf_sha256: 069c7aa504d2881a293c4d083dc2603a11b55dba53f2fb6f40dae64cc8ae317e
+  url: https://arxiv.org/pdf/2609.16625v1
+  scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。
+core_idea:
+  author_claim: 大量のsessionを階層的にまとめ、証拠付きの失敗分類からrankerのcode・feature・trainingに接続した修正案を作る。各段階で参照検証とengineer
+    reviewを行う。
+  research_bot_interpretation: '[AgentX](agentx-kuaishou.html)のcode探索、[DREAM](dream-taobao-agentic-control.html)の実行時制御、[PILOT](pilot-experiment-lifecycle.html)の実験運用、[CORAL](coral-meta-config-harness.html)の設定探索に、診断対象を決める前段を足す研究と読める。失敗の説明がもっともらしくても修正効果は別途確かめる必要がある。'
+sections:
+  overview: AURAの成果は「genreの問題を発見したから改善を出荷した」ことではない。約10万sessionをplatformごとに整理し、根拠となるsessionとcodeを辿れる修正案へ変換したことにある。genre
+    mismatchの2修正は診断cohortで改善せず、全体の差も±0.1%のnoise内だった。論文は未実証の候補として扱う。
+  problem: 集計NDCGが同じでも、家族向けcontentのsubgenre不一致と年齢に合わない推薦では対処が違う。全sessionを一つのLLM contextへ入れることもできない。Platform
+    Aは96,801中18,901 BAD、Bは101,594中4,154 BAD。階層集約はこのBAD集合を詳しく調べるので、上流judgeが見逃した失敗が診断から落ちる可能性がある。
+  why_it_might_work: '解釈: session→category→検証済みfindingへ圧縮すると、深い分析に使う高価なmodelの呼出しを減らせる。codeを読む前にcohortと失敗を決めることで、平均指標だけの探索より修正の理由が明確になる。ただし分類名と集約時の抽出条件が盲点を作る。低頻度の安全上の失敗を割合閾値で消さず、上流judge自身の誤りも検査する必要がある。'
+  evidence: '一次資料の著者報告。
+
+
+    [PDF §4、Tables 1–5](https://arxiv.org/pdf/2609.16625v1) の著者報告。25項目のGOOD数はA 15→23、B
+    17→24。診断出力へのrubricであり、推薦の精度や人間の満足度ではない。同じrubricを使う反復改善なので、未見課題への一般化は別問題となる。
+
+
+    上流judgeの検査にはClaude Opus 4.6、GPT-5.5、Gemini 3.1 Proの多数決を用い、rubric判定にはGemini 3.1
+    ProとGPT-5.5を使う。LLM間の一致を独立した人間正解と同一視できない。Gemini系が上下流に現れる自己選好と、GOOD多数によるκの低さも本文で開示する。
+
+
+    Genre Preference Mismatchは両面でBADの約46〜48%。Bの1,911 sessionでgenre cross featureとcandidate-aware
+    attentionを試したが、診断cohortのrankingは改善しなかった。Table 3は3独立学習日の全体差で、NDCG@10 −0.01/+0.05/+0.02%、Click
+    AUC +0.03/+0.06/+0.01%。
+
+
+    費用はA $349.26、B $252.85（end-to-end）。そのうち上流judgeは$320.98/$250.21、AURA部分は$28.28/$2.64。約$43〜50/findingには上流judgeを含む。上流費用は観測単価の全sessionへの外挿、code
+    suggestion費用はOpus 4.6の料金からの推定で、全項目が実測telemetryではない。'
+  executable_understanding: '`uv run papers/aura-disney-agentic-rec-diagnosis/run.py`。人工カテゴリを割合のみとtop-N/count/割合＋safety例外で選び、証拠session・code
+    pathが存在するかを検査する。noise内の差をholdにする例も示すが、この数値gateはLabの説明用で、AURAの公式出荷規則ではない。'
+  results: 5%のみでは5カテゴリ中3つを残し、件数・safety例外を加えると5つが残る。10件のage問題が消えなくなる。架空session、架空path、証拠なしの3変異を拒否し、有効なfindingだけを通した。これは診断内容が正しいことや、genre問題の原因を推定できることの確認ではない。
+  what_we_verified: Mechanism PARTIAL。低頻度category保持と参照の存在確認を人工入力で実行した。架空参照の拒否はCONFIRMED。診断品質のrubric上昇は著者報告でありLabではNOT
+    TESTED。
+  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。session判定、因果推論、LLM間一致、実rankerの学習、A/Bを実行していない。提示メモの「出荷を拒否」は慎重に読む必要がある。原典は修正を未実証のopen
+    candidateとし、現行システムの自動化範囲はengineer-reviewed PRまでである。
+  implementation: '`select()`は§3.3の保持規則を単純化し、`validate()`は§3.6の参照検証を再現する。共通memoryは過去のcategory・仮説・修正・結果を蓄える設計だが、Labでは永続DBやagentを実装しない。診断と修正効果の検証が別契約であることを残す。'
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: logic
+  id: diagnostic-funnel
+  title: 約10万sessionを、そのまま修正命令にしない
+  after: method
+  locator: Fig. 1 / §3.3–3.6
+  rationale: 約10万sessionを、そのまま修正命令にしない
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2609.16625v1
+  rows:
+  - label: 圧縮
+    nodes:
+    - title: Classification → Consolidation
+      text: sessionを分類し重複categoryを統合
+    - title: Sampling
+      text: top-N / 件数 / 割合。安全上の例外を残す
+  - label: 説明
+    nodes:
+    - title: Analysis → Verification
+      text: 証拠・根本原因の仮説・severityを照合
+    - title: Synthesis
+      text: 優先順位をまとめる
+  - label: 変更
+    nodes:
+    - title: Hypothesis → code
+      text: 実在するfeature・pathへ接続
+    - title: engineer review
+      text: 現行はPRまで。training/A/B自動化は拡張中
+- kind: matrix
+  id: rubric
+  title: 改善したのは25項目rubricの適合数
+  after: evidence
+  locator: Table 1
+  rationale: 改善したのは25項目rubricの適合数
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2609.16625v1
+  columns:
+  - A before→after
+  - B before→after
+  rows:
+  - label: 分類
+    cells:
+    - 4/5→5/5
+    - 4/5→5/5
+  - label: 統合
+    cells:
+    - 1/4→3/4
+    - 2/4→4/4
+  - label: 分析
+    cells:
+    - 3/5→5/5
+    - 4/5→5/5
+  - label: 検証
+    cells:
+    - 2/3→3/3
+    - 2/3→3/3
+  - label: 要約
+    cells:
+    - 4/4→4/4
+    - 4/4→4/4
+  - label: code提案
+    cells:
+    - 1/4→3/4
+    - 1/4→3/4
+- kind: logic
+  id: no-win
+  title: もっともらしい診断と、改善する修正は別
+  after: results
+  locator: §4.2 / Table 3
+  rationale: もっともらしい診断と、改善する修正は別
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2609.16625v1
+  rows:
+  - label: 観測
+    nodes:
+    - title: genre mismatch
+      text: BADの約46〜48%
+    - title: 修正候補
+      text: genre交差feature / candidate-aware attention
+  - label: 検証
+    nodes:
+    - title: cohort 1,911 session
+      text: 順位改善を観測できず
+    - title: 全体3学習日
+      text: 差は±0.1%以内。未実証候補として保持
+results: results.json
+submitted: '2026-09-15'

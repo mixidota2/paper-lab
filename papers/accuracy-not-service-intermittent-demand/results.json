@@ -1,0 +1,162 @@
+{
+  "note": "固定seedの人工注文。論文38手法・RUF・Chronos-2の再現ではない。MAEを使用し論文MASEと区別。",
+  "scope": {
+    "normalization_roundtrip": "CONFIRMED",
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "seed": 22,
+  "sweep": [
+    {
+      "alpha": 0.5,
+      "MAE": 3.983565,
+      "COFR": 0.479167,
+      "inventory_units": 9.008868,
+      "stock_target": 22.86998
+    },
+    {
+      "alpha": 0.75,
+      "MAE": 3.746181,
+      "COFR": 0.493056,
+      "inventory_units": 11.000535,
+      "stock_target": 26.19498
+    },
+    {
+      "alpha": 1,
+      "MAE": 3.535648,
+      "COFR": 0.555556,
+      "inventory_units": 12.26998,
+      "stock_target": 29.51998
+    },
+    {
+      "alpha": 1.25,
+      "MAE": 3.359375,
+      "COFR": 0.638889,
+      "inventory_units": 12.900535,
+      "stock_target": 32.84498
+    },
+    {
+      "alpha": 1.5,
+      "MAE": 3.184028,
+      "COFR": 0.673611,
+      "inventory_units": 14.058868,
+      "stock_target": 36.16998
+    },
+    {
+      "alpha": 2,
+      "MAE": 2.87963,
+      "COFR": 0.736111,
+      "inventory_units": 18.708868,
+      "stock_target": 42.81998
+    },
+    {
+      "alpha": 3,
+      "MAE": 2.482639,
+      "COFR": 0.909722,
+      "inventory_units": 25.092202,
+      "stock_target": 56.11998
+    },
+    {
+      "alpha": 4,
+      "MAE": 2.362963,
+      "COFR": 0.979167,
+      "inventory_units": 34.947757,
+      "stock_target": 69.41998
+    }
+  ],
+  "normalization": {
+    "all": {
+      "center": 0.8,
+      "scale": 1.833030277982336,
+      "normalized": [
+        -0.4364357804719848,
+        -0.4364357804719848,
+        -0.4364357804719848,
+        -0.4364357804719848,
+        0.6546536707079771,
+        -0.4364357804719848,
+        -0.4364357804719848,
+        -0.4364357804719848,
+        2.836832573067901,
+        -0.4364357804719848
+      ],
+      "constant_z0_inverse": 0.8
+    },
+    "positive": {
+      "center": 4,
+      "scale": 2.0,
+      "normalized": [
+        -2.0,
+        -2.0,
+        -2.0,
+        -2.0,
+        -1.0,
+        -2.0,
+        -2.0,
+        -2.0,
+        1.0,
+        -2.0
+      ],
+      "constant_z0_inverse": 4
+    }
+  },
+  "counterexample": {
+    "stock2_COFR": 0.6666666666666666,
+    "stock3_COFR": 0.3333333333333333
+  },
+  "experiments": [
+    {
+      "name": "同一144注文・補充方策で予測倍率を変更",
+      "metrics": {
+        "0.5": {
+          "MAE": 3.983565,
+          "COFR": 0.479167,
+          "inventory": 9.008868
+        },
+        "0.75": {
+          "MAE": 3.746181,
+          "COFR": 0.493056,
+          "inventory": 11.000535
+        },
+        "1": {
+          "MAE": 3.535648,
+          "COFR": 0.555556,
+          "inventory": 12.26998
+        },
+        "1.25": {
+          "MAE": 3.359375,
+          "COFR": 0.638889,
+          "inventory": 12.900535
+        },
+        "1.5": {
+          "MAE": 3.184028,
+          "COFR": 0.673611,
+          "inventory": 14.058868
+        },
+        "2": {
+          "MAE": 2.87963,
+          "COFR": 0.736111,
+          "inventory": 18.708868
+        },
+        "3": {
+          "MAE": 2.482639,
+          "COFR": 0.909722,
+          "inventory": 25.092202
+        },
+        "4": {
+          "MAE": 2.362963,
+          "COFR": 0.979167,
+          "inventory": 34.947757
+        }
+      }
+    }
+  ],
+  "author_aggregate_audit": {
+    "n": 38,
+    "rank_pearson_from_published_ranks": -0.5552637371834238,
+    "csv_sha256": "36cec2e7a4bdaa718ecbd05989ebbc661b1020d0044dfeb8ca4349a05f7b3ff9",
+    "scope": "凍結集計の算術監査。モデル・注文replayの独立再現ではない。"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "note": "人工カテゴリと参照検証のみ。診断精度・因果的な原因推定・LLM rubric採点は未実行。",
+  "scope": {
+    "reference_rejection": "CONFIRMED",
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "categories": [
+    {
+      "name": "genre",
+      "count": 4700,
+      "safety": false
+    },
+    {
+      "name": "popularity",
+      "count": 4000,
+      "safety": false
+    },
+    {
+      "name": "format",
+      "count": 110,
+      "safety": false
+    },
+    {
+      "name": "age",
+      "count": 10,
+      "safety": true
+    },
+    {
+      "name": "other",
+      "count": 1180,
+      "safety": false
+    }
+  ],
+  "retained": {
+    "percentage_only": [
+      "genre",
+      "popularity",
+      "other"
+    ],
+    "combined": [
+      "genre",
+      "popularity",
+      "format",
+      "age",
+      "other"
+    ]
+  },
+  "validation_errors": [
+    [],
+    [
+      "unknown_session"
+    ],
+    [
+      "unknown_path"
+    ],
+    [
+      "missing_evidence"
+    ]
+  ],
+  "decision": "hold",
+  "experiments": [
+    {
+      "name": "低頻度でも残す規則と架空参照の排除",
+      "metrics": {
+        "retained_categories": {
+          "baseline": 3,
+          "combined": 5
+        },
+        "invalid_findings_rejected": {
+          "count": 3
+        },
+        "noise_gate": {
+          "decision": "hold"
+        }
+      }
+    }
+  ]
+}

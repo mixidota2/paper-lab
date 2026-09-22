@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Tmall Appの生成チャネルは予約枠でpre-rankを迂回し、既存final rankerへ渡す。14日・検索traffic 20%のA/BでGMV +1.45%。初期の衝突ゼロと日次の住所固定は別の約束。">
+  <title>前段の選別を飛ばすなら、生成器は何を引き受けるべきか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-13</span></div>
+    <h1>前段の選別を飛ばすなら、生成器は何を引き受けるべきか</h1>
+    <p class="lede">Tmall Appの生成チャネルは予約枠でpre-rankを迂回し、既存final rankerへ渡す。14日・検索traffic 20%のA/BでGMV +1.45%。初期の衝突ゼロと日次の住所固定は別の約束。</p>
+    <details class="bibliography"><summary>原論文：VARG: Value-Aware and Ranking-Aligned Generative Retrieval for Dynamic E-commerce Search</summary><p>Xiaopeng Chu, Jianbo Zhu, Mingmin Jin, Jing Wang, Xing Fang, Wenyi Zhang</p><p>2609.14493 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.14493">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.14493v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-22 · 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-quota">最終順位の責任は既存rankerに残る</a><a href="#figure-value-math">住所の順位と学習の重みを分けて読む</a><a href="#figure-daily-address">衝突ゼロと住所固定は同じ保証ではない</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>価値の高い商品を生成しても、検索意図から外れれば最終rankerの限られた枠を浪費する。VARGは意味・価値・既存順位モデルとの整合を候補生成へ移す。Taobao &amp; Tmall Groupの研究だが、今回のオンライン評価面はTmall App検索である。14日・20%という条件のもと、GMV +1.45%、IPV/user +0.22%、PCTR +0.31%を著者が報告した。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>通常の検索経路は複数retrieval→merge→pre-rank→final rank。VARGの生成SIDは商品へ戻し、予約quotaでpre-rankを通さず合流する。final rankerそのものを削除した実験ではない。クラスタ単位の曖昧なIDでは低価値商品も枠を使い、毎日IDを価値順に振り直すと昨日学習した住所が別の商品を指す。選別と住所の安定性を同時に扱う必要がある。</p></div>      </section>
+<figure class="teaching teaching--logic" id="figure-quota" aria-labelledby="title-quota">
+  <div class="figure-heading"><span class="eyebrow">LOGIC</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-quota">最終順位の責任は既存rankerに残る</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">通常経路</p><div class="diagram-nodes"><div class="diagram-node"><strong>複数retrieval</strong><p>Text / Dense / I2I</p></div><div class="diagram-node"><strong>pre-rank</strong><p>候補を絞る</p></div><div class="diagram-node"><strong>final ranker</strong><p>両経路をmerge・deduplicate</p></div></div></div><div class="diagram-row"><p class="lane-label">VARG</p><div class="diagram-nodes"><div class="diagram-node"><strong>Qwen 0.5B</strong><p>user + query + history</p></div><div class="diagram-node"><strong>Trie → 商品</strong><p>意味2 token + 価値1 token</p></div><div class="diagram-node"><strong>予約quota</strong><p>pre-rankを迂回してfinal rankerへ</p></div></div></div></div>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2609.14493v1">出典：Fig. 1 / §3.5 ↗</a></figcaption>
+</figure>      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>意味prefixに検索関連性を学ばせ、3番目のtokenへ平滑化した価値順を埋める。SFTとPrefix-GRPOで、最終rankerへ直接渡せる候補を学習する。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><a href="lige-gr-meta-listwise.html">LIGE-GR</a>は既存候補内の列、<a href="sona-yandex-music.html">Sona</a>は推薦cascadeの置換、<a href="ogr-once-generated-ranked.html">OGR</a>は生成列と順位の統合を目指す。VARGは検索の既存final rankerを残し、その手前の予約枠を担う。評価すべき移行単位はこの枠である。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>意味の2 tokenと、価値順の1 tokenを分ける</h3>
+<p>商品embedding（category・brandを含む）をRQ-VAEのitem encoderへ入れる。残差量子化の第1 codeを引いた残差から第2 codeを選び、(s₁,s₂)を意味prefixにする。query encoderはtokenizer学習時だけ使う。再構成・commitmentに双方向InfoNCEを足し、同じminibatchのquery–item対応を揃える。各codebookと第3語彙は8,192。</p>
+<p>第3 token rはprefix内でEB-CVR、行動funnel値、GMV、item IDの順にtie-breakして付ける（Eqs. 3–5）。初期は1商品1住所。分子は購入数bと加重cart数ηₐaの和、分母はclick数c。priorはΣ(b+ηₐa)/Σcとする。</p>
+<h3>Qwen2.5-0.5B-Instructへ段階的に住所を教える</h3>
+<p>Stage 1は商品内容→SID、Stage 2はquery→SID、Stage 3はuser・query・history→SID。Stage 3には直近3検索と長期関心要約、query–itemのEB-CVR重み、level別lossを入れる。level 2が主な予測障害なのでα₂&gt;α₁&gt;α₃。LO-SFTは正解tokenへの通常lossを残し、半径3・温度1・係数0.02で近いrankにも滑らかな教師分布を与える。学習が進んでも全順位を作り直す操作とは違う。</p>
+<h3>Prefix-GRPOはまず報酬を受け取れる住所か調べる</h3>
+<p>1 promptから8応答を生成。書式外は−2、未占有slotは−1で打ち切る。合法・占有済みなら購入3、click 1、露出0.1の最高行動だけを採用する。要求内のranker scoreの正の標準化偏差にtanhをかけて最大0.2の報酬を足す。行動一致がないSIDだけ関連性grade 3/2/1に+0.08/+0.03/−0.10を与える。行動と関連性を二重加点しない。</p>
+<p>同prompt群で報酬を標準化し、whitening・clip後のadvantageをtokenへ配る。第1 tokenは重み1、第2・第3は合法な子の数の対数で0.1〜1に重み付け。PPO型clip、負advantageのdual clip、SFT参照policyへのKL係数0.8を使う。ここでの重みは推論logitの補正ではなくpolicy lossの係数である。</p>
+<h3>日次の互換性はmodel・Trie・mapの組で守る</h3>
+<p>既存SIDを固定し、新商品は同prefixの順位に近い歴史slotへ割り当てる。上限を超えれば末尾slotを共有する。共有SIDを商品集合へ展開し、最終rankerへ渡す。モデルは行動時点のSIDラベルとhistorical replayで日次学習。検証後にmodel・Trie・mapを原子的に公開する。月次rebuildは別primary versionとして履歴もre-encodeし、再学習する。</p>
+<p>オンラインbeam幅は(20,50,500)。Trieはカタログ内の占有pathだけに制約し、生成商品を通常経路の候補と重複排除してfinal rankerへ渡す。</p>
+<figure class="teaching" data-b21><h3>新商品Dの到着を追う</h3><label>住所方策 <select><option value="0">初日</option><option value="1">全並べ替え</option><option value="2">固定更新</option></select></label><div data-output aria-live="polite"><p>初日：A/B/Cに一意な住所</p><div class="matrix-scroll" tabindex="0"><table><tr><th>商品</th><th>第3 token</th></tr><tr><td>A</td><td>0</td></tr><tr><td>B</td><td>1</td></tr><tr><td>C</td><td>2</td></tr></table></div></div><script type="application/json" data-frames>["<p>初日：A/B/Cに一意な住所<\/p><div class=\"matrix-scroll\" tabindex=\"0\"><table><tr><th>商品<\/th><th>第3 token<\/th><\/tr><tr><td>A<\/td><td>0<\/td><\/tr><tr><td>B<\/td><td>1<\/td><\/tr><tr><td>C<\/td><td>2<\/td><\/tr><\/table><\/div>", "<p>全並べ替え：旧B/Cの住所が変わる<\/p><div class=\"matrix-scroll\" tabindex=\"0\"><table><tr><th>商品<\/th><th>第3 token<\/th><\/tr><tr><td>A<\/td><td>0<\/td><\/tr><tr><td>D<\/td><td>1<\/td><\/tr><tr><td>B<\/td><td>2<\/td><\/tr><tr><td>C<\/td><td>3<\/td><\/tr><\/table><\/div>", "<p>固定更新：B/Dが共有し、旧住所を守る<\/p><div class=\"matrix-scroll\" tabindex=\"0\"><table><tr><th>商品<\/th><th>第3 token<\/th><\/tr><tr><td>A<\/td><td>0<\/td><\/tr><tr><td>D<\/td><td>1<\/td><\/tr><tr><td>B<\/td><td>1<\/td><\/tr><tr><td>C<\/td><td>2<\/td><\/tr><\/table><\/div>"]</script><figcaption>run.pyの人工4商品。変わるのはmap。モデルの学習効果は含まない。</figcaption></figure></div>      </section>
+<figure class="teaching teaching--equations" id="figure-value-math" aria-labelledby="title-value-math">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-value-math">住所の順位と学習の重みを分けて読む</h3>
+  <ol class="equation-steps"><li><strong>Q2Iの双方向整合</strong><div class="math-expression" tabindex="0" role="math" aria-label="LID = Lrec + Lcom + λQI · [CE(S,I)+CE(Sᵀ,I)]/2">LID = Lrec + Lcom + λQI · [CE(S,I)+CE(Sᵀ,I)]/2</div><p>Sは正規化query/item embeddingの類似度÷温度。量子化前の検索関連性を学ぶ。</p></li><li><strong>EB-CVR（記号を簡略化）</strong><div class="math-expression" tabindex="0" role="math" aria-label="p̃ᵢ = (vᵢ + αID p₀) / (cᵢ + αID)">p̃ᵢ = (vᵢ + αID p₀) / (cᵢ + αID)</div><p>vᵢ=bᵢ+ηₐaᵢ、cᵢはclick数、p₀=Σv/Σc。bは購入、aはcart数。</p></li><li><strong>既存prefixの新商品</strong><div class="math-expression" tabindex="0" role="math" aria-label="rₜ(i) = min(ρₜ(i), Cₜ₋₁(c) − 1)">rₜ(i) = min(ρₜ(i), Cₜ₋₁(c) − 1)</div><p>旧商品は住所を保持。新prefixだけK₃−1を上限にする。</p></li><li><strong>局所順序教師</strong><div class="math-expression" tabindex="0" role="math" aria-label="q(r|r*) ∝ exp(−|r−r*|/τ) · 1[|r−r*|≤R]">q(r|r*) ∝ exp(−|r−r*|/τ) · 1[|r−r*|≤R]</div><p>合法な近傍で正規化。exact lossを残す。</p></li><li><strong>合法枝の重み</strong><div class="math-expression" tabindex="0" role="math" aria-label="φ(n;N) = d + (1−d) log(n)/log(N)">φ(n;N) = d + (1−d) log(n)/log(N)</div><p>N=1ならd。枝の多い位置のpolicy lossを強める。</p></li></ol>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2609.14493v1">出典：Eqs. 2–6, 11, 17 ↗</a></figcaption>
+</figure><figure class="teaching teaching--matrix" id="figure-daily-address" aria-labelledby="title-daily-address">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-daily-address">衝突ゼロと住所固定は同じ保証ではない</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="衝突ゼロと住所固定は同じ保証ではないの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">A</th><th scope="col">B</th><th scope="col">C</th><th scope="col">D</th><th scope="col">代償</th></tr></thead><tbody><tr><th scope="row">初日</th><td class="">0</td><td class="">1</td><td class="">2</td><td class="">なし</td><td class="">一意</td></tr><tr><th scope="row">全並べ替え</th><td class="">0</td><td class="">2</td><td class="">3</td><td class="">1</td><td class="">旧B/Cの住所が変わる</td></tr><tr><th scope="row">固定更新</th><td class="">0</td><td class="">1</td><td class="">2</td><td class="">1</td><td class="">B/Dが共有</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2609.14493v1">出典：§3.2 / Table 1 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈: 3番目のtokenの局所順序が価値の事前情報になるため、意味的に近い商品から選ぶ最後の判断を補助できる。EB平滑化は少数clickでCVRが極端になる問題を抑える。rankerの正の優位分だけを報酬に加えると、観測行動がない候補にも学習信号が届く。ただし既存rankerの偏りを引き継ぎ、共有slotの増加は候補展開数を増やす。新商品の意味や価値が急変すれば、住所固定との緊張が残る。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料の著者報告。</p>
+<p><a href="https://arxiv.org/pdf/2609.14493v1">PDF §4、Tables 1–7</a> の著者報告。カタログ51.43M商品、SFTはItem2SID 51.43M、Query2SID 48.00M、個人化105.69M例。SFT 128 GPU、RL 64 GPUであり、Labの小実験とは規模が違う。</p>
+<table>
+<thead>
+<tr>
+<th>比較</th>
+<th>数値</th>
+<th>読み方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>初期collision item率</td>
+<td>RQ-VAE-3 91.25% / VARG-ID 0%</td>
+<td>非singleton SIDを持つ商品の割合</td>
+</tr>
+<tr>
+<td>3番目を全面並べ替え</td>
+<td>complete-SID HR@100 −14.45 pp</td>
+<td>学習済み住所を壊す監査、オンライン損失ではない</td>
+</tr>
+<tr>
+<td>Prefix-GRPO vs SFT</td>
+<td>GMV Recall@1 30.88→36.35%</td>
+<td>+5.47 pp。オンラインGMVとは別</td>
+</tr>
+<tr>
+<td>同比較のQ2I-GMV Recall@1</td>
+<td>36.12→38.60%</td>
+<td>+2.48 pp。重みがquery–itemの14日GMV</td>
+</tr>
+<tr>
+<td>オンライン14日 / 20%</td>
+<td>GMV +1.45%、IPV/user +0.22%、PCTR +0.31%</td>
+<td>production control比の相対差</td>
+</tr>
+</tbody>
+</table>
+<p>UCTRとUCTCVRは各+0.13%、Exp. PV/userは−0.09%。Table 7のGood rateはVARGの小quotaで76.77/76.58%、従来最大quotaで76.71/76.81%。第2回は従来を少し下回るので「常に上回る」とは読まない。quotaの絶対数やA/Bの信頼区間は表にない。</p>
+<p>Table 5でQ2I-GMV Recall@1は行動報酬だけで+2.19 pp。ranker・関連性追加が+0.21 pp、prefix重みがさらに+0.08 ppである。Prefix-GRPO全体の改善をprefix重み単独の効果にしない。探索的な軽量decoderの11.1倍QPSは主A/Bに使われておらず、HRも低下する。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/varg-tmall-value-generative-retrieval/run.py</code>。同じ人工prefix内で、新商品DをA/B間へ挿入する。全面並べ替えと既存住所固定を比べ、衝突率と旧住所保持率を別々に測る。報酬の非法・空slot・購入・関連性の分岐、端点のLO分布も計算する。</p></div><div class="downloads"><a href="../downloads/varg-tmall-value-generative-retrieval/run.py" download>実行コード</a><a href="../downloads/varg-tmall-value-generative-retrieval/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/varg-tmall-value-generative-retrieval">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>人工4商品・1 prefix。学習済みモデルのHRやGMVを再現していない。</em></p>
+<h3>新商品DをAとBの間へ追加</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>reorder</th><th>frozen</th><th>initial</th><th>full_reorder</th></tr></thead><tbody><tr><th scope='row'>old_address_retention</th><td>0.3333333333333333</td><td>1.0</td><td></td><td></td></tr><tr><th scope='row'>alias_item_rate</th><td></td><td>0.5</td><td>0</td><td>0.0</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;人工4商品・1 prefix。学習済みモデルのHRやGMVを再現していない。&quot;,
+  &quot;scope&quot;: {
+    &quot;address_invariants&quot;: &quot;CONFIRMED&quot;,
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;新商品DをAとBの間へ追加&quot;,
+      &quot;metrics&quot;: {
+        &quot;old_address_retention&quot;: {
+          &quot;reorder&quot;: 0.3333333333333333,
+          &quot;frozen&quot;: 1.0
+        },
+        &quot;alias_item_rate&quot;: {
+          &quot;initial&quot;: 0,
+          &quot;full_reorder&quot;: 0.0,
+          &quot;frozen&quot;: 0.5
+        }
+      }
+    }
+  ],
+  &quot;maps&quot;: {
+    &quot;initial&quot;: {
+      &quot;A&quot;: 0,
+      &quot;B&quot;: 1,
+      &quot;C&quot;: 2
+    },
+    &quot;full_reorder&quot;: {
+      &quot;A&quot;: 0,
+      &quot;D&quot;: 1,
+      &quot;B&quot;: 2,
+      &quot;C&quot;: 3
+    },
+    &quot;frozen&quot;: {
+      &quot;A&quot;: 0,
+      &quot;D&quot;: 1,
+      &quot;B&quot;: 1,
+      &quot;C&quot;: 2
+    }
+  },
+  &quot;reward_probes&quot;: [
+    {
+      &quot;state&quot;: &quot;malformed&quot;,
+      &quot;behavior&quot;: &quot;buy&quot;,
+      &quot;reward&quot;: -2.0
+    },
+    {
+      &quot;state&quot;: &quot;unoccupied&quot;,
+      &quot;behavior&quot;: &quot;buy&quot;,
+      &quot;reward&quot;: -1.0
+    },
+    {
+      &quot;state&quot;: &quot;occupied&quot;,
+      &quot;behavior&quot;: &quot;buy&quot;,
+      &quot;reward&quot;: 3.1740123323485343
+    },
+    {
+      &quot;state&quot;: &quot;occupied&quot;,
+      &quot;behavior&quot;: &quot;click&quot;,
+      &quot;reward&quot;: 1.1740123323485343
+    },
+    {
+      &quot;state&quot;: &quot;occupied&quot;,
+      &quot;behavior&quot;: null,
+      &quot;reward&quot;: 0.2540123323485344
+    }
+  ],
+  &quot;ordinal_edge&quot;: {
+    &quot;0&quot;: 0.6439142598879724,
+    &quot;1&quot;: 0.23688281808991013,
+    &quot;2&quot;: 0.08714431874203257,
+    &quot;3&quot;: 0.03205860328008499
+  },
+  &quot;eb_sparse_example&quot;: {
+    &quot;raw_1_of_1&quot;: 1.0,
+    &quot;smoothed_1_of_1&quot;: 0.25
+  },
+  &quot;branch_weights&quot;: {
+    &quot;1&quot;: 0.1,
+    &quot;2&quot;: 0.4,
+    &quot;4&quot;: 0.7,
+    &quot;8&quot;: 1.0
+  }
+}</code></pre></details><p>4商品の例で全面並べ替えは旧住所保持率1/3、固定更新は1。固定更新の衝突item率は1/2になる。これはBとDが住所を共有する設計の代償。初期の衝突率は0。非法出力に購入情報を与えても報酬−2、空slotなら−1となり、他の信号を加算しない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。Eq. 6の範囲切り詰め、既存住所の不変性、item単位の衝突率、報酬gate、LO端点の正規化を人工fixtureで確認した。これらの局所不変条件はCONFIRMED。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability NOT TESTED。RQ-VAE・Q2I表現、Qwen2.5の学習、GRPOの収束、51.43M商品でのslot負荷、GMV・HRの再現はしていない。日次更新後も全IDがcollision-freeという主張は原論文にもない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>assign()</code>がEq. 6、<code>eb()</code>が平滑化、<code>ordinal()</code>がEq. 11の局所分布、<code>reward()</code>がEqs. 12–15のgateを抜き出す。prefixは1つに固定し、実商品属性・query encoder・最終rankerを省略。第三tokenの番号は同prefix内の順序を表す。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>一次資料: <a href="https://arxiv.org/pdf/2609.14493v1">VARG: Value-Aware and Ranking-Aligned Generative Retrieval for Dynamic E-commerce Search</a>、arXiv v1。2026-09-22確認。PDF SHA-256: <code>8ee5b5702c4432420fe3a62e890071de38add3d8dd19a359c3af609b9e4faddb</code>。取得済みPDFは <code>/tmp/research-2026-09-22/2609.14493v1.pdf</code> を再利用した。</p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>最小コード / 解説</th>
+<th>省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3.1 Eqs. 1–5</td>
+<td>method / eb</td>
+<td>RQ-VAEとQ2I学習、funnel tie-breakの実データ</td>
+</tr>
+<tr>
+<td>§3.2 Eq. 6</td>
+<td>assign / alias_rate</td>
+<td>多prefix・月次rebuild</td>
+</tr>
+<tr>
+<td>§3.3 Eq. 11</td>
+<td>ordinal</td>
+<td>Qwen full SFT</td>
+</tr>
+<tr>
+<td>§3.4 Eqs. 12–18</td>
+<td>reward / branch_weights</td>
+<td>PPO optimizer、KL推定</td>
+</tr>
+<tr>
+<td>Tables 1,4,6,7</td>
+<td>Evidence</td>
+<td>著者報告、独立再現なし</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード: 確認したPDFに本手法の公開実装へのリンクは見つからなかった。公開の有無を網羅的に保証するものではない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>前段の選別を飛ばすなら、生成器は何を引き受けるべきか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/varg-tmall-value-generative-retrieval/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

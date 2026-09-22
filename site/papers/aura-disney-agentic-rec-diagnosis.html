@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Disneyの2 platformで約10万sessionずつを診断。25項目rubricは15→23、17→24へ改善したが、genre修正の順位改善は未実証。診断と出荷判断を切り離す。">
+  <title>コードを変える前に、誰のどんな失敗を直すのか説明できるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-15</span></div>
+    <h1>コードを変える前に、誰のどんな失敗を直すのか説明できるか</h1>
+    <p class="lede">Disneyの2 platformで約10万sessionずつを診断。25項目rubricは15→23、17→24へ改善したが、genre修正の順位改善は未実証。診断と出荷判断を切り離す。</p>
+    <details class="bibliography"><summary>原論文：AURA: Agentic Diagnosis and Refinement for Production Recommender Systems at Scale</summary><p>SungGeun Kim, Abhinav Narain, Daniel Nemirovsky</p><p>2609.16625 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.16625">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.16625v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-22 · 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-diagnostic-funnel">約10万sessionを、そのまま修正命令にしない</a><a href="#figure-rubric">改善したのは25項目rubricの適合数</a><a href="#figure-no-win">もっともらしい診断と、改善する修正は別</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>AURAの成果は「genreの問題を発見したから改善を出荷した」ことではない。約10万sessionをplatformごとに整理し、根拠となるsessionとcodeを辿れる修正案へ変換したことにある。genre mismatchの2修正は診断cohortで改善せず、全体の差も±0.1%のnoise内だった。論文は未実証の候補として扱う。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>集計NDCGが同じでも、家族向けcontentのsubgenre不一致と年齢に合わない推薦では対処が違う。全sessionを一つのLLM contextへ入れることもできない。Platform Aは96,801中18,901 BAD、Bは101,594中4,154 BAD。階層集約はこのBAD集合を詳しく調べるので、上流judgeが見逃した失敗が診断から落ちる可能性がある。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>大量のsessionを階層的にまとめ、証拠付きの失敗分類からrankerのcode・feature・trainingに接続した修正案を作る。各段階で参照検証とengineer reviewを行う。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><a href="agentx-kuaishou.html">AgentX</a>のcode探索、<a href="dream-taobao-agentic-control.html">DREAM</a>の実行時制御、<a href="pilot-experiment-lifecycle.html">PILOT</a>の実験運用、<a href="coral-meta-config-harness.html">CORAL</a>の設定探索に、診断対象を決める前段を足す研究と読める。失敗の説明がもっともらしくても修正効果は別途確かめる必要がある。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>まずsessionを選び、失敗の分類を作る</h3>
+<p>Session selectionはrandom・stratified・engineer SQL・agent提案を組み合わせる。複数提案をdedupし、多数決でcohortを選ぶ。platformを必須parameterとして全段階へ渡し、data source、schema、promptの差を設定へ分ける。LLMが自由に本番DBを書き換える構成ではない。</p>
+<p>診断の実装は6段階。Classificationがsessionへ分類と短い説明を付け、Consolidationが似たcategoryを統合。Samplingで大きいcategory・十分な件数・一定割合を残し、safety-criticalは閾値を迂回する。Analysisがbounded sampleを読み、証拠とroot-cause hypothesisを作る。Verificationがsampleとの整合とseverityを見直し、Synthesisが横断的な優先順位をまとめる。</p>
+<p>原典のseverityは出現頻度の段階であり、一件当たりの危害の大きさではない。この区別をしないと、まれな年齢不適合が軽い問題に見える。割合のみの≥5%規則ではBの5分類のうち2つしか残らなかった。</p>
+<h3>高価な推論は圧縮後へ回す</h3>
+<p>Gemini 3 Flashが大量分類・統合、Gemini 3.1 Proが分析・検証・要約、Claude Opus 4.6がcode提案を担う（Table 5）。決定的なorchestratorがroutingする。rubricを採点するmodelと実際の作業modelを区別する。</p>
+<p>Hypothesis stageはranker code、feature、label、training、schemaを参照し、変更箇所へ仮説を結び付ける。これは形式的な因果推論ではない。Code stageは生成→別model評価→修正を回し、最後にpath/importの実在をprogrammaticに検査する。session IDも入力に存在するか調べ、parse失敗をdata-quality flagとして残す。</p>
+<h3>現行の到達点と将来の自動化を分ける</h3>
+<p>現行はreviewed PRまで。mergeからtrainingを開始する部分と、offline評価からA/B-ready artifactを作る部分は拡張中。論文のgenre修正はoffline screeningの実例であり、全loopが無人運転している証拠ではない。engineerは最終段階だけでなく各段階で証拠を読み、仮説を却下できる。</p></div>      </section>
+<figure class="teaching teaching--logic" id="figure-diagnostic-funnel" aria-labelledby="title-diagnostic-funnel">
+  <div class="figure-heading"><span class="eyebrow">LOGIC</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-diagnostic-funnel">約10万sessionを、そのまま修正命令にしない</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">圧縮</p><div class="diagram-nodes"><div class="diagram-node"><strong>Classification → Consolidation</strong><p>sessionを分類し重複categoryを統合</p></div><div class="diagram-node"><strong>Sampling</strong><p>top-N / 件数 / 割合。安全上の例外を残す</p></div></div></div><div class="diagram-row"><p class="lane-label">説明</p><div class="diagram-nodes"><div class="diagram-node"><strong>Analysis → Verification</strong><p>証拠・根本原因の仮説・severityを照合</p></div><div class="diagram-node"><strong>Synthesis</strong><p>優先順位をまとめる</p></div></div></div><div class="diagram-row"><p class="lane-label">変更</p><div class="diagram-nodes"><div class="diagram-node"><strong>Hypothesis → code</strong><p>実在するfeature・pathへ接続</p></div><div class="diagram-node"><strong>engineer review</strong><p>現行はPRまで。training/A/B自動化は拡張中</p></div></div></div></div>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2609.16625v1">出典：Fig. 1 / §3.3–3.6 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈: session→category→検証済みfindingへ圧縮すると、深い分析に使う高価なmodelの呼出しを減らせる。codeを読む前にcohortと失敗を決めることで、平均指標だけの探索より修正の理由が明確になる。ただし分類名と集約時の抽出条件が盲点を作る。低頻度の安全上の失敗を割合閾値で消さず、上流judge自身の誤りも検査する必要がある。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料の著者報告。</p>
+<p><a href="https://arxiv.org/pdf/2609.16625v1">PDF §4、Tables 1–5</a> の著者報告。25項目のGOOD数はA 15→23、B 17→24。診断出力へのrubricであり、推薦の精度や人間の満足度ではない。同じrubricを使う反復改善なので、未見課題への一般化は別問題となる。</p>
+<p>上流judgeの検査にはClaude Opus 4.6、GPT-5.5、Gemini 3.1 Proの多数決を用い、rubric判定にはGemini 3.1 ProとGPT-5.5を使う。LLM間の一致を独立した人間正解と同一視できない。Gemini系が上下流に現れる自己選好と、GOOD多数によるκの低さも本文で開示する。</p>
+<p>Genre Preference Mismatchは両面でBADの約46〜48%。Bの1,911 sessionでgenre cross featureとcandidate-aware attentionを試したが、診断cohortのrankingは改善しなかった。Table 3は3独立学習日の全体差で、NDCG@10 −0.01/+0.05/+0.02%、Click AUC +0.03/+0.06/+0.01%。</p>
+<p>費用はA $349.26、B $252.85（end-to-end）。そのうち上流judgeは$320.98/$250.21、AURA部分は$28.28/$2.64。約$43〜50/findingには上流judgeを含む。上流費用は観測単価の全sessionへの外挿、code suggestion費用はOpus 4.6の料金からの推定で、全項目が実測telemetryではない。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-rubric" aria-labelledby="title-rubric">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-rubric">改善したのは25項目rubricの適合数</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="改善したのは25項目rubricの適合数の表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">A before→after</th><th scope="col">B before→after</th></tr></thead><tbody><tr><th scope="row">分類</th><td class="">4/5→5/5</td><td class="">4/5→5/5</td></tr><tr><th scope="row">統合</th><td class="">1/4→3/4</td><td class="">2/4→4/4</td></tr><tr><th scope="row">分析</th><td class="">3/5→5/5</td><td class="">4/5→5/5</td></tr><tr><th scope="row">検証</th><td class="">2/3→3/3</td><td class="">2/3→3/3</td></tr><tr><th scope="row">要約</th><td class="">4/4→4/4</td><td class="">4/4→4/4</td></tr><tr><th scope="row">code提案</th><td class="">1/4→3/4</td><td class="">1/4→3/4</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2609.16625v1">出典：Table 1 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/aura-disney-agentic-rec-diagnosis/run.py</code>。人工カテゴリを割合のみとtop-N/count/割合＋safety例外で選び、証拠session・code pathが存在するかを検査する。noise内の差をholdにする例も示すが、この数値gateはLabの説明用で、AURAの公式出荷規則ではない。</p></div><div class="downloads"><a href="../downloads/aura-disney-agentic-rec-diagnosis/run.py" download>実行コード</a><a href="../downloads/aura-disney-agentic-rec-diagnosis/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/aura-disney-agentic-rec-diagnosis">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>人工カテゴリと参照検証のみ。診断精度・因果的な原因推定・LLM rubric採点は未実行。</em></p>
+<h3>低頻度でも残す規則と架空参照の排除</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>baseline</th><th>combined</th><th>count</th><th>decision</th></tr></thead><tbody><tr><th scope='row'>retained_categories</th><td>3</td><td>5</td><td></td><td></td></tr><tr><th scope='row'>invalid_findings_rejected</th><td></td><td></td><td>3</td><td></td></tr><tr><th scope='row'>noise_gate</th><td></td><td></td><td></td><td>hold</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;人工カテゴリと参照検証のみ。診断精度・因果的な原因推定・LLM rubric採点は未実行。&quot;,
+  &quot;scope&quot;: {
+    &quot;reference_rejection&quot;: &quot;CONFIRMED&quot;,
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;categories&quot;: [
+    {
+      &quot;name&quot;: &quot;genre&quot;,
+      &quot;count&quot;: 4700,
+      &quot;safety&quot;: false
+    },
+    {
+      &quot;name&quot;: &quot;popularity&quot;,
+      &quot;count&quot;: 4000,
+      &quot;safety&quot;: false
+    },
+    {
+      &quot;name&quot;: &quot;format&quot;,
+      &quot;count&quot;: 110,
+      &quot;safety&quot;: false
+    },
+    {
+      &quot;name&quot;: &quot;age&quot;,
+      &quot;count&quot;: 10,
+      &quot;safety&quot;: true
+    },
+    {
+      &quot;name&quot;: &quot;other&quot;,
+      &quot;count&quot;: 1180,
+      &quot;safety&quot;: false
+    }
+  ],
+  &quot;retained&quot;: {
+    &quot;percentage_only&quot;: [
+      &quot;genre&quot;,
+      &quot;popularity&quot;,
+      &quot;other&quot;
+    ],
+    &quot;combined&quot;: [
+      &quot;genre&quot;,
+      &quot;popularity&quot;,
+      &quot;format&quot;,
+      &quot;age&quot;,
+      &quot;other&quot;
+    ]
+  },
+  &quot;validation_errors&quot;: [
+    [],
+    [
+      &quot;unknown_session&quot;
+    ],
+    [
+      &quot;unknown_path&quot;
+    ],
+    [
+      &quot;missing_evidence&quot;
+    ]
+  ],
+  &quot;decision&quot;: &quot;hold&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;低頻度でも残す規則と架空参照の排除&quot;,
+      &quot;metrics&quot;: {
+        &quot;retained_categories&quot;: {
+          &quot;baseline&quot;: 3,
+          &quot;combined&quot;: 5
+        },
+        &quot;invalid_findings_rejected&quot;: {
+          &quot;count&quot;: 3
+        },
+        &quot;noise_gate&quot;: {
+          &quot;decision&quot;: &quot;hold&quot;
+        }
+      }
+    }
+  ]
+}</code></pre></details><p>5%のみでは5カテゴリ中3つを残し、件数・safety例外を加えると5つが残る。10件のage問題が消えなくなる。架空session、架空path、証拠なしの3変異を拒否し、有効なfindingだけを通した。これは診断内容が正しいことや、genre問題の原因を推定できることの確認ではない。</p></div>      </section>
+<figure class="teaching teaching--logic" id="figure-no-win" aria-labelledby="title-no-win">
+  <div class="figure-heading"><span class="eyebrow">LOGIC</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-no-win">もっともらしい診断と、改善する修正は別</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">観測</p><div class="diagram-nodes"><div class="diagram-node"><strong>genre mismatch</strong><p>BADの約46〜48%</p></div><div class="diagram-node"><strong>修正候補</strong><p>genre交差feature / candidate-aware attention</p></div></div></div><div class="diagram-row"><p class="lane-label">検証</p><div class="diagram-nodes"><div class="diagram-node"><strong>cohort 1,911 session</strong><p>順位改善を観測できず</p></div><div class="diagram-node"><strong>全体3学習日</strong><p>差は±0.1%以内。未実証候補として保持</p></div></div></div></div>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2609.16625v1">出典：§4.2 / Table 3 ↗</a></figcaption>
+</figure>      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。低頻度category保持と参照の存在確認を人工入力で実行した。架空参照の拒否はCONFIRMED。診断品質のrubric上昇は著者報告でありLabではNOT TESTED。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability NOT TESTED。session判定、因果推論、LLM間一致、実rankerの学習、A/Bを実行していない。提示メモの「出荷を拒否」は慎重に読む必要がある。原典は修正を未実証のopen candidateとし、現行システムの自動化範囲はengineer-reviewed PRまでである。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>select()</code>は§3.3の保持規則を単純化し、<code>validate()</code>は§3.6の参照検証を再現する。共通memoryは過去のcategory・仮説・修正・結果を蓄える設計だが、Labでは永続DBやagentを実装しない。診断と修正効果の検証が別契約であることを残す。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>一次資料: <a href="https://arxiv.org/pdf/2609.16625v1">AURA: Agentic Diagnosis and Refinement for Production Recommender Systems at Scale</a>、arXiv v1。2026-09-22確認。PDF SHA-256: <code>069c7aa504d2881a293c4d083dc2603a11b55dba53f2fb6f40dae64cc8ae317e</code>。取得済みPDFは <code>/tmp/research-2026-09-22/2609.16625v1.pdf</code> を再利用した。</p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>Lab</th>
+<th>省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3.3</td>
+<td>select</td>
+<td>LLM分類・集約とsample分析</td>
+</tr>
+<tr>
+<td>§3.6</td>
+<td>validate</td>
+<td>JSON schema・import検証、DB</td>
+</tr>
+<tr>
+<td>Table 1</td>
+<td>rubric表</td>
+<td>judge再実行</td>
+</tr>
+<tr>
+<td>§4.2 / Table 3</td>
+<td>holdの説明用gate</td>
+<td>本番ranker、公式gateの再現ではない</td>
+</tr>
+<tr>
+<td>Table 5</td>
+<td>費用の母集団・推定範囲</td>
+<td>token使用量追試</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード: 確認したPDFに本手法の公開実装へのリンクは見つからなかった。公開の有無を網羅的に保証するものではない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>コードを変える前に、誰のどんな失敗を直すのか説明できるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/aura-disney-agentic-rec-diagnosis/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

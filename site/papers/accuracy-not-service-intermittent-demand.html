@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="38手法・20,330注文で精度順位と注文充足順位のρ=−0.555。Chronos-2の正規化修正はMASEを悪化させつつCOFRを54→63%へ改善した。指標の母集団と在庫費用を分けて読む。">
+  <title>誤差を減らした予測が、欠品を増やすのはなぜか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-12</span></div>
+    <h1>誤差を減らした予測が、欠品を増やすのはなぜか</h1>
+    <p class="lede">38手法・20,330注文で精度順位と注文充足順位のρ=−0.555。Chronos-2の正規化修正はMASEを悪化させつつCOFRを54→63%へ改善した。指標の母集団と在庫費用を分けて読む。</p>
+    <details class="bibliography"><summary>原論文：Accuracy Is Not Service: A Decision-Aware Benchmark for Intermittent-Demand Forecasting</summary><p>Joo Ern Chin, Shih-Fen Cheng, Aldy Gunawan</p><p>2609.13840 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.13840">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.13840v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-22 · 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-decision">予測から契約指標まで、3段階を区別する</a><a href="#figure-regimes">順位相関の符号は需要regimeで変わる</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>少しずつ外す予測より、余分に見積もる予測の方が注文を完納できる場合がある。本論文の対象は月次の間欠・塊状需要を持つ物流部品。38手法を同じ補充規則へ入れると、20,330件の実注文で精度と完納の順位が逆向きになった。これは「精度を捨てればよい」という結論ではない。追加在庫を含む意思決定の評価が必要になる。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>精度benchmarkは4,021品目、注文評価はそのうち3,828品目・41 platform。Chronos補正の集計は4,558品目で、同じ分母ではない。1注文の全明細が揃った場合だけ成功と数えるCOFRでは、一品の不足が注文全体の失敗になる。RAFとM5には実multi-item order logがないため、3領域の比較には品目単位のfill proxyを使う。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>同一在庫方策で手法を比較すると、間欠需要の強い部品契約で精度順位とservice順位が逆転する。偏りの方向を診断し、Chronos-2の非ゼロ条件付き正規化でserviceを改善する。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><a href="contextual-deconvolution.html">Contextual Deconvolution</a>が在庫費用との整合、<a href="vn2-stockout-catboost.html">VN2</a>が予測と発注policyの組を問うのに対し、本論文は固定policyで予測の偏りを切り分ける。ChronosFlow-ICGPSのような予測分布から意思決定への接続も、COFRと費用を同時に測って初めて比較できる。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>38手法の比較とChronos-2補正は別の実験</h3>
+<p>横断benchmarkにはWMA、Croston/SBA/TSB、LightGBM/XGBoost、DeepAR、TimesFM、Moirai、Chronos-Bolt tiny/smallなどを含む。正規化を修正したChronos-2は適応実験で扱うモデルであり、Boltと同一のcheckpointではない。</p>
+<h3>誤差の定義を先に揃える</h3>
+<p>Eq. 1はlead time Hの需要合計Yと予測H r̂を比較する。Eq. 2のMASEは、各品目の絶対誤差eを直近3観測平均によるlead-time誤差dで割り、d=0なら未scaleのeを使う独自定義。一般的なin-sample差分scaleとは異なり、1未満なら必ずbaselineよりよいとは言えない。Table Vの適応比較はΣe/Σdのpooled ratioである。</p>
+<p>補充はS=max(0, μ̂(L+R)+z σ̂√(L+R))。z=Φ⁻¹(τ)、L=6月、R=1月を基本とし、初期在庫S・空の補充pipelineで開始する。受入を需要より先に処理し、注文を固定順序で評価。全明細を満たせない注文は在庫を消費せず、backorderにもせず棄却する。品目proxyは部分消費を許す別のreplayなのでCOFRに読み替えない。</p>
+<h3>BDDは誤差を符号付きで読む手順</h3>
+<p>Bias-Direction Diagnosticは新しいforecasting modelではない。まず精度とservice順位の符号を確認し、signed lead-time bias、zero-periodの誤差寄与、在庫量を併記する。MAEのゼロ期間項はΣ[y=0]|ŷ|/N。Croston/SBAでは誤差の53〜54%がここにあり、正の余分な予測がspikeの不足を相殺しうる。過剰在庫を無料の改善として数えない。</p>
+<h3>非ゼロ平均へ移すと、入力と逆変換の両方が変わる</h3>
+<p>Chronos-2の(x−mean)/stdを、正需要だけのmean/stdへ置き換える。未来の正需要を使わず、各originの学習contextだけから統計を求める。全ゼロなら中心0、scaleが0ならmodelのε。arcsinhが有効なら逆arcsinhの後で保存した中心とscaleへ戻す。</p>
+<p>下の例は8割ゼロ、正値2と6。平均0.8に対し正値平均4.0となる。正規化出力が0の定数代理を逆変換すれば0.8/4.0に分かれるが、これはChronosの予測値ではない。実モデルは変換後の全系列を処理するため、平均を置き換えただけで同じ改善が出る保証はない。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>非ゼロ条件付き正規化を人工系列で追う</h3><a href="../figures/accuracy-not-service-intermittent-demand/recentering.svg" aria-label="非ゼロ条件付き正規化を人工系列で追うを拡大"><img src="../figures/accuracy-not-service-intermittent-demand/recentering.svg" alt="非ゼロ条件付き正規化を人工系列で追う。run.py / plot.pyの人工10点。論文Fig. 5のデータではない。" loading="lazy"></a><figcaption>run.py / plot.pyの人工10点。論文Fig. 5のデータではない。 <a href="../figures/accuracy-not-service-intermittent-demand/recentering.svg">図を拡大 ↗</a></figcaption></figure>
+<figure class="teaching teaching--equations" id="figure-decision" aria-labelledby="title-decision">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-decision">予測から契約指標まで、3段階を区別する</h3>
+  <ol class="equation-steps"><li><strong>lead-time需要</strong><div class="math-expression" tabindex="0" role="math" aria-label="Yᵢ = Σₕ yᵢ,o+h ; Ŷᵢ = H r̂ᵢ">Yᵢ = Σₕ yᵢ,o+h ; Ŷᵢ = H r̂ᵢ</div><p>月ごとの誤差とlead-time全体の誤差は違う。</p></li><li><strong>固定方策のstock target</strong><div class="math-expression" tabindex="0" role="math" aria-label="Sᵢ = max(0, μ̂ᵢ(L+R) + z σ̂ᵢ√(L+R))">Sᵢ = max(0, μ̂ᵢ(L+R) + z σ̂ᵢ√(L+R))</div><p>同じσならΔS=(L+R)Δμ。保証は在庫目標まで。</p></li><li><strong>全明細が揃って初めて成功</strong><div class="math-expression" tabindex="0" role="math" aria-label="COFR = |Q|⁻¹ Σq 1[minⱼ∈Iq Fqj = 1]">COFR = |Q|⁻¹ Σq 1[minⱼ∈Iq Fqj = 1]</div><p>1明細でも不足すればその注文は失敗。</p></li><li><strong>正規化の変更</strong><div class="math-expression" tabindex="0" role="math" aria-label="x̂nz = (x − E[x|x&gt;0]) / std(x|x&gt;0)">x̂nz = (x − E[x|x&gt;0]) / std(x|x&gt;0)</div><p>統計は学習contextだけ。逆変換も同じ統計を使う。</p></li></ol>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2609.13840v1">出典：Eqs. 1–7 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈: ゼロが多い履歴では平均が小さくなり、絶対誤差を減らす予測は需要の山を低く見積もりやすい。平均予測を上げれば同じ分散・safety factorの在庫目標は上がる。ただし完納できない注文を棄却して在庫を保存する規則では、目標が大きいほど実現COFRが必ず上がるとは限らない。論文のProposition 1も保証するのはstock targetの順序だけである。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料の著者報告。</p>
+<p><a href="https://arxiv.org/pdf/2609.13840v1">PDF §III–IV、Tables III–VII</a>。著者報告の注文順位相関はρ=−0.555、95% bootstrap CI [−0.78,−0.26]、n=38。8 model classへまとめた感度分析は−0.88だが、独立な追試ではない。</p>
+<table>
+<thead>
+<tr>
+<th>評価</th>
+<th style="text-align: right;">工業部品</th>
+<th style="text-align: right;">RAF</th>
+<th style="text-align: right;">月次M5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>品目fill proxyとの順位相関</td>
+<td style="text-align: right;">−0.582</td>
+<td style="text-align: right;">−0.173</td>
+<td style="text-align: right;">+0.359</td>
+</tr>
+</tbody>
+</table>
+<p>符号は領域によって変わる。RAFの一部手法は有効品目数が異なるavailable-case比較で、Prophetに代わりiMAPAを含む。M5は疎な250品目を選んでも部品ほど間欠的ではない。</p>
+<table>
+<thead>
+<tr>
+<th>Chronos-2 / Table V</th>
+<th style="text-align: right;">標準</th>
+<th style="text-align: right;">非ゼロ条件付き</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pooled MASE</td>
+<td style="text-align: right;">0.831</td>
+<td style="text-align: right;">0.948</td>
+</tr>
+<tr>
+<td>fill proxy @90%目標</td>
+<td style="text-align: right;">77.5%</td>
+<td style="text-align: right;">92.0%</td>
+</tr>
+<tr>
+<td>signed bias</td>
+<td style="text-align: right;">−2.52</td>
+<td style="text-align: right;">−0.10</td>
+</tr>
+<tr>
+<td>注文COFR（§IV-D）</td>
+<td style="text-align: right;">54%</td>
+<td style="text-align: right;">63%</td>
+</tr>
+</tbody>
+</table>
+<p>90%はpolicyの目標で、実現充足率でも信頼水準でもない。Table VIの別origin集合では0.834→0.955、77.8→92.4%となる。提示数値と異なる再測定値を混ぜない。補正後も80-of-80契約基準は満たさない。</p>
+<p>RUFは5,000品目の公開合成panel。実品目の集約templateから発生×量を生成し、class・zero率の一致を最大10回で検査する。非cold-startの84%がgateを通る。周辺分布と依存の整合は認証対象だが、機密の実注文そのものではない。38手法でρ=−0.47、補正MASE 0.765→0.807とproxy +17.6〜21.4 ppを報告する。LabではRUF全38手法を再実行していない。</p></div>      </section>
+      <figure class="paper-svg teaching"><h3>精度順位と注文COFR順位の散布図</h3><a href="../figures/accuracy-not-service-intermittent-demand/rank-scatter.svg" aria-label="精度順位と注文COFR順位の散布図を拡大"><img src="../figures/accuracy-not-service-intermittent-demand/rank-scatter.svg" alt="精度順位と注文COFR順位の散布図。公式industrial_orderbook_38.csvの38手法。各軸は1位が良い。モデル再実行ではなく凍結集計の再描画。" loading="lazy"></a><figcaption>公式industrial_orderbook_38.csvの38手法。各軸は1位が良い。モデル再実行ではなく凍結集計の再描画。 <a href="../figures/accuracy-not-service-intermittent-demand/rank-scatter.svg">図を拡大 ↗</a></figcaption></figure>
+<figure class="teaching teaching--matrix" id="figure-regimes" aria-labelledby="title-regimes">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-regimes">順位相関の符号は需要regimeで変わる</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="順位相関の符号は需要regimeで変わるの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">対象</th><th scope="col">指標</th><th scope="col">ρ</th></tr></thead><tbody><tr><th scope="row">工業部品の注文</th><td class="">20,330実注文</td><td class="">COFR</td><td class="">−0.555</td></tr><tr><th scope="row">工業部品の品目</th><td class="">38手法</td><td class="">fill proxy</td><td class="">−0.582</td></tr><tr><th scope="row">RAF</th><td class="">38手法 / coverage差あり</td><td class="">fill proxy</td><td class="">−0.173</td></tr><tr><th scope="row">M5</th><td class="">250品目の月次panel</td><td class="">fill proxy</td><td class="">+0.359</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>一次資料を学習用に再構成。著者報告とLabの計算を区別する。 <a href="https://arxiv.org/pdf/2609.13840v1">出典：§IV-A / Fig. 3 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/accuracy-not-service-intermittent-demand/run.py</code>。固定seedの4品目・144人工注文を同一順序・同一補充規則でreplayし、予測倍率を変えてMAE・COFR・平均在庫を測る。別に正規化と逆変換、全ゼロ・単一正値の端点を確認する。公式公開CSVによる38手法の順位散布図は著者集計の再描画であり、この人工replayとは別。</p></div><div class="downloads"><a href="../downloads/accuracy-not-service-intermittent-demand/run.py" download>実行コード</a><a href="../downloads/accuracy-not-service-intermittent-demand/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/accuracy-not-service-intermittent-demand">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>固定seedの人工注文。論文38手法・RUF・Chronos-2の再現ではない。MAEを使用し論文MASEと区別。</em></p>
+<h3>同一144注文・補充方策で予測倍率を変更</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>MAE</th><th>COFR</th><th>inventory</th></tr></thead><tbody><tr><th scope='row'>0.5</th><td>3.983565</td><td>0.479167</td><td>9.008868</td></tr><tr><th scope='row'>0.75</th><td>3.746181</td><td>0.493056</td><td>11.000535</td></tr><tr><th scope='row'>1</th><td>3.535648</td><td>0.555556</td><td>12.26998</td></tr><tr><th scope='row'>1.25</th><td>3.359375</td><td>0.638889</td><td>12.900535</td></tr><tr><th scope='row'>1.5</th><td>3.184028</td><td>0.673611</td><td>14.058868</td></tr><tr><th scope='row'>2</th><td>2.87963</td><td>0.736111</td><td>18.708868</td></tr><tr><th scope='row'>3</th><td>2.482639</td><td>0.909722</td><td>25.092202</td></tr><tr><th scope='row'>4</th><td>2.362963</td><td>0.979167</td><td>34.947757</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;固定seedの人工注文。論文38手法・RUF・Chronos-2の再現ではない。MAEを使用し論文MASEと区別。&quot;,
+  &quot;scope&quot;: {
+    &quot;normalization_roundtrip&quot;: &quot;CONFIRMED&quot;,
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;seed&quot;: 22,
+  &quot;sweep&quot;: [
+    {
+      &quot;alpha&quot;: 0.5,
+      &quot;MAE&quot;: 3.983565,
+      &quot;COFR&quot;: 0.479167,
+      &quot;inventory_units&quot;: 9.008868,
+      &quot;stock_target&quot;: 22.86998
+    },
+    {
+      &quot;alpha&quot;: 0.75,
+      &quot;MAE&quot;: 3.746181,
+      &quot;COFR&quot;: 0.493056,
+      &quot;inventory_units&quot;: 11.000535,
+      &quot;stock_target&quot;: 26.19498
+    },
+    {
+      &quot;alpha&quot;: 1,
+      &quot;MAE&quot;: 3.535648,
+      &quot;COFR&quot;: 0.555556,
+      &quot;inventory_units&quot;: 12.26998,
+      &quot;stock_target&quot;: 29.51998
+    },
+    {
+      &quot;alpha&quot;: 1.25,
+      &quot;MAE&quot;: 3.359375,
+      &quot;COFR&quot;: 0.638889,
+      &quot;inventory_units&quot;: 12.900535,
+      &quot;stock_target&quot;: 32.84498
+    },
+    {
+      &quot;alpha&quot;: 1.5,
+      &quot;MAE&quot;: 3.184028,
+      &quot;COFR&quot;: 0.673611,
+      &quot;inventory_units&quot;: 14.058868,
+      &quot;stock_target&quot;: 36.16998
+    },
+    {
+      &quot;alpha&quot;: 2,
+      &quot;MAE&quot;: 2.87963,
+      &quot;COFR&quot;: 0.736111,
+      &quot;inventory_units&quot;: 18.708868,
+      &quot;stock_target&quot;: 42.81998
+    },
+    {
+      &quot;alpha&quot;: 3,
+      &quot;MAE&quot;: 2.482639,
+      &quot;COFR&quot;: 0.909722,
+      &quot;inventory_units&quot;: 25.092202,
+      &quot;stock_target&quot;: 56.11998
+    },
+    {
+      &quot;alpha&quot;: 4,
+      &quot;MAE&quot;: 2.362963,
+      &quot;COFR&quot;: 0.979167,
+      &quot;inventory_units&quot;: 34.947757,
+      &quot;stock_target&quot;: 69.41998
+    }
+  ],
+  &quot;normalization&quot;: {
+    &quot;all&quot;: {
+      &quot;center&quot;: 0.8,
+      &quot;scale&quot;: 1.833030277982336,
+      &quot;normalized&quot;: [
+        -0.4364357804719848,
+        -0.4364357804719848,
+        -0.4364357804719848,
+        -0.4364357804719848,
+        0.6546536707079771,
+        -0.4364357804719848,
+        -0.4364357804719848,
+        -0.4364357804719848,
+        2.836832573067901,
+        -0.4364357804719848
+      ],
+      &quot;constant_z0_inverse&quot;: 0.8
+    },
+    &quot;positive&quot;: {
+      &quot;center&quot;: 4,
+      &quot;scale&quot;: 2.0,
+      &quot;normalized&quot;: [
+        -2.0,
+        -2.0,
+        -2.0,
+        -2.0,
+        -1.0,
+        -2.0,
+        -2.0,
+        -2.0,
+        1.0,
+        -2.0
+      ],
+      &quot;constant_z0_inverse&quot;: 4
+    }
+  },
+  &quot;counterexample&quot;: {
+    &quot;stock2_COFR&quot;: 0.6666666666666666,
+    &quot;stock3_COFR&quot;: 0.3333333333333333
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;同一144注文・補充方策で予測倍率を変更&quot;,
+      &quot;metrics&quot;: {
+        &quot;0.5&quot;: {
+          &quot;MAE&quot;: 3.983565,
+          &quot;COFR&quot;: 0.479167,
+          &quot;inventory&quot;: 9.008868
+        },
+        &quot;0.75&quot;: {
+          &quot;MAE&quot;: 3.746181,
+          &quot;COFR&quot;: 0.493056,
+          &quot;inventory&quot;: 11.000535
+        },
+        &quot;1&quot;: {
+          &quot;MAE&quot;: 3.535648,
+          &quot;COFR&quot;: 0.555556,
+          &quot;inventory&quot;: 12.26998
+        },
+        &quot;1.25&quot;: {
+          &quot;MAE&quot;: 3.359375,
+          &quot;COFR&quot;: 0.638889,
+          &quot;inventory&quot;: 12.900535
+        },
+        &quot;1.5&quot;: {
+          &quot;MAE&quot;: 3.184028,
+          &quot;COFR&quot;: 0.673611,
+          &quot;inventory&quot;: 14.058868
+        },
+        &quot;2&quot;: {
+          &quot;MAE&quot;: 2.87963,
+          &quot;COFR&quot;: 0.736111,
+          &quot;inventory&quot;: 18.708868
+        },
+        &quot;3&quot;: {
+          &quot;MAE&quot;: 2.482639,
+          &quot;COFR&quot;: 0.909722,
+          &quot;inventory&quot;: 25.092202
+        },
+        &quot;4&quot;: {
+          &quot;MAE&quot;: 2.362963,
+          &quot;COFR&quot;: 0.979167,
+          &quot;inventory&quot;: 34.947757
+        }
+      }
+    }
+  ],
+  &quot;author_aggregate_audit&quot;: {
+    &quot;n&quot;: 38,
+    &quot;rank_pearson_from_published_ranks&quot;: -0.5552637371834238,
+    &quot;csv_sha256&quot;: &quot;36cec2e7a4bdaa718ecbd05989ebbc661b1020d0044dfeb8ca4349a05f7b3ff9&quot;,
+    &quot;scope&quot;: &quot;凍結集計の算術監査。モデル・注文replayの独立再現ではない。&quot;
+  }
+}</code></pre></details><p>人工replayでは予測倍率0.5→4でCOFR 47.9→97.9%、平均在庫9.01→34.95単位。ここではMAEも3.98→2.36へ改善するので、論文の精度逆転はNOT OBSERVED。設計した人工需要が同じregimeを再現するとは限らない。一方、注文[3],[1],[1]に初期在庫2と3を与える反例では、COFRが2/3→1/3へ低下する。在庫目標の大小と注文完納の単調性を区別できる。 公開CSVの順位から相関を再計算するとρ=-0.555264。これは著者集計の確認であり、生データからの再現ではない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。正規化の往復と全ゼロ時の有限性、同一policyの在庫保存・補充・完納判定、stock target増加がCOFR単調増加を保証しない反例を確認。局所条件はCONFIRMED。人工replayの精度逆転はNOT OBSERVED。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability NOT TESTED。Chronos-2の重みをロードせず、内部表現の変化による改善は検証していない。実注文・RUF生成・38手法の学習、bootstrap CI、在庫金額の最適化も未実行。CSVの順位再計算は凍結集計の算術監査であり、機密panelの追試ではない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>normalize()</code>はEqs. 6–7の中心とscaleおよび逆変換。<code>replay()</code>は受入→全明細判定→失敗棄却→補充という順序を実装。Labのlead=2・4品目は原典のL=6/R=1から縮小した。人工実験は通常MAEを使い、論文独自のMASEを名乗らない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>一次資料: <a href="https://arxiv.org/pdf/2609.13840v1">Accuracy Is Not Service: A Decision-Aware Benchmark for Intermittent-Demand Forecasting</a>、arXiv v1。2026-09-22確認。PDF SHA-256: <code>7dc61d06092ef0a22a85ca5896d9432bdf345dc878b03bf81e367799a1d7f70d</code>。取得済みPDFは <code>/tmp/research-2026-09-22/2609.13840v1.pdf</code> を再利用した。</p>
+<table>
+<thead>
+<tr>
+<th>原典 / 公開成果物</th>
+<th>Lab</th>
+<th>省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Eqs. 3–4 / §III-D</td>
+<td>replay</td>
+<td>4品目・lead=2、価格・platformなし</td>
+</tr>
+<tr>
+<td>Eqs. 6–7</td>
+<td>normalize</td>
+<td>Chronos-2本体、arcsinh</td>
+</tr>
+<tr>
+<td>§IV-A / industrial_orderbook_38.csv</td>
+<td>author-orderbook.csv / rank-scatter.svg</td>
+<td>実注文replayとCI推定</td>
+</tr>
+<tr>
+<td>Table V / §IV-D</td>
+<td>Evidence / 中心移動図</td>
+<td>学習・全38手法</td>
+</tr>
+<tr>
+<td>公式 MANIFEST.md</td>
+<td>本文のRUF境界</td>
+<td>RUF v2全実行は未実施</td>
+</tr>
+</tbody>
+</table>
+<p>公式コードの <code>src/scripts/10_experiments/run_raf_instancenorm.py</code> と <code>run_synthetic_instancenorm.py</code> が正規化追試の入口。<code>validate_38_complete.py</code> は38手法・欠落0・fallback0を確認する。公式README/Manifestを2026-09-22に取得した。</p>
+<p>公式公開先: <a href="https://github.com/sfcheng-research/icdm-2026-reproduction">https://github.com/sfcheng-research/icdm-2026-reproduction</a>。READMEを確認したが、全実験の再実行はしていない。</p>
+<p>公式CSV: <a href="https://raw.githubusercontent.com/sfcheng-research/icdm-2026-reproduction/main/results_release/industrial_orderbook/industrial_orderbook_38.csv">industrial_orderbook_38.csv</a>。取得日2026-09-22、SHA-256 <code>36cec2e7a4bdaa718ecbd05989ebbc661b1020d0044dfeb8ca4349a05f7b3ff9</code>。図はこのローカル固定コピーから生成する。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>誤差を減らした予測が、欠品を増やすのはなぜか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/accuracy-not-service-intermittent-demand/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

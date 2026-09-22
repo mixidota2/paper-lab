@@ -1,0 +1,173 @@
+id: varg-tmall-value-generative-retrieval
+arxiv_id: '2609.14493'
+title: 'VARG: Value-Aware and Ranking-Aligned Generative Retrieval for Dynamic E-commerce
+  Search'
+authors:
+- Xiaopeng Chu
+- Jianbo Zhu
+- Mingmin Jin
+- Jing Wang
+- Xing Fang
+- Wenyi Zhang
+year: 2026
+topics:
+- recommender-systems
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2609.14493
+  pdf: https://arxiv.org/pdf/2609.14493v1
+  official_code: null
+  arxiv: https://arxiv.org/abs/2609.14493
+verdict: Must Read
+status: published
+question: 前段の選別を飛ばすなら、生成器は何を引き受けるべきか
+summary: Tmall Appの生成チャネルは予約枠でpre-rankを迂回し、既存final rankerへ渡す。14日・検索traffic 20%のA/BでGMV
+  +1.45%。初期の衝突ゼロと日次の住所固定は別の約束。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- generative-rec-vs-retrieval
+source_review:
+  checked: '2026-09-22'
+  version: v1
+  pdf_sha256: 8ee5b5702c4432420fe3a62e890071de38add3d8dd19a359c3af609b9e4faddb
+  url: https://arxiv.org/pdf/2609.14493v1
+  scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。
+core_idea:
+  author_claim: 意味prefixに検索関連性を学ばせ、3番目のtokenへ平滑化した価値順を埋める。SFTとPrefix-GRPOで、最終rankerへ直接渡せる候補を学習する。
+  research_bot_interpretation: '[LIGE-GR](lige-gr-meta-listwise.html)は既存候補内の列、[Sona](sona-yandex-music.html)は推薦cascadeの置換、[OGR](ogr-once-generated-ranked.html)は生成列と順位の統合を目指す。VARGは検索の既存final
+    rankerを残し、その手前の予約枠を担う。評価すべき移行単位はこの枠である。'
+sections:
+  overview: 価値の高い商品を生成しても、検索意図から外れれば最終rankerの限られた枠を浪費する。VARGは意味・価値・既存順位モデルとの整合を候補生成へ移す。Taobao
+    & Tmall Groupの研究だが、今回のオンライン評価面はTmall App検索である。14日・20%という条件のもと、GMV +1.45%、IPV/user
+    +0.22%、PCTR +0.31%を著者が報告した。
+  problem: 通常の検索経路は複数retrieval→merge→pre-rank→final rank。VARGの生成SIDは商品へ戻し、予約quotaでpre-rankを通さず合流する。final
+    rankerそのものを削除した実験ではない。クラスタ単位の曖昧なIDでは低価値商品も枠を使い、毎日IDを価値順に振り直すと昨日学習した住所が別の商品を指す。選別と住所の安定性を同時に扱う必要がある。
+  why_it_might_work: '解釈: 3番目のtokenの局所順序が価値の事前情報になるため、意味的に近い商品から選ぶ最後の判断を補助できる。EB平滑化は少数clickでCVRが極端になる問題を抑える。rankerの正の優位分だけを報酬に加えると、観測行動がない候補にも学習信号が届く。ただし既存rankerの偏りを引き継ぎ、共有slotの増加は候補展開数を増やす。新商品の意味や価値が急変すれば、住所固定との緊張が残る。'
+  evidence: '一次資料の著者報告。
+
+
+    [PDF §4、Tables 1–7](https://arxiv.org/pdf/2609.14493v1) の著者報告。カタログ51.43M商品、SFTはItem2SID
+    51.43M、Query2SID 48.00M、個人化105.69M例。SFT 128 GPU、RL 64 GPUであり、Labの小実験とは規模が違う。
+
+
+    | 比較 | 数値 | 読み方 |
+
+    | --- | --- | --- |
+
+    | 初期collision item率 | RQ-VAE-3 91.25% / VARG-ID 0% | 非singleton SIDを持つ商品の割合 |
+
+    | 3番目を全面並べ替え | complete-SID HR@100 −14.45 pp | 学習済み住所を壊す監査、オンライン損失ではない |
+
+    | Prefix-GRPO vs SFT | GMV Recall@1 30.88→36.35% | +5.47 pp。オンラインGMVとは別 |
+
+    | 同比較のQ2I-GMV Recall@1 | 36.12→38.60% | +2.48 pp。重みがquery–itemの14日GMV |
+
+    | オンライン14日 / 20% | GMV +1.45%、IPV/user +0.22%、PCTR +0.31% | production control比の相対差
+    |
+
+
+    UCTRとUCTCVRは各+0.13%、Exp. PV/userは−0.09%。Table 7のGood rateはVARGの小quotaで76.77/76.58%、従来最大quotaで76.71/76.81%。第2回は従来を少し下回るので「常に上回る」とは読まない。quotaの絶対数やA/Bの信頼区間は表にない。
+
+
+    Table 5でQ2I-GMV Recall@1は行動報酬だけで+2.19 pp。ranker・関連性追加が+0.21 pp、prefix重みがさらに+0.08
+    ppである。Prefix-GRPO全体の改善をprefix重み単独の効果にしない。探索的な軽量decoderの11.1倍QPSは主A/Bに使われておらず、HRも低下する。'
+  executable_understanding: '`uv run papers/varg-tmall-value-generative-retrieval/run.py`。同じ人工prefix内で、新商品DをA/B間へ挿入する。全面並べ替えと既存住所固定を比べ、衝突率と旧住所保持率を別々に測る。報酬の非法・空slot・購入・関連性の分岐、端点のLO分布も計算する。'
+  results: 4商品の例で全面並べ替えは旧住所保持率1/3、固定更新は1。固定更新の衝突item率は1/2になる。これはBとDが住所を共有する設計の代償。初期の衝突率は0。非法出力に購入情報を与えても報酬−2、空slotなら−1となり、他の信号を加算しない。
+  what_we_verified: Mechanism PARTIAL。Eq. 6の範囲切り詰め、既存住所の不変性、item単位の衝突率、報酬gate、LO端点の正規化を人工fixtureで確認した。これらの局所不変条件はCONFIRMED。
+  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。RQ-VAE・Q2I表現、Qwen2.5の学習、GRPOの収束、51.43M商品でのslot負荷、GMV・HRの再現はしていない。日次更新後も全IDがcollision-freeという主張は原論文にもない。
+  implementation: '`assign()`がEq. 6、`eb()`が平滑化、`ordinal()`がEq. 11の局所分布、`reward()`がEqs.
+    12–15のgateを抜き出す。prefixは1つに固定し、実商品属性・query encoder・最終rankerを省略。第三tokenの番号は同prefix内の順序を表す。'
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: logic
+  id: quota
+  title: 最終順位の責任は既存rankerに残る
+  after: problem
+  locator: Fig. 1 / §3.5
+  rationale: 最終順位の責任は既存rankerに残る
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2609.14493v1
+  rows:
+  - label: 通常経路
+    nodes:
+    - title: 複数retrieval
+      text: Text / Dense / I2I
+    - title: pre-rank
+      text: 候補を絞る
+    - title: final ranker
+      text: 両経路をmerge・deduplicate
+  - label: VARG
+    nodes:
+    - title: Qwen 0.5B
+      text: user + query + history
+    - title: Trie → 商品
+      text: 意味2 token + 価値1 token
+    - title: 予約quota
+      text: pre-rankを迂回してfinal rankerへ
+- kind: equations
+  id: value-math
+  title: 住所の順位と学習の重みを分けて読む
+  after: method
+  locator: Eqs. 2–6, 11, 17
+  rationale: 住所の順位と学習の重みを分けて読む
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2609.14493v1
+  steps:
+  - name: Q2Iの双方向整合
+    formula: LID = Lrec + Lcom + λQI · [CE(S,I)+CE(Sᵀ,I)]/2
+    explanation: Sは正規化query/item embeddingの類似度÷温度。量子化前の検索関連性を学ぶ。
+  - name: EB-CVR（記号を簡略化）
+    formula: p̃ᵢ = (vᵢ + αID p₀) / (cᵢ + αID)
+    explanation: vᵢ=bᵢ+ηₐaᵢ、cᵢはclick数、p₀=Σv/Σc。bは購入、aはcart数。
+  - name: 既存prefixの新商品
+    formula: rₜ(i) = min(ρₜ(i), Cₜ₋₁(c) − 1)
+    explanation: 旧商品は住所を保持。新prefixだけK₃−1を上限にする。
+  - name: 局所順序教師
+    formula: q(r|r*) ∝ exp(−|r−r*|/τ) · 1[|r−r*|≤R]
+    explanation: 合法な近傍で正規化。exact lossを残す。
+  - name: 合法枝の重み
+    formula: φ(n;N) = d + (1−d) log(n)/log(N)
+    explanation: N=1ならd。枝の多い位置のpolicy lossを強める。
+- kind: matrix
+  id: daily-address
+  title: 衝突ゼロと住所固定は同じ保証ではない
+  after: method
+  locator: §3.2 / Table 1
+  rationale: 衝突ゼロと住所固定は同じ保証ではない
+  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  source: https://arxiv.org/pdf/2609.14493v1
+  columns:
+  - A
+  - B
+  - C
+  - D
+  - 代償
+  rows:
+  - label: 初日
+    cells:
+    - '0'
+    - '1'
+    - '2'
+    - なし
+    - 一意
+  - label: 全並べ替え
+    cells:
+    - '0'
+    - '2'
+    - '3'
+    - '1'
+    - 旧B/Cの住所が変わる
+  - label: 固定更新
+    cells:
+    - '0'
+    - '1'
+    - '2'
+    - '1'
+    - B/Dが共有
+results: results.json
+submitted: '2026-09-13'
