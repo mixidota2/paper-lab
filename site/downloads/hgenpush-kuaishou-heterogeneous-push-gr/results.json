@@ -1,0 +1,36 @@
+{
+  "note": "人工typed indexと線形head。HR、QPS、DAUを測らない。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "paths": {
+    "video": [
+      "v1"
+    ],
+    "author": [
+      "v1",
+      "v2"
+    ],
+    "merged": [
+      "v1",
+      "v2"
+    ]
+  },
+  "ranked": [
+    "v2",
+    "v1"
+  ],
+  "conditional": {
+    "prefix_a": [
+      0.7109495026250039,
+      0.28905049737499605
+    ],
+    "prefix_b": [
+      0.2497398944048824,
+      0.7502601055951177
+    ]
+  }
+}

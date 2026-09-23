@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="t0-alphaの同一checkpointでcovariateを入切すると、fev-benchの既知未来30課題でskill 36.7→43.0、+6.3ポイント。19課題は改善し11課題は悪化。販促・欠品条件でTSFMとGBDTを比較した結論ではない。">
+  <title>同じ予測モデルに、未来の予定を渡す価値はあるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-21</span></div>
+    <h1>同じ予測モデルに、未来の予定を渡す価値はあるか</h1>
+    <p class="lede">t0-alphaの同一checkpointでcovariateを入切すると、fev-benchの既知未来30課題でskill 36.7→43.0、+6.3ポイント。19課題は改善し11課題は悪化。販促・欠品条件でTSFMとGBDTを比較した結論ではない。</p>
+    <details class="bibliography"><summary>原論文：t0: A Time-Series Foundation Model for Forecasting with Context</summary><p>Lucas Meyer, Claudio Sole, Huikan Xiang, Nicolas Li, Lucas Franceschino, Arnau Quera-Bofarull, Maarten P. Scholl, Joachim Fainberg, Geoffrey Négiar</p><p>2609.24559 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.24559">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.24559v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-23 · 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-cutoff">cutoffの先に渡してよい情報を区別する</a><a href="#figure-quantile-math">covariateの有無だけを変えて同じcheckpointを読む</a><a href="#figure-covariate-ablation">同一checkpointでも全課題は改善しない</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>主な読みどころはモデル間の順位より、同一checkpointに情報を追加する比較である。+6.3はskillのpercentage pointで、MAEが6.3%改善したという意味ではない。モデルの深掘りは主にt0-alphaで、t0-betaの256Mや21分位点へ混ぜない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>単変量モデルは販促日や休業日を知らない。情報を渡せるモデルでも、無関係な変数を無視できなければ逆効果になる。また「既知未来」として評価時に渡した情報が、発注時点でも本当に分かっていたかを確認する必要がある。将来の実天気や実売上を予定として渡せば漏洩になる。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-cutoff" aria-labelledby="title-cutoff">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-cutoff">cutoffの先に渡してよい情報を区別する</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="cutoffの先に渡してよい情報を区別するの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">過去1:T</th><th scope="col">未来T+1:T+H</th></tr></thead><tbody><tr><th scope="row">target y</th><td class="">観測履歴</td><td class="">予測する。正解を入力しない</td></tr><tr><th scope="row">過去covariate x</th><td class="">観測履歴</td><td class="">実測未来は渡さない</td></tr><tr><th scope="row">既知未来covariate z</th><td class="">観測・予定</td><td class="">発行時点で既知の予定</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>販促計画や営業日は既知未来の例。将来の実売上は含まない。 <a href="https://arxiv.org/pdf/2609.24559v1">出典：Eq. 1 / §2 / Fig. 3 ↗</a></figcaption>
+</figure>      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>時間軸と変数軸のattentionを交互に使い、target履歴・過去covariate・既知未来covariateから分位点を予測する。102Mのt0-alphaと256Mのt0-betaを公開し、事前学習にcovariateとtargetの依存を持つ人工系列を混ぜる。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><a href="apollopfn.html">ApolloPFN</a>と同じく外生変数を扱えるTSFMの証拠が増えた。ただし<a href="accuracy-not-service-intermittent-demand.html">Accuracy Is Not Service</a>が問う在庫・注文充足への変換は残る。Chronos-2は変数軸attentionやcovariate ablationの近い比較対象。小売の販促有無、欠品による売上打切り、GBDTと同じ情報集合での比較を揃えて初めて導入判断へ進める。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>alphaの24層は「時間2、変数1」を繰り返す</h3>
+<p>patchは32時点。t0-alphaはhidden 512、8 head、時間attention 16層と変数attention 8層を持ち、RMSNorm・SwiGLU・QK normを使う。target yと過去変数xの時間方向はcausal、既知未来zは1:T+Hを双方向に読む。変数方向ではy/xがzを読める一方、zはy/xを読まない。逆参照を許すと、zの時間attentionを経由して未来targetが過去へ戻る。</p>
+<h3>正規化にもcutoffを守らせる</h3>
+<p>y/xは時点ごとのcausal mean/stdで標準化してarcsinhを取る。未来targetの教師はcutoff T時点の統計で固定する。zだけは既知なので全1:T+Hから統計を取れる。欠測はmaskし、統計とlossから外す。static covariateやtext metadataを直接読む機能は本報告の対象外。</p>
+<p>alphaのnative分位点は0.1/0.25/0.5/0.75/0.9。最小分位点を直接予測し、残りはsoftplusで正の差分を足す。weighted pinball lossの重みは0.175/0.2/0.25/0.2/0.175。betaは21分位点、0.01–0.99であり仕様が違う。</p>
+<h3>情報の価値とforecastの価値を分ける</h3>
+<p>同じcheckpointの入切比較はcovariate経路の寄与を捉えるが、その予定が正確か、欠品した売上が需要を表すかは別の問題。さらに出力は各時点のmarginal quantileで、時間・商品間のjoint distributionは持たない。補充費用を計算するには追加の意思決定検証が要る。</p>
+<p>本文のalpha通常推論はnative範囲外のquantileを端点に留め、IQF tail外挿を別途評価する。確認時の公式READMEは外挿対応を説明しているので、論文v1と現行APIを同一仕様と決めつけない。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-quantile-math" aria-labelledby="title-quantile-math">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-quantile-math">covariateの有無だけを変えて同じcheckpointを読む</h3>
+  <ol class="equation-steps"><li><strong>条件付き予測</strong><div class="math-expression" tabindex="0" role="math" aria-label="ŷq = fθ(y₁:T, x₁:T, z₁:T+H)">ŷq = fθ(y₁:T, x₁:T, z₁:T+H)</div><p>θを固定してx/zを落とした対照と比べる。</p></li><li><strong>causalな入力と固定教師</strong><div class="math-expression" tabindex="0" role="math" aria-label="ỹt = asinh((yt−μt)/σt), ỹT+h = asinh((yT+h−μT)/σT)">ỹt = asinh((yt−μt)/σt), ỹT+h = asinh((yT+h−μT)/σT)</div><p>future targetの値で正規化統計を更新しない。</p></li><li><strong>順序を保つ分位点</strong><div class="math-expression" tabindex="0" role="math" aria-label="q̂k+1 = q̂k + softplus(rk+1)">q̂k+1 = q̂k + softplus(rk+1)</div><p>正の差分を足す。calibrationまで保証する式ではない。</p></li><li><strong>skill</strong><div class="math-expression" tabindex="0" role="math" aria-label="Skill = 100 × [1 − exp(mean(log(clip(Lmodel/Lseasonal-naive,0.01,100))))]">Skill = 100 × [1 − exp(mean(log(clip(Lmodel/Lseasonal-naive,0.01,100))))]</div><p>Lはtaskのscaled quantile loss。seasonal naive比をtask間で幾何平均する。</p></li></ol>
+  <figcaption>一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。 <a href="https://arxiv.org/pdf/2609.24559v1">出典：Eqs. 1–3 / §5.1.2 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>covariateがtargetを動かす人工系列を事前学習へ加え、変数間attentionでその関係を読めるようにする。未来の予定を読む経路には価値があるが、ノイズを無視できる保証はない。11/30課題の悪化やM5の小さい差は、covariate対応という機能名だけでは選定できないことを示す。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p><a href="https://arxiv.org/pdf/2609.24559v1">一次資料PDF §5.1.2 / Tables 4–5 / §6</a> の著者報告。</p>
+<table>
+<thead>
+<tr>
+<th>t0-alpha・同一checkpoint</th>
+<th>covariateなし→あり</th>
+<th>95% bootstrap CI / task</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>既知未来30課題</td>
+<td>skill 36.7→43.0、+6.3 pp</td>
+<td>[+2.2,+10.9]、19/30改善</td>
+</tr>
+<tr>
+<td>過去のみ12課題</td>
+<td>32.9→35.6、+2.7 pp</td>
+<td>[+1.0,+4.2]、9/12改善</td>
+</tr>
+<tr>
+<td>covariateなし58課題</td>
+<td>同一pass</td>
+<td>著者が完全一致を確認</td>
+</tr>
+</tbody>
+</table>
+<p>skillは各taskのscaled quantile lossをseasonal naiveで割り、[0.01,100]へclipした比の幾何平均を1から引いて百分率にしたもの。CIはtask単位のbootstrapであり、全店舗の将来liftの区間ではない。</p>
+<p>German day-ahead価格ではquantile loss −51%、Rossmannの日次売上では販促・祝日・営業日の追加で−43%。一方、M5では価格・calendar等8変数を入れても週/月粒度で差は±2%未満。小売に無関係というわけではないが、欠品を制御したTSFM対GBDTのbakeoffではない。</p>
+<p>t0-alphaの事前学習に重なる8課題はbenchmark規則に従いChronos-Bolt値で置換し、全100課題skillは生予測42.9に対し報告42.2。t0-betaはbenchmark datasetを除いた事前学習を申告し全100課題で46.7。alpha→beta差はパラメータ数だけのcontrolled scaling実験ではない。</p>
+<figure class="teaching" data-b21><h3>checkpointを固定し、入力情報だけを変える</h3><label>covariate <select><option value="0">なし</option><option value="1">あり</option></select></label><script type="application/json" data-frames>["<div class=\"b21-serving\"><section><h4>既知未来30課題</h4><p>skill <strong>36.7</strong></p><p>同じt0-alphaからcovariateを落とす。</p></section><section><h4>過去のみ12課題</h4><p>skill <strong>32.9</strong></p><p>履歴targetだけで予測。</p></section></div>", "<div class=\"b21-serving\"><section><h4>既知未来30課題</h4><p>skill <strong>43.0</strong></p><p>予定を入力。19課題改善・11課題悪化。</p></section><section><h4>過去のみ12課題</h4><p>skill <strong>35.6</strong></p><p>9課題改善。</p></section></div>"]</script><div data-output><div class="b21-serving"><section><h4>既知未来30課題</h4><p>skill <strong>36.7</strong></p><p>同じt0-alphaからcovariateを落とす。</p></section><section><h4>過去のみ12課題</h4><p>skill <strong>32.9</strong></p><p>履歴targetだけで予測。</p></section></div></div><figcaption><a href="https://arxiv.org/pdf/2609.24559v1">Table 5</a>の著者値。Labの予測値ではない。差の算術はresults.jsonへ保存。</figcaption></figure></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-covariate-ablation" aria-labelledby="title-covariate-ablation">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-covariate-ablation">同一checkpointでも全課題は改善しない</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="同一checkpointでも全課題は改善しないの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">なし</th><th scope="col">あり</th><th scope="col">差 / 改善task</th></tr></thead><tbody><tr><th scope="row">既知未来30課題</th><td class="">36.7</td><td class="">43.0</td><td class="">+6.3 pp / 19 of 30</td></tr><tr><th scope="row">過去のみ12課題</th><td class="">32.9</td><td class="">35.6</td><td class="">+2.7 pp / 9 of 12</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>t0-alphaのskill。CIは本文の表に併記。個別task値を推測して散布図を作らない。 <a href="https://arxiv.org/pdf/2609.24559v1">出典：Table 5 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/t0-tsfm-forecasting-with-context/run.py</code>。公式モデルは実行せず、二つの局所監査を行う。第一に論文の丸め済みskillからpoint差と暗黙のloss比を計算する。第二に情報の依存graphを伝播し、既知未来zがtargetを逆参照すると、後のtargetが過去へ漏れる経路が生じることを確認する。加えてsoftplus累積で分位点の単調性を確かめる。</p></div><div class="downloads"><a href="../downloads/t0-tsfm-forecasting-with-context/run.py" download>実行コード</a><a href="../downloads/t0-tsfm-forecasting-with-context/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/t0-tsfm-forecasting-with-context">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>t0の重みは未実行。Table 5の丸め値の算術と、人工の依存graph・分位点構成のみ。</em></p>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;t0の重みは未実行。Table 5の丸め値の算術と、人工の依存graph・分位点構成のみ。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;author_value_audit&quot;: {
+    &quot;known_future&quot;: {
+      &quot;without&quot;: 36.7,
+      &quot;with_covariates&quot;: 43,
+      &quot;lift_pp&quot;: 6.3,
+      &quot;implied_geomean_loss_relative_change&quot;: -0.09952606635071082
+    },
+    &quot;past_only&quot;: {
+      &quot;without&quot;: 32.9,
+      &quot;with_covariates&quot;: 35.6,
+      &quot;lift_pp&quot;: 2.7,
+      &quot;implied_geomean_loss_relative_change&quot;: -0.040238450074515875
+    }
+  },
+  &quot;future_target_leak&quot;: {
+    &quot;symmetric&quot;: true,
+    &quot;asymmetric&quot;: false
+  },
+  &quot;quantile_toy&quot;: [
+    -1,
+    -0.8730719889570275,
+    -0.17992480839708225,
+    1.1333368791211407,
+    3.2602648901641134
+  ]
+}</code></pre></details><p>丸め済み値の差は6.3 pp / 2.7 pp。推定した幾何平均loss比の変化は各約−9.95% / −4.02%で、再集計したbenchmark結果ではない。人工の依存graphでは双方向variate参照で未来targetが過去へ到達し、z→targetの読取り方向を制限すると到達しない。ここで矢印は情報の流れで、attentionが読む向きとは逆になる。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。報告値の算術、roleごとの情報境界、softplus累積分位点の順序は小計算でCONFIRMED。公式commitのCausalScalerとvariate attention / maskを静的に読んだ。論文のrole別非対称制限は確認した呼出経路に見つからず、mappingへ差を記録した。重みを使った予測は未実行。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability NOT TESTED。t0-alpha/beta、Chronos-2、ApolloPFN、GBDTの同条件再評価はしていない。販促×欠品、潜在需要、在庫費用、lead-time需要のjoint distributionは未検証。marginal quantileを足して注文期間のquantileとはしない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>skill_audit()</code>は丸め値の監査、<code>propagate()</code>は時間・変数の読取り可能範囲をsetで表す教育用実装、<code>ordered_quantiles()</code>はsoftplusの累積。PyTorchやモデルdownloadを必要としない。公式モデルをrun.pyと誤認しないよう、結果JSONにも未実行を明記する。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文と最小実装の対応</h1>
+<p><a href="https://arxiv.org/pdf/2609.24559v1">一次PDF v1</a>。確認日：2026-09-23。保存済みPDFを再利用した。</p>
+<p>SHA-256: <code>e23720637cc9e2409620d5ecc7658fe57d0c897dd53814a75f933a7a6dff5757</code></p>
+<table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>Lab</th>
+<th>公式コード（固定commit）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§4.1 causal scaling / Eq. 2</td>
+<td>cutoff図。scalerは再実装しない</td>
+<td><code>t0/scaler.py</code>: <code>CausalScaler</code>, <code>_compute_causal_stats</code>, <code>_compute_global_stats</code></td>
+</tr>
+<tr>
+<td>Fig. 3 / asymmetric variate attention</td>
+<td><code>propagate()</code>で依存だけ計算</td>
+<td><code>t0/model/layers/group_attention.py</code>: <code>VariateSelfAttention</code>、<code>t0/mask.py</code></td>
+</tr>
+<tr>
+<td>§4.1 quantile decoder</td>
+<td><code>ordered_quantiles()</code></td>
+<td><code>t0/model/layers/head.py</code>（対応先、実行せず）</td>
+</tr>
+<tr>
+<td>Table 5</td>
+<td><code>skill_audit()</code>と入切表示</td>
+<td>論文の丸め済み集計値を監査</td>
+</tr>
+</tbody>
+</table>
+<p>公式repo確認commit：<code>a2eca8d80892485c44679c638bcd883ae974f751</code>（2026-09-23）。<a href="https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/scaler.py">固定版scaler</a>と<a href="https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/model/layers/group_attention.py">attention</a>を静的に確認。公開APIは <code>T0Forecaster.from_pretrained()</code> / <code>predict(..., future_covariates=...)</code>。重みをdownloadせず、予測品質を検証したとはしない。</p>
+<p>保存済みtxtはPDFの10ページ目で途切れていたため、同じ39ページPDFから全文を再抽出し、§5.1.2、Table 5、§6まで確認した。</p>
+<p>公式コード：<a href="https://github.com/theforecastingcompany/tfc-t0">著者が案内する公開先</a>。本Labは公式モデルを実行していない。</p>
+<h2>論文と確認したコードの差</h2>
+<p>固定commitの <code>MaskBuilder.build_group_mask()</code> はgroup ID一致とpaddingの条件を作り、<code>Transformer.forward()</code> はそれをそのままvariate attentionへ渡す。確認した経路では、論文§4.1の「既知未来zはtargetを逆参照しない」というrole別制限を見つけられなかった。時間方向のfuture双方向maskとcausal scalerは確認できる。これは静的な不一致の記録であり、学習済みcheckpointでの未来情報漏洩を実証したものではない。モデル版・学習時コード・入力構築を含む追加監査が必要。</p>
+<p><a href="https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/mask.py#L31">maskの固定版</a> / <a href="https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/model/layers/transformer.py#L169">呼出側</a>。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>同じ予測モデルに、未来の予定を渡す価値はあるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/t0-tsfm-forecasting-with-context/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

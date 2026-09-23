@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="KuaishouのHGenPushはvideo SIDとauthor中心のmixed SIDを生成し、pre-rankを迂回して既存rankerへ渡す。全構成のDAU +0.181%（p=0.04）、CTR +1.577%（p=0.11）。CTRの有意差は確認できない。">
+  <title>動画と作者の二つの経路を、同じpush候補へつなげられるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-07-03</span></div>
+    <h1>動画と作者の二つの経路を、同じpush候補へつなげられるか</h1>
+    <p class="lede">KuaishouのHGenPushはvideo SIDとauthor中心のmixed SIDを生成し、pre-rankを迂回して既存rankerへ渡す。全構成のDAU +0.181%（p=0.04）、CTR +1.577%（p=0.11）。CTRの有意差は確認できない。</p>
+    <details class="bibliography"><summary>原論文：HGenPush: A Heterogeneous Generative Recommendation Architecture for Industrial Push Notification Systems</summary><p>Xiao Liang, Jiali Feng, Xin Feng, Yiqing Wang, Baolin Ye, Siyao Feng, Zhihui Deng, Cunyi Zhang, Huajin Sun, Xuanping Li, Kaiqiao Zhan, Yanan Niu, Kun Gai</p><p>2607.03362 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2607.03362">原典を読む ↗</a><a href="https://arxiv.org/pdf/2607.03362v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-23 · 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-chained-tokens">固定anchorへ前SIDの意味を累積する</a><a href="#figure-heterogeneous-evidence">author追加後の点推定と有意性を分ける</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>作者branchの最終目的も、その作者の動画を推薦すること。作者IDだけを通知する仕組みではない。video側は3層SID、作者側は2層author SIDにvideoの第1層SIDを足したmixed SIDを生成する。両方の候補がrankerへ直接入るため、生成器が候補の品質をある程度引き受ける。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>同じジャンルでも、利用者は特定の作者にだけ継続的に反応することがある。内容類似度だけではこの差を捉えにくい。また、全SIDを独立に予測すると階層間の整合が崩れ、各tokenで重いdecoderを回すと配信費用が増える。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>feedの長短履歴とpushのclick/send履歴を共有decoderで読み、video branchとauthor branchへ分ける。Chained-MTPで前のSIDの意味を残して軽く生成し、UCPA/GSISPOでclick後の消費行動へ整合させる。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><a href="pushdualgen-kuaishou.html">PushDualGen</a>がSIDと通知文を結ぶのに対し、HGenPushはvideoとauthorという候補の粒度を結ぶ。<a href="varg-tmall-value-generative-retrieval.html">VARG</a>と同様にpre-rankを飛ばしてもrankerへの責任は残る。違いはauthorの信頼を行動から学び、そこからvideoへ戻す経路にある。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>作者の意味空間は行動から整える</h3>
+<p>入力はlong/short feed、push click、push sendとstatic feature。共有backboneはcausal self-attention、RMSNorm、SwiGLUを持つdecoder-only。videoとauthorの[cls]位置からinterestを取り出す。主設定は16層、hidden 512、codebook size 8,192。videoは3 code、authorは2 codeを使う。</p>
+<p>author特徴とuser interestをInfoNCEで整合させ、author側をRQ-Kmeansで離散化する。SimVQでcodebook collapseを抑える。mixed SIDは(author₁, author₂, video₁)で、作者とその作者のどの動画群を選ぶかを結び付ける。</p>
+<h3>Chained-MTPはSIDの依存を捨てない</h3>
+<p>各level kは同じuser anchorと、j&lt;kのtoken embeddingの和を入力にする。trainingでは教師tokenを使えるためFFNを並行計算できる。inferenceにはbeamとprefixへの依存が残る。「重い自己回帰decoderを繰り返さない」と「独立予測」は違う。</p>
+<h3>消費報酬をsequence単位で重み付けする</h3>
+<p>UCPAのrewardはvalid play / profile遷移 / comment滞在で+2、like / follow / share / commentで+1、short play −2、dislike −5、report −10を一致条件ごとに加算する。session内の動画を最大50件のgroupとして標準化する。GSISPOはsequenceの確率比の幾何平均をclipし、stop-gradientの重みとしてlog-probabilityへ掛ける。SFT lossも残すため追加KLを使わないと記述する。std=0のgroup処理など、実装に必要だが本文だけでは確定できない点は補って断定しない。</p>
+<p><figure class="teaching"><h3>二つのSID経路が、同じrankerへ入る</h3><div class="b21-serving"><section><h4>Video branch</h4><p>multimodal video → 3-level SID</p><p><strong>[video₁, video₂, video₃]</strong></p><p>video候補へ展開</p></section><section><h4>Author branch</h4><p>行動整合 → 2-level author SID</p><p><strong>[author₁, author₂, video₁]</strong></p><p>作者とvideo群で候補を限定</p></section></div><p>両branch → pre-rankを迂回 → <strong>既存ranking model</strong> → push候補</p><figcaption><a href="https://arxiv.org/pdf/2607.03362v1">§3.2–3.4 / Fig. 1</a>を再構成。候補生成の出力型と下流の責任を示す。</figcaption></figure></p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-chained-tokens" aria-labelledby="title-chained-tokens">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-chained-tokens">固定anchorへ前SIDの意味を累積する</h3>
+  <ol class="equation-steps"><li><strong>token k</strong><div class="math-expression" tabindex="0" role="math" aria-label="p(sₖ | h,s&lt;ₖ) = softmax(FFNₖ(h + Σⱼ&lt;ₖ Embⱼ(sⱼ)))">p(sₖ | h,s&lt;ₖ) = softmax(FFNₖ(h + Σⱼ&lt;ₖ Embⱼ(sⱼ)))</div><p>hは共有decoderが作った固定interest。prefixが変われば後tokenも変わる。</p></li><li><strong>sequence比</strong><div class="math-expression" tabindex="0" role="math" aria-label="w = exp[(1/L) Σₖ log(pθ(sₖ|h,s&lt;ₖ)/pold(sₖ|h,s&lt;ₖ))]">w = exp[(1/L) Σₖ log(pθ(sₖ|h,s&lt;ₖ)/pold(sₖ|h,s&lt;ₖ))]</div><p>tokenの確率比を算術平均しない。</p></li><li><strong>GSISPO</strong><div class="math-expression" tabindex="0" role="math" aria-label="L = −(1/G) Σg sg(clip(wg,1−ε,1+ε)) Âg log πθ(sg|h)">L = −(1/G) Σg sg(clip(wg,1−ε,1+ε)) Âg log πθ(sg|h)</div><p>clipはimportance weightに置く。通常のPPO clipと同じ操作ではない。</p></li></ol>
+  <figcaption>一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。 <a href="https://arxiv.org/pdf/2607.03362v1">出典：Eqs. 14, 21–24 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>author表現をclick行動でuser表現へ合わせれば、内容だけでは見えない支持関係を取り込める。Chained-MTPは固定のinterest anchorへ前tokenのembeddingを足すため、token間の依存を残しつつTransformerの反復を減らす。ただし生成時のtoken依存そのものは残る。論文の「非自己回帰」を「全tokenが条件なしで独立に生成される」と読まない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p><a href="https://arxiv.org/pdf/2607.03362v1">一次資料PDF §4 / Tables 1, 3–6</a> の著者報告。</p>
+<table>
+<thead>
+<tr>
+<th>比較</th>
+<th>数値</th>
+<th>条件・注意</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>全HGenPush / production</td>
+<td>DAU +0.181%（p=0.04）</td>
+<td>pushシステム、Table 6</td>
+</tr>
+<tr>
+<td>同上CTR</td>
+<td>+1.577%（p=0.11）</td>
+<td>通知のdaily CTR。有意水準5%を満たさない</td>
+</tr>
+<tr>
+<td>同上App Usage Duration</td>
+<td>+0.148%（p=0.75）</td>
+<td>点推定の改善にとどまる</td>
+</tr>
+<tr>
+<td>Parallel-MTP</td>
+<td>HR@100 0.1150 / 2.40k QPS</td>
+<td>SID独立予測</td>
+</tr>
+<tr>
+<td>DeepSeek-MTP</td>
+<td>0.3954 / 1.27k QPS</td>
+<td>Transformer型依存</td>
+</tr>
+<tr>
+<td>Chained-MTP</td>
+<td>0.3915 / 1.70k QPS</td>
+<td>精度は僅かに下、QPSは約33.86%上</td>
+</tr>
+</tbody>
+</table>
+<p>HR@100は真のsemantic IDが生成top 100に入る割合。最終video表示のitem-level recallと同一ではない。Table 4ではclick-only HR 0.3964に対しUCPA 0.3915なので、消費指標との交換がある。</p>
+<p>v1 videoのみ→v2 UCPA追加→v3 author追加というonline構成で、DAU点推定は0.126→0.153→0.181%。これらは各々production比であり、差の0.028 ppを独立に検定したauthorの効果とは扱わない。期間・traffic比・CIが不足するため、再現性の評価には追加情報が必要。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-heterogeneous-evidence" aria-labelledby="title-heterogeneous-evidence">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-heterogeneous-evidence">author追加後の点推定と有意性を分ける</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="author追加後の点推定と有意性を分けるの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">DAU</th><th scope="col">CTR</th><th scope="col">App duration</th></tr></thead><tbody><tr><th scope="row">v1 video</th><td class="">+0.126% / p=0.00</td><td class="">+0.998% / p=0.00</td><td class="">+0.095% / p=0.01</td></tr><tr><th scope="row">v2 + UCPA</th><td class="">+0.153% / p=0.00</td><td class="">+1.075% / p=0.02</td><td class="">+0.145% / p=0.05</td></tr><tr><th scope="row">v3 + author</th><td class="">+0.181% / p=0.04</td><td class="">+1.577% / p=0.11</td><td class="">+0.148% / p=0.75</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>すべてproduction比。p=0.00は原表の丸め表示で、厳密なゼロを意味しない。 <a href="https://arxiv.org/pdf/2607.03362v1">出典：Table 6 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/hgenpush-kuaishou-heterogeneous-push-gr/run.py</code>。小さいtyped indexでvideo SIDとmixed author SIDの候補を展開し、合流・重複除去・既存ranker順への接続を動かす。さらに前SIDのembeddingを変え、Chained-MTPの後token分布が変わることを確認する。推薦効果や生成品質は測定しない。</p></div><div class="downloads"><a href="../downloads/hgenpush-kuaishou-heterogeneous-push-gr/run.py" download>実行コード</a><a href="../downloads/hgenpush-kuaishou-heterogeneous-push-gr/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/hgenpush-kuaishou-heterogeneous-push-gr">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>人工typed indexと線形head。HR、QPS、DAUを測らない。</em></p>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;人工typed indexと線形head。HR、QPS、DAUを測らない。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;paths&quot;: {
+    &quot;video&quot;: [
+      &quot;v1&quot;
+    ],
+    &quot;author&quot;: [
+      &quot;v1&quot;,
+      &quot;v2&quot;
+    ],
+    &quot;merged&quot;: [
+      &quot;v1&quot;,
+      &quot;v2&quot;
+    ]
+  },
+  &quot;ranked&quot;: [
+    &quot;v2&quot;,
+    &quot;v1&quot;
+  ],
+  &quot;conditional&quot;: {
+    &quot;prefix_a&quot;: [
+      0.7109495026250039,
+      0.28905049737499605
+    ],
+    &quot;prefix_b&quot;: [
+      0.2497398944048824,
+      0.7502601055951177
+    ]
+  }
+}</code></pre></details><p>人工indexではvideo branchがv1、author+video-prefix branchがv1/v2を返し、重複除去後の候補は2件。authorの全動画を無条件で返す経路とは違う。前tokenのembeddingを変えると後tokenの確率が変化する。全候補を通して既存rankerが順位を決める境界も確認する。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。mixed SIDで候補集合が限定されること、候補合流時の重複除去、累積embeddingによる条件依存を人工fixtureでCONFIRMED。重複除去はLabで明示した一般的な実装選択で、論文の固有規則の再現ではない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability NOT TESTED。16層decoder、RQ-Kmeans/SimVQ、InfoNCE学習、GSISPOの更新、L20上のQPS、本番DAUを再現していない。CTR改善の統計的有意性は著者表でもNOT OBSERVED（5%基準）と読む。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>retrieve()</code>はSIDの型ごとにindexを分ける。<code>token_probs()</code>はEq. 14のFFNを人工の線形headで代理し、重いbackboneを固定anchorへ置き換える。全候補へ同じ人工rankerを適用する。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文と最小実装の対応</h1>
+<p><a href="https://arxiv.org/pdf/2607.03362v1">一次PDF v1</a>。確認日：2026-09-23。保存済みPDFを再利用した。</p>
+<p>SHA-256: <code>36e81449d940ab105c75bdc7e3806eccdd128bf50de1bfe0b4086890edcc2acb</code></p>
+<table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>最小コード / 図</th>
+<th>省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Eq. 14 Chained-MTP</td>
+<td><code>token_probs()</code></td>
+<td>FFN学習、beam、8192語彙</td>
+</tr>
+<tr>
+<td>§3.2.2 mixed SID</td>
+<td><code>retrieve()</code>、二経路図</td>
+<td>author alignment、RQ-Kmeans/SimVQ</td>
+</tr>
+<tr>
+<td>Eqs. 20–24</td>
+<td>報酬とGSISPOの数式説明</td>
+<td>RL training、zero-std処理</td>
+</tr>
+<tr>
+<td>§3.4</td>
+<td>rankerへ接続</td>
+<td>本番quota、重複規則は非再現</td>
+</tr>
+<tr>
+<td>Table 6</td>
+<td>p値を含む表</td>
+<td>A/B再現、差分間の検定</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード：確認した一次PDF・arXiv書誌に、この方式の再現用リポジトリを特定できる案内はなかった。非公開であるとの断定はしない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>動画と作者の二つの経路を、同じpush候補へつなげられるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/hgenpush-kuaishou-heterogeneous-push-gr/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

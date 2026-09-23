@@ -1,0 +1,11 @@
+### 最初の訪問ではLLMを待たない
+
+eligibleな利用者がhomepageを開いた時だけ非同期生成をtriggerする。profileがなければ従来のheuristic discoveryを返し、生成後のsessionでcacheを使う。全利用者を事前に一括生成する設計ではない。refresh間隔を設定でき、TPUのoff-peakや低優先度computeへ処理を寄せる。
+
+### 候補を作るモデルと評価するモデルを分ける
+
+generatorはGeminiを使い、fine-tuningではなくpromptを改善する。generatorの具体的な版は断定しない。judgeは本文でGemini 3.1 Proと明記され、taste clusterの一貫性とcandidateの適合を1–5で評価する。低scoreからsemantic mismatch、架空entity、言語の混在を集計してpromptへ返す。judgeの評価改善をそのまま人間の評価改善とはしない。
+
+### online rankerは残る
+
+新artistに限定した既存retrievalから曲・videoを補充し、既存retrievalが偶然そのartistを返した場合にも保存済み理由を付ける。その後はCTR・conditional watch time・discovery rate等を予測するdeep rankerと、単一rewardへ集約する補助モデル、棚の多様性制約が働く。LLMが棚を最終順位まで生成する設計ではない。

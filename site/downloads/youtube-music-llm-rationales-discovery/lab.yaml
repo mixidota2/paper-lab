@@ -1,0 +1,137 @@
+id: youtube-music-llm-rationales-discovery
+arxiv_id: '2609.23877'
+title: 'Explainable Recommendations at Scale: LLM Rationales for YouTube Music Artist Discovery'
+authors:
+- Xiao Liu
+- Yanwei Song
+- Srivaths Ranganathan
+- Yuan Chen
+- Zheyun Feng
+- Parker Steenburgh
+- Jochen Klingenhoefer
+- Nathan Lasche
+- Gergo Varady
+- Tim Steele
+year: 2026
+submitted: '2026-09-20'
+topics:
+- recommender-systems
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2609.23877
+  arxiv: https://arxiv.org/abs/2609.23877
+  pdf: https://arxiv.org/pdf/2609.23877v1
+  official_code: null
+verdict: Radar
+status: published
+question: 未知のartistを増やす効果と、理由を添える効果を分けられるか
+summary: YouTube MusicのYDD棚で、LLMの候補推薦と理由文をoffline生成。2週間A/Bで棚engagement +22.43%［95% CI 16.93–27.93%］。理由文を外すholdbackが主因を示すが、発見には候補追加も寄与する。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- generative-rec-vs-retrieval
+source_review:
+  checked: '2026-09-23'
+  version: v1
+  pdf_sha256: 8bd6fc1384ffc394bbd28a9c2d25c8323b5332163d70c520a90c5c78fb5d34db
+  url: https://arxiv.org/pdf/2609.23877v1
+  scope: 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。
+core_idea:
+  author_claim: 非同期でDiscovery Profileを生成し、KG照合と既聴artistの除外後にcacheへ保存する。オンラインでは候補の追加と理由の付与を軽い取得処理として行い、未知artistを選ぶ心理的障壁を下げる。
+  research_bot_interpretation: 読むべき点はLLMを置いたこと以上に、候補追加と説明付与を分けたholdbackである。[Netflixの反実仮想観測](netflix-counterfactual-observability.html)とも、目立つ出力の採用数と全体の増分を区別する点でつながる。YDDは理由文を付けられる候補だけを並べる面なので、この設計を一般feedの説明効果へそのまま広げない。
+sections:
+  overview: 対象はYouTube Music homepageの発見用YDD棚。従来は「好きなartistのfan向け」などの定型理由を、co-watchやaudio embeddingの類似度閾値から付ける。LLMはtaste
+    groupに基づくartist候補と自然言語の理由をofflineで作り、候補追加と既存候補への理由付与の両方に使う。
+  problem: 未知のartistが候補にいても、利用者が選ぶ根拠を持たなければ聴かれない。一方、requestごとのLLM生成は費用とlatencyが重い。さらに架空artistや既聴artistが混じると、発見という目的を満たせない。候補の実在性と理由の妥当性は別々に確認する必要がある。
+  why_it_might_work: 利用者の好みとの接点を理由文で示せば、未知の曲を選ぶ負担が下がると考えられる。offline生成は履歴を長く読み、品質検査をrequest外へ移せる。ただし心理的信頼そのものを直接測定した実験ではない。KGに実在するartistでも、理由文の音楽的説明が正しいとは限らない。
+  evidence: '[一次資料PDF §3–4 / Table 1](https://arxiv.org/pdf/2609.23877v1) の著者報告。
+
+
+    | 測定 | 著者値 | 境界 |
+
+    | --- | --- | --- |
+
+    | YDD shelf engagement | +22.43%、95% CI [16.93,27.93]% | 2週間、棚に限定 |
+
+    | YDD discovery / retention metric | +8.07%、CI [0.90,15.24]% | サービス全体のretentionとは同一視しない |
+
+    | new nominator | views 4.1%、uniqueness 74.00% | Tableのviewsの分母は十分明確でない |
+
+    | mean online latency | +0.3% | 絶対msとp99は未提示 |
+
+    | judgeのpassing rate | 64.8→74.4% | prompt改善、本文のpass条件はscore >3 |
+
+
+    multi-arm holdbackで、候補poolとvisual interfaceを維持してLLM理由だけを外すと、full holdbackに近いengagement低下が起きた。新nominatorだけを外すとengagementはneutral。一方、discovery指標はどちらを外しても部分的に低下する。各holdbackの数値・CIは本文にないため、架空の棒の高さは付けない。judgeはscore
+    <3で修正を促し、score=3の扱いはpass率の記述から確定できない。'
+  executable_understanding: '`uv run papers/youtube-music-llm-rationales-discovery/run.py`。架空のartist辞書と既聴履歴で、未知文字列の除外、既聴artistの除外、cache未生成時のfallbackを実行する。holdbackは本文の定性的な実験設計を表で追う。架空clickを発生させて+22.43%を再現する実験は行わない。'
+  results: 人工の3候補から、KG相当の辞書に存在し、まだ聴いていない1候補だけが残る。初回はfallback、profile準備後は保存済み候補を返す。理由を隠しても候補IDの集合は変わらない。この機構上の分離と、実利用者が理由に反応するかは別の検証である。
+  what_we_verified: Mechanism PARTIAL。canonical IDの存在、novelty filter、理由holdback時の候補不変性、cold cacheのfallbackは人工fixtureでCONFIRMED。LLM生成の正しさは未検証。
+  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。Gemini、judge、人間の信頼、engagement、TPU費用、本番cacheは実行・測定していない。理由文の全誤りを防げるとの保証もしない。
+  implementation: '`canonicalize()`は小さい辞書で実在確認を代理し、`serve()`はprofile有無と理由表示を分ける。これらは論文の境界を説明する独自コードで、GoogleのKGやproduction実装ではない。'
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: timeline
+  id: offline-online
+  title: 生成を待つ時間を、最初の応答から外す
+  after: method
+  locator: Fig. 2 / §3.1–3.6
+  rationale: 生成を待つ時間を、最初の応答から外す
+  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  rows:
+  - label: 初回online
+    nodes:
+    - title: profileなし
+      text: 従来候補を返す
+    - title: 非同期trigger
+      text: active userだけ生成対象
+  - label: offline
+    nodes:
+    - title: Gemini
+      text: taste group・artist・理由
+    - title: 検査と保存
+      text: KG / 既聴除外 / safety → cache
+  - label: 次のonline
+    nodes:
+    - title: cache取得
+      text: nominationとannotation
+    - title: 既存ranker
+      text: reward・多様性で棚へ
+  source: https://arxiv.org/pdf/2609.23877v1
+- kind: matrix
+  id: holdback-evidence
+  title: 理由を外すと、候補を残してもengagementが落ちる
+  after: evidence
+  locator: §4.3 holdback
+  rationale: 理由を外すと、候補を残してもengagementが落ちる
+  caption: 定性的なholdback結果。未公開の効果量を数値や棒の長さへ変換しない。
+  columns:
+  - 新nominator
+  - LLM理由
+  - 本文が報告する傾向
+  rows:
+  - label: Full treatment
+    cells:
+    - 有効
+    - 有効
+    - +22.43%は主A/Bの棚engagement
+  - label: 理由だけholdback
+    cells:
+    - 維持
+    - 無効
+    - engagement低下はfull holdbackに近い
+  - label: nominatorだけholdback
+    cells:
+    - 無効
+    - 維持
+    - engagement neutral、discovery一部低下
+  - label: Full holdback
+    cells:
+    - 無効
+    - 無効
+    - discoveryが有意に低下
+  source: https://arxiv.org/pdf/2609.23877v1

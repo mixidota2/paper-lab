@@ -1,0 +1,140 @@
+id: muser-baidu-long-sequence-multi-interest
+arxiv_id: '2609.23677'
+title: 'MuSeR: Scalable Long-sequence Recommendation with Multi-interest Modeling'
+authors:
+- Yongkang Fu
+- Beining Bao
+- Yu Jiang
+- Xiangyu Zhao
+- Hongyang Wei
+- Guangxing Chen
+- Zuodong Yang
+- Shantao Li
+- Zonggang Wu
+- Yuqi Lu
+- Shouke Qin
+- Hanmeng Liu
+- Maolin Wang
+year: 2026
+submitted: '2026-09-20'
+topics:
+- recommender-systems
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2609.23677
+  arxiv: https://arxiv.org/abs/2609.23677
+  pdf: https://arxiv.org/pdf/2609.23677v1
+  official_code: null
+verdict: Radar
+status: published
+question: 昔の履歴を粗く残し、複数の関心を配信時間内に使えるか
+summary: MuSeRはBaiduのretrievalに、時間別の履歴圧縮・6つのinterest query・意味表現・非同期cacheを統合する。homepageの同一A/BでDAU +0.26%、session
+  duration +0.89%。圧縮は非圧縮のrecallを完全には保たない。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- user-history-context-design
+source_review:
+  checked: '2026-09-23'
+  version: v1
+  pdf_sha256: a7e0d31274719fc0da9c38d70d7529707930773b6ee304336b0aa2c72bc4c195
+  url: https://arxiv.org/pdf/2609.23677v1
+  scope: 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。
+core_idea:
+  author_claim: 新しいprimitiveの発明より、長期・複数interest・multimodalを同時に配信可能にする統合が貢献。古い行動を64件、中期を16件でpoolし、直近はそのまま残す。MGS/HNSW系retrievalと非同期更新を組み合わせる。
+  research_bot_interpretation: '[Sona](sona-yandex-music.html)は古い履歴と直近で計算の深さを変える。MuSeRはまず時間解像度を変え、複数のinterest
+    vectorを取り出してcacheする。両方とも履歴に均等な計算を割かないが、捨てる情報と更新の単位が違う。[UNIQUE](unique-baidu-unified-retrieval-ranking.html)のcode/ranking共有とも補完的な設計論で、同じA/Bの比較ではない。'
+sections:
+  overview: 10⁴–10⁵件の履歴をrequestのたびに全処理することを避ける。長期表現を非同期に計算し、onlineの短期表現と合わせる。単一user vectorへ平均化せず、複数queryで異なる関心を抽出する。ただし直交正則化が、それぞれのheadに人が解釈できる別の意味を保証するわけではない。
+  problem: 直近数百件で切ると、季節的・安定した関心を失う。全件attentionは重く、平均化だけでは異なる関心が打ち消し合う。さらにIDだけでは新しい記事やvideoの意味を学びにくい。履歴圧縮と意味表現、index探索の費用をまとめて考える必要がある。
+  why_it_might_work: 古い履歴を粗く残せば、完全な切捨てより長期の手掛かりを保持できる。複数queryは別の部分へ注意を向けられ、candidateに応じた混合で関心を使い分けられる。一方、pool内の順序や稀な行動が消え、cacheが古ければ直近の変化に遅れる。更新頻度を負荷で変えるとモデル入力の鮮度も変わるため、latencyだけでなく品質も監視したい。
+  evidence: '[一次資料PDF §III–IV / Figs. 4–5](https://arxiv.org/pdf/2609.23677v1) の著者報告。
+
+
+    | 比較 | 著者値 | 条件 |
+
+    | --- | --- | --- |
+
+    | homepage A/B | DAU +0.26%、total session duration +0.89% | user ID hash固定、複数週、各bucket数千万daily users、下流rank/mix同一、p<0.05
+    |
+
+    | 履歴処理 / Recall@500 | 非圧縮0.2351、短期切捨て0.1749、階層圧縮0.2232 | Fig. 4a。圧縮は非圧縮より0.0119低い |
+
+    | Home Feed | NANN 0.1982→MuSeR 0.2232 | private dataset、Recall@500 |
+
+    | retrieval latency | 27%低下 | 従来flat HNSWとの比較。絶対ms・分位の明示なし |
+
+    | 工学的配備費用 | 35%超削減 | §III-B、費用内訳は不足 |
+
+
+    公開Amazon 3 datasetは長さ50へ切るため、その結果だけでは10万履歴の有効性を検証できない。private dataは約100M users / 10M items、1か月の前29日で学習し最終日で評価する。全体のオンラインliftを圧縮単独の効果としない。'
+  executable_understanding: '`uv run papers/muser-baidu-long-sequence-multi-interest/run.py`。人工履歴10,000件をearly
+    8,000 / middle 1,200 / recent 800に分け、64/16/1件単位でsum poolingする。圧縮token数と、順序を入れ替えた履歴が同じpoolになる反例を計算する。学習やrecallを人工値で代用しない。'
+  results: 10,000 tokenが125+75+800=1,000 tokenになる。単純なdense attentionのpair数proxyは1/100。ただし実latencyが100倍速いという意味ではない。pool内で[1,0]と[0,1]を入れ替えてもsumが同じとなり、局所順序を失うことを実測する。
+  what_we_verified: Mechanism PARTIAL。Fig. 2の区間設定でEq. 6の1,000 token、sum保存、pool内の順序消失はCONFIRMED。複数headの直交penaltyも人工vectorで計算する。
+  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。6層Transformer、BGE/ERNIE、HNSW
+    beam search、非同期cache、DAU・latencyを再現していない。attention pair数は計算量proxyにすぎず、GPU速度や全体費用の測定ではない。
+  implementation: '`compress()`は古い順の配列で境界を明示し、余りのgroupも保持する。Eq. 6は割り切れる長さの式なので、最小実装の一般長ではceilingを使う。`orthogonal_penalty()`はEq.
+    12の二重和を計算する。'
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: equations
+  id: history-budget
+  title: 1万件を残しながら、入力を1,000 tokenへ縮める
+  after: method
+  locator: Eqs. 3–6 / Fig. 2
+  rationale: 1万件を残しながら、入力を1,000 tokenへ縮める
+  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  steps:
+  - name: early
+    formula: 8,000 ÷ 64 = 125 token
+    explanation: 古い履歴。pool内の順序は保持しない。
+  - name: middle
+    formula: 1,200 ÷ 16 = 75 token
+    explanation: 中期をほどほどの解像度へ。
+  - name: recent
+    formula: 800 ÷ 1 = 800 token
+    explanation: 直近を細かく保つ。
+  - name: 合計
+    formula: L꜀ = Nᵣ + (Nₘ−Nᵣ)/16 + (T−Nₘ)/64 = 1,000
+    explanation: T=10,000、Nᵣ=800、Nₘ=2,000。全10万件で常に1,000になる式ではない。
+  source: https://arxiv.org/pdf/2609.23677v1
+- kind: chart
+  id: compression-cost
+  title: 圧縮で取り戻すrecallと、失うrecall
+  after: evidence
+  locator: Fig. 4a / §IV-D
+  rationale: 圧縮で取り戻すrecallと、失うrecall
+  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  unit: Recall@500
+  maximum: 0.25
+  bars:
+  - label: 短期切捨て
+    value: 0.1749
+  - label: 階層圧縮
+    value: 0.2232
+  - label: 長期・非圧縮
+    value: 0.2351
+  source: https://arxiv.org/pdf/2609.23677v1
+- kind: equations
+  id: interest-queries
+  title: 複数interestをcandidateに合わせて混ぜる
+  after: method
+  locator: Eqs. 9–14
+  rationale: 複数interestをcandidateに合わせて混ぜる
+  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  steps:
+  - name: 抽出
+    formula: uₘ = softmax(qₘ Hᵀ/√d) H
+    explanation: M個のqueryが圧縮履歴を読む。
+  - name: 候補に応じた混合
+    formula: αₘ = softmaxₘ(cos(uₘ,eᵢ)/τ), u = Σₘ αₘuₘ
+    explanation: 単一の平均を全候補へ共用しない。
+  - name: head重複へのpenalty
+    formula: Lorth = (1/M²) Σₘ≠ₙ (uₘᵀuₙ)²
+    explanation: 数学的な非相関を促す。意味の解釈可能性を保証しない。
+  source: https://arxiv.org/pdf/2609.23677v1

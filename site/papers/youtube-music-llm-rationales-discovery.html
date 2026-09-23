@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="YouTube MusicのYDD棚で、LLMの候補推薦と理由文をoffline生成。2週間A/Bで棚engagement +22.43%［95% CI 16.93–27.93%］。理由文を外すholdbackが主因を示すが、発見には候補追加も寄与する。">
+  <title>未知のartistを増やす効果と、理由を添える効果を分けられるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-20</span></div>
+    <h1>未知のartistを増やす効果と、理由を添える効果を分けられるか</h1>
+    <p class="lede">YouTube MusicのYDD棚で、LLMの候補推薦と理由文をoffline生成。2週間A/Bで棚engagement +22.43%［95% CI 16.93–27.93%］。理由文を外すholdbackが主因を示すが、発見には候補追加も寄与する。</p>
+    <details class="bibliography"><summary>原論文：Explainable Recommendations at Scale: LLM Rationales for YouTube Music Artist Discovery</summary><p>Xiao Liu, Yanwei Song, Srivaths Ranganathan, Yuan Chen, Zheyun Feng, Parker Steenburgh, Jochen Klingenhoefer, Nathan Lasche, Gergo Varady, Tim Steele</p><p>2609.23877 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.23877">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.23877v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-23 · 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-offline-online">生成を待つ時間を、最初の応答から外す</a><a href="#figure-holdback-evidence">理由を外すと、候補を残してもengagementが落ちる</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>対象はYouTube Music homepageの発見用YDD棚。従来は「好きなartistのfan向け」などの定型理由を、co-watchやaudio embeddingの類似度閾値から付ける。LLMはtaste groupに基づくartist候補と自然言語の理由をofflineで作り、候補追加と既存候補への理由付与の両方に使う。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>未知のartistが候補にいても、利用者が選ぶ根拠を持たなければ聴かれない。一方、requestごとのLLM生成は費用とlatencyが重い。さらに架空artistや既聴artistが混じると、発見という目的を満たせない。候補の実在性と理由の妥当性は別々に確認する必要がある。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>非同期でDiscovery Profileを生成し、KG照合と既聴artistの除外後にcacheへ保存する。オンラインでは候補の追加と理由の付与を軽い取得処理として行い、未知artistを選ぶ心理的障壁を下げる。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>読むべき点はLLMを置いたこと以上に、候補追加と説明付与を分けたholdbackである。<a href="netflix-counterfactual-observability.html">Netflixの反実仮想観測</a>とも、目立つ出力の採用数と全体の増分を区別する点でつながる。YDDは理由文を付けられる候補だけを並べる面なので、この設計を一般feedの説明効果へそのまま広げない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>最初の訪問ではLLMを待たない</h3>
+<p>eligibleな利用者がhomepageを開いた時だけ非同期生成をtriggerする。profileがなければ従来のheuristic discoveryを返し、生成後のsessionでcacheを使う。全利用者を事前に一括生成する設計ではない。refresh間隔を設定でき、TPUのoff-peakや低優先度computeへ処理を寄せる。</p>
+<h3>候補を作るモデルと評価するモデルを分ける</h3>
+<p>generatorはGeminiを使い、fine-tuningではなくpromptを改善する。generatorの具体的な版は断定しない。judgeは本文でGemini 3.1 Proと明記され、taste clusterの一貫性とcandidateの適合を1–5で評価する。低scoreからsemantic mismatch、架空entity、言語の混在を集計してpromptへ返す。judgeの評価改善をそのまま人間の評価改善とはしない。</p>
+<h3>online rankerは残る</h3>
+<p>新artistに限定した既存retrievalから曲・videoを補充し、既存retrievalが偶然そのartistを返した場合にも保存済み理由を付ける。その後はCTR・conditional watch time・discovery rate等を予測するdeep rankerと、単一rewardへ集約する補助モデル、棚の多様性制約が働く。LLMが棚を最終順位まで生成する設計ではない。</p></div>      </section>
+<figure class="teaching teaching--timeline" id="figure-offline-online" aria-labelledby="title-offline-online">
+  <div class="figure-heading"><span class="eyebrow">TIMELINE</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-offline-online">生成を待つ時間を、最初の応答から外す</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">初回online</p><div class="diagram-nodes"><div class="diagram-node"><strong>profileなし</strong><p>従来候補を返す</p></div><div class="diagram-node"><strong>非同期trigger</strong><p>active userだけ生成対象</p></div></div></div><div class="diagram-row"><p class="lane-label">offline</p><div class="diagram-nodes"><div class="diagram-node"><strong>Gemini</strong><p>taste group・artist・理由</p></div><div class="diagram-node"><strong>検査と保存</strong><p>KG / 既聴除外 / safety → cache</p></div></div></div><div class="diagram-row"><p class="lane-label">次のonline</p><div class="diagram-nodes"><div class="diagram-node"><strong>cache取得</strong><p>nominationとannotation</p></div><div class="diagram-node"><strong>既存ranker</strong><p>reward・多様性で棚へ</p></div></div></div></div>
+  <figcaption>一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。 <a href="https://arxiv.org/pdf/2609.23877v1">出典：Fig. 2 / §3.1–3.6 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>利用者の好みとの接点を理由文で示せば、未知の曲を選ぶ負担が下がると考えられる。offline生成は履歴を長く読み、品質検査をrequest外へ移せる。ただし心理的信頼そのものを直接測定した実験ではない。KGに実在するartistでも、理由文の音楽的説明が正しいとは限らない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p><a href="https://arxiv.org/pdf/2609.23877v1">一次資料PDF §3–4 / Table 1</a> の著者報告。</p>
+<table>
+<thead>
+<tr>
+<th>測定</th>
+<th>著者値</th>
+<th>境界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>YDD shelf engagement</td>
+<td>+22.43%、95% CI [16.93,27.93]%</td>
+<td>2週間、棚に限定</td>
+</tr>
+<tr>
+<td>YDD discovery / retention metric</td>
+<td>+8.07%、CI [0.90,15.24]%</td>
+<td>サービス全体のretentionとは同一視しない</td>
+</tr>
+<tr>
+<td>new nominator</td>
+<td>views 4.1%、uniqueness 74.00%</td>
+<td>Tableのviewsの分母は十分明確でない</td>
+</tr>
+<tr>
+<td>mean online latency</td>
+<td>+0.3%</td>
+<td>絶対msとp99は未提示</td>
+</tr>
+<tr>
+<td>judgeのpassing rate</td>
+<td>64.8→74.4%</td>
+<td>prompt改善、本文のpass条件はscore &gt;3</td>
+</tr>
+</tbody>
+</table>
+<p>multi-arm holdbackで、候補poolとvisual interfaceを維持してLLM理由だけを外すと、full holdbackに近いengagement低下が起きた。新nominatorだけを外すとengagementはneutral。一方、discovery指標はどちらを外しても部分的に低下する。各holdbackの数値・CIは本文にないため、架空の棒の高さは付けない。judgeはscore &lt;3で修正を促し、score=3の扱いはpass率の記述から確定できない。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-holdback-evidence" aria-labelledby="title-holdback-evidence">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-holdback-evidence">理由を外すと、候補を残してもengagementが落ちる</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="理由を外すと、候補を残してもengagementが落ちるの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">新nominator</th><th scope="col">LLM理由</th><th scope="col">本文が報告する傾向</th></tr></thead><tbody><tr><th scope="row">Full treatment</th><td class="">有効</td><td class="">有効</td><td class="">+22.43%は主A/Bの棚engagement</td></tr><tr><th scope="row">理由だけholdback</th><td class="">維持</td><td class="">無効</td><td class="">engagement低下はfull holdbackに近い</td></tr><tr><th scope="row">nominatorだけholdback</th><td class="">無効</td><td class="">維持</td><td class="">engagement neutral、discovery一部低下</td></tr><tr><th scope="row">Full holdback</th><td class="">無効</td><td class="">無効</td><td class="">discoveryが有意に低下</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>定性的なholdback結果。未公開の効果量を数値や棒の長さへ変換しない。 <a href="https://arxiv.org/pdf/2609.23877v1">出典：§4.3 holdback ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/youtube-music-llm-rationales-discovery/run.py</code>。架空のartist辞書と既聴履歴で、未知文字列の除外、既聴artistの除外、cache未生成時のfallbackを実行する。holdbackは本文の定性的な実験設計を表で追う。架空clickを発生させて+22.43%を再現する実験は行わない。</p></div><div class="downloads"><a href="../downloads/youtube-music-llm-rationales-discovery/run.py" download>実行コード</a><a href="../downloads/youtube-music-llm-rationales-discovery/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/youtube-music-llm-rationales-discovery">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>全artistと理由は人工fixture。Gemini、KG、A/Bを再現しない。</em></p>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;全artistと理由は人工fixture。Gemini、KG、A/Bを再現しない。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;cold&quot;: {
+    &quot;source&quot;: &quot;heuristic fallback&quot;,
+    &quot;items&quot;: []
+  },
+  &quot;full&quot;: {
+    &quot;source&quot;: &quot;cached profile&quot;,
+    &quot;items&quot;: [
+      {
+        &quot;id&quot;: &quot;b&quot;,
+        &quot;rationale&quot;: &quot;既存の好みとの接点（人工例）&quot;
+      }
+    ]
+  },
+  &quot;rationale_holdback&quot;: {
+    &quot;source&quot;: &quot;cached profile&quot;,
+    &quot;items&quot;: [
+      {
+        &quot;id&quot;: &quot;b&quot;,
+        &quot;rationale&quot;: null
+      }
+    ]
+  }
+}</code></pre></details><p>人工の3候補から、KG相当の辞書に存在し、まだ聴いていない1候補だけが残る。初回はfallback、profile準備後は保存済み候補を返す。理由を隠しても候補IDの集合は変わらない。この機構上の分離と、実利用者が理由に反応するかは別の検証である。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。canonical IDの存在、novelty filter、理由holdback時の候補不変性、cold cacheのfallbackは人工fixtureでCONFIRMED。LLM生成の正しさは未検証。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability NOT TESTED。Gemini、judge、人間の信頼、engagement、TPU費用、本番cacheは実行・測定していない。理由文の全誤りを防げるとの保証もしない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>canonicalize()</code>は小さい辞書で実在確認を代理し、<code>serve()</code>はprofile有無と理由表示を分ける。これらは論文の境界を説明する独自コードで、GoogleのKGやproduction実装ではない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文と最小実装の対応</h1>
+<p><a href="https://arxiv.org/pdf/2609.23877v1">一次PDF v1</a>。確認日：2026-09-23。保存済みPDFを再利用した。</p>
+<p>SHA-256: <code>8bd6fc1384ffc394bbd28a9c2d25c8323b5332163d70c520a90c5c78fb5d34db</code></p>
+<table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>最小コード / 図</th>
+<th>省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3.1 lazy generation</td>
+<td><code>serve()</code>のcold fallback</td>
+<td>非同期job基盤</td>
+</tr>
+<tr>
+<td>§3.4 KG / familiarity</td>
+<td><code>canonicalize()</code></td>
+<td>実KG、LLM、安全性分類器</td>
+</tr>
+<tr>
+<td>§4.3 holdback</td>
+<td>理由だけを外す<code>serve()</code>、実験設計表</td>
+<td>利用者行動と効果量</td>
+</tr>
+</tbody>
+</table>
+<p>このコードは仕組みの境界だけを示す。非公開clickを合成して因果効果を主張しない。</p>
+<p>公式コード：確認した一次PDF・arXiv書誌に、この方式の再現用リポジトリを特定できる案内はなかった。非公開であるとの断定はしない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>未知のartistを増やす効果と、理由を添える効果を分けられるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/youtube-music-llm-rationales-discovery/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

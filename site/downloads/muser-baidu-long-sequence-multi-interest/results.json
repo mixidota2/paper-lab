@@ -1,0 +1,27 @@
+{
+  "note": "人工数列のsum pooling。attention pair数はproxyでありlatencyではない。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "tokens": {
+    "original": 10000,
+    "compressed": 1000,
+    "pair_count_ratio": 0.010000000000000002,
+    "sum_preserved": true
+  },
+  "order_loss": {
+    "a": [
+      1
+    ],
+    "b": [
+      1
+    ]
+  },
+  "orthogonal_penalty": {
+    "distinct": 0.0,
+    "duplicate": 0.5
+  }
+}

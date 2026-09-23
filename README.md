@@ -1,6 +1,6 @@
 # Interactive Research Library
 
-一次資料を読み、仕組み・根拠・限界を日本語で説明する61件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
+一次資料を読み、仕組み・根拠・限界を日本語で説明する65件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
 
 公開先：https://mixidota2.github.io/paper-lab/
 
@@ -108,8 +108,13 @@ Radarとして[GRACE](https://mixidota2.github.io/paper-lab/papers/grace-meta-ad
 
 ## 2026-09-23：観測・統合・配信を分けて読む
 
-優先3本を先行公開。Netflixは反実仮想の測定、UNIQUEはretrieval内の表現共有、FlashVectorは全体性能による採択を扱う。一次資料と検証記録は [BATCH-2026-09-23.md](BATCH-2026-09-23.md)。
+優先3本を先行公開し、Radarの4本を追加。Netflixは反実仮想の測定、UNIQUEはretrieval内の表現共有、FlashVectorは全体性能による採択を扱う。一次資料と検証記録は [BATCH-2026-09-23.md](BATCH-2026-09-23.md)。
 
 - [netflix-counterfactual-observability](https://mixidota2.github.io/paper-lab/papers/netflix-counterfactual-observability.html)
 - [unique-baidu-unified-retrieval-ranking](https://mixidota2.github.io/paper-lab/papers/unique-baidu-unified-retrieval-ranking.html)
 - [flashvector-unity-serving-stack-agent](https://mixidota2.github.io/paper-lab/papers/flashvector-unity-serving-stack-agent.html)
+
+- [youtube-music-llm-rationales-discovery](https://mixidota2.github.io/paper-lab/papers/youtube-music-llm-rationales-discovery.html)
+- [muser-baidu-long-sequence-multi-interest](https://mixidota2.github.io/paper-lab/papers/muser-baidu-long-sequence-multi-interest.html)
+- [hgenpush-kuaishou-heterogeneous-push-gr](https://mixidota2.github.io/paper-lab/papers/hgenpush-kuaishou-heterogeneous-push-gr.html)
+- [t0-tsfm-forecasting-with-context](https://mixidota2.github.io/paper-lab/papers/t0-tsfm-forecasting-with-context.html)

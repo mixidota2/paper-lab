@@ -1,0 +1,31 @@
+{
+  "note": "全artistと理由は人工fixture。Gemini、KG、A/Bを再現しない。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "cold": {
+    "source": "heuristic fallback",
+    "items": []
+  },
+  "full": {
+    "source": "cached profile",
+    "items": [
+      {
+        "id": "b",
+        "rationale": "既存の好みとの接点（人工例）"
+      }
+    ]
+  },
+  "rationale_holdback": {
+    "source": "cached profile",
+    "items": [
+      {
+        "id": "b",
+        "rationale": null
+      }
+    ]
+  }
+}

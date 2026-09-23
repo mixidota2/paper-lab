@@ -1,0 +1,159 @@
+id: t0-tsfm-forecasting-with-context
+arxiv_id: '2609.24559'
+title: 't0: A Time-Series Foundation Model for Forecasting with Context'
+authors:
+- Lucas Meyer
+- Claudio Sole
+- Huikan Xiang
+- Nicolas Li
+- Lucas Franceschino
+- Arnau Quera-Bofarull
+- Maarten P. Scholl
+- Joachim Fainberg
+- Geoffrey Négiar
+year: 2026
+submitted: '2026-09-21'
+topics:
+- demand-forecasting
+- evaluation
+urls:
+  paper: https://arxiv.org/abs/2609.24559
+  arxiv: https://arxiv.org/abs/2609.24559
+  pdf: https://arxiv.org/pdf/2609.24559v1
+  official_code: https://github.com/theforecastingcompany/tfc-t0
+verdict: Radar
+status: published
+question: 同じ予測モデルに、未来の予定を渡す価値はあるか
+summary: t0-alphaの同一checkpointでcovariateを入切すると、fev-benchの既知未来30課題でskill 36.7→43.0、+6.3ポイント。19課題は改善し11課題は悪化。販促・欠品条件でTSFMとGBDTを比較した結論ではない。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- tabular-vs-neural-forecasting
+- observed-sales-vs-latent-demand
+source_review:
+  checked: '2026-09-23'
+  version: v1
+  pdf_sha256: e23720637cc9e2409620d5ecc7658fe57d0c897dd53814a75f933a7a6dff5757
+  url: https://arxiv.org/pdf/2609.24559v1
+  scope: 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。
+core_idea:
+  author_claim: 時間軸と変数軸のattentionを交互に使い、target履歴・過去covariate・既知未来covariateから分位点を予測する。102Mのt0-alphaと256Mのt0-betaを公開し、事前学習にcovariateとtargetの依存を持つ人工系列を混ぜる。
+  research_bot_interpretation: '[ApolloPFN](apollopfn.html)と同じく外生変数を扱えるTSFMの証拠が増えた。ただし[Accuracy Is Not Service](accuracy-not-service-intermittent-demand.html)が問う在庫・注文充足への変換は残る。Chronos-2は変数軸attentionやcovariate
+    ablationの近い比較対象。小売の販促有無、欠品による売上打切り、GBDTと同じ情報集合での比較を揃えて初めて導入判断へ進める。'
+sections:
+  overview: 主な読みどころはモデル間の順位より、同一checkpointに情報を追加する比較である。+6.3はskillのpercentage pointで、MAEが6.3%改善したという意味ではない。モデルの深掘りは主にt0-alphaで、t0-betaの256Mや21分位点へ混ぜない。
+  problem: 単変量モデルは販促日や休業日を知らない。情報を渡せるモデルでも、無関係な変数を無視できなければ逆効果になる。また「既知未来」として評価時に渡した情報が、発注時点でも本当に分かっていたかを確認する必要がある。将来の実天気や実売上を予定として渡せば漏洩になる。
+  why_it_might_work: covariateがtargetを動かす人工系列を事前学習へ加え、変数間attentionでその関係を読めるようにする。未来の予定を読む経路には価値があるが、ノイズを無視できる保証はない。11/30課題の悪化やM5の小さい差は、covariate対応という機能名だけでは選定できないことを示す。
+  evidence: '[一次資料PDF §5.1.2 / Tables 4–5 / §6](https://arxiv.org/pdf/2609.24559v1) の著者報告。
+
+
+    | t0-alpha・同一checkpoint | covariateなし→あり | 95% bootstrap CI / task |
+
+    | --- | --- | --- |
+
+    | 既知未来30課題 | skill 36.7→43.0、+6.3 pp | [+2.2,+10.9]、19/30改善 |
+
+    | 過去のみ12課題 | 32.9→35.6、+2.7 pp | [+1.0,+4.2]、9/12改善 |
+
+    | covariateなし58課題 | 同一pass | 著者が完全一致を確認 |
+
+
+    skillは各taskのscaled quantile lossをseasonal naiveで割り、[0.01,100]へclipした比の幾何平均を1から引いて百分率にしたもの。CIはtask単位のbootstrapであり、全店舗の将来liftの区間ではない。
+
+
+    German day-ahead価格ではquantile loss −51%、Rossmannの日次売上では販促・祝日・営業日の追加で−43%。一方、M5では価格・calendar等8変数を入れても週/月粒度で差は±2%未満。小売に無関係というわけではないが、欠品を制御したTSFM対GBDTのbakeoffではない。
+
+
+    t0-alphaの事前学習に重なる8課題はbenchmark規則に従いChronos-Bolt値で置換し、全100課題skillは生予測42.9に対し報告42.2。t0-betaはbenchmark datasetを除いた事前学習を申告し全100課題で46.7。alpha→beta差はパラメータ数だけのcontrolled
+    scaling実験ではない。
+
+
+    <figure class="teaching" data-b21><h3>checkpointを固定し、入力情報だけを変える</h3><label>covariate <select><option value="0">なし</option><option
+    value="1">あり</option></select></label><script type="application/json" data-frames>["<div class=\"b21-serving\"><section><h4>既知未来30課題</h4><p>skill
+    <strong>36.7</strong></p><p>同じt0-alphaからcovariateを落とす。</p></section><section><h4>過去のみ12課題</h4><p>skill
+    <strong>32.9</strong></p><p>履歴targetだけで予測。</p></section></div>", "<div class=\"b21-serving\"><section><h4>既知未来30課題</h4><p>skill
+    <strong>43.0</strong></p><p>予定を入力。19課題改善・11課題悪化。</p></section><section><h4>過去のみ12課題</h4><p>skill <strong>35.6</strong></p><p>9課題改善。</p></section></div>"]</script><div
+    data-output><div class="b21-serving"><section><h4>既知未来30課題</h4><p>skill <strong>36.7</strong></p><p>同じt0-alphaからcovariateを落とす。</p></section><section><h4>過去のみ12課題</h4><p>skill
+    <strong>32.9</strong></p><p>履歴targetだけで予測。</p></section></div></div><figcaption><a href="https://arxiv.org/pdf/2609.24559v1">Table
+    5</a>の著者値。Labの予測値ではない。差の算術はresults.jsonへ保存。</figcaption></figure>'
+  executable_understanding: '`uv run papers/t0-tsfm-forecasting-with-context/run.py`。公式モデルは実行せず、二つの局所監査を行う。第一に論文の丸め済みskillからpoint差と暗黙のloss比を計算する。第二に情報の依存graphを伝播し、既知未来zがtargetを逆参照すると、後のtargetが過去へ漏れる経路が生じることを確認する。加えてsoftplus累積で分位点の単調性を確かめる。'
+  results: 丸め済み値の差は6.3 pp / 2.7 pp。推定した幾何平均loss比の変化は各約−9.95% / −4.02%で、再集計したbenchmark結果ではない。人工の依存graphでは双方向variate参照で未来targetが過去へ到達し、z→targetの読取り方向を制限すると到達しない。ここで矢印は情報の流れで、attentionが読む向きとは逆になる。
+  what_we_verified: Mechanism PARTIAL。報告値の算術、roleごとの情報境界、softplus累積分位点の順序は小計算でCONFIRMED。公式commitのCausalScalerとvariate
+    attention / maskを静的に読んだ。論文のrole別非対称制限は確認した呼出経路に見つからず、mappingへ差を記録した。重みを使った予測は未実行。
+  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。t0-alpha/beta、Chronos-2、ApolloPFN、GBDTの同条件再評価はしていない。販促×欠品、潜在需要、在庫費用、lead-time需要のjoint
+    distributionは未検証。marginal quantileを足して注文期間のquantileとはしない。
+  implementation: '`skill_audit()`は丸め値の監査、`propagate()`は時間・変数の読取り可能範囲をsetで表す教育用実装、`ordered_quantiles()`はsoftplusの累積。PyTorchやモデルdownloadを必要としない。公式モデルをrun.pyと誤認しないよう、結果JSONにも未実行を明記する。'
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: matrix
+  id: cutoff
+  title: cutoffの先に渡してよい情報を区別する
+  after: problem
+  locator: Eq. 1 / §2 / Fig. 3
+  rationale: cutoffの先に渡してよい情報を区別する
+  caption: 販促計画や営業日は既知未来の例。将来の実売上は含まない。
+  columns:
+  - 過去1:T
+  - 未来T+1:T+H
+  rows:
+  - label: target y
+    cells:
+    - 観測履歴
+    - 予測する。正解を入力しない
+  - label: 過去covariate x
+    cells:
+    - 観測履歴
+    - 実測未来は渡さない
+  - label: 既知未来covariate z
+    cells:
+    - 観測・予定
+    - 発行時点で既知の予定
+  source: https://arxiv.org/pdf/2609.24559v1
+- kind: equations
+  id: quantile-math
+  title: covariateの有無だけを変えて同じcheckpointを読む
+  after: method
+  locator: Eqs. 1–3 / §5.1.2
+  rationale: covariateの有無だけを変えて同じcheckpointを読む
+  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  steps:
+  - name: 条件付き予測
+    formula: ŷq = fθ(y₁:T, x₁:T, z₁:T+H)
+    explanation: θを固定してx/zを落とした対照と比べる。
+  - name: causalな入力と固定教師
+    formula: ỹt = asinh((yt−μt)/σt), ỹT+h = asinh((yT+h−μT)/σT)
+    explanation: future targetの値で正規化統計を更新しない。
+  - name: 順序を保つ分位点
+    formula: q̂k+1 = q̂k + softplus(rk+1)
+    explanation: 正の差分を足す。calibrationまで保証する式ではない。
+  - name: skill
+    formula: Skill = 100 × [1 − exp(mean(log(clip(Lmodel/Lseasonal-naive,0.01,100))))]
+    explanation: Lはtaskのscaled quantile loss。seasonal naive比をtask間で幾何平均する。
+  source: https://arxiv.org/pdf/2609.24559v1
+- kind: matrix
+  id: covariate-ablation
+  title: 同一checkpointでも全課題は改善しない
+  after: evidence
+  locator: Table 5
+  rationale: 同一checkpointでも全課題は改善しない
+  caption: t0-alphaのskill。CIは本文の表に併記。個別task値を推測して散布図を作らない。
+  columns:
+  - なし
+  - あり
+  - 差 / 改善task
+  rows:
+  - label: 既知未来30課題
+    cells:
+    - '36.7'
+    - '43.0'
+    - +6.3 pp / 19 of 30
+  - label: 過去のみ12課題
+    cells:
+    - '32.9'
+    - '35.6'
+    - +2.7 pp / 9 of 12
+  source: https://arxiv.org/pdf/2609.24559v1

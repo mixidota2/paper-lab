@@ -1,0 +1,134 @@
+id: hgenpush-kuaishou-heterogeneous-push-gr
+arxiv_id: '2607.03362'
+title: 'HGenPush: A Heterogeneous Generative Recommendation Architecture for Industrial Push Notification Systems'
+authors:
+- Xiao Liang
+- Jiali Feng
+- Xin Feng
+- Yiqing Wang
+- Baolin Ye
+- Siyao Feng
+- Zhihui Deng
+- Cunyi Zhang
+- Huajin Sun
+- Xuanping Li
+- Kaiqiao Zhan
+- Yanan Niu
+- Kun Gai
+year: 2026
+submitted: '2026-07-03'
+topics:
+- recommender-systems
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2607.03362
+  arxiv: https://arxiv.org/abs/2607.03362
+  pdf: https://arxiv.org/pdf/2607.03362v1
+  official_code: null
+verdict: Radar
+status: published
+question: 動画と作者の二つの経路を、同じpush候補へつなげられるか
+summary: KuaishouのHGenPushはvideo SIDとauthor中心のmixed SIDを生成し、pre-rankを迂回して既存rankerへ渡す。全構成のDAU +0.181%（p=0.04）、CTR
+  +1.577%（p=0.11）。CTRの有意差は確認できない。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- generative-rec-vs-retrieval
+source_review:
+  checked: '2026-09-23'
+  version: v1
+  pdf_sha256: 36e81449d940ab105c75bdc7e3806eccdd128bf50de1bfe0b4086890edcc2acb
+  url: https://arxiv.org/pdf/2607.03362v1
+  scope: 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。
+core_idea:
+  author_claim: feedの長短履歴とpushのclick/send履歴を共有decoderで読み、video branchとauthor branchへ分ける。Chained-MTPで前のSIDの意味を残して軽く生成し、UCPA/GSISPOでclick後の消費行動へ整合させる。
+  research_bot_interpretation: '[PushDualGen](pushdualgen-kuaishou.html)がSIDと通知文を結ぶのに対し、HGenPushはvideoとauthorという候補の粒度を結ぶ。[VARG](varg-tmall-value-generative-retrieval.html)と同様にpre-rankを飛ばしてもrankerへの責任は残る。違いはauthorの信頼を行動から学び、そこからvideoへ戻す経路にある。'
+sections:
+  overview: 作者branchの最終目的も、その作者の動画を推薦すること。作者IDだけを通知する仕組みではない。video側は3層SID、作者側は2層author SIDにvideoの第1層SIDを足したmixed
+    SIDを生成する。両方の候補がrankerへ直接入るため、生成器が候補の品質をある程度引き受ける。
+  problem: 同じジャンルでも、利用者は特定の作者にだけ継続的に反応することがある。内容類似度だけではこの差を捉えにくい。また、全SIDを独立に予測すると階層間の整合が崩れ、各tokenで重いdecoderを回すと配信費用が増える。
+  why_it_might_work: author表現をclick行動でuser表現へ合わせれば、内容だけでは見えない支持関係を取り込める。Chained-MTPは固定のinterest anchorへ前tokenのembeddingを足すため、token間の依存を残しつつTransformerの反復を減らす。ただし生成時のtoken依存そのものは残る。論文の「非自己回帰」を「全tokenが条件なしで独立に生成される」と読まない。
+  evidence: '[一次資料PDF §4 / Tables 1, 3–6](https://arxiv.org/pdf/2607.03362v1) の著者報告。
+
+
+    | 比較 | 数値 | 条件・注意 |
+
+    | --- | --- | --- |
+
+    | 全HGenPush / production | DAU +0.181%（p=0.04） | pushシステム、Table 6 |
+
+    | 同上CTR | +1.577%（p=0.11） | 通知のdaily CTR。有意水準5%を満たさない |
+
+    | 同上App Usage Duration | +0.148%（p=0.75） | 点推定の改善にとどまる |
+
+    | Parallel-MTP | HR@100 0.1150 / 2.40k QPS | SID独立予測 |
+
+    | DeepSeek-MTP | 0.3954 / 1.27k QPS | Transformer型依存 |
+
+    | Chained-MTP | 0.3915 / 1.70k QPS | 精度は僅かに下、QPSは約33.86%上 |
+
+
+    HR@100は真のsemantic IDが生成top 100に入る割合。最終video表示のitem-level recallと同一ではない。Table 4ではclick-only HR 0.3964に対しUCPA
+    0.3915なので、消費指標との交換がある。
+
+
+    v1 videoのみ→v2 UCPA追加→v3 author追加というonline構成で、DAU点推定は0.126→0.153→0.181%。これらは各々production比であり、差の0.028 ppを独立に検定したauthorの効果とは扱わない。期間・traffic比・CIが不足するため、再現性の評価には追加情報が必要。'
+  executable_understanding: '`uv run papers/hgenpush-kuaishou-heterogeneous-push-gr/run.py`。小さいtyped indexでvideo
+    SIDとmixed author SIDの候補を展開し、合流・重複除去・既存ranker順への接続を動かす。さらに前SIDのembeddingを変え、Chained-MTPの後token分布が変わることを確認する。推薦効果や生成品質は測定しない。'
+  results: 人工indexではvideo branchがv1、author+video-prefix branchがv1/v2を返し、重複除去後の候補は2件。authorの全動画を無条件で返す経路とは違う。前tokenのembeddingを変えると後tokenの確率が変化する。全候補を通して既存rankerが順位を決める境界も確認する。
+  what_we_verified: Mechanism PARTIAL。mixed SIDで候補集合が限定されること、候補合流時の重複除去、累積embeddingによる条件依存を人工fixtureでCONFIRMED。重複除去はLabで明示した一般的な実装選択で、論文の固有規則の再現ではない。
+  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。16層decoder、RQ-Kmeans/SimVQ、InfoNCE学習、GSISPOの更新、L20上のQPS、本番DAUを再現していない。CTR改善の統計的有意性は著者表でもNOT
+    OBSERVED（5%基準）と読む。
+  implementation: '`retrieve()`はSIDの型ごとにindexを分ける。`token_probs()`はEq. 14のFFNを人工の線形headで代理し、重いbackboneを固定anchorへ置き換える。全候補へ同じ人工rankerを適用する。'
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: equations
+  id: chained-tokens
+  title: 固定anchorへ前SIDの意味を累積する
+  after: method
+  locator: Eqs. 14, 21–24
+  rationale: 固定anchorへ前SIDの意味を累積する
+  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  steps:
+  - name: token k
+    formula: p(sₖ | h,s<ₖ) = softmax(FFNₖ(h + Σⱼ<ₖ Embⱼ(sⱼ)))
+    explanation: hは共有decoderが作った固定interest。prefixが変われば後tokenも変わる。
+  - name: sequence比
+    formula: w = exp[(1/L) Σₖ log(pθ(sₖ|h,s<ₖ)/pold(sₖ|h,s<ₖ))]
+    explanation: tokenの確率比を算術平均しない。
+  - name: GSISPO
+    formula: L = −(1/G) Σg sg(clip(wg,1−ε,1+ε)) Âg log πθ(sg|h)
+    explanation: clipはimportance weightに置く。通常のPPO clipと同じ操作ではない。
+  source: https://arxiv.org/pdf/2607.03362v1
+- kind: matrix
+  id: heterogeneous-evidence
+  title: author追加後の点推定と有意性を分ける
+  after: evidence
+  locator: Table 6
+  rationale: author追加後の点推定と有意性を分ける
+  caption: すべてproduction比。p=0.00は原表の丸め表示で、厳密なゼロを意味しない。
+  columns:
+  - DAU
+  - CTR
+  - App duration
+  rows:
+  - label: v1 video
+    cells:
+    - +0.126% / p=0.00
+    - +0.998% / p=0.00
+    - +0.095% / p=0.01
+  - label: v2 + UCPA
+    cells:
+    - +0.153% / p=0.00
+    - +1.075% / p=0.02
+    - +0.145% / p=0.05
+  - label: v3 + author
+    cells:
+    - +0.181% / p=0.04
+    - +1.577% / p=0.11
+    - +0.148% / p=0.75
+  source: https://arxiv.org/pdf/2607.03362v1

@@ -1,0 +1,34 @@
+{
+  "note": "t0の重みは未実行。Table 5の丸め値の算術と、人工の依存graph・分位点構成のみ。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "author_value_audit": {
+    "known_future": {
+      "without": 36.7,
+      "with_covariates": 43,
+      "lift_pp": 6.3,
+      "implied_geomean_loss_relative_change": -0.09952606635071082
+    },
+    "past_only": {
+      "without": 32.9,
+      "with_covariates": 35.6,
+      "lift_pp": 2.7,
+      "implied_geomean_loss_relative_change": -0.040238450074515875
+    }
+  },
+  "future_target_leak": {
+    "symmetric": true,
+    "asymmetric": false
+  },
+  "quantile_toy": [
+    -1,
+    -0.8730719889570275,
+    -0.17992480839708225,
+    1.1333368791211407,
+    3.2602648901641134
+  ]
+}
