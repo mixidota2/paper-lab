@@ -1,0 +1,175 @@
+id: flashvector-unity-serving-stack-agent
+arxiv_id: '2609.17391'
+title: 'FlashVector: Agent for Hierarchical Model Serving Stack Optimization'
+authors:
+- Qi Wu
+- Lohan Lemire
+- Kai Meng
+- Zhongmou Cai
+- Raphael Bargues
+- Petr Zhitnikov
+- Zeyuan Cao
+- Yao Wang
+- Shujun Bian
+- Wei Chen
+- Sean Sheng
+year: 2026
+submitted: '2026-09-15'
+topics:
+- ml-systems
+- ai-agent-systems
+urls:
+  paper: https://arxiv.org/abs/2609.17391
+  arxiv: https://arxiv.org/abs/2609.17391
+  pdf: https://arxiv.org/pdf/2609.17391v1
+  official_code: null
+verdict: Worth Reading
+status: published
+question: kernelが速くなっても、配信全体が速くならなければ棄却できるか
+summary: UnityのFlashVectorはNsight/eBPFの測定から層ごとの変更を提案し、本番traffic replayで全体のthroughputとlatencyを検証する。model serverは最大2×
+  throughput・1.98× latency speedup、feature処理は約1.6×。局所速度と採択条件を分けて読む。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- ml-pipeline-modularity
+source_review:
+  checked: '2026-09-23'
+  version: v1
+  pdf_sha256: a68ed302b06ee51087ca6b501a80bf748d073ae2f8c9aef29b8d89a5a15862af
+  url: https://arxiv.org/pdf/2609.17391v1
+  scope: 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。
+core_idea:
+  author_claim: GPU kernel、計算graph、model server、on-demand feature処理を共通のProfile→Diagnose→Optimize→Verifyで扱う。正しさと測定noiseを通過した変更だけを全体負荷試験へ進め、結果をknowledge
+    baseへ戻して継続的に最適化する。
+  research_bot_interpretation: 研究コードのKEEP、設定探索、runtime制御、実験運用に加え、配信費用を扱う第5の役割として読める。この番号は本ライブラリの整理。[AURA](aura-disney-agentic-rec-diagnosis.html)が診断する推薦品質と、FlashVectorが変えるserving性能の責任を分けたい。[AgentX](agentx-kuaishou.html)、[CORAL](coral-meta-config-harness.html)、[DREAM](dream-taobao-agentic-control.html)、[PILOT](pilot-experiment-lifecycle.html)と比べる軸は、モデル能力だけでなく何を変更でき、何を証拠に採択するかである。
+sections:
+  overview: 同じモデルでも、GPU以外の文字列変換やfeature組立が詰まればGPU kernelの高速化は全体費用に届かない。FlashVectorは各層の専門的な計測とコード・設定変更を一つの検証loopへ接続する。固定latency
+    SLOの下で処理できる本番要求数が主な成果であり、広告CTRやagentの一般的なcoding能力を評価した研究ではない。
+  problem: Python/PyTorch、CUDA、Triton serverのC++、feature処理のPython/Cythonでは計測手段も最適化対象も違う。再学習やhardware更新で前回の最適設定も古くなる。単発のコード生成だけでは、誤ったボトルネック診断、精度劣化、他層への負荷転移を見逃す。
+  why_it_might_work: 入力tensorのshape、request単位とcandidate単位のfeatureの違い、実際のprofileがあれば、汎用compilerからは見えにくい重複処理をagentが取り除ける。履歴を次回の探索へ返す点にも合理性がある。ただし熟練者との同一予算比較、agent
+    backbone別のablation、全試行の成功率は示されない。性能事例だけでは自律性や人手節約の因果効果を確定できない。
+  evidence: '[一次資料PDF §4.2–5.4 / Tables 1–4](https://arxiv.org/pdf/2609.17391v1) の著者報告。
+
+
+    | 対象 | 測定値 | 適用範囲 |
+
+    | --- | --- | --- |
+
+    | Ranking model 2 | throughput 2.00×、latency speedup 1.98× | Table 1、model serving stack。全モデル平均ではない |
+
+    | Retrieval model | throughput 1.10×、latency 1.67× | 同表。局所30×を全体30×としない |
+
+    | 入力変換 | 最大30× | Triton server→Python backendのserialization処理 |
+
+    | attention | 996.5→279.8 μs、3.56× | FP16、AOTInductor baseline、RTX PRO 6000 Blackwell、2,000候補/request |
+
+    | feature pod | 940→約1,200→約1,500 RPS | 14 vCPU、12 Python backend process、固定latency SLO、順次追加 |
+
+
+    featureの個別Cython関数は最大350×だが、pod全体は約1.6×。Table 3の各段は前段の上に積み重ねた値であり、独立した改善率を足さない。
+
+
+    **表の不整合**：Table 4のModel BはSLO 250 msに対してchosen trialのp99が271 ms。本文のSLO内採択という基準とこの行は整合しない。誤植か計測条件差かは確認できないため、全選択trialがSLOを満たしたとは記載しない。'
+  executable_understanding: '`uv run papers/flashvector-unity-serving-stack-agent/run.py`。人工の候補変更を、出力の一致→局所改善→全体throughput→p99
+    SLOの順で判定する。局所2倍でも全体が遅い変更、throughputが増えてもSLOを破る変更を棄却する。これは採択規則の実装であり、実traffic replayやagentの実行ではない。
+
+
+    <figure class="teaching" data-b21><h3>この変更を採択するか</h3><label>人工candidate <select><option value="0">局所だけ2倍</option><option
+    value="1">SLO超過</option><option value="2">3%改善</option><option value="3">出力が変化</option><option value="4">全gate通過</option></select></label><script
+    type="application/json" data-frames>["<div class=\"b21-frontier\"><div>局所speed倍率 <strong>2<\/strong><\/div><div>全体throughput倍率
+    <strong>0.98<\/strong><\/div><div>p99 <strong>220 ms<\/strong> / SLO 250 ms<\/div><div>出力一致：はい<br><strong>棄却：全体throughputが退行<\/strong><\/div><\/div>",
+    "<div class=\"b21-frontier\"><div>局所speed倍率 <strong>1.3<\/strong><\/div><div>全体throughput倍率 <strong>1.2<\/strong><\/div><div>p99
+    <strong>270 ms<\/strong> / SLO 250 ms<\/div><div>出力一致：はい<br><strong>棄却：p99がSLOを超過<\/strong><\/div><\/div>",
+    "<div class=\"b21-frontier\"><div>局所speed倍率 <strong>1.1<\/strong><\/div><div>全体throughput倍率 <strong>1.03<\/strong><\/div><div>p99
+    <strong>230 ms<\/strong> / SLO 250 ms<\/div><div>出力一致：はい<br><strong>採択せず再測定：noise以内<\/strong><\/div><\/div>",
+    "<div class=\"b21-frontier\"><div>局所speed倍率 <strong>1.4<\/strong><\/div><div>全体throughput倍率 <strong>1.3<\/strong><\/div><div>p99
+    <strong>200 ms<\/strong> / SLO 250 ms<\/div><div>出力一致：いいえ<br><strong>棄却：出力の正しさ<\/strong><\/div><\/div>",
+    "<div class=\"b21-frontier\"><div>局所speed倍率 <strong>1.3<\/strong><\/div><div>全体throughput倍率 <strong>1.2<\/strong><\/div><div>p99
+    <strong>230 ms<\/strong> / SLO 250 ms<\/div><div>出力一致：はい<br><strong>採択：全条件を満たす<\/strong><\/div><\/div>"]</script><div
+    data-output><div class="b21-frontier"><div>局所speed倍率 <strong>2</strong></div><div>全体throughput倍率 <strong>0.98</strong></div><div>p99
+    <strong>220 ms</strong> / SLO 250 ms</div><div>出力一致：はい<br><strong>棄却：全体throughputが退行</strong></div></div></div><figcaption>results.jsonの規則判定。Unityで実際に棄却されたtrialではない。</figcaption></figure>'
+  results: 5つの人工candidateのうち採択は1件。局所2倍でも全体0.98倍、全体1.2倍でもp99 270 ms、改善3%でnoise floor 6%、出力不一致の4例は棄却する。2–6%帯を再測定する仕組み自体は実装しておらず、「再測定が必要」と返す。
+  what_we_verified: Mechanism PARTIAL。出力不一致、SLO超過、全体退行、noise以下を採択しない規則はCONFIRMED。全体の改善が局所速度から自動的には導けないことを人工fixtureで確認した。
+  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。Unity traffic、Nsight/eBPF、GPU
+    kernel、shadow canary、LLMによる自動編集は実行していない。論文はagentの基盤LLM名・版や全trial分布を特定しておらず、本Labでも推測しない。人手のreview負荷、運用費用、再学習後の改善維持率は未評価。
+  implementation: '`decide()`は論文の本文が求める全体throughput改善とSLOを明示した教育用gate。Algorithm 1のlocal verifyとFullStackLoadTestを区別する。requestを送信せず、各candidateへ与えた人工測定値を判定する。'
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: matrix
+  id: layer-contract
+  title: 層ごとに変えるもの、全層で守るもの
+  after: method
+  locator: Fig. 3 / §4.1–4.2
+  rationale: 層ごとに変えるもの、全層で守るもの
+  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  columns:
+  - Profile / context
+  - 変更の例
+  rows:
+  - label: GPU kernel
+    cells:
+    - Nsight、shape/layout
+    - attention融合
+  - label: 計算graph
+    cells:
+    - PyTorch / business logic
+    - embedding分解・重複除去
+  - label: model server
+    cells:
+    - eBPF、C++ source
+    - 入力serialization
+  - label: feature処理
+    cells:
+    - eBPF、lineage / dtype
+    - Cython、zero-copy、tensor組立
+  source: https://arxiv.org/pdf/2609.17391v1
+- kind: logic
+  id: acceptance-gates
+  title: 局所で勝っても全体のgateが残る
+  after: method
+  locator: Algorithm 1 / §4.2
+  rationale: 局所で勝っても全体のgateが残る
+  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  rows:
+  - label: 候補を試す
+    nodes:
+    - title: 正しさ
+      text: 出力・business metricを保持
+    - title: 局所の測定
+      text: noiseを超える改善
+    - title: FullStackLoadTest
+      text: throughputとSLOを確認
+  - label: 全体で退行
+    nodes:
+    - title: 棄却
+      text: incumbentへ戻す
+    - title: 記録
+      text: 失敗条件もknowledge baseへ
+  source: https://arxiv.org/pdf/2609.17391v1
+- kind: chart
+  id: whole-stack-speed
+  title: 同じ表でもモデルごとに改善幅が違う
+  after: evidence
+  locator: Table 1
+  rationale: 同じ表でもモデルごとに改善幅が違う
+  caption: 各モデル自身のbaseline=1。絶対RPSや同一hardwareでのモデル間性能比較ではない。
+  unit: throughput倍率
+  maximum: 2
+  bars:
+  - label: Retrieval model
+    value: 1.1
+  - label: Ranking model 1
+    value: 1.8
+  - label: Ranking model 2
+    value: 2
+  - label: Ranking model 3
+    value: 1.33
+  - label: Ranking model 4
+    value: 1.35
+  - label: Gamer model
+    value: 1.15
+  source: https://arxiv.org/pdf/2609.17391v1

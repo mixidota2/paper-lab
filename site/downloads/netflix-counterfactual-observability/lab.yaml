@@ -1,0 +1,140 @@
+id: netflix-counterfactual-observability
+arxiv_id: '2609.22747'
+title: 'Beyond Raw Engagement: A Counterfactual Observability Framework for Recommender Systems at Netflix'
+authors:
+- Chaoran Guo
+- Ding Tong
+- Ting-Po Lee
+- Scarlet Chen
+year: 2026
+submitted: '2026-09-19'
+topics:
+- recommender-systems
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2609.22747
+  arxiv: https://arxiv.org/abs/2609.22747
+  pdf: https://arxiv.org/pdf/2609.22747v1
+  official_code: null
+verdict: Must Read
+status: published
+question: よく見られた作品は、なくなると困る作品なのか
+summary: NetflixのCONSEQUENCES論文は、推薦の成果を「その作品や判断がなかった場合との差」で測る。行の増分価値は11件の除去A/BとR²=0.8212。新しいrankerではなく、engagement
+  liftの読み方と障害の見つけ方を変える。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- generative-rec-vs-retrieval
+source_review:
+  checked: '2026-09-23'
+  version: v1
+  pdf_sha256: 3b3dc018790b6c0919e44b348ade304a935bead51794083432daf77dc2b9445d
+  url: https://arxiv.org/pdf/2609.22747v1
+  scope: 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。
+core_idea:
+  author_claim: 探索時の選択確率を記録し、SNIPSで表示の偏りを補正する。同じ位置の代替候補との比較と、対象を除いたLeave-One-Outを使い分ける。cascade全体の貢献はIrreplaceabilityとUniversalityへ分解する。
+  research_bot_interpretation: '[Accuracy Is Not Service](accuracy-not-service-intermittent-demand.html)が予測誤差と発注成果を分けたように、ここでは観測engagementと代替後に失う価値を分ける。[VARG](varg-tmall-value-generative-retrieval.html)や[UNIQUE](unique-baidu-unified-retrieval-ranking.html)のオンライン改善を読む際も、候補経路の採用率だけで増分貢献を判断しない。ただし他社のliftをこの論文の推定量へ換算はできない。'
+sections:
+  overview: 高CTRの作品でも、ほぼ同じ満足を与える代替があれば除去損失は小さい。逆に、限られた視聴者にだけ届く作品は全体CTRで埋もれても、その視聴者には代えがたい。この論文は制作者に向けた価値評価と、モデル開発者に向けた診断を同じ探索ログから作る。RecSys
+    CONSEQUENCES 2026の6ページ論文で、Netflix全体の売上やretentionを新たに改善したA/Bを報告するものではない。
+  problem: 観測clickには、内容の質、表示位置、対象者の選び方、候補に入る頻度が混ざる。順位が落ちたためのCTR低下を内容の劣化と受け取ると、制作者も開発者も誤った修正へ向かう。必要なのは「誰に、何が候補として入り、どの確率で選ばれ、何が起きたか」のログである。選択確率がゼロの候補については逆確率重みだけでは反実仮想を回復できない。
+  why_it_might_work: 探索が比較対象を観測可能にし、自己正規化が極端な重みの分散を抑える。代替込みの差を取れば、単なる露出の多さと、失うと困る価値を区別しやすい。ただしSNIPSは有限標本で一般に不偏ではない。確率のclipやJaccardによる近似matchにもbias–varianceの交換がある。正しいpropensity、比較可能な報酬、十分なsupportがなければ「因果」という名前だけでは救えない。
+  evidence: '[一次資料PDF §4.1–4.3 / Figs. 1–3](https://arxiv.org/pdf/2609.22747v1) の著者報告。
+
+
+    | 検証 | 条件と結果 | 確かめた範囲 |
+
+    | --- | --- | --- |
+
+    | 単段simulation | 1,000内容、intrinsic CTRはBeta(1,8)/4、Boltzmann温度0.1、閲覧深さPoisson(10) | R1/R2除去の真値とLOOの整合。noise増加で差も増える
+    |
+
+    | homepage row除去 | 11件のA/B、R²=0.8212 | 行のincrementalityと実除去によるengagement損失の対応 |
+
+    | 行の推定条件 | Hájek、propensityを[0.0001,0.9999]へclip、行ごと100観測以上 | 長さの違うhomepageを集計 |
+
+    | 監視事例 | content Aだけが急落、類似内容は安定 | positive labelの誤帰属を発見 |
+
+
+    R²は11件での整合であり、任意の新しいrowや別サービスへの精度保証ではない。Fig. 2の個別座標と元ログは提供されていないため、本Labは散布点を作らず、R²も再計算しない。Fig. 3の時系列も推測で描かない。監視が問題発見につながったことは報告されるが、修正後のengagement回復量や検知率は示されない。'
+  executable_understanding: '`uv run papers/netflix-counterfactual-observability/run.py`。2種類の利用者、3候補、各contextで既知の選択確率という人工世界で、ログの単純平均とSNIPSを比較する。Aを除いた後にBへ置き換えるtarget
+    policyも同じログで評価する。乱数で作ったBernoulli rewardに加え、確率で厳密に積分した真値を残す。Netflixの1,000内容simulationの再現ではない。
+
+
+    <figure class="teaching" data-b21><h3>代替困難度と到達範囲を掛ける</h3><label>人工作品 <select><option value="0">狭い対象の作品</option><option
+    value="1">広く届く作品</option></select></label><script type="application/json" data-frames>["<div class=\"b21-cards\"><div>候補に入った条件での差<br><strong>0.080<\/strong><\/div><div>×
+    候補になる確率<br><strong>0.20<\/strong><\/div><div>＝ 全体の増分<br><strong>0.016<\/strong><\/div><\/div><p>狭い対象の作品。人工例であり、実作品の測定値ではない。<\/p>",
+    "<div class=\"b21-cards\"><div>候補に入った条件での差<br><strong>0.030<\/strong><\/div><div>× 候補になる確率<br><strong>0.80<\/strong><\/div><div>＝
+    全体の増分<br><strong>0.024<\/strong><\/div><\/div><p>広く届く作品。人工例であり、実作品の測定値ではない。<\/p>"]</script><div data-output><div
+    class="b21-cards"><div>候補に入った条件での差<br><strong>0.080</strong></div><div>× 候補になる確率<br><strong>0.20</strong></div><div>＝
+    全体の増分<br><strong>0.016</strong></div></div><p>狭い対象の作品。人工例であり、実作品の測定値ではない。</p></div><figcaption>Eq. 2の掛け算を可視化。値はrun.py
+    / results.jsonの人工例。A/B散布図の代用品ではない。</figcaption></figure>'
+  results: 人工設定では元policyの期待CTRは0.36、A除去後は0.32で、増分は0.04。AのCTRそのものを増分と呼ばない。実行JSONには標本推定の誤差とログの単純平均も保存する。別の人工例では、代替困難度0.08×候補率0.20=0.016、0.03×0.80=0.024となり、代替困難度だけの順序と全体貢献の順序が逆転する。
+  what_we_verified: Mechanism PARTIAL。既知の正のpropensityを使う単段・exact matchでSNIPSとLOOを計算し、解析的な期待値と照合した。全contextに同じ重み倍率を掛けてもSNIPSが変わらない局所条件はCONFIRMED。cascadeの掛け算は定義の算術確認にとどまる。
+  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。Netflixログ、11件のA/B、長期retention、位置間干渉、候補集合のJaccard近似、clipの実データ感度は未検証。最小実験でsupportが消えれば推定不能になるが、実システムで十分な探索量をどう維持するかは別課題。
+  implementation: '`snips()`はmatch/propensityの自己正規化、`simulate()`は同一ログでfullとLOOを比較する。`exact()`はcontextの確率とreward表から期待値を独立に計算する。学習モデルを置かず、target
+    policyを明示することで、選択と測定の違いを確認する。'
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: equations
+  id: counterfactual-math
+  title: 観測報酬から、代替後に失う分へ
+  after: method
+  locator: §3.1–3.3 / Eq. 1–2 / Appendix 6.2
+  rationale: 観測報酬から、代替後に失う分へ
+  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  steps:
+  - name: 1. 対象policyの値
+    formula: SNIPS(π) = Σⱼ rⱼ mⱼ/pⱼ ÷ Σⱼ mⱼ/pⱼ
+    explanation: pはlogging propensity、mはtargetとのmatch。以下の小実験は0/1のexact match。
+  - name: 2. 次善候補で埋める
+    formula: Δᵢ = Σₖ wₖ [SNIPS(explore,k) − SNIPS(LOOᵢ,k)]
+    explanation: 作品iの報酬だけを引かず、除去したpolicyの報酬を引く。
+  - name: 3. 到達範囲を戻す
+    formula: Incrementality(i) = Irreplaceability(i) × Universality(i)
+    explanation: eligible内での差とeligibleになる頻度を区別する。
+  - name: 4. 条件内のHájek差
+    formula: Iᵢ = [Σ T r/π ÷ Σ T/π] − [Σ (1−T) r/(1−π) ÷ Σ (1−T)/(1−π)]
+    explanation: 和はiが候補に入る標本Eᵢ上。両群を別々に自己正規化する。
+  source: https://arxiv.org/pdf/2609.22747v1
+- kind: matrix
+  id: two-audiences
+  title: どこで価値が失われたかを分解する
+  after: core_idea
+  locator: §3.3 / Eq. 2
+  rationale: どこで価値が失われたかを分解する
+  caption: Eq. 2を読むための概念表。実作品を四象限へ割り当てた測定図ではない。
+  columns:
+  - Irreplaceability 高
+  - Irreplaceability 低
+  rows:
+  - label: Universality 高
+    cells:
+    - 広く届き、代替しにくい
+    - 広く届くが、代替が効く
+  - label: Universality 低
+    cells:
+    - 狭い対象で代替しにくい
+    - 到達も条件内の増分も小さい
+  source: https://arxiv.org/pdf/2609.22747v1
+- kind: timeline
+  id: label-incident
+  title: 作品の不調から、ラベル生成の故障へ
+  after: evidence
+  locator: §4.3 / Fig. 3
+  rationale: 作品の不調から、ラベル生成の故障へ
+  caption: 実際に報告された診断の順序。時系列の座標、検知日数、修正効果の数値は追加しない。
+  rows:
+  - label: 著者の事例
+    nodes:
+    - title: 監視
+      text: content Aのincrementalityが急落
+    - title: 比較
+      text: 似た内容の系列は安定
+    - title: 調査
+      text: positive labelの誤帰属を発見
+  source: https://arxiv.org/pdf/2609.22747v1

@@ -1,0 +1,33 @@
+{
+  "note": "人工データ。exact-match、1位置、既知propensity。NetflixのsimulationやA/Bの再現ではない。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "experiments": [
+    {
+      "name": "同一探索ログでpolicyと除去policyを評価",
+      "n": 120000,
+      "seed": 23,
+      "metrics": {
+        "raw_log_mean": 0.342525,
+        "snips_full": 0.3610347307104973,
+        "snips_loo": 0.31833052796319045,
+        "incrementality": 0.04270420274730685,
+        "true_full": 0.36,
+        "true_loo": 0.32,
+        "true_incrementality": 0.03999999999999998,
+        "absolute_error": 0.002704202747306872
+      }
+    },
+    {
+      "name": "cascade分解の算術例",
+      "metrics": {
+        "niche": 0.016,
+        "broad": 0.024
+      }
+    }
+  ]
+}

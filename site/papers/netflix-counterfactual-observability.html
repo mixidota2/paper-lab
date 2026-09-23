@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="NetflixのCONSEQUENCES論文は、推薦の成果を「その作品や判断がなかった場合との差」で測る。行の増分価値は11件の除去A/BとR²=0.8212。新しいrankerではなく、engagement liftの読み方と障害の見つけ方を変える。">
+  <title>よく見られた作品は、なくなると困る作品なのか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-19</span></div>
+    <h1>よく見られた作品は、なくなると困る作品なのか</h1>
+    <p class="lede">NetflixのCONSEQUENCES論文は、推薦の成果を「その作品や判断がなかった場合との差」で測る。行の増分価値は11件の除去A/BとR²=0.8212。新しいrankerではなく、engagement liftの読み方と障害の見つけ方を変える。</p>
+    <details class="bibliography"><summary>原論文：Beyond Raw Engagement: A Counterfactual Observability Framework for Recommender Systems at Netflix</summary><p>Chaoran Guo, Ding Tong, Ting-Po Lee, Scarlet Chen</p><p>2609.22747 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.22747">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.22747v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-23 · 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-counterfactual-math">観測報酬から、代替後に失う分へ</a><a href="#figure-two-audiences">どこで価値が失われたかを分解する</a><a href="#figure-label-incident">作品の不調から、ラベル生成の故障へ</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>高CTRの作品でも、ほぼ同じ満足を与える代替があれば除去損失は小さい。逆に、限られた視聴者にだけ届く作品は全体CTRで埋もれても、その視聴者には代えがたい。この論文は制作者に向けた価値評価と、モデル開発者に向けた診断を同じ探索ログから作る。RecSys CONSEQUENCES 2026の6ページ論文で、Netflix全体の売上やretentionを新たに改善したA/Bを報告するものではない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>観測clickには、内容の質、表示位置、対象者の選び方、候補に入る頻度が混ざる。順位が落ちたためのCTR低下を内容の劣化と受け取ると、制作者も開発者も誤った修正へ向かう。必要なのは「誰に、何が候補として入り、どの確率で選ばれ、何が起きたか」のログである。選択確率がゼロの候補については逆確率重みだけでは反実仮想を回復できない。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>探索時の選択確率を記録し、SNIPSで表示の偏りを補正する。同じ位置の代替候補との比較と、対象を除いたLeave-One-Outを使い分ける。cascade全体の貢献はIrreplaceabilityとUniversalityへ分解する。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><a href="accuracy-not-service-intermittent-demand.html">Accuracy Is Not Service</a>が予測誤差と発注成果を分けたように、ここでは観測engagementと代替後に失う価値を分ける。<a href="varg-tmall-value-generative-retrieval.html">VARG</a>や<a href="unique-baidu-unified-retrieval-ranking.html">UNIQUE</a>のオンライン改善を読む際も、候補経路の採用率だけで増分貢献を判断しない。ただし他社のliftをこの論文の推定量へ換算はできない。</p></div></div>
+      </section>
+<figure class="teaching teaching--matrix" id="figure-two-audiences" aria-labelledby="title-two-audiences">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-two-audiences">どこで価値が失われたかを分解する</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="どこで価値が失われたかを分解するの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">Irreplaceability 高</th><th scope="col">Irreplaceability 低</th></tr></thead><tbody><tr><th scope="row">Universality 高</th><td class="">広く届き、代替しにくい</td><td class="">広く届くが、代替が効く</td></tr><tr><th scope="row">Universality 低</th><td class="">狭い対象で代替しにくい</td><td class="">到達も条件内の増分も小さい</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>Eq. 2を読むための概念表。実作品を四象限へ割り当てた測定図ではない。 <a href="https://arxiv.org/pdf/2609.22747v1">出典：§3.3 / Eq. 2 ↗</a></figcaption>
+</figure>      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>三つの問いを混ぜない</h3>
+<p><strong>Bias reduction</strong>は露出の偏りを補正する段階。<strong>Relativity</strong>はpolicy同士、または同じ位置の作品とランダムな作品との比較。<strong>Incrementality</strong>は除去後に次善の候補で埋めた場合の損失を問う。位置kの重みwₖも必要で、単に作品の平均CTRを引くだけではない。</p>
+<p>単段のLeave-One-Outでは、除去対象がtopならsecond-bestを採用し、それ以外ならtopを維持する。この反実仮想policyと探索ログの選択が一致する観測に重みを付ける。本文§3.2はlogged probabilityに10th percentileの下限を置く。§4.2のrow推定のclipとは別の条件である。</p>
+<h3>候補生成側と制作者側では分解が違う</h3>
+<p>上流モデルを診断する場合、除去で下流へ流れる集合が変わるため、候補集合のJaccard類似度などをmatchに用いる。exact matchからの近似であり、不偏性をそのまま継承しない。</p>
+<p>制作者に伝えるcascade全体の値は、候補に入った条件下での代替困難度Irreplaceabilityと、候補に入る確率Universalityの積。前者はeligibleなsession内で、選択有無Tと記録確率πを用いて推定する。普及範囲の小ささと、内容の代替しやすさを別々に診断できる。</p>
+<p>逐次・非復元選択では、未選択を条件とする各位置の確率πᵢₖから、少なくとも一度選ばれる確率pᵢK=1−∏ₖ(1−πᵢₖ)を作る。この条件付き確率を、各位置の無条件の露出率で置き換えない。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-counterfactual-math" aria-labelledby="title-counterfactual-math">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-counterfactual-math">観測報酬から、代替後に失う分へ</h3>
+  <ol class="equation-steps"><li><strong>1. 対象policyの値</strong><div class="math-expression" tabindex="0" role="math" aria-label="SNIPS(π) = Σⱼ rⱼ mⱼ/pⱼ ÷ Σⱼ mⱼ/pⱼ">SNIPS(π) = Σⱼ rⱼ mⱼ/pⱼ ÷ Σⱼ mⱼ/pⱼ</div><p>pはlogging propensity、mはtargetとのmatch。以下の小実験は0/1のexact match。</p></li><li><strong>2. 次善候補で埋める</strong><div class="math-expression" tabindex="0" role="math" aria-label="Δᵢ = Σₖ wₖ [SNIPS(explore,k) − SNIPS(LOOᵢ,k)]">Δᵢ = Σₖ wₖ [SNIPS(explore,k) − SNIPS(LOOᵢ,k)]</div><p>作品iの報酬だけを引かず、除去したpolicyの報酬を引く。</p></li><li><strong>3. 到達範囲を戻す</strong><div class="math-expression" tabindex="0" role="math" aria-label="Incrementality(i) = Irreplaceability(i) × Universality(i)">Incrementality(i) = Irreplaceability(i) × Universality(i)</div><p>eligible内での差とeligibleになる頻度を区別する。</p></li><li><strong>4. 条件内のHájek差</strong><div class="math-expression" tabindex="0" role="math" aria-label="Iᵢ = [Σ T r/π ÷ Σ T/π] − [Σ (1−T) r/(1−π) ÷ Σ (1−T)/(1−π)]">Iᵢ = [Σ T r/π ÷ Σ T/π] − [Σ (1−T) r/(1−π) ÷ Σ (1−T)/(1−π)]</div><p>和はiが候補に入る標本Eᵢ上。両群を別々に自己正規化する。</p></li></ol>
+  <figcaption>一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。 <a href="https://arxiv.org/pdf/2609.22747v1">出典：§3.1–3.3 / Eq. 1–2 / Appendix 6.2 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>探索が比較対象を観測可能にし、自己正規化が極端な重みの分散を抑える。代替込みの差を取れば、単なる露出の多さと、失うと困る価値を区別しやすい。ただしSNIPSは有限標本で一般に不偏ではない。確率のclipやJaccardによる近似matchにもbias–varianceの交換がある。正しいpropensity、比較可能な報酬、十分なsupportがなければ「因果」という名前だけでは救えない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p><a href="https://arxiv.org/pdf/2609.22747v1">一次資料PDF §4.1–4.3 / Figs. 1–3</a> の著者報告。</p>
+<table>
+<thead>
+<tr>
+<th>検証</th>
+<th>条件と結果</th>
+<th>確かめた範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>単段simulation</td>
+<td>1,000内容、intrinsic CTRはBeta(1,8)/4、Boltzmann温度0.1、閲覧深さPoisson(10)</td>
+<td>R1/R2除去の真値とLOOの整合。noise増加で差も増える</td>
+</tr>
+<tr>
+<td>homepage row除去</td>
+<td>11件のA/B、R²=0.8212</td>
+<td>行のincrementalityと実除去によるengagement損失の対応</td>
+</tr>
+<tr>
+<td>行の推定条件</td>
+<td>Hájek、propensityを[0.0001,0.9999]へclip、行ごと100観測以上</td>
+<td>長さの違うhomepageを集計</td>
+</tr>
+<tr>
+<td>監視事例</td>
+<td>content Aだけが急落、類似内容は安定</td>
+<td>positive labelの誤帰属を発見</td>
+</tr>
+</tbody>
+</table>
+<p>R²は11件での整合であり、任意の新しいrowや別サービスへの精度保証ではない。Fig. 2の個別座標と元ログは提供されていないため、本Labは散布点を作らず、R²も再計算しない。Fig. 3の時系列も推測で描かない。監視が問題発見につながったことは報告されるが、修正後のengagement回復量や検知率は示されない。</p></div>      </section>
+<figure class="teaching teaching--timeline" id="figure-label-incident" aria-labelledby="title-label-incident">
+  <div class="figure-heading"><span class="eyebrow">TIMELINE</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-label-incident">作品の不調から、ラベル生成の故障へ</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">著者の事例</p><div class="diagram-nodes"><div class="diagram-node"><strong>監視</strong><p>content Aのincrementalityが急落</p></div><div class="diagram-node"><strong>比較</strong><p>似た内容の系列は安定</p></div><div class="diagram-node"><strong>調査</strong><p>positive labelの誤帰属を発見</p></div></div></div></div>
+  <figcaption>実際に報告された診断の順序。時系列の座標、検知日数、修正効果の数値は追加しない。 <a href="https://arxiv.org/pdf/2609.22747v1">出典：§4.3 / Fig. 3 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/netflix-counterfactual-observability/run.py</code>。2種類の利用者、3候補、各contextで既知の選択確率という人工世界で、ログの単純平均とSNIPSを比較する。Aを除いた後にBへ置き換えるtarget policyも同じログで評価する。乱数で作ったBernoulli rewardに加え、確率で厳密に積分した真値を残す。Netflixの1,000内容simulationの再現ではない。</p>
+<figure class="teaching" data-b21><h3>代替困難度と到達範囲を掛ける</h3><label>人工作品 <select><option value="0">狭い対象の作品</option><option value="1">広く届く作品</option></select></label><script type="application/json" data-frames>["<div class=\"b21-cards\"><div>候補に入った条件での差<br><strong>0.080<\/strong><\/div><div>× 候補になる確率<br><strong>0.20<\/strong><\/div><div>＝ 全体の増分<br><strong>0.016<\/strong><\/div><\/div><p>狭い対象の作品。人工例であり、実作品の測定値ではない。<\/p>", "<div class=\"b21-cards\"><div>候補に入った条件での差<br><strong>0.030<\/strong><\/div><div>× 候補になる確率<br><strong>0.80<\/strong><\/div><div>＝ 全体の増分<br><strong>0.024<\/strong><\/div><\/div><p>広く届く作品。人工例であり、実作品の測定値ではない。<\/p>"]</script><div data-output><div class="b21-cards"><div>候補に入った条件での差<br><strong>0.080</strong></div><div>× 候補になる確率<br><strong>0.20</strong></div><div>＝ 全体の増分<br><strong>0.016</strong></div></div><p>狭い対象の作品。人工例であり、実作品の測定値ではない。</p></div><figcaption>Eq. 2の掛け算を可視化。値はrun.py / results.jsonの人工例。A/B散布図の代用品ではない。</figcaption></figure></div><div class="downloads"><a href="../downloads/netflix-counterfactual-observability/run.py" download>実行コード</a><a href="../downloads/netflix-counterfactual-observability/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/netflix-counterfactual-observability">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>人工データ。exact-match、1位置、既知propensity。NetflixのsimulationやA/Bの再現ではない。</em></p>
+<h3>同一探索ログでpolicyと除去policyを評価</h3>
+<ul><li><strong>n</strong>: 120000</li><li><strong>seed</strong>: 23</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>raw_log_mean</th><td colspan='1'>0.342525</td></tr><tr><th scope='row'>snips_full</th><td colspan='1'>0.3610347307104973</td></tr><tr><th scope='row'>snips_loo</th><td colspan='1'>0.31833052796319045</td></tr><tr><th scope='row'>incrementality</th><td colspan='1'>0.04270420274730685</td></tr><tr><th scope='row'>true_full</th><td colspan='1'>0.36</td></tr><tr><th scope='row'>true_loo</th><td colspan='1'>0.32</td></tr><tr><th scope='row'>true_incrementality</th><td colspan='1'>0.03999999999999998</td></tr><tr><th scope='row'>absolute_error</th><td colspan='1'>0.002704202747306872</td></tr></tbody></table></div>
+<h3>cascade分解の算術例</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>niche</th><td colspan='1'>0.016</td></tr><tr><th scope='row'>broad</th><td colspan='1'>0.024</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;人工データ。exact-match、1位置、既知propensity。NetflixのsimulationやA/Bの再現ではない。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;同一探索ログでpolicyと除去policyを評価&quot;,
+      &quot;n&quot;: 120000,
+      &quot;seed&quot;: 23,
+      &quot;metrics&quot;: {
+        &quot;raw_log_mean&quot;: 0.342525,
+        &quot;snips_full&quot;: 0.3610347307104973,
+        &quot;snips_loo&quot;: 0.31833052796319045,
+        &quot;incrementality&quot;: 0.04270420274730685,
+        &quot;true_full&quot;: 0.36,
+        &quot;true_loo&quot;: 0.32,
+        &quot;true_incrementality&quot;: 0.03999999999999998,
+        &quot;absolute_error&quot;: 0.002704202747306872
+      }
+    },
+    {
+      &quot;name&quot;: &quot;cascade分解の算術例&quot;,
+      &quot;metrics&quot;: {
+        &quot;niche&quot;: 0.016,
+        &quot;broad&quot;: 0.024
+      }
+    }
+  ]
+}</code></pre></details><p>人工設定では元policyの期待CTRは0.36、A除去後は0.32で、増分は0.04。AのCTRそのものを増分と呼ばない。実行JSONには標本推定の誤差とログの単純平均も保存する。別の人工例では、代替困難度0.08×候補率0.20=0.016、0.03×0.80=0.024となり、代替困難度だけの順序と全体貢献の順序が逆転する。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。既知の正のpropensityを使う単段・exact matchでSNIPSとLOOを計算し、解析的な期待値と照合した。全contextに同じ重み倍率を掛けてもSNIPSが変わらない局所条件はCONFIRMED。cascadeの掛け算は定義の算術確認にとどまる。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability NOT TESTED。Netflixログ、11件のA/B、長期retention、位置間干渉、候補集合のJaccard近似、clipの実データ感度は未検証。最小実験でsupportが消えれば推定不能になるが、実システムで十分な探索量をどう維持するかは別課題。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>snips()</code>はmatch/propensityの自己正規化、<code>simulate()</code>は同一ログでfullとLOOを比較する。<code>exact()</code>はcontextの確率とreward表から期待値を独立に計算する。学習モデルを置かず、target policyを明示することで、選択と測定の違いを確認する。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文と最小実装の対応</h1>
+<p><a href="https://arxiv.org/pdf/2609.22747v1">一次PDF v1</a>。確認日：2026-09-23。保存済みPDFを再利用した。</p>
+<p>SHA-256: <code>3b3dc018790b6c0919e44b348ade304a935bead51794083432daf77dc2b9445d</code></p>
+<table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>最小コード / 表示</th>
+<th>省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3.1 SNIPS</td>
+<td><code>snips()</code></td>
+<td>位置補正・確率clip</td>
+</tr>
+<tr>
+<td>§3.2 Eq. 1</td>
+<td><code>simulate()</code> / <code>exact()</code></td>
+<td>3候補・1位置へ簡略化</td>
+</tr>
+<tr>
+<td>§3.3 Eq. 2 / Appendix 6.2</td>
+<td>掛け算の人工例・数式図</td>
+<td>cascade再生、Hájekの実ログ推定</td>
+</tr>
+<tr>
+<td>§4.2 Fig. 2</td>
+<td>R²と11件、推定条件の引用</td>
+<td>元座標なし。散布図を生成しない</td>
+</tr>
+<tr>
+<td>§4.3 Fig. 3</td>
+<td>incidentの診断図</td>
+<td>故障ログ、回復量</td>
+</tr>
+</tbody>
+</table>
+<p>本番効果と著者simulationはいずれも追試していない。</p>
+<p>公式コード：確認した一次PDF・arXiv書誌に、この方式の再現用リポジトリを特定できる案内はなかった。非公開であるとの断定はしない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>よく見られた作品は、なくなると困る作品なのか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/netflix-counterfactual-observability/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

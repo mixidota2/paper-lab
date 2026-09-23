@@ -1,6 +1,6 @@
 # Interactive Research Library
 
-一次資料を読み、仕組み・根拠・限界を日本語で説明する58件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
+一次資料を読み、仕組み・根拠・限界を日本語で説明する61件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
 
 公開先：https://mixidota2.github.io/paper-lab/
 
@@ -105,3 +105,11 @@ OGRの理論的な依存深さと実測throughput、DREAMの累積lift、PILOT�
 [VARG](https://mixidota2.github.io/paper-lab/papers/varg-tmall-value-generative-retrieval.html)、[Accuracy Is Not Service](https://mixidota2.github.io/paper-lab/papers/accuracy-not-service-intermittent-demand.html)、[AURA](https://mixidota2.github.io/paper-lab/papers/aura-disney-agentic-rec-diagnosis.html)を追加。住所の安定性、精度と完納の順位散布図、診断から修正を保留する判断を扱います。各PDFの版・ハッシュと実行範囲はmappingに記録しています。
 
 Radarとして[GRACE](https://mixidota2.github.io/paper-lab/papers/grace-meta-ads-gtm-serving.html)、[ICEGR](https://mixidota2.github.io/paper-lab/papers/icegr-baidu-intent-generative-retrieval.html)、[EvoPilot](https://mixidota2.github.io/paper-lab/papers/evopilot-verify-dont-trust-autoresearch.html)、[SIDInspector](https://mixidota2.github.io/paper-lab/papers/sidinspector-mapping-diagnostics.html)も追加。request別mask、margin係数、評価器不具合の時系列、住所表の診断を図で追えます。`uv run --with playwright tests/browser_september22.py` で7本のresponsive表示を確認できます。
+
+## 2026-09-23：観測・統合・配信を分けて読む
+
+優先3本を先行公開。Netflixは反実仮想の測定、UNIQUEはretrieval内の表現共有、FlashVectorは全体性能による採択を扱う。一次資料と検証記録は [BATCH-2026-09-23.md](BATCH-2026-09-23.md)。
+
+- [netflix-counterfactual-observability](https://mixidota2.github.io/paper-lab/papers/netflix-counterfactual-observability.html)
+- [unique-baidu-unified-retrieval-ranking](https://mixidota2.github.io/paper-lab/papers/unique-baidu-unified-retrieval-ranking.html)
+- [flashvector-unity-serving-stack-agent](https://mixidota2.github.io/paper-lab/papers/flashvector-unity-serving-stack-agent.html)

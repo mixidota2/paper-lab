@@ -1,0 +1,175 @@
+id: unique-baidu-unified-retrieval-ranking
+arxiv_id: '2609.23718'
+title: 'UNIQUE: A Unified Retrieval and Ranking System for Large-Scale Feed Recommendation'
+authors:
+- Zhuang Liu
+- Yongkang Fu
+- Zuodong Yang
+- Guangxing Chen
+- Zonggang Wu
+- Yuqi Lu
+- Shouke Qin
+- Shantao Li
+- Maolin Wang
+year: 2026
+submitted: '2026-09-20'
+topics:
+- recommender-systems
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2609.23718
+  arxiv: https://arxiv.org/abs/2609.23718
+  pdf: https://arxiv.org/pdf/2609.23718v1
+  official_code: null
+verdict: Worth Reading
+status: published
+question: 候補生成と順位付けは、どの表現まで共有できるか
+summary: Baidu/BeihangのUNIQUEはflatな意味codeと候補ごとのtarget attentionを共有モデルへ統合する。Mobile Baiduの1週間A/Bでwatch duration
+  +0.96%、distribution volume +1.08%。P99 89 msはretrieval serviceの条件付き実測。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- generative-rec-vs-retrieval
+source_review:
+  checked: '2026-09-23'
+  version: v1
+  pdf_sha256: d25cf755a606caab016178c6f2f5f5122b1d75ad646448c3257a984efe08b508
+  url: https://arxiv.org/pdf/2609.23718v1
+  scope: 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。
+core_idea:
+  author_claim: 行動feedbackを含むEQNでflat codeを学び、UIGNの利用者prefixとTDNのitem/code targetをearly fusionする。code予測と複数のranking教師を同じ表現へ流し、階層量子化の誤差伝播とretrieval/ranking間の情報損失を抑える。
+  research_bot_interpretation: '[Sona](sona-yandex-music.html)のcascade置換、[VARG](varg-tmall-value-generative-retrieval.html)のpre-rank迂回、[LIGE-GR](lige-gr-meta-listwise.html)の追加listwiseとは導入単位が違う。UNIQUEはretrieval段に内側の粗・精rankingを持つ共有モデル。[GenPage](genpage-netflix-homepage.html)や[OGR](ogr-once-generated-ranked.html)の列・page最適化とも区別したい。[UniRec](unirec-chain-of-attribute.html)との共通点は統合だが、何を共有し何を出力するかを比較する必要がある。'
+sections:
+  overview: Mobile Baiduのhomepage、discovery page、short videoが対象。意味codeを予測して候補を展開した後、user–item内積による粗ranking、候補targetを入れる精rankingが続く。統合されるのは表現と学習・配信部品であり、カタログ全件を一度に精rankingする方式でも、下流の推薦処理をすべて削除した方式でもない。
+  problem: RQ-VAE型の階層codeは最初の粗い割当が後段の残差に影響し、人気itemへcode利用が偏る。さらに独立したretrieverとrankerでは、最終判断の教師が候補生成の表現へ届きにくい。flat化だけで目的のずれが消えるわけではないため、codeを学ぶ時点のfeedbackと、ranking教師を共有表現へ返す経路も設計する。
+  why_it_might_work: flat codeは階層間の依存を除き、候補codeそのものと利用者履歴を交差させるため、単独user vectorとの内積だけより細かな候補選択が可能になる。target同士を見せないmaskは、候補をまとめて計算しながら他候補の混入を避ける。ただしcode数分のscore計算、candidate
+    fan-out、code/item更新の同期が必要になる。均衡化は意味的な最近傍を変えうるので、分散が下がったことだけで推薦の質を結論しない。
+  evidence: '[一次資料PDF §4 / Tables 2–6](https://arxiv.org/pdf/2609.23718v1) の著者報告。
+
+
+    | 評価 | 結果 | 条件 |
+
+    | --- | --- | --- |
+
+    | オンライン | watch +0.96%、distribution +1.08%、retention +0.70% | Mobile Baidu、1週間、旧production retrieval比、内部検定p<0.05
+    |
+
+    | 配信 | P80 35 ms / P99 89 ms、MFU 44.23% | 約400 NVIDIA L20、1 instance/GPU、TensorRT FP16 |
+
+    | peak | 約10,000 QPS、平均37 ms | retrieval service、全推薦応答のlatencyとは同一視しない |
+
+    | KuaiRand-Pure | HR@50 0.1510、CTR-AUC 0.7252 | 27,285 users、7,583 items、時系列leave-one-out |
+
+    | flat→階層へ置換 | HR@50 0.1421、AUC 0.7190 | Table 3、他lossと設定を維持 |
+
+    | codebook | item数の分散1510.85→389.57、top-1 category share 65.43→78.08% | production、同容量16,384 code |
+
+
+    early fusionを外すとHR@50 0.1398、generative objectiveを外すと0.1374。全要素の寄与は見えるが、同じA/Bで個別要素の因果効果まで分離してはいない。新規userのwatch
+    +1.44%、高activity +1.11%に対し低activityは+0.29%。集計改善を全利用者の同じ便益と読まない。
+
+
+    本文§1は導入をFebruary、§4.1.2はJanuary 2026とし、開始月に不整合がある。ここでは月を確定しない。traffic割付比や信頼区間、MFUの算定内訳は明記されず、89 msを他方式と同一hardware・同一負荷の比較値にはしない。'
+  executable_understanding: '`uv run papers/unique-baidu-unified-retrieval-ranking/run.py`。2次元の正規化itemと4 codeでEq.
+    11の距離補正を動かす。別の小計算ではtargetがprefixだけを見るattentionと、別targetも混ぜるattentionを比較し、無関係なtargetの追加が既存scoreを変えるか確認する。学習済みUNIQUEやRQ-VAEの優劣を測る実験ではない。'
+  results: results.jsonはτ=0とτ=1の割当、元の距離、補正後の距離を記録する。人工頻度を与えると候補codeが切り替わり、均衡化には距離の代償があることが見える。prefixのみ参照するtarget出力は別target追加で不変、targetを混ぜた対照は変化する。これをHR/AUCの改善へ読み替えない。
+  what_we_verified: Mechanism PARTIAL。Eq. 11のτ=0が通常の最近傍へ戻ること、正の頻度倍率による割当変化、target-to-prefixの他候補からの独立性を人工値で確認した。これらの局所条件はCONFIRMED。モデル全体のearly
+    fusionの効果は未検証。
+  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。DSSMの学習、EMA codebookの収束、RQ-VAEとの公平比較、GPU
+    MFU、A/Bは実行していない。全codeのscore費用や、同じcodeへ属するitem数の偏りがtail latencyへ与える影響も未測定。
+  implementation: '`assign()`は正規化済みitemとcodeの距離へ相対使用率のτ乗を掛ける。`attention()`は学習projectionを恒等写像にした単頭attention。教師なしの4
+    codeだけなので、productionのflat化による分散低下は再現対象外。'
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: architecture
+  id: shared-encoder
+  title: codeを探す教師とitemを選ぶ教師が合流する
+  after: method
+  locator: Fig. 1 / §3.2–3.6
+  rationale: codeを探す教師とitemを選ぶ教師が合流する
+  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  rows:
+  - label: EQN
+    nodes:
+    - title: DSSM教師
+      text: user task tower × item tower
+    - title: Flat codebook
+      text: feedbackを含むitem表現を量子化
+  - label: 共有Transformer
+    nodes:
+    - title: UIGN prefix
+      text: profile + 短期 + 中期 + interest
+    - title: TDN targets
+      text: code / itemがprefixを参照
+  - label: 出力head
+    nodes:
+    - title: code logits
+      text: softmax → code候補
+    - title: item scores
+      text: relevance / CTR / duration / completion
+  source: https://arxiv.org/pdf/2609.23718v1
+- kind: matrix
+  id: target-mask
+  title: 候補同士の混入をattentionで止める
+  after: method
+  locator: Eq. 15 / §3.4.2
+  rationale: 候補同士の混入をattentionで止める
+  caption: 本文のtarget-attention splitを説明用の依存表にした。実装tensorの全mask要素を復元したものではない。
+  columns:
+  - user prefixを参照
+  - 別のtargetを参照
+  rows:
+  - label: prefix query
+    cells:
+    - 参照
+    - 遮断
+  - label: code target query
+    cells:
+    - 参照
+    - 遮断
+  - label: item target query
+    cells:
+    - 参照
+    - 遮断
+  source: https://arxiv.org/pdf/2609.23718v1
+- kind: equations
+  id: flat-distance
+  title: 階層の住所から、1回の割当へ
+  after: method
+  locator: Eqs. 7–11, 25
+  rationale: 階層の住所から、1回の割当へ
+  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  steps:
+  - name: 同容量で比べる
+    formula: 128 × 128 hierarchical → 16,384 flat codes
+    explanation: production比較。階層RQ-VAEとflatで同じ容量でも探索と誤差伝播は違う。
+  - name: 頻度で距離を補正
+    formula: dⱼ(z) = ‖z̄ − eⱼ‖² (pⱼ / (1/M))^τ
+    explanation: τ=0は通常の最近傍。人気codeの費用を上げる。p=0への実装上の処理は本文だけでは確定できない。
+  - name: 共有する学習
+    formula: L = Ldisc + α Lgen + η Lcode + β Lquant
+    explanation: CTR等の教師、code生成、DSSM code学習、量子化の4項。
+  source: https://arxiv.org/pdf/2609.23718v1
+- kind: chart
+  id: flat-ablation
+  title: flat化を戻すとrecallが下がる
+  after: evidence
+  locator: Table 3
+  rationale: flat化を戻すとrecallが下がる
+  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  unit: HR@50
+  maximum: 0.16
+  bars:
+  - label: UNIQUE
+    value: 0.151
+  - label: w/o flat quantization
+    value: 0.1421
+  - label: w/o early fusion
+    value: 0.1398
+  - label: w/o generative objective
+    value: 0.1374
+  source: https://arxiv.org/pdf/2609.23718v1

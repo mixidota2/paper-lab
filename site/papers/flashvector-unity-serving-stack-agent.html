@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="UnityのFlashVectorはNsight/eBPFの測定から層ごとの変更を提案し、本番traffic replayで全体のthroughputとlatencyを検証する。model serverは最大2× throughput・1.98× latency speedup、feature処理は約1.6×。局所速度と採択条件を分けて読む。">
+  <title>kernelが速くなっても、配信全体が速くならなければ棄却できるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-15</span></div>
+    <h1>kernelが速くなっても、配信全体が速くならなければ棄却できるか</h1>
+    <p class="lede">UnityのFlashVectorはNsight/eBPFの測定から層ごとの変更を提案し、本番traffic replayで全体のthroughputとlatencyを検証する。model serverは最大2× throughput・1.98× latency speedup、feature処理は約1.6×。局所速度と採択条件を分けて読む。</p>
+    <details class="bibliography"><summary>原論文：FlashVector: Agent for Hierarchical Model Serving Stack Optimization</summary><p>Qi Wu, Lohan Lemire, Kai Meng, Zhongmou Cai, Raphael Bargues, Petr Zhitnikov, Zeyuan Cao, Yao Wang, Shujun Bian, Wei Chen, Sean Sheng</p><p>2609.17391 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.17391">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.17391v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-23 · 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-layer-contract">層ごとに変えるもの、全層で守るもの</a><a href="#figure-acceptance-gates">局所で勝っても全体のgateが残る</a><a href="#figure-whole-stack-speed">同じ表でもモデルごとに改善幅が違う</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>同じモデルでも、GPU以外の文字列変換やfeature組立が詰まればGPU kernelの高速化は全体費用に届かない。FlashVectorは各層の専門的な計測とコード・設定変更を一つの検証loopへ接続する。固定latency SLOの下で処理できる本番要求数が主な成果であり、広告CTRやagentの一般的なcoding能力を評価した研究ではない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>Python/PyTorch、CUDA、Triton serverのC++、feature処理のPython/Cythonでは計測手段も最適化対象も違う。再学習やhardware更新で前回の最適設定も古くなる。単発のコード生成だけでは、誤ったボトルネック診断、精度劣化、他層への負荷転移を見逃す。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>GPU kernel、計算graph、model server、on-demand feature処理を共通のProfile→Diagnose→Optimize→Verifyで扱う。正しさと測定noiseを通過した変更だけを全体負荷試験へ進め、結果をknowledge baseへ戻して継続的に最適化する。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>研究コードのKEEP、設定探索、runtime制御、実験運用に加え、配信費用を扱う第5の役割として読める。この番号は本ライブラリの整理。<a href="aura-disney-agentic-rec-diagnosis.html">AURA</a>が診断する推薦品質と、FlashVectorが変えるserving性能の責任を分けたい。<a href="agentx-kuaishou.html">AgentX</a>、<a href="coral-meta-config-harness.html">CORAL</a>、<a href="dream-taobao-agentic-control.html">DREAM</a>、<a href="pilot-experiment-lifecycle.html">PILOT</a>と比べる軸は、モデル能力だけでなく何を変更でき、何を証拠に採択するかである。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>計測器を層に合わせる</h3>
+<p>GPUにはNsight Systems / Compute、serverとfeature処理にはeBPF由来のPython/C++ profileを使う。Diagnoseは時間占有率と期待改善をもとに候補を選ぶ。1 iterationで1層をsampleし、全層を同時に変更しない。Refineはloop終了後で、採択・棄却した知見を更新する。</p>
+<h3>正しさ、noise、全体性能は別のgate</h3>
+<p>演算順序と精度を維持するrewriteは出力のelement-wise完全一致。浮動小数点の再順序化では、本文はend-to-endの絶対偏差10⁻³と、それを超える要素が最大0.1%という許容を記述し、FP32 servingでは10⁻⁴とする。per-kernelのboundは別にFP32 10⁻³、FP16 10⁻²。non-finiteは失敗。意図的近似はbusiness metric、設定変更は固定SLOのshadow canaryで検証する。本Labはこの数値許容を簡略な一致flagへ置き換える。</p>
+<p>無変更のbaseline反復からend-to-end noise floor ±6%を推定。2–6%の改善は最大8倍標本で再測定し、約2.1%までfloorを縮める。正しさに合格しても、そのまま採択しない。全体負荷試験でlatencyとthroughputを再確認する。</p>
+<h3>30倍の局所改善を2倍の全体改善へ混ぜない</h3>
+<p>Tritonの入力変換をC++化する事例、attentionを融合する事例、embedding bagをcompilerに見えるprimitiveへ分解する事例、featureのzero-copyや一括tensor割当はそれぞれ別の変更。Pythonの関数を速くした倍率を、広告配信全体の倍率へ適用できない。</p>
+<p>§5.4の設定探索は現在instance数とdynamic batch sizeの2軸で、queue policyはSLOから導く。production requestを隔離nodeでreplayし、二段モデルはpreprocessor出力を先に収集する。reviewed PRとcanaryがある点も、無審査で本番を自由に書き換えるagent像とは異なる。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-layer-contract" aria-labelledby="title-layer-contract">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-layer-contract">層ごとに変えるもの、全層で守るもの</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="層ごとに変えるもの、全層で守るものの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">Profile / context</th><th scope="col">変更の例</th></tr></thead><tbody><tr><th scope="row">GPU kernel</th><td class="">Nsight、shape/layout</td><td class="">attention融合</td></tr><tr><th scope="row">計算graph</th><td class="">PyTorch / business logic</td><td class="">embedding分解・重複除去</td></tr><tr><th scope="row">model server</th><td class="">eBPF、C++ source</td><td class="">入力serialization</td></tr><tr><th scope="row">feature処理</th><td class="">eBPF、lineage / dtype</td><td class="">Cython、zero-copy、tensor組立</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。 <a href="https://arxiv.org/pdf/2609.17391v1">出典：Fig. 3 / §4.1–4.2 ↗</a></figcaption>
+</figure><figure class="teaching teaching--logic" id="figure-acceptance-gates" aria-labelledby="title-acceptance-gates">
+  <div class="figure-heading"><span class="eyebrow">LOGIC</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-acceptance-gates">局所で勝っても全体のgateが残る</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">候補を試す</p><div class="diagram-nodes"><div class="diagram-node"><strong>正しさ</strong><p>出力・business metricを保持</p></div><div class="diagram-node"><strong>局所の測定</strong><p>noiseを超える改善</p></div><div class="diagram-node"><strong>FullStackLoadTest</strong><p>throughputとSLOを確認</p></div></div></div><div class="diagram-row"><p class="lane-label">全体で退行</p><div class="diagram-nodes"><div class="diagram-node"><strong>棄却</strong><p>incumbentへ戻す</p></div><div class="diagram-node"><strong>記録</strong><p>失敗条件もknowledge baseへ</p></div></div></div></div>
+  <figcaption>一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。 <a href="https://arxiv.org/pdf/2609.17391v1">出典：Algorithm 1 / §4.2 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>入力tensorのshape、request単位とcandidate単位のfeatureの違い、実際のprofileがあれば、汎用compilerからは見えにくい重複処理をagentが取り除ける。履歴を次回の探索へ返す点にも合理性がある。ただし熟練者との同一予算比較、agent backbone別のablation、全試行の成功率は示されない。性能事例だけでは自律性や人手節約の因果効果を確定できない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p><a href="https://arxiv.org/pdf/2609.17391v1">一次資料PDF §4.2–5.4 / Tables 1–4</a> の著者報告。</p>
+<table>
+<thead>
+<tr>
+<th>対象</th>
+<th>測定値</th>
+<th>適用範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ranking model 2</td>
+<td>throughput 2.00×、latency speedup 1.98×</td>
+<td>Table 1、model serving stack。全モデル平均ではない</td>
+</tr>
+<tr>
+<td>Retrieval model</td>
+<td>throughput 1.10×、latency 1.67×</td>
+<td>同表。局所30×を全体30×としない</td>
+</tr>
+<tr>
+<td>入力変換</td>
+<td>最大30×</td>
+<td>Triton server→Python backendのserialization処理</td>
+</tr>
+<tr>
+<td>attention</td>
+<td>996.5→279.8 μs、3.56×</td>
+<td>FP16、AOTInductor baseline、RTX PRO 6000 Blackwell、2,000候補/request</td>
+</tr>
+<tr>
+<td>feature pod</td>
+<td>940→約1,200→約1,500 RPS</td>
+<td>14 vCPU、12 Python backend process、固定latency SLO、順次追加</td>
+</tr>
+</tbody>
+</table>
+<p>featureの個別Cython関数は最大350×だが、pod全体は約1.6×。Table 3の各段は前段の上に積み重ねた値であり、独立した改善率を足さない。</p>
+<p><strong>表の不整合</strong>：Table 4のModel BはSLO 250 msに対してchosen trialのp99が271 ms。本文のSLO内採択という基準とこの行は整合しない。誤植か計測条件差かは確認できないため、全選択trialがSLOを満たしたとは記載しない。</p></div>      </section>
+<figure class="teaching teaching--chart" id="figure-whole-stack-speed" aria-labelledby="title-whole-stack-speed">
+  <div class="figure-heading"><span class="eyebrow">CHART</span><span class="figure-badge">論文の報告値</span></div>
+  <h3 id="title-whole-stack-speed">同じ表でもモデルごとに改善幅が違う</h3>
+  <p class="chart-metric">throughput倍率 · 共通尺度 0–2</p><div class="bar-chart"><div class="bar-row"><div class="bar-label"><span>Retrieval model</span><strong>1.1 throughput倍率</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 55.00000000000001%"></div></div></div><div class="bar-row"><div class="bar-label"><span>Ranking model 1</span><strong>1.8 throughput倍率</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 90.0%"></div></div></div><div class="bar-row"><div class="bar-label"><span>Ranking model 2</span><strong>2 throughput倍率</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 100.0%"></div></div></div><div class="bar-row"><div class="bar-label"><span>Ranking model 3</span><strong>1.33 throughput倍率</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 66.5%"></div></div></div><div class="bar-row"><div class="bar-label"><span>Ranking model 4</span><strong>1.35 throughput倍率</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 67.5%"></div></div></div><div class="bar-row"><div class="bar-label"><span>Gamer model</span><strong>1.15 throughput倍率</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 57.49999999999999%"></div></div></div></div>
+  <figcaption>各モデル自身のbaseline=1。絶対RPSや同一hardwareでのモデル間性能比較ではない。 <a href="https://arxiv.org/pdf/2609.17391v1">出典：Table 1 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/flashvector-unity-serving-stack-agent/run.py</code>。人工の候補変更を、出力の一致→局所改善→全体throughput→p99 SLOの順で判定する。局所2倍でも全体が遅い変更、throughputが増えてもSLOを破る変更を棄却する。これは採択規則の実装であり、実traffic replayやagentの実行ではない。</p>
+<figure class="teaching" data-b21><h3>この変更を採択するか</h3><label>人工candidate <select><option value="0">局所だけ2倍</option><option value="1">SLO超過</option><option value="2">3%改善</option><option value="3">出力が変化</option><option value="4">全gate通過</option></select></label><script type="application/json" data-frames>["<div class=\"b21-frontier\"><div>局所speed倍率 <strong>2<\/strong><\/div><div>全体throughput倍率 <strong>0.98<\/strong><\/div><div>p99 <strong>220 ms<\/strong> / SLO 250 ms<\/div><div>出力一致：はい<br><strong>棄却：全体throughputが退行<\/strong><\/div><\/div>", "<div class=\"b21-frontier\"><div>局所speed倍率 <strong>1.3<\/strong><\/div><div>全体throughput倍率 <strong>1.2<\/strong><\/div><div>p99 <strong>270 ms<\/strong> / SLO 250 ms<\/div><div>出力一致：はい<br><strong>棄却：p99がSLOを超過<\/strong><\/div><\/div>", "<div class=\"b21-frontier\"><div>局所speed倍率 <strong>1.1<\/strong><\/div><div>全体throughput倍率 <strong>1.03<\/strong><\/div><div>p99 <strong>230 ms<\/strong> / SLO 250 ms<\/div><div>出力一致：はい<br><strong>採択せず再測定：noise以内<\/strong><\/div><\/div>", "<div class=\"b21-frontier\"><div>局所speed倍率 <strong>1.4<\/strong><\/div><div>全体throughput倍率 <strong>1.3<\/strong><\/div><div>p99 <strong>200 ms<\/strong> / SLO 250 ms<\/div><div>出力一致：いいえ<br><strong>棄却：出力の正しさ<\/strong><\/div><\/div>", "<div class=\"b21-frontier\"><div>局所speed倍率 <strong>1.3<\/strong><\/div><div>全体throughput倍率 <strong>1.2<\/strong><\/div><div>p99 <strong>230 ms<\/strong> / SLO 250 ms<\/div><div>出力一致：はい<br><strong>採択：全条件を満たす<\/strong><\/div><\/div>"]</script><div data-output><div class="b21-frontier"><div>局所speed倍率 <strong>2</strong></div><div>全体throughput倍率 <strong>0.98</strong></div><div>p99 <strong>220 ms</strong> / SLO 250 ms</div><div>出力一致：はい<br><strong>棄却：全体throughputが退行</strong></div></div></div><figcaption>results.jsonの規則判定。Unityで実際に棄却されたtrialではない。</figcaption></figure></div><div class="downloads"><a href="../downloads/flashvector-unity-serving-stack-agent/run.py" download>実行コード</a><a href="../downloads/flashvector-unity-serving-stack-agent/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/flashvector-unity-serving-stack-agent">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>全測定値は説明用の人工fixture。profiling・agent・本番replayは未実行。</em></p>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;全測定値は説明用の人工fixture。profiling・agent・本番replayは未実行。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;slo_ms&quot;: 250,
+  &quot;noise_floor&quot;: 0.06,
+  &quot;candidates&quot;: [
+    {
+      &quot;name&quot;: &quot;局所だけ2倍&quot;,
+      &quot;local_ratio&quot;: 2,
+      &quot;stack_ratio&quot;: 0.98,
+      &quot;p99_ms&quot;: 220,
+      &quot;correct&quot;: true,
+      &quot;decision&quot;: &quot;reject: whole-stack regression&quot;
+    },
+    {
+      &quot;name&quot;: &quot;SLO超過&quot;,
+      &quot;local_ratio&quot;: 1.3,
+      &quot;stack_ratio&quot;: 1.2,
+      &quot;p99_ms&quot;: 270,
+      &quot;correct&quot;: true,
+      &quot;decision&quot;: &quot;reject: latency SLO&quot;
+    },
+    {
+      &quot;name&quot;: &quot;3%改善&quot;,
+      &quot;local_ratio&quot;: 1.1,
+      &quot;stack_ratio&quot;: 1.03,
+      &quot;p99_ms&quot;: 230,
+      &quot;correct&quot;: true,
+      &quot;decision&quot;: &quot;remeasure: noise floor&quot;
+    },
+    {
+      &quot;name&quot;: &quot;出力が変化&quot;,
+      &quot;local_ratio&quot;: 1.4,
+      &quot;stack_ratio&quot;: 1.3,
+      &quot;p99_ms&quot;: 200,
+      &quot;correct&quot;: false,
+      &quot;decision&quot;: &quot;reject: correctness&quot;
+    },
+    {
+      &quot;name&quot;: &quot;全gate通過&quot;,
+      &quot;local_ratio&quot;: 1.3,
+      &quot;stack_ratio&quot;: 1.2,
+      &quot;p99_ms&quot;: 230,
+      &quot;correct&quot;: true,
+      &quot;decision&quot;: &quot;accept&quot;
+    }
+  ]
+}</code></pre></details><p>5つの人工candidateのうち採択は1件。局所2倍でも全体0.98倍、全体1.2倍でもp99 270 ms、改善3%でnoise floor 6%、出力不一致の4例は棄却する。2–6%帯を再測定する仕組み自体は実装しておらず、「再測定が必要」と返す。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。出力不一致、SLO超過、全体退行、noise以下を採択しない規則はCONFIRMED。全体の改善が局所速度から自動的には導けないことを人工fixtureで確認した。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability NOT TESTED。Unity traffic、Nsight/eBPF、GPU kernel、shadow canary、LLMによる自動編集は実行していない。論文はagentの基盤LLM名・版や全trial分布を特定しておらず、本Labでも推測しない。人手のreview負荷、運用費用、再学習後の改善維持率は未評価。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>decide()</code>は論文の本文が求める全体throughput改善とSLOを明示した教育用gate。Algorithm 1のlocal verifyとFullStackLoadTestを区別する。requestを送信せず、各candidateへ与えた人工測定値を判定する。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文と最小実装の対応</h1>
+<p><a href="https://arxiv.org/pdf/2609.17391v1">一次PDF v1</a>。確認日：2026-09-23。保存済みPDFを再利用した。</p>
+<p>SHA-256: <code>a68ed302b06ee51087ca6b501a80bf748d073ae2f8c9aef29b8d89a5a15862af</code></p>
+<table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>最小コード / 表示</th>
+<th>省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Algorithm 1 / §4.2</td>
+<td><code>decide()</code>、採択gate図</td>
+<td>LLM、profiling、code mutation、replay</td>
+</tr>
+<tr>
+<td>§4.2 correctness</td>
+<td>artificial <code>correct</code> flag</td>
+<td>dtype別の数値誤差、business KPI</td>
+</tr>
+<tr>
+<td>§4.2 noise floor</td>
+<td>6%閾値、再測定要求</td>
+<td>baseline反復・8倍測定</td>
+</tr>
+<tr>
+<td>Table 1</td>
+<td>全体throughputの棒図</td>
+<td>生のload-test trace</td>
+</tr>
+<tr>
+<td>Table 3</td>
+<td>940→約1,500 RPSの引用</td>
+<td>feature serviceの再現</td>
+</tr>
+<tr>
+<td>Table 4</td>
+<td>Model Bの250/271 msを明記</td>
+<td>食い違いの原因は未確認</td>
+</tr>
+</tbody>
+</table>
+<p>本文のC++変更は<a href="https://github.com/triton-inference-server/server/issues/8348">公式Triton issue #8348</a>を参照する。これはFlashVector全体の公開コードではない。</p>
+<p>公式コード：確認した一次PDF・arXiv書誌に、この方式の再現用リポジトリを特定できる案内はなかった。非公開であるとの断定はしない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>kernelが速くなっても、配信全体が速くならなければ棄却できるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/flashvector-unity-serving-stack-agent/lab.yaml" download>このページの原データ</a></footer>
+</body></html>
