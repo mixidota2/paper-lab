@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="在庫の観測と判断規則を分けるIGPO。14日A/BでCTR相対+3.17%、監査bad case −38.9%。probeの見落としと追加遅延は残る。">
+  <title>検索で見つからない商品を、在庫なしと覚えてよいか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-04</span></div>
+    <h1>検索で見つからない商品を、在庫なしと覚えてよいか</h1>
+    <p class="lede">在庫の観測と判断規則を分けるIGPO。14日A/BでCTR相対+3.17%、監査bad case −38.9%。probeの見落としと追加遅延は残る。</p>
+    <details class="bibliography"><summary>原論文：Inventory-Grounded Policy-Level Optimization for Training-Free AI Search</summary><p>Wei Zhou, Tiandeng Wu, Jiandong Ding, Zhufeng Fan, Yi Cao</p><p>2609.04813 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.04813">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.04813v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-24 · 一次PDFのFig. 1、§3–4、Tables 1–4、Appendix Bを確認。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-inventory-boundary">商品情報と、情報から判断する規則を分ける</a><a href="#figure-portrait-equations">観測と方策の入力を式で追う</a><a href="#figure-boundary-errors">誤った棄権と誤った一致を別々に読む</a><a href="#figure-matched-budget">同じtoken予算でどこまで差が残るか</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>IGPOは、商品があるかどうかを固定の指示文へ覚え込ませず、検索時の在庫情報から判断する規則を蓄える。Huaweiの商用AI検索で14日間のA/Bを行い、CTRは相対+3.17%、監査したbad caseは38.9%減と報告した。施策全体の効果である。在庫情報と規則の寄与は、このA/Bでは分離していない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>「写真を印刷できるケーキ」が見つからない理由は、商品がない、検索経路が見落とす、候補にはあるが選択段で落とす、の三つに分かれる。検索失敗をすぐに「在庫なし」と学習すると、次の在庫更新でも誤った判断を繰り返す。inventoryは検索対象の集合を指す。実店舗の棚在庫数は推定しない。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者の主張：inventory portraitに現在の検索probeとカテゴリ別scene profileをまとめ、検索段と選択段それぞれへPolicy Guidelinesを注入する。モデル重みとretrieverは固定し、offlineの探索で裏づけられた規則更新だけをreplay検証後に採用する。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>解釈：検索に失敗した要求を、単なる不正解ログとして扱わない点が重要になる。見落とした経路を回収できた場合だけ成功と失敗を対比し、有限探索でも未解決なら商品不在の規則を作らない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h1>在庫を調べてから、段ごとの規則を選ぶ</h1>
+<p>Fig. 1には二つの時間軸がある。検索時に在庫を観測する上段と、offlineで規則を更新する下段だ。上段ではembedding検索のtop-k候補から、scoreの最大・平均・標準偏差、カテゴリ内の件数、属性の有無と充足率を求め、カテゴリごとの不足や最近の変更を蓄えたscene profileと合わせてinventory portraitを作る。</p>
+<p>規則も段ごとに選ぶ。カテゴリと処理段の索引で候補を絞り、queryとのembedding類似度で上位を取り出す。Retrieval Plannerは検索経路を決め、Selectionは得られた候補を最終結果に絞る。</p>
+<p>規則に「商品aが存在する」と書くと、商品を削除した途端に古い知識になる。そこで「指定属性が乏しい場合は別の埋まっている属性を検索する」という条件付きの判断を蓄える。商品そのものは記憶しない。</p>
+<p>offlineでは固定の在庫snapshotで各要求を5回実行する。判定役はDeepSeek-V3 671Bだ。成功・失敗・不確実の三つに分け、失敗や不確実な要求では最大10回の追加探索を行う。同じ要求について成功と失敗の両方が得られた場合にだけ、その差を使って規則候補を作る。未解決なら提案しない。不確実な結果も負例に使わない。</p>
+<p>候補を採用する前には、JSON構造、対象要求の改善、背景要求への影響、固定の検証集合を順に調べる。個別に通った候補も、既に採用した規則と組み合わせるたびにreplayし、干渉が起きれば除く。未知の要求への保証はない。</p></div>      </section>
+<figure class="teaching teaching--logic" id="figure-inventory-boundary" aria-labelledby="title-inventory-boundary">
+  <div class="figure-heading"><span class="eyebrow">LOGIC</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-inventory-boundary">商品情報と、情報から判断する規則を分ける</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">検索時</p><div class="diagram-nodes"><div class="diagram-node"><strong>在庫の観測</strong><p>probeのscore・カテゴリ・属性充足率とscene profileを統合。</p></div><div class="diagram-node"><strong>段別の規則</strong><p>検索と選択に最大3件ずつ。商品IDの存在は記憶しない。</p></div><div class="diagram-node"><strong>回答</strong><p>候補を選択、または観測範囲で根拠なしと判断。</p></div></div></div><div class="diagram-row"><p class="lane-label">offlineの更新</p><div class="diagram-nodes"><div class="diagram-node"><strong>失敗・不確実</strong><p>固定snapshotで追加経路を探索。不確実な結果を負例にしない。</p></div><div class="diagram-node"><strong>成功を回収</strong><p>同じ要求の失敗と対比して規則候補を作る。未解決なら提案しない。規則は据え置く。</p></div><div class="diagram-node"><strong>replay</strong><p>対象・背景・固定検証集合を検査。組み合わせた規則も再検査。</p></div></div></div></div>
+  <figcaption>一次資料を説明用に再構成。商用の報告値と人工実験は別に示す。 <a href="https://arxiv.org/pdf/2609.04813v1">出典：Fig. 1 / §3.2–3.3 ↗</a></figcaption>
+</figure><figure class="teaching teaching--equations" id="figure-portrait-equations" aria-labelledby="title-portrait-equations">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-portrait-equations">観測と方策の入力を式で追う</h3>
+  <ol class="equation-steps"><li><strong>属性の観測</strong><div class="math-expression" tabindex="0" role="math" aria-label="density(c) = |P_c|; rel(c, f) = filled(P_c, f) / |P_c|">density(c) = |P_c|; rel(c, f) = filled(P_c, f) / |P_c|</div><p>密度はprobe内の商品数。充足率の式はFieldStatsの説明用展開であり、カタログ全件の保証ではない。</p></li><li><strong>在庫の要約</strong><div class="math-expression" tabindex="0" role="math" aria-label="P(q,Iₜ) = Template(confₚ, {(S_c, SP(c))})">P(q,Iₜ) = Template(confₚ, {(S_c, SP(c))})</div><p>検索scoreの統計とカテゴリ内の属性情報に、事前計算した変化・不足の情報を加える。</p></li><li><strong>候補と最終選択</strong><div class="math-expression" tabindex="0" role="math" aria-label="C = f_ret(q, P, G_ret); R = f_sel(q, C, P, G_sel)">C = f_ret(q, P, G_ret); R = f_sel(q, C, P, G_sel)</div><p>重みが固定の二つのモデルへ、現在の観測と段別規則を渡す。Qwen3-8B共通backbone比較では、DeepSeek-V3をofflineのjudgeと規則生成にだけ使う。</p></li></ol>
+  <figcaption>一次資料を説明用に再構成。商用の報告値と人工実験は別に示す。 <a href="https://arxiv.org/pdf/2609.04813v1">出典：Eqs. 1, 5, 7, 8 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈：変わりにくい判断規則と、その時点の商品情報を分けると、商品追加や属性名の変更をモデル再学習なしに扱いやすい。ただしprobeは有限の検索である。見つからなかった事実から、カタログ全体に存在しないとは証明できない。著者の未解決93件の監査でも13件は検索の見落としだった。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料 <a href="https://arxiv.org/pdf/2609.04813v1">Table 1 / §4.1–4.4</a>。最終テストは3,000要求で、規則の検証時から4週間後の在庫を用いた。標準構成の単一実行ではFNIが30.6→4.8%、FMが60.8→15.2%。FNIは誤った棄権率。対応商品がある要求を分母にする。FMは誤った一致率で、対応商品がない要求を分母にする。両者の分母は異なる。</p>
+<p>同じDeepSeek-V3と18M token予算の比較では、F1@8はGEPA-style 0.787±0.004、IGPO 0.792±0.005で、差は実行間変動の範囲にある。120Mでは0.791±0.006対0.817±0.004。各3回の平均と標本標準偏差であり、単一実行の大きな差だけで手法の優位性を説明しない。</p>
+<p>Table 4のA/Bは利用者単位の50/50割付。対照100,400人、施策99,800人で、CTR相対+3.17%の95% CIは[1.9%, 4.5%]。両群500件ずつの独立監査でbad-case相対減少38.9% [25.2%, 50.1%]。在庫なし要求にはCTRを報告せず、誤一致を減らせたかを測る。</p>
+<p>応答は遅くなる。追加遅延はp50 49.4 ms、p95 185.8 ms。追加prompt長は平均247.3 token、p95 568.2 token。training-freeは無計算という意味ではなく、offlineの探索・judge・規則候補の生成と検証を必要とする。</p></div>      </section>
+<figure class="teaching teaching--chart" id="figure-boundary-errors" aria-labelledby="title-boundary-errors">
+  <div class="figure-heading"><span class="eyebrow">CHART</span><span class="figure-badge">論文の報告値</span></div>
+  <h3 id="title-boundary-errors">誤った棄権と誤った一致を別々に読む</h3>
+  <p class="chart-metric">% · 共通尺度 0–100</p><div class="bar-chart"><div class="bar-row"><div class="bar-label"><span>FNI / Production baseline</span><strong>30.6 %</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 30.6%"></div></div></div><div class="bar-row"><div class="bar-label"><span>FNI / IGPO</span><strong>4.8 %</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 4.8%"></div></div></div><div class="bar-row"><div class="bar-label"><span>FM / Production baseline</span><strong>60.8 %</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 60.8%"></div></div></div><div class="bar-row"><div class="bar-label"><span>FM / IGPO</span><strong>15.2 %</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 15.2%"></div></div></div></div>
+  <figcaption>一次資料を説明用に再構成。商用の報告値と人工実験は別に示す。 <a href="https://arxiv.org/pdf/2609.04813v1">出典：Table 1 native configurations ↗</a></figcaption>
+</figure><figure class="teaching teaching--matrix" id="figure-matched-budget" aria-labelledby="title-matched-budget">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-matched-budget">同じtoken予算でどこまで差が残るか</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="同じtoken予算でどこまで差が残るかの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">GEPA-style F1@8</th><th scope="col">IGPO F1@8</th><th scope="col">IGPO FM</th></tr></thead><tbody><tr><th scope="row">18M tokens</th><td class="">0.787 ± 0.004</td><td class="">0.792 ± 0.005</td><td class="">34.7 ± 1.4%</td></tr><tr><th scope="row">120M tokens</th><td class="">0.791 ± 0.006</td><td class="">0.817 ± 0.004</td><td class="">15.6 ± 0.9%</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>一次資料を説明用に再構成。商用の報告値と人工実験は別に示す。 <a href="https://arxiv.org/pdf/2609.04813v1">出典：Table 1 token-matched ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/igpo-huawei-inventory-grounded-search/run.py</code>。人工のケーキ3商品と4要求を使い、属性の移動、商品削除、probeの見落としを切り替える。固定属性だけを見るbaselineと、現在の属性充足率から検索先を選ぶ規則を比較する。正解ラベルは評価専用で、検索関数へは渡さない。</p></div><div class="downloads"><a href="../downloads/igpo-huawei-inventory-grounded-search/run.py" download>実行コード</a><a href="../downloads/igpo-huawei-inventory-grounded-search/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/igpo-huawei-inventory-grounded-search">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section class="interactive" id="interactive-1" data-interactive="explorer">
+        <p class="figure-badge">合成実験 · Mechanism PARTIAL</p><h2>同じ規則のまま在庫を変える</h2><p>人工例の正答数。最後の条件ではprobeの見落としが残る。論文の性能予測ではない。</p>
+        <script type="application/json" data-config>{"caption": "\u4eba\u5de5\u4f8b\u306e\u6b63\u7b54\u6570\u3002\u6700\u5f8c\u306e\u6761\u4ef6\u3067\u306fprobe\u306e\u898b\u843d\u3068\u3057\u304c\u6b8b\u308b\u3002\u8ad6\u6587\u306e\u6027\u80fd\u4e88\u6e2c\u3067\u306f\u306a\u3044\u3002", "kind": "explorer", "title": "\u540c\u3058\u898f\u5247\u306e\u307e\u307e\u5728\u5eab\u3092\u5909\u3048\u308b"}</script>
+<script type="application/json" data-results>{"default": 0, "frames": [{"bars": [{"label": "\u56fa\u5b9a\u5c5e\u6027\uff1a\u6b63\u7b54", "value": 2}, {"label": "\u5728\u5eab\u3092\u53c2\u7167\uff1a\u6b63\u7b54", "value": 4}], "note": "\u5143\u306e\u5c5e\u6027\u3002\u4eba\u5de54\u8981\u6c42\u3002\u898f\u5247\u306f\u56fa\u5b9a\u3057\u3001\u73fe\u5728\u306e\u5c5e\u6027\u3092\u8aad\u307f\u76f4\u3059\u3002", "value": 0}, {"bars": [{"label": "\u56fa\u5b9a\u5c5e\u6027\uff1a\u6b63\u7b54", "value": 0}, {"label": "\u5728\u5eab\u3092\u53c2\u7167\uff1a\u6b63\u7b54", "value": 4}], "note": "\u5c5e\u6027\u3092\u79fb\u52d5\u3002\u4eba\u5de54\u8981\u6c42\u3002\u898f\u5247\u306f\u56fa\u5b9a\u3057\u3001\u73fe\u5728\u306e\u5c5e\u6027\u3092\u8aad\u307f\u76f4\u3059\u3002", "value": 1}, {"bars": [{"label": "\u56fa\u5b9a\u5c5e\u6027\uff1a\u6b63\u7b54", "value": 1}, {"label": "\u5728\u5eab\u3092\u53c2\u7167\uff1a\u6b63\u7b54", "value": 4}], "note": "\u5546\u54c1a\u3092\u524a\u9664\u3002\u4eba\u5de54\u8981\u6c42\u3002\u898f\u5247\u306f\u56fa\u5b9a\u3057\u3001\u73fe\u5728\u306e\u5c5e\u6027\u3092\u8aad\u307f\u76f4\u3059\u3002", "value": 2}, {"bars": [{"label": "\u56fa\u5b9a\u5c5e\u6027\uff1a\u6b63\u7b54", "value": 2}, {"label": "\u5728\u5eab\u3092\u53c2\u7167\uff1a\u6b63\u7b54", "value": 3}], "note": "probe\u304c\u5546\u54c1c\u3092\u898b\u843d\u3068\u3059\u3002\u4eba\u5de54\u8981\u6c42\u3002\u898f\u5247\u306f\u56fa\u5b9a\u3057\u3001\u73fe\u5728\u306e\u5c5e\u6027\u3092\u8aad\u307f\u76f4\u3059\u3002", "value": 3}], "label": "\u5728\u5eab\u306e\u72b6\u614b", "metric": "\u6b63\u7b54\u6570 / 4", "unit": ""}</script>        <div data-mount></div><div data-fallback>
+<p>在庫の状態：0</p><ul><li>固定属性：正答：2</li><li>在庫を参照：正答：4</li></ul><p>元の属性。人工4要求。規則は固定し、現在の属性を読み直す。</p>        </div><p class="source-note">数値の出所：このLabの results.json。論文の測定値ではありません。</p>
+      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><details><summary>生の results.json</summary><pre><code>{
+  &quot;kind&quot;: &quot;synthetic deterministic mechanism check&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;checks&quot;: {
+    &quot;background_regression_rejected&quot;: true,
+    &quot;probe_miss_remains&quot;: true,
+    &quot;guidelines_frozen_across_snapshots&quot;: true
+  },
+  &quot;scenarios&quot;: [
+    {
+      &quot;label&quot;: &quot;元の属性&quot;,
+      &quot;baseline&quot;: {
+        &quot;fni_pct&quot;: 33.333333333333336,
+        &quot;fm_pct&quot;: 100.0,
+        &quot;correct&quot;: 2,
+        &quot;supported&quot;: 3,
+        &quot;absent&quot;: 1,
+        &quot;decisions&quot;: [
+          {
+            &quot;query&quot;: &quot;photo&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;a&quot;
+            ],
+            &quot;id&quot;: &quot;a&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;vegan&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;b&quot;
+            ],
+            &quot;id&quot;: &quot;b&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;wedding&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;c&quot;
+            ],
+            &quot;id&quot;: null,
+            &quot;decision&quot;: &quot;no_support_observed&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;gluten-free&quot;,
+            &quot;targets_for_evaluation&quot;: [],
+            &quot;id&quot;: &quot;a&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          }
+        ]
+      },
+      &quot;guided&quot;: {
+        &quot;fni_pct&quot;: 0.0,
+        &quot;fm_pct&quot;: 0.0,
+        &quot;correct&quot;: 4,
+        &quot;supported&quot;: 3,
+        &quot;absent&quot;: 1,
+        &quot;decisions&quot;: [
+          {
+            &quot;query&quot;: &quot;photo&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;a&quot;
+            ],
+            &quot;id&quot;: &quot;a&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;,
+              &quot;description&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;vegan&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;b&quot;
+            ],
+            &quot;id&quot;: &quot;b&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;,
+              &quot;description&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;wedding&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;c&quot;
+            ],
+            &quot;id&quot;: &quot;c&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;,
+              &quot;description&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;gluten-free&quot;,
+            &quot;targets_for_evaluation&quot;: [],
+            &quot;id&quot;: null,
+            &quot;decision&quot;: &quot;no_support_observed&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;,
+              &quot;description&quot;
+            ]
+          }
+        ]
+      }
+    },
+    {
+      &quot;label&quot;: &quot;属性を移動&quot;,
+      &quot;baseline&quot;: {
+        &quot;fni_pct&quot;: 100.0,
+        &quot;fm_pct&quot;: 100.0,
+        &quot;correct&quot;: 0,
+        &quot;supported&quot;: 3,
+        &quot;absent&quot;: 1,
+        &quot;decisions&quot;: [
+          {
+            &quot;query&quot;: &quot;photo&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;a&quot;
+            ],
+            &quot;id&quot;: null,
+            &quot;decision&quot;: &quot;no_support_observed&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;vegan&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;b&quot;
+            ],
+            &quot;id&quot;: null,
+            &quot;decision&quot;: &quot;no_support_observed&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;wedding&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;c&quot;
+            ],
+            &quot;id&quot;: null,
+            &quot;decision&quot;: &quot;no_support_observed&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;gluten-free&quot;,
+            &quot;targets_for_evaluation&quot;: [],
+            &quot;id&quot;: &quot;a&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          }
+        ]
+      },
+      &quot;guided&quot;: {
+        &quot;fni_pct&quot;: 0.0,
+        &quot;fm_pct&quot;: 0.0,
+        &quot;correct&quot;: 4,
+        &quot;supported&quot;: 3,
+        &quot;absent&quot;: 1,
+        &quot;decisions&quot;: [
+          {
+            &quot;query&quot;: &quot;photo&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;a&quot;
+            ],
+            &quot;id&quot;: &quot;a&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;description&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;vegan&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;b&quot;
+            ],
+            &quot;id&quot;: &quot;b&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;description&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;wedding&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;c&quot;
+            ],
+            &quot;id&quot;: &quot;c&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;description&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;gluten-free&quot;,
+            &quot;targets_for_evaluation&quot;: [],
+            &quot;id&quot;: null,
+            &quot;decision&quot;: &quot;no_support_observed&quot;,
+            &quot;fields&quot;: [
+              &quot;description&quot;
+            ]
+          }
+        ]
+      }
+    },
+    {
+      &quot;label&quot;: &quot;商品aを削除&quot;,
+      &quot;baseline&quot;: {
+        &quot;fni_pct&quot;: 100.0,
+        &quot;fm_pct&quot;: 50.0,
+        &quot;correct&quot;: 1,
+        &quot;supported&quot;: 2,
+        &quot;absent&quot;: 2,
+        &quot;decisions&quot;: [
+          {
+            &quot;query&quot;: &quot;photo&quot;,
+            &quot;targets_for_evaluation&quot;: [],
+            &quot;id&quot;: null,
+            &quot;decision&quot;: &quot;no_support_observed&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;vegan&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;b&quot;
+            ],
+            &quot;id&quot;: null,
+            &quot;decision&quot;: &quot;no_support_observed&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;wedding&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;c&quot;
+            ],
+            &quot;id&quot;: null,
+            &quot;decision&quot;: &quot;no_support_observed&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;gluten-free&quot;,
+            &quot;targets_for_evaluation&quot;: [],
+            &quot;id&quot;: &quot;b&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          }
+        ]
+      },
+      &quot;guided&quot;: {
+        &quot;fni_pct&quot;: 0.0,
+        &quot;fm_pct&quot;: 0.0,
+        &quot;correct&quot;: 4,
+        &quot;supported&quot;: 2,
+        &quot;absent&quot;: 2,
+        &quot;decisions&quot;: [
+          {
+            &quot;query&quot;: &quot;photo&quot;,
+            &quot;targets_for_evaluation&quot;: [],
+            &quot;id&quot;: null,
+            &quot;decision&quot;: &quot;no_support_observed&quot;,
+            &quot;fields&quot;: [
+              &quot;description&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;vegan&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;b&quot;
+            ],
+            &quot;id&quot;: &quot;b&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;description&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;wedding&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;c&quot;
+            ],
+            &quot;id&quot;: &quot;c&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;description&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;gluten-free&quot;,
+            &quot;targets_for_evaluation&quot;: [],
+            &quot;id&quot;: null,
+            &quot;decision&quot;: &quot;no_support_observed&quot;,
+            &quot;fields&quot;: [
+              &quot;description&quot;
+            ]
+          }
+        ]
+      }
+    },
+    {
+      &quot;label&quot;: &quot;probeが商品cを見落とす&quot;,
+      &quot;baseline&quot;: {
+        &quot;fni_pct&quot;: 33.333333333333336,
+        &quot;fm_pct&quot;: 100.0,
+        &quot;correct&quot;: 2,
+        &quot;supported&quot;: 3,
+        &quot;absent&quot;: 1,
+        &quot;decisions&quot;: [
+          {
+            &quot;query&quot;: &quot;photo&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;a&quot;
+            ],
+            &quot;id&quot;: &quot;a&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;vegan&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;b&quot;
+            ],
+            &quot;id&quot;: &quot;b&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;wedding&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;c&quot;
+            ],
+            &quot;id&quot;: null,
+            &quot;decision&quot;: &quot;no_support_observed&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;gluten-free&quot;,
+            &quot;targets_for_evaluation&quot;: [],
+            &quot;id&quot;: &quot;a&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          }
+        ]
+      },
+      &quot;guided&quot;: {
+        &quot;fni_pct&quot;: 33.333333333333336,
+        &quot;fm_pct&quot;: 0.0,
+        &quot;correct&quot;: 3,
+        &quot;supported&quot;: 3,
+        &quot;absent&quot;: 1,
+        &quot;decisions&quot;: [
+          {
+            &quot;query&quot;: &quot;photo&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;a&quot;
+            ],
+            &quot;id&quot;: &quot;a&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;vegan&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;b&quot;
+            ],
+            &quot;id&quot;: &quot;b&quot;,
+            &quot;decision&quot;: &quot;match&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;wedding&quot;,
+            &quot;targets_for_evaluation&quot;: [
+              &quot;c&quot;
+            ],
+            &quot;id&quot;: null,
+            &quot;decision&quot;: &quot;no_support_observed&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          },
+          {
+            &quot;query&quot;: &quot;gluten-free&quot;,
+            &quot;targets_for_evaluation&quot;: [],
+            &quot;id&quot;: null,
+            &quot;decision&quot;: &quot;no_support_observed&quot;,
+            &quot;fields&quot;: [
+              &quot;tags&quot;
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  &quot;explorer&quot;: {
+    &quot;label&quot;: &quot;在庫の状態&quot;,
+    &quot;unit&quot;: &quot;&quot;,
+    &quot;metric&quot;: &quot;正答数 / 4&quot;,
+    &quot;default&quot;: 0,
+    &quot;frames&quot;: [
+      {
+        &quot;value&quot;: 0,
+        &quot;note&quot;: &quot;元の属性。人工4要求。規則は固定し、現在の属性を読み直す。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;固定属性：正答&quot;,
+            &quot;value&quot;: 2
+          },
+          {
+            &quot;label&quot;: &quot;在庫を参照：正答&quot;,
+            &quot;value&quot;: 4
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1,
+        &quot;note&quot;: &quot;属性を移動。人工4要求。規則は固定し、現在の属性を読み直す。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;固定属性：正答&quot;,
+            &quot;value&quot;: 0
+          },
+          {
+            &quot;label&quot;: &quot;在庫を参照：正答&quot;,
+            &quot;value&quot;: 4
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 2,
+        &quot;note&quot;: &quot;商品aを削除。人工4要求。規則は固定し、現在の属性を読み直す。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;固定属性：正答&quot;,
+            &quot;value&quot;: 1
+          },
+          {
+            &quot;label&quot;: &quot;在庫を参照：正答&quot;,
+            &quot;value&quot;: 4
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 3,
+        &quot;note&quot;: &quot;probeが商品cを見落とす。人工4要求。規則は固定し、現在の属性を読み直す。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;固定属性：正答&quot;,
+            &quot;value&quot;: 2
+          },
+          {
+            &quot;label&quot;: &quot;在庫を参照：正答&quot;,
+            &quot;value&quot;: 3
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre></details><p>人工例の正答数は、元の属性で2→4、属性を移動すると0→4、商品aを削除すると1→4。probeが商品cを見落とす条件では2→3にとどまる。在庫参照の規則でもFNIは33.3%残った。対象要求を改善しても背景要求を壊す規則候補は、簡略なreplay検査で棄却した。人工例での結果だ。商用性能は未検証。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。現在の属性を読み直す固定規則が、人工の属性移動と商品削除を扱うことを確認した。CONFIRMEDは背景要求の回帰を棄却する検査と、probeの見落としが残る反例に限る。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability NOT TESTED。DeepSeek-V3やQwen3-8Bを実行せず、embedding検索、規則の自動生成、LLM judge、商用A/B、実遅延は再現していない。実カタログの精度は不明。この4要求からは推定できない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>portrait()</code>は観測した商品の属性充足率を数え、<code>search()</code>は手書きの固定規則で属性を選ぶ。<code>evaluate()</code>が別管理の正解集合でFNIとFMを計算する。<code>replay_gate()</code>は対象の改善と背景の非悪化を要求する説明用の関数で、Appendix Bの全閾値や反復rolloutを省略した。追加依存はない。乱数や外部APIも使わない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>Original Paper / Official Code Mapping</h1>
+<p>一次資料：<a href="https://arxiv.org/pdf/2609.04813v1">IGPO v1</a>。2026-09-24にarXivから取得し、本文とPDFを確認した。PDF SHA-256: <code>482975f49657607611f57fd5b8c1be47ef6e30c4ce95eb940b973623a552c127</code>。</p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>Labの対応</th>
+<th>省略したもの</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fig. 1 / §3.2 / Eqs. 3–8</td>
+<td>図、method.md、portrait / search</td>
+<td>embedding、scene profileの実更新、LLMの検索計画</td>
+</tr>
+<tr>
+<td>§3.3 / Appendix B</td>
+<td>replay_gateと失敗例</td>
+<td>stochastic rollout、judge、規則の生成、統計的閾値と組合せ検証</td>
+</tr>
+<tr>
+<td>Tables 1–3 / §4.3</td>
+<td>FNI/FM、予算比較、未解決例の説明</td>
+<td>3,000要求と在庫snapshotによる再評価</td>
+</tr>
+<tr>
+<td>Table 4 / §4.4</td>
+<td>A/Bの効果と分母</td>
+<td>商用利用者ログ、再実験</td>
+</tr>
+</tbody>
+</table>
+<p>公開コード：確認した一次PDFには、本手法の公式実装へのリンクを見つけられなかった。公開実装が存在しないと断定するものではない。run.pyは論文の重み・prompt・検索基盤を移植したコードではなく、観測範囲と規則の寿命を確かめる独立した人工実験である。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>検索で見つからない商品を、在庫なしと覚えてよいか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/igpo-huawei-inventory-grounded-search/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

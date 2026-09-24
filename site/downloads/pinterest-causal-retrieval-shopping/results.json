@@ -1,0 +1,213 @@
+{
+  "experiment": "enumerated_randomized_holdout",
+  "n": 600,
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "dr": [
+    {
+      "type": "low",
+      "true_uplift": 0.02,
+      "dr_known_propensity": 0.02,
+      "dr_wrong_propensity": 0.275
+    },
+    {
+      "type": "medium",
+      "true_uplift": 0.2,
+      "dr_known_propensity": 0.2,
+      "dr_wrong_propensity": 0.1625
+    },
+    {
+      "type": "organic",
+      "true_uplift": 0.05,
+      "dr_known_propensity": 0.05,
+      "dr_wrong_propensity": -0.9625
+    }
+  ],
+  "sweep": [
+    {
+      "threshold": 0,
+      "trigger_rate": 1.0,
+      "replay_reward": 0.433333,
+      "true_reward": 0.433333
+    },
+    {
+      "threshold": 0.1,
+      "trigger_rate": 0.6666666666666666,
+      "replay_reward": 0.426667,
+      "true_reward": 0.426667
+    },
+    {
+      "threshold": 0.3,
+      "trigger_rate": 0.6666666666666666,
+      "replay_reward": 0.426667,
+      "true_reward": 0.426667
+    },
+    {
+      "threshold": 0.4,
+      "trigger_rate": 0.3333333333333333,
+      "replay_reward": 0.36,
+      "true_reward": 0.36
+    },
+    {
+      "threshold": 0.7,
+      "trigger_rate": 0.3333333333333333,
+      "replay_reward": 0.36,
+      "true_reward": 0.36
+    },
+    {
+      "threshold": 0.8,
+      "trigger_rate": 0.0,
+      "replay_reward": 0.343333,
+      "true_reward": 0.343333
+    },
+    {
+      "threshold": 1,
+      "trigger_rate": 0.0,
+      "replay_reward": 0.343333,
+      "true_reward": 0.343333
+    }
+  ],
+  "checks": {
+    "untruncated_dr_with_wrong_outcomes": true,
+    "balanced_replay_equals_policy_truth": true,
+    "wrong_propensity_bias_observed": true
+  },
+  "explorer": {
+    "label": "SV の発火閾値 δ",
+    "unit": "%",
+    "metric": "合成 Holdout の発火率と報酬率",
+    "default": 2,
+    "frames": [
+      {
+        "value": 0,
+        "note": "合成データの厳密平均。論文の A/B や学習済みモデルの再現ではない。",
+        "bars": [
+          {
+            "label": "CG 発火率",
+            "value": 100.0
+          },
+          {
+            "label": "replay 報酬率",
+            "value": 43.3333
+          },
+          {
+            "label": "真の方策報酬率",
+            "value": 43.3333
+          }
+        ]
+      },
+      {
+        "value": 0.1,
+        "note": "合成データの厳密平均。論文の A/B や学習済みモデルの再現ではない。",
+        "bars": [
+          {
+            "label": "CG 発火率",
+            "value": 66.667
+          },
+          {
+            "label": "replay 報酬率",
+            "value": 42.6667
+          },
+          {
+            "label": "真の方策報酬率",
+            "value": 42.6667
+          }
+        ]
+      },
+      {
+        "value": 0.3,
+        "note": "合成データの厳密平均。論文の A/B や学習済みモデルの再現ではない。",
+        "bars": [
+          {
+            "label": "CG 発火率",
+            "value": 66.667
+          },
+          {
+            "label": "replay 報酬率",
+            "value": 42.6667
+          },
+          {
+            "label": "真の方策報酬率",
+            "value": 42.6667
+          }
+        ]
+      },
+      {
+        "value": 0.4,
+        "note": "合成データの厳密平均。論文の A/B や学習済みモデルの再現ではない。",
+        "bars": [
+          {
+            "label": "CG 発火率",
+            "value": 33.333
+          },
+          {
+            "label": "replay 報酬率",
+            "value": 36.0
+          },
+          {
+            "label": "真の方策報酬率",
+            "value": 36.0
+          }
+        ]
+      },
+      {
+        "value": 0.7,
+        "note": "合成データの厳密平均。論文の A/B や学習済みモデルの再現ではない。",
+        "bars": [
+          {
+            "label": "CG 発火率",
+            "value": 33.333
+          },
+          {
+            "label": "replay 報酬率",
+            "value": 36.0
+          },
+          {
+            "label": "真の方策報酬率",
+            "value": 36.0
+          }
+        ]
+      },
+      {
+        "value": 0.8,
+        "note": "合成データの厳密平均。論文の A/B や学習済みモデルの再現ではない。",
+        "bars": [
+          {
+            "label": "CG 発火率",
+            "value": 0.0
+          },
+          {
+            "label": "replay 報酬率",
+            "value": 34.3333
+          },
+          {
+            "label": "真の方策報酬率",
+            "value": 34.3333
+          }
+        ]
+      },
+      {
+        "value": 1,
+        "note": "合成データの厳密平均。論文の A/B や学習済みモデルの再現ではない。",
+        "bars": [
+          {
+            "label": "CG 発火率",
+            "value": 0.0
+          },
+          {
+            "label": "replay 報酬率",
+            "value": 34.3333
+          },
+          {
+            "label": "真の方策報酬率",
+            "value": 34.3333
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "experiment": "synthetic verifier boundary",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "variants": {
+    "no-op": {
+      "local": false,
+      "api": false,
+      "state": false
+    },
+    "local-only": {
+      "local": true,
+      "api": false,
+      "state": false
+    },
+    "state-leak": {
+      "local": true,
+      "api": true,
+      "state": false
+    },
+    "complete": {
+      "local": true,
+      "api": true,
+      "state": true
+    }
+  },
+  "explorer": {
+    "default": 0,
+    "label": "追加する検査群",
+    "unit": "件",
+    "metric": "合成4パッチの成否",
+    "frames": [
+      {
+        "value": 1,
+        "note": "局所検査：合格は local-only, state-leak, complete。同じ4パッチを採点。",
+        "bars": [
+          {
+            "label": "合格パッチ",
+            "value": 3
+          },
+          {
+            "label": "不合格パッチ",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "value": 2,
+        "note": "局所＋API：合格は state-leak, complete。同じ4パッチを採点。",
+        "bars": [
+          {
+            "label": "合格パッチ",
+            "value": 2
+          },
+          {
+            "label": "不合格パッチ",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "value": 3,
+        "note": "局所＋API＋状態：合格は complete。同じ4パッチを採点。",
+        "bars": [
+          {
+            "label": "合格パッチ",
+            "value": 1
+          },
+          {
+            "label": "不合格パッチ",
+            "value": 3
+          }
+        ]
+      }
+    ]
+  },
+  "limitation": "No SGLang, GPU, HTTP server, hidden benchmark tests, or agent model execution."
+}

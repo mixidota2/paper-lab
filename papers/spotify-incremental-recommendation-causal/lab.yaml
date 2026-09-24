@@ -1,0 +1,146 @@
+id: spotify-incremental-recommendation-causal
+arxiv_id: '2608.26804'
+submitted: '2026-08-27'
+title: Incremental Recommendation via Causal Models
+authors:
+- Athanasios Vlontzos
+- David Gustafsson
+- Michael O’Riordan
+- Ciarán M. Gilligan-Lee
+year: 2026
+topics:
+- recommender-systems
+- causal-inference
+- retrieval
+urls:
+  arxiv: https://arxiv.org/abs/2608.26804
+  paper: https://arxiv.org/abs/2608.26804
+  pdf: https://arxiv.org/pdf/2608.26804
+  official_code: null
+verdict: Must Read
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- incremental-recommendation
+- causal-retrieval
+status: published
+question: 表示の無駄を減らすとき、二つの再生確率を引いてよいか
+summary: Spotify は自然に再生される推薦を二つの閾値で除外する。2週間の A/B で表示は7.1%減り、推薦コンテンツの消費は−0.37%で有意差なし。計測窓が異なる二つの予測値を引き算しない設計が要点になる。
+source_review:
+  checked: '2026-09-24'
+  scope: 提供された原論文 PDF と抽出テキストを確認。独立再現ではない。
+  url: https://arxiv.org/abs/2608.26804
+  pdf_version: v1
+  pdf_sha256: 47214ec295f92aeff1d08d44f3b02ada4104e5008e29ce1f1c235b7d592e8325
+core_idea:
+  author_claim: 既存の無作為 holdback データを共有 trunk と専用 head の学習に再利用する。推薦後の再生確率が高く、自然再生確率が低い組だけに推薦する。新しい収集基盤を要しない。
+  research_bot_interpretation: CATE の推定値ではない。異なる計測窓から得た二つのスコアを意思決定に使い、同じモデルと学習データの下で表示方策だけを変えた A/B によって、表示の削減と消費への影響を確かめた事例と読む。
+sections:
+  overview: Spotify は自然に再生される推薦を二つの閾値で除外する。2週間の A/B で表示は7.1%減り、推薦コンテンツの消費は−0.37%で有意差なし。計測窓が異なる二つの予測値を引き算しない設計が要点になる。
+  problem: '二つのラベルは別物である。推薦ありでは表示直後の短い反応を拾う一方、holdback では他の経路からの自然な発見も拾うために2日間待つので、名前が同じ再生確率でも引き算の意味は変わる。
+
+
+    §3 は、backend の配信と client の表示に約30%の差があるとも記す。計測経路も違う。無作為割当であっても、この差は残る。'
+  method: method.md
+  why_it_might_work: '本 Lab の解釈: 推薦なしでも再生しそうな組を外せば、その枠を別の推薦へ回せる。ただし低い自然再生スコアは、個々のユーザーに推薦が必要だと証明しない。共有表現が嗜好と推薦への反応を捉えるという説明も、Fig.
+    4 の校正改善だけから一意に確定するものではない。'
+  evidence: '一次資料の著者報告を示す。
+
+
+    Table 1 は Treatment-Causal と Treatment-Model の比較である。比較軸は表示方策。モデルと学習データを固定し、二重閾値の追加を比べる。従来モデル Control との比較値ではない。対象は
+    Spotify Home の数百万人、期間は2週間。
+
+
+    | 指標 | 相対差 | 95% CI |
+
+    | --- | ---: | --- |
+
+    | 推薦表示 | −7.1% | [−7.2%, −6.9%] |
+
+    | 推薦コンテンツ消費 | −0.37% | [−0.86%, +0.21%] |
+
+
+    消費の有意差なしは、損失ゼロや非劣性の証明と同義ではない。掲載値だけでは非劣性マージンを確認できない。著者は残る約93%を incremental と解釈するが、集約 A/B から個別表示の因果効果を直接識別した数字ではない。
+
+
+    Fig. 4 は treated head の校正曲線が従来モデルより対角線に近いと示す。holdback head の高確率側には小標本によるずれがあると著者は説明する。図から誤差指標の数値は作らない。'
+  executable_understanding: '`uv run papers/spotify-incremental-recommendation-causal/run.py`
+
+
+    入力は4組。ユーザー・コンテンツ組に固定の予測値と潜在結果を与え、θ₁=0.4のままθ₀を0から1まで動かすと、単一閾値で残る組のうち自然再生スコアの高い組がどの順に外れるかを追える。
+
+
+    学習はしない。短期と長期の差が負でも、同一窓の真の追加効果が正となる反例を含めた。'
+  results: 合成例の単一閾値は3件を表示し、追加再生の期待値は0.82。θ₀=0.5では2件、期待値は0.80となる。全再生の期待値は2.37から2.35へ下がる。表示を減らせても損失がゼロになるとは限らない。数値は手設計した潜在結果に依存する。
+  what_we_verified: Mechanism PARTIAL。Eq. 5 の境界、θ₀に対する表示数の単調性、異なる計測窓の引き算で符号が変わる反例を確認した。run.py の3条件は CONFIRMED。
+  what_we_did_not_verify: Performance / Scaling / Production applicability は NOT TESTED。共有 trunk の学習、Fig. 4 の校正改善、Spotify
+    の A/B、長期満足度、配信速度を再現していない。個別の always-taker の正解ラベルも持たない。
+  implementation: 標準ライブラリのみ。evaluate() が同じ4組へ方策を適用し、潜在結果から期待値を集計する。予測器を学習するコードではない。results.json と閾値操作の表示値は同じ実行で生成する。
+  mapping: mapping.md
+teaching_figures:
+- kind: timeline
+  id: windows
+  title: 二つのラベルは同じ時計で測らない
+  caption: 長さの比率は概念図。短期窓の具体的な時間は原典で示されず、推薦ありの直接反応と、推薦を止めた後の2日間の自然再生を同じ尺度として比べられない点を示す。
+  source: https://arxiv.org/abs/2608.26804
+  locator: §3
+  rationale: 引き算できない理由を計測手順から読む。
+  after: problem
+  rows:
+  - label: 推薦あり
+    nodes:
+    - title: 表示
+      text: client の impression を起点にする
+    - title: 短い反応窓
+      text: 直接反応の再生 → p̂₁
+  - label: holdback
+    nodes:
+    - title: 表示予定時点
+      text: 無作為に推薦を止める
+    - title: 2日間
+      text: 他の経路からの自然再生 → p̂₀
+- kind: equations
+  id: dual-policy
+  title: 引き算をせず、二つの条件を満たす
+  caption: Eq. 5 と Fig. 3 の学習構造を接続した説明。
+  source: https://arxiv.org/abs/2608.26804
+  locator: Fig. 3; Eqs. 4–5
+  rationale: head の学習と配信判断を分ける。
+  after: method
+  steps:
+  - name: 群別の学習
+    formula: L = mean(D₁, BCE(y,p̂₁)) + mean(D₀, BCE(y,p̂₀))
+    explanation: 共有 trunk へは両群、各 head へは対応する群の勾配だけを流す。
+  - name: 推薦後の反応
+    formula: p̂₁ ≥ θ₁
+    explanation: 低い反応確率の組を除く。
+  - name: 自然再生の除外
+    formula: p̂₀ ≤ θ₀
+    explanation: 自然再生の確率が高い組を除く。θ₀を小さくすると厳しくなる。
+- kind: matrix
+  id: calibration
+  title: Fig. 4 で確認するのは予測確率の校正
+  caption: 曲線の説明を再構成。未公開の点列を補間していない。
+  source: https://arxiv.org/abs/2608.26804
+  locator: Fig. 4; §7
+  rationale: 校正改善と因果的説明を混同しない。
+  after: evidence
+  columns:
+  - 著者の観測
+  - 残る不確実性
+  rows:
+  - label: treated head
+    cells:
+    - 従来モデルより対角線に近い
+    - 共有表現が改善した理由の切り分け
+  - label: holdback head
+    cells:
+    - 概ね校正され、高確率の裾にずれ
+    - 小標本の影響を測る元データなし
+interactives:
+- kind: explorer
+  title: 合成データで閾値を動かす
+  caption: run.py が計算した結果。原論文の数値とは分離する。

@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Pinterest は shopping 候補生成器の発火をリクエストごとに選ぶ。無作為 Shopping Holdout とオフライン replay で閾値を決める。本番の主方策は single-value（SV）であり、uplift の差をそのまま配信する方策とは区別する。">
+  <title>shopping 候補生成を、いつ呼ぶべきか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-07-14</span></div>
+    <h1>shopping 候補生成を、いつ呼ぶべきか</h1>
+    <p class="lede">Pinterest は shopping 候補生成器の発火をリクエストごとに選ぶ。無作為 Shopping Holdout とオフライン replay で閾値を決める。本番の主方策は single-value（SV）であり、uplift の差をそのまま配信する方策とは区別する。</p>
+    <details class="bibliography"><summary>原論文：Deep-learning Causal Retrieval Optimization for Efficient e-commerce Distribution in Pinterest</summary><p>Junpeng Hou, XianXing Zhang, Sai Xiao, Derek Cheng, Darren Reger, Olafur Gudmundsson, Mehdi Ben Ayed, Zhiqing Rao, Huizhong Duan</p><p>2607.14161 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2607.14161">原典を読む ↗</a><a href="https://arxiv.org/pdf/2607.14161">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-24 · 提供された原論文 PDF と抽出テキストを確認。独立再現ではない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-retrieval-gate">shopping 候補源を呼ぶ前に判断する</a><a href="#figure-dr-residual">予測を残差で補正し、方策は別に選ぶ</a><a href="#figure-offline-online">Table 4：閾値を厳しくすると両環境で発火が減る</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>Pinterest は shopping 候補生成器の発火をリクエストごとに選ぶ。無作為 Shopping Holdout とオフライン replay で閾値を決める。本番の主方策は single-value（SV）であり、uplift の差をそのまま配信する方策とは区別する。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>目的が競合する。shopping 候補を毎回呼ぶと、買物行動が増える一方で Pin 保存などが減り、後段の ranker が表示する商品をうまく選べたとしても、既に払った候補生成の呼出し費用は取り戻せない。</p>
+<p>対象範囲にも制約がある。Shopping Holdout は shopping の配信対象となるリクエスト内で作られ、全トラフィックを無条件に無作為化したデータではない。</p></div>      </section>
+<figure class="teaching teaching--architecture" id="figure-retrieval-gate" aria-labelledby="title-retrieval-gate">
+  <div class="figure-heading"><span class="eyebrow">ARCHITECTURE</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-retrieval-gate">shopping 候補源を呼ぶ前に判断する</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">配信</p><div class="diagram-nodes"><div class="diagram-node"><strong>ユーザー・文脈・query</strong><p>リクエスト特徴を入力する</p></div><div class="diagram-node"><strong>SV gate</strong><p>μ₁ &gt; δ なら shopping CG を発火</p></div><div class="diagram-node"><strong>後段のランキング</strong><p>他の候補源と合わせて順位を決める</p></div></div></div><div class="diagram-row"><p class="lane-label">学習用ログ</p><div class="diagram-nodes"><div class="diagram-node"><strong>Shopping Holdout</strong><p>対象トラフィック内で50:50の無作為割当</p></div><div class="diagram-node"><strong>多目的学習</strong><p>outcome と uplift の head を更新</p></div><div class="diagram-node"><strong>replay</strong><p>閾値別の費用と結果を事前に比べる</p></div></div></div></div>
+  <figcaption>役割を簡略化した概念図。Fig. 1 の配信・無作為ログ・学習の関係を示し、remote retrieval と並列に動く本番サービスの時系列や個別の接続までを再現した図ではない。 <a href="https://arxiv.org/abs/2607.14161">出典：Fig. 1; §3.1–3.2 ↗</a></figcaption>
+</figure>      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>結果予測と doubly robust（DR）な uplift の補助学習を組み合わせる。Shopping Holdout で候補生成の有無を無作為化し、閾値の効果を事前評価する。候補生成の発火を最大85%減らしても、shopping lower funnel は有意に変わらないと報告する。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>判断するのは候補源を呼ぶ価値である。後段で商品の順位を決める前に、ユーザー・文脈・query ごとに shopping の候補生成を呼ぶか選ぶため、学習した因果信号の質と、本番で採用したスコア・閾値の効果を分けて読む必要がある。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>無作為ログで結果予測を補正する</h3>
+<p>Shopping Holdout では発火と非発火を50:50で割り当て、深層 multi-task model で各結果の μ₁、μ₀と uplift τ を学ぶ（§3.2–3.3）。</p>
+<p>Eq. 7 の切り詰め前の信号:</p>
+<pre><code class="language-text">ψ = μ₁ − μ₀ + y(m−μ₁)/e − (1−y)(m−μ₀)/(1−e)
+</code></pre>
+<p>結果予測か割当確率の一方が正しければ、切り詰め前の期待値は正しい。条件付きの性質である。</p>
+<p>論文の Switch-DR 型の切り詰めと propensity clipping は分散を抑える一方、無偏性を無条件には保たない。</p>
+<h3>学習信号と本番方策を分ける</h3>
+<table>
+<thead>
+<tr>
+<th>方策</th>
+<th>発火条件</th>
+<th>原典での位置づけ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>single-value（SV）</td>
+<td>μ₁ &gt; δ</td>
+<td>本番の主方策</td>
+</tr>
+<tr>
+<td>delta policy（DP）</td>
+<td>τ &gt; δ</td>
+<td>追加効果を学べたかの診断</td>
+</tr>
+</tbody>
+</table>
+<p>§3.1 は、二つの予測誤差の差を取らずに済む SV を、オフラインとオンラインの整合を重視する選択として説明する。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-dr-residual" aria-labelledby="title-dr-residual">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-dr-residual">予測を残差で補正し、方策は別に選ぶ</h3>
+  <ol class="equation-steps"><li><strong>DR 信号</strong><div class="math-expression" tabindex="0" role="math" aria-label="ψ = μ₁ − μ₀ + y(m−μ₁)/e − (1−y)(m−μ₀)/(1−e)">ψ = μ₁ − μ₀ + y(m−μ₁)/e − (1−y)(m−μ₀)/(1−e)</div><p>観測できた群の予測誤差を、割当確率で補正する。</p></li><li><strong>uplift の補助学習</strong><div class="math-expression" tabindex="0" role="math" aria-label="L_DR = mean[ω_DR (τ−ψ)²]">L_DR = mean[ω_DR (τ−ψ)²]</div><p>論文は大きい補正項を切り詰める。toy では切り詰めを省く。</p></li><li><strong>本番の主方策</strong><div class="math-expression" tabindex="0" role="math" aria-label="SV: μ₁ &gt; δ　／　DP: τ &gt; δ">SV: μ₁ &gt; δ　／　DP: τ &gt; δ</div><p>SV は結果確率を閾値にかける。DP は追加効果の診断に使う。</p></li></ol>
+  <figcaption>式は切り詰め前。e は発火確率、y は実際の割当、m は観測結果であり、推薦しなかったリクエストでは μ₀の誤差、推薦したリクエストでは μ₁の誤差だけを補正に使う。 <a href="https://arxiv.org/abs/2607.14161">出典：Eqs. 3–10; §3.1 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>本 Lab の解釈: 何を見たかが変わる。小さな無作為ログでも、同じ特徴領域で発火と非発火の両方を観測できれば、従来の表示ログだけでは見えなかった「候補を呼ばなかった場合」の結果を、方策を選ぶための根拠に加えられる。</p>
+<p>SV の利点は安定性。二つの予測誤差の差を取らずに済む一方、自然に起きる行動も高く評価しうるため、因果学習を使うだけで最終方策が最適になるわけではない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料の著者報告を示す。</p>
+<p>Table 4 は baseline model による SV 方策の検証であり、DR 学習の改善量を測る表ではない。δ=0.0102 の発火率変化はオンライン−64.4%、オフライン−64.6%。順序を取り違えない。TP impressions は同じ行で−11.3%と−10.1%となる。</p>
+<p>Table 5 の Success Curation の量はサイト全体で+0.26%、Repins は Closeup surface で+1.10%。抽象の sessions / Pin saves という要約より、表の母集団と指標名を優先する。shopping lower funnel は有意差なし。本文はこの群の発火削減を約40%、別の積極的な群を最大85%と記す。85%削減と Table 5 の改善値を同じ実験条件として結合しない。</p>
+<p>§4 の配信は remote retrieval と並列に実行し、end-to-end latency の悪化なしと報告する。負荷別の遅延分布を独立に確認できるログはない。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-offline-online" aria-labelledby="title-offline-online">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-offline-online">Table 4：閾値を厳しくすると両環境で発火が減る</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="Table 4：閾値を厳しくすると両環境で発火が減るの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">オンライン発火率</th><th scope="col">オフライン発火率</th></tr></thead><tbody><tr><th scope="row">δ=0.0012</th><td class="">−37.0%</td><td class="">−37.5%</td></tr><tr><th scope="row">δ=0.0055</th><td class="">−57.0%</td><td class="">−57.1%</td></tr><tr><th scope="row">δ=0.0102</th><td class="">−64.4%</td><td class="">−64.6%</td></tr><tr><th scope="row">δ=0.0383</th><td class="">−77.4%</td><td class="">−78.5%</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>著者報告の相対変化。baseline model の SV 方策。 <a href="https://arxiv.org/abs/2607.14161">出典：Table 4 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/pinterest-causal-retrieval-shopping/run.py</code></p>
+<p>入力は600件。3種類のリクエストを各群100件ずつ列挙し、各種類の結果率を固定した上で、誤った μ₁=0.3、μ₀=0.2から計算する DR 信号が、正しい割当確率0.5と誤った確率0.8でどう変わるかを比べる。</p>
+<p>方策は SV。方策に一致するログだけを使う replay と、全潜在結果から直接求める真の平均を照合する。</p></div><div class="downloads"><a href="../downloads/pinterest-causal-retrieval-shopping/run.py" download>実行コード</a><a href="../downloads/pinterest-causal-retrieval-shopping/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/pinterest-causal-retrieval-shopping">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section class="interactive" id="interactive-1" data-interactive="explorer">
+        <p class="figure-badge">合成実験 · Mechanism PARTIAL</p><h2>合成データで閾値を動かす</h2><p>run.py が計算した結果。原論文の数値とは分離する。</p>
+        <script type="application/json" data-config>{"caption": "run.py \u304c\u8a08\u7b97\u3057\u305f\u7d50\u679c\u3002\u539f\u8ad6\u6587\u306e\u6570\u5024\u3068\u306f\u5206\u96e2\u3059\u308b\u3002", "kind": "explorer", "title": "\u5408\u6210\u30c7\u30fc\u30bf\u3067\u95be\u5024\u3092\u52d5\u304b\u3059"}</script>
+<script type="application/json" data-results>{"default": 2, "frames": [{"bars": [{"label": "CG \u767a\u706b\u7387", "value": 100.0}, {"label": "replay \u5831\u916c\u7387", "value": 43.3333}, {"label": "\u771f\u306e\u65b9\u7b56\u5831\u916c\u7387", "value": 43.3333}], "note": "\u5408\u6210\u30c7\u30fc\u30bf\u306e\u53b3\u5bc6\u5e73\u5747\u3002\u8ad6\u6587\u306e A/B \u3084\u5b66\u7fd2\u6e08\u307f\u30e2\u30c7\u30eb\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 0}, {"bars": [{"label": "CG \u767a\u706b\u7387", "value": 66.667}, {"label": "replay \u5831\u916c\u7387", "value": 42.6667}, {"label": "\u771f\u306e\u65b9\u7b56\u5831\u916c\u7387", "value": 42.6667}], "note": "\u5408\u6210\u30c7\u30fc\u30bf\u306e\u53b3\u5bc6\u5e73\u5747\u3002\u8ad6\u6587\u306e A/B \u3084\u5b66\u7fd2\u6e08\u307f\u30e2\u30c7\u30eb\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 0.1}, {"bars": [{"label": "CG \u767a\u706b\u7387", "value": 66.667}, {"label": "replay \u5831\u916c\u7387", "value": 42.6667}, {"label": "\u771f\u306e\u65b9\u7b56\u5831\u916c\u7387", "value": 42.6667}], "note": "\u5408\u6210\u30c7\u30fc\u30bf\u306e\u53b3\u5bc6\u5e73\u5747\u3002\u8ad6\u6587\u306e A/B \u3084\u5b66\u7fd2\u6e08\u307f\u30e2\u30c7\u30eb\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 0.3}, {"bars": [{"label": "CG \u767a\u706b\u7387", "value": 33.333}, {"label": "replay \u5831\u916c\u7387", "value": 36.0}, {"label": "\u771f\u306e\u65b9\u7b56\u5831\u916c\u7387", "value": 36.0}], "note": "\u5408\u6210\u30c7\u30fc\u30bf\u306e\u53b3\u5bc6\u5e73\u5747\u3002\u8ad6\u6587\u306e A/B \u3084\u5b66\u7fd2\u6e08\u307f\u30e2\u30c7\u30eb\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 0.4}, {"bars": [{"label": "CG \u767a\u706b\u7387", "value": 33.333}, {"label": "replay \u5831\u916c\u7387", "value": 36.0}, {"label": "\u771f\u306e\u65b9\u7b56\u5831\u916c\u7387", "value": 36.0}], "note": "\u5408\u6210\u30c7\u30fc\u30bf\u306e\u53b3\u5bc6\u5e73\u5747\u3002\u8ad6\u6587\u306e A/B \u3084\u5b66\u7fd2\u6e08\u307f\u30e2\u30c7\u30eb\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 0.7}, {"bars": [{"label": "CG \u767a\u706b\u7387", "value": 0.0}, {"label": "replay \u5831\u916c\u7387", "value": 34.3333}, {"label": "\u771f\u306e\u65b9\u7b56\u5831\u916c\u7387", "value": 34.3333}], "note": "\u5408\u6210\u30c7\u30fc\u30bf\u306e\u53b3\u5bc6\u5e73\u5747\u3002\u8ad6\u6587\u306e A/B \u3084\u5b66\u7fd2\u6e08\u307f\u30e2\u30c7\u30eb\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 0.8}, {"bars": [{"label": "CG \u767a\u706b\u7387", "value": 0.0}, {"label": "replay \u5831\u916c\u7387", "value": 34.3333}, {"label": "\u771f\u306e\u65b9\u7b56\u5831\u916c\u7387", "value": 34.3333}], "note": "\u5408\u6210\u30c7\u30fc\u30bf\u306e\u53b3\u5bc6\u5e73\u5747\u3002\u8ad6\u6587\u306e A/B \u3084\u5b66\u7fd2\u6e08\u307f\u30e2\u30c7\u30eb\u306e\u518d\u73fe\u3067\u306f\u306a\u3044\u3002", "value": 1}], "label": "SV \u306e\u767a\u706b\u95be\u5024 \u03b4", "metric": "\u5408\u6210 Holdout \u306e\u767a\u706b\u7387\u3068\u5831\u916c\u7387", "unit": "%"}</script>        <div data-mount></div><div data-fallback>
+<p>SV の発火閾値 δ：0.3%</p><ul><li>CG 発火率：66.667</li><li>replay 報酬率：42.6667</li><li>真の方策報酬率：42.6667</li></ul><p>合成データの厳密平均。論文の A/B や学習済みモデルの再現ではない。</p>        </div><p class="source-note">数値の出所：このLabの results.json。論文の測定値ではありません。</p>
+      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><details><summary>生の results.json</summary><pre><code>{
+  &quot;experiment&quot;: &quot;enumerated_randomized_holdout&quot;,
+  &quot;n&quot;: 600,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;dr&quot;: [
+    {
+      &quot;type&quot;: &quot;low&quot;,
+      &quot;true_uplift&quot;: 0.02,
+      &quot;dr_known_propensity&quot;: 0.02,
+      &quot;dr_wrong_propensity&quot;: 0.275
+    },
+    {
+      &quot;type&quot;: &quot;medium&quot;,
+      &quot;true_uplift&quot;: 0.2,
+      &quot;dr_known_propensity&quot;: 0.2,
+      &quot;dr_wrong_propensity&quot;: 0.1625
+    },
+    {
+      &quot;type&quot;: &quot;organic&quot;,
+      &quot;true_uplift&quot;: 0.05,
+      &quot;dr_known_propensity&quot;: 0.05,
+      &quot;dr_wrong_propensity&quot;: -0.9625
+    }
+  ],
+  &quot;sweep&quot;: [
+    {
+      &quot;threshold&quot;: 0,
+      &quot;trigger_rate&quot;: 1.0,
+      &quot;replay_reward&quot;: 0.433333,
+      &quot;true_reward&quot;: 0.433333
+    },
+    {
+      &quot;threshold&quot;: 0.1,
+      &quot;trigger_rate&quot;: 0.6666666666666666,
+      &quot;replay_reward&quot;: 0.426667,
+      &quot;true_reward&quot;: 0.426667
+    },
+    {
+      &quot;threshold&quot;: 0.3,
+      &quot;trigger_rate&quot;: 0.6666666666666666,
+      &quot;replay_reward&quot;: 0.426667,
+      &quot;true_reward&quot;: 0.426667
+    },
+    {
+      &quot;threshold&quot;: 0.4,
+      &quot;trigger_rate&quot;: 0.3333333333333333,
+      &quot;replay_reward&quot;: 0.36,
+      &quot;true_reward&quot;: 0.36
+    },
+    {
+      &quot;threshold&quot;: 0.7,
+      &quot;trigger_rate&quot;: 0.3333333333333333,
+      &quot;replay_reward&quot;: 0.36,
+      &quot;true_reward&quot;: 0.36
+    },
+    {
+      &quot;threshold&quot;: 0.8,
+      &quot;trigger_rate&quot;: 0.0,
+      &quot;replay_reward&quot;: 0.343333,
+      &quot;true_reward&quot;: 0.343333
+    },
+    {
+      &quot;threshold&quot;: 1,
+      &quot;trigger_rate&quot;: 0.0,
+      &quot;replay_reward&quot;: 0.343333,
+      &quot;true_reward&quot;: 0.343333
+    }
+  ],
+  &quot;checks&quot;: {
+    &quot;untruncated_dr_with_wrong_outcomes&quot;: true,
+    &quot;balanced_replay_equals_policy_truth&quot;: true,
+    &quot;wrong_propensity_bias_observed&quot;: true
+  },
+  &quot;explorer&quot;: {
+    &quot;label&quot;: &quot;SV の発火閾値 δ&quot;,
+    &quot;unit&quot;: &quot;%&quot;,
+    &quot;metric&quot;: &quot;合成 Holdout の発火率と報酬率&quot;,
+    &quot;default&quot;: 2,
+    &quot;frames&quot;: [
+      {
+        &quot;value&quot;: 0,
+        &quot;note&quot;: &quot;合成データの厳密平均。論文の A/B や学習済みモデルの再現ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;CG 発火率&quot;,
+            &quot;value&quot;: 100.0
+          },
+          {
+            &quot;label&quot;: &quot;replay 報酬率&quot;,
+            &quot;value&quot;: 43.3333
+          },
+          {
+            &quot;label&quot;: &quot;真の方策報酬率&quot;,
+            &quot;value&quot;: 43.3333
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.1,
+        &quot;note&quot;: &quot;合成データの厳密平均。論文の A/B や学習済みモデルの再現ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;CG 発火率&quot;,
+            &quot;value&quot;: 66.667
+          },
+          {
+            &quot;label&quot;: &quot;replay 報酬率&quot;,
+            &quot;value&quot;: 42.6667
+          },
+          {
+            &quot;label&quot;: &quot;真の方策報酬率&quot;,
+            &quot;value&quot;: 42.6667
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.3,
+        &quot;note&quot;: &quot;合成データの厳密平均。論文の A/B や学習済みモデルの再現ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;CG 発火率&quot;,
+            &quot;value&quot;: 66.667
+          },
+          {
+            &quot;label&quot;: &quot;replay 報酬率&quot;,
+            &quot;value&quot;: 42.6667
+          },
+          {
+            &quot;label&quot;: &quot;真の方策報酬率&quot;,
+            &quot;value&quot;: 42.6667
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.4,
+        &quot;note&quot;: &quot;合成データの厳密平均。論文の A/B や学習済みモデルの再現ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;CG 発火率&quot;,
+            &quot;value&quot;: 33.333
+          },
+          {
+            &quot;label&quot;: &quot;replay 報酬率&quot;,
+            &quot;value&quot;: 36.0
+          },
+          {
+            &quot;label&quot;: &quot;真の方策報酬率&quot;,
+            &quot;value&quot;: 36.0
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.7,
+        &quot;note&quot;: &quot;合成データの厳密平均。論文の A/B や学習済みモデルの再現ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;CG 発火率&quot;,
+            &quot;value&quot;: 33.333
+          },
+          {
+            &quot;label&quot;: &quot;replay 報酬率&quot;,
+            &quot;value&quot;: 36.0
+          },
+          {
+            &quot;label&quot;: &quot;真の方策報酬率&quot;,
+            &quot;value&quot;: 36.0
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.8,
+        &quot;note&quot;: &quot;合成データの厳密平均。論文の A/B や学習済みモデルの再現ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;CG 発火率&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;replay 報酬率&quot;,
+            &quot;value&quot;: 34.3333
+          },
+          {
+            &quot;label&quot;: &quot;真の方策報酬率&quot;,
+            &quot;value&quot;: 34.3333
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1,
+        &quot;note&quot;: &quot;合成データの厳密平均。論文の A/B や学習済みモデルの再現ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;CG 発火率&quot;,
+            &quot;value&quot;: 0.0
+          },
+          {
+            &quot;label&quot;: &quot;replay 報酬率&quot;,
+            &quot;value&quot;: 34.3333
+          },
+          {
+            &quot;label&quot;: &quot;真の方策報酬率&quot;,
+            &quot;value&quot;: 34.3333
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre></details><p>補正は期待通りに働いた。</p>
+<table>
+<thead>
+<tr>
+<th>リクエストの種類</th>
+<th style="text-align: right;">真の uplift</th>
+<th style="text-align: right;">正しい割当確率での DR</th>
+<th style="text-align: right;">誤った割当確率での DR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>low</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">0.275</td>
+</tr>
+<tr>
+<td>medium</td>
+<td style="text-align: right;">0.20</td>
+<td style="text-align: right;">0.20</td>
+<td style="text-align: right;">0.1625</td>
+</tr>
+<tr>
+<td>organic</td>
+<td style="text-align: right;">0.05</td>
+<td style="text-align: right;">0.05</td>
+<td style="text-align: right;">−0.9625</td>
+</tr>
+</tbody>
+</table>
+<p>δ=0.3の SV は3分の2を発火し、replay と真の報酬率はいずれも0.426667となるが、ここでは結果率を厳密に列挙して有限標本誤差を除いているため、現実の小さな Holdout でも同じ精度が得られるとの実証にはならない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。切り詰め前の DR 補正と、均等割当下の action-matching replay を確認した。3個の数値検査は CONFIRMED。深層モデルの学習や Switch-DR の安定化効果は含めない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability は NOT TESTED。Pinterest のログ、DR 付き学習、SV と DP の実データ比較、最大85%削減、Table 5 のオンライン差を再現していない。合成例の期待値一致は将来の分布変化やユーザー間干渉を保証しない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>dr() が Eq. 7 の切り詰め前の形を実装する。evaluate() は単純な一致抽出で、Algorithm 1 の高速な累積更新は省略した。閾値ごとに全件を読むため O(nk) となる。論文の sort 後の線形 sweep のスケーリングを検証したコードではない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>Lab</th>
+<th>省略・注意</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fig. 1 / §3.2</td>
+<td>CG gate と Holdout の図</td>
+<td>実サービス・特徴処理は未実装</td>
+</tr>
+<tr>
+<td>Eq. 7</td>
+<td>run.py dr()</td>
+<td>Eq. 8 の切り詰めなし</td>
+</tr>
+<tr>
+<td>Algorithm 1 / §3.4</td>
+<td>evaluate()</td>
+<td>高速 sweep を単純な一致抽出へ変更</td>
+</tr>
+<tr>
+<td>Table 4</td>
+<td>offline / online 比較表</td>
+<td>SV・baseline model の結果</td>
+</tr>
+<tr>
+<td>Table 5 / §4</td>
+<td>Evidence</td>
+<td>最大85%削減の別群と分離</td>
+</tr>
+</tbody>
+</table>
+<p>一次資料: <a href="https://arxiv.org/abs/2607.14161v2">arXiv 2607.14161v2</a>。PDF SHA-256: <code>f75332d8051e50bf03cd46c4571f5699ebfd69512501b11204d891c19c71c6d6</code>。</p>
+<p>公式コード: 提供 PDF 内で公開実装へのリンクを確認できなかった。公開実装が存在しないとの断定ではない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>shopping 候補生成を、いつ呼ぶべきか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/pinterest-causal-retrieval-shopping/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

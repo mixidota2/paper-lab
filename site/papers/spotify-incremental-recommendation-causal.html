@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Spotify は自然に再生される推薦を二つの閾値で除外する。2週間の A/B で表示は7.1%減り、推薦コンテンツの消費は−0.37%で有意差なし。計測窓が異なる二つの予測値を引き算しない設計が要点になる。">
+  <title>表示の無駄を減らすとき、二つの再生確率を引いてよいか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-08-27</span></div>
+    <h1>表示の無駄を減らすとき、二つの再生確率を引いてよいか</h1>
+    <p class="lede">Spotify は自然に再生される推薦を二つの閾値で除外する。2週間の A/B で表示は7.1%減り、推薦コンテンツの消費は−0.37%で有意差なし。計測窓が異なる二つの予測値を引き算しない設計が要点になる。</p>
+    <details class="bibliography"><summary>原論文：Incremental Recommendation via Causal Models</summary><p>Athanasios Vlontzos, David Gustafsson, Michael O’Riordan, Ciarán M. Gilligan-Lee</p><p>2608.26804 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2608.26804">原典を読む ↗</a><a href="https://arxiv.org/pdf/2608.26804">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-24 · 提供された原論文 PDF と抽出テキストを確認。独立再現ではない。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-windows">二つのラベルは同じ時計で測らない</a><a href="#figure-dual-policy">引き算をせず、二つの条件を満たす</a><a href="#figure-calibration">Fig. 4 で確認するのは予測確率の校正</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>Spotify は自然に再生される推薦を二つの閾値で除外する。2週間の A/B で表示は7.1%減り、推薦コンテンツの消費は−0.37%で有意差なし。計測窓が異なる二つの予測値を引き算しない設計が要点になる。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>二つのラベルは別物である。推薦ありでは表示直後の短い反応を拾う一方、holdback では他の経路からの自然な発見も拾うために2日間待つので、名前が同じ再生確率でも引き算の意味は変わる。</p>
+<p>§3 は、backend の配信と client の表示に約30%の差があるとも記す。計測経路も違う。無作為割当であっても、この差は残る。</p></div>      </section>
+<figure class="teaching teaching--timeline" id="figure-windows" aria-labelledby="title-windows">
+  <div class="figure-heading"><span class="eyebrow">TIMELINE</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-windows">二つのラベルは同じ時計で測らない</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">推薦あり</p><div class="diagram-nodes"><div class="diagram-node"><strong>表示</strong><p>client の impression を起点にする</p></div><div class="diagram-node"><strong>短い反応窓</strong><p>直接反応の再生 → p̂₁</p></div></div></div><div class="diagram-row"><p class="lane-label">holdback</p><div class="diagram-nodes"><div class="diagram-node"><strong>表示予定時点</strong><p>無作為に推薦を止める</p></div><div class="diagram-node"><strong>2日間</strong><p>他の経路からの自然再生 → p̂₀</p></div></div></div></div>
+  <figcaption>長さの比率は概念図。短期窓の具体的な時間は原典で示されず、推薦ありの直接反応と、推薦を止めた後の2日間の自然再生を同じ尺度として比べられない点を示す。 <a href="https://arxiv.org/abs/2608.26804">出典：§3 ↗</a></figcaption>
+</figure>      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>既存の無作為 holdback データを共有 trunk と専用 head の学習に再利用する。推薦後の再生確率が高く、自然再生確率が低い組だけに推薦する。新しい収集基盤を要しない。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>CATE の推定値ではない。異なる計測窓から得た二つのスコアを意思決定に使い、同じモデルと学習データの下で表示方策だけを変えた A/B によって、表示の削減と消費への影響を確かめた事例と読む。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>共有表現へ二つの観測を流す</h3>
+<p>Deep Twin Network は既存の multi-task shared-trunk model に holdback head を加え、各群の binary cross-entropy を群内平均して足す（Fig. 3、Eq. 4）。</p>
+<table>
+<thead>
+<tr>
+<th>更新する部分</th>
+<th>学習データ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>treated head</td>
+<td>推薦ありの群 D₁</td>
+</tr>
+<tr>
+<td>holdback head</td>
+<td>推薦を止めた群 D₀</td>
+</tr>
+<tr>
+<td>shared trunk</td>
+<td>両群</td>
+</tr>
+</tbody>
+</table>
+<p>割当確率は既知。propensity head は付けない。</p>
+<h3>二つの条件を両方満たす組へ表示する</h3>
+<p>Eq. 5:</p>
+<pre><code class="language-text">π(x) = 1[p̂₁(x) ≥ θ₁] · 1[p̂₀(x) ≤ θ₀]
+</code></pre>
+<p>θ₀を上げるほど表示条件は緩み、θ₀=1で単一閾値へ戻る。原文 §4.2 の説明文には、この方向を逆に述べる箇所があるため、本 Lab の図と実験は式の不等号に従う。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-dual-policy" aria-labelledby="title-dual-policy">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-dual-policy">引き算をせず、二つの条件を満たす</h3>
+  <ol class="equation-steps"><li><strong>群別の学習</strong><div class="math-expression" tabindex="0" role="math" aria-label="L = mean(D₁, BCE(y,p̂₁)) + mean(D₀, BCE(y,p̂₀))">L = mean(D₁, BCE(y,p̂₁)) + mean(D₀, BCE(y,p̂₀))</div><p>共有 trunk へは両群、各 head へは対応する群の勾配だけを流す。</p></li><li><strong>推薦後の反応</strong><div class="math-expression" tabindex="0" role="math" aria-label="p̂₁ ≥ θ₁">p̂₁ ≥ θ₁</div><p>低い反応確率の組を除く。</p></li><li><strong>自然再生の除外</strong><div class="math-expression" tabindex="0" role="math" aria-label="p̂₀ ≤ θ₀">p̂₀ ≤ θ₀</div><p>自然再生の確率が高い組を除く。θ₀を小さくすると厳しくなる。</p></li></ol>
+  <figcaption>Eq. 5 と Fig. 3 の学習構造を接続した説明。 <a href="https://arxiv.org/abs/2608.26804">出典：Fig. 3; Eqs. 4–5 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>本 Lab の解釈: 推薦なしでも再生しそうな組を外せば、その枠を別の推薦へ回せる。ただし低い自然再生スコアは、個々のユーザーに推薦が必要だと証明しない。共有表現が嗜好と推薦への反応を捉えるという説明も、Fig. 4 の校正改善だけから一意に確定するものではない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料の著者報告を示す。</p>
+<p>Table 1 は Treatment-Causal と Treatment-Model の比較である。比較軸は表示方策。モデルと学習データを固定し、二重閾値の追加を比べる。従来モデル Control との比較値ではない。対象は Spotify Home の数百万人、期間は2週間。</p>
+<table>
+<thead>
+<tr>
+<th>指標</th>
+<th style="text-align: right;">相対差</th>
+<th>95% CI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>推薦表示</td>
+<td style="text-align: right;">−7.1%</td>
+<td>[−7.2%, −6.9%]</td>
+</tr>
+<tr>
+<td>推薦コンテンツ消費</td>
+<td style="text-align: right;">−0.37%</td>
+<td>[−0.86%, +0.21%]</td>
+</tr>
+</tbody>
+</table>
+<p>消費の有意差なしは、損失ゼロや非劣性の証明と同義ではない。掲載値だけでは非劣性マージンを確認できない。著者は残る約93%を incremental と解釈するが、集約 A/B から個別表示の因果効果を直接識別した数字ではない。</p>
+<p>Fig. 4 は treated head の校正曲線が従来モデルより対角線に近いと示す。holdback head の高確率側には小標本によるずれがあると著者は説明する。図から誤差指標の数値は作らない。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-calibration" aria-labelledby="title-calibration">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-calibration">Fig. 4 で確認するのは予測確率の校正</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="Fig. 4 で確認するのは予測確率の校正の表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">著者の観測</th><th scope="col">残る不確実性</th></tr></thead><tbody><tr><th scope="row">treated head</th><td class="">従来モデルより対角線に近い</td><td class="">共有表現が改善した理由の切り分け</td></tr><tr><th scope="row">holdback head</th><td class="">概ね校正され、高確率の裾にずれ</td><td class="">小標本の影響を測る元データなし</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>曲線の説明を再構成。未公開の点列を補間していない。 <a href="https://arxiv.org/abs/2608.26804">出典：Fig. 4; §7 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/spotify-incremental-recommendation-causal/run.py</code></p>
+<p>入力は4組。ユーザー・コンテンツ組に固定の予測値と潜在結果を与え、θ₁=0.4のままθ₀を0から1まで動かすと、単一閾値で残る組のうち自然再生スコアの高い組がどの順に外れるかを追える。</p>
+<p>学習はしない。短期と長期の差が負でも、同一窓の真の追加効果が正となる反例を含めた。</p></div><div class="downloads"><a href="../downloads/spotify-incremental-recommendation-causal/run.py" download>実行コード</a><a href="../downloads/spotify-incremental-recommendation-causal/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/spotify-incremental-recommendation-causal">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section class="interactive" id="interactive-1" data-interactive="explorer">
+        <p class="figure-badge">合成実験 · Mechanism PARTIAL</p><h2>合成データで閾値を動かす</h2><p>run.py が計算した結果。原論文の数値とは分離する。</p>
+        <script type="application/json" data-config>{"caption": "run.py \u304c\u8a08\u7b97\u3057\u305f\u7d50\u679c\u3002\u539f\u8ad6\u6587\u306e\u6570\u5024\u3068\u306f\u5206\u96e2\u3059\u308b\u3002", "kind": "explorer", "title": "\u5408\u6210\u30c7\u30fc\u30bf\u3067\u95be\u5024\u3092\u52d5\u304b\u3059"}</script>
+<script type="application/json" data-results>{"default": 5, "frames": [{"bars": [{"label": "\u5358\u4e00\u95be\u5024", "value": 3}, {"label": "\u4e8c\u91cd\u95be\u5024", "value": 0}], "note": "\u5408\u6210\u4f8b\u3002\u8ffd\u52a0\u518d\u751f\u306e\u671f\u5f85\u5024 0\u3001\u5168\u518d\u751f\u306e\u671f\u5f85\u5024 1.55\u3002\u5b9f\u6e2c\u5024\u3067\u306f\u306a\u3044\u3002", "value": 0.0}, {"bars": [{"label": "\u5358\u4e00\u95be\u5024", "value": 3}, {"label": "\u4e8c\u91cd\u95be\u5024", "value": 0}], "note": "\u5408\u6210\u4f8b\u3002\u8ffd\u52a0\u518d\u751f\u306e\u671f\u5f85\u5024 0\u3001\u5168\u518d\u751f\u306e\u671f\u5f85\u5024 1.55\u3002\u5b9f\u6e2c\u5024\u3067\u306f\u306a\u3044\u3002", "value": 0.1}, {"bars": [{"label": "\u5358\u4e00\u95be\u5024", "value": 3}, {"label": "\u4e8c\u91cd\u95be\u5024", "value": 1}], "note": "\u5408\u6210\u4f8b\u3002\u8ffd\u52a0\u518d\u751f\u306e\u671f\u5f85\u5024 0.6\u3001\u5168\u518d\u751f\u306e\u671f\u5f85\u5024 2.15\u3002\u5b9f\u6e2c\u5024\u3067\u306f\u306a\u3044\u3002", "value": 0.2}, {"bars": [{"label": "\u5358\u4e00\u95be\u5024", "value": 3}, {"label": "\u4e8c\u91cd\u95be\u5024", "value": 1}], "note": "\u5408\u6210\u4f8b\u3002\u8ffd\u52a0\u518d\u751f\u306e\u671f\u5f85\u5024 0.6\u3001\u5168\u518d\u751f\u306e\u671f\u5f85\u5024 2.15\u3002\u5b9f\u6e2c\u5024\u3067\u306f\u306a\u3044\u3002", "value": 0.3}, {"bars": [{"label": "\u5358\u4e00\u95be\u5024", "value": 3}, {"label": "\u4e8c\u91cd\u95be\u5024", "value": 1}], "note": "\u5408\u6210\u4f8b\u3002\u8ffd\u52a0\u518d\u751f\u306e\u671f\u5f85\u5024 0.6\u3001\u5168\u518d\u751f\u306e\u671f\u5f85\u5024 2.15\u3002\u5b9f\u6e2c\u5024\u3067\u306f\u306a\u3044\u3002", "value": 0.4}, {"bars": [{"label": "\u5358\u4e00\u95be\u5024", "value": 3}, {"label": "\u4e8c\u91cd\u95be\u5024", "value": 2}], "note": "\u5408\u6210\u4f8b\u3002\u8ffd\u52a0\u518d\u751f\u306e\u671f\u5f85\u5024 0.8\u3001\u5168\u518d\u751f\u306e\u671f\u5f85\u5024 2.35\u3002\u5b9f\u6e2c\u5024\u3067\u306f\u306a\u3044\u3002", "value": 0.5}, {"bars": [{"label": "\u5358\u4e00\u95be\u5024", "value": 3}, {"label": "\u4e8c\u91cd\u95be\u5024", "value": 2}], "note": "\u5408\u6210\u4f8b\u3002\u8ffd\u52a0\u518d\u751f\u306e\u671f\u5f85\u5024 0.8\u3001\u5168\u518d\u751f\u306e\u671f\u5f85\u5024 2.35\u3002\u5b9f\u6e2c\u5024\u3067\u306f\u306a\u3044\u3002", "value": 0.6}, {"bars": [{"label": "\u5358\u4e00\u95be\u5024", "value": 3}, {"label": "\u4e8c\u91cd\u95be\u5024", "value": 2}], "note": "\u5408\u6210\u4f8b\u3002\u8ffd\u52a0\u518d\u751f\u306e\u671f\u5f85\u5024 0.8\u3001\u5168\u518d\u751f\u306e\u671f\u5f85\u5024 2.35\u3002\u5b9f\u6e2c\u5024\u3067\u306f\u306a\u3044\u3002", "value": 0.7}, {"bars": [{"label": "\u5358\u4e00\u95be\u5024", "value": 3}, {"label": "\u4e8c\u91cd\u95be\u5024", "value": 2}], "note": "\u5408\u6210\u4f8b\u3002\u8ffd\u52a0\u518d\u751f\u306e\u671f\u5f85\u5024 0.8\u3001\u5168\u518d\u751f\u306e\u671f\u5f85\u5024 2.35\u3002\u5b9f\u6e2c\u5024\u3067\u306f\u306a\u3044\u3002", "value": 0.8}, {"bars": [{"label": "\u5358\u4e00\u95be\u5024", "value": 3}, {"label": "\u4e8c\u91cd\u95be\u5024", "value": 3}], "note": "\u5408\u6210\u4f8b\u3002\u8ffd\u52a0\u518d\u751f\u306e\u671f\u5f85\u5024 0.82\u3001\u5168\u518d\u751f\u306e\u671f\u5f85\u5024 2.37\u3002\u5b9f\u6e2c\u5024\u3067\u306f\u306a\u3044\u3002", "value": 0.9}, {"bars": [{"label": "\u5358\u4e00\u95be\u5024", "value": 3}, {"label": "\u4e8c\u91cd\u95be\u5024", "value": 3}], "note": "\u5408\u6210\u4f8b\u3002\u8ffd\u52a0\u518d\u751f\u306e\u671f\u5f85\u5024 0.82\u3001\u5168\u518d\u751f\u306e\u671f\u5f85\u5024 2.37\u3002\u5b9f\u6e2c\u5024\u3067\u306f\u306a\u3044\u3002", "value": 1.0}], "label": "\u81ea\u7136\u518d\u751f\u306e\u4e0a\u9650 \u03b8\u2080", "metric": "4\u7d44\u306e\u5408\u6210\u30c7\u30fc\u30bf\u3067\u8868\u793a\u3059\u308b\u4ef6\u6570", "unit": "\u4ef6"}</script>        <div data-mount></div><div data-fallback>
+<p>自然再生の上限 θ₀：0.5件</p><ul><li>単一閾値：3</li><li>二重閾値：2</li></ul><p>合成例。追加再生の期待値 0.8、全再生の期待値 2.35。実測値ではない。</p>        </div><p class="source-note">数値の出所：このLabの results.json。論文の測定値ではありません。</p>
+      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><details><summary>生の results.json</summary><pre><code>{
+  &quot;experiment&quot;: &quot;synthetic_dual_threshold&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;rows&quot;: [
+    {
+      &quot;name&quot;: &quot;organic&quot;,
+      &quot;p1_short&quot;: 0.7,
+      &quot;p0_long&quot;: 0.9,
+      &quot;y1&quot;: 0.92,
+      &quot;y0&quot;: 0.9
+    },
+    {
+      &quot;name&quot;: &quot;persuadable&quot;,
+      &quot;p1_short&quot;: 0.6,
+      &quot;p0_long&quot;: 0.15,
+      &quot;y1&quot;: 0.75,
+      &quot;y0&quot;: 0.15
+    },
+    {
+      &quot;name&quot;: &quot;low_response&quot;,
+      &quot;p1_short&quot;: 0.1,
+      &quot;p0_long&quot;: 0.05,
+      &quot;y1&quot;: 0.15,
+      &quot;y0&quot;: 0.05
+    },
+    {
+      &quot;name&quot;: &quot;mixed&quot;,
+      &quot;p1_short&quot;: 0.5,
+      &quot;p0_long&quot;: 0.45,
+      &quot;y1&quot;: 0.65,
+      &quot;y0&quot;: 0.45
+    }
+  ],
+  &quot;baseline&quot;: {
+    &quot;theta0&quot;: 1,
+    &quot;selected&quot;: [
+      &quot;organic&quot;,
+      &quot;persuadable&quot;,
+      &quot;mixed&quot;
+    ],
+    &quot;impressions&quot;: 3,
+    &quot;expected_incremental_streams&quot;: 0.82,
+    &quot;expected_total_streams&quot;: 2.37
+  },
+  &quot;proposed&quot;: {
+    &quot;theta0&quot;: 0.5,
+    &quot;selected&quot;: [
+      &quot;persuadable&quot;,
+      &quot;mixed&quot;
+    ],
+    &quot;impressions&quot;: 2,
+    &quot;expected_incremental_streams&quot;: 0.8,
+    &quot;expected_total_streams&quot;: 2.35
+  },
+  &quot;sweep&quot;: [
+    {
+      &quot;theta0&quot;: 0.0,
+      &quot;selected&quot;: [],
+      &quot;impressions&quot;: 0,
+      &quot;expected_incremental_streams&quot;: 0,
+      &quot;expected_total_streams&quot;: 1.55
+    },
+    {
+      &quot;theta0&quot;: 0.1,
+      &quot;selected&quot;: [],
+      &quot;impressions&quot;: 0,
+      &quot;expected_incremental_streams&quot;: 0,
+      &quot;expected_total_streams&quot;: 1.55
+    },
+    {
+      &quot;theta0&quot;: 0.2,
+      &quot;selected&quot;: [
+        &quot;persuadable&quot;
+      ],
+      &quot;impressions&quot;: 1,
+      &quot;expected_incremental_streams&quot;: 0.6,
+      &quot;expected_total_streams&quot;: 2.15
+    },
+    {
+      &quot;theta0&quot;: 0.3,
+      &quot;selected&quot;: [
+        &quot;persuadable&quot;
+      ],
+      &quot;impressions&quot;: 1,
+      &quot;expected_incremental_streams&quot;: 0.6,
+      &quot;expected_total_streams&quot;: 2.15
+    },
+    {
+      &quot;theta0&quot;: 0.4,
+      &quot;selected&quot;: [
+        &quot;persuadable&quot;
+      ],
+      &quot;impressions&quot;: 1,
+      &quot;expected_incremental_streams&quot;: 0.6,
+      &quot;expected_total_streams&quot;: 2.15
+    },
+    {
+      &quot;theta0&quot;: 0.5,
+      &quot;selected&quot;: [
+        &quot;persuadable&quot;,
+        &quot;mixed&quot;
+      ],
+      &quot;impressions&quot;: 2,
+      &quot;expected_incremental_streams&quot;: 0.8,
+      &quot;expected_total_streams&quot;: 2.35
+    },
+    {
+      &quot;theta0&quot;: 0.6,
+      &quot;selected&quot;: [
+        &quot;persuadable&quot;,
+        &quot;mixed&quot;
+      ],
+      &quot;impressions&quot;: 2,
+      &quot;expected_incremental_streams&quot;: 0.8,
+      &quot;expected_total_streams&quot;: 2.35
+    },
+    {
+      &quot;theta0&quot;: 0.7,
+      &quot;selected&quot;: [
+        &quot;persuadable&quot;,
+        &quot;mixed&quot;
+      ],
+      &quot;impressions&quot;: 2,
+      &quot;expected_incremental_streams&quot;: 0.8,
+      &quot;expected_total_streams&quot;: 2.35
+    },
+    {
+      &quot;theta0&quot;: 0.8,
+      &quot;selected&quot;: [
+        &quot;persuadable&quot;,
+        &quot;mixed&quot;
+      ],
+      &quot;impressions&quot;: 2,
+      &quot;expected_incremental_streams&quot;: 0.8,
+      &quot;expected_total_streams&quot;: 2.35
+    },
+    {
+      &quot;theta0&quot;: 0.9,
+      &quot;selected&quot;: [
+        &quot;organic&quot;,
+        &quot;persuadable&quot;,
+        &quot;mixed&quot;
+      ],
+      &quot;impressions&quot;: 3,
+      &quot;expected_incremental_streams&quot;: 0.82,
+      &quot;expected_total_streams&quot;: 2.37
+    },
+    {
+      &quot;theta0&quot;: 1.0,
+      &quot;selected&quot;: [
+        &quot;organic&quot;,
+        &quot;persuadable&quot;,
+        &quot;mixed&quot;
+      ],
+      &quot;impressions&quot;: 3,
+      &quot;expected_incremental_streams&quot;: 0.82,
+      &quot;expected_total_streams&quot;: 2.37
+    }
+  ],
+  &quot;checks&quot;: {
+    &quot;theta0_monotonicity&quot;: true,
+    &quot;baseline_at_one&quot;: true,
+    &quot;mismatched_subtraction_sign_counterexample&quot;: true
+  },
+  &quot;explorer&quot;: {
+    &quot;label&quot;: &quot;自然再生の上限 θ₀&quot;,
+    &quot;unit&quot;: &quot;件&quot;,
+    &quot;metric&quot;: &quot;4組の合成データで表示する件数&quot;,
+    &quot;default&quot;: 5,
+    &quot;frames&quot;: [
+      {
+        &quot;value&quot;: 0.0,
+        &quot;note&quot;: &quot;合成例。追加再生の期待値 0、全再生の期待値 1.55。実測値ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;単一閾値&quot;,
+            &quot;value&quot;: 3
+          },
+          {
+            &quot;label&quot;: &quot;二重閾値&quot;,
+            &quot;value&quot;: 0
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.1,
+        &quot;note&quot;: &quot;合成例。追加再生の期待値 0、全再生の期待値 1.55。実測値ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;単一閾値&quot;,
+            &quot;value&quot;: 3
+          },
+          {
+            &quot;label&quot;: &quot;二重閾値&quot;,
+            &quot;value&quot;: 0
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.2,
+        &quot;note&quot;: &quot;合成例。追加再生の期待値 0.6、全再生の期待値 2.15。実測値ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;単一閾値&quot;,
+            &quot;value&quot;: 3
+          },
+          {
+            &quot;label&quot;: &quot;二重閾値&quot;,
+            &quot;value&quot;: 1
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.3,
+        &quot;note&quot;: &quot;合成例。追加再生の期待値 0.6、全再生の期待値 2.15。実測値ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;単一閾値&quot;,
+            &quot;value&quot;: 3
+          },
+          {
+            &quot;label&quot;: &quot;二重閾値&quot;,
+            &quot;value&quot;: 1
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.4,
+        &quot;note&quot;: &quot;合成例。追加再生の期待値 0.6、全再生の期待値 2.15。実測値ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;単一閾値&quot;,
+            &quot;value&quot;: 3
+          },
+          {
+            &quot;label&quot;: &quot;二重閾値&quot;,
+            &quot;value&quot;: 1
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.5,
+        &quot;note&quot;: &quot;合成例。追加再生の期待値 0.8、全再生の期待値 2.35。実測値ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;単一閾値&quot;,
+            &quot;value&quot;: 3
+          },
+          {
+            &quot;label&quot;: &quot;二重閾値&quot;,
+            &quot;value&quot;: 2
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.6,
+        &quot;note&quot;: &quot;合成例。追加再生の期待値 0.8、全再生の期待値 2.35。実測値ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;単一閾値&quot;,
+            &quot;value&quot;: 3
+          },
+          {
+            &quot;label&quot;: &quot;二重閾値&quot;,
+            &quot;value&quot;: 2
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.7,
+        &quot;note&quot;: &quot;合成例。追加再生の期待値 0.8、全再生の期待値 2.35。実測値ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;単一閾値&quot;,
+            &quot;value&quot;: 3
+          },
+          {
+            &quot;label&quot;: &quot;二重閾値&quot;,
+            &quot;value&quot;: 2
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.8,
+        &quot;note&quot;: &quot;合成例。追加再生の期待値 0.8、全再生の期待値 2.35。実測値ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;単一閾値&quot;,
+            &quot;value&quot;: 3
+          },
+          {
+            &quot;label&quot;: &quot;二重閾値&quot;,
+            &quot;value&quot;: 2
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 0.9,
+        &quot;note&quot;: &quot;合成例。追加再生の期待値 0.82、全再生の期待値 2.37。実測値ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;単一閾値&quot;,
+            &quot;value&quot;: 3
+          },
+          {
+            &quot;label&quot;: &quot;二重閾値&quot;,
+            &quot;value&quot;: 3
+          }
+        ]
+      },
+      {
+        &quot;value&quot;: 1.0,
+        &quot;note&quot;: &quot;合成例。追加再生の期待値 0.82、全再生の期待値 2.37。実測値ではない。&quot;,
+        &quot;bars&quot;: [
+          {
+            &quot;label&quot;: &quot;単一閾値&quot;,
+            &quot;value&quot;: 3
+          },
+          {
+            &quot;label&quot;: &quot;二重閾値&quot;,
+            &quot;value&quot;: 3
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre></details><p>合成例の単一閾値は3件を表示し、追加再生の期待値は0.82。θ₀=0.5では2件、期待値は0.80となる。全再生の期待値は2.37から2.35へ下がる。表示を減らせても損失がゼロになるとは限らない。数値は手設計した潜在結果に依存する。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。Eq. 5 の境界、θ₀に対する表示数の単調性、異なる計測窓の引き算で符号が変わる反例を確認した。run.py の3条件は CONFIRMED。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability は NOT TESTED。共有 trunk の学習、Fig. 4 の校正改善、Spotify の A/B、長期満足度、配信速度を再現していない。個別の always-taker の正解ラベルも持たない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリのみ。evaluate() が同じ4組へ方策を適用し、潜在結果から期待値を集計する。予測器を学習するコードではない。results.json と閾値操作の表示値は同じ実行で生成する。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>Lab</th>
+<th>省略・注意</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3</td>
+<td>計測窓の図、run.py の反例</td>
+<td>短期窓の時間は補わない</td>
+</tr>
+<tr>
+<td>Fig. 3 / Eq. 4</td>
+<td>学習構造の解説</td>
+<td>trunk と head の学習は未実装</td>
+</tr>
+<tr>
+<td>Eq. 5 / §4.2</td>
+<td>evaluate()、閾値操作</td>
+<td>本文の閾値方向の矛盾を明記</td>
+</tr>
+<tr>
+<td>Table 1 / Fig. 4</td>
+<td>Evidence、校正の比較表</td>
+<td>著者報告。独立再現なし</td>
+</tr>
+</tbody>
+</table>
+<p>一次資料: <a href="https://arxiv.org/abs/2608.26804v1">arXiv 2608.26804v1</a>。PDF SHA-256: <code>47214ec295f92aeff1d08d44f3b02ada4104e5008e29ce1f1c235b7d592e8325</code>。</p>
+<p>公式コード: 提供 PDF 内で公開実装へのリンクを確認できなかった。公開実装が存在しないとの断定ではない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>表示の無駄を減らすとき、二つの再生確率を引いてよいか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/spotify-incremental-recommendation-causal/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

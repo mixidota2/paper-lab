@@ -1,0 +1,332 @@
+{
+  "experiment": "synthetic_dual_threshold",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "rows": [
+    {
+      "name": "organic",
+      "p1_short": 0.7,
+      "p0_long": 0.9,
+      "y1": 0.92,
+      "y0": 0.9
+    },
+    {
+      "name": "persuadable",
+      "p1_short": 0.6,
+      "p0_long": 0.15,
+      "y1": 0.75,
+      "y0": 0.15
+    },
+    {
+      "name": "low_response",
+      "p1_short": 0.1,
+      "p0_long": 0.05,
+      "y1": 0.15,
+      "y0": 0.05
+    },
+    {
+      "name": "mixed",
+      "p1_short": 0.5,
+      "p0_long": 0.45,
+      "y1": 0.65,
+      "y0": 0.45
+    }
+  ],
+  "baseline": {
+    "theta0": 1,
+    "selected": [
+      "organic",
+      "persuadable",
+      "mixed"
+    ],
+    "impressions": 3,
+    "expected_incremental_streams": 0.82,
+    "expected_total_streams": 2.37
+  },
+  "proposed": {
+    "theta0": 0.5,
+    "selected": [
+      "persuadable",
+      "mixed"
+    ],
+    "impressions": 2,
+    "expected_incremental_streams": 0.8,
+    "expected_total_streams": 2.35
+  },
+  "sweep": [
+    {
+      "theta0": 0.0,
+      "selected": [],
+      "impressions": 0,
+      "expected_incremental_streams": 0,
+      "expected_total_streams": 1.55
+    },
+    {
+      "theta0": 0.1,
+      "selected": [],
+      "impressions": 0,
+      "expected_incremental_streams": 0,
+      "expected_total_streams": 1.55
+    },
+    {
+      "theta0": 0.2,
+      "selected": [
+        "persuadable"
+      ],
+      "impressions": 1,
+      "expected_incremental_streams": 0.6,
+      "expected_total_streams": 2.15
+    },
+    {
+      "theta0": 0.3,
+      "selected": [
+        "persuadable"
+      ],
+      "impressions": 1,
+      "expected_incremental_streams": 0.6,
+      "expected_total_streams": 2.15
+    },
+    {
+      "theta0": 0.4,
+      "selected": [
+        "persuadable"
+      ],
+      "impressions": 1,
+      "expected_incremental_streams": 0.6,
+      "expected_total_streams": 2.15
+    },
+    {
+      "theta0": 0.5,
+      "selected": [
+        "persuadable",
+        "mixed"
+      ],
+      "impressions": 2,
+      "expected_incremental_streams": 0.8,
+      "expected_total_streams": 2.35
+    },
+    {
+      "theta0": 0.6,
+      "selected": [
+        "persuadable",
+        "mixed"
+      ],
+      "impressions": 2,
+      "expected_incremental_streams": 0.8,
+      "expected_total_streams": 2.35
+    },
+    {
+      "theta0": 0.7,
+      "selected": [
+        "persuadable",
+        "mixed"
+      ],
+      "impressions": 2,
+      "expected_incremental_streams": 0.8,
+      "expected_total_streams": 2.35
+    },
+    {
+      "theta0": 0.8,
+      "selected": [
+        "persuadable",
+        "mixed"
+      ],
+      "impressions": 2,
+      "expected_incremental_streams": 0.8,
+      "expected_total_streams": 2.35
+    },
+    {
+      "theta0": 0.9,
+      "selected": [
+        "organic",
+        "persuadable",
+        "mixed"
+      ],
+      "impressions": 3,
+      "expected_incremental_streams": 0.82,
+      "expected_total_streams": 2.37
+    },
+    {
+      "theta0": 1.0,
+      "selected": [
+        "organic",
+        "persuadable",
+        "mixed"
+      ],
+      "impressions": 3,
+      "expected_incremental_streams": 0.82,
+      "expected_total_streams": 2.37
+    }
+  ],
+  "checks": {
+    "theta0_monotonicity": true,
+    "baseline_at_one": true,
+    "mismatched_subtraction_sign_counterexample": true
+  },
+  "explorer": {
+    "label": "自然再生の上限 θ₀",
+    "unit": "件",
+    "metric": "4組の合成データで表示する件数",
+    "default": 5,
+    "frames": [
+      {
+        "value": 0.0,
+        "note": "合成例。追加再生の期待値 0、全再生の期待値 1.55。実測値ではない。",
+        "bars": [
+          {
+            "label": "単一閾値",
+            "value": 3
+          },
+          {
+            "label": "二重閾値",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "value": 0.1,
+        "note": "合成例。追加再生の期待値 0、全再生の期待値 1.55。実測値ではない。",
+        "bars": [
+          {
+            "label": "単一閾値",
+            "value": 3
+          },
+          {
+            "label": "二重閾値",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "value": 0.2,
+        "note": "合成例。追加再生の期待値 0.6、全再生の期待値 2.15。実測値ではない。",
+        "bars": [
+          {
+            "label": "単一閾値",
+            "value": 3
+          },
+          {
+            "label": "二重閾値",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "value": 0.3,
+        "note": "合成例。追加再生の期待値 0.6、全再生の期待値 2.15。実測値ではない。",
+        "bars": [
+          {
+            "label": "単一閾値",
+            "value": 3
+          },
+          {
+            "label": "二重閾値",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "value": 0.4,
+        "note": "合成例。追加再生の期待値 0.6、全再生の期待値 2.15。実測値ではない。",
+        "bars": [
+          {
+            "label": "単一閾値",
+            "value": 3
+          },
+          {
+            "label": "二重閾値",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "value": 0.5,
+        "note": "合成例。追加再生の期待値 0.8、全再生の期待値 2.35。実測値ではない。",
+        "bars": [
+          {
+            "label": "単一閾値",
+            "value": 3
+          },
+          {
+            "label": "二重閾値",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "value": 0.6,
+        "note": "合成例。追加再生の期待値 0.8、全再生の期待値 2.35。実測値ではない。",
+        "bars": [
+          {
+            "label": "単一閾値",
+            "value": 3
+          },
+          {
+            "label": "二重閾値",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "value": 0.7,
+        "note": "合成例。追加再生の期待値 0.8、全再生の期待値 2.35。実測値ではない。",
+        "bars": [
+          {
+            "label": "単一閾値",
+            "value": 3
+          },
+          {
+            "label": "二重閾値",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "value": 0.8,
+        "note": "合成例。追加再生の期待値 0.8、全再生の期待値 2.35。実測値ではない。",
+        "bars": [
+          {
+            "label": "単一閾値",
+            "value": 3
+          },
+          {
+            "label": "二重閾値",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "value": 0.9,
+        "note": "合成例。追加再生の期待値 0.82、全再生の期待値 2.37。実測値ではない。",
+        "bars": [
+          {
+            "label": "単一閾値",
+            "value": 3
+          },
+          {
+            "label": "二重閾値",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "value": 1.0,
+        "note": "合成例。追加再生の期待値 0.82、全再生の期待値 2.37。実測値ではない。",
+        "bars": [
+          {
+            "label": "単一閾値",
+            "value": 3
+          },
+          {
+            "label": "二重閾値",
+            "value": 3
+          }
+        ]
+      }
+    ]
+  }
+}

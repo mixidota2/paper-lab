@@ -1,0 +1,176 @@
+id: pinterest-causal-retrieval-shopping
+arxiv_id: '2607.14161'
+submitted: '2026-07-14'
+title: Deep-learning Causal Retrieval Optimization for Efficient e-commerce Distribution in Pinterest
+authors:
+- Junpeng Hou
+- XianXing Zhang
+- Sai Xiao
+- Derek Cheng
+- Darren Reger
+- Olafur Gudmundsson
+- Mehdi Ben Ayed
+- Zhiqing Rao
+- Huizhong Duan
+year: 2026
+topics:
+- recommender-systems
+- causal-inference
+- retrieval
+urls:
+  arxiv: https://arxiv.org/abs/2607.14161
+  paper: https://arxiv.org/abs/2607.14161
+  pdf: https://arxiv.org/pdf/2607.14161
+  official_code: null
+verdict: Worth Reading
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- incremental-recommendation
+- causal-retrieval
+status: published
+question: shopping 候補生成を、いつ呼ぶべきか
+summary: Pinterest は shopping 候補生成器の発火をリクエストごとに選ぶ。無作為 Shopping Holdout とオフライン replay で閾値を決める。本番の主方策は single-value（SV）であり、uplift
+  の差をそのまま配信する方策とは区別する。
+source_review:
+  checked: '2026-09-24'
+  scope: 提供された原論文 PDF と抽出テキストを確認。独立再現ではない。
+  url: https://arxiv.org/abs/2607.14161
+  pdf_version: v2
+  pdf_sha256: f75332d8051e50bf03cd46c4571f5699ebfd69512501b11204d891c19c71c6d6
+core_idea:
+  author_claim: 結果予測と doubly robust（DR）な uplift の補助学習を組み合わせる。Shopping Holdout で候補生成の有無を無作為化し、閾値の効果を事前評価する。候補生成の発火を最大85%減らしても、shopping
+    lower funnel は有意に変わらないと報告する。
+  research_bot_interpretation: 判断するのは候補源を呼ぶ価値である。後段で商品の順位を決める前に、ユーザー・文脈・query ごとに shopping の候補生成を呼ぶか選ぶため、学習した因果信号の質と、本番で採用したスコア・閾値の効果を分けて読む必要がある。
+sections:
+  overview: Pinterest は shopping 候補生成器の発火をリクエストごとに選ぶ。無作為 Shopping Holdout とオフライン replay で閾値を決める。本番の主方策は single-value（SV）であり、uplift
+    の差をそのまま配信する方策とは区別する。
+  problem: '目的が競合する。shopping 候補を毎回呼ぶと、買物行動が増える一方で Pin 保存などが減り、後段の ranker が表示する商品をうまく選べたとしても、既に払った候補生成の呼出し費用は取り戻せない。
+
+
+    対象範囲にも制約がある。Shopping Holdout は shopping の配信対象となるリクエスト内で作られ、全トラフィックを無条件に無作為化したデータではない。'
+  method: method.md
+  why_it_might_work: '本 Lab の解釈: 何を見たかが変わる。小さな無作為ログでも、同じ特徴領域で発火と非発火の両方を観測できれば、従来の表示ログだけでは見えなかった「候補を呼ばなかった場合」の結果を、方策を選ぶための根拠に加えられる。
+
+
+    SV の利点は安定性。二つの予測誤差の差を取らずに済む一方、自然に起きる行動も高く評価しうるため、因果学習を使うだけで最終方策が最適になるわけではない。'
+  evidence: '一次資料の著者報告を示す。
+
+
+    Table 4 は baseline model による SV 方策の検証であり、DR 学習の改善量を測る表ではない。δ=0.0102 の発火率変化はオンライン−64.4%、オフライン−64.6%。順序を取り違えない。TP
+    impressions は同じ行で−11.3%と−10.1%となる。
+
+
+    Table 5 の Success Curation の量はサイト全体で+0.26%、Repins は Closeup surface で+1.10%。抽象の sessions / Pin saves という要約より、表の母集団と指標名を優先する。shopping
+    lower funnel は有意差なし。本文はこの群の発火削減を約40%、別の積極的な群を最大85%と記す。85%削減と Table 5 の改善値を同じ実験条件として結合しない。
+
+
+    §4 の配信は remote retrieval と並列に実行し、end-to-end latency の悪化なしと報告する。負荷別の遅延分布を独立に確認できるログはない。'
+  executable_understanding: '`uv run papers/pinterest-causal-retrieval-shopping/run.py`
+
+
+    入力は600件。3種類のリクエストを各群100件ずつ列挙し、各種類の結果率を固定した上で、誤った μ₁=0.3、μ₀=0.2から計算する DR 信号が、正しい割当確率0.5と誤った確率0.8でどう変わるかを比べる。
+
+
+    方策は SV。方策に一致するログだけを使う replay と、全潜在結果から直接求める真の平均を照合する。'
+  results: '補正は期待通りに働いた。
+
+
+    | リクエストの種類 | 真の uplift | 正しい割当確率での DR | 誤った割当確率での DR |
+
+    | --- | ---: | ---: | ---: |
+
+    | low | 0.02 | 0.02 | 0.275 |
+
+    | medium | 0.20 | 0.20 | 0.1625 |
+
+    | organic | 0.05 | 0.05 | −0.9625 |
+
+
+    δ=0.3の SV は3分の2を発火し、replay と真の報酬率はいずれも0.426667となるが、ここでは結果率を厳密に列挙して有限標本誤差を除いているため、現実の小さな Holdout でも同じ精度が得られるとの実証にはならない。'
+  what_we_verified: Mechanism PARTIAL。切り詰め前の DR 補正と、均等割当下の action-matching replay を確認した。3個の数値検査は CONFIRMED。深層モデルの学習や
+    Switch-DR の安定化効果は含めない。
+  what_we_did_not_verify: Performance / Scaling / Production applicability は NOT TESTED。Pinterest のログ、DR 付き学習、SV
+    と DP の実データ比較、最大85%削減、Table 5 のオンライン差を再現していない。合成例の期待値一致は将来の分布変化やユーザー間干渉を保証しない。
+  implementation: dr() が Eq. 7 の切り詰め前の形を実装する。evaluate() は単純な一致抽出で、Algorithm 1 の高速な累積更新は省略した。閾値ごとに全件を読むため O(nk) となる。論文の
+    sort 後の線形 sweep のスケーリングを検証したコードではない。
+  mapping: mapping.md
+teaching_figures:
+- kind: architecture
+  id: retrieval-gate
+  title: shopping 候補源を呼ぶ前に判断する
+  caption: 役割を簡略化した概念図。Fig. 1 の配信・無作為ログ・学習の関係を示し、remote retrieval と並列に動く本番サービスの時系列や個別の接続までを再現した図ではない。
+  source: https://arxiv.org/abs/2607.14161
+  locator: Fig. 1; §3.1–3.2
+  rationale: 判断が cascade のどこへ入るかを示す。
+  after: problem
+  rows:
+  - label: 配信
+    nodes:
+    - title: ユーザー・文脈・query
+      text: リクエスト特徴を入力する
+    - title: SV gate
+      text: μ₁ > δ なら shopping CG を発火
+    - title: 後段のランキング
+      text: 他の候補源と合わせて順位を決める
+  - label: 学習用ログ
+    nodes:
+    - title: Shopping Holdout
+      text: 対象トラフィック内で50:50の無作為割当
+    - title: 多目的学習
+      text: outcome と uplift の head を更新
+    - title: replay
+      text: 閾値別の費用と結果を事前に比べる
+- kind: equations
+  id: dr-residual
+  title: 予測を残差で補正し、方策は別に選ぶ
+  caption: 式は切り詰め前。e は発火確率、y は実際の割当、m は観測結果であり、推薦しなかったリクエストでは μ₀の誤差、推薦したリクエストでは μ₁の誤差だけを補正に使う。
+  source: https://arxiv.org/abs/2607.14161
+  locator: Eqs. 3–10; §3.1
+  rationale: DR 学習と SV 配信の違いを明示する。
+  after: method
+  steps:
+  - name: DR 信号
+    formula: ψ = μ₁ − μ₀ + y(m−μ₁)/e − (1−y)(m−μ₀)/(1−e)
+    explanation: 観測できた群の予測誤差を、割当確率で補正する。
+  - name: uplift の補助学習
+    formula: L_DR = mean[ω_DR (τ−ψ)²]
+    explanation: 論文は大きい補正項を切り詰める。toy では切り詰めを省く。
+  - name: 本番の主方策
+    formula: 'SV: μ₁ > δ　／　DP: τ > δ'
+    explanation: SV は結果確率を閾値にかける。DP は追加効果の診断に使う。
+- kind: matrix
+  id: offline-online
+  title: Table 4：閾値を厳しくすると両環境で発火が減る
+  caption: 著者報告の相対変化。baseline model の SV 方策。
+  source: https://arxiv.org/abs/2607.14161
+  locator: Table 4
+  rationale: offline と online を同じ閾値で対応づける。
+  after: evidence
+  columns:
+  - オンライン発火率
+  - オフライン発火率
+  rows:
+  - label: δ=0.0012
+    cells:
+    - −37.0%
+    - −37.5%
+  - label: δ=0.0055
+    cells:
+    - −57.0%
+    - −57.1%
+  - label: δ=0.0102
+    cells:
+    - −64.4%
+    - −64.6%
+  - label: δ=0.0383
+    cells:
+    - −77.4%
+    - −78.5%
+interactives:
+- kind: explorer
+  title: 合成データで閾値を動かす
+  caption: run.py が計算した結果。原論文の数値とは分離する。

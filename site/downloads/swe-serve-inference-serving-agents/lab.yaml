@@ -1,0 +1,137 @@
+id: swe-serve-inference-serving-agents
+arxiv_id: '2609.26777'
+submitted: '2026-09-22'
+title: 'SWE-Serve: Benchmarking Agentic Engineering For Production Inference Serving'
+authors:
+- Jennifer Williams
+- Dave Farris
+- Jeff Farris
+- Jiantao Jiao
+year: 2026
+topics:
+- ai-agent-systems
+- evaluation
+urls:
+  paper: https://arxiv.org/abs/2609.26777
+  arxiv: https://arxiv.org/abs/2609.26777
+  pdf: https://arxiv.org/pdf/2609.26777v1
+  official_code: null
+verdict: Worth Reading
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads: []
+status: published
+question: 局所テストを通った変更は、推論サーバーでも動くか
+summary: SGLangの53課題で、局所的に動く変更がサーバー全体でも動くかを測る。E2E対象19課題では、同じパッチの採点からE2Eを外すと成功率が45.9%から69.4%へ上がった。
+source_review:
+  checked: '2026-09-24'
+  scope: 提供された一次PDFを確認。著者報告と教育用実験を分離。
+  pdf_sha256: 891301e2e96052899a86ca99966fb805d29c50e63b1fadc9fe9517769b1cd4e0
+  url: https://arxiv.org/pdf/2609.26777v1
+core_idea:
+  author_claim: 著者は、推論配信の実装を機能・回帰・E2E・性能制約で評価するSWE-Serveを提案した。E2E検査を外したときの差は23.4ポイントと報告している。
+  research_bot_interpretation: 変更した関数のテストに加え、公開APIからモデル実行まで到達するテストが必要だと読める。53課題の合格は運用準備全体や保守性の保証ではない。
+sections:
+  overview: SGLangの53課題で、局所的に動く変更がサーバー全体でも動くかを測る。E2E対象19課題では、同じパッチの採点からE2Eを外すと成功率が45.9%から69.4%へ上がった。
+  problem: モデル対応、デコード、キャッシュ、分散実行、APIの変更は複数の境界をまたぐ。個別関数が正しくても、設定の伝播や状態の共有を誤ればユーザーのリクエストは失敗する。
+  method: method.md
+  why_it_might_work: '【解釈】同じパッチのまま採点項目だけを外すと、モデル生成の変動と検査の違いを分離できる。ただしテストを減らせば一般に合格率は上がる。論文は12課題で同数・同種の非E2Eテスト除去とも比較し、E2E除去による新規合格が2.0倍と報告した。
+
+
+    最初に確かめたいのは、手元の単体テストが通る変更について、公開APIから渡した設定がモデル実行へ届くか、以前の要求の状態が次の要求へ漏れないか、複数要求を同時に処理しても仕様を保てるかを、それぞれ独立したテストで説明できるかという点だ。'
+  evidence: '一次資料の著者報告を示す。
+
+
+    表2：53課題、CPU 12件、H100 41件、E2E 19件、性能条件3件。6系列の内訳は下図に示す。
+
+
+    図2：11モデルの各最良設定、3試行、E2E対象19課題の627パッチで45.9%→69.4%。本文の差は23.4ポイントだが、表示値の引き算は23.5ポイントになる。丸め前の集計値をこちらで再計算したわけではない。単一runtime
+    domainの26課題は69.0%、複数domainの27課題は47.7%で、差は21.3ポイント。課題構成が違うため、domain数だけの因果効果ではない。
+
+
+    §5.3・図16：GPT-5.6 Sol maxはmini-SWE-agent 75.5%、Codex 73.6%。Claude Opus 5 maxはmini-SWE-agent
+    75.5%、Claude Code 69.8%。いずれも全53課題を3回評価した平均。専用ハーネスは速いが高コストで、観測成功率は低かった。ツール、指示、作業管理も変わり、mini-SWE-agentだけに350-step上限がある。モデル単体の順位やハーネス一般の優劣へ拡張しない。'
+  executable_understanding: '小さな配信サービスの4種類のパッチを固定し、直接関数の検査、公開API経路、連続リクエストの状態検査を実行する。検査を1群ずつ追加して同じパッチの合格数を比べる。実際のSGLang、HTTPサーバー、LLMは使わない。
+
+
+    入力はalpha、次にbetaだ。期待値は各入力そのものになる。まずlocal-onlyを見る。decodeを直接呼ぶとalphaが返る。局所検査は通る。しかしrequestは空文字を返す。APIへの配線漏れだ。state-leakはどうか。初回は通る。2回目はalpha
+    betaになる。前の要求が混ざった。completeだけが3群を通過する。'
+  results: 4パッチ中、局所検査は3件、API経路を加えると2件、状態検査まで加えると1件が合格した。局所検査だけで通る2件は、APIへの配線漏れと状態の混入を残していた。
+  what_we_verified: CONFIRMED：同じパッチでもAPI経路と状態検査を加えると局所テストの見逃しを検出した。PARTIAL：検証境界の考え方のみを再現した。
+  what_we_did_not_verify: NOT TESTED：53課題、H100でのモデル配信、性能ゲート、11モデルの成功率、ハーネス比較。合成4件から論文の23.4ポイントを再現したとは主張しない。
+  implementation: '`UV_CACHE_DIR=/tmp/uv-cache uv run papers/swe-serve-inference-serving-agents/run.py`
+    をリポジトリのルートで実行する。標準ライブラリだけを使用し、結果と各検査の成否をresults.jsonへ保存する。'
+  mapping: mapping.md
+teaching_figures:
+- kind: matrix
+  id: task-map
+  title: 6系列にまたがる53課題
+  after: method
+  caption: 6系列にまたがる53課題
+  source: https://arxiv.org/pdf/2609.26777v1
+  locator: 表2
+  rationale: 6系列にまたがる53課題
+  columns:
+  - 課題数
+  rows:
+  - label: Model / backend
+    cells:
+    - '12'
+  - label: Speculative / advanced decoding
+    cells:
+    - '14'
+  - label: Kernels / quantization / performance
+    cells:
+    - '8'
+  - label: Caching / runtime state
+    cells:
+    - '7'
+  - label: Distributed / scheduling
+    cells:
+    - '4'
+  - label: Serving API / runtime correctness
+    cells:
+    - '8'
+- kind: chart
+  id: e2e-gap
+  title: 同じパッチの検査範囲を変える
+  after: evidence
+  caption: E2E対象19課題。本文の差は23.4ポイント。表示値同士の差23.5ポイントとは丸めが異なる。
+  source: https://arxiv.org/pdf/2609.26777v1
+  locator: 図2A・§5.2
+  rationale: 同じパッチの検査範囲を変える
+  maximum: 100
+  unit: '%'
+  bars:
+  - label: 全検査
+    value: 45.9
+  - label: E2Eを採点から除外
+    value: 69.4
+- kind: logic
+  id: verifier
+  title: 局所関数から公開経路まで検査する
+  after: method
+  caption: 機能と回帰の検査に通っても、公開APIからモデルを呼び出す経路や要求間の状態管理に不具合が残る場合があるため、SWE-Serveでは対象課題にE2E検査や性能条件を追加する。
+  source: https://arxiv.org/pdf/2609.26777v1
+  locator: §3・図1
+  rationale: 局所関数から公開経路まで検査する
+  rows:
+  - label: 課題の妥当性
+    nodes:
+    - title: no-op
+      text: 変更しなければ落ちる
+    - title: oracle
+      text: 参照実装で通る
+  - label: パッチの検査
+    nodes:
+    - title: 機能・回帰
+      text: 新機能と既存動作を検査
+    - title: E2E・性能
+      text: 対象課題で公開経路と速度を検査
+interactives:
+- kind: explorer
+  title: 検査範囲を広げる
+  caption: 合成4パッチを固定。スライダーで検査群だけを追加する。

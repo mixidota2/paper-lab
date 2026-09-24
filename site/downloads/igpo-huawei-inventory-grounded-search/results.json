@@ -1,0 +1,500 @@
+{
+  "kind": "synthetic deterministic mechanism check",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "checks": {
+    "background_regression_rejected": true,
+    "probe_miss_remains": true,
+    "guidelines_frozen_across_snapshots": true
+  },
+  "scenarios": [
+    {
+      "label": "元の属性",
+      "baseline": {
+        "fni_pct": 33.333333333333336,
+        "fm_pct": 100.0,
+        "correct": 2,
+        "supported": 3,
+        "absent": 1,
+        "decisions": [
+          {
+            "query": "photo",
+            "targets_for_evaluation": [
+              "a"
+            ],
+            "id": "a",
+            "decision": "match",
+            "fields": [
+              "tags"
+            ]
+          },
+          {
+            "query": "vegan",
+            "targets_for_evaluation": [
+              "b"
+            ],
+            "id": "b",
+            "decision": "match",
+            "fields": [
+              "tags"
+            ]
+          },
+          {
+            "query": "wedding",
+            "targets_for_evaluation": [
+              "c"
+            ],
+            "id": null,
+            "decision": "no_support_observed",
+            "fields": [
+              "tags"
+            ]
+          },
+          {
+            "query": "gluten-free",
+            "targets_for_evaluation": [],
+            "id": "a",
+            "decision": "match",
+            "fields": [
+              "tags"
+            ]
+          }
+        ]
+      },
+      "guided": {
+        "fni_pct": 0.0,
+        "fm_pct": 0.0,
+        "correct": 4,
+        "supported": 3,
+        "absent": 1,
+        "decisions": [
+          {
+            "query": "photo",
+            "targets_for_evaluation": [
+              "a"
+            ],
+            "id": "a",
+            "decision": "match",
+            "fields": [
+              "tags",
+              "description"
+            ]
+          },
+          {
+            "query": "vegan",
+            "targets_for_evaluation": [
+              "b"
+            ],
+            "id": "b",
+            "decision": "match",
+            "fields": [
+              "tags",
+              "description"
+            ]
+          },
+          {
+            "query": "wedding",
+            "targets_for_evaluation": [
+              "c"
+            ],
+            "id": "c",
+            "decision": "match",
+            "fields": [
+              "tags",
+              "description"
+            ]
+          },
+          {
+            "query": "gluten-free",
+            "targets_for_evaluation": [],
+            "id": null,
+            "decision": "no_support_observed",
+            "fields": [
+              "tags",
+              "description"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "label": "属性を移動",
+      "baseline": {
+        "fni_pct": 100.0,
+        "fm_pct": 100.0,
+        "correct": 0,
+        "supported": 3,
+        "absent": 1,
+        "decisions": [
+          {
+            "query": "photo",
+            "targets_for_evaluation": [
+              "a"
+            ],
+            "id": null,
+            "decision": "no_support_observed",
+            "fields": [
+              "tags"
+            ]
+          },
+          {
+            "query": "vegan",
+            "targets_for_evaluation": [
+              "b"
+            ],
+            "id": null,
+            "decision": "no_support_observed",
+            "fields": [
+              "tags"
+            ]
+          },
+          {
+            "query": "wedding",
+            "targets_for_evaluation": [
+              "c"
+            ],
+            "id": null,
+            "decision": "no_support_observed",
+            "fields": [
+              "tags"
+            ]
+          },
+          {
+            "query": "gluten-free",
+            "targets_for_evaluation": [],
+            "id": "a",
+            "decision": "match",
+            "fields": [
+              "tags"
+            ]
+          }
+        ]
+      },
+      "guided": {
+        "fni_pct": 0.0,
+        "fm_pct": 0.0,
+        "correct": 4,
+        "supported": 3,
+        "absent": 1,
+        "decisions": [
+          {
+            "query": "photo",
+            "targets_for_evaluation": [
+              "a"
+            ],
+            "id": "a",
+            "decision": "match",
+            "fields": [
+              "description"
+            ]
+          },
+          {
+            "query": "vegan",
+            "targets_for_evaluation": [
+              "b"
+            ],
+            "id": "b",
+            "decision": "match",
+            "fields": [
+              "description"
+            ]
+          },
+          {
+            "query": "wedding",
+            "targets_for_evaluation": [
+              "c"
+            ],
+            "id": "c",
+            "decision": "match",
+            "fields": [
+              "description"
+            ]
+          },
+          {
+            "query": "gluten-free",
+            "targets_for_evaluation": [],
+            "id": null,
+            "decision": "no_support_observed",
+            "fields": [
+              "description"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "label": "商品aを削除",
+      "baseline": {
+        "fni_pct": 100.0,
+        "fm_pct": 50.0,
+        "correct": 1,
+        "supported": 2,
+        "absent": 2,
+        "decisions": [
+          {
+            "query": "photo",
+            "targets_for_evaluation": [],
+            "id": null,
+            "decision": "no_support_observed",
+            "fields": [
+              "tags"
+            ]
+          },
+          {
+            "query": "vegan",
+            "targets_for_evaluation": [
+              "b"
+            ],
+            "id": null,
+            "decision": "no_support_observed",
+            "fields": [
+              "tags"
+            ]
+          },
+          {
+            "query": "wedding",
+            "targets_for_evaluation": [
+              "c"
+            ],
+            "id": null,
+            "decision": "no_support_observed",
+            "fields": [
+              "tags"
+            ]
+          },
+          {
+            "query": "gluten-free",
+            "targets_for_evaluation": [],
+            "id": "b",
+            "decision": "match",
+            "fields": [
+              "tags"
+            ]
+          }
+        ]
+      },
+      "guided": {
+        "fni_pct": 0.0,
+        "fm_pct": 0.0,
+        "correct": 4,
+        "supported": 2,
+        "absent": 2,
+        "decisions": [
+          {
+            "query": "photo",
+            "targets_for_evaluation": [],
+            "id": null,
+            "decision": "no_support_observed",
+            "fields": [
+              "description"
+            ]
+          },
+          {
+            "query": "vegan",
+            "targets_for_evaluation": [
+              "b"
+            ],
+            "id": "b",
+            "decision": "match",
+            "fields": [
+              "description"
+            ]
+          },
+          {
+            "query": "wedding",
+            "targets_for_evaluation": [
+              "c"
+            ],
+            "id": "c",
+            "decision": "match",
+            "fields": [
+              "description"
+            ]
+          },
+          {
+            "query": "gluten-free",
+            "targets_for_evaluation": [],
+            "id": null,
+            "decision": "no_support_observed",
+            "fields": [
+              "description"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "label": "probeが商品cを見落とす",
+      "baseline": {
+        "fni_pct": 33.333333333333336,
+        "fm_pct": 100.0,
+        "correct": 2,
+        "supported": 3,
+        "absent": 1,
+        "decisions": [
+          {
+            "query": "photo",
+            "targets_for_evaluation": [
+              "a"
+            ],
+            "id": "a",
+            "decision": "match",
+            "fields": [
+              "tags"
+            ]
+          },
+          {
+            "query": "vegan",
+            "targets_for_evaluation": [
+              "b"
+            ],
+            "id": "b",
+            "decision": "match",
+            "fields": [
+              "tags"
+            ]
+          },
+          {
+            "query": "wedding",
+            "targets_for_evaluation": [
+              "c"
+            ],
+            "id": null,
+            "decision": "no_support_observed",
+            "fields": [
+              "tags"
+            ]
+          },
+          {
+            "query": "gluten-free",
+            "targets_for_evaluation": [],
+            "id": "a",
+            "decision": "match",
+            "fields": [
+              "tags"
+            ]
+          }
+        ]
+      },
+      "guided": {
+        "fni_pct": 33.333333333333336,
+        "fm_pct": 0.0,
+        "correct": 3,
+        "supported": 3,
+        "absent": 1,
+        "decisions": [
+          {
+            "query": "photo",
+            "targets_for_evaluation": [
+              "a"
+            ],
+            "id": "a",
+            "decision": "match",
+            "fields": [
+              "tags"
+            ]
+          },
+          {
+            "query": "vegan",
+            "targets_for_evaluation": [
+              "b"
+            ],
+            "id": "b",
+            "decision": "match",
+            "fields": [
+              "tags"
+            ]
+          },
+          {
+            "query": "wedding",
+            "targets_for_evaluation": [
+              "c"
+            ],
+            "id": null,
+            "decision": "no_support_observed",
+            "fields": [
+              "tags"
+            ]
+          },
+          {
+            "query": "gluten-free",
+            "targets_for_evaluation": [],
+            "id": null,
+            "decision": "no_support_observed",
+            "fields": [
+              "tags"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "explorer": {
+    "label": "在庫の状態",
+    "unit": "",
+    "metric": "正答数 / 4",
+    "default": 0,
+    "frames": [
+      {
+        "value": 0,
+        "note": "元の属性。人工4要求。規則は固定し、現在の属性を読み直す。",
+        "bars": [
+          {
+            "label": "固定属性：正答",
+            "value": 2
+          },
+          {
+            "label": "在庫を参照：正答",
+            "value": 4
+          }
+        ]
+      },
+      {
+        "value": 1,
+        "note": "属性を移動。人工4要求。規則は固定し、現在の属性を読み直す。",
+        "bars": [
+          {
+            "label": "固定属性：正答",
+            "value": 0
+          },
+          {
+            "label": "在庫を参照：正答",
+            "value": 4
+          }
+        ]
+      },
+      {
+        "value": 2,
+        "note": "商品aを削除。人工4要求。規則は固定し、現在の属性を読み直す。",
+        "bars": [
+          {
+            "label": "固定属性：正答",
+            "value": 1
+          },
+          {
+            "label": "在庫を参照：正答",
+            "value": 4
+          }
+        ]
+      },
+      {
+        "value": 3,
+        "note": "probeが商品cを見落とす。人工4要求。規則は固定し、現在の属性を読み直す。",
+        "bars": [
+          {
+            "label": "固定属性：正答",
+            "value": 2
+          },
+          {
+            "label": "在庫を参照：正答",
+            "value": 3
+          }
+        ]
+      }
+    ]
+  }
+}

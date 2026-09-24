@@ -1,0 +1,177 @@
+{
+  "experiment": "synthetic Boolean document expansion",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "modes": {
+    "title": {
+      "new_tokens": 0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "trace": [
+        {
+          "query": "red shirt",
+          "retrieved": [],
+          "relevant": [
+            "a"
+          ],
+          "true_positive": 0,
+          "false_positive": 0
+        },
+        {
+          "query": "floral dress",
+          "retrieved": [],
+          "relevant": [
+            "b"
+          ],
+          "true_positive": 0,
+          "false_positive": 0
+        },
+        {
+          "query": "leather bag",
+          "retrieved": [],
+          "relevant": [
+            "c"
+          ],
+          "true_positive": 0,
+          "false_positive": 0
+        }
+      ]
+    },
+    "all": {
+      "new_tokens": 7,
+      "true_positive": 3,
+      "false_positive": 1,
+      "trace": [
+        {
+          "query": "red shirt",
+          "retrieved": [
+            "a"
+          ],
+          "relevant": [
+            "a"
+          ],
+          "true_positive": 1,
+          "false_positive": 0
+        },
+        {
+          "query": "floral dress",
+          "retrieved": [
+            "b"
+          ],
+          "relevant": [
+            "b"
+          ],
+          "true_positive": 1,
+          "false_positive": 0
+        },
+        {
+          "query": "leather bag",
+          "retrieved": [
+            "a",
+            "c"
+          ],
+          "relevant": [
+            "c"
+          ],
+          "true_positive": 1,
+          "false_positive": 1
+        }
+      ]
+    },
+    "gated": {
+      "new_tokens": 5,
+      "true_positive": 3,
+      "false_positive": 0,
+      "trace": [
+        {
+          "query": "red shirt",
+          "retrieved": [
+            "a"
+          ],
+          "relevant": [
+            "a"
+          ],
+          "true_positive": 1,
+          "false_positive": 0
+        },
+        {
+          "query": "floral dress",
+          "retrieved": [
+            "b"
+          ],
+          "relevant": [
+            "b"
+          ],
+          "true_positive": 1,
+          "false_positive": 0
+        },
+        {
+          "query": "leather bag",
+          "retrieved": [
+            "c"
+          ],
+          "relevant": [
+            "c"
+          ],
+          "true_positive": 1,
+          "false_positive": 0
+        }
+      ]
+    }
+  },
+  "limitation": "Candidates and gates are hand-authored. No image model, business-reward estimator, GRPO, or production traffic.",
+  "explorer": {
+    "default": 0,
+    "label": "索引へ入れる展開語",
+    "unit": "件",
+    "metric": "3クエリの取得結果",
+    "frames": [
+      {
+        "value": 0,
+        "note": "タイトルのみ。候補とgateは手作りの固定値。",
+        "bars": [
+          {
+            "label": "関連商品",
+            "value": 0
+          },
+          {
+            "label": "誤取得",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "value": 1,
+        "note": "候補を無条件で追加。候補とgateは手作りの固定値。",
+        "bars": [
+          {
+            "label": "関連商品",
+            "value": 3
+          },
+          {
+            "label": "誤取得",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "value": 2,
+        "note": "意味gateを通した候補だけ追加。候補とgateは手作りの固定値。",
+        "bars": [
+          {
+            "label": "関連商品",
+            "value": 3
+          },
+          {
+            "label": "誤取得",
+            "value": 0
+          }
+        ]
+      }
+    ]
+  }
+}
