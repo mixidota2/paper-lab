@@ -1,0 +1,148 @@
+{
+  "experiment": "oracle-distribution-interface-counterexample",
+  "seed": null,
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "cohorts": [
+    {
+      "mean_seconds": 10.0,
+      "duration": 10,
+      "event_mass": {
+        "early": 0,
+        "mid": 0,
+        "completion": 1.0,
+        "overplay": 0
+      },
+      "long_probability": 1.0,
+      "entropy": -0.0
+    },
+    {
+      "mean_seconds": 10.0,
+      "duration": 10,
+      "event_mass": {
+        "early": 0.5,
+        "mid": 0,
+        "completion": 0,
+        "overplay": 0.5
+      },
+      "long_probability": 0.5,
+      "entropy": 0.6931471805599453
+    }
+  ],
+  "mixture_sweep": [
+    {
+      "mixture": 0.0,
+      "mean_seconds": 10.0,
+      "duration": 10,
+      "event_mass": {
+        "early": 0.0,
+        "mid": 0,
+        "completion": 1.0,
+        "overplay": 0.0
+      },
+      "long_probability": 1.0,
+      "entropy": -0.0
+    },
+    {
+      "mixture": 0.25,
+      "mean_seconds": 10.0,
+      "duration": 10,
+      "event_mass": {
+        "early": 0.125,
+        "mid": 0,
+        "completion": 0.75,
+        "overplay": 0.125
+      },
+      "long_probability": 0.875,
+      "entropy": 0.7356219397587946
+    },
+    {
+      "mixture": 0.5,
+      "mean_seconds": 10.0,
+      "duration": 10,
+      "event_mass": {
+        "early": 0.25,
+        "mid": 0,
+        "completion": 0.5,
+        "overplay": 0.25
+      },
+      "long_probability": 0.75,
+      "entropy": 1.0397207708399179
+    },
+    {
+      "mixture": 0.75,
+      "mean_seconds": 10.0,
+      "duration": 10,
+      "event_mass": {
+        "early": 0.375,
+        "mid": 0,
+        "completion": 0.25,
+        "overplay": 0.375
+      },
+      "long_probability": 0.625,
+      "entropy": 1.0821955300387673
+    },
+    {
+      "mixture": 1.0,
+      "mean_seconds": 10.0,
+      "duration": 10,
+      "event_mass": {
+        "early": 0.5,
+        "mid": 0,
+        "completion": 0.0,
+        "overplay": 0.5
+      },
+      "long_probability": 0.5,
+      "entropy": 0.6931471805599453
+    }
+  ],
+  "support": {
+    "early": [
+      0,
+      1,
+      2
+    ],
+    "mid": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "completion": [
+      10
+    ],
+    "overplay": [
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ]
+  },
+  "expected_overplay_brier": {
+    "best_shared_scalar_readout": 0.1875,
+    "oracle_distribution_readout": 0.125
+  },
+  "checks": {
+    "same_mean_and_duration": "CONFIRMED",
+    "different_overplay_mass": "CONFIRMED",
+    "support_normalized": "CONFIRMED",
+    "completion_anchor": "CONFIRMED",
+    "boundary_labels": "CONFIRMED"
+  },
+  "limitations": [
+    "No provider or readout training",
+    "Hand-designed oracle distributions",
+    "No public dataset benchmark or production A/B"
+  ]
+}

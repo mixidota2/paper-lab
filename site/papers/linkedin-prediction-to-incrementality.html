@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="LinkedInは、送った場合と送らなかった場合の成果の差を推定し、探索と全体制約を含む配分へつなぐ。Feedのマーケティング流量で実施した8週間のA/Bでは、長期価値（LTV）が+7.20%だった。p=0.041、95%信頼区間は[0.31%, 14.09%]。これは配信方策全体の著者報告で、Transformer単体の効果ではない。">
+  <title>送らなくても行動する人から、送ることで変わる人へ予算を移せるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-08-10</span></div>
+    <h1>送らなくても行動する人から、送ることで変わる人へ予算を移せるか</h1>
+    <p class="lede">LinkedInは、送った場合と送らなかった場合の成果の差を推定し、探索と全体制約を含む配分へつなぐ。Feedのマーケティング流量で実施した8週間のA/Bでは、長期価値（LTV）が+7.20%だった。p=0.041、95%信頼区間は[0.31%, 14.09%]。これは配信方策全体の著者報告で、Transformer単体の効果ではない。</p>
+    <details class="bibliography"><summary>原論文：From Prediction to Incrementality: Causal Optimization for Large-Scale Targeting and Recommendation</summary><p>Changshuai Wei, John Bencina, Phuc Nguyen, Andre Assuncao Silva T Ribeiro, Benjamin Zelditch</p><p>2608.10182 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2608.10182">原典を読む ↗</a><a href="https://arxiv.org/pdf/2608.10182">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-25 · 提供PDF全文テキスト、Fig. 1画像、Eq. 1–4、§5.1–5.5を照合。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-causal-allocation">Figure 1の二つの成果headから、Eq. 3の配分へ</a><a href="#figure-counterfactual-ledger">高い反応率でも、送らない方がよい相手がいる</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>LinkedInは、送った場合と送らなかった場合の成果の差を推定し、探索と全体制約を含む配分へつなぐ。Feedのマーケティング流量で実施した8週間のA/Bでは、長期価値（LTV）が+7.20%だった。p=0.041、95%信頼区間は[0.31%, 14.09%]。これは配信方策全体の著者報告で、Transformer単体の効果ではない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>反応確率の高い会員は、送信しなくても行動するかもしれない。限られた予算をそこへ使うと、送信によって行動が変わる会員へ届かない。さらに、各キャンペーンが個別に最適化すると、全体予算や会員ごとの送信上限を超えうる。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-counterfactual-ledger" aria-labelledby="title-counterfactual-ledger">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-counterfactual-ledger">高い反応率でも、送らない方がよい相手がいる</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="高い反応率でも、送らない方がよい相手がいるの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">未送信 μ₀</th><th scope="col">送信 μ₁</th><th scope="col">増分 τ</th><th scope="col">費用</th></tr></thead><tbody><tr><th scope="row">A</th><td class="">0.9</td><td class="">0.85</td><td class="">-0.05</td><td class="">1</td></tr><tr><th scope="row">B</th><td class="">0.65</td><td class="">0.7</td><td class="">+0.05</td><td class="">1</td></tr><tr><th scope="row">C</th><td class="">0.1</td><td class="">0.4</td><td class="">+0.30</td><td class="">2</td></tr><tr><th scope="row">D</th><td class="">0.05</td><td class="">0.25</td><td class="">+0.20</td><td class="">1</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>run.pyで固定した人工期待値。原論文の会員データではない。 <a href="https://arxiv.org/abs/2608.10182">出典：Eq. 1の人工例 ↗</a></figcaption>
+</figure>      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>Transformerで接触履歴を読むDragonNet、最終層の線形化Laplace近似によるBayesian neural-bandit、双対分解による大規模配分を一つの増分目的へそろえる。負の増分や実行可能な正の選択肢がない場合は送信を保留する。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><a href="netflix-counterfactual-observability.html">Netflixの反実仮想観測</a>、<a href="spotify-incremental-recommendation-causal.html">Spotifyの二閾値</a>、<a href="pinterest-causal-retrieval-shopping.html">PinterestのCG gating</a>に続く読み筋として、全体資源を配る第4の層と捉える。この比較は本Labの整理で、四社を同じ実験で評価した結果ではない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>三つの出力を、探索と配分へ渡す</h3>
+<p>Fig. 1の共有表現は、接触履歴を読むTransformer、会員embedding、dense特徴をまとめる。処置ありの成果μ₁、なしの成果μ₀、処置確率eの三つを推定する。成果headは観測された処置側だけを学習し、複数商品のoutcome embeddingと組み合わせる。</p>
+<p>識別の仮定は別に要る。targeted regularizationも、その代わりにはならない。</p>
+<p>価値は差で決まる。Eq. 1ではτ=μ₁−μ₀と定義する。最終層の線形化Laplace近似（LLA）は、学習済みcheckpointの周りの曲率からlogitの不確実性を近似する。Thompson samplingで引いた増分値を、Eq. 3の全体最適化へ渡す。本番はlast-layer LLAを選んだ。Bayes by Backpropはオフライン比較で使う。</p>
+<h3>双対変数を共有し、会員ごとに解く</h3>
+<p>Eq. 3は増分の合計を最大化し、共通のguardrailと会員ごとの頻度上限を守る。§2.3.1は0/1割付を確率へ緩和し、ridgeで平滑化する。Eq. 4では、最小化形式の費用ベクトルcを使い、各会員の解を <code>x*γ,u(λ) = Π_Cu[−(Aᵀu λ + cu)/γ]</code> と書く。Πは射影を表す。解を会員の頻度上限内へ戻す操作である。</p>
+<p>共有制約の乗数λを更新すると、各会員の選択に全体の資源不足を反映できる。前回のλでwarm startし、入力分布が安定した場合は現時点の最適値の99%以上を回復するという著者報告がある。条件付きの報告である。本Labは全探索で解く。対象はEq. 3の小さな整数問題に限る。</p>
+<h3>因果学習では、時間窓の順序を守る</h3>
+<p>§5.1の基準日をD、snapshot日をRとすると、Dは[R−127, R−38]から抽出する。入力は[D−60, D)、処置判定は[D, D+7)、成果は[D+7, R]である。処置後の情報を入力へ混ぜず、少なくとも30日の追跡を残す。早いDほど成果窓が長い点も含めた設計で、追跡日数はそろわない。</p>
+<h3>割付と実配信の差を、実験設計まで扱う</h3>
+<p>割付は配信を保証しない。§5.2では配信確率を推定し、実際の費用・配信量とのずれから予算上限を更新する。割り付けても、会員が戻らない場合や下流auctionで負ける場合は届かない。負の増分を保留するだけでは配信量が減るため、BAUと比べる際の費用・配信量の整合も必要になる。</p>
+<p>§5.4のagentic campaign-setup toolは、数百campaignを予算分割した複製へ展開する。対象者を静的snapshotに固定し、controlがtreatment由来のsegmentを参照しないよう系譜を監査する。draftを一括有効化する。rollbackも両群でそろえる。これは実験の設定支援であり、LLMエージェントによる推薦改善のA/B値ではない。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-causal-allocation" aria-labelledby="title-causal-allocation">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-causal-allocation">Figure 1の二つの成果headから、Eq. 3の配分へ</h3>
+  <ol class="equation-steps"><li><strong>反実仮想の差</strong><div class="math-expression" tabindex="0" role="math" aria-label="τ(X) = μ₁(X) − μ₀(X)">τ(X) = μ₁(X) − μ₀(X)</div><p>共有表現から処置あり・なしの成果とpropensity e(X)を推定する。</p></li><li><strong>不確実性から探索</strong><div class="math-expression" tabindex="0" role="math" aria-label="f̃(x) ∼ Normal(f_MAP(x), σ₀² + g(x)ᵀΩ⁻¹g(x))">f̃(x) ∼ Normal(f_MAP(x), σ₀² + g(x)ᵀΩ⁻¹g(x))</div><p>本番ではlast-layer LLAを使う。logitをsampleしてsigmoidへ通し、増分scoreを作る。</p></li><li><strong>全体配分</strong><div class="math-expression" tabindex="0" role="math" aria-label="maxₓ Σᵤᵢ τ̃ᵤᵢ xᵤᵢ ;  Ax ≤ b, Σᵢ xᵤᵢ ≤ C_fcap">maxₓ Σᵤᵢ τ̃ᵤᵢ xᵤᵢ ;  Ax ≤ b, Σᵢ xᵤᵢ ≤ C_fcap</div><p>共有guardrailと会員の頻度上限を守る。実装では連続緩和と平滑化を行い、双対変数を更新する。</p></li></ol>
+  <figcaption>原典Fig. 1、§2.2–2.3、Eq. 1・3を学習用に再構成。 <a href="https://arxiv.org/abs/2608.10182">出典：Fig. 1; Eq. 1, 3; §2.2.1 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>本Labの解釈。反実仮想との差で採点すれば、自然に起こる成果へ予算を使う問題を抑えられる。探索は実行可能な行動の観測機会を残し、配分は共通の制約を守る。ただし、未観測交絡がないこと、処置の重なりが十分あることなどの識別条件は、DragonNetを使うだけでは満たせない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p><a href="https://arxiv.org/pdf/2608.10182v1">一次資料 §5.4–5.5</a>。著者報告：§5.4–5.5では会員を50/50に無作為割付し、8週間比較した。対照は反応確率に基づく候補抽出と順位付けの二段構成。処置はマーケターの対象条件を残し、二つのスコア層を因果スコアと制約付き配分へ置換した。LTV +7.20%、p=0.041、95% CI [0.31%, 14.09%]。同じ本番方策の構成要素を個別に外したオンライン効果は報告していない。</p>
+<p>初期実験では処置群の配信量が不足したため、実配信と費用のフィードバックを加えた。最終比較はBAUの配信量・費用の範囲に合わせる設計である。公開banditデータによるオフラインsimulationとFig. 3の5回反復ablationは、LinkedInのA/Bとは別の証拠である。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>UV_CACHE_DIR=/tmp/uv-cache uv run papers/linkedin-prediction-to-incrementality/run.py</code>。4人・1施策の人工例で、送信時成果の最大化と増分成果の最大化を、同じ予算制約で比較する。各人の未送信・送信時の期待値は既知として与える。16通りを列挙するため、解の確認に学習や外部solverは不要である。</p>
+<figure class="teaching" data-b21><h3>予算を増やしても、負の増分には送らない</h3><label>人工予算 <select><option value="0">2</option><option value="1">3</option><option value="2">5</option></select></label><script type="application/json" data-frames>["<div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>目的</th><th>送る相手</th><th>費用</th><th>増分合計</th></tr></thead><tbody><tr><th>反応最大化</th><td>A・B</td><td>2</td><td>0.00</td></tr><tr><th>増分最大化</th><td>C</td><td>2</td><td>0.30</td></tr></tbody></table></div><p>予算2。Aは送信時の反応が0.85でも、未送信時の0.90を下回る。</p>", "<div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>目的</th><th>送る相手</th><th>費用</th><th>増分合計</th></tr></thead><tbody><tr><th>反応最大化</th><td>A・B・D</td><td>3</td><td>0.20</td></tr><tr><th>増分最大化</th><td>C・D</td><td>3</td><td>0.50</td></tr></tbody></table></div><p>予算3。Aは送信時の反応が0.85でも、未送信時の0.90を下回る。</p>", "<div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>目的</th><th>送る相手</th><th>費用</th><th>増分合計</th></tr></thead><tbody><tr><th>反応最大化</th><td>A・B・C・D</td><td>5</td><td>0.50</td></tr><tr><th>増分最大化</th><td>B・C・D</td><td>4</td><td>0.55</td></tr></tbody></table></div><p>予算5。Aは送信時の反応が0.85でも、未送信時の0.90を下回る。</p>"]</script><div data-output><div class="matrix-scroll" tabindex="0"><table><thead><tr><th>目的</th><th>送る相手</th><th>費用</th><th>増分合計</th></tr></thead><tbody><tr><th>反応最大化</th><td>A・B</td><td>2</td><td>0.00</td></tr><tr><th>増分最大化</th><td>C</td><td>2</td><td>0.30</td></tr></tbody></table></div><p>予算2。Aは送信時の反応が0.85でも、未送信時の0.90を下回る。</p></div><figcaption>Eq. 1・3と§5.4を説明する人工例。results.jsonと同じ値。双対法の実装ではない。</figcaption></figure></div><div class="downloads"><a href="../downloads/linkedin-prediction-to-incrementality/run.py" download>実行コード</a><a href="../downloads/linkedin-prediction-to-incrementality/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/linkedin-prediction-to-incrementality">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>既知の反実仮想平均を与えた人工例。学習・探索・LP緩和の再現ではない。</em></p>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;既知の反実仮想平均を与えた人工例。学習・探索・LP緩和の再現ではない。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;rows&quot;: [
+    {
+      &quot;user&quot;: &quot;A&quot;,
+      &quot;mu0&quot;: 0.9,
+      &quot;mu1&quot;: 0.85,
+      &quot;cost&quot;: 1
+    },
+    {
+      &quot;user&quot;: &quot;B&quot;,
+      &quot;mu0&quot;: 0.65,
+      &quot;mu1&quot;: 0.7,
+      &quot;cost&quot;: 1
+    },
+    {
+      &quot;user&quot;: &quot;C&quot;,
+      &quot;mu0&quot;: 0.1,
+      &quot;mu1&quot;: 0.4,
+      &quot;cost&quot;: 2
+    },
+    {
+      &quot;user&quot;: &quot;D&quot;,
+      &quot;mu0&quot;: 0.05,
+      &quot;mu1&quot;: 0.25,
+      &quot;cost&quot;: 1
+    }
+  ],
+  &quot;budgets&quot;: {
+    &quot;2&quot;: {
+      &quot;response&quot;: {
+        &quot;selected&quot;: [
+          &quot;A&quot;,
+          &quot;B&quot;
+        ],
+        &quot;cost&quot;: 2,
+        &quot;incremental_value&quot;: 0.0,
+        &quot;expected_total_outcome&quot;: 1.7
+      },
+      &quot;incremental&quot;: {
+        &quot;selected&quot;: [
+          &quot;C&quot;
+        ],
+        &quot;cost&quot;: 2,
+        &quot;incremental_value&quot;: 0.3,
+        &quot;expected_total_outcome&quot;: 2.0
+      }
+    },
+    &quot;3&quot;: {
+      &quot;response&quot;: {
+        &quot;selected&quot;: [
+          &quot;A&quot;,
+          &quot;B&quot;,
+          &quot;D&quot;
+        ],
+        &quot;cost&quot;: 3,
+        &quot;incremental_value&quot;: 0.2,
+        &quot;expected_total_outcome&quot;: 1.9
+      },
+      &quot;incremental&quot;: {
+        &quot;selected&quot;: [
+          &quot;C&quot;,
+          &quot;D&quot;
+        ],
+        &quot;cost&quot;: 3,
+        &quot;incremental_value&quot;: 0.5,
+        &quot;expected_total_outcome&quot;: 2.2
+      }
+    },
+    &quot;5&quot;: {
+      &quot;response&quot;: {
+        &quot;selected&quot;: [
+          &quot;A&quot;,
+          &quot;B&quot;,
+          &quot;C&quot;,
+          &quot;D&quot;
+        ],
+        &quot;cost&quot;: 5,
+        &quot;incremental_value&quot;: 0.5,
+        &quot;expected_total_outcome&quot;: 2.2
+      },
+      &quot;incremental&quot;: {
+        &quot;selected&quot;: [
+          &quot;B&quot;,
+          &quot;C&quot;,
+          &quot;D&quot;
+        ],
+        &quot;cost&quot;: 4,
+        &quot;incremental_value&quot;: 0.55,
+        &quot;expected_total_outcome&quot;: 2.25
+      }
+    }
+  },
+  &quot;checks&quot;: {
+    &quot;negative_effect_withheld&quot;: &quot;CONFIRMED&quot;,
+    &quot;capacity_changes_allocation&quot;: &quot;CONFIRMED&quot;,
+    &quot;dual_solver&quot;: &quot;NOT TESTED&quot;,
+    &quot;last_layer_LLA&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>予算3では、反応最大化はA・B・Dへ送り、増分の合計は0.20。増分最大化はC・Dを選び、0.50となる。予算5でも、増分が負のAには送らず、費用は4で止まる。この例は、反応率の高さと送信の価値が違うことを確かめるために設計した。論文の改善率を再現した値ではない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。人工例の全実行可能解を列挙し、負の増分を持つAを保留すること、容量によって配分が変わることを確認した。この二つの局所条件はCONFIRMED。PDFのFig. 1を目視し、数式と本番実験の記述を本文と照合した。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability NOT TESTED。Transformer-DragonNetの学習、last-layer LLAの曲率推定、Thompson sampling、双対solver、実配信フィードバック、LinkedInのログとA/Bは実行していない。大規模時の99%以上の最適値回復や新商品への汎化も独立検証していない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>ROWS</code>が人工的な潜在結果の平均、<code>allocate()</code>が全探索、<code>compute()</code>が同じ予算での比較とassertionを担当する。Python標準ライブラリだけで動く。乱数を使わず、実行するたびに<code>results.json</code>を書き直す。HTMLは<code>lab.yaml</code>と文書・結果から生成する。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文と最小実装の対応</h1>
+<p>一次資料：<a href="https://arxiv.org/abs/2608.10182">From Prediction to Incrementality</a>、提供されたv1 PDFと抽出本文。Fig. 1はPDF画像でも確認した。提供論文内に公式コードへのリンクは見当たらず、公式実装の実行はNOT TESTED。</p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>Labの対応</th>
+<th>省略と確認範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fig. 1、§2.1、§3</td>
+<td>method.md、三段の数式図</td>
+<td>Transformer、DragonNet、outcome embeddingの学習は省略</td>
+</tr>
+<tr>
+<td>Eq. 1</td>
+<td>run.pyのmu1−mu0、人工期待値表</td>
+<td>既知の平均。因果推定精度は測らない</td>
+</tr>
+<tr>
+<td>§2.2.1</td>
+<td>LLAのlogit分散の式</td>
+<td>最終層曲率、posterior samplingは未実装</td>
+</tr>
+<tr>
+<td>Eq. 3、§5.4</td>
+<td>allocate()、予算選択UI</td>
+<td>4人1施策、全探索。負の増分保留を確認</td>
+</tr>
+<tr>
+<td>Eq. 4、§2.3.1</td>
+<td>method.mdの射影式</td>
+<td>双対分解、平滑化、warm startは未実装</td>
+</tr>
+<tr>
+<td>§5.1</td>
+<td>入力・処置・成果の時間窓</td>
+<td>日付設計の読解のみ。ログ作成は未実施</td>
+</tr>
+<tr>
+<td>Eq. 12–14、§5.2</td>
+<td>割付と実配信の説明</td>
+<td>配信確率の校正と制御器は未実装</td>
+</tr>
+<tr>
+<td>§5.4–5.5</td>
+<td>Evidence、README</td>
+<td>50/50、8週間、LTV +7.20%、p=0.041、95% CI [0.31%, 14.09%]は著者報告</td>
+</tr>
+<tr>
+<td>§5.4</td>
+<td>agentic campaign scaffoldingの説明</td>
+<td>segment系譜監査やcampaign複製は実行しない</td>
+</tr>
+</tbody>
+</table>
+<p>比較マップは本Labの解釈である。Netflixの観測、Spotifyの二閾値、PinterestのCG gatingと、LinkedInの制約付き配分を読み分ける。四論文の数値を同じ尺度で比較したり、各社の仕組みが相互に優越すると主張したりするものではない。</p>
+<p>保存PDFのSHA-256：<code>9dec368311033e10b8b4ab1a8d298917fb3284edcc93ae12d3519c9196489be8</code>。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>送らなくても行動する人から、送ることで変わる人へ予算を移せるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/linkedin-prediction-to-incrementality/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SGCは意図・所持条件・対話履歴から生成前の制御を作る。200セッションでSGA 83.5%、最初のtokenまで1.5秒。製品A/Bの改善量は未開示。">
+  <title>答えは完結していても、今の利用者に使えない助言になっていないか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-23</span></div>
+    <h1>答えは完結していても、今の利用者に使えない助言になっていないか</h1>
+    <p class="lede">SGCは意図・所持条件・対話履歴から生成前の制御を作る。200セッションでSGA 83.5%、最初のtokenまで1.5秒。製品A/Bの改善量は未開示。</p>
+    <details class="bibliography"><summary>原論文：State-Grounded Conditioning: Wrapping User-Facing LLM Agents Where Direction Depends on Live State</summary><p>Qi Liu, Xiaoyang Yuan, Yubin Ruan, Zhuomeng Zhang, Wenjin Wang, Di Wu, Mingye Xu, Xinyi Mou, Xingxi Yin, Ke Feng, Zixun Sun</p><p>2609.27606 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.27606">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.27606v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-25 · 保存済み一次PDFの本文、Fig. 1、Table 3–4を照合。著者報告と人工実験を分離。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-state-contract">3つの状態と、生成前に決める内容</a><a href="#figure-conditioning">状態を文章生成の前提へ変換する</a><a href="#figure-session-grounding">1ターンの正しさを、セッション全体で保てるか</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>SGCは、利用者の今の状態に応じて、何を調べ、どの制約を説明し、いつ提案するかを生成前に決める設計である。Tencentのゲームコーチを対象に、200セッション・約1,000回答の人手評価を報告する。Full SGCのTGAは96.7%、SGAは83.5%。製品の利用継続率や勝率を改善したA/Bの数値は開示されていない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>図鑑では正しい技でも、その利用者が未解放なら戦術として使えない。回答が質問に沿って完結していても、現在の所持品や直前の助言に反する方向へ進む失敗を、著者はdirection driftと呼ぶ。静的な事実の誤り、未所持品の誤認、反復による疲労は重なる場合もある。分類の名称より、判断時点の状態を評価の参照先に含める点が実装上の焦点になる。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>Perception / Grounding / Interactionのwrapperへ状態に応じた制御を移す。LLMはその制御変数に従って文章を生成する。3つを順に加えた比較で、速度とgroundingの改善を報告する。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><a href="igpo-huawei-inventory-grounded-search.html">IGPO</a>が候補の存在を検索して誤った不在判断を減らすのに対し、SGCは利用可能な候補をどう説明し、いつ再提案するかまで扱う。これはLabの比較であり、両方式を組み合わせた実験はない。著者の「promptはlive stateに対応できない」という強い表現も一般的な不可能性としては読まない。比較対象の設計と調整条件を確認する必要がある。</p></div></div>
+      </section>
+<figure class="teaching teaching--matrix" id="figure-state-contract" aria-labelledby="title-state-contract">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-state-contract">3つの状態と、生成前に決める内容</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="3つの状態と、生成前に決める内容の表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">状態の入力</th><th scope="col">制御する内容</th><th scope="col">後続への依存</th></tr></thead><tbody><tr><th scope="row">W1 Perception</th><td class="">意図・現在の環境</td><td class="">呼び出すtool集合を早期に確定</td><td class="">c1をW2とW3にも渡す</td></tr><tr><th scope="row">W2 Grounding</th><td class="">要求slot・利用可能なslot</td><td class="">矛盾の段階と、使える段落・必須段落</td><td class="">c1を使って整合を取る</td></tr><tr><th scope="row">W3 Interaction</th><td class="">直近20ターンの履歴</td><td class="">待機中の提案を除き、抽選または見送り</td><td class="">c1と履歴から状態を復元</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>状態の主な担当を分ける設計。3モジュールの計算上・統計上の独立性を意味しない。 <a href="https://arxiv.org/pdf/2609.27606v1">出典：Fig. 1 / Eq. 2 / §3–6 ↗</a></figcaption>
+</figure>      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h2>W1は状態がそろった時点でtoolを確定する</h2>
+<p>W1の生成は4区分に分かれる。</p>
+<ol>
+<li>INTENT：第一段階の意図</li>
+<li>SUB_INTENT：具体的な意図</li>
+<li>NARRATION：音声へ送る前置き</li>
+<li>PLAN：fallback用のtool呼び出し</li>
+</ol>
+<p>§4ではSUB_INTENTの終了時に現在のsnapshotと約50組の意図表Φを参照し、登録に一致した場合はPLANの完成を待たずにtoolを確定して、残りの生成や音声再生と並行して実行する。状態がなければ待つ。未登録の意図もPLANへ進む。</p>
+<p>順序には原典内の不一致がある。Fig. 4のcaptionはNARRを先に列挙しているため、本Labは§4の明示順序を採用した。図中の時間は模式的なものだ。</p>
+<h2>W2は不足条件を残し、矛盾する段落を除く</h2>
+<p>W2は専用のLLM呼び出しで要求slotを抽出し、現在満たせるslotとの差をhard / soft / hintへ分類する。hard conflictでは該当制約を満たしたとするpraiseを除き、制約の説明を必須にする。</p>
+<p>候補化と選択は別である。同じ制約について互いに矛盾する段落は同時に選ばないが、別の制約を褒めながら不足条件を説明する組み合わせは許されるので、praiseとapologyという種類だけで回答全体を排他的に扱う実装は論文の規則より強すぎる。</p>
+<p>所持だけでは足りない。Aを持っていてもskill-Xが未解放なら、小実験はその不足を残す。</p>
+<h2>W3は履歴を読み、次の提案を選ぶ</h2>
+<p>W3は履歴から待機状態を復元する。待機中の候補を除いた後、候補ごとの確率pで残すBernoulli抽選と重みwに比例する選択を行い、選択結果やseedなどをanswer.metaへ保存して、次のターンの制御入力に戻す。</p>
+<p>候補がなければ見送る。再生の保証は、候補・状態・設定・乱数源を固定した場合に限られる。</p>
+<h2>モデルの具体名は未開示</h2>
+<p>著者は同じLLMを5構成に使ったと記載するが、公開版に具体的なmodel IDはない。PE-AgentはPlan-and-Execute方式の名称だ。最小実験はLLMを使わず、規則の境界だけを切り出した。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-conditioning" aria-labelledby="title-conditioning">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-conditioning">状態を文章生成の前提へ変換する</h3>
+  <ol class="equation-steps"><li><strong>1. 判断の方向を評価する</strong><div class="math-expression" tabindex="0" role="math" aria-label="drift(y,s) = I[y is task-complete] × I[y mis-directs s]">drift(y,s) = I[y is task-complete] × I[y mis-directs s]</div><p>Eq. 1。回答の完結と、現在の状態に沿うことを分ける。</p></li><li><strong>2. 状態を制御変数へ変える</strong><div class="math-expression" tabindex="0" role="math" aria-label="c₁=W₁(x,sᵢ꜀); c₂=W₂(x,sᶠˢ,c₁); c₃=W₃(x,sˢʰ,c₁)">c₁=W₁(x,sᵢ꜀); c₂=W₂(x,sᶠˢ,c₁); c₃=W₃(x,sˢʰ,c₁)</div><p>Eq. 2 / Fig. 1。c1の依存を消して3つの独立処理と読まない。</p></li><li><strong>3. 段落を選んでから書く</strong><div class="math-expression" tabindex="0" role="math" aria-label="Conflicts = diff(QuerySlots, σ(sᶠˢ)); R ⊆ P ⊆ A">Conflicts = diff(QuerySlots, σ(sᶠˢ)); R ⊆ P ⊆ A</div><p>Eq. 4 / Table 7。Aは利用可能、Rは必須、Pは選択した段落。同じ制約への肯定と否定を同時に選ばない。</p></li><li><strong>4. 文章はLLMが生成する</strong><div class="math-expression" tabindex="0" role="math" aria-label="y = L(x, s_static, c₁, c₂, c₃)">y = L(x, s_static, c₁, c₂, c₃)</div><p>規則が決定的でも、入力の解釈や生成文まで決定的・正確になるわけではない。</p></li></ol>
+  <figcaption>記号を短縮した読解用の式。Lはreply LLM、σは現在満たせるslotへの変換。 <a href="https://arxiv.org/pdf/2609.27606v1">出典：Eq. 1–4 / Fig. 1 / Table 7 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈：制約の判定を明示すれば、自然な文章が書けたかと、助言の前提が満たされるかを別々に調べられる。履歴を入力とする規則は、同じseedで選択を再生できる。ただし、誤ったslot抽出や古いsnapshotを与えれば、決定的な規則も誤った結論を安定して返す。生成文の意味まで保証する方法ではない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p><a href="https://arxiv.org/pdf/2609.27606v1">一次資料 §7 / Table 3–4 / Appendix G</a> の著者報告。約4週間の本番ログから200セッションを抽出し、同じLLM・tool schema・参照証拠で比較する。2名の独立評定と第3者の裁定を用い、テスト集計にはLLM judgeを使わない。</p>
+<table>
+<thead>
+<tr>
+<th>構成</th>
+<th>最初のtokenまで・秒 ↓</th>
+<th>TGA % ↑</th>
+<th>SGA % ↑</th>
+<th>TGQ / DGP / CCC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prompting</td>
+<td>2.3</td>
+<td>61.1</td>
+<td>20.0</td>
+<td>6.2 / 4.7 / 8.3</td>
+</tr>
+<tr>
+<td>PE-Agent</td>
+<td>6.1</td>
+<td>69.8</td>
+<td>26.5</td>
+<td>6.5 / 5.5 / 8.1</td>
+</tr>
+<tr>
+<td>W1</td>
+<td>1.5</td>
+<td>89.1</td>
+<td>46.5</td>
+<td>8.4 / 7.7 / 9.0</td>
+</tr>
+<tr>
+<td>W1 + W2</td>
+<td>1.5</td>
+<td>89.9</td>
+<td>56.5</td>
+<td>8.4 / 7.7 / 8.9</td>
+</tr>
+<tr>
+<td>W1 + W2 + W3</td>
+<td>1.5</td>
+<td>96.7</td>
+<td>83.5</td>
+<td>8.6 / 8.5 / 9.2</td>
+</tr>
+</tbody>
+</table>
+<p>TGAは各セッション内の正解率を平均する。SGAは全回答が正しいセッションの割合である。TGQは助言の質、DGPは対話を通じた進展、CCCはターン間の一貫性を1–10で評価する。SGAの失敗率は73.5%から16.5%へ下がり、相対減少は約78%。これは製品障害の発生率ではない。</p>
+<p>PE-AgentにはSGCと同じ量の製品固有prompt調整が行われておらず、差には設計と調整の両方が含まれる。累積追加の比較からwrapper単独の効果や追加順序への不変性は分からない。LLMの具体的なmodel ID、全評定者の一致度や一部の統計表は公開版では未開示。</p></div>      </section>
+<figure class="teaching teaching--chart" id="figure-session-grounding" aria-labelledby="title-session-grounding">
+  <div class="figure-heading"><span class="eyebrow">CHART</span><span class="figure-badge">論文の報告値</span></div>
+  <h3 id="title-session-grounding">1ターンの正しさを、セッション全体で保てるか</h3>
+  <p class="chart-metric">% · 共通尺度 0–100</p><div class="bar-chart"><div class="bar-row"><div class="bar-label"><span>Prompting</span><strong>20 %</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 20.0%"></div></div></div><div class="bar-row"><div class="bar-label"><span>PE-Agent</span><strong>26.5 %</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 26.5%"></div></div></div><div class="bar-row"><div class="bar-label"><span>W1</span><strong>46.5 %</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 46.5%"></div></div></div><div class="bar-row"><div class="bar-label"><span>W1 + W2</span><strong>56.5 %</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 56.5%"></div></div></div><div class="bar-row"><div class="bar-label"><span>Full SGC</span><strong>83.5 %</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 83.5%"></div></div></div></div>
+  <figcaption>SGA：全回答がgroundedなセッションの割合。200セッションの著者報告。棒の差は累積条件下の比較であり、独立した因果効果ではない。 <a href="https://arxiv.org/pdf/2609.27606v1">出典：Table 3 / Eq. 5 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/sgc-state-grounded-conditioning/run.py</code>。人工的な所持品A/B/Cを固定し、Aに必要なskill-Xだけを未解放にする。固定優先順、所持条件の照合、照合と履歴制御を同じ12ターンで比べる。LLMを呼ばず、W1の分岐、W2のhard conflict、W3の抽選と履歴更新を小さく切り出す。</p>
+<figure class="teaching" data-b21><h3>所持品は同じでも、履歴によって次の助言を変える</h3><p>Aは所持しているがskill-Xは未解放。B/Cは使用可能。色や順番は人工例。</p><label>制御規則 <select><option value="0">固定優先順</option><option value="1">所持条件の照合</option><option value="2">照合 + 履歴制御</option></select></label><script type="application/json" data-frames>["<h4>固定優先順<\/h4><div class=\"b21-tokens\"><span>1: A<\/span><span>2: A<\/span><span>3: A<\/span><span>4: A<\/span><span>5: A<\/span><span>6: A<\/span><span>7: A<\/span><span>8: A<\/span><span>9: A<\/span><span>10: A<\/span><span>11: A<\/span><span>12: A<\/span><\/div><p>無効な提案 12 回 ／ 連続反復 11 回 ／ 見送り 0 回<\/p>", "<h4>W2相当：所持条件の照合<\/h4><div class=\"b21-tokens\"><span>1: B<\/span><span>2: B<\/span><span>3: B<\/span><span>4: B<\/span><span>5: B<\/span><span>6: B<\/span><span>7: B<\/span><span>8: B<\/span><span>9: B<\/span><span>10: B<\/span><span>11: B<\/span><span>12: B<\/span><\/div><p>無効な提案 0 回 ／ 連続反復 11 回 ／ 見送り 0 回<\/p>", "<h4>W2 + W3相当：履歴も参照<\/h4><div class=\"b21-tokens\"><span>1: B<\/span><span>2: C<\/span><span>3: B<\/span><span class=\"muted\">4: 見送り<\/span><span>5: B<\/span><span>6: C<\/span><span>7: B<\/span><span>8: C<\/span><span>9: B<\/span><span>10: C<\/span><span>11: B<\/span><span class=\"muted\">12: 見送り<\/span><\/div><p>無効な提案 0 回 ／ 連続反復 0 回 ／ 見送り 2 回<\/p>"]</script><div data-output><h4>固定優先順</h4><div class="b21-tokens"><span>1: A</span><span>2: A</span><span>3: A</span><span>4: A</span><span>5: A</span><span>6: A</span><span>7: A</span><span>8: A</span><span>9: A</span><span>10: A</span><span>11: A</span><span>12: A</span></div><p>無効な提案 12 回 ／ 連続反復 11 回 ／ 見送り 0 回</p></div><figcaption>§5–6 / Fig. 2の機構を12ターンへ縮小。表示値はrun.py / results.jsonから生成。速度のsimulationではない。</figcaption></figure></div><div class="downloads"><a href="../downloads/sgc-state-grounded-conditioning/run.py" download>実行コード</a><a href="../downloads/sgc-state-grounded-conditioning/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/sgc-state-grounded-conditioning">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>人工的な12ターンの規則実験。SGCのLLM、評価データ、速度を再現していない。</em></p>
+<h3>同じ所持状態で制御規則を切り替える</h3>
+<ul><li><strong>n</strong>: 12</li><li><strong>seed</strong>: 25</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>無効な提案数</th><th>連続反復数</th><th>提案見送り数</th></tr></thead><tbody><tr><th scope='row'>static_priority</th><td>12</td><td>11</td><td>0</td></tr><tr><th scope='row'>grounding_only</th><td>0</td><td>11</td><td>0</td></tr><tr><th scope='row'>grounding_and_history</th><td>0</td><td>0</td><td>2</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;note&quot;: &quot;人工的な12ターンの規則実験。SGCのLLM、評価データ、速度を再現していない。&quot;,
+  &quot;seed&quot;: 25,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;variants&quot;: {
+    &quot;static_priority&quot;: {
+      &quot;selected&quot;: [
+        &quot;A&quot;,
+        &quot;A&quot;,
+        &quot;A&quot;,
+        &quot;A&quot;,
+        &quot;A&quot;,
+        &quot;A&quot;,
+        &quot;A&quot;,
+        &quot;A&quot;,
+        &quot;A&quot;,
+        &quot;A&quot;,
+        &quot;A&quot;,
+        &quot;A&quot;
+      ],
+      &quot;invalid&quot;: 12,
+      &quot;consecutive_repeats&quot;: 11,
+      &quot;abstentions&quot;: 0
+    },
+    &quot;grounding_only&quot;: {
+      &quot;selected&quot;: [
+        &quot;B&quot;,
+        &quot;B&quot;,
+        &quot;B&quot;,
+        &quot;B&quot;,
+        &quot;B&quot;,
+        &quot;B&quot;,
+        &quot;B&quot;,
+        &quot;B&quot;,
+        &quot;B&quot;,
+        &quot;B&quot;,
+        &quot;B&quot;,
+        &quot;B&quot;
+      ],
+      &quot;invalid&quot;: 0,
+      &quot;consecutive_repeats&quot;: 11,
+      &quot;abstentions&quot;: 0
+    },
+    &quot;grounding_and_history&quot;: {
+      &quot;selected&quot;: [
+        &quot;B&quot;,
+        &quot;C&quot;,
+        &quot;B&quot;,
+        null,
+        &quot;B&quot;,
+        &quot;C&quot;,
+        &quot;B&quot;,
+        &quot;C&quot;,
+        &quot;B&quot;,
+        &quot;C&quot;,
+        &quot;B&quot;,
+        null
+      ],
+      &quot;invalid&quot;: 0,
+      &quot;consecutive_repeats&quot;: 0,
+      &quot;abstentions&quot;: 2
+    }
+  },
+  &quot;w1&quot;: {
+    &quot;live&quot;: {
+      &quot;path&quot;: &quot;early&quot;,
+      &quot;tools&quot;: [
+        &quot;lineup_search&quot;,
+        &quot;counter_rank&quot;,
+        &quot;dex_lookup&quot;
+      ]
+    },
+    &quot;missing_state&quot;: {
+      &quot;path&quot;: &quot;fallback&quot;,
+      &quot;tools&quot;: []
+    },
+    &quot;unknown_intent&quot;: {
+      &quot;path&quot;: &quot;fallback&quot;,
+      &quot;tools&quot;: []
+    }
+  },
+  &quot;w2&quot;: {
+    &quot;locked_skill&quot;: {
+      &quot;missing&quot;: [
+        &quot;skill-X&quot;
+      ],
+      &quot;eligible&quot;: [
+        &quot;constraint-account&quot;
+      ],
+      &quot;required&quot;: [
+        &quot;constraint-account&quot;
+      ]
+    },
+    &quot;owned_B&quot;: {
+      &quot;missing&quot;: [],
+      &quot;eligible&quot;: [
+        &quot;praise&quot;
+      ],
+      &quot;required&quot;: []
+    }
+  },
+  &quot;edge_cases&quot;: {
+    &quot;empty_inventory&quot;: {
+      &quot;selected&quot;: [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      &quot;invalid&quot;: 0,
+      &quot;consecutive_repeats&quot;: 0,
+      &quot;abstentions&quot;: 12
+    },
+    &quot;single_candidate&quot;: {
+      &quot;selected&quot;: [
+        &quot;B&quot;,
+        null,
+        null,
+        &quot;B&quot;,
+        null,
+        &quot;B&quot;,
+        null,
+        null,
+        &quot;B&quot;,
+        null,
+        &quot;B&quot;,
+        null
+      ],
+      &quot;invalid&quot;: 0,
+      &quot;consecutive_repeats&quot;: 0,
+      &quot;abstentions&quot;: 7
+    },
+    &quot;stale_snapshot&quot;: {
+      &quot;selected&quot;: [
+        &quot;A&quot;,
+        &quot;C&quot;,
+        &quot;B&quot;,
+        &quot;A&quot;,
+        &quot;B&quot;,
+        &quot;A&quot;,
+        &quot;B&quot;,
+        &quot;A&quot;,
+        &quot;B&quot;,
+        &quot;A&quot;,
+        &quot;B&quot;,
+        &quot;A&quot;
+      ],
+      &quot;invalid&quot;: 0,
+      &quot;consecutive_repeats&quot;: 0,
+      &quot;abstentions&quot;: 0
+    }
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;同じ所持状態で制御規則を切り替える&quot;,
+      &quot;n&quot;: 12,
+      &quot;seed&quot;: 25,
+      &quot;metrics&quot;: {
+        &quot;static_priority&quot;: {
+          &quot;無効な提案数&quot;: 12,
+          &quot;連続反復数&quot;: 11,
+          &quot;提案見送り数&quot;: 0
+        },
+        &quot;grounding_only&quot;: {
+          &quot;無効な提案数&quot;: 0,
+          &quot;連続反復数&quot;: 11,
+          &quot;提案見送り数&quot;: 0
+        },
+        &quot;grounding_and_history&quot;: {
+          &quot;無効な提案数&quot;: 0,
+          &quot;連続反復数&quot;: 0,
+          &quot;提案見送り数&quot;: 2
+        }
+      }
+    }
+  ]
+}</code></pre></details><p>固定優先順では12回とも使えないAを提案する。所持条件の照合を加えると無効提案は0回になるが、Bの連続反復が11回残る。履歴制御を加えると無効提案と連続反復はともに0回、見送りは2回となる。これらは人工設定の結果であり、論文のTGAやSGAの再現値ではない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>Mechanism PARTIAL。hard conflict時の候補除外、同一seedでの再生、直前候補の除外、候補が空のときの見送りを確認した。これらの局所規則はCONFIRMED。W1ではsnapshotがない場合と未登録intentの場合にfallbackへ進むことを確認した。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicability NOT TESTED。自然言語のintent・slot抽出、streaming parser、実toolの並列実行、生成文の整合性、200セッションの人手評価、1.5秒の速度、本番A/Bは再検証していない。本文の製品A/B改善量は未開示。IGPOとの統合、ECの在庫推薦やコード補完への転用も未検証である。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>標準ライブラリだけで動く。freeze_tools()は状態付きlookup、ground()は必要slotと所持slotの差分、schedule()はhard filter→Bernoulli抽選→重み付き選択を担う。replay()が選択を履歴へ書き戻す。待機期間は1ターンに固定し、soft/hint、複数段落の完全なmutex表、自然言語生成を省いた。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><p>一次資料：<a href="https://arxiv.org/pdf/2609.27606v1">arXiv v1</a>。確認日：2026-09-25。保存PDFのSHA-256：<code>9699ce249f7cf0b31394687f95ced4864c4612a622eb59f1d4e3ea9dbb937c99</code>。</p>
+<table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>Lab / 最小コード</th>
+<th>対応と省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3 / Fig. 1 / Eq. 1–2</td>
+<td>状態の対応表・式の図</td>
+<td>c1がW2/W3へ渡る依存を保持</td>
+</tr>
+<tr>
+<td>§4 / Eq. 3 / Table 6</td>
+<td>freeze_tools()</td>
+<td>2組のみ。streaming、実tool、約50組の全表は省略</td>
+</tr>
+<tr>
+<td>§5 / Eq. 4 / Table 7</td>
+<td>ground()</td>
+<td>hard conflictのみ。LLM抽出、soft/hint、全段落選択は省略</td>
+</tr>
+<tr>
+<td>§6 / Fig. 2 / Appendix E</td>
+<td>schedule(), replay()</td>
+<td>filter、Bernoulli、重み付き選択、writeback。待機は1ターンへ簡略化</td>
+</tr>
+<tr>
+<td>§7 / Table 3–4 / Appendix G</td>
+<td>根拠表・SGA図</td>
+<td>著者の数値を転記。200セッションの再評価は未実施</td>
+</tr>
+<tr>
+<td>§8 / Appendix F</td>
+<td>IGPOとの比較</td>
+<td>転用可能性の解釈。ECでの実験結果ではない</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード：保存済み論文にSGCの実装URLは見当たらない。Appendix G.11はbenchmarkとwrapper schemaの今後の公開を述べる。公開リポジトリの存在を網羅的に調べたわけではなく、公式コードを取得・実行していない。run.pyは独立した説明用実装である。</p>
+<p>本文§4とFig. 4 captionのstream区分順序には不一致がある。本文のINTENT→SUB_INTENT→NARRATION→PLANを説明に採用した。Fig. 4は模式図と明記されており、図の時刻から速度を再計算していない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>答えは完結していても、今の利用者に使えない助言になっていないか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/sgc-state-grounded-conditioning/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

@@ -1,0 +1,171 @@
+id: sgc-state-grounded-conditioning
+arxiv_id: '2609.27606'
+title: 'State-Grounded Conditioning: Wrapping User-Facing LLM Agents Where Direction Depends on Live State'
+authors:
+- Qi Liu
+- Xiaoyang Yuan
+- Yubin Ruan
+- Zhuomeng Zhang
+- Wenjin Wang
+- Di Wu
+- Mingye Xu
+- Xinyi Mou
+- Xingxi Yin
+- Ke Feng
+- Zixun Sun
+year: 2026
+submitted: '2026-09-23'
+topics:
+- ai-agent-systems
+- agent-architecture
+urls:
+  paper: https://arxiv.org/abs/2609.27606
+  pdf: https://arxiv.org/pdf/2609.27606v1
+  arxiv: https://arxiv.org/abs/2609.27606
+  official_code: null
+verdict: Watch
+status: published
+question: 答えは完結していても、今の利用者に使えない助言になっていないか
+summary: SGCは意図・所持条件・対話履歴から生成前の制御を作る。200セッションでSGA 83.5%、最初のtokenまで1.5秒。製品A/Bの改善量は未開示。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- agent-architecture-and-harness
+source_review:
+  checked: '2026-09-25'
+  version: v1
+  pdf_sha256: 9699ce249f7cf0b31394687f95ced4864c4612a622eb59f1d4e3ea9dbb937c99
+  url: https://arxiv.org/pdf/2609.27606v1
+  scope: 保存済み一次PDFの本文、Fig. 1、Table 3–4を照合。著者報告と人工実験を分離。
+core_idea:
+  author_claim: Perception / Grounding / Interactionのwrapperへ状態に応じた制御を移す。LLMはその制御変数に従って文章を生成する。3つを順に加えた比較で、速度とgroundingの改善を報告する。
+  research_bot_interpretation: '[IGPO](igpo-huawei-inventory-grounded-search.html)が候補の存在を検索して誤った不在判断を減らすのに対し、SGCは利用可能な候補をどう説明し、いつ再提案するかまで扱う。これはLabの比較であり、両方式を組み合わせた実験はない。著者の「promptはlive
+    stateに対応できない」という強い表現も一般的な不可能性としては読まない。比較対象の設計と調整条件を確認する必要がある。'
+sections:
+  overview: SGCは、利用者の今の状態に応じて、何を調べ、どの制約を説明し、いつ提案するかを生成前に決める設計である。Tencentのゲームコーチを対象に、200セッション・約1,000回答の人手評価を報告する。Full
+    SGCのTGAは96.7%、SGAは83.5%。製品の利用継続率や勝率を改善したA/Bの数値は開示されていない。
+  problem: 図鑑では正しい技でも、その利用者が未解放なら戦術として使えない。回答が質問に沿って完結していても、現在の所持品や直前の助言に反する方向へ進む失敗を、著者はdirection driftと呼ぶ。静的な事実の誤り、未所持品の誤認、反復による疲労は重なる場合もある。分類の名称より、判断時点の状態を評価の参照先に含める点が実装上の焦点になる。
+  why_it_might_work: 解釈：制約の判定を明示すれば、自然な文章が書けたかと、助言の前提が満たされるかを別々に調べられる。履歴を入力とする規則は、同じseedで選択を再生できる。ただし、誤ったslot抽出や古いsnapshotを与えれば、決定的な規則も誤った結論を安定して返す。生成文の意味まで保証する方法ではない。
+  evidence: '[一次資料 §7 / Table 3–4 / Appendix G](https://arxiv.org/pdf/2609.27606v1) の著者報告。約4週間の本番ログから200セッションを抽出し、同じLLM・tool
+    schema・参照証拠で比較する。2名の独立評定と第3者の裁定を用い、テスト集計にはLLM judgeを使わない。
+
+
+    | 構成 | 最初のtokenまで・秒 ↓ | TGA % ↑ | SGA % ↑ | TGQ / DGP / CCC |
+
+    | --- | --- | --- | --- | --- |
+
+    | Prompting | 2.3 | 61.1 | 20.0 | 6.2 / 4.7 / 8.3 |
+
+    | PE-Agent | 6.1 | 69.8 | 26.5 | 6.5 / 5.5 / 8.1 |
+
+    | W1 | 1.5 | 89.1 | 46.5 | 8.4 / 7.7 / 9.0 |
+
+    | W1 + W2 | 1.5 | 89.9 | 56.5 | 8.4 / 7.7 / 8.9 |
+
+    | W1 + W2 + W3 | 1.5 | 96.7 | 83.5 | 8.6 / 8.5 / 9.2 |
+
+
+    TGAは各セッション内の正解率を平均する。SGAは全回答が正しいセッションの割合である。TGQは助言の質、DGPは対話を通じた進展、CCCはターン間の一貫性を1–10で評価する。SGAの失敗率は73.5%から16.5%へ下がり、相対減少は約78%。これは製品障害の発生率ではない。
+
+
+    PE-AgentにはSGCと同じ量の製品固有prompt調整が行われておらず、差には設計と調整の両方が含まれる。累積追加の比較からwrapper単独の効果や追加順序への不変性は分からない。LLMの具体的なmodel
+    ID、全評定者の一致度や一部の統計表は公開版では未開示。'
+  executable_understanding: '`uv run papers/sgc-state-grounded-conditioning/run.py`。人工的な所持品A/B/Cを固定し、Aに必要なskill-Xだけを未解放にする。固定優先順、所持条件の照合、照合と履歴制御を同じ12ターンで比べる。LLMを呼ばず、W1の分岐、W2のhard
+    conflict、W3の抽選と履歴更新を小さく切り出す。
+
+
+    <figure class="teaching" data-b21><h3>所持品は同じでも、履歴によって次の助言を変える</h3><p>Aは所持しているがskill-Xは未解放。B/Cは使用可能。色や順番は人工例。</p><label>制御規則
+    <select><option value="0">固定優先順</option><option value="1">所持条件の照合</option><option value="2">照合 + 履歴制御</option></select></label><script
+    type="application/json" data-frames>["<h4>固定優先順<\/h4><div class=\"b21-tokens\"><span>1: A<\/span><span>2: A<\/span><span>3:
+    A<\/span><span>4: A<\/span><span>5: A<\/span><span>6: A<\/span><span>7: A<\/span><span>8: A<\/span><span>9:
+    A<\/span><span>10: A<\/span><span>11: A<\/span><span>12: A<\/span><\/div><p>無効な提案 12 回 ／ 連続反復 11 回 ／ 見送り 0 回<\/p>",
+    "<h4>W2相当：所持条件の照合<\/h4><div class=\"b21-tokens\"><span>1: B<\/span><span>2: B<\/span><span>3: B<\/span><span>4:
+    B<\/span><span>5: B<\/span><span>6: B<\/span><span>7: B<\/span><span>8: B<\/span><span>9: B<\/span><span>10:
+    B<\/span><span>11: B<\/span><span>12: B<\/span><\/div><p>無効な提案 0 回 ／ 連続反復 11 回 ／ 見送り 0 回<\/p>", "<h4>W2 + W3相当：履歴も参照<\/h4><div
+    class=\"b21-tokens\"><span>1: B<\/span><span>2: C<\/span><span>3: B<\/span><span class=\"muted\">4: 見送り<\/span><span>5:
+    B<\/span><span>6: C<\/span><span>7: B<\/span><span>8: C<\/span><span>9: B<\/span><span>10: C<\/span><span>11:
+    B<\/span><span class=\"muted\">12: 見送り<\/span><\/div><p>無効な提案 0 回 ／ 連続反復 0 回 ／ 見送り 2 回<\/p>"]</script><div data-output><h4>固定優先順</h4><div
+    class="b21-tokens"><span>1: A</span><span>2: A</span><span>3: A</span><span>4: A</span><span>5: A</span><span>6:
+    A</span><span>7: A</span><span>8: A</span><span>9: A</span><span>10: A</span><span>11: A</span><span>12: A</span></div><p>無効な提案
+    12 回 ／ 連続反復 11 回 ／ 見送り 0 回</p></div><figcaption>§5–6 / Fig. 2の機構を12ターンへ縮小。表示値はrun.py / results.jsonから生成。速度のsimulationではない。</figcaption></figure>'
+  results: 固定優先順では12回とも使えないAを提案する。所持条件の照合を加えると無効提案は0回になるが、Bの連続反復が11回残る。履歴制御を加えると無効提案と連続反復はともに0回、見送りは2回となる。これらは人工設定の結果であり、論文のTGAやSGAの再現値ではない。
+  what_we_verified: Mechanism PARTIAL。hard conflict時の候補除外、同一seedでの再生、直前候補の除外、候補が空のときの見送りを確認した。これらの局所規則はCONFIRMED。W1ではsnapshotがない場合と未登録intentの場合にfallbackへ進むことを確認した。
+  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。自然言語のintent・slot抽出、streaming
+    parser、実toolの並列実行、生成文の整合性、200セッションの人手評価、1.5秒の速度、本番A/Bは再検証していない。本文の製品A/B改善量は未開示。IGPOとの統合、ECの在庫推薦やコード補完への転用も未検証である。
+  implementation: 標準ライブラリだけで動く。freeze_tools()は状態付きlookup、ground()は必要slotと所持slotの差分、schedule()はhard filter→Bernoulli抽選→重み付き選択を担う。replay()が選択を履歴へ書き戻す。待機期間は1ターンに固定し、soft/hint、複数段落の完全なmutex表、自然言語生成を省いた。
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: matrix
+  id: state-contract
+  title: 3つの状態と、生成前に決める内容
+  after: core_idea
+  columns:
+  - 状態の入力
+  - 制御する内容
+  - 後続への依存
+  rows:
+  - label: W1 Perception
+    cells:
+    - 意図・現在の環境
+    - 呼び出すtool集合を早期に確定
+    - c1をW2とW3にも渡す
+  - label: W2 Grounding
+    cells:
+    - 要求slot・利用可能なslot
+    - 矛盾の段階と、使える段落・必須段落
+    - c1を使って整合を取る
+  - label: W3 Interaction
+    cells:
+    - 直近20ターンの履歴
+    - 待機中の提案を除き、抽選または見送り
+    - c1と履歴から状態を復元
+  locator: Fig. 1 / Eq. 2 / §3–6
+  caption: 状態の主な担当を分ける設計。3モジュールの計算上・統計上の独立性を意味しない。
+  source: https://arxiv.org/pdf/2609.27606v1
+  rationale: 3つの状態と、生成前に決める内容
+- kind: equations
+  id: conditioning
+  title: 状態を文章生成の前提へ変換する
+  after: method
+  steps:
+  - name: 1. 判断の方向を評価する
+    formula: drift(y,s) = I[y is task-complete] × I[y mis-directs s]
+    explanation: Eq. 1。回答の完結と、現在の状態に沿うことを分ける。
+  - name: 2. 状態を制御変数へ変える
+    formula: c₁=W₁(x,sᵢ꜀); c₂=W₂(x,sᶠˢ,c₁); c₃=W₃(x,sˢʰ,c₁)
+    explanation: Eq. 2 / Fig. 1。c1の依存を消して3つの独立処理と読まない。
+  - name: 3. 段落を選んでから書く
+    formula: Conflicts = diff(QuerySlots, σ(sᶠˢ)); R ⊆ P ⊆ A
+    explanation: Eq. 4 / Table 7。Aは利用可能、Rは必須、Pは選択した段落。同じ制約への肯定と否定を同時に選ばない。
+  - name: 4. 文章はLLMが生成する
+    formula: y = L(x, s_static, c₁, c₂, c₃)
+    explanation: 規則が決定的でも、入力の解釈や生成文まで決定的・正確になるわけではない。
+  locator: Eq. 1–4 / Fig. 1 / Table 7
+  caption: 記号を短縮した読解用の式。Lはreply LLM、σは現在満たせるslotへの変換。
+  source: https://arxiv.org/pdf/2609.27606v1
+  rationale: 状態を文章生成の前提へ変換する
+- kind: chart
+  id: session-grounding
+  title: 1ターンの正しさを、セッション全体で保てるか
+  after: evidence
+  unit: '%'
+  maximum: 100
+  bars:
+  - label: Prompting
+    value: 20
+  - label: PE-Agent
+    value: 26.5
+  - label: W1
+    value: 46.5
+  - label: W1 + W2
+    value: 56.5
+  - label: Full SGC
+    value: 83.5
+  locator: Table 3 / Eq. 5
+  caption: SGA：全回答がgroundedなセッションの割合。200セッションの著者報告。棒の差は累積条件下の比較であり、独立した因果効果ではない。
+  source: https://arxiv.org/pdf/2609.27606v1
+  rationale: 1ターンの正しさを、セッション全体で保てるか

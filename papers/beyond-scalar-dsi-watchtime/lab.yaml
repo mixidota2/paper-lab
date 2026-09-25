@@ -1,0 +1,103 @@
+id: beyond-scalar-dsi-watchtime
+arxiv_id: '2609.28383'
+submitted: '2026-09-23'
+title: 'Beyond a Scalar: Distributional Serving Interfaces for Watch-Time Prediction'
+authors:
+- Xuan Liu
+- Jingbin Qian
+- Zhanyu Liu
+- Hefeng Zhou
+year: 2026
+topics:
+- recommender-systems
+- watch-time
+- distributional-prediction
+urls:
+  arxiv: https://arxiv.org/abs/2609.28383
+  paper: https://arxiv.org/abs/2609.28383
+  pdf: https://arxiv.org/pdf/2609.28383
+  official_code: https://github.com/Xuanxuana1/DSI
+verdict: Radar
+status: published
+question: 平均視聴時間が同じなら、完了確率も同じか
+summary: DSI は視聴時間の平均に加え、完了や overplay の確率を下流へ渡す設計である。公開3データセットで最良の比較手法に対し MAE を1.9%〜8.5%削減したと著者は報告する。本番 A/B はない。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-09-25'
+  scope: 提供された原論文 PDF の抽出テキストを確認。公式コードの実装監査と実行は未実施。
+  url: https://arxiv.org/abs/2609.28383
+  pdf_version: v1
+  pdf_sha256: fe20b8854c01f2fe258be729b71d9d2ea25c71e03893e56a833b8f16593ec86d
+core_idea:
+  author_claim: 固定した分布推定器から27次元の要約を渡し、共通の生特徴と合わせてタスク別の読み出し層を学習する。公開データで秒数予測と検索を改善する。
+  research_bot_interpretation: 中心は下流へ渡す情報の設計にある。四状態の細分化が唯一の有効な構成だとは、追加対照実験も支持していない。
+sections:
+  overview: DSI は視聴時間の平均に加え、完了や overplay の確率を下流へ渡す設計である。公開3データセットで最良の比較手法に対し MAE を1.9%〜8.5%削減したと著者は報告する。本番 A/B はない。
+  problem: 動画長が同じでも、毎回10秒見る集団と、半数が0秒・半数が20秒見る集団は平均10秒になる。平均と動画長だけでは完了確率を区別できない。Fig. 1 の動画長による曖昧さを解消しても、この分布の曖昧さは残る。
+  method: method.md
+  why_it_might_work: '本 Lab の解釈: 推定器を固定したまま、秒数、完了、overplay に合わせて下流を学習できる。分布の情報を一度平均へ潰すと復元できないため、確率と不確実性を残す意味がある。ただし
+    Appendix E では時刻だけの推定器や通常の27次元要約も同程度だった。四状態の表現だけが改善原因とはいえない。'
+  evidence: '以下は[一次資料 Table 1](https://arxiv.org/pdf/2609.28383v1) の著者報告。平均±標本標準偏差、3 seed、MAE の単位は秒。比較相手は各データセットで
+    MAE が最良の baseline。
+
+
+    | データ | 最良 baseline MAE | DSI MAE | DSI XAUC |
+
+    | --- | --- | --- | --- |
+
+    | KuaiRec | EGMN 3.8327±0.1617 | 3.5059±0.0044 | 0.6827±0.0004 |
+
+    | KuaiRand-1K | D2Q 12.5668±0.0251 | 12.3244±0.0362 | 0.7367±0.0010 |
+
+    | WeChat21 | D2Q 13.2964±0.0301 | 12.9278±0.0062 | 0.7020±0.0004 |
+
+
+    XAUC は2データで最良。WeChat21 は CREAD の0.7054を下回る。ランダムな impression 単位の8:1:1分割で、ユーザー・商品は分割間で重複し得る。時系列の分布変化を試した評価ではない。WeChat21
+    は d < 60秒と y/d < 10 の部分集合を使う。
+
+
+    Fig. 3 の同一読み出し層による比較では、検索指標の改善の大半をタスクに合わせた読み出し層が説明し、DSI の残差的な優位は小さくなる。Table 2 で平均と動画長を固定した比較でも情報追加の効果を調べるが、Long-N@5
+    は3データ中2つで逆転する。Table 3–4 は固定推定器から新しい視聴目標と別途記録された engagement への転用を評価する。本番 A/B、売上、継続率への効果は示していない。
+
+    同じ読み出し層で比べるときは、入力の生特徴、推定器を固定した時点、読み出しの学習件数、検証指標による checkpoint の選び方まで揃えなければ、分布の情報を残した効果と、下流モデルの容量や学習目標を変えた効果が混ざってしまう。
+
+    '
+  executable_understanding: '`UV_CACHE_DIR=/tmp/paper-lab-uv uv run papers/beyond-scalar-dsi-watchtime/run.py`
+
+
+    二つの人工分布を比べる。条件は共通。平均と動画長は固定する。変えるのは四状態の確率だけ。overplay の二値予測に対する期待 Brier score と、Eq. 5–6 の合法領域への正規化を確かめる。学習はしない。'
+  results: 二群を半数ずつ混ぜる。平均だけを受け取る最良の共通予測は overplay 確率0.25となり、期待 Brier score は0.1875。真の分布を渡す場合は0.125。人工分布の反例に限る。DSI
+    の学習精度は測っていない。秒数の平均予測は両方式で同じ10秒である。
+  what_we_verified: Mechanism PARTIAL。平均と動画長の一致、overplay 確率の差、合法領域の正規化、completion の動画終端への集約、状態境界の5項目を CONFIRMED
+    とした。読み出しに残す情報によって判断可能な対象が変わることを確認した。
+  what_we_did_not_verify: Performance / Scaling / Production applicability は NOT TESTED。学習の再現は未実施。27次元要約全体、DCNv2
+    の読み出し、転用実験、推論負荷も対象外。本番 A/B は原論文にも報告がない。overplay を意図的な再視聴や満足度の正解ラベルとして扱わない。
+  implementation: 標準ライブラリだけで実行する。state() が Eq. 4 の区分、summarize() が状態確率と平均、expected_brier() が同一分布上の期待誤差を計算する。run.py
+    が results.json と操作図入り method.md を生成する。合法領域は理解用の0〜20秒の小さい格子で確認する。
+  mapping: mapping.md
+teaching_figures:
+- kind: equations
+  id: support-summary
+  title: 'Fig. 2 を式で読む: 合法な分布から判断へ'
+  caption: Eq. 4–12 の要点。completion の教師時刻は実測秒数ではなく動画終端 b(d)。
+  source: https://arxiv.org/abs/2609.28383
+  locator: Fig. 2; Eqs. 4–12
+  rationale: 状態の定義、終端への集約、読み出しの順序を結ぶ。
+  after: method
+  steps:
+  - name: 合法領域
+    formula: p(w,τ|x,d) ∝ exp(a(w,τ)) · 1[(w,τ) ∈ A(d)]
+    explanation: early・mid・overplay は各比率範囲、completion は b(d) だけに確率を置く。範囲外を0にして全体を正規化する。
+  - name: 推定器の学習
+    formula: L = −log p(wᵢ,τᵢ) + λrest SmoothL1(log(1+μ), log(1+yᵢ))
+    explanation: 95秒・100秒・108秒の視聴を100秒動画の終端へ集約しても、実測秒数は復元損失へ渡す。二つの損失には競合がある。
+  - name: 境界を渡す要約
+    formula: πw = Στ p(w,τ); μ = Σw,τ t(τ)p(w,τ); z = G(p) ∈ R²⁷
+    explanation: 状態確率、平均、状態別時間、動画長に対する比率、エントロピーなどを残す。元の格子は4×69＝276値。
+  - name: 目的ごとの読み出し
+    formula: ŷ = Σm (cₘ−cₘ₋₁) vₘ; s = gᵣₐₙₖ([z;r])
+    explanation: DCNv2 型の共有読み出しから秒数と順位を出す。順位側は overplay で学習し、long の検索にも同じスコアを使う。

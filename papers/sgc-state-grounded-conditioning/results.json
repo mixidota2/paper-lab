@@ -1,0 +1,190 @@
+{
+  "note": "人工的な12ターンの規則実験。SGCのLLM、評価データ、速度を再現していない。",
+  "seed": 25,
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "variants": {
+    "static_priority": {
+      "selected": [
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A"
+      ],
+      "invalid": 12,
+      "consecutive_repeats": 11,
+      "abstentions": 0
+    },
+    "grounding_only": {
+      "selected": [
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B"
+      ],
+      "invalid": 0,
+      "consecutive_repeats": 11,
+      "abstentions": 0
+    },
+    "grounding_and_history": {
+      "selected": [
+        "B",
+        "C",
+        "B",
+        null,
+        "B",
+        "C",
+        "B",
+        "C",
+        "B",
+        "C",
+        "B",
+        null
+      ],
+      "invalid": 0,
+      "consecutive_repeats": 0,
+      "abstentions": 2
+    }
+  },
+  "w1": {
+    "live": {
+      "path": "early",
+      "tools": [
+        "lineup_search",
+        "counter_rank",
+        "dex_lookup"
+      ]
+    },
+    "missing_state": {
+      "path": "fallback",
+      "tools": []
+    },
+    "unknown_intent": {
+      "path": "fallback",
+      "tools": []
+    }
+  },
+  "w2": {
+    "locked_skill": {
+      "missing": [
+        "skill-X"
+      ],
+      "eligible": [
+        "constraint-account"
+      ],
+      "required": [
+        "constraint-account"
+      ]
+    },
+    "owned_B": {
+      "missing": [],
+      "eligible": [
+        "praise"
+      ],
+      "required": []
+    }
+  },
+  "edge_cases": {
+    "empty_inventory": {
+      "selected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "invalid": 0,
+      "consecutive_repeats": 0,
+      "abstentions": 12
+    },
+    "single_candidate": {
+      "selected": [
+        "B",
+        null,
+        null,
+        "B",
+        null,
+        "B",
+        null,
+        null,
+        "B",
+        null,
+        "B",
+        null
+      ],
+      "invalid": 0,
+      "consecutive_repeats": 0,
+      "abstentions": 7
+    },
+    "stale_snapshot": {
+      "selected": [
+        "A",
+        "C",
+        "B",
+        "A",
+        "B",
+        "A",
+        "B",
+        "A",
+        "B",
+        "A",
+        "B",
+        "A"
+      ],
+      "invalid": 0,
+      "consecutive_repeats": 0,
+      "abstentions": 0
+    }
+  },
+  "experiments": [
+    {
+      "name": "同じ所持状態で制御規則を切り替える",
+      "n": 12,
+      "seed": 25,
+      "metrics": {
+        "static_priority": {
+          "無効な提案数": 12,
+          "連続反復数": 11,
+          "提案見送り数": 0
+        },
+        "grounding_only": {
+          "無効な提案数": 0,
+          "連続反復数": 11,
+          "提案見送り数": 0
+        },
+        "grounding_and_history": {
+          "無効な提案数": 0,
+          "連続反復数": 0,
+          "提案見送り数": 2
+        }
+      }
+    }
+  ]
+}

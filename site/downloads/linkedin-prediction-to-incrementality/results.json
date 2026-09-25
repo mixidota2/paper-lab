@@ -1,0 +1,106 @@
+{
+  "note": "既知の反実仮想平均を与えた人工例。学習・探索・LP緩和の再現ではない。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "rows": [
+    {
+      "user": "A",
+      "mu0": 0.9,
+      "mu1": 0.85,
+      "cost": 1
+    },
+    {
+      "user": "B",
+      "mu0": 0.65,
+      "mu1": 0.7,
+      "cost": 1
+    },
+    {
+      "user": "C",
+      "mu0": 0.1,
+      "mu1": 0.4,
+      "cost": 2
+    },
+    {
+      "user": "D",
+      "mu0": 0.05,
+      "mu1": 0.25,
+      "cost": 1
+    }
+  ],
+  "budgets": {
+    "2": {
+      "response": {
+        "selected": [
+          "A",
+          "B"
+        ],
+        "cost": 2,
+        "incremental_value": 0.0,
+        "expected_total_outcome": 1.7
+      },
+      "incremental": {
+        "selected": [
+          "C"
+        ],
+        "cost": 2,
+        "incremental_value": 0.3,
+        "expected_total_outcome": 2.0
+      }
+    },
+    "3": {
+      "response": {
+        "selected": [
+          "A",
+          "B",
+          "D"
+        ],
+        "cost": 3,
+        "incremental_value": 0.2,
+        "expected_total_outcome": 1.9
+      },
+      "incremental": {
+        "selected": [
+          "C",
+          "D"
+        ],
+        "cost": 3,
+        "incremental_value": 0.5,
+        "expected_total_outcome": 2.2
+      }
+    },
+    "5": {
+      "response": {
+        "selected": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "cost": 5,
+        "incremental_value": 0.5,
+        "expected_total_outcome": 2.2
+      },
+      "incremental": {
+        "selected": [
+          "B",
+          "C",
+          "D"
+        ],
+        "cost": 4,
+        "incremental_value": 0.55,
+        "expected_total_outcome": 2.25
+      }
+    }
+  },
+  "checks": {
+    "negative_effect_withheld": "CONFIRMED",
+    "capacity_changes_allocation": "CONFIRMED",
+    "dual_solver": "NOT TESTED",
+    "last_layer_LLA": "NOT TESTED"
+  }
+}

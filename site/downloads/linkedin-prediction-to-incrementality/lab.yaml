@@ -1,0 +1,126 @@
+id: linkedin-prediction-to-incrementality
+arxiv_id: '2608.10182'
+submitted: '2026-08-10'
+title: 'From Prediction to Incrementality: Causal Optimization for Large-Scale Targeting and Recommendation'
+authors:
+- Changshuai Wei
+- John Bencina
+- Phuc Nguyen
+- Andre Assuncao Silva T Ribeiro
+- Benjamin Zelditch
+year: 2026
+topics:
+- recommender-systems
+- causal-inference
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2608.10182
+  arxiv: https://arxiv.org/abs/2608.10182
+  pdf: https://arxiv.org/pdf/2608.10182
+  official_code: null
+verdict: Must Read
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+status: published
+question: 送らなくても行動する人から、送ることで変わる人へ予算を移せるか
+summary: LinkedInは、送った場合と送らなかった場合の成果の差を推定し、探索と全体制約を含む配分へつなぐ。Feedのマーケティング流量で実施した8週間のA/Bでは、長期価値（LTV）が+7.20%だった。p=0.041、95%信頼区間は[0.31%,
+  14.09%]。これは配信方策全体の著者報告で、Transformer単体の効果ではない。
+source_review:
+  checked: '2026-09-25'
+  scope: 提供PDF全文テキスト、Fig. 1画像、Eq. 1–4、§5.1–5.5を照合。
+  url: https://arxiv.org/abs/2608.10182
+  version: v1
+  pdf_sha256: 9dec368311033e10b8b4ab1a8d298917fb3284edcc93ae12d3519c9196489be8
+core_idea:
+  author_claim: Transformerで接触履歴を読むDragonNet、最終層の線形化Laplace近似によるBayesian neural-bandit、双対分解による大規模配分を一つの増分目的へそろえる。負の増分や実行可能な正の選択肢がない場合は送信を保留する。
+  research_bot_interpretation: '[Netflixの反実仮想観測](netflix-counterfactual-observability.html)、[Spotifyの二閾値](spotify-incremental-recommendation-causal.html)、[PinterestのCG
+    gating](pinterest-causal-retrieval-shopping.html)に続く読み筋として、全体資源を配る第4の層と捉える。この比較は本Labの整理で、四社を同じ実験で評価した結果ではない。'
+sections:
+  overview: LinkedInは、送った場合と送らなかった場合の成果の差を推定し、探索と全体制約を含む配分へつなぐ。Feedのマーケティング流量で実施した8週間のA/Bでは、長期価値（LTV）が+7.20%だった。p=0.041、95%信頼区間は[0.31%,
+    14.09%]。これは配信方策全体の著者報告で、Transformer単体の効果ではない。
+  problem: 反応確率の高い会員は、送信しなくても行動するかもしれない。限られた予算をそこへ使うと、送信によって行動が変わる会員へ届かない。さらに、各キャンペーンが個別に最適化すると、全体予算や会員ごとの送信上限を超えうる。
+  why_it_might_work: 本Labの解釈。反実仮想との差で採点すれば、自然に起こる成果へ予算を使う問題を抑えられる。探索は実行可能な行動の観測機会を残し、配分は共通の制約を守る。ただし、未観測交絡がないこと、処置の重なりが十分あることなどの識別条件は、DragonNetを使うだけでは満たせない。
+  evidence: '[一次資料 §5.4–5.5](https://arxiv.org/pdf/2608.10182v1)。著者報告：§5.4–5.5では会員を50/50に無作為割付し、8週間比較した。対照は反応確率に基づく候補抽出と順位付けの二段構成。処置はマーケターの対象条件を残し、二つのスコア層を因果スコアと制約付き配分へ置換した。LTV
+    +7.20%、p=0.041、95% CI [0.31%, 14.09%]。同じ本番方策の構成要素を個別に外したオンライン効果は報告していない。
+
+
+    初期実験では処置群の配信量が不足したため、実配信と費用のフィードバックを加えた。最終比較はBAUの配信量・費用の範囲に合わせる設計である。公開banditデータによるオフラインsimulationとFig. 3の5回反復ablationは、LinkedInのA/Bとは別の証拠である。'
+  executable_understanding: '`UV_CACHE_DIR=/tmp/uv-cache uv run papers/linkedin-prediction-to-incrementality/run.py`。4人・1施策の人工例で、送信時成果の最大化と増分成果の最大化を、同じ予算制約で比較する。各人の未送信・送信時の期待値は既知として与える。16通りを列挙するため、解の確認に学習や外部solverは不要である。
+
+
+    <figure class="teaching" data-b21><h3>予算を増やしても、負の増分には送らない</h3><label>人工予算 <select><option value="0">2</option><option
+    value="1">3</option><option value="2">5</option></select></label><script type="application/json" data-frames>["<div
+    class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>目的</th><th>送る相手</th><th>費用</th><th>増分合計</th></tr></thead><tbody><tr><th>反応最大化</th><td>A・B</td><td>2</td><td>0.00</td></tr><tr><th>増分最大化</th><td>C</td><td>2</td><td>0.30</td></tr></tbody></table></div><p>予算2。Aは送信時の反応が0.85でも、未送信時の0.90を下回る。</p>",
+    "<div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>目的</th><th>送る相手</th><th>費用</th><th>増分合計</th></tr></thead><tbody><tr><th>反応最大化</th><td>A・B・D</td><td>3</td><td>0.20</td></tr><tr><th>増分最大化</th><td>C・D</td><td>3</td><td>0.50</td></tr></tbody></table></div><p>予算3。Aは送信時の反応が0.85でも、未送信時の0.90を下回る。</p>",
+    "<div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>目的</th><th>送る相手</th><th>費用</th><th>増分合計</th></tr></thead><tbody><tr><th>反応最大化</th><td>A・B・C・D</td><td>5</td><td>0.50</td></tr><tr><th>増分最大化</th><td>B・C・D</td><td>4</td><td>0.55</td></tr></tbody></table></div><p>予算5。Aは送信時の反応が0.85でも、未送信時の0.90を下回る。</p>"]</script><div
+    data-output><div class="matrix-scroll" tabindex="0"><table><thead><tr><th>目的</th><th>送る相手</th><th>費用</th><th>増分合計</th></tr></thead><tbody><tr><th>反応最大化</th><td>A・B</td><td>2</td><td>0.00</td></tr><tr><th>増分最大化</th><td>C</td><td>2</td><td>0.30</td></tr></tbody></table></div><p>予算2。Aは送信時の反応が0.85でも、未送信時の0.90を下回る。</p></div><figcaption>Eq.
+    1・3と§5.4を説明する人工例。results.jsonと同じ値。双対法の実装ではない。</figcaption></figure>'
+  results: 予算3では、反応最大化はA・B・Dへ送り、増分の合計は0.20。増分最大化はC・Dを選び、0.50となる。予算5でも、増分が負のAには送らず、費用は4で止まる。この例は、反応率の高さと送信の価値が違うことを確かめるために設計した。論文の改善率を再現した値ではない。
+  what_we_verified: Mechanism PARTIAL。人工例の全実行可能解を列挙し、負の増分を持つAを保留すること、容量によって配分が変わることを確認した。この二つの局所条件はCONFIRMED。PDFのFig.
+    1を目視し、数式と本番実験の記述を本文と照合した。
+  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。Transformer-DragonNetの学習、last-layer
+    LLAの曲率推定、Thompson sampling、双対solver、実配信フィードバック、LinkedInのログとA/Bは実行していない。大規模時の99%以上の最適値回復や新商品への汎化も独立検証していない。
+  implementation: '`ROWS`が人工的な潜在結果の平均、`allocate()`が全探索、`compute()`が同じ予算での比較とassertionを担当する。Python標準ライブラリだけで動く。乱数を使わず、実行するたびに`results.json`を書き直す。HTMLは`lab.yaml`と文書・結果から生成する。'
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: equations
+  id: causal-allocation
+  title: Figure 1の二つの成果headから、Eq. 3の配分へ
+  after: method
+  caption: 原典Fig. 1、§2.2–2.3、Eq. 1・3を学習用に再構成。
+  source: https://arxiv.org/abs/2608.10182
+  locator: Fig. 1; Eq. 1, 3; §2.2.1
+  rationale: 予測、探索、制約が扱う量を分ける。
+  steps:
+  - name: 反実仮想の差
+    formula: τ(X) = μ₁(X) − μ₀(X)
+    explanation: 共有表現から処置あり・なしの成果とpropensity e(X)を推定する。
+  - name: 不確実性から探索
+    formula: f̃(x) ∼ Normal(f_MAP(x), σ₀² + g(x)ᵀΩ⁻¹g(x))
+    explanation: 本番ではlast-layer LLAを使う。logitをsampleしてsigmoidへ通し、増分scoreを作る。
+  - name: 全体配分
+    formula: maxₓ Σᵤᵢ τ̃ᵤᵢ xᵤᵢ ;  Ax ≤ b, Σᵢ xᵤᵢ ≤ C_fcap
+    explanation: 共有guardrailと会員の頻度上限を守る。実装では連続緩和と平滑化を行い、双対変数を更新する。
+- kind: matrix
+  id: counterfactual-ledger
+  title: 高い反応率でも、送らない方がよい相手がいる
+  after: problem
+  caption: run.pyで固定した人工期待値。原論文の会員データではない。
+  source: https://arxiv.org/abs/2608.10182
+  locator: Eq. 1の人工例
+  rationale: 四人の潜在結果を並べ、増分の符号を見えるようにする。
+  columns:
+  - 未送信 μ₀
+  - 送信 μ₁
+  - 増分 τ
+  - 費用
+  rows:
+  - label: A
+    cells:
+    - '0.9'
+    - '0.85'
+    - '-0.05'
+    - '1'
+  - label: B
+    cells:
+    - '0.65'
+    - '0.7'
+    - '+0.05'
+    - '1'
+  - label: C
+    cells:
+    - '0.1'
+    - '0.4'
+    - '+0.30'
+    - '2'
+  - label: D
+    cells:
+    - '0.05'
+    - '0.25'
+    - '+0.20'
+    - '1'
+results: results.json

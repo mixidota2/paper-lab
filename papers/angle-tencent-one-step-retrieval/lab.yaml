@@ -1,0 +1,161 @@
+id: angle-tencent-one-step-retrieval
+arxiv_id: '2609.18296'
+submitted: '2026-09-16'
+title: One-Step Retrieval Framework for Real-Time Sponsored Search Ads Using Hierarchical Text Representations
+authors:
+- Tongtong Liu
+- Renyu Zhang
+- Jiayu Ding
+- Hongchao Guo
+- Xintao Yang
+- He Wei
+- Zhaoyu Li
+- Haiyang Wu
+year: 2026
+topics:
+- retrieval
+- generative-recommendation
+- recommender-systems
+urls:
+  paper: https://arxiv.org/abs/2609.18296
+  arxiv: https://arxiv.org/abs/2609.18296
+  pdf: https://arxiv.org/pdf/2609.18296v1
+  official_code: null
+verdict: Worth Reading
+status: published
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+question: ANGLE：広告IDの代わりに、検索意図と商品語を生成する
+summary: TencentのANGLEは、広告を「広い検索意図 × 商品を特定する短い語句」で索引化する。検索側のHunyuan-1Bに生成・関連性判定・商用順位を学習させ、配信可能な広告に結び付く語句だけを生成する。WTSの広告A/BではGMV
+  +2.16%を報告した。対象は検索広告だ。自然検索や通常の推薦全体を置き換えた研究ではない。
+core_idea:
+  author_claim: 著者は、階層的なテキスト索引とGDR-LLM、動的な制約付きbeam探索（DCBS）を組み合わせ、関連性と商用価値を考慮した広告取得を実現すると主張する。
+  research_bot_interpretation: SIDの学習負担をテキスト表現と索引更新へ移し、広告の配信可否を生成中に反映する設計が要点だ。SID一般への勝利や、全カスケード撤去を証明したとは読まない。
+source_review:
+  checked: '2026-09-25'
+  scope: 提供された一次PDF v1と抽出テキスト。式4〜6、図1・3、表1〜4、Limitations。公式コードURLは本文に見当たらず、公開の有無は未確認。
+  pdf_sha256: f5c84a5a3b3ef9683b441f265e358c1f1fa446e4656265bb8dbaeb93ce29a7ef
+  url: https://arxiv.org/pdf/2609.18296v1
+sections:
+  overview: TencentのANGLEは、広告を「広い検索意図 × 商品を特定する短い語句」で索引化する。検索側のHunyuan-1Bに生成・関連性判定・商用順位を学習させ、配信可能な広告に結び付く語句だけを生成する。WTSの広告A/BではGMV
+    +2.16%を報告した。対象は検索広告だ。自然検索や通常の推薦全体を置き換えた研究ではない。
+  problem: 従来の多段カスケード（MCA）では、候補取得、関連性判定、事前順位付け、順位付けを別々に最適化する。早い段階で落ちた広告は、後段で商用価値が高いと分かっても戻せない。一方、離散的な意味ID（SID）を生成する方式は、IDと広告の対応を学ぶ負担がある。ANGLEは広告の内容を読めるテキストにし、新しい広告を索引へ追加する経路を用意する。
+  why_it_might_work: 【解釈】広いintentだけでは商品を区別しにくく、商品名に近いabstractだけでは需要の広がりを拾いにくい。両者を組にすると、検索意図を保ちながら具体的な広告へ到達できる。さらに配信不可の枝を先に除けば、限られたbeamを有効な候補へ使える。ただし意味の一致や商用価値はモデルが学ぶ部分であり、索引だけでは保証されない。
+  evidence: '### WTSの表は+1.81%、本文は+1.18%と食い違う
+
+
+    表3のWTSは広告消費額（consumption）+1.81%、GMV +2.16%、クリック +1.50%、コンバージョン +1.44%、露出 +2.49%。§4.2は5日間・traffic 20%のA/Bと記す。ただし同節のconsumptionは+1.18%で、要旨・導入・表3の+1.81%と一致しない。このLabは表3を採用し、食い違いを残す。信頼区間は非開示。p値もない。露出も増えているため、クリック数の増加をCTRの増加と読み替えない。
+
+
+    ### 分解実験では動的な制約を外す影響が大きい
+
+
+    表4のHR@100はANGLE 0.5273、intentなし0.4645、abstractなし0.3519、DCBSなし0.2975、GDR-LLMなし0.4412。DCBSなしは自由生成後にANNで近い組を探す構成であり、制約だけを切り替えた比較ではない。表2の最良baselineのHR@100はSimBert-v2-Gの0.3095。評価は10,000クエリ、約220,000広告候補で、実ログ由来のクリックを使う。
+
+
+    ### 「One-Step」でも順位付けは残る
+
+
+    §4.2はWTS/QBSでranking queueの補完として導入したと記す。Limitationsは動的クリエイティブ選択や自動入札が順位付けに依存し、rankingを除去していないと明記する。広告側Hunyuan-13B、検索側Hunyuan-1B、beam
+    64、intent最大3 token、abstract最大4 token。§4.1の生成時間は90 ms以内で、全リクエストのend-to-end p99ではない。
+
+
+    [一次資料：ANGLE v1 表2〜4・§4・Limitations](https://arxiv.org/pdf/2609.18296v1)'
+  executable_understanding: '5広告・4組の人工索引で、同じ固定スコアとbeam幅を使う。生成候補を選んだ後で配信不可広告を除く方式と、有効な広告を持つ組へ候補を絞ってから選ぶ方式を比較する。1組が複数広告を返す様子と、モデルのスコアを変更せず広告Fを追加する操作を確認する。token単位のDCBSは省き、組単位のtop-kに縮約した。
+
+
+    <div class="teaching" data-b21="angle"><h3>組を選ぶ前と後で、配信可否を切り替える</h3><p>合成例：AとEは配信不可。Forestの同じ組にB・Cが属する。</p><label>探索条件
+    <select><option value="0">beam 1 / 後段filter</option><option value="1">beam 1 / 事前filter</option><option value="2">beam
+    2 / 後段filter</option><option value="3">beam 2 / 事前filter</option><option value="4">beam 3 / 後段filter</option><option
+    value="5">beam 3 / 事前filter</option></select></label><div data-output aria-live="polite"><div class="b21-cards"><div><strong>生成する組</strong><p>survival
+    game / Winter</p></div><div><strong>解決した有効広告</strong><p>なし（0件）</p></div></div></div><script type="application/json"
+    data-frames>["<div class=\"b21-cards\"><div><strong>生成する組</strong><p>survival game / Winter</p></div><div><strong>解決した有効広告</strong><p>なし（0件）</p></div></div>",
+    "<div class=\"b21-cards\"><div><strong>生成する組</strong><p>survival game / Forest</p></div><div><strong>解決した有効広告</strong><p>B・C（2件）</p></div></div>",
+    "<div class=\"b21-cards\"><div><strong>生成する組</strong><p>survival game / Winter → survival game / Forest</p></div><div><strong>解決した有効広告</strong><p>B・C（2件）</p></div></div>",
+    "<div class=\"b21-cards\"><div><strong>生成する組</strong><p>survival game / Forest → mobile game / Winter</p></div><div><strong>解決した有効広告</strong><p>B・C・D（3件）</p></div></div>",
+    "<div class=\"b21-cards\"><div><strong>生成する組</strong><p>survival game / Winter → survival game / Forest → mobile
+    game / Winter</p></div><div><strong>解決した有効広告</strong><p>B・C・D（3件）</p></div></div>", "<div class=\"b21-cards\"><div><strong>生成する組</strong><p>survival
+    game / Forest → mobile game / Winter</p></div><div><strong>解決した有効広告</strong><p>B・C・D（3件）</p></div></div>"]</script><p
+    class="source-note">出所：run.pyの固定スコアとresults.json。JavaScript無効時はbeam 1・後段filterの結果を表示。</p></div>'
+  results: beam幅1では後段filterが無効なAの組を選ぶため、有効広告は0件。事前filterはForestの組を選び、BとCの2件を返す。Fを同じ組へ追加すると3件になる。幅3では差が消える。両方式ともB・C・Dを返す。差は人工的に置いた無効候補と探索予算に依存し、常に改善するとの証拠ではない。
+  what_we_verified: CONFIRMED：人工索引の1対多の解決、配信可否の事前filter、索引への追加による取得集合の変化。assertは4件。すべて通過した。PARTIAL：ANGLEの仕組み全体。生成部分を固定スコアに置き換えている。
+  what_we_did_not_verify: NOT TESTED：Hunyuanの学習、関連性判定、DPO、token単位の動的な木の再構成、未見広告への意味的な汎化、実際の遅延、WTS/QBSのA/B。新広告Fの組は手で指定しており、LLMが正しい組を生成できるかは検証していない。著者報告の性能値とLabの確認範囲を分ける。
+  implementation: '`UV_CACHE_DIR=/tmp/paper-lab-uv uv run papers/angle-tencent-one-step-retrieval/run.py` をリポジトリのルートで実行する。Python標準ライブラリのみで動作し、同じディレクトリの
+    `results.json` を更新する。外部データやGPUは不要。乱数なし。'
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: matrix
+  id: intent-abstract-index
+  title: 同じintentから複数の商品へ、同じ商品から複数の広告へ
+  after: problem
+  locator: 図3・§3.3（語と広告IDはLab用）
+  caption: 説明用の索引。列はabstract、行はintent。空欄の組は生成候補にしない。
+  rationale: 広い意図と具体語の交差が索引のキーになる。
+  corner: intent × abstract
+  columns:
+  - Winter
+  - Forest
+  - Boots
+  rows:
+  - label: survival game
+    cells:
+    - A（配信不可）
+    - B・C
+    - —
+  - label: mobile game
+    cells:
+    - D
+    - —
+    - —
+  - label: shopping
+    cells:
+    - —
+    - —
+    - E（配信不可）
+  source: https://arxiv.org/pdf/2609.18296v1
+- kind: equations
+  id: gdr-loss
+  title: 生成・関連性・商用順位の教師信号を一つのモデルへ
+  after: method
+  locator: 図1・式4〜6
+  caption: 原論文はβをDPO温度と損失重みで再利用するため、ここでは重みをλに置き換えた。
+  rationale: 順位学習は独立した回帰ヘッドではなく、DPOによる生成確率の調整。
+  steps:
+  - name: 生成
+    formula: Lgen = −Σ log πθ(token | query, prefix)
+    explanation: 関連広告のintentとabstractを教師にする。非関連広告では生成損失をmaskする。
+  - name: 関連性
+    formula: Ldis = −[y log p̂ + (1−y) log(1−p̂)]
+    explanation: 関連・非関連の教師でdiscriminatorを学習する（式4）。
+  - name: 商用順位
+    formula: Ldpo = −log σ(β [log(πθ(yw|x)/πref(yw|x)) − log(πθ(yl|x)/πref(yl|x))])
+    explanation: 商用価値で優位な広告ywをylより優先する。§4.1では実消費額で並べる（式5）。
+  - name: 統合
+    formula: Lmodel = λg Lgen + λd Ldis + λr Ldpo
+    explanation: 3つの重み付き損失を足す（式6）。Labではこの学習を実行しない。
+  source: https://arxiv.org/pdf/2609.18296v1
+- kind: chart
+  id: wts-online
+  title: WTSのオンライン変化率：露出も増えている
+  after: evidence
+  locator: 表3
+  caption: 著者報告。5日間・traffic 20%。consumptionは本文と不一致。CTRやCVRの変化率ではない。
+  rationale: 件数、消費額、GMVを区別する。
+  unit: '% 相対'
+  maximum: 3
+  bars:
+  - label: 広告消費額
+    value: 1.81
+  - label: GMV
+    value: 2.16
+  - label: クリック数
+    value: 1.5
+  - label: コンバージョン数
+    value: 1.44
+  - label: 露出数
+    value: 2.49
+  source: https://arxiv.org/pdf/2609.18296v1
