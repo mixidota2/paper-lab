@@ -30,22 +30,23 @@ Update only what changed. Do not notify about file maintenance. Surface only: pa
 
 Deduplicate papers by arXiv ID, DOI, canonical URL, and normalized title. Link new versions / conference versions to existing records.
 
-## Domains
-Explore with problem settings, design principles, and operational meaning — not keyword matching:
-1. Recommender Systems
-2. Demand Forecasting / Time Series Forecasting
-3. Retail Optimization
-4. Machine Learning Systems / MLOps
-5. AI Agent Systems / Agent Architecture
-6. Cross-domain ML that can change the above
+## Domains (weight — James 2026-09-27)
+Explore with problem settings, design principles, and operational meaning — not keyword matching.
+**Primary (thick):** Demand Forecasting / Time Series; Retail & Store Operations; Inventory & Supply Chain.
+**Secondary:** Machine Learning Systems / MLOps; AI Agent Systems / Agent Architecture.
+**Light (occasional):** Recommender Systems — still watch Must-grade or map-moving work; do not dominate daily Must/Worth.
+**Also:** Cross-domain ML that can change the above.
 
-Follow the detailed preference profile in `preferences.md` and the active questions in `research_threads.md`.
+Follow the detailed preference profile in `preferences.md` and the active questions in `research_threads.md` (keep ~4–6 themes; merge near-duplicates).
+
+**Pages filter tags** (`lab.yaml` topics): only `demand-forecasting`, `retail-supply`, `recommender-systems`, `causal-inference`, `ml-systems`, `ai-agents`. Do not invent near-duplicate tags.
 
 ## Search
 Primary sources first. Social / news only for discovery.
 Do not repeat the same queries. Mix Exploitation, Adjacency, and Exploration.
 Use high-signal past queries, new terms, authors, and groups without collapsing onto past successes.
-Loose exploration mix: ~70% current interest / ~20% adjacent / ~10% surprising or field-important.
+Loose scout mix (James 2026-09-27): ~50–55% primary (demand / store / supply chain) / ~20% ML systems & agents / ~15% recommender (light) / ~10–15% adjacent or field-important surprises.
+A rec-heavy Must/Worth day needs clear information gain vs the existing map.
 Log each run in `search_history.md`.
 
 ## Selection

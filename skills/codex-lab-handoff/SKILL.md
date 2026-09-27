@@ -44,3 +44,7 @@ Every Codex launch for lab work should include:
 
 ## After Codex finishes
 Review the PR/commit, confirm Pages, update `/workspace/research-bot/papers.csv` library paths, and tell James with links. If Japanese still feels off, relaunch Codex with natural-japanese full mode — do not half-fix locally unless blocked.
+
+
+## Pages topics (James 2026-09-27)
+`lab.yaml` topics must be from: `demand-forecasting`, `retail-supply`, `recommender-systems`, `causal-inference`, `ml-systems`, `ai-agents` only. Coalesce generative/retrieval/watch-time into `recommender-systems`; inventory/shelf into `retail-supply`; agent-* into `ai-agents`. Do not add `evaluation` as a theme tag.

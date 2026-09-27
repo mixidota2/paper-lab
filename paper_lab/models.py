@@ -49,19 +49,18 @@ URL_LABELS = {
     "pdf": "PDF",
     "doi": "DOI",
 }
+# Coarse Pages filter themes (James 2026-09-27). Keep this small; do not
+# reintroduce near-duplicate tags (generative-recommendation, retrieval,
+# agent-architecture, evaluation, inventory-decisions, …).
 TOPIC_LABELS = {
-    "ai-agent-systems": "AIエージェント",
-    "agent-architecture": "エージェント設計",
-    "evaluation": "評価",
-    "recommender-systems": "推薦システム",
-    "retrieval": "検索・候補生成",
-    "generative-recommendation": "生成推薦",
-    "ml-systems": "MLシステム",
     "demand-forecasting": "需要予測",
-    "inventory-decisions": "在庫・発注",
-    "retail-optimization": "売場の最適化",
-    "causal-inference": "因果推論",
+    "retail-supply": "店舗・在庫・サプライ",
+    "recommender-systems": "推薦システム",
+    "causal-inference": "因果・増分",
+    "ml-systems": "MLシステム",
+    "ai-agents": "AIエージェント",
 }
+ALLOWED_TOPICS = frozenset(TOPIC_LABELS)
 
 # Page section order is fixed. Missing content still renders a placeholder.
 # Keys stay English; titles are Japanese for human-facing Pages.
@@ -265,6 +264,9 @@ def lab_from_dict(raw: dict[str, Any], paper_dir: Path) -> Lab:
         raise LabError(f"{paper_dir}/lab.yaml: year must be an int or string")
 
     topics = _string_list(raw.get("topics"), "topics", paper_dir)
+    unknown = [t for t in topics if t not in ALLOWED_TOPICS]
+    if unknown:
+        raise LabError(f"{paper_dir}: unknown topics {unknown}; allowed={sorted(ALLOWED_TOPICS)}")
     related_threads = _string_list(
         raw.get("related_threads"), "related_threads", paper_dir
     )
