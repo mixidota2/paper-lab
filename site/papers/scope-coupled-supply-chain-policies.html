@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SCOPEは品揃え・供給元・補充周期・配送経路を条件付きの方策としてつなぐ。JDの代理効用は最良の分業方式より約1.58%高い。ただし実店舗の売上A/Bや棚割りRCTではない。">
+  <title>品揃えを決める時点で、配送と在庫の費用まで見通せるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-07-30</span></div>
+    <h1>品揃えを決める時点で、配送と在庫の費用まで見通せるか</h1>
+    <p class="lede">SCOPEは品揃え・供給元・補充周期・配送経路を条件付きの方策としてつなぐ。JDの代理効用は最良の分業方式より約1.58%高い。ただし実店舗の売上A/Bや棚割りRCTではない。</p>
+    <details class="bibliography"><summary>原論文：SCOPE: Supply-Chain Operations through Coupled Policies for End-to-End Coordination</summary><p>Yunhao Liang, Xianqi Cao, Pujun Zhang, Yuan Qu, Yongzhi Qi, Ningxuan Kang, Max Z. J. Shen</p><p>2607.28488 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2607.28488">原典を読む ↗</a><a href="https://arxiv.org/pdf/2607.28488">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-28 · Figures 1–2; §3.1–3.3; Eqs. (1)–(6); Tables 1–2</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-coupling">後段の問題は先行判断が作る</a><a href="#figure-utility">効用の中で部門間の費用を合わせる</a><a href="#figure-ablation">JDの補充周期に関する除去実験</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>SCOPEは品揃え・供給元・補充周期・配送経路を条件付きの方策としてつなぐ。JDの代理効用は最良の分業方式より約1.58%高い。ただし実店舗の売上A/Bや棚割りRCTではない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>品揃えを変えると運ぶ需要と重量が変わり、供給元を変えると距離が変わる。補充周期は一回の荷量と在庫の保有期間を変えるため、同じ配送最適化でも入力となる問題が異なる。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>共有表現を使い、先に決めた品揃えや周期が後段の経路問題をどう変えるかを学習する。各段階の代理学習と、計画全体の検証用効用で方策の組合せを選ぶ。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>需要予測の精度だけでは、配送回数や積載制約を含む運用判断を評価できない。SCOPEは部門間の依存を計画全体の費用へ接続する資料として読めるが、代理効用の改善を売上増加へ置き換えられない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h2>三つの部門を四段階の決定でつなぐ</h2>
+<p>Figure 2と式(1)–(6)では、計画はy = (A, σ, T, R)。Aは各拠点の品揃え、σは供給元、Tは補充間隔、Rは配送経路を表す。Transformerの共有表現に需要・拠点・距離・費用を入れ、後の方策は前の決定を条件として受け取る。</p>
+<p>式(1)はq̄ᵢ(A) = Σₚ∈Aᵢ dᵢₚwₚ、qᵢ(A,T) = T_z q̄ᵢ(A)。周期を延ばすと一回の荷量が増え、車両容量を超えうる。式(2)はU = V(A) − L_cov(A) − C_rt(R;c) − C_inv(A,T;c)。未採用品の需要に対する罰則L_covは、動的在庫シミュレーションで実現した欠品売上ではない。</p>
+<p>式(3)のQ(A)は、品揃えを固定した後で残りの計画を最適化した値を表す。実装はこれを直接推定せず、品揃えの局所交換、実行可能な近接供給元による初期教師、全体で固定した周期の走査、経路の学習を使う。実行時には補充単位ごとに周期を選び、供給元と配送日で経路問題を分ける。</p>
+<p>下の図では供給元を一つに固定し、2商品のうち1商品を選ぶ。Aは需要が大きく重い。Bは需要が少なく軽い。配車費用を変え、需要順で選んでから周期を最適化する分業方式と、品揃え・周期を同じ候補集合から同時に選ぶ全探索を比べる。</p></div>      </section>
+<figure class="teaching teaching--architecture" id="figure-coupling" aria-labelledby="title-coupling">
+  <div class="figure-heading"><span class="eyebrow">ARCHITECTURE</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-coupling">後段の問題は先行判断が作る</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">共有表現</p><div class="diagram-nodes"><div class="diagram-node"><strong>Transformer</strong><p>拠点・需要・道路距離</p></div><div class="diagram-node"><strong>費用表現</strong><p>配車・走行・保有費用</p></div></div></div><div class="diagram-row"><p class="lane-label">条件付きの計画</p><div class="diagram-nodes"><div class="diagram-node"><strong>A：品揃え</strong><p>選ぶ商品で荷量が変わる</p></div><div class="diagram-node"><strong>σ：供給元</strong><p>出発点が変わる</p></div><div class="diagram-node"><strong>T：周期</strong><p>配送日と一回の荷量</p></div><div class="diagram-node"><strong>R：経路</strong><p>容量制約を満たす</p></div></div></div></div>
+  <figcaption>一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。 <a href="https://arxiv.org/pdf/2607.28488">出典：Figure 2; Eq. (6) ↗</a></figcaption>
+</figure><figure class="teaching teaching--equations" id="figure-utility" aria-labelledby="title-utility">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-utility">効用の中で部門間の費用を合わせる</h3>
+  <ol class="equation-steps"><li><strong>一回の荷量</strong><div class="math-expression" tabindex="0" role="math" aria-label="qᵢ = T_z Σₚ∈Aᵢ dᵢₚwₚ">qᵢ = T_z Σₚ∈Aᵢ dᵢₚwₚ</div><p>長い周期ほど一回の荷量が増える。</p></li><li><strong>計画全体</strong><div class="math-expression" tabindex="0" role="math" aria-label="U = V − L_cov − C_rt − C_inv">U = V − L_cov − C_rt − C_inv</div><p>品揃え価値から未被覆需要、配送、在庫の代理費用を引く。</p></li></ol>
+  <figcaption>一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。 <a href="https://arxiv.org/pdf/2607.28488">出典：Eqs. (1)–(2) ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈：先行判断を固定してから強い配送ソルバだけを選んでも、先行判断が作った高費用の条件を解消できない。全体効用で品揃えの交換や周期候補を比較すれば、その条件自体を変えられる。ただし式(3)の理想的な完了価値を厳密に計算する方法ではない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料<a href="https://arxiv.org/pdf/2607.28488">Tables 1–2</a> の著者報告。U_refは日次の代理効用で、大きいほど良い。</p>
+<table>
+<thead>
+<tr>
+<th>データ</th>
+<th>最良の分業方式</th>
+<th>SCOPE</th>
+<th>SCOPEのcoverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dingdong</td>
+<td>TopDemand–OR-Tools 206276.14</td>
+<td>206329.79</td>
+<td>0.948</td>
+</tr>
+<tr>
+<td>JD</td>
+<td>TopValue–OR-Tools / HGS 288973.15</td>
+<td>293547.12</td>
+<td>0.427</td>
+</tr>
+</tbody>
+</table>
+<p>JDの表の差は4573.96、表示値の単純な引算は4573.97。丸めにより0.01ずれるため、表記を混同しない。Dingdongは898店舗・18都市の18×90日シナリオ、JDはRDCからFDCへの18×91日シナリオ。JDで周期を毎日に固定するとU_refが14520.74低下し、周期の反実仮想学習を外すと4687.86低下する。これらは「結合全体の除去」と同じ操作ではない。</p></div>      </section>
+<figure class="teaching teaching--chart" id="figure-ablation" aria-labelledby="title-ablation">
+  <div class="figure-heading"><span class="eyebrow">CHART</span><span class="figure-badge">論文の報告値</span></div>
+  <h3 id="title-ablation">JDの補充周期に関する除去実験</h3>
+  <p class="chart-metric">U_ref · 共通尺度 0–300000</p><div class="bar-chart"><div class="bar-row"><div class="bar-label"><span>SCOPE</span><strong>293547.12 U_ref</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 97.84904%"></div></div></div><div class="bar-row"><div class="bar-label"><span>毎日固定</span><strong>279026.38 U_ref</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 93.00879333333333%"></div></div></div><div class="bar-row"><div class="bar-label"><span>周期の反実仮想学習なし</span><strong>288859.25 U_ref</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 96.28641666666667%"></div></div></div></div>
+  <figcaption>一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。 <a href="https://arxiv.org/pdf/2607.28488">出典：Table 2 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/scope-coupled-supply-chain-policies/run.py</code>。標準ライブラリだけで実行でき、同じフォルダーのresults.jsonを更新する。</p>
+<p>utility()で車両台数をceil(荷量/10)と計算する。周期1–4日と2商品を列挙し、同じ費用式で分業方式と全探索を比較する。学習されたSCOPEの方策や多拠点の経路探索は省略する。</p><figure class="teaching" data-b21><h3>荷量と周期から配送費用の段差を読む</h3><label>人工例の条件 <select><option value="0">配車費用 0/台</option><option value="1">配車費用 2/台</option><option value="2">配車費用 10/台</option><option value="3">配車費用 30/台</option></select></label><script type="application/json" data-frames>["<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>商品<\/th><th>周期（日）<\/th><th>荷量<\/th><th>台数/配送<\/th><th>効用/日<\/th><\/tr><\/thead><tbody><tr><td>A<\/td><td>1<\/td><td>12.0<\/td><td>2<\/td><td>26.0<\/td><\/tr><tr><td>A<\/td><td>2<\/td><td>24.0<\/td><td>3<\/td><td>25.2<\/td><\/tr><tr><td>A<\/td><td>3<\/td><td>36.0<\/td><td>4<\/td><td>24.4<\/td><\/tr><tr><td>A<\/td><td>4<\/td><td>48.0<\/td><td>5<\/td><td>23.6<\/td><\/tr><tr><td>B<\/td><td>1<\/td><td>3.5<\/td><td>1<\/td><td>19.0<\/td><\/tr><tr><td>B<\/td><td>2<\/td><td>7.0<\/td><td>1<\/td><td>18.3<\/td><\/tr><tr><td>B<\/td><td>3<\/td><td>10.5<\/td><td>2<\/td><td>17.6<\/td><\/tr><tr><td>B<\/td><td>4<\/td><td>14.0<\/td><td>2<\/td><td>16.9<\/td><\/tr><\/tbody><\/table><\/div><p>需要順で選ぶ：A・1日・効用26.0。全体で選ぶ：A・1日・効用26.0。<\/p>", "<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>商品<\/th><th>周期（日）<\/th><th>荷量<\/th><th>台数/配送<\/th><th>効用/日<\/th><\/tr><\/thead><tbody><tr><td>A<\/td><td>1<\/td><td>12.0<\/td><td>2<\/td><td>22.0<\/td><\/tr><tr><td>A<\/td><td>2<\/td><td>24.0<\/td><td>3<\/td><td>22.2<\/td><\/tr><tr><td>A<\/td><td>3<\/td><td>36.0<\/td><td>4<\/td><td>21.733333<\/td><\/tr><tr><td>A<\/td><td>4<\/td><td>48.0<\/td><td>5<\/td><td>21.1<\/td><\/tr><tr><td>B<\/td><td>1<\/td><td>3.5<\/td><td>1<\/td><td>17.0<\/td><\/tr><tr><td>B<\/td><td>2<\/td><td>7.0<\/td><td>1<\/td><td>17.3<\/td><\/tr><tr><td>B<\/td><td>3<\/td><td>10.5<\/td><td>2<\/td><td>16.266667<\/td><\/tr><tr><td>B<\/td><td>4<\/td><td>14.0<\/td><td>2<\/td><td>15.9<\/td><\/tr><\/tbody><\/table><\/div><p>需要順で選ぶ：A・2日・効用22.2。全体で選ぶ：A・2日・効用22.2。<\/p>", "<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>商品<\/th><th>周期（日）<\/th><th>荷量<\/th><th>台数/配送<\/th><th>効用/日<\/th><\/tr><\/thead><tbody><tr><td>A<\/td><td>1<\/td><td>12.0<\/td><td>2<\/td><td>6.0<\/td><\/tr><tr><td>A<\/td><td>2<\/td><td>24.0<\/td><td>3<\/td><td>10.2<\/td><\/tr><tr><td>A<\/td><td>3<\/td><td>36.0<\/td><td>4<\/td><td>11.066667<\/td><\/tr><tr><td>A<\/td><td>4<\/td><td>48.0<\/td><td>5<\/td><td>11.1<\/td><\/tr><tr><td>B<\/td><td>1<\/td><td>3.5<\/td><td>1<\/td><td>9.0<\/td><\/tr><tr><td>B<\/td><td>2<\/td><td>7.0<\/td><td>1<\/td><td>13.3<\/td><\/tr><tr><td>B<\/td><td>3<\/td><td>10.5<\/td><td>2<\/td><td>10.933333<\/td><\/tr><tr><td>B<\/td><td>4<\/td><td>14.0<\/td><td>2<\/td><td>11.9<\/td><\/tr><\/tbody><\/table><\/div><p>需要順で選ぶ：A・4日・効用11.1。全体で選ぶ：B・2日・効用13.3。<\/p>", "<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>商品<\/th><th>周期（日）<\/th><th>荷量<\/th><th>台数/配送<\/th><th>効用/日<\/th><\/tr><\/thead><tbody><tr><td>A<\/td><td>1<\/td><td>12.0<\/td><td>2<\/td><td>-34.0<\/td><\/tr><tr><td>A<\/td><td>2<\/td><td>24.0<\/td><td>3<\/td><td>-19.8<\/td><\/tr><tr><td>A<\/td><td>3<\/td><td>36.0<\/td><td>4<\/td><td>-15.6<\/td><\/tr><tr><td>A<\/td><td>4<\/td><td>48.0<\/td><td>5<\/td><td>-13.9<\/td><\/tr><tr><td>B<\/td><td>1<\/td><td>3.5<\/td><td>1<\/td><td>-11.0<\/td><\/tr><tr><td>B<\/td><td>2<\/td><td>7.0<\/td><td>1<\/td><td>3.3<\/td><\/tr><tr><td>B<\/td><td>3<\/td><td>10.5<\/td><td>2<\/td><td>-2.4<\/td><\/tr><tr><td>B<\/td><td>4<\/td><td>14.0<\/td><td>2<\/td><td>1.9<\/td><\/tr><\/tbody><\/table><\/div><p>需要順で選ぶ：A・4日・効用-13.9。全体で選ぶ：B・2日・効用3.3。<\/p>"]</script><div data-output aria-live="polite"><div class="matrix-scroll" tabindex="0" role="region" aria-label="人工実験の比較"><table><thead><tr><th>商品</th><th>周期（日）</th><th>荷量</th><th>台数/配送</th><th>効用/日</th></tr></thead><tbody><tr><td>A</td><td>1</td><td>12.0</td><td>2</td><td>26.0</td></tr><tr><td>A</td><td>2</td><td>24.0</td><td>3</td><td>25.2</td></tr><tr><td>A</td><td>3</td><td>36.0</td><td>4</td><td>24.4</td></tr><tr><td>A</td><td>4</td><td>48.0</td><td>5</td><td>23.6</td></tr><tr><td>B</td><td>1</td><td>3.5</td><td>1</td><td>19.0</td></tr><tr><td>B</td><td>2</td><td>7.0</td><td>1</td><td>18.3</td></tr><tr><td>B</td><td>3</td><td>10.5</td><td>2</td><td>17.6</td></tr><tr><td>B</td><td>4</td><td>14.0</td><td>2</td><td>16.9</td></tr></tbody></table></div><p>需要順で選ぶ：A・1日・効用26.0。全体で選ぶ：A・1日・効用26.0。</p></div><figcaption>run.pyが計算したresults.jsonから生成。著者の測定値ではない。</figcaption></figure></div><div class="downloads"><a href="../downloads/scope-coupled-supply-chain-policies/run.py" download>実行コード</a><a href="../downloads/scope-coupled-supply-chain-policies/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/scope-coupled-supply-chain-policies">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>教育用の人工例。原論文の学習・性能・本番効果は再現していない。</em></p>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;lab28&quot;: &quot;scope&quot;,
+  &quot;frames&quot;: [
+    {
+      &quot;label&quot;: &quot;配車費用 0/台&quot;,
+      &quot;dispatch&quot;: 0,
+      &quot;plans&quot;: [
+        {
+          &quot;item&quot;: &quot;A&quot;,
+          &quot;cycle&quot;: 1,
+          &quot;load&quot;: 12.0,
+          &quot;vehicles&quot;: 2,
+          &quot;route_cost&quot;: 0.0,
+          &quot;holding&quot;: 0.0,
+          &quot;utility&quot;: 26.0
+        },
+        {
+          &quot;item&quot;: &quot;A&quot;,
+          &quot;cycle&quot;: 2,
+          &quot;load&quot;: 24.0,
+          &quot;vehicles&quot;: 3,
+          &quot;route_cost&quot;: 0.0,
+          &quot;holding&quot;: 0.8,
+          &quot;utility&quot;: 25.2
+        },
+        {
+          &quot;item&quot;: &quot;A&quot;,
+          &quot;cycle&quot;: 3,
+          &quot;load&quot;: 36.0,
+          &quot;vehicles&quot;: 4,
+          &quot;route_cost&quot;: 0.0,
+          &quot;holding&quot;: 1.6,
+          &quot;utility&quot;: 24.4
+        },
+        {
+          &quot;item&quot;: &quot;A&quot;,
+          &quot;cycle&quot;: 4,
+          &quot;load&quot;: 48.0,
+          &quot;vehicles&quot;: 5,
+          &quot;route_cost&quot;: 0.0,
+          &quot;holding&quot;: 2.4000000000000004,
+          &quot;utility&quot;: 23.6
+        },
+        {
+          &quot;item&quot;: &quot;B&quot;,
+          &quot;cycle&quot;: 1,
+          &quot;load&quot;: 3.5,
+          &quot;vehicles&quot;: 1,
+          &quot;route_cost&quot;: 0.0,
+          &quot;holding&quot;: 0.0,
+          &quot;utility&quot;: 19.0
+        },
+        {
+          &quot;item&quot;: &quot;B&quot;,
+          &quot;cycle&quot;: 2,
+          &quot;load&quot;: 7.0,
+          &quot;vehicles&quot;: 1,
+          &quot;route_cost&quot;: 0.0,
+          &quot;holding&quot;: 0.7000000000000001,
+          &quot;utility&quot;: 18.3
+        },
+        {
+          &quot;item&quot;: &quot;B&quot;,
+          &quot;cycle&quot;: 3,
+          &quot;load&quot;: 10.5,
+          &quot;vehicles&quot;: 2,
+          &quot;route_cost&quot;: 0.0,
+          &quot;holding&quot;: 1.4000000000000001,
+          &quot;utility&quot;: 17.6
+        },
+        {
+          &quot;item&quot;: &quot;B&quot;,
+          &quot;cycle&quot;: 4,
+          &quot;load&quot;: 14.0,
+          &quot;vehicles&quot;: 2,
+          &quot;route_cost&quot;: 0.0,
+          &quot;holding&quot;: 2.1,
+          &quot;utility&quot;: 16.9
+        }
+      ],
+      &quot;baseline&quot;: {
+        &quot;item&quot;: &quot;A&quot;,
+        &quot;cycle&quot;: 1,
+        &quot;load&quot;: 12.0,
+        &quot;vehicles&quot;: 2,
+        &quot;route_cost&quot;: 0.0,
+        &quot;holding&quot;: 0.0,
+        &quot;utility&quot;: 26.0
+      },
+      &quot;proposed&quot;: {
+        &quot;item&quot;: &quot;A&quot;,
+        &quot;cycle&quot;: 1,
+        &quot;load&quot;: 12.0,
+        &quot;vehicles&quot;: 2,
+        &quot;route_cost&quot;: 0.0,
+        &quot;holding&quot;: 0.0,
+        &quot;utility&quot;: 26.0
+      }
+    },
+    {
+      &quot;label&quot;: &quot;配車費用 2/台&quot;,
+      &quot;dispatch&quot;: 2,
+      &quot;plans&quot;: [
+        {
+          &quot;item&quot;: &quot;A&quot;,
+          &quot;cycle&quot;: 1,
+          &quot;load&quot;: 12.0,
+          &quot;vehicles&quot;: 2,
+          &quot;route_cost&quot;: 4.0,
+          &quot;holding&quot;: 0.0,
+          &quot;utility&quot;: 22.0
+        },
+        {
+          &quot;item&quot;: &quot;A&quot;,
+          &quot;cycle&quot;: 2,
+          &quot;load&quot;: 24.0,
+          &quot;vehicles&quot;: 3,
+          &quot;route_cost&quot;: 3.0,
+          &quot;holding&quot;: 0.8,
+          &quot;utility&quot;: 22.2
+        },
+        {
+          &quot;item&quot;: &quot;A&quot;,
+          &quot;cycle&quot;: 3,
+          &quot;load&quot;: 36.0,
+          &quot;vehicles&quot;: 4,
+          &quot;route_cost&quot;: 2.6666666666666665,
+          &quot;holding&quot;: 1.6,
+          &quot;utility&quot;: 21.733333
+        },
+        {
+          &quot;item&quot;: &quot;A&quot;,
+          &quot;cycle&quot;: 4,
+          &quot;load&quot;: 48.0,
+          &quot;vehicles&quot;: 5,
+          &quot;route_cost&quot;: 2.5,
+          &quot;holding&quot;: 2.4000000000000004,
+          &quot;utility&quot;: 21.1
+        },
+        {
+          &quot;item&quot;: &quot;B&quot;,
+          &quot;cycle&quot;: 1,
+          &quot;load&quot;: 3.5,
+          &quot;vehicles&quot;: 1,
+          &quot;route_cost&quot;: 2.0,
+          &quot;holding&quot;: 0.0,
+          &quot;utility&quot;: 17.0
+        },
+        {
+          &quot;item&quot;: &quot;B&quot;,
+          &quot;cycle&quot;: 2,
+          &quot;load&quot;: 7.0,
+          &quot;vehicles&quot;: 1,
+          &quot;route_cost&quot;: 1.0,
+          &quot;holding&quot;: 0.7000000000000001,
+          &quot;utility&quot;: 17.3
+        },
+        {
+          &quot;item&quot;: &quot;B&quot;,
+          &quot;cycle&quot;: 3,
+          &quot;load&quot;: 10.5,
+          &quot;vehicles&quot;: 2,
+          &quot;route_cost&quot;: 1.3333333333333333,
+          &quot;holding&quot;: 1.4000000000000001,
+          &quot;utility&quot;: 16.266667
+        },
+        {
+          &quot;item&quot;: &quot;B&quot;,
+          &quot;cycle&quot;: 4,
+          &quot;load&quot;: 14.0,
+          &quot;vehicles&quot;: 2,
+          &quot;route_cost&quot;: 1.0,
+          &quot;holding&quot;: 2.1,
+          &quot;utility&quot;: 15.9
+        }
+      ],
+      &quot;baseline&quot;: {
+        &quot;item&quot;: &quot;A&quot;,
+        &quot;cycle&quot;: 2,
+        &quot;load&quot;: 24.0,
+        &quot;vehicles&quot;: 3,
+        &quot;route_cost&quot;: 3.0,
+        &quot;holding&quot;: 0.8,
+        &quot;utility&quot;: 22.2
+      },
+      &quot;proposed&quot;: {
+        &quot;item&quot;: &quot;A&quot;,
+        &quot;cycle&quot;: 2,
+        &quot;load&quot;: 24.0,
+        &quot;vehicles&quot;: 3,
+        &quot;route_cost&quot;: 3.0,
+        &quot;holding&quot;: 0.8,
+        &quot;utility&quot;: 22.2
+      }
+    },
+    {
+      &quot;label&quot;: &quot;配車費用 10/台&quot;,
+      &quot;dispatch&quot;: 10,
+      &quot;plans&quot;: [
+        {
+          &quot;item&quot;: &quot;A&quot;,
+          &quot;cycle&quot;: 1,
+          &quot;load&quot;: 12.0,
+          &quot;vehicles&quot;: 2,
+          &quot;route_cost&quot;: 20.0,
+          &quot;holding&quot;: 0.0,
+          &quot;utility&quot;: 6.0
+        },
+        {
+          &quot;item&quot;: &quot;A&quot;,
+          &quot;cycle&quot;: 2,
+          &quot;load&quot;: 24.0,
+          &quot;vehicles&quot;: 3,
+          &quot;route_cost&quot;: 15.0,
+          &quot;holding&quot;: 0.8,
+          &quot;utility&quot;: 10.2
+        },
+        {
+          &quot;item&quot;: &quot;A&quot;,
+          &quot;cycle&quot;: 3,
+          &quot;load&quot;: 36.0,
+          &quot;vehicles&quot;: 4,
+          &quot;route_cost&quot;: 13.333333333333334,
+          &quot;holding&quot;: 1.6,
+          &quot;utility&quot;: 11.066667
+        },
+        {
+          &quot;item&quot;: &quot;A&quot;,
+          &quot;cycle&quot;: 4,
+          &quot;load&quot;: 48.0,
+          &quot;vehicles&quot;: 5,
+          &quot;route_cost&quot;: 12.5,
+          &quot;holding&quot;: 2.4000000000000004,
+          &quot;utility&quot;: 11.1
+        },
+        {
+          &quot;item&quot;: &quot;B&quot;,
+          &quot;cycle&quot;: 1,
+          &quot;load&quot;: 3.5,
+          &quot;vehicles&quot;: 1,
+          &quot;route_cost&quot;: 10.0,
+          &quot;holding&quot;: 0.0,
+          &quot;utility&quot;: 9.0
+        },
+        {
+          &quot;item&quot;: &quot;B&quot;,
+          &quot;cycle&quot;: 2,
+          &quot;load&quot;: 7.0,
+          &quot;vehicles&quot;: 1,
+          &quot;route_cost&quot;: 5.0,
+          &quot;holding&quot;: 0.7000000000000001,
+          &quot;utility&quot;: 13.3
+        },
+        {
+          &quot;item&quot;: &quot;B&quot;,
+          &quot;cycle&quot;: 3,
+          &quot;load&quot;: 10.5,
+          &quot;vehicles&quot;: 2,
+          &quot;route_cost&quot;: 6.666666666666667,
+          &quot;holding&quot;: 1.4000000000000001,
+          &quot;utility&quot;: 10.933333
+        },
+        {
+          &quot;item&quot;: &quot;B&quot;,
+          &quot;cycle&quot;: 4,
+          &quot;load&quot;: 14.0,
+          &quot;vehicles&quot;: 2,
+          &quot;route_cost&quot;: 5.0,
+          &quot;holding&quot;: 2.1,
+          &quot;utility&quot;: 11.9
+        }
+      ],
+      &quot;baseline&quot;: {
+        &quot;item&quot;: &quot;A&quot;,
+        &quot;cycle&quot;: 4,
+        &quot;load&quot;: 48.0,
+        &quot;vehicles&quot;: 5,
+        &quot;route_cost&quot;: 12.5,
+        &quot;holding&quot;: 2.4000000000000004,
+        &quot;utility&quot;: 11.1
+      },
+      &quot;proposed&quot;: {
+        &quot;item&quot;: &quot;B&quot;,
+        &quot;cycle&quot;: 2,
+        &quot;load&quot;: 7.0,
+        &quot;vehicles&quot;: 1,
+        &quot;route_cost&quot;: 5.0,
+        &quot;holding&quot;: 0.7000000000000001,
+        &quot;utility&quot;: 13.3
+      }
+    },
+    {
+      &quot;label&quot;: &quot;配車費用 30/台&quot;,
+      &quot;dispatch&quot;: 30,
+      &quot;plans&quot;: [
+        {
+          &quot;item&quot;: &quot;A&quot;,
+          &quot;cycle&quot;: 1,
+          &quot;load&quot;: 12.0,
+          &quot;vehicles&quot;: 2,
+          &quot;route_cost&quot;: 60.0,
+          &quot;holding&quot;: 0.0,
+          &quot;utility&quot;: -34.0
+        },
+        {
+          &quot;item&quot;: &quot;A&quot;,
+          &quot;cycle&quot;: 2,
+          &quot;load&quot;: 24.0,
+          &quot;vehicles&quot;: 3,
+          &quot;route_cost&quot;: 45.0,
+          &quot;holding&quot;: 0.8,
+          &quot;utility&quot;: -19.8
+        },
+        {
+          &quot;item&quot;: &quot;A&quot;,
+          &quot;cycle&quot;: 3,
+          &quot;load&quot;: 36.0,
+          &quot;vehicles&quot;: 4,
+          &quot;route_cost&quot;: 40.0,
+          &quot;holding&quot;: 1.6,
+          &quot;utility&quot;: -15.6
+        },
+        {
+          &quot;item&quot;: &quot;A&quot;,
+          &quot;cycle&quot;: 4,
+          &quot;load&quot;: 48.0,
+          &quot;vehicles&quot;: 5,
+          &quot;route_cost&quot;: 37.5,
+          &quot;holding&quot;: 2.4000000000000004,
+          &quot;utility&quot;: -13.9
+        },
+        {
+          &quot;item&quot;: &quot;B&quot;,
+          &quot;cycle&quot;: 1,
+          &quot;load&quot;: 3.5,
+          &quot;vehicles&quot;: 1,
+          &quot;route_cost&quot;: 30.0,
+          &quot;holding&quot;: 0.0,
+          &quot;utility&quot;: -11.0
+        },
+        {
+          &quot;item&quot;: &quot;B&quot;,
+          &quot;cycle&quot;: 2,
+          &quot;load&quot;: 7.0,
+          &quot;vehicles&quot;: 1,
+          &quot;route_cost&quot;: 15.0,
+          &quot;holding&quot;: 0.7000000000000001,
+          &quot;utility&quot;: 3.3
+        },
+        {
+          &quot;item&quot;: &quot;B&quot;,
+          &quot;cycle&quot;: 3,
+          &quot;load&quot;: 10.5,
+          &quot;vehicles&quot;: 2,
+          &quot;route_cost&quot;: 20.0,
+          &quot;holding&quot;: 1.4000000000000001,
+          &quot;utility&quot;: -2.4
+        },
+        {
+          &quot;item&quot;: &quot;B&quot;,
+          &quot;cycle&quot;: 4,
+          &quot;load&quot;: 14.0,
+          &quot;vehicles&quot;: 2,
+          &quot;route_cost&quot;: 15.0,
+          &quot;holding&quot;: 2.1,
+          &quot;utility&quot;: 1.9
+        }
+      ],
+      &quot;baseline&quot;: {
+        &quot;item&quot;: &quot;A&quot;,
+        &quot;cycle&quot;: 4,
+        &quot;load&quot;: 48.0,
+        &quot;vehicles&quot;: 5,
+        &quot;route_cost&quot;: 37.5,
+        &quot;holding&quot;: 2.4000000000000004,
+        &quot;utility&quot;: -13.9
+      },
+      &quot;proposed&quot;: {
+        &quot;item&quot;: &quot;B&quot;,
+        &quot;cycle&quot;: 2,
+        &quot;load&quot;: 7.0,
+        &quot;vehicles&quot;: 1,
+        &quot;route_cost&quot;: 15.0,
+        &quot;holding&quot;: 0.7000000000000001,
+        &quot;utility&quot;: 3.3
+      }
+    }
+  ],
+  &quot;note&quot;: &quot;教育用の人工例。原論文の学習・性能・本番効果は再現していない。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>配車費用が0なら需要の多いAが選ばれる。費用が高くなると荷量の小さいBへ切り替わる条件が生じる。全探索には分業方式と同じ選択肢も含めた。そのため、この例で全探索の効用が分業方式を下回ることはない。SCOPEの学習性能はここから判断できない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>CONFIRMED：車両容量による費用の段差と、費用条件による最適品揃えの変化。MechanismはPARTIAL。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。学習、複数供給元、実際の道路距離、在庫動態、実店舗での品揃え変更は試していない。U_refの代理係数が現場の利益や欠品費用を正しく表すかも未検証。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>utility() → 式(1)–(2)の荷量と費用の簡略版。experiment()の全探索 → 式(3)–(4)の完了価値の教育例。ニューラル方策の再実装ではない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文・公式コード対応</h1>
+<p><a href="https://arxiv.org/pdf/2607.28488">一次資料PDF</a>。確認箇所：Figures 1–2; §3.1–3.3; Eqs. (1)–(6); Tables 1–2。保存済みPDFのSHA-256：<code>0e0ea2b7b37d2a34c9aa11be36332ac0df193508e4e6044475e9d26ea060c5a9</code>。</p>
+<h2>紙面と最小実験の対応</h2>
+<p>utility() → 式(1)–(2)の荷量と費用の簡略版。experiment()の全探索 → 式(3)–(4)の完了価値の教育例。ニューラル方策の再実装ではない。</p>
+<p>Performance / Scaling / Production applicabilityはNOT TESTED。学習、複数供給元、実際の道路距離、在庫動態、実店舗での品揃え変更は試していない。U_refの代理係数が現場の利益や欠品費用を正しく表すかも未検証。</p>
+<h2>公式コードの確認範囲</h2>
+<p>確認したPDF内で本手法の公式実装URLを特定できなかった。公開実装が存在しないとの断定はしない。公式コードの実行はNOT TESTED。</p>
+<h2>原本と生成物</h2>
+<p>lab.yamlは本文と図の定義、method.mdは手法説明、run.pyは人工実験、results.jsonは実行結果、mapping.mdは対応表。HTMLはこれらから生成する。PDFの報告値と人工実験値は別に表示する。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>品揃えを決める時点で、配送と在庫の費用まで見通せるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/scope-coupled-supply-chain-policies/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

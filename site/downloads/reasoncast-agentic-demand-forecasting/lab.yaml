@@ -1,0 +1,139 @@
+id: reasoncast-agentic-demand-forecasting
+arxiv_id: '2608.15291'
+title: 'ReasonCast: Agentic Demand Forecasting with Selective Semantic Reasoning'
+authors:
+- Ziyue Yang
+- Chaolin Xu
+- Yijing Wang
+- Tiankai Gu
+- Hui Yang
+- Yanhong Lin
+- Kaiyuan Liu
+- Fei Xiao
+year: 2026
+submitted: '2026-08-15'
+topics:
+- demand-forecasting
+- ai-agents
+urls:
+  paper: https://arxiv.org/abs/2608.15291
+  pdf: https://arxiv.org/pdf/2608.15291
+  official_code: null
+  arxiv: https://arxiv.org/abs/2608.15291
+verdict: Must Read
+status: published
+question: イベントの意味情報を、いつ予測に入れずに済ませるか
+summary: ReasonCastは凍結したChronos-2に対し、Skip・Basic・Toolで意味情報の介入を選ぶ。イベント区間では誤差を減らし、Skipでは元の予測を厳密に保つ。欠品を含む需要予測手法の優劣は未決着。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads: []
+source_review:
+  checked: '2026-09-28'
+  version: 保存済みPDF
+  pdf_sha256: df06b393e718d107e46d56a15547b5187b3fa8731b8a597c0f6aa57b9fd466e6
+  url: https://arxiv.org/pdf/2608.15291
+  scope: Figure 1; §4.2–4.7; Eqs. (6), (8), (11), (12), (16); Tables 2–3
+core_idea:
+  author_claim: Qwen3-32Bが介入の有無と意味情報を決め、Chronos-2 smallが数値予測を担う。イベントに関係する表現でテキストを参照し、加算補正と乗算補正を使い分ける。
+  research_bot_interpretation: 注目点は文章を常に足すことより、介入しない経路を明示した点にある。販促・欠品を同条件で扱うTSFMとGBDTの比較には、需要の打切りと在庫費用を別途組み込む必要がある。
+sections:
+  overview: ReasonCastは凍結したChronos-2に対し、Skip・Basic・Toolで意味情報の介入を選ぶ。イベント区間では誤差を減らし、Skipでは元の予測を厳密に保つ。欠品を含む需要予測手法の優劣は未決着。
+  problem: 安定した売上に不要な意味情報を加えると、時系列モデルが捉えた規則性を壊す。一方、祝日や大型セールの水準変化は過去の波形だけでは捉えにくい。論文の独自データは商品単位ではなく、末端カテゴリ単位の日次15,696系列。予測期間は7日である。
+  why_it_might_work: 解釈：Skipを明示的な分岐にすれば、学習したゲートが小さくなることに頼らず元の出力を守れる。直交分解は表現の幾何学的な制約であり、イベントの因果効果を同定する保証ではない。注意出力を再射影しないため、補正全体がイベント部分空間に留まるとも限らない。
+  evidence: '一次資料[Table 2・3](https://arxiv.org/pdf/2608.15291) の著者報告。差はWMAPEのパーセントポイント（pp）で、相対改善率ではない。
+
+
+    | 区間 | 最良比較手法 | ReasonCast | 差 |
+
+    | --- | --- | --- | --- |
+
+    | 祝日・高感応 | Uni-FT 42.39% | 39.10% | −3.29 pp |
+
+    | 大型セール・高感応 | Multi-FT 22.14% | 20.89% | −1.25 pp |
+
+    | M5イベント窓 | Multi-FT 33.10% | 32.63% | −0.47 pp |
+
+    | 平常期 | Chronos-2 small 7.91% | Skip 7.91% | 0 pp |
+
+
+    平常期の常時介入は9.59%で、元の7.91%より1.68 pp悪化する。学習は2025年8月末まで、モデル選択は同年9–10月、評価は同年11月から2026年5月。M5は10店舗を合算した3,049商品系列の14個のイベント窓であり、店舗別の欠品対策を直接評価していない。'
+  method: method.md
+  executable_understanding: '`uv run papers/reasoncast-agentic-demand-forecasting/run.py`。標準ライブラリだけで実行でき、同じフォルダーのresults.jsonを更新する。
+
+
+    correct()で同じ基準値に補正を加え、Skip・不要な介入・正しいイベント情報・誤った情報を比較する。WMAPEは Σ|y−ŷ| / Σ|y| × 100。全ゼロ需要は未定義としてNoneを返す。'
+  results: 人工の平常期ではSkipのWMAPEは0%、不要なBasicは20%。誤ったTool補正では100%まで悪化する。正しい情報を与えたイベント例の改善は、情報を正しく推論できる証拠にはならない。
+  what_we_verified: CONFIRMED：人工例のSkip分岐で出力の浮動小数点表現を保つ。PARTIAL：加算・乗算の役割と不要な介入による悪化を確認した。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Chronos-2、Qwen3-32B、検索道具、学習されたルータ、直交射影、GRPOは実行していない。欠品で観測売上が潜在需要を下回る条件、販促費用、在庫サービス水準も未評価。
+  implementation: correct() → 式(8), (11), (12)の簡略化。wmape() → 式(16)。ルータと潜在表現、学習は省略。
+  mapping: mapping.md
+teaching_figures:
+- kind: architecture
+  id: routing
+  title: Skipを独立した出口として残す
+  rows:
+  - label: 平常期・介入不要
+    nodes:
+    - title: Skip
+      text: 意味処理を終了
+    - title: m = 0
+      text: 加算も乗算も無効
+    - title: 元の予測
+      text: Chronos-2の出力と一致
+  - label: 祝日・大型セール
+    nodes:
+    - title: Basic以上
+      text: Skipは許可しない
+    - title: Qwen3-32B
+      text: 方向・振幅・ピークを推論
+    - title: 二経路の補正
+      text: 形状と水準を調整
+  - label: 曖昧な事例
+    nodes:
+    - title: Tool
+      text: 外部証拠・時系列統計を取得
+    - title: 意味トークン
+      text: テキストを整合させる
+  locator: Figure 1; §4.2
+  after: method
+  source: https://arxiv.org/pdf/2608.15291
+  rationale: Skipを独立した出口として残す
+  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。
+- kind: equations
+  id: identity
+  title: m = 0で二つの補正が消える
+  steps:
+  - name: 表現を分ける
+    formula: Hᴱ = HP, Hᴺ = H(I−P)
+    explanation: 直交射影の和は元の表現。因果的な分離の保証ではない。
+  - name: 形状を直す
+    formula: H̃ = Hᴺ + Hᴱ + mαgΔH
+    explanation: イベント成分をqueryとして意味情報を参照する。
+  - name: 水準を直す
+    formula: ŷ = ŷ_lat ⊙ exp(mβgρ)
+    explanation: m = 0なら指数項は1。Skipで元の予測へ戻る。
+  locator: Eqs. (6), (8), (11)–(12)
+  after: method
+  source: https://arxiv.org/pdf/2608.15291
+  rationale: m = 0で二つの補正が消える
+  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。
+- kind: chart
+  id: stable
+  title: 平常期は常時介入で悪化する
+  bars:
+  - label: Chronos-2 small
+    value: 7.91
+  - label: 常時介入
+    value: 9.59
+  - label: ReasonCast / Skip
+    value: 7.91
+  maximum: 10
+  unit: WMAPE (%)
+  locator: Table 3
+  after: evidence
+  source: https://arxiv.org/pdf/2608.15291
+  rationale: 平常期は常時介入で悪化する
+  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。

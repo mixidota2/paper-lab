@@ -1,0 +1,396 @@
+{
+  "lab28": "scope",
+  "frames": [
+    {
+      "label": "配車費用 0/台",
+      "dispatch": 0,
+      "plans": [
+        {
+          "item": "A",
+          "cycle": 1,
+          "load": 12.0,
+          "vehicles": 2,
+          "route_cost": 0.0,
+          "holding": 0.0,
+          "utility": 26.0
+        },
+        {
+          "item": "A",
+          "cycle": 2,
+          "load": 24.0,
+          "vehicles": 3,
+          "route_cost": 0.0,
+          "holding": 0.8,
+          "utility": 25.2
+        },
+        {
+          "item": "A",
+          "cycle": 3,
+          "load": 36.0,
+          "vehicles": 4,
+          "route_cost": 0.0,
+          "holding": 1.6,
+          "utility": 24.4
+        },
+        {
+          "item": "A",
+          "cycle": 4,
+          "load": 48.0,
+          "vehicles": 5,
+          "route_cost": 0.0,
+          "holding": 2.4000000000000004,
+          "utility": 23.6
+        },
+        {
+          "item": "B",
+          "cycle": 1,
+          "load": 3.5,
+          "vehicles": 1,
+          "route_cost": 0.0,
+          "holding": 0.0,
+          "utility": 19.0
+        },
+        {
+          "item": "B",
+          "cycle": 2,
+          "load": 7.0,
+          "vehicles": 1,
+          "route_cost": 0.0,
+          "holding": 0.7000000000000001,
+          "utility": 18.3
+        },
+        {
+          "item": "B",
+          "cycle": 3,
+          "load": 10.5,
+          "vehicles": 2,
+          "route_cost": 0.0,
+          "holding": 1.4000000000000001,
+          "utility": 17.6
+        },
+        {
+          "item": "B",
+          "cycle": 4,
+          "load": 14.0,
+          "vehicles": 2,
+          "route_cost": 0.0,
+          "holding": 2.1,
+          "utility": 16.9
+        }
+      ],
+      "baseline": {
+        "item": "A",
+        "cycle": 1,
+        "load": 12.0,
+        "vehicles": 2,
+        "route_cost": 0.0,
+        "holding": 0.0,
+        "utility": 26.0
+      },
+      "proposed": {
+        "item": "A",
+        "cycle": 1,
+        "load": 12.0,
+        "vehicles": 2,
+        "route_cost": 0.0,
+        "holding": 0.0,
+        "utility": 26.0
+      }
+    },
+    {
+      "label": "配車費用 2/台",
+      "dispatch": 2,
+      "plans": [
+        {
+          "item": "A",
+          "cycle": 1,
+          "load": 12.0,
+          "vehicles": 2,
+          "route_cost": 4.0,
+          "holding": 0.0,
+          "utility": 22.0
+        },
+        {
+          "item": "A",
+          "cycle": 2,
+          "load": 24.0,
+          "vehicles": 3,
+          "route_cost": 3.0,
+          "holding": 0.8,
+          "utility": 22.2
+        },
+        {
+          "item": "A",
+          "cycle": 3,
+          "load": 36.0,
+          "vehicles": 4,
+          "route_cost": 2.6666666666666665,
+          "holding": 1.6,
+          "utility": 21.733333
+        },
+        {
+          "item": "A",
+          "cycle": 4,
+          "load": 48.0,
+          "vehicles": 5,
+          "route_cost": 2.5,
+          "holding": 2.4000000000000004,
+          "utility": 21.1
+        },
+        {
+          "item": "B",
+          "cycle": 1,
+          "load": 3.5,
+          "vehicles": 1,
+          "route_cost": 2.0,
+          "holding": 0.0,
+          "utility": 17.0
+        },
+        {
+          "item": "B",
+          "cycle": 2,
+          "load": 7.0,
+          "vehicles": 1,
+          "route_cost": 1.0,
+          "holding": 0.7000000000000001,
+          "utility": 17.3
+        },
+        {
+          "item": "B",
+          "cycle": 3,
+          "load": 10.5,
+          "vehicles": 2,
+          "route_cost": 1.3333333333333333,
+          "holding": 1.4000000000000001,
+          "utility": 16.266667
+        },
+        {
+          "item": "B",
+          "cycle": 4,
+          "load": 14.0,
+          "vehicles": 2,
+          "route_cost": 1.0,
+          "holding": 2.1,
+          "utility": 15.9
+        }
+      ],
+      "baseline": {
+        "item": "A",
+        "cycle": 2,
+        "load": 24.0,
+        "vehicles": 3,
+        "route_cost": 3.0,
+        "holding": 0.8,
+        "utility": 22.2
+      },
+      "proposed": {
+        "item": "A",
+        "cycle": 2,
+        "load": 24.0,
+        "vehicles": 3,
+        "route_cost": 3.0,
+        "holding": 0.8,
+        "utility": 22.2
+      }
+    },
+    {
+      "label": "配車費用 10/台",
+      "dispatch": 10,
+      "plans": [
+        {
+          "item": "A",
+          "cycle": 1,
+          "load": 12.0,
+          "vehicles": 2,
+          "route_cost": 20.0,
+          "holding": 0.0,
+          "utility": 6.0
+        },
+        {
+          "item": "A",
+          "cycle": 2,
+          "load": 24.0,
+          "vehicles": 3,
+          "route_cost": 15.0,
+          "holding": 0.8,
+          "utility": 10.2
+        },
+        {
+          "item": "A",
+          "cycle": 3,
+          "load": 36.0,
+          "vehicles": 4,
+          "route_cost": 13.333333333333334,
+          "holding": 1.6,
+          "utility": 11.066667
+        },
+        {
+          "item": "A",
+          "cycle": 4,
+          "load": 48.0,
+          "vehicles": 5,
+          "route_cost": 12.5,
+          "holding": 2.4000000000000004,
+          "utility": 11.1
+        },
+        {
+          "item": "B",
+          "cycle": 1,
+          "load": 3.5,
+          "vehicles": 1,
+          "route_cost": 10.0,
+          "holding": 0.0,
+          "utility": 9.0
+        },
+        {
+          "item": "B",
+          "cycle": 2,
+          "load": 7.0,
+          "vehicles": 1,
+          "route_cost": 5.0,
+          "holding": 0.7000000000000001,
+          "utility": 13.3
+        },
+        {
+          "item": "B",
+          "cycle": 3,
+          "load": 10.5,
+          "vehicles": 2,
+          "route_cost": 6.666666666666667,
+          "holding": 1.4000000000000001,
+          "utility": 10.933333
+        },
+        {
+          "item": "B",
+          "cycle": 4,
+          "load": 14.0,
+          "vehicles": 2,
+          "route_cost": 5.0,
+          "holding": 2.1,
+          "utility": 11.9
+        }
+      ],
+      "baseline": {
+        "item": "A",
+        "cycle": 4,
+        "load": 48.0,
+        "vehicles": 5,
+        "route_cost": 12.5,
+        "holding": 2.4000000000000004,
+        "utility": 11.1
+      },
+      "proposed": {
+        "item": "B",
+        "cycle": 2,
+        "load": 7.0,
+        "vehicles": 1,
+        "route_cost": 5.0,
+        "holding": 0.7000000000000001,
+        "utility": 13.3
+      }
+    },
+    {
+      "label": "配車費用 30/台",
+      "dispatch": 30,
+      "plans": [
+        {
+          "item": "A",
+          "cycle": 1,
+          "load": 12.0,
+          "vehicles": 2,
+          "route_cost": 60.0,
+          "holding": 0.0,
+          "utility": -34.0
+        },
+        {
+          "item": "A",
+          "cycle": 2,
+          "load": 24.0,
+          "vehicles": 3,
+          "route_cost": 45.0,
+          "holding": 0.8,
+          "utility": -19.8
+        },
+        {
+          "item": "A",
+          "cycle": 3,
+          "load": 36.0,
+          "vehicles": 4,
+          "route_cost": 40.0,
+          "holding": 1.6,
+          "utility": -15.6
+        },
+        {
+          "item": "A",
+          "cycle": 4,
+          "load": 48.0,
+          "vehicles": 5,
+          "route_cost": 37.5,
+          "holding": 2.4000000000000004,
+          "utility": -13.9
+        },
+        {
+          "item": "B",
+          "cycle": 1,
+          "load": 3.5,
+          "vehicles": 1,
+          "route_cost": 30.0,
+          "holding": 0.0,
+          "utility": -11.0
+        },
+        {
+          "item": "B",
+          "cycle": 2,
+          "load": 7.0,
+          "vehicles": 1,
+          "route_cost": 15.0,
+          "holding": 0.7000000000000001,
+          "utility": 3.3
+        },
+        {
+          "item": "B",
+          "cycle": 3,
+          "load": 10.5,
+          "vehicles": 2,
+          "route_cost": 20.0,
+          "holding": 1.4000000000000001,
+          "utility": -2.4
+        },
+        {
+          "item": "B",
+          "cycle": 4,
+          "load": 14.0,
+          "vehicles": 2,
+          "route_cost": 15.0,
+          "holding": 2.1,
+          "utility": 1.9
+        }
+      ],
+      "baseline": {
+        "item": "A",
+        "cycle": 4,
+        "load": 48.0,
+        "vehicles": 5,
+        "route_cost": 37.5,
+        "holding": 2.4000000000000004,
+        "utility": -13.9
+      },
+      "proposed": {
+        "item": "B",
+        "cycle": 2,
+        "load": 7.0,
+        "vehicles": 1,
+        "route_cost": 15.0,
+        "holding": 0.7000000000000001,
+        "utility": 3.3
+      }
+    }
+  ],
+  "note": "教育用の人工例。原論文の学習・性能・本番効果は再現していない。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  }
+}

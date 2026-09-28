@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="市場全体では2/19位だった本番の基準手法が、買い手別では23/25位になる。対象はサービス市場の取引額GTVで、店舗小売の売上ではない。M5での再評価もあり、手法比較の設計に関わる論文。">
+  <title>予測を変えず、集計のしかたを変えたら勝者は入れ替わるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-08-20</span></div>
+    <h1>予測を変えず、集計のしかたを変えたら勝者は入れ替わるか</h1>
+    <p class="lede">市場全体では2/19位だった本番の基準手法が、買い手別では23/25位になる。対象はサービス市場の取引額GTVで、店舗小売の売上ではない。M5での再評価もあり、手法比較の設計に関わる論文。</p>
+    <details class="bibliography"><summary>原論文：Evaluation Choices Decide the Forecasting Leaderboard: Evidence from a Production Marketplace Panel</summary><p>Md Rezwanul Islam, Wael Mohammed</p><p>2609.27867 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.27867">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.27867">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-28 · Tables 1, 3, 5–7; Figure 1; §4</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-aggregation">集計を分割すると基準手法の順位が落ちる</a><a href="#figure-pooling">絶対値を取る前なら誤差が相殺する</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>市場全体では2/19位だった本番の基準手法が、買い手別では23/25位になる。対象はサービス市場の取引額GTVで、店舗小売の売上ではない。M5での再評価もあり、手法比較の設計に関わる論文。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>大きな集計では正負の予測誤差が相殺する。個別系列ではその誤差が残り、間欠的な需要も増える。本番の基準は前年同月を直近の勢いで調整するseasonal naive with driftで、比較にはN-HiTSやChronos T5-Largeなどを含む。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>データや予測値に加え、評価単位・誤差の集約・指標の選択が順位を決める。同じ手法集合と評価起点に絞った比較でも順位の逆転が残る。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>TSFMとGBDTの比較を始める前に、誰の誤差を一単位として数えるかを固定したい。全体の売上計画に適した評価と、店舗・商品ごとの補充判断に適した評価は一致するとは限らない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h2>誤差を足す順番を変える</h2>
+<p>Table 3とFigure 1が評価粒度の中心図。集計数kを増やすと平滑な市場系列から変動の大きい小集団へ移る。表の中央値WAPE順位はk = 1, 5, 25, 125, 625で2, 14, 14, 16, 16位。これは19手法内の順位であり、25手法による買い手別順位を同じ曲線へ継ぎ足さない。</p>
+<p>人工例は4買い手すべての実績を100とする。Aの誤差は+40, −40, +40, −40、Bはすべて+10。市場全体ならAの誤差は相殺され0%、個別に絶対誤差を足すと40%。Bはどちらも10%となる。同じ2組でも分け方によってAの相殺の有無が変わる。</p>
+<p>Table 6の回収率はG = (E_baseline − E_served) / (E_baseline − E_oracle)。表示されたRMSSEの0.946、0.724、0.540からは約54.68%となる。論文の54.6%との差は、丸め済み値からの再計算として残す。oracleは事後に最良手法を選ぶ上限で、本番で実装できる選択器ではない。</p>
+<p>区間予測のTable 5は193,067レコードを評価する。間欠需要での相関0.02は、25手法間の限られた推定である。全需要・全期間で点予測と区間予測が独立だと証明した数値ではない。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-pooling" aria-labelledby="title-pooling">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-pooling">絶対値を取る前なら誤差が相殺する</h3>
+  <ol class="equation-steps"><li><strong>集計後</strong><div class="math-expression" tabindex="0" role="math" aria-label="|Σ eᵢ|">|Σ eᵢ|</div><p>市場全体の誤差は買い手間で打ち消し合う。</p></li><li><strong>個別評価</strong><div class="math-expression" tabindex="0" role="math" aria-label="Σ |eᵢ|">Σ |eᵢ|</div><p>買い手ごとの誤差を残してから足す。</p></li><li><strong>選択の回収率</strong><div class="math-expression" tabindex="0" role="math" aria-label="G = (E_base − E_served) / (E_base − E_oracle)">G = (E_base − E_served) / (E_base − E_oracle)</div><p>oracleは事後の上限。実装可能な選択ルールと区別する。</p></li></ol>
+  <figcaption>一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。 <a href="https://arxiv.org/pdf/2609.27867">出典：Figure 1; Table 6 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈：絶対値を取る前に誤差を足すと相殺が起きるため、集計後の誤差が小さくても個別の予測は良いとは限らない。|Σeᵢ| ≤ Σ|eᵢ|という性質を最小実験で確認する。区間予測には幅と被覆率が関わり、点予測の順位から一意には決まらない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料<a href="https://arxiv.org/pdf/2609.27867">Tables 1・3・5–7</a> の著者報告。</p>
+<table>
+<thead>
+<tr>
+<th>比較</th>
+<th>値</th>
+<th>注意</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>市場集計 → 買い手別</td>
+<td>2/19位 → 23/25位</td>
+<td>Table 1は指標・起点・手法数も異なる</td>
+</tr>
+<tr>
+<td>選択ルールの改善余地回収</td>
+<td>54.6%</td>
+<td>過去の起点だけで選ぶ、RMSSE基準</td>
+</tr>
+<tr>
+<td>M5の同様の回収率</td>
+<td>64.7%</td>
+<td>店舗×商品で再評価</td>
+</tr>
+<tr>
+<td>点予測と区間予測の順位相関</td>
+<td>0.02</td>
+<td>間欠需要、25手法間の相関</td>
+</tr>
+</tbody>
+</table>
+<p>主要な買い手別評価は1,887系列・67か月、8起点・11,516ブロック。Table 3では共通の19手法を使い、事前データでサイズ順に5,779買い手を分組する。1組から625組への分割で基準手法の中央値WAPE順位は2→16位になる。Table 1だけから集計単独の効果と断定せず、共通条件の再評価も読む。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-aggregation" aria-labelledby="title-aggregation">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-aggregation">集計を分割すると基準手法の順位が落ちる</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="集計を分割すると基準手法の順位が落ちるの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">組数k</th><th scope="col">中央値WAPE順位 / 19</th><th scope="col">平滑な需要の割合</th></tr></thead><tbody><tr><th scope="row">全体</th><td class="">1</td><td class="">2</td><td class="">100%</td></tr><tr><th scope="row">分割1</th><td class="">5</td><td class="">14</td><td class="">57%</td></tr><tr><th scope="row">分割2</th><td class="">25</td><td class="">14</td><td class="">51%</td></tr><tr><th scope="row">分割3</th><td class="">125</td><td class="">16</td><td class="">50%</td></tr><tr><th scope="row">分割4</th><td class="">625</td><td class="">16</td><td class="">27%</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。 <a href="https://arxiv.org/pdf/2609.27867">出典：Table 3 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/evaluation-choices-forecasting-leaderboard/run.py</code>。標準ライブラリだけで実行でき、同じフォルダーのresults.jsonを更新する。</p>
+<p>同一の実績と予測配列を固定し、score()へ渡すグループだけを変える。モデルの再学習や候補選択は行わない。ここで使う指標はWAPEで、原論文のRMSSE順位そのものは再現しない。</p><figure class="teaching" data-b21><h3>同じ予測の誤差を、どこで相殺するか</h3><label>人工例の条件 <select><option value="0">全体を1系列</option><option value="1">相殺する2組</option><option value="2">同方向の2組</option><option value="3">4系列を個別評価</option></select></label><script type="application/json" data-frames>["<div class=\"b21-cards\"><div>買い手 1, 2, 3, 4<br>Aの符号付き誤差 <strong>0<\/strong><\/div><\/div><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>予測<\/th><th>WAPE（%）<\/th><\/tr><\/thead><tbody><tr><td>A<\/td><td>0<\/td><\/tr><tr><td>B<\/td><td>10<\/td><\/tr><\/tbody><\/table><\/div><p>勝者：A。同じ予測を異なる組にまとめた結果。<\/p>", "<div class=\"b21-cards\"><div>買い手 1, 2<br>Aの符号付き誤差 <strong>0<\/strong><\/div><div>買い手 3, 4<br>Aの符号付き誤差 <strong>0<\/strong><\/div><\/div><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>予測<\/th><th>WAPE（%）<\/th><\/tr><\/thead><tbody><tr><td>A<\/td><td>0<\/td><\/tr><tr><td>B<\/td><td>10<\/td><\/tr><\/tbody><\/table><\/div><p>勝者：A。同じ予測を異なる組にまとめた結果。<\/p>", "<div class=\"b21-cards\"><div>買い手 1, 3<br>Aの符号付き誤差 <strong>80<\/strong><\/div><div>買い手 2, 4<br>Aの符号付き誤差 <strong>-80<\/strong><\/div><\/div><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>予測<\/th><th>WAPE（%）<\/th><\/tr><\/thead><tbody><tr><td>A<\/td><td>40<\/td><\/tr><tr><td>B<\/td><td>10<\/td><\/tr><\/tbody><\/table><\/div><p>勝者：B。同じ予測を異なる組にまとめた結果。<\/p>", "<div class=\"b21-cards\"><div>買い手 1<br>Aの符号付き誤差 <strong>40<\/strong><\/div><div>買い手 2<br>Aの符号付き誤差 <strong>-40<\/strong><\/div><div>買い手 3<br>Aの符号付き誤差 <strong>40<\/strong><\/div><div>買い手 4<br>Aの符号付き誤差 <strong>-40<\/strong><\/div><\/div><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>予測<\/th><th>WAPE（%）<\/th><\/tr><\/thead><tbody><tr><td>A<\/td><td>40<\/td><\/tr><tr><td>B<\/td><td>10<\/td><\/tr><\/tbody><\/table><\/div><p>勝者：B。同じ予測を異なる組にまとめた結果。<\/p>"]</script><div data-output aria-live="polite"><div class="b21-cards"><div>買い手 1, 2, 3, 4<br>Aの符号付き誤差 <strong>0</strong></div></div><div class="matrix-scroll" tabindex="0" role="region" aria-label="人工実験の比較"><table><thead><tr><th>予測</th><th>WAPE（%）</th></tr></thead><tbody><tr><td>A</td><td>0</td></tr><tr><td>B</td><td>10</td></tr></tbody></table></div><p>勝者：A。同じ予測を異なる組にまとめた結果。</p></div><figcaption>run.pyが計算したresults.jsonから生成。著者の測定値ではない。</figcaption></figure></div><div class="downloads"><a href="../downloads/evaluation-choices-forecasting-leaderboard/run.py" download>実行コード</a><a href="../downloads/evaluation-choices-forecasting-leaderboard/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/evaluation-choices-forecasting-leaderboard">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>教育用の人工例。原論文の学習・性能・本番効果は再現していない。</em></p>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;lab28&quot;: &quot;evaluation&quot;,
+  &quot;actual&quot;: [
+    100,
+    100,
+    100,
+    100
+  ],
+  &quot;predictions&quot;: {
+    &quot;A&quot;: [
+      140,
+      60,
+      140,
+      60
+    ],
+    &quot;B&quot;: [
+      110,
+      110,
+      110,
+      110
+    ]
+  },
+  &quot;frames&quot;: [
+    {
+      &quot;label&quot;: &quot;全体を1系列&quot;,
+      &quot;groups&quot;: [
+        [
+          0,
+          1,
+          2,
+          3
+        ]
+      ],
+      &quot;scores&quot;: {
+        &quot;A&quot;: 0.0,
+        &quot;B&quot;: 10.0
+      },
+      &quot;winner&quot;: &quot;A&quot;
+    },
+    {
+      &quot;label&quot;: &quot;相殺する2組&quot;,
+      &quot;groups&quot;: [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      &quot;scores&quot;: {
+        &quot;A&quot;: 0.0,
+        &quot;B&quot;: 10.0
+      },
+      &quot;winner&quot;: &quot;A&quot;
+    },
+    {
+      &quot;label&quot;: &quot;同方向の2組&quot;,
+      &quot;groups&quot;: [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      &quot;scores&quot;: {
+        &quot;A&quot;: 40.0,
+        &quot;B&quot;: 10.0
+      },
+      &quot;winner&quot;: &quot;B&quot;
+    },
+    {
+      &quot;label&quot;: &quot;4系列を個別評価&quot;,
+      &quot;groups&quot;: [
+        [
+          0
+        ],
+        [
+          1
+        ],
+        [
+          2
+        ],
+        [
+          3
+        ]
+      ],
+      &quot;scores&quot;: {
+        &quot;A&quot;: 40.0,
+        &quot;B&quot;: 10.0
+      },
+      &quot;winner&quot;: &quot;B&quot;
+    }
+  ],
+  &quot;gap_closed_from_rounded_table6&quot;: 54.679802955665025,
+  &quot;note&quot;: &quot;教育用の人工例。原論文の学習・性能・本番効果は再現していない。&quot;,
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>全体1系列ではA 0% / B 10%、個別4系列ではA 40% / B 10%となり、勝者が逆転する。同じ2組でも構成によって逆転するため、集計数だけでは評価条件を記述しきれない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>CONFIRMED：固定した予測の集計だけで人工例の勝者が入れ替わる。MechanismはPARTIAL。論文表の順位や選択ルールの性能は追試していない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。Field Nationの非公開パネル、M5の全手法再評価、区間予測、統計検定は実行していない。店舗の補充費用を最小化する手法も決めていない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>score() → Table 3 / Figure 1の評価粒度を説明する人工例。gap_closed_from_rounded_table6 → Table 6の丸め済み値による算術確認。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文・公式コード対応</h1>
+<p><a href="https://arxiv.org/pdf/2609.27867">一次資料PDF</a>。確認箇所：Tables 1, 3, 5–7; Figure 1; §4。保存済みPDFのSHA-256：<code>5b7b2ed0a545840f48ee7a06cf1a9fc9103bc49e28888195c5f22057c0450a11</code>。</p>
+<h2>紙面と最小実験の対応</h2>
+<p>score() → Table 3 / Figure 1の評価粒度を説明する人工例。gap_closed_from_rounded_table6 → Table 6の丸め済み値による算術確認。</p>
+<p>Performance / Scaling / Production applicabilityはNOT TESTED。Field Nationの非公開パネル、M5の全手法再評価、区間予測、統計検定は実行していない。店舗の補充費用を最小化する手法も決めていない。</p>
+<h2>公式コードの確認範囲</h2>
+<p>確認したPDF内で本手法の公式実装URLを特定できなかった。公開実装が存在しないとの断定はしない。公式コードの実行はNOT TESTED。</p>
+<h2>原本と生成物</h2>
+<p>lab.yamlは本文と図の定義、method.mdは手法説明、run.pyは人工実験、results.jsonは実行結果、mapping.mdは対応表。HTMLはこれらから生成する。PDFの報告値と人工実験値は別に表示する。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>予測を変えず、集計のしかたを変えたら勝者は入れ替わるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/evaluation-choices-forecasting-leaderboard/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

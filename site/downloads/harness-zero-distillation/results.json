@@ -1,0 +1,55 @@
+{
+  "lab28": "harness",
+  "frames": [
+    {
+      "label": "PASS：確認済みの読取",
+      "proposal": "read cell A1",
+      "decision": "PASS",
+      "executed": "read cell A1",
+      "student_visible": [
+        "read cell A1"
+      ],
+      "training_targets": [
+        "read cell A1"
+      ]
+    },
+    {
+      "label": "REPLACE：上書き前に退避",
+      "proposal": "overwrite workbook",
+      "decision": "REPLACE",
+      "executed": "backup workbook then edit cell A1",
+      "student_visible": [
+        "backup workbook then edit cell A1"
+      ],
+      "training_targets": [
+        "backup workbook then edit cell A1"
+      ]
+    },
+    {
+      "label": "REPLACE：結果を確認",
+      "proposal": "finish",
+      "decision": "REPLACE",
+      "executed": "reload workbook and check cell A1",
+      "student_visible": [
+        "reload workbook and check cell A1"
+      ],
+      "training_targets": [
+        "reload workbook and check cell A1"
+      ]
+    }
+  ],
+  "nll_illustration": {
+    "p_0.2": 1.6094379124341003,
+    "p_0.8": 0.2231435513142097
+  },
+  "checks": {
+    "rejected_excluded": true
+  },
+  "note": "教育用の人工例。原論文の学習・性能・本番効果は再現していない。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  }
+}

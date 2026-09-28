@@ -1,0 +1,120 @@
+{
+  "lab28": "reasoncast",
+  "frames": [
+    {
+      "label": "平常期・Skip",
+      "route": "Skip",
+      "actual": [
+        10,
+        10,
+        10
+      ],
+      "base": [
+        10,
+        10,
+        10
+      ],
+      "prediction": [
+        10,
+        10,
+        10
+      ],
+      "baseline_wmape": 0.0,
+      "proposed_wmape": 0.0
+    },
+    {
+      "label": "平常期・不要なBasic",
+      "route": "Basic",
+      "actual": [
+        10,
+        10,
+        10
+      ],
+      "base": [
+        10,
+        10,
+        10
+      ],
+      "prediction": [
+        12.0,
+        12.0,
+        12.0
+      ],
+      "baseline_wmape": 0.0,
+      "proposed_wmape": 20.0
+    },
+    {
+      "label": "イベント・Basic",
+      "route": "Basic",
+      "actual": [
+        10,
+        20,
+        10
+      ],
+      "base": [
+        10,
+        10,
+        10
+      ],
+      "prediction": [
+        10.0,
+        20.0,
+        10.0
+      ],
+      "baseline_wmape": 25.0,
+      "proposed_wmape": 0.0
+    },
+    {
+      "label": "水準変化・Tool",
+      "route": "Tool",
+      "actual": [
+        20,
+        20,
+        20
+      ],
+      "base": [
+        10,
+        10,
+        10
+      ],
+      "prediction": [
+        20.0,
+        20.0,
+        20.0
+      ],
+      "baseline_wmape": 50.0,
+      "proposed_wmape": 0.0
+    },
+    {
+      "label": "誤った意味情報・Tool",
+      "route": "Tool",
+      "actual": [
+        10,
+        10,
+        10
+      ],
+      "base": [
+        10,
+        10,
+        10
+      ],
+      "prediction": [
+        20.0,
+        20.0,
+        20.0
+      ],
+      "baseline_wmape": 0.0,
+      "proposed_wmape": 100.0
+    }
+  ],
+  "checks": {
+    "skip_exact": true
+  },
+  "note": "教育用の人工例。原論文の学習・性能・本番効果は再現していない。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  }
+}

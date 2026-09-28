@@ -1,0 +1,125 @@
+id: scope-coupled-supply-chain-policies
+arxiv_id: '2607.28488'
+title: 'SCOPE: Supply-Chain Operations through Coupled Policies for End-to-End Coordination'
+authors:
+- Yunhao Liang
+- Xianqi Cao
+- Pujun Zhang
+- Yuan Qu
+- Yongzhi Qi
+- Ningxuan Kang
+- Max Z. J. Shen
+year: 2026
+submitted: '2026-07-30'
+topics:
+- retail-supply
+- demand-forecasting
+urls:
+  paper: https://arxiv.org/abs/2607.28488
+  pdf: https://arxiv.org/pdf/2607.28488
+  official_code: null
+  arxiv: https://arxiv.org/abs/2607.28488
+verdict: Worth Reading
+status: published
+question: 品揃えを決める時点で、配送と在庫の費用まで見通せるか
+summary: SCOPEは品揃え・供給元・補充周期・配送経路を条件付きの方策としてつなぐ。JDの代理効用は最良の分業方式より約1.58%高い。ただし実店舗の売上A/Bや棚割りRCTではない。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads: []
+source_review:
+  checked: '2026-09-28'
+  version: 保存済みPDF
+  pdf_sha256: 0e0ea2b7b37d2a34c9aa11be36332ac0df193508e4e6044475e9d26ea060c5a9
+  url: https://arxiv.org/pdf/2607.28488
+  scope: Figures 1–2; §3.1–3.3; Eqs. (1)–(6); Tables 1–2
+core_idea:
+  author_claim: 共有表現を使い、先に決めた品揃えや周期が後段の経路問題をどう変えるかを学習する。各段階の代理学習と、計画全体の検証用効用で方策の組合せを選ぶ。
+  research_bot_interpretation: 需要予測の精度だけでは、配送回数や積載制約を含む運用判断を評価できない。SCOPEは部門間の依存を計画全体の費用へ接続する資料として読めるが、代理効用の改善を売上増加へ置き換えられない。
+sections:
+  overview: SCOPEは品揃え・供給元・補充周期・配送経路を条件付きの方策としてつなぐ。JDの代理効用は最良の分業方式より約1.58%高い。ただし実店舗の売上A/Bや棚割りRCTではない。
+  problem: 品揃えを変えると運ぶ需要と重量が変わり、供給元を変えると距離が変わる。補充周期は一回の荷量と在庫の保有期間を変えるため、同じ配送最適化でも入力となる問題が異なる。
+  why_it_might_work: 解釈：先行判断を固定してから強い配送ソルバだけを選んでも、先行判断が作った高費用の条件を解消できない。全体効用で品揃えの交換や周期候補を比較すれば、その条件自体を変えられる。ただし式(3)の理想的な完了価値を厳密に計算する方法ではない。
+  evidence: '一次資料[Tables 1–2](https://arxiv.org/pdf/2607.28488) の著者報告。U_refは日次の代理効用で、大きいほど良い。
+
+
+    | データ | 最良の分業方式 | SCOPE | SCOPEのcoverage |
+
+    | --- | --- | --- | --- |
+
+    | Dingdong | TopDemand–OR-Tools 206276.14 | 206329.79 | 0.948 |
+
+    | JD | TopValue–OR-Tools / HGS 288973.15 | 293547.12 | 0.427 |
+
+
+    JDの表の差は4573.96、表示値の単純な引算は4573.97。丸めにより0.01ずれるため、表記を混同しない。Dingdongは898店舗・18都市の18×90日シナリオ、JDはRDCからFDCへの18×91日シナリオ。JDで周期を毎日に固定するとU_refが14520.74低下し、周期の反実仮想学習を外すと4687.86低下する。これらは「結合全体の除去」と同じ操作ではない。'
+  method: method.md
+  executable_understanding: '`uv run papers/scope-coupled-supply-chain-policies/run.py`。標準ライブラリだけで実行でき、同じフォルダーのresults.jsonを更新する。
+
+
+    utility()で車両台数をceil(荷量/10)と計算する。周期1–4日と2商品を列挙し、同じ費用式で分業方式と全探索を比較する。学習されたSCOPEの方策や多拠点の経路探索は省略する。'
+  results: 配車費用が0なら需要の多いAが選ばれる。費用が高くなると荷量の小さいBへ切り替わる条件が生じる。全探索には分業方式と同じ選択肢も含めた。そのため、この例で全探索の効用が分業方式を下回ることはない。SCOPEの学習性能はここから判断できない。
+  what_we_verified: CONFIRMED：車両容量による費用の段差と、費用条件による最適品揃えの変化。MechanismはPARTIAL。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。学習、複数供給元、実際の道路距離、在庫動態、実店舗での品揃え変更は試していない。U_refの代理係数が現場の利益や欠品費用を正しく表すかも未検証。
+  implementation: utility() → 式(1)–(2)の荷量と費用の簡略版。experiment()の全探索 → 式(3)–(4)の完了価値の教育例。ニューラル方策の再実装ではない。
+  mapping: mapping.md
+teaching_figures:
+- kind: architecture
+  id: coupling
+  title: 後段の問題は先行判断が作る
+  rows:
+  - label: 共有表現
+    nodes:
+    - title: Transformer
+      text: 拠点・需要・道路距離
+    - title: 費用表現
+      text: 配車・走行・保有費用
+  - label: 条件付きの計画
+    nodes:
+    - title: A：品揃え
+      text: 選ぶ商品で荷量が変わる
+    - title: σ：供給元
+      text: 出発点が変わる
+    - title: T：周期
+      text: 配送日と一回の荷量
+    - title: R：経路
+      text: 容量制約を満たす
+  locator: Figure 2; Eq. (6)
+  after: method
+  source: https://arxiv.org/pdf/2607.28488
+  rationale: 後段の問題は先行判断が作る
+  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。
+- kind: equations
+  id: utility
+  title: 効用の中で部門間の費用を合わせる
+  steps:
+  - name: 一回の荷量
+    formula: qᵢ = T_z Σₚ∈Aᵢ dᵢₚwₚ
+    explanation: 長い周期ほど一回の荷量が増える。
+  - name: 計画全体
+    formula: U = V − L_cov − C_rt − C_inv
+    explanation: 品揃え価値から未被覆需要、配送、在庫の代理費用を引く。
+  locator: Eqs. (1)–(2)
+  after: method
+  source: https://arxiv.org/pdf/2607.28488
+  rationale: 効用の中で部門間の費用を合わせる
+  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。
+- kind: chart
+  id: ablation
+  title: JDの補充周期に関する除去実験
+  bars:
+  - label: SCOPE
+    value: 293547.12
+  - label: 毎日固定
+    value: 279026.38
+  - label: 周期の反実仮想学習なし
+    value: 288859.25
+  maximum: 300000
+  unit: U_ref
+  locator: Table 2
+  after: evidence
+  source: https://arxiv.org/pdf/2607.28488
+  rationale: JDの補充周期に関する除去実験
+  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。

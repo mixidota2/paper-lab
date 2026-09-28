@@ -1,0 +1,138 @@
+id: onetrans-v2-cascade-unification
+arxiv_id: '2609.28589'
+title: 'OneTrans-V2: Unifying Retrieval, Pre-rank, and Fine-rank with One Transformer
+  in Industrial Recommender'
+authors:
+- ByteDance Global E-Commerce Recommendation Foundation Team
+year: 2026
+submitted: '2026-09-23'
+topics:
+- recommender-systems
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2609.28589
+  pdf: https://arxiv.org/pdf/2609.28589
+  official_code: null
+  arxiv: https://arxiv.org/abs/2609.28589
+verdict: Worth Reading
+status: published
+question: 推薦の段階を残したまま、ユーザー履歴の計算を共有できるか
+summary: OneTrans-V2は検索・粗い順位付け・精密な順位付けを残し、ユーザー文脈とTransformerを共有する。著者はオンラインGMV/user
+  +9.74%、同じハードウェア予算で3.2倍のQPSを報告する。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads: []
+source_review:
+  checked: '2026-09-28'
+  version: 保存済みPDF
+  pdf_sha256: 166a1ec87e118921fd9fa2130f7648097df65e9ebcfe096097ea29c0df50f951
+  url: https://arxiv.org/pdf/2609.28589
+  scope: Figures 1–4; Eq. (4); Table 2; §6.3; Table 4
+core_idea:
+  author_claim: 段階ごとのトークンと候補特徴を保ちつつ、ユーザー履歴を一度符号化する。DCGRは複数の検索目的を決定接頭辞で表し、業務上の重みを生成時に加える。
+  research_bot_interpretation: 本ライブラリでは「段階を保つ統合」に位置づける。Sona/OneRec型の段階廃止、UNIQUEの早期融合、VARGの粗い順位付けの迂回とは、統合する境界が異なる。この分類はLabの整理であり、これらとの同条件の優劣は示していない。
+sections:
+  overview: OneTrans-V2は検索・粗い順位付け・精密な順位付けを残し、ユーザー文脈とTransformerを共有する。著者はオンラインGMV/user
+    +9.74%、同じハードウェア予算で3.2倍のQPSを報告する。
+  problem: 段階別モデルは同じユーザー履歴を繰り返し符号化し、学習信号も分断する。一方、全段階に最も重い候補特徴を使えば費用が膨らむ。共有する文脈と段階固有の処理を分ける必要がある。
+  why_it_might_work: 解釈：同一要求の履歴計算を共有すると重複を減らせる。精密な順位付けから粗い順位付けへ知識を蒸留すれば、候補を早期に落とす判断も合わせやすい。ただし3.2倍のQPSには配信側の共同設計が含まれ、キャッシュ単独の寄与ではない。
+  evidence: '一次資料[Table 2・§6.3](https://arxiv.org/pdf/2609.28589) の著者報告。
+
+
+    | 評価 | 比較と結果 | 範囲 |
+
+    | --- | --- | --- |
+
+    | 検索HR@1 | OneTrans-GR 0.0545 → V2L 0.0923 | オフライン |
+
+    | GMV/user | +9.74% | 全段階を置換したオンラインA/B |
+
+    | ユーザーの活動日数 | +0.25% | 同A/B |
+
+    | QPS | 3.2倍 | 同じハードウェア予算、配信設計込み |
+
+    | GFLOPs | V2S 239 / 分業方式275 | V2LのHR値と規模を混同しない |
+
+
+    DCGR単独のチャネル比較（Table 4）のGMV +48.0%は、システム全体の+9.74%と分母が異なる。SNTの学習高速化4.4倍も、配信QPSとは別の測定である。'
+  method: method.md
+  executable_understanding: '`uv run papers/onetrans-v2-cascade-unification/run.py`。標準ライブラリだけで実行でき、同じフォルダーのresults.jsonを更新する。
+
+
+    rank()でβを0・0.5・1・2に変え、同じ候補の決定確率・商品確率を固定したまま順位を計算する。文脈計算100、段階処理10+20+30という人工の費用も、3回符号化する場合と1回共有する場合で比較する。'
+  results: β=0ではA、β=1ではB、β=2ではCが首位になる。人工の計算費用は360から160へ減るが、これは2.25倍という仮定上の比であり、実測3.2倍の説明や再現ではない。
+  what_we_verified: CONFIRMED：β=0で確率順へ戻ることと、加点による候補順位の変化。MechanismはPARTIAL。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Transformer、MoE、SNT、学習されたsemantic
+    ID、段階間蒸留、GPUキャッシュ、オンラインA/Bは実行していない。
+  implementation: rank() → 式(4)の全候補得点。cache_cost → Figure 2の共有の教育用費用計算。公式のモデル学習・配信コードには対応させていない。
+  mapping: mapping.md
+teaching_figures:
+- kind: architecture
+  id: cache
+  title: 段階は残し、ユーザー文脈を再利用する
+  rows:
+  - label: 一度だけ計算
+    nodes:
+    - title: 履歴トークン
+      text: 共有Transformer
+    - title: 共有文脈H
+      text: 各段階が参照
+  - label: 検索
+    nodes:
+    - title: DCGR
+      text: 決定接頭辞 → semantic ID
+    - title: 候補集合
+      text: 次の段階へ渡す
+  - label: 粗い順位付け
+    nodes:
+    - title: 固有トークン
+      text: 軽い候補特徴
+    - title: 蒸留の教師
+      text: 精密な順位付けから学ぶ
+  - label: 精密な順位付け
+    nodes:
+    - title: 固有トークン
+      text: 豊かな候補特徴
+    - title: 最終順位
+      text: 段階的な絞込みを維持
+  locator: Figure 2
+  after: method
+  source: https://arxiv.org/pdf/2609.28589
+  rationale: 段階は残し、ユーザー文脈を再利用する
+  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。
+- kind: equations
+  id: dcgr
+  title: 接頭辞への加点と商品確率を足す
+  steps:
+  - name: 決定
+    formula: log P(z|H) + βφ(z)
+    explanation: 業務上の加点は接頭辞に適用する。
+  - name: 商品
+    formula: Σℓ log P(SIDℓ|H,z,SID<ℓ)
+    explanation: 条件付きの商品確率も順位に残る。
+  - name: 比較
+    formula: score = 決定の得点 + 商品の得点
+    explanation: βは柔らかい誘導の強さで、配信義務の制約ではない。
+  locator: Figure 3; Eq. (4)
+  after: method
+  source: https://arxiv.org/pdf/2609.28589
+  rationale: 接頭辞への加点と商品確率を足す
+  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。
+- kind: chart
+  id: hr
+  title: 同じ検索指標で比較する
+  bars:
+  - label: OneTrans-GR
+    value: 0.0545
+  - label: OneTrans-V2L
+    value: 0.0923
+  maximum: 0.1
+  unit: HR@1
+  locator: Table 2
+  after: evidence
+  source: https://arxiv.org/pdf/2609.28589
+  rationale: 同じ検索指標で比較する
+  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。

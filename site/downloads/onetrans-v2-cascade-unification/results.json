@@ -1,0 +1,127 @@
+{
+  "lab28": "onetrans",
+  "frames": [
+    {
+      "label": "β = 0",
+      "beta": 0,
+      "ranking": [
+        {
+          "item": "A",
+          "prefix": 0.6,
+          "conditional": 0.8,
+          "offset": 0,
+          "score": -0.7339691750802004
+        },
+        {
+          "item": "B",
+          "prefix": 0.3,
+          "conditional": 0.7,
+          "offset": 1,
+          "score": -1.5606477482646686
+        },
+        {
+          "item": "C",
+          "prefix": 0.1,
+          "conditional": 0.9,
+          "offset": 1.5,
+          "score": -2.407945608651872
+        }
+      ]
+    },
+    {
+      "label": "β = 0.5",
+      "beta": 0.5,
+      "ranking": [
+        {
+          "item": "A",
+          "prefix": 0.6,
+          "conditional": 0.8,
+          "offset": 0,
+          "score": -0.7339691750802004
+        },
+        {
+          "item": "B",
+          "prefix": 0.3,
+          "conditional": 0.7,
+          "offset": 1,
+          "score": -1.0606477482646686
+        },
+        {
+          "item": "C",
+          "prefix": 0.1,
+          "conditional": 0.9,
+          "offset": 1.5,
+          "score": -1.6579456086518718
+        }
+      ]
+    },
+    {
+      "label": "β = 1",
+      "beta": 1,
+      "ranking": [
+        {
+          "item": "B",
+          "prefix": 0.3,
+          "conditional": 0.7,
+          "offset": 1,
+          "score": -0.5606477482646686
+        },
+        {
+          "item": "A",
+          "prefix": 0.6,
+          "conditional": 0.8,
+          "offset": 0,
+          "score": -0.7339691750802004
+        },
+        {
+          "item": "C",
+          "prefix": 0.1,
+          "conditional": 0.9,
+          "offset": 1.5,
+          "score": -0.9079456086518718
+        }
+      ]
+    },
+    {
+      "label": "β = 2",
+      "beta": 2,
+      "ranking": [
+        {
+          "item": "C",
+          "prefix": 0.1,
+          "conditional": 0.9,
+          "offset": 1.5,
+          "score": 0.5920543913481282
+        },
+        {
+          "item": "B",
+          "prefix": 0.3,
+          "conditional": 0.7,
+          "offset": 1,
+          "score": 0.43935225173533143
+        },
+        {
+          "item": "A",
+          "prefix": 0.6,
+          "conditional": 0.8,
+          "offset": 0,
+          "score": -0.7339691750802004
+        }
+      ]
+    }
+  ],
+  "cache_cost": {
+    "separate": 360,
+    "shared": 160
+  },
+  "checks": {
+    "zero_offset_baseline": true
+  },
+  "note": "教育用の人工例。原論文の学習・性能・本番効果は再現していない。",
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  }
+}

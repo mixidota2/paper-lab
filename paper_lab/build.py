@@ -18,6 +18,8 @@ import shutil
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markdown import Markdown
 
+from paper_lab.batch28 import widget as batch28_widget
+
 from paper_lab.models import (
     STANDARD_SECTIONS,
     TOPIC_LABELS,
@@ -152,6 +154,9 @@ def paper_sections(lab: Lab) -> list[dict[str, Any]]:
             html = markdown_to_html(lab.mapping_markdown or lab.sections.get("mapping", ""))
         else:
             html = markdown_to_html(lab.sections.get(key, ""))
+
+        if key == "executable_understanding":
+            html += batch28_widget(lab.results)
 
         rendered.append(
             {

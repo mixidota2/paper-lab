@@ -9,6 +9,12 @@ from paper_lab.models import LabError, load_all_labs, load_lab
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED = {
+    "reasoncast-agentic-demand-forecasting": "2608.15291",
+    "scope-coupled-supply-chain-policies": "2607.28488",
+    "onetrans-v2-cascade-unification": "2609.28589",
+    "evaluation-choices-forecasting-leaderboard": "2609.27867",
+    "harness-zero-distillation": "2609.24974",
+
     "linkedin-prediction-to-incrementality": "2608.10182",
     "angle-tencent-one-step-retrieval": "2609.18296",
     "beyond-scalar-dsi-watchtime": "2609.28383",
@@ -91,7 +97,7 @@ def test_library_has_the_full_registry_catalog_and_a_doi_only_paper():
     labs = load_all_labs(ROOT / "papers")
     arxiv_labs = {lab.id: lab.arxiv_id for lab in labs if lab.arxiv_id}
     assert arxiv_labs == EXPECTED
-    assert len(labs) == 74
+    assert len(labs) == 79
     assert all(lab.urls.arxiv == f"https://arxiv.org/abs/{lab.arxiv_id}" for lab in labs if lab.arxiv_id)
     shelf = next(lab for lab in labs if lab.id == "whole-foods-shelf")
     assert not shelf.arxiv_id
@@ -141,7 +147,7 @@ submitted: "2026-05-29"
 title: Bad
 authors: [A]
 year: 2026
-topics: [x]
+topics: [ml-systems]
 urls: {arxiv: https://arxiv.org/abs/2606.99999}
 verdict: Must Read
 verification: {mechanism: NOT TESTED, performance: NOT TESTED, scaling: NOT TESTED, production_applicability: NOT TESTED}
