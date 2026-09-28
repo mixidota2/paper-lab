@@ -1,0 +1,153 @@
+id: sabreagent-design-time-inventory
+arxiv_id: '2609.19760'
+title: 'SabreAgent: Language Models at Design Time for Lost-Sales Inventory Control'
+authors:
+- Yang Liu
+- Yulin Huang
+- Xue Yu
+- Jiong Dong
+- Jianshen Zhang
+- Yongzhi Qi
+year: 2026
+submitted: '2026-09-17'
+topics:
+- retail-supply
+- ai-agents
+urls:
+  paper: https://arxiv.org/abs/2609.19760
+  arxiv: https://arxiv.org/abs/2609.19760
+  pdf: https://arxiv.org/pdf/2609.19760v2
+  official_code: null
+verdict: Must Read
+status: published
+question: LLMを発注のたびに呼ばず、設計した知識だけを運用に残せるか
+summary: SabreAgentは設計時にLLMが作った季節性の事前情報と発注ルールを固定し、運用時は予測と在庫最適化で発注する。InventoryBenchのNRは0.6311。改善の大部分はORの基本部分から来る。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads: []
+source_review:
+  checked: '2026-09-29'
+  version: v2
+  pdf_sha256: 4ba27bba95dd74380118e7339e447fd81b7ff627953e5e943a29380072bd3308
+  url: https://arxiv.org/pdf/2609.19760v2
+  scope: Figures 1–2; Eqs. (1), (3), (4); Proposition 8; Table 1; Figure 4
+core_idea:
+  author_claim: 商品説明から季節性の形を作り、検証データで上限付きbase-stockの方策族を選ぶ。運用時のLLM呼出しはゼロだが、統計予測の更新と方策パラメータの探索は続く。
+  research_bot_interpretation: 注目点はLLMを置く段階にある。需要が欠品時も観測でき、仕入れ費用と発注固定費がゼロという条件が、強いORの基準を支える。実店舗の観測打切りや有料発注へ、そのまま移せるわけではない。
+sections:
+  overview: SabreAgentは設計時にLLMが作った季節性の事前情報と発注ルールを固定し、運用時は予測と在庫最適化で発注する。InventoryBenchのNRは0.6311。改善の大部分はORの基本部分から来る。
+  problem: 単一商品・単一拠点の逸失販売を扱う。売れなかった需要は翌期へ繰り越さない。ただし需要そのものは欠品時も観測できる。納期は0、4、または{1,2,3,∞}で、∞は注文の消失を表す。仕入れ費用・発注固定費・残存価値はゼロ。NRは各事例の報酬を完全即時充足の売上で割って0で下限を設け、1,320事例を等重みで平均する。
+  why_it_might_work: 解釈：売れなかった需要まで将来の在庫不足へ足すと、発注量を膨らませる。販売量で在庫を進める計算は、この二重計上を避ける。注文が消失する条件では上限が過大な追加発注を抑え、季節性の形は少数の需要履歴を補う。どちらも常に有利とは限らない。
+  evidence: '一次資料[Table 1・Figure 4・Table 2](https://arxiv.org/pdf/2609.19760v2)の著者報告。公開比較の最良値はGemini
+    3 Flash OR→LLMの0.5380、SabreAgentは0.6311。別のバッチ実行経路では固定OR部分が0.6180、季節性と探索を加えた差が+0.0138。公式の事例別実行へ移すと約0.0006下がるため、この2経路の値を単純に差し引かない。
+
+
+    ペア比較の季節性効果は実データ3セルでNR +0.0179（著者表記+1.79%）、探索は確率的納期2セルで+0.0230（+2.3%）。相対改善率との混同に注意。同じDeepSeek-V4-Flashを運用時の補正へ戻した124事例の比較では、決定的納期の4セルでNRが低下した。'
+  executable_understanding: '`uv run papers/sabreagent-design-time-inventory/run.py`
+    で同じフォルダーのresults.jsonを更新する。Python標準ライブラリだけで動く。
+
+
+    在庫を0・2・8から始め、同じ入荷と需要の経路で通常の在庫ポジションによる不足と、販売量で進めた不足を比較する。別の有限動的計画では、定常需要・即時無料補充の条件で近視眼方策と全期間最適化を比較する。'
+  results: 初期在庫0の例では、通常の不足が6、販売量からの不足が1。その差5は途中の逸失販売と一致する。初期在庫8なら途中の逸失販売がなく、差も0になる。定常需要の小問題では21状態で近視眼方策と動的計画の価値が一致した。
+  what_we_verified: CONFIRMED：同じ経路での不足差と逸失販売の恒等式、上限付き発注の形、有限な定常需要の例における近視眼方策の最適性。SabreAgent全体のMechanismはPARTIAL。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。InventoryBench、LLMによる季節性生成、検証による方策族選択、確率的納期のrolloutは追試していない。最小実験は一般定理の証明でもない。
+  implementation: project()が販売量で在庫を更新し、capped()が式(4)を計算する。dp_check()は3期・有限需要の全探索。式(3)のκ付き余剰費用や予測混合は省略した。
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: timeline
+  id: placement
+  title: 固定する成果物と、運用時に動く計算を分ける
+  locator: Figures 1–2
+  after: method
+  rationale: 固定する成果物と、運用時に動く計算を分ける
+  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。
+  rows:
+  - label: 設計時：LLM
+    nodes:
+    - title: 季節性の事前情報
+      text: 商品説明から年内の形を生成
+    - title: 方策族を選ぶ
+      text: 検証データでcapped base-stockを選定
+  - label: 運用時：LLM呼出し0
+    nodes:
+    - title: 予測を更新
+      text: 観測需要と固定した季節性を組み合わせる
+    - title: ORで注文
+      text: 在庫を進め、θとcを探索する
+  source: https://arxiv.org/pdf/2609.19760v2
+- kind: equations
+  id: inventory
+  title: 不足と発注上限を別々に計算する
+  locator: Eqs. (1), (3), (4); Proposition 8
+  after: method
+  rationale: 不足と発注上限を別々に計算する
+  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。
+  steps:
+  - name: 在庫を進める
+    formula: Iₜ₊₁ = max(0, Iₜ + Aₜ − dₜ)
+    explanation: 売れた分だけ在庫が減り、欠品後は負の在庫にならない。
+  - name: 到着直前の不足
+    formula: U = dₜ₊ᴸ − Îₜ₊ᴸ
+    explanation: 確定済みの入荷と販売を進めて、今回の注文が届く直前の在庫を求める。
+  - name: 決定的納期の限界価値
+    formula: m(q) = p P(U ≥ q) − h E[(1 + κ(q−U)⁺/μ) 1{U<q}]
+    explanation: m(q)が0へ下がる点を探す。κ=0なら不足Uのp/(p+h)分位点。κ付きの規則は近似である。
+  - name: 確率的納期の方策族
+    formula: q = min{(θr − IP)⁺, cr}
+    explanation: rは局所的な需要予測。θで在庫目標、cで一回の発注上限を調整する。
+  source: https://arxiv.org/pdf/2609.19760v2
+- kind: matrix
+  id: cells
+  title: NRは6セルすべてで公開比較の最良値を上回る
+  locator: Table 1
+  after: evidence
+  rationale: NRは6セルすべてで公開比較の最良値を上回る
+  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。
+  columns:
+  - 合成 L=0
+  - 合成 L=4
+  - 合成 確率的
+  - 実 L=0
+  - 実 L=4
+  - 実 確率的
+  rows:
+  - label: SabreAgent
+    cells:
+    - '0.8649'
+    - '0.6685'
+    - '0.5063'
+    - '0.8018'
+    - '0.4447'
+    - '0.4714'
+  - label: Gemini 3 Flash OR→LLM
+    cells:
+    - '0.8391'
+    - '0.5395'
+    - '0.4107'
+    - '0.7439'
+    - '0.3071'
+    - '0.3531'
+  source: https://arxiv.org/pdf/2609.19760v2
+- kind: chart
+  id: ablation
+  title: 同じバッチ経路でOR部分からの増分を読む
+  locator: Figure 4
+  after: evidence
+  rationale: 同じバッチ経路でOR部分からの増分を読む
+  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。
+  bars:
+  - label: 固定OR
+    value: 0.618
+  - label: OR + 季節性
+    value: 0.6258
+  - label: OR + 探索
+    value: 0.6255
+  - label: OR + 季節性 + 探索
+    value: 0.6318
+  maximum: 0.7
+  unit: NR（丸め値）
+  source: https://arxiv.org/pdf/2609.19760v2

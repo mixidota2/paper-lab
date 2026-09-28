@@ -1,0 +1,71 @@
+{
+  "lab29": "or",
+  "frames": [
+    {
+      "label": "発注量 Q = 0.5",
+      "q": 0.5,
+      "levels": [
+        -1.5,
+        -3.5
+      ],
+      "closed_cost": 24.0,
+      "open_cost": 23.0,
+      "pathwise": -8,
+      "finite_difference": -8.00000000005241,
+      "score_gradient": -0.23999999999999932
+    },
+    {
+      "label": "発注量 Q = 2.5",
+      "q": 2.5,
+      "levels": [
+        0.5,
+        -1.5
+      ],
+      "closed_cost": 24.0,
+      "open_cost": 9.5,
+      "pathwise": -3,
+      "finite_difference": -3.000000000064062,
+      "score_gradient": -3.4799999999999995
+    },
+    {
+      "label": "発注量 Q = 4.5",
+      "q": 4.5,
+      "levels": [
+        2.5,
+        0.5
+      ],
+      "closed_cost": 24.0,
+      "open_cost": 6.0,
+      "pathwise": 2,
+      "finite_difference": 1.9999999999242843,
+      "score_gradient": -4.319999999999999
+    }
+  ],
+  "permutation": {
+    "input": [
+      0.2,
+      0.9,
+      -0.4
+    ],
+    "global_output": 0.40765033873833884,
+    "item_outputs": [
+      0.3443244495049734,
+      0.4846070819346341,
+      0.20827175418920163
+    ],
+    "max_error": 0.0,
+    "permutations": 6
+  },
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "checks": {
+    "permutation_equivariance": "CONFIRMED",
+    "quantity_gradient": "CONFIRMED",
+    "opening_score_identity": "CONFIRMED"
+  },
+  "note": "同じ費用関数で解析勾配と中央差分を比較。スカラーattentionは学習済みOR-Transformerではない。"
+}

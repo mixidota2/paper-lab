@@ -1,0 +1,185 @@
+{
+  "lab29": "sabre",
+  "frames": [
+    {
+      "label": "初期在庫 0",
+      "initial": 0,
+      "rows": [
+        {
+          "arrival": 0,
+          "demand": 5,
+          "sales": 0,
+          "ending": 0,
+          "lost": 5
+        },
+        {
+          "arrival": 4,
+          "demand": 2,
+          "sales": 2,
+          "ending": 2,
+          "lost": 0
+        }
+      ],
+      "textbook": 6,
+      "projected": 1,
+      "lost": 5,
+      "textbook_order": 6,
+      "projected_order": 1
+    },
+    {
+      "label": "初期在庫 2",
+      "initial": 2,
+      "rows": [
+        {
+          "arrival": 0,
+          "demand": 5,
+          "sales": 2,
+          "ending": 0,
+          "lost": 3
+        },
+        {
+          "arrival": 4,
+          "demand": 2,
+          "sales": 2,
+          "ending": 2,
+          "lost": 0
+        }
+      ],
+      "textbook": 4,
+      "projected": 1,
+      "lost": 3,
+      "textbook_order": 4,
+      "projected_order": 1
+    },
+    {
+      "label": "初期在庫 8",
+      "initial": 8,
+      "rows": [
+        {
+          "arrival": 0,
+          "demand": 5,
+          "sales": 5,
+          "ending": 3,
+          "lost": 0
+        },
+        {
+          "arrival": 4,
+          "demand": 2,
+          "sales": 2,
+          "ending": 5,
+          "lost": 0
+        }
+      ],
+      "textbook": -2,
+      "projected": -2,
+      "lost": 0,
+      "textbook_order": 0,
+      "projected_order": 0
+    }
+  ],
+  "cap_curve": [
+    {
+      "ip": 0,
+      "base": 12,
+      "capped": 4
+    },
+    {
+      "ip": 1,
+      "base": 11,
+      "capped": 4
+    },
+    {
+      "ip": 2,
+      "base": 10,
+      "capped": 4
+    },
+    {
+      "ip": 3,
+      "base": 9,
+      "capped": 4
+    },
+    {
+      "ip": 4,
+      "base": 8,
+      "capped": 4
+    },
+    {
+      "ip": 5,
+      "base": 7,
+      "capped": 4
+    },
+    {
+      "ip": 6,
+      "base": 6,
+      "capped": 4
+    },
+    {
+      "ip": 7,
+      "base": 5,
+      "capped": 4
+    },
+    {
+      "ip": 8,
+      "base": 4,
+      "capped": 4
+    },
+    {
+      "ip": 9,
+      "base": 3,
+      "capped": 3
+    },
+    {
+      "ip": 10,
+      "base": 2,
+      "capped": 2
+    },
+    {
+      "ip": 11,
+      "base": 1,
+      "capped": 1
+    },
+    {
+      "ip": 12,
+      "base": 0,
+      "capped": 0
+    },
+    {
+      "ip": 13,
+      "base": 0,
+      "capped": 0
+    },
+    {
+      "ip": 14,
+      "base": 0,
+      "capped": 0
+    },
+    {
+      "ip": 15,
+      "base": 0,
+      "capped": 0
+    },
+    {
+      "ip": 16,
+      "base": 0,
+      "capped": 0
+    }
+  ],
+  "stationary_dp": {
+    "dp_value": 21.0,
+    "myopic_value": 21.0,
+    "max_error": 0.0,
+    "states": 21,
+    "action_upper_bound": 8
+  },
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "checks": {
+    "pathwise_shortfall_identity": "CONFIRMED",
+    "stationary_myopic_finite_case": "CONFIRMED"
+  },
+  "note": "人工例。式(3)のκ付き探索、季節学習、確率的納期のrolloutは未実装。"
+}

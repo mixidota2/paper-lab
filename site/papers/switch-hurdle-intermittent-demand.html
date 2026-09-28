@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Switch-HurdleはTop-1 MoE encoderと自己回帰hurdle decoderを組み合わせる。M5のWRMSSEは0.6307。予測精度の結果であり、在庫費用やサービス水準の改善は示していない。">
+  <title>ゼロが続く需要で、発生確率と発生時の量を分けられるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-02-25</span></div>
+    <h1>ゼロが続く需要で、発生確率と発生時の量を分けられるか</h1>
+    <p class="lede">Switch-HurdleはTop-1 MoE encoderと自己回帰hurdle decoderを組み合わせる。M5のWRMSSEは0.6307。予測精度の結果であり、在庫費用やサービス水準の改善は示していない。</p>
+    <details class="bibliography"><summary>原論文：Switch-Hurdle: A MoE Encoder with AR Hurdle Decoder for Intermittent Demand Forecasting</summary><p>Fabian Mușat, Simona Căbuz</p><p>2602.22685 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2602.22685">原典を読む ↗</a><a href="https://arxiv.org/pdf/2602.22685v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-29 · Figure 1; Eqs. (8)–(14); Figure 1; Eqs. (2)–(3); Table 4; Figures 4–5</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-hurdle">p⁺と正の量を分離し、ゼロ除外の分だけ補正する</a><a href="#figure-routing">順伝播は1 expert、逆伝播はsoft確率を使う</a><a href="#figure-accuracy">M5のWRMSSEは低下するが、在庫評価ではない</a><a href="#figure-experts">同じ需要区分でも層によって主なexpertが変わる</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>Switch-HurdleはTop-1 MoE encoderと自己回帰hurdle decoderを組み合わせる。M5のWRMSSEは0.6307。予測精度の結果であり、在庫費用やサービス水準の改善は示していない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>ゼロが続き、ときに大口の需要が入る。M5の30,490系列と社内の約40,000系列を使い、56日の文脈から28日先を予測する。平均へ平滑化するだけでは、需要が発生する頻度と発生時の数量を捉えにくい。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>学習したrouterが各tokenを1つのexpertへ送り、decoderは需要の発生確率と正の需要量を別々に予測する。正の量にはゼロで切り詰めた負の二項分布を使う。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>ゼロの頻度と発生時の大きさを分ける設計は、間欠需要を読む助けになる。ただしAccuracy Is Not Serviceが問う、精度と在庫サービスのずれを解消した研究とはいえない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h2>正の需要だけを見ると平均が変わる</h2>
+<p>NBにはゼロも含まれる。正の需要量の分布として使うには、ゼロを除いた分だけ確率を割り直す必要がある。</p>
+<p>μ=2、α=0.5ならp₀=0.25。したがって正の需要の条件付き平均は、もとの平均2をゼロ以外の確率0.75で割った2.6667となり、μとは異なる。</p>
+<p>次はp⁺。この操作で、正の分布を保ちながら需要が生じる日を増減できる。需要区分に応じたexpertの学習までは試していない。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-hurdle" aria-labelledby="title-hurdle">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-hurdle">p⁺と正の量を分離し、ゼロ除外の分だけ補正する</h3>
+  <ol class="equation-steps"><li><strong>ゼロ確率</strong><div class="math-expression" tabindex="0" role="math" aria-label="P(Y=0) = 1 − p⁺">P(Y=0) = 1 − p⁺</div><p>発生headの出力がゼロの頻度を決める。</p></li><li><strong>正の需要</strong><div class="math-expression" tabindex="0" role="math" aria-label="P(Y=y&gt;0) = p⁺ NB(y; μ,α) / (1−p₀)">P(Y=y&gt;0) = p⁺ NB(y; μ,α) / (1−p₀)</div><p>p₀=(1+αμ)^(−1/α)。通常のNBからゼロを除き、残りを正規化する。</p></li><li><strong>平均</strong><div class="math-expression" tabindex="0" role="math" aria-label="E[Y|Y&gt;0] = μ/(1−p₀), E[Y] = p⁺μ/(1−p₀)">E[Y|Y&gt;0] = μ/(1−p₀), E[Y] = p⁺μ/(1−p₀)</div><p>μは切り詰める前のNB平均。正の需要の平均と同一視しない。</p></li></ol>
+  <figcaption>一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。 <a href="https://arxiv.org/pdf/2602.22685v1">出典：Figure 1; Eqs. (8)–(14) ↗</a></figcaption>
+</figure><figure class="teaching teaching--logic" id="figure-routing" aria-labelledby="title-routing">
+  <div class="figure-heading"><span class="eyebrow">LOGIC</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-routing">順伝播は1 expert、逆伝播はsoft確率を使う</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">encoder</p><div class="diagram-nodes"><div class="diagram-node"><strong>router</strong><p>p = softmax(Wg x)</p></div><div class="diagram-node"><strong>Top-1 STE</strong><p>g = one_hot(argmax p) + p − stopgrad(p)</p></div><div class="diagram-node"><strong>SwiGLU expert</strong><p>推論では選ばれたexpertだけを実行</p></div></div></div><div class="diagram-row"><p class="lane-label">decoder</p><div class="diagram-nodes"><div class="diagram-node"><strong>自己回帰</strong><p>過去の出力とencoder memoryを参照</p></div><div class="diagram-node"><strong>hurdle head</strong><p>p⁺、μ、αを出す</p></div></div></div></div>
+  <figcaption>一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。 <a href="https://arxiv.org/pdf/2602.22685v1">出典：Figure 1; Eqs. (2)–(3) ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈：発生の確率p⁺を動かしても、発生時の分布は固定できる。逆に正の需要量を変えてもゼロ確率は変えずに済む。MoEの役割は学習する表現を分けることだが、Zero・Low・Normal・Spikeを手でexpertへ割り当てる仕組みではない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料<a href="https://arxiv.org/pdf/2602.22685v1">Table 4・Figures 4–5</a>の著者報告。M5のWRMSSEはSwitch-Hurdle 0.6307、TSMixer 0.6403、TFT 0.6932、DeepAR 0.7895。すべての指標で最良ではなく、RMSEはPatchTST 2.4562に対して2.4744、MASEはTFT 0.8983に対して0.8992。社内全量のWAPEは53.99%。</p>
+<p>Zeroなどの区分は、検証データで学習後のroutingを集計したもの。第0層ではZeroの67.5%がexpert 3、Lowの90.8%とSpikeの94.0%がexpert 1へ入る。これは専門化の観察であり、在庫の意思決定評価ではない。</p></div>      </section>
+<figure class="teaching teaching--chart" id="figure-accuracy" aria-labelledby="title-accuracy">
+  <div class="figure-heading"><span class="eyebrow">CHART</span><span class="figure-badge">論文の報告値</span></div>
+  <h3 id="title-accuracy">M5のWRMSSEは低下するが、在庫評価ではない</h3>
+  <p class="chart-metric">WRMSSE（小さいほど良い） · 共通尺度 0–0.85</p><div class="bar-chart"><div class="bar-row"><div class="bar-label"><span>DeepAR</span><strong>0.7895 WRMSSE（小さいほど良い）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 92.88235294117648%"></div></div></div><div class="bar-row"><div class="bar-label"><span>TFT</span><strong>0.6932 WRMSSE（小さいほど良い）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 81.5529411764706%"></div></div></div><div class="bar-row"><div class="bar-label"><span>TSMixer</span><strong>0.6403 WRMSSE（小さいほど良い）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 75.32941176470588%"></div></div></div><div class="bar-row"><div class="bar-label"><span>Switch-Hurdle</span><strong>0.6307 WRMSSE（小さいほど良い）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 74.20000000000002%"></div></div></div></div>
+  <figcaption>一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。 <a href="https://arxiv.org/pdf/2602.22685v1">出典：Table 4 ↗</a></figcaption>
+</figure><figure class="teaching teaching--matrix" id="figure-experts" aria-labelledby="title-experts">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-experts">同じ需要区分でも層によって主なexpertが変わる</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="同じ需要区分でも層によって主なexpertが変わるの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">第0層：主なexpert / 比率</th><th scope="col">第1層：主なexpert / 比率</th></tr></thead><tbody><tr><th scope="row">Zero</th><td class="">3 / 67.5%</td><td class="">2 / 59.3%</td></tr><tr><th scope="row">Low</th><td class="">1 / 90.8%</td><td class="">1 / 93.9%</td></tr><tr><th scope="row">Normal</th><td class="">0 / 67.5%</td><td class="">2 / 51.3%</td></tr><tr><th scope="row">Spike</th><td class="">1 / 94.0%</td><td class="">1 / 97.3%</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。 <a href="https://arxiv.org/pdf/2602.22685v1">出典：Figures 4–5 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/switch-hurdle-intermittent-demand/run.py</code> で同じフォルダーのresults.jsonを更新する。Python標準ライブラリだけで動く。</p>
+<p>μと分散パラメータαを固定し、発生確率p⁺を0.1・0.5・0.9へ変える。通常の負の二項分布とhurdle分布を同じμ、αで比較し、全確率と期待値を数値和で確認する。</p><figure class="teaching" data-b21><h3>ゼロの山と、正の需要の分布を分けて動かす</h3><label>発生確率とNB平均 <select><option value="0">p⁺=0.1, μ=2</option><option value="1">p⁺=0.5, μ=2</option><option value="2">p⁺=0.9, μ=2</option><option value="3">p⁺=0.5, μ=6</option></select></label><script type="application/json" data-frames>["<svg viewBox=\"0 0 600 250\" role=\"img\" aria-label=\"各需要量の確率（線は点を結ぶ補助）\" style=\"width:100%;height:auto\"><path d=\"M50 20V210H580\" fill=\"none\" stroke=\"currentColor\"/><text x=\"5\" y=\"22\">1<\/text><text x=\"25\" y=\"210\">0<\/text><polyline points=\"50.00,57.00 76.00,204.33 102.00,205.75 128.00,207.17 154.00,208.23 180.00,208.94 206.00,209.38 232.00,209.65 258.00,209.80 284.00,209.89 310.00,209.94 336.00,209.97 362.00,209.98 388.00,209.99 414.00,209.99 440.00,210.00 466.00,210.00 492.00,210.00 518.00,210.00 544.00,210.00 570.00,210.00\" fill=\"none\" stroke=\"#126b73\" stroke-width=\"3\"/><text x=\"60\" y=\"242\" fill=\"#126b73\">hurdle<\/text><polyline points=\"50.00,167.50 76.00,167.50 102.00,178.12 128.00,188.75 154.00,196.72 180.00,202.03 206.00,205.35 232.00,207.34 258.00,208.51 284.00,209.17 310.00,209.54 336.00,209.75 362.00,209.87 388.00,209.93 414.00,209.96 440.00,209.98 466.00,209.99 492.00,209.99 518.00,210.00 544.00,210.00 570.00,210.00\" fill=\"none\" stroke=\"#c85b36\" stroke-width=\"3\"/><text x=\"290\" y=\"242\" fill=\"#c85b36\">通常のNB<\/text><text x=\"330\" y=\"225\">需要量：0 → 20<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>量<\/th><th>hurdle<\/th><th>通常のNB<\/th><\/tr><\/thead><tbody><tr><td>ゼロ確率<\/td><td>0.9<\/td><td>0.25<\/td><\/tr><tr><td>平均<\/td><td>0.267<\/td><td>2<\/td><\/tr><\/tbody><\/table><\/div><p>正の需要の条件付き平均 <strong>2.667<\/strong>。hurdleの21以上の尾確率 0.000001。数値和0–999の全確率 1。<\/p>", "<svg viewBox=\"0 0 600 250\" role=\"img\" aria-label=\"各需要量の確率（線は点を結ぶ補助）\" style=\"width:100%;height:auto\"><path d=\"M50 20V210H580\" fill=\"none\" stroke=\"currentColor\"/><text x=\"5\" y=\"22\">1<\/text><text x=\"25\" y=\"210\">0<\/text><polyline points=\"50.00,125.00 76.00,181.67 102.00,188.75 128.00,195.83 154.00,201.15 180.00,204.69 206.00,206.90 232.00,208.23 258.00,209.00 284.00,209.45 310.00,209.70 336.00,209.83 362.00,209.91 388.00,209.95 414.00,209.97 440.00,209.99 466.00,209.99 492.00,210.00 518.00,210.00 544.00,210.00 570.00,210.00\" fill=\"none\" stroke=\"#126b73\" stroke-width=\"3\"/><text x=\"60\" y=\"242\" fill=\"#126b73\">hurdle<\/text><polyline points=\"50.00,167.50 76.00,167.50 102.00,178.12 128.00,188.75 154.00,196.72 180.00,202.03 206.00,205.35 232.00,207.34 258.00,208.51 284.00,209.17 310.00,209.54 336.00,209.75 362.00,209.87 388.00,209.93 414.00,209.96 440.00,209.98 466.00,209.99 492.00,209.99 518.00,210.00 544.00,210.00 570.00,210.00\" fill=\"none\" stroke=\"#c85b36\" stroke-width=\"3\"/><text x=\"290\" y=\"242\" fill=\"#c85b36\">通常のNB<\/text><text x=\"330\" y=\"225\">需要量：0 → 20<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>量<\/th><th>hurdle<\/th><th>通常のNB<\/th><\/tr><\/thead><tbody><tr><td>ゼロ確率<\/td><td>0.5<\/td><td>0.25<\/td><\/tr><tr><td>平均<\/td><td>1.333<\/td><td>2<\/td><\/tr><\/tbody><\/table><\/div><p>正の需要の条件付き平均 <strong>2.667<\/strong>。hurdleの21以上の尾確率 0.000004。数値和0–999の全確率 1。<\/p>", "<svg viewBox=\"0 0 600 250\" role=\"img\" aria-label=\"各需要量の確率（線は点を結ぶ補助）\" style=\"width:100%;height:auto\"><path d=\"M50 20V210H580\" fill=\"none\" stroke=\"currentColor\"/><text x=\"5\" y=\"22\">1<\/text><text x=\"25\" y=\"210\">0<\/text><polyline points=\"50.00,193.00 76.00,159.00 102.00,171.75 128.00,184.50 154.00,194.06 180.00,200.44 206.00,204.42 232.00,206.81 258.00,208.21 284.00,209.00 310.00,209.45 336.00,209.70 362.00,209.84 388.00,209.91 414.00,209.95 440.00,209.98 466.00,209.99 492.00,209.99 518.00,210.00 544.00,210.00 570.00,210.00\" fill=\"none\" stroke=\"#126b73\" stroke-width=\"3\"/><text x=\"60\" y=\"242\" fill=\"#126b73\">hurdle<\/text><polyline points=\"50.00,167.50 76.00,167.50 102.00,178.12 128.00,188.75 154.00,196.72 180.00,202.03 206.00,205.35 232.00,207.34 258.00,208.51 284.00,209.17 310.00,209.54 336.00,209.75 362.00,209.87 388.00,209.93 414.00,209.96 440.00,209.98 466.00,209.99 492.00,209.99 518.00,210.00 544.00,210.00 570.00,210.00\" fill=\"none\" stroke=\"#c85b36\" stroke-width=\"3\"/><text x=\"290\" y=\"242\" fill=\"#c85b36\">通常のNB<\/text><text x=\"330\" y=\"225\">需要量：0 → 20<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>量<\/th><th>hurdle<\/th><th>通常のNB<\/th><\/tr><\/thead><tbody><tr><td>ゼロ確率<\/td><td>0.1<\/td><td>0.25<\/td><\/tr><tr><td>平均<\/td><td>2.4<\/td><td>2<\/td><\/tr><\/tbody><\/table><\/div><p>正の需要の条件付き平均 <strong>2.667<\/strong>。hurdleの21以上の尾確率 0.000007。数値和0–999の全確率 1。<\/p>", "<svg viewBox=\"0 0 600 250\" role=\"img\" aria-label=\"各需要量の確率（線は点を結ぶ補助）\" style=\"width:100%;height:auto\"><path d=\"M50 20V210H580\" fill=\"none\" stroke=\"currentColor\"/><text x=\"5\" y=\"22\">1<\/text><text x=\"25\" y=\"210\">0<\/text><polyline points=\"50.00,125.00 76.00,201.50 102.00,200.44 128.00,200.44 154.00,201.04 180.00,201.93 206.00,202.94 232.00,203.95 258.00,204.89 284.00,205.75 310.00,206.49 336.00,207.13 362.00,207.67 388.00,208.12 414.00,208.49 440.00,208.79 466.00,209.03 492.00,209.23 518.00,209.39 544.00,209.52 570.00,209.62\" fill=\"none\" stroke=\"#126b73\" stroke-width=\"3\"/><text x=\"60\" y=\"242\" fill=\"#126b73\">hurdle<\/text><polyline points=\"50.00,199.38 76.00,194.06 102.00,192.07 128.00,192.07 154.00,193.19 180.00,194.87 206.00,196.76 232.00,198.65 258.00,200.43 284.00,202.02 310.00,203.42 336.00,204.62 362.00,205.62 388.00,206.47 414.00,207.16 440.00,207.73 466.00,208.19 492.00,208.56 518.00,208.86 544.00,209.10 570.00,209.29\" fill=\"none\" stroke=\"#c85b36\" stroke-width=\"3\"/><text x=\"290\" y=\"242\" fill=\"#c85b36\">通常のNB<\/text><text x=\"330\" y=\"225\">需要量：0 → 20<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>量<\/th><th>hurdle<\/th><th>通常のNB<\/th><\/tr><\/thead><tbody><tr><td>ゼロ確率<\/td><td>0.5<\/td><td>0.062<\/td><\/tr><tr><td>平均<\/td><td>3.2<\/td><td>6<\/td><\/tr><\/tbody><\/table><\/div><p>正の需要の条件付き平均 <strong>6.4<\/strong>。hurdleの21以上の尾確率 0.007928。数値和0–999の全確率 1。<\/p>"]</script><div data-output aria-live="polite"><svg viewBox="0 0 600 250" role="img" aria-label="各需要量の確率（線は点を結ぶ補助）" style="width:100%;height:auto"><path d="M50 20V210H580" fill="none" stroke="currentColor"/><text x="5" y="22">1</text><text x="25" y="210">0</text><polyline points="50.00,57.00 76.00,204.33 102.00,205.75 128.00,207.17 154.00,208.23 180.00,208.94 206.00,209.38 232.00,209.65 258.00,209.80 284.00,209.89 310.00,209.94 336.00,209.97 362.00,209.98 388.00,209.99 414.00,209.99 440.00,210.00 466.00,210.00 492.00,210.00 518.00,210.00 544.00,210.00 570.00,210.00" fill="none" stroke="#126b73" stroke-width="3"/><text x="60" y="242" fill="#126b73">hurdle</text><polyline points="50.00,167.50 76.00,167.50 102.00,178.12 128.00,188.75 154.00,196.72 180.00,202.03 206.00,205.35 232.00,207.34 258.00,208.51 284.00,209.17 310.00,209.54 336.00,209.75 362.00,209.87 388.00,209.93 414.00,209.96 440.00,209.98 466.00,209.99 492.00,209.99 518.00,210.00 544.00,210.00 570.00,210.00" fill="none" stroke="#c85b36" stroke-width="3"/><text x="290" y="242" fill="#c85b36">通常のNB</text><text x="330" y="225">需要量：0 → 20</text></svg><div class="matrix-scroll" tabindex="0" role="region" aria-label="人工実験の比較"><table><thead><tr><th>量</th><th>hurdle</th><th>通常のNB</th></tr></thead><tbody><tr><td>ゼロ確率</td><td>0.9</td><td>0.25</td></tr><tr><td>平均</td><td>0.267</td><td>2</td></tr></tbody></table></div><p>正の需要の条件付き平均 <strong>2.667</strong>。hurdleの21以上の尾確率 0.000001。数値和0–999の全確率 1。</p></div><figcaption>run.pyの人工実験をresults.jsonから生成。著者の性能値ではない。操作しなくても最初の条件を読める。</figcaption></figure></div><div class="downloads"><a href="../downloads/switch-hurdle-intermittent-demand/run.py" download>実行コード</a><a href="../downloads/switch-hurdle-intermittent-demand/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/switch-hurdle-intermittent-demand">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>固定パラメータの分布計算。Top-1 STE、自己回帰学習、M5評価、在庫運用は未実行。</em></p>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;lab29&quot;: &quot;hurdle&quot;,
+  &quot;frames&quot;: [
+    {
+      &quot;label&quot;: &quot;p⁺=0.1, μ=2&quot;,
+      &quot;p&quot;: 0.1,
+      &quot;mu&quot;: 2,
+      &quot;alpha&quot;: 0.5,
+      &quot;zero_hurdle&quot;: 0.9,
+      &quot;zero_nb&quot;: 0.25,
+      &quot;positive_mean&quot;: 2.6666666666666665,
+      &quot;mean&quot;: 0.2666666666666667,
+      &quot;mass&quot;: 1.0,
+      &quot;probabilities&quot;: [
+        0.9,
+        0.033333333333333326,
+        0.025000000000000022,
+        0.01666666666666665,
+        0.010416666666666683,
+        0.0062500000000000056,
+        0.003645833333333332,
+        0.0020833333333333307,
+        0.0011718749999999987,
+        0.0006510416666666674,
+        0.00035807291666666735,
+        0.00019531249999999955,
+        0.00010579427083333335,
+        5.696614583333357e-05,
+        3.051757812499992e-05,
+        1.627604166666668e-05,
+        8.646647135416692e-06,
+        4.577636718749988e-06,
+        2.4159749348958375e-06,
+        1.2715657552083324e-06,
+        6.675720214843747e-07
+      ],
+      &quot;nb_probabilities&quot;: [
+        0.25,
+        0.24999999999999994,
+        0.18750000000000017,
+        0.12499999999999986,
+        0.07812500000000011,
+        0.046875000000000035,
+        0.027343749999999986,
+        0.015624999999999977,
+        0.00878906249999999,
+        0.004882812500000005,
+        0.0026855468750000048,
+        0.0014648437499999965,
+        0.0007934570312500001,
+        0.0004272460937500018,
+        0.00022888183593749938,
+        0.00012207031250000008,
+        6.484985351562519e-05,
+        3.4332275390624905e-05,
+        1.811981201171878e-05,
+        9.536743164062493e-06,
+        5.00679016113281e-06
+      ],
+      &quot;tail&quot;: 7.311503091855798e-07
+    },
+    {
+      &quot;label&quot;: &quot;p⁺=0.5, μ=2&quot;,
+      &quot;p&quot;: 0.5,
+      &quot;mu&quot;: 2,
+      &quot;alpha&quot;: 0.5,
+      &quot;zero_hurdle&quot;: 0.5,
+      &quot;zero_nb&quot;: 0.25,
+      &quot;positive_mean&quot;: 2.6666666666666665,
+      &quot;mean&quot;: 1.3333333333333335,
+      &quot;mass&quot;: 1.0,
+      &quot;probabilities&quot;: [
+        0.5,
+        0.16666666666666663,
+        0.1250000000000001,
+        0.08333333333333325,
+        0.052083333333333405,
+        0.03125000000000002,
+        0.018229166666666657,
+        0.010416666666666652,
+        0.005859374999999993,
+        0.003255208333333337,
+        0.0017903645833333365,
+        0.0009765624999999977,
+        0.0005289713541666667,
+        0.0002848307291666679,
+        0.0001525878906249996,
+        8.138020833333338e-05,
+        4.323323567708346e-05,
+        2.2888183593749936e-05,
+        1.2079874674479186e-05,
+        6.357828776041662e-06,
+        3.3378601074218733e-06
+      ],
+      &quot;nb_probabilities&quot;: [
+        0.25,
+        0.24999999999999994,
+        0.18750000000000017,
+        0.12499999999999986,
+        0.07812500000000011,
+        0.046875000000000035,
+        0.027343749999999986,
+        0.015624999999999977,
+        0.00878906249999999,
+        0.004882812500000005,
+        0.0026855468750000048,
+        0.0014648437499999965,
+        0.0007934570312500001,
+        0.0004272460937500018,
+        0.00022888183593749938,
+        0.00012207031250000008,
+        6.484985351562519e-05,
+        3.4332275390624905e-05,
+        1.811981201171878e-05,
+        9.536743164062493e-06,
+        5.00679016113281e-06
+      ],
+      &quot;tail&quot;: 3.6557515461499435e-06
+    },
+    {
+      &quot;label&quot;: &quot;p⁺=0.9, μ=2&quot;,
+      &quot;p&quot;: 0.9,
+      &quot;mu&quot;: 2,
+      &quot;alpha&quot;: 0.5,
+      &quot;zero_hurdle&quot;: 0.09999999999999998,
+      &quot;zero_nb&quot;: 0.25,
+      &quot;positive_mean&quot;: 2.6666666666666665,
+      &quot;mean&quot;: 2.4000000000000004,
+      &quot;mass&quot;: 1.0,
+      &quot;probabilities&quot;: [
+        0.09999999999999998,
+        0.29999999999999993,
+        0.2250000000000002,
+        0.14999999999999983,
+        0.09375000000000012,
+        0.05625000000000004,
+        0.03281249999999999,
+        0.01874999999999997,
+        0.010546874999999989,
+        0.005859375000000007,
+        0.003222656250000006,
+        0.0017578124999999957,
+        0.0009521484375000001,
+        0.0005126953125000022,
+        0.00027465820312499924,
+        0.0001464843750000001,
+        7.781982421875022e-05,
+        4.119873046874989e-05,
+        2.1743774414062538e-05,
+        1.1444091796874993e-05,
+        6.008148193359372e-06
+      ],
+      &quot;nb_probabilities&quot;: [
+        0.25,
+        0.24999999999999994,
+        0.18750000000000017,
+        0.12499999999999986,
+        0.07812500000000011,
+        0.046875000000000035,
+        0.027343749999999986,
+        0.015624999999999977,
+        0.00878906249999999,
+        0.004882812500000005,
+        0.0026855468750000048,
+        0.0014648437499999965,
+        0.0007934570312500001,
+        0.0004272460937500018,
+        0.00022888183593749938,
+        0.00012207031250000008,
+        6.484985351562519e-05,
+        3.4332275390624905e-05,
+        1.811981201171878e-05,
+        9.536743164062493e-06,
+        5.00679016113281e-06
+      ],
+      &quot;tail&quot;: 6.580352783114307e-06
+    },
+    {
+      &quot;label&quot;: &quot;p⁺=0.5, μ=6&quot;,
+      &quot;p&quot;: 0.5,
+      &quot;mu&quot;: 6,
+      &quot;alpha&quot;: 0.5,
+      &quot;zero_hurdle&quot;: 0.5,
+      &quot;zero_nb&quot;: 0.0625,
+      &quot;positive_mean&quot;: 6.4,
+      &quot;mean&quot;: 3.200000000000001,
+      &quot;mass&quot;: 1.0000000000000002,
+      &quot;probabilities&quot;: [
+        0.5,
+        0.049999999999999996,
+        0.056250000000000064,
+        0.05624999999999994,
+        0.05273437500000009,
+        0.047460937500000036,
+        0.041528320312499985,
+        0.035595703124999954,
+        0.030033874511718725,
+        0.025028228759765663,
+        0.020648288726806692,
+        0.016894054412841763,
+        0.01372641921043396,
+        0.011086723208427478,
+        0.008908974006772012,
+        0.007127179205417641,
+        0.0056794709293171925,
+        0.004510168090928338,
+        0.003570549738651614,
+        0.0028188550568302184,
+        0.0022198483572537955
+      ],
+      &quot;nb_probabilities&quot;: [
+        0.0625,
+        0.09374999999999999,
+        0.10546875000000012,
+        0.10546874999999989,
+        0.09887695312500017,
+        0.08898925781250007,
+        0.07786560058593747,
+        0.06674194335937492,
+        0.05631351470947261,
+        0.046927928924560616,
+        0.03871554136276255,
+        0.03167635202407831,
+        0.025737036019563675,
+        0.02078760601580152,
+        0.016704326262697522,
+        0.013363461010158078,
+        0.010649007992469735,
+        0.008456565170490633,
+        0.0066947807599717765,
+        0.00528535323155666,
+        0.004162215669850867
+      ],
+      &quot;tail&quot;: 0.007928029847334872
+    }
+  ],
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;checks&quot;: {
+    &quot;normalization&quot;: &quot;CONFIRMED&quot;,
+    &quot;positive_mean_correction&quot;: &quot;CONFIRMED&quot;
+  },
+  &quot;note&quot;: &quot;固定パラメータの分布計算。Top-1 STE、自己回帰学習、M5評価、在庫運用は未実行。&quot;
+}</code></pre></details><p>ゼロを除くと平均が変わる。μ=2、α=0.5の通常の負の二項分布ではゼロ確率が0.25で、正の値に条件付けた平均は2.6667となる。p⁺=0.5のhurdle分布の平均は約1.3333。p⁺を変えても、正の量の条件付き平均は保たれる。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>CONFIRMED：分布の正規化、ゼロ確率の独立した操作、切詰め後の条件付き平均の補正。headの計算だけを確認したため、MechanismはPARTIAL。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。Top-1 STEの学習、MoEの専門化、AR decoder、M5の精度は追試していない。欠品、fill rate、在庫費用は測っていない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>nb()は平均・分散パラメータ化の負の二項確率、hurdle()は正の領域を1−P_NB(0)で正規化する。0から999までの和で確率と平均を照合する。図は0から20までを表示し、残りの尾確率も示す。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>一次資料と最小実装の対応</h1>
+<p><a href="https://arxiv.org/pdf/2602.22685v1">原論文 v1</a>。2026-09-29に保存済みPDFとarXivの版情報を確認。</p>
+<p>PDF SHA-256: <code>0ea7569ce0136f13c710a18caeee577e4b308c62df7ad7102bfa7e2ceb52dff7</code></p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>最小実装・図</th>
+<th>省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Figure 1, Eqs. (2)–(3)</td>
+<td>STEの演算図</td>
+<td>encoder学習</td>
+</tr>
+<tr>
+<td>Eqs. (8)–(14)</td>
+<td>nb(), hurdle()</td>
+<td>decoderと学習損失</td>
+</tr>
+<tr>
+<td>Figures 4–5</td>
+<td>条件別routing表</td>
+<td>routingの追試</td>
+</tr>
+<tr>
+<td>Table 4</td>
+<td>M5精度の棒グラフ</td>
+<td>M5の訓練・評価</td>
+</tr>
+</tbody>
+</table>
+<p>関連Lab：<a href="https://mixidota2.github.io/paper-lab/papers/accuracy-not-service-intermittent-demand.html">Accuracy Is Not Service</a>。精度からサービス水準を推測しないために併読する。</p>
+<p>公式コード：確認したPDFとarXiv概要ページに著者提供リポジトリの記載を見つけられなかった。公開コードが存在しないとの断定ではない。run.pyはこのLab独自の説明用実装。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>ゼロが続く需要で、発生確率と発生時の量を分けられるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/switch-hurdle-intermittent-demand/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

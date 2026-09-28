@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SabreAgentは設計時にLLMが作った季節性の事前情報と発注ルールを固定し、運用時は予測と在庫最適化で発注する。InventoryBenchのNRは0.6311。改善の大部分はORの基本部分から来る。">
+  <title>LLMを発注のたびに呼ばず、設計した知識だけを運用に残せるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-17</span></div>
+    <h1>LLMを発注のたびに呼ばず、設計した知識だけを運用に残せるか</h1>
+    <p class="lede">SabreAgentは設計時にLLMが作った季節性の事前情報と発注ルールを固定し、運用時は予測と在庫最適化で発注する。InventoryBenchのNRは0.6311。改善の大部分はORの基本部分から来る。</p>
+    <details class="bibliography"><summary>原論文：SabreAgent: Language Models at Design Time for Lost-Sales Inventory Control</summary><p>Yang Liu, Yulin Huang, Xue Yu, Jiong Dong, Jianshen Zhang, Yongzhi Qi</p><p>2609.19760 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.19760">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.19760v2">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-29 · Figures 1–2; Eqs. (1), (3), (4); Proposition 8; Table 1; Figure 4</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-placement">固定する成果物と、運用時に動く計算を分ける</a><a href="#figure-inventory">不足と発注上限を別々に計算する</a><a href="#figure-cells">NRは6セルすべてで公開比較の最良値を上回る</a><a href="#figure-ablation">同じバッチ経路でOR部分からの増分を読む</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>SabreAgentは設計時にLLMが作った季節性の事前情報と発注ルールを固定し、運用時は予測と在庫最適化で発注する。InventoryBenchのNRは0.6311。改善の大部分はORの基本部分から来る。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>単一商品・単一拠点の逸失販売を扱う。売れなかった需要は翌期へ繰り越さない。ただし需要そのものは欠品時も観測できる。納期は0、4、または{1,2,3,∞}で、∞は注文の消失を表す。仕入れ費用・発注固定費・残存価値はゼロ。NRは各事例の報酬を完全即時充足の売上で割って0で下限を設け、1,320事例を等重みで平均する。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>商品説明から季節性の形を作り、検証データで上限付きbase-stockの方策族を選ぶ。運用時のLLM呼出しはゼロだが、統計予測の更新と方策パラメータの探索は続く。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>注目点はLLMを置く段階にある。需要が欠品時も観測でき、仕入れ費用と発注固定費がゼロという条件が、強いORの基準を支える。実店舗の観測打切りや有料発注へ、そのまま移せるわけではない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h2>無料で即時に届くなら、持ち越しの価値が小さくなる</h2>
+<p>翌期も無料で補充できる。今期に余分な在庫を持っても、将来の仕入れ費用は節約できない。</p>
+<p>Theorem 1が扱うのは、需要が期ごとに独立で周辺分布が既知、発注量に上限がなく、仕入れ費用・発注固定費・残存価値がすべてゼロという条件である。L=0で各期のp/(p+h)分位点が非減少なら、近視眼的な在庫水準が最適になる。定常需要はその一例。分位点が下がる場合まで近視眼最適とは主張していない。</p>
+<p>定理と実装は分けて読む。実装にはκ付きの余剰費用の近似が入る。正の納期では在庫パイプラインを進め、確率的納期では上限付き方策を共通の乱数経路で比較する。LLM呼出しがゼロでも、運用時の探索は続く。</p></div>      </section>
+<figure class="teaching teaching--timeline" id="figure-placement" aria-labelledby="title-placement">
+  <div class="figure-heading"><span class="eyebrow">TIMELINE</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-placement">固定する成果物と、運用時に動く計算を分ける</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">設計時：LLM</p><div class="diagram-nodes"><div class="diagram-node"><strong>季節性の事前情報</strong><p>商品説明から年内の形を生成</p></div><div class="diagram-node"><strong>方策族を選ぶ</strong><p>検証データでcapped base-stockを選定</p></div></div></div><div class="diagram-row"><p class="lane-label">運用時：LLM呼出し0</p><div class="diagram-nodes"><div class="diagram-node"><strong>予測を更新</strong><p>観測需要と固定した季節性を組み合わせる</p></div><div class="diagram-node"><strong>ORで注文</strong><p>在庫を進め、θとcを探索する</p></div></div></div></div>
+  <figcaption>一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。 <a href="https://arxiv.org/pdf/2609.19760v2">出典：Figures 1–2 ↗</a></figcaption>
+</figure><figure class="teaching teaching--equations" id="figure-inventory" aria-labelledby="title-inventory">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-inventory">不足と発注上限を別々に計算する</h3>
+  <ol class="equation-steps"><li><strong>在庫を進める</strong><div class="math-expression" tabindex="0" role="math" aria-label="Iₜ₊₁ = max(0, Iₜ + Aₜ − dₜ)">Iₜ₊₁ = max(0, Iₜ + Aₜ − dₜ)</div><p>売れた分だけ在庫が減り、欠品後は負の在庫にならない。</p></li><li><strong>到着直前の不足</strong><div class="math-expression" tabindex="0" role="math" aria-label="U = dₜ₊ᴸ − Îₜ₊ᴸ">U = dₜ₊ᴸ − Îₜ₊ᴸ</div><p>確定済みの入荷と販売を進めて、今回の注文が届く直前の在庫を求める。</p></li><li><strong>決定的納期の限界価値</strong><div class="math-expression" tabindex="0" role="math" aria-label="m(q) = p P(U ≥ q) − h E[(1 + κ(q−U)⁺/μ) 1{U&lt;q}]">m(q) = p P(U ≥ q) − h E[(1 + κ(q−U)⁺/μ) 1{U&lt;q}]</div><p>m(q)が0へ下がる点を探す。κ=0なら不足Uのp/(p+h)分位点。κ付きの規則は近似である。</p></li><li><strong>確率的納期の方策族</strong><div class="math-expression" tabindex="0" role="math" aria-label="q = min{(θr − IP)⁺, cr}">q = min{(θr − IP)⁺, cr}</div><p>rは局所的な需要予測。θで在庫目標、cで一回の発注上限を調整する。</p></li></ol>
+  <figcaption>一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。 <a href="https://arxiv.org/pdf/2609.19760v2">出典：Eqs. (1), (3), (4); Proposition 8 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈：売れなかった需要まで将来の在庫不足へ足すと、発注量を膨らませる。販売量で在庫を進める計算は、この二重計上を避ける。注文が消失する条件では上限が過大な追加発注を抑え、季節性の形は少数の需要履歴を補う。どちらも常に有利とは限らない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料<a href="https://arxiv.org/pdf/2609.19760v2">Table 1・Figure 4・Table 2</a>の著者報告。公開比較の最良値はGemini 3 Flash OR→LLMの0.5380、SabreAgentは0.6311。別のバッチ実行経路では固定OR部分が0.6180、季節性と探索を加えた差が+0.0138。公式の事例別実行へ移すと約0.0006下がるため、この2経路の値を単純に差し引かない。</p>
+<p>ペア比較の季節性効果は実データ3セルでNR +0.0179（著者表記+1.79%）、探索は確率的納期2セルで+0.0230（+2.3%）。相対改善率との混同に注意。同じDeepSeek-V4-Flashを運用時の補正へ戻した124事例の比較では、決定的納期の4セルでNRが低下した。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-cells" aria-labelledby="title-cells">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-cells">NRは6セルすべてで公開比較の最良値を上回る</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="NRは6セルすべてで公開比較の最良値を上回るの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">合成 L=0</th><th scope="col">合成 L=4</th><th scope="col">合成 確率的</th><th scope="col">実 L=0</th><th scope="col">実 L=4</th><th scope="col">実 確率的</th></tr></thead><tbody><tr><th scope="row">SabreAgent</th><td class="">0.8649</td><td class="">0.6685</td><td class="">0.5063</td><td class="">0.8018</td><td class="">0.4447</td><td class="">0.4714</td></tr><tr><th scope="row">Gemini 3 Flash OR→LLM</th><td class="">0.8391</td><td class="">0.5395</td><td class="">0.4107</td><td class="">0.7439</td><td class="">0.3071</td><td class="">0.3531</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。 <a href="https://arxiv.org/pdf/2609.19760v2">出典：Table 1 ↗</a></figcaption>
+</figure><figure class="teaching teaching--chart" id="figure-ablation" aria-labelledby="title-ablation">
+  <div class="figure-heading"><span class="eyebrow">CHART</span><span class="figure-badge">論文の報告値</span></div>
+  <h3 id="title-ablation">同じバッチ経路でOR部分からの増分を読む</h3>
+  <p class="chart-metric">NR（丸め値） · 共通尺度 0–0.7</p><div class="bar-chart"><div class="bar-row"><div class="bar-label"><span>固定OR</span><strong>0.618 NR（丸め値）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 88.28571428571429%"></div></div></div><div class="bar-row"><div class="bar-label"><span>OR + 季節性</span><strong>0.6258 NR（丸め値）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 89.40000000000002%"></div></div></div><div class="bar-row"><div class="bar-label"><span>OR + 探索</span><strong>0.6255 NR（丸め値）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 89.35714285714286%"></div></div></div><div class="bar-row"><div class="bar-label"><span>OR + 季節性 + 探索</span><strong>0.6318 NR（丸め値）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 90.25714285714287%"></div></div></div></div>
+  <figcaption>一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。 <a href="https://arxiv.org/pdf/2609.19760v2">出典：Figure 4 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>uv run papers/sabreagent-design-time-inventory/run.py</code> で同じフォルダーのresults.jsonを更新する。Python標準ライブラリだけで動く。</p>
+<p>在庫を0・2・8から始め、同じ入荷と需要の経路で通常の在庫ポジションによる不足と、販売量で進めた不足を比較する。別の有限動的計画では、定常需要・即時無料補充の条件で近視眼方策と全期間最適化を比較する。</p><figure class="teaching" data-b21><h3>欠品を含む経路と、発注上限の曲線</h3><label>初期在庫 <select><option value="0">初期在庫 0</option><option value="1">初期在庫 2</option><option value="2">初期在庫 8</option></select></label><script type="application/json" data-frames>["<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>期<\/th><th>入荷<\/th><th>需要<\/th><th>販売<\/th><th>期末在庫<\/th><th>逸失<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>0<\/td><td>5<\/td><td>0<\/td><td>0<\/td><td>5<\/td><\/tr><tr><td>2<\/td><td>4<\/td><td>2<\/td><td>2<\/td><td>2<\/td><td>0<\/td><\/tr><\/tbody><\/table><\/div><p>次の需要3に対する不足：通常のIP計算 <strong>6<\/strong>、販売量で進めた計算 <strong>1<\/strong>。差は途中の逸失販売 <strong>5<\/strong>。<\/p><p>不足を0で下限処理した発注量：6 対 1。負の不足は余剰を意味する。<\/p><svg viewBox=\"0 0 600 250\" role=\"img\" aria-label=\"発注量：r=4、θ=3\" style=\"width:100%;height:auto\"><path d=\"M50 20V210H580\" fill=\"none\" stroke=\"currentColor\"/><text x=\"5\" y=\"22\">12<\/text><text x=\"25\" y=\"210\">0<\/text><polyline points=\"50.00,40.00 82.50,54.17 115.00,68.33 147.50,82.50 180.00,96.67 212.50,110.83 245.00,125.00 277.50,139.17 310.00,153.33 342.50,167.50 375.00,181.67 407.50,195.83 440.00,210.00 472.50,210.00 505.00,210.00 537.50,210.00 570.00,210.00\" fill=\"none\" stroke=\"#126b73\" stroke-width=\"3\"/><text x=\"60\" y=\"242\" fill=\"#126b73\">上限なし<\/text><polyline points=\"50.00,153.33 82.50,153.33 115.00,153.33 147.50,153.33 180.00,153.33 212.50,153.33 245.00,153.33 277.50,153.33 310.00,153.33 342.50,167.50 375.00,181.67 407.50,195.83 440.00,210.00 472.50,210.00 505.00,210.00 537.50,210.00 570.00,210.00\" fill=\"none\" stroke=\"#c85b36\" stroke-width=\"3\"/><text x=\"290\" y=\"242\" fill=\"#c85b36\">c=1で上限4<\/text><text x=\"330\" y=\"225\">IP：0 → 16<\/text><\/svg><p>曲線はr=4、θ=3を固定した式(4)。c=1ならIPが低くても発注量は4を超えない。<\/p>", "<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>期<\/th><th>入荷<\/th><th>需要<\/th><th>販売<\/th><th>期末在庫<\/th><th>逸失<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>0<\/td><td>5<\/td><td>2<\/td><td>0<\/td><td>3<\/td><\/tr><tr><td>2<\/td><td>4<\/td><td>2<\/td><td>2<\/td><td>2<\/td><td>0<\/td><\/tr><\/tbody><\/table><\/div><p>次の需要3に対する不足：通常のIP計算 <strong>4<\/strong>、販売量で進めた計算 <strong>1<\/strong>。差は途中の逸失販売 <strong>3<\/strong>。<\/p><p>不足を0で下限処理した発注量：4 対 1。負の不足は余剰を意味する。<\/p><svg viewBox=\"0 0 600 250\" role=\"img\" aria-label=\"発注量：r=4、θ=3\" style=\"width:100%;height:auto\"><path d=\"M50 20V210H580\" fill=\"none\" stroke=\"currentColor\"/><text x=\"5\" y=\"22\">12<\/text><text x=\"25\" y=\"210\">0<\/text><polyline points=\"50.00,40.00 82.50,54.17 115.00,68.33 147.50,82.50 180.00,96.67 212.50,110.83 245.00,125.00 277.50,139.17 310.00,153.33 342.50,167.50 375.00,181.67 407.50,195.83 440.00,210.00 472.50,210.00 505.00,210.00 537.50,210.00 570.00,210.00\" fill=\"none\" stroke=\"#126b73\" stroke-width=\"3\"/><text x=\"60\" y=\"242\" fill=\"#126b73\">上限なし<\/text><polyline points=\"50.00,153.33 82.50,153.33 115.00,153.33 147.50,153.33 180.00,153.33 212.50,153.33 245.00,153.33 277.50,153.33 310.00,153.33 342.50,167.50 375.00,181.67 407.50,195.83 440.00,210.00 472.50,210.00 505.00,210.00 537.50,210.00 570.00,210.00\" fill=\"none\" stroke=\"#c85b36\" stroke-width=\"3\"/><text x=\"290\" y=\"242\" fill=\"#c85b36\">c=1で上限4<\/text><text x=\"330\" y=\"225\">IP：0 → 16<\/text><\/svg><p>曲線はr=4、θ=3を固定した式(4)。c=1ならIPが低くても発注量は4を超えない。<\/p>", "<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>期<\/th><th>入荷<\/th><th>需要<\/th><th>販売<\/th><th>期末在庫<\/th><th>逸失<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>0<\/td><td>5<\/td><td>5<\/td><td>3<\/td><td>0<\/td><\/tr><tr><td>2<\/td><td>4<\/td><td>2<\/td><td>2<\/td><td>5<\/td><td>0<\/td><\/tr><\/tbody><\/table><\/div><p>次の需要3に対する不足：通常のIP計算 <strong>-2<\/strong>、販売量で進めた計算 <strong>-2<\/strong>。差は途中の逸失販売 <strong>0<\/strong>。<\/p><p>不足を0で下限処理した発注量：0 対 0。負の不足は余剰を意味する。<\/p><svg viewBox=\"0 0 600 250\" role=\"img\" aria-label=\"発注量：r=4、θ=3\" style=\"width:100%;height:auto\"><path d=\"M50 20V210H580\" fill=\"none\" stroke=\"currentColor\"/><text x=\"5\" y=\"22\">12<\/text><text x=\"25\" y=\"210\">0<\/text><polyline points=\"50.00,40.00 82.50,54.17 115.00,68.33 147.50,82.50 180.00,96.67 212.50,110.83 245.00,125.00 277.50,139.17 310.00,153.33 342.50,167.50 375.00,181.67 407.50,195.83 440.00,210.00 472.50,210.00 505.00,210.00 537.50,210.00 570.00,210.00\" fill=\"none\" stroke=\"#126b73\" stroke-width=\"3\"/><text x=\"60\" y=\"242\" fill=\"#126b73\">上限なし<\/text><polyline points=\"50.00,153.33 82.50,153.33 115.00,153.33 147.50,153.33 180.00,153.33 212.50,153.33 245.00,153.33 277.50,153.33 310.00,153.33 342.50,167.50 375.00,181.67 407.50,195.83 440.00,210.00 472.50,210.00 505.00,210.00 537.50,210.00 570.00,210.00\" fill=\"none\" stroke=\"#c85b36\" stroke-width=\"3\"/><text x=\"290\" y=\"242\" fill=\"#c85b36\">c=1で上限4<\/text><text x=\"330\" y=\"225\">IP：0 → 16<\/text><\/svg><p>曲線はr=4、θ=3を固定した式(4)。c=1ならIPが低くても発注量は4を超えない。<\/p>"]</script><div data-output aria-live="polite"><div class="matrix-scroll" tabindex="0" role="region" aria-label="人工実験の比較"><table><thead><tr><th>期</th><th>入荷</th><th>需要</th><th>販売</th><th>期末在庫</th><th>逸失</th></tr></thead><tbody><tr><td>1</td><td>0</td><td>5</td><td>0</td><td>0</td><td>5</td></tr><tr><td>2</td><td>4</td><td>2</td><td>2</td><td>2</td><td>0</td></tr></tbody></table></div><p>次の需要3に対する不足：通常のIP計算 <strong>6</strong>、販売量で進めた計算 <strong>1</strong>。差は途中の逸失販売 <strong>5</strong>。</p><p>不足を0で下限処理した発注量：6 対 1。負の不足は余剰を意味する。</p><svg viewBox="0 0 600 250" role="img" aria-label="発注量：r=4、θ=3" style="width:100%;height:auto"><path d="M50 20V210H580" fill="none" stroke="currentColor"/><text x="5" y="22">12</text><text x="25" y="210">0</text><polyline points="50.00,40.00 82.50,54.17 115.00,68.33 147.50,82.50 180.00,96.67 212.50,110.83 245.00,125.00 277.50,139.17 310.00,153.33 342.50,167.50 375.00,181.67 407.50,195.83 440.00,210.00 472.50,210.00 505.00,210.00 537.50,210.00 570.00,210.00" fill="none" stroke="#126b73" stroke-width="3"/><text x="60" y="242" fill="#126b73">上限なし</text><polyline points="50.00,153.33 82.50,153.33 115.00,153.33 147.50,153.33 180.00,153.33 212.50,153.33 245.00,153.33 277.50,153.33 310.00,153.33 342.50,167.50 375.00,181.67 407.50,195.83 440.00,210.00 472.50,210.00 505.00,210.00 537.50,210.00 570.00,210.00" fill="none" stroke="#c85b36" stroke-width="3"/><text x="290" y="242" fill="#c85b36">c=1で上限4</text><text x="330" y="225">IP：0 → 16</text></svg><p>曲線はr=4、θ=3を固定した式(4)。c=1ならIPが低くても発注量は4を超えない。</p></div><figcaption>run.pyの人工実験をresults.jsonから生成。著者の性能値ではない。操作しなくても最初の条件を読める。</figcaption></figure></div><div class="downloads"><a href="../downloads/sabreagent-design-time-inventory/run.py" download>実行コード</a><a href="../downloads/sabreagent-design-time-inventory/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/sabreagent-design-time-inventory">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>人工例。式(3)のκ付き探索、季節学習、確率的納期のrolloutは未実装。</em></p>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;lab29&quot;: &quot;sabre&quot;,
+  &quot;frames&quot;: [
+    {
+      &quot;label&quot;: &quot;初期在庫 0&quot;,
+      &quot;initial&quot;: 0,
+      &quot;rows&quot;: [
+        {
+          &quot;arrival&quot;: 0,
+          &quot;demand&quot;: 5,
+          &quot;sales&quot;: 0,
+          &quot;ending&quot;: 0,
+          &quot;lost&quot;: 5
+        },
+        {
+          &quot;arrival&quot;: 4,
+          &quot;demand&quot;: 2,
+          &quot;sales&quot;: 2,
+          &quot;ending&quot;: 2,
+          &quot;lost&quot;: 0
+        }
+      ],
+      &quot;textbook&quot;: 6,
+      &quot;projected&quot;: 1,
+      &quot;lost&quot;: 5,
+      &quot;textbook_order&quot;: 6,
+      &quot;projected_order&quot;: 1
+    },
+    {
+      &quot;label&quot;: &quot;初期在庫 2&quot;,
+      &quot;initial&quot;: 2,
+      &quot;rows&quot;: [
+        {
+          &quot;arrival&quot;: 0,
+          &quot;demand&quot;: 5,
+          &quot;sales&quot;: 2,
+          &quot;ending&quot;: 0,
+          &quot;lost&quot;: 3
+        },
+        {
+          &quot;arrival&quot;: 4,
+          &quot;demand&quot;: 2,
+          &quot;sales&quot;: 2,
+          &quot;ending&quot;: 2,
+          &quot;lost&quot;: 0
+        }
+      ],
+      &quot;textbook&quot;: 4,
+      &quot;projected&quot;: 1,
+      &quot;lost&quot;: 3,
+      &quot;textbook_order&quot;: 4,
+      &quot;projected_order&quot;: 1
+    },
+    {
+      &quot;label&quot;: &quot;初期在庫 8&quot;,
+      &quot;initial&quot;: 8,
+      &quot;rows&quot;: [
+        {
+          &quot;arrival&quot;: 0,
+          &quot;demand&quot;: 5,
+          &quot;sales&quot;: 5,
+          &quot;ending&quot;: 3,
+          &quot;lost&quot;: 0
+        },
+        {
+          &quot;arrival&quot;: 4,
+          &quot;demand&quot;: 2,
+          &quot;sales&quot;: 2,
+          &quot;ending&quot;: 5,
+          &quot;lost&quot;: 0
+        }
+      ],
+      &quot;textbook&quot;: -2,
+      &quot;projected&quot;: -2,
+      &quot;lost&quot;: 0,
+      &quot;textbook_order&quot;: 0,
+      &quot;projected_order&quot;: 0
+    }
+  ],
+  &quot;cap_curve&quot;: [
+    {
+      &quot;ip&quot;: 0,
+      &quot;base&quot;: 12,
+      &quot;capped&quot;: 4
+    },
+    {
+      &quot;ip&quot;: 1,
+      &quot;base&quot;: 11,
+      &quot;capped&quot;: 4
+    },
+    {
+      &quot;ip&quot;: 2,
+      &quot;base&quot;: 10,
+      &quot;capped&quot;: 4
+    },
+    {
+      &quot;ip&quot;: 3,
+      &quot;base&quot;: 9,
+      &quot;capped&quot;: 4
+    },
+    {
+      &quot;ip&quot;: 4,
+      &quot;base&quot;: 8,
+      &quot;capped&quot;: 4
+    },
+    {
+      &quot;ip&quot;: 5,
+      &quot;base&quot;: 7,
+      &quot;capped&quot;: 4
+    },
+    {
+      &quot;ip&quot;: 6,
+      &quot;base&quot;: 6,
+      &quot;capped&quot;: 4
+    },
+    {
+      &quot;ip&quot;: 7,
+      &quot;base&quot;: 5,
+      &quot;capped&quot;: 4
+    },
+    {
+      &quot;ip&quot;: 8,
+      &quot;base&quot;: 4,
+      &quot;capped&quot;: 4
+    },
+    {
+      &quot;ip&quot;: 9,
+      &quot;base&quot;: 3,
+      &quot;capped&quot;: 3
+    },
+    {
+      &quot;ip&quot;: 10,
+      &quot;base&quot;: 2,
+      &quot;capped&quot;: 2
+    },
+    {
+      &quot;ip&quot;: 11,
+      &quot;base&quot;: 1,
+      &quot;capped&quot;: 1
+    },
+    {
+      &quot;ip&quot;: 12,
+      &quot;base&quot;: 0,
+      &quot;capped&quot;: 0
+    },
+    {
+      &quot;ip&quot;: 13,
+      &quot;base&quot;: 0,
+      &quot;capped&quot;: 0
+    },
+    {
+      &quot;ip&quot;: 14,
+      &quot;base&quot;: 0,
+      &quot;capped&quot;: 0
+    },
+    {
+      &quot;ip&quot;: 15,
+      &quot;base&quot;: 0,
+      &quot;capped&quot;: 0
+    },
+    {
+      &quot;ip&quot;: 16,
+      &quot;base&quot;: 0,
+      &quot;capped&quot;: 0
+    }
+  ],
+  &quot;stationary_dp&quot;: {
+    &quot;dp_value&quot;: 21.0,
+    &quot;myopic_value&quot;: 21.0,
+    &quot;max_error&quot;: 0.0,
+    &quot;states&quot;: 21,
+    &quot;action_upper_bound&quot;: 8
+  },
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;checks&quot;: {
+    &quot;pathwise_shortfall_identity&quot;: &quot;CONFIRMED&quot;,
+    &quot;stationary_myopic_finite_case&quot;: &quot;CONFIRMED&quot;
+  },
+  &quot;note&quot;: &quot;人工例。式(3)のκ付き探索、季節学習、確率的納期のrolloutは未実装。&quot;
+}</code></pre></details><p>初期在庫0の例では、通常の不足が6、販売量からの不足が1。その差5は途中の逸失販売と一致する。初期在庫8なら途中の逸失販売がなく、差も0になる。定常需要の小問題では21状態で近視眼方策と動的計画の価値が一致した。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>CONFIRMED：同じ経路での不足差と逸失販売の恒等式、上限付き発注の形、有限な定常需要の例における近視眼方策の最適性。SabreAgent全体のMechanismはPARTIAL。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。InventoryBench、LLMによる季節性生成、検証による方策族選択、確率的納期のrolloutは追試していない。最小実験は一般定理の証明でもない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>project()が販売量で在庫を更新し、capped()が式(4)を計算する。dp_check()は3期・有限需要の全探索。式(3)のκ付き余剰費用や予測混合は省略した。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>一次資料と最小実装の対応</h1>
+<p><a href="https://arxiv.org/pdf/2609.19760v2">原論文 v2</a>。2026-09-29に保存済みPDFとarXivの版情報を確認。</p>
+<p>PDF SHA-256: <code>4ba27bba95dd74380118e7339e447fd81b7ff627953e5e943a29380072bd3308</code></p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>最小実装・図</th>
+<th>省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Figures 1–2</td>
+<td>設計時と運用時の二段図</td>
+<td>LLMの実行</td>
+</tr>
+<tr>
+<td>Eq. (1), Proposition 8</td>
+<td>project()と在庫の追跡表</td>
+<td>需要予測の推定</td>
+</tr>
+<tr>
+<td>Theorem 1, Appendix B</td>
+<td>dp_check()</td>
+<td>一般証明・非定常需要</td>
+</tr>
+<tr>
+<td>Eq. (4)</td>
+<td>capped()と発注曲線</td>
+<td>rolloutによるθ,c選択</td>
+</tr>
+<tr>
+<td>Table 1 / Figure 4 / Table 2</td>
+<td>NR比較・本文</td>
+<td>ベンチマークの再実行</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード：確認したPDFとarXiv概要ページに著者提供リポジトリの記載を見つけられなかった。公開コードが存在しないとの断定ではない。run.pyはこのLab独自の説明用実装。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>LLMを発注のたびに呼ばず、設計した知識だけを運用に残せるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/sabreagent-design-time-inventory/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

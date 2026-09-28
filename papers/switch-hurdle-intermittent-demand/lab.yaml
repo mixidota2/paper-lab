@@ -1,0 +1,148 @@
+id: switch-hurdle-intermittent-demand
+arxiv_id: '2602.22685'
+title: 'Switch-Hurdle: A MoE Encoder with AR Hurdle Decoder for Intermittent Demand
+  Forecasting'
+authors:
+- Fabian Mușat
+- Simona Căbuz
+year: 2026
+submitted: '2026-02-25'
+topics:
+- demand-forecasting
+urls:
+  paper: https://arxiv.org/abs/2602.22685
+  arxiv: https://arxiv.org/abs/2602.22685
+  pdf: https://arxiv.org/pdf/2602.22685v1
+  official_code: null
+verdict: Radar
+status: published
+question: ゼロが続く需要で、発生確率と発生時の量を分けられるか
+summary: Switch-HurdleはTop-1 MoE encoderと自己回帰hurdle decoderを組み合わせる。M5のWRMSSEは0.6307。予測精度の結果であり、在庫費用やサービス水準の改善は示していない。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads: []
+source_review:
+  checked: '2026-09-29'
+  version: v1
+  pdf_sha256: 0ea7569ce0136f13c710a18caeee577e4b308c62df7ad7102bfa7e2ceb52dff7
+  url: https://arxiv.org/pdf/2602.22685v1
+  scope: Figure 1; Eqs. (8)–(14); Figure 1; Eqs. (2)–(3); Table 4; Figures 4–5
+core_idea:
+  author_claim: 学習したrouterが各tokenを1つのexpertへ送り、decoderは需要の発生確率と正の需要量を別々に予測する。正の量にはゼロで切り詰めた負の二項分布を使う。
+  research_bot_interpretation: ゼロの頻度と発生時の大きさを分ける設計は、間欠需要を読む助けになる。ただしAccuracy Is Not
+    Serviceが問う、精度と在庫サービスのずれを解消した研究とはいえない。
+sections:
+  overview: Switch-HurdleはTop-1 MoE encoderと自己回帰hurdle decoderを組み合わせる。M5のWRMSSEは0.6307。予測精度の結果であり、在庫費用やサービス水準の改善は示していない。
+  problem: ゼロが続き、ときに大口の需要が入る。M5の30,490系列と社内の約40,000系列を使い、56日の文脈から28日先を予測する。平均へ平滑化するだけでは、需要が発生する頻度と発生時の数量を捉えにくい。
+  why_it_might_work: 解釈：発生の確率p⁺を動かしても、発生時の分布は固定できる。逆に正の需要量を変えてもゼロ確率は変えずに済む。MoEの役割は学習する表現を分けることだが、Zero・Low・Normal・Spikeを手でexpertへ割り当てる仕組みではない。
+  evidence: '一次資料[Table 4・Figures 4–5](https://arxiv.org/pdf/2602.22685v1)の著者報告。M5のWRMSSEはSwitch-Hurdle
+    0.6307、TSMixer 0.6403、TFT 0.6932、DeepAR 0.7895。すべての指標で最良ではなく、RMSEはPatchTST 2.4562に対して2.4744、MASEはTFT
+    0.8983に対して0.8992。社内全量のWAPEは53.99%。
+
+
+    Zeroなどの区分は、検証データで学習後のroutingを集計したもの。第0層ではZeroの67.5%がexpert 3、Lowの90.8%とSpikeの94.0%がexpert
+    1へ入る。これは専門化の観察であり、在庫の意思決定評価ではない。'
+  executable_understanding: '`uv run papers/switch-hurdle-intermittent-demand/run.py`
+    で同じフォルダーのresults.jsonを更新する。Python標準ライブラリだけで動く。
+
+
+    μと分散パラメータαを固定し、発生確率p⁺を0.1・0.5・0.9へ変える。通常の負の二項分布とhurdle分布を同じμ、αで比較し、全確率と期待値を数値和で確認する。'
+  results: ゼロを除くと平均が変わる。μ=2、α=0.5の通常の負の二項分布ではゼロ確率が0.25で、正の値に条件付けた平均は2.6667となる。p⁺=0.5のhurdle分布の平均は約1.3333。p⁺を変えても、正の量の条件付き平均は保たれる。
+  what_we_verified: CONFIRMED：分布の正規化、ゼロ確率の独立した操作、切詰め後の条件付き平均の補正。headの計算だけを確認したため、MechanismはPARTIAL。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Top-1
+    STEの学習、MoEの専門化、AR decoder、M5の精度は追試していない。欠品、fill rate、在庫費用は測っていない。
+  implementation: nb()は平均・分散パラメータ化の負の二項確率、hurdle()は正の領域を1−P_NB(0)で正規化する。0から999までの和で確率と平均を照合する。図は0から20までを表示し、残りの尾確率も示す。
+  method: method.md
+  mapping: mapping.md
+teaching_figures:
+- kind: equations
+  id: hurdle
+  title: p⁺と正の量を分離し、ゼロ除外の分だけ補正する
+  locator: Figure 1; Eqs. (8)–(14)
+  after: method
+  rationale: p⁺と正の量を分離し、ゼロ除外の分だけ補正する
+  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。
+  steps:
+  - name: ゼロ確率
+    formula: P(Y=0) = 1 − p⁺
+    explanation: 発生headの出力がゼロの頻度を決める。
+  - name: 正の需要
+    formula: P(Y=y>0) = p⁺ NB(y; μ,α) / (1−p₀)
+    explanation: p₀=(1+αμ)^(−1/α)。通常のNBからゼロを除き、残りを正規化する。
+  - name: 平均
+    formula: E[Y|Y>0] = μ/(1−p₀), E[Y] = p⁺μ/(1−p₀)
+    explanation: μは切り詰める前のNB平均。正の需要の平均と同一視しない。
+  source: https://arxiv.org/pdf/2602.22685v1
+- kind: logic
+  id: routing
+  title: 順伝播は1 expert、逆伝播はsoft確率を使う
+  locator: Figure 1; Eqs. (2)–(3)
+  after: method
+  rationale: 順伝播は1 expert、逆伝播はsoft確率を使う
+  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。
+  rows:
+  - label: encoder
+    nodes:
+    - title: router
+      text: p = softmax(Wg x)
+    - title: Top-1 STE
+      text: g = one_hot(argmax p) + p − stopgrad(p)
+    - title: SwiGLU expert
+      text: 推論では選ばれたexpertだけを実行
+  - label: decoder
+    nodes:
+    - title: 自己回帰
+      text: 過去の出力とencoder memoryを参照
+    - title: hurdle head
+      text: p⁺、μ、αを出す
+  source: https://arxiv.org/pdf/2602.22685v1
+- kind: chart
+  id: accuracy
+  title: M5のWRMSSEは低下するが、在庫評価ではない
+  locator: Table 4
+  after: evidence
+  rationale: M5のWRMSSEは低下するが、在庫評価ではない
+  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。
+  bars:
+  - label: DeepAR
+    value: 0.7895
+  - label: TFT
+    value: 0.6932
+  - label: TSMixer
+    value: 0.6403
+  - label: Switch-Hurdle
+    value: 0.6307
+  maximum: 0.85
+  unit: WRMSSE（小さいほど良い）
+  source: https://arxiv.org/pdf/2602.22685v1
+- kind: matrix
+  id: experts
+  title: 同じ需要区分でも層によって主なexpertが変わる
+  locator: Figures 4–5
+  after: evidence
+  rationale: 同じ需要区分でも層によって主なexpertが変わる
+  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。
+  columns:
+  - 第0層：主なexpert / 比率
+  - 第1層：主なexpert / 比率
+  rows:
+  - label: Zero
+    cells:
+    - 3 / 67.5%
+    - 2 / 59.3%
+  - label: Low
+    cells:
+    - 1 / 90.8%
+    - 1 / 93.9%
+  - label: Normal
+    cells:
+    - 0 / 67.5%
+    - 2 / 51.3%
+  - label: Spike
+    cells:
+    - 1 / 94.0%
+    - 1 / 97.3%
+  source: https://arxiv.org/pdf/2602.22685v1
