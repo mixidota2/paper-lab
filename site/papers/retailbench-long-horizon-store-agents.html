@@ -1,0 +1,1482 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="RetailBenchは、価格・補充・棚・仕入先・資金繰りを180日間つなぐ店舗運営の評価環境である。LLMの最良選択実行でも、最終純資産は特権情報を使うOracle Policyの約19%だった。個々のツール操作が正しくても、店を続けられるとは限らない。">
+  <title>価格・補充・棚・資金繰りを180日間、一貫して動かせるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-03-17</span></div>
+    <h1>価格・補充・棚・資金繰りを180日間、一貫して動かせるか</h1>
+    <p class="lede">RetailBenchは、価格・補充・棚・仕入先・資金繰りを180日間つなぐ店舗運営の評価環境である。LLMの最良選択実行でも、最終純資産は特権情報を使うOracle Policyの約19%だった。個々のツール操作が正しくても、店を続けられるとは限らない。</p>
+    <details class="bibliography"><summary>原論文：RetailBench: Benchmarking long horizon reasoning and coherent decision making of LLM agents in realistic retail environments</summary><p>Linghua Zhang, Jun Wang, Jingtong Wu, Zhisong Zhang</p><p>2603.16453 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2603.16453">原典を読む ↗</a><a href="https://arxiv.org/pdf/2603.16453v3">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-30 · Figure 1; Sections 2–4; Table 1; Figure 3; Appendix A</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-failures">同じ低成績を3つの行動診断で分ける</a><a href="#figure-networth">純資産の最高LLM実行もOracleから離れる</a><a href="#figure-sales">販売数量の最良モデルは純資産と異なる</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>RetailBenchは、価格・補充・棚・仕入先・資金繰りを180日間つなぐ店舗運営の評価環境である。LLMの最良選択実行でも、最終純資産は特権情報を使うOracle Policyの約19%だった。個々のツール操作が正しくても、店を続けられるとは限らない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>Dominick’sの実データを基に96商品・20カテゴリを構成する。各商品には5仕入先があり、棚は40商品、在庫容量は15,000個。初期資金30,000、家賃は1日600である。需要やニュースの内部効果は隠され、エージェントは照会ツールで状態を調べる。価格変更、発注、棚の変更が、その後の販売・返品・現金残高に影響する。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>データに基づく部分観測の店舗環境で、長期の一貫した意思決定を評価する。不完全な情報収集、表面的な判断、継続する方策の欠如という3種の失敗を診断する。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>研究地図では「運用中に複数の店舗業務を操作するLLMの評価」に置く。InvEvolveの設計時の発注方策探索や、SabreAgentの設計後に固定する在庫制御とは、LLMの役割も評価単位も異なる。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><p>店舗を部分観測の意思決定過程として扱う。照会ツールで観測し、ReAct、Reflection、Plan-and-Actが発注・価格・棚を操作する。end_todayで入荷、販売、返品、経年、資金を更新する。Oracle Policyは特権情報を使う規則ベースの参照方策である。</p></div>      </section>
+      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈：仕入れの安さだけを選ぶと、返品による将来の収入減を見落とす。棚へ載せない商品は販売機会を失い、売れない日も家賃はかかる。こうした遅れて現れる結果を同じ環境で測れる点に価値がある。行動診断と成績の関連は、各失敗要因の因果効果を単独で証明するものではない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料の著者報告（v3 Table 1）：Oracle Policyは純資産131,510.42、販売数量267,998。GPT-5.5 ReActは純資産24,350.98でLLM中の最高値、DeepSeek-V4-Pro Plan-and-Actは販売数量164,417で最高値だった。販売数量の単位は個で、売上金額ではない。両モデルは180日を完走し、Kimi-K2.6は130日、残る4モデルは58〜73日で終了した。</p>
+<p>各モデルにつき、利用可能な枠組みから生存日数を優先し、同点なら純資産、販売数量の順で選んだ実行を掲載する。全実行の平均ではない。GPT-5.5は費用の制約でReActのみ。Oracleは隠れた情報を使う非LLMの参照方策であり、同じ観測条件のエージェントではない。</p>
+<p>§4.3・Figure 3の診断では、選択されたLLM実行の平均QualityFirstは21.5%、PriceFirstは55.6%。行動対象商品数は1日0.95〜7.89商品で、Oracleの38.00商品から離れている。この商品数は販売された商品数とも異なる。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-failures" aria-labelledby="title-failures">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-failures">同じ低成績を3つの行動診断で分ける</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="同じ低成績を3つの行動診断で分けるの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">観測された行動</th><th scope="col">読む際の注意</th></tr></thead><tbody><tr><th scope="row">情報収集の不足</th><td class="">必要な情報を揃えずに発注・値付け</td><td class="">照会回数だけでは情報の充足を測れない</td></tr><tr><th scope="row">表面的な判断</th><td class="">PriceFirst 55.6% / QualityFirst 21.5%</td><td class="">選択実行の平均。品質は返品にも影響</td></tr><tr><th scope="row">継続する方策の欠如</th><td class="">対象商品/日：LLM 0.95〜7.89 / Oracle 38.00</td><td class="">販売商品数とは別。遅れた結果を追う必要</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>一次論文の記述を再構成。数値は著者報告であり、Labの追試値ではない。 <a href="https://arxiv.org/pdf/2603.16453v3">出典：Section 4.3; Figure 3 ↗</a></figcaption>
+</figure><figure class="teaching teaching--chart" id="figure-networth" aria-labelledby="title-networth">
+  <div class="figure-heading"><span class="eyebrow">CHART</span><span class="figure-badge">論文の報告値</span></div>
+  <h3 id="title-networth">純資産の最高LLM実行もOracleから離れる</h3>
+  <p class="chart-metric">最終純資産（環境内の通貨単位） · 共通尺度 0–140000</p><div class="bar-chart"><div class="bar-row"><div class="bar-label"><span>Oracle（特権情報）</span><strong>131510.42 最終純資産（環境内の通貨単位）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 93.9360142857143%"></div></div></div><div class="bar-row"><div class="bar-label"><span>GPT-5.5 / ReAct</span><strong>24350.98 最終純資産（環境内の通貨単位）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 17.393557142857144%"></div></div></div><div class="bar-row"><div class="bar-label"><span>DeepSeek-V4-Pro / Plan-and-Act</span><strong>10120.9 最終純資産（環境内の通貨単位）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 7.229214285714286%"></div></div></div></div>
+  <figcaption>一次論文の記述を再構成。数値は著者報告であり、Labの追試値ではない。 <a href="https://arxiv.org/pdf/2603.16453v3">出典：Table 1 ↗</a></figcaption>
+</figure><figure class="teaching teaching--chart" id="figure-sales" aria-labelledby="title-sales">
+  <div class="figure-heading"><span class="eyebrow">CHART</span><span class="figure-badge">論文の報告値</span></div>
+  <h3 id="title-sales">販売数量の最良モデルは純資産と異なる</h3>
+  <p class="chart-metric">累積販売数量（個） · 共通尺度 0–280000</p><div class="bar-chart"><div class="bar-row"><div class="bar-label"><span>Oracle</span><strong>267998 累積販売数量（個）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 95.71357142857143%"></div></div></div><div class="bar-row"><div class="bar-label"><span>DeepSeek-V4-Pro</span><strong>164417 累積販売数量（個）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 58.72035714285714%"></div></div></div><div class="bar-row"><div class="bar-label"><span>GPT-5.5</span><strong>136405 累積販売数量（個）</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 48.71607142857143%"></div></div></div></div>
+  <figcaption>一次論文の記述を再構成。数値は著者報告であり、Labの追試値ではない。 <a href="https://arxiv.org/pdf/2603.16453v3">出典：Table 1 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/retailbench-long-horizon-store-agents/run.py</code></p>
+<p>人工的な30日間の収支を、同じ需要・家賃・初期資金で比較する。PriceFirstは原価4・返品率30%、QualityFirstは原価5・返品率5%。価格10、対象商品当たり需要10個/日とし、毎日即時補充する。対象商品数を1・8・20・38から選び、仕入先選択と日々の対象範囲が収支へどう重なるかを読む。これらの仮定は論文から推定した値ではない。</p><figure class="teaching"><h3>1日の終了処理が7つの業務を結ぶ</h3><svg viewBox="0 0 620 350" role="img" aria-label="店舗モジュールの結合図" style="width:100%;height:auto"><title>Figure 1の7モジュールを再配置</title><g stroke="#788b95" stroke-width="2"><path d="M120 70L310 70L500 70L500 175L310 280L120 175L120 70M310 70V280M120 175H500M120 70L500 175M500 70L120 175" fill="none"/></g><rect x="42" y="46" width="156" height="48" rx="12" fill="#e6f3ee" stroke="#357c6d"/><text x="120" y="75" text-anchor="middle" fill="#153e36" font-size="17">仕入先・発注</text><rect x="232" y="46" width="156" height="48" rx="12" fill="#e6f3ee" stroke="#357c6d"/><text x="310" y="75" text-anchor="middle" fill="#153e36" font-size="17">在庫・経年</text><rect x="422" y="46" width="156" height="48" rx="12" fill="#e6f3ee" stroke="#357c6d"/><text x="500" y="75" text-anchor="middle" fill="#153e36" font-size="17">棚</text><rect x="42" y="151" width="156" height="48" rx="12" fill="#e6f3ee" stroke="#357c6d"/><text x="120" y="180" text-anchor="middle" fill="#153e36" font-size="17">ニュース</text><rect x="232" y="151" width="156" height="48" rx="12" fill="#e6f3ee" stroke="#357c6d"/><text x="310" y="180" text-anchor="middle" fill="#153e36" font-size="17">需要・販売</text><rect x="422" y="151" width="156" height="48" rx="12" fill="#e6f3ee" stroke="#357c6d"/><text x="500" y="180" text-anchor="middle" fill="#153e36" font-size="17">評価・返品</text><rect x="232" y="256" width="156" height="48" rx="12" fill="#e6f3ee" stroke="#357c6d"/><text x="310" y="285" text-anchor="middle" fill="#153e36" font-size="17">資金・記録</text></svg><figcaption>原論文Figure 1・§2.3の概念再配置。線は業務の結合を示す。入荷・販売・返品・経年・資金を日々更新する。</figcaption></figure><figure class="teaching" data-b21><h3>選択された実行をモデルごとに読む</h3><label>モデル <select><option value="0">DeepSeek-V4-Pro</option><option value="1">GLM-5.1</option><option value="2">GPT-5.5</option><option value="3">Grok-4.3</option><option value="4">Kimi-K2.6</option><option value="5">MiniMax-M2.5</option><option value="6">Qwen3.5-397B-A17B</option><option value="7">Oracle Policy</option></select></label><script type="application/json" data-frames>["<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>モデル / 枠組み<\/th><th>生存日数<\/th><th>最終純資産<\/th><th>販売数量（個）<\/th><\/tr><\/thead><tbody><tr><td>DeepSeek-V4-Pro / Plan-and-Act<\/td><td>180<\/td><td>10,120.90<\/td><td>164,417<\/td><\/tr><\/tbody><\/table><\/div><p>180日のうち <strong>180<\/strong> 日。純資産はOracleの 7.7%、販売数量は 61.4%。<\/p>", "<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>モデル / 枠組み<\/th><th>生存日数<\/th><th>最終純資産<\/th><th>販売数量（個）<\/th><\/tr><\/thead><tbody><tr><td>GLM-5.1 / ReAct<\/td><td>60<\/td><td>-2,134.36<\/td><td>7,016<\/td><\/tr><\/tbody><\/table><\/div><p>180日のうち <strong>60<\/strong> 日。純資産はOracleの -1.6%、販売数量は 2.6%。<\/p>", "<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>モデル / 枠組み<\/th><th>生存日数<\/th><th>最終純資産<\/th><th>販売数量（個）<\/th><\/tr><\/thead><tbody><tr><td>GPT-5.5 / ReAct<\/td><td>180<\/td><td>24,350.98<\/td><td>136,405<\/td><\/tr><\/tbody><\/table><\/div><p>180日のうち <strong>180<\/strong> 日。純資産はOracleの 18.5%、販売数量は 50.9%。<\/p>", "<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>モデル / 枠組み<\/th><th>生存日数<\/th><th>最終純資産<\/th><th>販売数量（個）<\/th><\/tr><\/thead><tbody><tr><td>Grok-4.3 / ReAct<\/td><td>58<\/td><td>828.40<\/td><td>11,305<\/td><\/tr><\/tbody><\/table><\/div><p>180日のうち <strong>58<\/strong> 日。純資産はOracleの 0.6%、販売数量は 4.2%。<\/p>", "<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>モデル / 枠組み<\/th><th>生存日数<\/th><th>最終純資産<\/th><th>販売数量（個）<\/th><\/tr><\/thead><tbody><tr><td>Kimi-K2.6 / ReAct<\/td><td>130<\/td><td>792.19<\/td><td>86,214<\/td><\/tr><\/tbody><\/table><\/div><p>180日のうち <strong>130<\/strong> 日。純資産はOracleの 0.6%、販売数量は 32.2%。<\/p>", "<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>モデル / 枠組み<\/th><th>生存日数<\/th><th>最終純資産<\/th><th>販売数量（個）<\/th><\/tr><\/thead><tbody><tr><td>MiniMax-M2.5 / Plan-and-Act<\/td><td>73<\/td><td>-397.95<\/td><td>23,521<\/td><\/tr><\/tbody><\/table><\/div><p>180日のうち <strong>73<\/strong> 日。純資産はOracleの -0.3%、販売数量は 8.8%。<\/p>", "<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>モデル / 枠組み<\/th><th>生存日数<\/th><th>最終純資産<\/th><th>販売数量（個）<\/th><\/tr><\/thead><tbody><tr><td>Qwen3.5-397B-A17B / Reflection<\/td><td>71<\/td><td>1,183.17<\/td><td>35,622<\/td><\/tr><\/tbody><\/table><\/div><p>180日のうち <strong>71<\/strong> 日。純資産はOracleの 0.9%、販売数量は 13.3%。<\/p>", "<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>モデル / 枠組み<\/th><th>生存日数<\/th><th>最終純資産<\/th><th>販売数量（個）<\/th><\/tr><\/thead><tbody><tr><td>Oracle Policy / Oracle<\/td><td>180<\/td><td>131,510.42<\/td><td>267,998<\/td><\/tr><\/tbody><\/table><\/div><p>180日のうち <strong>180<\/strong> 日。純資産はOracleの 100.0%、販売数量は 100.0%。<\/p>"]</script><div data-output aria-live="polite"><div class="matrix-scroll" tabindex="0" role="region" aria-label="人工実験の比較"><table><thead><tr><th>モデル / 枠組み</th><th>生存日数</th><th>最終純資産</th><th>販売数量（個）</th></tr></thead><tbody><tr><td>DeepSeek-V4-Pro / Plan-and-Act</td><td>180</td><td>10,120.90</td><td>164,417</td></tr></tbody></table></div><p>180日のうち <strong>180</strong> 日。純資産はOracleの 7.7%、販売数量は 61.4%。</p></div><figcaption>著者報告 Table 1。生存日数を優先して選んだ実行。Oracleは特権情報を使う。</figcaption></figure><figure class="teaching" data-b21><h3>対象商品数と仕入先の品質を同じ収支で見る</h3><label>1日の対象商品数 <select><option value="0">1</option><option value="1">8</option><option value="2">20</option><option value="3">38</option></select></label><script type="application/json" data-frames>["<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>人工方策<\/th><th>30日後の現金<\/th><\/tr><\/thead><tbody><tr><td>PriceFirst<\/td><td>-14,100<\/td><\/tr><tr><td>QualityFirst<\/td><td>-13,650<\/td><\/tr><\/tbody><\/table><\/div><p>現金 = 3,000 + 30 ×（対象商品数 × 10 × 単位粗利 − 600）。単位粗利はPriceFirstが3、QualityFirstが4.5。対象を広げる効果は、この固定需要の仮定に依存する。<\/p>", "<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>人工方策<\/th><th>30日後の現金<\/th><\/tr><\/thead><tbody><tr><td>PriceFirst<\/td><td>-7,800<\/td><\/tr><tr><td>QualityFirst<\/td><td>-4,200<\/td><\/tr><\/tbody><\/table><\/div><p>現金 = 3,000 + 30 ×（対象商品数 × 10 × 単位粗利 − 600）。単位粗利はPriceFirstが3、QualityFirstが4.5。対象を広げる効果は、この固定需要の仮定に依存する。<\/p>", "<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>人工方策<\/th><th>30日後の現金<\/th><\/tr><\/thead><tbody><tr><td>PriceFirst<\/td><td>3,000<\/td><\/tr><tr><td>QualityFirst<\/td><td>12,000<\/td><\/tr><\/tbody><\/table><\/div><p>現金 = 3,000 + 30 ×（対象商品数 × 10 × 単位粗利 − 600）。単位粗利はPriceFirstが3、QualityFirstが4.5。対象を広げる効果は、この固定需要の仮定に依存する。<\/p>", "<div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>人工方策<\/th><th>30日後の現金<\/th><\/tr><\/thead><tbody><tr><td>PriceFirst<\/td><td>19,200<\/td><\/tr><tr><td>QualityFirst<\/td><td>36,300<\/td><\/tr><\/tbody><\/table><\/div><p>現金 = 3,000 + 30 ×（対象商品数 × 10 × 単位粗利 − 600）。単位粗利はPriceFirstが3、QualityFirstが4.5。対象を広げる効果は、この固定需要の仮定に依存する。<\/p>"]</script><div data-output aria-live="polite"><div class="matrix-scroll" tabindex="0" role="region" aria-label="人工実験の比較"><table><thead><tr><th>人工方策</th><th>30日後の現金</th></tr></thead><tbody><tr><td>PriceFirst</td><td>-14,100</td></tr><tr><td>QualityFirst</td><td>-13,650</td></tr></tbody></table></div><p>現金 = 3,000 + 30 ×（対象商品数 × 10 × 単位粗利 − 600）。単位粗利はPriceFirstが3、QualityFirstが4.5。対象を広げる効果は、この固定需要の仮定に依存する。</p></div><figcaption>run.pyの人工実験。返品率・原価は説明用の仮定。負の現金でも計算を続けるため生存評価ではない。</figcaption></figure></div><div class="downloads"><a href="../downloads/retailbench-long-horizon-store-agents/run.py" download>実行コード</a><a href="../downloads/retailbench-long-horizon-store-agents/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/retailbench-long-horizon-store-agents">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><details><summary>生の results.json</summary><pre><code>{
+  &quot;lab30_retailbench&quot;: true,
+  &quot;status&quot;: &quot;PARTIAL&quot;,
+  &quot;source&quot;: {
+    &quot;paper&quot;: &quot;2603.16453v3&quot;,
+    &quot;locator&quot;: &quot;Table 1; Section 4.3; Figure 3&quot;
+  },
+  &quot;reported_columns&quot;: [
+    &quot;model&quot;,
+    &quot;framework&quot;,
+    &quot;days&quot;,
+    &quot;net_worth&quot;,
+    &quot;sales_units&quot;
+  ],
+  &quot;reported&quot;: [
+    [
+      &quot;DeepSeek-V4-Pro&quot;,
+      &quot;Plan-and-Act&quot;,
+      180,
+      10120.9,
+      164417
+    ],
+    [
+      &quot;GLM-5.1&quot;,
+      &quot;ReAct&quot;,
+      60,
+      -2134.36,
+      7016
+    ],
+    [
+      &quot;GPT-5.5&quot;,
+      &quot;ReAct&quot;,
+      180,
+      24350.98,
+      136405
+    ],
+    [
+      &quot;Grok-4.3&quot;,
+      &quot;ReAct&quot;,
+      58,
+      828.4,
+      11305
+    ],
+    [
+      &quot;Kimi-K2.6&quot;,
+      &quot;ReAct&quot;,
+      130,
+      792.19,
+      86214
+    ],
+    [
+      &quot;MiniMax-M2.5&quot;,
+      &quot;Plan-and-Act&quot;,
+      73,
+      -397.95,
+      23521
+    ],
+    [
+      &quot;Qwen3.5-397B-A17B&quot;,
+      &quot;Reflection&quot;,
+      71,
+      1183.17,
+      35622
+    ],
+    [
+      &quot;Oracle Policy&quot;,
+      &quot;Oracle&quot;,
+      180,
+      131510.42,
+      267998
+    ]
+  ],
+  &quot;frames&quot;: [
+    {
+      &quot;products&quot;: 1,
+      &quot;policies&quot;: [
+        {
+          &quot;supplier&quot;: &quot;PriceFirst&quot;,
+          &quot;final_cash&quot;: -14100.0,
+          &quot;trace&quot;: [
+            {
+              &quot;day&quot;: 1,
+              &quot;cash&quot;: 2430.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 2,
+              &quot;cash&quot;: 1860.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 3,
+              &quot;cash&quot;: 1290.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 4,
+              &quot;cash&quot;: 720.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 5,
+              &quot;cash&quot;: 150.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 6,
+              &quot;cash&quot;: -420.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 7,
+              &quot;cash&quot;: -990.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 8,
+              &quot;cash&quot;: -1560.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 9,
+              &quot;cash&quot;: -2130.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 10,
+              &quot;cash&quot;: -2700.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 11,
+              &quot;cash&quot;: -3270.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 12,
+              &quot;cash&quot;: -3840.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 13,
+              &quot;cash&quot;: -4410.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 14,
+              &quot;cash&quot;: -4980.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 15,
+              &quot;cash&quot;: -5550.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 16,
+              &quot;cash&quot;: -6120.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 17,
+              &quot;cash&quot;: -6690.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 18,
+              &quot;cash&quot;: -7260.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 19,
+              &quot;cash&quot;: -7830.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 20,
+              &quot;cash&quot;: -8400.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 21,
+              &quot;cash&quot;: -8970.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 22,
+              &quot;cash&quot;: -9540.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 23,
+              &quot;cash&quot;: -10110.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 24,
+              &quot;cash&quot;: -10680.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 25,
+              &quot;cash&quot;: -11250.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 26,
+              &quot;cash&quot;: -11820.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 27,
+              &quot;cash&quot;: -12390.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 28,
+              &quot;cash&quot;: -12960.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 29,
+              &quot;cash&quot;: -13530.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 30,
+              &quot;cash&quot;: -14100.0,
+              &quot;sold&quot;: 10
+            }
+          ]
+        },
+        {
+          &quot;supplier&quot;: &quot;QualityFirst&quot;,
+          &quot;final_cash&quot;: -13650.0,
+          &quot;trace&quot;: [
+            {
+              &quot;day&quot;: 1,
+              &quot;cash&quot;: 2445.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 2,
+              &quot;cash&quot;: 1890.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 3,
+              &quot;cash&quot;: 1335.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 4,
+              &quot;cash&quot;: 780.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 5,
+              &quot;cash&quot;: 225.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 6,
+              &quot;cash&quot;: -330.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 7,
+              &quot;cash&quot;: -885.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 8,
+              &quot;cash&quot;: -1440.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 9,
+              &quot;cash&quot;: -1995.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 10,
+              &quot;cash&quot;: -2550.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 11,
+              &quot;cash&quot;: -3105.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 12,
+              &quot;cash&quot;: -3660.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 13,
+              &quot;cash&quot;: -4215.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 14,
+              &quot;cash&quot;: -4770.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 15,
+              &quot;cash&quot;: -5325.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 16,
+              &quot;cash&quot;: -5880.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 17,
+              &quot;cash&quot;: -6435.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 18,
+              &quot;cash&quot;: -6990.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 19,
+              &quot;cash&quot;: -7545.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 20,
+              &quot;cash&quot;: -8100.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 21,
+              &quot;cash&quot;: -8655.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 22,
+              &quot;cash&quot;: -9210.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 23,
+              &quot;cash&quot;: -9765.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 24,
+              &quot;cash&quot;: -10320.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 25,
+              &quot;cash&quot;: -10875.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 26,
+              &quot;cash&quot;: -11430.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 27,
+              &quot;cash&quot;: -11985.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 28,
+              &quot;cash&quot;: -12540.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 29,
+              &quot;cash&quot;: -13095.0,
+              &quot;sold&quot;: 10
+            },
+            {
+              &quot;day&quot;: 30,
+              &quot;cash&quot;: -13650.0,
+              &quot;sold&quot;: 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      &quot;products&quot;: 8,
+      &quot;policies&quot;: [
+        {
+          &quot;supplier&quot;: &quot;PriceFirst&quot;,
+          &quot;final_cash&quot;: -7800.0,
+          &quot;trace&quot;: [
+            {
+              &quot;day&quot;: 1,
+              &quot;cash&quot;: 2640.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 2,
+              &quot;cash&quot;: 2280.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 3,
+              &quot;cash&quot;: 1920.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 4,
+              &quot;cash&quot;: 1560.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 5,
+              &quot;cash&quot;: 1200.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 6,
+              &quot;cash&quot;: 840.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 7,
+              &quot;cash&quot;: 480.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 8,
+              &quot;cash&quot;: 120.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 9,
+              &quot;cash&quot;: -240.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 10,
+              &quot;cash&quot;: -600.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 11,
+              &quot;cash&quot;: -960.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 12,
+              &quot;cash&quot;: -1320.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 13,
+              &quot;cash&quot;: -1680.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 14,
+              &quot;cash&quot;: -2040.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 15,
+              &quot;cash&quot;: -2400.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 16,
+              &quot;cash&quot;: -2760.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 17,
+              &quot;cash&quot;: -3120.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 18,
+              &quot;cash&quot;: -3480.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 19,
+              &quot;cash&quot;: -3840.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 20,
+              &quot;cash&quot;: -4200.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 21,
+              &quot;cash&quot;: -4560.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 22,
+              &quot;cash&quot;: -4920.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 23,
+              &quot;cash&quot;: -5280.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 24,
+              &quot;cash&quot;: -5640.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 25,
+              &quot;cash&quot;: -6000.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 26,
+              &quot;cash&quot;: -6360.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 27,
+              &quot;cash&quot;: -6720.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 28,
+              &quot;cash&quot;: -7080.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 29,
+              &quot;cash&quot;: -7440.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 30,
+              &quot;cash&quot;: -7800.0,
+              &quot;sold&quot;: 80
+            }
+          ]
+        },
+        {
+          &quot;supplier&quot;: &quot;QualityFirst&quot;,
+          &quot;final_cash&quot;: -4200.0,
+          &quot;trace&quot;: [
+            {
+              &quot;day&quot;: 1,
+              &quot;cash&quot;: 2760.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 2,
+              &quot;cash&quot;: 2520.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 3,
+              &quot;cash&quot;: 2280.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 4,
+              &quot;cash&quot;: 2040.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 5,
+              &quot;cash&quot;: 1800.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 6,
+              &quot;cash&quot;: 1560.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 7,
+              &quot;cash&quot;: 1320.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 8,
+              &quot;cash&quot;: 1080.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 9,
+              &quot;cash&quot;: 840.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 10,
+              &quot;cash&quot;: 600.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 11,
+              &quot;cash&quot;: 360.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 12,
+              &quot;cash&quot;: 120.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 13,
+              &quot;cash&quot;: -120.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 14,
+              &quot;cash&quot;: -360.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 15,
+              &quot;cash&quot;: -600.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 16,
+              &quot;cash&quot;: -840.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 17,
+              &quot;cash&quot;: -1080.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 18,
+              &quot;cash&quot;: -1320.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 19,
+              &quot;cash&quot;: -1560.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 20,
+              &quot;cash&quot;: -1800.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 21,
+              &quot;cash&quot;: -2040.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 22,
+              &quot;cash&quot;: -2280.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 23,
+              &quot;cash&quot;: -2520.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 24,
+              &quot;cash&quot;: -2760.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 25,
+              &quot;cash&quot;: -3000.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 26,
+              &quot;cash&quot;: -3240.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 27,
+              &quot;cash&quot;: -3480.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 28,
+              &quot;cash&quot;: -3720.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 29,
+              &quot;cash&quot;: -3960.0,
+              &quot;sold&quot;: 80
+            },
+            {
+              &quot;day&quot;: 30,
+              &quot;cash&quot;: -4200.0,
+              &quot;sold&quot;: 80
+            }
+          ]
+        }
+      ]
+    },
+    {
+      &quot;products&quot;: 20,
+      &quot;policies&quot;: [
+        {
+          &quot;supplier&quot;: &quot;PriceFirst&quot;,
+          &quot;final_cash&quot;: 3000.0,
+          &quot;trace&quot;: [
+            {
+              &quot;day&quot;: 1,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 2,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 3,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 4,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 5,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 6,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 7,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 8,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 9,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 10,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 11,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 12,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 13,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 14,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 15,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 16,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 17,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 18,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 19,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 20,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 21,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 22,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 23,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 24,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 25,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 26,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 27,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 28,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 29,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 30,
+              &quot;cash&quot;: 3000.0,
+              &quot;sold&quot;: 200
+            }
+          ]
+        },
+        {
+          &quot;supplier&quot;: &quot;QualityFirst&quot;,
+          &quot;final_cash&quot;: 12000.0,
+          &quot;trace&quot;: [
+            {
+              &quot;day&quot;: 1,
+              &quot;cash&quot;: 3300.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 2,
+              &quot;cash&quot;: 3600.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 3,
+              &quot;cash&quot;: 3900.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 4,
+              &quot;cash&quot;: 4200.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 5,
+              &quot;cash&quot;: 4500.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 6,
+              &quot;cash&quot;: 4800.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 7,
+              &quot;cash&quot;: 5100.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 8,
+              &quot;cash&quot;: 5400.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 9,
+              &quot;cash&quot;: 5700.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 10,
+              &quot;cash&quot;: 6000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 11,
+              &quot;cash&quot;: 6300.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 12,
+              &quot;cash&quot;: 6600.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 13,
+              &quot;cash&quot;: 6900.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 14,
+              &quot;cash&quot;: 7200.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 15,
+              &quot;cash&quot;: 7500.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 16,
+              &quot;cash&quot;: 7800.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 17,
+              &quot;cash&quot;: 8100.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 18,
+              &quot;cash&quot;: 8400.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 19,
+              &quot;cash&quot;: 8700.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 20,
+              &quot;cash&quot;: 9000.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 21,
+              &quot;cash&quot;: 9300.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 22,
+              &quot;cash&quot;: 9600.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 23,
+              &quot;cash&quot;: 9900.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 24,
+              &quot;cash&quot;: 10200.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 25,
+              &quot;cash&quot;: 10500.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 26,
+              &quot;cash&quot;: 10800.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 27,
+              &quot;cash&quot;: 11100.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 28,
+              &quot;cash&quot;: 11400.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 29,
+              &quot;cash&quot;: 11700.0,
+              &quot;sold&quot;: 200
+            },
+            {
+              &quot;day&quot;: 30,
+              &quot;cash&quot;: 12000.0,
+              &quot;sold&quot;: 200
+            }
+          ]
+        }
+      ]
+    },
+    {
+      &quot;products&quot;: 38,
+      &quot;policies&quot;: [
+        {
+          &quot;supplier&quot;: &quot;PriceFirst&quot;,
+          &quot;final_cash&quot;: 19200.0,
+          &quot;trace&quot;: [
+            {
+              &quot;day&quot;: 1,
+              &quot;cash&quot;: 3540.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 2,
+              &quot;cash&quot;: 4080.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 3,
+              &quot;cash&quot;: 4620.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 4,
+              &quot;cash&quot;: 5160.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 5,
+              &quot;cash&quot;: 5700.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 6,
+              &quot;cash&quot;: 6240.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 7,
+              &quot;cash&quot;: 6780.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 8,
+              &quot;cash&quot;: 7320.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 9,
+              &quot;cash&quot;: 7860.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 10,
+              &quot;cash&quot;: 8400.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 11,
+              &quot;cash&quot;: 8940.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 12,
+              &quot;cash&quot;: 9480.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 13,
+              &quot;cash&quot;: 10020.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 14,
+              &quot;cash&quot;: 10560.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 15,
+              &quot;cash&quot;: 11100.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 16,
+              &quot;cash&quot;: 11640.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 17,
+              &quot;cash&quot;: 12180.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 18,
+              &quot;cash&quot;: 12720.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 19,
+              &quot;cash&quot;: 13260.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 20,
+              &quot;cash&quot;: 13800.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 21,
+              &quot;cash&quot;: 14340.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 22,
+              &quot;cash&quot;: 14880.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 23,
+              &quot;cash&quot;: 15420.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 24,
+              &quot;cash&quot;: 15960.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 25,
+              &quot;cash&quot;: 16500.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 26,
+              &quot;cash&quot;: 17040.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 27,
+              &quot;cash&quot;: 17580.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 28,
+              &quot;cash&quot;: 18120.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 29,
+              &quot;cash&quot;: 18660.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 30,
+              &quot;cash&quot;: 19200.0,
+              &quot;sold&quot;: 380
+            }
+          ]
+        },
+        {
+          &quot;supplier&quot;: &quot;QualityFirst&quot;,
+          &quot;final_cash&quot;: 36300.0,
+          &quot;trace&quot;: [
+            {
+              &quot;day&quot;: 1,
+              &quot;cash&quot;: 4110.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 2,
+              &quot;cash&quot;: 5220.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 3,
+              &quot;cash&quot;: 6330.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 4,
+              &quot;cash&quot;: 7440.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 5,
+              &quot;cash&quot;: 8550.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 6,
+              &quot;cash&quot;: 9660.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 7,
+              &quot;cash&quot;: 10770.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 8,
+              &quot;cash&quot;: 11880.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 9,
+              &quot;cash&quot;: 12990.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 10,
+              &quot;cash&quot;: 14100.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 11,
+              &quot;cash&quot;: 15210.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 12,
+              &quot;cash&quot;: 16320.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 13,
+              &quot;cash&quot;: 17430.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 14,
+              &quot;cash&quot;: 18540.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 15,
+              &quot;cash&quot;: 19650.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 16,
+              &quot;cash&quot;: 20760.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 17,
+              &quot;cash&quot;: 21870.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 18,
+              &quot;cash&quot;: 22980.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 19,
+              &quot;cash&quot;: 24090.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 20,
+              &quot;cash&quot;: 25200.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 21,
+              &quot;cash&quot;: 26310.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 22,
+              &quot;cash&quot;: 27420.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 23,
+              &quot;cash&quot;: 28530.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 24,
+              &quot;cash&quot;: 29640.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 25,
+              &quot;cash&quot;: 30750.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 26,
+              &quot;cash&quot;: 31860.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 27,
+              &quot;cash&quot;: 32970.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 28,
+              &quot;cash&quot;: 34080.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 29,
+              &quot;cash&quot;: 35190.0,
+              &quot;sold&quot;: 380
+            },
+            {
+              &quot;day&quot;: 30,
+              &quot;cash&quot;: 36300.0,
+              &quot;sold&quot;: 380
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  &quot;verification&quot;: {
+    &quot;accounting_identity&quot;: &quot;CONFIRMED&quot;,
+    &quot;retailbench_reproduction&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;limitations&quot;: [
+    &quot;Artificial deterministic inputs; no LLM, lead time, aging, news, or bankruptcy termination.&quot;,
+    &quot;Final cash is not paper net worth; return rates are invented teaching assumptions.&quot;
+  ]
+}</code></pre></details><p>人工例で1日8商品を扱うと、30日後の現金はPriceFirstが−7,800、QualityFirstが−4,200。38商品なら19,200と36,300になる。安い仕入先との差は返品後の単位粗利3対4.5から生じる。負の現金でも計算を続けるため、生存日数の再現には使えない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>CONFIRMED：人工例の全240日分で現金の収支恒等式を照合し、返品率を含む単位粗利の差を確認した。MechanismはPARTIAL。店舗モジュール間の結合のうち、仕入原価・返品・対象商品数・家賃だけを動かしている。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。公式環境、LLM、180日運営、納期、賞味期限、ニュース、隠れた需要、棚内の代替効果は再実行していない。実店舗のA/Bテストや棚割りの無作為化比較試験でもない。単一の固定環境で選んだ実行から、モデル一般の平均成績や現場の利益を予測しない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>run.pyのsimulate()は人工収支を計算し、main()は論文Table 1の転記値と実験値を分けてresults.jsonへ保存する。ページの図はlab.yaml、操作パネルはresults.jsonから生成する。Python標準ライブラリだけで動作する。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文・公式コードとの対応</h1>
+<p>一次資料は<a href="https://arxiv.org/pdf/2603.16453v3">arXiv:2603.16453v3</a>（2026年7月8日）。2606.15862を別研究として数えない。</p>
+<table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>Labの対応</th>
+<th>省略・境界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Figure 1、§2.3：7モジュール</td>
+<td>店舗の結合図</td>
+<td>ニュース、返品、在庫、棚、資金のつながりを説明用に再配置</td>
+</tr>
+<tr>
+<td>§3.1：96商品、20カテゴリ、180日</td>
+<td>lab.yamlの問題設定</td>
+<td>人工実験の商品数とは別</td>
+</tr>
+<tr>
+<td>Table 1、§4.1：生存優先の実行選択</td>
+<td>results.jsonのreported、モデル比較パネル</td>
+<td>全試行平均や同一情報条件の比較ではない</td>
+</tr>
+<tr>
+<td>§4.3、Figure 3</td>
+<td>3種の診断表</td>
+<td>失敗要因ごとの因果効果は未検証</td>
+</tr>
+<tr>
+<td>§3.3：純資産・販売数量</td>
+<td>著者報告の棒グラフ</td>
+<td>販売数量は金額ではない</td>
+</tr>
+<tr>
+<td>仕入先品質・返品・資金の結合</td>
+<td>run.pyのsimulate()</td>
+<td>人工定数の即時補充。公式の需要式や遷移を再実装していない</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/linghuazhang01/RetailBench">公式コード</a>は論文末尾で案内されるリポジトリ。今回、コードの取得・実行・ファイル単位の対応確認は行っていない。</p>
+<p>純資産の説明には原文内の差がある。§3.3は現金・手持在庫・未着発注の価値を含むと述べるが、付録の式(18)は現金と年齢別手持在庫を明示している。Labはこの差を解消したとは扱わず、Table 1の報告値を転記する。人工実験は現金だけを表示し、純資産と呼ばない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>価格・補充・棚・資金繰りを180日間、一貫して動かせるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/retailbench-long-horizon-store-agents/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

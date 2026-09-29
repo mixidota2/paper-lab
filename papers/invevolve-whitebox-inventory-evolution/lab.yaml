@@ -1,0 +1,151 @@
+id: invevolve-whitebox-inventory-evolution
+arxiv_id: '2605.00369'
+title: 'InvEvolve: Evolving White-Box Inventory Policies via Large Language Models
+  with Performance Guarantees'
+authors:
+- Chenyu Huang
+- Jianghao Lin
+- Zhengyang Tang
+- Bo Jiang
+- Ruoqing Jiang
+- Benyou Wang
+- Lai Wei
+year: 2026
+submitted: '2026-05-01'
+topics:
+- retail-supply
+- ai-agents
+urls:
+  paper: https://arxiv.org/abs/2605.00369
+  arxiv: https://arxiv.org/abs/2605.00369
+  pdf: https://arxiv.org/pdf/2605.00369v4
+verdict: Must Read
+status: published
+question: LLMが書いた発注規則を、どんな条件で配備してよいか
+summary: GLM-4.7-FlashをGRPOで学習し、白箱の発注コードを進化させる。合成25/30、CJ 20/30件で最良古典方策を上回る著者報告と、LCB認証の条件を分けて読む。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads: []
+source_review:
+  checked: '2026-09-30'
+  version: v4
+  pdf_sha256: e55b43bc88d946da98d5c24cae9b4ede5a90434de1a99d077787462f7330ae80
+  scope: 本文§2、§4、§5、Fig. 2・5、Tables 2・3・6、付録E–Hを確認。
+  url: https://arxiv.org/pdf/2605.00369v4
+core_idea:
+  author_claim: GRPOで学習したGLM-4.7-Flashが実行可能な在庫方策を生成する。参照方策へのLCB認証と、通過候補間のUCB選択を接続する。将来性能の保証には有効な信頼半径と分布差予算が必要。
+  research_bot_interpretation: 方策コードを窓ごとに進化させる研究セル。SabreAgentの「設計時に季節事前分布を作り、凍結ORを実行」とは変更対象が異なる。InventoryBenchとの直接比較ではない。
+sections:
+  overview: 'InvEvolveは、LLMが読める発注コードを生成し、同じ需要履歴で比較してから配備する仕組みである。著者報告では合成OODの25/30件、Dunnhumby
+    Complete Journey（CJ）の20/30件で最良の古典方策を上回る。CJの費用削減9.2%は**勝った20件に限る平均**で、全30件の平均ではない。
+
+
+    採用と配備を分ける。候補を残す判定は慎重に、通過候補の選択は楽観的に行う。ただし将来の安全性は、需要変化を覆う予算や信頼区間の前提に依存する。本Labは発注式と認証の保守性を確かめ、性能を追試しない。'
+  problem: 対象は需要を満たせない分が逸失する在庫管理。古典方策は読みやすいが、販促や季節情報を使う形を人が設計する必要がある。LLMに自由なコード探索を任せても、履歴への過適合と需要シフトは残る。
+  core_idea: 候補生成 → 同一需要でreplay → LCBで採用判定 → 通過候補からUCBで配備。Fig. 2の流れを、下の発注式と認証表に分けて読む。
+  why_it_might_work: '解釈：候補を実行可能な規則にすれば、既存方策と同じ経路で費用差を測れる。改善量を Z=C_ref−C_candidate
+    と置くので、正なら改善である。Eq. 7の半径とEq. 8の信頼限界は次の形になる。
+
+
+    ```text
+
+    rad = B sqrt(2 log(2N/δ) / m)
+
+    LCB = mean(Z) − rad; UCB = mean(Z) + rad
+
+    安全候補: LCB ≥ ξ; 配備: 安全候補中の最大UCB
+
+    ```
+
+
+    Bは改善量の絶対値の上限、Nは比較数の上限、mはreplay経路数、δは期間ごとの失敗確率予算。ξはreplayと配備分布の最悪差を覆う予算である。多重比較も効く。候補が多ければ半径は大きくなる。付録Eの実用ξ校正と付録Fの小標本blockwise
+    t半径は、理論式を無条件に満たす証明とは分けて読む。'
+  evidence: '一次資料の著者報告。[v4 Tables 2・3・6](https://arxiv.org/pdf/2605.00369v4)を確認した。
+
+
+    | 著者報告 | 比較 | 成績 |
+
+    | --- | --- | --- |
+
+    | 合成30件、Table 2 | 最良古典方策に対する勝率 | base GLM 13/30、InvEvolve 25/30 |
+
+    | CJ 30件、Table 3 | 最良古典方策に対する勝率 | A3C 11/30、E2E 16/30、InvEvolve 20/30 |
+
+    | 定常96条件、Table 6 | CBSに対する勝／同等／負 | Tilted-CBS 18/74/4、Tilted-PIC 41/47/8 |
+
+
+    合成は100日で設計、将来30日で評価。訓練に用いた10 workspaceと商品が重ならず、10業界中5業界は未学習。CJは365日から次の30日を評価し、販売を潜在需要へ復元したbenchmarkである。復元品質が主張の中心ではなく、実店舗の因果的な費用改善を示す試験でもない。
+
+
+    96条件は6需要分布×4リードタイム×4欠品費用比。±2%以内を同等とするため、beat-or-tie 95.8%（Tilted-CBS）と91.7%（Tilted-PIC）は厳密な勝率ではない。平均費用変化は−0.60%と−1.52%、最悪は+5.4%と+4.2%。全条件の改善保証ではない。'
+  executable_understanding: '```text
+
+    Δ = max(0, S − IP)
+
+    CBS:        q = min(Δ, r)
+
+    Tilted-CBS: q = min(Δ, r_base + αΔ)
+
+    Tilted-PIC: q = max(0, min(round(Kp Δ), r_base + αΔ))
+
+    ```
+
+
+    IPは手元在庫と輸送中在庫を合わせた在庫ポジション。αは不足が大きいとき上限を緩め、Kpは不足への反応を調整する。α=0のTilted-CBSはCBSに戻る。整数不足でKp=1ならTilted-PICはTilted-CBSに一致する。対話図ではこれらの係数を変え、同じ不足に対する発注量を比較する。'
+  results: 'seed=930、256経路×60日、需要は0〜10の離散一様分布。L=3、S=24、r=4、保管費1、逸失費9を固定した。平均費用はCBS
+    12.402、Tilted-CBS 9.501、Tilted-PIC 10.037。係数は固定した。探索は省いた。
+
+
+    一方、費用上限114から得る半径は21.093。改善のLCBは−18.191と−18.728になり、ξ=0でも安全候補は空となる。平均費用の改善と統計的な採用条件が別物であることを確認できる。'
+  what_we_verified: MechanismはPARTIAL。α=0でのCBSへの帰着、整数不足でのKp=1の一致、費用の有界性はCONFIRMED。共通需要経路での改善平均、LCB/UCBの計算を実行した。候補認証の成功はNOT
+    OBSERVED。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。GRPO学習、コード生成、champion更新、需要シフト予算の校正、公式の小標本半径、CJ復元、96条件の再最適化は実行していない。人工実験の費用差から、論文の勝率や将来配備の安全性は推論しない。
+  implementation: '`UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/invevolve-whitebox-inventory-evolution/run.py`
+
+
+    `run.py`は到着→発注判断→需要消化の順に在庫を進める。需要経路は全方策で共通。`results.json`に人工結果と著者集計を分けて保存し、図はその値から生成する。発注の丸めには非負数の四捨五入を使う。連続量での丸め境界は原論文の実装を確認していない。'
+  mapping: mapping.md
+  method: method.md
+teaching_figures:
+- kind: equations
+  id: inventory-response
+  title: 不足への応答を二つの係数で変える
+  after: method
+  source: https://arxiv.org/pdf/2605.00369v4
+  locator: §5.3.2、Fig. 5
+  rationale: αの上限緩和とKpの比例応答を、CBSからの変更として読む。
+  caption: 一次資料の方策式を再構成。係数を固定した応答曲線を実行可能な理解で示す。
+  steps:
+  - name: CBS：固定上限
+    formula: Δ = max(0, S − IP); q = min(Δ, r)
+    explanation: 不足が大きくても発注量はrを超えない。
+  - name: Tilted-CBS：不足で上限を緩める
+    formula: q = min(Δ, r_base + αΔ)
+    explanation: α=0ならCBS。αが正なら大きな不足への補充を増やす。
+  - name: Tilted-PIC：不足への反応も調整する
+    formula: q = max(0, min(round(Kp Δ), r_base + αΔ))
+    explanation: Kp<1なら比例応答を抑える。整数不足とKp=1の条件ではTilted-CBSに一致する。
+- kind: chart
+  id: win-rates
+  title: 最良古典方策を上回った件数を比べる
+  after: evidence
+  source: https://arxiv.org/pdf/2605.00369v4
+  locator: Tables 2–3
+  rationale: 合成とCJを分けたラベルで、同じ30件の分母に対する成功数を示す。
+  caption: 著者報告の再描画。合成とCJは別の30件で、両者の差を性能低下の因果効果とは読めない。CJの費用削減9.2%は勝った20件だけの平均。
+  maximum: 30
+  unit: 件 / 30件
+  bars:
+  - label: 合成：base GLM
+    value: 13
+  - label: 合成：InvEvolve
+    value: 25
+  - label: CJ：A3C
+    value: 11
+  - label: CJ：E2E
+    value: 16
+  - label: CJ：InvEvolve
+    value: 20

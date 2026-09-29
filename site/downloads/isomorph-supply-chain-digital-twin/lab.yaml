@@ -1,0 +1,158 @@
+id: isomorph-supply-chain-digital-twin
+arxiv_id: '2605.12768'
+title: 'ISOMORPH: A Supply Chain Digital Twin for Simulation, Dataset Generation,
+  and Forecasting Benchmarks'
+authors:
+- Zhizhen Zhang
+- Hyemin Gu
+- Benjamin J. Zhang
+- Daniel Elenius
+- Michael Tyrrell
+- Theo J. Bourdais
+- Houman Owhadi
+- Markos A. Katsoulakis
+- Tuhin Sahai
+year: 2026
+submitted: '2026-05-12'
+topics:
+- demand-forecasting
+- retail-supply
+urls:
+  paper: https://arxiv.org/abs/2605.12768
+  pdf: https://arxiv.org/pdf/2605.12768v3
+  official_code: https://github.com/tuhinsahai/ISOMORPH
+  arxiv: https://arxiv.org/abs/2605.12768
+verdict: Radar
+status: published
+question: 同じ需要でも、物流網の容量と経路で予測の難しさはどう変わるか
+summary: ISOMORPHは物流網の需要と内部状態を再生成できる予測ベンチマークである。公開例は米国13拠点・16辺。補充は固定した(s,S)ルールで行い、補充方策の優越性は主張していない。販促と欠品を含む実小売データでの予測モデル比較とも区別する。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads: []
+source_review:
+  checked: '2026-09-30'
+  version: v3
+  pdf_sha256: 5c6c276df4b5ecfacaea0939a2419a7538beead5950d7e4caeb97c09107e3c84
+  scope: Figure 1; Eqs. 21–22; Tables 3, 5, 11; Sections 6.1–6.3
+  url: https://arxiv.org/pdf/2605.12768v3
+core_idea:
+  author_claim: 公開可能な多段階物流網から需要とネットワーク状態を再生成し、予測とシナリオに由来する不確実性を評価する。
+  research_bot_interpretation: 固定方策のもとで予測対象と物流条件を動かせる点が研究地図の追加セルとなる。在庫最適化手法の勝敗とは別の評価軸である。
+sections:
+  overview: ISOMORPHは物流網の需要と内部状態を再生成できる予測ベンチマークである。公開例は米国13拠点・16辺。補充は固定した(s,S)ルールで行い、補充方策の優越性は主張していない。販促と欠品を含む実小売データでの予測モデル比較とも区別する。
+    学習方策は使わない。
+  problem: 需要の予測誤差だけでは、倉庫の滞留や輸送の混雑は見えない。本論文は需要、未充足需要の累積であるbacklog、需要充足率、辺の容量使用率を同じ物流網から出力する。商品数は50と200、各系列は日次7,300期。
+    出発点は需要である。荷物は複数の倉庫を通る。途中には容量上限がある。未充足分は残る。
+  method: method.md
+  why_it_might_work: 解釈：容量だけを変えて同じ需要を流せば、需要の難しさと物流網の難しさを切り分けられる。状態変数を揃える設計は、拡張したシミュレーターでも物量保存を検査する手掛かりになる。実網への適合度は別に評価する必要がある。
+    まず保存則を確かめる。次に予測を評価する。
+  evidence: '[一次資料v3](https://arxiv.org/pdf/2605.12768v3)のTable 5では、需要のMASEはPatchTSTが0.828、TimesFMが0.847。Moiraiはbacklog
+    2.228、充足率1.473、辺使用率0.721で、後者3指標の最良値だった。学習済みChronos-T5、Moirai-1.1-R、TimesFM-2.0は追加学習なし。ARIMA、ETS、PatchTSTは各rollout内で学習する。
+
+
+    過去512日から1・7・14・30日先を予測し、時系列分割は70/15/15。Table 5は週周期m=7で正規化したMASEを予測期間間で幾何平均した値。需要と辺使用率は29
+    rollout、backlogと充足率は定数系列5件を除く24 rolloutである。誤差棒はrollout間の95% Student-t区間。
+
+
+    Table 3のbullwhip比は各拠点のVar(inflow)/Var(outflow)。日次と月次で値が大きく変わる。Forward UQはシナリオ設定の集合に予測器を適用する実験であり、実網の全不確実性を覆う保証ではない。
+    比較の単位はrolloutである。実店舗ではない。'
+  executable_understanding: '`uv run papers/isomorph-supply-chain-digital-twin/run.py`
+
+
+    下の容量選択で、84日間の需要を固定して輸送容量だけを変える。式(21–22)の到着・滞留・新規需要の処理順を実装し、毎期の在庫と需要の保存則を検査する。ここでの当日充足率は新規需要だけを分母・分子に使う。既存滞留の解消を含む指標とは区別する。'
+  results: results.jsonに容量8・12・20の全経路を保存した。容量不足で増える滞留を需要系列だけからは見分けられない。小実験は予測モデルを走らせていないため、著者のMASEを再現した結果ではない。
+  what_we_verified: CONFIRMED：全252ステップで物量と未充足需要の保存則が成立し、3条件の需要は一致した。PARTIAL：到着先でのサービス処理を確認した。13拠点の経路探索や荷詰めは実装していない。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Chronos、Moirai、TimesFM、ARIMA、ETS、PatchTSTの再学習・推論、bullwhip比、Forward
+    UQの被覆率は追試していない。「最初の公開digital twin」は著者の位置づけとして扱い、網羅的な先行研究調査では確定していない。
+  implementation: run.pyは標準ライブラリだけで動く。simulate()で需要と容量の比較条件を固定し、assertで保存則を検査する。1辺・1期遅延へ簡略化した。補充の教材ルールは到着先にも(s,S)を使うため、公式の非到着先補充と同一ではない。ネットワーク図と論文値はlab.yaml、実験曲線はresults.jsonを正本とする。
+  mapping: mapping.md
+teaching_figures:
+- kind: matrix
+  id: targets
+  title: 予測対象を変えると最良モデルが変わる
+  locator: Table 5
+  after: evidence
+  rationale: 予測対象を変えると最良モデルが変わる
+  caption: 一次資料の著者報告値。Labの追試値ではない。
+  source: https://arxiv.org/pdf/2605.12768v3
+  columns:
+  - 需要
+  - 滞留
+  - 充足率
+  - 辺使用率
+  rows:
+  - label: ARIMA
+    cells:
+    - '0.871'
+    - 7.7e6
+    - 4.8e6
+    - '0.798'
+  - label: ETS
+    cells:
+    - '0.881'
+    - '4.063'
+    - '6.931'
+    - '0.798'
+  - label: PatchTST
+    cells:
+    - '0.828'
+    - '4.839'
+    - '7.714'
+    - '0.886'
+  - label: Chronos
+    cells:
+    - '0.873'
+    - '2.291'
+    - '2.643'
+    - '0.735'
+  - label: Moirai
+    cells:
+    - '0.895'
+    - '2.228'
+    - '1.473'
+    - '0.721'
+  - label: TimesFM
+    cells:
+    - '0.847'
+    - '5.545'
+    - '5.021'
+    - '0.817'
+- kind: matrix
+  id: bullwhip
+  title: 同じ物量の変動でも集計周期で比率が変わる
+  locator: Table 3
+  after: evidence
+  rationale: 同じ物量の変動でも集計周期で比率が変わる
+  caption: 一次資料の著者報告値。Labの追試値ではない。
+  source: https://arxiv.org/pdf/2605.12768v3
+  columns:
+  - 日次比
+  - 月次比
+  rows:
+  - label: NewYork
+    cells:
+    - '22.64'
+    - '1.93'
+  - label: Baltimore / Philadelphia
+    cells:
+    - '14.73'
+    - '1.45'
+  - label: Columbus / Richmond
+    cells:
+    - '1.36'
+    - '1.24'
+  - label: Charlotte / Chicago / Memphis
+    cells:
+    - '1.17'
+    - '1.22'
+  - label: Atlanta
+    cells:
+    - '1.3'
+    - '1.14'
+  - label: Nashville
+    cells:
+    - '0.97'
+    - '1.07'

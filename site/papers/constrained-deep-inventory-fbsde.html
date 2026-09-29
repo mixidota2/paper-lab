@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="発注の効く遅れを高次CBFで扱う。50商品で充足率0.562、手元容量の違反率0.815という限界も読む。">
+  <title>容量に収まる在庫でも、到着待ちの商品を考えると安全でないのはなぜか。 | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-10</span></div>
+    <h1>容量に収まる在庫でも、到着待ちの商品を考えると安全でないのはなぜか。</h1>
+    <p class="lede">発注の効く遅れを高次CBFで扱う。50商品で充足率0.562、手元容量の違反率0.815という限界も読む。</p>
+    <details class="bibliography"><summary>原論文：Constrained Deep Inventory Management Using Forward-Backward SDEs</summary><p>Keunwoo Lim, Michael Bloem</p><p>2609.11817 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.11817">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.11817">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：未記録 · </p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-mixed-degree-barriers">発注が届く順番と、必要な微分の回数</a><a href="#figure-theory-versus-implementation">安全性の定理と、実装で確認すべき条件</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>在庫の平均的な制約充足から、各経路での倉庫容量・排出枠へ対象を広げる研究。発注が輸送中在庫に入り、その後に手元在庫へ届く時間差を、異なる次数の制御バリア関数（CBF）で扱う。</p>
+<p>違反は残る。著者の50商品実験では充足率が0.562 ± 0.031、手元在庫の容量違反率が0.815。理論上の安全性と、離散化・緩和を含む実装の挙動を分けて読む必要がある。Keunwoo Limと、Amazon所属のMichael Bloemによる研究であり、Amazon実店舗での評価を意味しない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>商品ごとの手元在庫Xと輸送中在庫Lを状態、発注率uを制御とする。入荷は b_in=min(L⁺/τ_in,g)、販売は b_out=min(X⁺/τ_out,d)。したがって dX=(b_in−b_out)dt+σ_X dW_X、dL=(u−b_in)dt+σ_L dW_L となる（式1–2）。τ_inは指数的な流出の平均時間で、固定日数のリードタイムとは異なる。</p>
+<p>全商品を重み付きで集計し、倉庫の手元・輸送中容量Hˣ,Hᴸと、対応する排出枠Hᴱˣ,Hᴱᴸを課す。予算は区分一定。途中で切り替わる。期待値制約を持つSCOPEやOR-Transformerを読む際の比較軸に、実現した経路ごとの状態制約が加わる。この位置づけはLabの解釈であり、両手法との直接比較実験は本Labで行っていない。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p><strong>著者の主張</strong>：HJB方程式を前進後退確率微分方程式（FBSDE）で表し、価値と価値勾配をニューラルネットで学ぶ。各時点の発注は、4本の集計制約と商品ごとの制約を持つ二次計画（QP）で求める。輸送中在庫の制約は相対次数1、手元在庫は相対次数2となる。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p><strong>Labの解釈</strong>：学習された費用勾配と、発注から到着までの遅れを考慮した制約を、同じ最適化問題へ入れる点が読む価値。安全という語だけで採用を判断せず、初期状態、予算切替時の条件、緩和変数、観測された違反を一緒に確認したい。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><p>図の上段は u→L→X の作用順序。hᴸ=Hᴸ−wᴸ·Lは1回微分するとuを含む。一方、hˣ=Hˣ−wˣ·Xの1回目の微分は入荷と販売だけで、uは2回目に現れる。</p>
+<p>h₁=∇h·f+γh を導入し、h≥0とh₁≥0を満たす初期状態から高次のバリア条件を課す（式11–16）。h≥0だけでは足りない。h₁も要る。予算変更時にも、新しい予算に対応する拡張安全集合に入っている必要がある（定理5）。</p>
+<p>実装の式20は min ½uᵀR_cu+q_linᵀu+ρ(1ᵀs_a+1ᵀs_u)、制約は u≥u_lower、u≤u_upper+s_u、W_agg u≤r_agg+s_a。s_a,s_u≥0は予算・発注上限の緩和変数。非負在庫を守る下限が優先されるため、集計予算には違反が残り得る。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-mixed-degree-barriers" aria-labelledby="title-mixed-degree-barriers">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-mixed-degree-barriers">発注が届く順番と、必要な微分の回数</h3>
+  <ol class="equation-steps"><li><strong>発注はまず輸送中へ</strong><div class="math-expression" tabindex="0" role="math" aria-label="dL/dt = u − b_in(L,g)">dL/dt = u − b_in(L,g)</div><p>uが直接現れる。輸送中の余裕hᴸを1回微分すれば、発注の制約を作れる。</p></li><li><strong>手元在庫には入荷として届く</strong><div class="math-expression" tabindex="0" role="math" aria-label="dX/dt = b_in(L,g) − b_out(X,d)">dX/dt = b_in(L,g) − b_out(X,d)</div><p>uはまだ現れない。Lの変化を通じて作用するため、もう1回微分する。</p></li><li><strong>現在の余裕に到着の勢いを加える</strong><div class="math-expression" tabindex="0" role="math" aria-label="h₁ = ∇h·f + γh;  h ≥ 0, h₁ ≥ 0">h₁ = ∇h·f + γh;  h ≥ 0, h₁ ≥ 0</div><p>2つの初期条件が必要。予算切替時にも新しい集合で確認する。雑音項は上の作用順序の説明では省略した。</p></li></ol>
+  <figcaption>原論文の式1–2、11–16を整理。輸送中と手元で同じ次数のバリアを使わない。 <a href="https://arxiv.org/abs/2609.11817">出典：§II–III, Equations (1), (2), (11)–(16) ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>【解釈】今は収まる。それでも安全とは限らない。手元在庫に余裕があっても、輸送中在庫が大量にあれば将来到着分で容量を超える。相対次数2の条件は、現在の余裕と入荷の勢いを同時に見る。単に現在の在庫を容量以下に切る処理では捉えにくい先行制御になる。</p>
+<p>ただし、連続時間の定理を週次の数値解法へそのまま読み替えられない。論文はEuler–Maruyama離散化、流量の平滑化、QPの緩和を使う。これらを含む実装の安全性は、実測値で確認する必要がある。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-theory-versus-implementation" aria-labelledby="title-theory-versus-implementation">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-theory-versus-implementation">安全性の定理と、実装で確認すべき条件</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="安全性の定理と、実装で確認すべき条件の表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">理論の条件</th><th scope="col">実装・評価での確認点</th></tr></thead><tbody><tr><th scope="row">時間</th><td class="">連続時間の状態制約</td><td class="">週次のEuler–Maruyama離散化</td></tr><tr><th scope="row">予算切替</th><td class="">切替後の拡張安全集合に入る</td><td class="">現在の容量内という条件だけでは足りない</td></tr><tr><th scope="row">集計制約</th><td class="">バリア不等式を満たす制御</td><td class="">QPに緩和変数s_aを入れる</td></tr><tr><th scope="row">観測値</th><td class="">定理の前提充足は別途確認が必要</td><td class="">手元容量の違反率0.815、M1=0.050</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>定理5と§IV-C、表IIを対応させる。連続時間の主張を数値結果へ無条件に移さない。 <a href="https://arxiv.org/abs/2609.11817">出典：Theorem 5, §IV-A–C, Table II ↗</a></figcaption>
+</figure>      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料は著者PDFの§III–V、図1–3、表I–IV。対象は50商品。8季節を104週で離散化し、人工環境を8 seedで評価する。需要はGamma分布。年1回の季節変動を持つ。</p>
+<table>
+<thead>
+<tr>
+<th>著者報告の指標</th>
+<th style="text-align: right;">50商品での値</th>
+<th>読み方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>充足率</td>
+<td style="text-align: right;">0.562 ± 0.031</td>
+<td>表III。±はseed間の標準偏差</td>
+</tr>
+<tr>
+<td>手元容量の違反率</td>
+<td style="text-align: right;">0.815</td>
+<td>表II。違反の頻度</td>
+</tr>
+<tr>
+<td>手元容量のM1</td>
+<td style="text-align: right;">0.050</td>
+<td>予算に対する超過量の平均</td>
+</tr>
+<tr>
+<td>手元容量のM3</td>
+<td style="text-align: right;">0.083</td>
+<td>10%超過の確率</td>
+</tr>
+<tr>
+<td>手元容量の平均利用率</td>
+<td style="text-align: right;">1.02</td>
+<td>容量を平均でも上回る</td>
+</tr>
+<tr>
+<td>手元排出枠の違反率</td>
+<td style="text-align: right;">0.077</td>
+<td>輸送中の制約とは差がある</td>
+</tr>
+</tbody>
+</table>
+<p>輸送中容量の違反率は10⁻⁵未満、輸送中排出枠は10⁻⁴未満と本文に記す。表の0.000を厳密なゼロと読まない。100商品への拡大も報告するが、本Labでは再実行していない。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>学習を省き、単品・無雑音・線形流量 b_in=L/τ、一定販売dに限定する。X=7、L=4、τ=2、d=1、γ=0.5、輸送中容量6を固定し、手元容量だけを変える。対象は局所的な式の検算。性能再現は含めない。</p>
+<p>輸送中の上限は u≤L/τ+γ(Hᴸ−L)。手元の上限は u≤L/τ−γL+γτd+γτh₁、h₁=d−L/τ+γ(Hˣ−X)。名目発注4に最も近い非負の発注を、両上限の下で選ぶ。二次係数は1。解は区間への射影で求まる。</p>
+<p>たとえば容量を10から8へ下げた瞬間、手元在庫7と輸送中在庫4はそのまま残り、現在の余裕hは3から1へ減るため、入荷2と販売1の差まで考慮したh₁は0.5から−0.5へ変わる。発注を今すぐ止めても、すでに輸送中の商品は到着する。</p><figure class="teaching" data-b21><h3>容量を変え、到着待ち在庫が削る発注余地を見る</h3><p>h₁ = d − L/τ + γ(Hˣ − X)。X=7、L=4、τ=2、d=1、γ=0.5を固定。</p><label>手元容量 <select><option value="0">Hˣ = 6</option><option value="1">Hˣ = 8</option><option value="2" selected>Hˣ = 10</option><option value="3">Hˣ = 14</option></select></label><script type="application/json" data-frames>["<svg viewBox=\"0 0 540 210\" role=\"img\" aria-label=\"発注率の実行可能区間。0から上限までが緑、名目発注は4。\" style=\"width:100%;height:auto\">\n<text x=\"20\" y=\"24\">発注 u → 輸送中 L → 手元 X<\/text>\n<text x=\"20\" y=\"53\">L：1階微分にu　／　X：2階微分にu<\/text>\n<path d=\"M45 120H485\" stroke=\"currentColor\"/><rect x=\"45\" y=\"98\" width=\"0\" height=\"22\" fill=\"#137d79\"/>\n<path d=\"M445 85V140\" stroke=\"#bf4938\" stroke-width=\"3\"/>\n<text x=\"40\" y=\"160\">0<\/text><text x=\"420\" y=\"160\">名目4<\/text>\n<text x=\"45\" y=\"194\">緑：両制約を満たす非負発注の範囲<\/text><\/svg><p><strong>共通領域なし。緩和なしではQPが実行不能。<\/strong><\/p><p>現在の余裕 h = -1、入荷を考慮した h₁ = -1.5。輸送中の上限 3、手元の上限 -0.5。<\/p>", "<svg viewBox=\"0 0 540 210\" role=\"img\" aria-label=\"発注率の実行可能区間。0から上限までが緑、名目発注は4。\" style=\"width:100%;height:auto\">\n<text x=\"20\" y=\"24\">発注 u → 輸送中 L → 手元 X<\/text>\n<text x=\"20\" y=\"53\">L：1階微分にu　／　X：2階微分にu<\/text>\n<path d=\"M45 120H485\" stroke=\"currentColor\"/><rect x=\"45\" y=\"98\" width=\"50.0\" height=\"22\" fill=\"#137d79\"/>\n<path d=\"M445 85V140\" stroke=\"#bf4938\" stroke-width=\"3\"/>\n<text x=\"40\" y=\"160\">0<\/text><text x=\"420\" y=\"160\">名目4<\/text>\n<text x=\"45\" y=\"194\">緑：両制約を満たす非負発注の範囲<\/text><\/svg><p><strong>局所QP解 0.5。ただしh₁&lt;0で、定理の初期条件を満たさない。<\/strong><\/p><p>現在の余裕 h = 1、入荷を考慮した h₁ = -0.5。輸送中の上限 3、手元の上限 0.5。<\/p>", "<svg viewBox=\"0 0 540 210\" role=\"img\" aria-label=\"発注率の実行可能区間。0から上限までが緑、名目発注は4。\" style=\"width:100%;height:auto\">\n<text x=\"20\" y=\"24\">発注 u → 輸送中 L → 手元 X<\/text>\n<text x=\"20\" y=\"53\">L：1階微分にu　／　X：2階微分にu<\/text>\n<path d=\"M45 120H485\" stroke=\"currentColor\"/><rect x=\"45\" y=\"98\" width=\"150.0\" height=\"22\" fill=\"#137d79\"/>\n<path d=\"M445 85V140\" stroke=\"#bf4938\" stroke-width=\"3\"/>\n<text x=\"40\" y=\"160\">0<\/text><text x=\"420\" y=\"160\">名目4<\/text>\n<text x=\"45\" y=\"194\">緑：両制約を満たす非負発注の範囲<\/text><\/svg><p><strong>QP解 1.5。hとh₁はともに非負。<\/strong><\/p><p>現在の余裕 h = 3、入荷を考慮した h₁ = 0.5。輸送中の上限 3、手元の上限 1.5。<\/p>", "<svg viewBox=\"0 0 540 210\" role=\"img\" aria-label=\"発注率の実行可能区間。0から上限までが緑、名目発注は4。\" style=\"width:100%;height:auto\">\n<text x=\"20\" y=\"24\">発注 u → 輸送中 L → 手元 X<\/text>\n<text x=\"20\" y=\"53\">L：1階微分にu　／　X：2階微分にu<\/text>\n<path d=\"M45 120H485\" stroke=\"currentColor\"/><rect x=\"45\" y=\"98\" width=\"300.0\" height=\"22\" fill=\"#137d79\"/>\n<path d=\"M445 85V140\" stroke=\"#bf4938\" stroke-width=\"3\"/>\n<text x=\"40\" y=\"160\">0<\/text><text x=\"420\" y=\"160\">名目4<\/text>\n<text x=\"45\" y=\"194\">緑：両制約を満たす非負発注の範囲<\/text><\/svg><p><strong>QP解 3。hとh₁はともに非負。<\/strong><\/p><p>現在の余裕 h = 7、入荷を考慮した h₁ = 2.5。輸送中の上限 3、手元の上限 3.5。<\/p>"]</script><div data-output aria-live="polite"><svg viewBox="0 0 540 210" role="img" aria-label="発注率の実行可能区間。0から上限までが緑、名目発注は4。" style="width:100%;height:auto">
+<text x="20" y="24">発注 u → 輸送中 L → 手元 X</text>
+<text x="20" y="53">L：1階微分にu　／　X：2階微分にu</text>
+<path d="M45 120H485" stroke="currentColor"/><rect x="45" y="98" width="150.0" height="22" fill="#137d79"/>
+<path d="M445 85V140" stroke="#bf4938" stroke-width="3"/>
+<text x="40" y="160">0</text><text x="420" y="160">名目4</text>
+<text x="45" y="194">緑：両制約を満たす非負発注の範囲</text></svg><p><strong>QP解 1.5。hとh₁はともに非負。</strong></p><p>現在の余裕 h = 3、入荷を考慮した h₁ = 0.5。輸送中の上限 3、手元の上限 1.5。</p></div><figcaption>式9・15・20の決定論的な線形縮約。容量を瞬時に下げても、在庫や到着待ちは消えない。run.py → results.jsonから生成。</figcaption></figure><figure class="teaching"><h3>著者の50商品実験：頻度と超過量を分ける</h3><svg viewBox="0 0 560 230" role="img" aria-label="充足率0.562、容量違反率0.815、M1 0.050、M3 0.083" style="width:100%;height:auto"><text x="12" y="36">充足率</text><rect x="240" y="19" width="140.5" height="22" fill="#137d79"/><text x="385.5" y="36">0.562</text><text x="12" y="89">容量違反率</text><rect x="240" y="72" width="203.75" height="22" fill="#bf4938"/><text x="448.75" y="89">0.815</text><text x="12" y="142">M1：平均相対超過</text><rect x="240" y="125" width="12.5" height="22" fill="#137d79"/><text x="257.5" y="142">0.050</text><text x="12" y="195">M3：10%超過の確率</text><rect x="240" y="178" width="20.75" height="22" fill="#137d79"/><text x="265.75" y="195">0.083</text></svg><figcaption>表II–III、8 seedの著者報告。すべて0–1の軸だが、指標の定義は異なる。論文の再現結果ではない。</figcaption></figure></div><div class="downloads"><a href="../downloads/constrained-deep-inventory-fbsde/run.py" download>実行コード</a><a href="../downloads/constrained-deep-inventory-fbsde/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/constrained-deep-inventory-fbsde">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><details><summary>生の results.json</summary><pre><code>{
+  &quot;lab30_fbsde&quot;: true,
+  &quot;seed&quot;: null,
+  &quot;scope&quot;: &quot;決定論・単品・線形流量の局所計算。学習・確率安全性・性能は検証しない。&quot;,
+  &quot;frames&quot;: [
+    {
+      &quot;label&quot;: &quot;Hˣ = 6&quot;,
+      &quot;capacity&quot;: 6,
+      &quot;x&quot;: 7.0,
+      &quot;pipeline&quot;: 4.0,
+      &quot;h&quot;: -1.0,
+      &quot;h1&quot;: -1.5,
+      &quot;transit_upper&quot;: 3.0,
+      &quot;onhand_upper&quot;: -0.5,
+      &quot;nominal&quot;: 4.0,
+      &quot;order&quot;: null,
+      &quot;residual&quot;: null,
+      &quot;augmented_initial_safe&quot;: false,
+      &quot;feasible&quot;: false
+    },
+    {
+      &quot;label&quot;: &quot;Hˣ = 8&quot;,
+      &quot;capacity&quot;: 8,
+      &quot;x&quot;: 7.0,
+      &quot;pipeline&quot;: 4.0,
+      &quot;h&quot;: 1.0,
+      &quot;h1&quot;: -0.5,
+      &quot;transit_upper&quot;: 3.0,
+      &quot;onhand_upper&quot;: 0.5,
+      &quot;nominal&quot;: 4.0,
+      &quot;order&quot;: 0.5,
+      &quot;residual&quot;: 0.0,
+      &quot;augmented_initial_safe&quot;: false,
+      &quot;feasible&quot;: true
+    },
+    {
+      &quot;label&quot;: &quot;Hˣ = 10&quot;,
+      &quot;capacity&quot;: 10,
+      &quot;x&quot;: 7.0,
+      &quot;pipeline&quot;: 4.0,
+      &quot;h&quot;: 3.0,
+      &quot;h1&quot;: 0.5,
+      &quot;transit_upper&quot;: 3.0,
+      &quot;onhand_upper&quot;: 1.5,
+      &quot;nominal&quot;: 4.0,
+      &quot;order&quot;: 1.5,
+      &quot;residual&quot;: 0.0,
+      &quot;augmented_initial_safe&quot;: true,
+      &quot;feasible&quot;: true
+    },
+    {
+      &quot;label&quot;: &quot;Hˣ = 14&quot;,
+      &quot;capacity&quot;: 14,
+      &quot;x&quot;: 7.0,
+      &quot;pipeline&quot;: 4.0,
+      &quot;h&quot;: 7.0,
+      &quot;h1&quot;: 2.5,
+      &quot;transit_upper&quot;: 3.0,
+      &quot;onhand_upper&quot;: 3.5,
+      &quot;nominal&quot;: 4.0,
+      &quot;order&quot;: 3.0,
+      &quot;residual&quot;: 0.25,
+      &quot;augmented_initial_safe&quot;: true,
+      &quot;feasible&quot;: true
+    }
+  ],
+  &quot;derivative_check&quot;: {
+    &quot;d_dLdot_du&quot;: 1.0,
+    &quot;d_dXdot_du&quot;: 0.0,
+    &quot;d_dXddot_du&quot;: 0.5
+  },
+  &quot;paper_reported&quot;: {
+    &quot;source&quot;: &quot;Tables II–IV; eight seeds; not reproduced&quot;,
+    &quot;M&quot;: 50,
+    &quot;fill_rate&quot;: 0.562,
+    &quot;fill_rate_sd&quot;: 0.031,
+    &quot;onhand_violation&quot;: 0.815,
+    &quot;onhand_M1&quot;: 0.05,
+    &quot;onhand_M3&quot;: 0.083,
+    &quot;onhand_utilization&quot;: 1.02,
+    &quot;emission_onhand_violation&quot;: 0.077
+  },
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>容量10では輸送中の上限3より手元の上限1.5が厳しく、発注は4から1.5へ下がる。容量8では現在の在庫7は収まるが、h₁=−0.5となり、定理の初期条件を満たさない。容量6への即時変更では非負発注との共通領域が空になる。</p>
+<p>頻度と大きさを分けたい。違反率0.815とM1=0.050は異なる量。頻繁な小幅超過と整合するが、これだけで個々の経路の分布は復元できない。ブラウザーの図は著者値と局所計算を別々に表示する。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>PARTIAL — メカニズム</strong>：発注摂動が輸送中在庫の1階微分、手元在庫の2階微分に現れることを計算した。容量10でQPの手元制約が等号になること、容量8で初期条件が破れること、容量6で実行不能になることをassertで確認した。</p>
+<p><strong>CONFIRMED — 数値転記</strong>：表II・IIIから充足率、違反率、M1、M3を区別して転記した。このラベルは実験再現を意味しない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p><strong>NOT TESTED</strong>：deep FBSDEの学習、確率的な安全性の定理、50・100商品の性能、現場適用性。無雑音の局所計算から、Brownian雑音下の経路安全性は結論できない。特に予算が急に下がる場合の可行性を保証していない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>実行は <code>UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/constrained-deep-inventory-fbsde/run.py</code>。Python標準ライブラリだけでresults.jsonを再生成する。外部データ、GPU、学習済み重みは不要。</p>
+<p>HTMLはlab.yaml、README、mapping.md、run.py、results.jsonから生成する。表示部はpaper_lab/fbsde30.py。公式実装へのリンクは提供PDF内で確認できず、公式コードは未実行。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文と最小実装の対応</h1>
+<p>一次資料：<a href="https://arxiv.org/abs/2609.11817">arXiv:2609.11817v1</a>。提供PDFを直接読んだ。公式コードのURLはPDF内で確認できず、独立した最小実装を使う。</p>
+<table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>Lab</th>
+<th>省略した条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>式1–2、§IIIの相対次数</td>
+<td>run.pyのderivative_check</td>
+<td>雑音、流量の飽和、複数商品</td>
+</tr>
+<tr>
+<td>式9、15、高次バリア</td>
+<td>frameのtransit_cap、onhand_cap</td>
+<td>非線形流量の導関数、拡散補正、排出重み</td>
+</tr>
+<tr>
+<td>式11、定理5</td>
+<td>hとh1、容量6・8の反例</td>
+<td>切替後の拡張安全集合への誘導</td>
+</tr>
+<tr>
+<td>式20のQP</td>
+<td>区間への射影</td>
+<td>学習勾配、緩和変数、CLARABEL</td>
+</tr>
+<tr>
+<td>図1–3、表II–III</td>
+<td>結果パネルの著者値</td>
+<td>論文の軌跡を再描画したものではない</td>
+</tr>
+<tr>
+<td>§IVのFBSDE学習</td>
+<td>未実装</td>
+<td>価値関数・勾配ネットワーク、終端損失</td>
+</tr>
+</tbody>
+</table>
+<p>図の発注4は教材用の固定値。論文の学習済み制御ではない。QPが実行不能の場合、任意の発注で安全と表示しない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>容量に収まる在庫でも、到着待ちの商品を考えると安全でないのはなぜか。</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/constrained-deep-inventory-fbsde/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

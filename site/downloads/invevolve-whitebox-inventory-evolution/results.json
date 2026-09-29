@@ -1,0 +1,1047 @@
+{
+  "lab30": "invevolve",
+  "scope": "人工需要の方策応答と保守的な認証。論文の追試ではない。",
+  "seed": 930,
+  "paths": 256,
+  "days": 60,
+  "lead_time": 3,
+  "base_stock": 24,
+  "base_cap": 4,
+  "holding": 1,
+  "penalty": 9,
+  "bound": 114,
+  "delta": 0.05,
+  "comparisons": 2,
+  "replay": [
+    {
+      "policy": "CBS",
+      "cost": 12.402018229166666,
+      "gain": 0.0,
+      "radius": 0,
+      "lcb": 0.0,
+      "ucb": 0.0
+    },
+    {
+      "policy": "Tilted-CBS",
+      "cost": 9.500525297317411,
+      "gain": 2.9014929318492553,
+      "radius": 21.092952419036376,
+      "lcb": -18.19145948718712,
+      "ucb": 23.99444535088563
+    },
+    {
+      "policy": "Tilted-PIC",
+      "cost": 10.036607114683527,
+      "gain": 2.3654111144831407,
+      "radius": 21.092952419036376,
+      "lcb": -18.727541304553235,
+      "ucb": 23.458363533519517
+    }
+  ],
+  "frames": [
+    {
+      "label": "α=0 / Kp=1",
+      "alpha": 0,
+      "kp": 1,
+      "curve": [
+        {
+          "gap": 0,
+          "cbs": 0,
+          "tilted": 0,
+          "pic": 0
+        },
+        {
+          "gap": 1,
+          "cbs": 1,
+          "tilted": 1,
+          "pic": 1
+        },
+        {
+          "gap": 2,
+          "cbs": 2,
+          "tilted": 2,
+          "pic": 2
+        },
+        {
+          "gap": 3,
+          "cbs": 3,
+          "tilted": 3,
+          "pic": 3
+        },
+        {
+          "gap": 4,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 5,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 6,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 7,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 8,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 9,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 10,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 11,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 12,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 13,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 14,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 15,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 16,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 17,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 18,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 19,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 20,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 21,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 22,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 23,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 24,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 25,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 26,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 27,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 28,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 29,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 30,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        }
+      ]
+    },
+    {
+      "label": "α=0.25 / Kp=1",
+      "alpha": 0.25,
+      "kp": 1,
+      "curve": [
+        {
+          "gap": 0,
+          "cbs": 0,
+          "tilted": 0,
+          "pic": 0
+        },
+        {
+          "gap": 1,
+          "cbs": 1,
+          "tilted": 1,
+          "pic": 1
+        },
+        {
+          "gap": 2,
+          "cbs": 2,
+          "tilted": 2,
+          "pic": 2
+        },
+        {
+          "gap": 3,
+          "cbs": 3,
+          "tilted": 3,
+          "pic": 3
+        },
+        {
+          "gap": 4,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 4
+        },
+        {
+          "gap": 5,
+          "cbs": 4,
+          "tilted": 5,
+          "pic": 5
+        },
+        {
+          "gap": 6,
+          "cbs": 4,
+          "tilted": 5.5,
+          "pic": 5.5
+        },
+        {
+          "gap": 7,
+          "cbs": 4,
+          "tilted": 5.75,
+          "pic": 5.75
+        },
+        {
+          "gap": 8,
+          "cbs": 4,
+          "tilted": 6.0,
+          "pic": 6.0
+        },
+        {
+          "gap": 9,
+          "cbs": 4,
+          "tilted": 6.25,
+          "pic": 6.25
+        },
+        {
+          "gap": 10,
+          "cbs": 4,
+          "tilted": 6.5,
+          "pic": 6.5
+        },
+        {
+          "gap": 11,
+          "cbs": 4,
+          "tilted": 6.75,
+          "pic": 6.75
+        },
+        {
+          "gap": 12,
+          "cbs": 4,
+          "tilted": 7.0,
+          "pic": 7.0
+        },
+        {
+          "gap": 13,
+          "cbs": 4,
+          "tilted": 7.25,
+          "pic": 7.25
+        },
+        {
+          "gap": 14,
+          "cbs": 4,
+          "tilted": 7.5,
+          "pic": 7.5
+        },
+        {
+          "gap": 15,
+          "cbs": 4,
+          "tilted": 7.75,
+          "pic": 7.75
+        },
+        {
+          "gap": 16,
+          "cbs": 4,
+          "tilted": 8.0,
+          "pic": 8.0
+        },
+        {
+          "gap": 17,
+          "cbs": 4,
+          "tilted": 8.25,
+          "pic": 8.25
+        },
+        {
+          "gap": 18,
+          "cbs": 4,
+          "tilted": 8.5,
+          "pic": 8.5
+        },
+        {
+          "gap": 19,
+          "cbs": 4,
+          "tilted": 8.75,
+          "pic": 8.75
+        },
+        {
+          "gap": 20,
+          "cbs": 4,
+          "tilted": 9.0,
+          "pic": 9.0
+        },
+        {
+          "gap": 21,
+          "cbs": 4,
+          "tilted": 9.25,
+          "pic": 9.25
+        },
+        {
+          "gap": 22,
+          "cbs": 4,
+          "tilted": 9.5,
+          "pic": 9.5
+        },
+        {
+          "gap": 23,
+          "cbs": 4,
+          "tilted": 9.75,
+          "pic": 9.75
+        },
+        {
+          "gap": 24,
+          "cbs": 4,
+          "tilted": 10.0,
+          "pic": 10.0
+        },
+        {
+          "gap": 25,
+          "cbs": 4,
+          "tilted": 10.25,
+          "pic": 10.25
+        },
+        {
+          "gap": 26,
+          "cbs": 4,
+          "tilted": 10.5,
+          "pic": 10.5
+        },
+        {
+          "gap": 27,
+          "cbs": 4,
+          "tilted": 10.75,
+          "pic": 10.75
+        },
+        {
+          "gap": 28,
+          "cbs": 4,
+          "tilted": 11.0,
+          "pic": 11.0
+        },
+        {
+          "gap": 29,
+          "cbs": 4,
+          "tilted": 11.25,
+          "pic": 11.25
+        },
+        {
+          "gap": 30,
+          "cbs": 4,
+          "tilted": 11.5,
+          "pic": 11.5
+        }
+      ]
+    },
+    {
+      "label": "α=0.25 / Kp=0.65",
+      "alpha": 0.25,
+      "kp": 0.65,
+      "curve": [
+        {
+          "gap": 0,
+          "cbs": 0,
+          "tilted": 0,
+          "pic": 0
+        },
+        {
+          "gap": 1,
+          "cbs": 1,
+          "tilted": 1,
+          "pic": 1
+        },
+        {
+          "gap": 2,
+          "cbs": 2,
+          "tilted": 2,
+          "pic": 1
+        },
+        {
+          "gap": 3,
+          "cbs": 3,
+          "tilted": 3,
+          "pic": 2
+        },
+        {
+          "gap": 4,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 3
+        },
+        {
+          "gap": 5,
+          "cbs": 4,
+          "tilted": 5,
+          "pic": 3
+        },
+        {
+          "gap": 6,
+          "cbs": 4,
+          "tilted": 5.5,
+          "pic": 4
+        },
+        {
+          "gap": 7,
+          "cbs": 4,
+          "tilted": 5.75,
+          "pic": 5
+        },
+        {
+          "gap": 8,
+          "cbs": 4,
+          "tilted": 6.0,
+          "pic": 5
+        },
+        {
+          "gap": 9,
+          "cbs": 4,
+          "tilted": 6.25,
+          "pic": 6
+        },
+        {
+          "gap": 10,
+          "cbs": 4,
+          "tilted": 6.5,
+          "pic": 6.5
+        },
+        {
+          "gap": 11,
+          "cbs": 4,
+          "tilted": 6.75,
+          "pic": 6.75
+        },
+        {
+          "gap": 12,
+          "cbs": 4,
+          "tilted": 7.0,
+          "pic": 7.0
+        },
+        {
+          "gap": 13,
+          "cbs": 4,
+          "tilted": 7.25,
+          "pic": 7.25
+        },
+        {
+          "gap": 14,
+          "cbs": 4,
+          "tilted": 7.5,
+          "pic": 7.5
+        },
+        {
+          "gap": 15,
+          "cbs": 4,
+          "tilted": 7.75,
+          "pic": 7.75
+        },
+        {
+          "gap": 16,
+          "cbs": 4,
+          "tilted": 8.0,
+          "pic": 8.0
+        },
+        {
+          "gap": 17,
+          "cbs": 4,
+          "tilted": 8.25,
+          "pic": 8.25
+        },
+        {
+          "gap": 18,
+          "cbs": 4,
+          "tilted": 8.5,
+          "pic": 8.5
+        },
+        {
+          "gap": 19,
+          "cbs": 4,
+          "tilted": 8.75,
+          "pic": 8.75
+        },
+        {
+          "gap": 20,
+          "cbs": 4,
+          "tilted": 9.0,
+          "pic": 9.0
+        },
+        {
+          "gap": 21,
+          "cbs": 4,
+          "tilted": 9.25,
+          "pic": 9.25
+        },
+        {
+          "gap": 22,
+          "cbs": 4,
+          "tilted": 9.5,
+          "pic": 9.5
+        },
+        {
+          "gap": 23,
+          "cbs": 4,
+          "tilted": 9.75,
+          "pic": 9.75
+        },
+        {
+          "gap": 24,
+          "cbs": 4,
+          "tilted": 10.0,
+          "pic": 10.0
+        },
+        {
+          "gap": 25,
+          "cbs": 4,
+          "tilted": 10.25,
+          "pic": 10.25
+        },
+        {
+          "gap": 26,
+          "cbs": 4,
+          "tilted": 10.5,
+          "pic": 10.5
+        },
+        {
+          "gap": 27,
+          "cbs": 4,
+          "tilted": 10.75,
+          "pic": 10.75
+        },
+        {
+          "gap": 28,
+          "cbs": 4,
+          "tilted": 11.0,
+          "pic": 11.0
+        },
+        {
+          "gap": 29,
+          "cbs": 4,
+          "tilted": 11.25,
+          "pic": 11.25
+        },
+        {
+          "gap": 30,
+          "cbs": 4,
+          "tilted": 11.5,
+          "pic": 11.5
+        }
+      ]
+    },
+    {
+      "label": "α=0.6 / Kp=0.65",
+      "alpha": 0.6,
+      "kp": 0.65,
+      "curve": [
+        {
+          "gap": 0,
+          "cbs": 0,
+          "tilted": 0,
+          "pic": 0
+        },
+        {
+          "gap": 1,
+          "cbs": 1,
+          "tilted": 1,
+          "pic": 1
+        },
+        {
+          "gap": 2,
+          "cbs": 2,
+          "tilted": 2,
+          "pic": 1
+        },
+        {
+          "gap": 3,
+          "cbs": 3,
+          "tilted": 3,
+          "pic": 2
+        },
+        {
+          "gap": 4,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 3
+        },
+        {
+          "gap": 5,
+          "cbs": 4,
+          "tilted": 5,
+          "pic": 3
+        },
+        {
+          "gap": 6,
+          "cbs": 4,
+          "tilted": 6,
+          "pic": 4
+        },
+        {
+          "gap": 7,
+          "cbs": 4,
+          "tilted": 7,
+          "pic": 5
+        },
+        {
+          "gap": 8,
+          "cbs": 4,
+          "tilted": 8,
+          "pic": 5
+        },
+        {
+          "gap": 9,
+          "cbs": 4,
+          "tilted": 9,
+          "pic": 6
+        },
+        {
+          "gap": 10,
+          "cbs": 4,
+          "tilted": 10,
+          "pic": 7
+        },
+        {
+          "gap": 11,
+          "cbs": 4,
+          "tilted": 10.6,
+          "pic": 7
+        },
+        {
+          "gap": 12,
+          "cbs": 4,
+          "tilted": 11.2,
+          "pic": 8
+        },
+        {
+          "gap": 13,
+          "cbs": 4,
+          "tilted": 11.8,
+          "pic": 8
+        },
+        {
+          "gap": 14,
+          "cbs": 4,
+          "tilted": 12.4,
+          "pic": 9
+        },
+        {
+          "gap": 15,
+          "cbs": 4,
+          "tilted": 13.0,
+          "pic": 10
+        },
+        {
+          "gap": 16,
+          "cbs": 4,
+          "tilted": 13.6,
+          "pic": 10
+        },
+        {
+          "gap": 17,
+          "cbs": 4,
+          "tilted": 14.2,
+          "pic": 11
+        },
+        {
+          "gap": 18,
+          "cbs": 4,
+          "tilted": 14.799999999999999,
+          "pic": 12
+        },
+        {
+          "gap": 19,
+          "cbs": 4,
+          "tilted": 15.4,
+          "pic": 12
+        },
+        {
+          "gap": 20,
+          "cbs": 4,
+          "tilted": 16.0,
+          "pic": 13
+        },
+        {
+          "gap": 21,
+          "cbs": 4,
+          "tilted": 16.6,
+          "pic": 14
+        },
+        {
+          "gap": 22,
+          "cbs": 4,
+          "tilted": 17.2,
+          "pic": 14
+        },
+        {
+          "gap": 23,
+          "cbs": 4,
+          "tilted": 17.799999999999997,
+          "pic": 15
+        },
+        {
+          "gap": 24,
+          "cbs": 4,
+          "tilted": 18.4,
+          "pic": 16
+        },
+        {
+          "gap": 25,
+          "cbs": 4,
+          "tilted": 19.0,
+          "pic": 16
+        },
+        {
+          "gap": 26,
+          "cbs": 4,
+          "tilted": 19.6,
+          "pic": 17
+        },
+        {
+          "gap": 27,
+          "cbs": 4,
+          "tilted": 20.2,
+          "pic": 18
+        },
+        {
+          "gap": 28,
+          "cbs": 4,
+          "tilted": 20.8,
+          "pic": 18
+        },
+        {
+          "gap": 29,
+          "cbs": 4,
+          "tilted": 21.4,
+          "pic": 19
+        },
+        {
+          "gap": 30,
+          "cbs": 4,
+          "tilted": 22.0,
+          "pic": 20
+        }
+      ]
+    },
+    {
+      "label": "α=0.25 / Kp=1.3",
+      "alpha": 0.25,
+      "kp": 1.3,
+      "curve": [
+        {
+          "gap": 0,
+          "cbs": 0,
+          "tilted": 0,
+          "pic": 0
+        },
+        {
+          "gap": 1,
+          "cbs": 1,
+          "tilted": 1,
+          "pic": 1
+        },
+        {
+          "gap": 2,
+          "cbs": 2,
+          "tilted": 2,
+          "pic": 3
+        },
+        {
+          "gap": 3,
+          "cbs": 3,
+          "tilted": 3,
+          "pic": 4
+        },
+        {
+          "gap": 4,
+          "cbs": 4,
+          "tilted": 4,
+          "pic": 5
+        },
+        {
+          "gap": 5,
+          "cbs": 4,
+          "tilted": 5,
+          "pic": 5.25
+        },
+        {
+          "gap": 6,
+          "cbs": 4,
+          "tilted": 5.5,
+          "pic": 5.5
+        },
+        {
+          "gap": 7,
+          "cbs": 4,
+          "tilted": 5.75,
+          "pic": 5.75
+        },
+        {
+          "gap": 8,
+          "cbs": 4,
+          "tilted": 6.0,
+          "pic": 6.0
+        },
+        {
+          "gap": 9,
+          "cbs": 4,
+          "tilted": 6.25,
+          "pic": 6.25
+        },
+        {
+          "gap": 10,
+          "cbs": 4,
+          "tilted": 6.5,
+          "pic": 6.5
+        },
+        {
+          "gap": 11,
+          "cbs": 4,
+          "tilted": 6.75,
+          "pic": 6.75
+        },
+        {
+          "gap": 12,
+          "cbs": 4,
+          "tilted": 7.0,
+          "pic": 7.0
+        },
+        {
+          "gap": 13,
+          "cbs": 4,
+          "tilted": 7.25,
+          "pic": 7.25
+        },
+        {
+          "gap": 14,
+          "cbs": 4,
+          "tilted": 7.5,
+          "pic": 7.5
+        },
+        {
+          "gap": 15,
+          "cbs": 4,
+          "tilted": 7.75,
+          "pic": 7.75
+        },
+        {
+          "gap": 16,
+          "cbs": 4,
+          "tilted": 8.0,
+          "pic": 8.0
+        },
+        {
+          "gap": 17,
+          "cbs": 4,
+          "tilted": 8.25,
+          "pic": 8.25
+        },
+        {
+          "gap": 18,
+          "cbs": 4,
+          "tilted": 8.5,
+          "pic": 8.5
+        },
+        {
+          "gap": 19,
+          "cbs": 4,
+          "tilted": 8.75,
+          "pic": 8.75
+        },
+        {
+          "gap": 20,
+          "cbs": 4,
+          "tilted": 9.0,
+          "pic": 9.0
+        },
+        {
+          "gap": 21,
+          "cbs": 4,
+          "tilted": 9.25,
+          "pic": 9.25
+        },
+        {
+          "gap": 22,
+          "cbs": 4,
+          "tilted": 9.5,
+          "pic": 9.5
+        },
+        {
+          "gap": 23,
+          "cbs": 4,
+          "tilted": 9.75,
+          "pic": 9.75
+        },
+        {
+          "gap": 24,
+          "cbs": 4,
+          "tilted": 10.0,
+          "pic": 10.0
+        },
+        {
+          "gap": 25,
+          "cbs": 4,
+          "tilted": 10.25,
+          "pic": 10.25
+        },
+        {
+          "gap": 26,
+          "cbs": 4,
+          "tilted": 10.5,
+          "pic": 10.5
+        },
+        {
+          "gap": 27,
+          "cbs": 4,
+          "tilted": 10.75,
+          "pic": 10.75
+        },
+        {
+          "gap": 28,
+          "cbs": 4,
+          "tilted": 11.0,
+          "pic": 11.0
+        },
+        {
+          "gap": 29,
+          "cbs": 4,
+          "tilted": 11.25,
+          "pic": 11.25
+        },
+        {
+          "gap": 30,
+          "cbs": 4,
+          "tilted": 11.5,
+          "pic": 11.5
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "alpha_zero_recovers_cbs": true,
+    "integer_gap_kp_one_recovers_tilted": true,
+    "bounded_cost": true
+  },
+  "paper_reported": {
+    "synthetic": {
+      "base_glm": 13,
+      "invevolve": 25,
+      "n": 30
+    },
+    "cj": {
+      "invevolve": 20,
+      "a3c": 11,
+      "e2e": 16,
+      "n": 30,
+      "cost_reduction_on_wins_pct": 9.2
+    },
+    "stationary": {
+      "tilted_cbs": [
+        18,
+        74,
+        4
+      ],
+      "tilted_pic": [
+        41,
+        47,
+        8
+      ],
+      "n": 96,
+      "tie_threshold_pct": 2
+    }
+  },
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  }
+}

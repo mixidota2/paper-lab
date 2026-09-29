@@ -1,0 +1,120 @@
+id: retailbench-long-horizon-store-agents
+arxiv_id: '2603.16453'
+title: 'RetailBench: Benchmarking long horizon reasoning and coherent decision making
+  of LLM agents in realistic retail environments'
+authors:
+- Linghua Zhang
+- Jun Wang
+- Jingtong Wu
+- Zhisong Zhang
+year: 2026
+topics:
+- retail-supply
+- ai-agents
+urls:
+  paper: https://arxiv.org/abs/2603.16453
+  pdf: https://arxiv.org/pdf/2603.16453v3
+  official_code: https://github.com/linghuazhang01/RetailBench
+  arxiv: https://arxiv.org/abs/2603.16453
+verdict: Worth Reading
+status: published
+question: 価格・補充・棚・資金繰りを180日間、一貫して動かせるか
+summary: RetailBenchは、価格・補充・棚・仕入先・資金繰りを180日間つなぐ店舗運営の評価環境である。LLMの最良選択実行でも、最終純資産は特権情報を使うOracle
+  Policyの約19%だった。個々のツール操作が正しくても、店を続けられるとは限らない。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-09-30'
+  version: v3
+  pdf_sha256: 28bef824919bcae3ab86e80510a7990006d948a11c9a2542b04b178645f1ad8a
+  scope: Figure 1; Sections 2–4; Table 1; Figure 3; Appendix A
+  url: https://arxiv.org/pdf/2603.16453v3
+core_idea:
+  author_claim: データに基づく部分観測の店舗環境で、長期の一貫した意思決定を評価する。不完全な情報収集、表面的な判断、継続する方策の欠如という3種の失敗を診断する。
+  research_bot_interpretation: 研究地図では「運用中に複数の店舗業務を操作するLLMの評価」に置く。InvEvolveの設計時の発注方策探索や、SabreAgentの設計後に固定する在庫制御とは、LLMの役割も評価単位も異なる。
+sections:
+  overview: RetailBenchは、価格・補充・棚・仕入先・資金繰りを180日間つなぐ店舗運営の評価環境である。LLMの最良選択実行でも、最終純資産は特権情報を使うOracle
+    Policyの約19%だった。個々のツール操作が正しくても、店を続けられるとは限らない。
+  problem: Dominick’sの実データを基に96商品・20カテゴリを構成する。各商品には5仕入先があり、棚は40商品、在庫容量は15,000個。初期資金30,000、家賃は1日600である。需要やニュースの内部効果は隠され、エージェントは照会ツールで状態を調べる。価格変更、発注、棚の変更が、その後の販売・返品・現金残高に影響する。
+  why_it_might_work: 解釈：仕入れの安さだけを選ぶと、返品による将来の収入減を見落とす。棚へ載せない商品は販売機会を失い、売れない日も家賃はかかる。こうした遅れて現れる結果を同じ環境で測れる点に価値がある。行動診断と成績の関連は、各失敗要因の因果効果を単独で証明するものではない。
+  evidence: '一次資料の著者報告（v3 Table 1）：Oracle Policyは純資産131,510.42、販売数量267,998。GPT-5.5
+    ReActは純資産24,350.98でLLM中の最高値、DeepSeek-V4-Pro Plan-and-Actは販売数量164,417で最高値だった。販売数量の単位は個で、売上金額ではない。両モデルは180日を完走し、Kimi-K2.6は130日、残る4モデルは58〜73日で終了した。
+
+
+    各モデルにつき、利用可能な枠組みから生存日数を優先し、同点なら純資産、販売数量の順で選んだ実行を掲載する。全実行の平均ではない。GPT-5.5は費用の制約でReActのみ。Oracleは隠れた情報を使う非LLMの参照方策であり、同じ観測条件のエージェントではない。
+
+
+    §4.3・Figure 3の診断では、選択されたLLM実行の平均QualityFirstは21.5%、PriceFirstは55.6%。行動対象商品数は1日0.95〜7.89商品で、Oracleの38.00商品から離れている。この商品数は販売された商品数とも異なる。'
+  executable_understanding: '`UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/retailbench-long-horizon-store-agents/run.py`
+
+
+    人工的な30日間の収支を、同じ需要・家賃・初期資金で比較する。PriceFirstは原価4・返品率30%、QualityFirstは原価5・返品率5%。価格10、対象商品当たり需要10個/日とし、毎日即時補充する。対象商品数を1・8・20・38から選び、仕入先選択と日々の対象範囲が収支へどう重なるかを読む。これらの仮定は論文から推定した値ではない。'
+  results: 人工例で1日8商品を扱うと、30日後の現金はPriceFirstが−7,800、QualityFirstが−4,200。38商品なら19,200と36,300になる。安い仕入先との差は返品後の単位粗利3対4.5から生じる。負の現金でも計算を続けるため、生存日数の再現には使えない。
+  what_we_verified: CONFIRMED：人工例の全240日分で現金の収支恒等式を照合し、返品率を含む単位粗利の差を確認した。MechanismはPARTIAL。店舗モジュール間の結合のうち、仕入原価・返品・対象商品数・家賃だけを動かしている。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。公式環境、LLM、180日運営、納期、賞味期限、ニュース、隠れた需要、棚内の代替効果は再実行していない。実店舗のA/Bテストや棚割りの無作為化比較試験でもない。単一の固定環境で選んだ実行から、モデル一般の平均成績や現場の利益を予測しない。
+  implementation: run.pyのsimulate()は人工収支を計算し、main()は論文Table 1の転記値と実験値を分けてresults.jsonへ保存する。ページの図はlab.yaml、操作パネルはresults.jsonから生成する。Python標準ライブラリだけで動作する。
+  mapping: mapping.md
+  method: method.md
+teaching_figures:
+- kind: matrix
+  id: failures
+  title: 同じ低成績を3つの行動診断で分ける
+  after: evidence
+  locator: Section 4.3; Figure 3
+  source: https://arxiv.org/pdf/2603.16453v3
+  rationale: 同じ低成績を3つの行動診断で分ける
+  caption: 一次論文の記述を再構成。数値は著者報告であり、Labの追試値ではない。
+  columns:
+  - 観測された行動
+  - 読む際の注意
+  rows:
+  - label: 情報収集の不足
+    cells:
+    - 必要な情報を揃えずに発注・値付け
+    - 照会回数だけでは情報の充足を測れない
+  - label: 表面的な判断
+    cells:
+    - PriceFirst 55.6% / QualityFirst 21.5%
+    - 選択実行の平均。品質は返品にも影響
+  - label: 継続する方策の欠如
+    cells:
+    - 対象商品/日：LLM 0.95〜7.89 / Oracle 38.00
+    - 販売商品数とは別。遅れた結果を追う必要
+- kind: chart
+  id: networth
+  title: 純資産の最高LLM実行もOracleから離れる
+  after: evidence
+  locator: Table 1
+  source: https://arxiv.org/pdf/2603.16453v3
+  rationale: 純資産の最高LLM実行もOracleから離れる
+  caption: 一次論文の記述を再構成。数値は著者報告であり、Labの追試値ではない。
+  maximum: 140000
+  unit: 最終純資産（環境内の通貨単位）
+  bars:
+  - label: Oracle（特権情報）
+    value: 131510.42
+  - label: GPT-5.5 / ReAct
+    value: 24350.98
+  - label: DeepSeek-V4-Pro / Plan-and-Act
+    value: 10120.9
+- kind: chart
+  id: sales
+  title: 販売数量の最良モデルは純資産と異なる
+  after: evidence
+  locator: Table 1
+  source: https://arxiv.org/pdf/2603.16453v3
+  rationale: 販売数量の最良モデルは純資産と異なる
+  caption: 一次論文の記述を再構成。数値は著者報告であり、Labの追試値ではない。
+  maximum: 280000
+  unit: 累積販売数量（個）
+  bars:
+  - label: Oracle
+    value: 267998
+  - label: DeepSeek-V4-Pro
+    value: 164417
+  - label: GPT-5.5
+    value: 136405
+submitted: '2026-03-17'

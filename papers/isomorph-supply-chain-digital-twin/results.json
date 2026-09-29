@@ -1,0 +1,2072 @@
+{
+  "lab30": "isomorph",
+  "note": "人工的な1辺の実験。13拠点の再現、予測モデルの比較、補充方策の性能検証ではない。",
+  "frames": [
+    {
+      "label": "輸送容量 8 / 日",
+      "capacity": 8,
+      "rows": [
+        {
+          "day": 1,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 2,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 3,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 4,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 5,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 1,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 6,
+          "demand": 14,
+          "backlog": 5,
+          "stock": 0,
+          "fill": 0.6428571428571429,
+          "utilization": 1.0
+        },
+        {
+          "day": 7,
+          "demand": 8,
+          "backlog": 5,
+          "stock": 0,
+          "fill": 0.375,
+          "utilization": 1.0
+        },
+        {
+          "day": 8,
+          "demand": 8,
+          "backlog": 5,
+          "stock": 0,
+          "fill": 0.375,
+          "utilization": 1.0
+        },
+        {
+          "day": 9,
+          "demand": 8,
+          "backlog": 5,
+          "stock": 0,
+          "fill": 0.375,
+          "utilization": 1.0
+        },
+        {
+          "day": 10,
+          "demand": 8,
+          "backlog": 5,
+          "stock": 0,
+          "fill": 0.375,
+          "utilization": 1.0
+        },
+        {
+          "day": 11,
+          "demand": 8,
+          "backlog": 5,
+          "stock": 0,
+          "fill": 0.375,
+          "utilization": 1.0
+        },
+        {
+          "day": 12,
+          "demand": 14,
+          "backlog": 11,
+          "stock": 0,
+          "fill": 0.21428571428571427,
+          "utilization": 1.0
+        },
+        {
+          "day": 13,
+          "demand": 14,
+          "backlog": 17,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 14,
+          "demand": 8,
+          "backlog": 17,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 15,
+          "demand": 8,
+          "backlog": 17,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 16,
+          "demand": 8,
+          "backlog": 17,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 17,
+          "demand": 8,
+          "backlog": 17,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 18,
+          "demand": 8,
+          "backlog": 17,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 19,
+          "demand": 14,
+          "backlog": 23,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 20,
+          "demand": 14,
+          "backlog": 29,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 21,
+          "demand": 8,
+          "backlog": 29,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 22,
+          "demand": 8,
+          "backlog": 29,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 23,
+          "demand": 8,
+          "backlog": 29,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 24,
+          "demand": 8,
+          "backlog": 29,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 25,
+          "demand": 8,
+          "backlog": 29,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 26,
+          "demand": 14,
+          "backlog": 35,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 27,
+          "demand": 14,
+          "backlog": 41,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 28,
+          "demand": 8,
+          "backlog": 41,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 29,
+          "demand": 8,
+          "backlog": 41,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 30,
+          "demand": 8,
+          "backlog": 41,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 31,
+          "demand": 8,
+          "backlog": 41,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 32,
+          "demand": 8,
+          "backlog": 41,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 33,
+          "demand": 14,
+          "backlog": 47,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 34,
+          "demand": 14,
+          "backlog": 53,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 35,
+          "demand": 8,
+          "backlog": 53,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 36,
+          "demand": 8,
+          "backlog": 53,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 37,
+          "demand": 8,
+          "backlog": 53,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 38,
+          "demand": 8,
+          "backlog": 53,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 39,
+          "demand": 8,
+          "backlog": 53,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 40,
+          "demand": 14,
+          "backlog": 59,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 41,
+          "demand": 14,
+          "backlog": 65,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 42,
+          "demand": 8,
+          "backlog": 65,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 43,
+          "demand": 8,
+          "backlog": 65,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 44,
+          "demand": 8,
+          "backlog": 65,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 45,
+          "demand": 8,
+          "backlog": 65,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 46,
+          "demand": 8,
+          "backlog": 65,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 47,
+          "demand": 14,
+          "backlog": 71,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 48,
+          "demand": 14,
+          "backlog": 77,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 49,
+          "demand": 8,
+          "backlog": 77,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 50,
+          "demand": 8,
+          "backlog": 77,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 51,
+          "demand": 8,
+          "backlog": 77,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 52,
+          "demand": 8,
+          "backlog": 77,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 53,
+          "demand": 8,
+          "backlog": 77,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 54,
+          "demand": 14,
+          "backlog": 83,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 55,
+          "demand": 14,
+          "backlog": 89,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 56,
+          "demand": 8,
+          "backlog": 89,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 57,
+          "demand": 8,
+          "backlog": 89,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 58,
+          "demand": 8,
+          "backlog": 89,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 59,
+          "demand": 8,
+          "backlog": 89,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 60,
+          "demand": 8,
+          "backlog": 89,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 61,
+          "demand": 14,
+          "backlog": 95,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 62,
+          "demand": 14,
+          "backlog": 101,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 63,
+          "demand": 8,
+          "backlog": 101,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 64,
+          "demand": 8,
+          "backlog": 101,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 65,
+          "demand": 8,
+          "backlog": 101,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 66,
+          "demand": 8,
+          "backlog": 101,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 67,
+          "demand": 8,
+          "backlog": 101,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 68,
+          "demand": 14,
+          "backlog": 107,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 69,
+          "demand": 14,
+          "backlog": 113,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 70,
+          "demand": 8,
+          "backlog": 113,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 71,
+          "demand": 8,
+          "backlog": 113,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 72,
+          "demand": 8,
+          "backlog": 113,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 73,
+          "demand": 8,
+          "backlog": 113,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 74,
+          "demand": 8,
+          "backlog": 113,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 75,
+          "demand": 14,
+          "backlog": 119,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 76,
+          "demand": 14,
+          "backlog": 125,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 77,
+          "demand": 8,
+          "backlog": 125,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 78,
+          "demand": 8,
+          "backlog": 125,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 79,
+          "demand": 8,
+          "backlog": 125,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 80,
+          "demand": 8,
+          "backlog": 125,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 81,
+          "demand": 8,
+          "backlog": 125,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 82,
+          "demand": 14,
+          "backlog": 131,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 83,
+          "demand": 14,
+          "backlog": 137,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 84,
+          "demand": 8,
+          "backlog": 137,
+          "stock": 0,
+          "fill": 0.0,
+          "utilization": 1.0
+        }
+      ],
+      "ending_backlog": 137,
+      "conservation_max_error": 0,
+      "current_demand_fill": 0.08946078431372549
+    },
+    {
+      "label": "輸送容量 12 / 日",
+      "capacity": 12,
+      "rows": [
+        {
+          "day": 1,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 2,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 3,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 15,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 4,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 5,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 5,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 6,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 3,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 7,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 8,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 9,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 15,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 10,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 11,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 12,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 9,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 13,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 14,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 15,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 15,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 16,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 17,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 18,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 15,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 19,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 1,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 20,
+          "demand": 14,
+          "backlog": 1,
+          "stock": 0,
+          "fill": 0.9285714285714286,
+          "utilization": 1.0
+        },
+        {
+          "day": 21,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 3,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 22,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 23,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 24,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 15,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 25,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 26,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 5,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 27,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 3,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 28,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 29,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 30,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 15,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 31,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 32,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 33,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 9,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 34,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 35,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 36,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 15,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 37,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 38,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 39,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 15,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 40,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 1,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 41,
+          "demand": 14,
+          "backlog": 1,
+          "stock": 0,
+          "fill": 0.9285714285714286,
+          "utilization": 1.0
+        },
+        {
+          "day": 42,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 3,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 43,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 44,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 45,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 15,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 46,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 47,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 5,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 48,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 3,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 49,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 50,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 51,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 15,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 52,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 53,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 54,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 9,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 55,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 56,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 57,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 15,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 58,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 59,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 60,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 15,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 61,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 1,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 62,
+          "demand": 14,
+          "backlog": 1,
+          "stock": 0,
+          "fill": 0.9285714285714286,
+          "utilization": 1.0
+        },
+        {
+          "day": 63,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 3,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 64,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 65,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 66,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 15,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 67,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 68,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 5,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 69,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 3,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 70,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 71,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 72,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 15,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 73,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 74,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 75,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 9,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 76,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 77,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 78,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 15,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 79,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 80,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 81,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 15,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 82,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 1,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 83,
+          "demand": 14,
+          "backlog": 1,
+          "stock": 0,
+          "fill": 0.9285714285714286,
+          "utilization": 1.0
+        },
+        {
+          "day": 84,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 3,
+          "fill": 1.0,
+          "utilization": 1.0
+        }
+      ],
+      "ending_backlog": 0,
+      "conservation_max_error": 0,
+      "current_demand_fill": 0.9950980392156863
+    },
+    {
+      "label": "輸送容量 20 / 日",
+      "capacity": 20,
+      "rows": [
+        {
+          "day": 1,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 7,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 2,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 19,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 3,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 11,
+          "fill": 1.0,
+          "utilization": 0.95
+        },
+        {
+          "day": 4,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 22,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 5,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 8,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 6,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 14,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 7,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 6,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 8,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 18,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 9,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 10,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 10,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 22,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 11,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 14,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 12,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 0,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 13,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 6,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 14,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 18,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 15,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 10,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 16,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 22,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 17,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 14,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 18,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 6,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 19,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 12,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 20,
+          "demand": 14,
+          "backlog": 2,
+          "stock": 0,
+          "fill": 0.8571428571428571,
+          "utilization": 1.0
+        },
+        {
+          "day": 21,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 10,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 22,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 22,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 23,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 14,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 24,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 6,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 25,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 18,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 26,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 4,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 27,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 10,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 28,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 22,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 29,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 14,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 30,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 6,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 31,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 18,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 32,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 10,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 33,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 16,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 34,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 2,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 35,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 14,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 36,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 6,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 37,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 18,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 38,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 10,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 39,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 22,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 40,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 8,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 41,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 14,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 42,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 6,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 43,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 18,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 44,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 10,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 45,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 22,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 46,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 14,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 47,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 0,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 48,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 6,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 49,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 18,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 50,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 10,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 51,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 22,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 52,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 14,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 53,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 6,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 54,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 12,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 55,
+          "demand": 14,
+          "backlog": 2,
+          "stock": 0,
+          "fill": 0.8571428571428571,
+          "utilization": 1.0
+        },
+        {
+          "day": 56,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 10,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 57,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 22,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 58,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 14,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 59,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 6,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 60,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 18,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 61,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 4,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 62,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 10,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 63,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 22,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 64,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 14,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 65,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 6,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 66,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 18,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 67,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 10,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 68,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 16,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 69,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 2,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 70,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 14,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 71,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 6,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 72,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 18,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 73,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 10,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 74,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 22,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 75,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 8,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 76,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 14,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 77,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 6,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 78,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 18,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 79,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 10,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 80,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 22,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 81,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 14,
+          "fill": 1.0,
+          "utilization": 0.0
+        },
+        {
+          "day": 82,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 0,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 83,
+          "demand": 14,
+          "backlog": 0,
+          "stock": 6,
+          "fill": 1.0,
+          "utilization": 1.0
+        },
+        {
+          "day": 84,
+          "demand": 8,
+          "backlog": 0,
+          "stock": 18,
+          "fill": 1.0,
+          "utilization": 0.0
+        }
+      ],
+      "ending_backlog": 0,
+      "conservation_max_error": 0,
+      "current_demand_fill": 0.9950980392156863
+    }
+  ],
+  "experiments": [
+    {
+      "name": "同一需要・容量だけを変更",
+      "n": 84,
+      "metrics": {
+        "輸送容量 8 / 日": {
+          "期末滞留": 137,
+          "当日需要充足率": 0.0895,
+          "保存則の最大誤差": 0
+        },
+        "輸送容量 12 / 日": {
+          "期末滞留": 0,
+          "当日需要充足率": 0.9951,
+          "保存則の最大誤差": 0
+        },
+        "輸送容量 20 / 日": {
+          "期末滞留": 0,
+          "当日需要充足率": 0.9951,
+          "保存則の最大誤差": 0
+        }
+      }
+    }
+  ]
+}

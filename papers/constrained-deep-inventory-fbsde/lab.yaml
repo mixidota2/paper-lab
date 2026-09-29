@@ -1,0 +1,138 @@
+id: constrained-deep-inventory-fbsde
+title: Constrained Deep Inventory Management Using Forward-Backward SDEs
+authors:
+- Keunwoo Lim
+- Michael Bloem
+year: 2026
+arxiv_id: '2609.11817'
+submitted: '2026-09-10'
+topics:
+- retail-supply
+- ml-systems
+urls:
+  arxiv: https://arxiv.org/abs/2609.11817
+  paper: https://arxiv.org/abs/2609.11817
+  pdf: https://arxiv.org/pdf/2609.11817
+verdict: Radar
+status: published
+related_threads:
+- 経路ごとの在庫制約と学習型補充
+summary: 発注の効く遅れを高次CBFで扱う。50商品で充足率0.562、手元容量の違反率0.815という限界も読む。
+question: 容量に収まる在庫でも、到着待ちの商品を考えると安全でないのはなぜか。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+sections:
+  overview: '在庫の平均的な制約充足から、各経路での倉庫容量・排出枠へ対象を広げる研究。発注が輸送中在庫に入り、その後に手元在庫へ届く時間差を、異なる次数の制御バリア関数（CBF）で扱う。
+
+
+    違反は残る。著者の50商品実験では充足率が0.562 ± 0.031、手元在庫の容量違反率が0.815。理論上の安全性と、離散化・緩和を含む実装の挙動を分けて読む必要がある。Keunwoo
+    Limと、Amazon所属のMichael Bloemによる研究であり、Amazon実店舗での評価を意味しない。'
+  problem: '商品ごとの手元在庫Xと輸送中在庫Lを状態、発注率uを制御とする。入荷は b_in=min(L⁺/τ_in,g)、販売は b_out=min(X⁺/τ_out,d)。したがって
+    dX=(b_in−b_out)dt+σ_X dW_X、dL=(u−b_in)dt+σ_L dW_L となる（式1–2）。τ_inは指数的な流出の平均時間で、固定日数のリードタイムとは異なる。
+
+
+    全商品を重み付きで集計し、倉庫の手元・輸送中容量Hˣ,Hᴸと、対応する排出枠Hᴱˣ,Hᴱᴸを課す。予算は区分一定。途中で切り替わる。期待値制約を持つSCOPEやOR-Transformerを読む際の比較軸に、実現した経路ごとの状態制約が加わる。この位置づけはLabの解釈であり、両手法との直接比較実験は本Labで行っていない。'
+  method: method.md
+  why_it_might_work: '【解釈】今は収まる。それでも安全とは限らない。手元在庫に余裕があっても、輸送中在庫が大量にあれば将来到着分で容量を超える。相対次数2の条件は、現在の余裕と入荷の勢いを同時に見る。単に現在の在庫を容量以下に切る処理では捉えにくい先行制御になる。
+
+
+    ただし、連続時間の定理を週次の数値解法へそのまま読み替えられない。論文はEuler–Maruyama離散化、流量の平滑化、QPの緩和を使う。これらを含む実装の安全性は、実測値で確認する必要がある。'
+  evidence: '一次資料は著者PDFの§III–V、図1–3、表I–IV。対象は50商品。8季節を104週で離散化し、人工環境を8 seedで評価する。需要はGamma分布。年1回の季節変動を持つ。
+
+
+    |著者報告の指標|50商品での値|読み方|
+
+    |---|---:|---|
+
+    |充足率|0.562 ± 0.031|表III。±はseed間の標準偏差|
+
+    |手元容量の違反率|0.815|表II。違反の頻度|
+
+    |手元容量のM1|0.050|予算に対する超過量の平均|
+
+    |手元容量のM3|0.083|10%超過の確率|
+
+    |手元容量の平均利用率|1.02|容量を平均でも上回る|
+
+    |手元排出枠の違反率|0.077|輸送中の制約とは差がある|
+
+
+    輸送中容量の違反率は10⁻⁵未満、輸送中排出枠は10⁻⁴未満と本文に記す。表の0.000を厳密なゼロと読まない。100商品への拡大も報告するが、本Labでは再実行していない。'
+  executable_understanding: '学習を省き、単品・無雑音・線形流量 b_in=L/τ、一定販売dに限定する。X=7、L=4、τ=2、d=1、γ=0.5、輸送中容量6を固定し、手元容量だけを変える。対象は局所的な式の検算。性能再現は含めない。
+
+
+    輸送中の上限は u≤L/τ+γ(Hᴸ−L)。手元の上限は u≤L/τ−γL+γτd+γτh₁、h₁=d−L/τ+γ(Hˣ−X)。名目発注4に最も近い非負の発注を、両上限の下で選ぶ。二次係数は1。解は区間への射影で求まる。
+
+
+    たとえば容量を10から8へ下げた瞬間、手元在庫7と輸送中在庫4はそのまま残り、現在の余裕hは3から1へ減るため、入荷2と販売1の差まで考慮したh₁は0.5から−0.5へ変わる。発注を今すぐ止めても、すでに輸送中の商品は到着する。'
+  results: '容量10では輸送中の上限3より手元の上限1.5が厳しく、発注は4から1.5へ下がる。容量8では現在の在庫7は収まるが、h₁=−0.5となり、定理の初期条件を満たさない。容量6への即時変更では非負発注との共通領域が空になる。
+
+
+    頻度と大きさを分けたい。違反率0.815とM1=0.050は異なる量。頻繁な小幅超過と整合するが、これだけで個々の経路の分布は復元できない。ブラウザーの図は著者値と局所計算を別々に表示する。'
+  what_we_verified: '**PARTIAL — メカニズム**：発注摂動が輸送中在庫の1階微分、手元在庫の2階微分に現れることを計算した。容量10でQPの手元制約が等号になること、容量8で初期条件が破れること、容量6で実行不能になることをassertで確認した。
+
+
+    **CONFIRMED — 数値転記**：表II・IIIから充足率、違反率、M1、M3を区別して転記した。このラベルは実験再現を意味しない。'
+  what_we_did_not_verify: '**NOT TESTED**：deep FBSDEの学習、確率的な安全性の定理、50・100商品の性能、現場適用性。無雑音の局所計算から、Brownian雑音下の経路安全性は結論できない。特に予算が急に下がる場合の可行性を保証していない。'
+  implementation: '実行は `UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/constrained-deep-inventory-fbsde/run.py`。Python標準ライブラリだけでresults.jsonを再生成する。外部データ、GPU、学習済み重みは不要。
+
+
+    HTMLはlab.yaml、README、mapping.md、run.py、results.jsonから生成する。表示部はpaper_lab/fbsde30.py。公式実装へのリンクは提供PDF内で確認できず、公式コードは未実行。'
+  mapping: mapping.md
+core_idea:
+  author_claim: '**著者の主張**：HJB方程式を前進後退確率微分方程式（FBSDE）で表し、価値と価値勾配をニューラルネットで学ぶ。各時点の発注は、4本の集計制約と商品ごとの制約を持つ二次計画（QP）で求める。輸送中在庫の制約は相対次数1、手元在庫は相対次数2となる。'
+  research_bot_interpretation: '**Labの解釈**：学習された費用勾配と、発注から到着までの遅れを考慮した制約を、同じ最適化問題へ入れる点が読む価値。安全という語だけで採用を判断せず、初期状態、予算切替時の条件、緩和変数、観測された違反を一緒に確認したい。'
+source_review:
+  primary: arXiv:2609.11817v1 supplied PDF
+  reviewed: Sections II–V, Equations 1–21, Figures 1–3, Tables I–IV
+  url: https://arxiv.org/abs/2609.11817
+teaching_figures:
+- id: mixed-degree-barriers
+  kind: equations
+  after: method
+  title: 発注が届く順番と、必要な微分の回数
+  caption: 原論文の式1–2、11–16を整理。輸送中と手元で同じ次数のバリアを使わない。
+  source: https://arxiv.org/abs/2609.11817
+  locator: §II–III, Equations (1), (2), (11)–(16)
+  rationale: 入荷の遅れから相対次数2が必要になる理由を式で追う。
+  steps:
+  - name: 発注はまず輸送中へ
+    formula: dL/dt = u − b_in(L,g)
+    explanation: uが直接現れる。輸送中の余裕hᴸを1回微分すれば、発注の制約を作れる。
+  - name: 手元在庫には入荷として届く
+    formula: dX/dt = b_in(L,g) − b_out(X,d)
+    explanation: uはまだ現れない。Lの変化を通じて作用するため、もう1回微分する。
+  - name: 現在の余裕に到着の勢いを加える
+    formula: h₁ = ∇h·f + γh;  h ≥ 0, h₁ ≥ 0
+    explanation: 2つの初期条件が必要。予算切替時にも新しい集合で確認する。雑音項は上の作用順序の説明では省略した。
+- id: theory-versus-implementation
+  kind: matrix
+  after: why_it_might_work
+  title: 安全性の定理と、実装で確認すべき条件
+  caption: 定理5と§IV-C、表IIを対応させる。連続時間の主張を数値結果へ無条件に移さない。
+  source: https://arxiv.org/abs/2609.11817
+  locator: Theorem 5, §IV-A–C, Table II
+  rationale: 保証の前提と違反率0.815を同じ画面で読めるようにする。
+  columns:
+  - 理論の条件
+  - 実装・評価での確認点
+  rows:
+  - label: 時間
+    cells:
+    - 連続時間の状態制約
+    - 週次のEuler–Maruyama離散化
+  - label: 予算切替
+    cells:
+    - 切替後の拡張安全集合に入る
+    - 現在の容量内という条件だけでは足りない
+  - label: 集計制約
+    cells:
+    - バリア不等式を満たす制御
+    - QPに緩和変数s_aを入れる
+  - label: 観測値
+    cells:
+    - 定理の前提充足は別途確認が必要
+    - 手元容量の違反率0.815、M1=0.050

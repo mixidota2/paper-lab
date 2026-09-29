@@ -1,0 +1,89 @@
+{
+  "lab30_fbsde": true,
+  "seed": null,
+  "scope": "決定論・単品・線形流量の局所計算。学習・確率安全性・性能は検証しない。",
+  "frames": [
+    {
+      "label": "Hˣ = 6",
+      "capacity": 6,
+      "x": 7.0,
+      "pipeline": 4.0,
+      "h": -1.0,
+      "h1": -1.5,
+      "transit_upper": 3.0,
+      "onhand_upper": -0.5,
+      "nominal": 4.0,
+      "order": null,
+      "residual": null,
+      "augmented_initial_safe": false,
+      "feasible": false
+    },
+    {
+      "label": "Hˣ = 8",
+      "capacity": 8,
+      "x": 7.0,
+      "pipeline": 4.0,
+      "h": 1.0,
+      "h1": -0.5,
+      "transit_upper": 3.0,
+      "onhand_upper": 0.5,
+      "nominal": 4.0,
+      "order": 0.5,
+      "residual": 0.0,
+      "augmented_initial_safe": false,
+      "feasible": true
+    },
+    {
+      "label": "Hˣ = 10",
+      "capacity": 10,
+      "x": 7.0,
+      "pipeline": 4.0,
+      "h": 3.0,
+      "h1": 0.5,
+      "transit_upper": 3.0,
+      "onhand_upper": 1.5,
+      "nominal": 4.0,
+      "order": 1.5,
+      "residual": 0.0,
+      "augmented_initial_safe": true,
+      "feasible": true
+    },
+    {
+      "label": "Hˣ = 14",
+      "capacity": 14,
+      "x": 7.0,
+      "pipeline": 4.0,
+      "h": 7.0,
+      "h1": 2.5,
+      "transit_upper": 3.0,
+      "onhand_upper": 3.5,
+      "nominal": 4.0,
+      "order": 3.0,
+      "residual": 0.25,
+      "augmented_initial_safe": true,
+      "feasible": true
+    }
+  ],
+  "derivative_check": {
+    "d_dLdot_du": 1.0,
+    "d_dXdot_du": 0.0,
+    "d_dXddot_du": 0.5
+  },
+  "paper_reported": {
+    "source": "Tables II–IV; eight seeds; not reproduced",
+    "M": 50,
+    "fill_rate": 0.562,
+    "fill_rate_sd": 0.031,
+    "onhand_violation": 0.815,
+    "onhand_M1": 0.05,
+    "onhand_M3": 0.083,
+    "onhand_utilization": 1.02,
+    "emission_onhand_violation": 0.077
+  },
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  }
+}

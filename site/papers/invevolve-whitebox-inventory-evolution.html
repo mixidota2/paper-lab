@@ -1,0 +1,1210 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GLM-4.7-FlashをGRPOで学習し、白箱の発注コードを進化させる。合成25/30、CJ 20/30件で最良古典方策を上回る著者報告と、LCB認証の条件を分けて読む。">
+  <title>LLMが書いた発注規則を、どんな条件で配備してよいか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-05-01</span></div>
+    <h1>LLMが書いた発注規則を、どんな条件で配備してよいか</h1>
+    <p class="lede">GLM-4.7-FlashをGRPOで学習し、白箱の発注コードを進化させる。合成25/30、CJ 20/30件で最良古典方策を上回る著者報告と、LCB認証の条件を分けて読む。</p>
+    <details class="bibliography"><summary>原論文：InvEvolve: Evolving White-Box Inventory Policies via Large Language Models with Performance Guarantees</summary><p>Chenyu Huang, Jianghao Lin, Zhengyang Tang, Bo Jiang, Ruoqing Jiang, Benyou Wang, Lai Wei</p><p>2605.00369 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2605.00369">原典を読む ↗</a><a href="https://arxiv.org/pdf/2605.00369v4">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-09-30 · 本文§2、§4、§5、Fig. 2・5、Tables 2・3・6、付録E–Hを確認。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-inventory-response">不足への応答を二つの係数で変える</a><a href="#figure-win-rates">最良古典方策を上回った件数を比べる</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>InvEvolveは、LLMが読める発注コードを生成し、同じ需要履歴で比較してから配備する仕組みである。著者報告では合成OODの25/30件、Dunnhumby Complete Journey（CJ）の20/30件で最良の古典方策を上回る。CJの費用削減9.2%は<strong>勝った20件に限る平均</strong>で、全30件の平均ではない。</p>
+<p>採用と配備を分ける。候補を残す判定は慎重に、通過候補の選択は楽観的に行う。ただし将来の安全性は、需要変化を覆う予算や信頼区間の前提に依存する。本Labは発注式と認証の保守性を確かめ、性能を追試しない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>対象は需要を満たせない分が逸失する在庫管理。古典方策は読みやすいが、販促や季節情報を使う形を人が設計する必要がある。LLMに自由なコード探索を任せても、履歴への過適合と需要シフトは残る。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>GRPOで学習したGLM-4.7-Flashが実行可能な在庫方策を生成する。参照方策へのLCB認証と、通過候補間のUCB選択を接続する。将来性能の保証には有効な信頼半径と分布差予算が必要。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>方策コードを窓ごとに進化させる研究セル。SabreAgentの「設計時に季節事前分布を作り、凍結ORを実行」とは変更対象が異なる。InventoryBenchとの直接比較ではない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><p>GLM-4.7-FlashをGRPOで学習する。報酬は、最良の古典方策より費用が低ければ1、それ以外は0。探索は発注コードを変え、replayで候補を選ぶ。発見されたTilted-CBSは上限を不足に応じて増やす。Tilted-PICは比例ゲインも導入する。下の式を対話図へつなげて読む。</p>
+<p>学習と配備は別だ。理論の保証を読む際には、候補コードが動くかという確認に加えて、改善量の上限B、比較数N、失敗確率δ、需要シフトの予算ξが評価条件に対応しているかを確かめる。小実験では学習を省いた。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-inventory-response" aria-labelledby="title-inventory-response">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-inventory-response">不足への応答を二つの係数で変える</h3>
+  <ol class="equation-steps"><li><strong>CBS：固定上限</strong><div class="math-expression" tabindex="0" role="math" aria-label="Δ = max(0, S − IP); q = min(Δ, r)">Δ = max(0, S − IP); q = min(Δ, r)</div><p>不足が大きくても発注量はrを超えない。</p></li><li><strong>Tilted-CBS：不足で上限を緩める</strong><div class="math-expression" tabindex="0" role="math" aria-label="q = min(Δ, r_base + αΔ)">q = min(Δ, r_base + αΔ)</div><p>α=0ならCBS。αが正なら大きな不足への補充を増やす。</p></li><li><strong>Tilted-PIC：不足への反応も調整する</strong><div class="math-expression" tabindex="0" role="math" aria-label="q = max(0, min(round(Kp Δ), r_base + αΔ))">q = max(0, min(round(Kp Δ), r_base + αΔ))</div><p>Kp&lt;1なら比例応答を抑える。整数不足とKp=1の条件ではTilted-CBSに一致する。</p></li></ol>
+  <figcaption>一次資料の方策式を再構成。係数を固定した応答曲線を実行可能な理解で示す。 <a href="https://arxiv.org/pdf/2605.00369v4">出典：§5.3.2、Fig. 5 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈：候補を実行可能な規則にすれば、既存方策と同じ経路で費用差を測れる。改善量を Z=C_ref−C_candidate と置くので、正なら改善である。Eq. 7の半径とEq. 8の信頼限界は次の形になる。</p>
+<pre><code class="language-text">rad = B sqrt(2 log(2N/δ) / m)
+LCB = mean(Z) − rad; UCB = mean(Z) + rad
+安全候補: LCB ≥ ξ; 配備: 安全候補中の最大UCB
+</code></pre>
+<p>Bは改善量の絶対値の上限、Nは比較数の上限、mはreplay経路数、δは期間ごとの失敗確率予算。ξはreplayと配備分布の最悪差を覆う予算である。多重比較も効く。候補が多ければ半径は大きくなる。付録Eの実用ξ校正と付録Fの小標本blockwise t半径は、理論式を無条件に満たす証明とは分けて読む。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料の著者報告。<a href="https://arxiv.org/pdf/2605.00369v4">v4 Tables 2・3・6</a>を確認した。</p>
+<table>
+<thead>
+<tr>
+<th>著者報告</th>
+<th>比較</th>
+<th>成績</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>合成30件、Table 2</td>
+<td>最良古典方策に対する勝率</td>
+<td>base GLM 13/30、InvEvolve 25/30</td>
+</tr>
+<tr>
+<td>CJ 30件、Table 3</td>
+<td>最良古典方策に対する勝率</td>
+<td>A3C 11/30、E2E 16/30、InvEvolve 20/30</td>
+</tr>
+<tr>
+<td>定常96条件、Table 6</td>
+<td>CBSに対する勝／同等／負</td>
+<td>Tilted-CBS 18/74/4、Tilted-PIC 41/47/8</td>
+</tr>
+</tbody>
+</table>
+<p>合成は100日で設計、将来30日で評価。訓練に用いた10 workspaceと商品が重ならず、10業界中5業界は未学習。CJは365日から次の30日を評価し、販売を潜在需要へ復元したbenchmarkである。復元品質が主張の中心ではなく、実店舗の因果的な費用改善を示す試験でもない。</p>
+<p>96条件は6需要分布×4リードタイム×4欠品費用比。±2%以内を同等とするため、beat-or-tie 95.8%（Tilted-CBS）と91.7%（Tilted-PIC）は厳密な勝率ではない。平均費用変化は−0.60%と−1.52%、最悪は+5.4%と+4.2%。全条件の改善保証ではない。</p></div>      </section>
+<figure class="teaching teaching--chart" id="figure-win-rates" aria-labelledby="title-win-rates">
+  <div class="figure-heading"><span class="eyebrow">CHART</span><span class="figure-badge">論文の報告値</span></div>
+  <h3 id="title-win-rates">最良古典方策を上回った件数を比べる</h3>
+  <p class="chart-metric">件 / 30件 · 共通尺度 0–30</p><div class="bar-chart"><div class="bar-row"><div class="bar-label"><span>合成：base GLM</span><strong>13 件 / 30件</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 43.333333333333336%"></div></div></div><div class="bar-row"><div class="bar-label"><span>合成：InvEvolve</span><strong>25 件 / 30件</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 83.33333333333333%"></div></div></div><div class="bar-row"><div class="bar-label"><span>CJ：A3C</span><strong>11 件 / 30件</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 36.666666666666664%"></div></div></div><div class="bar-row"><div class="bar-label"><span>CJ：E2E</span><strong>16 件 / 30件</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 53.333333333333336%"></div></div></div><div class="bar-row"><div class="bar-label"><span>CJ：InvEvolve</span><strong>20 件 / 30件</strong></div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width: 66.66666666666667%"></div></div></div></div>
+  <figcaption>著者報告の再描画。合成とCJは別の30件で、両者の差を性能低下の因果効果とは読めない。CJの費用削減9.2%は勝った20件だけの平均。 <a href="https://arxiv.org/pdf/2605.00369v4">出典：Tables 2–3 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><pre><code class="language-text">Δ = max(0, S − IP)
+CBS:        q = min(Δ, r)
+Tilted-CBS: q = min(Δ, r_base + αΔ)
+Tilted-PIC: q = max(0, min(round(Kp Δ), r_base + αΔ))
+</code></pre>
+<p>IPは手元在庫と輸送中在庫を合わせた在庫ポジション。αは不足が大きいとき上限を緩め、Kpは不足への反応を調整する。α=0のTilted-CBSはCBSに戻る。整数不足でKp=1ならTilted-PICはTilted-CBSに一致する。対話図ではこれらの係数を変え、同じ不足に対する発注量を比較する。</p><figure class="teaching" data-b21><h3>固定上限を傾け、比例ゲインで発注を抑える</h3><label>係数 <select><option value="0">α=0 / Kp=1</option><option value="1">α=0.25 / Kp=1</option><option value="2">α=0.25 / Kp=0.65</option><option value="3">α=0.6 / Kp=0.65</option><option value="4">α=0.25 / Kp=1.3</option></select></label><script type="application/json" data-frames>["<svg viewBox=\"0 0 600 310\" role=\"img\" aria-label=\"在庫不足と発注量の関係\" style=\"width:100%;height:auto\"><path d=\"M45 20V255H575\" stroke=\"currentColor\" fill=\"none\"/><polyline points=\"45,255 62,245 79,235 96,225 113,215 130,215 147,215 164,215 181,215 198,215 215,215 232,215 249,215 266,215 283,215 300,215 317,215 334,215 351,215 368,215 385,215 402,215 419,215 436,215 453,215 470,215 487,215 504,215 521,215 538,215 555,215\" stroke=\"#697680\" fill=\"none\" stroke-width=\"3\"/><polyline points=\"45,255 62,245 79,235 96,225 113,215 130,215 147,215 164,215 181,215 198,215 215,215 232,215 249,215 266,215 283,215 300,215 317,215 334,215 351,215 368,215 385,215 402,215 419,215 436,215 453,215 470,215 487,215 504,215 521,215 538,215 555,215\" stroke=\"#087f8c\" fill=\"none\" stroke-width=\"3\"/><polyline points=\"45,255 62,245 79,235 96,225 113,215 130,215 147,215 164,215 181,215 198,215 215,215 232,215 249,215 266,215 283,215 300,215 317,215 334,215 351,215 368,215 385,215 402,215 419,215 436,215 453,215 470,215 487,215 504,215 521,215 538,215 555,215\" stroke=\"#c65432\" fill=\"none\" stroke-width=\"3\"/><text x=\"48\" y=\"278\">不足 Δ：0 → 30<\/text><text x=\"48\" y=\"18\">発注量 q（上端 23.5）<\/text><text x=\"50\" y=\"303\" fill=\"#697680\">CBS<\/text><text x=\"170\" y=\"303\" fill=\"#087f8c\">Tilted-CBS<\/text><text x=\"340\" y=\"303\" fill=\"#c65432\">Tilted-PIC<\/text><\/svg><p>r_base=4、α=0、Kp=1。横軸の不足は目標 S から在庫ポジション IP を引いた正の部分。曲線は整数の不足ごとに計算した点を結ぶ。<\/p><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>Δ<\/th><th>CBS<\/th><th>Tilted-CBS<\/th><th>Tilted-PIC<\/th><\/tr><\/thead><tbody><tr><td>0<\/td><td>0<\/td><td>0<\/td><td>0<\/td><\/tr><tr><td>5<\/td><td>4<\/td><td>4<\/td><td>4<\/td><\/tr><tr><td>10<\/td><td>4<\/td><td>4<\/td><td>4<\/td><\/tr><tr><td>20<\/td><td>4<\/td><td>4<\/td><td>4<\/td><\/tr><tr><td>30<\/td><td>4<\/td><td>4<\/td><td>4<\/td><\/tr><\/tbody><\/table><\/div>", "<svg viewBox=\"0 0 600 310\" role=\"img\" aria-label=\"在庫不足と発注量の関係\" style=\"width:100%;height:auto\"><path d=\"M45 20V255H575\" stroke=\"currentColor\" fill=\"none\"/><polyline points=\"45,255 62,245 79,235 96,225 113,215 130,215 147,215 164,215 181,215 198,215 215,215 232,215 249,215 266,215 283,215 300,215 317,215 334,215 351,215 368,215 385,215 402,215 419,215 436,215 453,215 470,215 487,215 504,215 521,215 538,215 555,215\" stroke=\"#697680\" fill=\"none\" stroke-width=\"3\"/><polyline points=\"45,255 62,245 79,235 96,225 113,215 130,205 147,200.0 164,197.5 181,195.0 198,192.5 215,190.0 232,187.5 249,185.0 266,182.5 283,180.0 300,177.5 317,175.0 334,172.5 351,170.0 368,167.5 385,165.0 402,162.5 419,160.0 436,157.5 453,155.0 470,152.5 487,150.0 504,147.5 521,145.0 538,142.5 555,140.0\" stroke=\"#087f8c\" fill=\"none\" stroke-width=\"3\"/><polyline points=\"45,255 62,245 79,235 96,225 113,215 130,205 147,200.0 164,197.5 181,195.0 198,192.5 215,190.0 232,187.5 249,185.0 266,182.5 283,180.0 300,177.5 317,175.0 334,172.5 351,170.0 368,167.5 385,165.0 402,162.5 419,160.0 436,157.5 453,155.0 470,152.5 487,150.0 504,147.5 521,145.0 538,142.5 555,140.0\" stroke=\"#c65432\" fill=\"none\" stroke-width=\"3\"/><text x=\"48\" y=\"278\">不足 Δ：0 → 30<\/text><text x=\"48\" y=\"18\">発注量 q（上端 23.5）<\/text><text x=\"50\" y=\"303\" fill=\"#697680\">CBS<\/text><text x=\"170\" y=\"303\" fill=\"#087f8c\">Tilted-CBS<\/text><text x=\"340\" y=\"303\" fill=\"#c65432\">Tilted-PIC<\/text><\/svg><p>r_base=4、α=0.25、Kp=1。横軸の不足は目標 S から在庫ポジション IP を引いた正の部分。曲線は整数の不足ごとに計算した点を結ぶ。<\/p><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>Δ<\/th><th>CBS<\/th><th>Tilted-CBS<\/th><th>Tilted-PIC<\/th><\/tr><\/thead><tbody><tr><td>0<\/td><td>0<\/td><td>0<\/td><td>0<\/td><\/tr><tr><td>5<\/td><td>4<\/td><td>5<\/td><td>5<\/td><\/tr><tr><td>10<\/td><td>4<\/td><td>6.5<\/td><td>6.5<\/td><\/tr><tr><td>20<\/td><td>4<\/td><td>9.0<\/td><td>9.0<\/td><\/tr><tr><td>30<\/td><td>4<\/td><td>11.5<\/td><td>11.5<\/td><\/tr><\/tbody><\/table><\/div>", "<svg viewBox=\"0 0 600 310\" role=\"img\" aria-label=\"在庫不足と発注量の関係\" style=\"width:100%;height:auto\"><path d=\"M45 20V255H575\" stroke=\"currentColor\" fill=\"none\"/><polyline points=\"45,255 62,245 79,235 96,225 113,215 130,215 147,215 164,215 181,215 198,215 215,215 232,215 249,215 266,215 283,215 300,215 317,215 334,215 351,215 368,215 385,215 402,215 419,215 436,215 453,215 470,215 487,215 504,215 521,215 538,215 555,215\" stroke=\"#697680\" fill=\"none\" stroke-width=\"3\"/><polyline points=\"45,255 62,245 79,235 96,225 113,215 130,205 147,200.0 164,197.5 181,195.0 198,192.5 215,190.0 232,187.5 249,185.0 266,182.5 283,180.0 300,177.5 317,175.0 334,172.5 351,170.0 368,167.5 385,165.0 402,162.5 419,160.0 436,157.5 453,155.0 470,152.5 487,150.0 504,147.5 521,145.0 538,142.5 555,140.0\" stroke=\"#087f8c\" fill=\"none\" stroke-width=\"3\"/><polyline points=\"45,255 62,245 79,245 96,235 113,225 130,225 147,215 164,205 181,205 198,195 215,190.0 232,187.5 249,185.0 266,182.5 283,180.0 300,177.5 317,175.0 334,172.5 351,170.0 368,167.5 385,165.0 402,162.5 419,160.0 436,157.5 453,155.0 470,152.5 487,150.0 504,147.5 521,145.0 538,142.5 555,140.0\" stroke=\"#c65432\" fill=\"none\" stroke-width=\"3\"/><text x=\"48\" y=\"278\">不足 Δ：0 → 30<\/text><text x=\"48\" y=\"18\">発注量 q（上端 23.5）<\/text><text x=\"50\" y=\"303\" fill=\"#697680\">CBS<\/text><text x=\"170\" y=\"303\" fill=\"#087f8c\">Tilted-CBS<\/text><text x=\"340\" y=\"303\" fill=\"#c65432\">Tilted-PIC<\/text><\/svg><p>r_base=4、α=0.25、Kp=0.65。横軸の不足は目標 S から在庫ポジション IP を引いた正の部分。曲線は整数の不足ごとに計算した点を結ぶ。<\/p><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>Δ<\/th><th>CBS<\/th><th>Tilted-CBS<\/th><th>Tilted-PIC<\/th><\/tr><\/thead><tbody><tr><td>0<\/td><td>0<\/td><td>0<\/td><td>0<\/td><\/tr><tr><td>5<\/td><td>4<\/td><td>5<\/td><td>3<\/td><\/tr><tr><td>10<\/td><td>4<\/td><td>6.5<\/td><td>6.5<\/td><\/tr><tr><td>20<\/td><td>4<\/td><td>9.0<\/td><td>9.0<\/td><\/tr><tr><td>30<\/td><td>4<\/td><td>11.5<\/td><td>11.5<\/td><\/tr><\/tbody><\/table><\/div>", "<svg viewBox=\"0 0 600 310\" role=\"img\" aria-label=\"在庫不足と発注量の関係\" style=\"width:100%;height:auto\"><path d=\"M45 20V255H575\" stroke=\"currentColor\" fill=\"none\"/><polyline points=\"45,255 62,245 79,235 96,225 113,215 130,215 147,215 164,215 181,215 198,215 215,215 232,215 249,215 266,215 283,215 300,215 317,215 334,215 351,215 368,215 385,215 402,215 419,215 436,215 453,215 470,215 487,215 504,215 521,215 538,215 555,215\" stroke=\"#697680\" fill=\"none\" stroke-width=\"3\"/><polyline points=\"45,255 62,245 79,235 96,225 113,215 130,205 147,195 164,185 181,175 198,165 215,155 232,149.0 249,143.0 266,137.0 283,131.0 300,125.0 317,119.0 334,113.0 351,107.0 368,101.0 385,95.0 402,89.0 419,83.0 436,77.00000000000003 453,71.0 470,65.0 487,59.0 504,53.0 521,47.0 538,41.0 555,35.0\" stroke=\"#087f8c\" fill=\"none\" stroke-width=\"3\"/><polyline points=\"45,255 62,245 79,245 96,235 113,225 130,225 147,215 164,205 181,205 198,195 215,185 232,185 249,175 266,175 283,165 300,155 317,155 334,145 351,135 368,135 385,125 402,115 419,115 436,105 453,95 470,95 487,85 504,75 521,75 538,65 555,55\" stroke=\"#c65432\" fill=\"none\" stroke-width=\"3\"/><text x=\"48\" y=\"278\">不足 Δ：0 → 30<\/text><text x=\"48\" y=\"18\">発注量 q（上端 23.5）<\/text><text x=\"50\" y=\"303\" fill=\"#697680\">CBS<\/text><text x=\"170\" y=\"303\" fill=\"#087f8c\">Tilted-CBS<\/text><text x=\"340\" y=\"303\" fill=\"#c65432\">Tilted-PIC<\/text><\/svg><p>r_base=4、α=0.6、Kp=0.65。横軸の不足は目標 S から在庫ポジション IP を引いた正の部分。曲線は整数の不足ごとに計算した点を結ぶ。<\/p><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>Δ<\/th><th>CBS<\/th><th>Tilted-CBS<\/th><th>Tilted-PIC<\/th><\/tr><\/thead><tbody><tr><td>0<\/td><td>0<\/td><td>0<\/td><td>0<\/td><\/tr><tr><td>5<\/td><td>4<\/td><td>5<\/td><td>3<\/td><\/tr><tr><td>10<\/td><td>4<\/td><td>10<\/td><td>7<\/td><\/tr><tr><td>20<\/td><td>4<\/td><td>16.0<\/td><td>13<\/td><\/tr><tr><td>30<\/td><td>4<\/td><td>22.0<\/td><td>20<\/td><\/tr><\/tbody><\/table><\/div>", "<svg viewBox=\"0 0 600 310\" role=\"img\" aria-label=\"在庫不足と発注量の関係\" style=\"width:100%;height:auto\"><path d=\"M45 20V255H575\" stroke=\"currentColor\" fill=\"none\"/><polyline points=\"45,255 62,245 79,235 96,225 113,215 130,215 147,215 164,215 181,215 198,215 215,215 232,215 249,215 266,215 283,215 300,215 317,215 334,215 351,215 368,215 385,215 402,215 419,215 436,215 453,215 470,215 487,215 504,215 521,215 538,215 555,215\" stroke=\"#697680\" fill=\"none\" stroke-width=\"3\"/><polyline points=\"45,255 62,245 79,235 96,225 113,215 130,205 147,200.0 164,197.5 181,195.0 198,192.5 215,190.0 232,187.5 249,185.0 266,182.5 283,180.0 300,177.5 317,175.0 334,172.5 351,170.0 368,167.5 385,165.0 402,162.5 419,160.0 436,157.5 453,155.0 470,152.5 487,150.0 504,147.5 521,145.0 538,142.5 555,140.0\" stroke=\"#087f8c\" fill=\"none\" stroke-width=\"3\"/><polyline points=\"45,255 62,245 79,225 96,215 113,205 130,202.5 147,200.0 164,197.5 181,195.0 198,192.5 215,190.0 232,187.5 249,185.0 266,182.5 283,180.0 300,177.5 317,175.0 334,172.5 351,170.0 368,167.5 385,165.0 402,162.5 419,160.0 436,157.5 453,155.0 470,152.5 487,150.0 504,147.5 521,145.0 538,142.5 555,140.0\" stroke=\"#c65432\" fill=\"none\" stroke-width=\"3\"/><text x=\"48\" y=\"278\">不足 Δ：0 → 30<\/text><text x=\"48\" y=\"18\">発注量 q（上端 23.5）<\/text><text x=\"50\" y=\"303\" fill=\"#697680\">CBS<\/text><text x=\"170\" y=\"303\" fill=\"#087f8c\">Tilted-CBS<\/text><text x=\"340\" y=\"303\" fill=\"#c65432\">Tilted-PIC<\/text><\/svg><p>r_base=4、α=0.25、Kp=1.3。横軸の不足は目標 S から在庫ポジション IP を引いた正の部分。曲線は整数の不足ごとに計算した点を結ぶ。<\/p><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"人工実験の比較\"><table><thead><tr><th>Δ<\/th><th>CBS<\/th><th>Tilted-CBS<\/th><th>Tilted-PIC<\/th><\/tr><\/thead><tbody><tr><td>0<\/td><td>0<\/td><td>0<\/td><td>0<\/td><\/tr><tr><td>5<\/td><td>4<\/td><td>5<\/td><td>5.25<\/td><\/tr><tr><td>10<\/td><td>4<\/td><td>6.5<\/td><td>6.5<\/td><\/tr><tr><td>20<\/td><td>4<\/td><td>9.0<\/td><td>9.0<\/td><\/tr><tr><td>30<\/td><td>4<\/td><td>11.5<\/td><td>11.5<\/td><\/tr><\/tbody><\/table><\/div>"]</script><div data-output aria-live="polite"><svg viewBox="0 0 600 310" role="img" aria-label="在庫不足と発注量の関係" style="width:100%;height:auto"><path d="M45 20V255H575" stroke="currentColor" fill="none"/><polyline points="45,255 62,245 79,235 96,225 113,215 130,215 147,215 164,215 181,215 198,215 215,215 232,215 249,215 266,215 283,215 300,215 317,215 334,215 351,215 368,215 385,215 402,215 419,215 436,215 453,215 470,215 487,215 504,215 521,215 538,215 555,215" stroke="#697680" fill="none" stroke-width="3"/><polyline points="45,255 62,245 79,235 96,225 113,215 130,215 147,215 164,215 181,215 198,215 215,215 232,215 249,215 266,215 283,215 300,215 317,215 334,215 351,215 368,215 385,215 402,215 419,215 436,215 453,215 470,215 487,215 504,215 521,215 538,215 555,215" stroke="#087f8c" fill="none" stroke-width="3"/><polyline points="45,255 62,245 79,235 96,225 113,215 130,215 147,215 164,215 181,215 198,215 215,215 232,215 249,215 266,215 283,215 300,215 317,215 334,215 351,215 368,215 385,215 402,215 419,215 436,215 453,215 470,215 487,215 504,215 521,215 538,215 555,215" stroke="#c65432" fill="none" stroke-width="3"/><text x="48" y="278">不足 Δ：0 → 30</text><text x="48" y="18">発注量 q（上端 23.5）</text><text x="50" y="303" fill="#697680">CBS</text><text x="170" y="303" fill="#087f8c">Tilted-CBS</text><text x="340" y="303" fill="#c65432">Tilted-PIC</text></svg><p>r_base=4、α=0、Kp=1。横軸の不足は目標 S から在庫ポジション IP を引いた正の部分。曲線は整数の不足ごとに計算した点を結ぶ。</p><div class="matrix-scroll" tabindex="0" role="region" aria-label="人工実験の比較"><table><thead><tr><th>Δ</th><th>CBS</th><th>Tilted-CBS</th><th>Tilted-PIC</th></tr></thead><tbody><tr><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>5</td><td>4</td><td>4</td><td>4</td></tr><tr><td>10</td><td>4</td><td>4</td><td>4</td></tr><tr><td>20</td><td>4</td><td>4</td><td>4</td></tr><tr><td>30</td><td>4</td><td>4</td><td>4</td></tr></tbody></table></div></div><figcaption>§5.3.2 の式を run.py で計算。性能曲線ではない。</figcaption></figure><figure class="teaching"><h3>平均費用が下がっても、認証は通らない</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="人工実験の比較"><table><thead><tr><th>人工需要の方策</th><th>平均費用</th><th>改善平均</th><th>LCB</th><th>UCB</th></tr></thead><tbody><tr><td>CBS</td><td>12.402</td><td>0.0</td><td>0.0</td><td>0.0</td></tr><tr><td>Tilted-CBS</td><td>9.501</td><td>2.901</td><td>-18.191</td><td>23.994</td></tr><tr><td>Tilted-PIC</td><td>10.037</td><td>2.365</td><td>-18.728</td><td>23.458</td></tr></tbody></table></div><p>256経路、B=114、δ=0.05、比較数N=2。半径は21.093。ξ=0でも両候補のLCBが負なので、配備は参照CBSへ戻る。UCBが大きいだけでは選べない。</p><figcaption>人工需要の最小実験。論文の小標本t半径、需要シフト校正、LLM探索は未実装。</figcaption></figure></div><div class="downloads"><a href="../downloads/invevolve-whitebox-inventory-evolution/run.py" download>実行コード</a><a href="../downloads/invevolve-whitebox-inventory-evolution/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/invevolve-whitebox-inventory-evolution">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><details><summary>生の results.json</summary><pre><code>{
+  &quot;lab30&quot;: &quot;invevolve&quot;,
+  &quot;scope&quot;: &quot;人工需要の方策応答と保守的な認証。論文の追試ではない。&quot;,
+  &quot;seed&quot;: 930,
+  &quot;paths&quot;: 256,
+  &quot;days&quot;: 60,
+  &quot;lead_time&quot;: 3,
+  &quot;base_stock&quot;: 24,
+  &quot;base_cap&quot;: 4,
+  &quot;holding&quot;: 1,
+  &quot;penalty&quot;: 9,
+  &quot;bound&quot;: 114,
+  &quot;delta&quot;: 0.05,
+  &quot;comparisons&quot;: 2,
+  &quot;replay&quot;: [
+    {
+      &quot;policy&quot;: &quot;CBS&quot;,
+      &quot;cost&quot;: 12.402018229166666,
+      &quot;gain&quot;: 0.0,
+      &quot;radius&quot;: 0,
+      &quot;lcb&quot;: 0.0,
+      &quot;ucb&quot;: 0.0
+    },
+    {
+      &quot;policy&quot;: &quot;Tilted-CBS&quot;,
+      &quot;cost&quot;: 9.500525297317411,
+      &quot;gain&quot;: 2.9014929318492553,
+      &quot;radius&quot;: 21.092952419036376,
+      &quot;lcb&quot;: -18.19145948718712,
+      &quot;ucb&quot;: 23.99444535088563
+    },
+    {
+      &quot;policy&quot;: &quot;Tilted-PIC&quot;,
+      &quot;cost&quot;: 10.036607114683527,
+      &quot;gain&quot;: 2.3654111144831407,
+      &quot;radius&quot;: 21.092952419036376,
+      &quot;lcb&quot;: -18.727541304553235,
+      &quot;ucb&quot;: 23.458363533519517
+    }
+  ],
+  &quot;frames&quot;: [
+    {
+      &quot;label&quot;: &quot;α=0 / Kp=1&quot;,
+      &quot;alpha&quot;: 0,
+      &quot;kp&quot;: 1,
+      &quot;curve&quot;: [
+        {
+          &quot;gap&quot;: 0,
+          &quot;cbs&quot;: 0,
+          &quot;tilted&quot;: 0,
+          &quot;pic&quot;: 0
+        },
+        {
+          &quot;gap&quot;: 1,
+          &quot;cbs&quot;: 1,
+          &quot;tilted&quot;: 1,
+          &quot;pic&quot;: 1
+        },
+        {
+          &quot;gap&quot;: 2,
+          &quot;cbs&quot;: 2,
+          &quot;tilted&quot;: 2,
+          &quot;pic&quot;: 2
+        },
+        {
+          &quot;gap&quot;: 3,
+          &quot;cbs&quot;: 3,
+          &quot;tilted&quot;: 3,
+          &quot;pic&quot;: 3
+        },
+        {
+          &quot;gap&quot;: 4,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 5,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 6,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 7,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 8,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 9,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 10,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 11,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 12,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 13,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 14,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 15,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 16,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 17,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 18,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 19,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 20,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 21,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 22,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 23,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 24,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 25,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 26,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 27,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 28,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 29,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 30,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        }
+      ]
+    },
+    {
+      &quot;label&quot;: &quot;α=0.25 / Kp=1&quot;,
+      &quot;alpha&quot;: 0.25,
+      &quot;kp&quot;: 1,
+      &quot;curve&quot;: [
+        {
+          &quot;gap&quot;: 0,
+          &quot;cbs&quot;: 0,
+          &quot;tilted&quot;: 0,
+          &quot;pic&quot;: 0
+        },
+        {
+          &quot;gap&quot;: 1,
+          &quot;cbs&quot;: 1,
+          &quot;tilted&quot;: 1,
+          &quot;pic&quot;: 1
+        },
+        {
+          &quot;gap&quot;: 2,
+          &quot;cbs&quot;: 2,
+          &quot;tilted&quot;: 2,
+          &quot;pic&quot;: 2
+        },
+        {
+          &quot;gap&quot;: 3,
+          &quot;cbs&quot;: 3,
+          &quot;tilted&quot;: 3,
+          &quot;pic&quot;: 3
+        },
+        {
+          &quot;gap&quot;: 4,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 5,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 5,
+          &quot;pic&quot;: 5
+        },
+        {
+          &quot;gap&quot;: 6,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 5.5,
+          &quot;pic&quot;: 5.5
+        },
+        {
+          &quot;gap&quot;: 7,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 5.75,
+          &quot;pic&quot;: 5.75
+        },
+        {
+          &quot;gap&quot;: 8,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 6.0,
+          &quot;pic&quot;: 6.0
+        },
+        {
+          &quot;gap&quot;: 9,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 6.25,
+          &quot;pic&quot;: 6.25
+        },
+        {
+          &quot;gap&quot;: 10,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 6.5,
+          &quot;pic&quot;: 6.5
+        },
+        {
+          &quot;gap&quot;: 11,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 6.75,
+          &quot;pic&quot;: 6.75
+        },
+        {
+          &quot;gap&quot;: 12,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 7.0,
+          &quot;pic&quot;: 7.0
+        },
+        {
+          &quot;gap&quot;: 13,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 7.25,
+          &quot;pic&quot;: 7.25
+        },
+        {
+          &quot;gap&quot;: 14,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 7.5,
+          &quot;pic&quot;: 7.5
+        },
+        {
+          &quot;gap&quot;: 15,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 7.75,
+          &quot;pic&quot;: 7.75
+        },
+        {
+          &quot;gap&quot;: 16,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 8.0,
+          &quot;pic&quot;: 8.0
+        },
+        {
+          &quot;gap&quot;: 17,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 8.25,
+          &quot;pic&quot;: 8.25
+        },
+        {
+          &quot;gap&quot;: 18,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 8.5,
+          &quot;pic&quot;: 8.5
+        },
+        {
+          &quot;gap&quot;: 19,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 8.75,
+          &quot;pic&quot;: 8.75
+        },
+        {
+          &quot;gap&quot;: 20,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 9.0,
+          &quot;pic&quot;: 9.0
+        },
+        {
+          &quot;gap&quot;: 21,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 9.25,
+          &quot;pic&quot;: 9.25
+        },
+        {
+          &quot;gap&quot;: 22,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 9.5,
+          &quot;pic&quot;: 9.5
+        },
+        {
+          &quot;gap&quot;: 23,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 9.75,
+          &quot;pic&quot;: 9.75
+        },
+        {
+          &quot;gap&quot;: 24,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 10.0,
+          &quot;pic&quot;: 10.0
+        },
+        {
+          &quot;gap&quot;: 25,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 10.25,
+          &quot;pic&quot;: 10.25
+        },
+        {
+          &quot;gap&quot;: 26,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 10.5,
+          &quot;pic&quot;: 10.5
+        },
+        {
+          &quot;gap&quot;: 27,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 10.75,
+          &quot;pic&quot;: 10.75
+        },
+        {
+          &quot;gap&quot;: 28,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 11.0,
+          &quot;pic&quot;: 11.0
+        },
+        {
+          &quot;gap&quot;: 29,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 11.25,
+          &quot;pic&quot;: 11.25
+        },
+        {
+          &quot;gap&quot;: 30,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 11.5,
+          &quot;pic&quot;: 11.5
+        }
+      ]
+    },
+    {
+      &quot;label&quot;: &quot;α=0.25 / Kp=0.65&quot;,
+      &quot;alpha&quot;: 0.25,
+      &quot;kp&quot;: 0.65,
+      &quot;curve&quot;: [
+        {
+          &quot;gap&quot;: 0,
+          &quot;cbs&quot;: 0,
+          &quot;tilted&quot;: 0,
+          &quot;pic&quot;: 0
+        },
+        {
+          &quot;gap&quot;: 1,
+          &quot;cbs&quot;: 1,
+          &quot;tilted&quot;: 1,
+          &quot;pic&quot;: 1
+        },
+        {
+          &quot;gap&quot;: 2,
+          &quot;cbs&quot;: 2,
+          &quot;tilted&quot;: 2,
+          &quot;pic&quot;: 1
+        },
+        {
+          &quot;gap&quot;: 3,
+          &quot;cbs&quot;: 3,
+          &quot;tilted&quot;: 3,
+          &quot;pic&quot;: 2
+        },
+        {
+          &quot;gap&quot;: 4,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 3
+        },
+        {
+          &quot;gap&quot;: 5,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 5,
+          &quot;pic&quot;: 3
+        },
+        {
+          &quot;gap&quot;: 6,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 5.5,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 7,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 5.75,
+          &quot;pic&quot;: 5
+        },
+        {
+          &quot;gap&quot;: 8,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 6.0,
+          &quot;pic&quot;: 5
+        },
+        {
+          &quot;gap&quot;: 9,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 6.25,
+          &quot;pic&quot;: 6
+        },
+        {
+          &quot;gap&quot;: 10,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 6.5,
+          &quot;pic&quot;: 6.5
+        },
+        {
+          &quot;gap&quot;: 11,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 6.75,
+          &quot;pic&quot;: 6.75
+        },
+        {
+          &quot;gap&quot;: 12,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 7.0,
+          &quot;pic&quot;: 7.0
+        },
+        {
+          &quot;gap&quot;: 13,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 7.25,
+          &quot;pic&quot;: 7.25
+        },
+        {
+          &quot;gap&quot;: 14,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 7.5,
+          &quot;pic&quot;: 7.5
+        },
+        {
+          &quot;gap&quot;: 15,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 7.75,
+          &quot;pic&quot;: 7.75
+        },
+        {
+          &quot;gap&quot;: 16,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 8.0,
+          &quot;pic&quot;: 8.0
+        },
+        {
+          &quot;gap&quot;: 17,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 8.25,
+          &quot;pic&quot;: 8.25
+        },
+        {
+          &quot;gap&quot;: 18,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 8.5,
+          &quot;pic&quot;: 8.5
+        },
+        {
+          &quot;gap&quot;: 19,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 8.75,
+          &quot;pic&quot;: 8.75
+        },
+        {
+          &quot;gap&quot;: 20,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 9.0,
+          &quot;pic&quot;: 9.0
+        },
+        {
+          &quot;gap&quot;: 21,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 9.25,
+          &quot;pic&quot;: 9.25
+        },
+        {
+          &quot;gap&quot;: 22,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 9.5,
+          &quot;pic&quot;: 9.5
+        },
+        {
+          &quot;gap&quot;: 23,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 9.75,
+          &quot;pic&quot;: 9.75
+        },
+        {
+          &quot;gap&quot;: 24,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 10.0,
+          &quot;pic&quot;: 10.0
+        },
+        {
+          &quot;gap&quot;: 25,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 10.25,
+          &quot;pic&quot;: 10.25
+        },
+        {
+          &quot;gap&quot;: 26,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 10.5,
+          &quot;pic&quot;: 10.5
+        },
+        {
+          &quot;gap&quot;: 27,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 10.75,
+          &quot;pic&quot;: 10.75
+        },
+        {
+          &quot;gap&quot;: 28,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 11.0,
+          &quot;pic&quot;: 11.0
+        },
+        {
+          &quot;gap&quot;: 29,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 11.25,
+          &quot;pic&quot;: 11.25
+        },
+        {
+          &quot;gap&quot;: 30,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 11.5,
+          &quot;pic&quot;: 11.5
+        }
+      ]
+    },
+    {
+      &quot;label&quot;: &quot;α=0.6 / Kp=0.65&quot;,
+      &quot;alpha&quot;: 0.6,
+      &quot;kp&quot;: 0.65,
+      &quot;curve&quot;: [
+        {
+          &quot;gap&quot;: 0,
+          &quot;cbs&quot;: 0,
+          &quot;tilted&quot;: 0,
+          &quot;pic&quot;: 0
+        },
+        {
+          &quot;gap&quot;: 1,
+          &quot;cbs&quot;: 1,
+          &quot;tilted&quot;: 1,
+          &quot;pic&quot;: 1
+        },
+        {
+          &quot;gap&quot;: 2,
+          &quot;cbs&quot;: 2,
+          &quot;tilted&quot;: 2,
+          &quot;pic&quot;: 1
+        },
+        {
+          &quot;gap&quot;: 3,
+          &quot;cbs&quot;: 3,
+          &quot;tilted&quot;: 3,
+          &quot;pic&quot;: 2
+        },
+        {
+          &quot;gap&quot;: 4,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 3
+        },
+        {
+          &quot;gap&quot;: 5,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 5,
+          &quot;pic&quot;: 3
+        },
+        {
+          &quot;gap&quot;: 6,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 6,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 7,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 7,
+          &quot;pic&quot;: 5
+        },
+        {
+          &quot;gap&quot;: 8,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 8,
+          &quot;pic&quot;: 5
+        },
+        {
+          &quot;gap&quot;: 9,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 9,
+          &quot;pic&quot;: 6
+        },
+        {
+          &quot;gap&quot;: 10,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 10,
+          &quot;pic&quot;: 7
+        },
+        {
+          &quot;gap&quot;: 11,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 10.6,
+          &quot;pic&quot;: 7
+        },
+        {
+          &quot;gap&quot;: 12,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 11.2,
+          &quot;pic&quot;: 8
+        },
+        {
+          &quot;gap&quot;: 13,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 11.8,
+          &quot;pic&quot;: 8
+        },
+        {
+          &quot;gap&quot;: 14,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 12.4,
+          &quot;pic&quot;: 9
+        },
+        {
+          &quot;gap&quot;: 15,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 13.0,
+          &quot;pic&quot;: 10
+        },
+        {
+          &quot;gap&quot;: 16,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 13.6,
+          &quot;pic&quot;: 10
+        },
+        {
+          &quot;gap&quot;: 17,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 14.2,
+          &quot;pic&quot;: 11
+        },
+        {
+          &quot;gap&quot;: 18,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 14.799999999999999,
+          &quot;pic&quot;: 12
+        },
+        {
+          &quot;gap&quot;: 19,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 15.4,
+          &quot;pic&quot;: 12
+        },
+        {
+          &quot;gap&quot;: 20,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 16.0,
+          &quot;pic&quot;: 13
+        },
+        {
+          &quot;gap&quot;: 21,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 16.6,
+          &quot;pic&quot;: 14
+        },
+        {
+          &quot;gap&quot;: 22,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 17.2,
+          &quot;pic&quot;: 14
+        },
+        {
+          &quot;gap&quot;: 23,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 17.799999999999997,
+          &quot;pic&quot;: 15
+        },
+        {
+          &quot;gap&quot;: 24,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 18.4,
+          &quot;pic&quot;: 16
+        },
+        {
+          &quot;gap&quot;: 25,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 19.0,
+          &quot;pic&quot;: 16
+        },
+        {
+          &quot;gap&quot;: 26,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 19.6,
+          &quot;pic&quot;: 17
+        },
+        {
+          &quot;gap&quot;: 27,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 20.2,
+          &quot;pic&quot;: 18
+        },
+        {
+          &quot;gap&quot;: 28,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 20.8,
+          &quot;pic&quot;: 18
+        },
+        {
+          &quot;gap&quot;: 29,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 21.4,
+          &quot;pic&quot;: 19
+        },
+        {
+          &quot;gap&quot;: 30,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 22.0,
+          &quot;pic&quot;: 20
+        }
+      ]
+    },
+    {
+      &quot;label&quot;: &quot;α=0.25 / Kp=1.3&quot;,
+      &quot;alpha&quot;: 0.25,
+      &quot;kp&quot;: 1.3,
+      &quot;curve&quot;: [
+        {
+          &quot;gap&quot;: 0,
+          &quot;cbs&quot;: 0,
+          &quot;tilted&quot;: 0,
+          &quot;pic&quot;: 0
+        },
+        {
+          &quot;gap&quot;: 1,
+          &quot;cbs&quot;: 1,
+          &quot;tilted&quot;: 1,
+          &quot;pic&quot;: 1
+        },
+        {
+          &quot;gap&quot;: 2,
+          &quot;cbs&quot;: 2,
+          &quot;tilted&quot;: 2,
+          &quot;pic&quot;: 3
+        },
+        {
+          &quot;gap&quot;: 3,
+          &quot;cbs&quot;: 3,
+          &quot;tilted&quot;: 3,
+          &quot;pic&quot;: 4
+        },
+        {
+          &quot;gap&quot;: 4,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 4,
+          &quot;pic&quot;: 5
+        },
+        {
+          &quot;gap&quot;: 5,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 5,
+          &quot;pic&quot;: 5.25
+        },
+        {
+          &quot;gap&quot;: 6,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 5.5,
+          &quot;pic&quot;: 5.5
+        },
+        {
+          &quot;gap&quot;: 7,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 5.75,
+          &quot;pic&quot;: 5.75
+        },
+        {
+          &quot;gap&quot;: 8,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 6.0,
+          &quot;pic&quot;: 6.0
+        },
+        {
+          &quot;gap&quot;: 9,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 6.25,
+          &quot;pic&quot;: 6.25
+        },
+        {
+          &quot;gap&quot;: 10,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 6.5,
+          &quot;pic&quot;: 6.5
+        },
+        {
+          &quot;gap&quot;: 11,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 6.75,
+          &quot;pic&quot;: 6.75
+        },
+        {
+          &quot;gap&quot;: 12,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 7.0,
+          &quot;pic&quot;: 7.0
+        },
+        {
+          &quot;gap&quot;: 13,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 7.25,
+          &quot;pic&quot;: 7.25
+        },
+        {
+          &quot;gap&quot;: 14,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 7.5,
+          &quot;pic&quot;: 7.5
+        },
+        {
+          &quot;gap&quot;: 15,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 7.75,
+          &quot;pic&quot;: 7.75
+        },
+        {
+          &quot;gap&quot;: 16,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 8.0,
+          &quot;pic&quot;: 8.0
+        },
+        {
+          &quot;gap&quot;: 17,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 8.25,
+          &quot;pic&quot;: 8.25
+        },
+        {
+          &quot;gap&quot;: 18,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 8.5,
+          &quot;pic&quot;: 8.5
+        },
+        {
+          &quot;gap&quot;: 19,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 8.75,
+          &quot;pic&quot;: 8.75
+        },
+        {
+          &quot;gap&quot;: 20,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 9.0,
+          &quot;pic&quot;: 9.0
+        },
+        {
+          &quot;gap&quot;: 21,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 9.25,
+          &quot;pic&quot;: 9.25
+        },
+        {
+          &quot;gap&quot;: 22,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 9.5,
+          &quot;pic&quot;: 9.5
+        },
+        {
+          &quot;gap&quot;: 23,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 9.75,
+          &quot;pic&quot;: 9.75
+        },
+        {
+          &quot;gap&quot;: 24,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 10.0,
+          &quot;pic&quot;: 10.0
+        },
+        {
+          &quot;gap&quot;: 25,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 10.25,
+          &quot;pic&quot;: 10.25
+        },
+        {
+          &quot;gap&quot;: 26,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 10.5,
+          &quot;pic&quot;: 10.5
+        },
+        {
+          &quot;gap&quot;: 27,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 10.75,
+          &quot;pic&quot;: 10.75
+        },
+        {
+          &quot;gap&quot;: 28,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 11.0,
+          &quot;pic&quot;: 11.0
+        },
+        {
+          &quot;gap&quot;: 29,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 11.25,
+          &quot;pic&quot;: 11.25
+        },
+        {
+          &quot;gap&quot;: 30,
+          &quot;cbs&quot;: 4,
+          &quot;tilted&quot;: 11.5,
+          &quot;pic&quot;: 11.5
+        }
+      ]
+    }
+  ],
+  &quot;checks&quot;: {
+    &quot;alpha_zero_recovers_cbs&quot;: true,
+    &quot;integer_gap_kp_one_recovers_tilted&quot;: true,
+    &quot;bounded_cost&quot;: true
+  },
+  &quot;paper_reported&quot;: {
+    &quot;synthetic&quot;: {
+      &quot;base_glm&quot;: 13,
+      &quot;invevolve&quot;: 25,
+      &quot;n&quot;: 30
+    },
+    &quot;cj&quot;: {
+      &quot;invevolve&quot;: 20,
+      &quot;a3c&quot;: 11,
+      &quot;e2e&quot;: 16,
+      &quot;n&quot;: 30,
+      &quot;cost_reduction_on_wins_pct&quot;: 9.2
+    },
+    &quot;stationary&quot;: {
+      &quot;tilted_cbs&quot;: [
+        18,
+        74,
+        4
+      ],
+      &quot;tilted_pic&quot;: [
+        41,
+        47,
+        8
+      ],
+      &quot;n&quot;: 96,
+      &quot;tie_threshold_pct&quot;: 2
+    }
+  },
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>seed=930、256経路×60日、需要は0〜10の離散一様分布。L=3、S=24、r=4、保管費1、逸失費9を固定した。平均費用はCBS 12.402、Tilted-CBS 9.501、Tilted-PIC 10.037。係数は固定した。探索は省いた。</p>
+<p>一方、費用上限114から得る半径は21.093。改善のLCBは−18.191と−18.728になり、ξ=0でも安全候補は空となる。平均費用の改善と統計的な採用条件が別物であることを確認できる。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>MechanismはPARTIAL。α=0でのCBSへの帰着、整数不足でのKp=1の一致、費用の有界性はCONFIRMED。共通需要経路での改善平均、LCB/UCBの計算を実行した。候補認証の成功はNOT OBSERVED。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance / Scaling / Production applicabilityはNOT TESTED。GRPO学習、コード生成、champion更新、需要シフト予算の校正、公式の小標本半径、CJ復元、96条件の再最適化は実行していない。人工実験の費用差から、論文の勝率や将来配備の安全性は推論しない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/invevolve-whitebox-inventory-evolution/run.py</code></p>
+<p><code>run.py</code>は到着→発注判断→需要消化の順に在庫を進める。需要経路は全方策で共通。<code>results.json</code>に人工結果と著者集計を分けて保存し、図はその値から生成する。発注の丸めには非負数の四捨五入を使う。連続量での丸め境界は原論文の実装を確認していない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文と最小実装の対応</h1>
+<p>一次資料は <a href="https://arxiv.org/pdf/2605.00369v4">InvEvolve v4</a>、2026年6月5日版。提供PDFを本文・付録まで読んだ。公式実装のURLは本文から確認できず、このLabは独立した学習用実装である。</p>
+<table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>Labの対応</th>
+<th>省略・変更</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§2、Fig. 2、Eqs. 5–9</td>
+<td><code>run.py</code> の共通需要replay、改善平均、Hoeffding半径</td>
+<td>方策提案・champion更新を省略。ξ=0の説明用判定</td>
+</tr>
+<tr>
+<td>§4、Appendix C</td>
+<td>READMEのGLM-4.7-Flash / GRPO説明</td>
+<td>学習・SlimeRL・生成コードの実行を省略</td>
+</tr>
+<tr>
+<td>§5.1、Table 2</td>
+<td><code>results.json</code> の <code>paper_reported.synthetic</code></td>
+<td>著者集計の転記。30 workspaceを再実行していない</td>
+</tr>
+<tr>
+<td>§5.2、Table 3、Appendix H</td>
+<td>CJの勝率と潜在需要復元の注意</td>
+<td>CJ取得、復元精度、A3C/E2Eを未検証</td>
+</tr>
+<tr>
+<td>§5.3.2、Fig. 5、Table 6</td>
+<td><code>order()</code> と対話的な発注応答図</td>
+<td>固定係数。96条件のOptuna探索を省略</td>
+</tr>
+<tr>
+<td>Appendices E–F</td>
+<td>理論保証と実用校正の区別</td>
+<td>シフト予算とblockwise t半径を実装していない</td>
+</tr>
+</tbody>
+</table>
+<p>発注応答図は論文式から生成する。整数不足では Kp=1 のTilted-PICがTilted-CBSに一致する。連続不足では丸めが入るため、両式が常に等しいとは主張しない。線で結んだ点の間は補助表示である。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>LLMが書いた発注規則を、どんな条件で配備してよいか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/invevolve-whitebox-inventory-evolution/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

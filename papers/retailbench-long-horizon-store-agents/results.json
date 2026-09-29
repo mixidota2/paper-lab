@@ -1,0 +1,1351 @@
+{
+  "lab30_retailbench": true,
+  "status": "PARTIAL",
+  "source": {
+    "paper": "2603.16453v3",
+    "locator": "Table 1; Section 4.3; Figure 3"
+  },
+  "reported_columns": [
+    "model",
+    "framework",
+    "days",
+    "net_worth",
+    "sales_units"
+  ],
+  "reported": [
+    [
+      "DeepSeek-V4-Pro",
+      "Plan-and-Act",
+      180,
+      10120.9,
+      164417
+    ],
+    [
+      "GLM-5.1",
+      "ReAct",
+      60,
+      -2134.36,
+      7016
+    ],
+    [
+      "GPT-5.5",
+      "ReAct",
+      180,
+      24350.98,
+      136405
+    ],
+    [
+      "Grok-4.3",
+      "ReAct",
+      58,
+      828.4,
+      11305
+    ],
+    [
+      "Kimi-K2.6",
+      "ReAct",
+      130,
+      792.19,
+      86214
+    ],
+    [
+      "MiniMax-M2.5",
+      "Plan-and-Act",
+      73,
+      -397.95,
+      23521
+    ],
+    [
+      "Qwen3.5-397B-A17B",
+      "Reflection",
+      71,
+      1183.17,
+      35622
+    ],
+    [
+      "Oracle Policy",
+      "Oracle",
+      180,
+      131510.42,
+      267998
+    ]
+  ],
+  "frames": [
+    {
+      "products": 1,
+      "policies": [
+        {
+          "supplier": "PriceFirst",
+          "final_cash": -14100.0,
+          "trace": [
+            {
+              "day": 1,
+              "cash": 2430.0,
+              "sold": 10
+            },
+            {
+              "day": 2,
+              "cash": 1860.0,
+              "sold": 10
+            },
+            {
+              "day": 3,
+              "cash": 1290.0,
+              "sold": 10
+            },
+            {
+              "day": 4,
+              "cash": 720.0,
+              "sold": 10
+            },
+            {
+              "day": 5,
+              "cash": 150.0,
+              "sold": 10
+            },
+            {
+              "day": 6,
+              "cash": -420.0,
+              "sold": 10
+            },
+            {
+              "day": 7,
+              "cash": -990.0,
+              "sold": 10
+            },
+            {
+              "day": 8,
+              "cash": -1560.0,
+              "sold": 10
+            },
+            {
+              "day": 9,
+              "cash": -2130.0,
+              "sold": 10
+            },
+            {
+              "day": 10,
+              "cash": -2700.0,
+              "sold": 10
+            },
+            {
+              "day": 11,
+              "cash": -3270.0,
+              "sold": 10
+            },
+            {
+              "day": 12,
+              "cash": -3840.0,
+              "sold": 10
+            },
+            {
+              "day": 13,
+              "cash": -4410.0,
+              "sold": 10
+            },
+            {
+              "day": 14,
+              "cash": -4980.0,
+              "sold": 10
+            },
+            {
+              "day": 15,
+              "cash": -5550.0,
+              "sold": 10
+            },
+            {
+              "day": 16,
+              "cash": -6120.0,
+              "sold": 10
+            },
+            {
+              "day": 17,
+              "cash": -6690.0,
+              "sold": 10
+            },
+            {
+              "day": 18,
+              "cash": -7260.0,
+              "sold": 10
+            },
+            {
+              "day": 19,
+              "cash": -7830.0,
+              "sold": 10
+            },
+            {
+              "day": 20,
+              "cash": -8400.0,
+              "sold": 10
+            },
+            {
+              "day": 21,
+              "cash": -8970.0,
+              "sold": 10
+            },
+            {
+              "day": 22,
+              "cash": -9540.0,
+              "sold": 10
+            },
+            {
+              "day": 23,
+              "cash": -10110.0,
+              "sold": 10
+            },
+            {
+              "day": 24,
+              "cash": -10680.0,
+              "sold": 10
+            },
+            {
+              "day": 25,
+              "cash": -11250.0,
+              "sold": 10
+            },
+            {
+              "day": 26,
+              "cash": -11820.0,
+              "sold": 10
+            },
+            {
+              "day": 27,
+              "cash": -12390.0,
+              "sold": 10
+            },
+            {
+              "day": 28,
+              "cash": -12960.0,
+              "sold": 10
+            },
+            {
+              "day": 29,
+              "cash": -13530.0,
+              "sold": 10
+            },
+            {
+              "day": 30,
+              "cash": -14100.0,
+              "sold": 10
+            }
+          ]
+        },
+        {
+          "supplier": "QualityFirst",
+          "final_cash": -13650.0,
+          "trace": [
+            {
+              "day": 1,
+              "cash": 2445.0,
+              "sold": 10
+            },
+            {
+              "day": 2,
+              "cash": 1890.0,
+              "sold": 10
+            },
+            {
+              "day": 3,
+              "cash": 1335.0,
+              "sold": 10
+            },
+            {
+              "day": 4,
+              "cash": 780.0,
+              "sold": 10
+            },
+            {
+              "day": 5,
+              "cash": 225.0,
+              "sold": 10
+            },
+            {
+              "day": 6,
+              "cash": -330.0,
+              "sold": 10
+            },
+            {
+              "day": 7,
+              "cash": -885.0,
+              "sold": 10
+            },
+            {
+              "day": 8,
+              "cash": -1440.0,
+              "sold": 10
+            },
+            {
+              "day": 9,
+              "cash": -1995.0,
+              "sold": 10
+            },
+            {
+              "day": 10,
+              "cash": -2550.0,
+              "sold": 10
+            },
+            {
+              "day": 11,
+              "cash": -3105.0,
+              "sold": 10
+            },
+            {
+              "day": 12,
+              "cash": -3660.0,
+              "sold": 10
+            },
+            {
+              "day": 13,
+              "cash": -4215.0,
+              "sold": 10
+            },
+            {
+              "day": 14,
+              "cash": -4770.0,
+              "sold": 10
+            },
+            {
+              "day": 15,
+              "cash": -5325.0,
+              "sold": 10
+            },
+            {
+              "day": 16,
+              "cash": -5880.0,
+              "sold": 10
+            },
+            {
+              "day": 17,
+              "cash": -6435.0,
+              "sold": 10
+            },
+            {
+              "day": 18,
+              "cash": -6990.0,
+              "sold": 10
+            },
+            {
+              "day": 19,
+              "cash": -7545.0,
+              "sold": 10
+            },
+            {
+              "day": 20,
+              "cash": -8100.0,
+              "sold": 10
+            },
+            {
+              "day": 21,
+              "cash": -8655.0,
+              "sold": 10
+            },
+            {
+              "day": 22,
+              "cash": -9210.0,
+              "sold": 10
+            },
+            {
+              "day": 23,
+              "cash": -9765.0,
+              "sold": 10
+            },
+            {
+              "day": 24,
+              "cash": -10320.0,
+              "sold": 10
+            },
+            {
+              "day": 25,
+              "cash": -10875.0,
+              "sold": 10
+            },
+            {
+              "day": 26,
+              "cash": -11430.0,
+              "sold": 10
+            },
+            {
+              "day": 27,
+              "cash": -11985.0,
+              "sold": 10
+            },
+            {
+              "day": 28,
+              "cash": -12540.0,
+              "sold": 10
+            },
+            {
+              "day": 29,
+              "cash": -13095.0,
+              "sold": 10
+            },
+            {
+              "day": 30,
+              "cash": -13650.0,
+              "sold": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "products": 8,
+      "policies": [
+        {
+          "supplier": "PriceFirst",
+          "final_cash": -7800.0,
+          "trace": [
+            {
+              "day": 1,
+              "cash": 2640.0,
+              "sold": 80
+            },
+            {
+              "day": 2,
+              "cash": 2280.0,
+              "sold": 80
+            },
+            {
+              "day": 3,
+              "cash": 1920.0,
+              "sold": 80
+            },
+            {
+              "day": 4,
+              "cash": 1560.0,
+              "sold": 80
+            },
+            {
+              "day": 5,
+              "cash": 1200.0,
+              "sold": 80
+            },
+            {
+              "day": 6,
+              "cash": 840.0,
+              "sold": 80
+            },
+            {
+              "day": 7,
+              "cash": 480.0,
+              "sold": 80
+            },
+            {
+              "day": 8,
+              "cash": 120.0,
+              "sold": 80
+            },
+            {
+              "day": 9,
+              "cash": -240.0,
+              "sold": 80
+            },
+            {
+              "day": 10,
+              "cash": -600.0,
+              "sold": 80
+            },
+            {
+              "day": 11,
+              "cash": -960.0,
+              "sold": 80
+            },
+            {
+              "day": 12,
+              "cash": -1320.0,
+              "sold": 80
+            },
+            {
+              "day": 13,
+              "cash": -1680.0,
+              "sold": 80
+            },
+            {
+              "day": 14,
+              "cash": -2040.0,
+              "sold": 80
+            },
+            {
+              "day": 15,
+              "cash": -2400.0,
+              "sold": 80
+            },
+            {
+              "day": 16,
+              "cash": -2760.0,
+              "sold": 80
+            },
+            {
+              "day": 17,
+              "cash": -3120.0,
+              "sold": 80
+            },
+            {
+              "day": 18,
+              "cash": -3480.0,
+              "sold": 80
+            },
+            {
+              "day": 19,
+              "cash": -3840.0,
+              "sold": 80
+            },
+            {
+              "day": 20,
+              "cash": -4200.0,
+              "sold": 80
+            },
+            {
+              "day": 21,
+              "cash": -4560.0,
+              "sold": 80
+            },
+            {
+              "day": 22,
+              "cash": -4920.0,
+              "sold": 80
+            },
+            {
+              "day": 23,
+              "cash": -5280.0,
+              "sold": 80
+            },
+            {
+              "day": 24,
+              "cash": -5640.0,
+              "sold": 80
+            },
+            {
+              "day": 25,
+              "cash": -6000.0,
+              "sold": 80
+            },
+            {
+              "day": 26,
+              "cash": -6360.0,
+              "sold": 80
+            },
+            {
+              "day": 27,
+              "cash": -6720.0,
+              "sold": 80
+            },
+            {
+              "day": 28,
+              "cash": -7080.0,
+              "sold": 80
+            },
+            {
+              "day": 29,
+              "cash": -7440.0,
+              "sold": 80
+            },
+            {
+              "day": 30,
+              "cash": -7800.0,
+              "sold": 80
+            }
+          ]
+        },
+        {
+          "supplier": "QualityFirst",
+          "final_cash": -4200.0,
+          "trace": [
+            {
+              "day": 1,
+              "cash": 2760.0,
+              "sold": 80
+            },
+            {
+              "day": 2,
+              "cash": 2520.0,
+              "sold": 80
+            },
+            {
+              "day": 3,
+              "cash": 2280.0,
+              "sold": 80
+            },
+            {
+              "day": 4,
+              "cash": 2040.0,
+              "sold": 80
+            },
+            {
+              "day": 5,
+              "cash": 1800.0,
+              "sold": 80
+            },
+            {
+              "day": 6,
+              "cash": 1560.0,
+              "sold": 80
+            },
+            {
+              "day": 7,
+              "cash": 1320.0,
+              "sold": 80
+            },
+            {
+              "day": 8,
+              "cash": 1080.0,
+              "sold": 80
+            },
+            {
+              "day": 9,
+              "cash": 840.0,
+              "sold": 80
+            },
+            {
+              "day": 10,
+              "cash": 600.0,
+              "sold": 80
+            },
+            {
+              "day": 11,
+              "cash": 360.0,
+              "sold": 80
+            },
+            {
+              "day": 12,
+              "cash": 120.0,
+              "sold": 80
+            },
+            {
+              "day": 13,
+              "cash": -120.0,
+              "sold": 80
+            },
+            {
+              "day": 14,
+              "cash": -360.0,
+              "sold": 80
+            },
+            {
+              "day": 15,
+              "cash": -600.0,
+              "sold": 80
+            },
+            {
+              "day": 16,
+              "cash": -840.0,
+              "sold": 80
+            },
+            {
+              "day": 17,
+              "cash": -1080.0,
+              "sold": 80
+            },
+            {
+              "day": 18,
+              "cash": -1320.0,
+              "sold": 80
+            },
+            {
+              "day": 19,
+              "cash": -1560.0,
+              "sold": 80
+            },
+            {
+              "day": 20,
+              "cash": -1800.0,
+              "sold": 80
+            },
+            {
+              "day": 21,
+              "cash": -2040.0,
+              "sold": 80
+            },
+            {
+              "day": 22,
+              "cash": -2280.0,
+              "sold": 80
+            },
+            {
+              "day": 23,
+              "cash": -2520.0,
+              "sold": 80
+            },
+            {
+              "day": 24,
+              "cash": -2760.0,
+              "sold": 80
+            },
+            {
+              "day": 25,
+              "cash": -3000.0,
+              "sold": 80
+            },
+            {
+              "day": 26,
+              "cash": -3240.0,
+              "sold": 80
+            },
+            {
+              "day": 27,
+              "cash": -3480.0,
+              "sold": 80
+            },
+            {
+              "day": 28,
+              "cash": -3720.0,
+              "sold": 80
+            },
+            {
+              "day": 29,
+              "cash": -3960.0,
+              "sold": 80
+            },
+            {
+              "day": 30,
+              "cash": -4200.0,
+              "sold": 80
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "products": 20,
+      "policies": [
+        {
+          "supplier": "PriceFirst",
+          "final_cash": 3000.0,
+          "trace": [
+            {
+              "day": 1,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 2,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 3,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 4,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 5,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 6,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 7,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 8,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 9,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 10,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 11,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 12,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 13,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 14,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 15,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 16,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 17,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 18,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 19,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 20,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 21,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 22,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 23,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 24,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 25,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 26,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 27,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 28,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 29,
+              "cash": 3000.0,
+              "sold": 200
+            },
+            {
+              "day": 30,
+              "cash": 3000.0,
+              "sold": 200
+            }
+          ]
+        },
+        {
+          "supplier": "QualityFirst",
+          "final_cash": 12000.0,
+          "trace": [
+            {
+              "day": 1,
+              "cash": 3300.0,
+              "sold": 200
+            },
+            {
+              "day": 2,
+              "cash": 3600.0,
+              "sold": 200
+            },
+            {
+              "day": 3,
+              "cash": 3900.0,
+              "sold": 200
+            },
+            {
+              "day": 4,
+              "cash": 4200.0,
+              "sold": 200
+            },
+            {
+              "day": 5,
+              "cash": 4500.0,
+              "sold": 200
+            },
+            {
+              "day": 6,
+              "cash": 4800.0,
+              "sold": 200
+            },
+            {
+              "day": 7,
+              "cash": 5100.0,
+              "sold": 200
+            },
+            {
+              "day": 8,
+              "cash": 5400.0,
+              "sold": 200
+            },
+            {
+              "day": 9,
+              "cash": 5700.0,
+              "sold": 200
+            },
+            {
+              "day": 10,
+              "cash": 6000.0,
+              "sold": 200
+            },
+            {
+              "day": 11,
+              "cash": 6300.0,
+              "sold": 200
+            },
+            {
+              "day": 12,
+              "cash": 6600.0,
+              "sold": 200
+            },
+            {
+              "day": 13,
+              "cash": 6900.0,
+              "sold": 200
+            },
+            {
+              "day": 14,
+              "cash": 7200.0,
+              "sold": 200
+            },
+            {
+              "day": 15,
+              "cash": 7500.0,
+              "sold": 200
+            },
+            {
+              "day": 16,
+              "cash": 7800.0,
+              "sold": 200
+            },
+            {
+              "day": 17,
+              "cash": 8100.0,
+              "sold": 200
+            },
+            {
+              "day": 18,
+              "cash": 8400.0,
+              "sold": 200
+            },
+            {
+              "day": 19,
+              "cash": 8700.0,
+              "sold": 200
+            },
+            {
+              "day": 20,
+              "cash": 9000.0,
+              "sold": 200
+            },
+            {
+              "day": 21,
+              "cash": 9300.0,
+              "sold": 200
+            },
+            {
+              "day": 22,
+              "cash": 9600.0,
+              "sold": 200
+            },
+            {
+              "day": 23,
+              "cash": 9900.0,
+              "sold": 200
+            },
+            {
+              "day": 24,
+              "cash": 10200.0,
+              "sold": 200
+            },
+            {
+              "day": 25,
+              "cash": 10500.0,
+              "sold": 200
+            },
+            {
+              "day": 26,
+              "cash": 10800.0,
+              "sold": 200
+            },
+            {
+              "day": 27,
+              "cash": 11100.0,
+              "sold": 200
+            },
+            {
+              "day": 28,
+              "cash": 11400.0,
+              "sold": 200
+            },
+            {
+              "day": 29,
+              "cash": 11700.0,
+              "sold": 200
+            },
+            {
+              "day": 30,
+              "cash": 12000.0,
+              "sold": 200
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "products": 38,
+      "policies": [
+        {
+          "supplier": "PriceFirst",
+          "final_cash": 19200.0,
+          "trace": [
+            {
+              "day": 1,
+              "cash": 3540.0,
+              "sold": 380
+            },
+            {
+              "day": 2,
+              "cash": 4080.0,
+              "sold": 380
+            },
+            {
+              "day": 3,
+              "cash": 4620.0,
+              "sold": 380
+            },
+            {
+              "day": 4,
+              "cash": 5160.0,
+              "sold": 380
+            },
+            {
+              "day": 5,
+              "cash": 5700.0,
+              "sold": 380
+            },
+            {
+              "day": 6,
+              "cash": 6240.0,
+              "sold": 380
+            },
+            {
+              "day": 7,
+              "cash": 6780.0,
+              "sold": 380
+            },
+            {
+              "day": 8,
+              "cash": 7320.0,
+              "sold": 380
+            },
+            {
+              "day": 9,
+              "cash": 7860.0,
+              "sold": 380
+            },
+            {
+              "day": 10,
+              "cash": 8400.0,
+              "sold": 380
+            },
+            {
+              "day": 11,
+              "cash": 8940.0,
+              "sold": 380
+            },
+            {
+              "day": 12,
+              "cash": 9480.0,
+              "sold": 380
+            },
+            {
+              "day": 13,
+              "cash": 10020.0,
+              "sold": 380
+            },
+            {
+              "day": 14,
+              "cash": 10560.0,
+              "sold": 380
+            },
+            {
+              "day": 15,
+              "cash": 11100.0,
+              "sold": 380
+            },
+            {
+              "day": 16,
+              "cash": 11640.0,
+              "sold": 380
+            },
+            {
+              "day": 17,
+              "cash": 12180.0,
+              "sold": 380
+            },
+            {
+              "day": 18,
+              "cash": 12720.0,
+              "sold": 380
+            },
+            {
+              "day": 19,
+              "cash": 13260.0,
+              "sold": 380
+            },
+            {
+              "day": 20,
+              "cash": 13800.0,
+              "sold": 380
+            },
+            {
+              "day": 21,
+              "cash": 14340.0,
+              "sold": 380
+            },
+            {
+              "day": 22,
+              "cash": 14880.0,
+              "sold": 380
+            },
+            {
+              "day": 23,
+              "cash": 15420.0,
+              "sold": 380
+            },
+            {
+              "day": 24,
+              "cash": 15960.0,
+              "sold": 380
+            },
+            {
+              "day": 25,
+              "cash": 16500.0,
+              "sold": 380
+            },
+            {
+              "day": 26,
+              "cash": 17040.0,
+              "sold": 380
+            },
+            {
+              "day": 27,
+              "cash": 17580.0,
+              "sold": 380
+            },
+            {
+              "day": 28,
+              "cash": 18120.0,
+              "sold": 380
+            },
+            {
+              "day": 29,
+              "cash": 18660.0,
+              "sold": 380
+            },
+            {
+              "day": 30,
+              "cash": 19200.0,
+              "sold": 380
+            }
+          ]
+        },
+        {
+          "supplier": "QualityFirst",
+          "final_cash": 36300.0,
+          "trace": [
+            {
+              "day": 1,
+              "cash": 4110.0,
+              "sold": 380
+            },
+            {
+              "day": 2,
+              "cash": 5220.0,
+              "sold": 380
+            },
+            {
+              "day": 3,
+              "cash": 6330.0,
+              "sold": 380
+            },
+            {
+              "day": 4,
+              "cash": 7440.0,
+              "sold": 380
+            },
+            {
+              "day": 5,
+              "cash": 8550.0,
+              "sold": 380
+            },
+            {
+              "day": 6,
+              "cash": 9660.0,
+              "sold": 380
+            },
+            {
+              "day": 7,
+              "cash": 10770.0,
+              "sold": 380
+            },
+            {
+              "day": 8,
+              "cash": 11880.0,
+              "sold": 380
+            },
+            {
+              "day": 9,
+              "cash": 12990.0,
+              "sold": 380
+            },
+            {
+              "day": 10,
+              "cash": 14100.0,
+              "sold": 380
+            },
+            {
+              "day": 11,
+              "cash": 15210.0,
+              "sold": 380
+            },
+            {
+              "day": 12,
+              "cash": 16320.0,
+              "sold": 380
+            },
+            {
+              "day": 13,
+              "cash": 17430.0,
+              "sold": 380
+            },
+            {
+              "day": 14,
+              "cash": 18540.0,
+              "sold": 380
+            },
+            {
+              "day": 15,
+              "cash": 19650.0,
+              "sold": 380
+            },
+            {
+              "day": 16,
+              "cash": 20760.0,
+              "sold": 380
+            },
+            {
+              "day": 17,
+              "cash": 21870.0,
+              "sold": 380
+            },
+            {
+              "day": 18,
+              "cash": 22980.0,
+              "sold": 380
+            },
+            {
+              "day": 19,
+              "cash": 24090.0,
+              "sold": 380
+            },
+            {
+              "day": 20,
+              "cash": 25200.0,
+              "sold": 380
+            },
+            {
+              "day": 21,
+              "cash": 26310.0,
+              "sold": 380
+            },
+            {
+              "day": 22,
+              "cash": 27420.0,
+              "sold": 380
+            },
+            {
+              "day": 23,
+              "cash": 28530.0,
+              "sold": 380
+            },
+            {
+              "day": 24,
+              "cash": 29640.0,
+              "sold": 380
+            },
+            {
+              "day": 25,
+              "cash": 30750.0,
+              "sold": 380
+            },
+            {
+              "day": 26,
+              "cash": 31860.0,
+              "sold": 380
+            },
+            {
+              "day": 27,
+              "cash": 32970.0,
+              "sold": 380
+            },
+            {
+              "day": 28,
+              "cash": 34080.0,
+              "sold": 380
+            },
+            {
+              "day": 29,
+              "cash": 35190.0,
+              "sold": 380
+            },
+            {
+              "day": 30,
+              "cash": 36300.0,
+              "sold": 380
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "accounting_identity": "CONFIRMED",
+    "retailbench_reproduction": "NOT TESTED"
+  },
+  "limitations": [
+    "Artificial deterministic inputs; no LLM, lead time, aging, news, or bankruptcy termination.",
+    "Final cash is not paper net worth; return rates are invented teaching assumptions."
+  ]
+}
