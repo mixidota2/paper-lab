@@ -24,6 +24,9 @@ from paper_lab.isomorph30 import widget as isomorph30_widget
 from paper_lab.invevolve30 import widget as invevolve30_widget
 from paper_lab.fbsde30 import widget as fbsde30_widget
 from paper_lab.retailbench30 import widget as retailbench30_widget
+from paper_lab.deepstock01 import widget as deepstock01_widget
+from paper_lab.projection01 import widget as projection01_widget
+from paper_lab.forecast01 import widget as forecast01_widget
 
 from paper_lab.models import (
     STANDARD_SECTIONS,
@@ -167,6 +170,9 @@ def paper_sections(lab: Lab) -> list[dict[str, Any]]:
             html += invevolve30_widget(lab.results)
             html += fbsde30_widget(lab.results)
             html += retailbench30_widget(lab.results)
+            html += deepstock01_widget(lab.results)
+            html += projection01_widget(lab.results)
+            html += forecast01_widget(lab.results)
 
         rendered.append(
             {

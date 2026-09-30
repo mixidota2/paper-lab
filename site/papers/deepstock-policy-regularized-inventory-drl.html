@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="BaseとCoeffで行動を再写像し、方策の表現力を保つ。Tmall全対象への展開報告を、選抜DiD・反実仮想・最小の代数検証に分けて読む。">
+  <title>発注量への再写像だけで、DRLは大規模な在庫管理に近づくか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-03-20</span></div>
+    <h1>発注量への再写像だけで、DRLは大規模な在庫管理に近づくか</h1>
+    <p class="lede">BaseとCoeffで行動を再写像し、方策の表現力を保つ。Tmall全対象への展開報告を、選抜DiD・反実仮想・最小の代数検証に分けて読む。</p>
+    <details class="bibliography"><summary>原論文：DeepStock: Reinforcement Learning with Policy Regularizations for Inventory Management</summary><p>Yaqi Xie, Xinru Hao, Jiaxi Liu, Will Ma, Linwei Xin, Lei Cao, Yidong Zhang</p><p>2603.19621 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2603.19621">原典を読む ↗</a><a href="https://arxiv.org/pdf/2603.19621v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-10-01 · 導入部、欠品需要推定、Fig. 3、Tables 1–2、§4を提供PDF本文で確認。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-action-remapping">目標と係数を発注量へ写す</a><a href="#figure-policy-design-map">在庫構造と学習器の交点に置く</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>DeepStockは、ニューラルネットワークの出力を「目標在庫」や「需要特徴の係数」として解釈し、発注量へ変換する。在庫の構造を深層強化学習（DRL）へ持ち込む研究である。著者は2025年10月時点でTmallの対象商品100%、100万超のSKU–倉庫の組に展開したと報告する。4月の展開率は国際100%・国内87%で、時点を混同しない。</p>
+<p>注目点は、方策が表せる範囲を狭めずに、学習時の探索を在庫管理に合う形へ寄せること。まず再写像の式を読むと、LLMが設計を担うSabreAgentやInvEvolveとは別の研究セルだと分かる。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>欠品後の需要は売上に残らない。DeepStockが扱うこの逸失販売型の在庫管理では、商品ごとに異なる販売規模、リードタイム、補充間隔を方策に渡す必要があり、Tmallの実験では190次元の特徴を使う。通常のDRLは発注量を直接出力するため、学習とハイパーパラメータ探索が不安定になりやすい。</p>
+<p>販売数をそのまま真の需要とは置かない。著者は欠品時刻から当日の需要を外挿し、<strong>推定した需要で訓練</strong>する。推定誤差の影響は、本Labでは検証していない。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>Base/Coeffの再写像で方策の表現力を保ちながら、DRLの探索と性能を改善し、単一方策を全SKUへ展開する。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>在庫構造 × DRLの研究。LLMが方策の設計や更新を担うSabreAgent・InvEvolveと補完的に位置づける。</p></div></div>
+      </section>
+<figure class="teaching teaching--matrix" id="figure-policy-design-map" aria-labelledby="title-policy-design-map">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-policy-design-map">在庫構造と学習器の交点に置く</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="在庫構造と学習器の交点に置くの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">変更する対象</th><th scope="col">構造・検証</th><th scope="col">LLMの役割</th></tr></thead><tbody><tr><th scope="row">DeepStock</th><td class="">DRLの方策重み</td><td class="">Base/Coeffの行動再写像</td><td class="">使わない</td></tr><tr><th scope="row">SabreAgent</th><td class="">ORへ渡す設計時の事前分布</td><td class="">凍結したORを運用</td><td class="">設計時</td></tr><tr><th scope="row">InvEvolve</th><td class="">白箱の発注コード</td><td class="">LCBで候補を認証</td><td class="">方策コードを進化させる</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>本Labの解釈による研究地図。論文同士の直接的な性能比較ではない。 <a href="https://arxiv.org/pdf/2603.19621v1">出典：導入部；関連Labの一次資料は各ページ参照 ↗</a></figcaption>
+</figure>      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h1>出力の意味を在庫管理に合わせる</h1>
+<p>Iは手元と輸送中の在庫状態、xは外生特徴、tot(I)は総在庫。f=feat(x)には4つの過去・予測需要と定数1を含む。μは状態に依存する学習済みネットワークである。</p>
+<pre><code class="language-text">None:  q = μNone(I, x)
+Base:  q = max(μBase(I, x) − tot(I), 0)
+Coeff: q = μCoeff(I, x)ᵀ f
+Both:  q = max(μBoth(I, x)ᵀ f − tot(I), 0)
+</code></pre>
+<p>原論文の導入部pp.3–4の式。Coeffの式に独自の切り上げやクリップを加えていない。実験では非負の出力を使う。入力の動的特徴と在庫をSKU内で正規化し、Coeffで需要規模へ戻すため、販売規模をまたぐ単一方策の学習につながる。</p>
+<p>例えば総在庫が18個あるとき、ネットワークの出力24を直接発注量と読むNoneは24個を発注する一方、目標在庫と読むBaseは24−18=6個を発注する。同じ24でも役割が違う。在庫が30個ならBaseの発注は0になる。これを任意のq個の発注へ戻すには、Baseの出力をq+30とすればよい。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-action-remapping" aria-labelledby="title-action-remapping">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-action-remapping">目標と係数を発注量へ写す</h3>
+  <ol class="equation-steps"><li><strong>Base：目標から総在庫を引く</strong><div class="math-expression" tabindex="0" role="math" aria-label="q = max(μBase(I,x) − tot(I), 0)">q = max(μBase(I,x) − tot(I), 0)</div><p>ネットワークの出力を目標在庫として読む。</p></li><li><strong>Coeff：需要特徴に係数を掛ける</strong><div class="math-expression" tabindex="0" role="math" aria-label="q = μCoeff(I,x)ᵀ feat(x)">q = μCoeff(I,x)ᵀ feat(x)</div><p>4つの需要特徴と定数1から発注量を作る。</p></li><li><strong>Both：加重和を目標として読む</strong><div class="math-expression" tabindex="0" role="math" aria-label="q = max(μBoth(I,x)ᵀ feat(x) − tot(I), 0)">q = max(μBoth(I,x)ᵀ feat(x) − tot(I), 0)</div><p>需要規模と現在庫を同じ再写像で扱う。</p></li></ol>
+  <figcaption>原論文の式を再構成。μは在庫にも依存し、固定の基準在庫への制限ではない。 <a href="https://arxiv.org/pdf/2603.19621v1">出典：導入部pp.3–4 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>著者は、Baseが在庫過多での大量発注を避けやすくし、Coeffが需要規模に沿う発注を促すと説明する。Fig. 3ではBaseを使ったDDPGのBellman誤差が小さく、価値関数の学習が速い様子を示す。</p>
+<p>解釈：人が決めた座標系で出力を読むことで、同じ表現力でも学習経路は変わる。ただしμ自体が状態依存なので、「在庫が増えると必ず発注が減る」「需要が増えると必ず発注が増える」という単調性保証にはならない。下図は出力を固定した断面である。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>以下は一次資料の著者報告であり、本Labによる追試結果ではない。<a href="https://arxiv.org/pdf/2603.19621v1">原論文Table 1・2、§4</a>に対応する。</p>
+<p>オフラインのTable 1はDDPG Bothとの差を示す。DDPG Noneは欠品率+10.10ポイント、回転日数+6.13日。DS Noneは+2.10ポイント、−1.25日。DS Baseは+2.18ポイント、−2.81日なので、DDPG Bothは欠品率で勝つが回転日数では劣る。著者は欠品率を回転日数の2倍重く扱う評価で、DDPG Bothを最良とする。両指標の同時優越と読んではいけない。</p>
+<p>2024年7月のDiDは、改善余地の大きい国際SKUを選抜した10%が対象。欠品率−0.83ポイント、回転日数−9.53日。無作為割付ではなく、全SKUで同じ効果が出るとは限らない。</p>
+<p>2025年4月は旧方策を実際の補充間隔・リードタイムで動かす反実仮想シミュレーションと比較した。国際SKUで約−1日、国内で約−2日、欠品率に判別可能な差はない。国内A+は−4.04日。在庫価値50億人民元を前提に、在庫削減3.5億人民元、年間資本費用削減1,330万人民元と推計する。日本円ではない。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>対話図では、ネットワーク出力を固定して在庫だけを動かす。Base/Bothの傾きとゼロへの切り詰め、None/Coeffの水平線を比べる。同じ水平線でも、Coeffは需要特徴の加重和として生成される。</p>
+<p>さらに任意の非負発注qについて、Baseならμ=q+tot(I)、Bothなら定数特徴の係数にq+tot(I)を入れればqを復元できる。55組の在庫・発注を使ってこの恒等関係を確かめる。有限標本の構成確認であり、ニューラルネットワークの学習成功を証明するものではない。</p><figure class="teaching" data-b21><h3>発注量を出すか、目標在庫を出すか</h3><label>固定する出力 <select><option value="0">12</option><option value="1">24</option><option value="2">36</option></select></label><script type="application/json" data-frames>["<p><strong>目標・直接発注出力 12<\/strong>。紫：None = Coeff、緑：Base = Both。<\/p><svg viewBox=\"0 0 600 330\" role=\"img\" aria-label=\"固定出力で在庫を増やしたときの発注量\" style=\"width:100%;height:auto\"><path d=\"M55 35V270H575\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"55,210 75,210 95,210 115,210 135,210 155,210 175,210 195,210 215,210 235,210 255,210 275,210 295,210 315,210 335,210 355,210 375,210 395,210 415,210 435,210 455,210 475,210 495,210 515,210 535,210\" stroke=\"#a168ba\" stroke-width=\"3\" stroke-dasharray=\"8 4\" fill=\"none\"/><polyline points=\"55,210.0 75,210.0 95,210.0 115,210.0 135,210.0 155,210.0 175,210.0 195,210.0 215,210.0 235,210.0 255,210.0 275,210.0 295,210.0 315,210.0 335,210.0 355,210.0 375,210.0 395,210.0 415,210.0 435,210.0 455,210.0 475,210.0 495,210.0 515,210.0 535,210.0\" stroke=\"#a168ba\" stroke-width=\"3\" stroke-dasharray=\"\" fill=\"none\"/><polyline points=\"55,210 75,220 95,230 115,240 135,250 155,260 175,270 195,270 215,270 235,270 255,270 275,270 295,270 315,270 335,270 355,270 375,270 395,270 415,270 435,270 455,270 475,270 495,270 515,270 535,270\" stroke=\"#087f8c\" stroke-width=\"3\" stroke-dasharray=\"8 4\" fill=\"none\"/><polyline points=\"55,210.0 75,220.0 95,230.0 115,240.0 135,250.0 155,260.0 175,270.0 195,270 215,270 235,270 255,270 275,270 295,270 315,270 335,270 355,270 375,270 395,270 415,270 435,270 455,270 475,270 495,270 515,270 535,270\" stroke=\"#087f8c\" stroke-width=\"3\" stroke-dasharray=\"\" fill=\"none\"/><text x=\"55\" y=\"292\" text-anchor=\"middle\">0<\/text><text x=\"175\" y=\"292\" text-anchor=\"middle\">12<\/text><text x=\"295\" y=\"292\" text-anchor=\"middle\">24<\/text><text x=\"415\" y=\"292\" text-anchor=\"middle\">36<\/text><text x=\"535\" y=\"292\" text-anchor=\"middle\">48<\/text><text x=\"55\" y=\"22\">発注量 q（上端48）<\/text><text x=\"390\" y=\"320\">総在庫 tot(I)<\/text><\/svg><p>Coeffの係数 [0.1, 0.2, 0.3, 0.4, 0] × 需要特徴 [4, 8, 12, 16, 1] → 加重和 12。Bothはここから総在庫を引き、0で切る。<\/p><p>ネットワーク出力を固定した断面。学習済み方策の単調性を示す図ではない。<\/p>", "<p><strong>目標・直接発注出力 24<\/strong>。紫：None = Coeff、緑：Base = Both。<\/p><svg viewBox=\"0 0 600 330\" role=\"img\" aria-label=\"固定出力で在庫を増やしたときの発注量\" style=\"width:100%;height:auto\"><path d=\"M55 35V270H575\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"55,150 75,150 95,150 115,150 135,150 155,150 175,150 195,150 215,150 235,150 255,150 275,150 295,150 315,150 335,150 355,150 375,150 395,150 415,150 435,150 455,150 475,150 495,150 515,150 535,150\" stroke=\"#a168ba\" stroke-width=\"3\" stroke-dasharray=\"8 4\" fill=\"none\"/><polyline points=\"55,150.0 75,150.0 95,150.0 115,150.0 135,150.0 155,150.0 175,150.0 195,150.0 215,150.0 235,150.0 255,150.0 275,150.0 295,150.0 315,150.0 335,150.0 355,150.0 375,150.0 395,150.0 415,150.0 435,150.0 455,150.0 475,150.0 495,150.0 515,150.0 535,150.0\" stroke=\"#a168ba\" stroke-width=\"3\" stroke-dasharray=\"\" fill=\"none\"/><polyline points=\"55,150 75,160 95,170 115,180 135,190 155,200 175,210 195,220 215,230 235,240 255,250 275,260 295,270 315,270 335,270 355,270 375,270 395,270 415,270 435,270 455,270 475,270 495,270 515,270 535,270\" stroke=\"#087f8c\" stroke-width=\"3\" stroke-dasharray=\"8 4\" fill=\"none\"/><polyline points=\"55,150.0 75,160.0 95,170.0 115,180.0 135,190.0 155,200.0 175,210.0 195,220.0 215,230.0 235,240.0 255,250.0 275,260.0 295,270.0 315,270 335,270 355,270 375,270 395,270 415,270 435,270 455,270 475,270 495,270 515,270 535,270\" stroke=\"#087f8c\" stroke-width=\"3\" stroke-dasharray=\"\" fill=\"none\"/><text x=\"55\" y=\"292\" text-anchor=\"middle\">0<\/text><text x=\"175\" y=\"292\" text-anchor=\"middle\">12<\/text><text x=\"295\" y=\"292\" text-anchor=\"middle\">24<\/text><text x=\"415\" y=\"292\" text-anchor=\"middle\">36<\/text><text x=\"535\" y=\"292\" text-anchor=\"middle\">48<\/text><text x=\"55\" y=\"22\">発注量 q（上端48）<\/text><text x=\"390\" y=\"320\">総在庫 tot(I)<\/text><\/svg><p>Coeffの係数 [0.1, 0.2, 0.3, 0.4, 12] × 需要特徴 [4, 8, 12, 16, 1] → 加重和 24。Bothはここから総在庫を引き、0で切る。<\/p><p>ネットワーク出力を固定した断面。学習済み方策の単調性を示す図ではない。<\/p>", "<p><strong>目標・直接発注出力 36<\/strong>。紫：None = Coeff、緑：Base = Both。<\/p><svg viewBox=\"0 0 600 330\" role=\"img\" aria-label=\"固定出力で在庫を増やしたときの発注量\" style=\"width:100%;height:auto\"><path d=\"M55 35V270H575\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"55,90 75,90 95,90 115,90 135,90 155,90 175,90 195,90 215,90 235,90 255,90 275,90 295,90 315,90 335,90 355,90 375,90 395,90 415,90 435,90 455,90 475,90 495,90 515,90 535,90\" stroke=\"#a168ba\" stroke-width=\"3\" stroke-dasharray=\"8 4\" fill=\"none\"/><polyline points=\"55,90.0 75,90.0 95,90.0 115,90.0 135,90.0 155,90.0 175,90.0 195,90.0 215,90.0 235,90.0 255,90.0 275,90.0 295,90.0 315,90.0 335,90.0 355,90.0 375,90.0 395,90.0 415,90.0 435,90.0 455,90.0 475,90.0 495,90.0 515,90.0 535,90.0\" stroke=\"#a168ba\" stroke-width=\"3\" stroke-dasharray=\"\" fill=\"none\"/><polyline points=\"55,90 75,100 95,110 115,120 135,130 155,140 175,150 195,160 215,170 235,180 255,190 275,200 295,210 315,220 335,230 355,240 375,250 395,260 415,270 435,270 455,270 475,270 495,270 515,270 535,270\" stroke=\"#087f8c\" stroke-width=\"3\" stroke-dasharray=\"8 4\" fill=\"none\"/><polyline points=\"55,90.0 75,100.0 95,110.0 115,120.0 135,130.0 155,140.0 175,150.0 195,160.0 215,170.0 235,180.0 255,190.0 275,200.0 295,210.0 315,220.0 335,230.0 355,240.0 375,250.0 395,260.0 415,270.0 435,270 455,270 475,270 495,270 515,270 535,270\" stroke=\"#087f8c\" stroke-width=\"3\" stroke-dasharray=\"\" fill=\"none\"/><text x=\"55\" y=\"292\" text-anchor=\"middle\">0<\/text><text x=\"175\" y=\"292\" text-anchor=\"middle\">12<\/text><text x=\"295\" y=\"292\" text-anchor=\"middle\">24<\/text><text x=\"415\" y=\"292\" text-anchor=\"middle\">36<\/text><text x=\"535\" y=\"292\" text-anchor=\"middle\">48<\/text><text x=\"55\" y=\"22\">発注量 q（上端48）<\/text><text x=\"390\" y=\"320\">総在庫 tot(I)<\/text><\/svg><p>Coeffの係数 [0.1, 0.2, 0.3, 0.4, 24] × 需要特徴 [4, 8, 12, 16, 1] → 加重和 36。Bothはここから総在庫を引き、0で切る。<\/p><p>ネットワーク出力を固定した断面。学習済み方策の単調性を示す図ではない。<\/p>"]</script><div data-output aria-live="polite"><p><strong>目標・直接発注出力 12</strong>。紫：None = Coeff、緑：Base = Both。</p><svg viewBox="0 0 600 330" role="img" aria-label="固定出力で在庫を増やしたときの発注量" style="width:100%;height:auto"><path d="M55 35V270H575" fill="none" stroke="currentColor"/><polyline points="55,210 75,210 95,210 115,210 135,210 155,210 175,210 195,210 215,210 235,210 255,210 275,210 295,210 315,210 335,210 355,210 375,210 395,210 415,210 435,210 455,210 475,210 495,210 515,210 535,210" stroke="#a168ba" stroke-width="3" stroke-dasharray="8 4" fill="none"/><polyline points="55,210.0 75,210.0 95,210.0 115,210.0 135,210.0 155,210.0 175,210.0 195,210.0 215,210.0 235,210.0 255,210.0 275,210.0 295,210.0 315,210.0 335,210.0 355,210.0 375,210.0 395,210.0 415,210.0 435,210.0 455,210.0 475,210.0 495,210.0 515,210.0 535,210.0" stroke="#a168ba" stroke-width="3" stroke-dasharray="" fill="none"/><polyline points="55,210 75,220 95,230 115,240 135,250 155,260 175,270 195,270 215,270 235,270 255,270 275,270 295,270 315,270 335,270 355,270 375,270 395,270 415,270 435,270 455,270 475,270 495,270 515,270 535,270" stroke="#087f8c" stroke-width="3" stroke-dasharray="8 4" fill="none"/><polyline points="55,210.0 75,220.0 95,230.0 115,240.0 135,250.0 155,260.0 175,270.0 195,270 215,270 235,270 255,270 275,270 295,270 315,270 335,270 355,270 375,270 395,270 415,270 435,270 455,270 475,270 495,270 515,270 535,270" stroke="#087f8c" stroke-width="3" stroke-dasharray="" fill="none"/><text x="55" y="292" text-anchor="middle">0</text><text x="175" y="292" text-anchor="middle">12</text><text x="295" y="292" text-anchor="middle">24</text><text x="415" y="292" text-anchor="middle">36</text><text x="535" y="292" text-anchor="middle">48</text><text x="55" y="22">発注量 q（上端48）</text><text x="390" y="320">総在庫 tot(I)</text></svg><p>Coeffの係数 [0.1, 0.2, 0.3, 0.4, 0] × 需要特徴 [4, 8, 12, 16, 1] → 加重和 12。Bothはここから総在庫を引き、0で切る。</p><p>ネットワーク出力を固定した断面。学習済み方策の単調性を示す図ではない。</p></div><figcaption>導入部pp.3–4の4式をrun.pyで計算。線が重なる場合も、出力の意味は異なる。</figcaption></figure><figure class="teaching"><h3>DDPG Bothの優位は、指標の重みを含む</h3><svg viewBox="0 0 620 390" role="img" aria-label="DDPG Bothとの差、欠品率と回転日数" style="width:100%;height:auto"><path d="M55 30V325H575" fill="none" stroke="currentColor"/><path d="M55 244H575" stroke="#888" stroke-dasharray="4"/><circle cx="514.4" cy="90.75" r="5" fill="#a168ba"/><text x="522.4" y="106.75" font-size="13">DDPG None</text><circle cx="335.32" cy="82.5" r="5" fill="#a168ba"/><text x="343.32" y="75.5" font-size="13">DDPG Base</text><circle cx="264.04" cy="254.25" r="5" fill="#a168ba"/><text x="272.04" y="270.25" font-size="13">DDPG Coeff</text><circle cx="70" cy="244" r="5" fill="#087f8c"/><text x="78" y="237" font-size="13">DDPG Both</text><circle cx="162.4" cy="275.25" r="5" fill="#a168ba"/><text x="170.4" y="291.25" font-size="13">DS None</text><circle cx="165.92000000000002" cy="314.25" r="5" fill="#a168ba"/><text x="173.92000000000002" y="307.25" font-size="13">DS Base</text><circle cx="146.56" cy="149.0" r="5" fill="#a168ba"/><text x="154.56" y="165.0" font-size="13">DS Coeff</text><circle cx="154.04" cy="238.25" r="5" fill="#a168ba"/><text x="162.04" y="231.25" font-size="13">DS Both</text><text x="55" y="20">Δ回転日数（日） ↑ 悪化</text><text x="250" y="368">Δ欠品率（ポイント） → 悪化</text><text x="35" y="248">0</text><text x="65" y="345">0</text><text x="510" y="345">10</text></svg><div class="matrix-scroll" tabindex="0" role="region" aria-label="著者報告の比較"><table><thead><tr><th>Table 1の方策</th><th>Δ欠品率 (pp)</th><th>Δ回転日数 (日)</th></tr></thead><tbody><tr><td>DDPG None</td><td>10.1</td><td>6.13</td></tr><tr><td>DDPG Base</td><td>6.03</td><td>6.46</td></tr><tr><td>DDPG Coeff</td><td>4.41</td><td>-0.41</td></tr><tr><td>DDPG Both</td><td>0</td><td>0</td></tr><tr><td>DS None</td><td>2.1</td><td>-1.25</td></tr><tr><td>DS Base</td><td>2.18</td><td>-2.81</td></tr><tr><td>DS Coeff</td><td>1.74</td><td>3.8</td></tr><tr><td>DS Both</td><td>1.91</td><td>0.23</td></tr></tbody></table></div><figcaption>著者報告。DDPG Bothを原点とする差。左下ほど良い。DS Baseは回転日数で良く、欠品率で悪い。絶対水準や誤差区間はこの表から復元しない。</figcaption></figure><figure class="teaching"><h3>選抜DiDと全体展開の反実仮想を分ける</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="著者報告の比較"><table><thead><tr><th>比較設計</th><th>Δ欠品率 (pp)</th><th>Δ回転日数 (日)</th></tr></thead><tbody><tr><td>2024年7月 DiD・選抜10%国際SKU</td><td>-0.83</td><td>-9.53</td></tr><tr><td>2025年4月 反実仮想・国際SKU</td><td>判別可能な差なし</td><td>-1</td></tr><tr><td>2025年4月 反実仮想・国内SKU</td><td>判別可能な差なし</td><td>-2</td></tr></tbody></table></div><p>4月の国内A+は−4.04日。7月の対象は改善余地の大きい10%を選抜しているため、差の大きさを展開の劣化と解釈しない。</p><figcaption>§4とTable 2の著者報告。4月の欠品率0は描画用の符号で、真の効果が厳密に0という推定ではない。</figcaption></figure></div><div class="downloads"><a href="../downloads/deepstock-policy-regularized-inventory-drl/run.py" download>実行コード</a><a href="../downloads/deepstock-policy-regularized-inventory-drl/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/deepstock-policy-regularized-inventory-drl">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>式の再写像のみを検証。Table 1・2と実運用の数値は著者報告の転記で、再現実験ではない。</em></p>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;lab01&quot;: &quot;deepstock&quot;,
+  &quot;note&quot;: &quot;式の再写像のみを検証。Table 1・2と実運用の数値は著者報告の転記で、再現実験ではない。&quot;,
+  &quot;checks&quot;: {
+    &quot;status&quot;: &quot;CONFIRMED&quot;,
+    &quot;arbitrary_action_cases&quot;: 55,
+    &quot;max_inverse_error&quot;: 0,
+    &quot;base_both_equal&quot;: true
+  },
+  &quot;frames&quot;: [
+    {
+      &quot;target&quot;: 12,
+      &quot;features&quot;: [
+        4,
+        8,
+        12,
+        16,
+        1
+      ],
+      &quot;weights&quot;: [
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0
+      ],
+      &quot;curve&quot;: [
+        {
+          &quot;inventory&quot;: 0,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 12,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 12.0
+        },
+        {
+          &quot;inventory&quot;: 2,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 10,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 10.0
+        },
+        {
+          &quot;inventory&quot;: 4,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 8,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 8.0
+        },
+        {
+          &quot;inventory&quot;: 6,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 6,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 6.0
+        },
+        {
+          &quot;inventory&quot;: 8,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 4,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 4.0
+        },
+        {
+          &quot;inventory&quot;: 10,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 2,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 2.0
+        },
+        {
+          &quot;inventory&quot;: 12,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0.0
+        },
+        {
+          &quot;inventory&quot;: 14,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 16,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 18,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 20,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 22,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 24,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 26,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 28,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 30,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 32,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 34,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 36,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 38,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 40,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 42,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 44,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 46,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 48,
+          &quot;None&quot;: 12,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 12.0,
+          &quot;Both&quot;: 0
+        }
+      ]
+    },
+    {
+      &quot;target&quot;: 24,
+      &quot;features&quot;: [
+        4,
+        8,
+        12,
+        16,
+        1
+      ],
+      &quot;weights&quot;: [
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        12
+      ],
+      &quot;curve&quot;: [
+        {
+          &quot;inventory&quot;: 0,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 24,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 24.0
+        },
+        {
+          &quot;inventory&quot;: 2,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 22,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 22.0
+        },
+        {
+          &quot;inventory&quot;: 4,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 20,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 20.0
+        },
+        {
+          &quot;inventory&quot;: 6,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 18,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 18.0
+        },
+        {
+          &quot;inventory&quot;: 8,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 16,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 16.0
+        },
+        {
+          &quot;inventory&quot;: 10,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 14,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 14.0
+        },
+        {
+          &quot;inventory&quot;: 12,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 12,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 12.0
+        },
+        {
+          &quot;inventory&quot;: 14,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 10,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 10.0
+        },
+        {
+          &quot;inventory&quot;: 16,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 8,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 8.0
+        },
+        {
+          &quot;inventory&quot;: 18,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 6,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 6.0
+        },
+        {
+          &quot;inventory&quot;: 20,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 4,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 4.0
+        },
+        {
+          &quot;inventory&quot;: 22,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 2,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 2.0
+        },
+        {
+          &quot;inventory&quot;: 24,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 0.0
+        },
+        {
+          &quot;inventory&quot;: 26,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 28,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 30,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 32,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 34,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 36,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 38,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 40,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 42,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 44,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 46,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 48,
+          &quot;None&quot;: 24,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 24.0,
+          &quot;Both&quot;: 0
+        }
+      ]
+    },
+    {
+      &quot;target&quot;: 36,
+      &quot;features&quot;: [
+        4,
+        8,
+        12,
+        16,
+        1
+      ],
+      &quot;weights&quot;: [
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        24
+      ],
+      &quot;curve&quot;: [
+        {
+          &quot;inventory&quot;: 0,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 36,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 36.0
+        },
+        {
+          &quot;inventory&quot;: 2,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 34,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 34.0
+        },
+        {
+          &quot;inventory&quot;: 4,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 32,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 32.0
+        },
+        {
+          &quot;inventory&quot;: 6,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 30,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 30.0
+        },
+        {
+          &quot;inventory&quot;: 8,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 28,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 28.0
+        },
+        {
+          &quot;inventory&quot;: 10,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 26,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 26.0
+        },
+        {
+          &quot;inventory&quot;: 12,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 24,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 24.0
+        },
+        {
+          &quot;inventory&quot;: 14,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 22,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 22.0
+        },
+        {
+          &quot;inventory&quot;: 16,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 20,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 20.0
+        },
+        {
+          &quot;inventory&quot;: 18,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 18,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 18.0
+        },
+        {
+          &quot;inventory&quot;: 20,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 16,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 16.0
+        },
+        {
+          &quot;inventory&quot;: 22,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 14,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 14.0
+        },
+        {
+          &quot;inventory&quot;: 24,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 12,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 12.0
+        },
+        {
+          &quot;inventory&quot;: 26,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 10,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 10.0
+        },
+        {
+          &quot;inventory&quot;: 28,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 8,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 8.0
+        },
+        {
+          &quot;inventory&quot;: 30,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 6,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 6.0
+        },
+        {
+          &quot;inventory&quot;: 32,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 4,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 4.0
+        },
+        {
+          &quot;inventory&quot;: 34,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 2,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 2.0
+        },
+        {
+          &quot;inventory&quot;: 36,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 0.0
+        },
+        {
+          &quot;inventory&quot;: 38,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 40,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 42,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 44,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 46,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 0
+        },
+        {
+          &quot;inventory&quot;: 48,
+          &quot;None&quot;: 36,
+          &quot;Base&quot;: 0,
+          &quot;Coeff&quot;: 36.0,
+          &quot;Both&quot;: 0
+        }
+      ]
+    }
+  ],
+  &quot;offline&quot;: [
+    {
+      &quot;method&quot;: &quot;DDPG None&quot;,
+      &quot;sr_pp&quot;: 10.1,
+      &quot;tt_days&quot;: 6.13
+    },
+    {
+      &quot;method&quot;: &quot;DDPG Base&quot;,
+      &quot;sr_pp&quot;: 6.03,
+      &quot;tt_days&quot;: 6.46
+    },
+    {
+      &quot;method&quot;: &quot;DDPG Coeff&quot;,
+      &quot;sr_pp&quot;: 4.41,
+      &quot;tt_days&quot;: -0.41
+    },
+    {
+      &quot;method&quot;: &quot;DDPG Both&quot;,
+      &quot;sr_pp&quot;: 0,
+      &quot;tt_days&quot;: 0
+    },
+    {
+      &quot;method&quot;: &quot;DS None&quot;,
+      &quot;sr_pp&quot;: 2.1,
+      &quot;tt_days&quot;: -1.25
+    },
+    {
+      &quot;method&quot;: &quot;DS Base&quot;,
+      &quot;sr_pp&quot;: 2.18,
+      &quot;tt_days&quot;: -2.81
+    },
+    {
+      &quot;method&quot;: &quot;DS Coeff&quot;,
+      &quot;sr_pp&quot;: 1.74,
+      &quot;tt_days&quot;: 3.8
+    },
+    {
+      &quot;method&quot;: &quot;DS Both&quot;,
+      &quot;sr_pp&quot;: 1.91,
+      &quot;tt_days&quot;: 0.23
+    }
+  ],
+  &quot;deployment&quot;: [
+    {
+      &quot;name&quot;: &quot;2024年7月 DiD・選抜10%国際SKU&quot;,
+      &quot;sr_pp&quot;: -0.83,
+      &quot;tt_days&quot;: -9.53
+    },
+    {
+      &quot;name&quot;: &quot;2025年4月 反実仮想・国際SKU&quot;,
+      &quot;sr_pp&quot;: 0,
+      &quot;tt_days&quot;: -1
+    },
+    {
+      &quot;name&quot;: &quot;2025年4月 反実仮想・国内SKU&quot;,
+      &quot;sr_pp&quot;: 0,
+      &quot;tt_days&quot;: -2
+    }
+  ],
+  &quot;turnover_by_class&quot;: {
+    &quot;classes&quot;: [
+      &quot;A+&quot;,
+      &quot;A&quot;,
+      &quot;B&quot;,
+      &quot;C&quot;,
+      &quot;D&quot;,
+      &quot;Z&quot;
+    ],
+    &quot;international&quot;: [
+      -1.36,
+      -0.82,
+      -1.02,
+      -1.27,
+      null,
+      null
+    ],
+    &quot;domestic&quot;: [
+      -4.04,
+      -3.81,
+      -2.93,
+      -2.23,
+      -2.13,
+      -0.64
+    ]
+  },
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>最小実験では55組すべての復元誤差が0。目標12・24・36、在庫0〜48の断面で、同じ目標値を表すBaseとBothの発注は一致した。需要特徴は[4, 8, 12, 16, 1]、最初の4係数は[0.1, 0.2, 0.3, 0.4]とした。</p>
+<p>性能の改善量は測っていない。図の欠品率・回転日数は論文から転記した値であり、この実験の出力とは区別する。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>CONFIRMED：原論文の再写像を数式どおり計算し、非負発注を復元する55例の誤差が0であることを確認した。Base/Bothの同一目標での一致も確認した。</p>
+<p>PARTIAL：機構全体の検証は限定的。固定出力による代数的な確認だけで、DDPG・PPO・DSの学習は実装していない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>NOT TESTED：DRLの収束速度、ハイパーパラメータ感度、Table 1の性能順位、100万超のSKU–倉庫への拡張、実運用の因果効果。Tmallの非公開データ、欠品需要の復元、報酬重み、実運用の再学習を再現していない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>リポジトリ直下で実行する。</p>
+<pre><code class="language-bash">UV_CACHE_DIR=/tmp/uv-deepstock uv run --no-project papers/deepstock-policy-regularized-inventory-drl/run.py
+</code></pre>
+<p>標準ライブラリのみを使い、results.jsonを再生成する。run.pyは式と確認条件、lab.yamlとREADME.mdは説明、mapping.mdは出典対応を保持する。HTMLはこれらから生成する。次の追試では、公開合成環境で同じ探索予算を与え、None/Baseの学習曲線を比較したい。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><p><a href="https://arxiv.org/pdf/2603.19621v1">原論文v1</a>の導入部pp.3–4をaction()へ対応づけた。Fig. 3は学習が効く理由の説明、Table 1・2と§4は著者報告の転記に使う。</p>
+<p><a href="https://github.com/xieyaqi188/DRL_inventory_Alibaba">著者が本文で指定する公式コード</a>は参照先として記録した。今回、公式コードの実行・ファイル単位の照合はしていない。詳細はmapping.md。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>発注量への再写像だけで、DRLは大規模な在庫管理に近づくか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/deepstock-policy-regularized-inventory-drl/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

@@ -1,0 +1,685 @@
+{
+  "lab01": "deepstock",
+  "note": "式の再写像のみを検証。Table 1・2と実運用の数値は著者報告の転記で、再現実験ではない。",
+  "checks": {
+    "status": "CONFIRMED",
+    "arbitrary_action_cases": 55,
+    "max_inverse_error": 0,
+    "base_both_equal": true
+  },
+  "frames": [
+    {
+      "target": 12,
+      "features": [
+        4,
+        8,
+        12,
+        16,
+        1
+      ],
+      "weights": [
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0
+      ],
+      "curve": [
+        {
+          "inventory": 0,
+          "None": 12,
+          "Base": 12,
+          "Coeff": 12.0,
+          "Both": 12.0
+        },
+        {
+          "inventory": 2,
+          "None": 12,
+          "Base": 10,
+          "Coeff": 12.0,
+          "Both": 10.0
+        },
+        {
+          "inventory": 4,
+          "None": 12,
+          "Base": 8,
+          "Coeff": 12.0,
+          "Both": 8.0
+        },
+        {
+          "inventory": 6,
+          "None": 12,
+          "Base": 6,
+          "Coeff": 12.0,
+          "Both": 6.0
+        },
+        {
+          "inventory": 8,
+          "None": 12,
+          "Base": 4,
+          "Coeff": 12.0,
+          "Both": 4.0
+        },
+        {
+          "inventory": 10,
+          "None": 12,
+          "Base": 2,
+          "Coeff": 12.0,
+          "Both": 2.0
+        },
+        {
+          "inventory": 12,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0.0
+        },
+        {
+          "inventory": 14,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 16,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 18,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 20,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 22,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 24,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 26,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 28,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 30,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 32,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 34,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 36,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 38,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 40,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 42,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 44,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 46,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        },
+        {
+          "inventory": 48,
+          "None": 12,
+          "Base": 0,
+          "Coeff": 12.0,
+          "Both": 0
+        }
+      ]
+    },
+    {
+      "target": 24,
+      "features": [
+        4,
+        8,
+        12,
+        16,
+        1
+      ],
+      "weights": [
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        12
+      ],
+      "curve": [
+        {
+          "inventory": 0,
+          "None": 24,
+          "Base": 24,
+          "Coeff": 24.0,
+          "Both": 24.0
+        },
+        {
+          "inventory": 2,
+          "None": 24,
+          "Base": 22,
+          "Coeff": 24.0,
+          "Both": 22.0
+        },
+        {
+          "inventory": 4,
+          "None": 24,
+          "Base": 20,
+          "Coeff": 24.0,
+          "Both": 20.0
+        },
+        {
+          "inventory": 6,
+          "None": 24,
+          "Base": 18,
+          "Coeff": 24.0,
+          "Both": 18.0
+        },
+        {
+          "inventory": 8,
+          "None": 24,
+          "Base": 16,
+          "Coeff": 24.0,
+          "Both": 16.0
+        },
+        {
+          "inventory": 10,
+          "None": 24,
+          "Base": 14,
+          "Coeff": 24.0,
+          "Both": 14.0
+        },
+        {
+          "inventory": 12,
+          "None": 24,
+          "Base": 12,
+          "Coeff": 24.0,
+          "Both": 12.0
+        },
+        {
+          "inventory": 14,
+          "None": 24,
+          "Base": 10,
+          "Coeff": 24.0,
+          "Both": 10.0
+        },
+        {
+          "inventory": 16,
+          "None": 24,
+          "Base": 8,
+          "Coeff": 24.0,
+          "Both": 8.0
+        },
+        {
+          "inventory": 18,
+          "None": 24,
+          "Base": 6,
+          "Coeff": 24.0,
+          "Both": 6.0
+        },
+        {
+          "inventory": 20,
+          "None": 24,
+          "Base": 4,
+          "Coeff": 24.0,
+          "Both": 4.0
+        },
+        {
+          "inventory": 22,
+          "None": 24,
+          "Base": 2,
+          "Coeff": 24.0,
+          "Both": 2.0
+        },
+        {
+          "inventory": 24,
+          "None": 24,
+          "Base": 0,
+          "Coeff": 24.0,
+          "Both": 0.0
+        },
+        {
+          "inventory": 26,
+          "None": 24,
+          "Base": 0,
+          "Coeff": 24.0,
+          "Both": 0
+        },
+        {
+          "inventory": 28,
+          "None": 24,
+          "Base": 0,
+          "Coeff": 24.0,
+          "Both": 0
+        },
+        {
+          "inventory": 30,
+          "None": 24,
+          "Base": 0,
+          "Coeff": 24.0,
+          "Both": 0
+        },
+        {
+          "inventory": 32,
+          "None": 24,
+          "Base": 0,
+          "Coeff": 24.0,
+          "Both": 0
+        },
+        {
+          "inventory": 34,
+          "None": 24,
+          "Base": 0,
+          "Coeff": 24.0,
+          "Both": 0
+        },
+        {
+          "inventory": 36,
+          "None": 24,
+          "Base": 0,
+          "Coeff": 24.0,
+          "Both": 0
+        },
+        {
+          "inventory": 38,
+          "None": 24,
+          "Base": 0,
+          "Coeff": 24.0,
+          "Both": 0
+        },
+        {
+          "inventory": 40,
+          "None": 24,
+          "Base": 0,
+          "Coeff": 24.0,
+          "Both": 0
+        },
+        {
+          "inventory": 42,
+          "None": 24,
+          "Base": 0,
+          "Coeff": 24.0,
+          "Both": 0
+        },
+        {
+          "inventory": 44,
+          "None": 24,
+          "Base": 0,
+          "Coeff": 24.0,
+          "Both": 0
+        },
+        {
+          "inventory": 46,
+          "None": 24,
+          "Base": 0,
+          "Coeff": 24.0,
+          "Both": 0
+        },
+        {
+          "inventory": 48,
+          "None": 24,
+          "Base": 0,
+          "Coeff": 24.0,
+          "Both": 0
+        }
+      ]
+    },
+    {
+      "target": 36,
+      "features": [
+        4,
+        8,
+        12,
+        16,
+        1
+      ],
+      "weights": [
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        24
+      ],
+      "curve": [
+        {
+          "inventory": 0,
+          "None": 36,
+          "Base": 36,
+          "Coeff": 36.0,
+          "Both": 36.0
+        },
+        {
+          "inventory": 2,
+          "None": 36,
+          "Base": 34,
+          "Coeff": 36.0,
+          "Both": 34.0
+        },
+        {
+          "inventory": 4,
+          "None": 36,
+          "Base": 32,
+          "Coeff": 36.0,
+          "Both": 32.0
+        },
+        {
+          "inventory": 6,
+          "None": 36,
+          "Base": 30,
+          "Coeff": 36.0,
+          "Both": 30.0
+        },
+        {
+          "inventory": 8,
+          "None": 36,
+          "Base": 28,
+          "Coeff": 36.0,
+          "Both": 28.0
+        },
+        {
+          "inventory": 10,
+          "None": 36,
+          "Base": 26,
+          "Coeff": 36.0,
+          "Both": 26.0
+        },
+        {
+          "inventory": 12,
+          "None": 36,
+          "Base": 24,
+          "Coeff": 36.0,
+          "Both": 24.0
+        },
+        {
+          "inventory": 14,
+          "None": 36,
+          "Base": 22,
+          "Coeff": 36.0,
+          "Both": 22.0
+        },
+        {
+          "inventory": 16,
+          "None": 36,
+          "Base": 20,
+          "Coeff": 36.0,
+          "Both": 20.0
+        },
+        {
+          "inventory": 18,
+          "None": 36,
+          "Base": 18,
+          "Coeff": 36.0,
+          "Both": 18.0
+        },
+        {
+          "inventory": 20,
+          "None": 36,
+          "Base": 16,
+          "Coeff": 36.0,
+          "Both": 16.0
+        },
+        {
+          "inventory": 22,
+          "None": 36,
+          "Base": 14,
+          "Coeff": 36.0,
+          "Both": 14.0
+        },
+        {
+          "inventory": 24,
+          "None": 36,
+          "Base": 12,
+          "Coeff": 36.0,
+          "Both": 12.0
+        },
+        {
+          "inventory": 26,
+          "None": 36,
+          "Base": 10,
+          "Coeff": 36.0,
+          "Both": 10.0
+        },
+        {
+          "inventory": 28,
+          "None": 36,
+          "Base": 8,
+          "Coeff": 36.0,
+          "Both": 8.0
+        },
+        {
+          "inventory": 30,
+          "None": 36,
+          "Base": 6,
+          "Coeff": 36.0,
+          "Both": 6.0
+        },
+        {
+          "inventory": 32,
+          "None": 36,
+          "Base": 4,
+          "Coeff": 36.0,
+          "Both": 4.0
+        },
+        {
+          "inventory": 34,
+          "None": 36,
+          "Base": 2,
+          "Coeff": 36.0,
+          "Both": 2.0
+        },
+        {
+          "inventory": 36,
+          "None": 36,
+          "Base": 0,
+          "Coeff": 36.0,
+          "Both": 0.0
+        },
+        {
+          "inventory": 38,
+          "None": 36,
+          "Base": 0,
+          "Coeff": 36.0,
+          "Both": 0
+        },
+        {
+          "inventory": 40,
+          "None": 36,
+          "Base": 0,
+          "Coeff": 36.0,
+          "Both": 0
+        },
+        {
+          "inventory": 42,
+          "None": 36,
+          "Base": 0,
+          "Coeff": 36.0,
+          "Both": 0
+        },
+        {
+          "inventory": 44,
+          "None": 36,
+          "Base": 0,
+          "Coeff": 36.0,
+          "Both": 0
+        },
+        {
+          "inventory": 46,
+          "None": 36,
+          "Base": 0,
+          "Coeff": 36.0,
+          "Both": 0
+        },
+        {
+          "inventory": 48,
+          "None": 36,
+          "Base": 0,
+          "Coeff": 36.0,
+          "Both": 0
+        }
+      ]
+    }
+  ],
+  "offline": [
+    {
+      "method": "DDPG None",
+      "sr_pp": 10.1,
+      "tt_days": 6.13
+    },
+    {
+      "method": "DDPG Base",
+      "sr_pp": 6.03,
+      "tt_days": 6.46
+    },
+    {
+      "method": "DDPG Coeff",
+      "sr_pp": 4.41,
+      "tt_days": -0.41
+    },
+    {
+      "method": "DDPG Both",
+      "sr_pp": 0,
+      "tt_days": 0
+    },
+    {
+      "method": "DS None",
+      "sr_pp": 2.1,
+      "tt_days": -1.25
+    },
+    {
+      "method": "DS Base",
+      "sr_pp": 2.18,
+      "tt_days": -2.81
+    },
+    {
+      "method": "DS Coeff",
+      "sr_pp": 1.74,
+      "tt_days": 3.8
+    },
+    {
+      "method": "DS Both",
+      "sr_pp": 1.91,
+      "tt_days": 0.23
+    }
+  ],
+  "deployment": [
+    {
+      "name": "2024年7月 DiD・選抜10%国際SKU",
+      "sr_pp": -0.83,
+      "tt_days": -9.53
+    },
+    {
+      "name": "2025年4月 反実仮想・国際SKU",
+      "sr_pp": 0,
+      "tt_days": -1
+    },
+    {
+      "name": "2025年4月 反実仮想・国内SKU",
+      "sr_pp": 0,
+      "tt_days": -2
+    }
+  ],
+  "turnover_by_class": {
+    "classes": [
+      "A+",
+      "A",
+      "B",
+      "C",
+      "D",
+      "Z"
+    ],
+    "international": [
+      -1.36,
+      -0.82,
+      -1.02,
+      -1.27,
+      null,
+      null
+    ],
+    "domestic": [
+      -4.04,
+      -3.81,
+      -2.93,
+      -2.23,
+      -2.13,
+      -0.64
+    ]
+  },
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  }
+}

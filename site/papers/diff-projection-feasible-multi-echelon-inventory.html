@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="共有資材・生産能力を守るQP射影と整数写像。Free／Pinned／Competingの勾配を2変数で追う。">
+  <title>整数の生産制約を守りながら、学習信号をどう返すか。 | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-08-03</span></div>
+    <h1>整数の生産制約を守りながら、学習信号をどう返すか。</h1>
+    <p class="lede">共有資材・生産能力を守るQP射影と整数写像。Free／Pinned／Competingの勾配を2変数で追う。</p>
+    <details class="bibliography"><summary>原論文：Hard Constraints, Smooth Gradients: Learning Feasible Inventory Policies via Differentiable Projection</summary><p>Patrick P. Helm, Jan-Niklas Doerr, Joren Gijsbrechts, Stefan Minner</p><p>2608.02343 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2608.02343">原典を読む ↗</a><a href="https://arxiv.org/pdf/2608.02343">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：未記録 · </p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-projection-equations">射影から整数行動へ、順方向と逆方向を分ける</a><a href="#figure-constraint-map">何を制約し、どこへ勾配を返すか</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>連続値の生産目標を、資材・共有設備の制約を守る整数行動に変換する研究。著者は小規模24条件で平均最適性ギャップ0.91%、ASML Research Challengeの14品目で最良のechelon DBS比3.22%／2.54%の費用削減を報告した。本Labでは、射影の勾配と整数化だけを2変数で検算する。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>対象は生産計画だ。複数段階の在庫を扱う。複数の製品が資材や生産能力を共有するため、品目ごとの上限処理では実行可能性を保てない。需要未充足はバックオーダーとして繰り越す。売り逃しを扱う小売モデルや、食品売場の棚割りRCTへの実証ではない。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>【著者の主張】NNの連続目標を強凸QPで実行可能領域へ射影し、双対価格を使う整数写像で離散行動に変える。解析JacobianとSTEを組み合わせ、微分可能なシミュレーター上で端から端まで学習する。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>【Labの解釈】DeepStockが方策の探索を在庫構造で整えるのに対し、本手法は品目間の結合制約と整数実行可能性を学習経路へ組み込む。Constrained FBSDEの経路上の状態制約とは守る対象が異なる。直接の優劣比較ではない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><p>目標zを出すNN、連続実行可能領域へのQP射影、双対情報を使う整数写像の3段階で行動を決める（図3）。QPの式(2)は <code>min ½(x−z)ᵀW(x−z), Mx≤r</code>。資材・設備の使用係数が非負で、実行可能領域が下方閉であるため、floorも実行可能になる。</p>
+<p>整数写像は <code>xᶠ=⌊x*⌋</code> から始める。優先度は <code>σᵢ=f(xᶠ;z)−f(xᶠ+eᵢ;z)−[Mᵀλ*]ᵢ</code>。優先度順に1回走査し、実行可能で目的を増やさない単位増分だけを加える。四捨五入ではない。</p>
+<p>図4のように、共有容量に当たった射影点は境界に沿って動く。本LabのCompetingでは <code>Jz=[[0.5,−0.5],[−0.5,0.5]]</code>。z₁を増やすとx₁が半分増え、x₂が半分減る。Pinnedでは固定される。本Labの例ではx₁≤3だけが活性なので、第1座標の目標を変えてもx₁は動かない。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-projection-equations" aria-labelledby="title-projection-equations">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-projection-equations">射影から整数行動へ、順方向と逆方向を分ける</h3>
+  <ol class="equation-steps"><li><strong>強凸QP</strong><div class="math-expression" tabindex="0" role="math" aria-label="x* = argmin { ½(x−z)ᵀW(x−z) : Mx ≤ r }">x* = argmin { ½(x−z)ᵀW(x−z) : Mx ≤ r }</div><p>Wは正定値。非空な実行可能集合では解が一意に定まる。</p></li><li><strong>目標へのJacobian</strong><div class="math-expression" tabindex="0" role="math" aria-label="Jz = I − W⁻¹ M̃ᵀ(M̃W⁻¹M̃ᵀ)⁻¹M̃">Jz = I − W⁻¹ M̃ᵀ(M̃W⁻¹M̃ᵀ)⁻¹M̃</div><p>独立な活性制約が局所的に変わらない条件で使う。</p></li><li><strong>整数写像の近似微分</strong><div class="math-expression" tabindex="0" role="math" aria-label="∂̂x/∂x* = I; ∂̂x/∂z = 0; ∂̂x/∂λ* = 0">∂̂x/∂x* = I; ∂̂x/∂z = 0; ∂̂x/∂λ* = 0</div><p>順方向は整数行動。逆方向のSTEは真の微分ではない。</p></li></ol>
+  <figcaption>式(2)、補題1、§4.1.2。図3の学習経路に対応する。 <a href="https://arxiv.org/abs/2608.02343">出典：Equation (2), Lemma 1, Figure 3 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>【Labの解釈】共有制約に当たった目標の勾配を、他品目との配分変更へ変換できる点が効きそうだ。Freeでは勾配を通し、Pinnedでは対象座標が動かず、Competingでは一方の増加が他方の減少になる。</p>
+<p>著者の補題1では、状態に依存する制約で失われた目標側の方向が、制約右辺bへの勾配に現れる。資材を不足させた過去の意思決定へ学習信号を返せる。一方、固定容量の制約にはこの補償がない。活性集合の切替点で通常の微分が常に存在するという主張でもない。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-constraint-map" aria-labelledby="title-constraint-map">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-constraint-map">何を制約し、どこへ勾配を返すか</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="何を制約し、どこへ勾配を返すかの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">制約の対象</th><th scope="col">このLabとの関係</th></tr></thead><tbody><tr><th scope="row">Diff Projection</th><td class="">離散生産行動と共有資材・設備</td><td class="">QPと整数写像で毎期の実行可能性を守る</td></tr><tr><th scope="row">Constrained FBSDE</th><td class="">連続時間の在庫・排出予算</td><td class="">状態の経路制約。遅延と離散化も課題</td></tr><tr><th scope="row">OR-Transformer</th><td class="">費用を考慮した在庫意思決定</td><td class="">結合した整数行動の保証とは別軸</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>本Labの整理。手法間の直接比較結果ではない。 <a href="https://arxiv.org/abs/2608.02343">出典：Sections 2, 4; comparison is Lab interpretation ↗</a></figcaption>
+</figure>      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料は<a href="https://arxiv.org/pdf/2608.02343">著者PDF</a>の§4–6、図3–6、表1–5。いずれも著者によるシミュレーション評価で、本Labの再現値ではない。</p>
+<table>
+<thead>
+<tr>
+<th>条件</th>
+<th>著者報告</th>
+<th>出典</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>小規模24条件</td>
+<td>平均最適性ギャップ0.91%、22/24で最適化SBSを上回る</td>
+<td>表1</td>
+</tr>
+<tr>
+<td>Tempelmeier型ネットワーク</td>
+<td>最良echelon base-stock比で最大9.75%削減、rolling MSP比で少なくとも7.7%削減</td>
+<td>表2・§6.3</td>
+</tr>
+<tr>
+<td>ASML 14品目、設定1／2</td>
+<td>最良echelon DBS比3.22%／2.54%削減</td>
+<td>表4</td>
+</tr>
+<tr>
+<td>整数化をfloorに替える−IM</td>
+<td>費用が11.83%／15.79%増加</td>
+<td>表5</td>
+</tr>
+</tbody>
+</table>
+<p>ASML設定1の平均総費用はechelon DBS 286.99、MSP 289.25、提案法277.74。提案法はDBSより保有費用が低く、MSPよりバックオーダー費用が低い。単純なDBS列と最良のechelon DBS列を混同しない。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>2変数の目標zを、x₁≥0、x₂≥0、x₁≤3、x₁+x₂≤6の多角形へ射影する。W=diag(1/2,1/2)。全辺への最近点から厳密解を選ぶため、外部QPソルバーは不要。3つの活性集合を選び、解析Jacobianを中心差分と照合する。</p>
+<p>次に§4.1.2どおり、floorを初期値にして双対価格を使う優先順位で各座標を1回ずつ増やす。実行可能で射影目的を悪化させない増分だけを採用する。6,561個の目標を同条件でfloorと比較し、整数点の全探索とも照合する。図5に対応するx₁+x₂≤2の別実験では、境界の整数点(1,1)に到達する目標領域を調べる。</p><figure class="teaching" data-b21><h3>図4を動かす：目標の変化はどこへ進むか</h3><label>活性制約の状態 <select><option value="0">Free</option><option value="1">Pinned</option><option value="2">Competing</option></select></label><script type="application/json" data-frames>["<svg viewBox=\"0 0 470 425\" role=\"img\" aria-label=\"Free。緑の領域が共有容量と個別上限を守る行動。赤が目標、青が射影。\" style=\"width:100%;max-width:560px;height:auto\"><path d=\"M55 63V375H367\" fill=\"none\" stroke=\"currentColor\"/><path d=\"M55 375H211V219L55 63Z\" fill=\"#137d7922\" stroke=\"#137d79\" stroke-width=\"2\"/><circle cx=\"55\" cy=\"375\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"323\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"271\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"219\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"167\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"115\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"63\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"375\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"323\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"271\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"219\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"167\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"115\" r=\"3\" fill=\"#78908b\"/><circle cx=\"159\" cy=\"375\" r=\"3\" fill=\"#78908b\"/><circle cx=\"159\" cy=\"323\" r=\"3\" fill=\"#78908b\"/><circle cx=\"159\" cy=\"271\" r=\"3\" fill=\"#78908b\"/><circle cx=\"159\" cy=\"219\" r=\"3\" fill=\"#78908b\"/><circle cx=\"159\" cy=\"167\" r=\"3\" fill=\"#78908b\"/><circle cx=\"211\" cy=\"375\" r=\"3\" fill=\"#78908b\"/><circle cx=\"211\" cy=\"323\" r=\"3\" fill=\"#78908b\"/><circle cx=\"211\" cy=\"271\" r=\"3\" fill=\"#78908b\"/><circle cx=\"211\" cy=\"219\" r=\"3\" fill=\"#78908b\"/><text x=\"270\" y=\"410\">x₁ 生産量<\/text><text x=\"10\" y=\"25\">x₂ 生産量<\/text><text x=\"228\" y=\"170\">x₁ ≤ 3<\/text><text x=\"65\" y=\"50\">x₁ + x₂ ≤ 6<\/text><line x1=\"107.0\" y1=\"323.0\" x2=\"107.0\" y2=\"323.0\" stroke=\"#bc583c\" stroke-dasharray=\"5 4\"/><circle cx=\"107.0\" cy=\"323.0\" r=\"7\" fill=\"#bc583c\"/><circle cx=\"107.0\" cy=\"323.0\" r=\"5\" fill=\"#246baf\"/><path d=\"M107.0 323.0L159.0 323.0\" stroke=\"#246baf\" stroke-width=\"4\"/><text x=\"117.0\" y=\"313.0\">z<\/text><text x=\"117.0\" y=\"343.0\">x*<\/text><text x=\"30\" y=\"397\">0<\/text><text x=\"205\" y=\"397\">3<\/text><text x=\"363\" y=\"397\">6<\/text><\/svg><p><strong>Free<\/strong>：制約から離れた点。目標の変化がそのまま行動へ伝わる。<\/p><p>z=[1.0, 1.0] → x*=[1.0, 1.0]。∂x*/∂z₁=(1, 0)。<\/p><p>floor=[1, 1] → 整数写像=[1, 1]。青線は局所勾配の方向を表す。<\/p>", "<svg viewBox=\"0 0 470 425\" role=\"img\" aria-label=\"Pinned。緑の領域が共有容量と個別上限を守る行動。赤が目標、青が射影。\" style=\"width:100%;max-width:560px;height:auto\"><path d=\"M55 63V375H367\" fill=\"none\" stroke=\"currentColor\"/><path d=\"M55 375H211V219L55 63Z\" fill=\"#137d7922\" stroke=\"#137d79\" stroke-width=\"2\"/><circle cx=\"55\" cy=\"375\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"323\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"271\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"219\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"167\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"115\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"63\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"375\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"323\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"271\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"219\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"167\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"115\" r=\"3\" fill=\"#78908b\"/><circle cx=\"159\" cy=\"375\" r=\"3\" fill=\"#78908b\"/><circle cx=\"159\" cy=\"323\" r=\"3\" fill=\"#78908b\"/><circle cx=\"159\" cy=\"271\" r=\"3\" fill=\"#78908b\"/><circle cx=\"159\" cy=\"219\" r=\"3\" fill=\"#78908b\"/><circle cx=\"159\" cy=\"167\" r=\"3\" fill=\"#78908b\"/><circle cx=\"211\" cy=\"375\" r=\"3\" fill=\"#78908b\"/><circle cx=\"211\" cy=\"323\" r=\"3\" fill=\"#78908b\"/><circle cx=\"211\" cy=\"271\" r=\"3\" fill=\"#78908b\"/><circle cx=\"211\" cy=\"219\" r=\"3\" fill=\"#78908b\"/><text x=\"270\" y=\"410\">x₁ 生産量<\/text><text x=\"10\" y=\"25\">x₂ 生産量<\/text><text x=\"228\" y=\"170\">x₁ ≤ 3<\/text><text x=\"65\" y=\"50\">x₁ + x₂ ≤ 6<\/text><line x1=\"315.0\" y1=\"323.0\" x2=\"211.0\" y2=\"323.0\" stroke=\"#bc583c\" stroke-dasharray=\"5 4\"/><circle cx=\"315.0\" cy=\"323.0\" r=\"7\" fill=\"#bc583c\"/><circle cx=\"211.0\" cy=\"323.0\" r=\"5\" fill=\"#246baf\"/><path d=\"M211.0 323.0L211.0 323.0\" stroke=\"#246baf\" stroke-width=\"4\"/><text x=\"325.0\" y=\"313.0\">z<\/text><text x=\"221.0\" y=\"343.0\">x*<\/text><text x=\"30\" y=\"397\">0<\/text><text x=\"205\" y=\"397\">3<\/text><text x=\"363\" y=\"397\">6<\/text><\/svg><p><strong>Pinned<\/strong>：第1座標は上限3に固定。z₁を増やしてもx₁は動かない。<\/p><p>z=[5.0, 1.0] → x*=[3.0, 1.0]。∂x*/∂z₁=(0, 0)。<\/p><p>floor=[3, 1] → 整数写像=[3, 1]。青線は局所勾配の方向を表す。<\/p>", "<svg viewBox=\"0 0 470 425\" role=\"img\" aria-label=\"Competing。緑の領域が共有容量と個別上限を守る行動。赤が目標、青が射影。\" style=\"width:100%;max-width:560px;height:auto\"><path d=\"M55 63V375H367\" fill=\"none\" stroke=\"currentColor\"/><path d=\"M55 375H211V219L55 63Z\" fill=\"#137d7922\" stroke=\"#137d79\" stroke-width=\"2\"/><circle cx=\"55\" cy=\"375\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"323\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"271\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"219\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"167\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"115\" r=\"3\" fill=\"#78908b\"/><circle cx=\"55\" cy=\"63\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"375\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"323\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"271\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"219\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"167\" r=\"3\" fill=\"#78908b\"/><circle cx=\"107\" cy=\"115\" r=\"3\" fill=\"#78908b\"/><circle cx=\"159\" cy=\"375\" r=\"3\" fill=\"#78908b\"/><circle cx=\"159\" cy=\"323\" r=\"3\" fill=\"#78908b\"/><circle cx=\"159\" cy=\"271\" r=\"3\" fill=\"#78908b\"/><circle cx=\"159\" cy=\"219\" r=\"3\" fill=\"#78908b\"/><circle cx=\"159\" cy=\"167\" r=\"3\" fill=\"#78908b\"/><circle cx=\"211\" cy=\"375\" r=\"3\" fill=\"#78908b\"/><circle cx=\"211\" cy=\"323\" r=\"3\" fill=\"#78908b\"/><circle cx=\"211\" cy=\"271\" r=\"3\" fill=\"#78908b\"/><circle cx=\"211\" cy=\"219\" r=\"3\" fill=\"#78908b\"/><text x=\"270\" y=\"410\">x₁ 生産量<\/text><text x=\"10\" y=\"25\">x₂ 生産量<\/text><text x=\"228\" y=\"170\">x₁ ≤ 3<\/text><text x=\"65\" y=\"50\">x₁ + x₂ ≤ 6<\/text><line x1=\"263.0\" y1=\"115.0\" x2=\"185.0\" y2=\"193.0\" stroke=\"#bc583c\" stroke-dasharray=\"5 4\"/><circle cx=\"263.0\" cy=\"115.0\" r=\"7\" fill=\"#bc583c\"/><circle cx=\"185.0\" cy=\"193.0\" r=\"5\" fill=\"#246baf\"/><path d=\"M185.0 193.0L211.0 219.0\" stroke=\"#246baf\" stroke-width=\"4\"/><text x=\"273.0\" y=\"105.0\">z<\/text><text x=\"195.0\" y=\"213.0\">x*<\/text><text x=\"30\" y=\"397\">0<\/text><text x=\"205\" y=\"397\">3<\/text><text x=\"363\" y=\"397\">6<\/text><\/svg><p><strong>Competing<\/strong>：共有容量6が活性。z₁の増加はx₁を増やし、x₂を減らす。<\/p><p>z=[4.0, 5.0] → x*=[2.5, 3.5]。∂x*/∂z₁=(0.5, -0.5)。<\/p><p>floor=[2, 3] → 整数写像=[3, 3]。青線は局所勾配の方向を表す。<\/p>"]</script><div data-output aria-live="polite"><svg viewBox="0 0 470 425" role="img" aria-label="Free。緑の領域が共有容量と個別上限を守る行動。赤が目標、青が射影。" style="width:100%;max-width:560px;height:auto"><path d="M55 63V375H367" fill="none" stroke="currentColor"/><path d="M55 375H211V219L55 63Z" fill="#137d7922" stroke="#137d79" stroke-width="2"/><circle cx="55" cy="375" r="3" fill="#78908b"/><circle cx="55" cy="323" r="3" fill="#78908b"/><circle cx="55" cy="271" r="3" fill="#78908b"/><circle cx="55" cy="219" r="3" fill="#78908b"/><circle cx="55" cy="167" r="3" fill="#78908b"/><circle cx="55" cy="115" r="3" fill="#78908b"/><circle cx="55" cy="63" r="3" fill="#78908b"/><circle cx="107" cy="375" r="3" fill="#78908b"/><circle cx="107" cy="323" r="3" fill="#78908b"/><circle cx="107" cy="271" r="3" fill="#78908b"/><circle cx="107" cy="219" r="3" fill="#78908b"/><circle cx="107" cy="167" r="3" fill="#78908b"/><circle cx="107" cy="115" r="3" fill="#78908b"/><circle cx="159" cy="375" r="3" fill="#78908b"/><circle cx="159" cy="323" r="3" fill="#78908b"/><circle cx="159" cy="271" r="3" fill="#78908b"/><circle cx="159" cy="219" r="3" fill="#78908b"/><circle cx="159" cy="167" r="3" fill="#78908b"/><circle cx="211" cy="375" r="3" fill="#78908b"/><circle cx="211" cy="323" r="3" fill="#78908b"/><circle cx="211" cy="271" r="3" fill="#78908b"/><circle cx="211" cy="219" r="3" fill="#78908b"/><text x="270" y="410">x₁ 生産量</text><text x="10" y="25">x₂ 生産量</text><text x="228" y="170">x₁ ≤ 3</text><text x="65" y="50">x₁ + x₂ ≤ 6</text><line x1="107.0" y1="323.0" x2="107.0" y2="323.0" stroke="#bc583c" stroke-dasharray="5 4"/><circle cx="107.0" cy="323.0" r="7" fill="#bc583c"/><circle cx="107.0" cy="323.0" r="5" fill="#246baf"/><path d="M107.0 323.0L159.0 323.0" stroke="#246baf" stroke-width="4"/><text x="117.0" y="313.0">z</text><text x="117.0" y="343.0">x*</text><text x="30" y="397">0</text><text x="205" y="397">3</text><text x="363" y="397">6</text></svg><p><strong>Free</strong>：制約から離れた点。目標の変化がそのまま行動へ伝わる。</p><p>z=[1.0, 1.0] → x*=[1.0, 1.0]。∂x*/∂z₁=(1, 0)。</p><p>floor=[1, 1] → 整数写像=[1, 1]。青線は局所勾配の方向を表す。</p></div><figcaption>run.pyの2変数縮約。灰色の点は実行可能な整数行動。局所Jacobianを中心差分で検算した。</figcaption></figure><figure class="teaching"><h3>ASML設定1：保有費用とバックオーダー費用</h3><svg viewBox="0 0 535 265" role="img" aria-label="表4の平均費用。echelon DBS 286.99、MSP 289.25、提案法277.74。" style="width:100%;height:auto"><text x="10" y="45">echelon_DBS</text><rect x="140" y="25" width="218.72" height="25" fill="#137d79"/><rect x="358.72" y="25" width="68.27" height="25" fill="#bc583c"/><text x="431.99" y="45">286.99</text><text x="140" y="70">218.72 + 68.27</text><text x="10" y="115">MSP</text><rect x="140" y="95" width="195.6" height="25" fill="#137d79"/><rect x="335.6" y="95" width="93.65" height="25" fill="#bc583c"/><text x="434.25" y="115">289.25</text><text x="140" y="140">195.60 + 93.65</text><text x="10" y="185">Ours</text><rect x="140" y="165" width="204.21" height="25" fill="#137d79"/><rect x="344.21000000000004" y="165" width="73.53" height="25" fill="#bc583c"/><text x="422.74" y="185">277.74</text><text x="140" y="210">204.21 + 73.53</text><text x="10" y="255">緑：保有費用　赤：バックオーダー費用</text></svg><figcaption>著者の表4の平均費用。各棒は0を起点とする。同一設定内の比較であり、費用CDFや本Labの再現結果ではない。</figcaption></figure></div><div class="downloads"><a href="../downloads/diff-projection-feasible-multi-echelon-inventory/run.py" download>実行コード</a><a href="../downloads/diff-projection-feasible-multi-echelon-inventory/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/diff-projection-feasible-multi-echelon-inventory">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><details><summary>生の results.json</summary><pre><code>{
+  &quot;lab01_projection&quot;: true,
+  &quot;seed&quot;: null,
+  &quot;scope&quot;: &quot;2D static geometry; no HDPO, STE training, or inventory simulation&quot;,
+  &quot;cases&quot;: [
+    {
+      &quot;label&quot;: &quot;Free&quot;,
+      &quot;target&quot;: [
+        1.0,
+        1.0
+      ],
+      &quot;projected&quot;: [
+        1.0,
+        1.0
+      ],
+      &quot;jacobian&quot;: [
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      &quot;finite_difference_error&quot;: 1.000088900582341e-12,
+      &quot;floor&quot;: [
+        1,
+        1
+      ],
+      &quot;integer&quot;: [
+        1,
+        1
+      ]
+    },
+    {
+      &quot;label&quot;: &quot;Pinned&quot;,
+      &quot;target&quot;: [
+        5.0,
+        1.0
+      ],
+      &quot;projected&quot;: [
+        3.0,
+        1.0
+      ],
+      &quot;jacobian&quot;: [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      &quot;finite_difference_error&quot;: 1.000088900582341e-12,
+      &quot;floor&quot;: [
+        3,
+        1
+      ],
+      &quot;integer&quot;: [
+        3,
+        1
+      ]
+    },
+    {
+      &quot;label&quot;: &quot;Competing&quot;,
+      &quot;target&quot;: [
+        4.0,
+        5.0
+      ],
+      &quot;projected&quot;: [
+        2.5,
+        3.5
+      ],
+      &quot;jacobian&quot;: [
+        [
+          0.5,
+          -0.5
+        ],
+        [
+          -0.5,
+          0.5
+        ]
+      ],
+      &quot;finite_difference_error&quot;: 1.89289139918003e-11,
+      &quot;floor&quot;: [
+        2,
+        3
+      ],
+      &quot;integer&quot;: [
+        3,
+        3
+      ]
+    }
+  ],
+  &quot;samples&quot;: 6561,
+  &quot;integer_violations&quot;: 0,
+  &quot;improved_over_floor&quot;: 3915,
+  &quot;max_projection_objective_gap_vs_exact&quot;: 0,
+  &quot;reachability&quot;: {
+    &quot;samples&quot;: 1600,
+    &quot;floor&quot;: 0,
+    &quot;integer_mapping&quot;: 1600
+  },
+  &quot;paper_evidence&quot;: {
+    &quot;source&quot;: &quot;arXiv:2608.02343v1 Table 4&quot;,
+    &quot;setting1&quot;: {
+      &quot;echelon_DBS&quot;: {
+        &quot;holding&quot;: 218.72,
+        &quot;backorder&quot;: 68.27
+      },
+      &quot;MSP&quot;: {
+        &quot;holding&quot;: 195.6,
+        &quot;backorder&quot;: 93.65
+      },
+      &quot;Ours&quot;: {
+        &quot;holding&quot;: 204.21,
+        &quot;backorder&quot;: 73.53
+      }
+    },
+    &quot;setting2&quot;: {
+      &quot;echelon_DBS&quot;: {
+        &quot;holding&quot;: 197.26,
+        &quot;backorder&quot;: 60.86
+      },
+      &quot;MSP&quot;: {
+        &quot;holding&quot;: 180.89,
+        &quot;backorder&quot;: 80.65
+      },
+      &quot;Ours&quot;: {
+        &quot;holding&quot;: 189.25,
+        &quot;backorder&quot;: 62.32
+      }
+    }
+  },
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>6,561目標で整数行動の制約違反は0件。3,915件でfloorより射影目的が改善し、この2変数設定では整数全探索との差も0だった。一般には近似解だ。この一致を一般の整数QPの最適性保証へ広げられない。</p>
+<p>図5の縮約では1,600目標のうち、floorが(1,1)を選んだのは0件、整数写像では1,600件だった。これは正の面積を持つ到達領域の数値例であり、論文の完全性定理の証明ではない。完全性は単に点へ到達できることではなく、各整数行動へ写る目標の集合について、Lebesgue測度が正となる条件を指す。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>CONFIRMED — 局所計算</strong>：Free／Pinned／CompetingのJacobianと中心差分の一致、全サンプルでの整数実行可能性、floorからの非悪化をassertで確認した。</p>
+<p><strong>PARTIAL — メカニズム全体</strong>：QPと整数写像の縮約だけを実装した。NN、経路微分による方策学習（HDPO）、整数写像の逆伝播を恒等写像とみなすSTEは学習実験に含めていない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p><strong>NOT TESTED</strong>：多段階在庫の長期費用、最適性ギャップ0.91%、ASML費用削減、スケーリング、現場導入。STEには偏りがある。学習効果も未検証。一般制約での完全性・誤差境界は論文の主張として紹介した。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/diff-projection-feasible-multi-echelon-inventory/run.py</code>でresults.jsonを再生成する。Python標準ライブラリだけを使用。乱数、GPU、外部データは使わない。</p>
+<p>HTMLはlab.yaml、README.md、method.md、mapping.md、run.py、results.jsonから生成する。図の表示はpaper_lab/projection01.py。提供PDF内で公式コードへのリンクを確認できず、公式実装は未実行。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><table>
+<thead>
+<tr>
+<th>一次資料</th>
+<th>最小実装・表示</th>
+<th>省いたもの</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§4.1.1 式(2)、図4</td>
+<td>run.pyのproject、2変数の射影図</td>
+<td>一般次元QP、重みの変更、制約の分解</td>
+</tr>
+<tr>
+<td>補題1・系1</td>
+<td>3例の解析Jacobianと中心差分</td>
+<td>右辺bへの微分の実装、活性集合切替点</td>
+</tr>
+<tr>
+<td>§4.1.2</td>
+<td>integer_map、KKTからMᵀλ<em>=W(z−x</em>)を算出</td>
+<td>NN、HDPO、STEによる学習</td>
+</tr>
+<tr>
+<td>定義1、図5</td>
+<td>x₁+x₂≤2の到達例</td>
+<td>完全性定理の証明、一般制約への実験拡張</td>
+</tr>
+<tr>
+<td>表1・2</td>
+<td>lab.yamlの著者報告</td>
+<td>小規模最適解・Tempelmeierの再実行</td>
+</tr>
+<tr>
+<td>表4・5</td>
+<td>results.jsonの著者値、費用内訳図</td>
+<td>ASMLの学習、費用CDFの再構成</td>
+</tr>
+</tbody>
+</table>
+<p>原論文：<a href="https://arxiv.org/abs/2608.02343">arXiv:2608.02343v1</a>。提供PDFの§4–6、図3–6、表1–5を確認した。図は数式・平均値から独自に描き直した。公式コードへのリンクは提供PDFで確認できず、公式コードは実行していない。</p>
+<p>制約比較はLabの解釈。<a href="https://mixidota2.github.io/paper-lab/constrained-deep-inventory-fbsde.html">Constrained FBSDE</a>は状態の経路制約を扱う。<a href="https://mixidota2.github.io/paper-lab/deepstock-policy-regularized-inventory-drl.html">DeepStock</a>は本論文でも引用される。OR-Transformerとの実験比較は行っていない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>整数の生産制約を守りながら、学習信号をどう返すか。</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/diff-projection-feasible-multi-echelon-inventory/lab.yaml" download>このページの原データ</a></footer>
+</body></html>
