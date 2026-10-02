@@ -1,0 +1,124 @@
+id: proximal-residual-value-inventory-placement
+title: Proximal Residual Value Functions for Consistent Planning and Real-Time Execution
+authors:
+- Harrison Waldon
+- Carson Eisenach
+- Akhil Bagaria
+- Daniel Russo
+- Dominique Perrault-Joncas
+- Alisha Zachariah
+- Dean Foster
+year: 2026
+submitted: '2026-09-19'
+topics:
+- retail-supply
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2609.23242
+  pdf: https://arxiv.org/pdf/2609.23242
+  arxiv: https://arxiv.org/abs/2609.23242
+verdict: Worth
+status: published
+summary: 在庫の配置先を学ぶState-prox。分割配置の整合性をPCSPで特徴付け、オフライン費用を5.0%削減。
+question: 入荷をまとめて計画しても、小分けに実行した配置と一致するか。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+core_idea:
+  author_claim: 凸PWL残差に状態potentialを加え、計画と実行に共通の目的を与える。滑らかな価値関数ではPCSPが分割回数不変性の必要十分条件になる。
+  research_bot_interpretation: ORを実行時に解く境界を保ったまま、長期費用から価値関数を学ぶ。配置先の研究として、補充方策と制約射影の間を埋める。
+sections:
+  overview: 入荷在庫をどの拠点へ置くかを学ぶ研究。Amazon SCOTの著者らは、区分線形の残差関数と強凸な状態potentialを組み合わせ、計画と実行で同じ凸目的を使うState-proxを提案した。歴史的運用の代理方策に対するオフラインSCPUTは、未知商品・別期間で0.950、5.0%改善。現場A/Bは行っていない。
+  problem: 対象はplacement、つまり届いた在庫の配置先だ。DeepStockやORPRのbuy quantityとは決める変数が違う。計画は数日ごとに継続価値関数を渡し、実行側は到着のたびに費用と制約を合わせて配置を解く。学習時に入荷を集約すると、実行時の分割配置と結果が食い違う場合がある。
+  why_it_might_work: '【Labの解釈】各回の移動量に曲率を足すより、配置後の累積在庫に曲率を持たせれば、同じ価値関数を何回の実行にも使える。ただし強凸性が保証するのは解の一意性だ。分割回数に依存しないためには、入荷量を増やしたとき各拠点の最適在庫が減らないという追加条件が要る。
+
+
+    論文は滑らかな価値関数に対するPCSPの必要十分条件と、PWLの特定の入れ子構造に対する保証を分けている。実験の密な符号付き結合は後者の保証対象外で、整合性は実測した。'
+  evidence: '一次資料の[提供PDF](https://arxiv.org/pdf/2609.23242)の§6、表1、図4。100万商品超の基礎データに基づく52週のオフラインrollout。未知商品・別期間を同時に使うout-of-sample評価だ。
+
+
+    |方策|学習内SCPUT|学習外SCPUT|
+
+    |---|---|---|
+
+    |歴史的運用の代理|1.000|1.000|
+
+    |Direct neural RL|0.881 ± 0.007|1.012 ± 0.002|
+
+    |State-prox＋状態potential|0.851 ± 0.022|0.950 ± 0.028|
+
+    |同じState-prox残差からpotentialを除去|0.933 ± 0.028|1.070 ± 0.038|
+
+
+    ±は学習run間の標準偏差。SCPUTは充足数量当たりの配送＋移送費用で、容量価格ペナルティを除く。学習時の費用摂動μ=1.349、評価時μ=0。μ=0でも切断正規摂動は消えない。PWL方策はGurobiに再構成して評価した。
+
+
+    図4の別実験は各分割で5,000 item-weeksを使い、学習μ=0、K=500の学習外TVはState-prox 0.00201、neural 0.12716。厳密な不変性や費用後悔の測定ではない。'
+  executable_understanding: '図3・付録C.1の2拠点反例をそのまま解く。H=[[2,3],[3,5]]、a=(0,1)、線形費用0で、入荷合計2を1・2・5・20・500回に分ける。各配置は後から引き戻せない。
+
+
+    同じ初期状態と入荷量で、Labが用意した分離可能PWL残差＋二次状態potential、PWL残差＋行動正則化も比べる。一次元の凸最小化へ落とし、二分探索で解く。論文のState-proxソルバー、エントロピーpotential、逆伝播は実装しない。'
+  results: 原論文の反例は、一括なら(2,0)、2回なら(1,1)。TVは0.5となる。分離可能PWL＋二次状態potentialの例は500回まで浮動小数点誤差の範囲で一致した。これは保証が適用できる簡単な族の確認であり、学習済みの密な結合へ拡張できない。
+  what_we_verified: '**CONFIRMED — 図3の反例**：正定値Hの下でも配置が一致しないこと、H⁻¹1=(2,−1)の負成分と減少する経路の対応を確認した。
+
+
+    **PARTIAL — 状態potential**：分離可能なPWL残差と二次potentialだけを数値確認した。独自の行動正則化との比較は論文表1の再現ではない。'
+  what_we_did_not_verify: '**NOT TESTED**：RL学習、State-proxの陰関数微分、Gurobiへの再構成、0.950という費用改善、100万商品への規模、現場導入。入荷間の需要や費用変化によるenvironment-perturbation
+    errorは、論文自身も解決していない。PCSPの定理は連続・単一simplex・固定環境の条件を外せない。'
+  method: method.md
+  mapping: mapping.md
+  implementation: '`UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/proximal-residual-value-inventory-placement/run.py`でresults.jsonを再生成する。Python標準ライブラリのみ。乱数・外部データ・GPUは使わない。
+
+
+    HTMLはlab.yaml、method.md、mapping.md、run.py、results.jsonから生成する。README.mdは読み方と再実行手順をまとめる。図の生成元はpaper_lab/inventory02.py。公式実装は未実行。'
+teaching_figures:
+- id: proximal-equations
+  kind: equations
+  after: method
+  title: 配置後の状態に曲率を置く
+  source: https://arxiv.org/abs/2609.23242
+  locator: Equations (6)–(10); Figures 2–3
+  caption: 一次資料の式を説明用に書き直した。下の小実験は限定した条件で対応関係を確かめる。
+  rationale: 式の変数と図の操作を結び付ける。
+  steps:
+  - name: 価値関数
+    formula: Vη(x) = Σᵢ fᵢ(xᵢ) + Σℓ hℓ(wℓᵀx) + τΣᵢ φ(xᵢ)
+    explanation: 前半が学習する凸PWL残差。後半が強凸な状態potential。主実験はφ(x)=x log x。
+  - name: 実行時の配置
+    formula: 'min { cᵀz + Vη(I+z) : z≥0, 1ᵀz=B }'
+    explanation: 到着量Bを配り、I+zを次の実行の下限にする。図で経路を進むと置いた在庫を戻せない。
+  - name: PCSP
+    formula: dx*A/dB = H_A⁻¹1_A / (1_AᵀH_A⁻¹1_A);  H_A⁻¹1_A ≥ 0
+    explanation: 滑らか・正定値Hessian・固定環境で使う。強凸性だけでは分子の非負性は保証されない。
+- id: placement-map
+  kind: matrix
+  after: why_it_might_work
+  title: 買う量・置く場所・生産制約を分ける
+  caption: Labの解釈。異なる意思決定を補完関係として並べた。
+  source: https://arxiv.org/abs/2609.23242
+  locator: Sections 2–5; related primary-source Labs
+  rationale: 配置を補充数量の成果と誤読させない。
+  columns:
+  - 意思決定
+  - ORと学習の接点
+  rows:
+  - label: Proximal Residual
+    cells:
+    - 入荷をどこへ配置するか
+    - 学習した凸目的を繰り返し解く
+  - label: ORPR / DeepStock
+    cells:
+    - 何個補充するか
+    - ORラベル＋RL / 方策の構造
+  - label: Diff Projection
+    cells:
+    - 共有資材下の生産・在庫行動
+    - 微分可能な射影と整数写像
+source_review:
+  primary: 2609.23242.pdf
+  reviewed: '2026-10-02: 式(5)–(11)、図1–4、定理1・命題2、表1、付録C.1を確認した。'
+  sha256: 44197fa33e16323c582fae210281c55b690ddecd469a8949dfc9fc66facc8c8b
+  url: https://arxiv.org/abs/2609.23242
+arxiv_id: '2609.23242'

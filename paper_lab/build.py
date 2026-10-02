@@ -27,6 +27,7 @@ from paper_lab.retailbench30 import widget as retailbench30_widget
 from paper_lab.deepstock01 import widget as deepstock01_widget
 from paper_lab.projection01 import widget as projection01_widget
 from paper_lab.forecast01 import widget as forecast01_widget
+from paper_lab.inventory02 import widget as inventory02_widget
 
 from paper_lab.models import (
     STANDARD_SECTIONS,
@@ -173,6 +174,7 @@ def paper_sections(lab: Lab) -> list[dict[str, Any]]:
             html += deepstock01_widget(lab.results)
             html += projection01_widget(lab.results)
             html += forecast01_widget(lab.results)
+            html += inventory02_widget(lab.results)
 
         rendered.append(
             {

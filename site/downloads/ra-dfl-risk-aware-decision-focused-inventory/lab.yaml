@@ -1,0 +1,131 @@
+id: ra-dfl-risk-aware-decision-focused-inventory
+title: Risk-Aware Decision-Focused Demand Forecasting for Multi-Channel Inventory Optimization under Promotion
+  and Stock-Out Constraints
+authors:
+- Xuguang Zhang
+- Yongbin Yang
+- Ying Wang
+year: 2026
+submitted: '2026-09-10'
+topics:
+- demand-forecasting
+- retail-supply
+urls:
+  paper: https://hbemdata.org/index.php/ojs/article/view/198
+  pdf: https://hbemdata.org/index.php/ojs/article/download/198/176
+  doi: https://doi.org/10.54097/ag16zy57
+verdict: Radar
+status: published
+summary: M5でRA-DFLはPTO比−3.7%。CVaRの後付けは+9.7%悪化。代理指標と引用上の懸念からRadarを維持。
+question: リスクを避ける配分を足すだけで、在庫費用は下がるか。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+core_idea:
+  author_claim: 微分可能な平均–CVaR配分層と打切り整合的な損失を通じて、分位点と状態依存のリスク重みを学ぶ。M5で強いPTOに対する費用改善を報告する。
+  research_bot_interpretation: CVaRの後付けが悪化する負の結果が重要。観測売上と代理指標の限界、引用と表の不整合を踏まえ、確立した解法ではなく追跡対象として扱う。
+sections:
+  overview: 'RA-DFLは、需要分布の予測を平均費用と裾の費用で学ぶ。M5ではLightGBM-QRのPTO費用4.903に対して4.721、3.7%改善した。一方、同じPTO予測にCVaR判断だけを後付けすると5.380、9.7%悪化した。どちらも著者報告で、本Labの再学習結果ではない。
+
+
+    判定はRadarを維持する。掲載先はHighlights in Business, Economics and Management、MSIED 2026、Vol.69。販促と欠品は代理指標で、評価需要は観測売上だ。本文中の引用の関連性や結果の記述にも確認すべき点が残る。'
+  problem: 同じSKUの複数チャネルが容量を共有し、余剰在庫から一部の不足需要へ横持ちする。販促時は欠品ペナルティを上げる。売上y=min(D,A)は需要Dの下限なので、欠品時の売上を需要として余剰費用を計算すると、過剰補充だという誤った信号が生じる。
+  why_it_might_work: '【Labの解釈】予測精度だけで分布を学ぶと、共有容量のどこに在庫を置くべきかという誤差の重みを反映しにくい。費用の裾まで含む配分層を通じて学習するのがRA-DFLの狙いだ。CVaRを付ければ常に安全になる、という読み方には著者自身の負の結果が反する。
+
+
+    ただし打切り箇所の余剰項を消しても、未観測需要を復元したことにはならない。最小実験でも損失が平坦になるだけの領域を示す。'
+  evidence: '一次資料の[PDF](https://hbemdata.org/index.php/ojs/article/download/198/176)の表II–VII、図1、§6を参照。平均費用とpool-level
+    CVaRを分けて読む。
+
+
+    |M5の手法|平均費用|pool CVaR|
+
+    |---|---|---|
+
+    |LightGBM-QR PTO|4.903|13.70|
+
+    |同じ予測＋CVaR判断|5.380|14.36|
+
+    |DFL-EV|4.690|14.11|
+
+    |RA-DFL|4.721|13.67|
+
+
+    単一seedではDFL-EVの平均費用が最小。3seed平均はRA-DFL 4.722 ± 0.002、DFL-EV 4.729 ± 0.034で、平均費用の優劣を強く断定しない。StallionではRA-DFL
+    48.4千、LightGBM-QR 48.2千、DFL-EV 47.8千。RA-DFLが全データ・全指標で勝つ結果ではない。
+
+
+    打切り補正を外すとM5は4.721 → 4.776、p=0.003。Stallionはp=0.25で効果を確認できない。欠品proxy率は表IでM5 12.3%、Stallion 1.3%。§5.8は後者を1.4%と記すため、約1%として扱う。
+
+
+    引用上の懸念は、§2.3の金融予測[43]、§3.2の回路配置[44]、§3.4のLLM serving[45]、§3.6のネットワーク制御[46]への長い類推が在庫実験の根拠にはならない点だ。掲載先の評価や引用文献の真偽は本Labでは独立検証していない。また本文はRA-DFLのfill
+    rateが学習法中最高とするが、表IIはLightGBM-QR 92.85% > RA-DFL 92.78%となっている。表の値を優先する。'
+  executable_understanding: '容量10の2チャネルで、66通りの整数配分を全探索する。10個の固定需要シナリオ、保有費用1、欠品費用6、横持ち費用1、横持ち可能率0.4を全条件で共有する。リスク重みwを0〜1に変え、平均費用とCVaR₀.₈の配分を比べる。
+
+
+    別実験では横持ちを0にし、観測売上4・真の需要10について通常損失とmasked lossを比較する。需要・売上・発注量の格子でも下界を検算する。予測器の学習、fill-rate罰則、連続配分の微分可能ソルバーは含めない。'
+  results: リスク重みで最適配分が変わるかを、同じ候補・同じ需要の下で追える。ここでは真の合成分布を与えており、誤ったPTO分布にCVaRを付けた際の悪化は検証対象にしていない。打切り損失は売上4より上の余剰罰則を消すが、真の需要10を一意に推定する信号は生まれない。
+  what_we_verified: '**CONFIRMED — 限定計算**：有限シナリオのCVaR、容量制約下の整数全探索、横持ちなしのmasked loss下界を検算した。
+
+
+    **PARTIAL — メカニズム**：平均と裾の配分、および余剰罰則の除去を分けて確認。一般の横持ちを含む命題2や、その損失の最小化が不偏になるという主張までは確認していない。'
+  what_we_did_not_verify: '**NOT TESTED**：M5・Stallionの再学習、微分可能層の最適性gap 0.32%、LightGBM-QRとの3.7%差、CVaR後付けの9.7%悪化、実店舗の欠品・費用。ChronosなどTSFMとGBDTの条件をそろえた比較でもない。
+
+
+    価格低下を販促、週内のゼロ売上列を欠品とするproxyであり、真の在庫可用性や潜在需要を観測していない。LightGBMを含む比較経路で意思決定指標の空白を一部埋める研究として追い、Radarから引き上げるには再現と測定条件の確認が必要だ。'
+  method: method.md
+  mapping: mapping.md
+  implementation: '`UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/ra-dfl-risk-aware-decision-focused-inventory/run.py`でresults.jsonを再生成する。Python標準ライブラリのみ。乱数・外部データ・GPUは使わない。
+
+
+    HTMLはlab.yaml、method.md、mapping.md、run.py、results.jsonから生成する。README.mdは読み方と再実行手順をまとめる。図の生成元はpaper_lab/inventory02.py。公式実装は未実行。'
+teaching_figures:
+- id: risk-equations
+  kind: equations
+  after: method
+  title: 平均・裾・打切りを別々の項で読む
+  source: https://hbemdata.org/index.php/ojs/article/download/198/176
+  locator: Equations (1)–(6); Figure 1
+  caption: 一次資料の式を説明用に書き直した。下の小実験は限定した条件で対応関係を確かめる。
+  rationale: 式の変数と図の操作を結び付ける。
+  steps:
+  - name: 配分制約
+    formula: q ≥ 0;  Σc q_c ≤ Q
+    explanation: 2チャネル図の三角形が容量制約。最小実験では整数点だけを評価する。
+  - name: 配分の目的
+    formula: min_q (1−w)E[C] + w CVaRα(C) + λ(β−F(q))⁺
+    explanation: 原論文のα=0.9、β=0.95。図の縮約はα=0.8でfill-rate罰則を省く。
+  - name: 費用の裾
+    formula: CVaRα(C) = min_η { η + E[(C−η)⁺]/(1−α) }
+    explanation: 候補配分ごとの費用シナリオから計算。wは図で切り替える。
+  - name: 打切りの余剰項を消す
+    formula: 'ρ=0: C̃(q,y,ξ) = h(1−ξ)(q−y)⁺ + b(y−q)⁺'
+    explanation: ξ=1なら売上を超える注文への余剰罰則が消える。需要そのものを復元する式ではない。
+- id: censoring-ablation
+  kind: matrix
+  after: evidence
+  title: 補正が効いたのは欠品proxyの多いM5
+  caption: 表I・III、§5.8。Stallionのproxy率は表Iで1.3%、本文で1.4%。
+  source: https://hbemdata.org/index.php/ojs/article/download/198/176
+  locator: Tables I, III; Section 5.8
+  rationale: 代理変数の頻度と補正の効果を結び付ける。
+  columns:
+  - 欠品proxy率
+  - 補正を外した結果
+  rows:
+  - label: M5
+    cells:
+    - 12.3%
+    - 4.721 → 4.776、p=0.003
+  - label: Stallion
+    cells:
+    - 約1%
+    - p=0.25、有意な改善を確認できない
+source_review:
+  primary: RA-DFL.pdf
+  reviewed: '2026-10-02: §3.1–3.6、式(1)–(6)、表I–VII、図1、§6、参考文献[43]–[46]を確認した。'
+  sha256: 956cfd81bb00a0336641baffdacab954d9242836c49873da3ab9e7ecf4c4db73
+  url: https://hbemdata.org/index.php/ojs/article/view/198
+doi: 10.54097/ag16zy57

@@ -1,0 +1,1085 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ORラベルで事前学習し、RLOOで業務へ調整。約0.93Mの補充方策とJD菓子の現場評価。">
+  <title>小型の補充方策に、ORと販促の業務知識をどう渡すか。 | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2025-12-22</span></div>
+    <h1>小型の補充方策に、ORと販促の業務知識をどう渡すか。</h1>
+    <p class="lede">ORラベルで事前学習し、RLOOで業務へ調整。約0.93Mの補充方策とJD菓子の現場評価。</p>
+    <details class="bibliography"><summary>原論文：ORPR: An OR-Guided Pretrain-then-Reinforce Learning Model for Inventory Management</summary><p>Lingjie Zhao, Xue Yu, Yongzhi Qi, Hao Hu, Jianshen Zhang, Yingzheng Ma, Shuyu Han, Wei Qi, Zuo-Jun Max Shen</p><p>2512.19001 · 2025</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2512.19001">原典を読む ↗</a><a href="https://arxiv.org/pdf/2512.19001">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：未記録 · </p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-or-label-equations">在庫日数を選び、許容損失でラベルを絞る</a><a href="#figure-orpr-training">ORラベル → 小型方策 → RLOO調整</a><a href="#figure-inventory-map">ORをどこへ組み込むか</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>ORで作った補充ラベルを小型モデルへ学習させ、RLで業務目標へ合わせる。約0.93MパラメータのTransformer＋VAEを用い、JDの菓子3カテゴリで保有費用−29.95%、在庫回転日数−5.27日を報告した。対象はマネジャーが選んだ高自動化SKUで、全カタログの無作為実験ではない。</p>
+<p>本Labの焦点は、モデルを大きくする前にORの構造をラベルと報酬へ渡す設計にある。最小実験ではORラベル生成とRLOOの基準値だけを検算する。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>需要、商品属性、販促、目標回転日数から補充を決める。異なる商品の量を比較するため、OR側では補充量を需要何日分かという整数の在庫日数に置き換える。欠品分は次期へ持ち越さず、売り逃しとして扱う。カテゴリ単位のOR指導とSKU単位の方策調整は粒度が異なる。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>OR由来の補充ラベルでTransformer＋VAEを事前学習し、RLOOの複合報酬で業務目標へ合わせる。著者はオフライン評価とJD現場評価で改善を報告する。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>ORを教師データと報酬の両方へ組み込む設計。DeepStockの構造的な方策正則化や、SabreAgentの設計時LLMとは補完関係にある。</p></div></div>
+      </section>
+<figure class="teaching teaching--architecture" id="figure-orpr-training" aria-labelledby="title-orpr-training">
+  <div class="figure-heading"><span class="eyebrow">ARCHITECTURE</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-orpr-training">ORラベル → 小型方策 → RLOO調整</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">ラベル作成</p><div class="diagram-nodes"><div class="diagram-node"><strong>履歴を再生</strong><p>各候補の在庫価値・売り逃しを集計</p></div><div class="diagram-node"><strong>OR</strong><p>損失制約の下で在庫日数を選ぶ</p></div></div></div><div class="diagram-row"><p class="lane-label">約0.93M</p><div class="diagram-nodes"><div class="diagram-node"><strong>Transformer</strong><p>販売・属性・業務目標の3系統を融合</p></div><div class="diagram-node"><strong>VAE-logits</strong><p>ORラベルで補充方策を事前学習</p></div></div></div><div class="diagram-row"><p class="lane-label">業務へ調整</p><div class="diagram-nodes"><div class="diagram-node"><strong>RLOO</strong><p>ルール＋シミュレーション報酬、KL制約</p></div><div class="diagram-node"><strong>販促対応</strong><p>専門家の参照ラベルへ合わせる</p></div></div></div></div>
+  <figcaption>図1・§3を再構成。約0.93Mパラメータは§4.1の著者記載。 <a href="https://arxiv.org/abs/2512.19001">出典：Figure 1; Sections 3–4.1 ↗</a></figcaption>
+</figure>      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h2>ORの選択変数が教師ラベルになる</h2>
+<p>モデルは約0.93Mパラメータだ。図1では、販売履歴と予測、商品属性、売上構成比や目標回転日数をそれぞれのTransformer encoderで処理し、学習した重みで融合してから、需要予測用のMLPと補充方策用のVAE-logits headへ渡す。</p>
+<p>事前学習にも順序がある。</p>
+<ol>
+<li>販売データで表現と需要予測headを学習する。</li>
+<li>それらを固定し、ORラベルで意思決定headを学習する。</li>
+<li>全体を解凍して意思決定損失で調整する。予測損失は監視用に残す。</li>
+</ol>
+<p>その後にRLOOへ進む。事前学習とRL調整を一度の学習として読むと、ORがどこで働くかを見失う。</p>
+<p>§3.3のstockᵢᵥとlossᵢᵥはシミュレーションの集計値で、それぞれ候補v日分を選んだ場合の累計在庫価値と売り逃しを表す。ΣXᵢᵥ=1で各カテゴリに一つを選び、売り逃しの合計をSALE(1−αloss)以下に抑える。例えばαloss=0.9なら右辺はSALEの10%だ。αlossを大きくするほど制約は厳しくなる。本文にはこれを「最大許容欠品率」と呼ぶ箇所があるため、図では式(2)の向きを優先した。</p>
+<p>RLOOの基準値は、自分以外の報酬平均だ。同じ入力から複数の行動を取り、ルール報酬とシミュレーション報酬の加重和にKLペナルティを組み合わせて方策を調整する。販促時の専門家ラベルも参照先にできる。下の小実験で動くのはORラベルの選択と基準値の算術までであり、Transformer・VAE・RLOOを通した方策学習は実行していない。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-or-label-equations" aria-labelledby="title-or-label-equations">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-or-label-equations">在庫日数を選び、許容損失でラベルを絞る</h3>
+  <ol class="equation-steps"><li><strong>単位をそろえる</strong><div class="math-expression" tabindex="0" role="math" aria-label="Xᵢ = Σᵥ v Xᵢᵥ;  Σᵥ Xᵢᵥ = 1;  Xᵢᵥ ∈ {0,1}">Xᵢ = Σᵥ v Xᵢᵥ;  Σᵥ Xᵢᵥ = 1;  Xᵢᵥ ∈ {0,1}</div><p>vは需要何日分かを表す。図の各点は2カテゴリの日数の組合せ。</p></li><li><strong>在庫を最小化</strong><div class="math-expression" tabindex="0" role="math" aria-label="min Σᵢ,ᵥ Xᵢᵥ stockᵢᵥ  subject to  Σᵢ,ᵥ Xᵢᵥ lossᵢᵥ ≤ SALE(1−αloss)">min Σᵢ,ᵥ Xᵢᵥ stockᵢᵥ  subject to  Σᵢ,ᵥ Xᵢᵥ lossᵢᵥ ≤ SALE(1−αloss)</div><p>図の縦線より左にある候補だけから、累計在庫が最小の点を選ぶ。</p></li><li><strong>RLOOの基準値</strong><div class="math-expression" tabindex="0" role="math" aria-label="Aⱼ = Rⱼ − Σₗ≠ⱼ Rₗ/(k−1)">Aⱼ = Rⱼ − Σₗ≠ⱼ Rₗ/(k−1)</div><p>自分を除く報酬平均を引く。小実験はこの算術まで。</p></li></ol>
+  <figcaption>一次資料の式を説明用に書き直した。下の小実験は限定した条件で対応関係を確かめる。 <a href="https://arxiv.org/abs/2512.19001">出典：§3.3, Equations (1)–(3); Figure 1 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>【Labの解釈】ORラベルで探索の出発点を絞り、RLOOで業務上の非対称な損失や販促対応を反映する分担が効きそうだ。著者は大型化に頼らない設計を強調している。ただし0.93Mという規模だけで、大型モデル一般への優位性や計算費用の優位を証明したわけではない。</p>
+<p>DeepStockは在庫構造をDRLの方策写像へ埋め込む。ORPRはORラベルによる事前学習とRL調整の組合せだ。SabreAgentとはJDのSupply Chain Tech Team Yという系譜を共有するが、SabreAgentのLLMは設計時に使い、実行時には固定した予測・OR成果物を動かす。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-inventory-map" aria-labelledby="title-inventory-map">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-inventory-map">ORをどこへ組み込むか</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="ORをどこへ組み込むかの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">組み込む場所</th><th scope="col">実行時の中心</th></tr></thead><tbody><tr><th scope="row">ORPR</th><td class="">OR-label pretrain + RL alignment</td><td class="">学習済み補充方策</td></tr><tr><th scope="row">DeepStock</th><td class="">在庫構造×DRLの方策写像</td><td class="">正則化したDRL方策</td></tr><tr><th scope="row">SabreAgent</th><td class="">設計時LLM → 検証して固定</td><td class="">予測＋OR</td></tr><tr><th scope="row">InvEvolve</th><td class="">方策コードの進化と信頼区間による選別</td><td class="">選ばれた明示的ルール</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>Labの解釈。規模と評価条件が違うため性能順位ではない。 <a href="https://arxiv.org/abs/2512.19001">出典：Sections 2–3; related primary-source Labs ↗</a></figcaption>
+</figure>      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料の<a href="https://arxiv.org/pdf/2512.19001v2">提供PDF v2</a>の表1・3・4、§4–5を参照。数値は著者報告。</p>
+<table>
+<thead>
+<tr>
+<th>評価</th>
+<th>対象と結果</th>
+<th>読み方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>オフライン・表1</td>
+<td>5,319 SKU、70,210 SKU–DC。JD online 3491 → ORPR 3153、総費用−9.68%</td>
+<td>名称にonlineを含む比較対象も、この表ではシミュレーション</td>
+</tr>
+<tr>
+<td>PSM A/B・表3</td>
+<td>331 SKU、3,899 SKU–DC、菓子3カテゴリ。TT −5.27日、in-stock +2.29%、保有費用−29.95%</td>
+<td>2025年9月の約30日。+2.29%は原表表記を維持</td>
+</tr>
+<tr>
+<td>DiD・表4</td>
+<td>TT −4.07日、in-stock +0.47pp。保有費用の前年比は対照+22.05%、処置+3.70%</td>
+<td>前年比の差は−18.35pp。保有額が前年比18.35%減ったという意味ではない</td>
+</tr>
+</tbody>
+</table>
+<p>PSMは回転日数と需要で対応付けた。著者はDiDを因果効果の裏付けとするが、Labでは未観測交絡や平行トレンドの検証が残ると読む。現場では反実仮想の欠品損失を測れず、欠品費用を評価から除外した。in-stockは欠品しなかった日数の割合であり、数量充足率とは異なる。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>2カテゴリ×在庫日数1〜10日の100候補を全探索する。12日の合成需要に対し、3日ごとの発注、1日のリードタイム、単価1を固定した。各候補の期末在庫累計と売り逃しを計算し、許容損失を変えて最小在庫のラベルを選ぶ。</p>
+<p>比較対象は制約を変えた同一候補集合。TransformerやVAEの代替モデルは学習しない。別途、4つの固定報酬についてleave-one-out advantageを計算する。報酬への定数加算でadvantageが変わらないことを確かめる。</p><figure class="teaching" data-b21><h3>在庫日数のラベルを選ぶ：許容損失を厳しくする</h3><label>式(2)のαloss <select><option value="0">αloss=0.70</option><option value="1">αloss=0.80</option><option value="2">αloss=0.90</option><option value="3">αloss=0.95</option><option value="4">αloss=0.98</option></select></label><script type="application/json" data-frames>["<svg viewBox=\"0 0 520 360\" role=\"img\" aria-label=\"選択：カテゴリA 3日、B 4日。累計在庫 93.33、売り逃し 22.67。\" style=\"width:100%;height:auto;max-width:680px\"><path d=\"M65 40V290H480\" fill=\"none\" stroke=\"currentColor\"/><path d=\"M245.00 40V290\" stroke=\"#aa482e\" stroke-dasharray=\"6 3\"/><circle cx=\"465.00\" cy=\"286.48\" r=\"4\" fill=\"#abb3b6\"><title>[1, 1]日、在庫7.67、売り逃し53.33<\/title><\/circle><circle cx=\"420.00\" cy=\"282.82\" r=\"4\" fill=\"#abb3b6\"><title>[1, 2]日、在庫15.67、売り逃し47.33<\/title><\/circle><circle cx=\"385.00\" cy=\"275.78\" r=\"4\" fill=\"#abb3b6\"><title>[1, 3]日、在庫31.00、売り逃し42.67<\/title><\/circle><circle cx=\"367.50\" cy=\"268.29\" r=\"4\" fill=\"#abb3b6\"><title>[1, 4]日、在庫47.33、売り逃し40.33<\/title><\/circle><circle cx=\"350.00\" cy=\"260.19\" r=\"4\" fill=\"#abb3b6\"><title>[1, 5]日、在庫65.00、売り逃し38.00<\/title><\/circle><circle cx=\"332.50\" cy=\"251.48\" r=\"4\" fill=\"#abb3b6\"><title>[1, 6]日、在庫84.00、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"239.71\" r=\"4\" fill=\"#abb3b6\"><title>[1, 7]日、在庫109.67、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"227.94\" r=\"4\" fill=\"#abb3b6\"><title>[1, 8]日、在庫135.33、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"216.17\" r=\"4\" fill=\"#abb3b6\"><title>[1, 9]日、在庫161.00、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"204.39\" r=\"4\" fill=\"#abb3b6\"><title>[1, 10]日、在庫186.67、売り逃し35.67<\/title><\/circle><circle cx=\"382.50\" cy=\"278.84\" r=\"4\" fill=\"#abb3b6\"><title>[2, 1]日、在庫24.33、売り逃し42.33<\/title><\/circle><circle cx=\"337.50\" cy=\"275.17\" r=\"4\" fill=\"#abb3b6\"><title>[2, 2]日、在庫32.33、売り逃し36.33<\/title><\/circle><circle cx=\"302.50\" cy=\"268.14\" r=\"4\" fill=\"#abb3b6\"><title>[2, 3]日、在庫47.67、売り逃し31.67<\/title><\/circle><circle cx=\"285.00\" cy=\"260.65\" r=\"4\" fill=\"#abb3b6\"><title>[2, 4]日、在庫64.00、売り逃し29.33<\/title><\/circle><circle cx=\"267.50\" cy=\"252.55\" r=\"4\" fill=\"#abb3b6\"><title>[2, 5]日、在庫81.67、売り逃し27.00<\/title><\/circle><circle cx=\"250.00\" cy=\"243.83\" r=\"4\" fill=\"#abb3b6\"><title>[2, 6]日、在庫100.67、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"232.06\" r=\"4\" fill=\"#abb3b6\"><title>[2, 7]日、在庫126.33、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"220.29\" r=\"4\" fill=\"#abb3b6\"><title>[2, 8]日、在庫152.00、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"208.52\" r=\"4\" fill=\"#abb3b6\"><title>[2, 9]日、在庫177.67、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"196.75\" r=\"4\" fill=\"#abb3b6\"><title>[2, 10]日、在庫203.33、売り逃し24.67<\/title><\/circle><circle cx=\"332.50\" cy=\"265.39\" r=\"4\" fill=\"#abb3b6\"><title>[3, 1]日、在庫53.67、売り逃し35.67<\/title><\/circle><circle cx=\"287.50\" cy=\"261.72\" r=\"4\" fill=\"#abb3b6\"><title>[3, 2]日、在庫61.67、売り逃し29.67<\/title><\/circle><circle cx=\"252.50\" cy=\"254.69\" r=\"4\" fill=\"#abb3b6\"><title>[3, 3]日、在庫77.00、売り逃し25.00<\/title><\/circle><circle cx=\"235.00\" cy=\"247.20\" r=\"4\" fill=\"#137d79\"><title>[3, 4]日、在庫93.33、売り逃し22.67<\/title><\/circle><circle cx=\"217.50\" cy=\"239.10\" r=\"4\" fill=\"#137d79\"><title>[3, 5]日、在庫111.00、売り逃し20.33<\/title><\/circle><circle cx=\"200.00\" cy=\"230.38\" r=\"4\" fill=\"#137d79\"><title>[3, 6]日、在庫130.00、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"218.61\" r=\"4\" fill=\"#137d79\"><title>[3, 7]日、在庫155.67、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"206.84\" r=\"4\" fill=\"#137d79\"><title>[3, 8]日、在庫181.33、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"195.07\" r=\"4\" fill=\"#137d79\"><title>[3, 9]日、在庫207.00、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"183.30\" r=\"4\" fill=\"#137d79\"><title>[3, 10]日、在庫232.67、売り逃し18.00<\/title><\/circle><circle cx=\"300.00\" cy=\"251.48\" r=\"4\" fill=\"#abb3b6\"><title>[4, 1]日、在庫84.00、売り逃し31.33<\/title><\/circle><circle cx=\"255.00\" cy=\"247.81\" r=\"4\" fill=\"#abb3b6\"><title>[4, 2]日、在庫92.00、売り逃し25.33<\/title><\/circle><circle cx=\"220.00\" cy=\"240.78\" r=\"4\" fill=\"#137d79\"><title>[4, 3]日、在庫107.33、売り逃し20.67<\/title><\/circle><circle cx=\"202.50\" cy=\"233.29\" r=\"4\" fill=\"#137d79\"><title>[4, 4]日、在庫123.67、売り逃し18.33<\/title><\/circle><circle cx=\"185.00\" cy=\"225.18\" r=\"4\" fill=\"#137d79\"><title>[4, 5]日、在庫141.33、売り逃し16.00<\/title><\/circle><circle cx=\"167.50\" cy=\"216.47\" r=\"4\" fill=\"#137d79\"><title>[4, 6]日、在庫160.33、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"204.70\" r=\"4\" fill=\"#137d79\"><title>[4, 7]日、在庫186.00、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"192.93\" r=\"4\" fill=\"#137d79\"><title>[4, 8]日、在庫211.67、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"181.16\" r=\"4\" fill=\"#137d79\"><title>[4, 9]日、在庫237.33、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"169.39\" r=\"4\" fill=\"#137d79\"><title>[4, 10]日、在庫263.00、売り逃し13.67<\/title><\/circle><circle cx=\"267.50\" cy=\"235.12\" r=\"4\" fill=\"#abb3b6\"><title>[5, 1]日、在庫119.67、売り逃し27.00<\/title><\/circle><circle cx=\"222.50\" cy=\"231.45\" r=\"4\" fill=\"#137d79\"><title>[5, 2]日、在庫127.67、売り逃し21.00<\/title><\/circle><circle cx=\"187.50\" cy=\"224.42\" r=\"4\" fill=\"#137d79\"><title>[5, 3]日、在庫143.00、売り逃し16.33<\/title><\/circle><circle cx=\"170.00\" cy=\"216.93\" r=\"4\" fill=\"#137d79\"><title>[5, 4]日、在庫159.33、売り逃し14.00<\/title><\/circle><circle cx=\"152.50\" cy=\"208.83\" r=\"4\" fill=\"#137d79\"><title>[5, 5]日、在庫177.00、売り逃し11.67<\/title><\/circle><circle cx=\"135.00\" cy=\"200.11\" r=\"4\" fill=\"#137d79\"><title>[5, 6]日、在庫196.00、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"188.34\" r=\"4\" fill=\"#137d79\"><title>[5, 7]日、在庫221.67、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"176.57\" r=\"4\" fill=\"#137d79\"><title>[5, 8]日、在庫247.33、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"164.80\" r=\"4\" fill=\"#137d79\"><title>[5, 9]日、在庫273.00、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"153.03\" r=\"4\" fill=\"#137d79\"><title>[5, 10]日、在庫298.67、売り逃し9.33<\/title><\/circle><circle cx=\"235.00\" cy=\"218.15\" r=\"4\" fill=\"#137d79\"><title>[6, 1]日、在庫156.67、売り逃し22.67<\/title><\/circle><circle cx=\"190.00\" cy=\"214.48\" r=\"4\" fill=\"#137d79\"><title>[6, 2]日、在庫164.67、売り逃し16.67<\/title><\/circle><circle cx=\"155.00\" cy=\"207.45\" r=\"4\" fill=\"#137d79\"><title>[6, 3]日、在庫180.00、売り逃し12.00<\/title><\/circle><circle cx=\"137.50\" cy=\"199.96\" r=\"4\" fill=\"#137d79\"><title>[6, 4]日、在庫196.33、売り逃し9.67<\/title><\/circle><circle cx=\"120.00\" cy=\"191.86\" r=\"4\" fill=\"#137d79\"><title>[6, 5]日、在庫214.00、売り逃し7.33<\/title><\/circle><circle cx=\"102.50\" cy=\"183.15\" r=\"4\" fill=\"#137d79\"><title>[6, 6]日、在庫233.00、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"171.38\" r=\"4\" fill=\"#137d79\"><title>[6, 7]日、在庫258.67、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"159.61\" r=\"4\" fill=\"#137d79\"><title>[6, 8]日、在庫284.33、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"147.83\" r=\"4\" fill=\"#137d79\"><title>[6, 9]日、在庫310.00、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"136.06\" r=\"4\" fill=\"#137d79\"><title>[6, 10]日、在庫335.67、売り逃し5.00<\/title><\/circle><circle cx=\"227.50\" cy=\"197.67\" r=\"4\" fill=\"#137d79\"><title>[7, 1]日、在庫201.33、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"194.00\" r=\"4\" fill=\"#137d79\"><title>[7, 2]日、在庫209.33、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"186.97\" r=\"4\" fill=\"#137d79\"><title>[7, 3]日、在庫224.67、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"179.48\" r=\"4\" fill=\"#137d79\"><title>[7, 4]日、在庫241.00、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"171.38\" r=\"4\" fill=\"#137d79\"><title>[7, 5]日、在庫258.67、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"162.66\" r=\"4\" fill=\"#137d79\"><title>[7, 6]日、在庫277.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"150.89\" r=\"4\" fill=\"#137d79\"><title>[7, 7]日、在庫303.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"139.12\" r=\"4\" fill=\"#137d79\"><title>[7, 8]日、在庫329.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"127.35\" r=\"4\" fill=\"#137d79\"><title>[7, 9]日、在庫354.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"115.58\" r=\"4\" fill=\"#137d79\"><title>[7, 10]日、在庫380.33、売り逃し4.00<\/title><\/circle><circle cx=\"227.50\" cy=\"175.81\" r=\"4\" fill=\"#137d79\"><title>[8, 1]日、在庫249.00、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"172.14\" r=\"4\" fill=\"#137d79\"><title>[8, 2]日、在庫257.00、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"165.11\" r=\"4\" fill=\"#137d79\"><title>[8, 3]日、在庫272.33、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"157.62\" r=\"4\" fill=\"#137d79\"><title>[8, 4]日、在庫288.67、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"149.52\" r=\"4\" fill=\"#137d79\"><title>[8, 5]日、在庫306.33、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"140.80\" r=\"4\" fill=\"#137d79\"><title>[8, 6]日、在庫325.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"129.03\" r=\"4\" fill=\"#137d79\"><title>[8, 7]日、在庫351.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"117.26\" r=\"4\" fill=\"#137d79\"><title>[8, 8]日、在庫376.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"105.49\" r=\"4\" fill=\"#137d79\"><title>[8, 9]日、在庫402.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"93.72\" r=\"4\" fill=\"#137d79\"><title>[8, 10]日、在庫428.00、売り逃し4.00<\/title><\/circle><circle cx=\"227.50\" cy=\"153.95\" r=\"4\" fill=\"#137d79\"><title>[9, 1]日、在庫296.67、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"150.28\" r=\"4\" fill=\"#137d79\"><title>[9, 2]日、在庫304.67、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"143.25\" r=\"4\" fill=\"#137d79\"><title>[9, 3]日、在庫320.00、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"135.76\" r=\"4\" fill=\"#137d79\"><title>[9, 4]日、在庫336.33、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"127.66\" r=\"4\" fill=\"#137d79\"><title>[9, 5]日、在庫354.00、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"118.94\" r=\"4\" fill=\"#137d79\"><title>[9, 6]日、在庫373.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"107.17\" r=\"4\" fill=\"#137d79\"><title>[9, 7]日、在庫398.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"95.40\" r=\"4\" fill=\"#137d79\"><title>[9, 8]日、在庫424.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"83.63\" r=\"4\" fill=\"#137d79\"><title>[9, 9]日、在庫450.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"71.86\" r=\"4\" fill=\"#137d79\"><title>[9, 10]日、在庫475.67、売り逃し4.00<\/title><\/circle><circle cx=\"227.50\" cy=\"132.09\" r=\"4\" fill=\"#137d79\"><title>[10, 1]日、在庫344.33、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"128.42\" r=\"4\" fill=\"#137d79\"><title>[10, 2]日、在庫352.33、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"121.39\" r=\"4\" fill=\"#137d79\"><title>[10, 3]日、在庫367.67、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"113.90\" r=\"4\" fill=\"#137d79\"><title>[10, 4]日、在庫384.00、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"105.80\" r=\"4\" fill=\"#137d79\"><title>[10, 5]日、在庫401.67、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"97.08\" r=\"4\" fill=\"#137d79\"><title>[10, 6]日、在庫420.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"85.31\" r=\"4\" fill=\"#137d79\"><title>[10, 7]日、在庫446.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"73.54\" r=\"4\" fill=\"#137d79\"><title>[10, 8]日、在庫472.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"61.77\" r=\"4\" fill=\"#137d79\"><title>[10, 9]日、在庫497.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"50.00\" r=\"4\" fill=\"#137d79\"><title>[10, 10]日、在庫523.33、売り逃し4.00<\/title><\/circle><circle cx=\"235.00\" cy=\"247.20\" r=\"9\" fill=\"none\" stroke=\"#102d47\" stroke-width=\"3\"/><text x=\"65\" y=\"25\">累計在庫（単価1）<\/text><text x=\"275\" y=\"335\">売り逃し（単価1）<\/text><text x=\"48\" y=\"312\">0<\/text><text x=\"440\" y=\"312\">53<\/text><text x=\"12\" y=\"52\">523<\/text><\/svg><p><strong>選択：カテゴリA 3日、B 4日。累計在庫 93.33、売り逃し 22.67。<\/strong><\/p><p>許容損失 24.00、実行可能 74/100候補。緑が制約内、灰が制約外。輪が選んだラベル。<\/p>", "<svg viewBox=\"0 0 520 360\" role=\"img\" aria-label=\"選択：カテゴリA 4日、B 5日。累計在庫 141.33、売り逃し 16.00。\" style=\"width:100%;height:auto;max-width:680px\"><path d=\"M65 40V290H480\" fill=\"none\" stroke=\"currentColor\"/><path d=\"M185.00 40V290\" stroke=\"#aa482e\" stroke-dasharray=\"6 3\"/><circle cx=\"465.00\" cy=\"286.48\" r=\"4\" fill=\"#abb3b6\"><title>[1, 1]日、在庫7.67、売り逃し53.33<\/title><\/circle><circle cx=\"420.00\" cy=\"282.82\" r=\"4\" fill=\"#abb3b6\"><title>[1, 2]日、在庫15.67、売り逃し47.33<\/title><\/circle><circle cx=\"385.00\" cy=\"275.78\" r=\"4\" fill=\"#abb3b6\"><title>[1, 3]日、在庫31.00、売り逃し42.67<\/title><\/circle><circle cx=\"367.50\" cy=\"268.29\" r=\"4\" fill=\"#abb3b6\"><title>[1, 4]日、在庫47.33、売り逃し40.33<\/title><\/circle><circle cx=\"350.00\" cy=\"260.19\" r=\"4\" fill=\"#abb3b6\"><title>[1, 5]日、在庫65.00、売り逃し38.00<\/title><\/circle><circle cx=\"332.50\" cy=\"251.48\" r=\"4\" fill=\"#abb3b6\"><title>[1, 6]日、在庫84.00、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"239.71\" r=\"4\" fill=\"#abb3b6\"><title>[1, 7]日、在庫109.67、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"227.94\" r=\"4\" fill=\"#abb3b6\"><title>[1, 8]日、在庫135.33、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"216.17\" r=\"4\" fill=\"#abb3b6\"><title>[1, 9]日、在庫161.00、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"204.39\" r=\"4\" fill=\"#abb3b6\"><title>[1, 10]日、在庫186.67、売り逃し35.67<\/title><\/circle><circle cx=\"382.50\" cy=\"278.84\" r=\"4\" fill=\"#abb3b6\"><title>[2, 1]日、在庫24.33、売り逃し42.33<\/title><\/circle><circle cx=\"337.50\" cy=\"275.17\" r=\"4\" fill=\"#abb3b6\"><title>[2, 2]日、在庫32.33、売り逃し36.33<\/title><\/circle><circle cx=\"302.50\" cy=\"268.14\" r=\"4\" fill=\"#abb3b6\"><title>[2, 3]日、在庫47.67、売り逃し31.67<\/title><\/circle><circle cx=\"285.00\" cy=\"260.65\" r=\"4\" fill=\"#abb3b6\"><title>[2, 4]日、在庫64.00、売り逃し29.33<\/title><\/circle><circle cx=\"267.50\" cy=\"252.55\" r=\"4\" fill=\"#abb3b6\"><title>[2, 5]日、在庫81.67、売り逃し27.00<\/title><\/circle><circle cx=\"250.00\" cy=\"243.83\" r=\"4\" fill=\"#abb3b6\"><title>[2, 6]日、在庫100.67、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"232.06\" r=\"4\" fill=\"#abb3b6\"><title>[2, 7]日、在庫126.33、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"220.29\" r=\"4\" fill=\"#abb3b6\"><title>[2, 8]日、在庫152.00、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"208.52\" r=\"4\" fill=\"#abb3b6\"><title>[2, 9]日、在庫177.67、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"196.75\" r=\"4\" fill=\"#abb3b6\"><title>[2, 10]日、在庫203.33、売り逃し24.67<\/title><\/circle><circle cx=\"332.50\" cy=\"265.39\" r=\"4\" fill=\"#abb3b6\"><title>[3, 1]日、在庫53.67、売り逃し35.67<\/title><\/circle><circle cx=\"287.50\" cy=\"261.72\" r=\"4\" fill=\"#abb3b6\"><title>[3, 2]日、在庫61.67、売り逃し29.67<\/title><\/circle><circle cx=\"252.50\" cy=\"254.69\" r=\"4\" fill=\"#abb3b6\"><title>[3, 3]日、在庫77.00、売り逃し25.00<\/title><\/circle><circle cx=\"235.00\" cy=\"247.20\" r=\"4\" fill=\"#abb3b6\"><title>[3, 4]日、在庫93.33、売り逃し22.67<\/title><\/circle><circle cx=\"217.50\" cy=\"239.10\" r=\"4\" fill=\"#abb3b6\"><title>[3, 5]日、在庫111.00、売り逃し20.33<\/title><\/circle><circle cx=\"200.00\" cy=\"230.38\" r=\"4\" fill=\"#abb3b6\"><title>[3, 6]日、在庫130.00、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"218.61\" r=\"4\" fill=\"#abb3b6\"><title>[3, 7]日、在庫155.67、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"206.84\" r=\"4\" fill=\"#abb3b6\"><title>[3, 8]日、在庫181.33、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"195.07\" r=\"4\" fill=\"#abb3b6\"><title>[3, 9]日、在庫207.00、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"183.30\" r=\"4\" fill=\"#abb3b6\"><title>[3, 10]日、在庫232.67、売り逃し18.00<\/title><\/circle><circle cx=\"300.00\" cy=\"251.48\" r=\"4\" fill=\"#abb3b6\"><title>[4, 1]日、在庫84.00、売り逃し31.33<\/title><\/circle><circle cx=\"255.00\" cy=\"247.81\" r=\"4\" fill=\"#abb3b6\"><title>[4, 2]日、在庫92.00、売り逃し25.33<\/title><\/circle><circle cx=\"220.00\" cy=\"240.78\" r=\"4\" fill=\"#abb3b6\"><title>[4, 3]日、在庫107.33、売り逃し20.67<\/title><\/circle><circle cx=\"202.50\" cy=\"233.29\" r=\"4\" fill=\"#abb3b6\"><title>[4, 4]日、在庫123.67、売り逃し18.33<\/title><\/circle><circle cx=\"185.00\" cy=\"225.18\" r=\"4\" fill=\"#137d79\"><title>[4, 5]日、在庫141.33、売り逃し16.00<\/title><\/circle><circle cx=\"167.50\" cy=\"216.47\" r=\"4\" fill=\"#137d79\"><title>[4, 6]日、在庫160.33、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"204.70\" r=\"4\" fill=\"#137d79\"><title>[4, 7]日、在庫186.00、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"192.93\" r=\"4\" fill=\"#137d79\"><title>[4, 8]日、在庫211.67、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"181.16\" r=\"4\" fill=\"#137d79\"><title>[4, 9]日、在庫237.33、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"169.39\" r=\"4\" fill=\"#137d79\"><title>[4, 10]日、在庫263.00、売り逃し13.67<\/title><\/circle><circle cx=\"267.50\" cy=\"235.12\" r=\"4\" fill=\"#abb3b6\"><title>[5, 1]日、在庫119.67、売り逃し27.00<\/title><\/circle><circle cx=\"222.50\" cy=\"231.45\" r=\"4\" fill=\"#abb3b6\"><title>[5, 2]日、在庫127.67、売り逃し21.00<\/title><\/circle><circle cx=\"187.50\" cy=\"224.42\" r=\"4\" fill=\"#abb3b6\"><title>[5, 3]日、在庫143.00、売り逃し16.33<\/title><\/circle><circle cx=\"170.00\" cy=\"216.93\" r=\"4\" fill=\"#137d79\"><title>[5, 4]日、在庫159.33、売り逃し14.00<\/title><\/circle><circle cx=\"152.50\" cy=\"208.83\" r=\"4\" fill=\"#137d79\"><title>[5, 5]日、在庫177.00、売り逃し11.67<\/title><\/circle><circle cx=\"135.00\" cy=\"200.11\" r=\"4\" fill=\"#137d79\"><title>[5, 6]日、在庫196.00、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"188.34\" r=\"4\" fill=\"#137d79\"><title>[5, 7]日、在庫221.67、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"176.57\" r=\"4\" fill=\"#137d79\"><title>[5, 8]日、在庫247.33、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"164.80\" r=\"4\" fill=\"#137d79\"><title>[5, 9]日、在庫273.00、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"153.03\" r=\"4\" fill=\"#137d79\"><title>[5, 10]日、在庫298.67、売り逃し9.33<\/title><\/circle><circle cx=\"235.00\" cy=\"218.15\" r=\"4\" fill=\"#abb3b6\"><title>[6, 1]日、在庫156.67、売り逃し22.67<\/title><\/circle><circle cx=\"190.00\" cy=\"214.48\" r=\"4\" fill=\"#abb3b6\"><title>[6, 2]日、在庫164.67、売り逃し16.67<\/title><\/circle><circle cx=\"155.00\" cy=\"207.45\" r=\"4\" fill=\"#137d79\"><title>[6, 3]日、在庫180.00、売り逃し12.00<\/title><\/circle><circle cx=\"137.50\" cy=\"199.96\" r=\"4\" fill=\"#137d79\"><title>[6, 4]日、在庫196.33、売り逃し9.67<\/title><\/circle><circle cx=\"120.00\" cy=\"191.86\" r=\"4\" fill=\"#137d79\"><title>[6, 5]日、在庫214.00、売り逃し7.33<\/title><\/circle><circle cx=\"102.50\" cy=\"183.15\" r=\"4\" fill=\"#137d79\"><title>[6, 6]日、在庫233.00、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"171.38\" r=\"4\" fill=\"#137d79\"><title>[6, 7]日、在庫258.67、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"159.61\" r=\"4\" fill=\"#137d79\"><title>[6, 8]日、在庫284.33、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"147.83\" r=\"4\" fill=\"#137d79\"><title>[6, 9]日、在庫310.00、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"136.06\" r=\"4\" fill=\"#137d79\"><title>[6, 10]日、在庫335.67、売り逃し5.00<\/title><\/circle><circle cx=\"227.50\" cy=\"197.67\" r=\"4\" fill=\"#abb3b6\"><title>[7, 1]日、在庫201.33、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"194.00\" r=\"4\" fill=\"#137d79\"><title>[7, 2]日、在庫209.33、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"186.97\" r=\"4\" fill=\"#137d79\"><title>[7, 3]日、在庫224.67、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"179.48\" r=\"4\" fill=\"#137d79\"><title>[7, 4]日、在庫241.00、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"171.38\" r=\"4\" fill=\"#137d79\"><title>[7, 5]日、在庫258.67、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"162.66\" r=\"4\" fill=\"#137d79\"><title>[7, 6]日、在庫277.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"150.89\" r=\"4\" fill=\"#137d79\"><title>[7, 7]日、在庫303.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"139.12\" r=\"4\" fill=\"#137d79\"><title>[7, 8]日、在庫329.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"127.35\" r=\"4\" fill=\"#137d79\"><title>[7, 9]日、在庫354.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"115.58\" r=\"4\" fill=\"#137d79\"><title>[7, 10]日、在庫380.33、売り逃し4.00<\/title><\/circle><circle cx=\"227.50\" cy=\"175.81\" r=\"4\" fill=\"#abb3b6\"><title>[8, 1]日、在庫249.00、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"172.14\" r=\"4\" fill=\"#137d79\"><title>[8, 2]日、在庫257.00、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"165.11\" r=\"4\" fill=\"#137d79\"><title>[8, 3]日、在庫272.33、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"157.62\" r=\"4\" fill=\"#137d79\"><title>[8, 4]日、在庫288.67、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"149.52\" r=\"4\" fill=\"#137d79\"><title>[8, 5]日、在庫306.33、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"140.80\" r=\"4\" fill=\"#137d79\"><title>[8, 6]日、在庫325.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"129.03\" r=\"4\" fill=\"#137d79\"><title>[8, 7]日、在庫351.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"117.26\" r=\"4\" fill=\"#137d79\"><title>[8, 8]日、在庫376.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"105.49\" r=\"4\" fill=\"#137d79\"><title>[8, 9]日、在庫402.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"93.72\" r=\"4\" fill=\"#137d79\"><title>[8, 10]日、在庫428.00、売り逃し4.00<\/title><\/circle><circle cx=\"227.50\" cy=\"153.95\" r=\"4\" fill=\"#abb3b6\"><title>[9, 1]日、在庫296.67、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"150.28\" r=\"4\" fill=\"#137d79\"><title>[9, 2]日、在庫304.67、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"143.25\" r=\"4\" fill=\"#137d79\"><title>[9, 3]日、在庫320.00、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"135.76\" r=\"4\" fill=\"#137d79\"><title>[9, 4]日、在庫336.33、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"127.66\" r=\"4\" fill=\"#137d79\"><title>[9, 5]日、在庫354.00、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"118.94\" r=\"4\" fill=\"#137d79\"><title>[9, 6]日、在庫373.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"107.17\" r=\"4\" fill=\"#137d79\"><title>[9, 7]日、在庫398.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"95.40\" r=\"4\" fill=\"#137d79\"><title>[9, 8]日、在庫424.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"83.63\" r=\"4\" fill=\"#137d79\"><title>[9, 9]日、在庫450.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"71.86\" r=\"4\" fill=\"#137d79\"><title>[9, 10]日、在庫475.67、売り逃し4.00<\/title><\/circle><circle cx=\"227.50\" cy=\"132.09\" r=\"4\" fill=\"#abb3b6\"><title>[10, 1]日、在庫344.33、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"128.42\" r=\"4\" fill=\"#137d79\"><title>[10, 2]日、在庫352.33、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"121.39\" r=\"4\" fill=\"#137d79\"><title>[10, 3]日、在庫367.67、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"113.90\" r=\"4\" fill=\"#137d79\"><title>[10, 4]日、在庫384.00、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"105.80\" r=\"4\" fill=\"#137d79\"><title>[10, 5]日、在庫401.67、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"97.08\" r=\"4\" fill=\"#137d79\"><title>[10, 6]日、在庫420.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"85.31\" r=\"4\" fill=\"#137d79\"><title>[10, 7]日、在庫446.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"73.54\" r=\"4\" fill=\"#137d79\"><title>[10, 8]日、在庫472.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"61.77\" r=\"4\" fill=\"#137d79\"><title>[10, 9]日、在庫497.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"50.00\" r=\"4\" fill=\"#137d79\"><title>[10, 10]日、在庫523.33、売り逃し4.00<\/title><\/circle><circle cx=\"185.00\" cy=\"225.18\" r=\"9\" fill=\"none\" stroke=\"#102d47\" stroke-width=\"3\"/><text x=\"65\" y=\"25\">累計在庫（単価1）<\/text><text x=\"275\" y=\"335\">売り逃し（単価1）<\/text><text x=\"48\" y=\"312\">0<\/text><text x=\"440\" y=\"312\">53<\/text><text x=\"12\" y=\"52\">523<\/text><\/svg><p><strong>選択：カテゴリA 4日、B 5日。累計在庫 141.33、売り逃し 16.00。<\/strong><\/p><p>許容損失 16.00、実行可能 57/100候補。緑が制約内、灰が制約外。輪が選んだラベル。<\/p>", "<svg viewBox=\"0 0 520 360\" role=\"img\" aria-label=\"選択：カテゴリA 6日、B 5日。累計在庫 214.00、売り逃し 7.33。\" style=\"width:100%;height:auto;max-width:680px\"><path d=\"M65 40V290H480\" fill=\"none\" stroke=\"currentColor\"/><path d=\"M125.00 40V290\" stroke=\"#aa482e\" stroke-dasharray=\"6 3\"/><circle cx=\"465.00\" cy=\"286.48\" r=\"4\" fill=\"#abb3b6\"><title>[1, 1]日、在庫7.67、売り逃し53.33<\/title><\/circle><circle cx=\"420.00\" cy=\"282.82\" r=\"4\" fill=\"#abb3b6\"><title>[1, 2]日、在庫15.67、売り逃し47.33<\/title><\/circle><circle cx=\"385.00\" cy=\"275.78\" r=\"4\" fill=\"#abb3b6\"><title>[1, 3]日、在庫31.00、売り逃し42.67<\/title><\/circle><circle cx=\"367.50\" cy=\"268.29\" r=\"4\" fill=\"#abb3b6\"><title>[1, 4]日、在庫47.33、売り逃し40.33<\/title><\/circle><circle cx=\"350.00\" cy=\"260.19\" r=\"4\" fill=\"#abb3b6\"><title>[1, 5]日、在庫65.00、売り逃し38.00<\/title><\/circle><circle cx=\"332.50\" cy=\"251.48\" r=\"4\" fill=\"#abb3b6\"><title>[1, 6]日、在庫84.00、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"239.71\" r=\"4\" fill=\"#abb3b6\"><title>[1, 7]日、在庫109.67、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"227.94\" r=\"4\" fill=\"#abb3b6\"><title>[1, 8]日、在庫135.33、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"216.17\" r=\"4\" fill=\"#abb3b6\"><title>[1, 9]日、在庫161.00、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"204.39\" r=\"4\" fill=\"#abb3b6\"><title>[1, 10]日、在庫186.67、売り逃し35.67<\/title><\/circle><circle cx=\"382.50\" cy=\"278.84\" r=\"4\" fill=\"#abb3b6\"><title>[2, 1]日、在庫24.33、売り逃し42.33<\/title><\/circle><circle cx=\"337.50\" cy=\"275.17\" r=\"4\" fill=\"#abb3b6\"><title>[2, 2]日、在庫32.33、売り逃し36.33<\/title><\/circle><circle cx=\"302.50\" cy=\"268.14\" r=\"4\" fill=\"#abb3b6\"><title>[2, 3]日、在庫47.67、売り逃し31.67<\/title><\/circle><circle cx=\"285.00\" cy=\"260.65\" r=\"4\" fill=\"#abb3b6\"><title>[2, 4]日、在庫64.00、売り逃し29.33<\/title><\/circle><circle cx=\"267.50\" cy=\"252.55\" r=\"4\" fill=\"#abb3b6\"><title>[2, 5]日、在庫81.67、売り逃し27.00<\/title><\/circle><circle cx=\"250.00\" cy=\"243.83\" r=\"4\" fill=\"#abb3b6\"><title>[2, 6]日、在庫100.67、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"232.06\" r=\"4\" fill=\"#abb3b6\"><title>[2, 7]日、在庫126.33、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"220.29\" r=\"4\" fill=\"#abb3b6\"><title>[2, 8]日、在庫152.00、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"208.52\" r=\"4\" fill=\"#abb3b6\"><title>[2, 9]日、在庫177.67、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"196.75\" r=\"4\" fill=\"#abb3b6\"><title>[2, 10]日、在庫203.33、売り逃し24.67<\/title><\/circle><circle cx=\"332.50\" cy=\"265.39\" r=\"4\" fill=\"#abb3b6\"><title>[3, 1]日、在庫53.67、売り逃し35.67<\/title><\/circle><circle cx=\"287.50\" cy=\"261.72\" r=\"4\" fill=\"#abb3b6\"><title>[3, 2]日、在庫61.67、売り逃し29.67<\/title><\/circle><circle cx=\"252.50\" cy=\"254.69\" r=\"4\" fill=\"#abb3b6\"><title>[3, 3]日、在庫77.00、売り逃し25.00<\/title><\/circle><circle cx=\"235.00\" cy=\"247.20\" r=\"4\" fill=\"#abb3b6\"><title>[3, 4]日、在庫93.33、売り逃し22.67<\/title><\/circle><circle cx=\"217.50\" cy=\"239.10\" r=\"4\" fill=\"#abb3b6\"><title>[3, 5]日、在庫111.00、売り逃し20.33<\/title><\/circle><circle cx=\"200.00\" cy=\"230.38\" r=\"4\" fill=\"#abb3b6\"><title>[3, 6]日、在庫130.00、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"218.61\" r=\"4\" fill=\"#abb3b6\"><title>[3, 7]日、在庫155.67、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"206.84\" r=\"4\" fill=\"#abb3b6\"><title>[3, 8]日、在庫181.33、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"195.07\" r=\"4\" fill=\"#abb3b6\"><title>[3, 9]日、在庫207.00、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"183.30\" r=\"4\" fill=\"#abb3b6\"><title>[3, 10]日、在庫232.67、売り逃し18.00<\/title><\/circle><circle cx=\"300.00\" cy=\"251.48\" r=\"4\" fill=\"#abb3b6\"><title>[4, 1]日、在庫84.00、売り逃し31.33<\/title><\/circle><circle cx=\"255.00\" cy=\"247.81\" r=\"4\" fill=\"#abb3b6\"><title>[4, 2]日、在庫92.00、売り逃し25.33<\/title><\/circle><circle cx=\"220.00\" cy=\"240.78\" r=\"4\" fill=\"#abb3b6\"><title>[4, 3]日、在庫107.33、売り逃し20.67<\/title><\/circle><circle cx=\"202.50\" cy=\"233.29\" r=\"4\" fill=\"#abb3b6\"><title>[4, 4]日、在庫123.67、売り逃し18.33<\/title><\/circle><circle cx=\"185.00\" cy=\"225.18\" r=\"4\" fill=\"#abb3b6\"><title>[4, 5]日、在庫141.33、売り逃し16.00<\/title><\/circle><circle cx=\"167.50\" cy=\"216.47\" r=\"4\" fill=\"#abb3b6\"><title>[4, 6]日、在庫160.33、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"204.70\" r=\"4\" fill=\"#abb3b6\"><title>[4, 7]日、在庫186.00、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"192.93\" r=\"4\" fill=\"#abb3b6\"><title>[4, 8]日、在庫211.67、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"181.16\" r=\"4\" fill=\"#abb3b6\"><title>[4, 9]日、在庫237.33、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"169.39\" r=\"4\" fill=\"#abb3b6\"><title>[4, 10]日、在庫263.00、売り逃し13.67<\/title><\/circle><circle cx=\"267.50\" cy=\"235.12\" r=\"4\" fill=\"#abb3b6\"><title>[5, 1]日、在庫119.67、売り逃し27.00<\/title><\/circle><circle cx=\"222.50\" cy=\"231.45\" r=\"4\" fill=\"#abb3b6\"><title>[5, 2]日、在庫127.67、売り逃し21.00<\/title><\/circle><circle cx=\"187.50\" cy=\"224.42\" r=\"4\" fill=\"#abb3b6\"><title>[5, 3]日、在庫143.00、売り逃し16.33<\/title><\/circle><circle cx=\"170.00\" cy=\"216.93\" r=\"4\" fill=\"#abb3b6\"><title>[5, 4]日、在庫159.33、売り逃し14.00<\/title><\/circle><circle cx=\"152.50\" cy=\"208.83\" r=\"4\" fill=\"#abb3b6\"><title>[5, 5]日、在庫177.00、売り逃し11.67<\/title><\/circle><circle cx=\"135.00\" cy=\"200.11\" r=\"4\" fill=\"#abb3b6\"><title>[5, 6]日、在庫196.00、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"188.34\" r=\"4\" fill=\"#abb3b6\"><title>[5, 7]日、在庫221.67、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"176.57\" r=\"4\" fill=\"#abb3b6\"><title>[5, 8]日、在庫247.33、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"164.80\" r=\"4\" fill=\"#abb3b6\"><title>[5, 9]日、在庫273.00、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"153.03\" r=\"4\" fill=\"#abb3b6\"><title>[5, 10]日、在庫298.67、売り逃し9.33<\/title><\/circle><circle cx=\"235.00\" cy=\"218.15\" r=\"4\" fill=\"#abb3b6\"><title>[6, 1]日、在庫156.67、売り逃し22.67<\/title><\/circle><circle cx=\"190.00\" cy=\"214.48\" r=\"4\" fill=\"#abb3b6\"><title>[6, 2]日、在庫164.67、売り逃し16.67<\/title><\/circle><circle cx=\"155.00\" cy=\"207.45\" r=\"4\" fill=\"#abb3b6\"><title>[6, 3]日、在庫180.00、売り逃し12.00<\/title><\/circle><circle cx=\"137.50\" cy=\"199.96\" r=\"4\" fill=\"#abb3b6\"><title>[6, 4]日、在庫196.33、売り逃し9.67<\/title><\/circle><circle cx=\"120.00\" cy=\"191.86\" r=\"4\" fill=\"#137d79\"><title>[6, 5]日、在庫214.00、売り逃し7.33<\/title><\/circle><circle cx=\"102.50\" cy=\"183.15\" r=\"4\" fill=\"#137d79\"><title>[6, 6]日、在庫233.00、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"171.38\" r=\"4\" fill=\"#137d79\"><title>[6, 7]日、在庫258.67、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"159.61\" r=\"4\" fill=\"#137d79\"><title>[6, 8]日、在庫284.33、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"147.83\" r=\"4\" fill=\"#137d79\"><title>[6, 9]日、在庫310.00、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"136.06\" r=\"4\" fill=\"#137d79\"><title>[6, 10]日、在庫335.67、売り逃し5.00<\/title><\/circle><circle cx=\"227.50\" cy=\"197.67\" r=\"4\" fill=\"#abb3b6\"><title>[7, 1]日、在庫201.33、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"194.00\" r=\"4\" fill=\"#abb3b6\"><title>[7, 2]日、在庫209.33、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"186.97\" r=\"4\" fill=\"#abb3b6\"><title>[7, 3]日、在庫224.67、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"179.48\" r=\"4\" fill=\"#abb3b6\"><title>[7, 4]日、在庫241.00、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"171.38\" r=\"4\" fill=\"#137d79\"><title>[7, 5]日、在庫258.67、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"162.66\" r=\"4\" fill=\"#137d79\"><title>[7, 6]日、在庫277.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"150.89\" r=\"4\" fill=\"#137d79\"><title>[7, 7]日、在庫303.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"139.12\" r=\"4\" fill=\"#137d79\"><title>[7, 8]日、在庫329.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"127.35\" r=\"4\" fill=\"#137d79\"><title>[7, 9]日、在庫354.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"115.58\" r=\"4\" fill=\"#137d79\"><title>[7, 10]日、在庫380.33、売り逃し4.00<\/title><\/circle><circle cx=\"227.50\" cy=\"175.81\" r=\"4\" fill=\"#abb3b6\"><title>[8, 1]日、在庫249.00、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"172.14\" r=\"4\" fill=\"#abb3b6\"><title>[8, 2]日、在庫257.00、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"165.11\" r=\"4\" fill=\"#abb3b6\"><title>[8, 3]日、在庫272.33、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"157.62\" r=\"4\" fill=\"#abb3b6\"><title>[8, 4]日、在庫288.67、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"149.52\" r=\"4\" fill=\"#137d79\"><title>[8, 5]日、在庫306.33、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"140.80\" r=\"4\" fill=\"#137d79\"><title>[8, 6]日、在庫325.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"129.03\" r=\"4\" fill=\"#137d79\"><title>[8, 7]日、在庫351.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"117.26\" r=\"4\" fill=\"#137d79\"><title>[8, 8]日、在庫376.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"105.49\" r=\"4\" fill=\"#137d79\"><title>[8, 9]日、在庫402.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"93.72\" r=\"4\" fill=\"#137d79\"><title>[8, 10]日、在庫428.00、売り逃し4.00<\/title><\/circle><circle cx=\"227.50\" cy=\"153.95\" r=\"4\" fill=\"#abb3b6\"><title>[9, 1]日、在庫296.67、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"150.28\" r=\"4\" fill=\"#abb3b6\"><title>[9, 2]日、在庫304.67、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"143.25\" r=\"4\" fill=\"#abb3b6\"><title>[9, 3]日、在庫320.00、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"135.76\" r=\"4\" fill=\"#abb3b6\"><title>[9, 4]日、在庫336.33、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"127.66\" r=\"4\" fill=\"#137d79\"><title>[9, 5]日、在庫354.00、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"118.94\" r=\"4\" fill=\"#137d79\"><title>[9, 6]日、在庫373.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"107.17\" r=\"4\" fill=\"#137d79\"><title>[9, 7]日、在庫398.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"95.40\" r=\"4\" fill=\"#137d79\"><title>[9, 8]日、在庫424.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"83.63\" r=\"4\" fill=\"#137d79\"><title>[9, 9]日、在庫450.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"71.86\" r=\"4\" fill=\"#137d79\"><title>[9, 10]日、在庫475.67、売り逃し4.00<\/title><\/circle><circle cx=\"227.50\" cy=\"132.09\" r=\"4\" fill=\"#abb3b6\"><title>[10, 1]日、在庫344.33、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"128.42\" r=\"4\" fill=\"#abb3b6\"><title>[10, 2]日、在庫352.33、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"121.39\" r=\"4\" fill=\"#abb3b6\"><title>[10, 3]日、在庫367.67、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"113.90\" r=\"4\" fill=\"#abb3b6\"><title>[10, 4]日、在庫384.00、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"105.80\" r=\"4\" fill=\"#137d79\"><title>[10, 5]日、在庫401.67、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"97.08\" r=\"4\" fill=\"#137d79\"><title>[10, 6]日、在庫420.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"85.31\" r=\"4\" fill=\"#137d79\"><title>[10, 7]日、在庫446.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"73.54\" r=\"4\" fill=\"#137d79\"><title>[10, 8]日、在庫472.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"61.77\" r=\"4\" fill=\"#137d79\"><title>[10, 9]日、在庫497.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"50.00\" r=\"4\" fill=\"#137d79\"><title>[10, 10]日、在庫523.33、売り逃し4.00<\/title><\/circle><circle cx=\"120.00\" cy=\"191.86\" r=\"9\" fill=\"none\" stroke=\"#102d47\" stroke-width=\"3\"/><text x=\"65\" y=\"25\">累計在庫（単価1）<\/text><text x=\"275\" y=\"335\">売り逃し（単価1）<\/text><text x=\"48\" y=\"312\">0<\/text><text x=\"440\" y=\"312\">53<\/text><text x=\"12\" y=\"52\">523<\/text><\/svg><p><strong>選択：カテゴリA 6日、B 5日。累計在庫 214.00、売り逃し 7.33。<\/strong><\/p><p>許容損失 8.00、実行可能 30/100候補。緑が制約内、灰が制約外。輪が選んだラベル。<\/p>", "<svg viewBox=\"0 0 520 360\" role=\"img\" aria-label=\"選択：カテゴリA 7日、B 6日。累計在庫 277.67、売り逃し 4.00。\" style=\"width:100%;height:auto;max-width:680px\"><path d=\"M65 40V290H480\" fill=\"none\" stroke=\"currentColor\"/><path d=\"M95.00 40V290\" stroke=\"#aa482e\" stroke-dasharray=\"6 3\"/><circle cx=\"465.00\" cy=\"286.48\" r=\"4\" fill=\"#abb3b6\"><title>[1, 1]日、在庫7.67、売り逃し53.33<\/title><\/circle><circle cx=\"420.00\" cy=\"282.82\" r=\"4\" fill=\"#abb3b6\"><title>[1, 2]日、在庫15.67、売り逃し47.33<\/title><\/circle><circle cx=\"385.00\" cy=\"275.78\" r=\"4\" fill=\"#abb3b6\"><title>[1, 3]日、在庫31.00、売り逃し42.67<\/title><\/circle><circle cx=\"367.50\" cy=\"268.29\" r=\"4\" fill=\"#abb3b6\"><title>[1, 4]日、在庫47.33、売り逃し40.33<\/title><\/circle><circle cx=\"350.00\" cy=\"260.19\" r=\"4\" fill=\"#abb3b6\"><title>[1, 5]日、在庫65.00、売り逃し38.00<\/title><\/circle><circle cx=\"332.50\" cy=\"251.48\" r=\"4\" fill=\"#abb3b6\"><title>[1, 6]日、在庫84.00、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"239.71\" r=\"4\" fill=\"#abb3b6\"><title>[1, 7]日、在庫109.67、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"227.94\" r=\"4\" fill=\"#abb3b6\"><title>[1, 8]日、在庫135.33、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"216.17\" r=\"4\" fill=\"#abb3b6\"><title>[1, 9]日、在庫161.00、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"204.39\" r=\"4\" fill=\"#abb3b6\"><title>[1, 10]日、在庫186.67、売り逃し35.67<\/title><\/circle><circle cx=\"382.50\" cy=\"278.84\" r=\"4\" fill=\"#abb3b6\"><title>[2, 1]日、在庫24.33、売り逃し42.33<\/title><\/circle><circle cx=\"337.50\" cy=\"275.17\" r=\"4\" fill=\"#abb3b6\"><title>[2, 2]日、在庫32.33、売り逃し36.33<\/title><\/circle><circle cx=\"302.50\" cy=\"268.14\" r=\"4\" fill=\"#abb3b6\"><title>[2, 3]日、在庫47.67、売り逃し31.67<\/title><\/circle><circle cx=\"285.00\" cy=\"260.65\" r=\"4\" fill=\"#abb3b6\"><title>[2, 4]日、在庫64.00、売り逃し29.33<\/title><\/circle><circle cx=\"267.50\" cy=\"252.55\" r=\"4\" fill=\"#abb3b6\"><title>[2, 5]日、在庫81.67、売り逃し27.00<\/title><\/circle><circle cx=\"250.00\" cy=\"243.83\" r=\"4\" fill=\"#abb3b6\"><title>[2, 6]日、在庫100.67、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"232.06\" r=\"4\" fill=\"#abb3b6\"><title>[2, 7]日、在庫126.33、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"220.29\" r=\"4\" fill=\"#abb3b6\"><title>[2, 8]日、在庫152.00、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"208.52\" r=\"4\" fill=\"#abb3b6\"><title>[2, 9]日、在庫177.67、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"196.75\" r=\"4\" fill=\"#abb3b6\"><title>[2, 10]日、在庫203.33、売り逃し24.67<\/title><\/circle><circle cx=\"332.50\" cy=\"265.39\" r=\"4\" fill=\"#abb3b6\"><title>[3, 1]日、在庫53.67、売り逃し35.67<\/title><\/circle><circle cx=\"287.50\" cy=\"261.72\" r=\"4\" fill=\"#abb3b6\"><title>[3, 2]日、在庫61.67、売り逃し29.67<\/title><\/circle><circle cx=\"252.50\" cy=\"254.69\" r=\"4\" fill=\"#abb3b6\"><title>[3, 3]日、在庫77.00、売り逃し25.00<\/title><\/circle><circle cx=\"235.00\" cy=\"247.20\" r=\"4\" fill=\"#abb3b6\"><title>[3, 4]日、在庫93.33、売り逃し22.67<\/title><\/circle><circle cx=\"217.50\" cy=\"239.10\" r=\"4\" fill=\"#abb3b6\"><title>[3, 5]日、在庫111.00、売り逃し20.33<\/title><\/circle><circle cx=\"200.00\" cy=\"230.38\" r=\"4\" fill=\"#abb3b6\"><title>[3, 6]日、在庫130.00、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"218.61\" r=\"4\" fill=\"#abb3b6\"><title>[3, 7]日、在庫155.67、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"206.84\" r=\"4\" fill=\"#abb3b6\"><title>[3, 8]日、在庫181.33、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"195.07\" r=\"4\" fill=\"#abb3b6\"><title>[3, 9]日、在庫207.00、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"183.30\" r=\"4\" fill=\"#abb3b6\"><title>[3, 10]日、在庫232.67、売り逃し18.00<\/title><\/circle><circle cx=\"300.00\" cy=\"251.48\" r=\"4\" fill=\"#abb3b6\"><title>[4, 1]日、在庫84.00、売り逃し31.33<\/title><\/circle><circle cx=\"255.00\" cy=\"247.81\" r=\"4\" fill=\"#abb3b6\"><title>[4, 2]日、在庫92.00、売り逃し25.33<\/title><\/circle><circle cx=\"220.00\" cy=\"240.78\" r=\"4\" fill=\"#abb3b6\"><title>[4, 3]日、在庫107.33、売り逃し20.67<\/title><\/circle><circle cx=\"202.50\" cy=\"233.29\" r=\"4\" fill=\"#abb3b6\"><title>[4, 4]日、在庫123.67、売り逃し18.33<\/title><\/circle><circle cx=\"185.00\" cy=\"225.18\" r=\"4\" fill=\"#abb3b6\"><title>[4, 5]日、在庫141.33、売り逃し16.00<\/title><\/circle><circle cx=\"167.50\" cy=\"216.47\" r=\"4\" fill=\"#abb3b6\"><title>[4, 6]日、在庫160.33、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"204.70\" r=\"4\" fill=\"#abb3b6\"><title>[4, 7]日、在庫186.00、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"192.93\" r=\"4\" fill=\"#abb3b6\"><title>[4, 8]日、在庫211.67、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"181.16\" r=\"4\" fill=\"#abb3b6\"><title>[4, 9]日、在庫237.33、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"169.39\" r=\"4\" fill=\"#abb3b6\"><title>[4, 10]日、在庫263.00、売り逃し13.67<\/title><\/circle><circle cx=\"267.50\" cy=\"235.12\" r=\"4\" fill=\"#abb3b6\"><title>[5, 1]日、在庫119.67、売り逃し27.00<\/title><\/circle><circle cx=\"222.50\" cy=\"231.45\" r=\"4\" fill=\"#abb3b6\"><title>[5, 2]日、在庫127.67、売り逃し21.00<\/title><\/circle><circle cx=\"187.50\" cy=\"224.42\" r=\"4\" fill=\"#abb3b6\"><title>[5, 3]日、在庫143.00、売り逃し16.33<\/title><\/circle><circle cx=\"170.00\" cy=\"216.93\" r=\"4\" fill=\"#abb3b6\"><title>[5, 4]日、在庫159.33、売り逃し14.00<\/title><\/circle><circle cx=\"152.50\" cy=\"208.83\" r=\"4\" fill=\"#abb3b6\"><title>[5, 5]日、在庫177.00、売り逃し11.67<\/title><\/circle><circle cx=\"135.00\" cy=\"200.11\" r=\"4\" fill=\"#abb3b6\"><title>[5, 6]日、在庫196.00、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"188.34\" r=\"4\" fill=\"#abb3b6\"><title>[5, 7]日、在庫221.67、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"176.57\" r=\"4\" fill=\"#abb3b6\"><title>[5, 8]日、在庫247.33、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"164.80\" r=\"4\" fill=\"#abb3b6\"><title>[5, 9]日、在庫273.00、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"153.03\" r=\"4\" fill=\"#abb3b6\"><title>[5, 10]日、在庫298.67、売り逃し9.33<\/title><\/circle><circle cx=\"235.00\" cy=\"218.15\" r=\"4\" fill=\"#abb3b6\"><title>[6, 1]日、在庫156.67、売り逃し22.67<\/title><\/circle><circle cx=\"190.00\" cy=\"214.48\" r=\"4\" fill=\"#abb3b6\"><title>[6, 2]日、在庫164.67、売り逃し16.67<\/title><\/circle><circle cx=\"155.00\" cy=\"207.45\" r=\"4\" fill=\"#abb3b6\"><title>[6, 3]日、在庫180.00、売り逃し12.00<\/title><\/circle><circle cx=\"137.50\" cy=\"199.96\" r=\"4\" fill=\"#abb3b6\"><title>[6, 4]日、在庫196.33、売り逃し9.67<\/title><\/circle><circle cx=\"120.00\" cy=\"191.86\" r=\"4\" fill=\"#abb3b6\"><title>[6, 5]日、在庫214.00、売り逃し7.33<\/title><\/circle><circle cx=\"102.50\" cy=\"183.15\" r=\"4\" fill=\"#abb3b6\"><title>[6, 6]日、在庫233.00、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"171.38\" r=\"4\" fill=\"#abb3b6\"><title>[6, 7]日、在庫258.67、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"159.61\" r=\"4\" fill=\"#abb3b6\"><title>[6, 8]日、在庫284.33、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"147.83\" r=\"4\" fill=\"#abb3b6\"><title>[6, 9]日、在庫310.00、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"136.06\" r=\"4\" fill=\"#abb3b6\"><title>[6, 10]日、在庫335.67、売り逃し5.00<\/title><\/circle><circle cx=\"227.50\" cy=\"197.67\" r=\"4\" fill=\"#abb3b6\"><title>[7, 1]日、在庫201.33、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"194.00\" r=\"4\" fill=\"#abb3b6\"><title>[7, 2]日、在庫209.33、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"186.97\" r=\"4\" fill=\"#abb3b6\"><title>[7, 3]日、在庫224.67、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"179.48\" r=\"4\" fill=\"#abb3b6\"><title>[7, 4]日、在庫241.00、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"171.38\" r=\"4\" fill=\"#abb3b6\"><title>[7, 5]日、在庫258.67、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"162.66\" r=\"4\" fill=\"#137d79\"><title>[7, 6]日、在庫277.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"150.89\" r=\"4\" fill=\"#137d79\"><title>[7, 7]日、在庫303.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"139.12\" r=\"4\" fill=\"#137d79\"><title>[7, 8]日、在庫329.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"127.35\" r=\"4\" fill=\"#137d79\"><title>[7, 9]日、在庫354.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"115.58\" r=\"4\" fill=\"#137d79\"><title>[7, 10]日、在庫380.33、売り逃し4.00<\/title><\/circle><circle cx=\"227.50\" cy=\"175.81\" r=\"4\" fill=\"#abb3b6\"><title>[8, 1]日、在庫249.00、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"172.14\" r=\"4\" fill=\"#abb3b6\"><title>[8, 2]日、在庫257.00、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"165.11\" r=\"4\" fill=\"#abb3b6\"><title>[8, 3]日、在庫272.33、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"157.62\" r=\"4\" fill=\"#abb3b6\"><title>[8, 4]日、在庫288.67、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"149.52\" r=\"4\" fill=\"#abb3b6\"><title>[8, 5]日、在庫306.33、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"140.80\" r=\"4\" fill=\"#137d79\"><title>[8, 6]日、在庫325.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"129.03\" r=\"4\" fill=\"#137d79\"><title>[8, 7]日、在庫351.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"117.26\" r=\"4\" fill=\"#137d79\"><title>[8, 8]日、在庫376.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"105.49\" r=\"4\" fill=\"#137d79\"><title>[8, 9]日、在庫402.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"93.72\" r=\"4\" fill=\"#137d79\"><title>[8, 10]日、在庫428.00、売り逃し4.00<\/title><\/circle><circle cx=\"227.50\" cy=\"153.95\" r=\"4\" fill=\"#abb3b6\"><title>[9, 1]日、在庫296.67、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"150.28\" r=\"4\" fill=\"#abb3b6\"><title>[9, 2]日、在庫304.67、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"143.25\" r=\"4\" fill=\"#abb3b6\"><title>[9, 3]日、在庫320.00、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"135.76\" r=\"4\" fill=\"#abb3b6\"><title>[9, 4]日、在庫336.33、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"127.66\" r=\"4\" fill=\"#abb3b6\"><title>[9, 5]日、在庫354.00、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"118.94\" r=\"4\" fill=\"#137d79\"><title>[9, 6]日、在庫373.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"107.17\" r=\"4\" fill=\"#137d79\"><title>[9, 7]日、在庫398.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"95.40\" r=\"4\" fill=\"#137d79\"><title>[9, 8]日、在庫424.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"83.63\" r=\"4\" fill=\"#137d79\"><title>[9, 9]日、在庫450.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"71.86\" r=\"4\" fill=\"#137d79\"><title>[9, 10]日、在庫475.67、売り逃し4.00<\/title><\/circle><circle cx=\"227.50\" cy=\"132.09\" r=\"4\" fill=\"#abb3b6\"><title>[10, 1]日、在庫344.33、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"128.42\" r=\"4\" fill=\"#abb3b6\"><title>[10, 2]日、在庫352.33、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"121.39\" r=\"4\" fill=\"#abb3b6\"><title>[10, 3]日、在庫367.67、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"113.90\" r=\"4\" fill=\"#abb3b6\"><title>[10, 4]日、在庫384.00、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"105.80\" r=\"4\" fill=\"#abb3b6\"><title>[10, 5]日、在庫401.67、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"97.08\" r=\"4\" fill=\"#137d79\"><title>[10, 6]日、在庫420.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"85.31\" r=\"4\" fill=\"#137d79\"><title>[10, 7]日、在庫446.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"73.54\" r=\"4\" fill=\"#137d79\"><title>[10, 8]日、在庫472.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"61.77\" r=\"4\" fill=\"#137d79\"><title>[10, 9]日、在庫497.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"50.00\" r=\"4\" fill=\"#137d79\"><title>[10, 10]日、在庫523.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"162.66\" r=\"9\" fill=\"none\" stroke=\"#102d47\" stroke-width=\"3\"/><text x=\"65\" y=\"25\">累計在庫（単価1）<\/text><text x=\"275\" y=\"335\">売り逃し（単価1）<\/text><text x=\"48\" y=\"312\">0<\/text><text x=\"440\" y=\"312\">53<\/text><text x=\"12\" y=\"52\">523<\/text><\/svg><p><strong>選択：カテゴリA 7日、B 6日。累計在庫 277.67、売り逃し 4.00。<\/strong><\/p><p>許容損失 4.00、実行可能 20/100候補。緑が制約内、灰が制約外。輪が選んだラベル。<\/p>", "<svg viewBox=\"0 0 520 360\" role=\"img\" aria-label=\"実行可能な候補なし。初日の未入荷による売り逃しを、この候補集合では避けられない。\" style=\"width:100%;height:auto;max-width:680px\"><path d=\"M65 40V290H480\" fill=\"none\" stroke=\"currentColor\"/><path d=\"M77.00 40V290\" stroke=\"#aa482e\" stroke-dasharray=\"6 3\"/><circle cx=\"465.00\" cy=\"286.48\" r=\"4\" fill=\"#abb3b6\"><title>[1, 1]日、在庫7.67、売り逃し53.33<\/title><\/circle><circle cx=\"420.00\" cy=\"282.82\" r=\"4\" fill=\"#abb3b6\"><title>[1, 2]日、在庫15.67、売り逃し47.33<\/title><\/circle><circle cx=\"385.00\" cy=\"275.78\" r=\"4\" fill=\"#abb3b6\"><title>[1, 3]日、在庫31.00、売り逃し42.67<\/title><\/circle><circle cx=\"367.50\" cy=\"268.29\" r=\"4\" fill=\"#abb3b6\"><title>[1, 4]日、在庫47.33、売り逃し40.33<\/title><\/circle><circle cx=\"350.00\" cy=\"260.19\" r=\"4\" fill=\"#abb3b6\"><title>[1, 5]日、在庫65.00、売り逃し38.00<\/title><\/circle><circle cx=\"332.50\" cy=\"251.48\" r=\"4\" fill=\"#abb3b6\"><title>[1, 6]日、在庫84.00、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"239.71\" r=\"4\" fill=\"#abb3b6\"><title>[1, 7]日、在庫109.67、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"227.94\" r=\"4\" fill=\"#abb3b6\"><title>[1, 8]日、在庫135.33、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"216.17\" r=\"4\" fill=\"#abb3b6\"><title>[1, 9]日、在庫161.00、売り逃し35.67<\/title><\/circle><circle cx=\"332.50\" cy=\"204.39\" r=\"4\" fill=\"#abb3b6\"><title>[1, 10]日、在庫186.67、売り逃し35.67<\/title><\/circle><circle cx=\"382.50\" cy=\"278.84\" r=\"4\" fill=\"#abb3b6\"><title>[2, 1]日、在庫24.33、売り逃し42.33<\/title><\/circle><circle cx=\"337.50\" cy=\"275.17\" r=\"4\" fill=\"#abb3b6\"><title>[2, 2]日、在庫32.33、売り逃し36.33<\/title><\/circle><circle cx=\"302.50\" cy=\"268.14\" r=\"4\" fill=\"#abb3b6\"><title>[2, 3]日、在庫47.67、売り逃し31.67<\/title><\/circle><circle cx=\"285.00\" cy=\"260.65\" r=\"4\" fill=\"#abb3b6\"><title>[2, 4]日、在庫64.00、売り逃し29.33<\/title><\/circle><circle cx=\"267.50\" cy=\"252.55\" r=\"4\" fill=\"#abb3b6\"><title>[2, 5]日、在庫81.67、売り逃し27.00<\/title><\/circle><circle cx=\"250.00\" cy=\"243.83\" r=\"4\" fill=\"#abb3b6\"><title>[2, 6]日、在庫100.67、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"232.06\" r=\"4\" fill=\"#abb3b6\"><title>[2, 7]日、在庫126.33、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"220.29\" r=\"4\" fill=\"#abb3b6\"><title>[2, 8]日、在庫152.00、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"208.52\" r=\"4\" fill=\"#abb3b6\"><title>[2, 9]日、在庫177.67、売り逃し24.67<\/title><\/circle><circle cx=\"250.00\" cy=\"196.75\" r=\"4\" fill=\"#abb3b6\"><title>[2, 10]日、在庫203.33、売り逃し24.67<\/title><\/circle><circle cx=\"332.50\" cy=\"265.39\" r=\"4\" fill=\"#abb3b6\"><title>[3, 1]日、在庫53.67、売り逃し35.67<\/title><\/circle><circle cx=\"287.50\" cy=\"261.72\" r=\"4\" fill=\"#abb3b6\"><title>[3, 2]日、在庫61.67、売り逃し29.67<\/title><\/circle><circle cx=\"252.50\" cy=\"254.69\" r=\"4\" fill=\"#abb3b6\"><title>[3, 3]日、在庫77.00、売り逃し25.00<\/title><\/circle><circle cx=\"235.00\" cy=\"247.20\" r=\"4\" fill=\"#abb3b6\"><title>[3, 4]日、在庫93.33、売り逃し22.67<\/title><\/circle><circle cx=\"217.50\" cy=\"239.10\" r=\"4\" fill=\"#abb3b6\"><title>[3, 5]日、在庫111.00、売り逃し20.33<\/title><\/circle><circle cx=\"200.00\" cy=\"230.38\" r=\"4\" fill=\"#abb3b6\"><title>[3, 6]日、在庫130.00、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"218.61\" r=\"4\" fill=\"#abb3b6\"><title>[3, 7]日、在庫155.67、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"206.84\" r=\"4\" fill=\"#abb3b6\"><title>[3, 8]日、在庫181.33、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"195.07\" r=\"4\" fill=\"#abb3b6\"><title>[3, 9]日、在庫207.00、売り逃し18.00<\/title><\/circle><circle cx=\"200.00\" cy=\"183.30\" r=\"4\" fill=\"#abb3b6\"><title>[3, 10]日、在庫232.67、売り逃し18.00<\/title><\/circle><circle cx=\"300.00\" cy=\"251.48\" r=\"4\" fill=\"#abb3b6\"><title>[4, 1]日、在庫84.00、売り逃し31.33<\/title><\/circle><circle cx=\"255.00\" cy=\"247.81\" r=\"4\" fill=\"#abb3b6\"><title>[4, 2]日、在庫92.00、売り逃し25.33<\/title><\/circle><circle cx=\"220.00\" cy=\"240.78\" r=\"4\" fill=\"#abb3b6\"><title>[4, 3]日、在庫107.33、売り逃し20.67<\/title><\/circle><circle cx=\"202.50\" cy=\"233.29\" r=\"4\" fill=\"#abb3b6\"><title>[4, 4]日、在庫123.67、売り逃し18.33<\/title><\/circle><circle cx=\"185.00\" cy=\"225.18\" r=\"4\" fill=\"#abb3b6\"><title>[4, 5]日、在庫141.33、売り逃し16.00<\/title><\/circle><circle cx=\"167.50\" cy=\"216.47\" r=\"4\" fill=\"#abb3b6\"><title>[4, 6]日、在庫160.33、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"204.70\" r=\"4\" fill=\"#abb3b6\"><title>[4, 7]日、在庫186.00、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"192.93\" r=\"4\" fill=\"#abb3b6\"><title>[4, 8]日、在庫211.67、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"181.16\" r=\"4\" fill=\"#abb3b6\"><title>[4, 9]日、在庫237.33、売り逃し13.67<\/title><\/circle><circle cx=\"167.50\" cy=\"169.39\" r=\"4\" fill=\"#abb3b6\"><title>[4, 10]日、在庫263.00、売り逃し13.67<\/title><\/circle><circle cx=\"267.50\" cy=\"235.12\" r=\"4\" fill=\"#abb3b6\"><title>[5, 1]日、在庫119.67、売り逃し27.00<\/title><\/circle><circle cx=\"222.50\" cy=\"231.45\" r=\"4\" fill=\"#abb3b6\"><title>[5, 2]日、在庫127.67、売り逃し21.00<\/title><\/circle><circle cx=\"187.50\" cy=\"224.42\" r=\"4\" fill=\"#abb3b6\"><title>[5, 3]日、在庫143.00、売り逃し16.33<\/title><\/circle><circle cx=\"170.00\" cy=\"216.93\" r=\"4\" fill=\"#abb3b6\"><title>[5, 4]日、在庫159.33、売り逃し14.00<\/title><\/circle><circle cx=\"152.50\" cy=\"208.83\" r=\"4\" fill=\"#abb3b6\"><title>[5, 5]日、在庫177.00、売り逃し11.67<\/title><\/circle><circle cx=\"135.00\" cy=\"200.11\" r=\"4\" fill=\"#abb3b6\"><title>[5, 6]日、在庫196.00、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"188.34\" r=\"4\" fill=\"#abb3b6\"><title>[5, 7]日、在庫221.67、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"176.57\" r=\"4\" fill=\"#abb3b6\"><title>[5, 8]日、在庫247.33、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"164.80\" r=\"4\" fill=\"#abb3b6\"><title>[5, 9]日、在庫273.00、売り逃し9.33<\/title><\/circle><circle cx=\"135.00\" cy=\"153.03\" r=\"4\" fill=\"#abb3b6\"><title>[5, 10]日、在庫298.67、売り逃し9.33<\/title><\/circle><circle cx=\"235.00\" cy=\"218.15\" r=\"4\" fill=\"#abb3b6\"><title>[6, 1]日、在庫156.67、売り逃し22.67<\/title><\/circle><circle cx=\"190.00\" cy=\"214.48\" r=\"4\" fill=\"#abb3b6\"><title>[6, 2]日、在庫164.67、売り逃し16.67<\/title><\/circle><circle cx=\"155.00\" cy=\"207.45\" r=\"4\" fill=\"#abb3b6\"><title>[6, 3]日、在庫180.00、売り逃し12.00<\/title><\/circle><circle cx=\"137.50\" cy=\"199.96\" r=\"4\" fill=\"#abb3b6\"><title>[6, 4]日、在庫196.33、売り逃し9.67<\/title><\/circle><circle cx=\"120.00\" cy=\"191.86\" r=\"4\" fill=\"#abb3b6\"><title>[6, 5]日、在庫214.00、売り逃し7.33<\/title><\/circle><circle cx=\"102.50\" cy=\"183.15\" r=\"4\" fill=\"#abb3b6\"><title>[6, 6]日、在庫233.00、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"171.38\" r=\"4\" fill=\"#abb3b6\"><title>[6, 7]日、在庫258.67、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"159.61\" r=\"4\" fill=\"#abb3b6\"><title>[6, 8]日、在庫284.33、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"147.83\" r=\"4\" fill=\"#abb3b6\"><title>[6, 9]日、在庫310.00、売り逃し5.00<\/title><\/circle><circle cx=\"102.50\" cy=\"136.06\" r=\"4\" fill=\"#abb3b6\"><title>[6, 10]日、在庫335.67、売り逃し5.00<\/title><\/circle><circle cx=\"227.50\" cy=\"197.67\" r=\"4\" fill=\"#abb3b6\"><title>[7, 1]日、在庫201.33、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"194.00\" r=\"4\" fill=\"#abb3b6\"><title>[7, 2]日、在庫209.33、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"186.97\" r=\"4\" fill=\"#abb3b6\"><title>[7, 3]日、在庫224.67、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"179.48\" r=\"4\" fill=\"#abb3b6\"><title>[7, 4]日、在庫241.00、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"171.38\" r=\"4\" fill=\"#abb3b6\"><title>[7, 5]日、在庫258.67、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"162.66\" r=\"4\" fill=\"#abb3b6\"><title>[7, 6]日、在庫277.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"150.89\" r=\"4\" fill=\"#abb3b6\"><title>[7, 7]日、在庫303.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"139.12\" r=\"4\" fill=\"#abb3b6\"><title>[7, 8]日、在庫329.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"127.35\" r=\"4\" fill=\"#abb3b6\"><title>[7, 9]日、在庫354.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"115.58\" r=\"4\" fill=\"#abb3b6\"><title>[7, 10]日、在庫380.33、売り逃し4.00<\/title><\/circle><circle cx=\"227.50\" cy=\"175.81\" r=\"4\" fill=\"#abb3b6\"><title>[8, 1]日、在庫249.00、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"172.14\" r=\"4\" fill=\"#abb3b6\"><title>[8, 2]日、在庫257.00、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"165.11\" r=\"4\" fill=\"#abb3b6\"><title>[8, 3]日、在庫272.33、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"157.62\" r=\"4\" fill=\"#abb3b6\"><title>[8, 4]日、在庫288.67、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"149.52\" r=\"4\" fill=\"#abb3b6\"><title>[8, 5]日、在庫306.33、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"140.80\" r=\"4\" fill=\"#abb3b6\"><title>[8, 6]日、在庫325.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"129.03\" r=\"4\" fill=\"#abb3b6\"><title>[8, 7]日、在庫351.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"117.26\" r=\"4\" fill=\"#abb3b6\"><title>[8, 8]日、在庫376.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"105.49\" r=\"4\" fill=\"#abb3b6\"><title>[8, 9]日、在庫402.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"93.72\" r=\"4\" fill=\"#abb3b6\"><title>[8, 10]日、在庫428.00、売り逃し4.00<\/title><\/circle><circle cx=\"227.50\" cy=\"153.95\" r=\"4\" fill=\"#abb3b6\"><title>[9, 1]日、在庫296.67、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"150.28\" r=\"4\" fill=\"#abb3b6\"><title>[9, 2]日、在庫304.67、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"143.25\" r=\"4\" fill=\"#abb3b6\"><title>[9, 3]日、在庫320.00、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"135.76\" r=\"4\" fill=\"#abb3b6\"><title>[9, 4]日、在庫336.33、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"127.66\" r=\"4\" fill=\"#abb3b6\"><title>[9, 5]日、在庫354.00、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"118.94\" r=\"4\" fill=\"#abb3b6\"><title>[9, 6]日、在庫373.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"107.17\" r=\"4\" fill=\"#abb3b6\"><title>[9, 7]日、在庫398.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"95.40\" r=\"4\" fill=\"#abb3b6\"><title>[9, 8]日、在庫424.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"83.63\" r=\"4\" fill=\"#abb3b6\"><title>[9, 9]日、在庫450.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"71.86\" r=\"4\" fill=\"#abb3b6\"><title>[9, 10]日、在庫475.67、売り逃し4.00<\/title><\/circle><circle cx=\"227.50\" cy=\"132.09\" r=\"4\" fill=\"#abb3b6\"><title>[10, 1]日、在庫344.33、売り逃し21.67<\/title><\/circle><circle cx=\"182.50\" cy=\"128.42\" r=\"4\" fill=\"#abb3b6\"><title>[10, 2]日、在庫352.33、売り逃し15.67<\/title><\/circle><circle cx=\"147.50\" cy=\"121.39\" r=\"4\" fill=\"#abb3b6\"><title>[10, 3]日、在庫367.67、売り逃し11.00<\/title><\/circle><circle cx=\"130.00\" cy=\"113.90\" r=\"4\" fill=\"#abb3b6\"><title>[10, 4]日、在庫384.00、売り逃し8.67<\/title><\/circle><circle cx=\"112.50\" cy=\"105.80\" r=\"4\" fill=\"#abb3b6\"><title>[10, 5]日、在庫401.67、売り逃し6.33<\/title><\/circle><circle cx=\"95.00\" cy=\"97.08\" r=\"4\" fill=\"#abb3b6\"><title>[10, 6]日、在庫420.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"85.31\" r=\"4\" fill=\"#abb3b6\"><title>[10, 7]日、在庫446.33、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"73.54\" r=\"4\" fill=\"#abb3b6\"><title>[10, 8]日、在庫472.00、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"61.77\" r=\"4\" fill=\"#abb3b6\"><title>[10, 9]日、在庫497.67、売り逃し4.00<\/title><\/circle><circle cx=\"95.00\" cy=\"50.00\" r=\"4\" fill=\"#abb3b6\"><title>[10, 10]日、在庫523.33、売り逃し4.00<\/title><\/circle><text x=\"65\" y=\"25\">累計在庫（単価1）<\/text><text x=\"275\" y=\"335\">売り逃し（単価1）<\/text><text x=\"48\" y=\"312\">0<\/text><text x=\"440\" y=\"312\">53<\/text><text x=\"12\" y=\"52\">523<\/text><\/svg><p><strong>実行可能な候補なし。初日の未入荷による売り逃しを、この候補集合では避けられない。<\/strong><\/p><p>許容損失 1.60、実行可能 0/100候補。緑が制約内、灰が制約外。輪が選んだラベル。<\/p>"]</script><div data-output aria-live="polite"><svg viewBox="0 0 520 360" role="img" aria-label="選択：カテゴリA 3日、B 4日。累計在庫 93.33、売り逃し 22.67。" style="width:100%;height:auto;max-width:680px"><path d="M65 40V290H480" fill="none" stroke="currentColor"/><path d="M245.00 40V290" stroke="#aa482e" stroke-dasharray="6 3"/><circle cx="465.00" cy="286.48" r="4" fill="#abb3b6"><title>[1, 1]日、在庫7.67、売り逃し53.33</title></circle><circle cx="420.00" cy="282.82" r="4" fill="#abb3b6"><title>[1, 2]日、在庫15.67、売り逃し47.33</title></circle><circle cx="385.00" cy="275.78" r="4" fill="#abb3b6"><title>[1, 3]日、在庫31.00、売り逃し42.67</title></circle><circle cx="367.50" cy="268.29" r="4" fill="#abb3b6"><title>[1, 4]日、在庫47.33、売り逃し40.33</title></circle><circle cx="350.00" cy="260.19" r="4" fill="#abb3b6"><title>[1, 5]日、在庫65.00、売り逃し38.00</title></circle><circle cx="332.50" cy="251.48" r="4" fill="#abb3b6"><title>[1, 6]日、在庫84.00、売り逃し35.67</title></circle><circle cx="332.50" cy="239.71" r="4" fill="#abb3b6"><title>[1, 7]日、在庫109.67、売り逃し35.67</title></circle><circle cx="332.50" cy="227.94" r="4" fill="#abb3b6"><title>[1, 8]日、在庫135.33、売り逃し35.67</title></circle><circle cx="332.50" cy="216.17" r="4" fill="#abb3b6"><title>[1, 9]日、在庫161.00、売り逃し35.67</title></circle><circle cx="332.50" cy="204.39" r="4" fill="#abb3b6"><title>[1, 10]日、在庫186.67、売り逃し35.67</title></circle><circle cx="382.50" cy="278.84" r="4" fill="#abb3b6"><title>[2, 1]日、在庫24.33、売り逃し42.33</title></circle><circle cx="337.50" cy="275.17" r="4" fill="#abb3b6"><title>[2, 2]日、在庫32.33、売り逃し36.33</title></circle><circle cx="302.50" cy="268.14" r="4" fill="#abb3b6"><title>[2, 3]日、在庫47.67、売り逃し31.67</title></circle><circle cx="285.00" cy="260.65" r="4" fill="#abb3b6"><title>[2, 4]日、在庫64.00、売り逃し29.33</title></circle><circle cx="267.50" cy="252.55" r="4" fill="#abb3b6"><title>[2, 5]日、在庫81.67、売り逃し27.00</title></circle><circle cx="250.00" cy="243.83" r="4" fill="#abb3b6"><title>[2, 6]日、在庫100.67、売り逃し24.67</title></circle><circle cx="250.00" cy="232.06" r="4" fill="#abb3b6"><title>[2, 7]日、在庫126.33、売り逃し24.67</title></circle><circle cx="250.00" cy="220.29" r="4" fill="#abb3b6"><title>[2, 8]日、在庫152.00、売り逃し24.67</title></circle><circle cx="250.00" cy="208.52" r="4" fill="#abb3b6"><title>[2, 9]日、在庫177.67、売り逃し24.67</title></circle><circle cx="250.00" cy="196.75" r="4" fill="#abb3b6"><title>[2, 10]日、在庫203.33、売り逃し24.67</title></circle><circle cx="332.50" cy="265.39" r="4" fill="#abb3b6"><title>[3, 1]日、在庫53.67、売り逃し35.67</title></circle><circle cx="287.50" cy="261.72" r="4" fill="#abb3b6"><title>[3, 2]日、在庫61.67、売り逃し29.67</title></circle><circle cx="252.50" cy="254.69" r="4" fill="#abb3b6"><title>[3, 3]日、在庫77.00、売り逃し25.00</title></circle><circle cx="235.00" cy="247.20" r="4" fill="#137d79"><title>[3, 4]日、在庫93.33、売り逃し22.67</title></circle><circle cx="217.50" cy="239.10" r="4" fill="#137d79"><title>[3, 5]日、在庫111.00、売り逃し20.33</title></circle><circle cx="200.00" cy="230.38" r="4" fill="#137d79"><title>[3, 6]日、在庫130.00、売り逃し18.00</title></circle><circle cx="200.00" cy="218.61" r="4" fill="#137d79"><title>[3, 7]日、在庫155.67、売り逃し18.00</title></circle><circle cx="200.00" cy="206.84" r="4" fill="#137d79"><title>[3, 8]日、在庫181.33、売り逃し18.00</title></circle><circle cx="200.00" cy="195.07" r="4" fill="#137d79"><title>[3, 9]日、在庫207.00、売り逃し18.00</title></circle><circle cx="200.00" cy="183.30" r="4" fill="#137d79"><title>[3, 10]日、在庫232.67、売り逃し18.00</title></circle><circle cx="300.00" cy="251.48" r="4" fill="#abb3b6"><title>[4, 1]日、在庫84.00、売り逃し31.33</title></circle><circle cx="255.00" cy="247.81" r="4" fill="#abb3b6"><title>[4, 2]日、在庫92.00、売り逃し25.33</title></circle><circle cx="220.00" cy="240.78" r="4" fill="#137d79"><title>[4, 3]日、在庫107.33、売り逃し20.67</title></circle><circle cx="202.50" cy="233.29" r="4" fill="#137d79"><title>[4, 4]日、在庫123.67、売り逃し18.33</title></circle><circle cx="185.00" cy="225.18" r="4" fill="#137d79"><title>[4, 5]日、在庫141.33、売り逃し16.00</title></circle><circle cx="167.50" cy="216.47" r="4" fill="#137d79"><title>[4, 6]日、在庫160.33、売り逃し13.67</title></circle><circle cx="167.50" cy="204.70" r="4" fill="#137d79"><title>[4, 7]日、在庫186.00、売り逃し13.67</title></circle><circle cx="167.50" cy="192.93" r="4" fill="#137d79"><title>[4, 8]日、在庫211.67、売り逃し13.67</title></circle><circle cx="167.50" cy="181.16" r="4" fill="#137d79"><title>[4, 9]日、在庫237.33、売り逃し13.67</title></circle><circle cx="167.50" cy="169.39" r="4" fill="#137d79"><title>[4, 10]日、在庫263.00、売り逃し13.67</title></circle><circle cx="267.50" cy="235.12" r="4" fill="#abb3b6"><title>[5, 1]日、在庫119.67、売り逃し27.00</title></circle><circle cx="222.50" cy="231.45" r="4" fill="#137d79"><title>[5, 2]日、在庫127.67、売り逃し21.00</title></circle><circle cx="187.50" cy="224.42" r="4" fill="#137d79"><title>[5, 3]日、在庫143.00、売り逃し16.33</title></circle><circle cx="170.00" cy="216.93" r="4" fill="#137d79"><title>[5, 4]日、在庫159.33、売り逃し14.00</title></circle><circle cx="152.50" cy="208.83" r="4" fill="#137d79"><title>[5, 5]日、在庫177.00、売り逃し11.67</title></circle><circle cx="135.00" cy="200.11" r="4" fill="#137d79"><title>[5, 6]日、在庫196.00、売り逃し9.33</title></circle><circle cx="135.00" cy="188.34" r="4" fill="#137d79"><title>[5, 7]日、在庫221.67、売り逃し9.33</title></circle><circle cx="135.00" cy="176.57" r="4" fill="#137d79"><title>[5, 8]日、在庫247.33、売り逃し9.33</title></circle><circle cx="135.00" cy="164.80" r="4" fill="#137d79"><title>[5, 9]日、在庫273.00、売り逃し9.33</title></circle><circle cx="135.00" cy="153.03" r="4" fill="#137d79"><title>[5, 10]日、在庫298.67、売り逃し9.33</title></circle><circle cx="235.00" cy="218.15" r="4" fill="#137d79"><title>[6, 1]日、在庫156.67、売り逃し22.67</title></circle><circle cx="190.00" cy="214.48" r="4" fill="#137d79"><title>[6, 2]日、在庫164.67、売り逃し16.67</title></circle><circle cx="155.00" cy="207.45" r="4" fill="#137d79"><title>[6, 3]日、在庫180.00、売り逃し12.00</title></circle><circle cx="137.50" cy="199.96" r="4" fill="#137d79"><title>[6, 4]日、在庫196.33、売り逃し9.67</title></circle><circle cx="120.00" cy="191.86" r="4" fill="#137d79"><title>[6, 5]日、在庫214.00、売り逃し7.33</title></circle><circle cx="102.50" cy="183.15" r="4" fill="#137d79"><title>[6, 6]日、在庫233.00、売り逃し5.00</title></circle><circle cx="102.50" cy="171.38" r="4" fill="#137d79"><title>[6, 7]日、在庫258.67、売り逃し5.00</title></circle><circle cx="102.50" cy="159.61" r="4" fill="#137d79"><title>[6, 8]日、在庫284.33、売り逃し5.00</title></circle><circle cx="102.50" cy="147.83" r="4" fill="#137d79"><title>[6, 9]日、在庫310.00、売り逃し5.00</title></circle><circle cx="102.50" cy="136.06" r="4" fill="#137d79"><title>[6, 10]日、在庫335.67、売り逃し5.00</title></circle><circle cx="227.50" cy="197.67" r="4" fill="#137d79"><title>[7, 1]日、在庫201.33、売り逃し21.67</title></circle><circle cx="182.50" cy="194.00" r="4" fill="#137d79"><title>[7, 2]日、在庫209.33、売り逃し15.67</title></circle><circle cx="147.50" cy="186.97" r="4" fill="#137d79"><title>[7, 3]日、在庫224.67、売り逃し11.00</title></circle><circle cx="130.00" cy="179.48" r="4" fill="#137d79"><title>[7, 4]日、在庫241.00、売り逃し8.67</title></circle><circle cx="112.50" cy="171.38" r="4" fill="#137d79"><title>[7, 5]日、在庫258.67、売り逃し6.33</title></circle><circle cx="95.00" cy="162.66" r="4" fill="#137d79"><title>[7, 6]日、在庫277.67、売り逃し4.00</title></circle><circle cx="95.00" cy="150.89" r="4" fill="#137d79"><title>[7, 7]日、在庫303.33、売り逃し4.00</title></circle><circle cx="95.00" cy="139.12" r="4" fill="#137d79"><title>[7, 8]日、在庫329.00、売り逃し4.00</title></circle><circle cx="95.00" cy="127.35" r="4" fill="#137d79"><title>[7, 9]日、在庫354.67、売り逃し4.00</title></circle><circle cx="95.00" cy="115.58" r="4" fill="#137d79"><title>[7, 10]日、在庫380.33、売り逃し4.00</title></circle><circle cx="227.50" cy="175.81" r="4" fill="#137d79"><title>[8, 1]日、在庫249.00、売り逃し21.67</title></circle><circle cx="182.50" cy="172.14" r="4" fill="#137d79"><title>[8, 2]日、在庫257.00、売り逃し15.67</title></circle><circle cx="147.50" cy="165.11" r="4" fill="#137d79"><title>[8, 3]日、在庫272.33、売り逃し11.00</title></circle><circle cx="130.00" cy="157.62" r="4" fill="#137d79"><title>[8, 4]日、在庫288.67、売り逃し8.67</title></circle><circle cx="112.50" cy="149.52" r="4" fill="#137d79"><title>[8, 5]日、在庫306.33、売り逃し6.33</title></circle><circle cx="95.00" cy="140.80" r="4" fill="#137d79"><title>[8, 6]日、在庫325.33、売り逃し4.00</title></circle><circle cx="95.00" cy="129.03" r="4" fill="#137d79"><title>[8, 7]日、在庫351.00、売り逃し4.00</title></circle><circle cx="95.00" cy="117.26" r="4" fill="#137d79"><title>[8, 8]日、在庫376.67、売り逃し4.00</title></circle><circle cx="95.00" cy="105.49" r="4" fill="#137d79"><title>[8, 9]日、在庫402.33、売り逃し4.00</title></circle><circle cx="95.00" cy="93.72" r="4" fill="#137d79"><title>[8, 10]日、在庫428.00、売り逃し4.00</title></circle><circle cx="227.50" cy="153.95" r="4" fill="#137d79"><title>[9, 1]日、在庫296.67、売り逃し21.67</title></circle><circle cx="182.50" cy="150.28" r="4" fill="#137d79"><title>[9, 2]日、在庫304.67、売り逃し15.67</title></circle><circle cx="147.50" cy="143.25" r="4" fill="#137d79"><title>[9, 3]日、在庫320.00、売り逃し11.00</title></circle><circle cx="130.00" cy="135.76" r="4" fill="#137d79"><title>[9, 4]日、在庫336.33、売り逃し8.67</title></circle><circle cx="112.50" cy="127.66" r="4" fill="#137d79"><title>[9, 5]日、在庫354.00、売り逃し6.33</title></circle><circle cx="95.00" cy="118.94" r="4" fill="#137d79"><title>[9, 6]日、在庫373.00、売り逃し4.00</title></circle><circle cx="95.00" cy="107.17" r="4" fill="#137d79"><title>[9, 7]日、在庫398.67、売り逃し4.00</title></circle><circle cx="95.00" cy="95.40" r="4" fill="#137d79"><title>[9, 8]日、在庫424.33、売り逃し4.00</title></circle><circle cx="95.00" cy="83.63" r="4" fill="#137d79"><title>[9, 9]日、在庫450.00、売り逃し4.00</title></circle><circle cx="95.00" cy="71.86" r="4" fill="#137d79"><title>[9, 10]日、在庫475.67、売り逃し4.00</title></circle><circle cx="227.50" cy="132.09" r="4" fill="#137d79"><title>[10, 1]日、在庫344.33、売り逃し21.67</title></circle><circle cx="182.50" cy="128.42" r="4" fill="#137d79"><title>[10, 2]日、在庫352.33、売り逃し15.67</title></circle><circle cx="147.50" cy="121.39" r="4" fill="#137d79"><title>[10, 3]日、在庫367.67、売り逃し11.00</title></circle><circle cx="130.00" cy="113.90" r="4" fill="#137d79"><title>[10, 4]日、在庫384.00、売り逃し8.67</title></circle><circle cx="112.50" cy="105.80" r="4" fill="#137d79"><title>[10, 5]日、在庫401.67、売り逃し6.33</title></circle><circle cx="95.00" cy="97.08" r="4" fill="#137d79"><title>[10, 6]日、在庫420.67、売り逃し4.00</title></circle><circle cx="95.00" cy="85.31" r="4" fill="#137d79"><title>[10, 7]日、在庫446.33、売り逃し4.00</title></circle><circle cx="95.00" cy="73.54" r="4" fill="#137d79"><title>[10, 8]日、在庫472.00、売り逃し4.00</title></circle><circle cx="95.00" cy="61.77" r="4" fill="#137d79"><title>[10, 9]日、在庫497.67、売り逃し4.00</title></circle><circle cx="95.00" cy="50.00" r="4" fill="#137d79"><title>[10, 10]日、在庫523.33、売り逃し4.00</title></circle><circle cx="235.00" cy="247.20" r="9" fill="none" stroke="#102d47" stroke-width="3"/><text x="65" y="25">累計在庫（単価1）</text><text x="275" y="335">売り逃し（単価1）</text><text x="48" y="312">0</text><text x="440" y="312">53</text><text x="12" y="52">523</text></svg><p><strong>選択：カテゴリA 3日、B 4日。累計在庫 93.33、売り逃し 22.67。</strong></p><p>許容損失 24.00、実行可能 74/100候補。緑が制約内、灰が制約外。輪が選んだラベル。</p></div><figcaption>Labの合成需要。縦線より左が制約内。原論文§3.3の形式に対応し、JDの再現ではない。</figcaption></figure><figure class="teaching" data-b21><h3>現場の数値は、比較基準と単位ごとに読む</h3><label>表示指標 <select><option value="0">回転日数 TT</option><option value="1">在庫あり日率</option><option value="2">保有費用</option></select></label><script type="application/json" data-frames>["<svg viewBox=\"0 0 520 230\" role=\"img\" aria-label=\"回転日数 TT: PSM -5.27, DiD -4.07\" style=\"width:100%;height:auto;max-width:680px\"><path d=\"M260 20V180\" stroke=\"currentColor\"/><text x=\"15\" y=\"48\">PSM A/B<\/text><rect x=\"97.51\" y=\"60\" width=\"162.49\" height=\"24\" fill=\"#137d79\"/><text x=\"340\" y=\"48\">-5.27<\/text><text x=\"15\" y=\"128\">DiD<\/text><rect x=\"134.51\" y=\"140\" width=\"125.49\" height=\"24\" fill=\"#137d79\"/><text x=\"340\" y=\"128\">-4.07<\/text><text x=\"250\" y=\"210\">0<\/text><\/svg><p><strong>回転日数 TT（日）<\/strong>。両方とも日数の差。PSMとDiDは異なる比較で、独立した2回の実験ではない。<\/p>", "<svg viewBox=\"0 0 520 230\" role=\"img\" aria-label=\"在庫あり日率: PSM 2.29, DiD 0.47\" style=\"width:100%;height:auto;max-width:680px\"><path d=\"M260 20V180\" stroke=\"currentColor\"/><text x=\"15\" y=\"48\">PSM A/B<\/text><rect x=\"260.00\" y=\"60\" width=\"141.22\" height=\"24\" fill=\"#137d79\"/><text x=\"340\" y=\"48\">+2.29<\/text><text x=\"15\" y=\"128\">DiD<\/text><rect x=\"260.00\" y=\"140\" width=\"28.98\" height=\"24\" fill=\"#137d79\"/><text x=\"340\" y=\"128\">+0.47<\/text><text x=\"250\" y=\"210\">0<\/text><\/svg><p><strong>在庫あり日率（% / pp）<\/strong>。PSMは原表の+2.29%表記を維持。DiDは率の差+0.47ppとして読む。同一尺度の厳密な比較を意図しない。<\/p>", "<svg viewBox=\"0 0 520 230\" role=\"img\" aria-label=\"保有費用: PSM -29.95, DiD -18.35\" style=\"width:100%;height:auto;max-width:680px\"><path d=\"M260 20V180\" stroke=\"currentColor\"/><text x=\"15\" y=\"48\">PSM A/B<\/text><rect x=\"86.85\" y=\"60\" width=\"173.15\" height=\"24\" fill=\"#137d79\"/><text x=\"340\" y=\"48\">-29.95<\/text><text x=\"15\" y=\"128\">DiD<\/text><rect x=\"153.91\" y=\"140\" width=\"106.09\" height=\"24\" fill=\"#137d79\"/><text x=\"340\" y=\"128\">-18.35<\/text><text x=\"250\" y=\"210\">0<\/text><\/svg><p><strong>保有費用（% / pp）<\/strong>。PSMは対照比−29.95%。DiDは前年比+22.05%と+3.70%の差−18.35pp。前年比での保有費用減少ではない。<\/p>"]</script><div data-output aria-live="polite"><svg viewBox="0 0 520 230" role="img" aria-label="回転日数 TT: PSM -5.27, DiD -4.07" style="width:100%;height:auto;max-width:680px"><path d="M260 20V180" stroke="currentColor"/><text x="15" y="48">PSM A/B</text><rect x="97.51" y="60" width="162.49" height="24" fill="#137d79"/><text x="340" y="48">-5.27</text><text x="15" y="128">DiD</text><rect x="134.51" y="140" width="125.49" height="24" fill="#137d79"/><text x="340" y="128">-4.07</text><text x="250" y="210">0</text></svg><p><strong>回転日数 TT（日）</strong>。両方とも日数の差。PSMとDiDは異なる比較で、独立した2回の実験ではない。</p></div><figcaption>著者の表3–4。マネジャー選定・PSM・約30日・菓子3カテゴリ。欠品費用は現場評価から除外。</figcaption></figure></div><div class="downloads"><a href="../downloads/orpr-or-guided-pretrain-reinforce-inventory/run.py" download>実行コード</a><a href="../downloads/orpr-or-guided-pretrain-reinforce-inventory/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/orpr-or-guided-pretrain-reinforce-inventory">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>合成需要のORラベルとRLOO基準値だけを検算。著者の学習・現場評価は再現していない。</em></p>
+<h3>ORラベルとleave-one-out基準値</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>候補組合せ</th><td colspan='1'>100</td></tr><tr><th scope='row'>需要合計</th><td colspan='1'>80</td></tr><tr><th scope='row'>制約を満たす候補数</th><td colspan='1'>[74, 57, 30, 20, 0]</td></tr><tr><th scope='row'>RLOO advantage合計</th><td colspan='1'>0.0</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;lab02&quot;: &quot;orpr&quot;,
+  &quot;note&quot;: &quot;合成需要のORラベルとRLOO基準値だけを検算。著者の学習・現場評価は再現していない。&quot;,
+  &quot;cases&quot;: [
+    {
+      &quot;alpha&quot;: 0.7,
+      &quot;budget&quot;: 24.000000000000004,
+      &quot;feasible&quot;: 74,
+      &quot;best&quot;: {
+        &quot;days&quot;: [
+          3,
+          4
+        ],
+        &quot;stock&quot;: 93.33333333333334,
+        &quot;loss&quot;: 22.666666666666664
+      }
+    },
+    {
+      &quot;alpha&quot;: 0.8,
+      &quot;budget&quot;: 15.999999999999996,
+      &quot;feasible&quot;: 57,
+      &quot;best&quot;: {
+        &quot;days&quot;: [
+          4,
+          5
+        ],
+        &quot;stock&quot;: 141.33333333333334,
+        &quot;loss&quot;: 16.0
+      }
+    },
+    {
+      &quot;alpha&quot;: 0.9,
+      &quot;budget&quot;: 7.999999999999998,
+      &quot;feasible&quot;: 30,
+      &quot;best&quot;: {
+        &quot;days&quot;: [
+          6,
+          5
+        ],
+        &quot;stock&quot;: 214.00000000000003,
+        &quot;loss&quot;: 7.333333333333332
+      }
+    },
+    {
+      &quot;alpha&quot;: 0.95,
+      &quot;budget&quot;: 4.0000000000000036,
+      &quot;feasible&quot;: 20,
+      &quot;best&quot;: {
+        &quot;days&quot;: [
+          7,
+          6
+        ],
+        &quot;stock&quot;: 277.66666666666674,
+        &quot;loss&quot;: 4.0
+      }
+    },
+    {
+      &quot;alpha&quot;: 0.98,
+      &quot;budget&quot;: 1.6000000000000014,
+      &quot;feasible&quot;: 0,
+      &quot;best&quot;: null
+    }
+  ],
+  &quot;candidates&quot;: [
+    {
+      &quot;days&quot;: [
+        1,
+        1
+      ],
+      &quot;stock&quot;: 7.666666666666666,
+      &quot;loss&quot;: 53.33333333333333
+    },
+    {
+      &quot;days&quot;: [
+        1,
+        2
+      ],
+      &quot;stock&quot;: 15.666666666666668,
+      &quot;loss&quot;: 47.33333333333333
+    },
+    {
+      &quot;days&quot;: [
+        1,
+        3
+      ],
+      &quot;stock&quot;: 31.0,
+      &quot;loss&quot;: 42.666666666666664
+    },
+    {
+      &quot;days&quot;: [
+        1,
+        4
+      ],
+      &quot;stock&quot;: 47.33333333333334,
+      &quot;loss&quot;: 40.33333333333333
+    },
+    {
+      &quot;days&quot;: [
+        1,
+        5
+      ],
+      &quot;stock&quot;: 65.00000000000003,
+      &quot;loss&quot;: 38.0
+    },
+    {
+      &quot;days&quot;: [
+        1,
+        6
+      ],
+      &quot;stock&quot;: 84.0,
+      &quot;loss&quot;: 35.666666666666664
+    },
+    {
+      &quot;days&quot;: [
+        1,
+        7
+      ],
+      &quot;stock&quot;: 109.66666666666671,
+      &quot;loss&quot;: 35.666666666666664
+    },
+    {
+      &quot;days&quot;: [
+        1,
+        8
+      ],
+      &quot;stock&quot;: 135.33333333333337,
+      &quot;loss&quot;: 35.666666666666664
+    },
+    {
+      &quot;days&quot;: [
+        1,
+        9
+      ],
+      &quot;stock&quot;: 161.0,
+      &quot;loss&quot;: 35.666666666666664
+    },
+    {
+      &quot;days&quot;: [
+        1,
+        10
+      ],
+      &quot;stock&quot;: 186.66666666666674,
+      &quot;loss&quot;: 35.666666666666664
+    },
+    {
+      &quot;days&quot;: [
+        2,
+        1
+      ],
+      &quot;stock&quot;: 24.333333333333332,
+      &quot;loss&quot;: 42.333333333333336
+    },
+    {
+      &quot;days&quot;: [
+        2,
+        2
+      ],
+      &quot;stock&quot;: 32.33333333333333,
+      &quot;loss&quot;: 36.333333333333336
+    },
+    {
+      &quot;days&quot;: [
+        2,
+        3
+      ],
+      &quot;stock&quot;: 47.666666666666664,
+      &quot;loss&quot;: 31.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        2,
+        4
+      ],
+      &quot;stock&quot;: 64.0,
+      &quot;loss&quot;: 29.333333333333336
+    },
+    {
+      &quot;days&quot;: [
+        2,
+        5
+      ],
+      &quot;stock&quot;: 81.66666666666669,
+      &quot;loss&quot;: 27.0
+    },
+    {
+      &quot;days&quot;: [
+        2,
+        6
+      ],
+      &quot;stock&quot;: 100.66666666666666,
+      &quot;loss&quot;: 24.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        2,
+        7
+      ],
+      &quot;stock&quot;: 126.33333333333337,
+      &quot;loss&quot;: 24.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        2,
+        8
+      ],
+      &quot;stock&quot;: 152.00000000000003,
+      &quot;loss&quot;: 24.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        2,
+        9
+      ],
+      &quot;stock&quot;: 177.66666666666666,
+      &quot;loss&quot;: 24.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        2,
+        10
+      ],
+      &quot;stock&quot;: 203.3333333333334,
+      &quot;loss&quot;: 24.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        3,
+        1
+      ],
+      &quot;stock&quot;: 53.666666666666664,
+      &quot;loss&quot;: 35.66666666666667
+    },
+    {
+      &quot;days&quot;: [
+        3,
+        2
+      ],
+      &quot;stock&quot;: 61.66666666666667,
+      &quot;loss&quot;: 29.666666666666664
+    },
+    {
+      &quot;days&quot;: [
+        3,
+        3
+      ],
+      &quot;stock&quot;: 77.0,
+      &quot;loss&quot;: 25.0
+    },
+    {
+      &quot;days&quot;: [
+        3,
+        4
+      ],
+      &quot;stock&quot;: 93.33333333333334,
+      &quot;loss&quot;: 22.666666666666664
+    },
+    {
+      &quot;days&quot;: [
+        3,
+        5
+      ],
+      &quot;stock&quot;: 111.00000000000003,
+      &quot;loss&quot;: 20.333333333333332
+    },
+    {
+      &quot;days&quot;: [
+        3,
+        6
+      ],
+      &quot;stock&quot;: 130.0,
+      &quot;loss&quot;: 18.0
+    },
+    {
+      &quot;days&quot;: [
+        3,
+        7
+      ],
+      &quot;stock&quot;: 155.6666666666667,
+      &quot;loss&quot;: 18.0
+    },
+    {
+      &quot;days&quot;: [
+        3,
+        8
+      ],
+      &quot;stock&quot;: 181.33333333333337,
+      &quot;loss&quot;: 18.0
+    },
+    {
+      &quot;days&quot;: [
+        3,
+        9
+      ],
+      &quot;stock&quot;: 207.0,
+      &quot;loss&quot;: 18.0
+    },
+    {
+      &quot;days&quot;: [
+        3,
+        10
+      ],
+      &quot;stock&quot;: 232.66666666666674,
+      &quot;loss&quot;: 18.0
+    },
+    {
+      &quot;days&quot;: [
+        4,
+        1
+      ],
+      &quot;stock&quot;: 83.99999999999999,
+      &quot;loss&quot;: 31.333333333333336
+    },
+    {
+      &quot;days&quot;: [
+        4,
+        2
+      ],
+      &quot;stock&quot;: 91.99999999999999,
+      &quot;loss&quot;: 25.333333333333336
+    },
+    {
+      &quot;days&quot;: [
+        4,
+        3
+      ],
+      &quot;stock&quot;: 107.33333333333331,
+      &quot;loss&quot;: 20.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        4,
+        4
+      ],
+      &quot;stock&quot;: 123.66666666666666,
+      &quot;loss&quot;: 18.333333333333336
+    },
+    {
+      &quot;days&quot;: [
+        4,
+        5
+      ],
+      &quot;stock&quot;: 141.33333333333334,
+      &quot;loss&quot;: 16.0
+    },
+    {
+      &quot;days&quot;: [
+        4,
+        6
+      ],
+      &quot;stock&quot;: 160.33333333333331,
+      &quot;loss&quot;: 13.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        4,
+        7
+      ],
+      &quot;stock&quot;: 186.00000000000003,
+      &quot;loss&quot;: 13.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        4,
+        8
+      ],
+      &quot;stock&quot;: 211.66666666666669,
+      &quot;loss&quot;: 13.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        4,
+        9
+      ],
+      &quot;stock&quot;: 237.33333333333331,
+      &quot;loss&quot;: 13.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        4,
+        10
+      ],
+      &quot;stock&quot;: 263.00000000000006,
+      &quot;loss&quot;: 13.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        5,
+        1
+      ],
+      &quot;stock&quot;: 119.66666666666661,
+      &quot;loss&quot;: 27.000000000000004
+    },
+    {
+      &quot;days&quot;: [
+        5,
+        2
+      ],
+      &quot;stock&quot;: 127.66666666666661,
+      &quot;loss&quot;: 21.0
+    },
+    {
+      &quot;days&quot;: [
+        5,
+        3
+      ],
+      &quot;stock&quot;: 142.99999999999994,
+      &quot;loss&quot;: 16.333333333333336
+    },
+    {
+      &quot;days&quot;: [
+        5,
+        4
+      ],
+      &quot;stock&quot;: 159.3333333333333,
+      &quot;loss&quot;: 14.000000000000002
+    },
+    {
+      &quot;days&quot;: [
+        5,
+        5
+      ],
+      &quot;stock&quot;: 176.99999999999997,
+      &quot;loss&quot;: 11.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        5,
+        6
+      ],
+      &quot;stock&quot;: 195.99999999999994,
+      &quot;loss&quot;: 9.333333333333336
+    },
+    {
+      &quot;days&quot;: [
+        5,
+        7
+      ],
+      &quot;stock&quot;: 221.66666666666666,
+      &quot;loss&quot;: 9.333333333333336
+    },
+    {
+      &quot;days&quot;: [
+        5,
+        8
+      ],
+      &quot;stock&quot;: 247.33333333333331,
+      &quot;loss&quot;: 9.333333333333336
+    },
+    {
+      &quot;days&quot;: [
+        5,
+        9
+      ],
+      &quot;stock&quot;: 272.99999999999994,
+      &quot;loss&quot;: 9.333333333333336
+    },
+    {
+      &quot;days&quot;: [
+        5,
+        10
+      ],
+      &quot;stock&quot;: 298.6666666666667,
+      &quot;loss&quot;: 9.333333333333336
+    },
+    {
+      &quot;days&quot;: [
+        6,
+        1
+      ],
+      &quot;stock&quot;: 156.66666666666666,
+      &quot;loss&quot;: 22.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        6,
+        2
+      ],
+      &quot;stock&quot;: 164.66666666666666,
+      &quot;loss&quot;: 16.666666666666664
+    },
+    {
+      &quot;days&quot;: [
+        6,
+        3
+      ],
+      &quot;stock&quot;: 180.0,
+      &quot;loss&quot;: 12.0
+    },
+    {
+      &quot;days&quot;: [
+        6,
+        4
+      ],
+      &quot;stock&quot;: 196.33333333333334,
+      &quot;loss&quot;: 9.666666666666666
+    },
+    {
+      &quot;days&quot;: [
+        6,
+        5
+      ],
+      &quot;stock&quot;: 214.00000000000003,
+      &quot;loss&quot;: 7.333333333333332
+    },
+    {
+      &quot;days&quot;: [
+        6,
+        6
+      ],
+      &quot;stock&quot;: 233.0,
+      &quot;loss&quot;: 5.0
+    },
+    {
+      &quot;days&quot;: [
+        6,
+        7
+      ],
+      &quot;stock&quot;: 258.66666666666674,
+      &quot;loss&quot;: 5.0
+    },
+    {
+      &quot;days&quot;: [
+        6,
+        8
+      ],
+      &quot;stock&quot;: 284.33333333333337,
+      &quot;loss&quot;: 5.0
+    },
+    {
+      &quot;days&quot;: [
+        6,
+        9
+      ],
+      &quot;stock&quot;: 310.0,
+      &quot;loss&quot;: 5.0
+    },
+    {
+      &quot;days&quot;: [
+        6,
+        10
+      ],
+      &quot;stock&quot;: 335.66666666666674,
+      &quot;loss&quot;: 5.0
+    },
+    {
+      &quot;days&quot;: [
+        7,
+        1
+      ],
+      &quot;stock&quot;: 201.33333333333337,
+      &quot;loss&quot;: 21.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        7,
+        2
+      ],
+      &quot;stock&quot;: 209.33333333333337,
+      &quot;loss&quot;: 15.666666666666666
+    },
+    {
+      &quot;days&quot;: [
+        7,
+        3
+      ],
+      &quot;stock&quot;: 224.6666666666667,
+      &quot;loss&quot;: 11.0
+    },
+    {
+      &quot;days&quot;: [
+        7,
+        4
+      ],
+      &quot;stock&quot;: 241.00000000000006,
+      &quot;loss&quot;: 8.666666666666666
+    },
+    {
+      &quot;days&quot;: [
+        7,
+        5
+      ],
+      &quot;stock&quot;: 258.66666666666674,
+      &quot;loss&quot;: 6.333333333333332
+    },
+    {
+      &quot;days&quot;: [
+        7,
+        6
+      ],
+      &quot;stock&quot;: 277.66666666666674,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        7,
+        7
+      ],
+      &quot;stock&quot;: 303.3333333333334,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        7,
+        8
+      ],
+      &quot;stock&quot;: 329.0000000000001,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        7,
+        9
+      ],
+      &quot;stock&quot;: 354.66666666666674,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        7,
+        10
+      ],
+      &quot;stock&quot;: 380.3333333333335,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        8,
+        1
+      ],
+      &quot;stock&quot;: 248.99999999999991,
+      &quot;loss&quot;: 21.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        8,
+        2
+      ],
+      &quot;stock&quot;: 256.99999999999994,
+      &quot;loss&quot;: 15.666666666666666
+    },
+    {
+      &quot;days&quot;: [
+        8,
+        3
+      ],
+      &quot;stock&quot;: 272.33333333333326,
+      &quot;loss&quot;: 11.0
+    },
+    {
+      &quot;days&quot;: [
+        8,
+        4
+      ],
+      &quot;stock&quot;: 288.66666666666663,
+      &quot;loss&quot;: 8.666666666666666
+    },
+    {
+      &quot;days&quot;: [
+        8,
+        5
+      ],
+      &quot;stock&quot;: 306.33333333333326,
+      &quot;loss&quot;: 6.333333333333332
+    },
+    {
+      &quot;days&quot;: [
+        8,
+        6
+      ],
+      &quot;stock&quot;: 325.33333333333326,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        8,
+        7
+      ],
+      &quot;stock&quot;: 351.0,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        8,
+        8
+      ],
+      &quot;stock&quot;: 376.66666666666663,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        8,
+        9
+      ],
+      &quot;stock&quot;: 402.33333333333326,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        8,
+        10
+      ],
+      &quot;stock&quot;: 428.0,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        9,
+        1
+      ],
+      &quot;stock&quot;: 296.6666666666667,
+      &quot;loss&quot;: 21.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        9,
+        2
+      ],
+      &quot;stock&quot;: 304.6666666666667,
+      &quot;loss&quot;: 15.666666666666666
+    },
+    {
+      &quot;days&quot;: [
+        9,
+        3
+      ],
+      &quot;stock&quot;: 320.0,
+      &quot;loss&quot;: 11.0
+    },
+    {
+      &quot;days&quot;: [
+        9,
+        4
+      ],
+      &quot;stock&quot;: 336.33333333333337,
+      &quot;loss&quot;: 8.666666666666666
+    },
+    {
+      &quot;days&quot;: [
+        9,
+        5
+      ],
+      &quot;stock&quot;: 354.0,
+      &quot;loss&quot;: 6.333333333333332
+    },
+    {
+      &quot;days&quot;: [
+        9,
+        6
+      ],
+      &quot;stock&quot;: 373.0,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        9,
+        7
+      ],
+      &quot;stock&quot;: 398.66666666666674,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        9,
+        8
+      ],
+      &quot;stock&quot;: 424.33333333333337,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        9,
+        9
+      ],
+      &quot;stock&quot;: 450.0,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        9,
+        10
+      ],
+      &quot;stock&quot;: 475.66666666666674,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        10,
+        1
+      ],
+      &quot;stock&quot;: 344.3333333333332,
+      &quot;loss&quot;: 21.666666666666668
+    },
+    {
+      &quot;days&quot;: [
+        10,
+        2
+      ],
+      &quot;stock&quot;: 352.3333333333332,
+      &quot;loss&quot;: 15.666666666666666
+    },
+    {
+      &quot;days&quot;: [
+        10,
+        3
+      ],
+      &quot;stock&quot;: 367.6666666666665,
+      &quot;loss&quot;: 11.0
+    },
+    {
+      &quot;days&quot;: [
+        10,
+        4
+      ],
+      &quot;stock&quot;: 383.9999999999999,
+      &quot;loss&quot;: 8.666666666666666
+    },
+    {
+      &quot;days&quot;: [
+        10,
+        5
+      ],
+      &quot;stock&quot;: 401.6666666666665,
+      &quot;loss&quot;: 6.333333333333332
+    },
+    {
+      &quot;days&quot;: [
+        10,
+        6
+      ],
+      &quot;stock&quot;: 420.6666666666665,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        10,
+        7
+      ],
+      &quot;stock&quot;: 446.33333333333326,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        10,
+        8
+      ],
+      &quot;stock&quot;: 471.9999999999999,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        10,
+        9
+      ],
+      &quot;stock&quot;: 497.6666666666665,
+      &quot;loss&quot;: 4.0
+    },
+    {
+      &quot;days&quot;: [
+        10,
+        10
+      ],
+      &quot;stock&quot;: 523.3333333333333,
+      &quot;loss&quot;: 4.0
+    }
+  ],
+  &quot;rewards&quot;: [
+    -9,
+    -6,
+    -3,
+    -2
+  ],
+  &quot;advantages&quot;: [
+    -5.333333333333334,
+    -1.333333333333333,
+    2.666666666666667,
+    4.0
+  ],
+  &quot;paper_evidence&quot;: {
+    &quot;offline_total_cost&quot;: {
+      &quot;JD online&quot;: 3491,
+      &quot;ORPR&quot;: 3153
+    },
+    &quot;field&quot;: {
+      &quot;psm&quot;: [
+        -5.27,
+        2.29,
+        -29.95
+      ],
+      &quot;did&quot;: [
+        -4.07,
+        0.47,
+        -18.35
+      ]
+    },
+    &quot;holding_yoy&quot;: [
+      22.05,
+      3.7
+    ],
+    &quot;parameters_million&quot;: 0.93
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;ORラベルとleave-one-out基準値&quot;,
+      &quot;metrics&quot;: {
+        &quot;候補組合せ&quot;: 100,
+        &quot;需要合計&quot;: 80,
+        &quot;制約を満たす候補数&quot;: [
+          74,
+          57,
+          30,
+          20,
+          0
+        ],
+        &quot;RLOO advantage合計&quot;: 0.0
+      }
+    }
+  ]
+}</code></pre></details><p>制約を厳しくすると、選ばれる在庫日数と累計在庫が変わる。初日には入荷がないため、許容損失を十分小さくすると実行可能な候補がなくなる。図の「候補なし」は不具合ではなく、制約とシミュレーターの組合せによる結果だ。RLOOは基準値の算術だけを扱い、方策の改善を測っていない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p><strong>CONFIRMED — 局所検算</strong>：在庫・販売・売り逃しの収支、100候補の制約判定、最小在庫の選択、RLOOの定数シフト不変性を確認した。</p>
+<p><strong>PARTIAL — メカニズム</strong>：シミュレーションからORラベルを選ぶ部分に限定。ニューラル方策が制約を常に守るという保証は与えていない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p><strong>NOT TESTED</strong>：Transformer＋VAE学習、RLOO更新、KL制約、販促の専門家適応、JDの総費用・現場効果・大規模運用。30日・菓子3カテゴリという範囲を、DeepStockのTmall全カタログ展開と同一視しない。現場の欠品費用は著者評価にも含まれない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p><code>UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/orpr-or-guided-pretrain-reinforce-inventory/run.py</code>でresults.jsonを再生成する。Python標準ライブラリのみ。乱数・外部データ・GPUは使わない。</p>
+<p>HTMLはlab.yaml、method.md、mapping.md、run.py、results.jsonから生成する。README.mdは読み方と再実行手順をまとめる。図の生成元はpaper_lab/inventory02.py。公式実装は未実行。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><p>§3.1–3.3、図1、Algorithm 1–2、表1・3–6を確認した。</p>
+<table>
+<thead>
+<tr>
+<th>一次資料</th>
+<th>Labの対応</th>
+<th>省略・境界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§3.3、式(1)–(3)、Algorithm 2</td>
+<td>run.py: replay、100候補の全探索、在庫日数の図</td>
+<td>2カテゴリ、固定レビュー・リードタイム。代替需要と実データを省略</td>
+</tr>
+<tr>
+<td>図1、§3.1、表5</td>
+<td>method.mdと学習段階の図</td>
+<td>0.93M Transformer＋VAEは未学習</td>
+</tr>
+<tr>
+<td>§3.2、Algorithm 1</td>
+<td>run.py: rloo、式の説明</td>
+<td>報酬4個の基準値だけ。方策勾配・KL・ハイブリッド報酬の実装なし</td>
+</tr>
+<tr>
+<td>表1</td>
+<td>results.json: paper_evidence.offline_total_cost</td>
+<td>著者報告の転記。非公開JDデータは未取得</td>
+</tr>
+<tr>
+<td>表3・4、図7</td>
+<td>現場指標を切り替える図</td>
+<td>PSM・DiDの再推定なし。単位と比較基準を分離</td>
+</tr>
+</tbody>
+</table>
+<p>原論文：<a href="https://arxiv.org/abs/2512.19001v2">2512.19001v2</a>。提供PDFで公式コードのURLを確認できず、公式実装は未実行。図は原論文の構造・数値から独自に作成した。</p>
+<p>比較地図はLabの解釈。<a href="deepstock-policy-regularized-inventory-drl.html">DeepStock</a>、<a href="sabreagent-design-time-inventory.html">SabreAgent</a>、<a href="invevolve-whitebox-inventory-evolution.html">InvEvolve</a>は既存Labの一次資料対応を参照する。手法間の直接実験はない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>小型の補充方策に、ORと販促の業務知識をどう渡すか。</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/orpr-or-guided-pretrain-reinforce-inventory/lab.yaml" download>このページの原データ</a></footer>
+</body></html>
