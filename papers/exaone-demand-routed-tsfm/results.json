@@ -1,0 +1,247 @@
+{
+  "lab05_exaone": true,
+  "scope": "人工データで分類比率と古典予測器の混合を確認。EXAONEの再現ではない。",
+  "seed_results": [
+    {
+      "seed": 7,
+      "global_method": "SBA",
+      "mase_global": 0.8447523070934346,
+      "mase_routed": 0.8472519800122336
+    },
+    {
+      "seed": 19,
+      "global_method": "SES",
+      "mase_global": 0.8848432582729469,
+      "mase_routed": 0.8701912498749447
+    },
+    {
+      "seed": 41,
+      "global_method": "SBA",
+      "mase_global": 0.8298989225705464,
+      "mase_routed": 0.8312980842940991
+    },
+    {
+      "seed": 73,
+      "global_method": "SBA",
+      "mase_global": 0.8765130634724959,
+      "mase_routed": 0.8843616292843781
+    },
+    {
+      "seed": 101,
+      "global_method": "SBA",
+      "mase_global": 0.8558617765487674,
+      "mase_routed": 0.8617651101602191
+    }
+  ],
+  "class_results": [
+    {
+      "class": "Smooth",
+      "global": 0.7517469404134886,
+      "routed": 0.7340974509435105
+    },
+    {
+      "class": "Intermittent",
+      "global": 0.9571978617980638,
+      "routed": 0.9586826267815761
+    },
+    {
+      "class": "Erratic",
+      "global": 0.7945228225929205,
+      "routed": 0.812076103165884
+    },
+    {
+      "class": "Lumpy",
+      "global": 0.9300278375620803,
+      "routed": 0.9310382620097288
+    }
+  ],
+  "checks": {
+    "membership_sums_to_one": true,
+    "boundary_is_uniform": true,
+    "scale_invariance": true
+  },
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  },
+  "reported_aggregate": [
+    [
+      "EXAONE Demand",
+      1.0667
+    ],
+    [
+      "Synthetic",
+      1.0742
+    ],
+    [
+      "TiRex-1.1",
+      1.0818
+    ],
+    [
+      "Chronos-2",
+      1.0885
+    ],
+    [
+      "Backbone",
+      1.105
+    ]
+  ],
+  "reported_datasets": [
+    [
+      "Bitbrains fast (H)",
+      1.02,
+      1.008,
+      1.016,
+      0.995
+    ],
+    [
+      "Bitbrains random (H)",
+      5.829,
+      5.832,
+      5.859,
+      5.853
+    ],
+    [
+      "BizITObs L2C (H)",
+      0.441,
+      0.445,
+      0.487,
+      0.439
+    ],
+    [
+      "Car parts (M)",
+      0.828,
+      0.847,
+      0.916,
+      0.9
+    ],
+    [
+      "Electricity (D)",
+      1.375,
+      1.383,
+      1.466,
+      1.415
+    ],
+    [
+      "Electricity (H)",
+      1.01,
+      1.009,
+      0.912,
+      0.888
+    ],
+    [
+      "Electricity (W)",
+      1.494,
+      1.468,
+      1.478,
+      1.456
+    ],
+    [
+      "Hierarchical sales (D)",
+      0.746,
+      0.761,
+      0.768,
+      0.768
+    ],
+    [
+      "Hierarchical sales (W)",
+      0.719,
+      0.722,
+      0.747,
+      0.745
+    ],
+    [
+      "Hospital (M)",
+      0.759,
+      0.765,
+      0.785,
+      0.807
+    ],
+    [
+      "Loop Seattle (D)",
+      0.889,
+      0.891,
+      0.9,
+      0.928
+    ],
+    [
+      "Loop Seattle (H)",
+      0.817,
+      0.819,
+      0.82,
+      0.816
+    ],
+    [
+      "M4 daily (D)",
+      3.079,
+      3.046,
+      3.063,
+      3.164
+    ],
+    [
+      "M4 hourly (H)",
+      0.763,
+      0.805,
+      0.708,
+      0.8
+    ],
+    [
+      "M4 monthly (M)",
+      0.909,
+      0.925,
+      0.938,
+      0.943
+    ],
+    [
+      "M4 quarterly (Q)",
+      1.149,
+      1.15,
+      1.118,
+      1.177
+    ],
+    [
+      "M4 weekly (W)",
+      2.066,
+      2.15,
+      1.973,
+      2.07
+    ],
+    [
+      "M4 yearly (Y)",
+      3.165,
+      3.217,
+      3.238,
+      3.256
+    ],
+    [
+      "M-dense (D)",
+      0.645,
+      0.64,
+      0.678,
+      0.681
+    ],
+    [
+      "M-dense (H)",
+      0.786,
+      0.783,
+      0.802,
+      0.807
+    ],
+    [
+      "Restaurant (D)",
+      0.676,
+      0.677,
+      0.704,
+      0.713
+    ],
+    [
+      "SZ taxi (H)",
+      0.566,
+      0.567,
+      0.582,
+      0.591
+    ]
+  ]
+}

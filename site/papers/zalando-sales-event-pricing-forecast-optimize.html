@@ -1,0 +1,1051 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="日次LightGBMと商品別最適化を23件の実地A/Bで検証。利益+6%の区間、指標で反転する順位、予測と実現の差を追う。">
+  <title>予測誤差の小ささは、値付けで約束した利益につながるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-06-11</span></div>
+    <h1>予測誤差の小ささは、値付けで約束した利益につながるか</h1>
+    <p class="lede">日次LightGBMと商品別最適化を23件の実地A/Bで検証。利益+6%の区間、指標で反転する順位、予測と実現の差を追う。</p>
+    <details class="bibliography"><summary>原論文：High-frequency pricing at scale for e-commerce</summary><p>Stefan Birr, Tobias Huelden, Mones Raslan, Adele Gouttes, Andreas Schmitt, Mateusz Koren, Johannes Stephan, Robert Streek, Manuel Kunz, Tim Januschowski</p><p>2606.13741 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2606.13741">原典を読む ↗</a><a href="https://arxiv.org/pdf/2606.13741v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-10-05 · 提供PDF全14ページを読了。Fig. 3–4、式1–12、Tables 1–5を確認。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-zalando-grid-decoupling">需要表を保存し、値付けを何度も計算する</a><a href="#figure-zalando-marginal-tradeoff">αは追加の売上と引き換えに許す利益減少</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>Zalandoのセール価格を、日次LightGBMの需要予測と商品別の割引選択で決める研究。著者は2023〜2024年の12市場・23件の無作為化A/Bテストを統合し、利益貢献PCIIが+6.00%（95%区間0.79〜11.03%）と報告した。純売上NMVと返品後販売数SIARの区間は0をまたぐ。売上の同等性が証明された、とまでは読めない。</p>
+<p>Must Readとする理由は、複雑なモデルの新規性より実地の価格決定で得た証拠にある。Table 2では評価指標でモデル順位が反転し、Table 3では予測利益と実現利益が離れる。モデル、損失、意思決定を一続きで点検したい。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>通常期の週次Transformerと手動補正では、平均6.2日続くセールの変動に追いつきにくい。セールは年間の約35%を占める。割引を増やせば販売数は増えても、今売らずに残す商品の将来利益を失う。</p>
+<p>商品ごとに決める。顧客ごとに異なる価格を付ける実験ではない。売れた数量には在庫の上限があり、返品率とVATを引いた金額を収益として扱う。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>日次需要予測と商品別のLTP + α NMV最適化により、セール価格を短時間で提示し利益を改善する。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>実地A/Bと、評価指標・損失・価格決定のつながりが情報価値。Tweedieの実現利益が常に高いという結果ではない。</p></div></div>
+      </section>
+<figure class="teaching teaching--architecture" id="figure-zalando-grid-decoupling" aria-labelledby="title-zalando-grid-decoupling">
+  <div class="figure-heading"><span class="eyebrow">ARCHITECTURE</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-zalando-grid-decoupling">需要表を保存し、値付けを何度も計算する</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">予測を保存する</p><div class="diagram-nodes"><div class="diagram-node"><strong>日次LightGBM</strong><p>市場・予測日ごとのモデル。価格、過去販売、閲覧、イベントなどを入力。</p></div><div class="diagram-node"><strong>割引×日の需要表</strong><p>割引候補ごとの予測をデータ層に保存。割引が深いほど需要予測は減らない。</p></div></div></div><div class="diagram-row"><p class="lane-label">担当者が候補を選ぶ</p><div class="diagram-nodes"><div class="diagram-node"><strong>在庫・返品・費用</strong><p>販売数を在庫で切り、純売上と長期利益に変換。</p></div><div class="diagram-node"><strong>商品別の採点</strong><p>LTP + α NMVを割引ごとに計算。αを振って複数案を提示する。</p></div></div></div></div>
+  <figcaption>原論文Fig. 3を再構成。LightGBMの再学習なしにαを変えた候補を計算する。 <a href="https://arxiv.org/pdf/2606.13741v1">出典：Fig. 3、§3.1 ↗</a></figcaption>
+</figure>      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><p>日別需要を合計し、在庫Mで販売数を切る。利益は次の順に計算する。</p>
+<table>
+<thead>
+<tr>
+<th>式</th>
+<th>計算</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(3)</td>
+<td>s(d)=min(M, Σₜ Sᵗ(d))</td>
+<td>在庫を超えて売らない</td>
+</tr>
+<tr>
+<td>(4)</td>
+<td>NMV(d)=(1−R)(1−d)Ps(d)/(1+VAT)</td>
+<td>返品率Rと税を除く</td>
+</tr>
+<tr>
+<td>(5)</td>
+<td>p(d)=NMV(d)−Cs(d)</td>
+<td>費用を引く</td>
+</tr>
+<tr>
+<td>(7)</td>
+<td>LTP(d)=p(d)+[M−s(d)(1−R)]γ</td>
+<td>残在庫の将来利益を足す</td>
+</tr>
+</tbody>
+</table>
+<p>γは既存の週次システムから得る、残る在庫1単位の将来利益である。</p>
+<p>式(1)は各商品で argmax_d[LTP(d)+α NMV(d)]。候補を採点して並べればよく、商品間の交差価格効果は入らない。式(2)の −NMV′(d)/LTP′(d)=1/α は連続で微分可能な場合の限界条件。対話図は離散候補なので階段状に変わる。α=0で同点がある場合は、NMVで同点を解消しなければ強いPareto効率性までは保証されない。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-zalando-marginal-tradeoff" aria-labelledby="title-zalando-marginal-tradeoff">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-zalando-marginal-tradeoff">αは追加の売上と引き換えに許す利益減少</h3>
+  <ol class="equation-steps"><li><strong>商品ごとの目的</strong><div class="math-expression" tabindex="0" role="math" aria-label="J(d) = LTP(d) + α NMV(d)">J(d) = LTP(d) + α NMV(d)</div><p>αが大きいほど、追加の純売上を重く評価する。</p></li><li><strong>内点解の条件</strong><div class="math-expression" tabindex="0" role="math" aria-label="LTP′(d) + α NMV′(d) = 0">LTP′(d) + α NMV′(d) = 0</div><p>割引を増やしたときの利益減少と、重みを掛けた売上増加を釣り合わせる。</p></li><li><strong>限界の交換比率</strong><div class="math-expression" tabindex="0" role="math" aria-label="−NMV′(d) / LTP′(d) = 1 / α">−NMV′(d) / LTP′(d) = 1 / α</div><p>α&gt;0で分母が0でない場合。γが残在庫を高く評価するほど、今売るために失う将来利益も大きくなる。</p></li></ol>
+  <figcaption>式(2)は連続・微分可能な内点解の説明。最小実験の割引候補は離散なので、選択は段階的に変わる。 <a href="https://arxiv.org/pdf/2606.13741v1">出典：式(1)〜(2)、Fig. 4 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>著者はLightGBMを精度、訓練時間、安定性から選んだ。Table 2の訓練時間はGBTが7時間、TSMixerが18時間、MLPが24時間。割引の単調性は不自然な需要曲線を抑え、商品別の独立採点は最適化を数時間から数分へ短縮する。</p>
+<p>解釈：αを振って複数の候補を提示することで、担当者は収益と残在庫の価値を比較できる。ただし一定のγは将来の値付け方針を更新しない。予測誤差は残る。</p>
+<p>本Labで残す注意点は交絡だ。過去の担当者が売れにくい商品ほど深く割り引いていたなら、割引と販売数だけを学ぶモデルでは、その商品が元から売れにくかった影響と値下げによる販売増を分けにくい。観測価格での誤差が小さくても、未実施の割引に対する需要予測が正しいとは限らない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>以下は一次資料である<a href="https://arxiv.org/pdf/2606.13741v1">原論文v1</a>の著者報告。Table 4は11波、合計6,204,627 articlesを記載する。商品単位のクラスタ無作為化で事前利益・NMVを均衡させ、各試験を差の差で分析し、Bayesian階層モデルで統合した。同一商品が複数波に含まれる可能性があるため、620万をユニークSKU数とは置かない。</p>
+<p>Table 5のPCIIは+6.00% [0.79, 11.03]、NMVは+2.23% [−0.83, 5.33]、SIARは+0.56% [−3.10, 4.26]。ドイツ単独ではSIAR +16.7%、NMV +17.9%、PCII +16.7%。全市場への外挿は避ける。代替商品間の干渉は無作為化だけでは消えず、SUTVAの懸念が残る。対照は人と既存アルゴリズムの混合運用である。</p>
+<p>Table 2は212日分の評価。GBTは業務指標のDemand ErrorとGMV Errorで最良だが、均等に重みを置くRMSE・MAPEではMLPが最良。Table 3はシミュレーション限定で、MSEのPCIIはoracle比で予測115.02%→実現93.07%、Tweedieは94.21%→91.57%。Tweedieは予測との乖離が小さいが、実現PCIIはMSEより低い。</p>
+<p>調整予算も揃っていない。著者は、LightGBMは速く安定して訓練できたためニューラルネットワークより広くハイパーパラメータを探索できたと説明しており、Table 2の差にはモデル構造だけでなく、実際に試せた設定の範囲も含まれる（§3）。</p>
+<p>Demand Errorの重みは数量だけではない。式(9)では、市場・日ごとに対象商品をまとめ、値引き前の価格を重みにした数量の二乗誤差の合計を、同じ価格で重み付けした実績数量の二乗和で割って平方根を取るため、少量・低価格の商品を多く改善するモデルと、大きな売上を占める商品の誤差を減らすモデルで順位が変わりうる。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>対話図のαを上げると、3つの架空商品で選ぶ割引と在庫制約を見直せる。点はFig. 4の考え方を式(1)、(3)〜(7)で再計算した教材で、Zalandoの商品ではない。全離散解のPareto境界を列挙する図ではなく、加重和で選ばれた候補を示す。</p>
+<p>最小実験では、400商品×56日の定弾力性需要から、需要水準・弾力性・曜日効果・割引を共通特徴とするLightGBMをMSEとTweedieでそれぞれ学習し、選んだ割引の利益をノイズなしの期待需要グリッドで評価する。seedは11、22、33。弾力性を特徴として渡す有利な教材条件なので、実データでの因果的価格効果推定は検証しない。</p><figure class="teaching" id="zalando-alpha"><h3>価格決定卓：売上を重くすると、どの商品を割り引くか</h3><p>日次LightGBM → 割引×日の需要表 → 在庫上限 → LTP + α NMVで商品別に採点。Fig. 3–4の教材化。</p><label for="zalando-slider">純売上の重み α（0〜2）</label> <input id="zalando-slider" type="range" min="0" max="20" value="0" step="1" style="width:min(100%,360px)"><script type="application/json" data-zframes>["<p><strong>α = 0.0<\/strong> ／ NMV 4499 ／ LTP 5829 ／ 短期利益 3064<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>0%<\/td><td>9.0<\/td><td>40.0<\/td><td>9.0<\/td><td>605<\/td><td>1245<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>10%<\/td><td>60.4<\/td><td>100.0<\/td><td>60.4<\/td><td>2926<\/td><td>2991<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 0.1<\/strong> ／ NMV 5190 ／ LTP 5764 ／ 短期利益 3377<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>0%<\/td><td>9.0<\/td><td>40.0<\/td><td>9.0<\/td><td>605<\/td><td>1245<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 0.2<\/strong> ／ NMV 5190 ／ LTP 5764 ／ 短期利益 3377<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>0%<\/td><td>9.0<\/td><td>40.0<\/td><td>9.0<\/td><td>605<\/td><td>1245<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 0.3<\/strong> ／ NMV 5257 ／ LTP 5747 ／ 短期利益 3402<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>10%<\/td><td>11.1<\/td><td>40.0<\/td><td>11.1<\/td><td>672<\/td><td>1228<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 0.4<\/strong> ／ NMV 5257 ／ LTP 5747 ／ 短期利益 3402<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>10%<\/td><td>11.1<\/td><td>40.0<\/td><td>11.1<\/td><td>672<\/td><td>1228<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 0.5<\/strong> ／ NMV 5341 ／ LTP 5713 ／ 短期利益 3427<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>20%<\/td><td>14.1<\/td><td>40.0<\/td><td>14.1<\/td><td>756<\/td><td>1194<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 0.6<\/strong> ／ NMV 5449 ／ LTP 5648 ／ 短期利益 3449<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>30%<\/td><td>18.4<\/td><td>40.0<\/td><td>18.4<\/td><td>864<\/td><td>1130<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 0.7<\/strong> ／ NMV 5449 ／ LTP 5648 ／ 短期利益 3449<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>30%<\/td><td>18.4<\/td><td>40.0<\/td><td>18.4<\/td><td>864<\/td><td>1130<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 0.8<\/strong> ／ NMV 5449 ／ LTP 5648 ／ 短期利益 3449<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>30%<\/td><td>18.4<\/td><td>40.0<\/td><td>18.4<\/td><td>864<\/td><td>1130<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 0.9<\/strong> ／ NMV 5593 ／ LTP 5527 ／ 短期利益 3460<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>40%<\/td><td>25.0<\/td><td>40.0<\/td><td>25.0<\/td><td>1008<\/td><td>1008<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 1.0<\/strong> ／ NMV 5593 ／ LTP 5527 ／ 短期利益 3460<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>40%<\/td><td>25.0<\/td><td>40.0<\/td><td>25.0<\/td><td>1008<\/td><td>1008<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 1.1<\/strong> ／ NMV 5593 ／ LTP 5527 ／ 短期利益 3460<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>40%<\/td><td>25.0<\/td><td>40.0<\/td><td>25.0<\/td><td>1008<\/td><td>1008<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 1.2<\/strong> ／ NMV 5795 ／ LTP 5289 ／ 短期利益 3442<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>50%<\/td><td>36.0<\/td><td>40.0<\/td><td>36.0<\/td><td>1210<\/td><td>770<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 1.3<\/strong> ／ NMV 5795 ／ LTP 5289 ／ 短期利益 3442<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>50%<\/td><td>36.0<\/td><td>40.0<\/td><td>36.0<\/td><td>1210<\/td><td>770<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 1.4<\/strong> ／ NMV 5795 ／ LTP 5289 ／ 短期利益 3442<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>50%<\/td><td>36.0<\/td><td>40.0<\/td><td>36.0<\/td><td>1210<\/td><td>770<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 1.5<\/strong> ／ NMV 5795 ／ LTP 5289 ／ 短期利益 3442<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>50%<\/td><td>36.0<\/td><td>40.0<\/td><td>36.0<\/td><td>1210<\/td><td>770<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 1.6<\/strong> ／ NMV 5795 ／ LTP 5289 ／ 短期利益 3442<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>50%<\/td><td>36.0<\/td><td>40.0<\/td><td>36.0<\/td><td>1210<\/td><td>770<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 1.7<\/strong> ／ NMV 5795 ／ LTP 5289 ／ 短期利益 3442<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>50%<\/td><td>36.0<\/td><td>40.0<\/td><td>36.0<\/td><td>1210<\/td><td>770<\/td><\/tr><tr><td>2<\/td><td>0%<\/td><td>24.0<\/td><td>80.0<\/td><td>24.0<\/td><td>968<\/td><td>1592<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 1.8<\/strong> ／ NMV 5826 ／ LTP 5235 ／ 短期利益 3431<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>50%<\/td><td>36.0<\/td><td>40.0<\/td><td>36.0<\/td><td>1210<\/td><td>770<\/td><\/tr><tr><td>2<\/td><td>10%<\/td><td>27.5<\/td><td>80.0<\/td><td>27.5<\/td><td>999<\/td><td>1539<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 1.9<\/strong> ／ NMV 5826 ／ LTP 5235 ／ 短期利益 3431<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>50%<\/td><td>36.0<\/td><td>40.0<\/td><td>36.0<\/td><td>1210<\/td><td>770<\/td><\/tr><tr><td>2<\/td><td>10%<\/td><td>27.5<\/td><td>80.0<\/td><td>27.5<\/td><td>999<\/td><td>1539<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>α = 2.0<\/strong> ／ NMV 5826 ／ LTP 5235 ／ 短期利益 3431<\/p><svg viewBox=\"0 0 620 310\" role=\"img\" aria-label=\"架空3商品の純売上と長期利益の候補曲線\" style=\"width:100%;height:auto\"><path d=\"M70 30V245H535\" fill=\"none\" stroke=\"currentColor\"/><polyline points=\"70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0\" fill=\"none\" stroke=\"#16847a\" stroke-width=\"3\"/><circle cx=\"70.0\" cy=\"50.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"299.1\" cy=\"71.3\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"321.4\" cy=\"76.9\" r=\"3\" fill=\"#16847a\"/><circle cx=\"349.2\" cy=\"88.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"385.1\" cy=\"109.2\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"432.8\" cy=\"149.1\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"499.7\" cy=\"227.4\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"3\" fill=\"#16847a\"/><circle cx=\"510.0\" cy=\"245.0\" r=\"8\" fill=\"#c96825\"/><text x=\"70\" y=\"21\">LTP（架空通貨）<\/text><text x=\"370\" y=\"298\">NMV（架空通貨）<\/text><text x=\"70\" y=\"270\">4499<\/text><text x=\"490\" y=\"270\">5826<\/text><text x=\"5\" y=\"55\">5829<\/text><text x=\"5\" y=\"245\">5235<\/text><\/svg><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>商品<\/th><th>割引<\/th><th>3日需要<\/th><th>在庫 M<\/th><th>販売 min(M,需要)<\/th><th>NMV<\/th><th>LTP<\/th><\/tr><\/thead><tbody><tr><td>1<\/td><td>50%<\/td><td>36.0<\/td><td>40.0<\/td><td>36.0<\/td><td>1210<\/td><td>770<\/td><\/tr><tr><td>2<\/td><td>10%<\/td><td>27.5<\/td><td>80.0<\/td><td>27.5<\/td><td>999<\/td><td>1539<\/td><\/tr><tr><td>3<\/td><td>20%<\/td><td>84.1<\/td><td>100.0<\/td><td>84.1<\/td><td>3616<\/td><td>2927<\/td><\/tr><\/tbody><\/table><\/div>"]</script><div data-zoutput aria-live="polite"><p><strong>α = 0.0</strong> ／ NMV 4499 ／ LTP 5829 ／ 短期利益 3064</p><svg viewBox="0 0 620 310" role="img" aria-label="架空3商品の純売上と長期利益の候補曲線" style="width:100%;height:auto"><path d="M70 30V245H535" fill="none" stroke="currentColor"/><polyline points="70.0,50.0 299.1,71.3 299.1,71.3 321.4,76.9 321.4,76.9 349.2,88.1 385.1,109.2 385.1,109.2 385.1,109.2 432.8,149.1 432.8,149.1 432.8,149.1 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 499.7,227.4 510.0,245.0 510.0,245.0 510.0,245.0" fill="none" stroke="#16847a" stroke-width="3"/><circle cx="70.0" cy="50.0" r="3" fill="#16847a"/><circle cx="299.1" cy="71.3" r="3" fill="#16847a"/><circle cx="299.1" cy="71.3" r="3" fill="#16847a"/><circle cx="321.4" cy="76.9" r="3" fill="#16847a"/><circle cx="321.4" cy="76.9" r="3" fill="#16847a"/><circle cx="349.2" cy="88.1" r="3" fill="#16847a"/><circle cx="385.1" cy="109.2" r="3" fill="#16847a"/><circle cx="385.1" cy="109.2" r="3" fill="#16847a"/><circle cx="385.1" cy="109.2" r="3" fill="#16847a"/><circle cx="432.8" cy="149.1" r="3" fill="#16847a"/><circle cx="432.8" cy="149.1" r="3" fill="#16847a"/><circle cx="432.8" cy="149.1" r="3" fill="#16847a"/><circle cx="499.7" cy="227.4" r="3" fill="#16847a"/><circle cx="499.7" cy="227.4" r="3" fill="#16847a"/><circle cx="499.7" cy="227.4" r="3" fill="#16847a"/><circle cx="499.7" cy="227.4" r="3" fill="#16847a"/><circle cx="499.7" cy="227.4" r="3" fill="#16847a"/><circle cx="499.7" cy="227.4" r="3" fill="#16847a"/><circle cx="510.0" cy="245.0" r="3" fill="#16847a"/><circle cx="510.0" cy="245.0" r="3" fill="#16847a"/><circle cx="510.0" cy="245.0" r="3" fill="#16847a"/><circle cx="70.0" cy="50.0" r="8" fill="#c96825"/><text x="70" y="21">LTP（架空通貨）</text><text x="370" y="298">NMV（架空通貨）</text><text x="70" y="270">4499</text><text x="490" y="270">5826</text><text x="5" y="55">5829</text><text x="5" y="245">5235</text></svg><div class="matrix-scroll" tabindex="0" role="region" aria-label="数値の比較（出典は図の注記）"><table><thead><tr><th>商品</th><th>割引</th><th>3日需要</th><th>在庫 M</th><th>販売 min(M,需要)</th><th>NMV</th><th>LTP</th></tr></thead><tbody><tr><td>1</td><td>0%</td><td>9.0</td><td>40.0</td><td>9.0</td><td>605</td><td>1245</td></tr><tr><td>2</td><td>0%</td><td>24.0</td><td>80.0</td><td>24.0</td><td>968</td><td>1592</td></tr><tr><td>3</td><td>10%</td><td>60.4</td><td>100.0</td><td>60.4</td><td>2926</td><td>2991</td></tr></tbody></table></div></div><figcaption>式(1)、(3)〜(7)を3商品で計算。R=0.2、VAT=0.19、C=0.2P、γ=0.25P。全Pareto解の列挙ではなく、αで選ばれた候補の軌跡。</figcaption></figure><script>(()=>{const r=document.getElementById('zalando-alpha');const f=JSON.parse(r.querySelector('[data-zframes]').textContent);r.querySelector('input').addEventListener('input',e=>{r.querySelector('[data-zoutput]').innerHTML=f[+e.target.value]})})();</script><figure class="teaching"><h3>在庫で止まり、返品と将来価値で採点が変わる</h3><ol><li>需要：q(d)=q(0)(1−d)<sup>−ε</sup>。割引で増える。</li><li>販売：s(d)=min(M, Σ Sᵗ(d))。表の需要が在庫を超えた部分は売れない。</li><li>純売上：NMV=(1−R)(1−d)Ps/(1+VAT)。返品と税を除く。</li><li>長期利益：LTP=NMV−Cs+[M−s(1−R)]γ。残在庫の将来価値を足す。</li></ol><figcaption>原論文式(3)〜(7)、(12)。一定γは将来の値付け変更を扱わない。</figcaption></figure><figure class="teaching" data-b21><h3>同じ予測でも、指標を選ぶと勝者が変わる</h3><label>Table 2の評価指標 <select style="max-width:100%;width:100%;min-width:0;box-sizing:border-box"><option value="0">Demand Error（価格加重、低いほど良い）</option><option value="1">GMV Error（純粋な一様誤差ではない）</option><option value="2">RMSE（商品を均等に扱う）</option><option value="3">MAPE（商品を均等に扱う）</option></select></label><script type="application/json" data-frames>["<p><strong>Demand Error（価格加重、低いほど良い）：最小は GBT<\/strong><\/p><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>モデル<\/th><th>平均誤差<\/th><th>訓練時間（時間）<\/th><\/tr><\/thead><tbody><tr><td>GBT<\/td><td>0.574<\/td><td>7<\/td><\/tr><tr><td>MLP<\/td><td>0.612<\/td><td>24<\/td><\/tr><tr><td>TSMixer<\/td><td>0.614<\/td><td>18<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>GMV Error（純粋な一様誤差ではない）：最小は GBT<\/strong><\/p><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>モデル<\/th><th>平均誤差<\/th><th>訓練時間（時間）<\/th><\/tr><\/thead><tbody><tr><td>GBT<\/td><td>0.142<\/td><td>7<\/td><\/tr><tr><td>MLP<\/td><td>0.154<\/td><td>24<\/td><\/tr><tr><td>TSMixer<\/td><td>0.187<\/td><td>18<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>RMSE（商品を均等に扱う）：最小は MLP<\/strong><\/p><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>モデル<\/th><th>平均誤差<\/th><th>訓練時間（時間）<\/th><\/tr><\/thead><tbody><tr><td>MLP<\/td><td>3.02<\/td><td>24<\/td><\/tr><tr><td>TSMixer<\/td><td>3.12<\/td><td>18<\/td><\/tr><tr><td>GBT<\/td><td>3.24<\/td><td>7<\/td><\/tr><\/tbody><\/table><\/div>", "<p><strong>MAPE（商品を均等に扱う）：最小は MLP<\/strong><\/p><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"数値の比較（出典は図の注記）\"><table><thead><tr><th>モデル<\/th><th>平均誤差<\/th><th>訓練時間（時間）<\/th><\/tr><\/thead><tbody><tr><td>MLP<\/td><td>0.04<\/td><td>24<\/td><\/tr><tr><td>TSMixer<\/td><td>0.042<\/td><td>18<\/td><\/tr><tr><td>GBT<\/td><td>0.052<\/td><td>7<\/td><\/tr><\/tbody><\/table><\/div>"]</script><div data-output aria-live="polite"><p><strong>Demand Error（価格加重、低いほど良い）：最小は GBT</strong></p><div class="matrix-scroll" tabindex="0" role="region" aria-label="数値の比較（出典は図の注記）"><table><thead><tr><th>モデル</th><th>平均誤差</th><th>訓練時間（時間）</th></tr></thead><tbody><tr><td>GBT</td><td>0.574</td><td>7</td></tr><tr><td>MLP</td><td>0.612</td><td>24</td></tr><tr><td>TSMixer</td><td>0.614</td><td>18</td></tr></tbody></table></div></div><figcaption>著者報告、212日。異なる単位の誤差を足す重みスライダーにはしていない。モデル間で探索予算も同一ではない。</figcaption></figure><figure class="teaching"><h3>利益の約束は近づくが、実現利益の順位は別</h3><svg viewBox="0 0 620 250" role="img" aria-label="論文Table 3の予測PCIIと実現PCII、oracle比パーセント" style="width:100%;height:auto"><text x="5" y="52" font-size="12">MSE 予測</text><rect x="125" y="35" width="391.068" height="23" fill="#b97942"/><text x="521.068" y="52" font-size="12">115.02%</text><text x="5" y="81" font-size="12">MSE 実現</text><rect x="125" y="64" width="316.438" height="23" fill="#16847a"/><text x="446.438" y="81" font-size="12">93.07%</text><text x="5" y="142" font-size="12">Tweedie 予測</text><rect x="125" y="125" width="320.31399999999996" height="23" fill="#b97942"/><text x="450.31399999999996" y="142" font-size="12">94.21%</text><text x="5" y="171" font-size="12">Tweedie 実現</text><rect x="125" y="154" width="311.33799999999997" height="23" fill="#16847a"/><text x="441.33799999999997" y="171" font-size="12">91.57%</text><path d="M465 20V200" stroke="currentColor" stroke-dasharray="4"/><text x="440" y="221">oracle 100%</text><text x="125" y="240">棒の原点 0% ／ PCIIのoracle比</text></svg><figcaption>著者のTable 3。α=0のシミュレーション限定。Tweedieは予測との乖離が小さく、実現PCIIはMSEより1.50ポイント低い。</figcaption></figure><figure class="teaching"><h3>実地の利益効果は正、売上の区間は0をまたぐ</h3><svg viewBox="0 0 620 240" role="img" aria-label="実地試験統合の効果と95パーセント区間" style="width:100%;height:auto"><path d="M180 20V180" stroke="currentColor" stroke-dasharray="4"/><text x="8" y="50">PCII</text><path d="M202.12 45H488.84" stroke="#16847a" stroke-width="4"/><circle cx="348.0" cy="45" r="6" fill="#16847a"/><text x="360" y="68" font-size="12">+6.00% [0.79, 11.03]</text><text x="8" y="105">NMV</text><path d="M156.76 100H329.24" stroke="#16847a" stroke-width="4"/><circle cx="242.44" cy="100" r="6" fill="#16847a"/><text x="360" y="123" font-size="12">+2.23% [-0.83, 5.33]</text><text x="8" y="160">SIAR</text><path d="M93.2 155H299.28" stroke="#16847a" stroke-width="4"/><circle cx="195.68" cy="155" r="6" fill="#16847a"/><text x="360" y="178" font-size="12">+0.56% [-3.10, 4.26]</text><text x="68" y="205" text-anchor="middle">-4</text><text x="180" y="205" text-anchor="middle">0</text><text x="292" y="205" text-anchor="middle">4</text><text x="404" y="205" text-anchor="middle">8</text><text x="516" y="205" text-anchor="middle">12</text><text x="160" y="233">統合効果（%）・95%区間</text></svg><figcaption>Table 5のBayesian階層メタ分析。23 A/B、12市場、11波。波別の数値は掲載されていないため捏造しない。</figcaption></figure><figure class="teaching"><h3>このLabで実行した小規模実験</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="数値の比較（出典は図の注記）"><table><thead><tr><th>seed</th><th>損失</th><th>需要RMSE</th><th>予測利益/oracle %</th><th>実現利益/oracle %</th></tr></thead><tbody><tr><td>11</td><td>MSE</td><td>6.707</td><td>112.39</td><td>97.66</td></tr><tr><td>11</td><td>Tweedie</td><td>3.41</td><td>101.71</td><td>98.66</td></tr><tr><td>22</td><td>MSE</td><td>3.684</td><td>99.53</td><td>98.72</td></tr><tr><td>22</td><td>Tweedie</td><td>2.987</td><td>101.61</td><td>103.05</td></tr><tr><td>33</td><td>MSE</td><td>3.774</td><td>108.23</td><td>96.35</td></tr><tr><td>33</td><td>Tweedie</td><td>2.293</td><td>105.52</td><td>99.44</td></tr></tbody></table></div><figcaption>400商品×56日、3 seed。共通特徴・木の設定・在庫・費用を固定。実現はノイズなし期待需要での評価で、実地PCIIの追試ではない。</figcaption></figure></div><div class="downloads"><a href="../downloads/zalando-sales-event-pricing-forecast-optimize/run.py" download>実行コード</a><a href="../downloads/zalando-sales-event-pricing-forecast-optimize/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/zalando-sales-event-pricing-forecast-optimize">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><details><summary>生の results.json</summary><pre><code>{
+  &quot;lab05&quot;: &quot;zalando&quot;,
+  &quot;seeds&quot;: [
+    11,
+    22,
+    33
+  ],
+  &quot;experiment&quot;: [
+    {
+      &quot;loss&quot;: &quot;MSE&quot;,
+      &quot;seed&quot;: 11,
+      &quot;grid_rmse&quot;: 6.707396281903898,
+      &quot;forecast_profit_pct_oracle&quot;: 112.3920873605343,
+      &quot;materialized_profit_pct_oracle&quot;: 97.66359227022069,
+      &quot;mean_discount&quot;: 0.02
+    },
+    {
+      &quot;loss&quot;: &quot;Tweedie&quot;,
+      &quot;seed&quot;: 11,
+      &quot;grid_rmse&quot;: 3.4101439685505386,
+      &quot;forecast_profit_pct_oracle&quot;: 101.7121027127009,
+      &quot;materialized_profit_pct_oracle&quot;: 98.6625112696067,
+      &quot;mean_discount&quot;: 0.01425
+    },
+    {
+      &quot;loss&quot;: &quot;MSE&quot;,
+      &quot;seed&quot;: 22,
+      &quot;grid_rmse&quot;: 3.6840412988504165,
+      &quot;forecast_profit_pct_oracle&quot;: 99.52791698801241,
+      &quot;materialized_profit_pct_oracle&quot;: 98.71688231719715,
+      &quot;mean_discount&quot;: 0.0235
+    },
+    {
+      &quot;loss&quot;: &quot;Tweedie&quot;,
+      &quot;seed&quot;: 22,
+      &quot;grid_rmse&quot;: 2.9873970295755656,
+      &quot;forecast_profit_pct_oracle&quot;: 101.61138240900945,
+      &quot;materialized_profit_pct_oracle&quot;: 103.05042702154299,
+      &quot;mean_discount&quot;: 0.0375
+    },
+    {
+      &quot;loss&quot;: &quot;MSE&quot;,
+      &quot;seed&quot;: 33,
+      &quot;grid_rmse&quot;: 3.7742560112577226,
+      &quot;forecast_profit_pct_oracle&quot;: 108.22642894593643,
+      &quot;materialized_profit_pct_oracle&quot;: 96.35127569948182,
+      &quot;mean_discount&quot;: 0.010249999999999999
+    },
+    {
+      &quot;loss&quot;: &quot;Tweedie&quot;,
+      &quot;seed&quot;: 33,
+      &quot;grid_rmse&quot;: 2.2925488912597785,
+      &quot;forecast_profit_pct_oracle&quot;: 105.5226271097489,
+      &quot;materialized_profit_pct_oracle&quot;: 99.43786840583196,
+      &quot;mean_discount&quot;: 0.03625
+    }
+  ],
+  &quot;frames&quot;: [
+    {
+      &quot;alpha&quot;: 0.0,
+      &quot;nmv&quot;: 4498.669243282096,
+      &quot;ltp&quot;: 5828.549021334488,
+      &quot;profit&quot;: 3063.6091323082924,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 9.0,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 9.0,
+          &quot;nmv&quot;: 605.0420168067227,
+          &quot;ltp&quot;: 1245.0420168067226
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.1,
+          &quot;demand&quot;: 60.441256935862754,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 60.441256935862754,
+          &quot;nmv&quot;: 2925.5599995846173,
+          &quot;ltp&quot;: 2991.4397776370092
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 0.1,
+      &quot;nmv&quot;: 5189.568276516946,
+      &quot;ltp&quot;: 5763.826870857467,
+      &quot;profit&quot;: 3376.697573687207,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 9.0,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 9.0,
+          &quot;nmv&quot;: 605.0420168067227,
+          &quot;ltp&quot;: 1245.0420168067226
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 0.2,
+      &quot;nmv&quot;: 5189.568276516946,
+      &quot;ltp&quot;: 5763.826870857467,
+      &quot;profit&quot;: 3376.697573687207,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 9.0,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 9.0,
+          &quot;nmv&quot;: 605.0420168067227,
+          &quot;ltp&quot;: 1245.0420168067226
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 0.3,
+      &quot;nmv&quot;: 5256.795167273249,
+      &quot;ltp&quot;: 5746.609317169326,
+      &quot;profit&quot;: 3401.702242221287,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.1,
+          &quot;demand&quot;: 11.11111111111111,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 11.11111111111111,
+          &quot;nmv&quot;: 672.2689075630252,
+          &quot;ltp&quot;: 1227.8244631185808
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 0.4,
+      &quot;nmv&quot;: 5256.795167273249,
+      &quot;ltp&quot;: 5746.609317169326,
+      &quot;profit&quot;: 3401.702242221287,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.1,
+          &quot;demand&quot;: 11.11111111111111,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 11.11111111111111,
+          &quot;nmv&quot;: 672.2689075630252,
+          &quot;ltp&quot;: 1227.8244631185808
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 0.5,
+      &quot;nmv&quot;: 5340.828780718626,
+      &quot;ltp&quot;: 5712.587375059148,
+      &quot;profit&quot;: 3426.7080778888876,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 14.062499999999998,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 14.062499999999998,
+          &quot;nmv&quot;: 756.3025210084033,
+          &quot;ltp&quot;: 1193.8025210084033
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 0.6,
+      &quot;nmv&quot;: 5448.871998005541,
+      &quot;ltp&quot;: 5648.4367147950425,
+      &quot;profit&quot;: 3448.6543564002923,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.3,
+          &quot;demand&quot;: 18.367346938775512,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 18.367346938775512,
+          &quot;nmv&quot;: 864.3457382953183,
+          &quot;ltp&quot;: 1129.6518607442977
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 0.7,
+      &quot;nmv&quot;: 5448.871998005541,
+      &quot;ltp&quot;: 5648.4367147950425,
+      &quot;profit&quot;: 3448.6543564002923,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.3,
+          &quot;demand&quot;: 18.367346938775512,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 18.367346938775512,
+          &quot;nmv&quot;: 864.3457382953183,
+          &quot;ltp&quot;: 1129.6518607442977
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 0.8,
+      &quot;nmv&quot;: 5448.871998005541,
+      &quot;ltp&quot;: 5648.4367147950425,
+      &quot;profit&quot;: 3448.6543564002923,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.3,
+          &quot;demand&quot;: 18.367346938775512,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 18.367346938775512,
+          &quot;nmv&quot;: 864.3457382953183,
+          &quot;ltp&quot;: 1129.6518607442977
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 0.9,
+      &quot;nmv&quot;: 5592.929621054762,
+      &quot;ltp&quot;: 5527.188215395283,
+      &quot;profit&quot;: 3460.0589182250224,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.4,
+          &quot;demand&quot;: 25.000000000000004,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 25.000000000000004,
+          &quot;nmv&quot;: 1008.4033613445381,
+          &quot;ltp&quot;: 1008.4033613445379
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 1.0,
+      &quot;nmv&quot;: 5592.929621054762,
+      &quot;ltp&quot;: 5527.188215395283,
+      &quot;profit&quot;: 3460.0589182250224,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.4,
+          &quot;demand&quot;: 25.000000000000004,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 25.000000000000004,
+          &quot;nmv&quot;: 1008.4033613445381,
+          &quot;ltp&quot;: 1008.4033613445379
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 1.1,
+      &quot;nmv&quot;: 5592.929621054762,
+      &quot;ltp&quot;: 5527.188215395283,
+      &quot;profit&quot;: 3460.0589182250224,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.4,
+          &quot;demand&quot;: 25.000000000000004,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 25.000000000000004,
+          &quot;nmv&quot;: 1008.4033613445381,
+          &quot;ltp&quot;: 1008.4033613445379
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 1.2,
+      &quot;nmv&quot;: 5794.610293323669,
+      &quot;ltp&quot;: 5288.86888766419,
+      &quot;profit&quot;: 3441.7395904939294,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.5,
+          &quot;demand&quot;: 36.0,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 36.0,
+          &quot;nmv&quot;: 1210.0840336134454,
+          &quot;ltp&quot;: 770.0840336134454
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 1.3,
+      &quot;nmv&quot;: 5794.610293323669,
+      &quot;ltp&quot;: 5288.86888766419,
+      &quot;profit&quot;: 3441.7395904939294,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.5,
+          &quot;demand&quot;: 36.0,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 36.0,
+          &quot;nmv&quot;: 1210.0840336134454,
+          &quot;ltp&quot;: 770.0840336134454
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 1.4,
+      &quot;nmv&quot;: 5794.610293323669,
+      &quot;ltp&quot;: 5288.86888766419,
+      &quot;profit&quot;: 3441.7395904939294,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.5,
+          &quot;demand&quot;: 36.0,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 36.0,
+          &quot;nmv&quot;: 1210.0840336134454,
+          &quot;ltp&quot;: 770.0840336134454
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 1.5,
+      &quot;nmv&quot;: 5794.610293323669,
+      &quot;ltp&quot;: 5288.86888766419,
+      &quot;profit&quot;: 3441.7395904939294,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.5,
+          &quot;demand&quot;: 36.0,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 36.0,
+          &quot;nmv&quot;: 1210.0840336134454,
+          &quot;ltp&quot;: 770.0840336134454
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 1.6,
+      &quot;nmv&quot;: 5794.610293323669,
+      &quot;ltp&quot;: 5288.86888766419,
+      &quot;profit&quot;: 3441.7395904939294,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.5,
+          &quot;demand&quot;: 36.0,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 36.0,
+          &quot;nmv&quot;: 1210.0840336134454,
+          &quot;ltp&quot;: 770.0840336134454
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 1.7,
+      &quot;nmv&quot;: 5794.610293323669,
+      &quot;ltp&quot;: 5288.86888766419,
+      &quot;profit&quot;: 3441.7395904939294,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.5,
+          &quot;demand&quot;: 36.0,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 36.0,
+          &quot;nmv&quot;: 1210.0840336134454,
+          &quot;ltp&quot;: 770.0840336134454
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.0,
+          &quot;demand&quot;: 24.0,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 24.0,
+          &quot;nmv&quot;: 968.0672268907565,
+          &quot;ltp&quot;: 1592.0672268907565
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 1.8,
+      &quot;nmv&quot;: 5825.697833691127,
+      &quot;ltp&quot;: 5235.404109677606,
+      &quot;profit&quot;: 3430.5509716843667,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.5,
+          &quot;demand&quot;: 36.0,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 36.0,
+          &quot;nmv&quot;: 1210.0840336134454,
+          &quot;ltp&quot;: 770.0840336134454
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.1,
+          &quot;demand&quot;: 27.523013264751732,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 27.523013264751732,
+          &quot;nmv&quot;: 999.1547672582142,
+          &quot;ltp&quot;: 1538.6024489041727
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 1.9,
+      &quot;nmv&quot;: 5825.697833691127,
+      &quot;ltp&quot;: 5235.404109677606,
+      &quot;profit&quot;: 3430.5509716843667,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.5,
+          &quot;demand&quot;: 36.0,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 36.0,
+          &quot;nmv&quot;: 1210.0840336134454,
+          &quot;ltp&quot;: 770.0840336134454
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.1,
+          &quot;demand&quot;: 27.523013264751732,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 27.523013264751732,
+          &quot;nmv&quot;: 999.1547672582142,
+          &quot;ltp&quot;: 1538.6024489041727
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    },
+    {
+      &quot;alpha&quot;: 2.0,
+      &quot;nmv&quot;: 5825.697833691127,
+      &quot;ltp&quot;: 5235.404109677606,
+      &quot;profit&quot;: 3430.5509716843667,
+      &quot;articles&quot;: [
+        {
+          &quot;article&quot;: 1,
+          &quot;discount&quot;: 0.5,
+          &quot;demand&quot;: 36.0,
+          &quot;stock&quot;: 40.0,
+          &quot;sales&quot;: 36.0,
+          &quot;nmv&quot;: 1210.0840336134454,
+          &quot;ltp&quot;: 770.0840336134454
+        },
+        {
+          &quot;article&quot;: 2,
+          &quot;discount&quot;: 0.1,
+          &quot;demand&quot;: 27.523013264751732,
+          &quot;stock&quot;: 80.0,
+          &quot;sales&quot;: 27.523013264751732,
+          &quot;nmv&quot;: 999.1547672582142,
+          &quot;ltp&quot;: 1538.6024489041727
+        },
+        {
+          &quot;article&quot;: 3,
+          &quot;discount&quot;: 0.2,
+          &quot;demand&quot;: 84.0544189268587,
+          &quot;stock&quot;: 100.0,
+          &quot;sales&quot;: 84.0544189268587,
+          &quot;nmv&quot;: 3616.4590328194668,
+          &quot;ltp&quot;: 2926.7176271599883
+        }
+      ]
+    }
+  ],
+  &quot;checks&quot;: {
+    &quot;discount_monotonicity&quot;: true,
+    &quot;stock_clip&quot;: true,
+    &quot;alpha_nmv_nondecreasing&quot;: true
+  },
+  &quot;paper_evidence&quot;: {
+    &quot;source&quot;: &quot;https://arxiv.org/pdf/2606.13741v1&quot;,
+    &quot;table2&quot;: [
+      {
+        &quot;model&quot;: &quot;GBT&quot;,
+        &quot;demand_error&quot;: 0.574,
+        &quot;gmv_error&quot;: 0.142,
+        &quot;rmse&quot;: 3.24,
+        &quot;mape&quot;: 0.052,
+        &quot;training_hours&quot;: 7
+      },
+      {
+        &quot;model&quot;: &quot;TSMixer&quot;,
+        &quot;demand_error&quot;: 0.614,
+        &quot;gmv_error&quot;: 0.187,
+        &quot;rmse&quot;: 3.12,
+        &quot;mape&quot;: 0.042,
+        &quot;training_hours&quot;: 18
+      },
+      {
+        &quot;model&quot;: &quot;MLP&quot;,
+        &quot;demand_error&quot;: 0.612,
+        &quot;gmv_error&quot;: 0.154,
+        &quot;rmse&quot;: 3.02,
+        &quot;mape&quot;: 0.04,
+        &quot;training_hours&quot;: 24
+      }
+    ],
+    &quot;table3&quot;: [
+      {
+        &quot;model&quot;: &quot;MSE&quot;,
+        &quot;forecast&quot;: 115.02,
+        &quot;materialized&quot;: 93.07
+      },
+      {
+        &quot;model&quot;: &quot;Tweedie&quot;,
+        &quot;forecast&quot;: 94.21,
+        &quot;materialized&quot;: 91.57
+      }
+    ],
+    &quot;table5&quot;: [
+      {
+        &quot;metric&quot;: &quot;PCII&quot;,
+        &quot;effect&quot;: 6.0,
+        &quot;low&quot;: 0.79,
+        &quot;high&quot;: 11.03
+      },
+      {
+        &quot;metric&quot;: &quot;NMV&quot;,
+        &quot;effect&quot;: 2.23,
+        &quot;low&quot;: -0.83,
+        &quot;high&quot;: 5.33
+      },
+      {
+        &quot;metric&quot;: &quot;SIAR&quot;,
+        &quot;effect&quot;: 0.56,
+        &quot;low&quot;: -3.1,
+        &quot;high&quot;: 4.26
+      }
+    ]
+  },
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;CONFIRMED&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>下図の最小実験では、予測した利益と、同じ割引を真の期待需要で評価した利益を分ける。基準は同じγで割引を選ぶoracleの短期利益。これはZalandoのPCII会計定義を完全に実装した値ではない。oracleは長期利益を最適化するため、比較する短期利益では100%を超える場合がある。</p>
+<p>3 seedの数値はresults.jsonから表示する。論文Table 3の115.02%などを再現するように調整していない。損失の優劣と約束の正確さは別の問いであり、この小実験だけでTweedieの普遍的な優位は主張しない。</p>
+<p>売上計画の承認に使うなら、実現利益の高さだけで採用は決めにくい。次の3点も確かめたい。</p>
+<ul>
+<li>割引を選んだ時点の予測から、利益がどれだけ下振れしたか。</li>
+<li>在庫に余裕がある商品と、上限に当たる商品で誤差が違うか。</li>
+<li>αを変えても同じ傾向が残るか。</li>
+</ul></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>CONFIRMED：3 seedで割引に対する予測の単調性、販売数の在庫上限、αを上げたときの選択NMVの非減少をassertで確認した。式(3)〜(7)を通した利益計算と、予測・実現の分離を実行した。</p>
+<p>PARTIAL：価格決定の機構を縮約している。市場別・予測日別モデル、γの週次モデルからの推定、過去の価格決定による交絡は含めない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>NOT TESTED：23件の実地試験、6%の利益改善、数百万商品の処理時間、本番の価格因果効果。非公開データや公式本番コードを実行していない。返品率や費用は定数、需要不確実性や交差価格効果、将来の在庫補充も省略した。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>リポジトリ直下で実行する。</p>
+<pre><code class="language-bash">UV_CACHE_DIR=/tmp/uv-zalando uv run --no-project papers/zalando-sales-event-pricing-forecast-optimize/run.py
+</code></pre>
+<p>依存はLightGBM 4.6.0とNumPy 2.2.6。run.pyがresults.jsonを生成する。lab.yamlとREADME.mdが解説、mapping.mdが一次資料との対応を持ち、HTMLは生成物とする。次の検証では、価格を観測的に選ぶデータとランダムに割り付けるデータを比較し、最適化後の利益差が交絡にどれほど敏感かを調べたい。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文と最小実装の対応</h1>
+<p>一次資料は<a href="https://arxiv.org/pdf/2606.13741v1">High-frequency pricing at scale for e-commerce v1</a>。提供PDF全14ページを読了した。SHA-256はlab.yamlに記録する。本文に公式実装URLの記載は見当たらず、公式コードの実行はしていない。</p>
+<table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>本Lab</th>
+<th>境界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fig. 3、§3.1、Table 1</td>
+<td>LightGBM、割引グリッド、単調制約</td>
+<td>市場別・予測日別モデルは共通の小モデルへ縮約</td>
+</tr>
+<tr>
+<td>式(1)、Fig. 4</td>
+<td>run.pyのmain、αの21候補</td>
+<td>架空3商品。全離散Pareto解は列挙しない</td>
+</tr>
+<tr>
+<td>式(3)〜(7)</td>
+<td>financial()</td>
+<td>R、VAT、C、γを固定。γを週次モデルから推定しない</td>
+</tr>
+<tr>
+<td>式(12)、§4.1</td>
+<td>experiment()の定弾力性と対数正規ノイズ</td>
+<td>100週の在庫消化ヒューリスティックは省略。56日で学習</td>
+</tr>
+<tr>
+<td>§4.2、Table 3</td>
+<td>同じ特徴のMSE/Tweedieを最適化へ接続</td>
+<td>価格をランダムに割付。既知弾力性を入力。実現は期待需要</td>
+</tr>
+<tr>
+<td>Table 2、p.9</td>
+<td>results.jsonのpaper_evidence.table2</td>
+<td>主要3モデルの平均値。標準偏差を図では省略</td>
+</tr>
+<tr>
+<td>Table 3、p.10</td>
+<td>paper_evidence.table3</td>
+<td>PCIIのoracle比。著者のシミュレーションであり実地A/Bではない</td>
+</tr>
+<tr>
+<td>Table 4–5、pp.11</td>
+<td>paper_evidence.table5と統合効果図</td>
+<td>23試験の統合値。波別の効果や区間は復元しない</td>
+</tr>
+</tbody>
+</table>
+<p>著者報告の表と最小実験の数値はresults.jsonで別キーに保存する。paper_lab/zalando05.pyはそれを描画するだけで、HTMLを原本にしない。損失関数の変更だけで実地の因果効果が得られるとは主張しない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>予測誤差の小ささは、値付けで約束した利益につながるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/zalando-sales-event-pricing-forecast-optimize/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

@@ -28,6 +28,10 @@ from paper_lab.deepstock01 import widget as deepstock01_widget
 from paper_lab.projection01 import widget as projection01_widget
 from paper_lab.forecast01 import widget as forecast01_widget
 from paper_lab.inventory02 import widget as inventory02_widget
+from paper_lab.zalando05 import widget as zalando05_widget
+from paper_lab.exaone05 import widget as exaone05_widget
+from paper_lab.sparse05 import widget as sparse05_widget
+from paper_lab.forgetting05 import widget as forgetting05_widget
 
 from paper_lab.models import (
     STANDARD_SECTIONS,
@@ -175,6 +179,10 @@ def paper_sections(lab: Lab) -> list[dict[str, Any]]:
             html += projection01_widget(lab.results)
             html += forecast01_widget(lab.results)
             html += inventory02_widget(lab.results)
+            html += zalando05_widget(lab.results)
+            html += exaone05_widget(lab.results)
+            html += sparse05_widget(lab.results)
+            html += forgetting05_widget(lab.results)
 
         rendered.append(
             {

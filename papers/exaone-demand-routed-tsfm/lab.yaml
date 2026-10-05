@@ -1,0 +1,181 @@
+id: exaone-demand-routed-tsfm
+arxiv_id: '2609.30880'
+submitted: '2026-09-25'
+title: 'EXAONE Demand 1.0: A Time Series Foundation Model for Demand Forecasting'
+authors:
+- Seunghan Lee
+- Sangjun Han
+- Jun Seo
+- Junhyeok Kang
+- Jaehoon Lee
+- Tae Yoon Lim
+- Dongwan Kang
+- Hwanil Choi
+- Minjae Kim
+- Sungdong Yoo
+- Soonyoung Lee
+- Wonbin Ahn
+year: 2026
+topics:
+- demand-forecasting
+urls:
+  paper: https://arxiv.org/abs/2609.30880
+  arxiv: https://arxiv.org/abs/2609.30880
+  pdf: https://arxiv.org/pdf/2609.30880v1
+  official_code: https://github.com/LGAI-Research/EXAONE-Forecast
+verdict: Worth Reading
+status: published
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+summary: 需要分類を教師信号に、共有LoRAと4専門枝を混ぜる。MASEは1.0667対TiRex 1.0818。木モデル・共変量・在庫指標との比較はない。
+question: 需要が途切れる頻度と数量のばらつきで、補正を分ける意味は何か
+source_review:
+  checked: '2026-10-05'
+  scope: ローカルv1 PDF全23ページの本文・式・表・付録を確認。
+  version: v1
+  url: https://arxiv.org/pdf/2609.30880v1
+related_threads:
+- tabular-vs-neural-forecasting
+- observed-sales-vs-latent-demand
+core_idea:
+  author_claim: 需要専用コーパスと、古典的需要分類を教師信号に使うLoRA混合で予測誤差を下げる。
+  research_bot_interpretation: 分類境界を連続に扱う設計が読みどころ。小さな精度差から在庫改善までは主張できない。
+sections:
+  overview: EXAONE Demand 1.0は、需要向けの学習データと、需要の出方で配分を変える低ランク補正を組み合わせた時系列基盤モデル（TSFM）である。22データセットのMASE幾何平均は1.0667。TiRex-1.1の1.0818との差は約1.4%にとどまる。Worth
+    Readingとした理由は、この差の大きさより、古典的な需要分類を学習の手掛かりにした設計にある。
+  problem: 売れる間隔と、一度に売れる量のばらつきは別の性質だ。欠品で販売数がゼロになる場合もある。一般的な時系列データだけで学習すると、こうした短く疎な需要系列の割合が小さくなる。ただし需要専用と呼ぶ本論文のコーパスも、系列数の39.87%、観測点数の67.51%がエネルギーで、小売はそれぞれ17.18%、1.33%である（Table
+    11）。
+  method: method.md
+  why_it_might_work: '推測：共有枝が需要全般の補正を受け持てば、専門枝はクラス間の差へ容量を使える。生の系列から計算した統計量は、正規化後の表現で見失う需要の特徴をrouterへ渡す。ただしbackbone比の改善には学習コーパスとadapterの両方が含まれる。1.1050→1.0667をrouterだけの効果とは読めない。
+
+
+    古典的なSyntetos–Boylan–Croston分類（2005）を教師信号へ転用した点が、容量拡張を狙うMoirai-MoEとの違いになる。Chronos-2、TiRex-1.1は直接の比較対象であり、Table
+    8にLightGBMなどの木モデルはない。'
+  evidence: '一次資料は[原論文v1](https://arxiv.org/pdf/2609.30880v1)のTables 8–9。以下は著者報告で、独立再現値ではない。
+
+
+    | モデル | MASE幾何平均 | WQL |
+
+    | --- | ---: | ---: |
+
+    | EXAONE Demand | 1.0667 | 0.1138 |
+
+    | 合成データのみ | 1.0742 | 0.1147 |
+
+    | TiRex-1.1 | 1.0818 | 0.1161 |
+
+    | Chronos-2 | 1.0885 | 0.1406 |
+
+    | 凍結backbone | 1.1050 | 0.1169 |
+
+
+    MASEは履歴の季節naive誤差で正規化した絶対誤差で、小さいほどよい。MASEが1を超えても、同じ未来期間で季節naiveに負けたと直接断定はできない。分母は過去期間の誤差だからだ。データセット間は幾何平均で同じ重みを持つ。
+
+
+    Car partsのMASEは0.828、TiRexは0.916。対照的にElectricity (H)では1.010対0.912で負ける。22行中、掲載7モデルの最良は10行。実データ併用は合成のみより16行で改善する。全比較モデルへの勝率91.9%は836組の比較に対する割合で、系列の91.9%で勝ったという意味ではない。
+
+
+    著者自身が36の比較TSFMを同一手順で実行している。値の重複検査で学習候補358,008系列を除外したが、既存モデルの事前学習データには同じ除外を適用できず、比較は非対称である。評価には電力・M4・計算資源が多く、販促共変量、在庫費用、サービス率の比較はない。'
+  executable_understanding: '`run.py`は5乱数seedで、4種類の人工需要を作る。各seedで別の160系列を使い、SES、Croston、SBA、TSBから全系列共通の手法を選ぶ。未使用320系列では150期間の履歴から30期間を予測し、同じ履歴とMASE分母で比べる。
+
+
+    比較する混合方式はSmooth→SES、Intermittent→SBA、Erratic→Croston、Lumpy→TSBという説明用の割当で、式5–6のπで平均する。この対応はLabの仮定で、論文の学習結果ではない。数量はGamma分布を丸め、Bernoulliで需要を間引く。論文の負の二項分布による生成器とは異なる。
+
+
+    ページの平面ではADIとCV²を動かし、πとπ̃を比較する。在庫図は潜在需要を固定して、販売数だけが在庫で切られる様子を見る。両者を分けて記録できることが、合成需要の利点である。'
+  results: 混合方式は5seed中4seedで、検証用データから選んだ共通手法よりMASEが悪化した。seed=19のみ0.8848→0.8702へ改善した。**安定した精度向上はNOT
+    OBSERVED**。分類の重みが連続に変わることと、混ぜれば精度が上がることは別の命題である。数値はresults.jsonに保存する。
+  what_we_verified: MechanismはPARTIAL。式5–6の確率和、両境界での均等比率、数量を10倍してもADIとCV²が変わらない性質はCONFIRMED。古典予測器の混合を実行したが、学習routerやLoRAは実装していない。
+  what_we_did_not_verify: Performance、Scaling、Production applicabilityはNOT TESTED。公開重みの推論、22データセットの成績、8GPU学習、在庫や利益への効果は未検証である。原論文も潜在需要の復元を将来課題とし、合成データで欠品を入れたことだけで実店舗の欠品補正を達成したとは言えない。
+  implementation: 'Python標準ライブラリだけを使う。リポジトリのルートで実行する。
+
+
+    ```sh
+
+    UV_CACHE_DIR=/tmp/uv-exaone uv run --no-project papers/exaone-demand-routed-tsfm/run.py
+
+    ```
+
+
+    `stats()`が式1–2の統計量、`membership()`が式5–6と10、`forecasts()`が4つの古典法を担う。乱数seed、検証方法、全22行の転記値はrun.pyに固定している。HTMLはlab.yaml、README、results.json、mapping.mdとwidget生成コードから作る。'
+  mapping: mapping.md
+teaching_figures:
+- kind: matrix
+  id: exaone-eight-statistics
+  title: 8統計量は、需要の別々の性質を読む
+  after: method
+  caption: 式4のrouter入力。需要量の単位を変えても値は変わらない。Lengthは観測数で、数量の単位には依存しない。
+  source: https://arxiv.org/pdf/2609.30880v1
+  locator: §4.1 equations 1–4, Table 6 / pp.8–9
+  rationale: ADIとCV²だけで教師分布を作る一方、学習routerには8統計量を渡す違いを示す。
+  columns:
+  - 入力
+  - 変換・読む性質
+  rows:
+  - label: ゼロ比率
+    cells:
+    - 1 − nz/n
+    - 需要のない期間の割合
+  - label: ADI
+    cells:
+    - log(1 + ADI) / 3
+    - 需要間隔
+  - label: 非ゼロCV²
+    cells:
+    - log(1 + CV²) / 3
+    - 発生した需要量の相対分散
+  - label: Trend
+    cells:
+    - 時間との相関
+    - 増加・減少の傾向
+  - label: AC(1)
+    cells:
+    - 隣接時点の相関
+    - 直前の値とのつながり
+  - label: Up
+    cells:
+    - 2u − 1
+    - 連続する値が増加する割合
+  - label: 全期間CV
+    cells:
+    - log(1 + CV) / 3
+    - ゼロを含めた数量のばらつき
+  - label: Length
+    cells:
+    - log(n) / 8
+    - 統計量を支える観測数
+- kind: matrix
+  id: exaone-corpus-scope
+  title: 学習コーパスの大きさと、検証できた範囲を分ける
+  after: evidence
+  caption: 著者報告のコーパス構成と評価範囲。大量の需要データを集めたことと、小売の在庫効果を確認したことは別の証拠になる。
+  source: https://arxiv.org/pdf/2609.30880v1
+  locator: Tables 4, 8, 11; §6 limitations / pp.5,14,17,23
+  rationale: 観測数に占める小売の比率を示し、需要専用という名称から実店舗の効果を過大に読まないようにする。
+  columns:
+  - 著者報告
+  - この数字が示す範囲
+  rows:
+  - label: エネルギー
+    cells:
+    - 系列39.87% / 観測点67.51%
+    - 長い高頻度系列が観測点数の多数を占める
+  - label: 小売
+    cells:
+    - 系列17.18% / 観測点1.33%
+    - SKU単位の短い系列は、観測点数で見ると少数
+  - label: 重複除去
+    cells:
+    - 358,008系列を学習候補から除外
+    - 自モデルの値レベルの重複を検査。比較モデルには同じ除外を適用できない
+  - label: 精度評価
+    cells:
+    - 22データセット / 36比較TSFM
+    - 予測誤差の比較。在庫費用・サービス率・利益は未評価
+  - label: 欠品
+    cells:
+    - 合成生成器が潜在需要と売上を記録
+    - 実データからの潜在需要復元は将来課題

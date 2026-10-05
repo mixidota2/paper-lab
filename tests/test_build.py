@@ -9,6 +9,10 @@ from paper_lab.models import LabError, load_all_labs, load_lab
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED = {
+    "zalando-sales-event-pricing-forecast-optimize": "2606.13741",
+    "exaone-demand-routed-tsfm": "2609.30880",
+    "tsfm-sparse-event-ranking": "2609.39386",
+    "agent-reasoning-forgetting-externalized-state": "2609.29875",
     "orpr-or-guided-pretrain-reinforce-inventory": "2512.19001",
     "proximal-residual-value-inventory-placement": "2609.23242",
     "deepstock-policy-regularized-inventory-drl": "2603.19621",
@@ -109,7 +113,7 @@ def test_library_has_the_full_registry_catalog_and_a_doi_only_paper():
     labs = load_all_labs(ROOT / "papers")
     arxiv_labs = {lab.id: lab.arxiv_id for lab in labs if lab.arxiv_id}
     assert arxiv_labs == EXPECTED
-    assert len(labs) == 92
+    assert len(labs) == 96
     assert all(lab.urls.arxiv == f"https://arxiv.org/abs/{lab.arxiv_id}" for lab in labs if lab.arxiv_id)
     shelf = next(lab for lab in labs if lab.id == "whole-foods-shelf")
     assert not shelf.arxiv_id

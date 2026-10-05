@@ -1,0 +1,160 @@
+id: agent-reasoning-forgetting-externalized-state
+arxiv_id: '2609.29875'
+title: When Can Agents Forget Their Reasoning? ICLR for Long-Horizon Agent Context
+  Compression
+authors:
+- Mingxuan Wang
+- Fei Luo
+- Bo Wang
+- Guorun Yao
+- Yinglong Guo
+- Chao Ning
+- Hongyue Chen
+- Yanbiao Ma
+- Jungong Han
+year: 2026
+submitted: '2026-09-24'
+topics:
+- ai-agents
+urls:
+  paper: https://arxiv.org/abs/2609.29875
+  arxiv: https://arxiv.org/abs/2609.29875
+  pdf: https://arxiv.org/pdf/2609.29875v1
+  official_code: null
+verdict: Radar
+status: published
+question: 推論を消した後も、必要な状態を読み出せるか
+summary: 推論の価値を状態の保存先から考える。外部化と再導出の関係を局所介入で調べるが、80%剪定の性能には大きな振れがある。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+related_threads:
+- agent-architecture-and-harness
+- ml-pipeline-modularity
+source_review:
+  checked: '2026-10-05'
+  version: v1
+  pdf_sha256: 01b5e382c8db6114215718d16d88d8b89670ba1aea91e59cd950dd3d096dd6e4
+  scope: 本文・付録全30ページ、特にTable 3/7/9/10/14–17を照合。事前判断の同点という記述を訂正。
+  url: https://arxiv.org/pdf/2609.29875v1
+core_idea:
+  author_claim: 著者の主張：Interaction Aware Compression for Long Horizon Reasoning（ICLR）は、凍結したQwen3.5-9Bで推論ブロックの予測エントロピーを採点し、低い80%を削る。実行役はDeepSeek-V4-Flash。action、tool引数、観測、最終回答は保存する。本文とAppendix
+    Iは、導いた状態が外部へ移ると推論を置き換えやすくなると論じる。
+  research_bot_interpretation: 本Labの解釈：採用したい設計上の問いは「削除対象が、まだ唯一の情報源か」である。エントロピーはその判定の代理指標にすぎない。ACON、PACE、SelfCompact、SWE-Pruner、Self-GC、Context-as-a-Tool、ACMなど、文脈や記憶を管理する先行研究に対し、本論文は推論の価値を情報の保存先と後続行動から調べる（§2）。外部記憶そのものが新しいわけではない。
+sections:
+  overview: '**Radar：状態の外部化という設計原則に注目する。** 必要な制約や中間結論が推論にしか残っていない場合、後続で再導出・追加推論・再計画が起きる割合は67.31%。コードやファイルなどに移っている場合は36.15%だった。ただし、52状態と213状態を観察的に比べた値であり、差の31.16ポイントを外部化の因果効果とは読めない。
+
+
+    原論文のTable 3を優先して事前判断を訂正する。80課題ではICLRが0.7376、Delete All Thinkingが0.7178で、同点ではない。260課題でのICLRの0.717775と、別の課題集合の結果を混ぜない。手法の採用判断には、主評価のseed反復や信頼区間が足りない。'
+  problem: '長い作業では、過去の推論を毎回入力すると処理量が増える。しかし、その推論にしかない制約まで消すと、再調査が必要になる。次のtool呼び出しが変われば、その後に読む情報や作業の終了時点も変わる。削った文章の割合だけでは、作業全体の節約量を予測できない。
+
+
+    たとえば「このAPIはBearer形式では通らない」という結論が推論にだけある状態と、修正したコードやエラー出力に残る状態を区別する。ファイルが存在しても、次の判断で読み出せなければ代替にはならない。'
+  method: method.md
+  why_it_might_work: '解釈：同じ制約をコードと推論の両方に保持しているなら、コードを参照して後続の判断を進められる。一方、必要な結論が推論だけにある場合、消すと元の証拠から導き直すことになる。対話図はこの保存先の違いを、同じ要求列で比べる。
+
+
+    外部化は無料でも完全でもない。Table 16では、コード保存後の推論削除で評価値は0.7587のままだが、推論量は1,289から3,222へ増える。成功率が同じでも節約できるとは限らない。'
+  evidence: '以下は[一次資料PDF](https://arxiv.org/pdf/2609.29875v1)の著者報告。最小実験の結果とは分けて読む。
+
+
+    | 評価集合・場所 | 結果 | 読み取れる範囲 |
+
+    | --- | --- | --- |
+
+    | Full260、Table 2・7 | 報酬0.698654→0.717775、入力−25.48%、出力−14.41%、cache read−33.28%
+    | 同じ実行モデル、260課題。勝/分/負は102/76/82 |
+
+    | Full260の領域別、Table 7 | Security +22.88ポイント、Code −6.37ポイント | 全領域での改善ではない。Office・Webも低下
+    |
+
+    | Ablation80、Table 3・9 | Base 0.6267、ICLR 0.7376、Delete All 0.7178 | 全削除と同点ではない。主評価と基準値も異なる
+    |
+
+    | Pilot40、Table 1 | 報酬67.5→70.3、総token 1.89M→2.02M（+6.9%） | この集合では節約していない |
+
+    | 外部化、Table 14・15 | 推論内のみ67.31%（n=52）、外部あり36.15%（n=213） | 同一task内差は+19.75ポイント、task
+    bootstrap 95% CI [1.00,37.05] |
+
+    | stderr介入、Table 17 | 見える場合Editが9/9、隠すとBashで同じエラーを再取得が9/9 | 小規模な固定状態の局所介入 |
+
+
+    再利用予測probeのAUROCは0.8444（31課題・265境界、task単位のnested分割）。activation patchingは凍結したQwenセンサーに対する介入で、実行役DeepSeekの因果機構を直接示していない。47標本・8課題のKL
+    RepairはL4で0.047、L31で0.978。最終層で1になるのは同じreadout入力を戻す実装上の対照である。
+
+
+    主報酬のseed反復や信頼区間がなく、領域間の振れも大きい。Radarとして、状態の保存先を明示する設計と、作業全体の費用計測を取り入れたい。80%削除の本番導入を勧める根拠にはしない。'
+  executable_understanding: '4つの制約を、同じ6要求で再利用する決定的な状態機械を動かす。「保持」「推論だけ削除」「ファイル保存後に削除」「保存したが読めない」の4条件を比較する。再導出が必要なら元の規則から正解を計算し直すので、全条件の最終値は一致する。
+
+
+    労力は参照1、ファイル読出し2、再導出10という人工的な単位。LLMのtoken数ではない。図の実行履歴はresults.jsonから読み込む。論文の非単調な節約量は別の散布図に示し、このtoyで再現したようには扱わない。'
+  results: 推論保持では再導出0回、削除すると4回。先に外部化して読み出せる場合は0回、保存先を読めない場合は4回となった。人工労力は順に6、42、10、42。これは構成した状態機械の動作確認であり、実LLMの外部化効果を推定する数字ではない。
+  what_we_verified: 'CONFIRMED：固定した6要求で4条件の最終値が一致すること、読める保存先が再導出を避けること、読めない保存先では避けられないことをassertで確認した。
+
+
+    PARTIAL：機構の検証は情報の保存先だけに限る。推論ブロック選択やエントロピー推定は実装していない。67.31%と36.15%、80課題の報酬値はPDFへ照合した転記であり、独立再現ではない。'
+  what_we_did_not_verify: NOT TESTED：DeepSeek-V4-Flashの実行、Qwen3.5-9Bの採点、WorkBuddyBenchの性能、複数seedの不確実性、実token数、scorerの費用、長期の状態更新と陳腐化、本番適用性。論文の
+    trajectory amplification はtoyの測定対象に含めていない。
+  implementation: 'リポジトリ直下で次を実行する。外部APIや追加パッケージは不要。
+
+
+    ```bash
+
+    uv run --no-project papers/agent-reasoning-forgetting-externalized-state/run.py
+
+    uv run paper-lab build
+
+    ```
+
+
+    run.pyのreplay()は、まず推論内を探し、次に読めるファイルを探し、両方なければ導き直す。README.mdとlab.yamlが説明、mapping.mdが対応関係、results.jsonが実行結果を保持する。生成HTMLは編集しない。'
+  mapping: mapping.md
+teaching_figures:
+- kind: matrix
+  id: state-interventions
+  title: どの記録を消したかで、次の行動が変わる
+  after: evidence
+  columns:
+  - 保持する記録
+  - 結果
+  - 解釈の境界
+  rows:
+  - label: 直近の推論のみ
+    cells:
+    - 位置介入のrule score 0.8717
+    - 全保持と同値
+    - 限られた固定状態
+  - label: コード保存後に推論削除
+    cells:
+    - rule score 0.7587
+    - 保持条件と同値
+    - 推論量は増加
+  - label: stderrを隠す
+    cells:
+    - 9/9でBash再実行
+    - 同じValueErrorを再観測
+    - 既知の情報を取り直す
+  locator: Table 16–17
+  caption: 著者報告。介入群が異なるため、行をまたいで評価値を比較しない。
+  source: https://arxiv.org/pdf/2609.29875v1
+  rationale: 保存先と後続行動の対応を読む。
+- kind: equations
+  id: trajectory-accounting
+  title: 総費用は、残る履歴と後続の要求回数で決まる
+  after: method
+  steps:
+  - name: 削除後の次の判断
+    formula: H̃ₖ → Aₖ → Oₖ₊₁ → H̃ₖ₊₁
+    explanation: Fig. 2。一度変わったtool呼び出しは、次に読む情報も変える。
+  - name: 作業全体で集計
+    formula: T = Σₖ₌₁ᴷ (Iₖ + Oₖ)
+    explanation: Eq. B.13。Iは入力、Oは出力のtoken数。cache readを二重加算しない。
+  - name: 削除率から総節約率は出ない
+    formula: ΔT = Σₖ≤K* (ΔIₖ + ΔOₖ) + unmatched suffix
+    explanation: Eq. B.14。K*は両条件の要求回数の小さい方。後続の長さと回数も差に含まれる。
+  locator: Fig. 2 / Eq. B.13–14
+  caption: 文章を削る直接効果と、後続の作業が変わる効果を一緒に測る。
+  source: https://arxiv.org/pdf/2609.29875v1
+  rationale: 局所的な剪定と総費用の違いを式で追う。

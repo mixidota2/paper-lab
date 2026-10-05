@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="需要分類を教師信号に、共有LoRAと4専門枝を混ぜる。MASEは1.0667対TiRex 1.0818。木モデル・共変量・在庫指標との比較はない。">
+  <title>需要が途切れる頻度と数量のばらつきで、補正を分ける意味は何か | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-25</span></div>
+    <h1>需要が途切れる頻度と数量のばらつきで、補正を分ける意味は何か</h1>
+    <p class="lede">需要分類を教師信号に、共有LoRAと4専門枝を混ぜる。MASEは1.0667対TiRex 1.0818。木モデル・共変量・在庫指標との比較はない。</p>
+    <details class="bibliography"><summary>原論文：EXAONE Demand 1.0: A Time Series Foundation Model for Demand Forecasting</summary><p>Seunghan Lee, Sangjun Han, Jun Seo, Junhyeok Kang, Jaehoon Lee, Tae Yoon Lim, Dongwan Kang, Hwanil Choi, Minjae Kim, Sungdong Yoo, Soonyoung Lee, Wonbin Ahn</p><p>2609.30880 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.30880">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.30880v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-10-05 · ローカルv1 PDF全23ページの本文・式・表・付録を確認。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-exaone-eight-statistics">8統計量は、需要の別々の性質を読む</a><a href="#figure-exaone-corpus-scope">学習コーパスの大きさと、検証できた範囲を分ける</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p>EXAONE Demand 1.0は、需要向けの学習データと、需要の出方で配分を変える低ランク補正を組み合わせた時系列基盤モデル（TSFM）である。22データセットのMASE幾何平均は1.0667。TiRex-1.1の1.0818との差は約1.4%にとどまる。Worth Readingとした理由は、この差の大きさより、古典的な需要分類を学習の手掛かりにした設計にある。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>売れる間隔と、一度に売れる量のばらつきは別の性質だ。欠品で販売数がゼロになる場合もある。一般的な時系列データだけで学習すると、こうした短く疎な需要系列の割合が小さくなる。ただし需要専用と呼ぶ本論文のコーパスも、系列数の39.87%、観測点数の67.51%がエネルギーで、小売はそれぞれ17.18%、1.33%である（Table 11）。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>需要専用コーパスと、古典的需要分類を教師信号に使うLoRA混合で予測誤差を下げる。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>分類境界を連続に扱う設計が読みどころ。小さな精度差から在庫改善までは主張できない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><p><strong>著者の主張。</strong> 1,130万系列・484億観測点のコーパスを整え、47,500系列の合成需要を加える。凍結したbackboneに共有LoRAを1本、需要クラス別LoRAを4本付け、系列ごとに補正の配分を決める。LoRAは大きな重み行列を、小さな行列の積で補正する方法である。</p>
+<p><strong>本Labの解釈。</strong> 業種名で専門家を分けるより、需要が途切れる頻度と数量変動で分けるという設計が読みどころになる。分類境界の近くでは複数の専門家を混ぜる。ただし論文の推論時の配分は、分類式そのものではなく、8統計量から学習したrouterの出力である。</p>
+<p>ADI = 観測期間数 / 非ゼロ期間数、CV² = 非ゼロ数量の分散 / 平均²とする。式5–6は対数軸上で境界を柔らかくする。</p>
+<p><code>a = sigmoid(log(ADI / 1.32) / 0.35)</code></p>
+<p><code>c = sigmoid(log(CV² / 0.49) / 0.60)</code></p>
+<p><code>π = [(1−a)(1−c), a(1−c), (1−a)c, ac]</code></p>
+<p>順番はSmooth、Intermittent、Erratic、Lumpy。式10の教師分布は<code>π̃ = π² / Σπ²</code>で、温度T=0.5により優勢な成分を強める。routerはゼロ比率、ADI、CV²、時間との相関、1次自己相関、増加割合、全期間のCV、系列長を読む。比率と長さは式4の対数変換を通す。π̃とrouter出力qは別物である。</p>
+<p>式11は<code>y = W₀x + Σₑ gₑ (α/rₑ) BₑAₑx</code>。W₀は凍結し、共有枝の重みは0.5、残り0.5をqで配る。共有rank=16、各専門枝rank=4、α=8。24層×6投影=144か所へ付ける。式12はrank方向に枝を積み、行列積をまとめる実装である。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-exaone-eight-statistics" aria-labelledby="title-exaone-eight-statistics">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-exaone-eight-statistics">8統計量は、需要の別々の性質を読む</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="8統計量は、需要の別々の性質を読むの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">入力</th><th scope="col">変換・読む性質</th></tr></thead><tbody><tr><th scope="row">ゼロ比率</th><td class="">1 − nz/n</td><td class="">需要のない期間の割合</td></tr><tr><th scope="row">ADI</th><td class="">log(1 + ADI) / 3</td><td class="">需要間隔</td></tr><tr><th scope="row">非ゼロCV²</th><td class="">log(1 + CV²) / 3</td><td class="">発生した需要量の相対分散</td></tr><tr><th scope="row">Trend</th><td class="">時間との相関</td><td class="">増加・減少の傾向</td></tr><tr><th scope="row">AC(1)</th><td class="">隣接時点の相関</td><td class="">直前の値とのつながり</td></tr><tr><th scope="row">Up</th><td class="">2u − 1</td><td class="">連続する値が増加する割合</td></tr><tr><th scope="row">全期間CV</th><td class="">log(1 + CV) / 3</td><td class="">ゼロを含めた数量のばらつき</td></tr><tr><th scope="row">Length</th><td class="">log(n) / 8</td><td class="">統計量を支える観測数</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>式4のrouter入力。需要量の単位を変えても値は変わらない。Lengthは観測数で、数量の単位には依存しない。 <a href="https://arxiv.org/pdf/2609.30880v1">出典：§4.1 equations 1–4, Table 6 / pp.8–9 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>推測：共有枝が需要全般の補正を受け持てば、専門枝はクラス間の差へ容量を使える。生の系列から計算した統計量は、正規化後の表現で見失う需要の特徴をrouterへ渡す。ただしbackbone比の改善には学習コーパスとadapterの両方が含まれる。1.1050→1.0667をrouterだけの効果とは読めない。</p>
+<p>古典的なSyntetos–Boylan–Croston分類（2005）を教師信号へ転用した点が、容量拡張を狙うMoirai-MoEとの違いになる。Chronos-2、TiRex-1.1は直接の比較対象であり、Table 8にLightGBMなどの木モデルはない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>一次資料は<a href="https://arxiv.org/pdf/2609.30880v1">原論文v1</a>のTables 8–9。以下は著者報告で、独立再現値ではない。</p>
+<table>
+<thead>
+<tr>
+<th>モデル</th>
+<th style="text-align: right;">MASE幾何平均</th>
+<th style="text-align: right;">WQL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>EXAONE Demand</td>
+<td style="text-align: right;">1.0667</td>
+<td style="text-align: right;">0.1138</td>
+</tr>
+<tr>
+<td>合成データのみ</td>
+<td style="text-align: right;">1.0742</td>
+<td style="text-align: right;">0.1147</td>
+</tr>
+<tr>
+<td>TiRex-1.1</td>
+<td style="text-align: right;">1.0818</td>
+<td style="text-align: right;">0.1161</td>
+</tr>
+<tr>
+<td>Chronos-2</td>
+<td style="text-align: right;">1.0885</td>
+<td style="text-align: right;">0.1406</td>
+</tr>
+<tr>
+<td>凍結backbone</td>
+<td style="text-align: right;">1.1050</td>
+<td style="text-align: right;">0.1169</td>
+</tr>
+</tbody>
+</table>
+<p>MASEは履歴の季節naive誤差で正規化した絶対誤差で、小さいほどよい。MASEが1を超えても、同じ未来期間で季節naiveに負けたと直接断定はできない。分母は過去期間の誤差だからだ。データセット間は幾何平均で同じ重みを持つ。</p>
+<p>Car partsのMASEは0.828、TiRexは0.916。対照的にElectricity (H)では1.010対0.912で負ける。22行中、掲載7モデルの最良は10行。実データ併用は合成のみより16行で改善する。全比較モデルへの勝率91.9%は836組の比較に対する割合で、系列の91.9%で勝ったという意味ではない。</p>
+<p>著者自身が36の比較TSFMを同一手順で実行している。値の重複検査で学習候補358,008系列を除外したが、既存モデルの事前学習データには同じ除外を適用できず、比較は非対称である。評価には電力・M4・計算資源が多く、販促共変量、在庫費用、サービス率の比較はない。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-exaone-corpus-scope" aria-labelledby="title-exaone-corpus-scope">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-exaone-corpus-scope">学習コーパスの大きさと、検証できた範囲を分ける</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="学習コーパスの大きさと、検証できた範囲を分けるの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">著者報告</th><th scope="col">この数字が示す範囲</th></tr></thead><tbody><tr><th scope="row">エネルギー</th><td class="">系列39.87% / 観測点67.51%</td><td class="">長い高頻度系列が観測点数の多数を占める</td></tr><tr><th scope="row">小売</th><td class="">系列17.18% / 観測点1.33%</td><td class="">SKU単位の短い系列は、観測点数で見ると少数</td></tr><tr><th scope="row">重複除去</th><td class="">358,008系列を学習候補から除外</td><td class="">自モデルの値レベルの重複を検査。比較モデルには同じ除外を適用できない</td></tr><tr><th scope="row">精度評価</th><td class="">22データセット / 36比較TSFM</td><td class="">予測誤差の比較。在庫費用・サービス率・利益は未評価</td></tr><tr><th scope="row">欠品</th><td class="">合成生成器が潜在需要と売上を記録</td><td class="">実データからの潜在需要復元は将来課題</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>著者報告のコーパス構成と評価範囲。大量の需要データを集めたことと、小売の在庫効果を確認したことは別の証拠になる。 <a href="https://arxiv.org/pdf/2609.30880v1">出典：Tables 4, 8, 11; §6 limitations / pp.5,14,17,23 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p><code>run.py</code>は5乱数seedで、4種類の人工需要を作る。各seedで別の160系列を使い、SES、Croston、SBA、TSBから全系列共通の手法を選ぶ。未使用320系列では150期間の履歴から30期間を予測し、同じ履歴とMASE分母で比べる。</p>
+<p>比較する混合方式はSmooth→SES、Intermittent→SBA、Erratic→Croston、Lumpy→TSBという説明用の割当で、式5–6のπで平均する。この対応はLabの仮定で、論文の学習結果ではない。数量はGamma分布を丸め、Bernoulliで需要を間引く。論文の負の二項分布による生成器とは異なる。</p>
+<p>ページの平面ではADIとCV²を動かし、πとπ̃を比較する。在庫図は潜在需要を固定して、販売数だけが在庫で切られる様子を見る。両者を分けて記録できることが、合成需要の利点である。</p><section class="exa-lab" aria-label="需要分類の操作実験">
+<style>.exa-lab{--ex:#246b67}.exa-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1rem}.exa-lab svg{width:100%;height:auto}.exa-lab label{display:block;margin:.7rem 0}.exa-lab input[type=range]{width:100%;min-height:28px}.exa-lab .ex-card{padding:1rem;border:1px solid #bfd4d0;border-radius:12px;background:#f6faf8;color:#183a36}.ex-weights{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}.ex-weights div{padding:.55rem;background:#e5efea;border-radius:6px}.exa-lab table{width:100%;font-size:.88rem}.exa-lab .ex-scroll{overflow:auto}.exa-lab .ex-formula{overflow:auto;padding:.8rem;background:#e5efea;font-family:monospace}.exa-lab output{font-variant-numeric:tabular-nums}@media(max-width:640px){.exa-grid{grid-template-columns:1fr}.exa-lab th,.exa-lab td{padding:.45rem}}</style>
+<h3>需要の地図：境界を越えても、配分は急変しない</h3>
+<p>式5–6の分類比率πと式10の教師分布π̃を表示する。学習済みrouterのqを表示するものではない。</p>
+<div class="exa-grid"><div class="ex-card">
+<label>ADI（非ゼロ需要の平均間隔） <output data-adi>1.32</output><input data-a type="range" min="1" max="12" step=".01" value="1.32"></label>
+<label>CV²（非ゼロ数量の相対分散） <output data-cv>0.49</output><input data-c type="range" min=".01" max="4" step=".01" value=".49"></label>
+<svg viewBox="0 0 440 300" role="img" aria-label="対数軸のADIとCV二乗の分類平面"><rect x="58" y="20" width="332" height="222" fill="#eaf3ee"/><path d="M95 20V242M58 98H390" stroke="#618d80" stroke-dasharray="4"/><text x="66" y="46" font-size="12">Erratic</text><text x="220" y="46" font-size="16">Lumpy</text><text x="61" y="221" font-size="11">Smooth</text><text x="185" y="221" font-size="16">Intermittent</text><path d="M58 20V242H390" fill="none" stroke="#294a43"/><text x="170" y="285" font-size="14">ADI（対数軸）→</text><text x="5" y="15" font-size="14">CV² ↑</text><text x="52" y="261" font-size="12">1</text><text x="88" y="261" font-size="12">1.32</text><text x="373" y="261" font-size="12">12</text><text x="14" y="103" font-size="12">0.49</text><text x="17" y="241" font-size="12">0.01</text><circle data-point cx="95" cy="98" r="7" fill="#bd613b" stroke="white" stroke-width="2"/></svg>
+</div><div class="ex-card"><h4>π → π̃（T=0.5）</h4><div class="ex-weights" data-weights aria-live="polite"></div><p>両軸が境界なら4成分は25%ずつ。温度を下げても完全な同率は崩れない。</p><div class="ex-formula">π̃c = πc² / Σ πc²<br>a = σ(log(ADI/1.32)/0.35)<br>c = σ(log(CV²/0.49)/0.60)</div></div></div>
+<h3>補正を入れる場所：凍結投影に5本の小さな枝を足す</h3>
+<svg viewBox="0 0 660 280" role="img" aria-label="凍結投影と共有LoRAおよび四専門LoRAの並列加算"><title>Figure 9と式11の再構成</title><g fill="none" stroke="#77958a" stroke-width="2"><path d="M45 130H100V40H490V130H600M100 130V95H490V130M100 130V170H490V130M100 130V225H490V130"/></g><g fill="#e4efe9" stroke="#7e9f8f"><rect x="160" y="18" width="260" height="42" rx="8"/><rect x="160" y="75" width="260" height="42" rx="8"/><rect x="130" y="143" width="325" height="44" rx="8"/><rect x="130" y="207" width="325" height="42" rx="8"/></g><g fill="#173c34" font-size="16" text-anchor="middle"><text x="24" y="136">x</text><text x="290" y="45">凍結 W₀（更新しない）</text><text x="290" y="102">共有 B₀A₀：rank 16 / g₀=0.5</text><text x="293" y="162">Smooth・Intermittent：各rank 4</text><text x="293" y="181">重み 0.5q₁・0.5q₂</text><text x="293" y="224">Erratic・Lumpy：各rank 4</text><text x="293" y="242">重み 0.5q₃・0.5q₄</text><text x="510" y="136">＋</text><text x="625" y="136">y</text></g></svg>
+<p>式11：y = W₀x + Σ gₑ(8/rₑ)BₑAₑx。8統計量 → 各層の2層MLP → q。教師分布は学習時だけ使い、共有枝は教師損失に含めない。144投影に適用する（Table 10）。</p>
+<h3>潜在需要と売上を分ける：在庫が尽きると何を観測するか</h3>
+<div class="ex-card"><label>補充上限S <output data-stock-label>40</output><input data-stock type="range" min="10" max="100" step="5" value="40"></label><label><input data-promo type="checkbox" checked> 販促の盛り上がりと反動を入れる</label><svg data-series viewBox="0 0 640 235" role="img" aria-label="30期間の潜在需要と在庫で制限された売上"></svg><p data-lost aria-live="polite"></p></div>
+<p>青：潜在需要、橙：観測売上。s=8を下回ると3期間後にSまで補充する説明用(s,S)モデル。販促は事前増・ピーク・反動の3段階。Table 5の考え方を示す人工曲線で、公式生成器や欠品復元モデルの再現ではない。</p>
+<h3>著者報告：22データセットを同じ色で平均化しない</h3><p>Table 9の4列を転記。各行の掲載4モデル中の最小値を緑で示す。MASEは小さいほどよい。全比較モデル中の最良を表す色ではない。</p>
+<div class="ex-scroll"><table><thead><tr><th>データセット</th><th>EXAONE</th><th>Synthetic</th><th>TiRex</th><th>Chronos-2</th></tr></thead><tbody><tr><th>Bitbrains fast (H)</th><td style="background:hsl(36 42% 96%)">1.020</td><td style="background:hsl(36 42% 96%)">1.008</td><td style="background:hsl(36 42% 96%)">1.016</td><td style="background:hsl(155 42% 88%)">0.995</td></tr><tr><th>Bitbrains random (H)</th><td style="background:hsl(155 42% 88%)">5.829</td><td style="background:hsl(36 42% 96%)">5.832</td><td style="background:hsl(36 42% 96%)">5.859</td><td style="background:hsl(36 42% 96%)">5.853</td></tr><tr><th>BizITObs L2C (H)</th><td style="background:hsl(36 42% 96%)">0.441</td><td style="background:hsl(36 42% 96%)">0.445</td><td style="background:hsl(36 42% 96%)">0.487</td><td style="background:hsl(155 42% 88%)">0.439</td></tr><tr><th>Car parts (M)</th><td style="background:hsl(155 42% 88%)">0.828</td><td style="background:hsl(36 42% 96%)">0.847</td><td style="background:hsl(36 42% 96%)">0.916</td><td style="background:hsl(36 42% 96%)">0.900</td></tr><tr><th>Electricity (D)</th><td style="background:hsl(155 42% 88%)">1.375</td><td style="background:hsl(36 42% 96%)">1.383</td><td style="background:hsl(36 42% 96%)">1.466</td><td style="background:hsl(36 42% 96%)">1.415</td></tr><tr><th>Electricity (H)</th><td style="background:hsl(36 42% 96%)">1.010</td><td style="background:hsl(36 42% 96%)">1.009</td><td style="background:hsl(36 42% 96%)">0.912</td><td style="background:hsl(155 42% 88%)">0.888</td></tr><tr><th>Electricity (W)</th><td style="background:hsl(36 42% 96%)">1.494</td><td style="background:hsl(36 42% 96%)">1.468</td><td style="background:hsl(36 42% 96%)">1.478</td><td style="background:hsl(155 42% 88%)">1.456</td></tr><tr><th>Hierarchical sales (D)</th><td style="background:hsl(155 42% 88%)">0.746</td><td style="background:hsl(36 42% 96%)">0.761</td><td style="background:hsl(36 42% 96%)">0.768</td><td style="background:hsl(36 42% 96%)">0.768</td></tr><tr><th>Hierarchical sales (W)</th><td style="background:hsl(155 42% 88%)">0.719</td><td style="background:hsl(36 42% 96%)">0.722</td><td style="background:hsl(36 42% 96%)">0.747</td><td style="background:hsl(36 42% 96%)">0.745</td></tr><tr><th>Hospital (M)</th><td style="background:hsl(155 42% 88%)">0.759</td><td style="background:hsl(36 42% 96%)">0.765</td><td style="background:hsl(36 42% 96%)">0.785</td><td style="background:hsl(36 42% 96%)">0.807</td></tr><tr><th>Loop Seattle (D)</th><td style="background:hsl(155 42% 88%)">0.889</td><td style="background:hsl(36 42% 96%)">0.891</td><td style="background:hsl(36 42% 96%)">0.900</td><td style="background:hsl(36 42% 96%)">0.928</td></tr><tr><th>Loop Seattle (H)</th><td style="background:hsl(36 42% 96%)">0.817</td><td style="background:hsl(36 42% 96%)">0.819</td><td style="background:hsl(36 42% 96%)">0.820</td><td style="background:hsl(155 42% 88%)">0.816</td></tr><tr><th>M4 daily (D)</th><td style="background:hsl(36 42% 96%)">3.079</td><td style="background:hsl(155 42% 88%)">3.046</td><td style="background:hsl(36 42% 96%)">3.063</td><td style="background:hsl(36 42% 96%)">3.164</td></tr><tr><th>M4 hourly (H)</th><td style="background:hsl(36 42% 96%)">0.763</td><td style="background:hsl(36 42% 96%)">0.805</td><td style="background:hsl(155 42% 88%)">0.708</td><td style="background:hsl(36 42% 96%)">0.800</td></tr><tr><th>M4 monthly (M)</th><td style="background:hsl(155 42% 88%)">0.909</td><td style="background:hsl(36 42% 96%)">0.925</td><td style="background:hsl(36 42% 96%)">0.938</td><td style="background:hsl(36 42% 96%)">0.943</td></tr><tr><th>M4 quarterly (Q)</th><td style="background:hsl(36 42% 96%)">1.149</td><td style="background:hsl(36 42% 96%)">1.150</td><td style="background:hsl(155 42% 88%)">1.118</td><td style="background:hsl(36 42% 96%)">1.177</td></tr><tr><th>M4 weekly (W)</th><td style="background:hsl(36 42% 96%)">2.066</td><td style="background:hsl(36 42% 96%)">2.150</td><td style="background:hsl(155 42% 88%)">1.973</td><td style="background:hsl(36 42% 96%)">2.070</td></tr><tr><th>M4 yearly (Y)</th><td style="background:hsl(155 42% 88%)">3.165</td><td style="background:hsl(36 42% 96%)">3.217</td><td style="background:hsl(36 42% 96%)">3.238</td><td style="background:hsl(36 42% 96%)">3.256</td></tr><tr><th>M-dense (D)</th><td style="background:hsl(36 42% 96%)">0.645</td><td style="background:hsl(155 42% 88%)">0.640</td><td style="background:hsl(36 42% 96%)">0.678</td><td style="background:hsl(36 42% 96%)">0.681</td></tr><tr><th>M-dense (H)</th><td style="background:hsl(36 42% 96%)">0.786</td><td style="background:hsl(155 42% 88%)">0.783</td><td style="background:hsl(36 42% 96%)">0.802</td><td style="background:hsl(36 42% 96%)">0.807</td></tr><tr><th>Restaurant (D)</th><td style="background:hsl(155 42% 88%)">0.676</td><td style="background:hsl(36 42% 96%)">0.677</td><td style="background:hsl(36 42% 96%)">0.704</td><td style="background:hsl(36 42% 96%)">0.713</td></tr><tr><th>SZ taxi (H)</th><td style="background:hsl(155 42% 88%)">0.566</td><td style="background:hsl(36 42% 96%)">0.567</td><td style="background:hsl(36 42% 96%)">0.582</td><td style="background:hsl(36 42% 96%)">0.591</td></tr></tbody></table></div>
+<h3>人工実験：混ぜるだけでは安定して改善しなかった</h3><div class="ex-scroll"><table><thead><tr><th>seed</th><th>検証で選んだ共通法</th><th>共通MASE</th><th>混合MASE</th></tr></thead><tbody><tr><td>7</td><td>SBA</td><td>0.8448</td><td>0.8473</td></tr><tr><td>19</td><td>SES</td><td>0.8848</td><td>0.8702</td></tr><tr><td>41</td><td>SBA</td><td>0.8299</td><td>0.8313</td></tr><tr><td>73</td><td>SBA</td><td>0.8765</td><td>0.8844</td></tr><tr><td>101</td><td>SBA</td><td>0.8559</td><td>0.8618</td></tr></tbody></table></div><p>同じ未使用系列で比較。5seed中4seedで混合が悪化。分類の式は確認できたが、混合の安定した優位性はNOT OBSERVED。</p>
+<script>(()=>{const root=document.currentScript.closest('.exa-lab');const a=root.querySelector('[data-a]'),c=root.querySelector('[data-c]');function update(){let av=+a.value,cv=+c.value;let aa=1/(1+Math.exp(-Math.log(av/1.32)/.35)),cc=1/(1+Math.exp(-Math.log(cv/.49)/.6));let p=[(1-aa)*(1-cc),aa*(1-cc),(1-aa)*cc,aa*cc],den=p.reduce((s,v)=>s+v*v,0);root.querySelector('[data-adi]').value=av.toFixed(2);root.querySelector('[data-cv]').value=cv.toFixed(2);root.querySelector('[data-point]').setAttribute('cx',58+332*Math.log(av)/Math.log(12));root.querySelector('[data-point]').setAttribute('cy',242-222*Math.log(cv/.01)/Math.log(400));root.querySelector('[data-weights]').innerHTML=p.map((v,i)=>'<div><b>'+['Smooth','Intermittent','Erratic','Lumpy'][i]+'</b><br>'+(100*v).toFixed(1)+'% → '+(100*v*v/den).toFixed(1)+'%</div>').join('');}a.addEventListener('input',update);c.addEventListener('input',update);update();function stock(){let S=+root.querySelector('[data-stock]').value,inv=S,due=-1,lost=0,latent=[],observed=[],promo=root.querySelector('[data-promo]').checked;for(let t=0;t<30;t++){if(t===due){inv=S;due=-1;}let d=Math.round((7+3*Math.sin(t*1.3))*(promo?(t>=9&&t<12?1.4:t>=12&&t<16?2.4:t>=16&&t<20?.65:1):1));let y=Math.min(inv,d);inv-=y;lost+=d-y;latent.push(d);observed.push(y);if(inv<8&&due<0)due=t+3;}const path=xs=>xs.map((v,i)=>(i?'L':'M')+(42+i*19)+','+(195-v*6)).join('');root.querySelector('[data-stock-label]').value=S;root.querySelector('[data-series]').innerHTML='<path d="M42 15V195H610" fill="none" stroke="#64766e"/><text x="5" y="22" font-size="13">数量</text><text x="270" y="227" font-size="13">期間（0〜29）</text><text x="14" y="195" font-size="12">0</text><text x="8" y="75" font-size="12">20</text><path d="'+path(latent)+'" fill="none" stroke="#316d99" stroke-width="3"/><path d="'+path(observed)+'" fill="none" stroke="#c27035" stroke-width="3" stroke-dasharray="5 3"/>';root.querySelector('[data-lost]').textContent='潜在需要 '+latent.reduce((s,v)=>s+v,0)+' 個のうち、観測されなかった需要は '+lost+' 個。';}root.querySelector('[data-stock]').addEventListener('input',stock);root.querySelector('[data-promo]').addEventListener('change',stock);stock();})();</script></section></div><div class="downloads"><a href="../downloads/exaone-demand-routed-tsfm/run.py" download>実行コード</a><a href="../downloads/exaone-demand-routed-tsfm/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/exaone-demand-routed-tsfm">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><details><summary>生の results.json</summary><pre><code>{
+  &quot;lab05_exaone&quot;: true,
+  &quot;scope&quot;: &quot;人工データで分類比率と古典予測器の混合を確認。EXAONEの再現ではない。&quot;,
+  &quot;seed_results&quot;: [
+    {
+      &quot;seed&quot;: 7,
+      &quot;global_method&quot;: &quot;SBA&quot;,
+      &quot;mase_global&quot;: 0.8447523070934346,
+      &quot;mase_routed&quot;: 0.8472519800122336
+    },
+    {
+      &quot;seed&quot;: 19,
+      &quot;global_method&quot;: &quot;SES&quot;,
+      &quot;mase_global&quot;: 0.8848432582729469,
+      &quot;mase_routed&quot;: 0.8701912498749447
+    },
+    {
+      &quot;seed&quot;: 41,
+      &quot;global_method&quot;: &quot;SBA&quot;,
+      &quot;mase_global&quot;: 0.8298989225705464,
+      &quot;mase_routed&quot;: 0.8312980842940991
+    },
+    {
+      &quot;seed&quot;: 73,
+      &quot;global_method&quot;: &quot;SBA&quot;,
+      &quot;mase_global&quot;: 0.8765130634724959,
+      &quot;mase_routed&quot;: 0.8843616292843781
+    },
+    {
+      &quot;seed&quot;: 101,
+      &quot;global_method&quot;: &quot;SBA&quot;,
+      &quot;mase_global&quot;: 0.8558617765487674,
+      &quot;mase_routed&quot;: 0.8617651101602191
+    }
+  ],
+  &quot;class_results&quot;: [
+    {
+      &quot;class&quot;: &quot;Smooth&quot;,
+      &quot;global&quot;: 0.7517469404134886,
+      &quot;routed&quot;: 0.7340974509435105
+    },
+    {
+      &quot;class&quot;: &quot;Intermittent&quot;,
+      &quot;global&quot;: 0.9571978617980638,
+      &quot;routed&quot;: 0.9586826267815761
+    },
+    {
+      &quot;class&quot;: &quot;Erratic&quot;,
+      &quot;global&quot;: 0.7945228225929205,
+      &quot;routed&quot;: 0.812076103165884
+    },
+    {
+      &quot;class&quot;: &quot;Lumpy&quot;,
+      &quot;global&quot;: 0.9300278375620803,
+      &quot;routed&quot;: 0.9310382620097288
+    }
+  ],
+  &quot;checks&quot;: {
+    &quot;membership_sums_to_one&quot;: true,
+    &quot;boundary_is_uniform&quot;: true,
+    &quot;scale_invariance&quot;: true
+  },
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  },
+  &quot;reported_aggregate&quot;: [
+    [
+      &quot;EXAONE Demand&quot;,
+      1.0667
+    ],
+    [
+      &quot;Synthetic&quot;,
+      1.0742
+    ],
+    [
+      &quot;TiRex-1.1&quot;,
+      1.0818
+    ],
+    [
+      &quot;Chronos-2&quot;,
+      1.0885
+    ],
+    [
+      &quot;Backbone&quot;,
+      1.105
+    ]
+  ],
+  &quot;reported_datasets&quot;: [
+    [
+      &quot;Bitbrains fast (H)&quot;,
+      1.02,
+      1.008,
+      1.016,
+      0.995
+    ],
+    [
+      &quot;Bitbrains random (H)&quot;,
+      5.829,
+      5.832,
+      5.859,
+      5.853
+    ],
+    [
+      &quot;BizITObs L2C (H)&quot;,
+      0.441,
+      0.445,
+      0.487,
+      0.439
+    ],
+    [
+      &quot;Car parts (M)&quot;,
+      0.828,
+      0.847,
+      0.916,
+      0.9
+    ],
+    [
+      &quot;Electricity (D)&quot;,
+      1.375,
+      1.383,
+      1.466,
+      1.415
+    ],
+    [
+      &quot;Electricity (H)&quot;,
+      1.01,
+      1.009,
+      0.912,
+      0.888
+    ],
+    [
+      &quot;Electricity (W)&quot;,
+      1.494,
+      1.468,
+      1.478,
+      1.456
+    ],
+    [
+      &quot;Hierarchical sales (D)&quot;,
+      0.746,
+      0.761,
+      0.768,
+      0.768
+    ],
+    [
+      &quot;Hierarchical sales (W)&quot;,
+      0.719,
+      0.722,
+      0.747,
+      0.745
+    ],
+    [
+      &quot;Hospital (M)&quot;,
+      0.759,
+      0.765,
+      0.785,
+      0.807
+    ],
+    [
+      &quot;Loop Seattle (D)&quot;,
+      0.889,
+      0.891,
+      0.9,
+      0.928
+    ],
+    [
+      &quot;Loop Seattle (H)&quot;,
+      0.817,
+      0.819,
+      0.82,
+      0.816
+    ],
+    [
+      &quot;M4 daily (D)&quot;,
+      3.079,
+      3.046,
+      3.063,
+      3.164
+    ],
+    [
+      &quot;M4 hourly (H)&quot;,
+      0.763,
+      0.805,
+      0.708,
+      0.8
+    ],
+    [
+      &quot;M4 monthly (M)&quot;,
+      0.909,
+      0.925,
+      0.938,
+      0.943
+    ],
+    [
+      &quot;M4 quarterly (Q)&quot;,
+      1.149,
+      1.15,
+      1.118,
+      1.177
+    ],
+    [
+      &quot;M4 weekly (W)&quot;,
+      2.066,
+      2.15,
+      1.973,
+      2.07
+    ],
+    [
+      &quot;M4 yearly (Y)&quot;,
+      3.165,
+      3.217,
+      3.238,
+      3.256
+    ],
+    [
+      &quot;M-dense (D)&quot;,
+      0.645,
+      0.64,
+      0.678,
+      0.681
+    ],
+    [
+      &quot;M-dense (H)&quot;,
+      0.786,
+      0.783,
+      0.802,
+      0.807
+    ],
+    [
+      &quot;Restaurant (D)&quot;,
+      0.676,
+      0.677,
+      0.704,
+      0.713
+    ],
+    [
+      &quot;SZ taxi (H)&quot;,
+      0.566,
+      0.567,
+      0.582,
+      0.591
+    ]
+  ]
+}</code></pre></details><p>混合方式は5seed中4seedで、検証用データから選んだ共通手法よりMASEが悪化した。seed=19のみ0.8848→0.8702へ改善した。<strong>安定した精度向上はNOT OBSERVED</strong>。分類の重みが連続に変わることと、混ぜれば精度が上がることは別の命題である。数値はresults.jsonに保存する。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>MechanismはPARTIAL。式5–6の確率和、両境界での均等比率、数量を10倍してもADIとCV²が変わらない性質はCONFIRMED。古典予測器の混合を実行したが、学習routerやLoRAは実装していない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>Performance、Scaling、Production applicabilityはNOT TESTED。公開重みの推論、22データセットの成績、8GPU学習、在庫や利益への効果は未検証である。原論文も潜在需要の復元を将来課題とし、合成データで欠品を入れたことだけで実店舗の欠品補正を達成したとは言えない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>Python標準ライブラリだけを使う。リポジトリのルートで実行する。</p>
+<pre><code class="language-sh">UV_CACHE_DIR=/tmp/uv-exaone uv run --no-project papers/exaone-demand-routed-tsfm/run.py
+</code></pre>
+<p><code>stats()</code>が式1–2の統計量、<code>membership()</code>が式5–6と10、<code>forecasts()</code>が4つの古典法を担う。乱数seed、検証方法、全22行の転記値はrun.pyに固定している。HTMLはlab.yaml、README、results.json、mapping.mdとwidget生成コードから作る。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文との対応</h1>
+<p>原典：<a href="https://arxiv.org/pdf/2609.30880v1">EXAONE Demand 1.0, v1</a>、2026-09-25。ローカルPDF全23ページ（本文・参考文献・付録）をpdftotextで確認した。</p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>このLab</th>
+<th>一致と省略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§4.1 式1–2、p.9</td>
+<td>run.py <code>stats</code></td>
+<td>相対閾値、ADI、非ゼロCV²。欠測処理は省略</td>
+</tr>
+<tr>
+<td>§4.1 式3–4、Table 6</td>
+<td>READMEの8統計量説明</td>
+<td>学習routerは実装しない</td>
+</tr>
+<tr>
+<td>§4.2 式5–6、Table 7</td>
+<td><code>membership</code>、操作平面</td>
+<td>τa=0.35、τc=0.60。ゼロCV²は数値安定化用に1e−12へclip</td>
+</tr>
+<tr>
+<td>§4.3 式7–10、Figs.8,10–11</td>
+<td>平面のπ・π̃比較</td>
+<td>T=0.5。表示する教師比率は学習済みqではない</td>
+</tr>
+<tr>
+<td>§4.4 式11–12、Fig.9、Table 10</td>
+<td>LoRA模式図</td>
+<td>凍結W₀、共有rank16、専門rank4。行列学習は省略</td>
+</tr>
+<tr>
+<td>§3、Table 5、Fig.7</td>
+<td>欠品操作図</td>
+<td>潜在量と観測量を分離する説明用決定的系列。負の二項・Bass・共食いは省略</td>
+</tr>
+<tr>
+<td>§5.1 式13</td>
+<td>古典法のMASE比較</td>
+<td>人工系列のm=1、算術平均。論文の22データセット幾何平均とは別</td>
+</tr>
+<tr>
+<td>Tables 8–9</td>
+<td>results.jsonのreported_*、色付き比較表</td>
+<td>Table 9の全22行、EXAONE/Synthetic/TiRex/Chronosの4列を転記</td>
+</tr>
+<tr>
+<td>Appendix B</td>
+<td>READMEの先行研究</td>
+<td>2005年分類、Moirai-MoE、Chronos-2、TiRexとの設計上の違い</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/LGAI-Research/EXAONE-Forecast">公式コード</a>・<a href="https://huggingface.co/LG-AI-Research/EXAONE-Demand-1.0">モデル</a>は原典記載URL。公式コードの実行、ファイル単位の照合、重みの取得はNOT TESTED。対応する実装箇所を推測で断定していない。</p>
+<p>人工比較のクラス→古典法割当、Gamma数量生成、検証用系列による共通手法選択はLab独自。論文の性能再現に数えない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>需要が途切れる頻度と数量のばらつきで、補正を分ける意味は何か</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/exaone-demand-routed-tsfm/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

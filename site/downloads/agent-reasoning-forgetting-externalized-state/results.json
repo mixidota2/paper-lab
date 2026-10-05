@@ -1,0 +1,259 @@
+{
+  "lab_kind": "forgetting05",
+  "note": "人工的な状態機械。労力は設定値であり、LLMのtoken数や論文の再導出率を再現していない。",
+  "experiments": [
+    {
+      "name": "同じ6要求・4制約の再利用",
+      "n": 6,
+      "metrics": {
+        "keep": {
+          "rederivations": 0,
+          "file_reads": 0,
+          "effort_units": 6
+        },
+        "prune_internal": {
+          "rederivations": 4,
+          "file_reads": 0,
+          "effort_units": 42
+        },
+        "prune_external": {
+          "rederivations": 0,
+          "file_reads": 4,
+          "effort_units": 10
+        },
+        "prune_unreadable": {
+          "rederivations": 4,
+          "file_reads": 0,
+          "effort_units": 42
+        }
+      }
+    }
+  ],
+  "cases": {
+    "keep": {
+      "rederivations": 0,
+      "file_reads": 0,
+      "effort_units": 6,
+      "trace": [
+        {
+          "key": "constraint-0",
+          "action": "reasoning",
+          "value": 3,
+          "effort": 1
+        },
+        {
+          "key": "constraint-2",
+          "action": "reasoning",
+          "value": 17,
+          "effort": 1
+        },
+        {
+          "key": "constraint-1",
+          "action": "reasoning",
+          "value": 10,
+          "effort": 1
+        },
+        {
+          "key": "constraint-0",
+          "action": "reasoning",
+          "value": 3,
+          "effort": 1
+        },
+        {
+          "key": "constraint-3",
+          "action": "reasoning",
+          "value": 24,
+          "effort": 1
+        },
+        {
+          "key": "constraint-2",
+          "action": "reasoning",
+          "value": 17,
+          "effort": 1
+        }
+      ]
+    },
+    "prune_internal": {
+      "rederivations": 4,
+      "file_reads": 0,
+      "effort_units": 42,
+      "trace": [
+        {
+          "key": "constraint-0",
+          "action": "rederive",
+          "value": 3,
+          "effort": 10
+        },
+        {
+          "key": "constraint-2",
+          "action": "rederive",
+          "value": 17,
+          "effort": 10
+        },
+        {
+          "key": "constraint-1",
+          "action": "rederive",
+          "value": 10,
+          "effort": 10
+        },
+        {
+          "key": "constraint-0",
+          "action": "reasoning",
+          "value": 3,
+          "effort": 1
+        },
+        {
+          "key": "constraint-3",
+          "action": "rederive",
+          "value": 24,
+          "effort": 10
+        },
+        {
+          "key": "constraint-2",
+          "action": "reasoning",
+          "value": 17,
+          "effort": 1
+        }
+      ]
+    },
+    "prune_external": {
+      "rederivations": 0,
+      "file_reads": 4,
+      "effort_units": 10,
+      "trace": [
+        {
+          "key": "constraint-0",
+          "action": "read-file",
+          "value": 3,
+          "effort": 2
+        },
+        {
+          "key": "constraint-2",
+          "action": "read-file",
+          "value": 17,
+          "effort": 2
+        },
+        {
+          "key": "constraint-1",
+          "action": "read-file",
+          "value": 10,
+          "effort": 2
+        },
+        {
+          "key": "constraint-0",
+          "action": "reasoning",
+          "value": 3,
+          "effort": 1
+        },
+        {
+          "key": "constraint-3",
+          "action": "read-file",
+          "value": 24,
+          "effort": 2
+        },
+        {
+          "key": "constraint-2",
+          "action": "reasoning",
+          "value": 17,
+          "effort": 1
+        }
+      ]
+    },
+    "prune_unreadable": {
+      "rederivations": 4,
+      "file_reads": 0,
+      "effort_units": 42,
+      "trace": [
+        {
+          "key": "constraint-0",
+          "action": "rederive",
+          "value": 3,
+          "effort": 10
+        },
+        {
+          "key": "constraint-2",
+          "action": "rederive",
+          "value": 17,
+          "effort": 10
+        },
+        {
+          "key": "constraint-1",
+          "action": "rederive",
+          "value": 10,
+          "effort": 10
+        },
+        {
+          "key": "constraint-0",
+          "action": "reasoning",
+          "value": 3,
+          "effort": 1
+        },
+        {
+          "key": "constraint-3",
+          "action": "rederive",
+          "value": 24,
+          "effort": 10
+        },
+        {
+          "key": "constraint-2",
+          "action": "reasoning",
+          "value": 17,
+          "effort": 1
+        }
+      ]
+    }
+  },
+  "paper": {
+    "source": "https://arxiv.org/pdf/2609.29875v1",
+    "risk": [
+      {
+        "group": "推論内だけ",
+        "n": 52,
+        "percent": 67.31
+      },
+      {
+        "group": "外部に状態あり",
+        "n": 213,
+        "percent": 36.15
+      }
+    ],
+    "random": [
+      {
+        "delete": 5,
+        "input_reduction": 53.68
+      },
+      {
+        "delete": 10,
+        "input_reduction": 60.53
+      },
+      {
+        "delete": 20,
+        "input_reduction": 44.01
+      },
+      {
+        "delete": 40,
+        "input_reduction": 51.21
+      }
+    ],
+    "full260": {
+      "base": 0.698654,
+      "iclr": 0.717775,
+      "input_change_percent": -25.48
+    },
+    "ablation80": {
+      "base": 0.6267,
+      "iclr": 0.7376,
+      "delete_all": 0.7178
+    }
+  },
+  "checks": {
+    "same_final_values": true,
+    "unreadable_state_is_insufficient": true
+  },
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  }
+}

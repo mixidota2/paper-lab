@@ -1,0 +1,149 @@
+id: tsfm-sparse-event-ranking
+arxiv_id: '2609.39386'
+submitted: '2026-09-30'
+title: 'When, Not How Much: Evaluating Time-Series Foundation Models on Sparse Events'
+authors:
+- Daniel Schoess
+- Florian von Wangenheim
+year: 2026
+topics:
+- demand-forecasting
+urls:
+  paper: https://arxiv.org/abs/2609.39386
+  arxiv: https://arxiv.org/abs/2609.39386
+  pdf: https://arxiv.org/pdf/2609.39386v1
+  official_code: null
+verdict: Radar
+status: published
+verification:
+  mechanism: CONFIRMED
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+question: 数量予測の中央値で、需要が発生する日を選べるか
+summary: 12 TSFMの点予測は参照比で最大+0.031 AP skill。発生probeは改善するが、Favoritaでは全てRaw LightGBMを下回る。中央値の情報消失と評価の対照を分けて読む。
+related_threads:
+- tabular-vs-neural-forecasting
+- observed-sales-vs-latent-demand
+source_review:
+  checked: '2026-10-05'
+  version: v1
+  scope: 供給PDFの本文と付録。表と数式は一次資料を優先。
+  url: https://arxiv.org/pdf/2609.39386v1
+  pdf_sha256: 8b9d561b5738bf5d99b443e28818b737ae10666a49c04147a308271a0b494497
+core_idea:
+  author_claim: 著者の主張：点予測、凍結表現の教師ありprobe、生の履歴に学習するロジスティック回帰・LightGBM、ランダム初期化した同型モデルのprobeを並べて比較する。それぞれ出力の質、表現の利用価値、直接学習に対する利点、事前学習の寄与を問う。
+  research_bot_interpretation: このLabの解釈：発生確率と数量の予測を区別してからモデルを選びたい。E[Y|x] = P(Y>0|x)
+    × E[Y|Y>0,x] なので、平均による順位には正の数量も混ざる。中央値は発生確率が50%未満なら0になり、1%と49%を区別できない。ただし、原論文で実際の出力が全て厳密な0だったわけではない。
+sections:
+  overview: '**Radar。時系列基盤モデル（TSFM）の出力を、用途に合う指標で確かめるための評価論文。** 12モデルの点予測が学習不要の参照を上回る幅は、AP
+    skillで最大0.031だった。凍結した表現から発生を学ぶ線形probeは29/30組で自分の点予測を上回ったが、Favoritaでは6モデル全てが生の履歴を使うLightGBMに負けた。用途を先に決めたい。モデル採用を急ぐ根拠より、比較の設計に価値がある。'
+  problem: 巡回や人員配置では、数量より発生する日を先に選びたい場合がある。著者は次の64時点を、正の観測が出る可能性で並べる。Amazon購入、Favorita売上、M5売上、NYC
+    taxi、Web trafficの5データセットを使用。対象系列は40%以上が0で、評価する窓は発生と0の両方を含む。全期間休眠する系列の検出は評価していない。対象は混合窓だけだ。
+  why_it_might_work: '解釈：発生ラベルで学ぶheadなら、数量を当てるための出力変換を迂回できる。だが、headの改善だけでは事前学習の効果と断定できない。同じ教師情報で学ぶ直接モデルと、ランダム表現からのprobeが必要になる。
+
+
+    CrostonやTSBも発生間隔・発生確率と数量を分ける先行手法だが、一定の期間予測では窓内の順位を付けられない。原論文§2はこの系譜と、凍結TSFM表現を分類に使う先行研究を整理する。ここでの追加点は、同じ将来ラベルで予測出力と表現を比較し、ランダム初期化を対照に置いたことにある。'
+  evidence: '一次資料は[arXiv v1](https://arxiv.org/pdf/2609.39386v1)。以下は著者報告で、Labによる実データ再現ではない。
+
+
+    | データ | 点予測−参照の中央値 / 最大 | probe−点予測の中央値 | probe−Raw LightGBMの中央値 |
+
+    | --- | ---: | ---: | ---: |
+
+    | Amazon | −0.002 / +0.002 | +0.006 | 0.000 |
+
+    | Favorita | +0.007 / +0.023 | +0.082 | −0.020 |
+
+    | M5 | −0.005 / +0.013 | +0.032 | +0.002 |
+
+    | NYC taxi | +0.013 / +0.031 | +0.015 | −0.001 |
+
+    | Web traffic | +0.003 / +0.006 | +0.047 | −0.115 |
+
+
+    Tables 3–4、窓を等重みとするAP skill。最大はテスト集合での記述的な最大値で、事前に選んだモデルの成績ではない。LightGBMとの差の95%区間が正
+    / 0を含む / 負だったモデル数はFavorita 0/0/6、M5 3/0/3、Web 0/0/6。最高probeはM5でLightGBMを0.012上回るため、「全モデル同等」とも言えない。
+
+
+    Chronos-2、Chronos-Bolt、Sundial、TimeMoE、Timer、Toto-2.0の6モデルをprobeした。事前学習対ランダム初期化は26/30組でAP
+    skillの区間が正。TimerはFavorita、M5、Webで逆転した。Favoritaでの差の中央値は+0.070。
+
+
+    Appendix F.2では0.1〜0.9の9分位点平均が中央値より27/35組で改善し、参照との差の最大は0.057に増えた。M5とNYC taxiでは最良の分位点平均が大半のprobeを上回る。分位点平均は裾を含まないため予測平均そのものではない。
+
+
+    留保：Webの評価対象の0ラベルの68%は欠測由来。欠測のない窓ではLightGBMとの差の中央値が0.039まで縮むが、母集団も変わる。Favoritaの0は欠品を含み得る。系列を等重みにするとWebの全TSFM点予測が参照を下回る。区間は系列単位の2,000回bootstrapで多重比較未補正。NYC
+    taxiは1分割で、事前学習データとの重複も一部ある。順位精度を費用削減や確率校正の証拠として扱わない。欠測は非発生とは違う。'
+  executable_understanding: 'Y = B × (1 + NB)、B ~ Bernoulli(p) を生成する。正の数量は1以上で、pを発生確率と一致させる。真の分布の中央値・平均・9分位点平均と、特徴xから発生を学ぶロジスティックheadを比較。各seedで700窓を訓練、独立した300窓を評価する。pは全て0.5未満。数量平均を5個に固定する場合と、発生しやすいほど数量が小さくなる場合を分ける。
+
+
+    APは同点群をまとめた閾値で計算する。同点は分けない。AP₀はスコアと発生数を固定してラベルを並べ替えた期待値。AP skill = (AP − AP₀)/(1
+    − AP₀) を窓ごとに計算して平均する。AP₀は一般に発生率とは異なる。同点群bに含まれる位置の数をsᵦ、その群の発生数をaᵦ、その群までに並んだ位置と発生の累積数をそれぞれCᵦとAᵦ、窓全体の位置数をn、発生数をkと置けば、AP
+    = Σ aᵦ Aᵦ / (k Cᵦ)、AP₀ = (k−1)/(n−1) + (n−k)/[n(n−1)] × Σ sᵦ/Cᵦとなり、スコアが全て同じ場合に限ってこの基準はk/nへ簡約される。負のskillも保持し、混合ラベルを持たない窓は除外する。'
+  results: 実測値はresults.jsonとページの人工実験表に記録。固定数量では全て0の中央値のskillは0、平均とheadは発生順位を残す。数量が発生確率と逆向きに変化すると、平均の順位は悪化する。この条件は説明用に選んだもので、現実のデータで同じ逆転が起きる頻度は測っていない。
+  what_we_verified: Mechanism CONFIRMED。n≤6の全同点構成と混合ラベルを列挙し、Appendix B.1のAP₀閉形式を照合。一定スコアのskillが0になること、窓を混ぜると見かけのskillが生じるAppendix
+    B.3の例も検査した。人工分布で中央値の情報消失と、数量平均による順位の混同を確認した。
+  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。TSFM本体、実データでのprobe、LightGBM、ランダムbackbone対照、GPU時間、校正、在庫費用、人員配置費用は再現していない。人工headはTSFM表現を読まない。中央値による圧縮だけで原論文の全モデルの弱さを説明できるとも主張しない。
+  implementation: '```bash
+
+    uv run papers/tsfm-sparse-event-ranking/run.py
+
+    ```
+
+
+    PEP 723に依存関係を固定。metric()が同点APと偶然補正、quantiles()が真の人工分布の9分位点、experiment()が独立訓練・評価、validate()が列挙検証を担う。乱数seedは42、43、44。表示する範囲はseed間の最小〜最大で、信頼区間ではない。試行は3回だけだ。HTMLはREADME、lab.yaml、コード、results.json、mapping.mdから生成する。'
+  mapping: mapping.md
+  method: method.md
+teaching_figures:
+- kind: equations
+  id: sparse-output-reductions
+  title: 同じ予測分布でも、数量と発生では必要な出力が違う
+  after: core_idea
+  caption: 原論文の因数分解と中央値の条件を再構成。人工分布sliderでは正の数量の平均を5個に固定する。
+  source: https://arxiv.org/pdf/2609.39386v1
+  locator: §1 pp.1–2; Appendix F.2 pp.33–36
+  rationale: 平均・中央値・分位点平均の違いを、順位付けの対象と結び付ける。
+  steps:
+  - name: 数量の平均
+    formula: E[Y | x] = P(Y > 0 | x) × E[Y | Y > 0, x]
+    explanation: 発生確率が高くても正の数量が小さければ、平均による順位は下がり得る。
+  - name: 中央値
+    formula: P(Y > 0 | x) < 0.5 ⇒ median(Y | x) = 0
+    explanation: 非負の予測分布では、発生確率1%と49%が同じ0に縮約される。実TSFMの出力が厳密な0になるという観測結果ではない。
+  - name: 9分位点平均
+    formula: q̄ = (q₀.₁ + q₀.₂ + … + q₀.₉) / 9
+    explanation: 中央値で失う差を残せるが、両端の裾を含まないため予測平均とは一致しない。
+- kind: matrix
+  id: sparse-control-matrix
+  title: 4つの比較で、出力・表現・事前学習を分けて問う
+  after: method
+  caption: Figure 1とTable 1の比較設計。全経路を同じ混合ラベル窓で採点する。
+  source: https://arxiv.org/pdf/2609.39386v1
+  locator: Figure 1 p.2; Table 1 p.4; §3.2 pp.4–5
+  rationale: 教師ありprobeの改善を、そのまま事前学習の成果と読まないための対照表。
+  columns:
+  - 比較する経路
+  - 発生ラベルで学習する側
+  - 分かること
+  rows:
+  - label: 出力
+    cells:
+    - TSFM点予測 / 季節性・ramp参照
+    - どちらも重み学習なし。参照は検証ラベルで選択
+    - 点予測が簡単な順位付けを上回るか
+  - label: head
+    cells:
+    - 凍結表現probe / 同じモデルの点予測
+    - probeのみ
+    - 発生を学ぶheadで出力より改善するか
+  - label: 直接学習
+    cells:
+    - probe / 生履歴のlogistic・LightGBM
+    - 両側
+    - 同じ教師情報を使う直接モデルに勝るか
+  - label: 事前学習
+    cells:
+    - 学習済み表現probe / ランダム表現probe
+    - 両側
+    - 同型モデルの初期表現を超える寄与があるか

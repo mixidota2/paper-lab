@@ -1,0 +1,159 @@
+id: zalando-sales-event-pricing-forecast-optimize
+arxiv_id: '2606.13741'
+title: High-frequency pricing at scale for e-commerce
+authors:
+- Stefan Birr
+- Tobias Huelden
+- Mones Raslan
+- Adele Gouttes
+- Andreas Schmitt
+- Mateusz Koren
+- Johannes Stephan
+- Robert Streek
+- Manuel Kunz
+- Tim Januschowski
+year: 2026
+submitted: '2026-06-11'
+topics:
+- retail-supply
+- demand-forecasting
+urls:
+  arxiv: https://arxiv.org/abs/2606.13741
+  paper: https://arxiv.org/abs/2606.13741
+  pdf: https://arxiv.org/pdf/2606.13741v1
+  official_code: null
+verdict: Must Read
+status: published
+question: 予測誤差の小ささは、値付けで約束した利益につながるか
+summary: 日次LightGBMと商品別最適化を23件の実地A/Bで検証。利益+6%の区間、指標で反転する順位、予測と実現の差を追う。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-10-05'
+  version: v1
+  pdf_sha256: 9e411c35540a8be95e23fafa4279ca0105971601fb05dd7dc7fcbcdbf5102f24
+  scope: 提供PDF全14ページを読了。Fig. 3–4、式1–12、Tables 1–5を確認。
+  url: https://arxiv.org/pdf/2606.13741v1
+core_idea:
+  author_claim: 日次需要予測と商品別のLTP + α NMV最適化により、セール価格を短時間で提示し利益を改善する。
+  research_bot_interpretation: 実地A/Bと、評価指標・損失・価格決定のつながりが情報価値。Tweedieの実現利益が常に高いという結果ではない。
+sections:
+  overview: 'Zalandoのセール価格を、日次LightGBMの需要予測と商品別の割引選択で決める研究。著者は2023〜2024年の12市場・23件の無作為化A/Bテストを統合し、利益貢献PCIIが+6.00%（95%区間0.79〜11.03%）と報告した。純売上NMVと返品後販売数SIARの区間は0をまたぐ。売上の同等性が証明された、とまでは読めない。
+
+
+    Must Readとする理由は、複雑なモデルの新規性より実地の価格決定で得た証拠にある。Table 2では評価指標でモデル順位が反転し、Table 3では予測利益と実現利益が離れる。モデル、損失、意思決定を一続きで点検したい。'
+  problem: '通常期の週次Transformerと手動補正では、平均6.2日続くセールの変動に追いつきにくい。セールは年間の約35%を占める。割引を増やせば販売数は増えても、今売らずに残す商品の将来利益を失う。
+
+
+    商品ごとに決める。顧客ごとに異なる価格を付ける実験ではない。売れた数量には在庫の上限があり、返品率とVATを引いた金額を収益として扱う。'
+  core_idea: '著者の主張：市場・予測日ごとのLightGBMで割引×日の需要表を作り、在庫で切り詰める。長期利益LTPと純売上NMVの加重和を最大にする割引を商品別に選ぶ。割引に対する予測の単調増加を制約する。
+
+
+    本Labの解釈：予測と最適化を分けた設計はFerreiraら（2016、Rue La La）やCaro–Gallien（2012、Zara）の延長にある。本論文の価値は、日次運用への縮約と実地検証、評価指標の選び方を同じ事例で追える点。既存のZalando最適化（Liら2022、Streeckら2024）との違いは、商品間の結合制約を外して短時間で候補を提示することにある。'
+  method: method.md
+  why_it_might_work: '著者はLightGBMを精度、訓練時間、安定性から選んだ。Table 2の訓練時間はGBTが7時間、TSMixerが18時間、MLPが24時間。割引の単調性は不自然な需要曲線を抑え、商品別の独立採点は最適化を数時間から数分へ短縮する。
+
+
+    解釈：αを振って複数の候補を提示することで、担当者は収益と残在庫の価値を比較できる。ただし一定のγは将来の値付け方針を更新しない。予測誤差は残る。
+
+
+    本Labで残す注意点は交絡だ。過去の担当者が売れにくい商品ほど深く割り引いていたなら、割引と販売数だけを学ぶモデルでは、その商品が元から売れにくかった影響と値下げによる販売増を分けにくい。観測価格での誤差が小さくても、未実施の割引に対する需要予測が正しいとは限らない。'
+  evidence: '以下は一次資料である[原論文v1](https://arxiv.org/pdf/2606.13741v1)の著者報告。Table 4は11波、合計6,204,627
+    articlesを記載する。商品単位のクラスタ無作為化で事前利益・NMVを均衡させ、各試験を差の差で分析し、Bayesian階層モデルで統合した。同一商品が複数波に含まれる可能性があるため、620万をユニークSKU数とは置かない。
+
+
+    Table 5のPCIIは+6.00% [0.79, 11.03]、NMVは+2.23% [−0.83, 5.33]、SIARは+0.56% [−3.10,
+    4.26]。ドイツ単独ではSIAR +16.7%、NMV +17.9%、PCII +16.7%。全市場への外挿は避ける。代替商品間の干渉は無作為化だけでは消えず、SUTVAの懸念が残る。対照は人と既存アルゴリズムの混合運用である。
+
+
+    Table 2は212日分の評価。GBTは業務指標のDemand ErrorとGMV Errorで最良だが、均等に重みを置くRMSE・MAPEではMLPが最良。Table
+    3はシミュレーション限定で、MSEのPCIIはoracle比で予測115.02%→実現93.07%、Tweedieは94.21%→91.57%。Tweedieは予測との乖離が小さいが、実現PCIIはMSEより低い。
+
+
+
+    調整予算も揃っていない。著者は、LightGBMは速く安定して訓練できたためニューラルネットワークより広くハイパーパラメータを探索できたと説明しており、Table
+    2の差にはモデル構造だけでなく、実際に試せた設定の範囲も含まれる（§3）。
+
+
+
+    Demand Errorの重みは数量だけではない。式(9)では、市場・日ごとに対象商品をまとめ、値引き前の価格を重みにした数量の二乗誤差の合計を、同じ価格で重み付けした実績数量の二乗和で割って平方根を取るため、少量・低価格の商品を多く改善するモデルと、大きな売上を占める商品の誤差を減らすモデルで順位が変わりうる。'
+  executable_understanding: '対話図のαを上げると、3つの架空商品で選ぶ割引と在庫制約を見直せる。点はFig. 4の考え方を式(1)、(3)〜(7)で再計算した教材で、Zalandoの商品ではない。全離散解のPareto境界を列挙する図ではなく、加重和で選ばれた候補を示す。
+
+
+    最小実験では、400商品×56日の定弾力性需要から、需要水準・弾力性・曜日効果・割引を共通特徴とするLightGBMをMSEとTweedieでそれぞれ学習し、選んだ割引の利益をノイズなしの期待需要グリッドで評価する。seedは11、22、33。弾力性を特徴として渡す有利な教材条件なので、実データでの因果的価格効果推定は検証しない。'
+  results: '下図の最小実験では、予測した利益と、同じ割引を真の期待需要で評価した利益を分ける。基準は同じγで割引を選ぶoracleの短期利益。これはZalandoのPCII会計定義を完全に実装した値ではない。oracleは長期利益を最適化するため、比較する短期利益では100%を超える場合がある。
+
+
+    3 seedの数値はresults.jsonから表示する。論文Table 3の115.02%などを再現するように調整していない。損失の優劣と約束の正確さは別の問いであり、この小実験だけでTweedieの普遍的な優位は主張しない。
+
+
+    売上計画の承認に使うなら、実現利益の高さだけで採用は決めにくい。次の3点も確かめたい。
+
+
+    - 割引を選んだ時点の予測から、利益がどれだけ下振れしたか。
+
+    - 在庫に余裕がある商品と、上限に当たる商品で誤差が違うか。
+
+    - αを変えても同じ傾向が残るか。'
+  what_we_verified: 'CONFIRMED：3 seedで割引に対する予測の単調性、販売数の在庫上限、αを上げたときの選択NMVの非減少をassertで確認した。式(3)〜(7)を通した利益計算と、予測・実現の分離を実行した。
+
+
+    PARTIAL：価格決定の機構を縮約している。市場別・予測日別モデル、γの週次モデルからの推定、過去の価格決定による交絡は含めない。'
+  what_we_did_not_verify: NOT TESTED：23件の実地試験、6%の利益改善、数百万商品の処理時間、本番の価格因果効果。非公開データや公式本番コードを実行していない。返品率や費用は定数、需要不確実性や交差価格効果、将来の在庫補充も省略した。
+  implementation: 'リポジトリ直下で実行する。
+
+
+    ```bash
+
+    UV_CACHE_DIR=/tmp/uv-zalando uv run --no-project papers/zalando-sales-event-pricing-forecast-optimize/run.py
+
+    ```
+
+
+    依存はLightGBM 4.6.0とNumPy 2.2.6。run.pyがresults.jsonを生成する。lab.yamlとREADME.mdが解説、mapping.mdが一次資料との対応を持ち、HTMLは生成物とする。次の検証では、価格を観測的に選ぶデータとランダムに割り付けるデータを比較し、最適化後の利益差が交絡にどれほど敏感かを調べたい。'
+related_threads:
+- tabular-vs-neural-forecasting
+- ml-pipeline-modularity
+teaching_figures:
+- kind: architecture
+  id: zalando-grid-decoupling
+  title: 需要表を保存し、値付けを何度も計算する
+  after: core_idea
+  source: https://arxiv.org/pdf/2606.13741v1
+  locator: Fig. 3、§3.1
+  rationale: 学習の頻度と意思決定の頻度を分ける設計を示す。
+  caption: 原論文Fig. 3を再構成。LightGBMの再学習なしにαを変えた候補を計算する。
+  rows:
+  - label: 予測を保存する
+    nodes:
+    - title: 日次LightGBM
+      text: 市場・予測日ごとのモデル。価格、過去販売、閲覧、イベントなどを入力。
+    - title: 割引×日の需要表
+      text: 割引候補ごとの予測をデータ層に保存。割引が深いほど需要予測は減らない。
+  - label: 担当者が候補を選ぶ
+    nodes:
+    - title: 在庫・返品・費用
+      text: 販売数を在庫で切り、純売上と長期利益に変換。
+    - title: 商品別の採点
+      text: LTP + α NMVを割引ごとに計算。αを振って複数案を提示する。
+- kind: equations
+  id: zalando-marginal-tradeoff
+  title: αは追加の売上と引き換えに許す利益減少
+  after: method
+  source: https://arxiv.org/pdf/2606.13741v1
+  locator: 式(1)〜(2)、Fig. 4
+  rationale: 重みの操作を式の限界条件と対応づけ、離散グリッドとの違いも示す。
+  caption: 式(2)は連続・微分可能な内点解の説明。最小実験の割引候補は離散なので、選択は段階的に変わる。
+  steps:
+  - name: 商品ごとの目的
+    formula: J(d) = LTP(d) + α NMV(d)
+    explanation: αが大きいほど、追加の純売上を重く評価する。
+  - name: 内点解の条件
+    formula: LTP′(d) + α NMV′(d) = 0
+    explanation: 割引を増やしたときの利益減少と、重みを掛けた売上増加を釣り合わせる。
+  - name: 限界の交換比率
+    formula: −NMV′(d) / LTP′(d) = 1 / α
+    explanation: α>0で分母が0でない場合。γが残在庫を高く評価するほど、今売るために失う将来利益も大きくなる。

@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="推論の価値を状態の保存先から考える。外部化と再導出の関係を局所介入で調べるが、80%剪定の性能には大きな振れがある。">
+  <title>推論を消した後も、必要な状態を読み出せるか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-09-24</span></div>
+    <h1>推論を消した後も、必要な状態を読み出せるか</h1>
+    <p class="lede">推論の価値を状態の保存先から考える。外部化と再導出の関係を局所介入で調べるが、80%剪定の性能には大きな振れがある。</p>
+    <details class="bibliography"><summary>原論文：When Can Agents Forget Their Reasoning? ICLR for Long-Horizon Agent Context Compression</summary><p>Mingxuan Wang, Fei Luo, Bo Wang, Guorun Yao, Yinglong Guo, Chao Ning, Hongyue Chen, Yanbiao Ma, Jungong Han</p><p>2609.29875 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2609.29875">原典を読む ↗</a><a href="https://arxiv.org/pdf/2609.29875v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-10-05 · 本文・付録全30ページ、特にTable 3/7/9/10/14–17を照合。事前判断の同点という記述を訂正。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-state-interventions">どの記録を消したかで、次の行動が変わる</a><a href="#figure-trajectory-accounting">総費用は、残る履歴と後続の要求回数で決まる</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p><strong>Radar：状態の外部化という設計原則に注目する。</strong> 必要な制約や中間結論が推論にしか残っていない場合、後続で再導出・追加推論・再計画が起きる割合は67.31%。コードやファイルなどに移っている場合は36.15%だった。ただし、52状態と213状態を観察的に比べた値であり、差の31.16ポイントを外部化の因果効果とは読めない。</p>
+<p>原論文のTable 3を優先して事前判断を訂正する。80課題ではICLRが0.7376、Delete All Thinkingが0.7178で、同点ではない。260課題でのICLRの0.717775と、別の課題集合の結果を混ぜない。手法の採用判断には、主評価のseed反復や信頼区間が足りない。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>長い作業では、過去の推論を毎回入力すると処理量が増える。しかし、その推論にしかない制約まで消すと、再調査が必要になる。次のtool呼び出しが変われば、その後に読む情報や作業の終了時点も変わる。削った文章の割合だけでは、作業全体の節約量を予測できない。</p>
+<p>たとえば「このAPIはBearer形式では通らない」という結論が推論にだけある状態と、修正したコードやエラー出力に残る状態を区別する。ファイルが存在しても、次の判断で読み出せなければ代替にはならない。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者の主張：Interaction Aware Compression for Long Horizon Reasoning（ICLR）は、凍結したQwen3.5-9Bで推論ブロックの予測エントロピーを採点し、低い80%を削る。実行役はDeepSeek-V4-Flash。action、tool引数、観測、最終回答は保存する。本文とAppendix Iは、導いた状態が外部へ移ると推論を置き換えやすくなると論じる。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>本Labの解釈：採用したい設計上の問いは「削除対象が、まだ唯一の情報源か」である。エントロピーはその判定の代理指標にすぎない。ACON、PACE、SelfCompact、SWE-Pruner、Self-GC、Context-as-a-Tool、ACMなど、文脈や記憶を管理する先行研究に対し、本論文は推論の価値を情報の保存先と後続行動から調べる（§2）。外部記憶そのものが新しいわけではない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><p>Fig. 2 / Eq. 1–9の処理では、直前に終えたstepの推論を空行で区切る。因果順の履歴をscorerに与え、各tokenの分布からエントロピーを求める。</p>
+<pre><code class="language-text">Sₜ = (Rₜ, Aₜ, Oₜ₊₁)                  推論・行動・観測
+hₜ = −Σᵥ pθ(v | cₜ) log₂ pθ(v | cₜ)    予測分布の不確かさ
+H(Bᵢ) = Σₜ∈Bᵢ hₜ / |Bᵢ|               ブロック内平均
+D = BottomK⌊0.8N⌋ {H(Bᵢ)}               低い順に[SKIP]へ置換
+</code></pre>
+<p>実際に出たtokenのsurprisalとは異なる。N=1なら削らず、scorerの42K入力上限を超えたstepは剪定を見送る。書き換えた履歴を以後の要求でも使う。Random対照はtoken単位、ICLRはblock単位なので、削除率を同じ尺度として並べない。</p>
+<p>Appendix B.3の固定集合に関する情報量の上界は、観測したスコアで適応的に選ぶ削除集合の安全保証ではない。B.4の十分条件は、保存状態Zだけで次の行動分布を復元できることを要求する。</p>
+<pre><code class="language-text">πₜ(a | Zₜ,Wₜ) = qₜ(a | Zₜ) = π̃ₜ(a | Zₜ)
+TV(Pπ,Pπ̃) ≤ 1 − ∏ₜ(1−εₜ) ≤ min(1,Σₜ εₜ)
+</code></pre>
+<p>Wは消す推論、εは共通履歴での行動分布の差の上限。状態をファイルへ書くだけでε=0になるとは主張できない。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-trajectory-accounting" aria-labelledby="title-trajectory-accounting">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-trajectory-accounting">総費用は、残る履歴と後続の要求回数で決まる</h3>
+  <ol class="equation-steps"><li><strong>削除後の次の判断</strong><div class="math-expression" tabindex="0" role="math" aria-label="H̃ₖ → Aₖ → Oₖ₊₁ → H̃ₖ₊₁">H̃ₖ → Aₖ → Oₖ₊₁ → H̃ₖ₊₁</div><p>Fig. 2。一度変わったtool呼び出しは、次に読む情報も変える。</p></li><li><strong>作業全体で集計</strong><div class="math-expression" tabindex="0" role="math" aria-label="T = Σₖ₌₁ᴷ (Iₖ + Oₖ)">T = Σₖ₌₁ᴷ (Iₖ + Oₖ)</div><p>Eq. B.13。Iは入力、Oは出力のtoken数。cache readを二重加算しない。</p></li><li><strong>削除率から総節約率は出ない</strong><div class="math-expression" tabindex="0" role="math" aria-label="ΔT = Σₖ≤K* (ΔIₖ + ΔOₖ) + unmatched suffix">ΔT = Σₖ≤K* (ΔIₖ + ΔOₖ) + unmatched suffix</div><p>Eq. B.14。K*は両条件の要求回数の小さい方。後続の長さと回数も差に含まれる。</p></li></ol>
+  <figcaption>文章を削る直接効果と、後続の作業が変わる効果を一緒に測る。 <a href="https://arxiv.org/pdf/2609.29875v1">出典：Fig. 2 / Eq. B.13–14 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈：同じ制約をコードと推論の両方に保持しているなら、コードを参照して後続の判断を進められる。一方、必要な結論が推論だけにある場合、消すと元の証拠から導き直すことになる。対話図はこの保存先の違いを、同じ要求列で比べる。</p>
+<p>外部化は無料でも完全でもない。Table 16では、コード保存後の推論削除で評価値は0.7587のままだが、推論量は1,289から3,222へ増える。成功率が同じでも節約できるとは限らない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p>以下は<a href="https://arxiv.org/pdf/2609.29875v1">一次資料PDF</a>の著者報告。最小実験の結果とは分けて読む。</p>
+<table>
+<thead>
+<tr>
+<th>評価集合・場所</th>
+<th>結果</th>
+<th>読み取れる範囲</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full260、Table 2・7</td>
+<td>報酬0.698654→0.717775、入力−25.48%、出力−14.41%、cache read−33.28%</td>
+<td>同じ実行モデル、260課題。勝/分/負は102/76/82</td>
+</tr>
+<tr>
+<td>Full260の領域別、Table 7</td>
+<td>Security +22.88ポイント、Code −6.37ポイント</td>
+<td>全領域での改善ではない。Office・Webも低下</td>
+</tr>
+<tr>
+<td>Ablation80、Table 3・9</td>
+<td>Base 0.6267、ICLR 0.7376、Delete All 0.7178</td>
+<td>全削除と同点ではない。主評価と基準値も異なる</td>
+</tr>
+<tr>
+<td>Pilot40、Table 1</td>
+<td>報酬67.5→70.3、総token 1.89M→2.02M（+6.9%）</td>
+<td>この集合では節約していない</td>
+</tr>
+<tr>
+<td>外部化、Table 14・15</td>
+<td>推論内のみ67.31%（n=52）、外部あり36.15%（n=213）</td>
+<td>同一task内差は+19.75ポイント、task bootstrap 95% CI [1.00,37.05]</td>
+</tr>
+<tr>
+<td>stderr介入、Table 17</td>
+<td>見える場合Editが9/9、隠すとBashで同じエラーを再取得が9/9</td>
+<td>小規模な固定状態の局所介入</td>
+</tr>
+</tbody>
+</table>
+<p>再利用予測probeのAUROCは0.8444（31課題・265境界、task単位のnested分割）。activation patchingは凍結したQwenセンサーに対する介入で、実行役DeepSeekの因果機構を直接示していない。47標本・8課題のKL RepairはL4で0.047、L31で0.978。最終層で1になるのは同じreadout入力を戻す実装上の対照である。</p>
+<p>主報酬のseed反復や信頼区間がなく、領域間の振れも大きい。Radarとして、状態の保存先を明示する設計と、作業全体の費用計測を取り入れたい。80%削除の本番導入を勧める根拠にはしない。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-state-interventions" aria-labelledby="title-state-interventions">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-state-interventions">どの記録を消したかで、次の行動が変わる</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="どの記録を消したかで、次の行動が変わるの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">保持する記録</th><th scope="col">結果</th><th scope="col">解釈の境界</th></tr></thead><tbody><tr><th scope="row">直近の推論のみ</th><td class="">位置介入のrule score 0.8717</td><td class="">全保持と同値</td><td class="">限られた固定状態</td></tr><tr><th scope="row">コード保存後に推論削除</th><td class="">rule score 0.7587</td><td class="">保持条件と同値</td><td class="">推論量は増加</td></tr><tr><th scope="row">stderrを隠す</th><td class="">9/9でBash再実行</td><td class="">同じValueErrorを再観測</td><td class="">既知の情報を取り直す</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>著者報告。介入群が異なるため、行をまたいで評価値を比較しない。 <a href="https://arxiv.org/pdf/2609.29875v1">出典：Table 16–17 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>4つの制約を、同じ6要求で再利用する決定的な状態機械を動かす。「保持」「推論だけ削除」「ファイル保存後に削除」「保存したが読めない」の4条件を比較する。再導出が必要なら元の規則から正解を計算し直すので、全条件の最終値は一致する。</p>
+<p>労力は参照1、ファイル読出し2、再導出10という人工的な単位。LLMのtoken数ではない。図の実行履歴はresults.jsonから読み込む。論文の非単調な節約量は別の散布図に示し、このtoyで再現したようには扱わない。</p><section class="forget05" aria-label="状態の保存先と再導出">
+<style>
+.forget05{--f:#336a65;background:#f1f5f2;padding:clamp(12px,3vw,28px);border-radius:16px;color:#163a38}.forget05 *{box-sizing:border-box}.forget05 .carriers{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}.forget05 .carrier{background:white;border-top:4px solid var(--f);padding:14px;border-radius:6px}.forget05 select,.forget05 input{max-width:100%;font:inherit}.forget05 select{width:100%;padding:10px}.forget05 .trace{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}.forget05 .step{padding:10px;background:white;border-left:4px solid #64847b}.forget05 .step.lost{border-color:#b55634;background:#fff2e9}.forget05 .step.disk{border-color:#346eb1}.forget05 svg{width:100%;height:auto;background:white;border-radius:8px}.forget05 .equation{padding:15px;background:white;font-family:monospace;overflow-wrap:anywhere}.forget05 figcaption{font-size:.9rem}.forget05 label{display:block;margin:12px 0}.forget05 output{font-weight:700}.forget05 .risk{display:flex;gap:14px;flex-wrap:wrap}.forget05 .risk p{flex:1;min-width:160px;padding:12px;background:#fff}.forget05 .risk strong{display:block;font-size:1.8rem}@media(max-width:600px){.forget05 .carriers,.forget05 .trace{grid-template-columns:1fr}.forget05 svg text{font-size:15px}}
+</style>
+<h3>必要な制約は、どこに残っているか</h3>
+<div class="carriers"><div class="carrier"><b>推論 R</b><p>まだ実行していない計画・制約・中間結論</p></div><div class="carrier"><b>コード / ファイル Z</b><p>導いた結果を保存。後続の判断で読めることが条件</p></div><div class="carrier"><b>観測 O</b><p>tool出力・stderr。再取得せず使える証拠</p></div></div>
+<p>左から右への移動は自動ではない。保存と読出しを終えて初めて、推論以外から状態を復元できる。</p>
+<label>同じ6要求に与える履歴<select data-case><option value="keep">推論を保持する</option><option value="prune_internal">推論だけを削る</option><option value="prune_external">ファイルへ保存してから削る</option><option value="prune_unreadable">保存したが、ファイルを読めない</option></select></label>
+<div class="trace" data-trace></div><p data-summary aria-live="polite"></p>
+<p>参照1・読出し2・再導出10の人工労力。LLMや実token数の測定ではない。全条件で最終値は同じ。</p>
+<h3>観察的な状態比較：31課題から265境界</h3><div class="risk" data-risk></div>
+<p>Table 14の著者報告。同一task内差は19.75ポイント [1.00, 37.05]（Table 15）。群全体の差31.16ポイントと区別する。無作為な外部化の効果ではない。</p>
+<figure><h3>多く削っても、作業全体の節約が増えるとは限らない</h3><svg viewBox="0 0 560 330" role="img" aria-label="Random削除率と入力削減率の散布図" data-scatter></svg><figcaption>著者報告 Table 10 / Fig. 3。80課題でのRandom token削除だけを表示。点をつなぐ曲線や最適削除率は推定していない。</figcaption></figure>
+<h3>小さな行動分布差も、長い作業では累積する</h3><label>共通履歴での差の上限 ε <input data-e type="range" min="0" max="0.1" step="0.005" value="0.02"></label><label>行動回数 K <input data-k type="range" min="1" max="100" value="30"></label><div class="equation" data-bound aria-live="polite"></div><p>Theorem B.3の仮定を置いた上界。実測リスクではなく、entropyからεを推定する式でもない。</p>
+<script type="application/json" data-forget>{"lab_kind": "forgetting05", "note": "人工的な状態機械。労力は設定値であり、LLMのtoken数や論文の再導出率を再現していない。", "experiments": [{"name": "同じ6要求・4制約の再利用", "n": 6, "metrics": {"keep": {"rederivations": 0, "file_reads": 0, "effort_units": 6}, "prune_internal": {"rederivations": 4, "file_reads": 0, "effort_units": 42}, "prune_external": {"rederivations": 0, "file_reads": 4, "effort_units": 10}, "prune_unreadable": {"rederivations": 4, "file_reads": 0, "effort_units": 42}}}], "cases": {"keep": {"rederivations": 0, "file_reads": 0, "effort_units": 6, "trace": [{"key": "constraint-0", "action": "reasoning", "value": 3, "effort": 1}, {"key": "constraint-2", "action": "reasoning", "value": 17, "effort": 1}, {"key": "constraint-1", "action": "reasoning", "value": 10, "effort": 1}, {"key": "constraint-0", "action": "reasoning", "value": 3, "effort": 1}, {"key": "constraint-3", "action": "reasoning", "value": 24, "effort": 1}, {"key": "constraint-2", "action": "reasoning", "value": 17, "effort": 1}]}, "prune_internal": {"rederivations": 4, "file_reads": 0, "effort_units": 42, "trace": [{"key": "constraint-0", "action": "rederive", "value": 3, "effort": 10}, {"key": "constraint-2", "action": "rederive", "value": 17, "effort": 10}, {"key": "constraint-1", "action": "rederive", "value": 10, "effort": 10}, {"key": "constraint-0", "action": "reasoning", "value": 3, "effort": 1}, {"key": "constraint-3", "action": "rederive", "value": 24, "effort": 10}, {"key": "constraint-2", "action": "reasoning", "value": 17, "effort": 1}]}, "prune_external": {"rederivations": 0, "file_reads": 4, "effort_units": 10, "trace": [{"key": "constraint-0", "action": "read-file", "value": 3, "effort": 2}, {"key": "constraint-2", "action": "read-file", "value": 17, "effort": 2}, {"key": "constraint-1", "action": "read-file", "value": 10, "effort": 2}, {"key": "constraint-0", "action": "reasoning", "value": 3, "effort": 1}, {"key": "constraint-3", "action": "read-file", "value": 24, "effort": 2}, {"key": "constraint-2", "action": "reasoning", "value": 17, "effort": 1}]}, "prune_unreadable": {"rederivations": 4, "file_reads": 0, "effort_units": 42, "trace": [{"key": "constraint-0", "action": "rederive", "value": 3, "effort": 10}, {"key": "constraint-2", "action": "rederive", "value": 17, "effort": 10}, {"key": "constraint-1", "action": "rederive", "value": 10, "effort": 10}, {"key": "constraint-0", "action": "reasoning", "value": 3, "effort": 1}, {"key": "constraint-3", "action": "rederive", "value": 24, "effort": 10}, {"key": "constraint-2", "action": "reasoning", "value": 17, "effort": 1}]}}, "paper": {"source": "https://arxiv.org/pdf/2609.29875v1", "risk": [{"group": "推論内だけ", "n": 52, "percent": 67.31}, {"group": "外部に状態あり", "n": 213, "percent": 36.15}], "random": [{"delete": 5, "input_reduction": 53.68}, {"delete": 10, "input_reduction": 60.53}, {"delete": 20, "input_reduction": 44.01}, {"delete": 40, "input_reduction": 51.21}], "full260": {"base": 0.698654, "iclr": 0.717775, "input_change_percent": -25.48}, "ablation80": {"base": 0.6267, "iclr": 0.7376, "delete_all": 0.7178}}, "checks": {"same_final_values": true, "unreadable_state_is_insufficient": true}, "verification": {"mechanism": "PARTIAL", "performance": "NOT TESTED", "scaling": "NOT TESTED", "production_applicability": "NOT TESTED"}}</script>
+<script>(()=>{const root=document.currentScript.parentElement,d=JSON.parse(root.querySelector('[data-forget]').textContent),sel=root.querySelector('[data-case]');function show(){const c=d.cases[sel.value],names={'reasoning':'推論を参照','read-file':'ファイルを読む','rederive':'制約を導き直す'};root.querySelector('[data-trace]').innerHTML=c.trace.map((t,i)=>`<div class="step ${t.action==='rederive'?'lost':t.action==='read-file'?'disk':''}"><b>${i+1}. ${t.key}</b><br>${names[t.action]}<br>値 ${t.value} ／ 労力 ${t.effort}</div>`).join('');root.querySelector('[data-summary]').textContent=`再導出 ${c.rederivations}回 ／ 読出し ${c.file_reads}回 ／ 人工労力 ${c.effort_units}`;}sel.addEventListener('change',show);show();root.querySelector('[data-risk]').innerHTML=d.paper.risk.map(x=>`<p>${x.group}<strong>${x.percent}%</strong>n=${x.n}境界</p>`).join('');const x=v=>65+v*10,y=v=>265-v*3;let s='<text x="65" y="23">入力削減率 %（大きいほど節約）</text><path d="M65 45 V265 H500" fill="none" stroke="#456"/>';[0,20,40,60].forEach(v=>s+=`<text x="25" y="${y(v)+5}">${v}</text><path d="M65 ${y(v)}H500" stroke="#ddd"/>`);[0,10,20,30,40].forEach(v=>s+=`<text x="${x(v)-7}" y="287">${v}</text>`);d.paper.random.forEach(p=>s+=`<circle cx="${x(p.delete)}" cy="${y(p.input_reduction)}" r="7" fill="#b55634"/><text x="${x(p.delete)+9}" y="${y(p.input_reduction)-10}">${p.input_reduction}%</text>`);s+='<text x="150" y="318">その場で削る推論tokenの割合 %</text>';root.querySelector('[data-scatter]').innerHTML=s;function bound(){let e=+root.querySelector('[data-e]').value,k=+root.querySelector('[data-k]').value;root.querySelector('[data-bound]').textContent=`ε=${e.toFixed(3)}, K=${k} → TV ≤ 1−(1−ε)^K = ${(1-(1-e)**k).toFixed(3)} ≤ min(1,Kε) = ${Math.min(1,k*e).toFixed(3)}`;}root.querySelector('[data-e]').addEventListener('input',bound);root.querySelector('[data-k]').addEventListener('input',bound);bound();})();</script></section></div><div class="downloads"><a href="../downloads/agent-reasoning-forgetting-externalized-state/run.py" download>実行コード</a><a href="../downloads/agent-reasoning-forgetting-externalized-state/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/agent-reasoning-forgetting-externalized-state">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>人工的な状態機械。労力は設定値であり、LLMのtoken数や論文の再導出率を再現していない。</em></p>
+<h3>同じ6要求・4制約の再利用</h3>
+<ul><li><strong>n</strong>: 6</li></ul>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>rederivations</th><th>file_reads</th><th>effort_units</th></tr></thead><tbody><tr><th scope='row'>keep</th><td>0</td><td>0</td><td>6</td></tr><tr><th scope='row'>prune_internal</th><td>4</td><td>0</td><td>42</td></tr><tr><th scope='row'>prune_external</th><td>0</td><td>4</td><td>10</td></tr><tr><th scope='row'>prune_unreadable</th><td>4</td><td>0</td><td>42</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;lab_kind&quot;: &quot;forgetting05&quot;,
+  &quot;note&quot;: &quot;人工的な状態機械。労力は設定値であり、LLMのtoken数や論文の再導出率を再現していない。&quot;,
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;同じ6要求・4制約の再利用&quot;,
+      &quot;n&quot;: 6,
+      &quot;metrics&quot;: {
+        &quot;keep&quot;: {
+          &quot;rederivations&quot;: 0,
+          &quot;file_reads&quot;: 0,
+          &quot;effort_units&quot;: 6
+        },
+        &quot;prune_internal&quot;: {
+          &quot;rederivations&quot;: 4,
+          &quot;file_reads&quot;: 0,
+          &quot;effort_units&quot;: 42
+        },
+        &quot;prune_external&quot;: {
+          &quot;rederivations&quot;: 0,
+          &quot;file_reads&quot;: 4,
+          &quot;effort_units&quot;: 10
+        },
+        &quot;prune_unreadable&quot;: {
+          &quot;rederivations&quot;: 4,
+          &quot;file_reads&quot;: 0,
+          &quot;effort_units&quot;: 42
+        }
+      }
+    }
+  ],
+  &quot;cases&quot;: {
+    &quot;keep&quot;: {
+      &quot;rederivations&quot;: 0,
+      &quot;file_reads&quot;: 0,
+      &quot;effort_units&quot;: 6,
+      &quot;trace&quot;: [
+        {
+          &quot;key&quot;: &quot;constraint-0&quot;,
+          &quot;action&quot;: &quot;reasoning&quot;,
+          &quot;value&quot;: 3,
+          &quot;effort&quot;: 1
+        },
+        {
+          &quot;key&quot;: &quot;constraint-2&quot;,
+          &quot;action&quot;: &quot;reasoning&quot;,
+          &quot;value&quot;: 17,
+          &quot;effort&quot;: 1
+        },
+        {
+          &quot;key&quot;: &quot;constraint-1&quot;,
+          &quot;action&quot;: &quot;reasoning&quot;,
+          &quot;value&quot;: 10,
+          &quot;effort&quot;: 1
+        },
+        {
+          &quot;key&quot;: &quot;constraint-0&quot;,
+          &quot;action&quot;: &quot;reasoning&quot;,
+          &quot;value&quot;: 3,
+          &quot;effort&quot;: 1
+        },
+        {
+          &quot;key&quot;: &quot;constraint-3&quot;,
+          &quot;action&quot;: &quot;reasoning&quot;,
+          &quot;value&quot;: 24,
+          &quot;effort&quot;: 1
+        },
+        {
+          &quot;key&quot;: &quot;constraint-2&quot;,
+          &quot;action&quot;: &quot;reasoning&quot;,
+          &quot;value&quot;: 17,
+          &quot;effort&quot;: 1
+        }
+      ]
+    },
+    &quot;prune_internal&quot;: {
+      &quot;rederivations&quot;: 4,
+      &quot;file_reads&quot;: 0,
+      &quot;effort_units&quot;: 42,
+      &quot;trace&quot;: [
+        {
+          &quot;key&quot;: &quot;constraint-0&quot;,
+          &quot;action&quot;: &quot;rederive&quot;,
+          &quot;value&quot;: 3,
+          &quot;effort&quot;: 10
+        },
+        {
+          &quot;key&quot;: &quot;constraint-2&quot;,
+          &quot;action&quot;: &quot;rederive&quot;,
+          &quot;value&quot;: 17,
+          &quot;effort&quot;: 10
+        },
+        {
+          &quot;key&quot;: &quot;constraint-1&quot;,
+          &quot;action&quot;: &quot;rederive&quot;,
+          &quot;value&quot;: 10,
+          &quot;effort&quot;: 10
+        },
+        {
+          &quot;key&quot;: &quot;constraint-0&quot;,
+          &quot;action&quot;: &quot;reasoning&quot;,
+          &quot;value&quot;: 3,
+          &quot;effort&quot;: 1
+        },
+        {
+          &quot;key&quot;: &quot;constraint-3&quot;,
+          &quot;action&quot;: &quot;rederive&quot;,
+          &quot;value&quot;: 24,
+          &quot;effort&quot;: 10
+        },
+        {
+          &quot;key&quot;: &quot;constraint-2&quot;,
+          &quot;action&quot;: &quot;reasoning&quot;,
+          &quot;value&quot;: 17,
+          &quot;effort&quot;: 1
+        }
+      ]
+    },
+    &quot;prune_external&quot;: {
+      &quot;rederivations&quot;: 0,
+      &quot;file_reads&quot;: 4,
+      &quot;effort_units&quot;: 10,
+      &quot;trace&quot;: [
+        {
+          &quot;key&quot;: &quot;constraint-0&quot;,
+          &quot;action&quot;: &quot;read-file&quot;,
+          &quot;value&quot;: 3,
+          &quot;effort&quot;: 2
+        },
+        {
+          &quot;key&quot;: &quot;constraint-2&quot;,
+          &quot;action&quot;: &quot;read-file&quot;,
+          &quot;value&quot;: 17,
+          &quot;effort&quot;: 2
+        },
+        {
+          &quot;key&quot;: &quot;constraint-1&quot;,
+          &quot;action&quot;: &quot;read-file&quot;,
+          &quot;value&quot;: 10,
+          &quot;effort&quot;: 2
+        },
+        {
+          &quot;key&quot;: &quot;constraint-0&quot;,
+          &quot;action&quot;: &quot;reasoning&quot;,
+          &quot;value&quot;: 3,
+          &quot;effort&quot;: 1
+        },
+        {
+          &quot;key&quot;: &quot;constraint-3&quot;,
+          &quot;action&quot;: &quot;read-file&quot;,
+          &quot;value&quot;: 24,
+          &quot;effort&quot;: 2
+        },
+        {
+          &quot;key&quot;: &quot;constraint-2&quot;,
+          &quot;action&quot;: &quot;reasoning&quot;,
+          &quot;value&quot;: 17,
+          &quot;effort&quot;: 1
+        }
+      ]
+    },
+    &quot;prune_unreadable&quot;: {
+      &quot;rederivations&quot;: 4,
+      &quot;file_reads&quot;: 0,
+      &quot;effort_units&quot;: 42,
+      &quot;trace&quot;: [
+        {
+          &quot;key&quot;: &quot;constraint-0&quot;,
+          &quot;action&quot;: &quot;rederive&quot;,
+          &quot;value&quot;: 3,
+          &quot;effort&quot;: 10
+        },
+        {
+          &quot;key&quot;: &quot;constraint-2&quot;,
+          &quot;action&quot;: &quot;rederive&quot;,
+          &quot;value&quot;: 17,
+          &quot;effort&quot;: 10
+        },
+        {
+          &quot;key&quot;: &quot;constraint-1&quot;,
+          &quot;action&quot;: &quot;rederive&quot;,
+          &quot;value&quot;: 10,
+          &quot;effort&quot;: 10
+        },
+        {
+          &quot;key&quot;: &quot;constraint-0&quot;,
+          &quot;action&quot;: &quot;reasoning&quot;,
+          &quot;value&quot;: 3,
+          &quot;effort&quot;: 1
+        },
+        {
+          &quot;key&quot;: &quot;constraint-3&quot;,
+          &quot;action&quot;: &quot;rederive&quot;,
+          &quot;value&quot;: 24,
+          &quot;effort&quot;: 10
+        },
+        {
+          &quot;key&quot;: &quot;constraint-2&quot;,
+          &quot;action&quot;: &quot;reasoning&quot;,
+          &quot;value&quot;: 17,
+          &quot;effort&quot;: 1
+        }
+      ]
+    }
+  },
+  &quot;paper&quot;: {
+    &quot;source&quot;: &quot;https://arxiv.org/pdf/2609.29875v1&quot;,
+    &quot;risk&quot;: [
+      {
+        &quot;group&quot;: &quot;推論内だけ&quot;,
+        &quot;n&quot;: 52,
+        &quot;percent&quot;: 67.31
+      },
+      {
+        &quot;group&quot;: &quot;外部に状態あり&quot;,
+        &quot;n&quot;: 213,
+        &quot;percent&quot;: 36.15
+      }
+    ],
+    &quot;random&quot;: [
+      {
+        &quot;delete&quot;: 5,
+        &quot;input_reduction&quot;: 53.68
+      },
+      {
+        &quot;delete&quot;: 10,
+        &quot;input_reduction&quot;: 60.53
+      },
+      {
+        &quot;delete&quot;: 20,
+        &quot;input_reduction&quot;: 44.01
+      },
+      {
+        &quot;delete&quot;: 40,
+        &quot;input_reduction&quot;: 51.21
+      }
+    ],
+    &quot;full260&quot;: {
+      &quot;base&quot;: 0.698654,
+      &quot;iclr&quot;: 0.717775,
+      &quot;input_change_percent&quot;: -25.48
+    },
+    &quot;ablation80&quot;: {
+      &quot;base&quot;: 0.6267,
+      &quot;iclr&quot;: 0.7376,
+      &quot;delete_all&quot;: 0.7178
+    }
+  },
+  &quot;checks&quot;: {
+    &quot;same_final_values&quot;: true,
+    &quot;unreadable_state_is_insufficient&quot;: true
+  },
+  &quot;verification&quot;: {
+    &quot;mechanism&quot;: &quot;PARTIAL&quot;,
+    &quot;performance&quot;: &quot;NOT TESTED&quot;,
+    &quot;scaling&quot;: &quot;NOT TESTED&quot;,
+    &quot;production_applicability&quot;: &quot;NOT TESTED&quot;
+  }
+}</code></pre></details><p>推論保持では再導出0回、削除すると4回。先に外部化して読み出せる場合は0回、保存先を読めない場合は4回となった。人工労力は順に6、42、10、42。これは構成した状態機械の動作確認であり、実LLMの外部化効果を推定する数字ではない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>CONFIRMED：固定した6要求で4条件の最終値が一致すること、読める保存先が再導出を避けること、読めない保存先では避けられないことをassertで確認した。</p>
+<p>PARTIAL：機構の検証は情報の保存先だけに限る。推論ブロック選択やエントロピー推定は実装していない。67.31%と36.15%、80課題の報酬値はPDFへ照合した転記であり、独立再現ではない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>NOT TESTED：DeepSeek-V4-Flashの実行、Qwen3.5-9Bの採点、WorkBuddyBenchの性能、複数seedの不確実性、実token数、scorerの費用、長期の状態更新と陳腐化、本番適用性。論文の trajectory amplification はtoyの測定対象に含めていない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>リポジトリ直下で次を実行する。外部APIや追加パッケージは不要。</p>
+<pre><code class="language-bash">uv run --no-project papers/agent-reasoning-forgetting-externalized-state/run.py
+uv run paper-lab build
+</code></pre>
+<p>run.pyのreplay()は、まず推論内を探し、次に読めるファイルを探し、両方なければ導き直す。README.mdとlab.yamlが説明、mapping.mdが対応関係、results.jsonが実行結果を保持する。生成HTMLは編集しない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文との対応</h1>
+<p>一次資料：<a href="https://arxiv.org/pdf/2609.29875v1">When Can Agents Forget Their Reasoning? v1</a>、2026-09-24、全30ページ。本文・付録を照合した。</p>
+<table>
+<thead>
+<tr>
+<th>原論文</th>
+<th>Labの対応</th>
+<th>省いた内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fig. 2 / Eq. 1–9 / Appendix C</td>
+<td>READMEの手順と式</td>
+<td>DeepSeek実行、Qwen採点、block剪定は未実装</td>
+</tr>
+<tr>
+<td>Eq. 15 / Table 14–15</td>
+<td>保存先の比較、results.paper.risk</td>
+<td>状態群の観察比較を因果効果へ変換しない</td>
+</tr>
+<tr>
+<td>Table 16–17</td>
+<td>replay()の読出しと再導出</td>
+<td>Office課題・実tool・stderrの9介入は未再現</td>
+</tr>
+<tr>
+<td>Fig. 3 / Table 10</td>
+<td>Random 5/10/20/40%の散布図</td>
+<td>block削除のICLRをtoken削除と同じ横軸に置かない</td>
+</tr>
+<tr>
+<td>Table 2・7</td>
+<td>Full260の報酬・費用</td>
+<td>非公開軌跡の再評価なし</td>
+</tr>
+<tr>
+<td>Table 3・9</td>
+<td>Ablation80でICLR 0.7376、全削除0.7178</td>
+<td>260課題の0.717775との混同を訂正</td>
+</tr>
+<tr>
+<td>Theorem B.3 / Corollary B.4</td>
+<td>行動分布差の累積上界と外部化の十分条件</td>
+<td>εの推定、適応的削除の安全性保証なし</td>
+</tr>
+<tr>
+<td>Table 12–13</td>
+<td>probe・patchingの評価範囲を解説</td>
+<td>実行役に対するpatchingはない</td>
+</tr>
+</tbody>
+</table>
+<p>run.pyは独立に書いた教育用の状態機械。公式コードの移植ではない。PDF本文・再現性記述には公式コードURLを確認できず、lab.yamlのofficial_codeはnullとした。原論文の公開状況全体を調査した主張ではない。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>推論を消した後も、必要な状態を読み出せるか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/agent-reasoning-forgetting-externalized-state/lab.yaml" download>このページの原データ</a></footer>
+</body></html>
