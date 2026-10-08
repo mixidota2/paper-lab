@@ -1,0 +1,1019 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Radar：harnessが知る再利用予定と、engineが知る現在のKV状態を接続する。 HEARは両者の交換内容と、その言葉の効力を定めるプロトコルである。SCBenchでは待機保護付きの方策がbatch処理を1.61倍速め、最初のtokenまでの時間（TTFT）の中央値を2.23倍、P95を1.45倍改善した。">
+  <title>再利用の予定と現在のKV状態をどう接続するか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-10-05</span></div>
+    <h1>再利用の予定と現在のKV状態をどう接続するか</h1>
+    <p class="lede">Radar：harnessが知る再利用予定と、engineが知る現在のKV状態を接続する。 HEARは両者の交換内容と、その言葉の効力を定めるプロトコルである。SCBenchでは待機保護付きの方策がbatch処理を1.61倍速め、最初のtokenまでの時間（TTFT）の中央値を2.23倍、P95を1.45倍改善した。</p>
+    <details class="bibliography"><summary>原論文：Can Agent Harnesses and Inference Engines Hear Each Other? The HEAR Protocol for Agentic LLM Serving</summary><p>Jiaqi Zhao, Haodong Chen, Jitai Hao, Wei Zhao, Jinghao Pang, Qiang Huang, Jun Yu</p><p>2610.06597 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2610.06597">原典を読む ↗</a><a href="https://arxiv.org/pdf/2610.06597v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-10-08 · 本文とAppendix A–Bを照合。SCBench/Mooncakeの誤帰属を訂正。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-message-force">相手の発言が何を保証するかを分ける</a><a href="#figure-role-modes">役割とタスクで選ぶKV構成が変わる</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p><strong>Radar：harnessが知る再利用予定と、engineが知る現在のKV状態を接続する。</strong> HEARは両者の交換内容と、その言葉の効力を定めるプロトコルである。SCBenchでは待機保護付きの方策がbatch処理を1.61倍速め、最初のtokenまでの時間（TTFT）の中央値を2.23倍、P95を1.45倍改善した。</p>
+<p>効率の結果であり、エージェントの正しさを端から端まで保証するものではない。2つの調査タスク群で品質低下を観測しなかったことも、一般的な同等性証明とは分ける。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>harnessは次に必要な文脈と依存関係を知るが、GPUにそのKVが残っているかは知らない。engineはキャッシュやqueueを知るが、tool待ち中のagentがすぐ戻るかは知らない。この分断は、再利用直前の追い出しや、温かい要求を待たせて冷たい要求を先に処理する原因になる。</p>
+<p>「後で使う」という予測を「必ず保持せよ」と解釈すると、今度は混雑時に資源を塞ぐ。情報の種類だけでなく、要求なのか希望なのかを区別する必要がある。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者の主張：HEARは要求・文脈version・serving instanceへ紐づく双方向の意味規約を用意し、最適化方策から切り離す。cache-aware調整と役割別の実行構成選択で、同じ規約を使った効率改善を示した（§3–4）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>本Labの解釈：Parrot、KVFlow、PBKV、Pythiaなどにも跨層の情報利用はある。HEARの焦点は、特定のschedulerを標準にすることより、意図・状態・制御・実行結果を同じ意味で接続することにある。<a href="harness-buys-tokens-not-pass-rate.html">本日のharness費用Lab</a>と合わせると、harnessは毎stepの入力を増やす側にも、再計算を減らす情報を渡す側にもなりうる。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><h3>4種類のメッセージ</h3>
+<p>Harness→EngineのExecution Description and Intentは、役割、準備完了、依存関係、文脈の寿命、明示的に予測とした再利用予定を伝える。Execution Requirements and Controlは、待機制約、保持・準備・解放、実行構成を要求する。</p>
+<p>Engine→HarnessのState and Capabilitiesは、KVの所在、queue、資源圧力、対応操作を返す。Execution Outcomesは、accepted、completed、rejected、unsupported、failedと実際の構成・再利用・費用を返す（Table 1）。</p>
+<p>Table 2のmessage forceは4対ある。説明は命令ではない。希望はbest effort、要件は実行の制約。状態観測は予約保証ではない。受理は完了ではない。満たせない要件は拒否するか、明示的に許された代替を使う。</p>
+<h3>方策は2つの時間粒度で動く</h3>
+<p>Eq.1の<code>dᵢ=π(hᵢ,sⱼ)</code>は、harness情報hと最新の関連engine状態sから実行を決める。jとiは同時刻とは限らない。cache-aware方策では連続する再利用可能prefixが50%以上ならhotとし、再利用block数の多い要求を優先する。Guard-WはW秒待った要求を保護し、後続hot要求の追い越しを止める。完了時刻をW以内に収める保証ではない。</p>
+<p>MooncakeのSession-Awareは別の保持方策で、完了済み会話から推定した継続確率pとidle時間を用いて<code>r=p exp(−idle/400)</code>で保持優先度を決める。意図を保持命令とは扱わない。</p>
+<p>役割別選択は<code>{vLLM, OmniKV} × {vLLM, H2O, SnapKV}</code>の6構成を開発時に測る。品質・安定性の条件を通した後、makespanが小さい組を凍結する。BrowseComp-Plusは(vLLM,H2O)、DeepResearchBenchは(OmniKV,H2O)。正式評価の結果から後付けで選ばない。</p></div>      </section>
+<figure class="teaching teaching--logic" id="figure-message-force" aria-labelledby="title-message-force">
+  <div class="figure-heading"><span class="eyebrow">LOGIC</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-message-force">相手の発言が何を保証するかを分ける</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">Harness → Engine</p><div class="diagram-nodes"><div class="diagram-node"><strong>Description / Intent</strong><p>状態説明・再利用の予測</p></div><div class="diagram-node"><strong>Requirements / Control</strong><p>明示的な操作要求・待機制約</p></div></div></div><div class="diagram-row"><p class="lane-label">Engine → Harness</p><div class="diagram-nodes"><div class="diagram-node"><strong>State / Capabilities</strong><p>観測時点の状態・対応する操作</p></div><div class="diagram-node"><strong>Outcomes</strong><p>受理・完了・拒否・未対応・失敗</p></div></div></div></div>
+  <figcaption>メッセージの種類だけでは効力は決まらない。 <a href="https://arxiv.org/pdf/2610.06597v1">出典：Table 2 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈：既にあるKVを使えばprefillを減らせるが、hot要求だけを先にするとcold要求が待ち続ける。engine状態は再利用機会を教え、harnessの待機要件はその利用に制限を付ける。この両方を表現できる点が効率と応答性の調整に役立つ。</p>
+<p>役割別には、長い出力ほど実行モード固有の準備費用を回収しやすい。GLM-4.7-FlashのMain出力はBrowseComp-Plusで約0.4K、DeepResearchBenchで約4.4K token。すべての役割へ同じKV圧縮構成を当てる理由はない。</p></div>      </section>
+      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p><a href="https://arxiv.org/pdf/2610.06597v1">一次資料：原論文 Table 3–6 / Appendix A–B</a>の著者報告。SCBench/MooncakeはQwen3-8B、調査タスク群はLangGraphとGLM-4.7-Flashを使う。記録した同じ要求軌跡を再生し、生成内容の変化をscheduler差へ混ぜない。</p>
+<table>
+<thead>
+<tr>
+<th>SCBench</th>
+<th>TTFT中央値 / P95 / 最大 秒</th>
+<th>batch 秒</th>
+<th>KV再利用 %</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FCFS</td>
+<td>63.1 / 74.2 / 79.0</td>
+<td>481</td>
+<td>19.2</td>
+</tr>
+<tr>
+<td>Cache-Aware</td>
+<td>4.6 / 75.8 / 93.9</td>
+<td>224</td>
+<td>87.6</td>
+</tr>
+<tr>
+<td>+ Guard-40</td>
+<td>28.3 / 51.1 / 65.0</td>
+<td>299</td>
+<td>66.1</td>
+</tr>
+<tr>
+<td>+ Guard-60</td>
+<td>4.5 / 64.0 / 80.4</td>
+<td>230</td>
+<td>84.7</td>
+</tr>
+</tbody>
+</table>
+<p><strong>出典訂正：87.6%、63.1→4.6秒、481→224秒はSCBenchのTable 3であり、Mooncakeではない。</strong> guardなしでは中央値とbatchが良くなる一方、最大TTFTは悪化する。</p>
+<p>Mooncakeの50%負荷ではSession-Awareが再利用を19.5→31.9%へ改善。75%では組合せが有利だが、100%負荷でSession+Cache+Guardのthroughputは108.9 turns/minとなりFCFSの122.7を下回る。Cache-Aware単独は128.3、中央値TTFTは163.9→86.8秒。混雑下で同じ組合せが常に勝つわけではない。</p>
+<p>BrowseComp-Plus（208問）は5.69→4.62時間、1.23倍、Judge正答率46.15→46.63%。DeepResearchBench（100件）は5.93→2.42時間、2.45倍、RACE 40.6→41.1。開発時の構成探索費用は正式E2E時間に含まれない。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-role-modes" aria-labelledby="title-role-modes">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-role-modes">役割とタスクで選ぶKV構成が変わる</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="役割とタスクで選ぶKV構成が変わるの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">Main / Reader</th><th scope="col">Main出力</th><th scope="col">時間の著者報告</th></tr></thead><tbody><tr><th scope="row">BrowseComp-Plus</th><td class="">vLLM / H2O</td><td class="">約0.4K token</td><td class="">5.69→4.62時間</td></tr><tr><th scope="row">DeepResearchBench</th><td class="">OmniKV / H2O</td><td class="">約4.4K token</td><td class="">5.93→2.42時間</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>正式評価前に凍結した構成。常に圧縮を強める方策ではない。 <a href="https://arxiv.org/pdf/2610.06597v1">出典：Eq.4–5 / Table 5–6 ↗</a></figcaption>
+</figure>      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>時刻0にcold要求B/C、2人工秒ごとにwarm文脈Aの要求が来る。1スロットのengineで、KVは1文脈だけ保持する。hitのprefillは1、missは6、decodeは1人工秒。FCFS、cache優先、cache優先+8秒guardを同じ到着列で比べる。</p>
+<p>時間軸の各要求を選ぶと、実行前のKV、追い出し、最初のtoken、待機保護が見える。上の通信図では、受理と完了を別の段階として進める。通信図は意味の説明、時間軸はPythonの実行結果である。</p><section class="b08 hear08" aria-label="論文別の対話図"><style>
+.b08{--ink:#203b45;--accent:#176d79;color:var(--ink);padding:clamp(12px,3vw,28px);border:1px solid #bbcecf;border-radius:16px;background:#f3f7f5;margin-top:24px}.b08 *{box-sizing:border-box}.b08.harness08{background:#f4f2fa;--accent:#665289;border-color:#c7bfd8}.b08.traffic08{background:#fff8eb;--accent:#a46b20;border-color:#dec79e}.b08.hear08{background:#eef4fc;--accent:#3c6495;border-color:#b6c8e0}.b08 h3{margin:24px 0 12px}.b08 h4{margin:8px 0}.b08 p{line-height:1.75}.b08 label{display:block;margin:12px 0}.b08 select,.b08 button{font:inherit;padding:8px;max-width:100%;border:1px solid #839ba1;border-radius:6px;background:white;color:#203b45}.b08 button{cursor:pointer}.b08 button:focus-visible,.b08 select:focus-visible,.b08 input:focus-visible{outline:3px solid #cc651f;outline-offset:3px}.b08 input[type=range]{width:100%;max-width:360px;display:block}.b08 .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}.b08 .card{background:white;padding:14px;border-radius:9px;border-top:3px solid var(--accent)}.b08 .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.b08 .big{display:block;font-size:1.6rem;font-weight:750}.b08 .plot{overflow:auto;max-width:100%;background:#fff;border-radius:8px;margin:12px 0}.b08 svg{display:block;width:100%;height:auto;min-width:500px}.b08 .wide{min-width:550px}.b08 .eq{background:#203b45;color:white;padding:15px;border-radius:8px;font-family:monospace;overflow-wrap:anywhere}.b08 .muted{font-size:.9rem;color:#45616a}.b08 .legend{display:flex;flex-wrap:wrap;gap:15px}.b08 .bar{height:14px;background:var(--accent);border-radius:3px}.b08 .band{border-left:5px solid #d38b36;padding:12px;background:#fff5e8}.b08 table{font-size:.9rem}.b08 th,.b08 td{padding:8px}.b08 .tablewrap{overflow:auto}.b08 .gates{display:grid;gap:8px;counter-reset:gate}.b08 .gates button{text-align:left;counter-increment:gate;border-left:6px solid var(--accent)}.b08 .gates button:before{content:counter(gate) '　';font-weight:bold}.b08 .gates button[aria-pressed=true]{background:#d7ece8}.b08 .junctions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.b08 .junction{padding:15px;text-align:center;background:#e7ebed;border-radius:6px}.b08 .junction.free{background:#ffd99e}.b08 .lanes{display:grid;grid-template-columns:1fr 1fr;gap:20px;text-align:center;font-weight:bold}.b08 .message{margin:14px 0;padding:12px;border-left:4px solid var(--accent);background:white;opacity:.35}.b08 .message.on{opacity:1}.b08 .message.back{border-left:0;border-right:4px solid #bb642f;text-align:right}.b08 .request{display:inline-block;min-width:30px;margin:2px;padding:6px 4px;font-size:.85rem;border:1px solid #9cacb1;background:#f4ded0}.b08 .request.hit{background:#cee9e1}.b08 .request.selected{outline:3px solid #ca771f}.b08 .request.guard{border-bottom:4px solid #a44830}.b08 .flow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}.b08 .flow div{background:#fff;padding:15px;border-bottom:4px solid var(--accent)}
+@media(max-width:650px){.b08 .cols,.b08 .flow{grid-template-columns:1fr}.b08 .cards{grid-template-columns:repeat(2,1fr)}.b08{padding:12px}.b08 .big{font-size:1.3rem}.b08 .junction{padding:10px}.b08 .message{font-size:.9rem}}
+</style><p class="muted">操作して比較する。幅の広い図と表は横へスクロールできます。</p>
+<h3>通信の意味を1往復ずつ追う</h3><div class="lanes"><div>Harness<br>役割・依存・再利用予定</div><div>Engine<br>KV・queue・資源圧力</div></div>
+<div data-messages></div><button type="button" data-next>次の通信へ</button> <button type="button" data-reset>先頭へ</button><p class="eq" data-force aria-live="polite"></p>
+<p class="muted">Fig.2 / Table 1–2を説明する模式例。規格で必須の通信順やwire formatではない。</p>
+<h3>平均を縮めても、冷たい要求の待ちは伸びる</h3>
+<div class="legend"><span>緑：cache hit</span><span>桃：miss・旧KVを追い出す</span><span>下線：待機保護</span></div>
+<div data-timelines></div><div class="card" data-event aria-live="polite"></div>
+<div class="plot"><svg viewBox="0 0 600 220" role="img" aria-label="toyの平均と最大TTFT比較" data-latency></svg></div>
+<p class="muted">到着：B/Cは0、Aは0,2,…,30。1スロット、KVは1文脈。hit prefill=1、miss=6、decode=1人工秒。待機8秒で保護。Guardは締切保証ではない。</p>
+<h3>著者報告：SCBenchとMooncakeを混ぜない</h3>
+<label>表示する評価<select data-benchmark><option value="scbench">SCBench：待機と再利用の交換条件</option><option value="mooncake">Mooncake：100%負荷での逆転</option></select></label>
+<div class="tablewrap"><table><thead data-paper-head></thead><tbody data-paper-rows></tbody></table></div>
+<p class="band" data-paper-note></p>
+<script type="application/json" data-batch08>{"lab_kind": "hear08", "note": "人工秒・1スロット・KV 1文脈のtoy。guardは待機後の追い越しを止める規則であり、TTFTの絶対上限ではない。", "cases": {"fcfs": {"mean_ttft": 18.833333333333332, "max_ttft": 20, "batch": 51, "hits": 15, "trace": [{"id": "B0", "context": "B", "start": 0, "first": 6, "end": 7, "ttft": 6, "wait": 0, "hit": false, "guarded": false, "cache_before": "A", "evicted": "A"}, {"id": "C0", "context": "C", "start": 7, "first": 13, "end": 14, "ttft": 13, "wait": 7, "hit": false, "guarded": false, "cache_before": "B", "evicted": "B"}, {"id": "A0", "context": "A", "start": 14, "first": 20, "end": 21, "ttft": 20, "wait": 14, "hit": false, "guarded": false, "cache_before": "C", "evicted": "C"}, {"id": "A1", "context": "A", "start": 21, "first": 22, "end": 23, "ttft": 20, "wait": 19, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A2", "context": "A", "start": 23, "first": 24, "end": 25, "ttft": 20, "wait": 19, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A3", "context": "A", "start": 25, "first": 26, "end": 27, "ttft": 20, "wait": 19, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A4", "context": "A", "start": 27, "first": 28, "end": 29, "ttft": 20, "wait": 19, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A5", "context": "A", "start": 29, "first": 30, "end": 31, "ttft": 20, "wait": 19, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A6", "context": "A", "start": 31, "first": 32, "end": 33, "ttft": 20, "wait": 19, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A7", "context": "A", "start": 33, "first": 34, "end": 35, "ttft": 20, "wait": 19, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A8", "context": "A", "start": 35, "first": 36, "end": 37, "ttft": 20, "wait": 19, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A9", "context": "A", "start": 37, "first": 38, "end": 39, "ttft": 20, "wait": 19, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A10", "context": "A", "start": 39, "first": 40, "end": 41, "ttft": 20, "wait": 19, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A11", "context": "A", "start": 41, "first": 42, "end": 43, "ttft": 20, "wait": 19, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A12", "context": "A", "start": 43, "first": 44, "end": 45, "ttft": 20, "wait": 19, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A13", "context": "A", "start": 45, "first": 46, "end": 47, "ttft": 20, "wait": 19, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A14", "context": "A", "start": 47, "first": 48, "end": 49, "ttft": 20, "wait": 19, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A15", "context": "A", "start": 49, "first": 50, "end": 51, "ttft": 20, "wait": 19, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}]}, "cache": {"mean_ttft": 5.5, "max_ttft": 45, "batch": 46, "hits": 16, "trace": [{"id": "A0", "context": "A", "start": 0, "first": 1, "end": 2, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A1", "context": "A", "start": 2, "first": 3, "end": 4, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A2", "context": "A", "start": 4, "first": 5, "end": 6, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A3", "context": "A", "start": 6, "first": 7, "end": 8, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A4", "context": "A", "start": 8, "first": 9, "end": 10, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A5", "context": "A", "start": 10, "first": 11, "end": 12, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A6", "context": "A", "start": 12, "first": 13, "end": 14, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A7", "context": "A", "start": 14, "first": 15, "end": 16, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A8", "context": "A", "start": 16, "first": 17, "end": 18, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A9", "context": "A", "start": 18, "first": 19, "end": 20, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A10", "context": "A", "start": 20, "first": 21, "end": 22, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A11", "context": "A", "start": 22, "first": 23, "end": 24, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A12", "context": "A", "start": 24, "first": 25, "end": 26, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A13", "context": "A", "start": 26, "first": 27, "end": 28, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A14", "context": "A", "start": 28, "first": 29, "end": 30, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A15", "context": "A", "start": 30, "first": 31, "end": 32, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "B0", "context": "B", "start": 32, "first": 38, "end": 39, "ttft": 38, "wait": 32, "hit": false, "guarded": false, "cache_before": "A", "evicted": "A"}, {"id": "C0", "context": "C", "start": 39, "first": 45, "end": 46, "ttft": 45, "wait": 39, "hit": false, "guarded": false, "cache_before": "B", "evicted": "B"}]}, "cache_guard": {"mean_ttft": 15.5, "max_ttft": 21, "batch": 51, "hits": 15, "trace": [{"id": "A0", "context": "A", "start": 0, "first": 1, "end": 2, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A1", "context": "A", "start": 2, "first": 3, "end": 4, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A2", "context": "A", "start": 4, "first": 5, "end": 6, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "A3", "context": "A", "start": 6, "first": 7, "end": 8, "ttft": 1, "wait": 0, "hit": true, "guarded": false, "cache_before": "A", "evicted": null}, {"id": "B0", "context": "B", "start": 8, "first": 14, "end": 15, "ttft": 14, "wait": 8, "hit": false, "guarded": true, "cache_before": "A", "evicted": "A"}, {"id": "C0", "context": "C", "start": 15, "first": 21, "end": 22, "ttft": 21, "wait": 15, "hit": false, "guarded": true, "cache_before": "B", "evicted": "B"}, {"id": "A4", "context": "A", "start": 22, "first": 28, "end": 29, "ttft": 20, "wait": 14, "hit": false, "guarded": true, "cache_before": "C", "evicted": "C"}, {"id": "A5", "context": "A", "start": 29, "first": 30, "end": 31, "ttft": 20, "wait": 19, "hit": true, "guarded": true, "cache_before": "A", "evicted": null}, {"id": "A6", "context": "A", "start": 31, "first": 32, "end": 33, "ttft": 20, "wait": 19, "hit": true, "guarded": true, "cache_before": "A", "evicted": null}, {"id": "A7", "context": "A", "start": 33, "first": 34, "end": 35, "ttft": 20, "wait": 19, "hit": true, "guarded": true, "cache_before": "A", "evicted": null}, {"id": "A8", "context": "A", "start": 35, "first": 36, "end": 37, "ttft": 20, "wait": 19, "hit": true, "guarded": true, "cache_before": "A", "evicted": null}, {"id": "A9", "context": "A", "start": 37, "first": 38, "end": 39, "ttft": 20, "wait": 19, "hit": true, "guarded": true, "cache_before": "A", "evicted": null}, {"id": "A10", "context": "A", "start": 39, "first": 40, "end": 41, "ttft": 20, "wait": 19, "hit": true, "guarded": true, "cache_before": "A", "evicted": null}, {"id": "A11", "context": "A", "start": 41, "first": 42, "end": 43, "ttft": 20, "wait": 19, "hit": true, "guarded": true, "cache_before": "A", "evicted": null}, {"id": "A12", "context": "A", "start": 43, "first": 44, "end": 45, "ttft": 20, "wait": 19, "hit": true, "guarded": true, "cache_before": "A", "evicted": null}, {"id": "A13", "context": "A", "start": 45, "first": 46, "end": 47, "ttft": 20, "wait": 19, "hit": true, "guarded": true, "cache_before": "A", "evicted": null}, {"id": "A14", "context": "A", "start": 47, "first": 48, "end": 49, "ttft": 20, "wait": 19, "hit": true, "guarded": true, "cache_before": "A", "evicted": null}, {"id": "A15", "context": "A", "start": 49, "first": 50, "end": 51, "ttft": 20, "wait": 19, "hit": true, "guarded": true, "cache_before": "A", "evicted": null}]}}, "experiments": [{"name": "fcfs", "metrics": {"mean_ttft": 18.833333333333332, "max_ttft": 20, "batch": 51, "hits": 15}}, {"name": "cache", "metrics": {"mean_ttft": 5.5, "max_ttft": 45, "batch": 46, "hits": 16}}, {"name": "cache_guard", "metrics": {"mean_ttft": 15.5, "max_ttft": 21, "batch": 51, "hits": 15}}], "paper": {"source": "Table 3–5, v1", "scbench": [["FCFS", 63.1, 74.2, 79, 481, 19.2], ["Cache", 4.6, 75.8, 93.9, 224, 87.6], ["Guard-40", 28.3, 51.1, 65, 299, 66.1], ["Guard-60", 4.5, 64, 80.4, 230, 84.7]], "mooncake_100": [["FCFS", 163.9, 122.7], ["Cache", 86.8, 128.3], ["Session+Cache+Guard", 161.7, 108.9]]}}</script><script>(()=>{const root=document.currentScript.parentElement,d=JSON.parse(root.querySelector("[data-batch08]").textContent);
+const $=s=>root.querySelector(s), f=(x,n=1)=>Number(x).toFixed(n);
+const line=(x1,y1,x2,y2,color='#bac7ca',w=1)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${w}"/>`;
+const txt=(x,y,t,anchor='start',color='#203b45')=>`<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="14" fill="${color}">${t}</text>`;
+const dot=(x,y,c)=>`<circle cx="${x}" cy="${y}" r="5" fill="${c}"/>`;
+function forest(el,rows,min,max,band=false){const x=v=>175+(v-min)/(max-min)*360,H=rows.length*46+60;el.setAttribute('viewBox',`0 0 575 ${H}`);let s='';if(band)s+=`<rect x="${x(-5)}" y="6" width="${x(5)-x(-5)}" height="${H-36}" fill="#e2efe8"/>`;s+=line(x(0),5,x(0),H-35,'#667f86');for(let v=Math.ceil(min/5)*5;v<=max;v+=5){s+=txt(x(v),H-10,v,'middle');}rows.forEach((r,i)=>{let y=25+i*46;s+=txt(8,y+4,r[0])+line(x(r[2]),y,x(r[3]),y,'#176d79',3)+line(x(r[2]),y-5,x(r[2]),y+5,'#176d79',2)+line(x(r[3]),y-5,x(r[3]),y+5,'#176d79',2)+dot(x(r[1]),y,'#bc6536')+txt(x(r[1]),y+20,`${r[1]} [${r[2]}, ${r[3]}]`,'middle');});el.innerHTML=s;}
+
+const messages=[['Execution Description and Intent','Aの文脈v3を次のtool完了後に再利用する見込み →',false,'意図 ≠ 制御：予定を伝えただけではKV保持を命じていない。'],['State and Capabilities','← Aのprefixは今GPU上。prepare操作に対応',true,'観測 ≠ 保証：現在の所在は、次の要求時の予約ではない。'],['Execution Requirements and Control','BのKV準備を要求。待機8秒後は追い越し禁止 →',false,'希望 ≠ 要件：cache優先という希望より、待機保護の要件が優先する。'],['Execution Outcomes','← prepare B: accepted',true,'受理 ≠ 完了：準備はまだ進行中。Bが使えると決めつけない。'],['Execution Outcomes','← prepare B: completed、文脈versionを確認',true,'完了を確認してから利用する。rejected / unsupported / failedは別の結果として扱う。']];let step=0;
+function msg(){$('[data-messages]').innerHTML=messages.map((m,i)=>`<div class="message ${m[2]?'back':''} ${i<=step?'on':''}"><b>${m[0]}</b><br>${m[1]}</div>`).join('');$('[data-force]').textContent=messages[step][3];$('[data-next]').disabled=step===messages.length-1;}$('[data-next]').addEventListener('click',()=>{step=Math.min(step+1,messages.length-1);msg();});$('[data-reset]').addEventListener('click',()=>{step=0;msg();});msg();
+const names={fcfs:'FCFS',cache:'Cache-Aware',cache_guard:'Cache-Aware + Guard'};$('[data-timelines]').innerHTML=Object.entries(d.cases).map(([k,v])=>`<h4>${names[k]} ／ 完了 ${v.batch}人工秒</h4><div>${v.trace.map((t,i)=>`<button type="button" class="request ${t.hit?'hit':''} ${t.guarded?'guard':''}" data-policy="${k}" data-event-index="${i}" aria-label="${names[k]}の${t.id}、開始${t.start}秒">${t.id}<br>${t.start}–${t.end}</button>`).join('')}</div>`).join('');
+function event(k,i){root.querySelectorAll('.request').forEach(b=>b.classList.toggle('selected',b.dataset.policy===k && +b.dataset.eventIndex===i));let t=d.cases[k].trace[i];$('[data-event]').innerHTML=`<b>${names[k]} / ${t.id}</b><p>開始 ${t.start} → 最初のtoken ${t.first} → 完了 ${t.end}。TTFT ${t.ttft}、待機 ${t.wait}人工秒。</p><p>実行前KV：${t.cache_before}。${t.hit?'再利用できた。':t.evicted+'を追い出して再prefill。'} ${t.guarded?'待機保護を適用。':'待機保護なし。'}</p>`;}root.querySelectorAll('[data-event-index]').forEach(b=>b.addEventListener('click',()=>event(b.dataset.policy,+b.dataset.eventIndex)));event('fcfs',0);
+let s=txt(5,18,'TTFT（人工秒）'),x=v=>210+v*7;Object.entries(d.cases).forEach(([k,c],i)=>{let y=48+i*58;s+=txt(5,y+8,names[k])+`<rect x="210" y="${y-9}" width="${c.mean_ttft*7}" height="12" fill="#176d79"/><rect x="210" y="${y+7}" width="${c.max_ttft*7}" height="12" fill="#b96335"/>`+txt(x(c.mean_ttft)+5,y+1,f(c.mean_ttft))+txt(x(c.max_ttft)+5,y+19,c.max_ttft);});s+=txt(210,218,'緑：平均　橙：最大');$('[data-latency]').innerHTML=s;
+function paper(){let sc=$('[data-benchmark]').value==='scbench';let cols=sc?['構成','P50','P95','最大','batch秒','reuse %']:['構成','P50秒','turns/min'];$('[data-paper-head]').innerHTML='<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';$('[data-paper-rows]').innerHTML=(sc?d.paper.scbench:d.paper.mooncake_100).map(r=>'<tr>'+r.map((x,i)=>i?`<td>${x}</td>`:`<th>${x}</th>`).join('')+'</tr>').join('');$('[data-paper-note]').textContent=sc?'Table 3：87.6%と63.1→4.6秒はSCBench。guardなしの最大TTFTは79.0→93.9秒と悪化。':'Table 4：100%負荷ではSession+Cache+GuardのthroughputがFCFSを下回る。再利用の意図だけで混雑を解決できない。';}$('[data-benchmark]').addEventListener('change',paper);paper();
+})();</script></section></div><div class="downloads"><a href="../downloads/hear-harness-engine-serving-protocol/run.py" download>実行コード</a><a href="../downloads/hear-harness-engine-serving-protocol/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/hear-harness-engine-serving-protocol">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>人工秒・1スロット・KV 1文脈のtoy。guardは待機後の追い越しを止める規則であり、TTFTの絶対上限ではない。</em></p>
+<h3>fcfs</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>mean_ttft</th><td colspan='1'>18.833333333333332</td></tr><tr><th scope='row'>max_ttft</th><td colspan='1'>20</td></tr><tr><th scope='row'>batch</th><td colspan='1'>51</td></tr><tr><th scope='row'>hits</th><td colspan='1'>15</td></tr></tbody></table></div>
+<h3>cache</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>mean_ttft</th><td colspan='1'>5.5</td></tr><tr><th scope='row'>max_ttft</th><td colspan='1'>45</td></tr><tr><th scope='row'>batch</th><td colspan='1'>46</td></tr><tr><th scope='row'>hits</th><td colspan='1'>16</td></tr></tbody></table></div>
+<h3>cache_guard</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>mean_ttft</th><td colspan='1'>15.5</td></tr><tr><th scope='row'>max_ttft</th><td colspan='1'>21</td></tr><tr><th scope='row'>batch</th><td colspan='1'>51</td></tr><tr><th scope='row'>hits</th><td colspan='1'>15</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;lab_kind&quot;: &quot;hear08&quot;,
+  &quot;note&quot;: &quot;人工秒・1スロット・KV 1文脈のtoy。guardは待機後の追い越しを止める規則であり、TTFTの絶対上限ではない。&quot;,
+  &quot;cases&quot;: {
+    &quot;fcfs&quot;: {
+      &quot;mean_ttft&quot;: 18.833333333333332,
+      &quot;max_ttft&quot;: 20,
+      &quot;batch&quot;: 51,
+      &quot;hits&quot;: 15,
+      &quot;trace&quot;: [
+        {
+          &quot;id&quot;: &quot;B0&quot;,
+          &quot;context&quot;: &quot;B&quot;,
+          &quot;start&quot;: 0,
+          &quot;first&quot;: 6,
+          &quot;end&quot;: 7,
+          &quot;ttft&quot;: 6,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: false,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: &quot;A&quot;
+        },
+        {
+          &quot;id&quot;: &quot;C0&quot;,
+          &quot;context&quot;: &quot;C&quot;,
+          &quot;start&quot;: 7,
+          &quot;first&quot;: 13,
+          &quot;end&quot;: 14,
+          &quot;ttft&quot;: 13,
+          &quot;wait&quot;: 7,
+          &quot;hit&quot;: false,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;B&quot;,
+          &quot;evicted&quot;: &quot;B&quot;
+        },
+        {
+          &quot;id&quot;: &quot;A0&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 14,
+          &quot;first&quot;: 20,
+          &quot;end&quot;: 21,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 14,
+          &quot;hit&quot;: false,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;C&quot;,
+          &quot;evicted&quot;: &quot;C&quot;
+        },
+        {
+          &quot;id&quot;: &quot;A1&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 21,
+          &quot;first&quot;: 22,
+          &quot;end&quot;: 23,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A2&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 23,
+          &quot;first&quot;: 24,
+          &quot;end&quot;: 25,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A3&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 25,
+          &quot;first&quot;: 26,
+          &quot;end&quot;: 27,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A4&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 27,
+          &quot;first&quot;: 28,
+          &quot;end&quot;: 29,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A5&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 29,
+          &quot;first&quot;: 30,
+          &quot;end&quot;: 31,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A6&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 31,
+          &quot;first&quot;: 32,
+          &quot;end&quot;: 33,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A7&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 33,
+          &quot;first&quot;: 34,
+          &quot;end&quot;: 35,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A8&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 35,
+          &quot;first&quot;: 36,
+          &quot;end&quot;: 37,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A9&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 37,
+          &quot;first&quot;: 38,
+          &quot;end&quot;: 39,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A10&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 39,
+          &quot;first&quot;: 40,
+          &quot;end&quot;: 41,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A11&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 41,
+          &quot;first&quot;: 42,
+          &quot;end&quot;: 43,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A12&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 43,
+          &quot;first&quot;: 44,
+          &quot;end&quot;: 45,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A13&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 45,
+          &quot;first&quot;: 46,
+          &quot;end&quot;: 47,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A14&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 47,
+          &quot;first&quot;: 48,
+          &quot;end&quot;: 49,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A15&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 49,
+          &quot;first&quot;: 50,
+          &quot;end&quot;: 51,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        }
+      ]
+    },
+    &quot;cache&quot;: {
+      &quot;mean_ttft&quot;: 5.5,
+      &quot;max_ttft&quot;: 45,
+      &quot;batch&quot;: 46,
+      &quot;hits&quot;: 16,
+      &quot;trace&quot;: [
+        {
+          &quot;id&quot;: &quot;A0&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 0,
+          &quot;first&quot;: 1,
+          &quot;end&quot;: 2,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A1&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 2,
+          &quot;first&quot;: 3,
+          &quot;end&quot;: 4,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A2&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 4,
+          &quot;first&quot;: 5,
+          &quot;end&quot;: 6,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A3&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 6,
+          &quot;first&quot;: 7,
+          &quot;end&quot;: 8,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A4&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 8,
+          &quot;first&quot;: 9,
+          &quot;end&quot;: 10,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A5&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 10,
+          &quot;first&quot;: 11,
+          &quot;end&quot;: 12,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A6&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 12,
+          &quot;first&quot;: 13,
+          &quot;end&quot;: 14,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A7&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 14,
+          &quot;first&quot;: 15,
+          &quot;end&quot;: 16,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A8&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 16,
+          &quot;first&quot;: 17,
+          &quot;end&quot;: 18,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A9&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 18,
+          &quot;first&quot;: 19,
+          &quot;end&quot;: 20,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A10&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 20,
+          &quot;first&quot;: 21,
+          &quot;end&quot;: 22,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A11&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 22,
+          &quot;first&quot;: 23,
+          &quot;end&quot;: 24,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A12&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 24,
+          &quot;first&quot;: 25,
+          &quot;end&quot;: 26,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A13&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 26,
+          &quot;first&quot;: 27,
+          &quot;end&quot;: 28,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A14&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 28,
+          &quot;first&quot;: 29,
+          &quot;end&quot;: 30,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A15&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 30,
+          &quot;first&quot;: 31,
+          &quot;end&quot;: 32,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;B0&quot;,
+          &quot;context&quot;: &quot;B&quot;,
+          &quot;start&quot;: 32,
+          &quot;first&quot;: 38,
+          &quot;end&quot;: 39,
+          &quot;ttft&quot;: 38,
+          &quot;wait&quot;: 32,
+          &quot;hit&quot;: false,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: &quot;A&quot;
+        },
+        {
+          &quot;id&quot;: &quot;C0&quot;,
+          &quot;context&quot;: &quot;C&quot;,
+          &quot;start&quot;: 39,
+          &quot;first&quot;: 45,
+          &quot;end&quot;: 46,
+          &quot;ttft&quot;: 45,
+          &quot;wait&quot;: 39,
+          &quot;hit&quot;: false,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;B&quot;,
+          &quot;evicted&quot;: &quot;B&quot;
+        }
+      ]
+    },
+    &quot;cache_guard&quot;: {
+      &quot;mean_ttft&quot;: 15.5,
+      &quot;max_ttft&quot;: 21,
+      &quot;batch&quot;: 51,
+      &quot;hits&quot;: 15,
+      &quot;trace&quot;: [
+        {
+          &quot;id&quot;: &quot;A0&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 0,
+          &quot;first&quot;: 1,
+          &quot;end&quot;: 2,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A1&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 2,
+          &quot;first&quot;: 3,
+          &quot;end&quot;: 4,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A2&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 4,
+          &quot;first&quot;: 5,
+          &quot;end&quot;: 6,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A3&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 6,
+          &quot;first&quot;: 7,
+          &quot;end&quot;: 8,
+          &quot;ttft&quot;: 1,
+          &quot;wait&quot;: 0,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: false,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;B0&quot;,
+          &quot;context&quot;: &quot;B&quot;,
+          &quot;start&quot;: 8,
+          &quot;first&quot;: 14,
+          &quot;end&quot;: 15,
+          &quot;ttft&quot;: 14,
+          &quot;wait&quot;: 8,
+          &quot;hit&quot;: false,
+          &quot;guarded&quot;: true,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: &quot;A&quot;
+        },
+        {
+          &quot;id&quot;: &quot;C0&quot;,
+          &quot;context&quot;: &quot;C&quot;,
+          &quot;start&quot;: 15,
+          &quot;first&quot;: 21,
+          &quot;end&quot;: 22,
+          &quot;ttft&quot;: 21,
+          &quot;wait&quot;: 15,
+          &quot;hit&quot;: false,
+          &quot;guarded&quot;: true,
+          &quot;cache_before&quot;: &quot;B&quot;,
+          &quot;evicted&quot;: &quot;B&quot;
+        },
+        {
+          &quot;id&quot;: &quot;A4&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 22,
+          &quot;first&quot;: 28,
+          &quot;end&quot;: 29,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 14,
+          &quot;hit&quot;: false,
+          &quot;guarded&quot;: true,
+          &quot;cache_before&quot;: &quot;C&quot;,
+          &quot;evicted&quot;: &quot;C&quot;
+        },
+        {
+          &quot;id&quot;: &quot;A5&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 29,
+          &quot;first&quot;: 30,
+          &quot;end&quot;: 31,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: true,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A6&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 31,
+          &quot;first&quot;: 32,
+          &quot;end&quot;: 33,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: true,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A7&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 33,
+          &quot;first&quot;: 34,
+          &quot;end&quot;: 35,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: true,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A8&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 35,
+          &quot;first&quot;: 36,
+          &quot;end&quot;: 37,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: true,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A9&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 37,
+          &quot;first&quot;: 38,
+          &quot;end&quot;: 39,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: true,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A10&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 39,
+          &quot;first&quot;: 40,
+          &quot;end&quot;: 41,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: true,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A11&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 41,
+          &quot;first&quot;: 42,
+          &quot;end&quot;: 43,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: true,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A12&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 43,
+          &quot;first&quot;: 44,
+          &quot;end&quot;: 45,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: true,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A13&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 45,
+          &quot;first&quot;: 46,
+          &quot;end&quot;: 47,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: true,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A14&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 47,
+          &quot;first&quot;: 48,
+          &quot;end&quot;: 49,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: true,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        },
+        {
+          &quot;id&quot;: &quot;A15&quot;,
+          &quot;context&quot;: &quot;A&quot;,
+          &quot;start&quot;: 49,
+          &quot;first&quot;: 50,
+          &quot;end&quot;: 51,
+          &quot;ttft&quot;: 20,
+          &quot;wait&quot;: 19,
+          &quot;hit&quot;: true,
+          &quot;guarded&quot;: true,
+          &quot;cache_before&quot;: &quot;A&quot;,
+          &quot;evicted&quot;: null
+        }
+      ]
+    }
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;fcfs&quot;,
+      &quot;metrics&quot;: {
+        &quot;mean_ttft&quot;: 18.833333333333332,
+        &quot;max_ttft&quot;: 20,
+        &quot;batch&quot;: 51,
+        &quot;hits&quot;: 15
+      }
+    },
+    {
+      &quot;name&quot;: &quot;cache&quot;,
+      &quot;metrics&quot;: {
+        &quot;mean_ttft&quot;: 5.5,
+        &quot;max_ttft&quot;: 45,
+        &quot;batch&quot;: 46,
+        &quot;hits&quot;: 16
+      }
+    },
+    {
+      &quot;name&quot;: &quot;cache_guard&quot;,
+      &quot;metrics&quot;: {
+        &quot;mean_ttft&quot;: 15.5,
+        &quot;max_ttft&quot;: 21,
+        &quot;batch&quot;: 51,
+        &quot;hits&quot;: 15
+      }
+    }
+  ],
+  &quot;paper&quot;: {
+    &quot;source&quot;: &quot;Table 3–5, v1&quot;,
+    &quot;scbench&quot;: [
+      [
+        &quot;FCFS&quot;,
+        63.1,
+        74.2,
+        79,
+        481,
+        19.2
+      ],
+      [
+        &quot;Cache&quot;,
+        4.6,
+        75.8,
+        93.9,
+        224,
+        87.6
+      ],
+      [
+        &quot;Guard-40&quot;,
+        28.3,
+        51.1,
+        65,
+        299,
+        66.1
+      ],
+      [
+        &quot;Guard-60&quot;,
+        4.5,
+        64,
+        80.4,
+        230,
+        84.7
+      ]
+    ],
+    &quot;mooncake_100&quot;: [
+      [
+        &quot;FCFS&quot;,
+        163.9,
+        122.7
+      ],
+      [
+        &quot;Cache&quot;,
+        86.8,
+        128.3
+      ],
+      [
+        &quot;Session+Cache+Guard&quot;,
+        161.7,
+        108.9
+      ]
+    ]
+  }
+}</code></pre></details><p>toyではFCFSの平均/最大TTFTは18.83/20、cache優先は5.50/45、guard付きは15.50/21人工秒だった。guardはcold要求の長い待機を抑えたが、全体をFCFSより速くする保証ではない。batchは51/46/51で、待機保護と再利用の交換条件が見える。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>CONFIRMED：同じ到着列の全要求を一度ずつ処理し、到着前には実行しない。cache優先で平均が下がり最大が増える例、guardで古いcold要求の待機を抑える例を確認した。</p>
+<p>PARTIAL：待機と再利用の仕組みだけを実行した。HEAR全体、prefix block、複数GPU、非同期状態更新、Session-Aware保持方策を実装したものではない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>NOT TESTED：実LLM、GPU、KV圧縮、実際のprotocol adapter、4ベンチマークの再現、本番運用、古い状態通知や故障時の正しさ。論文の品質指標は限られたタスク群で低下を観測しなかったという結果であり、E2Eの正しさや同等性の保証ではない。公式リンクは匿名公開先で、今回の取得では内容を確認できなかった。固定版コードの実行はしていない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>リポジトリ直下で実行する。Python標準ライブラリだけを使い、APIへは接続しない。</p>
+<pre><code class="language-bash">uv run --no-project papers/hear-harness-engine-serving-protocol/run.py
+uv run paper-lab build
+</code></pre>
+<p>lab.yamlとREADME.mdが説明、run.pyとresults.jsonが実験、mapping.mdが原典との対応を保持する。HTMLはビルドで生成し、直接編集しない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文と最小実験の対応</h1>
+<p>一次資料：<a href="https://arxiv.org/pdf/2610.06597v1">arXiv 2610.06597v1</a>。2026-10-08照合。PDF SHA-256: <code>ecdc8cdbeb1f3e93579141278a920ac9009f737785373af5a6694d2c122d3d0c</code>。</p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>Lab</th>
+<th>境界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Table 1–2 / Fig.2</td>
+<td>通信図</td>
+<td>4方向の意味と受理/完了の違いを段階表示。wire formatの実装ではない。</td>
+</tr>
+<tr>
+<td>§4.2 / Appendix A.2</td>
+<td>schedule()</td>
+<td>hot優先と待機保護を単一スロットで縮約。全prefix一致のtoy。</td>
+</tr>
+<tr>
+<td>Table 3–6</td>
+<td>lab.yaml / results.jsonのpaper</td>
+<td>SCBenchとMooncakeを別の系列で保存。独立再現ではない。</td>
+</tr>
+<tr>
+<td>Eq.4–5 / Appendix A.1</td>
+<td>method節</td>
+<td>6構成の役割別選択を説明。GPU/KVモードの実装は省略。</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード：<a href="https://anonymous.4open.science/r/hear-3D1E/">著者がPDFで案内した公開先</a>。本Labはこのコードを実行・監査していない。</p>
+<p>匿名公開先は今回の取得で内容を確認できなかった。コード内の関数や固定revisionとの対応はNOT TESTEDとする。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>再利用の予定と現在のKV状態をどう接続するか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/hear-harness-engine-serving-protocol/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

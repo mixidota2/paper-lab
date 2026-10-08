@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Radar：予測を良くする前に、その制御器が未来情報を使えるかを調べる。 中国・宣城の実記録から再構成した需要による交通シミュレーションで、MAEは約4%改善した。しかし最終7日間では、予測ありも完全未来情報ありも安定した待ち行列削減を示さなかった。">
+  <title>予測の改善を使える行動が残っているか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-10-04</span></div>
+    <h1>予測の改善を使える行動が残っているか</h1>
+    <p class="lede">Radar：予測を良くする前に、その制御器が未来情報を使えるかを調べる。 中国・宣城の実記録から再構成した需要による交通シミュレーションで、MAEは約4%改善した。しかし最終7日間では、予測ありも完全未来情報ありも安定した待ち行列削減を示さなかった。</p>
+    <details class="bibliography"><summary>原論文：When better traffic forecasts fail to improve signal control: a layered diagnostic study of forecast-to-decision value</summary><p>Jianing Long, Xiaobin Li, Wuming Lei, Weiguang Wang</p><p>2610.06992 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2610.06992">原典を読む ↗</a><a href="https://arxiv.org/pdf/2610.06992v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-10-08 · 全11ページ、時刻修正と最終v8評価を照合。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-decision-time-audit">分の途中に、分の確定値は見えない</a><a href="#figure-oracle-boundary">人工の正の対照と、実需要の関門は別</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p><strong>Radar：予測を良くする前に、その制御器が未来情報を使えるかを調べる。</strong> 中国・宣城の実記録から再構成した需要による交通シミュレーションで、MAEは約4%改善した。しかし最終7日間では、予測ありも完全未来情報ありも安定した待ち行列削減を示さなかった。</p>
+<p>小売への直接の実証ではない。補充や価格の決定でも、実効的な選択肢とoracleの価値を先に確かめる、という検証順序に注目する。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>交通量の誤差を平均的に減らしても、赤信号を青に替えられる地点や時刻で役立つとは限らない。9交差点という名目上の規模に対し、異なる非空の行動が複数ある交差点は2つだけだった。</p>
+<p>また、ある分の総交通量が確定するのはその分の終わりである。その値を使った予測を分の途中の意思決定へ渡すと、未来情報が漏れる。需要の空間解像度だけでなく、いつ観測できるかを揃える必要がある。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者の主張：予測品質、時刻の整合、行動の識別、oracleの構造的価値、凍結後の閉ループ価値を順に検査する。人工的な正の対照では未来情報が効いても、実需要を再構成した最終評価では安定したqueue改善を観測しなかった（§5–7）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>本Labの解釈：小売補充なら発注ロット・容量・納期、価格なら変更可能日や価格帯が実効行動を制限する。予測改善を在庫費用の改善と同一視する前に、同じ制約と最適化器へ完全需要を渡して利益が出るかを見る。<a href="accuracy-not-service-intermittent-demand.html">Accuracy Is Not Service</a>や<a href="zalando-sales-event-pricing-forecast-optimize.html">Zalandoの価格Lab</a>につながるが、交通から小売への転用は仮説である。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><p>2023年4月の29日を、学習13日、検証4日、CQR校正5日、テスト7日に時系列分割する。重複ファイルの4月9日を除外した。9交差点、7流入口、20の移動方向を扱い、過去60分から先15分を予測する。</p>
+<p>点予測はpersistence、曜日・分ごとのhistorical mean、ExtraTreesを比較。方向別の採用モデルは、流入口予測を直近60分の方向比率で配るhierarchical rolling-shareである。区間はLightGBMの7分位点を並べ直し、CQRで校正する。<code>sᵢ=max(q低(xᵢ)−yᵢ, yᵢ−q高(xᵢ))</code>の校正分位点だけ両端を広げる（Eq.3）。周辺被覆率は、高需要条件での保証ではない。</p>
+<p>最終制御は同じ60秒rollout、目的関数、実効行動の全探索を共有する。no-future、因果的予測、5秒刻みのevent oracleで入力だけを替える。7交差点は1行動、残る2つは各8行動なので、1段階の組合せは8×8=64。地図の見た目ほど制御自由度はない。</p>
+<p>時刻修正後は、分mの判断にm−1起点の予測を使い、既に観測した流入を引く。oracleは最初の投影slotへ新流入を足さず、以後のslotへ将来のsource departureを入れる。source departureと境界到着は同じではない。内部の比例配分と実行側FIFOにも、競合時2.5台のL1差が残る。oracleにも限界がある。</p>
+<p>基準は観測時刻だ。たとえば12:03:20に信号を選ぶなら、12:03の確定交通量はまだ分からないため、12:02終了時点で作った予測から12:03に入って既に観測した流入を引き、残りを未観測の時間へ配る。時刻規約の例だ。</p></div>      </section>
+<figure class="teaching teaching--timeline" id="figure-decision-time-audit" aria-labelledby="title-decision-time-audit">
+  <div class="figure-heading"><span class="eyebrow">TIMELINE</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-decision-time-audit">分の途中に、分の確定値は見えない</h3>
+  <div class="diagram-rows"><div class="diagram-row"><p class="lane-label">時刻順</p><div class="diagram-nodes"><div class="diagram-node"><strong>分m−1の終了</strong><p>ここまでの観測から予測を作る</p></div><div class="diagram-node"><strong>分mの途中</strong><p>現在までの流入を観測</p></div><div class="diagram-node"><strong>将来slot</strong><p>分mの予測総量から観測済み分を引く</p></div></div></div></div>
+  <figcaption>最終版の情報時刻を揃える。未来流入の二重投入も避ける。 <a href="https://arxiv.org/pdf/2610.06992v1">出典：§3.2 / §5.3 ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈：順番に検査すれば「予測が悪い」のか「制御器が情報を使えない」のかを切り分けやすい。人工例でoracleが役立つのは実装の正の対照であり、実需要でも価値がある証明にはならない。</p>
+<p>修正済みの検証2日では、oracleのqueue改善は−1.38%、因果的予測は−2.56%で、関門の判定はNO_GOだった。著者は負の結果を測るため、設定を変えず最終テストを1回実施した。その後に指標をspillbackへ替えて成功と呼ぶことも避けている。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-oracle-boundary" aria-labelledby="title-oracle-boundary">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-oracle-boundary">人工の正の対照と、実需要の関門は別</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="人工の正の対照と、実需要の関門は別の表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">未来情報の効果</th><th scope="col">判断</th></tr></thead><tbody><tr><th scope="row">人工交差点</th><td class="">内部rollout費用 −61.5%</td><td class="">情報に応じて行動を替えられる</td></tr><tr><th scope="row">修正後の検証2日</th><td class="">oracle queue改善 −1.38%</td><td class="">NO_GO</td></tr><tr><th scope="row">凍結した7日</th><td class="">oracle queue改善 −3.39%、CIはゼロを含む</td><td class="">安定した便益を未観測</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>oracleにも使う制御器・目的・近似ダイナミクスの限界がある。 <a href="https://arxiv.org/pdf/2610.06992v1">出典：§5.5 / §6.2–6.3 ↗</a></figcaption>
+</figure>      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p><a href="https://arxiv.org/pdf/2610.06992v1">一次資料：原論文 Table 2–3 / Fig.4 / §6</a>の著者報告。流入口MAEは1.9805→1.9007（−4.03%）、方向別は0.8446→0.8115（−3.92%）。90%区間の被覆率は全体90.72%に対し、事後的に選んだ高需要群では75.66%だった。</p>
+<p>人工交差点では未来の流入を知ると内部rollout費用が3195.8→1230.0（−61.5%）。一方、実需要の再構成による7日間では次の結果となる。正が改善である。</p>
+<table>
+<thead>
+<tr>
+<th>比較：no-future基準</th>
+<th>改善率</th>
+<th>95% CI</th>
+<th>改善した日</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>因果的予測：queue</td>
+<td>−6.09%</td>
+<td>[−12.94,1.15]</td>
+<td>3/7</td>
+</tr>
+<tr>
+<td>event oracle：queue</td>
+<td>−3.39%</td>
+<td>[−7.24,3.08]</td>
+<td>4/7</td>
+</tr>
+<tr>
+<td>event oracle：spillback</td>
+<td>+3.78%</td>
+<td>[−1.25,12.26]</td>
+<td>5/7</td>
+</tr>
+</tbody>
+</table>
+<p>queueの7日平均はno-future 851,022、予測902,821、oracle 879,866 vehicle-seconds。区間は7日を単位とする50,000回の対応bootstrapで、すべてゼロをまたぐ。予測は必ず害を与えるという結果ではない。再標本化を増やしても、独立した実日数は増えない。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>補充量aと需要Dの絶対差|a−D|を費用とする1期間toyを動かす。同じ600需要にhistorical、誤差を減らした予測、oracleを与える。行動が{8}だけ、{4,8,12}、需要から外れた{0,1,2}の3条件を切り替える。</p>
+<p>3条件とも予測MAEは同じだけ改善する。それでも意思決定の価値は違う。選択肢の数だけでは足りず、未来によって最適行動が変わるかが必要だと確かめる。交通のFIFOや閉ループはこのtoyに含めない。</p><section class="b08 traffic08" aria-label="論文別の対話図"><style>
+.b08{--ink:#203b45;--accent:#176d79;color:var(--ink);padding:clamp(12px,3vw,28px);border:1px solid #bbcecf;border-radius:16px;background:#f3f7f5;margin-top:24px}.b08 *{box-sizing:border-box}.b08.harness08{background:#f4f2fa;--accent:#665289;border-color:#c7bfd8}.b08.traffic08{background:#fff8eb;--accent:#a46b20;border-color:#dec79e}.b08.hear08{background:#eef4fc;--accent:#3c6495;border-color:#b6c8e0}.b08 h3{margin:24px 0 12px}.b08 h4{margin:8px 0}.b08 p{line-height:1.75}.b08 label{display:block;margin:12px 0}.b08 select,.b08 button{font:inherit;padding:8px;max-width:100%;border:1px solid #839ba1;border-radius:6px;background:white;color:#203b45}.b08 button{cursor:pointer}.b08 button:focus-visible,.b08 select:focus-visible,.b08 input:focus-visible{outline:3px solid #cc651f;outline-offset:3px}.b08 input[type=range]{width:100%;max-width:360px;display:block}.b08 .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}.b08 .card{background:white;padding:14px;border-radius:9px;border-top:3px solid var(--accent)}.b08 .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.b08 .big{display:block;font-size:1.6rem;font-weight:750}.b08 .plot{overflow:auto;max-width:100%;background:#fff;border-radius:8px;margin:12px 0}.b08 svg{display:block;width:100%;height:auto;min-width:500px}.b08 .wide{min-width:550px}.b08 .eq{background:#203b45;color:white;padding:15px;border-radius:8px;font-family:monospace;overflow-wrap:anywhere}.b08 .muted{font-size:.9rem;color:#45616a}.b08 .legend{display:flex;flex-wrap:wrap;gap:15px}.b08 .bar{height:14px;background:var(--accent);border-radius:3px}.b08 .band{border-left:5px solid #d38b36;padding:12px;background:#fff5e8}.b08 table{font-size:.9rem}.b08 th,.b08 td{padding:8px}.b08 .tablewrap{overflow:auto}.b08 .gates{display:grid;gap:8px;counter-reset:gate}.b08 .gates button{text-align:left;counter-increment:gate;border-left:6px solid var(--accent)}.b08 .gates button:before{content:counter(gate) '　';font-weight:bold}.b08 .gates button[aria-pressed=true]{background:#d7ece8}.b08 .junctions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.b08 .junction{padding:15px;text-align:center;background:#e7ebed;border-radius:6px}.b08 .junction.free{background:#ffd99e}.b08 .lanes{display:grid;grid-template-columns:1fr 1fr;gap:20px;text-align:center;font-weight:bold}.b08 .message{margin:14px 0;padding:12px;border-left:4px solid var(--accent);background:white;opacity:.35}.b08 .message.on{opacity:1}.b08 .message.back{border-left:0;border-right:4px solid #bb642f;text-align:right}.b08 .request{display:inline-block;min-width:30px;margin:2px;padding:6px 4px;font-size:.85rem;border:1px solid #9cacb1;background:#f4ded0}.b08 .request.hit{background:#cee9e1}.b08 .request.selected{outline:3px solid #ca771f}.b08 .request.guard{border-bottom:4px solid #a44830}.b08 .flow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}.b08 .flow div{background:#fff;padding:15px;border-bottom:4px solid var(--accent)}
+@media(max-width:650px){.b08 .cols,.b08 .flow{grid-template-columns:1fr}.b08 .cards{grid-template-columns:repeat(2,1fr)}.b08{padding:12px}.b08 .big{font-size:1.3rem}.b08 .junction{padding:10px}.b08 .message{font-size:.9rem}}
+</style><p class="muted">操作して比較する。幅の広い図と表は横へスクロールできます。</p>
+<h3>予測を制御へ入れる前の5つの関門</h3>
+<div class="cols"><div class="gates" data-gates></div><div class="card" data-gate-detail aria-live="polite"></div></div>
+<h3>9交差点でも、選べるのは2地点</h3><div class="cols"><div class="junctions" data-junctions></div><div class="card"><span class="big">1⁷ × 8² = 64</span><p>同じ非空movement集合を重複除去した実効行動。最終版は64組合せを全探索する。</p><p class="muted">模式的な並び。実際の地理や交差点IDの対応を示す地図ではない。</p></div></div>
+<h3>周辺の90%被覆は、高需要での90%を意味しない</h3><div class="cols" data-coverage></div>
+<h3>凍結テスト7日：正が改善、ゼロをまたぐ区間</h3><div class="plot"><svg class="wide" role="img" aria-label="予測とoracleのqueueおよびspillback改善率と95%CI" data-effects></svg></div>
+<p class="muted">Fig.4。独立単位は7日。50,000 bootstrap反復は50,000日分の証拠ではない。</p>
+<h3>同じ予測改善を、異なる行動集合へ渡す</h3>
+<label>補充の選択肢<select data-actions><option value="one">{8}：1つだけ</option><option value="several">{4,8,12}：需要に応じて替えられる</option><option value="irrelevant">{0,1,2}：複数あるが需要より小さい</option></select></label>
+<div class="tablewrap"><table><thead><tr><th>予測</th><th>MAE</th><th>決定費用</th><th>費用削減</th><th>選んだ量</th></tr></thead><tbody data-toy></tbody></table></div><p class="eq" data-oracle aria-live="polite"></p>
+<p class="muted">人工600需要、|a−D|の1期間費用。小売への解釈を試すtoyで、交通制御性能の再現ではない。</p>
+<script type="application/json" data-batch08>{"lab_kind": "traffic08", "note": "小売補充を模した1期間・対称絶対損失のtoy。交通の閉ループ性能や費用は再現していない。", "cases": {"one": {"historical": {"mae": 2.7066666666666666, "decision_loss": 2.7066666666666666, "actions_used": [8], "value_percent": 0.0}, "improved": {"mae": 0.6366666666666667, "decision_loss": 2.7066666666666666, "actions_used": [8], "value_percent": 0.0}, "oracle": {"mae": 0.0, "decision_loss": 2.7066666666666666, "actions_used": [8], "value_percent": 0.0}}, "several": {"historical": {"mae": 2.7066666666666666, "decision_loss": 2.7066666666666666, "actions_used": [8], "value_percent": 0.0}, "improved": {"mae": 0.6366666666666667, "decision_loss": 0.0, "actions_used": [4, 8, 12], "value_percent": 99.99999999999999}, "oracle": {"mae": 0.0, "decision_loss": 0.0, "actions_used": [4, 8, 12], "value_percent": 99.99999999999999}}, "irrelevant": {"historical": {"mae": 2.7066666666666666, "decision_loss": 5.826666666666667, "actions_used": [2], "value_percent": 0.0}, "improved": {"mae": 0.6366666666666667, "decision_loss": 5.826666666666667, "actions_used": [2], "value_percent": 0.0}, "oracle": {"mae": 0.0, "decision_loss": 5.826666666666667, "actions_used": [2], "value_percent": 0.0}}}, "experiments": [{"name": "one", "metrics": {"historical": {"mae": 2.7066666666666666, "decision_loss": 2.7066666666666666, "actions_used": [8], "value_percent": 0.0}, "improved": {"mae": 0.6366666666666667, "decision_loss": 2.7066666666666666, "actions_used": [8], "value_percent": 0.0}, "oracle": {"mae": 0.0, "decision_loss": 2.7066666666666666, "actions_used": [8], "value_percent": 0.0}}}, {"name": "several", "metrics": {"historical": {"mae": 2.7066666666666666, "decision_loss": 2.7066666666666666, "actions_used": [8], "value_percent": 0.0}, "improved": {"mae": 0.6366666666666667, "decision_loss": 0.0, "actions_used": [4, 8, 12], "value_percent": 99.99999999999999}, "oracle": {"mae": 0.0, "decision_loss": 0.0, "actions_used": [4, 8, 12], "value_percent": 99.99999999999999}}}, {"name": "irrelevant", "metrics": {"historical": {"mae": 2.7066666666666666, "decision_loss": 5.826666666666667, "actions_used": [2], "value_percent": 0.0}, "improved": {"mae": 0.6366666666666667, "decision_loss": 5.826666666666667, "actions_used": [2], "value_percent": 0.0}, "oracle": {"mae": 0.0, "decision_loss": 5.826666666666667, "actions_used": [2], "value_percent": 0.0}}}], "paper": {"source": "Table 2–3 / Fig.4, v1", "coverage": [90.72, 75.66], "effective_actions": [1, 1, 1, 1, 1, 1, 1, 8, 8], "effects": [["予測 queue", -6.09, -12.94, 1.15], ["oracle queue", -3.39, -7.24, 3.08], ["oracle spillback", 3.78, -1.25, 12.26]]}}</script><script>(()=>{const root=document.currentScript.parentElement,d=JSON.parse(root.querySelector("[data-batch08]").textContent);
+const $=s=>root.querySelector(s), f=(x,n=1)=>Number(x).toFixed(n);
+const line=(x1,y1,x2,y2,color='#bac7ca',w=1)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${w}"/>`;
+const txt=(x,y,t,anchor='start',color='#203b45')=>`<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="14" fill="${color}">${t}</text>`;
+const dot=(x,y,c)=>`<circle cx="${x}" cy="${y}" r="5" fill="${c}"/>`;
+function forest(el,rows,min,max,band=false){const x=v=>175+(v-min)/(max-min)*360,H=rows.length*46+60;el.setAttribute('viewBox',`0 0 575 ${H}`);let s='';if(band)s+=`<rect x="${x(-5)}" y="6" width="${x(5)-x(-5)}" height="${H-36}" fill="#e2efe8"/>`;s+=line(x(0),5,x(0),H-35,'#667f86');for(let v=Math.ceil(min/5)*5;v<=max;v+=5){s+=txt(x(v),H-10,v,'middle');}rows.forEach((r,i)=>{let y=25+i*46;s+=txt(8,y+4,r[0])+line(x(r[2]),y,x(r[3]),y,'#176d79',3)+line(x(r[2]),y-5,x(r[2]),y+5,'#176d79',2)+line(x(r[3]),y-5,x(r[3]),y+5,'#176d79',2)+dot(x(r[1]),y,'#bc6536')+txt(x(r[1]),y+20,`${r[1]} [${r[2]}, ${r[3]}]`,'middle');});el.innerHTML=s;}
+
+const gates=[['予測品質','MAE −4.03% / −3.92%','historical meanに対するExtraTreesとhierarchical rolling-shareの改善。区間はLightGBM+CQR。'],['時刻の整合','分mの判断にはm−1起点','未完了の分mの総量をlag-0へ使わない。既に観測した流入を引き、現在slotへ二重に入れない。'],['行動の識別','2/9交差点だけが複数行動','流入口総量だけでは右左折の需要を区別できない。空間分解と実効行動の両方を監査する。'],['oracleの構造的価値','検証日：NO_GO','人工例は内部費用−61.5%。修正後の検証2日ではoracleのqueue改善−1.38%。人工の成功を実需要の合格と混同しない。'],['凍結後の閉ループ価値','安定したqueue便益を未観測','負の結果を定量化するため一度だけ最終7日を評価。全区間がゼロをまたぐ。新しい制御器は新しい分割で評価する。']];let gate=0;
+function showGate(){root.querySelectorAll('[data-gates] button').forEach((b,i)=>b.setAttribute('aria-pressed',i===gate));let g=gates[gate];$('[data-gate-detail]').innerHTML=`<h4>${g[0]}</h4><span class="big">${g[1]}</span><p>${g[2]}</p>`;}$('[data-gates]').innerHTML=gates.map((g,i)=>`<button type="button" data-gate="${i}" aria-pressed="false">${g[0]}</button>`).join('');root.querySelectorAll('[data-gate]').forEach(b=>b.addEventListener('click',()=>{gate=+b.dataset.gate;showGate();}));showGate();$('[data-junctions]').innerHTML=d.paper.effective_actions.map(a=>`<div class="junction ${a>1?'free':''}"><b>${a}</b><br>実効行動</div>`).join('');$('[data-coverage]').innerHTML=d.paper.coverage.map((v,i)=>`<div class="card">${i?'事後的な高需要群':'全体'}<span class="big">${v}%</span><div class="bar" style="width:${v}%"></div></div>`).join('');forest($('[data-effects]'),d.paper.effects,-15,15);
+function toy(){let c=d.cases[$('[data-actions]').value];$('[data-toy]').innerHTML=Object.entries(c).map(([k,v])=>`<tr><th>${{historical:'historical',improved:'改善した予測',oracle:'oracle'}[k]}</th><td>${f(v.mae,3)}</td><td>${f(v.decision_loss,3)}</td><td>${f(v.value_percent)}%</td><td>${v.actions_used.join(', ')}</td></tr>`).join('');$('[data-oracle]').textContent=c.oracle.value_percent>0?'oracle関門：正の価値あり。このtoyでは改善予測も同じ行動を選べる。':'oracle関門：価値ゼロ。予測だけを改善しても、この行動集合の費用は下がらない。';}$('[data-actions]').addEventListener('change',toy);toy();
+})();</script></section></div><div class="downloads"><a href="../downloads/traffic-forecast-to-decision-value/run.py" download>実行コード</a><a href="../downloads/traffic-forecast-to-decision-value/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/traffic-forecast-to-decision-value">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>小売補充を模した1期間・対称絶対損失のtoy。交通の閉ループ性能や費用は再現していない。</em></p>
+<h3>one</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>mae</th><th>decision_loss</th><th>actions_used</th><th>value_percent</th></tr></thead><tbody><tr><th scope='row'>historical</th><td>2.7066666666666666</td><td>2.7066666666666666</td><td>[8]</td><td>0.0</td></tr><tr><th scope='row'>improved</th><td>0.6366666666666667</td><td>2.7066666666666666</td><td>[8]</td><td>0.0</td></tr><tr><th scope='row'>oracle</th><td>0.0</td><td>2.7066666666666666</td><td>[8]</td><td>0.0</td></tr></tbody></table></div>
+<h3>several</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>mae</th><th>decision_loss</th><th>actions_used</th><th>value_percent</th></tr></thead><tbody><tr><th scope='row'>historical</th><td>2.7066666666666666</td><td>2.7066666666666666</td><td>[8]</td><td>0.0</td></tr><tr><th scope='row'>improved</th><td>0.6366666666666667</td><td>0.0</td><td>[4, 8, 12]</td><td>99.99999999999999</td></tr><tr><th scope='row'>oracle</th><td>0.0</td><td>0.0</td><td>[4, 8, 12]</td><td>99.99999999999999</td></tr></tbody></table></div>
+<h3>irrelevant</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>mae</th><th>decision_loss</th><th>actions_used</th><th>value_percent</th></tr></thead><tbody><tr><th scope='row'>historical</th><td>2.7066666666666666</td><td>5.826666666666667</td><td>[2]</td><td>0.0</td></tr><tr><th scope='row'>improved</th><td>0.6366666666666667</td><td>5.826666666666667</td><td>[2]</td><td>0.0</td></tr><tr><th scope='row'>oracle</th><td>0.0</td><td>5.826666666666667</td><td>[2]</td><td>0.0</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;lab_kind&quot;: &quot;traffic08&quot;,
+  &quot;note&quot;: &quot;小売補充を模した1期間・対称絶対損失のtoy。交通の閉ループ性能や費用は再現していない。&quot;,
+  &quot;cases&quot;: {
+    &quot;one&quot;: {
+      &quot;historical&quot;: {
+        &quot;mae&quot;: 2.7066666666666666,
+        &quot;decision_loss&quot;: 2.7066666666666666,
+        &quot;actions_used&quot;: [
+          8
+        ],
+        &quot;value_percent&quot;: 0.0
+      },
+      &quot;improved&quot;: {
+        &quot;mae&quot;: 0.6366666666666667,
+        &quot;decision_loss&quot;: 2.7066666666666666,
+        &quot;actions_used&quot;: [
+          8
+        ],
+        &quot;value_percent&quot;: 0.0
+      },
+      &quot;oracle&quot;: {
+        &quot;mae&quot;: 0.0,
+        &quot;decision_loss&quot;: 2.7066666666666666,
+        &quot;actions_used&quot;: [
+          8
+        ],
+        &quot;value_percent&quot;: 0.0
+      }
+    },
+    &quot;several&quot;: {
+      &quot;historical&quot;: {
+        &quot;mae&quot;: 2.7066666666666666,
+        &quot;decision_loss&quot;: 2.7066666666666666,
+        &quot;actions_used&quot;: [
+          8
+        ],
+        &quot;value_percent&quot;: 0.0
+      },
+      &quot;improved&quot;: {
+        &quot;mae&quot;: 0.6366666666666667,
+        &quot;decision_loss&quot;: 0.0,
+        &quot;actions_used&quot;: [
+          4,
+          8,
+          12
+        ],
+        &quot;value_percent&quot;: 99.99999999999999
+      },
+      &quot;oracle&quot;: {
+        &quot;mae&quot;: 0.0,
+        &quot;decision_loss&quot;: 0.0,
+        &quot;actions_used&quot;: [
+          4,
+          8,
+          12
+        ],
+        &quot;value_percent&quot;: 99.99999999999999
+      }
+    },
+    &quot;irrelevant&quot;: {
+      &quot;historical&quot;: {
+        &quot;mae&quot;: 2.7066666666666666,
+        &quot;decision_loss&quot;: 5.826666666666667,
+        &quot;actions_used&quot;: [
+          2
+        ],
+        &quot;value_percent&quot;: 0.0
+      },
+      &quot;improved&quot;: {
+        &quot;mae&quot;: 0.6366666666666667,
+        &quot;decision_loss&quot;: 5.826666666666667,
+        &quot;actions_used&quot;: [
+          2
+        ],
+        &quot;value_percent&quot;: 0.0
+      },
+      &quot;oracle&quot;: {
+        &quot;mae&quot;: 0.0,
+        &quot;decision_loss&quot;: 5.826666666666667,
+        &quot;actions_used&quot;: [
+          2
+        ],
+        &quot;value_percent&quot;: 0.0
+      }
+    }
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;one&quot;,
+      &quot;metrics&quot;: {
+        &quot;historical&quot;: {
+          &quot;mae&quot;: 2.7066666666666666,
+          &quot;decision_loss&quot;: 2.7066666666666666,
+          &quot;actions_used&quot;: [
+            8
+          ],
+          &quot;value_percent&quot;: 0.0
+        },
+        &quot;improved&quot;: {
+          &quot;mae&quot;: 0.6366666666666667,
+          &quot;decision_loss&quot;: 2.7066666666666666,
+          &quot;actions_used&quot;: [
+            8
+          ],
+          &quot;value_percent&quot;: 0.0
+        },
+        &quot;oracle&quot;: {
+          &quot;mae&quot;: 0.0,
+          &quot;decision_loss&quot;: 2.7066666666666666,
+          &quot;actions_used&quot;: [
+            8
+          ],
+          &quot;value_percent&quot;: 0.0
+        }
+      }
+    },
+    {
+      &quot;name&quot;: &quot;several&quot;,
+      &quot;metrics&quot;: {
+        &quot;historical&quot;: {
+          &quot;mae&quot;: 2.7066666666666666,
+          &quot;decision_loss&quot;: 2.7066666666666666,
+          &quot;actions_used&quot;: [
+            8
+          ],
+          &quot;value_percent&quot;: 0.0
+        },
+        &quot;improved&quot;: {
+          &quot;mae&quot;: 0.6366666666666667,
+          &quot;decision_loss&quot;: 0.0,
+          &quot;actions_used&quot;: [
+            4,
+            8,
+            12
+          ],
+          &quot;value_percent&quot;: 99.99999999999999
+        },
+        &quot;oracle&quot;: {
+          &quot;mae&quot;: 0.0,
+          &quot;decision_loss&quot;: 0.0,
+          &quot;actions_used&quot;: [
+            4,
+            8,
+            12
+          ],
+          &quot;value_percent&quot;: 99.99999999999999
+        }
+      }
+    },
+    {
+      &quot;name&quot;: &quot;irrelevant&quot;,
+      &quot;metrics&quot;: {
+        &quot;historical&quot;: {
+          &quot;mae&quot;: 2.7066666666666666,
+          &quot;decision_loss&quot;: 5.826666666666667,
+          &quot;actions_used&quot;: [
+            2
+          ],
+          &quot;value_percent&quot;: 0.0
+        },
+        &quot;improved&quot;: {
+          &quot;mae&quot;: 0.6366666666666667,
+          &quot;decision_loss&quot;: 5.826666666666667,
+          &quot;actions_used&quot;: [
+            2
+          ],
+          &quot;value_percent&quot;: 0.0
+        },
+        &quot;oracle&quot;: {
+          &quot;mae&quot;: 0.0,
+          &quot;decision_loss&quot;: 5.826666666666667,
+          &quot;actions_used&quot;: [
+            2
+          ],
+          &quot;value_percent&quot;: 0.0
+        }
+      }
+    }
+  ],
+  &quot;paper&quot;: {
+    &quot;source&quot;: &quot;Table 2–3 / Fig.4, v1&quot;,
+    &quot;coverage&quot;: [
+      90.72,
+      75.66
+    ],
+    &quot;effective_actions&quot;: [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      8,
+      8
+    ],
+    &quot;effects&quot;: [
+      [
+        &quot;予測 queue&quot;,
+        -6.09,
+        -12.94,
+        1.15
+      ],
+      [
+        &quot;oracle queue&quot;,
+        -3.39,
+        -7.24,
+        3.08
+      ],
+      [
+        &quot;oracle spillback&quot;,
+        3.78,
+        -1.25,
+        12.26
+      ]
+    ]
+  }
+}</code></pre></details><p>人工データのMAEは2.707→0.637。行動が{8}だけならoracleも費用を下げない。{4,8,12}では予測もoracleも費用ゼロとなる。{0,1,2}では常に2が選ばれ、3行動あっても価値はゼロだった。100%削減はこの人工設定の結果であり、小売や交通の効果予測ではない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>CONFIRMED：同じMAE改善が、行動集合によって正またはゼロの価値になる例を実行した。</p>
+<p>NOT OBSERVED：原論文の最終評価では安定したqueue便益が観測されていない。これは著者報告のラベルであり、Labが実交通データを再実行した意味ではない。機構全体の検証はPARTIALとする。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>NOT TESTED：実交通記録、ExtraTrees/LightGBM学習、CQR校正、交通制御器、独立都市・季節、小売への外的妥当性。原論文も1都市1カ月、7テスト日、再構成需要の集約シミュレーションであり、現場実装やCityFlowの性能評価ではない。oracle関門の不通過後に確率的MPCやCVaR制御を評価したわけでもない。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>リポジトリ直下で実行する。Python標準ライブラリだけを使い、APIへは接続しない。</p>
+<pre><code class="language-bash">uv run --no-project papers/traffic-forecast-to-decision-value/run.py
+uv run paper-lab build
+</code></pre>
+<p>lab.yamlとREADME.mdが説明、run.pyとresults.jsonが実験、mapping.mdが原典との対応を保持する。HTMLはビルドで生成し、直接編集しない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文と最小実験の対応</h1>
+<p>一次資料：<a href="https://arxiv.org/pdf/2610.06992v1">arXiv 2610.06992v1</a>。2026-10-08照合。PDF SHA-256: <code>52bf7be5914f36c1682f8979591fd491498267c5e1908917621b823be4260b31</code>。</p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>Lab</th>
+<th>境界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fig.1 / §5</td>
+<td>experiment(actions)</td>
+<td>関門を1期間の補充選択へ縮約。交通制御の再実装ではない。</td>
+</tr>
+<tr>
+<td>Table 2–3 / Fig.4</td>
+<td>lab.yaml / results.jsonのpaper</td>
+<td>MAE、被覆率、対応bootstrap CIの転記。</td>
+</tr>
+<tr>
+<td>§5.3–5.5</td>
+<td>README / method節</td>
+<td>時刻修正、64行動全探索、内部比例配分とFIFOのずれを説明。toyでは省略。</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード：<a href="https://github.com/ljnvs/traffic">著者がPDFで案内した公開先</a>。本Labはこのコードを実行・監査していない。</p>
+<p>公開READMEで <code>code/run_control_corrected_rollout_v8.py</code> が最終制御の入口、<code>config/SPLIT.json</code> が日付分割、<code>results/</code> が集計結果であることを確認した。原車両記録、抽出道路網、日別flowは公開物に含まれず、toyから本実験へ移る際は別途必要となる。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>予測の改善を使える行動が残っているか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/traffic-forecast-to-decision-value/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

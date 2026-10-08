@@ -18,6 +18,7 @@ import shutil
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markdown import Markdown
 
+from paper_lab.batch08 import widget as batch08_widget
 from paper_lab.batch28 import widget as batch28_widget
 from paper_lab.batch29 import widget as batch29_widget
 from paper_lab.isomorph30 import widget as isomorph30_widget
@@ -169,6 +170,7 @@ def paper_sections(lab: Lab) -> list[dict[str, Any]]:
             html = markdown_to_html(lab.sections.get(key, ""))
 
         if key == "executable_understanding":
+            html += batch08_widget(lab.results)
             html += batch28_widget(lab.results)
             html += batch29_widget(lab.results)
             html += isomorph30_widget(lab.results)

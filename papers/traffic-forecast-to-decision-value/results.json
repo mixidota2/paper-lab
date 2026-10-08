@@ -1,0 +1,219 @@
+{
+  "lab_kind": "traffic08",
+  "note": "小売補充を模した1期間・対称絶対損失のtoy。交通の閉ループ性能や費用は再現していない。",
+  "cases": {
+    "one": {
+      "historical": {
+        "mae": 2.7066666666666666,
+        "decision_loss": 2.7066666666666666,
+        "actions_used": [
+          8
+        ],
+        "value_percent": 0.0
+      },
+      "improved": {
+        "mae": 0.6366666666666667,
+        "decision_loss": 2.7066666666666666,
+        "actions_used": [
+          8
+        ],
+        "value_percent": 0.0
+      },
+      "oracle": {
+        "mae": 0.0,
+        "decision_loss": 2.7066666666666666,
+        "actions_used": [
+          8
+        ],
+        "value_percent": 0.0
+      }
+    },
+    "several": {
+      "historical": {
+        "mae": 2.7066666666666666,
+        "decision_loss": 2.7066666666666666,
+        "actions_used": [
+          8
+        ],
+        "value_percent": 0.0
+      },
+      "improved": {
+        "mae": 0.6366666666666667,
+        "decision_loss": 0.0,
+        "actions_used": [
+          4,
+          8,
+          12
+        ],
+        "value_percent": 99.99999999999999
+      },
+      "oracle": {
+        "mae": 0.0,
+        "decision_loss": 0.0,
+        "actions_used": [
+          4,
+          8,
+          12
+        ],
+        "value_percent": 99.99999999999999
+      }
+    },
+    "irrelevant": {
+      "historical": {
+        "mae": 2.7066666666666666,
+        "decision_loss": 5.826666666666667,
+        "actions_used": [
+          2
+        ],
+        "value_percent": 0.0
+      },
+      "improved": {
+        "mae": 0.6366666666666667,
+        "decision_loss": 5.826666666666667,
+        "actions_used": [
+          2
+        ],
+        "value_percent": 0.0
+      },
+      "oracle": {
+        "mae": 0.0,
+        "decision_loss": 5.826666666666667,
+        "actions_used": [
+          2
+        ],
+        "value_percent": 0.0
+      }
+    }
+  },
+  "experiments": [
+    {
+      "name": "one",
+      "metrics": {
+        "historical": {
+          "mae": 2.7066666666666666,
+          "decision_loss": 2.7066666666666666,
+          "actions_used": [
+            8
+          ],
+          "value_percent": 0.0
+        },
+        "improved": {
+          "mae": 0.6366666666666667,
+          "decision_loss": 2.7066666666666666,
+          "actions_used": [
+            8
+          ],
+          "value_percent": 0.0
+        },
+        "oracle": {
+          "mae": 0.0,
+          "decision_loss": 2.7066666666666666,
+          "actions_used": [
+            8
+          ],
+          "value_percent": 0.0
+        }
+      }
+    },
+    {
+      "name": "several",
+      "metrics": {
+        "historical": {
+          "mae": 2.7066666666666666,
+          "decision_loss": 2.7066666666666666,
+          "actions_used": [
+            8
+          ],
+          "value_percent": 0.0
+        },
+        "improved": {
+          "mae": 0.6366666666666667,
+          "decision_loss": 0.0,
+          "actions_used": [
+            4,
+            8,
+            12
+          ],
+          "value_percent": 99.99999999999999
+        },
+        "oracle": {
+          "mae": 0.0,
+          "decision_loss": 0.0,
+          "actions_used": [
+            4,
+            8,
+            12
+          ],
+          "value_percent": 99.99999999999999
+        }
+      }
+    },
+    {
+      "name": "irrelevant",
+      "metrics": {
+        "historical": {
+          "mae": 2.7066666666666666,
+          "decision_loss": 5.826666666666667,
+          "actions_used": [
+            2
+          ],
+          "value_percent": 0.0
+        },
+        "improved": {
+          "mae": 0.6366666666666667,
+          "decision_loss": 5.826666666666667,
+          "actions_used": [
+            2
+          ],
+          "value_percent": 0.0
+        },
+        "oracle": {
+          "mae": 0.0,
+          "decision_loss": 5.826666666666667,
+          "actions_used": [
+            2
+          ],
+          "value_percent": 0.0
+        }
+      }
+    }
+  ],
+  "paper": {
+    "source": "Table 2–3 / Fig.4, v1",
+    "coverage": [
+      90.72,
+      75.66
+    ],
+    "effective_actions": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      8,
+      8
+    ],
+    "effects": [
+      [
+        "予測 queue",
+        -6.09,
+        -12.94,
+        1.15
+      ],
+      [
+        "oracle queue",
+        -3.39,
+        -7.24,
+        3.08
+      ],
+      [
+        "oracle spillback",
+        3.78,
+        -1.25,
+        12.26
+      ]
+    ]
+  }
+}

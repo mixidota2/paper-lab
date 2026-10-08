@@ -1,0 +1,163 @@
+id: sim2real-policy-conditioned-inbound-forecast
+arxiv_id: '2610.03662'
+title: 'Forecasting from Counterfactual Simulator Rollouts: A Sim2Real Evaluation'
+authors:
+- Angel Wang
+- Dominique Perrault-Joncas
+- Alvaro Maggiar
+- Dean Foster
+- Carson Eisenach
+year: 2026
+submitted: '2026-10-02'
+topics:
+- retail-supply
+- demand-forecasting
+urls:
+  paper: https://arxiv.org/abs/2610.03662
+  arxiv: https://arxiv.org/abs/2610.03662
+  pdf: https://arxiv.org/pdf/2610.03662v1
+  official_code: null
+verdict: Worth Reading
+status: published
+summary: 方策を替えると入荷量も変わる。新方策の模擬データで応答を学ぶ研究だが、改善の大きさは2つの実配備で異なる。
+question: 自社の方策を替えた日の入荷を、何で学ぶか
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-10-08'
+  version: v1
+  pdf_sha256: cc614acd8402ade5d0931dff42c855f1ece0b03cd098fab50dcff81c559e4a6d
+  scope: 本文とAppendix A–Dの式・表をPDFから抽出して照合。
+  url: https://arxiv.org/pdf/2610.03662v1
+core_idea:
+  author_claim: 著者の主張：外生過程を再生し、新方策の行動と在庫状態を再計算した軌跡で応答予測器ψを学習する。2つの実配備への転移と逐次補正を測ると、不完全なシミュレーターでも旧方策の履歴より低い予測誤差を得る場合がある（§3–4）。
+  research_bot_interpretation: 本Labの解釈：シミュレーターの精度と、学習データとしての有用性は別々に測りたい。MadekaらのExo-IDP、Eisenachらの容量調整、Wangらのdual
+    coordinatorを引き継ぎ、ここでは「方策が変える予測対象」を実配備で評価した点が中心となる。データ源や方策整合が改善の原因だと単独に識別した実験ではない。
+sections:
+  overview: '**Worth Reading：方策を替えると、予測する入荷量そのものが変わる。** Amazonの2つの実配備を後から評価した研究。新方策を動かしたシミュレーターで予測器を学ぶと、旧方策の実履歴で学ぶ同じ予測器より、総入荷量のMAPEの点推定値が低かった。Study
+    1では旧履歴学習との差が1.2〜3.1ポイントにとどまり信頼区間も重なる一方、別の方策を配備したStudy 2では12.5〜18.7ポイントの差があるため、両研究を同じ強さの改善証拠とは読めない。
+
+
+    予測するのは入荷量だ。共通の容量コストλに各商品の発注方策が反応するため、自社の方策が予測対象を変える。発注・入荷の再現性が十分でないシミュレーターにも、学習データを作る用途はありうる。ただし容量超過、費用、欠品の改善は測っていない。'
+  problem: '倉庫の入荷処理量を抑えるため、各商品へ共通の入荷単価λを通知する。発注方策πはλを見て注文を変え、納期を経て入荷Jが変わる。次の容量計画には、その応答を先に知る必要がある。
+
+
+    過去の入荷は旧方策π₀の応答である。新方策π₁に替えた日に、π₁の実績はまだない。外から来る需要と、自社の発注で生じる入荷を同じ「時系列」として扱うと、この違いを見落とす。'
+  method: method.md
+  why_it_might_work: '解釈：旧方策を忠実に記録したデータでも、新しいλ応答は学べない。模擬データの値にずれがあっても、新方策が何に反応するかを含んでいれば転移の足掛かりになる。α+βĴは配備後に分かった水準・尺度のずれを補う。
+
+
+    ただし、納期や需要が発注によって変わるほど外生再生の仮定は崩れる。Study 1の無作為化を使ったTable 5では、需要の処置係数の95% CIは[1.37,2.44]、納期は[0.35,0.37]。R²は0.02と0.01で小さいが、ゼロとの差は有意である。外生性が完全に確認されたとは扱わない。'
+  evidence: '[一次資料：原論文のTable 1–3 / Appendix C–D](https://arxiv.org/pdf/2610.03662v1)の著者報告。Study 1は約2万商品・1年の無作為化RL方策配備、Study
+    2は別方策・約10万商品・3カ月の配備である。
+
+
+    | 学習データ・配備 | 1週 | 2週 | 3週 | 4〜10週 |
+
+    | --- | --- | --- | --- | --- |
+
+    | S1 模擬 | 13.3±2.7 | 11.7±2.8 | 13.2±3.1 | 14.8±2.8 |
+
+    | S1 旧方策履歴 | 15.0±2.9 | 14.8±3.1 | 15.2±3.1 | 16.0±3.1 |
+
+    | S2 模擬 | 12.7±3.6 | 15.3±7.4 | 9.4±3.8 | 11.5±3.4 |
+
+    | S2 旧方策履歴 | 25.6±5.2 | 27.8±6.3 | 28.1±6.4 | 25.2±5.7 |
+
+
+    単位は総入荷量MAPE (%)、±は週別の予測起点に対する95%正規近似CI。対応差のCIではないため、区間の重なりだけで有意差検定を代用しない。補正後のS1は11.8/11.2/13.1/14.8、S2は12.6/13.0/6.9/9.7。全条件で改善するわけではなく、S2の補正済み履歴Global
+    Aggregateは未報告である。
+
+
+    Table 1の回帰は横軸が模擬、縦軸が実績。発注の傾きは0.70〜0.71、入荷0.67、在庫0.90〜0.91、販売0.99〜1.00だった。傾き0.7を「シミュレーターが実績の70%を出す」と逆に読まない。実現済み外生系列を与える1段階の再現診断はMAPE
+    13.2±2.4% / 11.8±2.6%。将来情報を使う診断であり、そのまま運用可能な予測器ではない。'
+  executable_understanding: '24商品の在庫を、同じ需要・納期系列で再生する。λが異なると発注、入荷、在庫だけが変わる。週を送ってEq.1–2の保存則を確認した後、下のグラフで原論文の転移評価を読む。
+
+
+    最小実験は7特徴の線形回帰を共通に使う。旧方策の履歴と、新方策を動かす不完全な模擬データで別々に学び、新方策の真の過程で評価する。模擬側は注文を0.7倍し、納期を1週延ばした。これは意図的なずれであり、Table 1の回帰の向きを再現した設定ではない。補正は過去4観測以降の拡張窓のみ。5
+    seedを同じ評価期間で比較する。
+
+
+    方策は需要水準に基づく継続発注と、目標在庫との差を埋める発注を混ぜる。旧方策と新方策でλへの感度を変えた。初期案ではゼロ近傍の入荷にMAPEが過敏だったため、この方策へ改めて条件を固定した。MAPEの分母はmax(J,1)とし、ゼロ除算を避ける。'
+  results: '**NOT OBSERVED：このtoyでは補正前の模擬学習の優位は出なかった。** 5 seed平均のMAPEは旧履歴28.054%、模擬66.775%。模擬の逐次補正後は20.780%、同じ補正を旧履歴へ適用すると28.477%だった。
+
+
+    新方策だけでは足りない。ここで確認できたのは、意図的な注文尺度・納期のずれが補正前の誤差を大きくし、配備後の観測を使う補正によってその誤差が下がるという、固定した人工過程での挙動までである。原論文のzero-shot改善を再現したとは扱わない。'
+  what_we_verified: 'CONFIRMED：在庫の保存則、λを替えても需要系列が同じこと、同じ評価期間を使うことをコードで確認した。校正には当該予測より前の結果だけを渡している。
+
+
+    PARTIAL：新方策の模擬データから学ぶ仕組みを人工過程で動かした。原論文のCNN、Haar sampler、dual coordinatorは実装していない。表と式の照合は独立した性能再現とは区別する。
+
+
+    NOT OBSERVED：補正前の模擬学習が履歴学習を上回る効果。結果に合わせて成功する設定へ調整せず、この条件での失敗も残す。'
+  what_we_did_not_verify: NOT TESTED：Amazonデータでの再現、商品別の誤差、容量超過、実費用、欠品、λの最適化、他社・別シミュレーターへの一般化。本論文は1つのシミュレーターによる後ろ向き評価で、公式コードの案内はPDFにない。
+  implementation: 'リポジトリ直下で実行する。NumPyをuvで解決する。
+
+
+    ```bash
+
+    uv run --no-project papers/sim2real-policy-conditioned-inbound-forecast/run.py
+
+    uv run paper-lab build
+
+    ```
+
+
+    lab.yamlとREADME.mdが説明、run.pyとresults.jsonが実験、mapping.mdが原典との対応を保持する。HTMLはビルドで生成し、直接編集しない。'
+  mapping: mapping.md
+teaching_figures:
+- kind: equations
+  id: inventory-flow
+  title: 注文が届いてから、販売と在庫を計算する
+  after: method
+  locator: Eq.1–4
+  caption: 入荷の到着、在庫保存、応答予測、配備後の補正をつなぐ。
+  source: https://arxiv.org/pdf/2610.03662v1
+  rationale: 入荷の到着、在庫保存、応答予測、配備後の補正をつなぐ。
+  steps:
+  - name: 納期を満たす注文だけ到着
+    formula: Jᵢₜ = Σₖ<t aᵢₖ 1{vᵢₖ=t−k}
+    explanation: Eq.1。例：2週前の注文10、納期2週なら今週10が届く。
+  - name: 商品別の在庫保存
+    formula: Iᵢₜ = Iᵢₜ₋₁ + Jᵢₜ − min(Dᵢₜ,Iᵢₜ₋₁+Jᵢₜ)
+    explanation: Eq.2。例：期首5+入荷10−需要12=期末3。需要20なら販売15、期末0。
+  - name: 方策の応答を予測
+    formula: Ĵ = ψθ(X,λ)
+    explanation: Eq.3。需要だけでなく、提案するλの軌跡を入力する。
+  - name: 観測済みの誤差から補正
+    formula: Ĵcal = αₜ + βₜ Ĵsim
+    explanation: Eq.4。4週後から、既に実現した結果だけでα,βを更新。
+- kind: architecture
+  id: cnn-policy-response
+  title: 商品表現を集約するか、商品予測を足すか
+  after: why_it_might_work
+  locator: Appendix B / Table 4
+  caption: 両decoderを同じモデル名として混ぜず、集約の位置を区別する。
+  source: https://arxiv.org/pdf/2610.03662v1
+  rationale: 両decoderを同じモデル名として混ぜず、集約の位置を区別する。
+  rows:
+  - label: 教師データ
+    nodes:
+    - title: Haar容量目標 G
+      text: 階段状の目標を生成
+    - title: dual coordinator
+      text: Gからλへ
+    - title: 固定方策のrollout
+      text: 内生状態と総入荷Jを再計算
+  - label: 共有encoder
+    nodes:
+    - title: 64週の商品履歴
+      text: dilated causal CNN、幅32
+    - title: 将来λ・特徴
+      text: 逆向きcausal CNN
+    - title: 26週の出力へ
+      text: 2層ELU MLP
+  - label: decoder
+    nodes:
+    - title: Global Aggregate
+      text: 商品表現を集約して総量を予測
+    - title: Bottom-Up
+      text: 商品別予測を合算

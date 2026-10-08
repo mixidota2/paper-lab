@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Worth Reading：harnessの差を、同じ構成の再実行の差と並べる。 SWE-bench Verifiedのhard45では、成否が入れ替わる課題の割合は再実行もharness交換も中央値13%。モデル交換は約22%だった。pool447の2つのQwenモデルでは、Claude Codeとmini-SWE-agentの差は±5ポイント内で等価と判定された。">
+  <title>その得点差は、再実行の揺れより大きいか | 研究ライブラリ</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/interactives.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#paper">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html"><span class="mark" aria-hidden="true">研</span>研究ライブラリ</a><a href="../index.html">すべてのLab <span aria-hidden="true">↗</span></a></div></header>
+<main id="paper" class="shell">
+  <header class="paper-hero">
+    <div class="eyebrow">INTERACTIVE RESEARCH LAB <span>／ 2026-10-03</span></div>
+    <h1>その得点差は、再実行の揺れより大きいか</h1>
+    <p class="lede">Worth Reading：harnessの差を、同じ構成の再実行の差と並べる。 SWE-bench Verifiedのhard45では、成否が入れ替わる課題の割合は再実行もharness交換も中央値13%。モデル交換は約22%だった。pool447の2つのQwenモデルでは、Claude Codeとmini-SWE-agentの差は±5ポイント内で等価と判定された。</p>
+    <details class="bibliography"><summary>原論文：What Does a Harness Buy? Tokens, Mostly.</summary><p>Yangze Liu, Zhongyi Han</p><p>2610.04433 · 2026</p></details>
+    <div class="paper-actions"><a class="button" href="https://arxiv.org/abs/2610.04433">原典を読む ↗</a><a href="https://arxiv.org/pdf/2610.04433v1">PDF ↗</a><a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="trust-strip" aria-label="このLabの確認範囲"><div><span>メカニズム</span><strong>部分的</strong><small>PARTIAL</small></div><div><span>性能</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>スケーリング</span><strong>未検証</strong><small>NOT TESTED</small></div><div><span>本番適用性</span><strong>未検証</strong><small>NOT TESTED</small></div></div>
+    <p class="source-note">一次資料の確認：2026-10-08 · 本文、Table 1、Appendix F–GをPDFから照合。著者コードの不一致率と検出力も固定commitで照合。</p>
+  </header>
+  <div class="paper-layout">
+    <nav class="toc" aria-label="このLabの目次"><p class="eyebrow">このLabを読む</p><a href="#problem">問い</a><a href="#method">モデル / 手法</a><a href="#figure-harness-anatomy">入力の重さと、回復できる失敗を分ける</a><a href="#figure-paired-resolution">課題の反転と、成功率の差は別の量</a><a href="#evidence">根拠</a><a href="#executable_understanding">小実験</a><a href="#what_we_did_not_verify">限界</a></nav>
+    <article class="paper-body">
+      <section id="overview" class="note-section">
+        <h2>概要</h2>
+<div class="prose"><p><strong>Worth Reading：harnessの差を、同じ構成の再実行の差と並べる。</strong> SWE-bench Verifiedのhard45では、成否が入れ替わる課題の割合は再実行もharness交換も中央値13%。モデル交換は約22%だった。pool447の2つのQwenモデルでは、Claude Codeとmini-SWE-agentの差は±5ポイント内で等価と判定された。</p>
+<p>これは「どんなharnessでも同じ」という結果ではない。有意な差はOpenCodeの不利として現れ、費用は同一モデルでも最大約3倍違う。小さな成功率差を主張する前に、再実行と十分な課題数を確保したい。</p></div>      </section>
+      <section id="problem" class="note-section">
+        <h2>問題設定</h2>
+<div class="prose"><p>モデルを固定しても、system prompt、tool schema、履歴圧縮、打ち切り時の回復はharnessごとに違う。一度の得点差だけでは、この構成差と実行ごとの揺れを分けられない。</p>
+<p>著者はClaude Code 2.1、mini-SWE-agent 2.4.6、OpenCode 1.18を固定し、Harbor 0.22.0で1試行1コンテナー、300 step上限とした。ネットワークを切った492課題のうち45件がhard45、残りがpool447。初期のネット接続試行ではDeepSeek/Qwenの71%が上流の修正を取得したため、その試行群は捨てている。</p></div>      </section>
+      <section id="core_idea" class="note-section">
+        <h2>核心</h2>
+        <div class="claim-block"><p class="label">著者の主張 · 論文に書かれていること</p><div class="prose"><p>著者の主張：このSWE-bench設定ではharnessを交換して得られる成功率の上積みを再実行の揺れから区別できず、明確な差はOpenCodeの損失として現れる。一方、毎stepの入力とstep数は費用を大きく変える（§4）。</p></div></div>
+        <div class="interpretation"><p class="label">解釈・批評 · 読書メモ</p><div class="prose"><p>本Labの解釈：<a href="scaffold-effects-gaia.html">Scaffold Effects on GAIA</a>の最大28ポイントや<a href="harness-bench.html">Harness-Bench</a>の23.8ポイント幅と緊張関係にある。課題領域、ベンチマークとの接続、回復不能な失敗、指標や再実行の設計が違えば両立しうる。ただしGAIAにも反復試行の計画があり、「先行研究はすべて再実行なし」と片付けない。この論文だけでは両立の理由を識別できない。</p></div></div>
+      </section>
+      <section id="method" class="note-section">
+        <h2>モデル / 手法</h2>
+<div class="prose"><p>モデルは固定する。比較モデルはQwen3.6-35B-A3B、Qwen3.8-27B、DeepSeek-V4-Flash、GLM-5.3-Flash、HY4-Preview。Claude Opus 5はClaude Code内だけの参照で、pool447の比較は2つのQwenに限られる。</p>
+<p>同じ課題でAだけ成功した件数をb、Bだけをcとすると、<code>Δ=(b−c)/n</code>、不一致率は<code>q=(b+c)/n</code>。得点差と、課題の成否が入れ替わる割合は別の量である。McNemarの両側正確検定を使い、対応差の95% Newcombe区間を示す。等価性はTOST、許容幅±5ポイント、90%区間で判定する。</p>
+<p>検出力は<code>M∼Binomial(n,q)</code>、<code>B|M∼Binomial(M,(1+Δ/q)/2)</code>を積分する。不一致件数Mを丸めて固定しない。帰無仮説ではB|Mの成功確率は1/2で、両側p≤0.05となる確率が検出力である。</p>
+<p>費用は別に測る。token費用の理解には<code>Iₖ ≈ P + U + gk</code>、<code>ΣIₖ = N(P+U)+gN(N−1)/2</code>を使う。Pはharnessの定型入力、Uは課題文、gは履歴の増加、Nはstep数。請求はcache hit、miss、出力の単価を分けて足す。下の計算機は入力のみの近似であり、圧縮時点を動かす操作も説明用である。</p></div>      </section>
+<figure class="teaching teaching--matrix" id="figure-harness-anatomy" aria-labelledby="title-harness-anatomy">
+  <div class="figure-heading"><span class="eyebrow">MATRIX</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-harness-anatomy">入力の重さと、回復できる失敗を分ける</h3>
+  <div class="matrix-scroll" tabindex="0" role="region" aria-label="入力の重さと、回復できる失敗を分けるの表"><table class="teaching-matrix"><thead><tr><th scope="col">条件</th><th scope="col">toolと履歴</th><th scope="col">定型入力 token</th><th scope="col">観測した制約</th></tr></thead><tbody><tr><th scope="row">Claude Code</th><td class="">型付きtool・履歴圧縮</td><td class="">16,581</td><td class="">出力打ち切りから継続を促す</td></tr><tr><th scope="row">mini-SWE-agent</th><td class="">bash・圧縮なし</td><td class="">829</td><td class="">長い試行でcontext overflow</td></tr><tr><th scope="row">OpenCode</th><td class="">型付きtool・履歴圧縮</td><td class="">7,025</td><td class="">出力上限から自動回復しない</td></tr></tbody></table></div>
+  <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
+  <figcaption>harnessを1本の成功率ランキングへ潰さず、費用と打ち切りを追う。 <a href="https://arxiv.org/pdf/2610.04433v1">出典：§2 / §4.3 / Appendix G ↗</a></figcaption>
+</figure>      <section id="why_it_might_work" class="note-section">
+        <h2>なぜ効きそうか</h2>
+<p class="label">解釈・推論</p><div class="prose"><p>解釈：再実行を対照にすると、何も変えなくても起きる成否の交代が見える。45件では不一致が6件未満なら、すべて同じ側が勝っても5%両側検定で棄却できない。この離散性が小規模評価の限界を作る。</p>
+<p>費用では、同じ定型文を毎回送るため小さな初期差が累積する。ただし軽いharnessでもstepが増えれば逆転する。DeepSeekではminiが141 step、Claude Codeが104 stepであり、定型入力の長さだけで安さは決まらない。</p></div>      </section>
+<figure class="teaching teaching--equations" id="figure-paired-resolution" aria-labelledby="title-paired-resolution">
+  <div class="figure-heading"><span class="eyebrow">EQUATIONS</span><span class="figure-badge">説明用に再構成</span></div>
+  <h3 id="title-paired-resolution">課題の反転と、成功率の差は別の量</h3>
+  <ol class="equation-steps"><li><strong>反転する課題</strong><div class="math-expression" tabindex="0" role="math" aria-label="q = (b+c)/n">q = (b+c)/n</div><p>Aだけ成功b、Bだけ成功c。反転が多くても差が相殺される。</p></li><li><strong>成功率の差</strong><div class="math-expression" tabindex="0" role="math" aria-label="Δ = (b−c)/n">Δ = (b−c)/n</div><p>例：b=26,c=34,n=445なら−1.8ポイント。</p></li><li><strong>等価性</strong><div class="math-expression" tabindex="0" role="math" aria-label="90% CI ⊂ [−5,+5] pp">90% CI ⊂ [−5,+5] pp</div><p>Qwen3.6 CC−miniは[−4.7,+1.1]。ゼロ差を証明した意味ではない。</p></li></ol>
+  <figcaption>反転率から検出力を計算し、等価性は別の許容幅で判定する。 <a href="https://arxiv.org/pdf/2610.04433v1">出典：Table 1 / Appendix F ↗</a></figcaption>
+</figure>      <section id="evidence" class="note-section">
+        <h2>根拠</h2>
+<div class="prose"><p><a href="https://arxiv.org/pdf/2610.04433v1">一次資料：原論文 Table 1 / Fig.2 / Appendix F–G</a>の著者報告。pool447は集合名で、有効ペア数は444〜445件である。</p>
+<table>
+<thead>
+<tr>
+<th>モデル・差の向き</th>
+<th>n</th>
+<th>b / c</th>
+<th>差 pp [95% CI]</th>
+<th>判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Qwen3.6 CC−mini</td>
+<td>445</td>
+<td>26 / 34</td>
+<td>−1.8 [−5.2,1.6]</td>
+<td>TOST等価</td>
+</tr>
+<tr>
+<td>Qwen3.6 CC−OC</td>
+<td>445</td>
+<td>43 / 30</td>
+<td>2.9 [−0.9,6.7]</td>
+<td>未確定</td>
+</tr>
+<tr>
+<td>Qwen3.6 mini−OC</td>
+<td>445</td>
+<td>45 / 24</td>
+<td>4.7 [1.1,8.4]</td>
+<td>p=.02</td>
+</tr>
+<tr>
+<td>Qwen3.8 CC−mini</td>
+<td>444</td>
+<td>17 / 23</td>
+<td>−1.4 [−4.2,1.5]</td>
+<td>TOST等価</td>
+</tr>
+<tr>
+<td>Qwen3.8 CC−OC</td>
+<td>444</td>
+<td>52 / 17</td>
+<td>7.9 [4.3,11.5]</td>
+<td>p&lt;.001</td>
+</tr>
+<tr>
+<td>Qwen3.8 mini−OC</td>
+<td>445</td>
+<td>57 / 16</td>
+<td>9.2 [5.5,12.9]</td>
+<td>p&lt;.001</td>
+</tr>
+</tbody>
+</table>
+<p>CC−miniの90%区間は[−4.7,1.1] / [−3.7,1.0]で±5内に収まる。図の95%区間が±5を越えても、このTOST判定とは矛盾しない。6比較のHolm補正後に残るのはQwen3.8の2差である。OpenCodeの出力上限で打ち切られた課題を除くと一部の差は約半分になるが、除外比較だけで原因の全てを確定できない。</p>
+<p>定型入力はCC 16,581、OC 7,025、mini 829 token。GLMの履歴増加は937/681/648 token/step、step数は88.1/55.1/80.2、費用は1.81/0.56/0.97 CNY。cache hit率は96〜99%。hit/miss価格比0.287と0.033による再課金でも、論文で測ったtokenの費用順は変わらなかった。</p>
+<h3>§4.5で探したが見つからなかった効果</h3>
+<p>DeepSeek純正dshは21/45でCCと同数、miniは22。CCのファイル編集toolまたはshellを除いた条件、1年前の1.0.100も対照から1課題以内だった。旧版費用は0.44倍だが、extended thinkingの既定値も異なる。</p>
+<p>例外はthinkingとの相互作用。Qwen3.6でthinkingを切るとminiは11ポイント低下（p=.04）、CC/OCでは同程度の低下は出ない。HY4のCCでは11ポイント低下する。harnessのあらゆる部品が無意味だとは結論できない。</p></div>      </section>
+      <section id="executable_understanding" class="note-section">
+        <h2>実行可能な理解</h2>
+<div class="prose"><p>不一致率と課題数を選び、50% / 80%の検出力で見える最小差を調べる。Pythonでは厳密な二項分布の総和と12,000回の乱数試行を突き合わせる。図の値はこの計算結果を読む。</p>
+<p>定型入力・履歴増加・step数にはAppendix Gの値を使う。cache単価を替えると入力費用の尺度が変わる。圧縮を仮定すると段差が現れるが、これは原論文のログを再生したものではない。実測のCNY請求額は出力tokenを含むため、計算機の値とは比較しない。</p><section class="b08 harness08" aria-label="論文別の対話図"><style>
+.b08{--ink:#203b45;--accent:#176d79;color:var(--ink);padding:clamp(12px,3vw,28px);border:1px solid #bbcecf;border-radius:16px;background:#f3f7f5;margin-top:24px}.b08 *{box-sizing:border-box}.b08.harness08{background:#f4f2fa;--accent:#665289;border-color:#c7bfd8}.b08.traffic08{background:#fff8eb;--accent:#a46b20;border-color:#dec79e}.b08.hear08{background:#eef4fc;--accent:#3c6495;border-color:#b6c8e0}.b08 h3{margin:24px 0 12px}.b08 h4{margin:8px 0}.b08 p{line-height:1.75}.b08 label{display:block;margin:12px 0}.b08 select,.b08 button{font:inherit;padding:8px;max-width:100%;border:1px solid #839ba1;border-radius:6px;background:white;color:#203b45}.b08 button{cursor:pointer}.b08 button:focus-visible,.b08 select:focus-visible,.b08 input:focus-visible{outline:3px solid #cc651f;outline-offset:3px}.b08 input[type=range]{width:100%;max-width:360px;display:block}.b08 .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}.b08 .card{background:white;padding:14px;border-radius:9px;border-top:3px solid var(--accent)}.b08 .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.b08 .big{display:block;font-size:1.6rem;font-weight:750}.b08 .plot{overflow:auto;max-width:100%;background:#fff;border-radius:8px;margin:12px 0}.b08 svg{display:block;width:100%;height:auto;min-width:500px}.b08 .wide{min-width:550px}.b08 .eq{background:#203b45;color:white;padding:15px;border-radius:8px;font-family:monospace;overflow-wrap:anywhere}.b08 .muted{font-size:.9rem;color:#45616a}.b08 .legend{display:flex;flex-wrap:wrap;gap:15px}.b08 .bar{height:14px;background:var(--accent);border-radius:3px}.b08 .band{border-left:5px solid #d38b36;padding:12px;background:#fff5e8}.b08 table{font-size:.9rem}.b08 th,.b08 td{padding:8px}.b08 .tablewrap{overflow:auto}.b08 .gates{display:grid;gap:8px;counter-reset:gate}.b08 .gates button{text-align:left;counter-increment:gate;border-left:6px solid var(--accent)}.b08 .gates button:before{content:counter(gate) '　';font-weight:bold}.b08 .gates button[aria-pressed=true]{background:#d7ece8}.b08 .junctions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.b08 .junction{padding:15px;text-align:center;background:#e7ebed;border-radius:6px}.b08 .junction.free{background:#ffd99e}.b08 .lanes{display:grid;grid-template-columns:1fr 1fr;gap:20px;text-align:center;font-weight:bold}.b08 .message{margin:14px 0;padding:12px;border-left:4px solid var(--accent);background:white;opacity:.35}.b08 .message.on{opacity:1}.b08 .message.back{border-left:0;border-right:4px solid #bb642f;text-align:right}.b08 .request{display:inline-block;min-width:30px;margin:2px;padding:6px 4px;font-size:.85rem;border:1px solid #9cacb1;background:#f4ded0}.b08 .request.hit{background:#cee9e1}.b08 .request.selected{outline:3px solid #ca771f}.b08 .request.guard{border-bottom:4px solid #a44830}.b08 .flow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}.b08 .flow div{background:#fff;padding:15px;border-bottom:4px solid var(--accent)}
+@media(max-width:650px){.b08 .cols,.b08 .flow{grid-template-columns:1fr}.b08 .cards{grid-template-columns:repeat(2,1fr)}.b08{padding:12px}.b08 .big{font-size:1.3rem}.b08 .junction{padding:10px}.b08 .message{font-size:.9rem}}
+</style><p class="muted">操作して比較する。幅の広い図と表は横へスクロールできます。</p>
+<h3>差を測る物差し：何も替えない再実行</h3><div class="cards" data-flips></div>
+<p class="muted">Fig.2のhard45中央値。成否の反転率であり、成功率の差ではない。</p>
+<h3>±5ポイントの帯と、対応差の95%区間</h3><div class="plot"><svg class="wide" role="img" aria-label="pool447のharness間の成功率差と信頼区間" data-forest></svg></div>
+<p class="muted">Table 1。単位pp、右が先に書いたharnessの優位。緑の帯は±5。等価性のTOSTには90%区間を使う。95%区間を帯へ収める判定ではない。</p>
+<h3>この課題数で、どれほどの差が見えるか</h3>
+<div class="cols"><label>対応する課題数 n<select data-n><option>45</option><option>100</option><option>200</option><option selected>447</option><option>800</option></select></label><label>不一致率 q<select data-q><option value="0.07">7%</option><option value="0.14">14%（丸め）</option><option value="0.14008941877794337">14.0089%（hard45実測）</option><option value="0.14392803598200898" selected>14.3928%（pool447実測）</option><option value="0.27">27%</option></select></label></div>
+<div class="cards" data-power aria-live="polite"></div><p class="eq">M ~ Binomial(n,q) → B|M ~ Binomial(M,(1+Δ/q)/2) → exact McNemar p≤.05</p><p class="muted">Pythonの厳密計算。差Δはq以下。45件・14%では80%検出力に到達する差が存在しない。447件は丸めた14%なら5.09pp、実測14.3928%なら5.16ppとなり論文の約5.2ppと一致する。</p>
+<h3>tokenの請求を、初期入力・履歴増加・step数へ分ける</h3>
+<div class="cols"><label>共通step数 <output data-steps-label></output><input data-steps type="range" min="10" max="200" value="80"></label><label>cache hit / miss単価比 <output data-price-label></output><input data-price type="range" min="0.001" max="0.5" step="0.001" value="0.287"></label></div>
+<label><input data-papersteps type="checkbox" checked> GLMの代表step数（CC 88 / mini 80 / OC 55）を使う</label>
+<label><input data-compact type="checkbox"> 60 stepごとに履歴だけをゼロへ戻す説明用の圧縮</label>
+<div class="plot"><svg viewBox="0 0 600 290" role="img" aria-label="3種類のharnessのstep別入力token数" data-billplot></svg></div>
+<div class="tablewrap"><table><thead><tr><th>構成</th><th>定型 / 増加</th><th>入力M token</th><th>miss単価換算M</th></tr></thead><tbody data-bill></tbody></table></div>
+<p class="muted">Appendix GのP,gと課題文554 token。入力hit率を共通97%と置く近似。出力、実際の圧縮・終了分布を含まない。表の換算量はCNYではない。step数を変えた仮想比較で、論文の順位不変を保証しない。</p>
+<script type="application/json" data-batch08>{"lab_kind": "harness08", "note": "McNemar検出力は数理計算と乱数試行。token計算は入力のみの近似で、実API請求額の再現ではない。", "checks": [{"n": 45, "q": 0.14008941877794337, "gap_pp": 12.9, "exact_power": 0.5004099521647352, "simulated_power": 0.5080833333333333}, {"n": 447, "q": 0.14392803598200898, "gap_pp": 5.2, "exact_power": 0.8067450094977122, "simulated_power": 0.8143333333333334}], "power_grid": [{"n": 45, "q": 0.07, "mde50": null, "mde80": null, "ceiling": 0.09226806040957755}, {"n": 45, "q": 0.14, "mde50": 12.893471002578739, "mde80": null, "ceiling": 0.6162644505020927}, {"n": 45, "q": 0.27, "mde50": 16.81732338666916, "mde80": 21.698785543441772, "ceiling": 0.9914319705085377}, {"n": 45, "q": 0.14008941877794337, "mde50": 12.895894548043763, "mde80": null, "ceiling": 0.6169196398170904}, {"n": 45, "q": 0.14392803598200898, "mde50": 13.001010728918983, "mde80": null, "ceiling": 0.6444984298879722}, {"n": 100, "q": 0.07, "mde50": 6.023007512092591, "mde80": null, "ceiling": 0.7085751454270335}, {"n": 100, "q": 0.14, "mde50": 8.080034732818605, "mde80": 10.606356739997864, "ceiling": 0.9965607496262685}, {"n": 100, "q": 0.27, "mde50": 11.114504992961885, "mde80": 15.018792808055876, "ceiling": 0.9999999870317325}, {"n": 100, "q": 0.14008941877794337, "mde50": 8.082324772762295, "mde80": 10.609941386608005, "ceiling": 0.9965846245296707}, {"n": 100, "q": 0.14392803598200898, "mde50": 8.179791577752383, "mde80": 10.762158612618741, "ceiling": 0.9974737413765824}, {"n": 200, "q": 0.07, "mde50": 4.043634355068207, "mde80": 5.316315352916718, "ceiling": 0.9955788649809582}, {"n": 200, "q": 0.14, "mde50": 5.656743288040163, "mde80": 7.668030142784121, "ceiling": 0.9999999728892351}, {"n": 200, "q": 0.27, "mde50": 7.614379942417146, "mde80": 10.551614463329315, "ceiling": 0.9999999999999286}, {"n": 200, "q": 0.14008941877794337, "mde50": 5.6584616709395075, "mde80": 7.6705597019053435, "ceiling": 0.9999999733518444}, {"n": 200, "q": 0.14392803598200898, "mde50": 5.731244923650236, "mde80": 7.7779023543648105, "ceiling": 0.9999999873182935}, {"n": 447, "q": 0.07, "mde50": 2.6650876998901376, "mde80": 3.633599102497102, "ceiling": 0.9999999966453202}, {"n": 447, "q": 0.14, "mde50": 3.6586660146713266, "mde80": 5.088281512260437, "ceiling": 0.9999999999996179}, {"n": 447, "q": 0.27, "mde50": 5.027476251125336, "mde80": 7.051429867744447, "ceiling": 0.9999999999995854}, {"n": 447, "q": 0.14008941877794337, "mde50": 3.6597879028888816, "mde80": 5.089894829848129, "ceiling": 0.9999999999996256}, {"n": 447, "q": 0.14392803598200898, "mde50": 3.7077596341294683, "mde80": 5.158725492600379, "ceiling": 0.9999999999996333}, {"n": 800, "q": 0.07, "mde50": 1.9383103847503662, "mde80": 2.691088795661927, "ceiling": 0.9999999999994206}, {"n": 800, "q": 0.14, "mde50": 2.7108856439590463, "mde80": 3.7997056245803837, "ceiling": 0.9999999999995564}, {"n": 800, "q": 0.27, "mde50": 3.7211900353431706, "mde80": 5.24888563156128, "ceiling": 0.9999999999996435}, {"n": 800, "q": 0.14008941877794337, "mde50": 2.7117203138269015, "mde80": 3.80090423561244, "ceiling": 0.9999999999995697}, {"n": 800, "q": 0.14392803598200898, "mde50": 2.7471456570603863, "mde80": 3.8518822711447007, "ceiling": 0.9999999999995693}], "bill_params": {"Claude Code": [16581, 937, 88], "mini-SWE-agent": [829, 648, 80], "OpenCode": [7025, 681, 55]}, "bills": {"0.287": {"Claude Code": {"input_tokens": 5094716.0, "miss_price_equivalent_tokens": 1571159.46724}, "mini-SWE-agent": {"input_tokens": 2158320.0, "miss_price_equivalent_tokens": 665604.3048}, "OpenCode": {"input_tokens": 1428130.0, "miss_price_equivalent_tokens": 440421.0107}}, "0.033": {"Claude Code": {"input_tokens": 5094716.0, "miss_price_equivalent_tokens": 315923.33916000015}, "mini-SWE-agent": {"input_tokens": 2158320.0, "miss_price_equivalent_tokens": 133837.42320000008}, "OpenCode": {"input_tokens": 1428130.0, "miss_price_equivalent_tokens": 88558.34130000004}}}, "experiments": [{"name": "検出力：不一致率14%", "metrics": {"n45_mde50_pp": 12.893471002578739, "n45_mde80_pp": null, "n45_ceiling": 0.6162644505020927, "n447_mde80_pp": 5.088281512260437}}, {"name": "著者コードの未丸め不一致率による照合", "metrics": {"q_hard": 0.14008941877794337, "q_pool": 0.14392803598200898, "n45_mde50_pp": 12.895894548043763, "n45_ceiling": 0.6169196398170904, "n447_mde80_pp": 5.158725492600379}}], "paper": {"source": "Table 1 / Fig.2 / Appendix F–G, v1", "flip": [13, 13, 22], "pairs": [["3.6 CC−mini", -1.8, -5.2, 1.6], ["3.6 CC−OC", 2.9, -0.9, 6.7], ["3.6 mini−OC", 4.7, 1.1, 8.4], ["3.8 CC−mini", -1.4, -4.2, 1.5], ["3.8 CC−OC", 7.9, 4.3, 11.5], ["3.8 mini−OC", 9.2, 5.5, 12.9]]}, "official_resolution": {"q_hard": 0.14008941877794337, "q_pool": 0.14392803598200898, "n45_mde50_pp": 12.895894548043763, "n45_ceiling": 0.6169196398170904, "n447_mde80_pp": 5.158725492600379}}</script><script>(()=>{const root=document.currentScript.parentElement,d=JSON.parse(root.querySelector("[data-batch08]").textContent);
+const $=s=>root.querySelector(s), f=(x,n=1)=>Number(x).toFixed(n);
+const line=(x1,y1,x2,y2,color='#bac7ca',w=1)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${w}"/>`;
+const txt=(x,y,t,anchor='start',color='#203b45')=>`<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="14" fill="${color}">${t}</text>`;
+const dot=(x,y,c)=>`<circle cx="${x}" cy="${y}" r="5" fill="${c}"/>`;
+function forest(el,rows,min,max,band=false){const x=v=>175+(v-min)/(max-min)*360,H=rows.length*46+60;el.setAttribute('viewBox',`0 0 575 ${H}`);let s='';if(band)s+=`<rect x="${x(-5)}" y="6" width="${x(5)-x(-5)}" height="${H-36}" fill="#e2efe8"/>`;s+=line(x(0),5,x(0),H-35,'#667f86');for(let v=Math.ceil(min/5)*5;v<=max;v+=5){s+=txt(x(v),H-10,v,'middle');}rows.forEach((r,i)=>{let y=25+i*46;s+=txt(8,y+4,r[0])+line(x(r[2]),y,x(r[3]),y,'#176d79',3)+line(x(r[2]),y-5,x(r[2]),y+5,'#176d79',2)+line(x(r[3]),y-5,x(r[3]),y+5,'#176d79',2)+dot(x(r[1]),y,'#bc6536')+txt(x(r[1]),y+20,`${r[1]} [${r[2]}, ${r[3]}]`,'middle');});el.innerHTML=s;}
+
+$('[data-flips]').innerHTML=['同じharnessの再実行','harness交換','モデル交換'].map((n,i)=>`<div class="card">${n}<span class="big">${d.paper.flip[i]}%</span><div class="bar" style="width:${d.paper.flip[i]*3}%"></div></div>`).join('');forest($('[data-forest]'),d.paper.pairs,-8,15,true);
+function power(){let v=d.power_grid.find(x=>x.n===+$('[data-n]').value && x.q===+$('[data-q]').value);$('[data-power]').innerHTML=[['50%検出力の最小差',v.mde50==null?'到達不可':f(v.mde50,2)+' pp'],['80%検出力の最小差',v.mde80==null?'到達不可':f(v.mde80,2)+' pp'],['検出力の上限',f(v.ceiling*100,1)+'%']].map(([k,v])=>`<div class="card">${k}<span class="big">${v}</span></div>`).join('');}
+function bill(){const n=+$('[data-steps]').value,ratio=+$('[data-price]').value,actual=$('[data-papersteps]').checked,compact=$('[data-compact]').checked;$('[data-steps-label]').textContent=n;$('[data-price-label]').textContent=f(ratio,3);$('[data-steps]').disabled=actual;const colors=['#176d79','#b56332','#6c61a0'];let all=Object.entries(d.bill_params).map(([name,[p,g,N]],j)=>{N=actual?N:n;const values=Array.from({length:N},(_,k)=>p+554+g*(compact?k%60:k));return {name,p,g,N,values,total:values.reduce((a,b)=>a+b,0),c:colors[j]};});const maxN=Math.max(...all.map(a=>a.N)),max=Math.max(...all.flatMap(a=>a.values)),x=k=>55+k/maxN*500,y=v=>230-v/max*190;let s=txt(10,20,'入力 token / call');[0,.5,1].forEach(a=>s+=line(55,y(max*a),565,y(max*a))+txt(5,y(max*a)+4,f(max*a/1000,0)+'k'));all.forEach(a=>{s+=`<polyline points="${a.values.map((v,k)=>`${x(k)},${y(v)}`).join(' ')}" stroke="${a.c}" stroke-width="3" fill="none"/>`;});s+=txt(55,260,'0 step')+txt(510,260,maxN+' step');$('[data-billplot]').innerHTML=s;$('[data-bill]').innerHTML=all.map(a=>`<tr><th style="color:${a.c}">${a.name}</th><td>${a.p} / ${a.g}</td><td>${f(a.total/1e6,3)}</td><td>${f(a.total*(.03+.97*ratio)/1e6,3)}</td></tr>`).join('');}
+for(const sel of ['[data-n]','[data-q]'])$(sel).addEventListener('change',power);for(const sel of ['[data-steps]','[data-price]','[data-papersteps]','[data-compact]'])$(sel).addEventListener('input',bill);power();bill();
+})();</script></section></div><div class="downloads"><a href="../downloads/harness-buys-tokens-not-pass-rate/run.py" download>実行コード</a><a href="../downloads/harness-buys-tokens-not-pass-rate/results.json" download>結果JSON</a><a href="https://github.com/mixidota2/paper-lab/tree/main/papers/harness-buys-tokens-not-pass-rate">GitHubで開く ↗</a></div><p class="source-note">このLabは run.py 単体で実行できます。結果はコードと同じフォルダーに保存されます。</p>      </section>
+      <section id="results" class="note-section">
+        <h2>結果</h2>
+<div class="prose"><p class="callout-body"><em>McNemar検出力は数理計算と乱数試行。token計算は入力のみの近似で、実API請求額の再現ではない。</em></p>
+<h3>検出力：不一致率14%</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>n45_mde50_pp</th><td colspan='1'>12.893471002578739</td></tr><tr><th scope='row'>n45_mde80_pp</th><td colspan='1'>None</td></tr><tr><th scope='row'>n45_ceiling</th><td colspan='1'>0.6162644505020927</td></tr><tr><th scope='row'>n447_mde80_pp</th><td colspan='1'>5.088281512260437</td></tr></tbody></table></div>
+<h3>著者コードの未丸め不一致率による照合</h3>
+<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th><th>value</th></tr></thead><tbody><tr><th scope='row'>q_hard</th><td colspan='1'>0.14008941877794337</td></tr><tr><th scope='row'>q_pool</th><td colspan='1'>0.14392803598200898</td></tr><tr><th scope='row'>n45_mde50_pp</th><td colspan='1'>12.895894548043763</td></tr><tr><th scope='row'>n45_ceiling</th><td colspan='1'>0.6169196398170904</td></tr><tr><th scope='row'>n447_mde80_pp</th><td colspan='1'>5.158725492600379</td></tr></tbody></table></div>
+<details><summary>生の results.json</summary><pre><code>{
+  &quot;lab_kind&quot;: &quot;harness08&quot;,
+  &quot;note&quot;: &quot;McNemar検出力は数理計算と乱数試行。token計算は入力のみの近似で、実API請求額の再現ではない。&quot;,
+  &quot;checks&quot;: [
+    {
+      &quot;n&quot;: 45,
+      &quot;q&quot;: 0.14008941877794337,
+      &quot;gap_pp&quot;: 12.9,
+      &quot;exact_power&quot;: 0.5004099521647352,
+      &quot;simulated_power&quot;: 0.5080833333333333
+    },
+    {
+      &quot;n&quot;: 447,
+      &quot;q&quot;: 0.14392803598200898,
+      &quot;gap_pp&quot;: 5.2,
+      &quot;exact_power&quot;: 0.8067450094977122,
+      &quot;simulated_power&quot;: 0.8143333333333334
+    }
+  ],
+  &quot;power_grid&quot;: [
+    {
+      &quot;n&quot;: 45,
+      &quot;q&quot;: 0.07,
+      &quot;mde50&quot;: null,
+      &quot;mde80&quot;: null,
+      &quot;ceiling&quot;: 0.09226806040957755
+    },
+    {
+      &quot;n&quot;: 45,
+      &quot;q&quot;: 0.14,
+      &quot;mde50&quot;: 12.893471002578739,
+      &quot;mde80&quot;: null,
+      &quot;ceiling&quot;: 0.6162644505020927
+    },
+    {
+      &quot;n&quot;: 45,
+      &quot;q&quot;: 0.27,
+      &quot;mde50&quot;: 16.81732338666916,
+      &quot;mde80&quot;: 21.698785543441772,
+      &quot;ceiling&quot;: 0.9914319705085377
+    },
+    {
+      &quot;n&quot;: 45,
+      &quot;q&quot;: 0.14008941877794337,
+      &quot;mde50&quot;: 12.895894548043763,
+      &quot;mde80&quot;: null,
+      &quot;ceiling&quot;: 0.6169196398170904
+    },
+    {
+      &quot;n&quot;: 45,
+      &quot;q&quot;: 0.14392803598200898,
+      &quot;mde50&quot;: 13.001010728918983,
+      &quot;mde80&quot;: null,
+      &quot;ceiling&quot;: 0.6444984298879722
+    },
+    {
+      &quot;n&quot;: 100,
+      &quot;q&quot;: 0.07,
+      &quot;mde50&quot;: 6.023007512092591,
+      &quot;mde80&quot;: null,
+      &quot;ceiling&quot;: 0.7085751454270335
+    },
+    {
+      &quot;n&quot;: 100,
+      &quot;q&quot;: 0.14,
+      &quot;mde50&quot;: 8.080034732818605,
+      &quot;mde80&quot;: 10.606356739997864,
+      &quot;ceiling&quot;: 0.9965607496262685
+    },
+    {
+      &quot;n&quot;: 100,
+      &quot;q&quot;: 0.27,
+      &quot;mde50&quot;: 11.114504992961885,
+      &quot;mde80&quot;: 15.018792808055876,
+      &quot;ceiling&quot;: 0.9999999870317325
+    },
+    {
+      &quot;n&quot;: 100,
+      &quot;q&quot;: 0.14008941877794337,
+      &quot;mde50&quot;: 8.082324772762295,
+      &quot;mde80&quot;: 10.609941386608005,
+      &quot;ceiling&quot;: 0.9965846245296707
+    },
+    {
+      &quot;n&quot;: 100,
+      &quot;q&quot;: 0.14392803598200898,
+      &quot;mde50&quot;: 8.179791577752383,
+      &quot;mde80&quot;: 10.762158612618741,
+      &quot;ceiling&quot;: 0.9974737413765824
+    },
+    {
+      &quot;n&quot;: 200,
+      &quot;q&quot;: 0.07,
+      &quot;mde50&quot;: 4.043634355068207,
+      &quot;mde80&quot;: 5.316315352916718,
+      &quot;ceiling&quot;: 0.9955788649809582
+    },
+    {
+      &quot;n&quot;: 200,
+      &quot;q&quot;: 0.14,
+      &quot;mde50&quot;: 5.656743288040163,
+      &quot;mde80&quot;: 7.668030142784121,
+      &quot;ceiling&quot;: 0.9999999728892351
+    },
+    {
+      &quot;n&quot;: 200,
+      &quot;q&quot;: 0.27,
+      &quot;mde50&quot;: 7.614379942417146,
+      &quot;mde80&quot;: 10.551614463329315,
+      &quot;ceiling&quot;: 0.9999999999999286
+    },
+    {
+      &quot;n&quot;: 200,
+      &quot;q&quot;: 0.14008941877794337,
+      &quot;mde50&quot;: 5.6584616709395075,
+      &quot;mde80&quot;: 7.6705597019053435,
+      &quot;ceiling&quot;: 0.9999999733518444
+    },
+    {
+      &quot;n&quot;: 200,
+      &quot;q&quot;: 0.14392803598200898,
+      &quot;mde50&quot;: 5.731244923650236,
+      &quot;mde80&quot;: 7.7779023543648105,
+      &quot;ceiling&quot;: 0.9999999873182935
+    },
+    {
+      &quot;n&quot;: 447,
+      &quot;q&quot;: 0.07,
+      &quot;mde50&quot;: 2.6650876998901376,
+      &quot;mde80&quot;: 3.633599102497102,
+      &quot;ceiling&quot;: 0.9999999966453202
+    },
+    {
+      &quot;n&quot;: 447,
+      &quot;q&quot;: 0.14,
+      &quot;mde50&quot;: 3.6586660146713266,
+      &quot;mde80&quot;: 5.088281512260437,
+      &quot;ceiling&quot;: 0.9999999999996179
+    },
+    {
+      &quot;n&quot;: 447,
+      &quot;q&quot;: 0.27,
+      &quot;mde50&quot;: 5.027476251125336,
+      &quot;mde80&quot;: 7.051429867744447,
+      &quot;ceiling&quot;: 0.9999999999995854
+    },
+    {
+      &quot;n&quot;: 447,
+      &quot;q&quot;: 0.14008941877794337,
+      &quot;mde50&quot;: 3.6597879028888816,
+      &quot;mde80&quot;: 5.089894829848129,
+      &quot;ceiling&quot;: 0.9999999999996256
+    },
+    {
+      &quot;n&quot;: 447,
+      &quot;q&quot;: 0.14392803598200898,
+      &quot;mde50&quot;: 3.7077596341294683,
+      &quot;mde80&quot;: 5.158725492600379,
+      &quot;ceiling&quot;: 0.9999999999996333
+    },
+    {
+      &quot;n&quot;: 800,
+      &quot;q&quot;: 0.07,
+      &quot;mde50&quot;: 1.9383103847503662,
+      &quot;mde80&quot;: 2.691088795661927,
+      &quot;ceiling&quot;: 0.9999999999994206
+    },
+    {
+      &quot;n&quot;: 800,
+      &quot;q&quot;: 0.14,
+      &quot;mde50&quot;: 2.7108856439590463,
+      &quot;mde80&quot;: 3.7997056245803837,
+      &quot;ceiling&quot;: 0.9999999999995564
+    },
+    {
+      &quot;n&quot;: 800,
+      &quot;q&quot;: 0.27,
+      &quot;mde50&quot;: 3.7211900353431706,
+      &quot;mde80&quot;: 5.24888563156128,
+      &quot;ceiling&quot;: 0.9999999999996435
+    },
+    {
+      &quot;n&quot;: 800,
+      &quot;q&quot;: 0.14008941877794337,
+      &quot;mde50&quot;: 2.7117203138269015,
+      &quot;mde80&quot;: 3.80090423561244,
+      &quot;ceiling&quot;: 0.9999999999995697
+    },
+    {
+      &quot;n&quot;: 800,
+      &quot;q&quot;: 0.14392803598200898,
+      &quot;mde50&quot;: 2.7471456570603863,
+      &quot;mde80&quot;: 3.8518822711447007,
+      &quot;ceiling&quot;: 0.9999999999995693
+    }
+  ],
+  &quot;bill_params&quot;: {
+    &quot;Claude Code&quot;: [
+      16581,
+      937,
+      88
+    ],
+    &quot;mini-SWE-agent&quot;: [
+      829,
+      648,
+      80
+    ],
+    &quot;OpenCode&quot;: [
+      7025,
+      681,
+      55
+    ]
+  },
+  &quot;bills&quot;: {
+    &quot;0.287&quot;: {
+      &quot;Claude Code&quot;: {
+        &quot;input_tokens&quot;: 5094716.0,
+        &quot;miss_price_equivalent_tokens&quot;: 1571159.46724
+      },
+      &quot;mini-SWE-agent&quot;: {
+        &quot;input_tokens&quot;: 2158320.0,
+        &quot;miss_price_equivalent_tokens&quot;: 665604.3048
+      },
+      &quot;OpenCode&quot;: {
+        &quot;input_tokens&quot;: 1428130.0,
+        &quot;miss_price_equivalent_tokens&quot;: 440421.0107
+      }
+    },
+    &quot;0.033&quot;: {
+      &quot;Claude Code&quot;: {
+        &quot;input_tokens&quot;: 5094716.0,
+        &quot;miss_price_equivalent_tokens&quot;: 315923.33916000015
+      },
+      &quot;mini-SWE-agent&quot;: {
+        &quot;input_tokens&quot;: 2158320.0,
+        &quot;miss_price_equivalent_tokens&quot;: 133837.42320000008
+      },
+      &quot;OpenCode&quot;: {
+        &quot;input_tokens&quot;: 1428130.0,
+        &quot;miss_price_equivalent_tokens&quot;: 88558.34130000004
+      }
+    }
+  },
+  &quot;experiments&quot;: [
+    {
+      &quot;name&quot;: &quot;検出力：不一致率14%&quot;,
+      &quot;metrics&quot;: {
+        &quot;n45_mde50_pp&quot;: 12.893471002578739,
+        &quot;n45_mde80_pp&quot;: null,
+        &quot;n45_ceiling&quot;: 0.6162644505020927,
+        &quot;n447_mde80_pp&quot;: 5.088281512260437
+      }
+    },
+    {
+      &quot;name&quot;: &quot;著者コードの未丸め不一致率による照合&quot;,
+      &quot;metrics&quot;: {
+        &quot;q_hard&quot;: 0.14008941877794337,
+        &quot;q_pool&quot;: 0.14392803598200898,
+        &quot;n45_mde50_pp&quot;: 12.895894548043763,
+        &quot;n45_ceiling&quot;: 0.6169196398170904,
+        &quot;n447_mde80_pp&quot;: 5.158725492600379
+      }
+    }
+  ],
+  &quot;paper&quot;: {
+    &quot;source&quot;: &quot;Table 1 / Fig.2 / Appendix F–G, v1&quot;,
+    &quot;flip&quot;: [
+      13,
+      13,
+      22
+    ],
+    &quot;pairs&quot;: [
+      [
+        &quot;3.6 CC−mini&quot;,
+        -1.8,
+        -5.2,
+        1.6
+      ],
+      [
+        &quot;3.6 CC−OC&quot;,
+        2.9,
+        -0.9,
+        6.7
+      ],
+      [
+        &quot;3.6 mini−OC&quot;,
+        4.7,
+        1.1,
+        8.4
+      ],
+      [
+        &quot;3.8 CC−mini&quot;,
+        -1.4,
+        -4.2,
+        1.5
+      ],
+      [
+        &quot;3.8 CC−OC&quot;,
+        7.9,
+        4.3,
+        11.5
+      ],
+      [
+        &quot;3.8 mini−OC&quot;,
+        9.2,
+        5.5,
+        12.9
+      ]
+    ]
+  },
+  &quot;official_resolution&quot;: {
+    &quot;q_hard&quot;: 0.14008941877794337,
+    &quot;q_pool&quot;: 0.14392803598200898,
+    &quot;n45_mde50_pp&quot;: 12.895894548043763,
+    &quot;n45_ceiling&quot;: 0.6169196398170904,
+    &quot;n447_mde80_pp&quot;: 5.158725492600379
+  }
+}</code></pre></details><p>公開コードの入力値まで照合し、本文の丸めを解いた。hard45の不一致率は0.1400894188、pool447は0.1439280360。Labの独立計算で、45件の50%境界は約12.90ポイント、検出力上限は61.69%、447件の80%境界は約5.159ポイントとなった。論文の12.9 / 約62% / 約5.2と整合する。</p>
+<p>参考にqを0.14ちょうどへ丸めると447件の境界は5.088ポイントとなる。対話図では両方を選べる。丸めによる差を手法の不一致と扱わない。</p></div>      </section>
+      <section id="what_we_verified" class="note-section">
+        <h2>検証できたこと</h2>
+<div class="prose"><p>CONFIRMED：著者コードで用いた不一致率を使うと、45件の12.9ポイント、上限約62%、447件の約5.2ポイントが独立計算で整合する。12,000回の乱数試行と厳密計算の差は2ポイント未満。GLMの代表値による入力token近似ではCC &gt; mini &gt; OCの順になった。</p>
+<p>PARTIAL：token式は入力だけの近似であり、実測CNY請求額や圧縮ログを再現していない。</p></div>      </section>
+      <section id="what_we_did_not_verify" class="note-section">
+        <h2>検証していないこと</h2>
+<div class="prose"><p>NOT TESTED：実LLMやSWE-benchの再実行、TOSTの元の課題別データからの再現、完全な出力・cache課金、現行版harnessの比較。本論文は主に1ベンチマーク、300 step上限であり、閉鎖型の最上位モデルを3つのharnessすべてで比べていない。ローカルQwen群の時間上限差、課題の学習混入も残る。</p></div>      </section>
+      <section id="implementation" class="note-section">
+        <h2>実装</h2>
+<div class="prose"><p>リポジトリ直下で実行する。Python標準ライブラリだけを使い、APIへは接続しない。</p>
+<pre><code class="language-bash">uv run --no-project papers/harness-buys-tokens-not-pass-rate/run.py
+uv run paper-lab build
+</code></pre>
+<p>lab.yamlとREADME.mdが説明、run.pyとresults.jsonが実験、mapping.mdが原典との対応を保持する。HTMLはビルドで生成し、直接編集しない。</p></div>      </section>
+      <section id="mapping" class="note-section">
+        <h2>原論文・公式コード対応</h2>
+<div class="prose"><h1>原論文と最小実験の対応</h1>
+<p>一次資料：<a href="https://arxiv.org/pdf/2610.04433v1">arXiv 2610.04433v1</a>。2026-10-08照合。PDF SHA-256: <code>c0c4899a732bb57aab9bac01fb64c83bc343c2a53e65554024ae292113726a32</code>。</p>
+<table>
+<thead>
+<tr>
+<th>原典</th>
+<th>Lab</th>
+<th>境界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Appendix F / Fig.A2</td>
+<td>binom(), rejection(), power(), mde(), simulation()</td>
+<td>二項分布を積分し、45/447件を乱数試行と照合。</td>
+</tr>
+<tr>
+<td>Appendix G / Table A4</td>
+<td>token_bill()</td>
+<td>定型入力と履歴増加を用いる。出力費用・実圧縮ログは省略。</td>
+</tr>
+<tr>
+<td>Table 1 / §4.5</td>
+<td>lab.yaml / results.jsonのpaper</td>
+<td>対応差と探索した効果の著者報告。元試行表の再解析ではない。</td>
+</tr>
+</tbody>
+</table>
+<p>公式コード：<a href="https://github.com/YangzeLiu/what-does-a-harness-buy">著者がPDFで案内した公開先</a>。公開commit <code>3f0c13208c8b71eefcf7b764e2372ac7200c3117</code> の <code>analysis/paper_numbers.py</code>（exact_power / mde_pp_exact）と <code>reference_outputs/numbers.json</code> を読み、入力不一致率を照合した。公式スクリプト全体は実行していない。</p>
+<p>公式の <code>data/trials.csv</code> は元試行表、<code>analysis/main_table.py</code> は有効試行の選択、<code>analysis/tab_a4_budget.py</code> はtoken分解に対応する。これらの課題別再集計は未実施。</p></div>      </section>
+    <aside class="end-note"><p>次に確かめたいこと</p><strong>その得点差は、再実行の揺れより大きいか</strong><p>上の「検証していないこと」を、手元のデータと運用条件で確かめる出発点にしてください。</p><a href="../index.html">ほかのLabと比べる →</a></aside>
+    </article>
+  </div>
+</main>
+<footer class="footer shell"><p>一次資料 → 仕組み → 実験 → 批評</p><a href="../downloads/harness-buys-tokens-not-pass-rate/lab.yaml" download>このページの原データ</a></footer>
+</body></html>

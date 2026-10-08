@@ -1,0 +1,162 @@
+id: harness-buys-tokens-not-pass-rate
+arxiv_id: '2610.04433'
+title: What Does a Harness Buy? Tokens, Mostly.
+authors:
+- Yangze Liu
+- Zhongyi Han
+year: 2026
+submitted: '2026-10-03'
+topics:
+- ai-agents
+- ml-systems
+urls:
+  paper: https://arxiv.org/abs/2610.04433
+  arxiv: https://arxiv.org/abs/2610.04433
+  pdf: https://arxiv.org/pdf/2610.04433v1
+  official_code: https://github.com/YangzeLiu/what-does-a-harness-buy
+verdict: Worth Reading
+status: published
+summary: Worth Reading：harnessの差を、同じ構成の再実行の差と並べる。 SWE-bench Verifiedのhard45では、成否が入れ替わる課題の割合は再実行もharness交換も中央値13%。モデル交換は約22%だった。pool447の2つのQwenモデルでは、Claude
+  Codeとmini-SWE-agentの差は±5ポイント内で等価と判定された。
+question: その得点差は、再実行の揺れより大きいか
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-10-08'
+  version: v1
+  pdf_sha256: c0c4899a732bb57aab9bac01fb64c83bc343c2a53e65554024ae292113726a32
+  scope: 本文、Table 1、Appendix F–GをPDFから照合。著者コードの不一致率と検出力も固定commitで照合。
+  url: https://arxiv.org/pdf/2610.04433v1
+core_idea:
+  author_claim: 著者の主張：このSWE-bench設定ではharnessを交換して得られる成功率の上積みを再実行の揺れから区別できず、明確な差はOpenCodeの損失として現れる。一方、毎stepの入力とstep数は費用を大きく変える（§4）。
+  research_bot_interpretation: 本Labの解釈：[Scaffold Effects on GAIA](scaffold-effects-gaia.html)の最大28ポイントや[Harness-Bench](harness-bench.html)の23.8ポイント幅と緊張関係にある。課題領域、ベンチマークとの接続、回復不能な失敗、指標や再実行の設計が違えば両立しうる。ただしGAIAにも反復試行の計画があり、「先行研究はすべて再実行なし」と片付けない。この論文だけでは両立の理由を識別できない。
+sections:
+  overview: '**Worth Reading：harnessの差を、同じ構成の再実行の差と並べる。** SWE-bench Verifiedのhard45では、成否が入れ替わる課題の割合は再実行もharness交換も中央値13%。モデル交換は約22%だった。pool447の2つのQwenモデルでは、Claude
+    Codeとmini-SWE-agentの差は±5ポイント内で等価と判定された。
+
+
+    これは「どんなharnessでも同じ」という結果ではない。有意な差はOpenCodeの不利として現れ、費用は同一モデルでも最大約3倍違う。小さな成功率差を主張する前に、再実行と十分な課題数を確保したい。'
+  problem: 'モデルを固定しても、system prompt、tool schema、履歴圧縮、打ち切り時の回復はharnessごとに違う。一度の得点差だけでは、この構成差と実行ごとの揺れを分けられない。
+
+
+    著者はClaude Code 2.1、mini-SWE-agent 2.4.6、OpenCode 1.18を固定し、Harbor 0.22.0で1試行1コンテナー、300 step上限とした。ネットワークを切った492課題のうち45件がhard45、残りがpool447。初期のネット接続試行ではDeepSeek/Qwenの71%が上流の修正を取得したため、その試行群は捨てている。'
+  method: method.md
+  why_it_might_work: '解釈：再実行を対照にすると、何も変えなくても起きる成否の交代が見える。45件では不一致が6件未満なら、すべて同じ側が勝っても5%両側検定で棄却できない。この離散性が小規模評価の限界を作る。
+
+
+    費用では、同じ定型文を毎回送るため小さな初期差が累積する。ただし軽いharnessでもstepが増えれば逆転する。DeepSeekではminiが141 step、Claude Codeが104 stepであり、定型入力の長さだけで安さは決まらない。'
+  evidence: '[一次資料：原論文 Table 1 / Fig.2 / Appendix F–G](https://arxiv.org/pdf/2610.04433v1)の著者報告。pool447は集合名で、有効ペア数は444〜445件である。
+
+
+    | モデル・差の向き | n | b / c | 差 pp [95% CI] | 判定 |
+
+    | --- | --- | --- | --- | --- |
+
+    | Qwen3.6 CC−mini | 445 | 26 / 34 | −1.8 [−5.2,1.6] | TOST等価 |
+
+    | Qwen3.6 CC−OC | 445 | 43 / 30 | 2.9 [−0.9,6.7] | 未確定 |
+
+    | Qwen3.6 mini−OC | 445 | 45 / 24 | 4.7 [1.1,8.4] | p=.02 |
+
+    | Qwen3.8 CC−mini | 444 | 17 / 23 | −1.4 [−4.2,1.5] | TOST等価 |
+
+    | Qwen3.8 CC−OC | 444 | 52 / 17 | 7.9 [4.3,11.5] | p<.001 |
+
+    | Qwen3.8 mini−OC | 445 | 57 / 16 | 9.2 [5.5,12.9] | p<.001 |
+
+
+    CC−miniの90%区間は[−4.7,1.1] / [−3.7,1.0]で±5内に収まる。図の95%区間が±5を越えても、このTOST判定とは矛盾しない。6比較のHolm補正後に残るのはQwen3.8の2差である。OpenCodeの出力上限で打ち切られた課題を除くと一部の差は約半分になるが、除外比較だけで原因の全てを確定できない。
+
+
+    定型入力はCC 16,581、OC 7,025、mini 829 token。GLMの履歴増加は937/681/648 token/step、step数は88.1/55.1/80.2、費用は1.81/0.56/0.97
+    CNY。cache hit率は96〜99%。hit/miss価格比0.287と0.033による再課金でも、論文で測ったtokenの費用順は変わらなかった。
+
+
+    ### §4.5で探したが見つからなかった効果
+
+
+    DeepSeek純正dshは21/45でCCと同数、miniは22。CCのファイル編集toolまたはshellを除いた条件、1年前の1.0.100も対照から1課題以内だった。旧版費用は0.44倍だが、extended
+    thinkingの既定値も異なる。
+
+
+    例外はthinkingとの相互作用。Qwen3.6でthinkingを切るとminiは11ポイント低下（p=.04）、CC/OCでは同程度の低下は出ない。HY4のCCでは11ポイント低下する。harnessのあらゆる部品が無意味だとは結論できない。'
+  executable_understanding: '不一致率と課題数を選び、50% / 80%の検出力で見える最小差を調べる。Pythonでは厳密な二項分布の総和と12,000回の乱数試行を突き合わせる。図の値はこの計算結果を読む。
+
+
+    定型入力・履歴増加・step数にはAppendix Gの値を使う。cache単価を替えると入力費用の尺度が変わる。圧縮を仮定すると段差が現れるが、これは原論文のログを再生したものではない。実測のCNY請求額は出力tokenを含むため、計算機の値とは比較しない。'
+  results: '公開コードの入力値まで照合し、本文の丸めを解いた。hard45の不一致率は0.1400894188、pool447は0.1439280360。Labの独立計算で、45件の50%境界は約12.90ポイント、検出力上限は61.69%、447件の80%境界は約5.159ポイントとなった。論文の12.9
+    / 約62% / 約5.2と整合する。
+
+
+    参考にqを0.14ちょうどへ丸めると447件の境界は5.088ポイントとなる。対話図では両方を選べる。丸めによる差を手法の不一致と扱わない。'
+  what_we_verified: 'CONFIRMED：著者コードで用いた不一致率を使うと、45件の12.9ポイント、上限約62%、447件の約5.2ポイントが独立計算で整合する。12,000回の乱数試行と厳密計算の差は2ポイント未満。GLMの代表値による入力token近似ではCC
+    > mini > OCの順になった。
+
+
+    PARTIAL：token式は入力だけの近似であり、実測CNY請求額や圧縮ログを再現していない。'
+  what_we_did_not_verify: NOT TESTED：実LLMやSWE-benchの再実行、TOSTの元の課題別データからの再現、完全な出力・cache課金、現行版harnessの比較。本論文は主に1ベンチマーク、300
+    step上限であり、閉鎖型の最上位モデルを3つのharnessすべてで比べていない。ローカルQwen群の時間上限差、課題の学習混入も残る。
+  implementation: 'リポジトリ直下で実行する。Python標準ライブラリだけを使い、APIへは接続しない。
+
+
+    ```bash
+
+    uv run --no-project papers/harness-buys-tokens-not-pass-rate/run.py
+
+    uv run paper-lab build
+
+    ```
+
+
+    lab.yamlとREADME.mdが説明、run.pyとresults.jsonが実験、mapping.mdが原典との対応を保持する。HTMLはビルドで生成し、直接編集しない。'
+  mapping: mapping.md
+teaching_figures:
+- kind: matrix
+  id: harness-anatomy
+  title: 入力の重さと、回復できる失敗を分ける
+  after: method
+  locator: §2 / §4.3 / Appendix G
+  caption: harnessを1本の成功率ランキングへ潰さず、費用と打ち切りを追う。
+  source: https://arxiv.org/pdf/2610.04433v1
+  rationale: harnessを1本の成功率ランキングへ潰さず、費用と打ち切りを追う。
+  columns:
+  - toolと履歴
+  - 定型入力 token
+  - 観測した制約
+  rows:
+  - label: Claude Code
+    cells:
+    - 型付きtool・履歴圧縮
+    - 16,581
+    - 出力打ち切りから継続を促す
+  - label: mini-SWE-agent
+    cells:
+    - bash・圧縮なし
+    - '829'
+    - 長い試行でcontext overflow
+  - label: OpenCode
+    cells:
+    - 型付きtool・履歴圧縮
+    - 7,025
+    - 出力上限から自動回復しない
+- kind: equations
+  id: paired-resolution
+  title: 課題の反転と、成功率の差は別の量
+  after: why_it_might_work
+  locator: Table 1 / Appendix F
+  caption: 反転率から検出力を計算し、等価性は別の許容幅で判定する。
+  source: https://arxiv.org/pdf/2610.04433v1
+  rationale: 反転率から検出力を計算し、等価性は別の許容幅で判定する。
+  steps:
+  - name: 反転する課題
+    formula: q = (b+c)/n
+    explanation: Aだけ成功b、Bだけ成功c。反転が多くても差が相殺される。
+  - name: 成功率の差
+    formula: Δ = (b−c)/n
+    explanation: 例：b=26,c=34,n=445なら−1.8ポイント。
+  - name: 等価性
+    formula: 90% CI ⊂ [−5,+5] pp
+    explanation: Qwen3.6 CC−miniは[−4.7,+1.1]。ゼロ差を証明した意味ではない。

@@ -1,0 +1,30 @@
+{
+  "checked": "2026-10-08",
+  "url": "https://github.com/YangzeLiu/what-does-a-harness-buy",
+  "commit": "3f0c13208c8b71eefcf7b764e2372ac7200c3117",
+  "scope": "Read-only inspection of analysis/paper_numbers.py and reference_outputs/numbers.json; official pipeline not executed.",
+  "mde": {
+    "hard45": {
+      "disc_pooled": 0.14008941877794337,
+      "disc_min": 0.06666666666666667,
+      "disc_max": 0.26666666666666666,
+      "n_typical": 45,
+      "mde_pp_at_n": 12.825005393802744,
+      "mde_pp_exact80": null,
+      "power_max_at_n": 0.6169196398170916,
+      "mde_pp_exact50": 12.89653749650708,
+      "n_min_for_80": 55
+    },
+    "pool447": {
+      "disc_pooled": 0.14392803598200898,
+      "disc_min": 0.09009009009009009,
+      "disc_max": 0.16404494382022472,
+      "n_typical": 447,
+      "mde_pp_at_n": 4.935588650805412,
+      "mde_pp_exact80": 5.159236787856072,
+      "power_max_at_n": 0.9999999999999989,
+      "mde_pp_exact50": 3.708009276611694,
+      "n_min_for_80": 54
+    }
+  }
+}

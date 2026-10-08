@@ -1,0 +1,135 @@
+id: traffic-forecast-to-decision-value
+arxiv_id: '2610.06992'
+title: 'When better traffic forecasts fail to improve signal control: a layered diagnostic study of forecast-to-decision
+  value'
+authors:
+- Jianing Long
+- Xiaobin Li
+- Wuming Lei
+- Weiguang Wang
+year: 2026
+submitted: '2026-10-04'
+topics:
+- demand-forecasting
+urls:
+  paper: https://arxiv.org/abs/2610.06992
+  arxiv: https://arxiv.org/abs/2610.06992
+  pdf: https://arxiv.org/pdf/2610.06992v1
+  official_code: https://github.com/ljnvs/traffic
+verdict: Radar
+status: published
+summary: Radar：予測を良くする前に、その制御器が未来情報を使えるかを調べる。 中国・宣城の実記録から再構成した需要による交通シミュレーションで、MAEは約4%改善した。しかし最終7日間では、予測ありも完全未来情報ありも安定した待ち行列削減を示さなかった。
+question: 予測の改善を使える行動が残っているか
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-10-08'
+  version: v1
+  pdf_sha256: 52bf7be5914f36c1682f8979591fd491498267c5e1908917621b823be4260b31
+  scope: 全11ページ、時刻修正と最終v8評価を照合。
+  url: https://arxiv.org/pdf/2610.06992v1
+core_idea:
+  author_claim: 著者の主張：予測品質、時刻の整合、行動の識別、oracleの構造的価値、凍結後の閉ループ価値を順に検査する。人工的な正の対照では未来情報が効いても、実需要を再構成した最終評価では安定したqueue改善を観測しなかった（§5–7）。
+  research_bot_interpretation: 本Labの解釈：小売補充なら発注ロット・容量・納期、価格なら変更可能日や価格帯が実効行動を制限する。予測改善を在庫費用の改善と同一視する前に、同じ制約と最適化器へ完全需要を渡して利益が出るかを見る。[Accuracy
+    Is Not Service](accuracy-not-service-intermittent-demand.html)や[Zalandoの価格Lab](zalando-sales-event-pricing-forecast-optimize.html)につながるが、交通から小売への転用は仮説である。
+sections:
+  overview: '**Radar：予測を良くする前に、その制御器が未来情報を使えるかを調べる。** 中国・宣城の実記録から再構成した需要による交通シミュレーションで、MAEは約4%改善した。しかし最終7日間では、予測ありも完全未来情報ありも安定した待ち行列削減を示さなかった。
+
+
+    小売への直接の実証ではない。補充や価格の決定でも、実効的な選択肢とoracleの価値を先に確かめる、という検証順序に注目する。'
+  problem: '交通量の誤差を平均的に減らしても、赤信号を青に替えられる地点や時刻で役立つとは限らない。9交差点という名目上の規模に対し、異なる非空の行動が複数ある交差点は2つだけだった。
+
+
+    また、ある分の総交通量が確定するのはその分の終わりである。その値を使った予測を分の途中の意思決定へ渡すと、未来情報が漏れる。需要の空間解像度だけでなく、いつ観測できるかを揃える必要がある。'
+  method: method.md
+  why_it_might_work: '解釈：順番に検査すれば「予測が悪い」のか「制御器が情報を使えない」のかを切り分けやすい。人工例でoracleが役立つのは実装の正の対照であり、実需要でも価値がある証明にはならない。
+
+
+    修正済みの検証2日では、oracleのqueue改善は−1.38%、因果的予測は−2.56%で、関門の判定はNO_GOだった。著者は負の結果を測るため、設定を変えず最終テストを1回実施した。その後に指標をspillbackへ替えて成功と呼ぶことも避けている。'
+  evidence: '[一次資料：原論文 Table 2–3 / Fig.4 / §6](https://arxiv.org/pdf/2610.06992v1)の著者報告。流入口MAEは1.9805→1.9007（−4.03%）、方向別は0.8446→0.8115（−3.92%）。90%区間の被覆率は全体90.72%に対し、事後的に選んだ高需要群では75.66%だった。
+
+
+    人工交差点では未来の流入を知ると内部rollout費用が3195.8→1230.0（−61.5%）。一方、実需要の再構成による7日間では次の結果となる。正が改善である。
+
+
+    | 比較：no-future基準 | 改善率 | 95% CI | 改善した日 |
+
+    | --- | --- | --- | --- |
+
+    | 因果的予測：queue | −6.09% | [−12.94,1.15] | 3/7 |
+
+    | event oracle：queue | −3.39% | [−7.24,3.08] | 4/7 |
+
+    | event oracle：spillback | +3.78% | [−1.25,12.26] | 5/7 |
+
+
+    queueの7日平均はno-future 851,022、予測902,821、oracle 879,866 vehicle-seconds。区間は7日を単位とする50,000回の対応bootstrapで、すべてゼロをまたぐ。予測は必ず害を与えるという結果ではない。再標本化を増やしても、独立した実日数は増えない。'
+  executable_understanding: '補充量aと需要Dの絶対差|a−D|を費用とする1期間toyを動かす。同じ600需要にhistorical、誤差を減らした予測、oracleを与える。行動が{8}だけ、{4,8,12}、需要から外れた{0,1,2}の3条件を切り替える。
+
+
+    3条件とも予測MAEは同じだけ改善する。それでも意思決定の価値は違う。選択肢の数だけでは足りず、未来によって最適行動が変わるかが必要だと確かめる。交通のFIFOや閉ループはこのtoyに含めない。'
+  results: 人工データのMAEは2.707→0.637。行動が{8}だけならoracleも費用を下げない。{4,8,12}では予測もoracleも費用ゼロとなる。{0,1,2}では常に2が選ばれ、3行動あっても価値はゼロだった。100%削減はこの人工設定の結果であり、小売や交通の効果予測ではない。
+  what_we_verified: 'CONFIRMED：同じMAE改善が、行動集合によって正またはゼロの価値になる例を実行した。
+
+
+    NOT OBSERVED：原論文の最終評価では安定したqueue便益が観測されていない。これは著者報告のラベルであり、Labが実交通データを再実行した意味ではない。機構全体の検証はPARTIALとする。'
+  what_we_did_not_verify: NOT TESTED：実交通記録、ExtraTrees/LightGBM学習、CQR校正、交通制御器、独立都市・季節、小売への外的妥当性。原論文も1都市1カ月、7テスト日、再構成需要の集約シミュレーションであり、現場実装やCityFlowの性能評価ではない。oracle関門の不通過後に確率的MPCやCVaR制御を評価したわけでもない。
+  implementation: 'リポジトリ直下で実行する。Python標準ライブラリだけを使い、APIへは接続しない。
+
+
+    ```bash
+
+    uv run --no-project papers/traffic-forecast-to-decision-value/run.py
+
+    uv run paper-lab build
+
+    ```
+
+
+    lab.yamlとREADME.mdが説明、run.pyとresults.jsonが実験、mapping.mdが原典との対応を保持する。HTMLはビルドで生成し、直接編集しない。'
+  mapping: mapping.md
+teaching_figures:
+- kind: timeline
+  id: decision-time-audit
+  title: 分の途中に、分の確定値は見えない
+  after: method
+  locator: §3.2 / §5.3
+  caption: 最終版の情報時刻を揃える。未来流入の二重投入も避ける。
+  source: https://arxiv.org/pdf/2610.06992v1
+  rationale: 最終版の情報時刻を揃える。未来流入の二重投入も避ける。
+  rows:
+  - label: 時刻順
+    nodes:
+    - title: 分m−1の終了
+      text: ここまでの観測から予測を作る
+    - title: 分mの途中
+      text: 現在までの流入を観測
+    - title: 将来slot
+      text: 分mの予測総量から観測済み分を引く
+- kind: matrix
+  id: oracle-boundary
+  title: 人工の正の対照と、実需要の関門は別
+  after: why_it_might_work
+  locator: §5.5 / §6.2–6.3
+  caption: oracleにも使う制御器・目的・近似ダイナミクスの限界がある。
+  source: https://arxiv.org/pdf/2610.06992v1
+  rationale: oracleにも使う制御器・目的・近似ダイナミクスの限界がある。
+  columns:
+  - 未来情報の効果
+  - 判断
+  rows:
+  - label: 人工交差点
+    cells:
+    - 内部rollout費用 −61.5%
+    - 情報に応じて行動を替えられる
+  - label: 修正後の検証2日
+    cells:
+    - oracle queue改善 −1.38%
+    - NO_GO
+  - label: 凍結した7日
+    cells:
+    - oracle queue改善 −3.39%、CIはゼロを含む
+    - 安定した便益を未観測

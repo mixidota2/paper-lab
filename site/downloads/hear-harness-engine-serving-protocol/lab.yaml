@@ -1,0 +1,146 @@
+id: hear-harness-engine-serving-protocol
+arxiv_id: '2610.06597'
+title: Can Agent Harnesses and Inference Engines Hear Each Other? The HEAR Protocol for Agentic LLM Serving
+authors:
+- Jiaqi Zhao
+- Haodong Chen
+- Jitai Hao
+- Wei Zhao
+- Jinghao Pang
+- Qiang Huang
+- Jun Yu
+year: 2026
+submitted: '2026-10-05'
+topics:
+- ml-systems
+- ai-agents
+urls:
+  paper: https://arxiv.org/abs/2610.06597
+  arxiv: https://arxiv.org/abs/2610.06597
+  pdf: https://arxiv.org/pdf/2610.06597v1
+  official_code: https://anonymous.4open.science/r/hear-3D1E/
+verdict: Radar
+status: published
+summary: Radar：harnessが知る再利用予定と、engineが知る現在のKV状態を接続する。 HEARは両者の交換内容と、その言葉の効力を定めるプロトコルである。SCBenchでは待機保護付きの方策がbatch処理を1.61倍速め、最初のtokenまでの時間（TTFT）の中央値を2.23倍、P95を1.45倍改善した。
+question: 再利用の予定と現在のKV状態をどう接続するか
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-10-08'
+  version: v1
+  pdf_sha256: ecdc8cdbeb1f3e93579141278a920ac9009f737785373af5a6694d2c122d3d0c
+  scope: 本文とAppendix A–Bを照合。SCBench/Mooncakeの誤帰属を訂正。
+  url: https://arxiv.org/pdf/2610.06597v1
+core_idea:
+  author_claim: 著者の主張：HEARは要求・文脈version・serving instanceへ紐づく双方向の意味規約を用意し、最適化方策から切り離す。cache-aware調整と役割別の実行構成選択で、同じ規約を使った効率改善を示した（§3–4）。
+  research_bot_interpretation: 本Labの解釈：Parrot、KVFlow、PBKV、Pythiaなどにも跨層の情報利用はある。HEARの焦点は、特定のschedulerを標準にすることより、意図・状態・制御・実行結果を同じ意味で接続することにある。[本日のharness費用Lab](harness-buys-tokens-not-pass-rate.html)と合わせると、harnessは毎stepの入力を増やす側にも、再計算を減らす情報を渡す側にもなりうる。
+sections:
+  overview: '**Radar：harnessが知る再利用予定と、engineが知る現在のKV状態を接続する。** HEARは両者の交換内容と、その言葉の効力を定めるプロトコルである。SCBenchでは待機保護付きの方策がbatch処理を1.61倍速め、最初のtokenまでの時間（TTFT）の中央値を2.23倍、P95を1.45倍改善した。
+
+
+    効率の結果であり、エージェントの正しさを端から端まで保証するものではない。2つの調査タスク群で品質低下を観測しなかったことも、一般的な同等性証明とは分ける。'
+  problem: 'harnessは次に必要な文脈と依存関係を知るが、GPUにそのKVが残っているかは知らない。engineはキャッシュやqueueを知るが、tool待ち中のagentがすぐ戻るかは知らない。この分断は、再利用直前の追い出しや、温かい要求を待たせて冷たい要求を先に処理する原因になる。
+
+
+    「後で使う」という予測を「必ず保持せよ」と解釈すると、今度は混雑時に資源を塞ぐ。情報の種類だけでなく、要求なのか希望なのかを区別する必要がある。'
+  method: method.md
+  why_it_might_work: '解釈：既にあるKVを使えばprefillを減らせるが、hot要求だけを先にするとcold要求が待ち続ける。engine状態は再利用機会を教え、harnessの待機要件はその利用に制限を付ける。この両方を表現できる点が効率と応答性の調整に役立つ。
+
+
+    役割別には、長い出力ほど実行モード固有の準備費用を回収しやすい。GLM-4.7-FlashのMain出力はBrowseComp-Plusで約0.4K、DeepResearchBenchで約4.4K token。すべての役割へ同じKV圧縮構成を当てる理由はない。'
+  evidence: '[一次資料：原論文 Table 3–6 / Appendix A–B](https://arxiv.org/pdf/2610.06597v1)の著者報告。SCBench/MooncakeはQwen3-8B、調査タスク群はLangGraphとGLM-4.7-Flashを使う。記録した同じ要求軌跡を再生し、生成内容の変化をscheduler差へ混ぜない。
+
+
+    | SCBench | TTFT中央値 / P95 / 最大 秒 | batch 秒 | KV再利用 % |
+
+    | --- | --- | --- | --- |
+
+    | FCFS | 63.1 / 74.2 / 79.0 | 481 | 19.2 |
+
+    | Cache-Aware | 4.6 / 75.8 / 93.9 | 224 | 87.6 |
+
+    | + Guard-40 | 28.3 / 51.1 / 65.0 | 299 | 66.1 |
+
+    | + Guard-60 | 4.5 / 64.0 / 80.4 | 230 | 84.7 |
+
+
+    **出典訂正：87.6%、63.1→4.6秒、481→224秒はSCBenchのTable 3であり、Mooncakeではない。** guardなしでは中央値とbatchが良くなる一方、最大TTFTは悪化する。
+
+
+    Mooncakeの50%負荷ではSession-Awareが再利用を19.5→31.9%へ改善。75%では組合せが有利だが、100%負荷でSession+Cache+Guardのthroughputは108.9 turns/minとなりFCFSの122.7を下回る。Cache-Aware単独は128.3、中央値TTFTは163.9→86.8秒。混雑下で同じ組合せが常に勝つわけではない。
+
+
+    BrowseComp-Plus（208問）は5.69→4.62時間、1.23倍、Judge正答率46.15→46.63%。DeepResearchBench（100件）は5.93→2.42時間、2.45倍、RACE
+    40.6→41.1。開発時の構成探索費用は正式E2E時間に含まれない。'
+  executable_understanding: '時刻0にcold要求B/C、2人工秒ごとにwarm文脈Aの要求が来る。1スロットのengineで、KVは1文脈だけ保持する。hitのprefillは1、missは6、decodeは1人工秒。FCFS、cache優先、cache優先+8秒guardを同じ到着列で比べる。
+
+
+    時間軸の各要求を選ぶと、実行前のKV、追い出し、最初のtoken、待機保護が見える。上の通信図では、受理と完了を別の段階として進める。通信図は意味の説明、時間軸はPythonの実行結果である。'
+  results: toyではFCFSの平均/最大TTFTは18.83/20、cache優先は5.50/45、guard付きは15.50/21人工秒だった。guardはcold要求の長い待機を抑えたが、全体をFCFSより速くする保証ではない。batchは51/46/51で、待機保護と再利用の交換条件が見える。
+  what_we_verified: 'CONFIRMED：同じ到着列の全要求を一度ずつ処理し、到着前には実行しない。cache優先で平均が下がり最大が増える例、guardで古いcold要求の待機を抑える例を確認した。
+
+
+    PARTIAL：待機と再利用の仕組みだけを実行した。HEAR全体、prefix block、複数GPU、非同期状態更新、Session-Aware保持方策を実装したものではない。'
+  what_we_did_not_verify: NOT TESTED：実LLM、GPU、KV圧縮、実際のprotocol adapter、4ベンチマークの再現、本番運用、古い状態通知や故障時の正しさ。論文の品質指標は限られたタスク群で低下を観測しなかったという結果であり、E2Eの正しさや同等性の保証ではない。公式リンクは匿名公開先で、今回の取得では内容を確認できなかった。固定版コードの実行はしていない。
+  implementation: 'リポジトリ直下で実行する。Python標準ライブラリだけを使い、APIへは接続しない。
+
+
+    ```bash
+
+    uv run --no-project papers/hear-harness-engine-serving-protocol/run.py
+
+    uv run paper-lab build
+
+    ```
+
+
+    lab.yamlとREADME.mdが説明、run.pyとresults.jsonが実験、mapping.mdが原典との対応を保持する。HTMLはビルドで生成し、直接編集しない。'
+  mapping: mapping.md
+teaching_figures:
+- kind: logic
+  id: message-force
+  title: 相手の発言が何を保証するかを分ける
+  after: method
+  locator: Table 2
+  caption: メッセージの種類だけでは効力は決まらない。
+  source: https://arxiv.org/pdf/2610.06597v1
+  rationale: メッセージの種類だけでは効力は決まらない。
+  rows:
+  - label: Harness → Engine
+    nodes:
+    - title: Description / Intent
+      text: 状態説明・再利用の予測
+    - title: Requirements / Control
+      text: 明示的な操作要求・待機制約
+  - label: Engine → Harness
+    nodes:
+    - title: State / Capabilities
+      text: 観測時点の状態・対応する操作
+    - title: Outcomes
+      text: 受理・完了・拒否・未対応・失敗
+- kind: matrix
+  id: role-modes
+  title: 役割とタスクで選ぶKV構成が変わる
+  after: evidence
+  locator: Eq.4–5 / Table 5–6
+  caption: 正式評価前に凍結した構成。常に圧縮を強める方策ではない。
+  source: https://arxiv.org/pdf/2610.06597v1
+  rationale: 正式評価前に凍結した構成。常に圧縮を強める方策ではない。
+  columns:
+  - Main / Reader
+  - Main出力
+  - 時間の著者報告
+  rows:
+  - label: BrowseComp-Plus
+    cells:
+    - vLLM / H2O
+    - 約0.4K token
+    - 5.69→4.62時間
+  - label: DeepResearchBench
+    cells:
+    - OmniKV / H2O
+    - 約4.4K token
+    - 5.93→2.42時間
