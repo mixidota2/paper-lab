@@ -3,6 +3,7 @@
 uv run --with playwright tests/browser_trace.py --site /tmp/trace-site \
     --chrome /usr/bin/chromium --screenshots /tmp/trace-browser
 
+Chromium sandbox is explicitly enabled; launch errors must not be bypassed.
 No model calls, external-site requests, or browser mocks. Output is a JSON
 summary. Screenshots/logs should be saved outside the source repository.
 """
@@ -46,7 +47,7 @@ def main():
     checks = local_links = 0
     try:
         with sync_playwright() as p:
-            options = {'args': ['--no-sandbox', '--disable-dev-shm-usage']}
+            options = {'chromium_sandbox': True}
             if args.chrome:
                 options['executable_path'] = args.chrome
             browser = p.chromium.launch(**options)
@@ -104,7 +105,7 @@ def main():
         server.shutdown()
         server.server_close()
     assert not errors, errors
-    print(json.dumps({'browser': version, 'widths': WIDTHS, 'conditions': checks,
+    print(json.dumps({'browser': version, 'chromium_sandbox': True, 'widths': WIDTHS, 'conditions': checks,
                       'pages': 101, 'local_link_checks': local_links, 'javascript_errors': errors,
                       'keyboard_reset_no_js': 'passed', 'external_links_not_fetched': sorted(external_links)},
                      ensure_ascii=False, indent=2))
