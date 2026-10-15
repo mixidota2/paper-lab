@@ -1,0 +1,1329 @@
+{
+  "note": "reportedは論文の転記。syntheticは自作の決定的な在庫修正例。論文の独立再現ではない。",
+  "reported": {
+    "source": "https://arxiv.org/html/2610.11678v1#A5.T6",
+    "main_unseen_tasks": 88,
+    "main_repeats": 3,
+    "positive_control_tasks": 158,
+    "positive_control_repeats": 2,
+    "equivalent_uncorrected": "7/8",
+    "equivalent_bonferroni": "6/8",
+    "qwen_format": {
+      "delta": -0.059,
+      "ci95": [
+        -0.123,
+        0.008
+      ],
+      "ci90": [
+        -0.114,
+        -0.004
+      ],
+      "excess_flips_pp": 9.3,
+      "excess_flips_ci95_pp": [
+        2.7,
+        16.1
+      ],
+      "label": "inconclusive"
+    }
+  },
+  "synthetic": [
+    {
+      "agent": "careful",
+      "alias": false,
+      "normalize": false,
+      "base": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "set_stock",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "write",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "state": {
+          "stock": 5
+        },
+        "canonical_hash": "d1619413b85defd0e5c1954c74df12e0d7f8f5d722053ea156698454ee498e1c",
+        "state_hash": "cc8c260c8fc8c4d89720b20039f0239e44582dd81c3a247279d382989416c54e",
+        "success": true
+      },
+      "changed": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "set_stock",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "write",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "state": {
+          "stock": 5
+        },
+        "canonical_hash": "d1619413b85defd0e5c1954c74df12e0d7f8f5d722053ea156698454ee498e1c",
+        "state_hash": "cc8c260c8fc8c4d89720b20039f0239e44582dd81c3a247279d382989416c54e",
+        "success": true
+      },
+      "original_score": 1.0,
+      "raw_score": 1.0,
+      "rescored": 1.0,
+      "raw_gap": 0.0,
+      "gap_after": 0.0,
+      "behavior_same": true,
+      "state_same": true
+    },
+    {
+      "agent": "careful",
+      "alias": false,
+      "normalize": true,
+      "base": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "set_stock",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "write",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "state": {
+          "stock": 5
+        },
+        "canonical_hash": "d1619413b85defd0e5c1954c74df12e0d7f8f5d722053ea156698454ee498e1c",
+        "state_hash": "cc8c260c8fc8c4d89720b20039f0239e44582dd81c3a247279d382989416c54e",
+        "success": true
+      },
+      "changed": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "set_stock",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "write",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "state": {
+          "stock": 5
+        },
+        "canonical_hash": "d1619413b85defd0e5c1954c74df12e0d7f8f5d722053ea156698454ee498e1c",
+        "state_hash": "cc8c260c8fc8c4d89720b20039f0239e44582dd81c3a247279d382989416c54e",
+        "success": true
+      },
+      "original_score": 1.0,
+      "raw_score": 1.0,
+      "rescored": 1.0,
+      "raw_gap": 0.0,
+      "gap_after": 0.0,
+      "behavior_same": true,
+      "state_same": true
+    },
+    {
+      "agent": "careful",
+      "alias": true,
+      "normalize": false,
+      "base": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "set_stock",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "write",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "state": {
+          "stock": 5
+        },
+        "canonical_hash": "d1619413b85defd0e5c1954c74df12e0d7f8f5d722053ea156698454ee498e1c",
+        "state_hash": "cc8c260c8fc8c4d89720b20039f0239e44582dd81c3a247279d382989416c54e",
+        "success": true
+      },
+      "changed": {
+        "trace": [
+          {
+            "tool": "fetch_count",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "replace_count",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "fetch_count",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "send_count",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "write",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "state": {
+          "stock": 5
+        },
+        "canonical_hash": "d1619413b85defd0e5c1954c74df12e0d7f8f5d722053ea156698454ee498e1c",
+        "state_hash": "cc8c260c8fc8c4d89720b20039f0239e44582dd81c3a247279d382989416c54e",
+        "success": true
+      },
+      "original_score": 1.0,
+      "raw_score": 0.5,
+      "rescored": 0.5,
+      "raw_gap": 0.5,
+      "gap_after": 0.5,
+      "behavior_same": true,
+      "state_same": true
+    },
+    {
+      "agent": "careful",
+      "alias": true,
+      "normalize": true,
+      "base": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "set_stock",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "write",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "state": {
+          "stock": 5
+        },
+        "canonical_hash": "d1619413b85defd0e5c1954c74df12e0d7f8f5d722053ea156698454ee498e1c",
+        "state_hash": "cc8c260c8fc8c4d89720b20039f0239e44582dd81c3a247279d382989416c54e",
+        "success": true
+      },
+      "changed": {
+        "trace": [
+          {
+            "tool": "fetch_count",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "replace_count",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "fetch_count",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "send_count",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "write",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "state": {
+          "stock": 5
+        },
+        "canonical_hash": "d1619413b85defd0e5c1954c74df12e0d7f8f5d722053ea156698454ee498e1c",
+        "state_hash": "cc8c260c8fc8c4d89720b20039f0239e44582dd81c3a247279d382989416c54e",
+        "success": true
+      },
+      "original_score": 1.0,
+      "raw_score": 0.5,
+      "rescored": 1.0,
+      "raw_gap": 0.5,
+      "gap_after": 0.0,
+      "behavior_same": true,
+      "state_same": true
+    },
+    {
+      "agent": "sensitive",
+      "alias": false,
+      "normalize": false,
+      "base": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "set_stock",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "write",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "state": {
+          "stock": 5
+        },
+        "canonical_hash": "d1619413b85defd0e5c1954c74df12e0d7f8f5d722053ea156698454ee498e1c",
+        "state_hash": "cc8c260c8fc8c4d89720b20039f0239e44582dd81c3a247279d382989416c54e",
+        "success": true
+      },
+      "changed": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "set_stock",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "write",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "state": {
+          "stock": 5
+        },
+        "canonical_hash": "d1619413b85defd0e5c1954c74df12e0d7f8f5d722053ea156698454ee498e1c",
+        "state_hash": "cc8c260c8fc8c4d89720b20039f0239e44582dd81c3a247279d382989416c54e",
+        "success": true
+      },
+      "original_score": 1.0,
+      "raw_score": 1.0,
+      "rescored": 1.0,
+      "raw_gap": 0.0,
+      "gap_after": 0.0,
+      "behavior_same": true,
+      "state_same": true
+    },
+    {
+      "agent": "sensitive",
+      "alias": false,
+      "normalize": true,
+      "base": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "set_stock",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "write",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "state": {
+          "stock": 5
+        },
+        "canonical_hash": "d1619413b85defd0e5c1954c74df12e0d7f8f5d722053ea156698454ee498e1c",
+        "state_hash": "cc8c260c8fc8c4d89720b20039f0239e44582dd81c3a247279d382989416c54e",
+        "success": true
+      },
+      "changed": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "set_stock",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "write",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "state": {
+          "stock": 5
+        },
+        "canonical_hash": "d1619413b85defd0e5c1954c74df12e0d7f8f5d722053ea156698454ee498e1c",
+        "state_hash": "cc8c260c8fc8c4d89720b20039f0239e44582dd81c3a247279d382989416c54e",
+        "success": true
+      },
+      "original_score": 1.0,
+      "raw_score": 1.0,
+      "rescored": 1.0,
+      "raw_gap": 0.0,
+      "gap_after": 0.0,
+      "behavior_same": true,
+      "state_same": true
+    },
+    {
+      "agent": "sensitive",
+      "alias": true,
+      "normalize": false,
+      "base": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "set_stock",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "write",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "state": {
+          "stock": 5
+        },
+        "canonical_hash": "d1619413b85defd0e5c1954c74df12e0d7f8f5d722053ea156698454ee498e1c",
+        "state_hash": "cc8c260c8fc8c4d89720b20039f0239e44582dd81c3a247279d382989416c54e",
+        "success": true
+      },
+      "changed": {
+        "trace": [
+          {
+            "tool": "fetch_count",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "fetch_count",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "send_count",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "state": {
+          "stock": 8
+        },
+        "canonical_hash": "cd83c86777000f6c68b5f121b004e465217941d18039aacb14adb288fa4fdb17",
+        "state_hash": "a9e03ecee0afd5ff88ec16ac3aebcff0feb9740ad6365ee6271d9054dddd3dbf",
+        "success": false
+      },
+      "original_score": 1.0,
+      "raw_score": 0.0,
+      "rescored": 0.0,
+      "raw_gap": 1.0,
+      "gap_after": 1.0,
+      "behavior_same": false,
+      "state_same": false
+    },
+    {
+      "agent": "sensitive",
+      "alias": true,
+      "normalize": true,
+      "base": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "set_stock",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "write",
+            "argument": 5,
+            "observation": 5
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 5
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 5
+          }
+        ],
+        "state": {
+          "stock": 5
+        },
+        "canonical_hash": "d1619413b85defd0e5c1954c74df12e0d7f8f5d722053ea156698454ee498e1c",
+        "state_hash": "cc8c260c8fc8c4d89720b20039f0239e44582dd81c3a247279d382989416c54e",
+        "success": true
+      },
+      "changed": {
+        "trace": [
+          {
+            "tool": "fetch_count",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "fetch_count",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "send_count",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "state": {
+          "stock": 8
+        },
+        "canonical_hash": "cd83c86777000f6c68b5f121b004e465217941d18039aacb14adb288fa4fdb17",
+        "state_hash": "a9e03ecee0afd5ff88ec16ac3aebcff0feb9740ad6365ee6271d9054dddd3dbf",
+        "success": false
+      },
+      "original_score": 1.0,
+      "raw_score": 0.0,
+      "rescored": 0.0,
+      "raw_gap": 1.0,
+      "gap_after": 1.0,
+      "behavior_same": false,
+      "state_same": false
+    },
+    {
+      "agent": "weak",
+      "alias": false,
+      "normalize": false,
+      "base": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "state": {
+          "stock": 8
+        },
+        "canonical_hash": "cd83c86777000f6c68b5f121b004e465217941d18039aacb14adb288fa4fdb17",
+        "state_hash": "a9e03ecee0afd5ff88ec16ac3aebcff0feb9740ad6365ee6271d9054dddd3dbf",
+        "success": false
+      },
+      "changed": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "state": {
+          "stock": 8
+        },
+        "canonical_hash": "cd83c86777000f6c68b5f121b004e465217941d18039aacb14adb288fa4fdb17",
+        "state_hash": "a9e03ecee0afd5ff88ec16ac3aebcff0feb9740ad6365ee6271d9054dddd3dbf",
+        "success": false
+      },
+      "original_score": 0.0,
+      "raw_score": 0.0,
+      "rescored": 0.0,
+      "raw_gap": 0.0,
+      "gap_after": 0.0,
+      "behavior_same": true,
+      "state_same": true
+    },
+    {
+      "agent": "weak",
+      "alias": false,
+      "normalize": true,
+      "base": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "state": {
+          "stock": 8
+        },
+        "canonical_hash": "cd83c86777000f6c68b5f121b004e465217941d18039aacb14adb288fa4fdb17",
+        "state_hash": "a9e03ecee0afd5ff88ec16ac3aebcff0feb9740ad6365ee6271d9054dddd3dbf",
+        "success": false
+      },
+      "changed": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "state": {
+          "stock": 8
+        },
+        "canonical_hash": "cd83c86777000f6c68b5f121b004e465217941d18039aacb14adb288fa4fdb17",
+        "state_hash": "a9e03ecee0afd5ff88ec16ac3aebcff0feb9740ad6365ee6271d9054dddd3dbf",
+        "success": false
+      },
+      "original_score": 0.0,
+      "raw_score": 0.0,
+      "rescored": 0.0,
+      "raw_gap": 0.0,
+      "gap_after": 0.0,
+      "behavior_same": true,
+      "state_same": true
+    },
+    {
+      "agent": "weak",
+      "alias": true,
+      "normalize": false,
+      "base": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "state": {
+          "stock": 8
+        },
+        "canonical_hash": "cd83c86777000f6c68b5f121b004e465217941d18039aacb14adb288fa4fdb17",
+        "state_hash": "a9e03ecee0afd5ff88ec16ac3aebcff0feb9740ad6365ee6271d9054dddd3dbf",
+        "success": false
+      },
+      "changed": {
+        "trace": [
+          {
+            "tool": "fetch_count",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "fetch_count",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "send_count",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "state": {
+          "stock": 8
+        },
+        "canonical_hash": "cd83c86777000f6c68b5f121b004e465217941d18039aacb14adb288fa4fdb17",
+        "state_hash": "a9e03ecee0afd5ff88ec16ac3aebcff0feb9740ad6365ee6271d9054dddd3dbf",
+        "success": false
+      },
+      "original_score": 0.0,
+      "raw_score": 0.0,
+      "rescored": 0.0,
+      "raw_gap": 0.0,
+      "gap_after": 0.0,
+      "behavior_same": true,
+      "state_same": true
+    },
+    {
+      "agent": "weak",
+      "alias": true,
+      "normalize": true,
+      "base": {
+        "trace": [
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "read_stock",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "report_stock",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "state": {
+          "stock": 8
+        },
+        "canonical_hash": "cd83c86777000f6c68b5f121b004e465217941d18039aacb14adb288fa4fdb17",
+        "state_hash": "a9e03ecee0afd5ff88ec16ac3aebcff0feb9740ad6365ee6271d9054dddd3dbf",
+        "success": false
+      },
+      "changed": {
+        "trace": [
+          {
+            "tool": "fetch_count",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "fetch_count",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "send_count",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "canonical": [
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "read",
+            "argument": null,
+            "observation": 8
+          },
+          {
+            "tool": "report",
+            "argument": null,
+            "observation": 8
+          }
+        ],
+        "state": {
+          "stock": 8
+        },
+        "canonical_hash": "cd83c86777000f6c68b5f121b004e465217941d18039aacb14adb288fa4fdb17",
+        "state_hash": "a9e03ecee0afd5ff88ec16ac3aebcff0feb9740ad6365ee6271d9054dddd3dbf",
+        "success": false
+      },
+      "original_score": 0.0,
+      "raw_score": 0.0,
+      "rescored": 0.0,
+      "raw_gap": 0.0,
+      "gap_after": 0.0,
+      "behavior_same": true,
+      "state_same": true
+    }
+  ],
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  }
+}

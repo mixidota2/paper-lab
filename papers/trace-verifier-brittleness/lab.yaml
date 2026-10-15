@@ -1,0 +1,73 @@
+id: trace-verifier-brittleness
+title: 'TRACE: Diagnosing Verifier Brittleness in Agentic Evaluation'
+authors: [Radhika Gaonkar]
+year: 2026
+arxiv_id: '2610.11678'
+submitted: '2026-10-08'
+topics: [ai-agents]
+urls:
+  paper: https://arxiv.org/html/2610.11678v1
+  arxiv: https://arxiv.org/abs/2610.11678
+  pdf: https://arxiv.org/pdf/2610.11678v1
+  official_code: https://github.com/RGaonkar/trace-verifier-stress-tests
+verdict: Worth Reading
+status: draft
+question: 行動が変わって失敗したのか、同じ行動を採点器が違って評価したのか
+summary: ツール名を変えて点数が落ちても、能力が落ちたとは限らない。TRACEは対応する実行の比較、操作と最終状態の確認、固定した記録の再採点で原因を分ける。自作の在庫修正例で、名前だけの採点不具合と本当の行動失敗を区別する。
+related_threads: [agent-evaluation-and-verifier-validity]
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-10-15'
+  url: https://arxiv.org/html/2610.11678v1
+  scope: v1本文§2–5・7とAppendix A・C・E、Fig 1–2の説明、Tables 6・8を確認。公開コードのHEADは4e42d6a。Study 2/3対応アーカイブは見つからず、報告結果を独立再現していない。
+core_idea:
+  author_claim: 著者は、点数の変化だけでは原因を特定できないと主張する。条件を変えた対応実行から差を測り、行動の変化を調べ、同じ記録を修正した採点器に渡すことで、実行系と採点器の感度を分ける。
+  research_bot_interpretation: ベンチマークの点数は、能力と測定方法の両方に依存する。リリース前の評価では、点差の表に加えて、変わった操作と状態、再採点で戻る差、同一条件でも起きる変動を残すと、修正すべき対象を絞りやすい。
+sections:
+  overview: 'TRACE（arXiv 2610.11678v1、2026年10月8日公開）を読むためのLab。点数を戻すことと、エージェントの失敗を直すことを分ける。論文の数値はreportedとして紹介し、自作の決定的な実験はsyntheticとして別に保存する。'
+  problem: '在庫数を8から5へ直す仕事で、同じ書込みをしたのにツール名が変わっただけで減点されたら、修正対象は採点器かもしれない。一方、名前の変更をきっかけに書込み自体を省いたなら行動の問題だ。点数だけでは、この違いを判断できない。'
+  method: method.md
+  why_it_might_work: '推論：実行記録を固定すれば、再採点の間に行動が変わる余地をなくせる。採点側の特定の修正だけで差が消えれば、その修正対象が原因だったという説明を支えられる。ただし、比較した操作や状態が本当に同じ意味を持つかは別途確かめる必要がある。'
+  evidence: evidence.md
+  executable_understanding: experiment.md
+  results: '正しく操作する自作スクリプトでは、別名にしても操作列と状態のhashが一致し、採点だけが1.00→0.50へ落ちる。名前を正規化すると1.00へ戻る。書込みを省くスクリプトは正規化後も0。これらはLabで設計した規則の結果であり、論文の0.250や公開モデルの性能を再現した値ではない。'
+  what_we_verified: '**CONFIRMED**：名前変更で正規の操作列・状態hashが不変なこと、再採点が記録を変更しないこと、正規化で点数だけ戻ること、本当の行動失敗は残ることをテストした。**PARTIAL**：TRACEの診断手順の一部を自作例で表現した。'
+  what_we_did_not_verify: 'Study 2/3の独立再現、LLMの再実行ノイズ、採点の正確性、学習による採点器の攻略、本番の失敗率はNOT TESTED。閲覧できる公開コードにはStudy 2/3に対応するアーカイブをNOT OBSERVED。存在しないと断定する意味ではない。native rewardにも一部LLM採点が入り、真実ラベルとしては扱えない。'
+  implementation: '`uv run papers/trace-verifier-brittleness/run.py --test` でテストし、`--test` を外して結果と操作画面を再生成する。標準ライブラリだけを使い、公式スクリプトやモデルAPIは実行しない。12条件の計算をPythonで行い、ブラウザーは表示だけ切り替える。詳細はREADMEとmappingを参照。'
+figures: []
+interactives: []
+teaching_figures:
+- id: diagnosis
+  kind: logic
+  title: 点数の差から、調べる対象を絞る
+  after: method
+  source: https://arxiv.org/html/2610.11678v1
+  locator: §2・Fig 1の手順
+  rationale: 実行の比較と固定記録の採点を分ける。
+  caption: Lab独自の在庫修正例で表した診断の流れ。原論文の図版を転載・再描画したものではない。
+  rows:
+  - label: 実行する
+    nodes:
+    - {title: '対応する2回を比べる', text: '仕事・方策・seedを対応させ、変更条件だけを変える'}
+    - {title: '点差を測る', text: '行動・環境・採点のどこが原因かはまだ分からない'}
+  - label: 記録を読む
+    nodes:
+    - {title: '操作・引数・最終状態', text: '書込みが消えたか、名前だけ変わったかを調べる'}
+    - {title: '同じ記録を再採点', text: '行動は変えず、疑わしい採点規則だけ修正する'}
+- id: stability
+  kind: matrix
+  title: 安定性と成功率は、別の問いに答える
+  after: method
+  source: https://arxiv.org/html/2610.11678v1
+  locator: §3.1–3.2・Fig 2、Table 2
+  rationale: 差が小さい弱いエージェントを高く評価しない。
+  caption: 数値は下の自作例。論文Table 2の測定値ではない。別名使用時に正規化した採点器で比べる。
+  columns: [元の点数, 比較側の点数, 差, 最終在庫は正しいか]
+  rows:
+  - {label: 正しく直す, cells: ['1.00', '1.00', '0.00', はい]}
+  - {label: 別名で書込みを省く, cells: ['1.00', '0.00', '1.00', いいえ]}
+  - {label: いつも書込みを省く, cells: ['0.00', '0.00', '0.00', いいえ]}
