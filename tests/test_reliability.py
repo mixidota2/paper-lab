@@ -78,7 +78,7 @@ def test_browser_scripts_request_protected_chromium():
 
 def test_generated_downloads_and_embedded_explorer_match_sources(tmp_path):
     from html.parser import HTMLParser
-    from urllib.parse import unquote, urlsplit
+    from urllib.parse import unquote, urljoin, urlsplit
 
     class Links(HTMLParser):
         def __init__(self):
@@ -114,11 +114,23 @@ def test_generated_downloads_and_embedded_explorer_match_sources(tmp_path):
         if parser.explorers:
             source = json.loads((ROOT / "papers" / html.stem / "results.json").read_text())
             assert all(data == source["explorer"] for data in parser.explorers)
+        origin = 'https://mixidota2.github.io/paper-lab/' + html.relative_to(site).as_posix()
         for link in parser.links:
-            url = urlsplit(link)
-            if not url.scheme and not url.netloc and url.path:
-                target = html.parent / unquote(url.path)
-                assert target.exists(), (html, link)
+            raw = urlsplit(link)
+            url = urlsplit(urljoin(origin, link))
+            # Resolve as Pages does, including absolute links back to this site.
+            same_site = url.netloc == 'mixidota2.github.io' and url.path.startswith('/paper-lab/')
+            if (not raw.scheme and not raw.netloc) or same_site:
+                assert same_site, (html, link)
+                relative = unquote(url.path.removeprefix('/paper-lab/'))
+                target = site / relative
+                if url.path.endswith('/'):
+                    target = target / 'index.html'
+                assert target.is_file(), (html, link, target)
+    comparison = (site / 'papers/diff-projection-feasible-multi-echelon-inventory.html').read_text()
+    for slug in ('constrained-deep-inventory-fbsde', 'deepstock-policy-regularized-inventory-drl'):
+        assert f'href="{slug}.html"' in comparison
+        assert (site / 'papers' / f'{slug}.html').is_file()
     spotify = (site / 'papers/spotify-incremental-recommendation-causal.html').read_text()
     assert '0.5（確率）' in spotify
     assert '0.5件' not in spotify
