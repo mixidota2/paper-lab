@@ -178,3 +178,14 @@ def test_funded_rejects_unsafe_demand(demand):
 def test_reason_large_finite_predictions():
     result = reason(base=[1e307]*7, actual=[1e307]*7, additive=[0]*7, level=[0]*7)
     assert all(row['status']=='ok' and row['wmape']==0 for row in result['rows'])
+
+@pytest.mark.parametrize('i', [0, 1])
+def test_python_export_identifies_actual_source(i):
+    import hashlib
+    m = model(i)
+    packet = m.pack(m.reference_cases()['inputs'])
+    assert packet['implementation'] == {
+        'status': 'content-hash', 'algorithm': 'sha256', 'runtime': 'python',
+        'files': {'run.py': hashlib.sha256((ROOT/'papers'/IDS[i]/'run.py').read_bytes()).hexdigest()}}
+    packet['implementation'] = {'status': 'untrusted-old-implementation'}
+    assert m.pack(m.unpack(packet))['implementation']['status'] == 'content-hash'

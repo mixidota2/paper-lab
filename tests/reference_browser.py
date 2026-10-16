@@ -115,6 +115,8 @@ def inspect(base_url):
                 assert payload['schema']==2 and payload['model']['version']=='2.0.0'
                 assert payload['model']['source']['url'].startswith('https://arxiv.org/html/')
                 assert payload['model']['conventions']
+                manifest=json.loads((SITE/'downloads'/slug/'implementation.json').read_text())
+                assert payload['implementation']==manifest
                 root.locator(f'[name={expected}]').fill('0.9')
                 payload['output']='untrusted'
                 root.locator('[data-json]').fill(json.dumps(payload))

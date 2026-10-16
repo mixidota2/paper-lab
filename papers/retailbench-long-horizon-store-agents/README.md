@@ -107,3 +107,7 @@ Python標準ライブラリと小さなブラウザ計算だけを使います�
 保存形式schema 2には、教材仕様ID・版2.0.0、原典URL・版、指標や会計の規約を含めます。読込時はschema・教材ID・仕様版を照合し、inputsを再検証します。保存outputや説明メタデータは計算根拠にせず、現行の固定仕様で再計算・再出力します。旧schema 1や未知の仕様版を黙って読み替えません。署名付きの真正性証明ではありません。
 
 手元資金モードの需要は、JavaScriptとPythonで共通して安全に扱える0〜9,007,199,254,740,991の整数に限る。上限を超える値や小数は入力エラーとし、失注の計算へ進めない。
+
+保存JSONの `implementation` は計算に使うソースの識別情報です。サイトのビルド時に、配布する `model.js`・`interactive.js`・`run.py` の実バイト列のSHA-256を `implementation.json` と `implementation.js` に生成し、ブラウザのexportへ記録します。これらの生成ファイル自身はハッシュ対象にしません。配布ファイルをダウンロードして `sha256sum model.js interactive.js run.py` とmanifest・保存JSONを照合できます。Pythonの `pack()` は実行時の `run.py` のハッシュを記録します。ビルドを経ずJSモデルを直接使用した場合は `status: unavailable` です。
+
+これはソース内容の識別であり、署名や公開commitの証明ではありません。未コミットの編集もその内容のハッシュになります。公開時は別途、対象commitのActions実行・配布manifest・実URLの内容を照合します。importは過去の実装を実行せず現在のコードで再計算し、再exportには現在の識別情報を記録します。原典版・入力値・教材仕様版も同じJSONに残ります。

@@ -30,7 +30,11 @@ MODEL_SPEC = {'id': 'reasoncast-output-proxy', 'version': '2.0.0', 'source': {'u
 
 def pack(inputs):
     from copy import deepcopy
-    return dict(schema=2, kind=MODEL_SPEC['id'], model=deepcopy(MODEL_SPEC), inputs=deepcopy(inputs), output=evaluate(inputs))
+    import hashlib
+    from pathlib import Path
+    implementation = dict(status="content-hash", algorithm="sha256", runtime="python",
+                          files={"run.py": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()})
+    return dict(schema=2, kind=MODEL_SPEC['id'], model=deepcopy(MODEL_SPEC), inputs=deepcopy(inputs), implementation=implementation, output=evaluate(inputs))
 
 
 def unpack(payload):

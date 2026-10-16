@@ -62,7 +62,7 @@ function evaluate(x) {
 const api={kind:'retailbench',defaults,evaluate};
 const spec={"id": "retailbench-local-accounting", "version": "2.0.0", "source": {"url": "https://arxiv.org/html/2603.16453v3", "version": "arXiv:2603.16453v3"}, "conventions": {"money": "Input JSON numbers interpreted by canonical decimal value; exact rational monetary transitions internally; no affordability epsilon or cent rounding. Display/export numbers are rounded to binary64; inputs are recomputed on import.", "accounting": "Unlimited borrowing; daily q*(p*(1-r)-c)-rent; no stop at negative cash.", "funded": "Safe integer demand 0..9007199254740991, positive cost; floor(exact cash/cost) capped by demand; prepay, same-day delivery/sale/refund, then rent; negative closing cash stops next-day transactions and rent.", "returns": "Same-day full refunds, returned stock discarded, zero lead time and carryover; fractional returned units are expectations. Zero sales return ratio undefined.", "boundary": "p*(r_A-r_B)=c_B-c_A describes accounting unit-margin tie only; price zero threshold undefined; local cash is not paper net worth or survival."}};
 api.spec=spec;
-api.pack=x=>({schema:2,kind:spec.id,model:structuredClone(spec),inputs:structuredClone(x),output:evaluate(x)});
+api.pack=x=>({schema:2,kind:spec.id,model:structuredClone(spec),inputs:structuredClone(x),implementation:structuredClone(typeof window!=='undefined'&&window.ReferenceImplementation?window.ReferenceImplementation:{status:'unavailable',runtime:'javascript'}),output:evaluate(x)});
 api.unpack=d=>{
   if(d.schema!==2||d.kind!==spec.id||d.model?.id!==spec.id||d.model?.version!==spec.version||!d.inputs)
     throw Error('このLabのschema 2・教材仕様2.0.0のJSONを使ってください。');

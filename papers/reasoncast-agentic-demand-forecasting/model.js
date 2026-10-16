@@ -39,7 +39,7 @@ function parseArray(raw){
 const api={kind:'reasoncast',defaults,evaluate,parseArray};
 const spec={"id": "reasoncast-output-proxy", "version": "2.0.0", "source": {"url": "https://arxiv.org/html/2608.15291v1", "version": "arXiv:2608.15291v1"}, "conventions": {"prediction": "Seven-day output-space proxy (b+g*a)*exp(g*l), not paper Eq.8; Skip copies base without correction.", "metrics": "WMAPE percent=100*sum(abs(y-p))/sum(y); zero denominator is null; MAE in original units; delta is selected minus baseline in percentage points.", "failure": "Finite inputs required. Each comparison row may be unavailable on numeric overflow; other rows remain. Negative predictions are preserved and warned, including baseline."}};
 api.spec=spec;
-api.pack=x=>({schema:2,kind:spec.id,model:structuredClone(spec),inputs:structuredClone(x),output:evaluate(x)});
+api.pack=x=>({schema:2,kind:spec.id,model:structuredClone(spec),inputs:structuredClone(x),implementation:structuredClone(typeof window!=='undefined'&&window.ReferenceImplementation?window.ReferenceImplementation:{status:'unavailable',runtime:'javascript'}),output:evaluate(x)});
 api.unpack=d=>{
   if(d.schema!==2||d.kind!==spec.id||d.model?.id!==spec.id||d.model?.version!==spec.version||!d.inputs)
     throw Error('このLabのschema 2・教材仕様2.0.0のJSONを使ってください。');

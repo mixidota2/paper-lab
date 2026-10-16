@@ -74,3 +74,15 @@ for(const demand of [0,1,Number.MAX_SAFE_INTEGER-1,Number.MAX_SAFE_INTEGER]){
  for(const s of r.suppliers){assert.equal(s.trace[0].sold,demand);assert.equal(s.trace[0].lost,0);}
 }
 for(const demand of [Number.MAX_SAFE_INTEGER+1,1000000000000000100,-1,.5])assert.throws(()=>retail.evaluate({...retail.defaults,mode:'funded',demand}),/0以上|0〜9007199254740991/);
+
+// Export uses current build evidence, never an imported packet's old evidence.
+for(const model of [reason,retail]){
+ assert.deepEqual(model.pack(model.defaults).implementation,{status:'unavailable',runtime:'javascript'});
+ global.window={ReferenceImplementation:{status:'content-hash',algorithm:'sha256',runtime:'javascript',files:{'model.js':'fixture-hash'}}};
+ const packet=model.pack(model.defaults);
+ assert.deepEqual(packet.implementation,window.ReferenceImplementation);
+ packet.implementation.files['model.js']='old-untrusted-hash';
+ assert.equal(window.ReferenceImplementation.files['model.js'],'fixture-hash');
+ assert.equal(model.pack(model.unpack(packet)).implementation.files['model.js'],'fixture-hash');
+ delete global.window;
+}

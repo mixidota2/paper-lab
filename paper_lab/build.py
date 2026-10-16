@@ -9,6 +9,7 @@ CLI:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -270,6 +271,15 @@ def build(
             source = lab.source_dir / name
             if source.is_file():
                 shutil.copy2(source, download_dir / name)
+        if lab.id in {"reasoncast-agentic-demand-forecasting", "retailbench-long-horizon-store-agents"}:
+            # Hash the exact copied bytes; the sidecars are excluded to avoid self-reference.
+            implementation = {"status": "content-hash", "algorithm": "sha256", "runtime": "javascript",
+                              "files": {name: hashlib.sha256((download_dir / name).read_bytes()).hexdigest()
+                                        for name in ("model.js", "interactive.js", "run.py")}}
+            manifest = json.dumps(implementation, sort_keys=True)
+            (download_dir / "implementation.json").write_text(manifest + "\n", encoding="utf-8")
+            (download_dir / "implementation.js").write_text(
+                "window.ReferenceImplementation = " + manifest + ";\n", encoding="utf-8")
         helper = papers / "_toy_common.py"
         if helper.is_file():
             shutil.copy2(helper, site / "downloads" / "_toy_common.py")
