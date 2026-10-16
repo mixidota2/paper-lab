@@ -110,13 +110,54 @@ def test_saved_reference_and_cli_recompute(i,tmp_path):
     shutil.copy2(source/'run.py',tmp_path/'run.py')
     subprocess.run([sys.executable,str(tmp_path/'run.py')],check=True,capture_output=True)
     assert json.loads((tmp_path/'results.json').read_text())==saved
-    payload=tmp_path/'comparison.json';payload.write_text(json.dumps({'inputs':saved['reference']['inputs'],'output':'untrusted'}))
+    payload=tmp_path/'comparison.json';payload.write_text(json.dumps({**m.pack(saved['reference']['inputs']), 'output':'untrusted'}))
     run=subprocess.run([sys.executable,str(tmp_path/'run.py'),'--input',str(payload)],check=True,capture_output=True,text=True)
     assert json.loads(run.stdout)==saved['reference']['output']
 
 
 def test_finite_inputs_cannot_export_nonfinite_metrics():
-    with pytest.raises(ValueError):reason(base=[1e200]*7,actual=[1e-200]*7)
+    assert reason(base=[1e200]*7,actual=[1e-200]*7)['rows'][0]['status']=='unavailable'
     with pytest.raises(ValueError):retail(price=1e-320,demand=0)
     result=retail(mode='funded',cash=1,demand=1,cost_a=5e-324,cost_b=5e-324,days=1)
     assert result['suppliers'][0]['trace'][0]['sold']==1
+
+@pytest.mark.parametrize('cash,expected',[(.3,3),(.29999999999999993,2),(.30000000000000004,3),(.299,2)])
+def test_decimal_budget_has_no_affordability_epsilon(cash,expected):
+    result=retail(mode='funded',cash=cash,cost_a=.1,cost_b=.1,demand=3,price=0,rent=0,days=2,return_a=0,return_b=0)
+    a=result['suppliers'][0]
+    assert a['trace'][0]['sold']==expected
+    assert a['trace'][0]['purchase']<=cash
+    assert a['trace'][0]['cash']>=0
+    assert a['stopped'] is None
+    if cash==.3:
+        assert a['trace'][0]['purchase']==.3
+        assert a['trace'][0]['cash']==0
+        assert a['trace'][1]['sold']==0
+
+
+def test_decimal_cash_is_carried_without_binary_drift():
+    a=retail(mode='funded',cash=.3,cost_a=.1,cost_b=.1,demand=3,price=.1,rent=0,days=30,return_a=0,return_b=0)['suppliers'][0]
+    assert all(t['sold']==3 and t['cash']==.3 for t in a['trace'])
+
+
+def test_skip_survives_nonselected_overflow_and_warns_negative_baseline():
+    r=reason(route='Skip',level=[1000]*7)
+    assert r['rows'][1]['status']=='unavailable'
+    assert r['rows'][1]['prediction'] is None
+    assert r['rows'][2]['status']=='ok'
+    assert r['rows'][2]['prediction']==[10]*7
+    assert r['rows'][2]['wmape']==50
+    r=reason(route='Correct',gate=.001,level=[1000]*7)
+    assert r['rows'][1]['status']=='unavailable' and r['rows'][2]['status']=='ok'
+    r=reason(base=[-10]*7,additive=[20]*7,level=[0]*7,gate=1)
+    assert r['negative_prediction'] and r['rows'][2]['prediction']==[10]*7
+
+@pytest.mark.parametrize('i',[0,1])
+def test_saved_model_contract(i):
+    m=model(i);x=m.reference_cases()['inputs'];packet=m.pack(x)
+    assert packet['schema']==2
+    assert packet['model']['source']['url'].startswith('https://arxiv.org/html/')
+    assert packet['model']['conventions']
+    packet['output']='forged';assert m.unpack(packet)==x
+    packet['model']={**packet['model'],'version':'unknown'}
+    with pytest.raises(ValueError):m.unpack(packet)

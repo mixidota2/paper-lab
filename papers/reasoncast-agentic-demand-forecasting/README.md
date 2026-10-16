@@ -89,3 +89,7 @@ WMAPE = 100 × 誤差総和 / 実績合計。差は選択値−元予測のパ�
 Python標準ライブラリと小さなブラウザ計算だけを使います。数式・台帳の局所検証はCONFIRMED、論文全体の機構はPARTIAL。著者コード・学習・原論文性能・本番適用はNOT TESTED。実ブラウザの画面・キー操作・export/importもNOT TESTEDで、別環境での保護付き確認を残しています。
 
 局所検査：リポジトリrootで `uv run --extra dev pytest tests/test_reference_comparisons.py`。Node.js 18以上がある場合、`uv run --extra dev python tests/check_reference_js.py` でJavaScriptの独立期待値とPythonとの120条件照合を実行できます。これはDOMや実ブラウザの検証ではありません。保護付きChromeが利用できる別環境では `uv run --with playwright tests/reference_browser.py` を実行し、360/1440pxの画面、任意値、キー入力、保存と再読込を確認します。CHROME_PATHと必要に応じREFERENCE_SITEを指定してください。検査内で127.0.0.1の一時HTTPサーバーを起動し、成功・失敗にかかわらず終了します。file://での確認とは区別します。
+
+比較行は個別に計算します。有限の入力でも指数補正がoverflowした行は「計算不能」とし、その行の曲線を描きません。他の行は残します。Skipは非選択の常時補正が計算不能でも元予測を保持します。負値の警告は元予測を含む全比較行が対象です。カンマ・読点・空白で配列を区切れますが、連続区切りや末尾カンマによる空欄は拒否し、0には変換しません。
+
+保存形式schema 2には、教材仕様ID・版2.0.0、原典URL・版、指標や会計の規約を含めます。読込時はschema・教材ID・仕様版を照合し、inputsを再検証します。保存outputや説明メタデータは計算根拠にせず、現行の固定仕様で再計算・再出力します。旧schema 1や未知の仕様版を黙って読み替えません。署名付きの真正性証明ではありません。

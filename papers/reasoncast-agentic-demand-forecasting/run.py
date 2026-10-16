@@ -26,6 +26,22 @@ def experiment():
         frames.append(dict(label=name,route=route,actual=actual,base=base,prediction=pred,baseline_wmape=wmape(actual,base),proposed_wmape=wmape(actual,pred)))
     return dict(lab28='reasoncast',frames=frames,checks={'skip_exact': correct([0.1,-0.0,1e100],'Skip',[float('nan')]*3,[float('inf')]*3)==[0.1,-0.0,1e100]})
 
+MODEL_SPEC = {'id': 'reasoncast-output-proxy', 'version': '2.0.0', 'source': {'url': 'https://arxiv.org/html/2608.15291v1', 'version': 'arXiv:2608.15291v1'}, 'conventions': {'prediction': 'Seven-day output-space proxy (b+g*a)*exp(g*l), not paper Eq.8; Skip copies base without correction.', 'metrics': 'WMAPE percent=100*sum(abs(y-p))/sum(y); zero denominator is null; MAE in original units; delta is selected minus baseline in percentage points.', 'failure': 'Finite inputs required. Each comparison row may be unavailable on numeric overflow; other rows remain. Negative predictions are preserved and warned, including baseline.'}}
+
+def pack(inputs):
+    from copy import deepcopy
+    return dict(schema=2, kind=MODEL_SPEC['id'], model=deepcopy(MODEL_SPEC), inputs=deepcopy(inputs), output=evaluate(inputs))
+
+
+def unpack(payload):
+    if (payload.get('schema') != 2 or payload.get('kind') != MODEL_SPEC['id'] or
+            payload.get('model', {}).get('id') != MODEL_SPEC['id'] or
+            payload.get('model', {}).get('version') != MODEL_SPEC['version']):
+        raise ValueError('unsupported model/schema version')
+    evaluate(payload['inputs'])
+    return payload['inputs']
+
+
 def finite(value):
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
@@ -41,33 +57,41 @@ def evaluate(inputs):
     if not finite(g) or not 0 <= g <= 1 or inputs.get('route') not in ('Skip', 'Correct'):
         raise ValueError('invalid gate or route')
     b, y, a, level = (inputs[k] for k in ('base', 'actual', 'additive', 'level'))
-    try:
-        always = correct(b, 'Basic', a, level, 1)
-        selected = correct(b, 'Skip' if inputs['route'] == 'Skip' else 'Basic', a, level, g)
-    except OverflowError as error:
-        raise ValueError('correction overflow') from error
-    if not all(finite(v) for v in always + selected):
-        raise ValueError('nonfinite prediction')
-    rows = []
     denominator = sum(y)
-    for name, prediction in [('baseline', list(b)), ('always', always), ('selected', selected)]:
-        errors = [abs(v-p) for v,p in zip(y,prediction)]
-        total = sum(errors)
-        if not finite(total) or not finite(denominator):
-            raise ValueError('metric overflow')
-        rows.append(dict(name=name, prediction=prediction, errors=errors, error_sum=total,
-                         denominator=denominator, mae=total/7, wmape=None if denominator == 0 else 100*(total/denominator)))
+    if not finite(denominator):
+        raise ValueError('denominator overflow')
+    rows = []
+    for name, route, strength in [('baseline', 'Skip', 0), ('always', 'Basic', 1),
+                                  ('selected', 'Skip' if inputs['route'] == 'Skip' else 'Basic', g)]:
+        prediction = None
+        try:
+            prediction = correct(b, route, a, level, strength)
+            if not all(finite(v) for v in prediction):
+                raise ValueError('prediction overflow')
+            errors = [abs(v-p) for v,p in zip(y,prediction)]
+            total = sum(errors)
+            score = None if denominator == 0 else 100*(total/denominator)
+            if not finite(total) or (score is not None and not finite(score)):
+                raise ValueError('metric overflow')
+            rows.append(dict(name=name, status='ok', prediction=prediction, errors=errors,
+                             error_sum=total, denominator=denominator, mae=total/7, wmape=score,
+                             issue=None))
+        except (OverflowError, ValueError):
+            if prediction is not None and not all(finite(v) for v in prediction):
+                prediction = None
+            rows.append(dict(name=name, status='unavailable', prediction=prediction, errors=None,
+                             error_sum=None, denominator=denominator, mae=None, wmape=None,
+                             issue='finite_range_exceeded'))
     baseline = rows[0]['wmape']
     for row in rows:
-        row['delta_pp'] = None if baseline is None else row['wmape'] - baseline
-        if any(row[k] is not None and not finite(row[k]) for k in ('wmape', 'delta_pp')):
-            raise ValueError('metric overflow')
-    return dict(rows=rows, route=inputs['route'], negative_prediction=any(v < 0 for v in always+selected))
+        row['delta_pp'] = None if baseline is None or row['wmape'] is None else row['wmape']-baseline
+    return dict(rows=rows, route=inputs['route'],
+                negative_prediction=any(v < 0 for row in rows for v in (row['prediction'] or [])))
 
 
 def reference_cases():
     default = dict(base=[10]*7, actual=[20]*7, additive=[0]*7, level=[math.log(2)]*7, gate=.5, route='Correct')
-    return dict(inputs=default, output=evaluate(default))
+    return dict(model=MODEL_SPEC, inputs=default, output=evaluate(default))
 
 
 if __name__ == '__main__':
@@ -78,7 +102,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.input:
         payload = json.loads(args.input.read_text())
-        print(json.dumps(evaluate(payload['inputs']), ensure_ascii=False, allow_nan=False, indent=2))
+        print(json.dumps(evaluate(unpack(payload)), ensure_ascii=False, allow_nan=False, indent=2))
         raise SystemExit(0)
 
     import json

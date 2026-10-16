@@ -28,11 +28,28 @@ for(const model of [reason,retail]){
  const input=clone(model.defaults);if(model===reason)input.gate=.37123;else input.return_b=.13791;
  const packed=JSON.parse(JSON.stringify(model.pack(input)));packed.output='forged output';
  assert.deepEqual(model.unpack(packed),input);compare(model.evaluate(model.unpack(packed)),model.evaluate(input));
- assert.throws(()=>model.unpack({...packed,schema:2}));
+ assert.throws(()=>model.unpack({...packed,schema:99}));
 }
-assert.throws(()=>reason.evaluate({...reason.defaults,base:Array(7).fill(1e200),actual:Array(7).fill(1e-200)}));
+assert.equal(reason.evaluate({...reason.defaults,base:Array(7).fill(1e200),actual:Array(7).fill(1e-200)}).rows[0].status,'unavailable');
 assert.throws(()=>retail.evaluate({...retail.defaults,price:1e-320,demand:0}));
 assert.equal(retail.evaluate({...retail.defaults,mode:'funded',cash:1,demand:1,cost_a:5e-324,cost_b:5e-324,days:1}).suppliers[0].trace[0].sold,1);
 const cases=JSON.parse(fs.readFileSync(0,'utf8'));
 for(const c of cases){const model=c.slug.startsWith('reasoncast')?reason:retail;compare(model.evaluate(c.inputs),c.expected);}
 console.log(`PASS: independent JS boundaries, export/import data contract, ${cases.length} Python/JS parity cases; browser NOT TESTED`);
+for(const [cash,sold] of [[.3,3],[.29999999999999993,2],[.30000000000000004,3],[.299,2]]){
+ const row=retail.evaluate({...retail.defaults,mode:'funded',cash,cost_a:.1,cost_b:.1,demand:3,price:0,rent:0,days:1,return_a:0,return_b:0}).suppliers[0].trace[0];
+ assert.equal(row.sold,sold);assert.ok(row.purchase<=cash);assert.ok(row.cash>=0);
+ if(cash===.3){assert.equal(row.purchase,.3);assert.equal(row.cash,0);}
+}
+let overflow=reason.evaluate({...reason.defaults,route:'Skip',level:Array(7).fill(1000)});
+assert.equal(overflow.rows[1].status,'unavailable');assert.equal(overflow.rows[1].prediction,null);
+assert.deepEqual(overflow.rows[2].prediction,Array(7).fill(10));assert.equal(overflow.rows[2].wmape,50);
+assert.ok(reason.evaluate({...reason.defaults,base:Array(7).fill(-10),additive:Array(7).fill(20),level:Array(7).fill(0),gate:1}).negative_prediction);
+for(const raw of ['1,2,3,4,5,6,','1,,2,3,4,5,6,7',',1,2,3,4,5,6,7','1、2、3、4、5、6、 ',' '])assert.throws(()=>reason.parseArray(raw));
+for(const raw of ['1,2,3,4,5,6,7',' 1 2 3 4 5 6 7 ','1、2、3、4、5、6、7','1, 2, 3, 4, 5, 6, 7'])assert.deepEqual(reason.parseArray(raw),[1,2,3,4,5,6,7]);
+for(const model of [reason,retail]){
+ const packet=model.pack(model.defaults);assert.equal(packet.schema,2);assert.equal(packet.model.version,'2.0.0');
+ assert.ok(packet.model.source.url.startsWith('https://arxiv.org/html/'));assert.ok(packet.model.conventions);
+ assert.throws(()=>model.unpack({...packet,model:{...packet.model,version:'unknown'}}));
+}
+console.log('PASS: exact decimal boundaries, overflow isolation, negative baseline, missing-token parser and model metadata');

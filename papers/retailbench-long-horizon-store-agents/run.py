@@ -1,6 +1,7 @@
 """Deterministic teaching experiment; not the RetailBench simulator or an LLM run."""
 import json
 import math
+from fractions import Fraction
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -22,6 +23,22 @@ def simulate(quality_aware, active_products, days=30):
             'final_cash': round(cash, 2), 'trace': trace}
 
 
+MODEL_SPEC = {'id': 'retailbench-local-accounting', 'version': '2.0.0', 'source': {'url': 'https://arxiv.org/html/2603.16453v3', 'version': 'arXiv:2603.16453v3'}, 'conventions': {'money': 'Input JSON numbers interpreted by canonical decimal value; exact rational monetary transitions internally; no affordability epsilon or cent rounding. Display/export numbers are rounded to binary64; inputs are recomputed on import.', 'accounting': 'Unlimited borrowing; daily q*(p*(1-r)-c)-rent; no stop at negative cash.', 'funded': 'Integer demand, positive cost; floor(exact cash/cost) capped by demand; prepay, same-day delivery/sale/refund, then rent; negative closing cash stops next-day transactions and rent.', 'returns': 'Same-day full refunds, returned stock discarded, zero lead time and carryover; fractional returned units are expectations. Zero sales return ratio undefined.', 'boundary': 'p*(r_A-r_B)=c_B-c_A describes accounting unit-margin tie only; price zero threshold undefined; local cash is not paper net worth or survival.'}}
+
+def pack(inputs):
+    from copy import deepcopy
+    return dict(schema=2, kind=MODEL_SPEC['id'], model=deepcopy(MODEL_SPEC), inputs=deepcopy(inputs), output=evaluate(inputs))
+
+
+def unpack(payload):
+    if (payload.get('schema') != 2 or payload.get('kind') != MODEL_SPEC['id'] or
+            payload.get('model', {}).get('id') != MODEL_SPEC['id'] or
+            payload.get('model', {}).get('version') != MODEL_SPEC['version']):
+        raise ValueError('unsupported model/schema version')
+    evaluate(payload['inputs'])
+    return payload['inputs']
+
+
 def finite(value):
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
@@ -40,25 +57,29 @@ def evaluate(inputs):
         raise ValueError('return rate outside 0..1')
     if inputs['mode'] == 'funded' and (inputs['demand'] != int(inputs['demand']) or min(inputs['cost_a'], inputs['cost_b']) <= 0):
         raise ValueError('funded mode requires integer demand and positive costs')
-    p, q, rent = (inputs[k] for k in ('price', 'demand', 'rent'))
+    # Canonical decimal values, exact internally: no budget epsilon or cents rounding.
+    exact = lambda value: Fraction(str(value))
+    p, q, rent = (exact(inputs[k]) for k in ('price', 'demand', 'rent'))
     suppliers = []
     for label in ('a', 'b'):
-        c, rate = inputs['cost_'+label], inputs['return_'+label]
-        cash = inputs['cash']; trace = []; stopped = None
+        c, rate = exact(inputs['cost_'+label]), exact(inputs['return_'+label])
+        cash = exact(inputs['cash']); trace = []; stopped = None
         for day in range(1, int(inputs['days'])+1):
             before = cash
             active = stopped is None
             sold = (math.floor(min(q, max(cash, 0)/c)) if inputs['mode'] == 'funded' else q) if active else 0
             purchase, gross, refund, fee = sold*c, sold*p, sold*p*rate, rent if active else 0
             cash = before-purchase+gross-refund-fee
-            if not finite(cash):
+            if not finite(float(cash)):
                 raise ValueError('cash overflow')
-            trace.append(dict(day=day, active=active, opening=before, purchased=sold, purchase=purchase,
-                              gross=gross, refund=refund, rent=fee, sold=sold, lost=q-sold if active else 0,
-                              expected_returns=sold*rate, return_ratio=rate if sold else None, cash=cash))
+            money = dict(opening=before, purchased=sold, purchase=purchase, gross=gross, refund=refund,
+                         rent=fee, sold=sold, lost=q-sold if active else 0, expected_returns=sold*rate, cash=cash)
+            trace.append(dict(day=day, active=active, **{k: float(v) for k,v in money.items()},
+                              return_ratio=float(rate) if sold else None))
             if inputs['mode'] == 'funded' and stopped is None and cash < 0:
                 stopped = day
-        suppliers.append(dict(supplier=label.upper(), margin=p*(1-rate)-c, final_cash=cash, stopped=stopped, trace=trace))
+        suppliers.append(dict(supplier=label.upper(), margin=float(p*(1-rate)-c), final_cash=float(cash), stopped=stopped, trace=trace))
+    p = inputs['price']
     threshold = None if p == 0 else inputs['return_a']-(inputs['cost_b']-inputs['cost_a'])/p
     difference = p*(inputs['return_a']-inputs['return_b'])-(inputs['cost_b']-inputs['cost_a'])
     if (threshold is not None and not finite(threshold)) or not finite(difference):
@@ -69,7 +90,7 @@ def evaluate(inputs):
 def reference_cases():
     default = dict(price=10, demand=200, rent=600, cash=3000, days=30,
                    cost_a=4, cost_b=5, return_a=.3, return_b=.05, mode='accounting')
-    return dict(inputs=default, output=evaluate(default))
+    return dict(model=MODEL_SPEC, inputs=default, output=evaluate(default))
 
 
 def main():
@@ -107,7 +128,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.input:
         payload = json.loads(args.input.read_text())
-        print(json.dumps(evaluate(payload['inputs']), ensure_ascii=False, allow_nan=False, indent=2))
+        print(json.dumps(evaluate(unpack(payload)), ensure_ascii=False, allow_nan=False, indent=2))
         raise SystemExit(0)
 
     main()
