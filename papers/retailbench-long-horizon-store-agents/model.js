@@ -30,7 +30,7 @@ function evaluate(x) {
   if(!Number.isInteger(x.days)||x.days<1||x.days>365) throw Error('日数は1〜365の整数です。');
   if(['price','demand','rent','cash','cost_a','cost_b'].some(k=>x[k]<0)) throw Error('価格・需要・家賃・初期現金・原価は0以上です。');
   if(['return_a','return_b'].some(k=>x[k]<0||x[k]>1)) throw Error('返品率は0〜1です。');
-  if(x.mode==='funded' && (!Number.isInteger(x.demand)||Math.min(x.cost_a,x.cost_b)<=0)) throw Error('手元資金モードは整数需要・正の原価が必要です。');
+  if(x.mode==='funded' && (!Number.isSafeInteger(x.demand)||Math.min(x.cost_a,x.cost_b)<=0)) throw Error('手元資金モードの需要は0〜9007199254740991の整数、原価は正の値にしてください。');
   const zero=decimal(0),price=decimal(x.price),demand=decimal(x.demand),dailyRent=decimal(x.rent);
   const suppliers=['a','b'].map(label=>{
     const c=decimal(x['cost_'+label]),rate=decimal(x['return_'+label]);
@@ -60,7 +60,7 @@ function evaluate(x) {
   return {suppliers,return_b_tie,margin_difference};
 }
 const api={kind:'retailbench',defaults,evaluate};
-const spec={"id": "retailbench-local-accounting", "version": "2.0.0", "source": {"url": "https://arxiv.org/html/2603.16453v3", "version": "arXiv:2603.16453v3"}, "conventions": {"money": "Input JSON numbers interpreted by canonical decimal value; exact rational monetary transitions internally; no affordability epsilon or cent rounding. Display/export numbers are rounded to binary64; inputs are recomputed on import.", "accounting": "Unlimited borrowing; daily q*(p*(1-r)-c)-rent; no stop at negative cash.", "funded": "Integer demand, positive cost; floor(exact cash/cost) capped by demand; prepay, same-day delivery/sale/refund, then rent; negative closing cash stops next-day transactions and rent.", "returns": "Same-day full refunds, returned stock discarded, zero lead time and carryover; fractional returned units are expectations. Zero sales return ratio undefined.", "boundary": "p*(r_A-r_B)=c_B-c_A describes accounting unit-margin tie only; price zero threshold undefined; local cash is not paper net worth or survival."}};
+const spec={"id": "retailbench-local-accounting", "version": "2.0.0", "source": {"url": "https://arxiv.org/html/2603.16453v3", "version": "arXiv:2603.16453v3"}, "conventions": {"money": "Input JSON numbers interpreted by canonical decimal value; exact rational monetary transitions internally; no affordability epsilon or cent rounding. Display/export numbers are rounded to binary64; inputs are recomputed on import.", "accounting": "Unlimited borrowing; daily q*(p*(1-r)-c)-rent; no stop at negative cash.", "funded": "Safe integer demand 0..9007199254740991, positive cost; floor(exact cash/cost) capped by demand; prepay, same-day delivery/sale/refund, then rent; negative closing cash stops next-day transactions and rent.", "returns": "Same-day full refunds, returned stock discarded, zero lead time and carryover; fractional returned units are expectations. Zero sales return ratio undefined.", "boundary": "p*(r_A-r_B)=c_B-c_A describes accounting unit-margin tie only; price zero threshold undefined; local cash is not paper net worth or survival."}};
 api.spec=spec;
 api.pack=x=>({schema:2,kind:spec.id,model:structuredClone(spec),inputs:structuredClone(x),output:evaluate(x)});
 api.unpack=d=>{

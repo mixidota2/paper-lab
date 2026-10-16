@@ -161,3 +161,20 @@ def test_saved_model_contract(i):
     packet['output']='forged';assert m.unpack(packet)==x
     packet['model']={**packet['model'],'version':'unknown'}
     with pytest.raises(ValueError):m.unpack(packet)
+
+@pytest.mark.parametrize('demand', [0, 1, 9007199254740990, 9007199254740991])
+def test_funded_safe_integer_boundary(demand):
+    result = retail(mode='funded', demand=demand, cash=1e20, cost_a=1, cost_b=1,
+                    price=0, rent=0, return_a=0, return_b=0, days=1)
+    for supplier in result['suppliers']:
+        assert supplier['trace'][0]['sold'] == demand
+        assert supplier['trace'][0]['lost'] == 0
+
+@pytest.mark.parametrize('demand', [9007199254740992, 1000000000000000100, -1, .5])
+def test_funded_rejects_unsafe_demand(demand):
+    with pytest.raises(ValueError):
+        retail(mode='funded', demand=demand)
+
+def test_reason_large_finite_predictions():
+    result = reason(base=[1e307]*7, actual=[1e307]*7, additive=[0]*7, level=[0]*7)
+    assert all(row['status']=='ok' and row['wmape']==0 for row in result['rows'])

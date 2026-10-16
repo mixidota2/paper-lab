@@ -1351,7 +1351,7 @@
       "conventions": {
         "money": "Input JSON numbers interpreted by canonical decimal value; exact rational monetary transitions internally; no affordability epsilon or cent rounding. Display/export numbers are rounded to binary64; inputs are recomputed on import.",
         "accounting": "Unlimited borrowing; daily q*(p*(1-r)-c)-rent; no stop at negative cash.",
-        "funded": "Integer demand, positive cost; floor(exact cash/cost) capped by demand; prepay, same-day delivery/sale/refund, then rent; negative closing cash stops next-day transactions and rent.",
+        "funded": "Safe integer demand 0..9007199254740991, positive cost; floor(exact cash/cost) capped by demand; prepay, same-day delivery/sale/refund, then rent; negative closing cash stops next-day transactions and rent.",
         "returns": "Same-day full refunds, returned stock discarded, zero lead time and carryover; fractional returned units are expectations. Zero sales return ratio undefined.",
         "boundary": "p*(r_A-r_B)=c_B-c_A describes accounting unit-margin tie only; price zero threshold undefined; local cash is not paper net worth or survival."
       }

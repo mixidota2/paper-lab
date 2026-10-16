@@ -23,7 +23,7 @@ def simulate(quality_aware, active_products, days=30):
             'final_cash': round(cash, 2), 'trace': trace}
 
 
-MODEL_SPEC = {'id': 'retailbench-local-accounting', 'version': '2.0.0', 'source': {'url': 'https://arxiv.org/html/2603.16453v3', 'version': 'arXiv:2603.16453v3'}, 'conventions': {'money': 'Input JSON numbers interpreted by canonical decimal value; exact rational monetary transitions internally; no affordability epsilon or cent rounding. Display/export numbers are rounded to binary64; inputs are recomputed on import.', 'accounting': 'Unlimited borrowing; daily q*(p*(1-r)-c)-rent; no stop at negative cash.', 'funded': 'Integer demand, positive cost; floor(exact cash/cost) capped by demand; prepay, same-day delivery/sale/refund, then rent; negative closing cash stops next-day transactions and rent.', 'returns': 'Same-day full refunds, returned stock discarded, zero lead time and carryover; fractional returned units are expectations. Zero sales return ratio undefined.', 'boundary': 'p*(r_A-r_B)=c_B-c_A describes accounting unit-margin tie only; price zero threshold undefined; local cash is not paper net worth or survival.'}}
+MODEL_SPEC = {'id': 'retailbench-local-accounting', 'version': '2.0.0', 'source': {'url': 'https://arxiv.org/html/2603.16453v3', 'version': 'arXiv:2603.16453v3'}, 'conventions': {'money': 'Input JSON numbers interpreted by canonical decimal value; exact rational monetary transitions internally; no affordability epsilon or cent rounding. Display/export numbers are rounded to binary64; inputs are recomputed on import.', 'accounting': 'Unlimited borrowing; daily q*(p*(1-r)-c)-rent; no stop at negative cash.', 'funded': 'Safe integer demand 0..9007199254740991, positive cost; floor(exact cash/cost) capped by demand; prepay, same-day delivery/sale/refund, then rent; negative closing cash stops next-day transactions and rent.', 'returns': 'Same-day full refunds, returned stock discarded, zero lead time and carryover; fractional returned units are expectations. Zero sales return ratio undefined.', 'boundary': 'p*(r_A-r_B)=c_B-c_A describes accounting unit-margin tie only; price zero threshold undefined; local cash is not paper net worth or survival.'}}
 
 def pack(inputs):
     from copy import deepcopy
@@ -55,8 +55,8 @@ def evaluate(inputs):
         raise ValueError('negative input')
     if any(not 0 <= inputs[k] <= 1 for k in ('return_a', 'return_b')):
         raise ValueError('return rate outside 0..1')
-    if inputs['mode'] == 'funded' and (inputs['demand'] != int(inputs['demand']) or min(inputs['cost_a'], inputs['cost_b']) <= 0):
-        raise ValueError('funded mode requires integer demand and positive costs')
+    if inputs['mode'] == 'funded' and (inputs['demand'] != int(inputs['demand']) or inputs['demand'] > 9007199254740991 or min(inputs['cost_a'], inputs['cost_b']) <= 0):
+        raise ValueError('funded mode requires integer demand 0..9007199254740991 and positive costs')
     # Canonical decimal values, exact internally: no budget epsilon or cents rounding.
     exact = lambda value: Fraction(str(value))
     p, q, rent = (exact(inputs[k]) for k in ('price', 'demand', 'rent'))

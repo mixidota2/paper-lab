@@ -53,3 +53,24 @@ for(const model of [reason,retail]){
  assert.throws(()=>model.unpack({...packet,model:{...packet.model,version:'unknown'}}));
 }
 console.log('PASS: exact decimal boundaries, overflow isolation, negative baseline, missing-token parser and model metadata');
+
+// Exercise the exact coordinate function used by both live plots, without a browser.
+for(const slug of ['reasoncast-agentic-demand-forecasting','retailbench-long-horizon-store-agents']){
+ const {plotCoordinates}=require('../papers/'+slug+'/interactive.js');
+ const huge={...clone(reason.defaults),base:Array(7).fill(1e307),actual:Array(7).fill(1e307),additive:Array(7).fill(0),level:Array(7).fill(0)};
+ const r=reason.evaluate(huge);assert.ok(r.rows.every(row=>row.status==='ok'&&row.wmape===0));
+ const graph=plotCoordinates([{values:huge.actual},...r.rows.map(row=>({values:row.prediction}))]);
+ assert.ok(graph.points.flat(2).every(Number.isFinite));assert.equal(graph.points[0][0][1],20);
+ const extremes=plotCoordinates([{values:[-Number.MAX_VALUE,0,Number.MAX_VALUE]}]);
+ assert.deepEqual(extremes.points[0],[[95,210],[355,115],[615,20]]);
+ for(const values of [[0,0],[Number.MIN_VALUE,-Number.MIN_VALUE],[-1e308,1e307]]){
+  const g=plotCoordinates([{values}]);assert.ok(g.points.flat(2).every(Number.isFinite));
+  assert.ok(g.points[0].every(([a,b])=>a>=95&&a<=615&&b>=20&&b<=210));
+ }
+ assert.throws(()=>plotCoordinates([{values:[Infinity]}]));
+}
+for(const demand of [0,1,Number.MAX_SAFE_INTEGER-1,Number.MAX_SAFE_INTEGER]){
+ const r=retail.evaluate({...retail.defaults,mode:'funded',demand,cash:1e20,cost_a:1,cost_b:1,price:0,rent:0,return_a:0,return_b:0,days:1});
+ for(const s of r.suppliers){assert.equal(s.trace[0].sold,demand);assert.equal(s.trace[0].lost,0);}
+}
+for(const demand of [Number.MAX_SAFE_INTEGER+1,1000000000000000100,-1,.5])assert.throws(()=>retail.evaluate({...retail.defaults,mode:'funded',demand}),/0以上|0〜9007199254740991/);

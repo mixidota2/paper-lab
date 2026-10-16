@@ -1,6 +1,17 @@
 /* Local live calculation; no preset-result lookup, no remote calls. */
 (() => {
 'use strict';
+function plotCoordinates(series){
+  const all=series.flatMap(s=>s.values);
+  if(!all.length||!all.every(Number.isFinite))throw Error('図には有限な値が必要です。');
+  const lo=Math.min(0,...all),hi=Math.max(1,...all),scale=Math.max(Math.abs(lo),Math.abs(hi));
+  // Normalize before subtraction and multiplication: neither hi-lo nor 190*v may overflow.
+  const low=lo/scale,span=hi/scale-low,n=Math.max(...series.map(s=>s.values.length));
+  const points=series.map(s=>s.values.map((v,i)=>[95+520*(i/Math.max(1,n-1)),210-190*((v/scale-low)/span)]));
+  if(!points.flat(2).every(Number.isFinite))throw Error('図の座標が対応範囲を超えました。');
+  return {lo,hi,points};
+}
+if(typeof module!=='undefined'){module.exports={plotCoordinates};return;}
 const root=document.querySelector('[data-reference-lab]'),model=window.ReferenceModel;
 if(!root||!model)return;
 const form=root.querySelector('form'),out=root.querySelector('[data-output]'),error=root.querySelector('[data-error]');
@@ -16,11 +27,11 @@ function table(headers,rows,caption){
 }
 function plot(series,caption){
   const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 640 240');svg.setAttribute('role','img');svg.setAttribute('aria-label',caption+'。正確な値は後続の表。');
-  const all=series.flatMap(s=>s.values),lo=Math.min(0,...all),hi=Math.max(1,...all),n=Math.max(...series.map(s=>s.values.length));
+  const {lo,hi,points}=plotCoordinates(series);
   const colors=['#222222','#0072b2','#a74e00','#6846a5'];
   const title=document.createElementNS(ns,'title');title.textContent=caption;svg.append(title);
   [lo,hi].forEach((v,i)=>{const text=document.createElementNS(ns,'text');text.setAttribute('x','2');text.setAttribute('y',i?22:210);text.setAttribute('font-size','12');text.textContent=num(v);svg.append(text);});
-  series.forEach((s,j)=>{const line=document.createElementNS(ns,'polyline');line.setAttribute('points',s.values.map((v,i)=>`${95+520*i/Math.max(1,n-1)},${210-190*(v-lo)/(hi-lo)}`).join(' '));line.setAttribute('fill','none');line.setAttribute('stroke',colors[j]);line.setAttribute('stroke-width','3');if(j%2)line.setAttribute('stroke-dasharray','7 4');svg.append(line);});
+  series.forEach((s,j)=>{const line=document.createElementNS(ns,'polyline');line.setAttribute('points',points[j].map(pair=>pair.join(',')).join(' '));line.setAttribute('fill','none');line.setAttribute('stroke',colors[j]);line.setAttribute('stroke-width','3');if(j%2)line.setAttribute('stroke-dasharray','7 4');svg.append(line);});
   const block=node('figure');block.append(svg,node('figcaption',caption+'。横軸は左から日順、縦軸は各値。'+series.map((s,j)=>`${s.label}（${['黒・実線','青・破線','茶・実線','紫・破線'][j]}）`).join('、')));return block;
 }
 function read(){const x={};for(const [key,value]of Object.entries(model.defaults)){
