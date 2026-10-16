@@ -1,0 +1,65 @@
+name: PR protected browser review
+
+on:
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-browser-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  protected-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: false
+      - name: Identify reviewed checkout
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          MERGE_TEST_SHA: ${{ github.sha }}
+        run: |
+          echo "PR head: $PR_HEAD_SHA"
+          echo "Merge test: $MERGE_TEST_SHA"
+          git rev-parse HEAD
+      - name: Install locked validation dependencies
+        run: uv sync --locked --extra dev --python 3.12
+      - name: Required deterministic checks
+        run: uv run --locked pytest -q -ra --fail-on-skip
+      - name: Build every Lab in this checkout
+        run: uv run --locked paper-lab build
+      - name: Install Playwright Chromium and runtime dependencies
+        run: uv run --locked --with playwright==1.63.0 python -m playwright install --with-deps chromium
+      - name: Select the installed Chromium without launching it
+        run: |
+          uv run --locked --with playwright==1.63.0 python - <<'PY'
+          import os
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as pw:
+              with open(os.environ['GITHUB_ENV'], 'a') as output:
+                  output.write(f'CHROME_PATH={pw.chromium.executable_path}\n')
+          PY
+      - name: Inspect all pages with protected Chromium
+        run: uv run --locked --with playwright==1.63.0 python tests/browser.py
+      - name: Inspect P0 boundaries and capture review images
+        run: uv run --locked --with playwright==1.63.0 python tests/ci_p0_browser.py
+      - name: Inspect reference Labs over temporary localhost HTTP
+        env:
+          REFERENCE_SHOTS: browser-review/reference
+        run: uv run --locked --with playwright==1.63.0 python tests/reference_browser.py
+      - name: Preserve only page screenshots for review
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: p0-browser-${{ github.sha }}
+          path: browser-review/**/*.png
+          if-no-files-found: error
+          retention-days: 7

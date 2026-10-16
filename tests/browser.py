@@ -24,7 +24,7 @@ def main():
                 page.goto(path.as_uri())
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), (path.name, width)
                 assert page.locator('figure.teaching').count() >= 2
-                assert page.locator('[data-ready=true]').count() == page.locator('[data-interactive]').count(), path.name
+                assert page.locator('[data-interactive][data-ready=true]').count() == page.locator('[data-interactive]').count(), path.name
                 for img in page.locator('img').all():
                     img.scroll_into_view_if_needed()
                     img.evaluate('(img)=>img.decode()')
