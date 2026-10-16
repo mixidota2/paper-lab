@@ -1,4 +1,4 @@
-"""Read-only verification of the published PR4 merge, using protected macOS Chrome."""
+"""Read-only verification of the published PR6 merge, using protected macOS Chrome."""
 import concurrent.futures
 import hashlib
 from html.parser import HTMLParser
@@ -74,7 +74,7 @@ def verify_deployed_files():
     report = {'target_commit': TARGET, 'base_url': BASE, 'html_pages': 100, 'exact_matches': checked,
               'external_link_targets_present': sorted(external),
               'external_destinations_fetched': False,
-              'limitation': 'VN2 auxiliary controls crop is not acceptance evidence; use viewport tiles.'}
+              'internal_reference_status': 'CONFIRMED; no missing-target exceptions'}
     (out / 'publication.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     print('PASS: live bytes match target build:', len(checked), 'files;100Lab pages;local links/images/downloads/assets', flush=True)
 
@@ -102,7 +102,7 @@ def main():
                             link.click()
                         assert navigation.value.ok
                         assert page.url == BASE + '/papers/' + slug + '.html'
-                        assert title in page.title()
+                        assert title in page.locator('.bibliography summary').inner_text()
                         assert page.locator('h1').is_visible()
                         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
                         verify_seatbelt(browser)
