@@ -73,4 +73,6 @@ def test_mapping_files_reach_rendered_sections_and_promotion_conditions(tmp_path
     assert '過去の販促で売上増がなければ' in why
     html=(pages/'forecast-critic.html').read_text()
     assert '「販促予定があるのに山がない」' not in html
-    assert '過去の販促時の売上増の有無と、予定に対応する山の有無が整合するか' in html
+    assert '人工的に加えた局所的な突出が不自然か' in html
+    assert '外生販促の4条件（Exogenous Feature Injection）は別実験' in html
+    assert 'この表のSpikeのラベル作成とは区別する' in html

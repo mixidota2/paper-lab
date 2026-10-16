@@ -97,7 +97,7 @@ teaching_figures:
   after: method
   locator: Synthetic experiments・付録
   rationale: 単一スライダーでなく失敗の種類ごとに考える。
-  caption: 人工的な変更の整理。右列はLabの解釈で、論文の性能数値ではない。
+  caption: 合成摂動（Synthetic perturbations）の整理。右列はLabの解釈で、論文の性能数値ではない。外生販促の4条件（Exogenous Feature Injection）は別実験であり、この表のSpikeのラベル作成とは区別する。
   columns:
   - 予測線への変更
   - 判定で確認したい点
@@ -117,7 +117,7 @@ teaching_figures:
   - label: Spike
     cells:
     - 局所的な突出を加える
-    - 過去の販促時の売上増の有無と、予定に対応する山の有無が整合するか
+    - 人工的に加えた局所的な突出が不自然か
   corner: 条件
   source: https://arxiv.org/html/2512.12059v1
 - kind: equations
