@@ -77,7 +77,10 @@ def inspect(base_url):
     OUT.mkdir(parents=True,exist_ok=True)
     errors=[]
     with sync_playwright() as pw:
-        if os.environ.get('LAB_BROWSER') == 'firefox':
+        from macos_chrome_cdp import connect_checked_cdp, verify_seatbelt
+        if os.environ.get('LAB_BROWSER') == 'macos-cdp':
+            browser = connect_checked_cdp(pw)
+        elif os.environ.get('LAB_BROWSER') == 'firefox':
             browser = launch_checked_firefox(pw)
         else:
             browser=pw.chromium.launch(**({"channel": os.environ["CHROME_CHANNEL"]} if os.environ.get("CHROME_CHANNEL") else {"executable_path": os.environ["CHROME_PATH"]}),chromium_sandbox=True)
@@ -88,6 +91,8 @@ def inspect(base_url):
             page.on('response',lambda response:errors.append(str(response.status)+' '+response.url) if response.status>=400 else None)
             for slug in IDS:
                 response=page.goto(f'{base_url}/papers/{slug}.html')
+                if os.environ.get('LAB_BROWSER') == 'macos-cdp':
+                    verify_seatbelt(browser)
                 assert response.ok and page.url.startswith(base_url+'/')
                 root=page.locator('[data-reference-lab]')
                 assert root.get_attribute('data-ready')=='true'

@@ -18,7 +18,10 @@ def inspect(base):
     OUT.mkdir(exist_ok=True)
     errors = []
     with sync_playwright() as pw:
-        if os.environ.get('LAB_BROWSER') == 'firefox':
+        from macos_chrome_cdp import connect_checked_cdp, verify_seatbelt
+        if os.environ.get('LAB_BROWSER') == 'macos-cdp':
+            browser = connect_checked_cdp(pw)
+        elif os.environ.get('LAB_BROWSER') == 'firefox':
             browser = launch_checked_firefox(pw)
         else:
             browser = pw.chromium.launch(**({"channel": os.environ["CHROME_CHANNEL"]} if os.environ.get("CHROME_CHANNEL") else {"executable_path": os.environ["CHROME_PATH"]}), chromium_sandbox=True)
@@ -27,6 +30,8 @@ def inspect(base):
             page.on('pageerror', lambda error: errors.append(str(error)))
             for slug in SLUGS:
                 page.goto(base + '/papers/' + slug + '.html')
+                if os.environ.get('LAB_BROWSER') == 'macos-cdp':
+                    verify_seatbelt(browser)
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
                 if slug.startswith('spotify'):
                     panel = page.locator('[data-interactive=explorer]')

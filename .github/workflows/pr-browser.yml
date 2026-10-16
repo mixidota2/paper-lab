@@ -1,4 +1,4 @@
-name: PR protected Firefox review
+name: PR macOS Chrome review
 
 on:
   pull_request:
@@ -12,11 +12,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  protected-firefox:
-    runs-on: ubuntu-24.04
+  macos-chrome:
+    runs-on: macos-26
     timeout-minutes: 20
     env:
-      LAB_BROWSER: firefox
+      LAB_BROWSER: macos-cdp
+      REFERENCE_SHOTS: browser-review/reference
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,36 +39,16 @@ jobs:
         run: uv run --locked pytest -q -ra --fail-on-skip
       - name: Build every Lab in this checkout
         run: uv run --locked paper-lab build
-      # Standard Playwright distribution; no OS policy or sandbox preference changes.
-      # Earlier Chromium failures remain documented in the PR, not reclassified.
-      - name: Install pinned Playwright Firefox from its standard distribution
-        run: uv run --locked --with playwright==1.63.0 python -m playwright install firefox
-      - name: Verify Firefox distribution and effective sandbox
-        timeout-minutes: 2
-        env:
-          DEBUG: pw:browser
-        run: uv run --locked --with playwright==1.63.0 python tests/protected_firefox.py
-      - name: Inspect all pages with protected Firefox
-        run: uv run --locked --with playwright==1.63.0 python tests/browser.py
-      - name: Inspect P0 boundaries and capture review images
-        run: uv run --locked --with playwright==1.63.0 python tests/ci_p0_browser.py
-      - name: Inspect reference Labs over temporary localhost HTTP
-        env:
-          REFERENCE_SHOTS: browser-review/reference
-        run: uv run --locked --with playwright==1.63.0 python tests/reference_browser.py
+      # Existing official Chrome, direct minimal launch; no browser/OS installation.
+      # Historical Linux failures remain in the PR and are not reclassified.
+      - name: Verify signed Chrome and Seatbelt, then run CDP compatibility and Lab checks
+        timeout-minutes: 18
+        run: uv run --locked --with playwright==1.63.0 python tests/macos_cdp_review.py
       - name: Preserve only page screenshots for review
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: firefox-browser-${{ github.sha }}
+          name: macos-chrome-${{ github.sha }}
           path: browser-review/**/*.png
-          if-no-files-found: error
-          retention-days: 7
-      - name: Preserve isolated Firefox diagnostic screenshots
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: firefox-diagnostics-${{ github.sha }}
-          path: firefox-diagnostics/*.png
           if-no-files-found: error
           retention-days: 7

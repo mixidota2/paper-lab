@@ -16,7 +16,10 @@ def main():
     errors = []
     with sync_playwright() as pw:
         chrome = os.environ.get('CHROME_PATH') or ('/opt/google/chrome/chrome' if Path('/opt/google/chrome/chrome').exists() else None)
-        if os.environ.get('LAB_BROWSER') == 'firefox':
+        from macos_chrome_cdp import connect_checked_cdp, verify_seatbelt
+        if os.environ.get('LAB_BROWSER') == 'macos-cdp':
+            browser = connect_checked_cdp(pw)
+        elif os.environ.get('LAB_BROWSER') == 'firefox':
             browser = launch_checked_firefox(pw)
         else:
             browser = pw.chromium.launch(
@@ -27,6 +30,8 @@ def main():
             page.on('pageerror', lambda e: errors.append(str(e)))
             for path in pages:
                 page.goto(path.as_uri())
+                if os.environ.get('LAB_BROWSER') == 'macos-cdp':
+                    verify_seatbelt(browser)
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), (path.name, width)
                 assert page.locator('figure.teaching').count() >= 2
                 assert page.locator('[data-interactive][data-ready=true]').count() == page.locator('[data-interactive]').count(), path.name
