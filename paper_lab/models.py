@@ -574,7 +574,7 @@ def _parse_interactives(value: Any, results: Any, paper_dir: Path) -> list[dict[
             for f in frames:
                 if not isinstance(f, dict) or not number(f.get("value")) or not isinstance(f.get("note"), str):
                     raise LabError(f"{paper_dir}: invalid explorer frame")
-                if not f.get("bars") or not all(isinstance(b.get("label"), str) and number(b.get("value")) and b["value"] >= 0 for b in f["bars"]):
+                if not f.get("bars") or not all(isinstance(b.get("label"), str) and "value" in b and (b["value"] is None or (number(b["value"]) and b["value"] >= 0)) for b in f["bars"]):
                     raise LabError(f"{paper_dir}: invalid explorer bars")
                 for line in f.get("lines", []):
                     if not isinstance(line.get("label"), str) or not line.get("values") or not all(number(v) for v in line["values"]):

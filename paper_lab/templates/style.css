@@ -334,3 +334,7 @@ body{background:white}
 .paper-svg--scroll { min-width: 0; }
 .paper-svg--scroll > a { display: block; max-width: 100%; overflow-x: auto; }
 .paper-svg--scroll img { min-width: 42rem; }
+
+/* Keep pricing amounts readable; the labelled region handles narrow screens. */
+.zalando-price-table table { table-layout: auto; min-width: 42rem; }
+.zalando-price-table td { white-space: nowrap; overflow-wrap: normal; }

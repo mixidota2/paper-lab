@@ -44,7 +44,7 @@ def test_guard_protects_old_requests_without_claiming_deadline():
 
 
 def test_inventory_conservation_and_calibration_never_reads_future():
-    np=pytest.importorskip('numpy')
+    import numpy as np
     m=module('sim2real-policy-conditioned-inbound-forecast')
     a=m.rollout(23,'new',cost=0,weeks=40)[2]
     b=m.rollout(23,'new',cost=4,weeks=40)[2]

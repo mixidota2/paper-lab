@@ -22,10 +22,12 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-      - name: Install and generate site
-        run: |
-          uv sync
-          uv run paper-lab build
+      - name: Install locked validation dependencies
+        run: uv sync --locked --extra dev --python 3.12
+      - name: Required deterministic tests and generated consistency
+        run: uv run --locked pytest -q -ra --fail-on-skip
+      - name: Generate complete site after required checks
+        run: uv run --locked paper-lab build
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

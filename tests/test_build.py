@@ -179,3 +179,23 @@ status: published
     )
     with pytest.raises(LabError, match="must match arxiv_id"):
         load_lab(paper)
+
+
+def test_reference_implementation_hashes_copied_bytes(tmp_path):
+    import hashlib
+    import json
+    build(root=ROOT, site_dir=tmp_path/'site')
+    for slug in ('reasoncast-agentic-demand-forecasting', 'retailbench-long-horizon-store-agents'):
+        directory = tmp_path/'site'/'downloads'/slug
+        manifest = json.loads((directory/'implementation.json').read_text())
+        assert manifest['status'] == 'content-hash'
+        assert manifest['runtime'] == 'javascript'
+        assert manifest['algorithm'] == 'sha256'
+        assert set(manifest['files']) == {'model.js', 'interactive.js', 'run.py'}
+        for name, digest in manifest['files'].items():
+            assert digest == hashlib.sha256((directory/name).read_bytes()).hexdigest()
+        assert (directory/'implementation.js').read_text() == (
+            'window.ReferenceImplementation = ' + json.dumps(manifest, sort_keys=True) + ';\n')
+        html = (tmp_path/'site'/'papers'/f'{slug}.html').read_text()
+        assert html.index(f'{slug}/implementation.js') < html.index(f'{slug}/model.js')
+        assert 'commit' not in manifest

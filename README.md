@@ -1,6 +1,6 @@
 # Interactive Research Library
 
-一次資料を読み、仕組み・根拠・限界を日本語で説明する79件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
+一次資料を読み、仕組み・根拠・限界を日本語で説明する100件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
 
 公開先：https://mixidota2.github.io/paper-lab/
 
@@ -9,12 +9,15 @@
 Python 3.10以上とuvを使います。コンテンツは `papers/<id>/lab.yaml`、実験値は `results.json` が原本です。`site/` は生成物なので直接編集しません。
 
 ```bash
-uv sync --extra dev
-for lab_run in papers/*/run.py; do uv run "$lab_run"; done
-uv run pytest
+uv sync --locked --extra dev --python 3.12
+uv run --locked pytest -q -ra --fail-on-skip
 uv run paper-lab build
 uv run python -m http.server --directory site 8000
 ```
+
+Pages公開前の必須検証は上記のpytestです。欠けた依存やskipも失敗にします。全100件の読み込み、生成の決定性、配布ファイルと原本の一致、内部リンク、SIM2REALの在庫保存・未来情報非参照、APの有限列挙を検査します。NumPyはdev依存として固定しています。AP検査ではSciPyの学習処理を呼びません。
+
+各論文の `run.py` 全実行や著者モデルの学習は必須ゲートに含めません。依存・計算量を確認したうえで必要な実験だけを任意に実行してください。実ブラウザー確認は別途必要であり、pytest成功だけでは画面検証済み・公開確認済みにはなりません。sandboxを有効にしたChromeが起動できない環境では、画面・操作・読み上げをNOT TESTEDとして記録します。保護設定を変更して回避しません。
 
 サーバー起動後に http://localhost:8000 を開きます。生成済みHTMLを直接開いても図は動きます。図・フォント・スクリプトに外部CDNやAPIは使っていません。原論文へのリンクを開く際はネットワーク接続が必要です。
 

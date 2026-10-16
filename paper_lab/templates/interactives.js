@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const palette = ['#086b5e', '#a14d26', '#536893'];
-  const number = value => Number(value).toLocaleString('ja-JP', {maximumFractionDigits: 4});
+  const number = value => value === null ? '推定不能' : Number(value).toLocaleString('ja-JP', {maximumFractionDigits: 4});
   function el(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -104,7 +104,7 @@
     tableMount.tabIndex = 0; tableMount.setAttribute('role', 'region'); tableMount.setAttribute('aria-label', '実験データの表');
     details.append(tableMount);
     root.append(label, range, controls, metric, chart, note, traces, details);
-    const maximum = Math.max(1e-9, ...data.frames.flatMap(f => f.bars.map(b => b.value)));
+    const maximum = Math.max(1e-9, ...data.frames.flatMap(f => f.bars.filter(b => b.value !== null).map(b => b.value)));
     range.addEventListener('input', () => select(Number(range.value)));
     function select(nextIndex) {
       index = Math.max(0, Math.min(data.frames.length-1, nextIndex));
@@ -113,12 +113,12 @@
     function render() {
       const f = data.frames[index];
       range.value = String(index);
-      range.setAttribute('aria-valuetext', `${f.value}${data.unit}`);
+      range.setAttribute('aria-valuetext', `${data.label}：${number(f.value)}${data.unit}`);
       value.value = `${number(f.value)}${data.unit}`;
       previous.disabled = index === 0;
       next.disabled = index === data.frames.length-1;
       chart.replaceChildren();
-      const max = localScale ? Math.max(1e-9, ...f.bars.map(b => b.value)) : maximum;
+      const max = localScale ? Math.max(1e-9, ...f.bars.filter(b => b.value !== null).map(b => b.value)) : maximum;
       f.bars.forEach(b => {
         const row = el('div', 'bar-row');
         const label = el('div', 'bar-label');
@@ -126,7 +126,8 @@
         const track = el('div', 'bar-track');
         track.setAttribute('aria-hidden', 'true');
         const fill = el('div', 'bar-fill'); fill.style.width = `${100*b.value/max}%`;
-        track.append(fill); row.append(label, track); chart.append(row);
+        if (b.value !== null) track.append(fill);
+        row.append(label, track); chart.append(row);
       });
       note.textContent = f.note;
       traces.replaceChildren(); tableMount.replaceChildren();
@@ -266,6 +267,7 @@ document.querySelectorAll('[data-b21]').forEach(root => {
   const select = root.querySelector('select');
   const output = root.querySelector('[data-output]');
   const update = () => { output.innerHTML = frames[Number(select.value)]; };
+  if (root.hasAttribute('data-enable-select')) select.disabled = false;
   select.addEventListener('change', update);
   update();
 });

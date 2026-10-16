@@ -110,6 +110,151 @@
   "checks": {
     "skip_exact": true
   },
+  "reference": {
+    "model": {
+      "id": "reasoncast-output-proxy",
+      "version": "2.0.0",
+      "source": {
+        "url": "https://arxiv.org/html/2608.15291v1",
+        "version": "arXiv:2608.15291v1"
+      },
+      "conventions": {
+        "prediction": "Seven-day output-space proxy (b+g*a)*exp(g*l), not paper Eq.8; Skip copies base without correction.",
+        "metrics": "WMAPE percent=100*sum(abs(y-p))/sum(y); zero denominator is null; MAE in original units; delta is selected minus baseline in percentage points.",
+        "failure": "Finite inputs required. Each comparison row may be unavailable on numeric overflow; other rows remain. Negative predictions are preserved and warned, including baseline."
+      }
+    },
+    "inputs": {
+      "base": [
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10
+      ],
+      "actual": [
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20
+      ],
+      "additive": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "level": [
+        0.6931471805599453,
+        0.6931471805599453,
+        0.6931471805599453,
+        0.6931471805599453,
+        0.6931471805599453,
+        0.6931471805599453,
+        0.6931471805599453
+      ],
+      "gate": 0.5,
+      "route": "Correct"
+    },
+    "output": {
+      "rows": [
+        {
+          "name": "baseline",
+          "status": "ok",
+          "prediction": [
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10
+          ],
+          "errors": [
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10
+          ],
+          "error_sum": 70,
+          "denominator": 140,
+          "mae": 10.0,
+          "wmape": 50.0,
+          "issue": null,
+          "delta_pp": 0.0
+        },
+        {
+          "name": "always",
+          "status": "ok",
+          "prediction": [
+            20.0,
+            20.0,
+            20.0,
+            20.0,
+            20.0,
+            20.0,
+            20.0
+          ],
+          "errors": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "error_sum": 0.0,
+          "denominator": 140,
+          "mae": 0.0,
+          "wmape": 0.0,
+          "issue": null,
+          "delta_pp": -50.0
+        },
+        {
+          "name": "selected",
+          "status": "ok",
+          "prediction": [
+            14.14213562373095,
+            14.14213562373095,
+            14.14213562373095,
+            14.14213562373095,
+            14.14213562373095,
+            14.14213562373095,
+            14.14213562373095
+          ],
+          "errors": [
+            5.857864376269051,
+            5.857864376269051,
+            5.857864376269051,
+            5.857864376269051,
+            5.857864376269051,
+            5.857864376269051,
+            5.857864376269051
+          ],
+          "error_sum": 41.00505063388336,
+          "denominator": 140,
+          "mae": 5.857864376269051,
+          "wmape": 29.289321881345252,
+          "issue": null,
+          "delta_pp": -20.710678118654748
+        }
+      ],
+      "route": "Correct",
+      "negative_prediction": false
+    }
+  },
   "note": "教育用の人工例。原論文の学習・性能・本番効果は再現していない。",
   "verification": {
     "mechanism": "PARTIAL",

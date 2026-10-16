@@ -15,7 +15,7 @@ IDS = ('scaffold-effects-gaia', 'case-against-generation-retrieval', 'unipinrec'
 
 
 def bar(label, value):
-    return {'label': label, 'value': round(value, 4)}
+    return {'label': label, 'value': None if value is None else round(value, 4)}
 
 
 def line(label, values):
@@ -113,9 +113,9 @@ def stockout(cap):
     latent = [18,20,22,19,21,20,18,22]
     sales = [min(x,cap) for x in latent]
     available = [s for s in sales if s < cap]
-    masked = mean(available) if available else 0
+    masked = mean(available) if available else None
     return frame(cap, [bar('合成の潜在需要：平均',mean(latent)),bar('観測販売：平均',mean(sales)),bar('非欠品日のみ：平均',masked)],
-                 '観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。'+('非欠品期間がないため推定不能（棒は0で表示）。' if not available else '非欠品日の平均も選択バイアスを含む。欠品日の真の需要を復元した値ではない。'),
+                 '観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。'+('非欠品期間がないため推定不能。値は欠測とし、棒を表示しない。' if not available else '非欠品日の平均も選択バイアスを含む。欠品日の真の需要を復元した値ではない。'),
                  [line('合成の潜在需要',latent),line('観測販売',sales)])
 
 
@@ -149,10 +149,10 @@ def critic(threshold):
     bad = [False,False,False,True,False,True,True,True,True,True]
     flags=[x>=threshold for x in residuals]
     tp=sum(f and b for f,b in zip(flags,bad));fp=sum(f and not b for f,b in zip(flags,bad));fn=sum(not f and b for f,b in zip(flags,bad))
-    precision=tp/(tp+fp) if tp+fp else 0
+    precision=tp/(tp+fp) if tp+fp else None
     recall=tp/(tp+fn)
-    return frame(threshold,[bar('適合率 (%)',100*precision),bar('再現率 (%)',100*recall)],
-                 f'合成10件：正しく警告 {tp}、誤警告 {fp}、見逃し {fn}。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定。LLMや論文F1の再現ではない。',
+    return frame(threshold,[bar('適合率 (%)',None if precision is None else 100*precision),bar('再現率 (%)',100*recall)],
+                 f'合成10件：正しく警告 {tp}、誤警告 {fp}、見逃し {fn}。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定（陽性6/10）。警告0件の適合率は未定義。LLMや論文F1の再現ではない。',
                  [line('不自然さの規則スコア',residuals),line('警告の閾値',[threshold]*10)])
 
 

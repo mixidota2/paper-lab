@@ -1,0 +1,56 @@
+name: PR macOS Chrome review
+
+on:
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-browser-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  macos-chrome:
+    runs-on: macos-26
+    timeout-minutes: 20
+    env:
+      LAB_BROWSER: macos-cdp
+      REFERENCE_SHOTS: browser-review/reference
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: false
+      - name: Identify reviewed checkout
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          MERGE_TEST_SHA: ${{ github.sha }}
+        run: |
+          echo "PR head: $PR_HEAD_SHA"
+          echo "Merge test: $MERGE_TEST_SHA"
+          git rev-parse HEAD
+      - name: Install locked validation dependencies
+        run: uv sync --locked --extra dev --python 3.12
+      - name: Required deterministic checks
+        run: uv run --locked pytest -q -ra --fail-on-skip
+      - name: Build every Lab in this checkout
+        run: uv run --locked paper-lab build
+      # Existing official Chrome, direct minimal launch; no browser/OS installation.
+      # Historical Linux failures remain in the PR and are not reclassified.
+      - name: Verify signed Chrome and Seatbelt, then run CDP compatibility and Lab checks
+        timeout-minutes: 18
+        run: uv run --locked --with playwright==1.63.0 python tests/macos_cdp_review.py
+      - name: Preserve viewport screenshots and public geometry for review
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-chrome-${{ github.sha }}
+          path: |
+            browser-review/**/*.png
+            browser-review/**/segments.json
+          if-no-files-found: error
+          retention-days: 7

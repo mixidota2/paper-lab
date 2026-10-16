@@ -12,7 +12,7 @@ def main():
     errors = []
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path=os.environ.get('CHROME_PATH', '/opt/google/chrome/chrome'),
-                                    args=['--no-sandbox', '--disable-dev-shm-usage'])
+                                    chromium_sandbox=True)
         for width in (360, 768, 1440):
             page = browser.new_page(viewport={'width': width, 'height': 900}, reduced_motion='reduce')
             page.on('pageerror', lambda error: errors.append(str(error)))

@@ -61,14 +61,12 @@ sections:
 
     平常期の常時介入は9.59%で、元の7.91%より1.68 pp悪化する。学習は2025年8月末まで、モデル選択は同年9–10月、評価は同年11月から2026年5月。M5は10店舗を合算した3,049商品系列の14個のイベント窓であり、店舗別の欠品対策を直接評価していない。'
   method: method.md
-  executable_understanding: '`uv run papers/reasoncast-agentic-demand-forecasting/run.py`。標準ライブラリだけで実行でき、同じフォルダーのresults.jsonを更新する。
-
-
-    correct()で同じ基準値に補正を加え、Skip・不要な介入・正しいイベント情報・誤った情報を比較する。WMAPEは Σ|y−ŷ| / Σ|y| × 100。全ゼロ需要は未定義としてNoneを返す。'
-  results: 人工の平常期ではSkipのWMAPEは0%、不要なBasicは20%。誤ったTool補正では100%まで悪化する。正しい情報を与えたイベント例の改善は、情報を正しく推論できる証拠にはならない。
-  what_we_verified: CONFIRMED：人工例のSkip分岐で出力の浮動小数点表現を保つ。PARTIAL：加算・乗算の役割と不要な介入による悪化を確認した。
+  executable_understanding: 基準予測・実績・信じた情報を別々に入力する7日間の比較です。元予測、常時補正g=1、選択した補正を、同じ実績とWMAPEで比べます。予想を選び、一つの数値を変えて誤差の理由を確かめてください。予測はその場で再計算します。
+  results: 人工の平常期ではSkipのWMAPEは0%、不要なBasicは20%。誤ったTool補正では100%まで悪化する。正しい情報を与えたイベント例の改善は、情報を正しく推論できる証拠にはならない。 新しい比較の初期条件は基準10・実績20・倍化情報・g=0.5。元予測50%、常時補正0%、選択した補正約29.289322%になる。旧固定例は下に残している。
+  what_we_verified: CONFIRMED：独立した手計算に対し、誤差・半強度・誤情報・日ずれ・ゼロ分母・負の生予測・入力拒否を検査する。Skipは補正演算を通さない。MechanismはPARTIAL。ブラウザ画面・キー操作・ダウンロードはNOT
+    TESTEDであり、数式検査とは区別する。
   what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Chronos-2、Qwen3-32B、検索道具、学習されたルータ、直交射影、GRPOは実行していない。欠品で観測売上が潜在需要を下回る条件、販促費用、在庫サービス水準も未評価。
-  implementation: correct() → 式(8), (11), (12)の簡略化。wmape() → 式(16)。ルータと潜在表現、学習は省略。
+  implementation: evaluate()とmodel.jsが出力空間の代理教材 (b+g×a)×exp(g×l) を計算する。式(8)の潜在空間への加算を実装したものではない。式(11)の復号後の指数補正と式(12)の明示的なSkipを理解するために縮約した。実績yは採点だけに使用。Basic/Toolは旧固定例にのみ残し、同じ入力なら同じ値で、LLMや道具は動かない。
   mapping: mapping.md
 teaching_figures:
 - kind: architecture

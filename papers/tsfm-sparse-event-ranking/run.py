@@ -7,9 +7,6 @@ import itertools
 import json
 from pathlib import Path
 import numpy as np
-from scipy.stats import nbinom
-from scipy.optimize import minimize
-from scipy.special import expit
 
 
 def metric(y, z):
@@ -47,6 +44,7 @@ def validate():
 
 
 def quantiles(p, mu):
+    from scipy.stats import nbinom
     # Y = Bernoulli(p) * (1 + NB(r=2, mean=mu-1)); positive size is strictly positive.
     tau=np.arange(1,10)/10
     level=(tau-(1-p[...,None]))/p[...,None]
@@ -55,6 +53,8 @@ def quantiles(p, mu):
 
 
 def experiment(seed, varying):
+    from scipy.optimize import minimize
+    from scipy.special import expit
     rng=np.random.default_rng(seed)
     x=rng.uniform(-2,2,(1000,64))
     p=1/(1+np.exp(2-0.9*x)) # all probabilities below 0.5
@@ -82,6 +82,7 @@ def experiment(seed, varying):
 
 
 def main():
+    from scipy.stats import nbinom
     checks=validate()
     frames=[]
     for pct in range(1,100):

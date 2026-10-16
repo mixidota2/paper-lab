@@ -44,7 +44,7 @@ sections:
 
     この論文が直接最適化するのは商品群・部門への面積配分。入口や奥といった店内の位置の最適化は、今後の拡張として挙げられている。'
   why_it_might_work: 地理変数と面積の相互作用を使えば、新店舗にも周辺条件に応じた反応を推定できると考えられる。ただし過去に広い面積が与えられた理由をモデルが取り逃すと、観測相関を最適化してしまう。
-  evidence: 'Amazon Scienceの公開PDF全4ページを2026-09-07に確認。§4.2は改装で7.5%、新店設計で6.7%の潜在的な売上改善を報告する。§1はシミュレーションと明記。§3.2は長期因果効果の詳細な実証結果を省略している。DOIはPDFの書誌情報で10.1145/3764919.3770880を確認した。
+  evidence: 'Amazon Scienceの公開PDF全4ページを2026-09-07に確認。§4.2は改装で7.5%、新店設計で6.7%の潜在的な売上改善を報告する。§1はシミュレーションと明記。§3.2は長期因果効果の詳細な実証結果を省略している。7.5%と6.7%は制約付きシミュレーションの著者報告であり、baselineの具体名・店舗数・期間・集計分母・CIは本文に提示されていない（公開4ページPDF §4.2、p4）。toyは等分50/50を含む同じ候補集合を全探索するので、選んだ目的値が等分以上になるのは構成上の性質であり、実店舗での改善を実証するものではない。DOIはPDFの書誌情報で10.1145/3764919.3770880を確認した。
 
 
     [一次資料：PDF §2–4 / 式(2)・(6)](https://cdn.amazon.science/32/d1/6c82b85045a9bc0927e744698688/scipub-approval152129-41212433-a-framework-to-optimize-shelf-space-allocations-for-physical-stores.pdf)'
@@ -62,18 +62,7 @@ sections:
 
 
     意図して省いたもの：DHGL推定、長期因果効果、部門間の代替・補完、実店舗データ。'
-  mapping: '| 対象 | 原典とLabの対応 |
-
-    | --- | --- |
-
-    | 原論文 | [PDF §2–4 / 式(2)・(6)](https://cdn.amazon.science/32/d1/6c82b85045a9bc0927e744698688/scipub-approval152129-41212433-a-framework-to-optimize-shelf-space-allocations-for-physical-stores.pdf)
-    |
-
-    | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |
-
-    | 小実験 | `run.py` → `papers/_toy_common.py` → `results.json` |
-
-    | 公式コード | このLabでは公式コードとの行単位の照合はしていない。 |'
+  mapping: mapping.md
   method: method.md
 question: 限られた売場を、立地と長期の価値に合わせて配分できるか
 interactives:
