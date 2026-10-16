@@ -56,17 +56,7 @@ sections:
 
 
     意図して省いたもの：分解の推定、販促応答の学習、在庫持越し、論文データ。'
-  mapping: '| 対象 | 原典とLabの対応 |
-
-    | --- | --- |
-
-    | 原論文 | [§3.1–3.3 / §4 / Appendix R.6](https://arxiv.org/pdf/2607.25664v1) |
-
-    | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |
-
-    | 小実験 | `run.py` → `papers/_toy_common.py` → `results.json` |
-
-    | 公式コード | このLabでは公式コードとの行単位の照合はしていない。 |'
+  mapping: mapping.md
   method: method.md
 question: 予測を滑らかにすると、在庫費用は本当に下がるか
 interactives:

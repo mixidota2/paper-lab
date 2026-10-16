@@ -42,3 +42,35 @@ def test_rendered_evidence_and_honest_cta(tmp_path):
     w=(pages/'whole-foods-shelf.html').read_text()
     for text in ['集計分母','CI','構成上の性質','10.1145/3764919.3770880']:
         assert text in w
+
+
+def test_mapping_files_reach_rendered_sections_and_promotion_conditions(tmp_path):
+    import re
+    import yaml
+    from paper_lab.models import load_lab
+    slugs=('contextual-deconvolution','whole-foods-shelf','forecast-critic')
+    for slug in slugs:
+        directory=ROOT/'papers'/slug
+        raw=yaml.safe_load((directory/'lab.yaml').read_text())
+        assert raw['sections']['mapping']=='mapping.md'
+        assert load_lab(directory).mapping_markdown==(directory/'mapping.md').read_text()
+    build(root=ROOT,site_dir=tmp_path/'site')
+    pages=tmp_path/'site/papers'
+    def section(slug,key):
+        html=(pages/f'{slug}.html').read_text()
+        return re.search(r'<section[^>]*id="'+key+r'"[^>]*>(.*?)</section>',html,re.S).group(1)
+    w=section('whole-foods-shelf','mapping')
+    for text in ['改装の部門面積変化に上限下限','新店に過去の面積分布・費用条件','構成上の性質','継承した値']:
+        assert text in w
+    c=section('contextual-deconvolution','mapping')
+    for text in ['SKU別平均日次費用の中央値','100 paired SKU、28日累積費用','日次費用の中央値と混ぜない','再計算をしていない']:
+        assert text in c
+    f=section('forecast-critic','mapping')
+    assert '原典バイト列のハッシュは未取得' in f
+    assert '履歴で売上増なしなら山なしを妥当・山ありを不適切' in f
+    why=section('forecast-critic','why_it_might_work')
+    assert '過去の販促で売上増があり' in why
+    assert '過去の販促で売上増がなければ' in why
+    html=(pages/'forecast-critic.html').read_text()
+    assert '「販促予定があるのに山がない」' not in html
+    assert '過去の販促時の売上増の有無と、予定に対応する山の有無が整合するか' in html

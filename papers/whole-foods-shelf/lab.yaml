@@ -62,18 +62,7 @@ sections:
 
 
     意図して省いたもの：DHGL推定、長期因果効果、部門間の代替・補完、実店舗データ。'
-  mapping: '| 対象 | 原典とLabの対応 |
-
-    | --- | --- |
-
-    | 原論文 | [PDF §2–4 / 式(2)・(6)](https://cdn.amazon.science/32/d1/6c82b85045a9bc0927e744698688/scipub-approval152129-41212433-a-framework-to-optimize-shelf-space-allocations-for-physical-stores.pdf)
-    |
-
-    | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |
-
-    | 小実験 | `run.py` → `papers/_toy_common.py` → `results.json` |
-
-    | 公式コード | このLabでは公式コードとの行単位の照合はしていない。 |'
+  mapping: mapping.md
   method: method.md
 question: 限られた売場を、立地と長期の価値に合わせて配分できるか
 interactives:
