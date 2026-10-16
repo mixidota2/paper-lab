@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import stat
 import subprocess
 
@@ -41,6 +42,25 @@ def main():
         }), flush=True)
     print('launch-path readlink:', os.readlink(chrome) if chrome.is_symlink()
           else 'NOT A SYMLINK', flush=True)
+    for path in (*reversed(resolved.parents), resolved.parent / 'chrome-sandbox'):
+        if path.exists():
+            metadata = path.stat()
+            print('Parent/helper stat:', json.dumps({
+                'path': str(path), 'uid': metadata.st_uid, 'gid': metadata.st_gid,
+                'mode': oct(stat.S_IMODE(metadata.st_mode)),
+                'type': 'directory' if stat.S_ISDIR(metadata.st_mode) else
+                        'regular' if stat.S_ISREG(metadata.st_mode) else 'other',
+            }), flush=True)
+        else:
+            print('Parent/helper:', str(path), 'NOT OBSERVED', flush=True)
+    for args in (['findmnt', '-T', str(resolved), '-n', '-o', 'TARGET,FSTYPE,OPTIONS'],
+                 ['getfacl', '-cp', str(resolved), str(resolved.parent)]):
+        if shutil.which(args[0]):
+            result = subprocess.run(args, text=True, capture_output=True)
+            print('Read-only filesystem query:', args[0], result.returncode,
+                  result.stdout.strip(), result.stderr.strip(), flush=True)
+        else:
+            print(args[0], 'NOT OBSERVED', flush=True)
     assert resolved.is_file(), 'Chrome target is not a regular file'
     info = chrome.stat()
     print('Existing Chrome metadata:', json.dumps({
