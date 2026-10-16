@@ -1,4 +1,4 @@
-name: PR macOS Chrome review
+name: Published link verification
 
 on:
   pull_request:
@@ -22,6 +22,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          fetch-depth: 2
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: false
@@ -43,7 +44,7 @@ jobs:
       # Historical Linux failures remain in the PR and are not reclassified.
       - name: Verify signed Chrome and Seatbelt, then run CDP compatibility and Lab checks
         timeout-minutes: 18
-        run: uv run --locked --with playwright==1.63.0 python tests/macos_cdp_review.py
+        run: uv run --locked --with playwright==1.63.0 python tests/live_pages_review.py
       - name: Preserve viewport screenshots and public geometry for review
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
@@ -52,5 +53,6 @@ jobs:
           path: |
             browser-review/**/*.png
             browser-review/**/segments.json
+            browser-review/publication.json
           if-no-files-found: error
           retention-days: 7
