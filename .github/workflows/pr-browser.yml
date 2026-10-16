@@ -43,6 +43,8 @@ jobs:
       - name: Install pinned Playwright Firefox from its standard distribution
         run: uv run --locked --with playwright==1.63.0 python -m playwright install firefox
       - name: Verify Firefox distribution and effective sandbox
+        env:
+          DEBUG: pw:browser
         run: uv run --locked --with playwright==1.63.0 python tests/protected_firefox.py
       - name: Inspect all pages with protected Firefox
         run: uv run --locked --with playwright==1.63.0 python tests/browser.py
@@ -58,5 +60,13 @@ jobs:
         with:
           name: firefox-browser-${{ github.sha }}
           path: browser-review/**/*.png
+          if-no-files-found: error
+          retention-days: 7
+      - name: Preserve isolated Firefox diagnostic screenshots
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-diagnostics-${{ github.sha }}
+          path: firefox-diagnostics/*.png
           if-no-files-found: error
           retention-days: 7

@@ -7,7 +7,64 @@ import re
 import stat
 
 import playwright
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
+
+
+def diagnose_timeout(page):
+    """Observe only this test's descendants and allowlisted diagnostic DOM fields."""
+    statuses = {}
+    for entry in Path('/proc').iterdir():
+        if entry.name.isdecimal():
+            try:
+                fields = dict(line.split(':', 1) for line in (entry / 'status').read_text().splitlines())
+                statuses[int(entry.name)] = {k: fields[k].strip() for k in
+                    ('Name', 'PPid', 'Uid', 'NoNewPrivs', 'Seccomp', 'Seccomp_filters') if k in fields}
+            except (OSError, ValueError):
+                pass  # Processes can exit while the read-only snapshot is taken.
+    descendants = {os.getpid()}
+    while True:
+        expanded = descendants | {pid for pid, row in statuses.items()
+                                  if int(row['PPid']) in descendants}
+        if expanded == descendants:
+            break
+        descendants = expanded
+    for pid in sorted(descendants):
+        row = statuses.get(pid, {})
+        namespaces = {}
+        for kind in ('user', 'pid', 'net', 'mnt'):
+            try:
+                namespaces[kind] = os.readlink(f'/proc/{pid}/ns/{kind}')
+            except OSError:
+                namespaces[kind] = 'NOT OBSERVED'
+        try:
+            # Emit only a role marker, never full command lines or environment.
+            content = b'-contentproc' in Path(f'/proc/{pid}/cmdline').read_bytes().split(b'\0')
+        except OSError:
+            content = None
+        print('Firefox test process:', json.dumps({'pid': pid, 'content_process': content,
+              'status': row, 'namespaces': namespaces}), flush=True)
+    for name in ('/proc/sys/kernel/apparmor_restrict_unprivileged_userns',
+                 '/sys/module/apparmor/parameters/enabled'):
+        try:
+            print('OS sandbox setting:', name, Path(name).read_text().strip(), flush=True)
+        except OSError:
+            print('OS sandbox setting:', name, 'NOT OBSERVED', flush=True)
+    try:
+        print('Diagnostic page URL:', page.url, flush=True)
+        fields = page.evaluate('''() => ({url: location.href, documentURI: document.documentURI,
+            readyState: document.readyState, sandboxRows: document.querySelectorAll('#sandbox-tbody tr').length,
+            bodyChildren: document.body?.children.length ?? null})''')
+        print('Diagnostic DOM:', json.dumps(fields), flush=True)
+        target = Path('firefox-diagnostics')
+        target.mkdir(exist_ok=True)
+        if fields['sandboxRows']:
+            page.locator('#sandbox-tbody').screenshot(path=str(target / 'sandbox-table.png'), timeout=5000)
+        elif fields['url'] == 'about:blank':
+            page.screenshot(path=str(target / 'navigation-still-blank.png'), timeout=5000)
+        else:
+            print('Screenshot NOT OBSERVED: no isolated sandbox section; full diagnostic page withheld', flush=True)
+    except Exception as exc:
+        print('Diagnostic DOM/screenshot NOT OBSERVED:', type(exc).__name__, flush=True)
 
 
 def launch_checked_firefox(pw):
@@ -46,7 +103,11 @@ def launch_checked_firefox(pw):
         page = browser.new_page()
         # Internal pages need not emit the normal web-page load lifecycle.
         # Wait for navigation commit, then require the actual sandbox table.
-        page.goto('about:support', wait_until='commit')
+        try:
+            page.goto('about:support', wait_until='commit')
+        except PlaywrightTimeoutError:
+            diagnose_timeout(page)
+            raise  # Diagnostics never turn a navigation timeout into a pass.
         page.locator('#sandbox-tbody tr').first.wait_for()
         status = page.locator('#sandbox-tbody tr').evaluate_all('''rows =>
             Object.fromEntries(rows.map(row => [
