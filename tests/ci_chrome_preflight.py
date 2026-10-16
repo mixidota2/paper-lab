@@ -7,9 +7,11 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import stat
 import subprocess
 
+import playwright
 from playwright.sync_api import sync_playwright
 
 
@@ -17,6 +19,29 @@ def main():
     assert os.getuid() != 0, 'Run the browser as the existing non-root runner user'
     assert os.environ.get('CHROME_CHANNEL') == 'chrome'
     chrome = Path('/opt/google/chrome/chrome')
+    # Read the pinned driver's channel mapping without launching any executable.
+    driver = Path(playwright.__file__).parent / 'driver/package/lib/coreBundle.js'
+    mapping = re.search(r'_createChromiumChannel\("chrome",\s*\{\s*"linux":\s*"([^"]+)"',
+                        driver.read_text())
+    assert mapping is not None, 'Cannot observe the installed driver channel mapping'
+    print('Playwright chrome channel launch path:', mapping.group(1), flush=True)
+    assert Path(mapping.group(1)) == chrome
+    resolved = chrome.resolve(strict=True)
+    for label, path, follow in (('launch-path lstat', chrome, False),
+                                ('launch-path stat', chrome, True),
+                                ('resolved-target stat', resolved, True)):
+        metadata = path.stat() if follow else path.lstat()
+        print(label + ':', json.dumps({
+            'path': str(path), 'follows_symlinks': follow,
+            'type': 'symlink' if stat.S_ISLNK(metadata.st_mode) else
+                    'regular' if stat.S_ISREG(metadata.st_mode) else 'other',
+            'uid': metadata.st_uid, 'gid': metadata.st_gid,
+            'mode': oct(stat.S_IMODE(metadata.st_mode)),
+            'device': metadata.st_dev, 'inode': metadata.st_ino,
+        }), flush=True)
+    print('launch-path readlink:', os.readlink(chrome) if chrome.is_symlink()
+          else 'NOT A SYMLINK', flush=True)
+    assert resolved.is_file(), 'Chrome target is not a regular file'
     info = chrome.stat()
     print('Existing Chrome metadata:', json.dumps({
         'path': str(chrome), 'resolved': str(chrome.resolve()),
