@@ -1,5 +1,6 @@
 """PR-only protected browser checks; screenshots are separate review evidence."""
 import json
+from review_capture import capture_segments
 import os
 from pathlib import Path
 from playwright.sync_api import sync_playwright
@@ -66,7 +67,34 @@ def inspect(base):
                     data = json.loads((ROOT / 'papers' / slug / 'results.json').read_text())
                     assert data['verification']['mechanism'] == 'PARTIAL'
                     assert all(data['checks'].values())
-                page.screenshot(path=str(OUT / f'{slug}-{width}.png'), full_page=True)
+                    price = page.locator('#zalando-alpha')
+                    slider = price.locator('input')
+                    assert slider.is_enabled()
+                    slider.focus()
+                    slider.press('End')
+                    assert 'α = 2.0' in price.locator('[data-zoutput]').inner_text()
+                    slider.press('Home')
+                    assert 'α = 0.0' in price.locator('[data-zoutput]').inner_text()
+                    assert price.locator('tbody td').evaluate_all('''cells => cells.every(c => {
+                      const r=document.createRange(); r.selectNodeContents(c);
+                      return r.getClientRects().length===1 && getComputedStyle(c).whiteSpace==='nowrap';
+                    })''')
+                    region = price.locator('.matrix-scroll')
+                    if width == 360:
+                        assert region.evaluate('e => e.scrollWidth > e.clientWidth')
+                        region.focus()
+                        region.press('End')
+                        region.evaluate('e => e.scrollLeft=e.scrollWidth')
+                        assert region.evaluate('e => e.scrollLeft > 0')
+                        # Capture rightmost amounts as well as the default left edge.
+                        region.screenshot(path=str(OUT / 'zalando-360-table-right.png'))
+                        region.evaluate('e => e.scrollLeft=0')
+                    metric = page.locator('[data-enable-select] select')
+                    assert metric.is_enabled()
+                    metric.select_option('2')
+                    assert 'RMSE' in page.locator('[data-enable-select] [data-output]').inner_text()
+                    metric.select_option('0')
+                capture_segments(page, OUT / f'{slug}-{width}.png')
                 if not slug.startswith('zalando'):
                     page.locator('[data-interactive=explorer]').screenshot(path=str(OUT / f'{slug}-{width}-controls.png'))
             page.close()
@@ -75,7 +103,13 @@ def inspect(base):
             nojs.goto(base + '/papers/' + slug + '.html')
             assert nojs.evaluate('document.documentElement.scrollWidth <= innerWidth')
             assert nojs.locator('[data-fallback]:visible').count() == nojs.locator('[data-interactive]').count()
-            nojs.screenshot(path=str(OUT / f'{slug}-360-nojs.png'), full_page=True)
+            if slug.startswith('zalando'):
+                assert nojs.locator('#zalando-slider').is_disabled()
+                assert nojs.locator('[data-enable-select] select').is_disabled()
+                assert nojs.locator('noscript:visible').count() == 2
+                assert 'α = 0.0' in nojs.locator('[data-zoutput]').inner_text()
+                assert 'Demand Error' in nojs.locator('[data-enable-select] [data-output]').inner_text()
+            capture_segments(nojs, OUT / f'{slug}-360-nojs.png')
         assert not errors, errors
         browser.close()
 

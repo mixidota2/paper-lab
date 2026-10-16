@@ -2,6 +2,7 @@
 Build all pages first. CHROME_PATH must select an already installed protected Chromium.
 """
 import json
+from review_capture import capture_segments
 import math
 import os
 from pathlib import Path
@@ -145,7 +146,7 @@ def inspect(base_url):
                     assert not any(v in line.get_attribute('points') for v in ('NaN','Infinity'))
                 box=root.locator('svg').bounding_box()
                 assert box and box['width']>0 and box['height']>0
-                page.screenshot(path=str(OUT/f'{slug}-{width}-default.png'),full_page=True)
+                capture_segments(page, OUT/f'{slug}-{width}-default.png')
                 if slug.startswith('reasoncast'):
                     root.locator('[name=actual]').fill('0,0,0,0,0,0,0')
                     assert '未定義' in root.locator('[data-output]').inner_text()
@@ -185,7 +186,7 @@ def inspect(base_url):
                     assert not root.locator('[data-error]').inner_text()
                     assert root.locator('[data-export]').is_enabled()
                     assert ledger.locator('td').nth(8).inner_text()=='2'
-                page.screenshot(path=str(OUT/f'{slug}-{width}.png'),full_page=True)
+                capture_segments(page, OUT/f'{slug}-{width}.png')
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
             page.close()
         assert not errors,errors

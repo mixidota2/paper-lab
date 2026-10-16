@@ -44,11 +44,13 @@ jobs:
       - name: Verify signed Chrome and Seatbelt, then run CDP compatibility and Lab checks
         timeout-minutes: 18
         run: uv run --locked --with playwright==1.63.0 python tests/macos_cdp_review.py
-      - name: Preserve only page screenshots for review
+      - name: Preserve viewport screenshots and public geometry for review
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: macos-chrome-${{ github.sha }}
-          path: browser-review/**/*.png
+          path: |
+            browser-review/**/*.png
+            browser-review/**/segments.json
           if-no-files-found: error
           retention-days: 7

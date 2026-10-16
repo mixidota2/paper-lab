@@ -267,6 +267,7 @@ document.querySelectorAll('[data-b21]').forEach(root => {
   const select = root.querySelector('select');
   const output = root.querySelector('[data-output]');
   const update = () => { output.innerHTML = frames[Number(select.value)]; };
+  if (root.hasAttribute('data-enable-select')) select.disabled = false;
   select.addEventListener('change', update);
   update();
 });
