@@ -44,7 +44,7 @@
         {% if interactive.kind == 'explorer' %}<script type="application/json" data-results>{{ lab.results.explorer | tojson }}</script>{% endif %}
         <div data-mount></div><div data-fallback>
         {% if interactive.kind == 'flow' %}<ol>{% for stage in interactive.stages %}<li>{{ stage.title }}：{{ stage.proposed }}<p>{{ stage.detail }}</p></li>{% endfor %}</ol>
-        {% else %}{% set frame = lab.results.explorer.frames[lab.results.explorer.default] %}<p>{{ lab.results.explorer.label }}：{{ frame.value }}{{ lab.results.explorer.unit }}</p><ul>{% for bar in frame.bars %}<li>{{ bar.label }}：{{ bar.value }}</li>{% endfor %}</ul><p>{{ frame.note }}</p>{% endif %}
+        {% else %}{% set frame = lab.results.explorer.frames[lab.results.explorer.default] %}<p>{{ lab.results.explorer.label }}：{{ frame.value }}{{ lab.results.explorer.unit }}</p><ul>{% for bar in frame.bars %}<li>{{ bar.label }}：{{ "推定不能" if bar.value is none else bar.value }}</li>{% endfor %}</ul><p>{{ frame.note }}</p>{% endif %}
         </div><p class="source-note">数値の出所：このLabの results.json。論文の測定値ではありません。</p>
       </section>
       {% endfor %}{% endif %}

@@ -16,7 +16,7 @@ def main():
     with sync_playwright() as pw:
         chrome = os.environ.get('CHROME_PATH') or ('/opt/google/chrome/chrome' if Path('/opt/google/chrome/chrome').exists() else None)
         browser = pw.chromium.launch(executable_path=chrome,
-                                     args=['--no-sandbox', '--disable-dev-shm-usage'])
+                                     chromium_sandbox=True)
         for width in (360, 768, 1440):
             page = browser.new_page(viewport={'width': width, 'height': 900}, reduced_motion='reduce')
             page.on('pageerror', lambda e: errors.append(str(e)))
@@ -36,7 +36,14 @@ def main():
                     slider.focus(); slider.press('End')
                     assert int(slider.input_value()) == len(data['frames'])-1
                     values = explorer.locator('.bar-label strong').all_text_contents()
-                    assert [float(v.replace(',', '')) for v in values] == [round(b['value'], 4) for b in data['frames'][-1]['bars']]
+                    assert [None if v == '推定不能' else float(v.replace(',', '')) for v in values] == [None if b['value'] is None else round(b['value'], 4) for b in data['frames'][-1]['bars']]
+                    slider.press('Home')
+                    first = data['frames'][0]
+                    assert slider.get_attribute('aria-valuetext') == f"{data['label']}：{first['value']}{data['unit']}" or slider.get_attribute('aria-valuetext') == f"{data['label']}：{float(first['value']):g}{data['unit']}"
+                    for row, datum in zip(explorer.locator('.bar-row').all(), first['bars']):
+                        if datum['value'] is None:
+                            assert row.locator('strong').inner_text() == '推定不能'
+                            assert row.locator('.bar-fill').count() == 0
                     explorer.get_by_role('button', name='初期条件に戻す', exact=True).click()
                     assert int(slider.input_value()) == data['default']
                 if path.stem in NEW and width in (360, 1440):

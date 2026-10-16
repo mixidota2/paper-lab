@@ -15,7 +15,7 @@ IDS = ('scaffold-effects-gaia', 'case-against-generation-retrieval', 'unipinrec'
 
 
 def bar(label, value):
-    return {'label': label, 'value': round(value, 4)}
+    return {'label': label, 'value': None if value is None else round(value, 4)}
 
 
 def line(label, values):
@@ -113,9 +113,9 @@ def stockout(cap):
     latent = [18,20,22,19,21,20,18,22]
     sales = [min(x,cap) for x in latent]
     available = [s for s in sales if s < cap]
-    masked = mean(available) if available else 0
+    masked = mean(available) if available else None
     return frame(cap, [bar('合成の潜在需要：平均',mean(latent)),bar('観測販売：平均',mean(sales)),bar('非欠品日のみ：平均',masked)],
-                 '観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。'+('非欠品期間がないため推定不能（棒は0で表示）。' if not available else '非欠品日の平均も選択バイアスを含む。欠品日の真の需要を復元した値ではない。'),
+                 '観測販売=min(需要,在庫)。在庫上限と同値の期間を除外する簡略例。'+('非欠品期間がないため推定不能。値は欠測とし、棒を表示しない。' if not available else '非欠品日の平均も選択バイアスを含む。欠品日の真の需要を復元した値ではない。'),
                  [line('合成の潜在需要',latent),line('観測販売',sales)])
 
 
