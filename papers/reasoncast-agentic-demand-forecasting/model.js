@@ -16,7 +16,10 @@ function evaluate(x) {
     if (!finite(error_sum) || !finite(denominator)) throw Error('誤差計算が有限値を超えました。');
     return {name,prediction,errors,error_sum,denominator,mae:error_sum/7,wmape:denominator===0?null:100*(error_sum/denominator)};
   });
-  rows.forEach(row=>row.delta_pp=rows[0].wmape===null?null:row.wmape-rows[0].wmape);
+  rows.forEach(row=>{
+    row.delta_pp=rows[0].wmape===null?null:row.wmape-rows[0].wmape;
+    if([row.wmape,row.delta_pp].some(v=>v!==null&&!finite(v))) throw Error('指標が有限値を超えました。');
+  });
   return {rows,route:x.route,negative_prediction:[...always,...selected].some(v=>v<0)};
 }
 const api={kind:'reasoncast',defaults,evaluate};

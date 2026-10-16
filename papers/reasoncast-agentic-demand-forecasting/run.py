@@ -60,6 +60,8 @@ def evaluate(inputs):
     baseline = rows[0]['wmape']
     for row in rows:
         row['delta_pp'] = None if baseline is None else row['wmape'] - baseline
+        if any(row[k] is not None and not finite(row[k]) for k in ('wmape', 'delta_pp')):
+            raise ValueError('metric overflow')
     return dict(rows=rows, route=inputs['route'], negative_prediction=any(v < 0 for v in always+selected))
 
 

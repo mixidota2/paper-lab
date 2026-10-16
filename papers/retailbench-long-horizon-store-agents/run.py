@@ -48,7 +48,7 @@ def evaluate(inputs):
         for day in range(1, int(inputs['days'])+1):
             before = cash
             active = stopped is None
-            sold = (min(q, math.floor(max(cash, 0)/c)) if inputs['mode'] == 'funded' else q) if active else 0
+            sold = (math.floor(min(q, max(cash, 0)/c)) if inputs['mode'] == 'funded' else q) if active else 0
             purchase, gross, refund, fee = sold*c, sold*p, sold*p*rate, rent if active else 0
             cash = before-purchase+gross-refund-fee
             if not finite(cash):
@@ -60,8 +60,10 @@ def evaluate(inputs):
                 stopped = day
         suppliers.append(dict(supplier=label.upper(), margin=p*(1-rate)-c, final_cash=cash, stopped=stopped, trace=trace))
     threshold = None if p == 0 else inputs['return_a']-(inputs['cost_b']-inputs['cost_a'])/p
-    return dict(suppliers=suppliers, return_b_tie=threshold,
-                margin_difference=p*(inputs['return_a']-inputs['return_b'])-(inputs['cost_b']-inputs['cost_a']))
+    difference = p*(inputs['return_a']-inputs['return_b'])-(inputs['cost_b']-inputs['cost_a'])
+    if (threshold is not None and not finite(threshold)) or not finite(difference):
+        raise ValueError('boundary overflow')
+    return dict(suppliers=suppliers, return_b_tie=threshold, margin_difference=difference)
 
 
 def reference_cases():
@@ -93,7 +95,7 @@ def main():
               'reported_columns': ['model', 'framework', 'days', 'net_worth', 'sales_units'],
               'reported': reported, 'frames': frames, 'reference': reference_cases(),
               'verification': {'accounting_identity': 'CONFIRMED', 'retailbench_reproduction': 'NOT TESTED'},
-              'limitations': ['Artificial deterministic inputs; no LLM, lead time, aging, news, or bankruptcy termination.', 'Final cash is not paper net worth; return rates are invented teaching assumptions.']}
+              'limitations': ['Artificial deterministic inputs; no LLM, lead time, aging, or news. Legacy frames and accounting mode do not stop at negative cash; funded mode uses a local immediate-stop rule, not the paper rule.', 'Final cash is not paper net worth; return rates are invented teaching assumptions.']}
     (ROOT/'results.json').write_text(json.dumps(result, ensure_ascii=False, indent=2)+'\n')
     print('CONFIRMED: 240 daily accounting checks; RetailBench performance NOT TESTED')
 

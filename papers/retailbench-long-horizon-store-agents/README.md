@@ -70,7 +70,7 @@ MechanismはPARTIAL。
 ## What We Did NOT Verify
 
 Performance / Scaling / Production applicabilityはNOT TESTED。
-公式環境、LLM、納期、賞味期限、ニュース、需要の隠れた要因、棚内の代替効果は追試せず、負の現金でも計算を続けるため生存日数も再現しない。
+公式環境、LLM、納期、賞味期限、ニュース、需要の隠れた要因、棚内の代替効果は追試しない。旧固定例は負の現金でも計算を続けるため生存日数を再現しない。新しい資金制約モードも局所停止であり、原論文の生存評価ではない。
 実店舗のA/Bテストや棚割りの無作為化比較試験ではない。
 
 ## Implementation
@@ -100,4 +100,4 @@ run.pyは人工実験を計算し、Table 1の転記値と分けてresults.json�
 
 Python標準ライブラリと小さなブラウザ計算だけを使います。数式・台帳の局所検証はCONFIRMED、論文全体の機構はPARTIAL。著者コード・学習・原論文性能・本番適用はNOT TESTED。実ブラウザの画面・キー操作・export/importもNOT TESTEDで、別環境での保護付き確認を残しています。
 
-局所検査：リポジトリrootで `uv run --extra dev pytest tests/test_reference_comparisons.py`。Node.js 18以上がある場合、`uv run --extra dev python tests/check_reference_js.py` でJavaScriptの独立期待値とPythonとの120条件照合を実行できます。これはDOMや実ブラウザの検証ではありません。保護付きChromeが利用できる別環境では `uv run --with playwright tests/reference_browser.py` を実行し、360/1440pxの画面、任意値、キー入力、保存と再読込を確認します。CHROME_PATHと必要に応じREFERENCE_SITEを指定してください。
+局所検査：リポジトリrootで `uv run --extra dev pytest tests/test_reference_comparisons.py`。Node.js 18以上がある場合、`uv run --extra dev python tests/check_reference_js.py` でJavaScriptの独立期待値とPythonとの120条件照合を実行できます。これはDOMや実ブラウザの検証ではありません。保護付きChromeが利用できる別環境では `uv run --with playwright tests/reference_browser.py` を実行し、360/1440pxの画面、任意値、キー入力、保存と再読込を確認します。CHROME_PATHと必要に応じREFERENCE_SITEを指定してください。検査内で127.0.0.1の一時HTTPサーバーを起動し、成功・失敗にかかわらず終了します。file://での確認とは区別します。

@@ -30,6 +30,9 @@ for(const model of [reason,retail]){
  assert.deepEqual(model.unpack(packed),input);compare(model.evaluate(model.unpack(packed)),model.evaluate(input));
  assert.throws(()=>model.unpack({...packed,schema:2}));
 }
+assert.throws(()=>reason.evaluate({...reason.defaults,base:Array(7).fill(1e200),actual:Array(7).fill(1e-200)}));
+assert.throws(()=>retail.evaluate({...retail.defaults,price:1e-320,demand:0}));
+assert.equal(retail.evaluate({...retail.defaults,mode:'funded',cash:1,demand:1,cost_a:5e-324,cost_b:5e-324,days:1}).suppliers[0].trace[0].sold,1);
 const cases=JSON.parse(fs.readFileSync(0,'utf8'));
 for(const c of cases){const model=c.slug.startsWith('reasoncast')?reason:retail;compare(model.evaluate(c.inputs),c.expected);}
 console.log(`PASS: independent JS boundaries, export/import data contract, ${cases.length} Python/JS parity cases; browser NOT TESTED`);

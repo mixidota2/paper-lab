@@ -113,3 +113,10 @@ def test_saved_reference_and_cli_recompute(i,tmp_path):
     payload=tmp_path/'comparison.json';payload.write_text(json.dumps({'inputs':saved['reference']['inputs'],'output':'untrusted'}))
     run=subprocess.run([sys.executable,str(tmp_path/'run.py'),'--input',str(payload)],check=True,capture_output=True,text=True)
     assert json.loads(run.stdout)==saved['reference']['output']
+
+
+def test_finite_inputs_cannot_export_nonfinite_metrics():
+    with pytest.raises(ValueError):reason(base=[1e200]*7,actual=[1e-200]*7)
+    with pytest.raises(ValueError):retail(price=1e-320,demand=0)
+    result=retail(mode='funded',cash=1,demand=1,cost_a=5e-324,cost_b=5e-324,days=1)
+    assert result['suppliers'][0]['trace'][0]['sold']==1

@@ -2281,7 +2281,7 @@
     "retailbench_reproduction": "NOT TESTED"
   },
   "limitations": [
-    "Artificial deterministic inputs; no LLM, lead time, aging, news, or bankruptcy termination.",
+    "Artificial deterministic inputs; no LLM, lead time, aging, or news. Legacy frames and accounting mode do not stop at negative cash; funded mode uses a local immediate-stop rule, not the paper rule.",
     "Final cash is not paper net worth; return rates are invented teaching assumptions."
   ]
 }

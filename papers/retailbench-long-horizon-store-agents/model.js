@@ -14,7 +14,7 @@ function evaluate(x) {
     const c=x['cost_'+label],rate=x['return_'+label];let cash=x.cash,stopped=null;const trace=[];
     for(let day=1;day<=x.days;day++){
       const opening=cash,active=stopped===null;
-      const sold=active?(x.mode==='funded'?Math.min(x.demand,Math.floor(Math.max(cash,0)/c)):x.demand):0;
+      const sold=active?(x.mode==='funded'?Math.floor(Math.min(x.demand,Math.max(cash,0)/c)):x.demand):0;
       const purchase=sold*c,gross=sold*x.price,refund=sold*x.price*rate,rent=active?x.rent:0;
       cash=opening-purchase+gross-refund-rent;
       if(!finite(cash)) throw Error('現金計算が有限値を超えました。');
@@ -23,8 +23,10 @@ function evaluate(x) {
     }
     return {supplier:label.toUpperCase(),margin:x.price*(1-rate)-c,final_cash:cash,stopped,trace};
   });
-  return {suppliers,return_b_tie:x.price===0?null:x.return_a-(x.cost_b-x.cost_a)/x.price,
-    margin_difference:x.price*(x.return_a-x.return_b)-(x.cost_b-x.cost_a)};
+  const return_b_tie=x.price===0?null:x.return_a-(x.cost_b-x.cost_a)/x.price;
+  const margin_difference=x.price*(x.return_a-x.return_b)-(x.cost_b-x.cost_a);
+  if((return_b_tie!==null&&!finite(return_b_tie))||!finite(margin_difference)) throw Error('境界計算が有限値を超えました。');
+  return {suppliers,return_b_tie,margin_difference};
 }
 const api={kind:'retailbench',defaults,evaluate};
 api.pack=x=>({schema:1,kind:api.kind,inputs:x,output:evaluate(x)});
