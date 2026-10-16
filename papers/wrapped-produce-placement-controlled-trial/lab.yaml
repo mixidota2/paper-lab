@@ -1,0 +1,62 @@
+id: wrapped-produce-placement-controlled-trial
+title: 'Impact of supermarket fruit and vegetable placement on store sales, customer purchasing, diet and household waste: A prospective matched-controlled cluster trial'
+authors: [Christina Vogel, Sarah Crozier, Preeti Dhuria, Joanne Lord, Graham Moon, Wendy Lawrence, Janet Cade, Kylie Ball, Cyrus Cooper, Janis Baird]
+year: 2026
+doi: 10.1371/journal.pmed.1004575
+submitted: '2026-03-31'
+topics: [retail-supply, causal-inference]
+urls:
+  paper: https://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.1004575
+  doi: https://doi.org/10.1371/journal.pmed.1004575
+verdict: Worth Reading
+status: draft
+question: 店舗の青果販売数量が増えたとき、家庭が買う確率も持続的に上がったと言えるか
+summary: WRAPPEDは36店舗のマッチド自然実験。入口側への移動と品揃え拡大の後、店舗の青果販売個数は直後に増えた。一方、家庭の6か月時点の購入確率差は+3.3ポイントで、信頼区間は0をまたぐ。指標・時点・反実仮想を分けて読む。
+related_threads: [causal-placement-and-assortment]
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-10-15'
+  url: https://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.1004575
+  scope: 本文のMethods・Results・Discussionとプロセス評価を確認。S2 Box本文とNIHR本文は取得できず、主要方法の詳細照合は未完。2026年3月31日公開の既刊論文を初めて扱うLab。
+core_idea:
+  author_claim: 著者は、入口近くへの青果配置と品揃え拡大が、店舗販売、家庭の購買、女性の食事の質を改善する可能性を示すと結論づける。店舗販売への効果は導入直後に最も明瞭で、その後は大きさと確かさが弱まった（本文Abstract・Discussion）。
+  research_bot_interpretation: 店全体の青果販売個数は、購入する家庭の数と一家庭の購入量の両方で変わる。したがって、直後の店舗指標だけで家庭の習慣形成を判断できない。さらに、改装した店が選ばれた理由や同時の品揃え拡大を考慮しないと、配置だけの因果効果を読み込んでしまう。
+sections:
+  overview: '2026年3月31日公開の既刊論文を今回初めて扱う。今週の新刊ではない。店全体の販売数量と、家庭が実際に買う確率を分けると、WRAPPEDが示したことと、まだ確かでないことが見えてくる。小実験では、対照店舗のトレンドと改装直後のショックを変えて、推定値が何を拾うかを確かめる。'
+  problem: '入口で目に入る青果を増やした後、販売個数が伸びたとする。それは新たな家庭が毎週買うようになったためか、いつもの購入者が多く買ったためか。あるいは改装に伴う来店の一時的な増加か。WRAPPEDは店舗集計と家庭の会員カード履歴を別々に追い、対応する対照店と比べた。対象は英国のディスカウントスーパー36店舗と、会員カードを持つ18〜60歳の女性を通じて観測した家庭である。'
+  method: method.md
+  why_it_might_work: '解釈：入口に青果があれば、買い物の早い段階で目に入りやすくなる。品揃えが増えることで買いたい品も見つけやすくなる。ただし二つを同時に変えたため、どちらが何割寄与したかは分からない。対応店舗との差を追う方法は共通の変化を取り除く助けになるが、介入店だけの変化には弱い。'
+  evidence: evidence.md
+  executable_understanding: experiment.md
+  results: 'reportedは本文の公表値、syntheticは自作の人工系列と当てはめ。別のキーに保存し、同じ図や尺度に混ぜない。小実験で対照ありの差が+0.20に戻るのは、共通トレンドだけを動かし、改装ショックと介入店だけの変化を0にした場合である。'
+  what_we_verified: '**CONFIRMED**：共通トレンドだけなら人工の持続効果+0.20を回収すること、介入店だけの未調整な傾き変化を除けないこと、一時的ショックを直線に吸収することを実行テストで確認。**PARTIAL**：原論文の設計と公表値は本文と照合したが、個票も元の推定器も再現していない。'
+  what_we_did_not_verify: 'S2 Boxの数式と詳細な推定手順は未照合。元の販売・購買データは商業上の契約により非公開で、独立再現はNOT TESTED。健康改善や配置単独の因果効果もNOT TESTED。家庭の持続的増加を断定する根拠はこのLabではNOT OBSERVEDであり、ゼロ効果の証明という意味ではない。店舗選択の未測定交絡、他スーパーでの購買、完全ケース解析、店舗内の家庭の相関、事後的な層別分析も解釈を制限する。'
+  implementation: 'run.pyは標準ライブラリのみ。`uv run papers/wrapped-produce-placement-controlled-trial/run.py --test` の後、同じコマンドから `--test` を外して再生成する。results.jsonと操作図のMarkdownを出力する。乱数・ネットワーク・外部モデルAPIは使わない。READMEに全サイトを別出力先へ生成する手順、mappingに原典との対応と省略を記す。'
+figures: []
+interactives: []
+teaching_figures:
+- id: paired-rollout
+  kind: timeline
+  title: 各組の導入時点をそろえて、前3か月と後6か月を比べる
+  after: method
+  source: https://doi.org/10.1371/journal.pmed.1004575
+  locator: §2.1–2.4
+  rationale: 対応した2店は同じ観測期間で比較し、改装休業を取り除く設計を示す。
+  caption: 18組に共通する概念図。店舗ごとの実際の導入日は創作しない。募集は2018年5月〜2021年10月の5波、購買データ補充の第6波は2022年9月〜2023年2月。閉店を含む1〜4週を対応する両群から除外する。
+  rows:
+  - label: 介入店（18）
+    nodes:
+    - {title: '前3か月', text: '従来の配置。11〜14週の観測'}
+    - {title: '改装・休業', text: '一部休業の週も除外'}
+    - {title: '導入〜3か月', text: '入口側へ移動＋品揃え拡大'}
+    - {title: '3〜6か月', text: '介入継続。後は計24〜28週'}
+  - label: 対照店（18）
+    nodes:
+    - {title: '同じ前期間', text: '売上・顧客構成・地域困窮度で対応'}
+    - {title: '対応週を除外', text: '介入店の休業と同じ週'}
+    - {title: '同じ後期間', text: '従来の配置を比較条件とする'}
+    - {title: '同じ追跡', text: '共通の時代変化を比較する'}
