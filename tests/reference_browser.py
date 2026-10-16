@@ -47,6 +47,30 @@ def assert_curves(root, series):
             assert math.isclose(y,210-190*(value-lo)/(hi-lo),abs_tol=1e-7)
 
 
+def assert_current_result(root, slug, value):
+    """Independent expected metrics/curves for the restored nonpreset input."""
+    rows=root.locator('[data-output] table').first.locator('tbody tr')
+    def cell(row, col):
+        return float(rows.nth(row).locator('td').nth(col).inner_text().replace(',', ''))
+    if slug.startswith('reasoncast'):
+        selected=10*math.exp(value*math.log(2))
+        score=100*abs(20-selected)/20
+        assert math.isclose(cell(0,4),50,rel_tol=0,abs_tol=1e-6)
+        assert math.isclose(cell(1,4),0,rel_tol=0,abs_tol=1e-6)
+        assert math.isclose(cell(2,4),score,rel_tol=0,abs_tol=1e-6)
+        assert math.isclose(cell(2,5),score-50,rel_tol=0,abs_tol=1e-6)
+        assert math.isclose(cell(2,6),abs(20-selected),rel_tol=0,abs_tol=1e-6)
+        assert_curves(root,[[20]*7,[10]*7,[20]*7,[selected]*7])
+    else:
+        margin=10*(1-value)-5
+        cash=[3000+d*(200*margin-600) for d in range(31)]
+        assert math.isclose(cell(0,1),3,rel_tol=0,abs_tol=1e-6)
+        assert math.isclose(cell(0,2),3000,rel_tol=0,abs_tol=1e-6)
+        assert math.isclose(cell(1,1),margin,rel_tol=0,abs_tol=1e-6)
+        assert math.isclose(cell(1,2),cash[-1],rel_tol=0,abs_tol=1e-6)
+        assert_curves(root,[[3000]*31,cash])
+
+
 def inspect(base_url):
     from playwright.sync_api import sync_playwright
     OUT.mkdir(parents=True,exist_ok=True)
@@ -83,6 +107,7 @@ def inspect(base_url):
                     assert_curves(root,[[20]*7,[10]*7,[20]*7,[10*math.exp(.37123*math.log(2))]*7])
                 else:
                     assert_curves(root,[[3000]*31,[3000+d*(200*(10*(1-.13791)-5)-600) for d in range(31)]])
+                assert_current_result(root,slug,value)
                 with page.expect_download() as download:
                     root.get_by_role('button',name='JSONを書き出す',exact=True).click()
                 saved=OUT/f'{slug}-{width}.json';download.value.save_as(saved)
@@ -97,6 +122,7 @@ def inspect(base_url):
                 assert not root.locator('[data-error]').inner_text()
                 assert root.locator(f'[name={expected}]').input_value()==str(value)
                 assert 'untrusted' not in root.locator('[data-output]').inner_text()
+                assert_current_result(root,slug,value)
                 root.locator('[data-json]').fill('{bad json')
                 root.get_by_role('button',name='条件を読み込み、再計算する',exact=True).click()
                 assert '読み込み失敗' in root.locator('[data-error]').inner_text()
