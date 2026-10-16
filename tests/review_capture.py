@@ -8,9 +8,16 @@ import struct
 def capture_segments(page, path):
     path = path.with_suffix('')
     path.mkdir(parents=True, exist_ok=True)
-    page.evaluate("document.fonts.ready")
-    # Warm lazy images without resizing the viewport, then return to the top.
-    page.evaluate("async () => { for (const img of document.images) { img.loading='eager'; await img.decode().catch(() => {}); } }")
+    print('CAPTURE START', path.name, flush=True)
+    # Do not await page callbacks: script-disabled documents cannot dispatch them.
+    # Native loading still works; poll it synchronously from the test process.
+    page.evaluate("() => { for (const img of document.images) img.loading='eager'; }")
+    for _ in range(100):
+        ready = page.evaluate("document.fonts.status === 'loaded' && [...document.images].every(i => i.complete && i.naturalWidth > 0)")
+        if ready:
+            break
+        page.wait_for_timeout(100)
+    assert ready, 'Fonts/images did not finish loading within 10 seconds'
     bounds = page.evaluate('''() => {
       const d=document.documentElement, bad=[]; let count=0, right=0;
       for (const root of document.querySelectorAll('.prose, .footer')) {
@@ -37,7 +44,7 @@ def capture_segments(page, path):
         target=0
         while True:
             page.evaluate('(y) => window.scrollTo({top:y,behavior:"instant"})', target)
-            page.evaluate('() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))')
+            page.wait_for_timeout(50)  # Test-side paint allowance; no page callback.
             m=page.evaluate('''() => ({x:scrollX,y:scrollY,width:innerWidth,height:innerHeight,total:document.documentElement.scrollHeight,clientWidth:document.documentElement.clientWidth})''')
             assert m['width']==bounds['innerWidth'] and m['clientWidth']==bounds['clientWidth'], m
             if tiles:
