@@ -44,7 +44,9 @@ def launch_checked_firefox(pw):
     try:
         print('Engine: Firefox/Gecko; actual version:', browser.version, flush=True)
         page = browser.new_page()
-        page.goto('about:support')
+        # Internal pages need not emit the normal web-page load lifecycle.
+        # Wait for navigation commit, then require the actual sandbox table.
+        page.goto('about:support', wait_until='commit')
         page.locator('#sandbox-tbody tr').first.wait_for()
         status = page.locator('#sandbox-tbody tr').evaluate_all('''rows =>
             Object.fromEntries(rows.map(row => [
