@@ -103,7 +103,7 @@ def main():
                         assert navigation.value.ok
                         assert page.url == BASE + '/papers/' + slug + '.html'
                         assert title in page.locator('.bibliography summary').inner_text()
-                        assert page.locator('h1').is_visible()
+                        assert page.locator('.paper-hero > h1').is_visible()
                         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
                         verify_seatbelt(browser)
                         page.screenshot(path=str(ROOT / 'browser-review' / f'{slug}-{width}.png'))
