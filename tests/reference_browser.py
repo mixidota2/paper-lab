@@ -76,7 +76,7 @@ def inspect(base_url):
     OUT.mkdir(parents=True,exist_ok=True)
     errors=[]
     with sync_playwright() as pw:
-        browser=pw.chromium.launch(executable_path=os.environ['CHROME_PATH'],chromium_sandbox=True)
+        browser=pw.chromium.launch(**({"channel": os.environ["CHROME_CHANNEL"]} if os.environ.get("CHROME_CHANNEL") else {"executable_path": os.environ["CHROME_PATH"]}),chromium_sandbox=True)
         for width in (360,1440):
             page=browser.new_page(viewport={'width':width,'height':900},reduced_motion='reduce')
             page.on('pageerror',lambda error:errors.append(str(error)))

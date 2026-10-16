@@ -15,7 +15,8 @@ def main():
     errors = []
     with sync_playwright() as pw:
         chrome = os.environ.get('CHROME_PATH') or ('/opt/google/chrome/chrome' if Path('/opt/google/chrome/chrome').exists() else None)
-        browser = pw.chromium.launch(executable_path=chrome,
+        browser = pw.chromium.launch(
+                                     **({"channel": os.environ["CHROME_CHANNEL"]} if os.environ.get("CHROME_CHANNEL") else {"executable_path": chrome}),
                                      chromium_sandbox=True)
         for width in (360, 768, 1440):
             page = browser.new_page(viewport={'width': width, 'height': 900}, reduced_motion='reduce')
