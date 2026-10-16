@@ -170,6 +170,8 @@ def paper_sections(lab: Lab) -> list[dict[str, Any]]:
             html = markdown_to_html(lab.sections.get(key, ""))
 
         if key == "executable_understanding":
+            if lab.id in {"reasoncast-agentic-demand-forecasting", "retailbench-long-horizon-store-agents"}:
+                html += (lab.source_dir / "interactive.html").read_text(encoding="utf-8")
             html += batch08_widget(lab.results)
             html += batch28_widget(lab.results)
             html += batch29_widget(lab.results)
@@ -264,7 +266,7 @@ def build(
     for lab in labs:
         download_dir = site / "downloads" / lab.id
         download_dir.mkdir(parents=True)
-        for name in ("run.py", "results.json", "lab.yaml", "README.md", "method.md", "mapping.md", "NOTICE.txt", "official-check.json", "plot.py", "author-orderbook.csv"):
+        for name in ("run.py", "results.json", "lab.yaml", "README.md", "method.md", "mapping.md", "NOTICE.txt", "official-check.json", "plot.py", "author-orderbook.csv", "model.js", "interactive.js"):
             source = lab.source_dir / name
             if source.is_file():
                 shutil.copy2(source, download_dir / name)

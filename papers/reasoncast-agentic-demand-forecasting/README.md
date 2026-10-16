@@ -66,8 +66,26 @@ Performance / Scaling / Production applicabilityはNOT TESTED。Chronos-2、Qwen
 
 ## Implementation — 実装
 
-correct() → 式(8), (11), (12)の簡略化。wmape() → 式(16)。ルータと潜在表現、学習は省略。
+correct()は出力空間の代理教材であり、式(8)の実装ではない。wmape() → 式(16)。ルータと潜在表現、学習は省略。
 
 ## Original Paper / Official Code Mapping
 
 [対応表](mapping.md)
+
+## 今回の7日比較と原論文の境界
+
+[§4.3・Eq.8](https://arxiv.org/html/2608.15291v1#S4.SS3)は潜在表現Hへの加算、[§4.5・Eq.11](https://arxiv.org/html/2608.15291v1#S4.SS5)は復号後の指数補正、§4.6・Eq.12はm=0で元予測を回復する式です。ここで計算する `(b + g*a) * exp(g*l)` は、加算を出力空間へ移した代理教材であり、Eq.8の実装ではありません。
+
+実績yは採点だけに使います。基準b、加算a、対数倍率l、強さg、Skip/補正は実績から独立です。Skipは補正演算を通さず元配列の値をコピーします。原論文では祝日等にSkipの制約があるため、この自由な切替は反実仮想の教材です。旧例のBasic/Toolも外から同じ入力を与えれば同じ値になり、道具やLLMは実行しません。
+
+WMAPE = 100 × 誤差総和 / 実績合計。差は選択値−元予測のパーセントポイントで、負なら改善です。実績が全ゼロならWMAPEはnull（未定義）、MAEは表示します。負の予測は警告付きで保持し、0へ切り上げません。7要素でない配列、非有限値、負の実績、範囲外gは拒否します。
+
+基準10・実績20・倍化情報で、元予測50%、常時補正0%、g=0.5は約29.289322%。逆に実績10なら倍化は0%を100%へ悪化させます。イベント日が実績の3日目から補正の4日目へずれると12.5%から25%に悪化します。予測を変える情報の正しさを、改善する入力だけで判断しないでください。
+
+## 再実行と保存
+
+`uv run run.py` は保存済みresults.jsonを再生成します（このディレクトリで実行）。画面では任意の数値を直接変更し、JSONを書き出せます。JSONのinputsを再読込するとoutputは再計算されます。`uv run run.py --input comparison.json` でも入力を再計算して標準出力へ返せます。
+
+Python標準ライブラリと小さなブラウザ計算だけを使います。数式・台帳の局所検証はCONFIRMED、論文全体の機構はPARTIAL。著者コード・学習・原論文性能・本番適用はNOT TESTED。実ブラウザの画面・キー操作・export/importもNOT TESTEDで、別環境での保護付き確認を残しています。
+
+局所検査：リポジトリrootで `uv run --extra dev pytest tests/test_reference_comparisons.py`。Node.js 18以上がある場合、`uv run --extra dev python tests/check_reference_js.py` でJavaScriptの独立期待値とPythonとの120条件照合を実行できます。これはDOMや実ブラウザの検証ではありません。保護付きChromeが利用できる別環境では `uv run --with playwright tests/reference_browser.py` を実行し、360/1440pxの画面、任意値、キー入力、保存と再読込を確認します。CHROME_PATHと必要に応じREFERENCE_SITEを指定してください。
