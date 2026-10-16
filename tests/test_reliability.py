@@ -25,7 +25,11 @@ def module(path):
 def test_sparse_ap_finite_domain_without_training():
     toy = module('papers/tsfm-sparse-event-ranking/run.py')
     result = toy.validate()
-    assert result['enumerated_labelings'] > 2000
+    assert result['enumerated_labelings'] == 2604
+    saved = json.loads((ROOT / 'papers/tsfm-sparse-event-ranking/results.json').read_text())['checks']
+    assert saved['enumerated_labelings'] == 2604
+    assert result['max_ap0_error'] == pytest.approx(saved['max_ap0_error'], rel=0, abs=1e-12)
+    assert result['pooled_counterexample_skill'] == pytest.approx(saved['pooled_counterexample_skill'], rel=0, abs=1e-12)
     assert result['max_ap0_error'] < 1e-12
     assert result['pooled_counterexample_skill'] == pytest.approx(1/15)
     assert toy.metric([0, 0], [1, 2]) is None

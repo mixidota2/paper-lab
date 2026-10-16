@@ -39,6 +39,7 @@ def main():
                     assert [None if v == '推定不能' else float(v.replace(',', '')) for v in values] == [None if b['value'] is None else round(b['value'], 4) for b in data['frames'][-1]['bars']]
                     slider.press('Home')
                     first = data['frames'][0]
+                    # Current first values need no grouping; future cases must match JS ja-JP rounding/grouping.
                     assert slider.get_attribute('aria-valuetext') == f"{data['label']}：{first['value']}{data['unit']}" or slider.get_attribute('aria-valuetext') == f"{data['label']}：{float(first['value']):g}{data['unit']}"
                     for row, datum in zip(explorer.locator('.bar-row').all(), first['bars']):
                         if datum['value'] is None:
