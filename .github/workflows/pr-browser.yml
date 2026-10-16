@@ -1,4 +1,4 @@
-name: PR protected browser review
+name: PR protected Firefox review
 
 on:
   pull_request:
@@ -12,11 +12,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  protected-browser:
+  protected-firefox:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
-      CHROME_CHANNEL: chrome
+      LAB_BROWSER: firefox
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,11 +38,13 @@ jobs:
         run: uv run --locked pytest -q -ra --fail-on-skip
       - name: Build every Lab in this checkout
         run: uv run --locked paper-lab build
-      # Use the image's existing official Chrome and its standard OS sandbox policy.
-      # Do not install browsers or change AppArmor, sysctl, or setuid permissions.
-      - name: Verify existing official Chrome with its sandbox
-        run: uv run --locked --with playwright==1.63.0 python tests/ci_chrome_preflight.py
-      - name: Inspect all pages with protected Chromium
+      # Standard Playwright distribution; no OS policy or sandbox preference changes.
+      # Earlier Chromium failures remain documented in the PR, not reclassified.
+      - name: Install pinned Playwright Firefox from its standard distribution
+        run: uv run --locked --with playwright==1.63.0 python -m playwright install firefox
+      - name: Verify Firefox distribution and effective sandbox
+        run: uv run --locked --with playwright==1.63.0 python tests/protected_firefox.py
+      - name: Inspect all pages with protected Firefox
         run: uv run --locked --with playwright==1.63.0 python tests/browser.py
       - name: Inspect P0 boundaries and capture review images
         run: uv run --locked --with playwright==1.63.0 python tests/ci_p0_browser.py
@@ -54,7 +56,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: p0-browser-${{ github.sha }}
+          name: firefox-browser-${{ github.sha }}
           path: browser-review/**/*.png
           if-no-files-found: error
           retention-days: 7

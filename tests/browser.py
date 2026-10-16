@@ -3,6 +3,7 @@ from pathlib import Path
 import json
 import os
 from playwright.sync_api import sync_playwright
+from protected_firefox import launch_checked_firefox
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / 'site'
@@ -15,9 +16,12 @@ def main():
     errors = []
     with sync_playwright() as pw:
         chrome = os.environ.get('CHROME_PATH') or ('/opt/google/chrome/chrome' if Path('/opt/google/chrome/chrome').exists() else None)
-        browser = pw.chromium.launch(
-                                     **({"channel": os.environ["CHROME_CHANNEL"]} if os.environ.get("CHROME_CHANNEL") else {"executable_path": chrome}),
-                                     chromium_sandbox=True)
+        if os.environ.get('LAB_BROWSER') == 'firefox':
+            browser = launch_checked_firefox(pw)
+        else:
+            browser = pw.chromium.launch(
+                                         **({"channel": os.environ["CHROME_CHANNEL"]} if os.environ.get("CHROME_CHANNEL") else {"executable_path": chrome}),
+                                         chromium_sandbox=True)
         for width in (360, 768, 1440):
             page = browser.new_page(viewport={'width': width, 'height': 900}, reduced_motion='reduce')
             page.on('pageerror', lambda e: errors.append(str(e)))

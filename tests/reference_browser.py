@@ -73,10 +73,14 @@ def assert_current_result(root, slug, value):
 
 def inspect(base_url):
     from playwright.sync_api import sync_playwright
+    from protected_firefox import launch_checked_firefox
     OUT.mkdir(parents=True,exist_ok=True)
     errors=[]
     with sync_playwright() as pw:
-        browser=pw.chromium.launch(**({"channel": os.environ["CHROME_CHANNEL"]} if os.environ.get("CHROME_CHANNEL") else {"executable_path": os.environ["CHROME_PATH"]}),chromium_sandbox=True)
+        if os.environ.get('LAB_BROWSER') == 'firefox':
+            browser = launch_checked_firefox(pw)
+        else:
+            browser=pw.chromium.launch(**({"channel": os.environ["CHROME_CHANNEL"]} if os.environ.get("CHROME_CHANNEL") else {"executable_path": os.environ["CHROME_PATH"]}),chromium_sandbox=True)
         for width in (360,1440):
             page=browser.new_page(viewport={'width':width,'height':900},reduced_motion='reduce')
             page.on('pageerror',lambda error:errors.append(str(error)))
