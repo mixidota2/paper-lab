@@ -4,13 +4,14 @@ import json
 import os
 from pathlib import Path
 import re
+import signal
 import stat
 
 import playwright
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
 
-def diagnose_timeout(page):
+def diagnose_timeout(page, crash_state):
     """Observe only this test's descendants and allowlisted diagnostic DOM fields."""
     statuses = {}
     for entry in Path('/proc').iterdir():
@@ -49,8 +50,15 @@ def diagnose_timeout(page):
             print('OS sandbox setting:', name, Path(name).read_text().strip(), flush=True)
         except OSError:
             print('OS sandbox setting:', name, 'NOT OBSERVED', flush=True)
+    def diagnostic_deadline(signum, frame):
+        raise TimeoutError('Read-only DOM diagnostic exceeded 10 seconds')
+
+    previous_handler = signal.signal(signal.SIGALRM, diagnostic_deadline)
+    signal.alarm(10)
     try:
         print('Diagnostic page URL:', page.url, flush=True)
+        print('Diagnostic page state:', json.dumps({'closed': page.is_closed(),
+              'crash_event_observed': crash_state['crashed']}), flush=True)
         fields = page.evaluate('''() => ({url: location.href, documentURI: document.documentURI,
             readyState: document.readyState, sandboxRows: document.querySelectorAll('#sandbox-tbody tr').length,
             bodyChildren: document.body?.children.length ?? null})''')
@@ -65,6 +73,9 @@ def diagnose_timeout(page):
             print('Screenshot NOT OBSERVED: no isolated sandbox section; full diagnostic page withheld', flush=True)
     except Exception as exc:
         print('Diagnostic DOM/screenshot NOT OBSERVED:', type(exc).__name__, flush=True)
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, previous_handler)
 
 
 def launch_checked_firefox(pw):
@@ -101,12 +112,14 @@ def launch_checked_firefox(pw):
     try:
         print('Engine: Firefox/Gecko; actual version:', browser.version, flush=True)
         page = browser.new_page()
+        crash_state = {'crashed': False}
+        page.on('crash', lambda: crash_state.update(crashed=True))
         # Internal pages need not emit the normal web-page load lifecycle.
         # Wait for navigation commit, then require the actual sandbox table.
         try:
             page.goto('about:support', wait_until='commit')
         except PlaywrightTimeoutError:
-            diagnose_timeout(page)
+            diagnose_timeout(page, crash_state)
             raise  # Diagnostics never turn a navigation timeout into a pass.
         page.locator('#sandbox-tbody tr').first.wait_for()
         status = page.locator('#sandbox-tbody tr').evaluate_all('''rows =>

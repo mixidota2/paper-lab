@@ -43,6 +43,7 @@ jobs:
       - name: Install pinned Playwright Firefox from its standard distribution
         run: uv run --locked --with playwright==1.63.0 python -m playwright install firefox
       - name: Verify Firefox distribution and effective sandbox
+        timeout-minutes: 2
         env:
           DEBUG: pw:browser
         run: uv run --locked --with playwright==1.63.0 python tests/protected_firefox.py
