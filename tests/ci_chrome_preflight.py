@@ -18,6 +18,17 @@ def main():
     assert os.environ.get('CHROME_CHANNEL') == 'chrome'
     chrome = Path('/opt/google/chrome/chrome')
     info = chrome.stat()
+    print('Existing Chrome metadata:', json.dumps({
+        'path': str(chrome), 'resolved': str(chrome.resolve()),
+        'uid': info.st_uid, 'gid': info.st_gid,
+        'mode': oct(stat.S_IMODE(info.st_mode)), 'runner_uid': os.getuid(),
+    }), flush=True)
+    for args in (['dpkg-query', '-S', str(chrome)],
+                 ['dpkg-query', '-W', '-f=${Package} ${Version} ${Status}\n',
+                  'google-chrome-stable']):
+        result = subprocess.run(args, text=True, capture_output=True)
+        print('Package query:', result.returncode, result.stdout.strip(),
+              result.stderr.strip(), flush=True)
     assert info.st_uid == 0 and not info.st_mode & (stat.S_IWGRP | stat.S_IWOTH)
     print(subprocess.check_output([str(chrome), '--version'], text=True).strip())
     # Record only public OS sandbox configuration, never the general environment.
