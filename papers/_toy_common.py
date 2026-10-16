@@ -149,10 +149,10 @@ def critic(threshold):
     bad = [False,False,False,True,False,True,True,True,True,True]
     flags=[x>=threshold for x in residuals]
     tp=sum(f and b for f,b in zip(flags,bad));fp=sum(f and not b for f,b in zip(flags,bad));fn=sum(not f and b for f,b in zip(flags,bad))
-    precision=tp/(tp+fp) if tp+fp else 0
+    precision=tp/(tp+fp) if tp+fp else None
     recall=tp/(tp+fn)
-    return frame(threshold,[bar('適合率 (%)',100*precision),bar('再現率 (%)',100*recall)],
-                 f'合成10件：正しく警告 {tp}、誤警告 {fp}、見逃し {fn}。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定。LLMや論文F1の再現ではない。',
+    return frame(threshold,[bar('適合率 (%)',None if precision is None else 100*precision),bar('再現率 (%)',100*recall)],
+                 f'合成10件：正しく警告 {tp}、誤警告 {fp}、見逃し {fn}。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定（陽性6/10）。警告0件の適合率は未定義。LLMや論文F1の再現ではない。',
                  [line('不自然さの規則スコア',residuals),line('警告の閾値',[threshold]*10)])
 
 

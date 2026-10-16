@@ -16,7 +16,7 @@
     <h1>{{ lab.question or lab.title }}</h1>
     <p class="lede">{{ lab.summary }}</p>
     <details class="bibliography"><summary>原論文：{{ lab.title }}</summary><p>{{ lab.authors_text }}</p><p>{{ lab.arxiv_id or lab.doi }} · {{ lab.year }}</p></details>
-    <div class="paper-actions"><a class="button" href="{{ lab.urls.paper }}">原典を読む ↗</a>{% if lab.urls.pdf %}<a href="{{ lab.urls.pdf }}">PDF ↗</a>{% endif %}<a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">実験を動かす ↓</a></div>
+    <div class="paper-actions"><a class="button" href="{{ lab.urls.paper }}">原典を読む ↗</a>{% if lab.urls.pdf %}<a href="{{ lab.urls.pdf }}">PDF ↗</a>{% endif %}<a href="#method">モデルと図を読む ↓</a><a href="#executable_understanding">{% if lab.id == "forecast-critic" %}小実験のコードを見る{% else %}実験を動かす{% endif %} ↓</a></div>
     <div class="trust-strip" aria-label="このLabの確認範囲">{% for key in verification_keys %}<div><span>{{ verification_labels[key] }}</span><strong>{{ verification_status_labels[lab.verification.as_dict()[key]] }}</strong><small>{{ lab.verification.as_dict()[key] }}</small></div>{% endfor %}</div>
     <p class="source-note">一次資料の確認：{{ lab.source_review.get('checked', '未記録') }} · {{ lab.source_review.get('scope', '') }}</p>
   </header>

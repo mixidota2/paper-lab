@@ -14,7 +14,7 @@ topics:
 urls:
   paper: https://arxiv.org/abs/2512.12059
   arxiv: https://arxiv.org/abs/2512.12059
-  pdf: https://arxiv.org/pdf/2512.12059
+  pdf: https://arxiv.org/pdf/2512.12059v1
   official_code: null
 verdict: Park / Exploration
 verification:
@@ -32,7 +32,7 @@ core_idea:
   author_claim: '著者はトレンド、水準、周期、急増を人工的に崩した予測で批評能力を調べる。販促の説明を加える実験と、M5上のChronos予測を点検する実験も行う。言語・画像の文脈から不自然な予測を拾う監視手段として提案する。
 
 
-    [一次資料：合成実験 / 外生情報の実験 / 実データの実験](https://arxiv.org/html/2512.12059)'
+    [一次資料：合成実験 / 外生情報の実験 / 実データの実験](https://arxiv.org/html/2512.12059v1)'
   research_bot_interpretation: これは予測精度を直接改善する学習法ではない。警告した後に誰が何を確認し、誤警告をいくつまで許すかが運用を決める。図の描き方や説明文の質に依存するなら、監視器自身も評価対象になる。
 sections:
   overview: 予測を作るモデルとは別に、履歴・予測図・販促の説明を読む批評器を置く。狙いは誤予測の自動修正より、点検すべき系列の発見。
@@ -41,11 +41,11 @@ sections:
 
     Forecast Criticは過去と予測の図、必要なら販促に関する文章を見せ、もっともらしい予測かをLLMへ尋ねる。将来の真値を先に見て良否を判定する使い方ではない。'
   why_it_might_work: 数値の誤差だけでは説明しにくい「販促予定があるのに山がない」という矛盾を、文章と図から拾える可能性がある。一方、新しい現象が過去と違って見えるだけで誤警告することもある。
-  evidence: 'Abstractと合成実験では最良モデルのF1が0.88、人が0.97と報告される。F1は警告の適合率と再現率をまとめる値。実データの実験では、怪しいとされた予測群のsCRPSが少なくとも10%高い。これは群の誤差の違いで、監視を導入すれば誤差が10%改善するという結果ではない。
+  evidence: 'Abstractと合成実験では最良モデルのF1が0.88、人が0.97と報告される。Appendix Aのweighted F1はクラス別F1を件数で重み付けした値で、陽性単独F1とは異なる。実データの実験では、怪しいとされた予測群のsCRPSが少なくとも10%高い。これは群の誤差の違いで、監視を導入すれば誤差が10%改善するという結果ではない。
 
 
-    [一次資料：合成実験 / 外生情報の実験 / 実データの実験](https://arxiv.org/html/2512.12059)'
-  executable_understanding: '10件の合成スコアと正解ラベルを用意する。警告閾値を変え、適合率・再現率・誤警告・見逃しを再計算する。LLMを呼ばず、監視運用の判断を学ぶための実験。
+    [一次資料：合成実験 / 外生情報の実験 / 実データの実験](https://arxiv.org/html/2512.12059v1)'
+  executable_understanding: '固定10件の手製スコアとラベル（陽性6/10）に対する、閾値5の保存結果を示す。ページに閾値操作UIはない。コードは閾値0〜10の結果を生成する。警告0件の適合率は未定義で、JSONではnullとする。LLMを呼ばない教材である。
 
 
     実行：`uv run papers/forecast-critic/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json` へ保存する。'
@@ -53,7 +53,7 @@ sections:
   what_we_verified: '**メカニズム：PARTIAL（部分的）**。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。
 
 
-    10件の合成スコアと正解ラベルを用意する。警告閾値を変え、適合率・再現率・誤警告・見逃しを再計算する。LLMを呼ばず、監視運用の判断を学ぶための実験。'
+    固定10件の手製スコアとラベル（陽性6/10）に対する、閾値5の保存結果を示す。ページに閾値操作UIはない。コードは閾値0〜10の結果を生成する。警告0件の適合率は未定義で、JSONではnullとする。LLMを呼ばない教材である。'
   what_we_did_not_verify: 人工的な破損と自然発生する失敗の分布は違う。実務では低い問題発生率の下で誤警告が増えないか、担当者の作業時間が減るか、警告後の修正で費用が下がるかを確認したい。LLMによる図の理解は今回検証していない。
   implementation: '標準ライブラリだけで実行できる。入口は各Labの `run.py`、計算本体は `papers/_toy_common.py` にある。関数は論文IDごとに独立し、ブラウザー用の全条件と初期条件の表を同時に出力する。
 
@@ -63,7 +63,7 @@ sections:
 
     | --- | --- |
 
-    | 原論文 | [合成実験 / 外生情報の実験 / 実データの実験](https://arxiv.org/html/2512.12059) |
+    | 原論文 | [合成実験 / 外生情報の実験 / 実データの実験](https://arxiv.org/html/2512.12059v1) |
 
     | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |
 
@@ -75,7 +75,7 @@ question: 未来の実績を待たずに、怪しい予測を見つけられる�
 interactives: []
 source_review:
   checked: '2026-09-07'
-  url: https://arxiv.org/html/2512.12059
+  url: https://arxiv.org/html/2512.12059v1
   scope: 一次資料の方法・数式・実験条件を再確認。図は説明用の再構成。著者の性能・運用結果は独立再現していない。
 teaching_figures:
 - kind: logic
@@ -100,7 +100,7 @@ teaching_figures:
     nodes:
     - title: 未来の正解
       text: 誤差を計算し、flagあり・なしの群を比較する。
-  source: https://arxiv.org/html/2512.12059
+  source: https://arxiv.org/html/2512.12059v1
 - kind: matrix
   id: perturbations
   title: 不自然さは1種類ではない
@@ -129,16 +129,16 @@ teaching_figures:
     - 局所的な突出を加える
     - 販促予定と時期が合うか
   corner: 条件
-  source: https://arxiv.org/html/2512.12059
+  source: https://arxiv.org/html/2512.12059v1
 - kind: equations
   id: critic-metric
   title: 検出能力は適合率と再現率を両方見る
   after: method
   locator: Synthetic experiments
   rationale: 誤検出と見逃しを区別する。
-  caption: 標準的なF1の定義を補足。TPは不適切な予測の正しい検出、FPは誤警報、FNは見逃し。
+  caption: 陽性クラス単独のF1を示す。原論文Appendix Aのweighted F1（クラス別F1の件数加重平均）とは異なる。TPは不適切な予測の正しい検出、FPは誤警報、FNは見逃し。
   steps:
-  - name: F1
+  - name: 陽性単独F1
     formula: F1 = 2TP / (2TP + FP + FN)
-    explanation: 人工データの不適切率は50%。現場の率が異なると、同じ検出器でも適合率やレビュー量は変わる。
-  source: https://arxiv.org/html/2512.12059
+    explanation: 原論文の選別済み合成評価は不適切率50%。このtoyの手製ラベルは6/10で別の母集団。現場の率が異なると、同じ検出器でも適合率やレビュー量は変わる。
+  source: https://arxiv.org/html/2512.12059v1
