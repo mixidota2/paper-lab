@@ -111,10 +111,11 @@ def preflight(site):
     required += [f'load-{p.stem}-{w}' for w in (360,768,1440) for p in pages]
     required += [f'library-search-{w}' for w in (360,768,1440)]
     required += [f'guide-navigation-{w}' for w in (360,1440)]
+    required += [f'shelf-survey-{w}' for w in (360,768,1440)]
     required += [f'detail-{slug}-{w}' for w in (360,1440) for slug in sorted(set(EXPLORERS+STATIC+list(DISPLAY)))]
     required += [f'shelf-{slug}-{w}' for w in (360,1440) for slug in SHELF]
     required += [f'nojs-{slug}' for slug in NOJS]+[f'svg-bounds-{slug}' for slug in LEGACY_SVG]
-    sources=['review_103_report.py','review_103_external.py','review_103.py','review_103_capture.py','review_103_evidence.py','reference_browser.py','macos_chrome_cdp.py','macos_cdp_review.py']
+    sources=['shelf_survey_browser.py','review_103_report.py','review_103_external.py','review_103.py','review_103_capture.py','review_103_evidence.py','reference_browser.py','macos_chrome_cdp.py','macos_cdp_review.py']
     for name in sources:ast.parse((ROOT/'tests'/name).read_text(),filename=name)
     # Known existing dependency only. No browser engine is imported or launched here.
     result={'status':'CONFIRMED preflight only','pages':103,'theme_guides':1,'guide_pages':2,'local_targets':len(checked),'local_paths':sorted(checked),
@@ -493,6 +494,11 @@ def _runtime(site,out,plan,evidence):
                     page.on('requestfailed',lambda r,p=page:evidence.event('requestfailed',r.url+' '+str(r.failure),p))
                     page.on('console',lambda msg,p=page:evidence.event('console-error',msg.text,p) if msg.type=='error' else None)
                     page.on('response',lambda r,p=page:evidence.event('http-error',f'{r.status} {r.url}',p) if r.status>=400 and r.url.startswith(base) else None)
+                    def survey_rendering():
+                        guard(browser)
+                        from shelf_survey_browser import inspect_survey
+                        inspect_survey(page,base,out,width,snapshot)
+                    task(f'shelf-survey-{width}',survey_rendering)
                     def guide_navigation():
                         assert page.goto(base+'/index.html').ok;settled(page)
                         assert page.locator('[data-paper]').count()==103
@@ -504,7 +510,7 @@ def _runtime(site,out,plan,evidence):
                         assert '103件のLab ／ 1件のテーマガイド' in page.locator('main').inner_text()
                         snapshot(page,out,f'shelf-guide-{width}')
                         for slug in SHELF:
-                            page.locator(f'.guide-body a[href="../papers/{slug}.html"]').click();settled(page)
+                            page.locator(f'.guide-body a[href="../papers/{slug}.html"]').first.click();settled(page)
                             assert page.url.endswith(f'/papers/{slug}.html')
                             page.get_by_role('link',name='棚割りのテーマガイドへ',exact=True).click();settled(page)
                             assert page.url.endswith('/guides/shelf-decisions.html')

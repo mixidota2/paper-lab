@@ -38,3 +38,8 @@ Python側は6商品の729通りを一括列挙する。JavaScript側はカテゴ
 図・データ・実装・日本語説明は本Labの自作。原典の全文や図版は複製していない。原典への対応と印字上の不整合はmapping.md、数式と制約はmethod.mdを参照。
 
 図と操作文言の分岐は `uv run --locked --extra dev pytest tests/test_shelf_ui.py -q` で確認できる。DOMの代替を使ったソース検査であり、実ブラウザーの描画・画面幅・操作・ダウンロードの検証ではない。
+
+
+## 本文の構成
+
+`method.md` はモデルと仮定、`experiment.md` は合成例と操作、`validation.md` は教材の検証範囲、`implementation.md` は原式の補足と実装を説明します。共通ページの該当する節へ読み込みます。計算コード・入力・保存結果は本文の再構成では変更していません。

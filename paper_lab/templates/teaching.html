@@ -4,7 +4,7 @@
   {% if f.kind in ['architecture', 'logic', 'timeline'] %}
   <div class="diagram-rows">{% for row in f.rows %}<div class="diagram-row"><p class="lane-label">{{ row.label }}</p><div class="diagram-nodes">{% for node in row.nodes %}<div class="diagram-node"><strong>{{ node.title }}</strong><p>{{ node.text }}</p></div>{% endfor %}</div></div>{% endfor %}</div>
   {% elif f.kind == 'equations' %}
-  <ol class="equation-steps">{% for step in f.steps %}<li><strong>{{ step.name }}</strong><div class="math-expression" tabindex="0" role="math" aria-label="{{ step.formula }}">{{ step.formula }}</div><p>{{ step.explanation }}</p></li>{% endfor %}</ol>
+  <ol class="equation-steps">{% for step in f.steps %}<li><strong>{{ step.name }}</strong><div class="math-expression" tabindex="0" role="math" aria-label="{{ step.formula }}">{% if step.formula_mathml %}{{ step.formula_mathml | safe }}{% else %}{{ step.formula }}{% endif %}</div><p>{{ step.explanation }}</p></li>{% endfor %}</ol>
   {% elif f.kind == 'matrix' %}
   <div class="matrix-scroll" tabindex="0" role="region" aria-label="{{ f.title }}の表"><table class="teaching-matrix"><thead><tr><th scope="col">{{ f.corner or '条件' }}</th>{% for c in f.columns %}<th scope="col">{{ c }}</th>{% endfor %}</tr></thead><tbody>{% for row in f.rows %}<tr><th scope="row">{{ row.label }}</th>{% for cell in row.cells %}<td class="{{ 'cell-on' if cell == '参照' else 'cell-off' if cell == '遮断' else '' }}">{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>
   <p class="source-note">列が収まらない場合は、表を横にスクロールできます。</p>
