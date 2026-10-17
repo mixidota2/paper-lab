@@ -263,7 +263,7 @@ def build(
         guides_out = site / "guides"
         guides_out.mkdir()
         template = env.get_template("guide.html")
-        for name, title, is_index in [("index", "テーマガイド", True), ("shelf-decisions", "棚割りのどの判断を試したいか", False)]:
+        for name, title, is_index in [("index", "テーマガイド", True), ("shelf-decisions", "棚割りの判断と手法を比較する", False)]:
             (guides_out / f"{name}.html").write_text(template.render(
                 title=title, is_index=is_index, paper_count=len(labs), guide_count=guide_count,
                 content=markdown_to_html(guide_source.read_text(encoding="utf-8"))), encoding="utf-8")
@@ -287,7 +287,7 @@ def build(
     for lab in labs:
         download_dir = site / "downloads" / lab.id
         download_dir.mkdir(parents=True)
-        for name in ("run.py", "results.json", "lab.yaml", "README.md", "method.md", "mapping.md", "NOTICE.txt", "official-check.json", "plot.py", "author-orderbook.csv", "model.js", "interactive.js"):
+        for name in ("run.py", "results.json", "lab.yaml", "README.md", "method.md", "experiment.md", "validation.md", "implementation.md", "mapping.md", "NOTICE.txt", "official-check.json", "plot.py", "author-orderbook.csv", "model.js", "interactive.js"):
             source = lab.source_dir / name
             if source.is_file():
                 shutil.copy2(source, download_dir / name)
@@ -314,7 +314,7 @@ def build(
             rendered_figures.append({**figure, "url": f"../figures/{lab.id}/{figure['path']}"})
         html = paper_template.render(
             lab=lab,
-            shelf_guide=bool(guide_count and lab.id in shelf_ids),
+            shelf_guide=bool(guide_count and lab.id in shelf_ids | {"whole-foods-shelf"}),
             explorer_axes=explorer_axes(lab.id),
             explorer_display=explorer_view(lab.id, (lab.results or {}).get("explorer")),
             sections=paper_sections(lab),

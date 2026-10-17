@@ -36,18 +36,18 @@ core_idea:
   research_bot_interpretation: 基礎需要が高い向きでも、余白で置ける面数が減ると不利になる。面積合計が足りるだけでは、配置可能とはいえない。
 sections:
   overview: オンライン2025年、巻号2026年の既刊論文。独自の小規模な説明用実験を扱う。
-  problem: 吊りの高い基礎需要と棚置きの積み重ねを、同じ棚で比べる。
+  problem: この例では、1面当たりの需要は吊るした方が高い一方、棚に置くと商品を多く積み重ねられます。同じ棚に収まる案の中で、どちらの置き方の利益が高いかを比べます。
   method: method.md
   why_it_might_work: 商品の寸法と余白を別に数えると、需要を生む面数と実際に配置できる面数を結び付けられる。
-  evidence: 一次資料への対応はmapping.mdに示す。16.970563や27.998542は原論文の実験値ではなく、合成例の計算結果。
-  executable_understanding: '<iframe title="吊り・棚置き・棚板の合成実験" src="../downloads/shelf-placement-options/interactive.html"
-    style="width:100%;height:1800px;border:1px solid #abc"></iframe>
+  evidence: '一次資料：[原論文](https://journals.sagepub.com/doi/10.1177/10591478251359808)。
 
-    <p><a href="../downloads/shelf-placement-options/interactive.html">実験を別ページで開く</a></p>'
+
+    原論文は混合整数線形計画と、複数の初期案から始める近似探索を比較しています。合成実験に加え、欧州食品小売の237商品・6カテゴリの事例を扱いますが、現場の売上試験ではありません。2026年10月17日の追加調査で要旨・本文§5〜8の関連箇所を確認した記録に基づきます。全式・全表・補足の独立照合は未完です。16.970563や27.998542は教材の合成例の計算結果です。'
+  executable_understanding: experiment.md
   results: ν=1の等号では吊り2面が入る。2商品の棚板可変案は利益27.998542、固定案は25.455844。
-  what_we_verified: 手計算値と有限候補の全比較を照合し、独立した座標検査を行った。
+  what_we_verified: validation.md
   what_we_did_not_verify: 実ブラウザー、原著の大規模探索、実店舗の売上・補充効率・安全性、補足資料の詳細設定は未検証。
-  implementation: run.pyはPython標準ライブラリ。[model.js](../downloads/shelf-placement-options/model.js)と[interactive.js](../downloads/shelf-placement-options/interactive.js)を同じ場所に保存して画面を動かす。
+  implementation: implementation.md
   mapping: mapping.md
 teaching_figures:
 - kind: equations
@@ -62,15 +62,17 @@ teaching_figures:
   - name: 需要と利益
     formula: Dᵢ = αᵢₚ (ab)^βᵢ,  Π = Σᵢ mᵢDᵢ
     explanation: 左右や高さの座標は需要式に入れない。
+    formula_mathml: <math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mrow><msub><mi>D</mi><mi>i</mi></msub><mo>=</mo><mrow><msub><mi>α</mi><mi>ip</mi></msub><msup><mrow><mo>(</mo><mi>a</mi><mi>b</mi><mo>)</mo></mrow><msub><mi>β</mi><mi>i</mi></msub></msup></mrow></mrow><mo>,</mo><mrow><mi>Π</mi><mo>=</mo><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>m</mi><mi>i</mi></msub><msub><mi>D</mi><mi>i</mi></msub></mrow></mrow></mrow></math>
   - name: 高さ比
     formula: αᵢ₁ = αᵢ₀ hᵢ₁ / hᵢ₀
     explanation: 取り出し余白を高さ比へ入れない。
+    formula_mathml: <math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>α</mi><mi>i1</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>α</mi><mi>i0</mi></msub><msub><mi>h</mi><mi>i1</mi></msub></mrow><msub><mi>h</mi><mi>i0</mi></msub></mfrac></mrow></math>
 - kind: logic
   id: height-components
   title: 商品・余白・棚板を別々に数える
   after: method
   locator: 図3、式(19)〜(24)
-  rationale: 図とcheckerで支持面を一致させる。
+  rationale: 図と独立した配置検査で支持面を一致させる。
   caption: 棚板上面y、厚さtはy−tからyの範囲。
   source: https://journals.sagepub.com/doi/10.1177/10591478251359808
   rows:
@@ -81,4 +83,4 @@ teaching_figures:
   - label: 棚置き
     nodes:
     - title: 積み重ね
-      text: 商品内部に余白なし。上の板にはν+tを確保。
+      text: 同じ商品を積むときは、商品どうしの間に隙間を設けません。商品の上に棚板を置く場合は、取り出し余白νと板厚tを合わせた高さを確保します。

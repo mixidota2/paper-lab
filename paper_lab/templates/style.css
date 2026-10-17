@@ -349,3 +349,18 @@ body{background:white}
 .guide-body h2{margin-top:2.5rem}.guide-body h3{margin-top:1.7rem}
 .theme-entry{padding-block:1.4rem;border-block:1px solid var(--line,#ddd)}
 @media(max-width:600px){.masthead__inner{flex-wrap:wrap;gap:.7rem}.entry-nav{font-size:.85rem}.guide-page h1{overflow-wrap:anywhere}}
+
+/* Authored MathML keeps subscripts, powers and fractions intact without a CDN. */
+.math-expression:has(math) { overflow-x: auto; overflow-wrap: normal; }
+.math-expression math { font-size: 1.15em; margin: .3em 0; }
+.prose sub, .prose sup { font-size: .75em; line-height: 0; }
+
+.survey-flow { display: flex; flex-wrap: wrap; gap: 1rem; }
+.survey-flow > div { flex: 1 1 200px; min-width: 0; border-left: 3px solid #337858; padding: .8rem; background: #fff; }
+.survey-flow p { margin-bottom: 0; }
+.guide-body table { display: block; max-width: 100%; overflow-x: auto; }
+.guide-body th, .guide-body td { min-width: 9rem; vertical-align: top; }
+
+.survey-decisions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: .8rem; margin-top: 1rem; }
+.survey-decisions > div { padding: .8rem; border: 1px solid #bacdbe; border-radius: 6px; }
+.survey-toc { display: flex; flex-wrap: wrap; gap: .5rem 1rem; padding: 1rem 0; }
