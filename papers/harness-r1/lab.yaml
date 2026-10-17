@@ -93,7 +93,7 @@ figures:
   caption: 原論文§3.1・付録Cの再図。hookはLLMの入力だけでなく、実際の操作や回復を変えられる。
   after: method
 - path: figures/ablation.svg
-  title: 固定patchの介入位置を除去
+  title: "各介入箇所の修正だけを無効にして比較"
   caption: 原論文図4b。主表の53.6%とは別の固定patch分析。除去効果は加算できない。
   after: evidence
 teaching_figures:

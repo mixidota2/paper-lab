@@ -1,6 +1,6 @@
 # ICEGR: An Intent-Coherent End-to-End Generative Retrieval Framework for E-commerce Search
 
-Baidu検索でintent-aware SID、合成query SFT、関連性を守る選好学習を統合。2週・20% A/BでCTR +3.52%、注文 +15.96%、GMV +7.53%。最終表示への直接挿入枠を持つ。
+Baiduの検索で使うICEGRは、検索意図を反映した識別子（SID）、人工的に作った検索文を使う学習、関連性を保つための追加学習を組み合わせる。2週・20% A/BでCTR +3.52%、注文 +15.96%、GMV +7.53%。最終表示への直接挿入枠を持つ。
 
 公開ページ: https://mixidota2.github.io/paper-lab/papers/icegr-baidu-intent-generative-retrieval.html
 

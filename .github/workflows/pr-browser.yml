@@ -17,11 +17,11 @@ jobs:
     timeout-minutes: 20
     env:
       LAB_BROWSER: macos-cdp
-      REFERENCE_SHOTS: browser-review/reference
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: false
@@ -39,18 +39,31 @@ jobs:
         run: uv run --locked pytest -q -ra --fail-on-skip
       - name: Build every Lab in this checkout
         run: uv run --locked paper-lab build
+      - name: Validate complete site and review plan before launching Chrome
+        id: preflight
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p browser-review
+          uv run --locked python tests/review_103.py --preflight --site site --out browser-review/preflight 2>&1 | tee browser-review/preflight.log
       # Existing official Chrome, direct minimal launch; no browser/OS installation.
       # Historical Linux failures remain in the PR and are not reclassified.
       - name: Verify signed Chrome and Seatbelt, then run CDP compatibility and Lab checks
+        id: browser_review
         timeout-minutes: 18
-        run: uv run --locked --with playwright==1.63.0 python tests/macos_cdp_review.py
-      - name: Preserve viewport screenshots and public geometry for review
-        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          set -o pipefail
+          uv run --locked --with playwright==1.63.0 python tests/review_103.py --run --site site --out browser-review/run 2>&1 | tee browser-review/runtime.log
+      - name: Validate mandatory automatic report independently of publication
+        if: ${{ !cancelled() && steps.browser_review.outcome != 'skipped' }}
+        shell: bash
+        run: uv run --locked python tests/review_103_report.py --site site --report browser-review/run/report.json --out browser-review/automatic-gate.json
+      - name: Preserve review reports, screenshots, geometry and failure logs
+        if: ${{ !cancelled() && steps.preflight.outcome != 'skipped' }}
         uses: actions/upload-artifact@v4
         with:
           name: macos-chrome-${{ github.sha }}
-          path: |
-            browser-review/**/*.png
-            browser-review/**/segments.json
-          if-no-files-found: error
+          path: browser-review/
+          if-no-files-found: warn
           retention-days: 7

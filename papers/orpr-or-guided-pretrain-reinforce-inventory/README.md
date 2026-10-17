@@ -1,6 +1,6 @@
 # ORPR: An OR-Guided Pretrain-then-Reinforce Learning Model for Inventory Management
 
-Must — ORラベルで事前学習し、RLOOで業務へ調整。約0.93Mの補充方策とJD菓子の現場評価。
+Must — ORPRは、数理最適化で求めた補充量を正解データとして、約93万パラメータのモデルを事前学習する。その後、強化学習の手法RLOOで業務目標に合わせて調整する。著者はJDの菓子を対象に現場評価を報告している。
 
 ORで作った補充ラベルを小型モデルへ学習させ、RLで業務目標へ合わせる。約0.93MパラメータのTransformer＋VAEを用い、JDの菓子3カテゴリで保有費用−29.95%、在庫回転日数−5.27日を報告した。対象はマネジャーが選んだ高自動化SKUで、全カタログの無作為実験ではない。
 

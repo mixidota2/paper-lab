@@ -1,6 +1,6 @@
 # Beyond Raw Engagement: A Counterfactual Observability Framework for Recommender Systems at Netflix
 
-NetflixのCONSEQUENCES論文は、推薦の成果を「その作品や判断がなかった場合との差」で測る。行の増分価値は11件の除去A/BとR²=0.8212。新しいrankerではなく、engagement liftの読み方と障害の見つけ方を変える。
+NetflixのCONSEQUENCES論文は、推薦の成果を「その作品や判断がなかった場合との差」で測る。ホーム画面の行を除いたときに失われる価値の推定値を、実際に行を除去した11件のA/Bテストと比べたところ、決定係数R²は0.8212だった。新しいrankerではなく、engagement liftの読み方と障害の見つけ方を変える。
 
 ## 問い
 

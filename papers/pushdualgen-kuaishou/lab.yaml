@@ -27,7 +27,7 @@ related_threads:
 - when-complex-ranking-is-worth-it
 status: published
 question: 通知の候補を先に決め、説明文は必要なときだけ生成できるか
-summary: Qwen3-0.6BがSID→任意copyを生成し、Top-20 SIDsの表現を既存user特徴へ融合する。pushの14日A/BでEPR +8.50%、Dislike Rate −37.70%。
+summary: Qwen3-0.6Bが動画の識別子を先に生成し、必要な場合だけ通知の説明文を続けて生成する。上位20個の識別子から作った特徴を、既存のユーザー特徴に組み合わせて候補動画を探す。pushの14日A/BでEPR +8.50%、Dislike Rate −37.70%。
 source_review:
   checked: '2026-09-21'
   scope: arXiv v1の全文HTML・数式・表・付録を確認。著者報告と合成実験を区別。

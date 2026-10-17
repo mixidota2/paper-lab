@@ -1,6 +1,6 @@
 # SIDInspector: A Mapping-First Diagnostic Resource for Semantic-ID Tokenizers
 
-item→SIDのmappingを共通契約へ揃え、利用率・衝突・行動近傍・人気配分・構造費用を分離。collision-freeでも意味のあるprefixとは限らない。
+商品と識別子の対応表を共通の形式にそろえ、識別子の使われ方、複数商品への重複割当、行動が似た商品のまとまり、人気別の割当、索引の構造を別々に調べる。collision-freeでも意味のあるprefixとは限らない。
 
 公開ページ: https://mixidota2.github.io/paper-lab/papers/sidinspector-mapping-diagnostics.html
 

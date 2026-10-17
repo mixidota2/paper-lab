@@ -33,7 +33,7 @@ source_review:
   url: https://arxiv.org/pdf/2609.01933v2
   scope: Figure 3.1; Eq. (2); Eqs. (1)–(2); Appendix C.3; Table D.5; Figure 4.1
 core_idea:
-  author_claim: 共有固定費を払って注文を開く離散判断Yと、各商品の連続量Qを分ける。Yにはscore gradient、Qには在庫動態を通じたpathwise
+  author_claim: 共通の固定費を払って共同発注を行うかどうかの離散的な判断Yと、各商品の連続的な発注量Qを分けて学習する。Yにはscore gradient、Qには在庫動態を通じたpathwise
     gradientを使う。
   research_bot_interpretation: Transformerだけの効果とは読めない。Transformer-PPOとの比較は数量の勾配推定法、MLPを使うHPOとの比較は商品間の表現を考える材料になる。ただし各要素の寄与を完全に分離した因果推定ではない。
 sections:

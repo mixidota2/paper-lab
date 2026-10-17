@@ -1,4 +1,5 @@
 """Small CDP compatibility gate, then unchanged Lab assertions on macOS Chrome."""
+from review_103_evidence import ProtectionStop
 import json
 import os
 from pathlib import Path
@@ -13,7 +14,7 @@ from reference_browser import local_site
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def compatibility():
+def compatibility(shots=None,on_failure=None,protection_check=None):
     with tempfile.TemporaryDirectory(prefix='paper-lab-cdp-page-') as folder:
         Path(folder, 'index.html').write_text('''<!doctype html><meta charset="utf-8">
 <label>Value<input id="value" value="1"></label><button id="apply">Apply</button>
@@ -26,10 +27,11 @@ upload.onchange=async()=>{output.textContent=JSON.parse(await upload.files[0].te
 </script>''')
         with local_site(folder) as base, sync_playwright() as pw:
             browser = connect_checked_cdp(pw)
+            page=None
             try:
                 page = browser.new_page(viewport={'width': 360, 'height': 900}, reduced_motion='reduce')
                 assert page.goto(base).ok
-                verify_seatbelt(browser)
+                (protection_check or verify_seatbelt)(browser)
                 page.get_by_label('Value', exact=True).fill('0.37123')
                 page.get_by_role('button', name='Apply').click()
                 assert page.locator('#out').inner_text() == '0.37123'
@@ -44,12 +46,17 @@ upload.onchange=async()=>{output.textContent=JSON.parse(await upload.files[0].te
                 assert page.evaluate('innerWidth') == 360
                 page.set_viewport_size({'width': 1440, 'height': 900})
                 assert page.evaluate('innerWidth') == 1440
-                shots = ROOT / 'browser-review' / 'compatibility'
+                shots = Path(shots) if shots is not None else ROOT / 'browser-review' / 'compatibility'
                 shots.mkdir(parents=True, exist_ok=True)
                 page.screenshot(path=str(shots / 'macos-chrome-cdp.png'))
-                verify_seatbelt(browser)
+                (protection_check or verify_seatbelt)(browser)
                 page.close()
                 print('PASS: macOS Chrome CDP HTTP/input/download/upload/viewport/screenshot compatibility', flush=True)
+            except ProtectionStop:
+                raise
+            except Exception as error:
+                if on_failure is not None:on_failure(page,error)
+                raise
             finally:
                 browser.close()
 

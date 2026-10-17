@@ -17,7 +17,7 @@ verdict: Radar
 status: published
 related_threads:
 - 経路ごとの在庫制約と学習型補充
-summary: 発注の効く遅れを高次CBFで扱う。50商品で充足率0.562、手元容量の違反率0.815という限界も読む。
+summary: 発注してから手元在庫が増えるまでの遅れを考慮し、容量などの上限を守るために高次の制御バリア関数（CBF）を使う。50商品で充足率0.562、手元容量の違反率0.815という限界も読む。
 question: 容量に収まる在庫でも、到着待ちの商品を考えると安全でないのはなぜか。
 verification:
   mechanism: PARTIAL

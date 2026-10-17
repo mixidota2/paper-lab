@@ -1,6 +1,6 @@
 # VARG: Value-Aware and Ranking-Aligned Generative Retrieval for Dynamic E-commerce Search
 
-Tmall Appの生成チャネルは予約枠でpre-rankを迂回し、既存final rankerへ渡す。14日・検索traffic 20%のA/BでGMV +1.45%。初期の衝突ゼロと日次の住所固定は別の約束。
+Tmall Appでは、生成モデルが選んだ候補のために枠を確保する。その候補は粗い順位付け（pre-rank）を通さず、既存の最終順位付けモデル（final ranker）へ直接渡す。14日・検索traffic 20%のA/BでGMV +1.45%。初期の衝突ゼロと日次の住所固定は別の約束。
 
 公開ページ: https://mixidota2.github.io/paper-lab/papers/varg-tmall-value-generative-retrieval.html
 

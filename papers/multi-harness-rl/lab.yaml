@@ -75,7 +75,7 @@ figures:
   caption: 教育用の合成8軌跡。式は原論文§3に対応し、数値はresults.jsonの丸め値。
   after: method
 - path: figures/dominance.svg
-  title: 平均solve rateの変動幅
+  title: "平均解決率の最大値÷最小値"
   caption: 原論文§4の報告値。効果の分散寄与率ではなく、各軸で平均を集計した範囲の比。
   after: evidence
 - path: figures/portability.svg

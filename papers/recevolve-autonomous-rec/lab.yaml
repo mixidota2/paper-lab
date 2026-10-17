@@ -41,7 +41,7 @@ source_review:
 core_idea:
   author_claim: 著者は、状態を集約するOrchestratorとstatelessなIdeator・Critic・Coding Agentを組み合わせ、産業規模のモデル改良を継続できると主張する。最良構成へ改善を積み重ね、主指標と補助指標を満たす変更だけをKEEPする（Algorithm
     1）。
-  research_bot_interpretation: 探索の速さだけでなく、比較条件をどこで固定するかが採用時の要点になる。VCSは実装を戻せるが、指標の意味が変わったことを自動で理解するわけではない。別探索sessionのbatch縮小は人間が発見してrollbackしており、評価契約を自動監査できた証拠ではない。
+  research_bot_interpretation: 探索の速さだけでなく、比較条件をどこで固定するかが採用時の要点になる。コードの変更履歴を管理する仕組み（VCS）を使えば、変更前の実装へ戻せる。ただし、評価指標の意味や比較条件が変わったことまで自動で見抜けるわけではない。別探索sessionのbatch縮小は人間が発見してrollbackしており、評価契約を自動監査できた証拠ではない。
 sections:
   overview: GoogleのRecEvolveは、本番Two-Tower検索モデルの仮説・批評・実装・学習・評価をOrchestratorでつなぐ。著者報告は41実験、最終NDCG@50が0.4796から0.5751、オンライン満足度+3.77%。同時に、batchを8kから1kへ減らすと評価だけが易しくなる問題も発見された。KEEPとVCS
     rollbackの条件、評価候補の固定を中心に読む。

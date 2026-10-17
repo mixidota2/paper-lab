@@ -1,6 +1,6 @@
 # ReasonCast: Agentic Demand Forecasting with Selective Semantic Reasoning
 
-ReasonCastは凍結したChronos-2に対し、Skip・Basic・Toolで意味情報の介入を選ぶ。イベント区間では誤差を減らし、Skipでは元の予測を厳密に保つ。欠品を含む需要予測手法の優劣は未決着。
+ReasonCastはChronos-2の重みを固定し、予測にイベント情報を加えるかを選ぶ。情報を加えないSkip、手元の情報を使うBasic、検索や時系列統計の道具を使うToolの3経路を設ける。イベント区間では誤差を減らし、Skipでは元の予測を厳密に保つ。欠品を含む需要予測手法の優劣は未決着。
 
 ## Core Idea — 主張と解釈
 
@@ -10,7 +10,7 @@ Labの解釈：注目点は文章を常に足すことより、介入しない�
 
 ## Overview — 概要
 
-ReasonCastは凍結したChronos-2に対し、Skip・Basic・Toolで意味情報の介入を選ぶ。イベント区間では誤差を減らし、Skipでは元の予測を厳密に保つ。欠品を含む需要予測手法の優劣は未決着。
+ReasonCastはChronos-2の重みを固定し、予測にイベント情報を加えるかを選ぶ。情報を加えないSkip、手元の情報を使うBasic、検索や時系列統計の道具を使うToolの3経路を設ける。イベント区間では誤差を減らし、Skipでは元の予測を厳密に保つ。欠品を含む需要予測手法の優劣は未決着。
 
 ## Problem — 問題設定
 

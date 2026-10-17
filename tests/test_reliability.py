@@ -99,8 +99,8 @@ def test_generated_downloads_and_embedded_explorer_match_sources(tmp_path):
     build(root=ROOT, site_dir=tmp_path / 'site')
     site = tmp_path / 'site'
     labs = sorted((ROOT / 'papers').glob('*/lab.yaml'))
-    assert len(labs) == 100
-    assert len(list((site / 'papers').glob('*.html'))) == 100
+    assert len(labs) == 103
+    assert len(list((site / 'papers').glob('*.html'))) == 103
     for path in labs:
         slug = path.parent.name
         for name in ('results.json', 'run.py', 'lab.yaml'):
@@ -113,7 +113,8 @@ def test_generated_downloads_and_embedded_explorer_match_sources(tmp_path):
         parser.feed(html.read_text())
         if parser.explorers:
             source = json.loads((ROOT / "papers" / html.stem / "results.json").read_text())
-            assert all(data == source["explorer"] for data in parser.explorers)
+            from paper_lab.display_labels import explorer_view
+            assert all(data == explorer_view(html.stem, source["explorer"]) for data in parser.explorers)
         origin = 'https://mixidota2.github.io/paper-lab/' + html.relative_to(site).as_posix()
         for link in parser.links:
             raw = urlsplit(link)
@@ -145,8 +146,8 @@ def test_missing_value_fallback(tmp_path):
     path.write_text(json.dumps(data))
     build(root=tmp_path / 'root', site_dir=tmp_path / 'site')
     html = (tmp_path / 'site/papers/vn2-stockout-catboost.html').read_text()
-    assert '非欠品日のみ：平均：推定不能' in html
-    assert '非欠品日のみ：平均：None' not in html
+    assert '在庫上限に達しなかった期間だけの平均：推定不能' in html
+    assert '在庫上限に達しなかった期間だけの平均：None' not in html
 
 
 def test_required_gate_rejects_skip(tmp_path):

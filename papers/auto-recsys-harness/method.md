@@ -4,7 +4,7 @@
 中央memoryにはglobal registry、案別state、baseline履歴、append-onlyのexperiment history、案のbacklog、model別playbook、knowledge base、session trajectoryを置く。job IDやcommit hashも保存する。会話だけには残さない。案別の分離で影響範囲は狭まる。ただしglobal registryの競合は残る。
 
 ### skillは次の判断を教え、scriptは正確な状態を確定する
-自然言語skillは各段階の目的、判断基準、escalation条件を説明する。LLMが次の操作を選ぶ。決定的scriptが入力と遷移前提を検査し、API操作やatomicな状態更新を行う。scriptの戻り値から次の判断へ進む。この分離がcognitive-procedural separationである（§2.2）。
+自然言語で書かれた手順書（skill）は、各段階の目的、判断基準、人に判断を求める条件を示す。LLMはそれを基に次の操作を選ぶ。決められた処理を行うスクリプトが入力と状態遷移の前提を検査し、APIを操作する。状態は、一部だけが書き換わらないようにまとめて更新する。scriptの戻り値から次の判断へ進む。この分離がcognitive-procedural separationである（§2.2）。
 
 知識には三つの寿命がある。model共通のorchestrator skillは研究の進め方を定義する。model固有のplaybookは主要file、configuration規則、validation command、submission recipe、dead ends、proven strategiesを持つ。案別stateにはその実験だけのcommit、job、validation結果、verdictを残す。手順と今回の値を分ける。
 

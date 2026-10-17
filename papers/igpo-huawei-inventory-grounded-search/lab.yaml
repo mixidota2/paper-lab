@@ -21,7 +21,7 @@ urls:
 verdict: Watch
 status: published
 question: 検索で見つからない商品を、在庫なしと覚えてよいか
-summary: 在庫の観測と判断規則を分けるIGPO。14日A/BでCTR相対+3.17%、監査bad case −38.9%。probeの見落としと追加遅延は残る。
+summary: IGPOは、検索対象の商品カタログをその都度調べる処理と、検索・選択の判断規則を分ける。ここで調べるのは商品情報の有無であり、実店舗の在庫数量ではない。14日A/BでCTR相対+3.17%、監査bad case −38.9%。probeの見落としと追加遅延は残る。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED

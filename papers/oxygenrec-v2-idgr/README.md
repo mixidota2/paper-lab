@@ -1,6 +1,6 @@
 # OxygenREC-v2: Internalizing Discrimination into Generative Recommendation
 
-JD.comのOxygenREC-v2は、click・cart・orderの指示でSID生成を条件付ける。学習時には実ログとの一致と、未来行動を見た同一backboneの教師を使う。IDGRの焦点は行動信号を入れる位置にある。6つの配信面のA/Bを読み分け、外部報酬モデルの除去をサービス全体のカスケード撤去へ広げない。
+JD.comのOxygenREC-v2は、クリック、カートへの追加、注文のどれを目指すかを指定してから、商品の識別子を生成する。学習時には実ログとの一致と、未来行動を見た同一backboneの教師を使う。IDGRの焦点は行動信号を入れる位置にある。6つの配信面のA/Bを読み分け、外部報酬モデルの除去をサービス全体のカスケード撤去へ広げない。
 
 ## 実行
 

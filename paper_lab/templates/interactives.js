@@ -70,7 +70,7 @@
     }
     render();
   }
-  function explorer(root, data, id) {
+  function explorer(root, data, id, axes) {
     let index = data.default;
     let localScale = false;
     const label = el('label', 'slider-label', data.label);
@@ -87,7 +87,7 @@
     const reset = button('初期条件に戻す', () => select(data.default));
     const scale = button('棒の尺度：全条件で固定', () => {
       localScale = !localScale;
-      scale.textContent = localScale ? '棒の尺度：現在の条件' : '棒の尺度：全条件で固定';
+      scale.textContent = localScale ? '棒の尺度：この条件の最大値に合わせる' : '棒の尺度：全条件で固定';
       scale.setAttribute('aria-pressed', localScale);
       render();
     });
@@ -119,6 +119,7 @@
       next.disabled = index === data.frames.length-1;
       chart.replaceChildren();
       const max = localScale ? Math.max(1e-9, ...f.bars.filter(b => b.value !== null).map(b => b.value)) : maximum;
+      metric.textContent = `${data.metric} · 棒の目盛り：0〜${number(max)}（${localScale ? '現在の条件' : '全条件で固定'}）`;
       f.bars.forEach(b => {
         const row = el('div', 'bar-row');
         const label = el('div', 'bar-label');
@@ -134,24 +135,24 @@
       const table = el('table');
       const caption = el('caption', 'sr-only', `条件 ${f.value}：${data.metric}`);
       const head = el('thead'); const hr = el('tr');
-      ['指標', '値'].forEach(t => {const th=el('th','',t);th.scope='col';hr.append(th);});
+      ['比較対象・指標', '値'].forEach(t => {const th=el('th','',t);th.scope='col';hr.append(th);});
       head.append(hr); const body=el('tbody');
       f.bars.forEach(b => {const tr=el('tr');const th=el('th','',b.label);th.scope='row';tr.append(th,el('td','',number(b.value)));body.append(tr);});
       table.append(caption,head,body);tableMount.append(table);
       if (f.lines && f.lines.length) {
-        drawLines(traces, f.lines, `${id}-plot`);
+        drawLines(traces, f.lines, `${id}-plot`, axes);
         const traceTable = el('table');
         const header=el('thead'); const row=el('tr');
-        ['点',...f.lines.map(l=>l.label)].forEach(t=>{const th=el('th','',t);th.scope='col';row.append(th);});
+        [axes ? axes.label : '点',...f.lines.map(l=>l.label)].forEach(t=>{const th=el('th','',t);th.scope='col';row.append(th);});
         header.append(row);traceTable.append(header);const rows=el('tbody');
         const n=Math.max(...f.lines.map(l=>l.values.length));
-        for(let i=0;i<n;i++) {const row=el('tr');const th=el('th','',i+1);th.scope='row';row.append(th);f.lines.forEach(l=>row.append(el('td','',l.values[i] === undefined ? '—' : number(l.values[i]))));rows.append(row);}
+        for(let i=0;i<n;i++) {const row=el('tr');const th=el('th','',i+(axes ? axes.start : 1));th.scope='row';row.append(th);f.lines.forEach(l=>row.append(el('td','',l.values[i] === undefined ? '—' : number(l.values[i]))));rows.append(row);}
         traceTable.append(rows);tableMount.append(traceTable);
       }
     }
     render();
   }
-  function drawLines(mount, lines, id) {
+  function drawLines(mount, lines, id, axes) {
     const all = lines.flatMap(l => l.values);
     const lo = Math.min(0, ...all), hi = Math.max(1e-9, ...all);
     const n = Math.max(...lines.map(l=>l.values.length));
@@ -159,27 +160,27 @@
     const y = value => 204-176*(value-lo)/(hi-lo || 1);
     const svg = svgNode('svg', {viewBox:'0 0 520 240',role:'img','aria-labelledby':`${id}-title`,'aria-describedby':`${id}-desc`});
     svg.classList.add('chart-svg');
-    svg.append(svgNode('title',{id:`${id}-title`},'現在の条件の系列と計算値'),svgNode('desc',{id:`${id}-desc`},'色と線種で系列を区別。点の番号は1から始まります。正確な値は下のデータ表で読めます。'));
+    svg.append(svgNode('title',{id:`${id}-title`},'現在の条件の系列と計算値'),svgNode('desc',{id:`${id}-desc`},(axes ? axes.caption : '系列内の点番号は1から始まります。')+'色と線種で系列を区別。正確な値は下のデータ表で読めます。'));
     for (let i=0;i<=4;i++) {
       const v=lo+(hi-lo)*i/4;
       svg.append(svgNode('line',{x1:48,x2:488,y1:y(v),y2:y(v),stroke:'#dce2d8','stroke-width':1}));
       svg.append(svgNode('text',{x:40,y:y(v)+4,'text-anchor':'end'},Number(v.toFixed(1))));
     }
-    svg.append(svgNode('text',{x:48,y:228},'1'),svgNode('text',{x:488,y:228,'text-anchor':'end'},String(n)));
+    svg.append(svgNode('text',{x:48,y:228},String(axes ? axes.start : 1)),svgNode('text',{x:488,y:228,'text-anchor':'end'},String(n+(axes ? axes.start : 1)-1)));
     const legend=el('div','chart-legend');
     lines.forEach((line,i)=>{
       svg.append(svgNode('polyline',{points:line.values.map((v,j)=>`${x(j)},${y(v)}`).join(' '),fill:'none',stroke:palette[i%3],'stroke-width':3,'stroke-dasharray':['none','8 5','2 5'][i%3],'stroke-linejoin':'round'}));
       if(line.values.length === 1) svg.append(svgNode('circle',{cx:x(0),cy:y(line.values[0]),r:4,fill:palette[i%3]}));
       const item=el('span','',line.label);item.style.setProperty('--series-color',palette[i%3]);legend.append(item);
     });
-    mount.append(svg,legend,el('p','trace-caption','横軸：系列内の点番号。縦軸：各系列の値（現在の条件に合わせて尺度が変わります）。単位と点の意味は実験の説明を参照。'));
+    mount.append(svg,legend,el('p','trace-caption',(axes ? axes.caption : '横軸：系列内の点番号。縦軸：各系列の値。')+'縦軸の尺度は現在の条件に合わせて変わります。'));
   }
   document.querySelectorAll('[data-interactive]').forEach((section, i) => {
     const mount = section.querySelector('[data-mount]');
     try {
       const config = JSON.parse(section.querySelector('[data-config]').textContent);
       if (config.kind === 'flow') flow(mount, config);
-      else explorer(mount, JSON.parse(section.querySelector('[data-results]').textContent), `experiment-${i}`);
+      else explorer(mount, JSON.parse(section.querySelector('[data-results]').textContent), `experiment-${i}`, JSON.parse(section.querySelector('[data-axes]').textContent));
       section.querySelector('[data-fallback]').hidden = true;
       section.dataset.ready = 'true';
     } catch (error) {
@@ -202,28 +203,28 @@ document.querySelectorAll('[data-paper-probe]').forEach(root => {
       const width = Number(root.querySelector('[data-beam]').value);
       const masked = root.querySelector('[data-mask]').checked;
       const f = data.frames.find(f => f.alpha === alpha && f.width === width && f.personalized === masked);
-      output.append(paragraph(`α=${alpha} / beam=${width} / ${masked ? 'personalized trie' : 'global → 事後filter'}：有効経路 ${f.valid_count} 件`));
+      output.append(paragraph(`α=${alpha} / 探索候補数（beam幅）=${width} / ${masked ? '要求ごとに有効な枝だけを探索' : '全体を探索してから配信不可を除外'}：有効経路 ${f.valid_count} 件`));
       const paths = document.createElement('div'); paths.className = 'candidate-paths';
-      f.candidates.forEach(c => {const el = document.createElement('div'); el.className = `candidate-path ${c.valid ? 'valid' : 'invalid'}`; el.textContent = `${c.path} ｜ log score ${c.score.toFixed(3)} ｜ ${c.valid ? '配信可' : '事後除外'}`; paths.append(el);});
+      f.candidates.forEach(c => {const el = document.createElement('div'); el.className = `candidate-path ${c.valid ? 'valid' : 'invalid'}`; el.textContent = `${c.path} ｜ 対数得点 ${c.score.toFixed(3)} ｜ ${c.valid ? '配信可' : '事後除外'}`; paths.append(el);});
       output.append(paths);
     } else if (root.dataset.paperProbe === 'cq-sid-eg-grpo-tmall') {
       const width = Number(root.querySelector('[data-cluster-beam]').value);
       const f = data.frames.find(f => f.beam === width);
-      output.append(paragraph(`一意IDなら${f.unique_items}商品。クラスタなら${f.cluster_items}商品 → top-20後 ${f.after_cap}商品。`));
+      output.append(paragraph(`一意IDなら${f.unique_items}商品。クラスタなら${f.cluster_items}商品 → 上位20件に絞った後 ${f.after_cap}商品。`));
       const chips = document.createElement('div'); chips.className = 'item-chips';
       f.selected.forEach(n => {const chip = document.createElement('span'); chip.textContent = n; if (n===23) chip.className='target'; chips.append(chip);});
-      output.append(chips, paragraph(`target=23：${f.target_retained ? '残る' : '落ちる'}。候補の追加が切り詰め後の保持を保証するわけではない。`));
+      output.append(chips, paragraph(`対象商品23：${f.target_retained ? '残る' : '落ちる'}。候補の追加が切り詰め後の保持を保証するわけではない。`));
       const k = root.querySelector('[data-expert]').value;
       const values = data.group_examples[k];
-      root.querySelector('[data-expert-output]').textContent = `K=${k}：生成8件のadvantage ${values[0].toFixed(3)}${Number(k) ? ` / expert ${k}件のadvantage ${values[8].toFixed(3)}` : ' / 報酬差がなく、更新信号はゼロ'}`;
+      root.querySelector('[data-expert-output]').textContent = `K=${k}：生成8件の相対的な報酬（advantage） ${values[0].toFixed(3)}${Number(k) ? ` / 教師例として用意した正例${k}件のadvantage ${values[8].toFixed(3)}` : ' / 報酬差がなく、更新信号はゼロ'}`;
     } else {
       const p = Number(root.querySelector('[data-failure]').value);
       const f = data.frames[p];
       root.querySelector('[data-p-value]').textContent = `${p}%`;
       root.querySelector('[data-p-marker]').style.left = `${p}%`;
-      output.append(paragraph(`100タスク当たり 回復 ${f.recovered_per_100.toFixed(2)} − 破壊 ${f.disrupted_per_100.toFixed(2)} = ${f.delta_pp > 0 ? '+' : ''}${f.delta_pp.toFixed(2)}ポイント`));
-      output.append(paragraph(f.delta_pp > 0 ? '仮定した率では改善側。ただしpilotの不確かさと安全余裕を別に調べる。' : f.delta_pp < 0 ? '仮定した率では悪化側。常時介入を見送る条件。' : '期待差はゼロ。'));
-      if (p === 0 || p === 100) output.append(paragraph('端点：このtask群だけからはrかdを推定できない。表示は外部から率を固定した感度分析。'));
+      output.append(paragraph(`100課題当たり、失敗から成功へ変わる期待件数 ${f.recovered_per_100.toFixed(2)} − 成功から失敗へ変わる期待件数 ${f.disrupted_per_100.toFixed(2)} = ${f.delta_pp > 0 ? '+' : ''}${f.delta_pp.toFixed(2)}ポイント`));
+      output.append(paragraph(f.delta_pp > 0 ? '仮定した率では改善側。ただし事前試験の不確かさと安全余裕を別に調べる。' : f.delta_pp < 0 ? '仮定した率では悪化側。常時介入を見送る条件。' : '期待差はゼロ。'));
+      if (p === 0 || p === 100) output.append(paragraph('端点：この課題群だけでは回復率rまたは悪化率dの片方を推定できない。表示は外部から率を固定した感度分析。'));
     }
   };
   root.querySelectorAll('select,input').forEach(el => el.addEventListener('input',update));
@@ -240,10 +241,10 @@ document.querySelectorAll('[data-b17]').forEach(panel => {
       const limit = Number(control.value);
       const feasible = data.filter(row => row[3] <= limit);
       const row = feasible.at(-1);
-      output.textContent = row ? `p99上限${limit}ms：表の条件を満たす最大BWは${row[0]}。GPU p99=${row[3]}ms、平均=${row[2]}ms、P@100=${row[4]}。著者の実測点から選択。` : '表の実測点に条件を満たすものはない。';
+      output.textContent = row ? `99パーセンタイルの処理時間上限${limit}ms：表の条件を満たす最大の探索候補数（beam幅）は${row[0]}。GPU p99=${row[3]}ms、平均=${row[2]}ms、P@100=${row[4]}。著者の実測点から選択。` : '表の実測点に条件を満たすものはない。';
     } else {
       const row = data[Number(control.value)];
-      output.textContent = `w=${row.weight}：共有attention [${row.shared_attention.map(x=>x.toFixed(3)).join(', ')}]。SID側pool [${row.sid_pooled.map(x=>x.toFixed(3)).join(', ')}]、ID側pool [${row.item_pooled.map(x=>x.toFixed(3)).join(', ')}]。対照整列の寄与=${row.weighted_alignment_loss.toFixed(4)}。人工例。`;
+      output.textContent = `w=${row.weight}：共通の注意重み [${row.shared_attention.map(x=>x.toFixed(3)).join(', ')}]。SID側の集約ベクトル [${row.sid_pooled.map(x=>x.toFixed(3)).join(', ')}]、商品ID側の集約ベクトル [${row.item_pooled.map(x=>x.toFixed(3)).join(', ')}]。重み付け後の整列損失=${row.weighted_alignment_loss.toFixed(4)}。人工例。`;
     }
   };
   control.addEventListener('input', update);

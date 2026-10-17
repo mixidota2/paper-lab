@@ -69,7 +69,7 @@ sections:
     1.2, 0.72], [400, 25.3, 1.1, 1.6, 0.74], [500, 29.5, 1.4, 2, 0.75], [600, 33.4, 1.6, 2.6, 0.76], [700, 36.3,
     1.6, 2.8, 0.77], [800, 40.5, 1.9, 3.2, 0.77], [900, 42.9, 1.9, 3.3, 0.78], [1000, 46.3, 1.9, 3.3, 0.78]]</script></div><div
     class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>BW</th><th>CPU平均ms</th><th>GPU平均ms</th><th>GPU
-    p99 ms</th><th>P@100</th></tr></thead><tbody><tr><td>100</td><td>9</td><td>0.6</td><td>0.7</td><td>0.53</td></tr><tr><td>200</td><td>14.9</td><td>0.7</td><td>0.9</td><td>0.68</td></tr><tr><td>300</td><td>20.1</td><td>0.9</td><td>1.2</td><td>0.72</td></tr><tr><td>400</td><td>25.3</td><td>1.1</td><td>1.6</td><td>0.74</td></tr><tr><td>500</td><td>29.5</td><td>1.4</td><td>2</td><td>0.75</td></tr><tr><td>600</td><td>33.4</td><td>1.6</td><td>2.6</td><td>0.76</td></tr><tr><td>700</td><td>36.3</td><td>1.6</td><td>2.8</td><td>0.77</td></tr><tr><td>800</td><td>40.5</td><td>1.9</td><td>3.2</td><td>0.77</td></tr><tr><td>900</td><td>42.9</td><td>1.9</td><td>3.3</td><td>0.78</td></tr><tr><td>1000</td><td>46.3</td><td>1.9</td><td>3.3</td><td>0.78</td></tr></tbody></table></div><figcaption>表1・表6の丸め済み実測値。SLO上限はLabの操作条件。productionの30ms
+    p99 ms</th><th>P@100</th></tr></thead><tbody><tr><td>100</td><td>9</td><td>0.6</td><td>0.7</td><td>0.53</td></tr><tr><td>200</td><td>14.9</td><td>0.7</td><td>0.9</td><td>0.68</td></tr><tr><td>300</td><td>20.1</td><td>0.9</td><td>1.2</td><td>0.72</td></tr><tr><td>400</td><td>25.3</td><td>1.1</td><td>1.6</td><td>0.74</td></tr><tr><td>500</td><td>29.5</td><td>1.4</td><td>2</td><td>0.75</td></tr><tr><td>600</td><td>33.4</td><td>1.6</td><td>2.6</td><td>0.76</td></tr><tr><td>700</td><td>36.3</td><td>1.6</td><td>2.8</td><td>0.77</td></tr><tr><td>800</td><td>40.5</td><td>1.9</td><td>3.2</td><td>0.77</td></tr><tr><td>900</td><td>42.9</td><td>1.9</td><td>3.3</td><td>0.78</td></tr><tr><td>1000</td><td>46.3</td><td>1.9</td><td>3.3</td><td>0.78</td></tr></tbody></table></div><figcaption>P@100は上位100件の検索品質を同じ教師モデルで評価した論文の指標。13,000件の要求ごとに評価し、平均した値。関連性の判定しきい値と候補不足・空出力時の分母の詳細は、確認された本文では明示されていない。<a href="https://arxiv.org/html/2607.10044v1">原典§4.5・Appendix E</a>。表1・表6の丸め済み実測値。SLO上限はLabの操作条件。productionの30ms
     SLAとは測定境界が違う。点の間は補間せず、未測定のPareto曲線は描かない。</figcaption></figure>
 
 
@@ -98,7 +98,7 @@ sections:
     [実行コード](../downloads/flashtrie-gpu-beam/run.py)・[全結果](../downloads/flashtrie-gpu-beam/results.json)・[README](../downloads/flashtrie-gpu-beam/README.md)・[方法](../downloads/flashtrie-gpu-beam/method.md)・[対応表](../downloads/flashtrie-gpu-beam/mapping.md)を保存できる。
 
 
-    本文は査読後公開予定とする。確認した一次資料から取得可能な公式実装は見つからなかった。MARISAは比較対象でありFlashTrie公式実装ではない。'
+    原論文には、公式コードを査読後に公開する予定だと記されている。確認した一次資料から取得可能な公式実装は見つからなかった。MARISAは比較対象でありFlashTrie公式実装ではない。'
   mapping: mapping.md
 teaching_figures:
 - kind: equations

@@ -35,7 +35,7 @@ source_review:
   url: https://arxiv.org/pdf/2609.21257v1
   scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。
 core_idea:
-  author_claim: 各runの完了やlineageだけでは比較の妥当性を保証しない。承認済みcontrastとartifactから実現した条件を照合し、比較単位でfail-closedに受理する。
+  author_claim: 各実験が完了し、実験の来歴をたどれても、比較が妥当とは限らない。事前に承認した比較条件と、成果物に記録された実際の条件を照合する。必要な証拠が欠ける比較は受け付けない。
   research_bot_interpretation: '[AURA](aura-disney-agentic-rec-diagnosis.html)は何を直すべきかを診断し、EvoPilotは修正を比べた測定が有効かを検査する。[PILOT](pilot-experiment-lifecycle.html)の非同期実験運用や[AgentX](agentx-kuaishou.html)のkeep判定にも、比較条件が揃ったかという前提を追加できる。'
 sections:
   overview: interaction headで精度が22 pp落ちたという結論は、controlだけ3,000件を評価していたため無効だった。宣言は両群K=600でも、実現した出力数が違った。EvoPilotの中心はagentを増やすことより、承認した差分とartifactの実現値を比較して記録することにある。最初に問題を捕まえたのはhuman

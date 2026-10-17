@@ -18,7 +18,7 @@ urls:
 verdict: Worth Reading
 status: published
 question: 誤差を減らした予測が、欠品を増やすのはなぜか
-summary: 38手法・20,330注文で精度順位と注文充足順位のρ=−0.555。Chronos-2の正規化修正はMASEを悪化させつつCOFRを54→63%へ改善した。指標の母集団と在庫費用を分けて読む。
+summary: 著者が38手法を20,330件の注文で比較したところ、予測精度と注文を完納できた割合の順位相関はρ=−0.555だった。Chronos-2の入力の正規化を変更すると、論文で定義した誤差指標（MASE）は悪化したが、全明細をそろえて納められた注文の割合（COFR）は54%から63%へ上がった。実験ごとに対象品目が異なるため、在庫費用と合わせて比較条件を確認する必要がある。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -80,8 +80,7 @@ sections:
   results: 人工replayでは予測倍率0.5→4でCOFR 47.9→97.9%、平均在庫9.01→34.95単位。ここではMAEも3.98→2.36へ改善するので、論文の精度逆転はNOT
     OBSERVED。設計した人工需要が同じregimeを再現するとは限らない。一方、注文[3],[1],[1]に初期在庫2と3を与える反例では、COFRが2/3→1/3へ低下する。在庫目標の大小と注文完納の単調性を区別できる。
     公開CSVの順位から相関を再計算するとρ=-0.555264。これは著者集計の確認であり、生データからの再現ではない。
-  what_we_verified: Mechanism PARTIAL。正規化の往復と全ゼロ時の有限性、同一policyの在庫保存・補充・完納判定、stock
-    target増加がCOFR単調増加を保証しない反例を確認。局所条件はCONFIRMED。人工replayの精度逆転はNOT OBSERVED。
+  what_we_verified: 仕組みの確認は一部に限られる（PARTIAL）。このLabでは、正規化した値を元に戻せること、入力がすべてゼロでも計算値が有限になること、同じ補充規則の下で在庫の増減と注文の完納を判定する処理を確認した。また、目標在庫を増やしても、完納できる注文の割合が必ず上がるわけではない例を確認した。これらの限定した条件は確認済み（CONFIRMED）だが、人工データの再計算では、論文が報告した予測精度と完納率の順位逆転は見られなかった（NOT OBSERVED）。
   what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。Chronos-2の重みをロードせず、内部表現の変化による改善は検証していない。実注文・RUF生成・38手法の学習、bootstrap
     CI、在庫金額の最適化も未実行。CSVの順位再計算は凍結集計の算術監査であり、機密panelの追試ではない。
   implementation: '`normalize()`はEqs. 6–7の中心とscaleおよび逆変換。`replay()`は受入→全明細判定→失敗棄却→補充という順序を実装。Labのlead=2・4品目は原典のL=6/R=1から縮小した。人工実験は通常MAEを使い、論文独自のMASEを名乗らない。'

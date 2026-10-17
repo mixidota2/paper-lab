@@ -1,0 +1,1325 @@
+{
+  "model_version": "casrp-toy-1",
+  "note": "全て合成値。原論文の近似アルゴリズムや実験表の再現ではない。",
+  "cases": {
+    "T1": {
+      "input": {
+        "name": "T1",
+        "items": [
+          {
+            "id": "A",
+            "alpha": 6,
+            "p": 2,
+            "c": 0,
+            "b": 1,
+            "g": 5,
+            "K": 2,
+            "f": 0.8,
+            "beta": 0,
+            "lam": 1
+          },
+          {
+            "id": "B",
+            "alpha": 5,
+            "p": 1,
+            "c": 0,
+            "b": 1,
+            "g": 5,
+            "K": 2,
+            "f": 0.8,
+            "beta": 0,
+            "lam": 1
+          },
+          {
+            "id": "C",
+            "alpha": 4,
+            "p": 1,
+            "c": 0,
+            "b": 1,
+            "g": 5,
+            "K": 2,
+            "f": 0.8,
+            "beta": 0,
+            "lam": 1
+          }
+        ],
+        "mu": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.8,
+            0.0,
+            0.0
+          ],
+          [
+            0.5,
+            0.0,
+            0.0
+          ]
+        ],
+        "S": 2
+      },
+      "oracle": {
+        "best": {
+          "k": [
+            2,
+            0,
+            0
+          ],
+          "rows": [
+            {
+              "id": "A",
+              "k": 2,
+              "direct": 6,
+              "transfer": 6.0,
+              "demand": 12.0,
+              "stock": 10,
+              "required": 9.600000000000001,
+              "slack": 0.3999999999999986,
+              "feasible": true,
+              "profit": 24.0,
+              "potential": 0,
+              "extra": 2.0,
+              "ratio": 0.8333333333333334
+            },
+            {
+              "id": "B",
+              "k": 0,
+              "direct": 0,
+              "transfer": 0,
+              "demand": 0,
+              "stock": 0,
+              "required": 0.0,
+              "slack": 0.0,
+              "feasible": true,
+              "profit": 0,
+              "potential": 5,
+              "extra": 0,
+              "ratio": null
+            },
+            {
+              "id": "C",
+              "k": 0,
+              "direct": 0,
+              "transfer": 0,
+              "demand": 0,
+              "stock": 0,
+              "required": 0.0,
+              "slack": 0.0,
+              "feasible": true,
+              "profit": 0,
+              "potential": 4,
+              "extra": 0,
+              "ratio": null
+            }
+          ],
+          "flows": [
+            {
+              "source": "B",
+              "target": "A",
+              "amount": 4.0,
+              "recovered": true
+            },
+            {
+              "source": "B",
+              "target": "未配分",
+              "amount": 0.9999999999999998,
+              "recovered": false
+            },
+            {
+              "source": "C",
+              "target": "A",
+              "amount": 2.0,
+              "recovered": true
+            },
+            {
+              "source": "C",
+              "target": "未配分",
+              "amount": 2.0,
+              "recovered": false
+            }
+          ],
+          "width": 2,
+          "width_ok": true,
+          "feasible": true,
+          "profit": 24.0
+        },
+        "ties": [
+          [
+            2,
+            0,
+            0
+          ]
+        ],
+        "candidates": 27,
+        "width_feasible": 10,
+        "feasible_count": 7,
+        "complete": true
+      },
+      "no_substitution": {
+        "k": [
+          1,
+          1,
+          0
+        ],
+        "rows": [
+          {
+            "id": "A",
+            "k": 1,
+            "direct": 6,
+            "transfer": 0,
+            "demand": 6,
+            "stock": 5,
+            "required": 4.800000000000001,
+            "slack": 0.1999999999999993,
+            "feasible": true,
+            "profit": 12,
+            "potential": 0,
+            "extra": 1,
+            "ratio": 0.8333333333333334
+          },
+          {
+            "id": "B",
+            "k": 1,
+            "direct": 5,
+            "transfer": 0,
+            "demand": 5,
+            "stock": 5,
+            "required": 4.0,
+            "slack": 1.0,
+            "feasible": true,
+            "profit": 5,
+            "potential": 0,
+            "extra": 0,
+            "ratio": 1
+          },
+          {
+            "id": "C",
+            "k": 0,
+            "direct": 0,
+            "transfer": 0,
+            "demand": 0,
+            "stock": 0,
+            "required": 0.0,
+            "slack": 0.0,
+            "feasible": true,
+            "profit": 0,
+            "potential": 4,
+            "extra": 0,
+            "ratio": null
+          }
+        ],
+        "flows": [
+          {
+            "source": "C",
+            "target": "未配分",
+            "amount": 4,
+            "recovered": false
+          }
+        ],
+        "width": 2,
+        "width_ok": true,
+        "feasible": true,
+        "profit": 17
+      },
+      "reevaluated": {
+        "k": [
+          1,
+          1,
+          0
+        ],
+        "rows": [
+          {
+            "id": "A",
+            "k": 1,
+            "direct": 6,
+            "transfer": 2.0,
+            "demand": 8.0,
+            "stock": 5,
+            "required": 6.4,
+            "slack": -1.4000000000000004,
+            "feasible": false,
+            "profit": 16.0,
+            "potential": 0,
+            "extra": 3.0,
+            "ratio": 0.625
+          },
+          {
+            "id": "B",
+            "k": 1,
+            "direct": 5,
+            "transfer": 0.0,
+            "demand": 5.0,
+            "stock": 5,
+            "required": 4.0,
+            "slack": 1.0,
+            "feasible": true,
+            "profit": 5.0,
+            "potential": 0,
+            "extra": 0,
+            "ratio": 1
+          },
+          {
+            "id": "C",
+            "k": 0,
+            "direct": 0,
+            "transfer": 0,
+            "demand": 0,
+            "stock": 0,
+            "required": 0.0,
+            "slack": 0.0,
+            "feasible": true,
+            "profit": 0,
+            "potential": 4,
+            "extra": 0,
+            "ratio": null
+          }
+        ],
+        "flows": [
+          {
+            "source": "C",
+            "target": "A",
+            "amount": 2.0,
+            "recovered": true
+          },
+          {
+            "source": "C",
+            "target": "未配分",
+            "amount": 2.0,
+            "recovered": false
+          }
+        ],
+        "width": 2,
+        "width_ok": true,
+        "feasible": false,
+        "profit": 21.0
+      },
+      "fixed_assortment": {
+        "best": null,
+        "ties": [],
+        "candidates": 4,
+        "width_feasible": 1,
+        "feasible_count": 0,
+        "complete": true
+      },
+      "gap": null
+    },
+    "T2": {
+      "input": {
+        "name": "T2",
+        "items": [
+          {
+            "id": "A",
+            "alpha": 10,
+            "p": 1,
+            "c": 0,
+            "b": 1,
+            "g": 16,
+            "K": 1,
+            "f": 1,
+            "beta": 0,
+            "lam": 1
+          },
+          {
+            "id": "B",
+            "alpha": 6,
+            "p": 1,
+            "c": 0,
+            "b": 1,
+            "g": 16,
+            "K": 1,
+            "f": 1,
+            "beta": 0,
+            "lam": 1
+          }
+        ],
+        "mu": [
+          [
+            0.0,
+            1
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "S": 1
+      },
+      "oracle": {
+        "best": {
+          "k": [
+            0,
+            1
+          ],
+          "rows": [
+            {
+              "id": "A",
+              "k": 0,
+              "direct": 0,
+              "transfer": 0,
+              "demand": 0,
+              "stock": 0,
+              "required": 0,
+              "slack": 0,
+              "feasible": true,
+              "profit": 0,
+              "potential": 10,
+              "extra": 0,
+              "ratio": null
+            },
+            {
+              "id": "B",
+              "k": 1,
+              "direct": 6,
+              "transfer": 10,
+              "demand": 16,
+              "stock": 16,
+              "required": 16,
+              "slack": 0,
+              "feasible": true,
+              "profit": 16,
+              "potential": 0,
+              "extra": 0,
+              "ratio": 1
+            }
+          ],
+          "flows": [
+            {
+              "source": "A",
+              "target": "B",
+              "amount": 10,
+              "recovered": true
+            },
+            {
+              "source": "A",
+              "target": "未配分",
+              "amount": 0.0,
+              "recovered": false
+            }
+          ],
+          "width": 1,
+          "width_ok": true,
+          "feasible": true,
+          "profit": 16
+        },
+        "ties": [
+          [
+            0,
+            1
+          ]
+        ],
+        "candidates": 4,
+        "width_feasible": 3,
+        "feasible_count": 3,
+        "complete": true
+      },
+      "no_substitution": {
+        "k": [
+          1,
+          0
+        ],
+        "rows": [
+          {
+            "id": "A",
+            "k": 1,
+            "direct": 10,
+            "transfer": 0,
+            "demand": 10,
+            "stock": 16,
+            "required": 10,
+            "slack": 6,
+            "feasible": true,
+            "profit": 10,
+            "potential": 0,
+            "extra": 0,
+            "ratio": 1
+          },
+          {
+            "id": "B",
+            "k": 0,
+            "direct": 0,
+            "transfer": 0,
+            "demand": 0,
+            "stock": 0,
+            "required": 0,
+            "slack": 0,
+            "feasible": true,
+            "profit": 0,
+            "potential": 6,
+            "extra": 0,
+            "ratio": null
+          }
+        ],
+        "flows": [
+          {
+            "source": "B",
+            "target": "未配分",
+            "amount": 6,
+            "recovered": false
+          }
+        ],
+        "width": 1,
+        "width_ok": true,
+        "feasible": true,
+        "profit": 10
+      },
+      "reevaluated": {
+        "k": [
+          1,
+          0
+        ],
+        "rows": [
+          {
+            "id": "A",
+            "k": 1,
+            "direct": 10,
+            "transfer": 0.0,
+            "demand": 10.0,
+            "stock": 16,
+            "required": 10.0,
+            "slack": 6.0,
+            "feasible": true,
+            "profit": 10.0,
+            "potential": 0,
+            "extra": 0,
+            "ratio": 1
+          },
+          {
+            "id": "B",
+            "k": 0,
+            "direct": 0,
+            "transfer": 0,
+            "demand": 0,
+            "stock": 0,
+            "required": 0,
+            "slack": 0,
+            "feasible": true,
+            "profit": 0,
+            "potential": 6,
+            "extra": 0,
+            "ratio": null
+          }
+        ],
+        "flows": [
+          {
+            "source": "B",
+            "target": "未配分",
+            "amount": 6.0,
+            "recovered": false
+          }
+        ],
+        "width": 1,
+        "width_ok": true,
+        "feasible": true,
+        "profit": 10.0
+      },
+      "fixed_assortment": {
+        "best": {
+          "k": [
+            1,
+            0
+          ],
+          "rows": [
+            {
+              "id": "A",
+              "k": 1,
+              "direct": 10,
+              "transfer": 0.0,
+              "demand": 10.0,
+              "stock": 16,
+              "required": 10.0,
+              "slack": 6.0,
+              "feasible": true,
+              "profit": 10.0,
+              "potential": 0,
+              "extra": 0,
+              "ratio": 1
+            },
+            {
+              "id": "B",
+              "k": 0,
+              "direct": 0,
+              "transfer": 0,
+              "demand": 0,
+              "stock": 0,
+              "required": 0,
+              "slack": 0,
+              "feasible": true,
+              "profit": 0,
+              "potential": 6,
+              "extra": 0,
+              "ratio": null
+            }
+          ],
+          "flows": [
+            {
+              "source": "B",
+              "target": "未配分",
+              "amount": 6.0,
+              "recovered": false
+            }
+          ],
+          "width": 1,
+          "width_ok": true,
+          "feasible": true,
+          "profit": 10.0
+        },
+        "ties": [
+          [
+            1,
+            0
+          ]
+        ],
+        "candidates": 1,
+        "width_feasible": 1,
+        "feasible_count": 1,
+        "complete": true
+      },
+      "gap": 0.375
+    },
+    "T3": {
+      "input": {
+        "name": "T3",
+        "items": [
+          {
+            "id": "A",
+            "alpha": 10,
+            "p": 2,
+            "c": 0,
+            "b": 1,
+            "g": 10,
+            "K": 2,
+            "f": 1,
+            "beta": 0,
+            "lam": 1
+          },
+          {
+            "id": "B",
+            "alpha": 1,
+            "p": 1,
+            "c": 0,
+            "b": 1,
+            "g": 10,
+            "K": 2,
+            "f": 1,
+            "beta": 0,
+            "lam": 1
+          }
+        ],
+        "mu": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.5,
+            0.0
+          ]
+        ],
+        "S": 1
+      },
+      "oracle": {
+        "best": {
+          "k": [
+            0,
+            1
+          ],
+          "rows": [
+            {
+              "id": "A",
+              "k": 0,
+              "direct": 0,
+              "transfer": 0,
+              "demand": 0,
+              "stock": 0,
+              "required": 0,
+              "slack": 0,
+              "feasible": true,
+              "profit": 0,
+              "potential": 10,
+              "extra": 0,
+              "ratio": null
+            },
+            {
+              "id": "B",
+              "k": 1,
+              "direct": 1,
+              "transfer": 0.0,
+              "demand": 1.0,
+              "stock": 10,
+              "required": 1.0,
+              "slack": 9.0,
+              "feasible": true,
+              "profit": 1.0,
+              "potential": 0,
+              "extra": 0,
+              "ratio": 1
+            }
+          ],
+          "flows": [
+            {
+              "source": "A",
+              "target": "未配分",
+              "amount": 10.0,
+              "recovered": false
+            }
+          ],
+          "width": 1,
+          "width_ok": true,
+          "feasible": true,
+          "profit": 1.0
+        },
+        "ties": [
+          [
+            0,
+            1
+          ]
+        ],
+        "candidates": 9,
+        "width_feasible": 3,
+        "feasible_count": 2,
+        "complete": true
+      },
+      "no_substitution": {
+        "k": [
+          1,
+          0
+        ],
+        "rows": [
+          {
+            "id": "A",
+            "k": 1,
+            "direct": 10,
+            "transfer": 0,
+            "demand": 10,
+            "stock": 10,
+            "required": 10,
+            "slack": 0,
+            "feasible": true,
+            "profit": 20,
+            "potential": 0,
+            "extra": 0,
+            "ratio": 1
+          },
+          {
+            "id": "B",
+            "k": 0,
+            "direct": 0,
+            "transfer": 0,
+            "demand": 0,
+            "stock": 0,
+            "required": 0,
+            "slack": 0,
+            "feasible": true,
+            "profit": 0,
+            "potential": 1,
+            "extra": 0,
+            "ratio": null
+          }
+        ],
+        "flows": [
+          {
+            "source": "B",
+            "target": "未配分",
+            "amount": 1,
+            "recovered": false
+          }
+        ],
+        "width": 1,
+        "width_ok": true,
+        "feasible": true,
+        "profit": 20
+      },
+      "reevaluated": {
+        "k": [
+          1,
+          0
+        ],
+        "rows": [
+          {
+            "id": "A",
+            "k": 1,
+            "direct": 10,
+            "transfer": 0.5,
+            "demand": 10.5,
+            "stock": 10,
+            "required": 10.5,
+            "slack": -0.5,
+            "feasible": false,
+            "profit": 21.0,
+            "potential": 0,
+            "extra": 0.5,
+            "ratio": 0.9523809523809523
+          },
+          {
+            "id": "B",
+            "k": 0,
+            "direct": 0,
+            "transfer": 0,
+            "demand": 0,
+            "stock": 0,
+            "required": 0,
+            "slack": 0,
+            "feasible": true,
+            "profit": 0,
+            "potential": 1,
+            "extra": 0,
+            "ratio": null
+          }
+        ],
+        "flows": [
+          {
+            "source": "B",
+            "target": "A",
+            "amount": 0.5,
+            "recovered": true
+          },
+          {
+            "source": "B",
+            "target": "未配分",
+            "amount": 0.5,
+            "recovered": false
+          }
+        ],
+        "width": 1,
+        "width_ok": true,
+        "feasible": false,
+        "profit": 21.0
+      },
+      "fixed_assortment": {
+        "best": null,
+        "ties": [],
+        "candidates": 2,
+        "width_feasible": 1,
+        "feasible_count": 0,
+        "complete": true
+      },
+      "gap": null
+    },
+    "T4": {
+      "input": {
+        "name": "T4",
+        "items": [
+          {
+            "id": "A",
+            "alpha": 10,
+            "p": 1,
+            "c": 0,
+            "b": 1,
+            "g": 10,
+            "K": 1,
+            "f": 1,
+            "beta": 0,
+            "lam": 0.8
+          },
+          {
+            "id": "B",
+            "alpha": 1,
+            "p": 1,
+            "c": 0,
+            "b": 1,
+            "g": 10,
+            "K": 1,
+            "f": 1,
+            "beta": 0,
+            "lam": 1
+          },
+          {
+            "id": "C",
+            "alpha": 0,
+            "p": 1,
+            "c": 0,
+            "b": 1,
+            "g": 10,
+            "K": 1,
+            "f": 1,
+            "beta": 0,
+            "lam": 1
+          }
+        ],
+        "mu": [
+          [
+            0.0,
+            0.5,
+            0.3
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1,
+            0.0
+          ]
+        ],
+        "S": 1
+      },
+      "oracle": {
+        "best": {
+          "k": [
+            1,
+            0,
+            0
+          ],
+          "rows": [
+            {
+              "id": "A",
+              "k": 1,
+              "direct": 10,
+              "transfer": 0.0,
+              "demand": 10.0,
+              "stock": 10,
+              "required": 10.0,
+              "slack": 0.0,
+              "feasible": true,
+              "profit": 10.0,
+              "potential": 0,
+              "extra": 0,
+              "ratio": 1
+            },
+            {
+              "id": "B",
+              "k": 0,
+              "direct": 0,
+              "transfer": 0,
+              "demand": 0,
+              "stock": 0,
+              "required": 0,
+              "slack": 0,
+              "feasible": true,
+              "profit": 0,
+              "potential": 1,
+              "extra": 0,
+              "ratio": null
+            },
+            {
+              "id": "C",
+              "k": 0,
+              "direct": 0,
+              "transfer": 0,
+              "demand": 0,
+              "stock": 0,
+              "required": 0,
+              "slack": 0,
+              "feasible": true,
+              "profit": 0,
+              "potential": 0,
+              "extra": 0,
+              "ratio": null
+            }
+          ],
+          "flows": [
+            {
+              "source": "B",
+              "target": "未配分",
+              "amount": 1.0,
+              "recovered": false
+            },
+            {
+              "source": "C",
+              "target": "未配分",
+              "amount": 0.0,
+              "recovered": false
+            }
+          ],
+          "width": 1,
+          "width_ok": true,
+          "feasible": true,
+          "profit": 10.0
+        },
+        "ties": [
+          [
+            1,
+            0,
+            0
+          ]
+        ],
+        "candidates": 8,
+        "width_feasible": 4,
+        "feasible_count": 4,
+        "complete": true
+      },
+      "no_substitution": {
+        "k": [
+          1,
+          0,
+          0
+        ],
+        "rows": [
+          {
+            "id": "A",
+            "k": 1,
+            "direct": 10,
+            "transfer": 0,
+            "demand": 10,
+            "stock": 10,
+            "required": 10,
+            "slack": 0,
+            "feasible": true,
+            "profit": 10,
+            "potential": 0,
+            "extra": 0,
+            "ratio": 1
+          },
+          {
+            "id": "B",
+            "k": 0,
+            "direct": 0,
+            "transfer": 0,
+            "demand": 0,
+            "stock": 0,
+            "required": 0,
+            "slack": 0,
+            "feasible": true,
+            "profit": 0,
+            "potential": 1,
+            "extra": 0,
+            "ratio": null
+          },
+          {
+            "id": "C",
+            "k": 0,
+            "direct": 0,
+            "transfer": 0,
+            "demand": 0,
+            "stock": 0,
+            "required": 0,
+            "slack": 0,
+            "feasible": true,
+            "profit": 0,
+            "potential": 0,
+            "extra": 0,
+            "ratio": null
+          }
+        ],
+        "flows": [
+          {
+            "source": "B",
+            "target": "未配分",
+            "amount": 1,
+            "recovered": false
+          },
+          {
+            "source": "C",
+            "target": "未配分",
+            "amount": 0,
+            "recovered": false
+          }
+        ],
+        "width": 1,
+        "width_ok": true,
+        "feasible": true,
+        "profit": 10
+      },
+      "reevaluated": {
+        "k": [
+          1,
+          0,
+          0
+        ],
+        "rows": [
+          {
+            "id": "A",
+            "k": 1,
+            "direct": 10,
+            "transfer": 0.0,
+            "demand": 10.0,
+            "stock": 10,
+            "required": 10.0,
+            "slack": 0.0,
+            "feasible": true,
+            "profit": 10.0,
+            "potential": 0,
+            "extra": 0,
+            "ratio": 1
+          },
+          {
+            "id": "B",
+            "k": 0,
+            "direct": 0,
+            "transfer": 0,
+            "demand": 0,
+            "stock": 0,
+            "required": 0,
+            "slack": 0,
+            "feasible": true,
+            "profit": 0,
+            "potential": 1,
+            "extra": 0,
+            "ratio": null
+          },
+          {
+            "id": "C",
+            "k": 0,
+            "direct": 0,
+            "transfer": 0,
+            "demand": 0,
+            "stock": 0,
+            "required": 0,
+            "slack": 0,
+            "feasible": true,
+            "profit": 0,
+            "potential": 0,
+            "extra": 0,
+            "ratio": null
+          }
+        ],
+        "flows": [
+          {
+            "source": "B",
+            "target": "未配分",
+            "amount": 1.0,
+            "recovered": false
+          },
+          {
+            "source": "C",
+            "target": "未配分",
+            "amount": 0.0,
+            "recovered": false
+          }
+        ],
+        "width": 1,
+        "width_ok": true,
+        "feasible": true,
+        "profit": 10.0
+      },
+      "fixed_assortment": {
+        "best": {
+          "k": [
+            1,
+            0,
+            0
+          ],
+          "rows": [
+            {
+              "id": "A",
+              "k": 1,
+              "direct": 10,
+              "transfer": 0.0,
+              "demand": 10.0,
+              "stock": 10,
+              "required": 10.0,
+              "slack": 0.0,
+              "feasible": true,
+              "profit": 10.0,
+              "potential": 0,
+              "extra": 0,
+              "ratio": 1
+            },
+            {
+              "id": "B",
+              "k": 0,
+              "direct": 0,
+              "transfer": 0,
+              "demand": 0,
+              "stock": 0,
+              "required": 0,
+              "slack": 0,
+              "feasible": true,
+              "profit": 0,
+              "potential": 1,
+              "extra": 0,
+              "ratio": null
+            },
+            {
+              "id": "C",
+              "k": 0,
+              "direct": 0,
+              "transfer": 0,
+              "demand": 0,
+              "stock": 0,
+              "required": 0,
+              "slack": 0,
+              "feasible": true,
+              "profit": 0,
+              "potential": 0,
+              "extra": 0,
+              "ratio": null
+            }
+          ],
+          "flows": [
+            {
+              "source": "B",
+              "target": "未配分",
+              "amount": 1.0,
+              "recovered": false
+            },
+            {
+              "source": "C",
+              "target": "未配分",
+              "amount": 0.0,
+              "recovered": false
+            }
+          ],
+          "width": 1,
+          "width_ok": true,
+          "feasible": true,
+          "profit": 10.0
+        },
+        "ties": [
+          [
+            1,
+            0,
+            0
+          ]
+        ],
+        "candidates": 1,
+        "width_feasible": 1,
+        "feasible_count": 1,
+        "complete": true
+      },
+      "gap": 0.0
+    }
+  },
+  "truncation_counterexample": {
+    "original": {
+      "k": [
+        1,
+        0
+      ],
+      "rows": [
+        {
+          "id": "A",
+          "k": 1,
+          "direct": 10,
+          "transfer": 0.5,
+          "demand": 10.5,
+          "stock": 10,
+          "required": 10.5,
+          "slack": -0.5,
+          "feasible": false,
+          "profit": 21.0,
+          "potential": 0,
+          "extra": 0.5,
+          "ratio": 0.9523809523809523
+        },
+        {
+          "id": "B",
+          "k": 0,
+          "direct": 0,
+          "transfer": 0,
+          "demand": 0,
+          "stock": 0,
+          "required": 0,
+          "slack": 0,
+          "feasible": true,
+          "profit": 0,
+          "potential": 1,
+          "extra": 0,
+          "ratio": null
+        }
+      ],
+      "flows": [
+        {
+          "source": "B",
+          "target": "A",
+          "amount": 0.5,
+          "recovered": true
+        },
+        {
+          "source": "B",
+          "target": "未配分",
+          "amount": 0.5,
+          "recovered": false
+        }
+      ],
+      "width": 1,
+      "width_ok": true,
+      "feasible": false,
+      "profit": 21.0
+    },
+    "clipped_demand": 10,
+    "clipped_profit": 20,
+    "hard_optimum": 1,
+    "same_problem": false
+  },
+  "fixed_mu_example": {
+    "k": [
+      0,
+      1,
+      0
+    ],
+    "rows": [
+      {
+        "id": "A",
+        "k": 0,
+        "direct": 0,
+        "transfer": 0,
+        "demand": 0,
+        "stock": 0,
+        "required": 0,
+        "slack": 0,
+        "feasible": true,
+        "profit": 0,
+        "potential": 8.0,
+        "extra": 0,
+        "ratio": null
+      },
+      {
+        "id": "B",
+        "k": 1,
+        "direct": 1,
+        "transfer": 4.0,
+        "demand": 5.0,
+        "stock": 10,
+        "required": 5.0,
+        "slack": 5.0,
+        "feasible": true,
+        "profit": 5.0,
+        "potential": 0,
+        "extra": 0,
+        "ratio": 1
+      },
+      {
+        "id": "C",
+        "k": 0,
+        "direct": 0,
+        "transfer": 0,
+        "demand": 0,
+        "stock": 0,
+        "required": 0,
+        "slack": 0,
+        "feasible": true,
+        "profit": 0,
+        "potential": 0,
+        "extra": 0,
+        "ratio": null
+      }
+    ],
+    "flows": [
+      {
+        "source": "A",
+        "target": "B",
+        "amount": 4.0,
+        "recovered": true
+      },
+      {
+        "source": "A",
+        "target": "C",
+        "amount": 2.4,
+        "recovered": false
+      },
+      {
+        "source": "A",
+        "target": "未配分",
+        "amount": 1.5999999999999996,
+        "recovered": false
+      },
+      {
+        "source": "C",
+        "target": "未配分",
+        "amount": 0.0,
+        "recovered": false
+      }
+    ],
+    "width": 1,
+    "width_ok": true,
+    "feasible": true,
+    "profit": 5.0
+  }
+}

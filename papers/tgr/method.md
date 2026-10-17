@@ -1,4 +1,4 @@
-TGRは1つのNN名ではなく、Tencentの推薦を改める3方向の枠組み。**CCFormer**は既存の順位付けを置き換え、feature-field別cross attention、長い系列のsubspace token mixing、階層圧縮を使う。出力は商品別の複数タスクのスコアだ。
+TGRは、Tencentが推薦システムを改めるための枠組みである。順位付けの改善、候補や一覧の生成、推論情報の事前計算という3方向を扱い、それぞれに異なるモデルを用いる。**CCFormer**は既存の順位付けを置き換え、feature-field別cross attention、長い系列のsubspace token mixing、階層圧縮を使う。出力は商品別の複数タスクのスコアだ。
 
 候補生成には2つの方式がある。**BARGE**は階層的semantic IDの次トークン生成を改良し、商品境界を意識したattentionと経路の再順位付けを使う。**HiGR**はPCRQ-VAEで構造化したIDを用い、Hierarchical Slate Decoderで一覧全体の粗い計画から個別商品へ進む。ORPOによるlistwise alignmentで一覧の品質を調整する。
 

@@ -1,0 +1,84 @@
+id: shelf-placement-options
+doi: 10.1177/10591478251359808
+arxiv_id: null
+submitted: '2025-07-07'
+year: 2026
+title: Joint Shelf Design and Space Planning Problem With Placement Options
+authors:
+- Sandra Zajac
+- Heinrich Kuhn
+topics:
+- retail-supply
+urls:
+  paper: https://journals.sagepub.com/doi/10.1177/10591478251359808
+  doi: https://doi.org/10.1177/10591478251359808
+  pdf: https://edoc.ku.de/id/eprint/35545/1/zajac-kuhn-2025-joint-shelf-design-and-space-planning-problem-with-placement-options.pdf
+  arxiv: null
+  official_code: null
+verdict: Worth Reading
+status: draft
+related_threads: []
+figures: []
+interactives: []
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+question: 吊るすか置くか、棚板をどこに入れるか
+summary: 置き方による需要と、取り出す隙間による配置条件を分けて比べる。同じ商品の面数を増やせるかどうかは、棚板の高さにも左右される。
+source_review:
+  checked: '2026-10-16'
+  url: https://journals.sagepub.com/doi/10.1177/10591478251359808
+  scope: 提供された原典照合仕様を基に実装。担当自身の全文・図・補足の独立再読は未完。
+core_idea:
+  author_claim: 置き方、水平・垂直の面数、区画と棚板高さを同時に扱う。全商品を最低1面配置する。
+  research_bot_interpretation: 基礎需要が高い向きでも、余白で置ける面数が減ると不利になる。面積合計が足りるだけでは、配置可能とはいえない。
+sections:
+  overview: オンライン2025年、巻号2026年の既刊論文。独自の小規模な説明用実験を扱う。
+  problem: 吊りの高い基礎需要と棚置きの積み重ねを、同じ棚で比べる。
+  method: method.md
+  why_it_might_work: 商品の寸法と余白を別に数えると、需要を生む面数と実際に配置できる面数を結び付けられる。
+  evidence: 一次資料への対応はmapping.mdに示す。16.970563や27.998542は原論文の実験値ではなく、合成例の計算結果。
+  executable_understanding: '<iframe title="吊り・棚置き・棚板の合成実験" src="../downloads/shelf-placement-options/interactive.html"
+    style="width:100%;height:1800px;border:1px solid #abc"></iframe>
+
+    <p><a href="../downloads/shelf-placement-options/interactive.html">実験を別ページで開く</a></p>'
+  results: ν=1の等号では吊り2面が入る。2商品の棚板可変案は利益27.998542、固定案は25.455844。
+  what_we_verified: 手計算値と有限候補の全比較を照合し、独立した座標検査を行った。
+  what_we_did_not_verify: 実ブラウザー、原著の大規模探索、実店舗の売上・補充効率・安全性、補足資料の詳細設定は未検証。
+  implementation: run.pyはPython標準ライブラリ。[model.js](../downloads/shelf-placement-options/model.js)と[interactive.js](../downloads/shelf-placement-options/interactive.js)を同じ場所に保存して画面を動かす。
+  mapping: mapping.md
+teaching_figures:
+- kind: equations
+  id: placement-demand
+  title: 置き方と面数から需要を計算する
+  after: method
+  locator: 式(1)〜(4)
+  rationale: 需要に入る変数と幾何条件を区別する。
+  caption: mは単位粗利、αは1面需要、aとbは横・縦の面数。
+  source: https://journals.sagepub.com/doi/10.1177/10591478251359808
+  steps:
+  - name: 需要と利益
+    formula: Dᵢ = αᵢₚ (ab)^βᵢ,  Π = Σᵢ mᵢDᵢ
+    explanation: 左右や高さの座標は需要式に入れない。
+  - name: 高さ比
+    formula: αᵢ₁ = αᵢ₀ hᵢ₁ / hᵢ₀
+    explanation: 取り出し余白を高さ比へ入れない。
+- kind: logic
+  id: height-components
+  title: 商品・余白・棚板を別々に数える
+  after: method
+  locator: 図3、式(19)〜(24)
+  rationale: 図とcheckerで支持面を一致させる。
+  caption: 棚板上面y、厚さtはy−tからyの範囲。
+  source: https://journals.sagepub.com/doi/10.1177/10591478251359808
+  rows:
+  - label: 吊り
+    nodes:
+    - title: 各段に余白
+      text: 占有高はb(h+ν)。
+  - label: 棚置き
+    nodes:
+    - title: 積み重ね
+      text: 商品内部に余白なし。上の板にはν+tを確保。
