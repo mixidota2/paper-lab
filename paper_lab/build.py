@@ -19,6 +19,8 @@ import shutil
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markdown import Markdown
 
+from paper_lab.display_labels import LABELS, display_text, explorer_view, explorer_axes
+
 from paper_lab.batch08 import widget as batch08_widget
 from paper_lab.batch28 import widget as batch28_widget
 from paper_lab.batch29 import widget as batch29_widget
@@ -69,7 +71,7 @@ def markdown_to_html(text: str) -> str:
     return md.convert(text)
 
 
-def results_to_html(results: Any) -> str:
+def results_to_html(results: Any, slug: str = "") -> str:
     if results is None:
         return ""
     chunks: list[str] = []
@@ -77,34 +79,39 @@ def results_to_html(results: Any) -> str:
     if isinstance(results, dict):
         note = results.get("note") or results.get("disclaimer")
         if note:
-            chunks.append(f'<p class="callout-body"><em>{_escape(str(note))}</em></p>')
+            chunks.append(f'<p class="callout-body"><em>{_escape(display_text(slug, note))}</em></p>')
         experiments = results.get("experiments")
         if isinstance(experiments, list) and experiments:
             for i, exp in enumerate(experiments, start=1):
                 if not isinstance(exp, dict):
                     continue
                 name = exp.get("name") or f"実験 {i}"
-                chunks.append(f"<h3>{_escape(str(name))}</h3>")
+                chunks.append(f"<h3>{_escape(display_text(slug, name))}</h3>")
                 meta_bits = []
                 for key in ("dataset", "n", "seed"):
                     if key in exp:
                         meta_bits.append(
-                            f"<li><strong>{_escape(key)}</strong>: {_escape(str(exp[key]))}</li>"
+                            f"<li><strong>{_escape({'dataset': 'データ', 'n': '対象数（単位は実験の説明を参照）', 'seed': '乱数シード'}[key])}</strong>: {_escape(str(exp[key]))}</li>"
                         )
                 if meta_bits:
                     chunks.append("<ul>" + "".join(meta_bits) + "</ul>")
                 metrics = exp.get("metrics")
                 if isinstance(metrics, dict) and metrics:
-                    chunks.append(_metrics_table(metrics))
+                    chunks.append(_metrics_table(metrics, slug))
     raw = json.dumps(results, indent=2, ensure_ascii=False)
+    terms = [(old, meaning) for old, meaning in LABELS.get(slug, {}).items() if old in raw]
+    if terms:
+        chunks.append('<details><summary>元データの用語と意味</summary><dl>' + ''.join(
+            f'<dt>{_escape(old)}</dt><dd>{_escape(meaning)}</dd>' for old, meaning in terms
+        ) + '</dl></details>')
     chunks.append(
-        "<details><summary>生の results.json</summary>"
+        "<details><summary>計算結果の元データ（results.json）</summary>"
         f'<pre><code>{_escape(raw)}</code></pre></details>'
     )
     return "\n".join(chunks)
 
 
-def _metrics_table(metrics: dict[str, Any]) -> str:
+def _metrics_table(metrics: dict[str, Any], slug: str = "") -> str:
     rows = []
     cols: list[str] = []
     for spec in metrics.values():
@@ -114,16 +121,16 @@ def _metrics_table(metrics: dict[str, Any]) -> str:
                     cols.append(str(col))
     if not cols:
         cols = ["value"]
-    head = "".join(f"<th>{_escape(c)}</th>" for c in cols)
+    head = "".join(f"<th>{_escape("値" if c == "value" else display_text(slug, c))}</th>" for c in cols)
     body = []
     for name, spec in metrics.items():
-        cells = [f"<th scope='row'>{_escape(str(name))}</th>"]
+        cells = [f"<th scope='row'>{_escape(display_text(slug, name))}</th>"]
         if isinstance(spec, dict):
             for col in cols:
                 val = spec.get(col, "")
-                cells.append(f"<td>{_escape(str(val))}</td>")
+                cells.append(f"<td>{_escape(display_text(slug, val))}</td>")
         else:
-            cells.append(f"<td colspan='{len(cols)}'>{_escape(str(spec))}</td>")
+            cells.append(f"<td colspan='{len(cols)}'>{_escape(display_text(slug, spec))}</td>")
         body.append("<tr>" + "".join(cells) + "</tr>")
     return (
         '<div class="matrix-scroll" tabindex="0" role="region" aria-label="実験結果の表"><table class="metrics"><thead><tr><th>指標</th>'
@@ -158,7 +165,7 @@ def paper_sections(lab: Lab) -> list[dict[str, Any]]:
             if not extra["author_claim_html"] and not extra["interpretation_html"] and not html:
                 html = ""
         elif key == "results":
-            html = results_to_html(lab.results)
+            html = results_to_html(lab.results, lab.id)
             leftover = lab.sections.get("results") or ""
             # Skip leftover if it is only a filename or raw JSON already rendered.
             if leftover and not leftover.strip().endswith(".json"):
@@ -249,6 +256,18 @@ def build(
     verdicts = sorted({lab.verdict for lab in labs})
     catalog = [lab.to_catalog_entry() for lab in labs]
 
+    shelf_ids = {"storewide-shelf-decomposition", "assortment-replenishment-hard-constraints", "shelf-placement-options"}
+    guide_source = root / "guides" / "shelf-decisions.md"
+    guide_count = int(guide_source.is_file() and shelf_ids <= {lab.id for lab in labs})
+    if guide_count:
+        guides_out = site / "guides"
+        guides_out.mkdir()
+        template = env.get_template("guide.html")
+        for name, title, is_index in [("index", "テーマガイド", True), ("shelf-decisions", "棚割りのどの判断を試したいか", False)]:
+            (guides_out / f"{name}.html").write_text(template.render(
+                title=title, is_index=is_index, paper_count=len(labs), guide_count=guide_count,
+                content=markdown_to_html(guide_source.read_text(encoding="utf-8"))), encoding="utf-8")
+
     index_html = env.get_template("index.html").render(
         labs=labs,
         topics=topics,
@@ -259,6 +278,7 @@ def build(
         verification_labels=VERIFICATION_LABELS,
         topic_labels=TOPIC_LABELS,
         catalog_json=json.dumps(catalog, ensure_ascii=False),
+        guide_count=guide_count,
         paper_count=len(labs),
     )
     (site / "index.html").write_text(index_html, encoding="utf-8")
@@ -271,6 +291,8 @@ def build(
             source = lab.source_dir / name
             if source.is_file():
                 shutil.copy2(source, download_dir / name)
+        if lab.id in {"storewide-shelf-decomposition", "assortment-replenishment-hard-constraints", "shelf-placement-options"}:
+            shutil.copy2(lab.source_dir / "interactive.html", download_dir / "interactive.html")
         if lab.id in {"reasoncast-agentic-demand-forecasting", "retailbench-long-horizon-store-agents"}:
             # Hash the exact copied bytes; the sidecars are excluded to avoid self-reference.
             implementation = {"status": "content-hash", "algorithm": "sha256", "runtime": "javascript",
@@ -292,6 +314,9 @@ def build(
             rendered_figures.append({**figure, "url": f"../figures/{lab.id}/{figure['path']}"})
         html = paper_template.render(
             lab=lab,
+            shelf_guide=bool(guide_count and lab.id in shelf_ids),
+            explorer_axes=explorer_axes(lab.id),
+            explorer_display=explorer_view(lab.id, (lab.results or {}).get("explorer")),
             sections=paper_sections(lab),
             verification_keys=VERIFICATION_KEYS,
             verification_labels=VERIFICATION_LABELS,

@@ -1,6 +1,6 @@
 # Once Generated, Ranked: End-to-End Generative Slate Recommendation with Unified Semantic-Collaborative IDs
 
-OGRは表示するslate全体を順序付きで生成する。TUSIDで意味と共起をSIDへ統合し、GL2Pが位置間の好みを計画、SPAがslate単位の反応へ合わせる。Kuaishouの3%トラフィックで有効視聴+1.120%。ただし約2.2倍は依存経路の理論比であり、本番遅延の測定値ではない。
+OGRは表示するslate全体を順序付きで生成する。TUSIDは、動画の意味的な特徴と、ユーザーの履歴上で他の動画と一緒に現れる傾向を統合してIDを作る。GL2Pは、表示位置どうしの関係を考慮して並びを計画する。SPAは、表示する動画の組全体（slate）への反応に合わせて生成モデルを調整する。Kuaishouの3%トラフィックで有効視聴+1.120%。ただし約2.2倍は依存経路の理論比であり、本番遅延の測定値ではない。
 
 ## 読み方
 

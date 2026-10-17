@@ -27,7 +27,7 @@ urls:
 verdict: Watch
 status: published
 question: STATIC：業務制約のtrieを、アクセラレータで読める配列へ変える
-summary: STATICは許可されたSID集合のtrieをdense tableとCSRへ変換する。YouTubeのTPU v6e実験で制約処理0.033ms/step、3Bモデル推論の約0.25%。有効SIDを出すだけでなく「直近7日」の集合へ生成を限定できる点が主題だ。
+summary: STATICは、許可したID列（SID）を先頭部分ごとにまとめた木（trie）を、アクセラレータが読み取りやすい配列へ変換する。先頭側には密な表（dense table）を使い、その先はゼロ以外の要素を行ごとに保存する形式（CSR）で持つ。YouTubeのTPU v6e実験で制約処理0.033ms/step、3Bモデル推論の約0.25%。有効SIDを出すだけでなく「直近7日」の集合へ生成を限定できる点が主題だ。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -75,7 +75,7 @@ sections:
 
 
     [一次資料：版を固定したPDF](https://arxiv.org/pdf/2602.22647v2)。図表の箇所とSHA-256は末尾の対応表を参照。'
-  overview: STATICは許可されたSID集合のtrieをdense tableとCSRへ変換する。YouTubeのTPU v6e実験で制約処理0.033ms/step、3Bモデル推論の約0.25%。有効SIDを出すだけでなく「直近7日」の集合へ生成を限定できる点が主題だ。
+  overview: STATICは、許可したID列（SID）を先頭部分ごとにまとめた木（trie）を、アクセラレータが読み取りやすい配列へ変換する。先頭側には密な表（dense table）を使い、その先はゼロ以外の要素を行ごとに保存する形式（CSR）で持つ。YouTubeのTPU v6e実験で制約処理0.033ms/step、3Bモデル推論の約0.25%。有効SIDを出すだけでなく「直近7日」の集合へ生成を限定できる点が主題だ。
   why_it_might_work: '【解釈】prefixを整数stateにし、連続した配列から子をまとめて読むと、CPUへのcallbackと不規則なpointer移動を避けられる。初期の密な層はdense lookup、深い疎な層はCSRに分けるため、全SID空間の巨大なmaskを保持する必要もない。
 
 

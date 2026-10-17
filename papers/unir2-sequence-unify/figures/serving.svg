@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 524" role="img" aria-labelledby="title"><title id="title">KVを再利用し、待ちを重ねる</title><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#586c78"/></marker></defs><rect width="560" height="524" fill="#f7faf9"/><style>text{font-family:system-ui,sans-serif;fill:#183640;font-size:19px}.small{font-size:16px}.head{font-size:23px;font-weight:700}</style>
-<text x="24" y="35" class="head">KVを再利用し、待ちを重ねる</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 524" role="img" aria-labelledby="title"><title id="title">KVを再利用し、条件確認と順位付けを並行する</title><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#586c78"/></marker></defs><rect width="560" height="524" fill="#f7faf9"/><style>text{font-family:system-ui,sans-serif;fill:#183640;font-size:19px}.small{font-size:16px}.head{font-size:23px;font-weight:700}</style>
+<text x="24" y="35" class="head">KVを再利用し、条件確認と順位付けを並行する</text>
 <rect x="24" y="66" width="512" height="88" rx="10" fill="#e2efea" stroke="#a6bdb5"/>
 <text x="38" y="93" class="">GPU：ユーザーprefix → SID生成</text>
 <text x="38" y="120" class="">層別KVをcache：prefix ＋ 候補別軌跡</text>

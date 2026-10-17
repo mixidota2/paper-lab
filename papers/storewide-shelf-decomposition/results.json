@@ -1,0 +1,2136 @@
+{
+  "model_version": "shelf-decomposition-2",
+  "lab_kind": "storewide-shelf-decomposition",
+  "note": "全て合成値。原論文の計算表・実店舗の効果は再現していない。",
+  "inputs": [
+    {
+      "id": "A1",
+      "category": "A",
+      "brand": "A赤",
+      "q": 12,
+      "p": 4,
+      "w": 1,
+      "d": 4
+    },
+    {
+      "id": "A2",
+      "category": "A",
+      "brand": "A赤",
+      "q": 8,
+      "p": 6,
+      "w": 1,
+      "d": 2
+    },
+    {
+      "id": "A3",
+      "category": "A",
+      "brand": "A青",
+      "q": 4,
+      "p": 3,
+      "w": 1,
+      "d": 6
+    },
+    {
+      "id": "B1",
+      "category": "B",
+      "brand": "B赤",
+      "q": 10,
+      "p": 5,
+      "w": 1,
+      "d": 3
+    },
+    {
+      "id": "B2",
+      "category": "B",
+      "brand": "B青",
+      "q": 6,
+      "p": 4,
+      "w": 1,
+      "d": 6
+    },
+    {
+      "id": "B3",
+      "category": "B",
+      "brand": "B青",
+      "q": 3,
+      "p": 8,
+      "w": 1,
+      "d": 2
+    }
+  ],
+  "defaults": {
+    "capacity": 5,
+    "s": 0.4,
+    "beta": 0.25,
+    "r": 4,
+    "c": 2,
+    "e": 0.5,
+    "brands": 1
+  },
+  "capacity_candidates": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "cases": [
+    {
+      "name": "default",
+      "parameters": {
+        "capacity": 5,
+        "s": 0.4,
+        "beta": 0.25,
+        "r": 4,
+        "c": 2,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 150.78059291689343,
+        "faces": [
+          1,
+          2,
+          0,
+          2,
+          0,
+          0
+        ],
+        "allocation": [
+          3,
+          2
+        ],
+        "categories": [
+          {
+            "faces": [
+              1,
+              2,
+              0
+            ],
+            "used": 3,
+            "profit": 85.64828460010885,
+            "unmet_base": 4,
+            "lost": 2.4,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 1,
+                "direct": 12.0,
+                "transfer": 0.9600000000000002,
+                "demand": 12.96,
+                "gross": 51.84,
+                "replenishment": 12.96,
+                "fixed": 2
+              },
+              {
+                "id": "A2",
+                "faces": 2,
+                "direct": 9.513656920021768,
+                "transfer": 0.64,
+                "demand": 10.153656920021769,
+                "gross": 60.921941520130616,
+                "replenishment": 10.153656920021769,
+                "fixed": 2
+              }
+            ]
+          },
+          {
+            "faces": [
+              2,
+              0,
+              0
+            ],
+            "used": 2,
+            "profit": 65.13230831678457,
+            "unmet_base": 9,
+            "lost": 5.3999999999999995,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 2,
+                "direct": 11.89207115002721,
+                "transfer": 3.6,
+                "demand": 15.49207115002721,
+                "gross": 77.46035575013605,
+                "replenishment": 10.328047433351474,
+                "fixed": 2
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            1,
+            2,
+            0,
+            2,
+            0,
+            0
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "degenerate_ties",
+      "parameters": {
+        "capacity": 8,
+        "s": 0,
+        "beta": 0,
+        "r": 0,
+        "c": 0,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 206.0,
+        "faces": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "allocation": [
+          3,
+          3
+        ],
+        "categories": [
+          {
+            "faces": [
+              1,
+              1,
+              1
+            ],
+            "used": 3,
+            "profit": 108.0,
+            "unmet_base": 0,
+            "lost": 0,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 1,
+                "direct": 12,
+                "transfer": 0.0,
+                "demand": 12.0,
+                "gross": 48.0,
+                "replenishment": 0.0,
+                "fixed": 0
+              },
+              {
+                "id": "A2",
+                "faces": 1,
+                "direct": 8,
+                "transfer": 0.0,
+                "demand": 8.0,
+                "gross": 48.0,
+                "replenishment": 0.0,
+                "fixed": 0
+              },
+              {
+                "id": "A3",
+                "faces": 1,
+                "direct": 4,
+                "transfer": 0.0,
+                "demand": 4.0,
+                "gross": 12.0,
+                "replenishment": 0.0,
+                "fixed": 0
+              }
+            ]
+          },
+          {
+            "faces": [
+              1,
+              1,
+              1
+            ],
+            "used": 3,
+            "profit": 98.0,
+            "unmet_base": 0,
+            "lost": 0,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 1,
+                "direct": 10,
+                "transfer": 0.0,
+                "demand": 10.0,
+                "gross": 50.0,
+                "replenishment": 0.0,
+                "fixed": 0
+              },
+              {
+                "id": "B2",
+                "faces": 1,
+                "direct": 6,
+                "transfer": 0.0,
+                "demand": 6.0,
+                "gross": 24.0,
+                "replenishment": 0.0,
+                "fixed": 0
+              },
+              {
+                "id": "B3",
+                "faces": 1,
+                "direct": 3,
+                "transfer": 0.0,
+                "demand": 3.0,
+                "gross": 24.0,
+                "replenishment": 0.0,
+                "fixed": 0
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            1,
+            2
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            2,
+            1
+          ],
+          [
+            1,
+            1,
+            1,
+            2,
+            1,
+            1
+          ],
+          [
+            1,
+            1,
+            2,
+            1,
+            1,
+            1
+          ],
+          [
+            1,
+            1,
+            2,
+            1,
+            1,
+            2
+          ],
+          [
+            1,
+            1,
+            2,
+            1,
+            2,
+            1
+          ],
+          [
+            1,
+            1,
+            2,
+            2,
+            1,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            1,
+            1,
+            2
+          ],
+          [
+            1,
+            2,
+            1,
+            1,
+            2,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            2,
+            1,
+            1
+          ],
+          [
+            2,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            2,
+            1,
+            1,
+            1,
+            1,
+            2
+          ],
+          [
+            2,
+            1,
+            1,
+            1,
+            2,
+            1
+          ],
+          [
+            2,
+            1,
+            1,
+            2,
+            1,
+            1
+          ]
+        ],
+        "optimal_face_count": 16
+      }
+    },
+    {
+      "name": "capacity=2",
+      "parameters": {
+        "capacity": 2,
+        "s": 0.4,
+        "beta": 0.25,
+        "r": 4,
+        "c": 2,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 96.26666666666668,
+        "faces": [
+          1,
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        "allocation": [
+          1,
+          1
+        ],
+        "categories": [
+          {
+            "faces": [
+              1,
+              0,
+              0
+            ],
+            "used": 1,
+            "profit": 48.400000000000006,
+            "unmet_base": 12,
+            "lost": 7.199999999999999,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 1,
+                "direct": 12.0,
+                "transfer": 4.800000000000001,
+                "demand": 16.8,
+                "gross": 67.2,
+                "replenishment": 16.8,
+                "fixed": 2
+              }
+            ]
+          },
+          {
+            "faces": [
+              1,
+              0,
+              0
+            ],
+            "used": 1,
+            "profit": 47.86666666666667,
+            "unmet_base": 9,
+            "lost": 5.3999999999999995,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 1,
+                "direct": 10.0,
+                "transfer": 3.6,
+                "demand": 13.6,
+                "gross": 68.0,
+                "replenishment": 18.133333333333333,
+                "fixed": 2
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            1,
+            0,
+            0,
+            1,
+            0,
+            0
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "capacity=3",
+      "parameters": {
+        "capacity": 3,
+        "s": 0.4,
+        "beta": 0.25,
+        "r": 4,
+        "c": 2,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 117.30666666666667,
+        "faces": [
+          1,
+          1,
+          0,
+          1,
+          0,
+          0
+        ],
+        "allocation": [
+          2,
+          1
+        ],
+        "categories": [
+          {
+            "faces": [
+              1,
+              1,
+              0
+            ],
+            "used": 2,
+            "profit": 69.44,
+            "unmet_base": 4,
+            "lost": 2.4,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 1,
+                "direct": 12.0,
+                "transfer": 0.9600000000000002,
+                "demand": 12.96,
+                "gross": 51.84,
+                "replenishment": 12.96,
+                "fixed": 2
+              },
+              {
+                "id": "A2",
+                "faces": 1,
+                "direct": 8.0,
+                "transfer": 0.64,
+                "demand": 8.64,
+                "gross": 51.84,
+                "replenishment": 17.28,
+                "fixed": 2
+              }
+            ]
+          },
+          {
+            "faces": [
+              1,
+              0,
+              0
+            ],
+            "used": 1,
+            "profit": 47.86666666666667,
+            "unmet_base": 9,
+            "lost": 5.3999999999999995,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 1,
+                "direct": 10.0,
+                "transfer": 3.6,
+                "demand": 13.6,
+                "gross": 68.0,
+                "replenishment": 18.133333333333333,
+                "fixed": 2
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            1,
+            1,
+            0,
+            1,
+            0,
+            0
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "capacity=4",
+      "parameters": {
+        "capacity": 4,
+        "s": 0.4,
+        "beta": 0.25,
+        "r": 4,
+        "c": 2,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 134.57230831678459,
+        "faces": [
+          1,
+          1,
+          0,
+          2,
+          0,
+          0
+        ],
+        "allocation": [
+          2,
+          2
+        ],
+        "categories": [
+          {
+            "faces": [
+              1,
+              1,
+              0
+            ],
+            "used": 2,
+            "profit": 69.44,
+            "unmet_base": 4,
+            "lost": 2.4,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 1,
+                "direct": 12.0,
+                "transfer": 0.9600000000000002,
+                "demand": 12.96,
+                "gross": 51.84,
+                "replenishment": 12.96,
+                "fixed": 2
+              },
+              {
+                "id": "A2",
+                "faces": 1,
+                "direct": 8.0,
+                "transfer": 0.64,
+                "demand": 8.64,
+                "gross": 51.84,
+                "replenishment": 17.28,
+                "fixed": 2
+              }
+            ]
+          },
+          {
+            "faces": [
+              2,
+              0,
+              0
+            ],
+            "used": 2,
+            "profit": 65.13230831678457,
+            "unmet_base": 9,
+            "lost": 5.3999999999999995,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 2,
+                "direct": 11.89207115002721,
+                "transfer": 3.6,
+                "demand": 15.49207115002721,
+                "gross": 77.46035575013605,
+                "replenishment": 10.328047433351474,
+                "fixed": 2
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            1,
+            1,
+            0,
+            2,
+            0,
+            0
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "capacity=5",
+      "parameters": {
+        "capacity": 5,
+        "s": 0.4,
+        "beta": 0.25,
+        "r": 4,
+        "c": 2,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 150.78059291689343,
+        "faces": [
+          1,
+          2,
+          0,
+          2,
+          0,
+          0
+        ],
+        "allocation": [
+          3,
+          2
+        ],
+        "categories": [
+          {
+            "faces": [
+              1,
+              2,
+              0
+            ],
+            "used": 3,
+            "profit": 85.64828460010885,
+            "unmet_base": 4,
+            "lost": 2.4,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 1,
+                "direct": 12.0,
+                "transfer": 0.9600000000000002,
+                "demand": 12.96,
+                "gross": 51.84,
+                "replenishment": 12.96,
+                "fixed": 2
+              },
+              {
+                "id": "A2",
+                "faces": 2,
+                "direct": 9.513656920021768,
+                "transfer": 0.64,
+                "demand": 10.153656920021769,
+                "gross": 60.921941520130616,
+                "replenishment": 10.153656920021769,
+                "fixed": 2
+              }
+            ]
+          },
+          {
+            "faces": [
+              2,
+              0,
+              0
+            ],
+            "used": 2,
+            "profit": 65.13230831678457,
+            "unmet_base": 9,
+            "lost": 5.3999999999999995,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 2,
+                "direct": 11.89207115002721,
+                "transfer": 3.6,
+                "demand": 15.49207115002721,
+                "gross": 77.46035575013605,
+                "replenishment": 10.328047433351474,
+                "fixed": 2
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            1,
+            2,
+            0,
+            2,
+            0,
+            0
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "capacity=6",
+      "parameters": {
+        "capacity": 6,
+        "s": 0.4,
+        "beta": 0.25,
+        "r": 4,
+        "c": 2,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 165.20729174700773,
+        "faces": [
+          2,
+          2,
+          0,
+          2,
+          0,
+          0
+        ],
+        "allocation": [
+          4,
+          2
+        ],
+        "categories": [
+          {
+            "faces": [
+              2,
+              2,
+              0
+            ],
+            "used": 4,
+            "profit": 100.07498343022314,
+            "unmet_base": 4,
+            "lost": 2.4,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 2,
+                "direct": 14.270485380032653,
+                "transfer": 0.9600000000000002,
+                "demand": 15.230485380032654,
+                "gross": 60.921941520130616,
+                "replenishment": 7.615242690016327,
+                "fixed": 2
+              },
+              {
+                "id": "A2",
+                "faces": 2,
+                "direct": 9.513656920021768,
+                "transfer": 0.64,
+                "demand": 10.153656920021769,
+                "gross": 60.921941520130616,
+                "replenishment": 10.153656920021769,
+                "fixed": 2
+              }
+            ]
+          },
+          {
+            "faces": [
+              2,
+              0,
+              0
+            ],
+            "used": 2,
+            "profit": 65.13230831678457,
+            "unmet_base": 9,
+            "lost": 5.3999999999999995,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 2,
+                "direct": 11.89207115002721,
+                "transfer": 3.6,
+                "demand": 15.49207115002721,
+                "gross": 77.46035575013605,
+                "replenishment": 10.328047433351474,
+                "fixed": 2
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            2,
+            2,
+            0,
+            2,
+            0,
+            0
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "capacity=7",
+      "parameters": {
+        "capacity": 7,
+        "s": 0.4,
+        "beta": 0.25,
+        "r": 4,
+        "c": 2,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 176.93036867008465,
+        "faces": [
+          2,
+          2,
+          0,
+          2,
+          0,
+          1
+        ],
+        "allocation": [
+          4,
+          3
+        ],
+        "categories": [
+          {
+            "faces": [
+              2,
+              2,
+              0
+            ],
+            "used": 4,
+            "profit": 100.07498343022314,
+            "unmet_base": 4,
+            "lost": 2.4,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 2,
+                "direct": 14.270485380032653,
+                "transfer": 0.9600000000000002,
+                "demand": 15.230485380032654,
+                "gross": 60.921941520130616,
+                "replenishment": 7.615242690016327,
+                "fixed": 2
+              },
+              {
+                "id": "A2",
+                "faces": 2,
+                "direct": 9.513656920021768,
+                "transfer": 0.64,
+                "demand": 10.153656920021769,
+                "gross": 60.921941520130616,
+                "replenishment": 10.153656920021769,
+                "fixed": 2
+              }
+            ]
+          },
+          {
+            "faces": [
+              2,
+              0,
+              1
+            ],
+            "used": 3,
+            "profit": 76.8553852398615,
+            "unmet_base": 6,
+            "lost": 3.5999999999999996,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 2,
+                "direct": 11.89207115002721,
+                "transfer": 1.8461538461538463,
+                "demand": 13.738224996181057,
+                "gross": 68.69112498090529,
+                "replenishment": 9.158816664120705,
+                "fixed": 2
+              },
+              {
+                "id": "B3",
+                "faces": 1,
+                "direct": 3.0,
+                "transfer": 0.5538461538461539,
+                "demand": 3.5538461538461537,
+                "gross": 28.43076923076923,
+                "replenishment": 7.107692307692307,
+                "fixed": 2
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            2,
+            2,
+            0,
+            2,
+            0,
+            1
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "capacity=8",
+      "parameters": {
+        "capacity": 8,
+        "s": 0.4,
+        "beta": 0.25,
+        "r": 4,
+        "c": 2,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 184.45756423898794,
+        "faces": [
+          2,
+          2,
+          0,
+          2,
+          0,
+          2
+        ],
+        "allocation": [
+          4,
+          4
+        ],
+        "categories": [
+          {
+            "faces": [
+              2,
+              2,
+              0
+            ],
+            "used": 4,
+            "profit": 100.07498343022314,
+            "unmet_base": 4,
+            "lost": 2.4,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 2,
+                "direct": 14.270485380032653,
+                "transfer": 0.9600000000000002,
+                "demand": 15.230485380032654,
+                "gross": 60.921941520130616,
+                "replenishment": 7.615242690016327,
+                "fixed": 2
+              },
+              {
+                "id": "A2",
+                "faces": 2,
+                "direct": 9.513656920021768,
+                "transfer": 0.64,
+                "demand": 10.153656920021769,
+                "gross": 60.921941520130616,
+                "replenishment": 10.153656920021769,
+                "fixed": 2
+              }
+            ]
+          },
+          {
+            "faces": [
+              2,
+              0,
+              2
+            ],
+            "used": 4,
+            "profit": 84.3825808087648,
+            "unmet_base": 6,
+            "lost": 3.5999999999999996,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 2,
+                "direct": 11.89207115002721,
+                "transfer": 1.8461538461538463,
+                "demand": 13.738224996181057,
+                "gross": 68.69112498090529,
+                "replenishment": 9.158816664120705,
+                "fixed": 2
+              },
+              {
+                "id": "B3",
+                "faces": 2,
+                "direct": 3.5676213450081633,
+                "transfer": 0.5538461538461539,
+                "demand": 4.121467498854317,
+                "gross": 32.971739990834536,
+                "replenishment": 4.121467498854317,
+                "fixed": 2
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            2,
+            2,
+            0,
+            2,
+            0,
+            2
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "s=0",
+      "parameters": {
+        "capacity": 5,
+        "s": 0,
+        "beta": 0.25,
+        "r": 4,
+        "c": 2,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 132.66666666666666,
+        "faces": [
+          1,
+          1,
+          0,
+          1,
+          1,
+          1
+        ],
+        "allocation": [
+          2,
+          3
+        ],
+        "categories": [
+          {
+            "faces": [
+              1,
+              1,
+              0
+            ],
+            "used": 2,
+            "profit": 64.0,
+            "unmet_base": 4,
+            "lost": 4,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 1,
+                "direct": 12.0,
+                "transfer": 0.0,
+                "demand": 12.0,
+                "gross": 48.0,
+                "replenishment": 12.0,
+                "fixed": 2
+              },
+              {
+                "id": "A2",
+                "faces": 1,
+                "direct": 8.0,
+                "transfer": 0.0,
+                "demand": 8.0,
+                "gross": 48.0,
+                "replenishment": 16.0,
+                "fixed": 2
+              }
+            ]
+          },
+          {
+            "faces": [
+              1,
+              1,
+              1
+            ],
+            "used": 3,
+            "profit": 68.66666666666666,
+            "unmet_base": 0,
+            "lost": 0,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 1,
+                "direct": 10.0,
+                "transfer": 0.0,
+                "demand": 10.0,
+                "gross": 50.0,
+                "replenishment": 13.333333333333334,
+                "fixed": 2
+              },
+              {
+                "id": "B2",
+                "faces": 1,
+                "direct": 6.0,
+                "transfer": 0.0,
+                "demand": 6.0,
+                "gross": 24.0,
+                "replenishment": 4.0,
+                "fixed": 2
+              },
+              {
+                "id": "B3",
+                "faces": 1,
+                "direct": 3.0,
+                "transfer": 0.0,
+                "demand": 3.0,
+                "gross": 24.0,
+                "replenishment": 6.0,
+                "fixed": 2
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            1,
+            1,
+            0,
+            1,
+            1,
+            1
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "s=1",
+      "parameters": {
+        "capacity": 5,
+        "s": 1,
+        "beta": 0.25,
+        "r": 4,
+        "c": 2,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 190.76725958356008,
+        "faces": [
+          0,
+          2,
+          1,
+          2,
+          0,
+          0
+        ],
+        "allocation": [
+          3,
+          2
+        ],
+        "categories": [
+          {
+            "faces": [
+              0,
+              2,
+              1
+            ],
+            "used": 3,
+            "profit": 102.2349512667755,
+            "unmet_base": 12,
+            "lost": 0,
+            "rows": [
+              {
+                "id": "A2",
+                "faces": 2,
+                "direct": 9.513656920021768,
+                "transfer": 8.0,
+                "demand": 17.513656920021766,
+                "gross": 105.0819415201306,
+                "replenishment": 17.513656920021766,
+                "fixed": 2
+              },
+              {
+                "id": "A3",
+                "faces": 1,
+                "direct": 4.0,
+                "transfer": 4.0,
+                "demand": 8.0,
+                "gross": 24.0,
+                "replenishment": 5.333333333333333,
+                "fixed": 2
+              }
+            ]
+          },
+          {
+            "faces": [
+              2,
+              0,
+              0
+            ],
+            "used": 2,
+            "profit": 88.53230831678457,
+            "unmet_base": 9,
+            "lost": 0,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 2,
+                "direct": 11.89207115002721,
+                "transfer": 9.0,
+                "demand": 20.89207115002721,
+                "gross": 104.46035575013605,
+                "replenishment": 13.928047433351473,
+                "fixed": 2
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            0,
+            2,
+            1,
+            2,
+            0,
+            0
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "beta=0",
+      "parameters": {
+        "capacity": 5,
+        "s": 0.4,
+        "beta": 0,
+        "r": 4,
+        "c": 2,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 138.83897435897438,
+        "faces": [
+          1,
+          2,
+          0,
+          1,
+          0,
+          1
+        ],
+        "allocation": [
+          3,
+          2
+        ],
+        "categories": [
+          {
+            "faces": [
+              1,
+              2,
+              0
+            ],
+            "used": 3,
+            "profit": 78.08000000000001,
+            "unmet_base": 4,
+            "lost": 2.4,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 1,
+                "direct": 12,
+                "transfer": 0.9600000000000002,
+                "demand": 12.96,
+                "gross": 51.84,
+                "replenishment": 12.96,
+                "fixed": 2
+              },
+              {
+                "id": "A2",
+                "faces": 2,
+                "direct": 8,
+                "transfer": 0.64,
+                "demand": 8.64,
+                "gross": 51.84,
+                "replenishment": 8.64,
+                "fixed": 2
+              }
+            ]
+          },
+          {
+            "faces": [
+              1,
+              0,
+              1
+            ],
+            "used": 2,
+            "profit": 60.758974358974356,
+            "unmet_base": 6,
+            "lost": 3.5999999999999996,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 1,
+                "direct": 10,
+                "transfer": 1.8461538461538463,
+                "demand": 11.846153846153847,
+                "gross": 59.23076923076923,
+                "replenishment": 15.794871794871796,
+                "fixed": 2
+              },
+              {
+                "id": "B3",
+                "faces": 1,
+                "direct": 3,
+                "transfer": 0.5538461538461539,
+                "demand": 3.5538461538461537,
+                "gross": 28.43076923076923,
+                "replenishment": 7.107692307692307,
+                "fixed": 2
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            1,
+            2,
+            0,
+            1,
+            0,
+            1
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "beta=1",
+      "parameters": {
+        "capacity": 5,
+        "s": 0.4,
+        "beta": 1,
+        "r": 4,
+        "c": 2,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 218.3466666666667,
+        "faces": [
+          1,
+          2,
+          0,
+          2,
+          0,
+          0
+        ],
+        "allocation": [
+          3,
+          2
+        ],
+        "categories": [
+          {
+            "faces": [
+              1,
+              2,
+              0
+            ],
+            "used": 3,
+            "profit": 118.08000000000001,
+            "unmet_base": 4,
+            "lost": 2.4,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 1,
+                "direct": 12,
+                "transfer": 0.9600000000000002,
+                "demand": 12.96,
+                "gross": 51.84,
+                "replenishment": 12.96,
+                "fixed": 2
+              },
+              {
+                "id": "A2",
+                "faces": 2,
+                "direct": 16,
+                "transfer": 0.64,
+                "demand": 16.64,
+                "gross": 99.84,
+                "replenishment": 16.64,
+                "fixed": 2
+              }
+            ]
+          },
+          {
+            "faces": [
+              2,
+              0,
+              0
+            ],
+            "used": 2,
+            "profit": 100.26666666666667,
+            "unmet_base": 9,
+            "lost": 5.3999999999999995,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 2,
+                "direct": 20,
+                "transfer": 3.6,
+                "demand": 23.6,
+                "gross": 118.0,
+                "replenishment": 15.733333333333334,
+                "fixed": 2
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            1,
+            2,
+            0,
+            2,
+            0,
+            0
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "r=0",
+      "parameters": {
+        "capacity": 5,
+        "s": 0.4,
+        "beta": 0.25,
+        "r": 0,
+        "c": 2,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 192.80189421167452,
+        "faces": [
+          1,
+          1,
+          0,
+          2,
+          0,
+          1
+        ],
+        "allocation": [
+          2,
+          3
+        ],
+        "categories": [
+          {
+            "faces": [
+              1,
+              1,
+              0
+            ],
+            "used": 2,
+            "profit": 99.68,
+            "unmet_base": 4,
+            "lost": 2.4,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 1,
+                "direct": 12.0,
+                "transfer": 0.9600000000000002,
+                "demand": 12.96,
+                "gross": 51.84,
+                "replenishment": 0.0,
+                "fixed": 2
+              },
+              {
+                "id": "A2",
+                "faces": 1,
+                "direct": 8.0,
+                "transfer": 0.64,
+                "demand": 8.64,
+                "gross": 51.84,
+                "replenishment": 0.0,
+                "fixed": 2
+              }
+            ]
+          },
+          {
+            "faces": [
+              2,
+              0,
+              1
+            ],
+            "used": 3,
+            "profit": 93.12189421167452,
+            "unmet_base": 6,
+            "lost": 3.5999999999999996,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 2,
+                "direct": 11.89207115002721,
+                "transfer": 1.8461538461538463,
+                "demand": 13.738224996181057,
+                "gross": 68.69112498090529,
+                "replenishment": 0.0,
+                "fixed": 2
+              },
+              {
+                "id": "B3",
+                "faces": 1,
+                "direct": 3.0,
+                "transfer": 0.5538461538461539,
+                "demand": 3.5538461538461537,
+                "gross": 28.43076923076923,
+                "replenishment": 0.0,
+                "fixed": 2
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            1,
+            1,
+            0,
+            2,
+            0,
+            1
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "r=12",
+      "parameters": {
+        "capacity": 5,
+        "s": 0.4,
+        "beta": 0.25,
+        "r": 12,
+        "c": 2,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 92.50242690016324,
+        "faces": [
+          2,
+          0,
+          0,
+          2,
+          1,
+          0
+        ],
+        "allocation": [
+          2,
+          3
+        ],
+        "categories": [
+          {
+            "faces": [
+              2,
+              0,
+              0
+            ],
+            "used": 2,
+            "profit": 45.67621345008163,
+            "unmet_base": 12,
+            "lost": 7.199999999999999,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 2,
+                "direct": 14.270485380032653,
+                "transfer": 4.800000000000001,
+                "demand": 19.070485380032654,
+                "gross": 76.28194152013062,
+                "replenishment": 28.605728070048983,
+                "fixed": 2
+              }
+            ]
+          },
+          {
+            "faces": [
+              2,
+              1,
+              0
+            ],
+            "used": 3,
+            "profit": 46.82621345008162,
+            "unmet_base": 3,
+            "lost": 1.7999999999999998,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 2,
+                "direct": 11.89207115002721,
+                "transfer": 0.75,
+                "demand": 12.64207115002721,
+                "gross": 63.210355750136046,
+                "replenishment": 25.284142300054423,
+                "fixed": 2
+              },
+              {
+                "id": "B2",
+                "faces": 1,
+                "direct": 6.0,
+                "transfer": 0.45000000000000007,
+                "demand": 6.45,
+                "gross": 25.8,
+                "replenishment": 12.9,
+                "fixed": 2
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            2,
+            0,
+            0,
+            2,
+            1,
+            0
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "c=0",
+      "parameters": {
+        "capacity": 5,
+        "s": 0.4,
+        "beta": 0.25,
+        "r": 4,
+        "c": 0,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 156.78059291689343,
+        "faces": [
+          1,
+          2,
+          0,
+          2,
+          0,
+          0
+        ],
+        "allocation": [
+          3,
+          2
+        ],
+        "categories": [
+          {
+            "faces": [
+              1,
+              2,
+              0
+            ],
+            "used": 3,
+            "profit": 89.64828460010885,
+            "unmet_base": 4,
+            "lost": 2.4,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 1,
+                "direct": 12.0,
+                "transfer": 0.9600000000000002,
+                "demand": 12.96,
+                "gross": 51.84,
+                "replenishment": 12.96,
+                "fixed": 0
+              },
+              {
+                "id": "A2",
+                "faces": 2,
+                "direct": 9.513656920021768,
+                "transfer": 0.64,
+                "demand": 10.153656920021769,
+                "gross": 60.921941520130616,
+                "replenishment": 10.153656920021769,
+                "fixed": 0
+              }
+            ]
+          },
+          {
+            "faces": [
+              2,
+              0,
+              0
+            ],
+            "used": 2,
+            "profit": 67.13230831678457,
+            "unmet_base": 9,
+            "lost": 5.3999999999999995,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 2,
+                "direct": 11.89207115002721,
+                "transfer": 3.6,
+                "demand": 15.49207115002721,
+                "gross": 77.46035575013605,
+                "replenishment": 10.328047433351474,
+                "fixed": 0
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            1,
+            2,
+            0,
+            2,
+            0,
+            0
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "c=10",
+      "parameters": {
+        "capacity": 5,
+        "s": 0.4,
+        "beta": 0.25,
+        "r": 4,
+        "c": 10,
+        "e": 0.5,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 126.78059291689343,
+        "faces": [
+          1,
+          2,
+          0,
+          2,
+          0,
+          0
+        ],
+        "allocation": [
+          3,
+          2
+        ],
+        "categories": [
+          {
+            "faces": [
+              1,
+              2,
+              0
+            ],
+            "used": 3,
+            "profit": 69.64828460010885,
+            "unmet_base": 4,
+            "lost": 2.4,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 1,
+                "direct": 12.0,
+                "transfer": 0.9600000000000002,
+                "demand": 12.96,
+                "gross": 51.84,
+                "replenishment": 12.96,
+                "fixed": 10
+              },
+              {
+                "id": "A2",
+                "faces": 2,
+                "direct": 9.513656920021768,
+                "transfer": 0.64,
+                "demand": 10.153656920021769,
+                "gross": 60.921941520130616,
+                "replenishment": 10.153656920021769,
+                "fixed": 10
+              }
+            ]
+          },
+          {
+            "faces": [
+              2,
+              0,
+              0
+            ],
+            "used": 2,
+            "profit": 57.132308316784574,
+            "unmet_base": 9,
+            "lost": 5.3999999999999995,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 2,
+                "direct": 11.89207115002721,
+                "transfer": 3.6,
+                "demand": 15.49207115002721,
+                "gross": 77.46035575013605,
+                "replenishment": 10.328047433351474,
+                "fixed": 10
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            1,
+            2,
+            0,
+            2,
+            0,
+            0
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "e=0",
+      "parameters": {
+        "capacity": 5,
+        "s": 0.4,
+        "beta": 0.25,
+        "r": 4,
+        "c": 2,
+        "e": 0,
+        "brands": 1
+      },
+      "oracle": {
+        "profit": 154.47498343022315,
+        "faces": [
+          2,
+          2,
+          0,
+          0,
+          0,
+          1
+        ],
+        "allocation": [
+          4,
+          1
+        ],
+        "categories": [
+          {
+            "faces": [
+              2,
+              2,
+              0
+            ],
+            "used": 4,
+            "profit": 100.07498343022314,
+            "unmet_base": 4,
+            "lost": 2.4,
+            "rows": [
+              {
+                "id": "A1",
+                "faces": 2,
+                "direct": 14.270485380032653,
+                "transfer": 0.9600000000000002,
+                "demand": 15.230485380032654,
+                "gross": 60.921941520130616,
+                "replenishment": 7.615242690016327,
+                "fixed": 2
+              },
+              {
+                "id": "A2",
+                "faces": 2,
+                "direct": 9.513656920021768,
+                "transfer": 0.64,
+                "demand": 10.153656920021769,
+                "gross": 60.921941520130616,
+                "replenishment": 10.153656920021769,
+                "fixed": 2
+              }
+            ]
+          },
+          {
+            "faces": [
+              0,
+              0,
+              1
+            ],
+            "used": 1,
+            "profit": 54.40000000000001,
+            "unmet_base": 16,
+            "lost": 9.6,
+            "rows": [
+              {
+                "id": "B3",
+                "faces": 1,
+                "direct": 3.0,
+                "transfer": 6.400000000000001,
+                "demand": 9.400000000000002,
+                "gross": 75.20000000000002,
+                "replenishment": 18.800000000000004,
+                "fixed": 2
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            2,
+            2,
+            0,
+            0,
+            0,
+            1
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    },
+    {
+      "name": "e=1",
+      "parameters": {
+        "capacity": 5,
+        "s": 0.4,
+        "beta": 0.25,
+        "r": 4,
+        "c": 2,
+        "e": 1,
+        "brands": 1
+      },
+      "oracle": null
+    },
+    {
+      "name": "brands=2",
+      "parameters": {
+        "capacity": 5,
+        "s": 0.4,
+        "beta": 0.25,
+        "r": 4,
+        "c": 2,
+        "e": 0.5,
+        "brands": 2
+      },
+      "oracle": {
+        "profit": 133.3939256257499,
+        "faces": [
+          0,
+          2,
+          1,
+          1,
+          0,
+          1
+        ],
+        "allocation": [
+          3,
+          2
+        ],
+        "categories": [
+          {
+            "faces": [
+              0,
+              2,
+              1
+            ],
+            "used": 3,
+            "profit": 72.63495126677552,
+            "unmet_base": 12,
+            "lost": 7.199999999999999,
+            "rows": [
+              {
+                "id": "A2",
+                "faces": 2,
+                "direct": 9.513656920021768,
+                "transfer": 3.2000000000000006,
+                "demand": 12.71365692002177,
+                "gross": 76.28194152013062,
+                "replenishment": 12.71365692002177,
+                "fixed": 2
+              },
+              {
+                "id": "A3",
+                "faces": 1,
+                "direct": 4.0,
+                "transfer": 1.6000000000000003,
+                "demand": 5.6000000000000005,
+                "gross": 16.8,
+                "replenishment": 3.733333333333334,
+                "fixed": 2
+              }
+            ]
+          },
+          {
+            "faces": [
+              1,
+              0,
+              1
+            ],
+            "used": 2,
+            "profit": 60.758974358974356,
+            "unmet_base": 6,
+            "lost": 3.5999999999999996,
+            "rows": [
+              {
+                "id": "B1",
+                "faces": 1,
+                "direct": 10.0,
+                "transfer": 1.8461538461538463,
+                "demand": 11.846153846153847,
+                "gross": 59.23076923076923,
+                "replenishment": 15.794871794871796,
+                "fixed": 2
+              },
+              {
+                "id": "B3",
+                "faces": 1,
+                "direct": 3.0,
+                "transfer": 0.5538461538461539,
+                "demand": 3.5538461538461537,
+                "gross": 28.43076923076923,
+                "replenishment": 7.107692307692307,
+                "fixed": 2
+              }
+            ]
+          }
+        ],
+        "optimal_face_vectors": [
+          [
+            0,
+            2,
+            1,
+            1,
+            0,
+            1
+          ]
+        ],
+        "optimal_face_count": 1
+      }
+    }
+  ],
+  "printed_equation_fixture": {
+    "direct": 15,
+    "equation4": 15,
+    "printed_equation2": 25
+  },
+  "verification": {
+    "mechanism": "PARTIAL",
+    "performance": "NOT TESTED",
+    "scaling": "NOT TESTED",
+    "production_applicability": "NOT TESTED"
+  }
+}

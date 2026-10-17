@@ -1,6 +1,6 @@
 # PushDualGen: Enabling LLMs to Generate Semantic IDs with Interpretable Copy for Industrial Push Recommendation
 
-Qwen3-0.6BがSID→任意copyを生成し、Top-20 SIDsの表現を既存user特徴へ融合する。pushの14日A/BでEPR +8.50%、Dislike Rate −37.70%。
+Qwen3-0.6Bが動画の識別子を先に生成し、必要な場合だけ通知の説明文を続けて生成する。上位20個の識別子から作った特徴を、既存のユーザー特徴に組み合わせて候補動画を探す。pushの14日A/BでEPR +8.50%、Dislike Rate −37.70%。
 
 優先度: Watch。確認日: 2026-09-21。
 

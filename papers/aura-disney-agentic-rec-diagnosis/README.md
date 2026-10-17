@@ -1,6 +1,6 @@
 # AURA: Agentic Diagnosis and Refinement for Production Recommender Systems at Scale
 
-Disneyの2 platformで約10万sessionずつを診断。25項目rubricは15→23、17→24へ改善したが、genre修正の順位改善は未実証。診断と出荷判断を切り離す。
+Disneyの2 platformで約10万sessionずつを診断。診断結果を25項目の評価基準で調べると、基準を満たした項目数はサービスAで15から23、Bで17から24へ増えた。ただし、ジャンル情報の修正によって推薦の順位が改善するかは、まだ確かめられていない。診断と出荷判断を切り離す。
 
 公開ページ: https://mixidota2.github.io/paper-lab/papers/aura-disney-agentic-rec-diagnosis.html
 

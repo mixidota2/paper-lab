@@ -23,7 +23,7 @@ rankingのQ/K/Vでは `X_rank = sg(WX) + B_rank A_rank X` とする（式17）�
 第1段階は生成損失のみ。第2段階はそのcheckpointから始める。同じ系列にranking損失を追加する。rankingには全sample streamを見せ、各タスクの意味に合うsample maskを掛ける。生成側はクリックを残し、露出をrandom samplingして分布学習に使う。先にSIDの意味を安定させるのは、変動する表現をもとにランカーが誤った識別境界を学ぶのを避けるためだと著者は説明する（§5.1）。
 
 ### 一つのサービスでも候補属性の取得は残る
-GPUにユーザーprefixと候補別SID軌跡の層別KVを保持する。CPUが候補属性を取得した後、ranking tokensを追加し、cached statesとranking側LoRAを使って候補をまとめて採点する。ranking queryはここでも履歴全体へ戻るわけではない。strategy filterとrankingは候補集合を複製して並行実行し、最後にfilter flagを適用する。待ち時間にrankingを重ねる設計だ（Figure 3）。
+GPUには、利用者情報の系列と、候補ごとのSID生成過程について、各層で得たキー・バリュー（KV）を保存する。後の順位付けでは、それを再利用する。CPUが候補属性を取得した後、ranking tokensを追加し、cached statesとranking側LoRAを使って候補をまとめて採点する。ranking queryはここでも履歴全体へ戻るわけではない。strategy filterとrankingは候補集合を複製して並行実行し、最後にfilter flagを適用する。待ち時間にrankingを重ねる設計だ（Figure 3）。
 
 [OneRanker](oneranker-ads.html)は生成とrankingのKV共有に加え、DCでranking側の選好を生成へ戻す。[Gryphon-v2](gryphon-v2-cascade.html)は全カスケードの置換を主題とする。UniR²で確認すべき問いは、同一系列での表現融合がrecall＋pre-rankの境界をどこまで改善したかである。
 

@@ -15,7 +15,7 @@ SLUGS = ('spotify-incremental-recommendation-causal', 'vn2-stockout-catboost',
 
 
 def inspect(base):
-    assert len(list((SITE / 'papers').glob('*.html'))) == 100
+    assert len(list((SITE / 'papers').glob('*.html'))) == 103
     OUT.mkdir(exist_ok=True)
     errors = []
     with sync_playwright() as pw:

@@ -18,7 +18,7 @@ urls:
 verdict: Watch
 status: published
 question: generatorを学習する前に、SID住所表の何を検査できるか
-summary: item→SIDのmappingを共通契約へ揃え、利用率・衝突・行動近傍・人気配分・構造費用を分離。collision-freeでも意味のあるprefixとは限らない。
+summary: 商品と識別子の対応表を共通の形式にそろえ、識別子の使われ方、複数商品への重複割当、行動が似た商品のまとまり、人気別の割当、索引の構造を別々に調べる。collision-freeでも意味のあるprefixとは限らない。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -159,6 +159,6 @@ submitted: '2026-06-09'
 figures:
 - path: mapping-grid.svg
   title: 同じ6商品で、住所の一意性と近傍を分離する
-  caption: run.pyの3つの人工mapping。色はprefix、D3は固定行動pairの回収。
+  caption: "run.pyの3つの人工mapping。色はprefix、D3は固定行動pairの回収。 D2は同じ完全SIDを他商品と共有する商品の割合。D3は固定した行動上の商品対が同じ第1接頭辞に残る割合。"
   after: method
   layout: scroll

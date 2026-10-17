@@ -1,7 +1,7 @@
 ### Councilは案を出し、controllerが状態を確定する
 専門家は同じ凍結briefingを読み、互いの初稿を見ずに提案する。役割は構造、特徴相互作用、系列、多タスク、損失、業務知識、実装可能性など。roundtableで案を整理し、adversarial reviewで前提や実装リスクを反証し、Coordinatorが仮説・変更可能なfile:symbol・検証方法・保護指標を持つ候補へまとめる（§3.2）。
 
-controllerは適格候補から多様性を保った有限windowを作り、その中をCouncilに順位付けさせる。window外の候補は選べない。過去の成功、期待改善、新規性、実現可能性、安定性、確信度、リスクを使うmemory gateを訓練前に通す。成功率の特徴量は `p̂ = (n_success+1)/(n_attempt+2)`。Beta(1,1)の疑似件数を使うが、posteriorからサンプルするThompson samplingではない（§3.3）。
+制御プログラム（controller）は、条件を満たす候補から、多様性を保ちながら件数を限定した候補集合（window）を作る。専門家役のエージェント群（Council）は、その集合の中だけで候補を順位付けする。過去の成功、期待改善、新規性、実現可能性、安定性、確信度、リスクを使うmemory gateを訓練前に通す。成功率の特徴量は `p̂ = (n_success+1)/(n_attempt+2)`。Beta(1,1)の疑似件数を使うが、posteriorからサンプルするThompson samplingではない（§3.3）。
 
 知識は外部研究、稼働中システムの事実、DASHENの業務知識に分ける。試行後の設定・patch・ログ・失敗・指標は実験memoryへ蓄積する。役割ごとに必要な情報を取り出し、全記録を毎回文脈へ詰め込まない。
 

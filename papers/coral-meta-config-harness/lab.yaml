@@ -25,7 +25,7 @@ urls:
 verdict: Watch
 status: published
 question: CORAL：推薦の設定を、予算内で継続的に見直す
-summary: CORALは候補源の予算やsegment別のserving処理を、数日ごとに更新するMetaのharness。videoのR3でsessions +0.16%、watch time +0.15%、追加serving費用なし。別surfaceの44%は初回の削減額の増加率であり、総費用−44%ではない。
+summary: CORALは、推薦候補を集める経路に割り当てる計算予算や、利用者群ごとの配信処理を数日ごとに見直すMetaの仕組みである。videoのR3でsessions +0.16%、watch time +0.15%、追加serving費用なし。別surfaceの44%は初回の削減額の増加率であり、総費用−44%ではない。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -73,7 +73,7 @@ sections:
 
 
     [一次資料：版を固定したPDF](https://arxiv.org/pdf/2609.02730v1)。図表の箇所とSHA-256は末尾の対応表を参照。'
-  overview: CORALは候補源の予算やsegment別のserving処理を、数日ごとに更新するMetaのharness。videoのR3でsessions +0.16%、watch time +0.15%、追加serving費用なし。別surfaceの44%は初回の削減額の増加率であり、総費用−44%ではない。
+  overview: CORALは、推薦候補を集める経路に割り当てる計算予算や、利用者群ごとの配信処理を数日ごとに見直すMetaの仕組みである。videoのR3でsessions +0.16%、watch time +0.15%、追加serving費用なし。別surfaceの44%は初回の削減額の増加率であり、総費用−44%ではない。
   why_it_might_work: '【解釈】言語モデルは定性的な運用情報を解釈し、数値ツールは予算を保証する、という分業に意味がある。過去の提案と結果を記憶すれば、前回のやりすぎを戻す判断もできる。
 
 

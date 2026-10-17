@@ -21,7 +21,7 @@ urls:
   arxiv: https://arxiv.org/abs/2512.19001
 verdict: Must
 status: published
-summary: ORラベルで事前学習し、RLOOで業務へ調整。約0.93Mの補充方策とJD菓子の現場評価。
+summary: ORPRは、数理最適化で求めた補充量を正解データとして、約93万パラメータのモデルを事前学習する。その後、強化学習の手法RLOOで業務目標に合わせて調整する。著者はJDの菓子を対象に現場評価を報告している。
 question: 小型の補充方策に、ORと販促の業務知識をどう渡すか。
 verification:
   mechanism: PARTIAL

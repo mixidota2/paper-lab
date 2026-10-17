@@ -41,7 +41,7 @@ figures:
   after: method
 - path: figures/audit.svg
   title: 文字列と行動を別軸で監査する
-  caption: run.pyの初期条件に基づく。文字列probeは3種類のいずれかでの検出。行動の差は対象なしの全再実行を基準に測る。
+  caption: "run.pyの初期条件に基づく。文字列probeは3種類のいずれかでの検出。行動の差は対象なしの全再実行を基準に測る。 除くのは対象の秘密文字列すべてで、すべての文字列ではない。対象文字列が出なくても、内部状態全体の一致は保証されない。"
   after: executable_understanding
 teaching_figures:
 - kind: equations

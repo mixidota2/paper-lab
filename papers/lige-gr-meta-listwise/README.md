@@ -21,7 +21,7 @@ uv run paper-lab build
 
 ## Core Idea
 
-CFの表現をCAが選択済みprefixで更新し、ListVMをPaletteで最大化する。既存CLとCFを保持するため、追加部分を停止して元の順位付けへ戻せる。
+既存の予測器（CF）が作った表現を、選択済みの動画の並びを読む予測器（CA）で更新する。その予測を使い、動画の並び全体の評価値（ListVM）が高くなるようにPaletteで候補を探索する。既存CLとCFを保持するため、追加部分を停止して元の順位付けへ戻せる。
 
 解釈: [Sona](sona-yandex-music.html)・[Gryphon-v2](gryphon-v2-cascade.html)のcascade置換とは移行単位が違う。[OGR](ogr-once-generated-ranked.html)・[GenPage](genpage-netflix-homepage.html)のslate統合とも、候補空間と生成責任を分けて比較したい。
 

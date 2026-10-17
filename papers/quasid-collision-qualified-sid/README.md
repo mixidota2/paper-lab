@@ -1,6 +1,6 @@
 # Stop Treating Collisions Equally: Qualification-Aware Semantic ID Learning for Recommendation at Industrial Scale
 
-QuaSIDは、SIDの重なりから反発対象を選ぶ学習法である。同一itemと協調正例をmaskで除き、完全衝突と部分衝突に異なる幾何マージンを課す。KuaishouはrankingのGMV-S2 +2.38%、cold-start retrievalの注文数+6.42%を報告する。衝突ゼロの保証と、害のある衝突を減らす学習を区別する。
+QuaSIDは、SIDの重なりから反発対象を選ぶ学習法である。同じ商品の組と、行動履歴から近付けるべきだと判定した組を、引き離す対象から除く。残った組では、IDが完全に一致する場合と一部だけ一致する場合を分け、表現ベクトルをどこまで離すかの基準を変える。KuaishouはrankingのGMV-S2 +2.38%、cold-start retrievalの注文数+6.42%を報告する。衝突ゼロの保証と、害のある衝突を減らす学習を区別する。
 
 ## 実行
 

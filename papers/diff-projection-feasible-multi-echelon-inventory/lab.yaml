@@ -18,7 +18,7 @@ urls:
   pdf: https://arxiv.org/pdf/2608.02343
 verdict: Worth
 status: published
-summary: 共有資材・生産能力を守るQP射影と整数写像。Free／Pinned／Competingの勾配を2変数で追う。
+summary: 資材と生産能力の上限に収まるように生産目標を調整し、整数の生産量へ変換する。このLabでは2変数の例を使い、制約のかかり方によって学習用の勾配がどう変わるかを確かめる。
 question: 整数の生産制約を守りながら、学習信号をどう返すか。
 verification:
   mechanism: PARTIAL

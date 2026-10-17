@@ -2,7 +2,7 @@
 
 ## Overview — 概要
 
-**Worth Reading：harnessの差を、同じ構成の再実行の差と並べる。** SWE-bench Verifiedのhard45では、成否が入れ替わる課題の割合は再実行もharness交換も中央値13%。モデル交換は約22%だった。pool447の2つのQwenモデルでは、Claude Codeとmini-SWE-agentの差は±5ポイント内で等価と判定された。
+**Worth Reading：harnessの差を、同じ構成の再実行の差と並べる。** SWE-bench Verifiedのhard45では、成否が入れ替わる課題の割合は再実行もharness交換も中央値13%。モデル交換は約22%だった。残りの447課題から成る評価集合「pool447」では、2つのQwenモデルを使って比較した。Claude Codeとmini-SWE-agentの成功率の差は、事前に定めた±5ポイントの範囲内と判定された。
 
 これは「どんなharnessでも同じ」という結果ではない。有意な差はOpenCodeの不利として現れ、費用は同一モデルでも最大約3倍違う。小さな成功率差を主張する前に、再実行と十分な課題数を確保したい。
 

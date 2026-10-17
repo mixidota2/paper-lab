@@ -1,0 +1,93 @@
+id: storewide-shelf-decomposition
+doi: 10.17341/gazimmfd.1600434
+arxiv_id: null
+submitted: '2025'
+year: 2025
+title: A decomposition-based solution for shelf space allocation and assortment optimization
+  with space elasticity, substitution effects and multiple facing options for the
+  retail sector
+authors:
+- Dilek Tüzün Aksu
+- Bahadır Durak
+- Didem Civelek
+- Selin Tortop
+topics:
+- retail-supply
+urls:
+  paper: https://dergipark.org.tr/tr/download/article-file/4435791
+  doi: https://doi.org/10.17341/gazimmfd.1600434
+  pdf: https://dergipark.org.tr/tr/download/article-file/4435791
+  official_code: null
+  arxiv: null
+verdict: Worth Reading
+status: draft
+related_threads: []
+figures: []
+interactives: []
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+question: 棚を配る前に、各幅で何を売れるかを計算できるか
+summary: カテゴリごとに棚幅と利益の関係を計算し、その表から全店の配分を選ぶ。6商品の合成実験で、代替需要と補充費が採用商品をどう変えるかを見る。
+source_review:
+  checked: '2026-10-16'
+  url: https://dergipark.org.tr/tr/download/article-file/4435791
+  scope: 公開PDFの書誌情報と§3.1の需要・費用・制約を本文抽出で照合。詳細仕様に基づく独自教材。原論文の実験表・著者コードの再現は未実施。
+core_idea:
+  author_claim: カテゴリごとに複数の棚容量で品揃えを最適化し、その結果を全店の容量配分に使う。代替需要、フェイスによる需要変化、補充費をモデルに含める。
+  research_bot_interpretation: 容量を先に粗利比で配ると、その幅で選べる商品を考慮できない。独立なカテゴリと有限の共通候補という条件では、価値表を使った分解でも一括列挙と同じ最適利益を得られる。
+sections:
+  overview: 2025年の既刊論文を扱う。棚幅の配分と品揃えをつなぐ小実験であり、店舗での売上改善を測った実験ではない。
+  problem: 売場を広げる価値は、今の粗利だけでは決まらない。幅が1増えて別の商品を採用できる場合もあれば、同じ商品の在庫を増やして補充費を減らせる場合もある。
+  method: method.md
+  why_it_might_work: カテゴリ内で可能な商品選択を先に比較すると、容量による利益の段差を全店の判断に使える。カテゴリ間の需要移転や共有の作業時間がある場合は、この分解の前提から外れる。
+  evidence: 一次資料の原典は2段階の最適化モデルを提案する。本Labの数値はすべて独自の合成値であり、著者の計算表や実企業の売上効果とは別である。原式の印字には不整合があり、直接需要式に整合する解釈を対応表に明記した。
+  executable_understanding: '<p>まず補充費rだけを変え、次に代替率sを変える。フェイスによる需要増と、補充負担の軽減を分けて観察できる。</p>
+
+    <iframe title="棚の容量配分を動かす合成実験" src="../downloads/storewide-shelf-decomposition/interactive.html"
+    style="width:100%;height:1500px;border:1px solid #b8ccc4;border-radius:12px" loading="lazy"></iframe>
+
+    <p><a href="../downloads/storewide-shelf-decomposition/interactive.html">実験を別ページで開く</a>。画面操作と幅別の実表示は未検証。</p>'
+  results: 初期値の最適利益は150.780593。Aに幅3、Bに幅2を割り当てる。基礎粗利比例もこの初期条件では同じ配分になる。結果が同じ条件と異なる条件を区別して読む。
+  what_we_verified: 合成6 SKUについて、独立した一括全列挙と分解最適化を比較する。検査対象は有限候補内の計算であり、原論文の実証結果ではない。
+  what_we_did_not_verify: 著者のSCIP実装、原論文規模の計算、実店舗の増収、継続中の商用運用は未確認。店内位置、異種棚、価格最適化、確率欠品、補充時間、賞味期限も対象外。
+  implementation: Pythonの直接全列挙とJavaScriptの価値表方式を別々に実装した。Pythonは標準ライブラリだけを使用。run.pyでresults.jsonを再生成できる。画面は外部サービスや追加ライブラリに依存しない。
+    ブラウザー用の[計算本体](../downloads/storewide-shelf-decomposition/model.js)と[画面コード](../downloads/storewide-shelf-decomposition/interactive.js)も取得できる。
+  mapping: mapping.md
+teaching_figures:
+- kind: logic
+  id: capacity-values
+  title: 各幅の最良解を、全店の配分へ渡す
+  after: method
+  locator: 原典 §3、Figure 1
+  rationale: 分解の入力と出力をつなぐ。
+  caption: 図は合成実験の構造。カテゴリ間の独立性と同じ容量候補が前提。
+  source: https://dergipark.org.tr/tr/download/article-file/4435791
+  rows:
+  - label: カテゴリ内
+    nodes:
+    - title: 商品と候補幅
+      text: 基礎需要・粗利・幅・奥行き・ブランドから、各幅でSKUとフェイスを選ぶ。
+    - title: 価値表 V(S)
+      text: 割当幅1〜4の各々について最大利益と採用SKUを保存。
+  - label: 全店
+    nodes:
+    - title: AとBの容量を選ぶ
+      text: 割当幅の合計が全店容量以下となる組合せのうち、Vの合計が最大のものを選ぶ。
+- kind: equations
+  id: demand-cost
+  title: フェイスと代替は別の経路で利益を変える
+  after: method
+  locator: 原典 §3.1、式(1)/(4)
+  rationale: 需要変化と補充費の分母を分ける。
+  caption: 採用商品だけを合計する。qは基礎需要、fはフェイス、dは奥行き個数。
+  source: https://dergipark.org.tr/tr/download/article-file/4435791
+  steps:
+  - name: 需要の2成分
+    formula: Dᵢ = qᵢ fᵢ^β + s qᵢ U / B
+    explanation: 前半は陳列量による需要、後半は非採用品からの流入。
+  - name: 費用を引く
+    formula: Z = Σₐ [Dᵢ pᵢ − rDᵢ/(fᵢdᵢ) − c]
+    explanation: フェイスを増やすと補充費も変わる。β=0でも選択が変わりうる。

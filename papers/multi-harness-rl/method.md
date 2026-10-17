@@ -1,5 +1,5 @@
 ### WithinもCrossも、同じ4ハーネスの軌跡を読む
-Aider、OpenHands、Qwen Code、SWE-agentでSWE-Gymの軌跡を集める。同一のQwen3-8Bの教師あり学習後checkpointから出発し、固定manifest、token、reward、loss mask、更新予算をそろえて再生する。主要RL群は183課題・5,543episode、81,216recordを共有し、実現したoptimizer stepは81,200（付録G、表7–8）。
+Aider、OpenHands、Qwen Code、SWE-agentでSWE-Gymの軌跡を集める。各条件は、教師あり学習を終えた同じQwen3-8Bの保存状態から学習を始める。使うデータの一覧、トークン、報酬、損失計算の対象、更新回数の予算をそろえ、収集済みの軌跡を再利用する。主要RL群は183課題・5,543episode、81,216recordを共有し、実現したoptimizer stepは81,200（付録G、表7–8）。
 
 ### 違うのは平均と標準偏差を計算する範囲
 たとえば同じ課題の8軌跡を、Aiderの4件とSWE-agentの4件に分けるか、8件で一群にするかを考える。軌跡eの課題をx、ハーネスをh、成功報酬をrとする。Withinは `A_e = (r_e − mean(r|x,h))/(std(r|x,h)+ε)`。Crossは `A_e = (r_e − mean(r|x))/(std(r|x)+ε)` で、同じ課題の別ハーネスまでまとめる。

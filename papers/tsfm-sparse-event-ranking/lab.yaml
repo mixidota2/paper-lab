@@ -21,7 +21,7 @@ verification:
   scaling: NOT TESTED
   production_applicability: NOT TESTED
 question: 数量予測の中央値で、需要が発生する日を選べるか
-summary: 12 TSFMの点予測は参照比で最大+0.031 AP skill。発生probeは改善するが、Favoritaでは全てRaw LightGBMを下回る。中央値の情報消失と評価の対照を分けて読む。
+summary: 12 TSFMの点予測は参照比で最大+0.031 AP skill。需要の発生を予測する分類器（probe）を使うと順位精度は改善するが、Favoritaではprobeで比較した6モデルすべてが、生の履歴を使うLightGBMを下回る。中央値の情報消失と評価の対照を分けて読む。
 related_threads:
 - tabular-vs-neural-forecasting
 - observed-sales-vs-latent-demand
@@ -37,7 +37,7 @@ core_idea:
     × E[Y|Y>0,x] なので、平均による順位には正の数量も混ざる。中央値は発生確率が50%未満なら0になり、1%と49%を区別できない。ただし、原論文で実際の出力が全て厳密な0だったわけではない。
 sections:
   overview: '**Radar。時系列基盤モデル（TSFM）の出力を、用途に合う指標で確かめるための評価論文。** 12モデルの点予測が学習不要の参照を上回る幅は、AP
-    skillで最大0.031だった。凍結した表現から発生を学ぶ線形probeは29/30組で自分の点予測を上回ったが、Favoritaでは6モデル全てが生の履歴を使うLightGBMに負けた。用途を先に決めたい。モデル採用を急ぐ根拠より、比較の設計に価値がある。'
+    skillで最大0.031だった。凍結した表現から発生を学ぶ線形probeは29/30組で自分の点予測を上回ったが、Favoritaではprobeで比較した6モデル全てが生の履歴を使うLightGBMに負けた。用途を先に決めたい。モデル採用を急ぐ根拠より、比較の設計に価値がある。'
   problem: 巡回や人員配置では、数量より発生する日を先に選びたい場合がある。著者は次の64時点を、正の観測が出る可能性で並べる。Amazon購入、Favorita売上、M5売上、NYC
     taxi、Web trafficの5データセットを使用。対象系列は40%以上が0で、評価する窓は発生と0の両方を含む。全期間休眠する系列の検出は評価していない。対象は混合窓だけだ。
   why_it_might_work: '解釈：発生ラベルで学ぶheadなら、数量を当てるための出力変換を迂回できる。だが、headの改善だけでは事前学習の効果と断定できない。同じ教師情報で学ぶ直接モデルと、ランダム表現からのprobeが必要になる。

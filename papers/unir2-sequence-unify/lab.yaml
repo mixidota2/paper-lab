@@ -98,11 +98,11 @@ sections:
 figures:
 - path: figures/sequence.svg
   title: 候補IDに加え、生成の軌跡を同じ系列に残す
-  caption: §4.1・Figure 2を基に説明用に再構成。SIDの末尾状態もランキングへ渡す。
+  caption: "§4.1・Figure 2を基に説明用に再構成。SIDの末尾状態もランキングへ渡す。 この図のPは履歴とプロフィールを含む入力接頭部全体を表す。参照範囲の図ではPをプロフィールだけに用いている。"
   after: core_idea
 - path: figures/mask.svg
   title: rankingが直接読むのはプロフィール以降
-  caption: 式7–10の許可行列。緑は参照可、灰は遮断。履歴tokenのquery計算を示す図ではない。
+  caption: "式7–10の許可行列。緑は参照可、灰は遮断。履歴tokenのquery計算を示す図ではない。 上4行は履歴H、プロフィールP、現在位置までのSID入力を参照する。下2行は履歴Hを除き、プロフィール・SID入力・候補特徴を相互に参照する。行は参照する側、列は参照される側。"
   after: method
 - path: figures/isolation.svg
   title: 前向きの共有と逆伝播の分離

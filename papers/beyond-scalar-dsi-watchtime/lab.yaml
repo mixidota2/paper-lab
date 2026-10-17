@@ -89,7 +89,7 @@ teaching_figures:
   steps:
   - name: 合法領域
     formula: p(w,τ|x,d) ∝ exp(a(w,τ)) · 1[(w,τ) ∈ A(d)]
-    explanation: early・mid・overplay は各比率範囲、completion は b(d) だけに確率を置く。範囲外を0にして全体を正規化する。
+    explanation: early・mid・overplayの各状態では、視聴時間と動画長の比率で定めた範囲にだけ確率を割り当てる。completionでは動画の終端 b(d) だけに割り当てる。それ以外の確率を0にし、全体の合計が1になるように調整する。
   - name: 推定器の学習
     formula: L = −log p(wᵢ,τᵢ) + λrest SmoothL1(log(1+μ), log(1+yᵢ))
     explanation: 95秒・100秒・108秒の視聴を100秒動画の終端へ集約しても、実測秒数は復元損失へ渡す。二つの損失には競合がある。

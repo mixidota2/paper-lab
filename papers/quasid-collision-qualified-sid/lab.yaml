@@ -38,7 +38,7 @@ related_threads:
 - 2026-09-15-recommendation
 status: published
 question: SIDが重なったとき、本当に引き離すべき組はどれか
-summary: QuaSIDは、SIDの重なりから反発対象を選ぶ学習法である。同一itemと協調正例をmaskで除き、完全衝突と部分衝突に異なる幾何マージンを課す。KuaishouはrankingのGMV-S2 +2.38%、cold-start
+summary: QuaSIDは、SIDの重なりから反発対象を選ぶ学習法である。同じ商品の組と、行動履歴から近付けるべきだと判定した組を、引き離す対象から除く。残った組では、IDが完全に一致する場合と一部だけ一致する場合を分け、表現ベクトルをどこまで離すかの基準を変える。KuaishouはrankingのGMV-S2 +2.38%、cold-start
   retrievalの注文数+6.42%を報告する。衝突ゼロの保証と、害のある衝突を減らす学習を区別する。
 source_review:
   checked: '2026-09-15'
@@ -50,7 +50,7 @@ core_idea:
     lossとともに学習し、推薦に必要な近さを保ちながら不適切な重なりを減らすと主張する（§4）。
   research_bot_interpretation: 「qualified」は意味の正しさを保証する認証ではない。同一IDと構築済み正例を除外した残りを候補衝突と扱う、観測可能な規則である。未観測の良い関係は残り得る。コードの一意性だけを目標にすると、一般化に役立つ共有まで消すため、推薦指標と合わせて評価したい。
 sections:
-  overview: QuaSIDは、SIDの重なりから反発対象を選ぶ学習法である。同一itemと協調正例をmaskで除き、完全衝突と部分衝突に異なる幾何マージンを課す。KuaishouはrankingのGMV-S2 +2.38%、cold-start
+  overview: QuaSIDは、SIDの重なりから反発対象を選ぶ学習法である。同じ商品の組と、行動履歴から近付けるべきだと判定した組を、引き離す対象から除く。残った組では、IDが完全に一致する場合と一部だけ一致する場合を分け、表現ベクトルをどこまで離すかの基準を変える。KuaishouはrankingのGMV-S2 +2.38%、cold-start
     retrievalの注文数+6.42%を報告する。衝突ゼロの保証と、害のある衝突を減らす学習を区別する。
   method: method.md
   problem: 同じSIDが付いた2例でも、異なる商品を誤って一緒にした場合と、同一商品の重複サンプリングでは意味が違う。協調学習で近付けたいtrigger–targetの正例もある。低いHamming距離をすべて反発させると、contrastive

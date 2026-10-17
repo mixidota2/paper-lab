@@ -23,7 +23,7 @@ urls:
 verdict: Must Read
 status: published
 question: イベントの意味情報を、いつ予測に入れずに済ませるか
-summary: ReasonCastは凍結したChronos-2に対し、Skip・Basic・Toolで意味情報の介入を選ぶ。イベント区間では誤差を減らし、Skipでは元の予測を厳密に保つ。欠品を含む需要予測手法の優劣は未決着。
+summary: ReasonCastはChronos-2の重みを固定し、予測にイベント情報を加えるかを選ぶ。情報を加えないSkip、手元の情報を使うBasic、検索や時系列統計の道具を使うToolの3経路を設ける。イベント区間では誤差を減らし、Skipでは元の予測を厳密に保つ。欠品を含む需要予測手法の優劣は未決着。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -40,7 +40,7 @@ core_idea:
   author_claim: Qwen3-32Bが介入の有無と意味情報を決め、Chronos-2 smallが数値予測を担う。イベントに関係する表現でテキストを参照し、加算補正と乗算補正を使い分ける。
   research_bot_interpretation: 注目点は文章を常に足すことより、介入しない経路を明示した点にある。販促・欠品を同条件で扱うTSFMとGBDTの比較には、需要の打切りと在庫費用を別途組み込む必要がある。
 sections:
-  overview: ReasonCastは凍結したChronos-2に対し、Skip・Basic・Toolで意味情報の介入を選ぶ。イベント区間では誤差を減らし、Skipでは元の予測を厳密に保つ。欠品を含む需要予測手法の優劣は未決着。
+  overview: ReasonCastはChronos-2の重みを固定し、予測にイベント情報を加えるかを選ぶ。情報を加えないSkip、手元の情報を使うBasic、検索や時系列統計の道具を使うToolの3経路を設ける。イベント区間では誤差を減らし、Skipでは元の予測を厳密に保つ。欠品を含む需要予測手法の優劣は未決着。
   problem: 安定した売上に不要な意味情報を加えると、時系列モデルが捉えた規則性を壊す。一方、祝日や大型セールの水準変化は過去の波形だけでは捉えにくい。論文の独自データは商品単位ではなく、末端カテゴリ単位の日次15,696系列。予測期間は7日である。
   why_it_might_work: 解釈：Skipを明示的な分岐にすれば、学習したゲートが小さくなることに頼らず元の出力を守れる。直交分解は表現の幾何学的な制約であり、イベントの因果効果を同定する保証ではない。注意出力を再射影しないため、補正全体がイベント部分空間に留まるとも限らない。
   evidence: '一次資料[Table 2・3](https://arxiv.org/pdf/2608.15291) の著者報告。差はWMAPEのパーセントポイント（pp）で、相対改善率ではない。

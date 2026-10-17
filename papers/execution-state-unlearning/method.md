@@ -6,7 +6,7 @@ Provenance-Guided Selective Replayのprovenanceは「どの情報から何を作
 
 ### crop、入力の除去、派生状態の再生成を1つの処理にする
 
-Algorithm 1はまず対象とその派生物を無効化し、τより前の最新checkpointへ戻す。checkpointのtoken位置までKVをcropすると、そのprefixのcacheを再利用できる。そこから対象を除いた観測を読み直し、要約や計画を作り直す。論文の実装はHuggingFace Transformers上のprefill・generate・cropと、source IDを伝播するArtifactGraphを組み合わせる。[一次資料：Algorithm 1・Implementation and Setup](https://arxiv.org/html/2609.04875)
+Algorithm 1はまず対象とその派生物を無効化し、τより前の最新checkpointへ戻す。保存済み状態（checkpoint）のトークン位置より後ろのキー・バリューキャッシュ（KV）を切り落とすと、その位置までのキャッシュを再利用できる。そこから対象を除いた観測を読み直し、要約や計画を作り直す。論文の実装はHuggingFace Transformers上のprefill・generate・cropと、source IDを伝播するArtifactGraphを組み合わせる。[一次資料：Algorithm 1・Implementation and Setup](https://arxiv.org/html/2609.04875)
 
 入力が反実仮想でも変わらないと保証できるなら、記録済みの内容を新しいcacheへprefillしてよい。モデル由来の内容をすべてそのまま再投入してよいという意味ではない。とくに対象を含む要約は、文字列を消しただけでも判断が残り得る。
 

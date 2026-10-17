@@ -1,6 +1,6 @@
 # GRACE: Generative Recommender Acceleration Engine for Real-Time Ads Retrieval
 
-SIDのbeam内に要求別targetingを入れ、最終広告pass率を23.55→40.42%へ改善。固定beam decoderの197.7→17.8 msと、GTM込み全体P99 53.6 msは別測定。
+広告を表すID（SID）の候補を生成する途中で、その要求の配信条件を確認する。著者の評価では、最後に広告ごとの条件確認を通過した割合が23.55%から40.42%へ上がった。候補数を固定した生成処理のP99遅延は197.7 msから17.8 msへ短縮したが、配信条件の確認（GTM）を含むモデル全体のP99遅延53.6 msは別の条件で測った値である。
 
 公開ページ: https://mixidota2.github.io/paper-lab/papers/grace-meta-ads-gtm-serving.html
 

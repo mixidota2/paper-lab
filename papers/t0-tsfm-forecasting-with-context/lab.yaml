@@ -23,7 +23,7 @@ urls:
 verdict: Radar
 status: published
 question: 同じ予測モデルに、未来の予定を渡す価値はあるか
-summary: t0-alphaの同一checkpointでcovariateを入切すると、fev-benchの既知未来30課題でskill 36.7→43.0、+6.3ポイント。19課題は改善し11課題は悪化。販促・欠品条件でTSFMとGBDTを比較した結論ではない。
+summary: t0-alphaの学習済みモデルを固定し、予測を助ける変数（covariate）を入力する場合としない場合を比べた。fev-benchのうち、予測時点で将来の値が分かる変数を使う30課題では、評価指標skillが36.7から43.0へ、6.3ポイント上がった。19課題は改善し11課題は悪化。販促・欠品条件でTSFMとGBDTを比較した結論ではない。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED

@@ -32,7 +32,7 @@ source_review:
   url: https://arxiv.org/pdf/2609.28589
   scope: Figures 1–4; Eq. (4); Table 2; §6.3; Table 4
 core_idea:
-  author_claim: 段階ごとのトークンと候補特徴を保ちつつ、ユーザー履歴を一度符号化する。DCGRは複数の検索目的を決定接頭辞で表し、業務上の重みを生成時に加える。
+  author_claim: 段階ごとのトークンと候補特徴を保ちつつ、ユーザー履歴を一度符号化する。DCGRは、注文・探索・広告などの目的を、生成する系列の先頭に置く記号（決定接頭辞）で表す。生成時には、その目的に応じた業務上の加点も加える。
   research_bot_interpretation: 本ライブラリでは「段階を保つ統合」に位置づける。Sona/OneRec型の段階廃止、UNIQUEの早期融合、VARGの粗い順位付けの迂回とは、統合する境界が異なる。この分類はLabの整理であり、これらとの同条件の優劣は示していない。
 sections:
   overview: OneTrans-V2は検索・粗い順位付け・精密な順位付けを残し、ユーザー文脈とTransformerを共有する。著者はオンラインGMV/user
@@ -90,8 +90,8 @@ teaching_figures:
     nodes:
     - title: 固有トークン
       text: 軽い候補特徴
-    - title: 蒸留の教師
-      text: 精密な順位付けから学ぶ
+    - title: 蒸留を受ける側
+      text: 精密な順位付けを教師として学ぶ
   - label: 精密な順位付け
     nodes:
     - title: 固有トークン

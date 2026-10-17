@@ -47,7 +47,7 @@ sections:
 
     実行：`uv run papers/contextual-deconvolution/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json` へ保存する。'
   results: 初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。
-  what_we_verified: '**メカニズム：PARTIAL（部分的）**。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。
+  what_we_verified: '**メカニズム：PARTIAL（部分的）**。このLabで確認したのは、ここに示した仮定に基づく計算結果と、条件を変えたときの結果の変化です。原論文の仕組み全体は検証していません。
 
 
     8期の需要に対して、変動を追う在庫と一定の在庫を置く。余剰と不足を実際に数え、費用比を動かして総費用の順位が反転するか確かめる。'
@@ -117,7 +117,7 @@ teaching_figures:
   source: https://arxiv.org/pdf/2607.25664v1
 - kind: equations
   id: kernel
-  title: 負の裾はモデルの仮定として読む
+  title: 販促後に需要が減る形は、モデルの仮定である
   after: method
   locator: 表1・§3.3
   rationale: 推定事実とkernelの表現力を区別する。

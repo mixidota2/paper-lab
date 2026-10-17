@@ -83,7 +83,7 @@ sections:
 
 
     Python標準ライブラリだけで実行する。乱数を使う実験はseedを固定し、結果をコードと同じ場所に保存する。'
-  results: 以下はこのLabの実行結果。上のEvidenceに載せた著者報告のA/Bとは、データも評価対象も異なる。
+  results: 以下は、このLabで診断を実行した結果である。上の「根拠」に載せた著者の診断・評価とは、データも評価対象も異なる。
   mapping: mapping.md
 teaching_figures:
 - kind: matrix

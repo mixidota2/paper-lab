@@ -12,7 +12,7 @@ OR-Transformerは商品順に依存しないTransformerと、在庫動態を通�
 
 ## Core Idea — 著者の主張と解釈
 
-著者の主張：共有固定費を払って注文を開く離散判断Yと、各商品の連続量Qを分ける。Yにはscore gradient、Qには在庫動態を通じたpathwise gradientを使う。
+著者の主張：共通の固定費を払って共同発注を行うかどうかの離散的な判断Yと、各商品の連続的な発注量Qを分けて学習する。Yにはscore gradient、Qには在庫動態を通じたpathwise gradientを使う。
 
 Labの解釈：Transformerだけの効果とは読めない。Transformer-PPOとの比較は数量の勾配推定法、MLPを使うHPOとの比較は商品間の表現を考える材料になる。ただし各要素の寄与を完全に分離した因果推定ではない。
 

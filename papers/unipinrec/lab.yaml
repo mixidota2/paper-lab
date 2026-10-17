@@ -65,7 +65,7 @@ sections:
 
     実行：`uv run papers/unipinrec/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json` へ保存する。'
   results: 初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。
-  what_we_verified: '**メカニズム：PARTIAL（部分的）**。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。
+  what_we_verified: '**メカニズム：PARTIAL（部分的）**。このLabで確認したのは、ここに示した仮定に基づく計算結果と、条件を変えたときの結果の変化です。原論文の仕組み全体は検証していません。
 
 
     80リクエストで履歴計算を1回共有する場合と2回行う場合を数える。候補数を固定して履歴長を変え、重複の割合がどう変わるかを見る。'
@@ -98,7 +98,7 @@ source_review:
 teaching_figures:
 - kind: matrix
   id: attention-mask
-  title: 候補同士を見せないattention mask
+  title: 候補がほかの候補を参照できないようにする設定（attention mask）
   after: method
   locator: §3.1.1・図2
   rationale: キャッシュ再利用の条件をマスクそのもので示す。

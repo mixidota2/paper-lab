@@ -29,7 +29,7 @@ verification:
 status: published
 related_threads: []
 question: CQ-SID：商品群を生成し、Tmallの既存ランキングにつなぐ
-summary: TmallAPPのCQ-SIDは、一つのSIDから意味の近い商品群を取り出す召回チャネルだ。カテゴリ制約とquery-item対照学習で群を作り、EG-GRPOで既存の露出・クリックに合わせる。2週間のA/BでGMV
+summary: TmallAPPのCQ-SIDは、意味の近い商品をまとめた識別子（SID）を生成し、その識別子に対応する商品群を既存の順位付け処理へ渡す仕組みである。カテゴリ制約とquery-item対照学習で群を作り、EG-GRPOで既存の露出・クリックに合わせる。2週間のA/BでGMV
   +1.15%、UCTCVR +0.40%。購入の72.63%という値はチャネル構成比で、改善率ではない。
 source_review:
   checked: '2026-09-15'
@@ -41,7 +41,7 @@ core_idea:
     GRPO（EG-GRPO）により、検索召回の精度・候補の広がり・計算量を両立できると主張する。生成召回は既存のmulti-channel recallとrankingへ組み込む（§1、§3–4）。
   research_bot_interpretation: ここでの設計判断は「IDの衝突をすべてなくす」より、意味の近い商品を一緒に呼ぶことにある。後段の選別が前提なので、beamを減らせても商品展開やrankingの費用は残る。専門家SIDの注入は教師信号の補強であり、未知の良い商品を発見できた証拠とは分ける。
 sections:
-  overview: TmallAPPのCQ-SIDは、一つのSIDから意味の近い商品群を取り出す召回チャネルだ。カテゴリ制約とquery-item対照学習で群を作り、EG-GRPOで既存の露出・クリックに合わせる。2週間のA/BでGMV
+  overview: TmallAPPのCQ-SIDは、意味の近い商品をまとめた識別子（SID）を生成し、その識別子に対応する商品群を既存の順位付け処理へ渡す仕組みである。カテゴリ制約とquery-item対照学習で群を作り、EG-GRPOで既存の露出・クリックに合わせる。2週間のA/BでGMV
     +1.15%、UCTCVR +0.40%。購入の72.63%という値はチャネル構成比で、改善率ではない。
   problem: '巨大な検索商品集合から最終表示までを直接生成すると、必要な精度を低遅延で保ちにくい。本論文は生成を召回段に限定し、既存の粗いranking・精密rankingを使うhybrid構成を採る。SIDを一意IDにすると、小さなbeamでは呼び出せる商品数も少ない。逆に群を大きくし過ぎると、人気群が候補枠を占める。
 

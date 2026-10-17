@@ -338,3 +338,11 @@ body{background:white}
 /* Keep pricing amounts readable; the labelled region handles narrow screens. */
 .zalando-price-table table { table-layout: auto; min-width: 42rem; }
 .zalando-price-table td { white-space: nowrap; overflow-wrap: normal; }
+
+/* Theme guides share canonical Lab pages and remain outside the paper count. */
+.entry-nav{display:flex;flex-wrap:wrap;gap:.6rem 1.2rem}
+.guide-page{max-width:960px;padding-bottom:3rem}
+.guide-body{max-width:76ch;overflow-wrap:anywhere}
+.guide-body h2{margin-top:2.5rem}.guide-body h3{margin-top:1.7rem}
+.theme-entry{padding-block:1.4rem;border-block:1px solid var(--line,#ddd)}
+@media(max-width:600px){.masthead__inner{flex-wrap:wrap;gap:.7rem}.entry-nav{font-size:.85rem}.guide-page h1{overflow-wrap:anywhere}}

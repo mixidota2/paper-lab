@@ -24,7 +24,7 @@ urls:
 verdict: Radar
 status: published
 question: 推論を消した後も、必要な状態を読み出せるか
-summary: 推論の価値を状態の保存先から考える。外部化と再導出の関係を局所介入で調べるが、80%剪定の性能には大きな振れがある。
+summary: 推論の価値を状態の保存先から考える。著者は、推論で得た情報をコードやファイルに保存することと、その情報を再び導き出すことの関係を、処理の一部を変えて調べた。推論文の80%を削除する手法の成績には、課題の領域によって大きな差がある。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED

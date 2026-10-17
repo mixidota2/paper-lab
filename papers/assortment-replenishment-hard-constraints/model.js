@@ -1,0 +1,11 @@
+(function(root){'use strict';
+const clone=x=>JSON.parse(JSON.stringify(x));
+function evaluate(d,k){const xs=d.items,n=xs.length;let flows=[];
+for(let j=0;j<n;j++)if(!k[j]){const L=xs[j].lam*xs[j].alpha;for(let i=0;i<n;i++)if(d.mu[j][i])flows.push({source:xs[j].id,target:xs[i].id,amount:L*d.mu[j][i],recovered:!!k[i]});flows.push({source:xs[j].id,target:'未配分',amount:L*(1-d.mu[j].reduce((a,b)=>a+b,0)),recovered:false});}
+const rows=xs.map((x,i)=>{const direct=k[i]?x.alpha*k[i]**x.beta:0;let transfer=0;if(k[i])for(let j=0;j<n;j++)if(!k[j])transfer+=xs[j].lam*xs[j].alpha*d.mu[j][i];const demand=direct+transfer,stock=x.g*k[i],required=x.f*demand,slack=stock-required;return {id:x.id,k:k[i],direct,transfer,demand,stock,required,slack,feasible:slack>=-1e-9*Math.max(1,stock,required),profit:k[i]?x.p*demand-x.c:0,potential:k[i]?0:x.lam*x.alpha,extra:Math.max(0,demand-stock),ratio:demand?Math.min(1,stock/demand):null};});
+const width=xs.reduce((a,x,i)=>a+x.b*k[i],0),width_ok=width<=d.S+1e-9;return {k:[...k],rows,flows,width,width_ok,feasible:width_ok&&rows.every(x=>x.feasible),profit:rows.reduce((a,x)=>a+x.profit,0)};}
+function solve(d,fixed=null){let best=null,ties=[],candidates=0,width_feasible=0,feasible_count=0;
+function visit(k){if(k.length<d.items.length){for(let i=0;i<=d.items[k.length].K;i++)visit([...k,i]);return;}if(fixed&&k.some((v,i)=>!!v!==fixed[i]))return;candidates++;const x=evaluate(d,k);if(x.width_ok)width_feasible++;if(!x.feasible)return;feasible_count++;if(!best||x.profit>best.profit+1e-9){best=x;ties=[[...k]];}else if(Math.abs(x.profit-best.profit)<=1e-9)ties.push([...k]);}visit([]);return {best,ties,candidates,width_feasible,feasible_count,complete:true};}
+function experiment(d){const oracle=solve(d),zero=clone(d);zero.mu=zero.mu.map(row=>row.map(()=>0));const no_substitution=solve(zero).best,reevaluated=evaluate(d,no_substitution.k),fixed_assortment=solve(d,no_substitution.k.map(Boolean)),p=oracle.best.profit;return {input:d,oracle,no_substitution,reevaluated,fixed_assortment,gap:reevaluated.feasible&&p>0?(p-reevaluated.profit)/p:null};}
+const api={evaluate,solve,experiment};if(typeof module!=='undefined')module.exports=api;else root.ReplenishmentModel=api;
+})(globalThis);
