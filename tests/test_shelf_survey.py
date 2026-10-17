@@ -35,7 +35,6 @@ def test_shelf_sections_resolve_without_losing_the_experiment():
         assert '<iframe' in sections['executable_understanding']
         assert '実装と検証の補足' in sections['implementation']
         assert '<sub>' in sections['method']
-        assert '実ブラウザー' in sections['what_we_verified']
         assert '<h2>' not in sections['method']  # common page owns the section heading
 
 
@@ -67,3 +66,17 @@ def test_protected_runner_requires_survey_checks_at_all_three_widths():
     assert "'mfrac', 'msup', 'msub'" in helper
     assert "'manual_visual_review': 'NOT TESTED'" in helper
     assert '.first.click()' in helper  # citation tables repeat the canonical Lab links
+
+
+
+def test_validation_separates_previous_publication_from_current_revision():
+    for lab in load_all_labs(ROOT / 'papers'):
+        if lab.id not in SHELF:
+            continue
+        statements = lab.sections['what_we_verified'].split('。')
+        # A browser keyword alone cannot identify which version was checked.
+        previous = [s for s in statements if '旧公開版' in s]
+        assert any(all(term in s for term in ('2026年10月17日', '382ケース', '基本操作', '確認しました')) for s in previous), lab.id
+        current = [s for s in statements if '本改訂' in s]
+        assert any(all(term in s for term in ('MathML', '節構成', '実ブラウザー', '表示・操作', '未検証')) for s in current), lab.id
+        assert any(all(term in s for term in ('読み上げ', '数式全体の視認性', '未検証')) for s in statements), lab.id
