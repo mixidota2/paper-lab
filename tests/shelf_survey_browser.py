@@ -4,8 +4,32 @@ No launch route, engine fallback or protection-policy change is defined here.
 Geometry assertions are rendering checks, not proof of scientific correctness.
 """
 import json
+import math
 
 SHELF = ('storewide-shelf-decomposition', 'assortment-replenishment-hard-constraints', 'shelf-placement-options')
+
+
+
+def assert_math_term(term):
+    """Check glyph position and computed type size as distinct measurements.
+
+    Ink/layout height depends on the characters (e.g. α versus ip), so it
+    cannot measure script scaling. CSS computed font-size measures type size;
+    the recorded rectangles still check nonzero rendering and vertical position.
+    """
+    a, b = term['children']
+    assert min(a['width'], a['height'], b['width'], b['height']) > 0, term
+    if term['kind'] == 'mfrac':
+        assert a['bottom'] <= b['y'], term
+        return
+    assert term['kind'] in ('msub', 'msup'), term
+    sizes = (a['fontSize'], b['fontSize'])
+    assert all(math.isfinite(size) and size > 0 for size in sizes), term
+    assert b['fontSize'] < a['fontSize'], term
+    if term['kind'] == 'msup':
+        assert b['y'] < a['y'], term
+    else:
+        assert b['bottom'] > a['bottom'], term
 
 
 def inspect_survey(page, base, out, width, snapshot):
@@ -65,21 +89,14 @@ def inspect_survey(page, base, out, width, snapshot):
                     expression.scroll_into_view_if_needed()
                     assert expression.is_visible()
                     data = expression.evaluate('''e => {
-                      const rect = n => {const r=n.getBoundingClientRect(); return {x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom};};
+                      const rect = n => {const r=n.getBoundingClientRect(), s=getComputedStyle(n); return {x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom,fontSize:parseFloat(s.fontSize),mathDepth:s.getPropertyValue("math-depth"),text:n.textContent};};
                       return {namespace:e.namespaceURI, rect:rect(e),
                         terms:[...e.querySelectorAll('mfrac,msub,msup')].map(n=>({kind:n.localName, children:[...n.children].map(rect)}))};
                     }''')
                     assert data['namespace'] == 'http://www.w3.org/1998/Math/MathML'
                     assert data['rect']['height'] > 0 and data['rect']['width'] > 0
                     for term in data['terms']:
-                        a, b = term['children']
-                        assert min(a['width'], a['height'], b['width'], b['height']) > 0
-                        if term['kind'] == 'mfrac':
-                            assert a['bottom'] <= b['y'], term
-                        elif term['kind'] == 'msup':
-                            assert b['y'] < a['y'] and b['height'] < a['height'], term
-                        else:
-                            assert b['bottom'] > a['bottom'] and b['height'] < a['height'], term
+                        assert_math_term(term)
                     assert expression.locator('xpath=..').get_attribute('aria-label')
                     records['math'].append({'slug': slug, 'index': i, **data})
                     snapshot(page, out, f'survey-{width}-{slug}-math-{i}', expression.locator('xpath=ancestor::figure'))
