@@ -55,7 +55,8 @@ button:hover:not(:disabled){border-color:var(--accent)}
 .paper-card footer{display:flex;align-items:center;justify-content:space-between;gap:.6rem;border-top:1px solid var(--line);padding-top:1rem;margin-top:1rem;font-size:.78rem}
 .arrow-link{font-weight:700}
 .empty-state{padding:2rem;background:var(--pale)}
-.footer{display:flex;flex-wrap:wrap;justify-content:space-between;gap:1rem;border-top:1px solid var(--line);margin-top:4rem;padding-block:1.8rem;font-size:.78rem;color:var(--muted)}
+/* A real 1px scroll clearance keeps the fractional footer box fully visible. */
+.footer{margin-bottom:1px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:1rem;border-top:1px solid var(--line);margin-top:4rem;padding-block:1.8rem;font-size:.78rem;color:var(--muted)}
 .footer p{margin:0}
 .paper-hero{padding-block:clamp(2.5rem,5vw,5rem) 2rem;max-width:1050px}
 .paper-hero h1{font-size:clamp(1.9rem,3.8vw,3.5rem);line-height:1.5;letter-spacing:-.025em;margin:.75rem 0 1rem;max-width:25em}
@@ -301,6 +302,8 @@ body{background:white}
 /* September 21: paper-specific research displays, with readable mobile fallback. */
 .batch21 { min-width:0; }
 .batch21 select { max-width:100%; padding:.65rem; margin:.5rem 0 1rem; font:inherit; }
+/* Generated teaching figures use data-b21, including inventory placement. */
+.teaching[data-b21] select { display:block; width:100%; max-width:100%; min-width:0; }
 .batch21 [data-output] { min-width:0; }
 .batch21 th,.batch21 td { min-width:7rem; overflow-wrap:normal; word-break:normal; }
 .b21-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:.7rem; margin:1rem 0; }

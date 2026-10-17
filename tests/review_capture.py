@@ -59,11 +59,12 @@ def capture_segments(page, path):
             name=f'{len(tiles):03d}.png'
             (path/name).write_bytes(png)
             tiles.append(dict(m,file=name,pngWidth=size[0],pngHeight=size[1],sha256=digest))
-            if m['y']+m['height'] >= m['total']-1:
+            # scrollHeight is integral; do not stop a pixel before its end.
+            if m['y']+m['height'] >= m['total']:
                 break
             target=m['y']+m['height']-100
         footer=page.locator('.footer').bounding_box()
-        assert footer and footer['y']>=0 and footer['y']+footer['height'] <= m['height']+1, footer
+        assert footer and footer['y']>=0 and footer['y']+footer['height'] <= m['height'], footer
         assert page.locator('.footer a').is_visible()
         report=dict(bounds=bounds,tiles=tiles,footer=footer,method='Unresized viewport; 100px or greater overlap; no stitching')
         (path/'segments.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')

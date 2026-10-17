@@ -16,6 +16,7 @@ import subprocess
 import sys
 import time
 from review_103_evidence import RunEvidence, ProtectionStop
+from review_measurements import assert_percent_width
 import tempfile
 from urllib.parse import unquote, urljoin, urlsplit
 from urllib.request import urlopen, Request
@@ -56,6 +57,17 @@ class Document(HTMLParser):
         if tag in ('img','script','iframe','link'):
             v=a.get('href') if tag=='link' else a.get('src')
             if v:self.assets.append(v)
+
+def assert_paper_heading(page):
+    # Embedded Markdown sections can contain their own h1; the hero identifies
+    # the loaded paper. Require exactly one visible hero with the page title.
+    heading = page.locator('main#paper > header.paper-hero > h1')
+    assert heading.count() == 1, 'Expected exactly one paper hero heading'
+    assert heading.is_visible(), 'Paper hero heading is hidden'
+    text = heading.inner_text().strip()
+    assert text, 'Paper hero heading is empty'
+    assert page.title() == f'{text} | 研究ライブラリ', 'Paper hero heading does not match document title'
+
 
 def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -280,7 +292,7 @@ def explorer_checks(page):
                 for row,item in zip(rows,frame['bars'],strict=True):
                     if item['value'] is not None:
                         assert row.locator('.bar-fill').count()==1
-                        assert math.isclose(row.locator('.bar-fill').evaluate('(e)=>parseFloat(e.style.width)'),100*item['value']/maximum,abs_tol=1e-5)
+                        assert_percent_width(row.locator('.bar-fill'),100*item['value']/maximum)
             scale.click()  # Restore shared scale before subsequent state checks.
             if frame.get('lines'):
                 lines=panel.locator('svg polyline').all();assert len(lines)==len(frame['lines'])
@@ -338,8 +350,8 @@ def shelf_checks(page,base,out,slug,width):
                 capacity=page.evaluate('p.capacity')
                 slots=page.locator('#shelf .shelf').last.locator('.slot')
                 for i,cap in enumerate(best['allocation']):
-                    assert math.isclose(slots.nth(i).evaluate('(e)=>parseFloat(e.style.width)'),100*cap/capacity,abs_tol=1e-6)
-                    assert math.isclose(slots.nth(i).locator('.used').evaluate('(e)=>parseFloat(e.style.width)'),100*best['categories'][i]['used']/cap,abs_tol=1e-6)
+                    assert_percent_width(slots.nth(i),100*cap/capacity)
+                    assert_percent_width(slots.nth(i).locator('.used'),100*best['categories'][i]['used']/cap)
                     row=next(r for r in result['tables'][i] if r['capacity']==cap)['best']
                     table=page.locator('#selection table').nth(i)
                     for j,r in enumerate(row['rows']):
@@ -371,10 +383,16 @@ def shelf_checks(page,base,out,slug,width):
                         assert rows.nth(i).locator('td').all_text_contents()==[r['id'],str(r['k'])]+[f'{v:.3f}' for v in [r['direct'],r['transfer'],r['stock'],r['required'],max(0,-r['slack'])]]
                     active=[r for r in selected['rows'] if r['k']]
                     scale=max(1,*[v for r in selected['rows'] for v in [r['stock'],r['required']]])
-                    widths=page.locator('#bars .bar').evaluate_all('(xs)=>xs.map(e=>parseFloat(e.style.width))')
+                    stock_rows=page.locator('#bars > p').filter(has_text='棚在庫')
+                    assert stock_rows.count()==len(active)
                     for j,r in enumerate(active):
-                        assert math.isclose(widths[2*j],60*r['stock']/scale,abs_tol=1e-6)
-                        assert math.isclose(widths[2*j+1],60*r['required']/scale,abs_tol=1e-6)
+                        stock_row=stock_rows.nth(j)
+                        assert stock_row.inner_text().startswith(f'{r["id"]} 棚在庫')
+                        stock_bar=stock_row.locator('.bar:not(.required)')
+                        required_bar=stock_row.locator('.bar.required')
+                        assert stock_bar.count()==required_bar.count()==1
+                        assert_percent_width(stock_bar,60*r['stock']/scale)
+                        assert_percent_width(required_bar,60*r['required']/scale)
                     assert f'{selected["profit"]:.3f}' in page.locator('#summary').inner_text()
                 else:assert 'ありません' in page.locator('#summary').inner_text()
                 snapshot(page,out,f'{slug}-{width}-{case}-{mode}',page.locator('#summary').locator('..'))
@@ -495,7 +513,7 @@ def _runtime(site,out,plan,evidence):
                         def visit(path=path):
                             assert page.goto(f'{base}/papers/{path.name}').ok
                             guard(browser);settled(page)
-                            assert page.locator('h1').inner_text().strip()
+                            assert_paper_heading(page)
                             assert page.locator('[data-interactive][data-ready=true]').count()==page.locator('[data-interactive]').count()
                             for a in page.locator('.paper-actions a').all():
                                 href=a.get_attribute('href')
@@ -588,7 +606,7 @@ def _runtime(site,out,plan,evidence):
                             assert nojs.goto(f'{base}/papers/{slug}.html',wait_until='load').ok
                             guard(browser)
                             # Locator assertions and direct evaluation work without page JS timers.
-                            assert nojs.locator('h1').inner_text().strip()
+                            assert_paper_heading(nojs)
                             assert nojs.locator('figure.teaching:visible').count()>=2
                             assert nojs.evaluate('document.documentElement.scrollWidth<=innerWidth')
                             assert nojs.locator('[data-fallback]:visible').count()==nojs.locator('[data-interactive]').count()
