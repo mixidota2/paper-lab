@@ -334,6 +334,18 @@ def snapshot(page,out,name,region=None):
     return capture(page,out/name,region)
 
 
+def viewport_snapshot(page,out,name,evidence):
+    """One initial viewport only; never tile the library or claim full-page coverage."""
+    page.evaluate('scrollTo({top:0,left:0,behavior:"instant"})')
+    filename=f'{name}-viewport-only.png'
+    data=page.screenshot(path=str(out/filename),full_page=False,timeout=5000)
+    evidence.report['screen_records'].append({
+        'case':evidence.current,'page':page.url,'status':'CAPTURED initial viewport only',
+        'file':filename,'viewport':page.viewport_size,'coverage':'initial viewport only; below-fold content not captured',
+        'sha256':hashlib.sha256(data).hexdigest(),'manual_visual_review':'NOT TESTED'})
+    evidence.persist()
+
+
 def shelf_checks(page,base,out,slug,width):
     url=f'{base}/downloads/{slug}/interactive.html'
     assert page.goto(url).ok
@@ -502,6 +514,9 @@ def _runtime(site,out,plan,evidence):
                     def library_search():
                         assert page.goto(base+'/index.html').ok;settled(page)
                         assert page.locator('[data-paper]:visible').count()==103
+                        if width in (360,1440):
+                            guard(browser)
+                            viewport_snapshot(page,out,f'library-initial-{width}',evidence)
                         page.get_by_role('searchbox').fill('2609.04518')
                         assert page.locator('[data-paper]:visible').count()==1
                         page.get_by_role('searchbox').fill('no-such-paper-xyz')
@@ -515,6 +530,9 @@ def _runtime(site,out,plan,evidence):
                             guard(browser);settled(page)
                             assert_paper_heading(page)
                             assert page.locator('[data-interactive][data-ready=true]').count()==page.locator('[data-interactive]').count()
+                            if width in (360,1440) and path.stem=='proximal-residual-value-inventory-placement':
+                                guard(browser)
+                                viewport_snapshot(page,out,f'{path.stem}-initial-{width}',evidence)
                             for a in page.locator('.paper-actions a').all():
                                 href=a.get_attribute('href')
                                 if href.startswith('http'):source_urls.add(href)

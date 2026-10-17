@@ -1,20 +1,57 @@
-"""Non-browser HEAD worker. Parent enforces a wall-clock budget by killing it."""
+"""Non-browser HTTP reachability worker. Parent enforces a wall-clock budget by killing it."""
 import json
 from pathlib import Path
 import subprocess
 import sys
 import time
+from urllib.error import HTTPError
 from urllib.request import Request,urlopen
+
+
+def check_url(url):
+    """HEAD, with a small GET only for method-dependent 404/405/501 failures.
+
+    Both attempts share the existing eight-second URL budget. The parent still
+    enforces the total wall-clock budget, including stalled DNS or response reads.
+    A successful request proves HTTP reachability only, never source correctness.
+    """
+    deadline = time.monotonic() + 8
+    item = {'url': url, 'method': 'HEAD'}
+    headers = {'User-Agent': 'paper-lab-link-review/1.0'}
+    try:
+        try:
+            with urlopen(Request(url, method='HEAD', headers=headers), timeout=8) as r:
+                item.update(head_status=r.status, status=r.status, final_url=r.url,
+                            result='CONFIRMED HTTP reachability only')
+                return item
+        except HTTPError as e:
+            item['head_status'] = e.code
+            e.close()
+            if e.code not in (404, 405, 501):
+                raise
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError('URL time budget exhausted before GET fallback')
+        item.update(method='GET', fallback_method='GET')
+        with urlopen(Request(url, method='GET', headers=headers), timeout=remaining) as r:
+            # Do not download entire articles. Exiting the context closes the stream.
+            r.read(1024)
+            if time.monotonic() >= deadline:
+                raise TimeoutError('URL time budget exhausted during GET fallback')
+            item.update(status=r.status, final_url=r.url,
+                        result='CONFIRMED HTTP reachability only')
+    except Exception as e:
+        if isinstance(e, HTTPError):
+            item['status'] = e.code
+            e.close()
+        item.update(result='NOT CONFIRMED', error=str(e))
+    return item
 
 
 def worker(input_path,output_path):
     with Path(output_path).open('w') as output:
         for url in json.loads(Path(input_path).read_text()):
-            try:
-                with urlopen(Request(url,method='HEAD',headers={'User-Agent':'paper-lab-link-review/1.0'}),timeout=8) as r:
-                    item={'url':url,'status':r.status,'final_url':r.url,'result':'CONFIRMED HTTP reachability only'}
-            except Exception as e:item={'url':url,'result':'NOT CONFIRMED','error':str(e)}
-            output.write(json.dumps(item)+'\n');output.flush()
+            output.write(json.dumps(check_url(url))+'\n');output.flush()
 
 
 def bounded_check(urls,out,budget_seconds=45,command=None):
