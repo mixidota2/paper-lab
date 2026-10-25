@@ -65,7 +65,7 @@ KEYBOARD_OBSERVER = r"""() => {
         for (const type of ['keydown', 'keypress', 'keyup', 'input', 'change']) {
             const listener = event => {
                 if (state.events.length >= 8) { state.truncated = true; return; }
-                const keys = {' ': 'Space', ArrowDown: 'ArrowDown', Enter: 'Enter'};
+                const keys = {' ': 'Space', ArrowDown: 'ArrowDown', Enter: 'Enter', '別': '別'};
                 state.events.push({type, key: keys[event.key] || 'OTHER',
                     trusted: event.isTrusted === true,
                     target: id === ids[0] ? 'normalize' : 'reset', value: value()});
@@ -80,7 +80,7 @@ KEYBOARD_SNAPSHOT = r"""() => {
     const state = window.__traceKeyboardObservation;
     const select = document.getElementById('trace-normalize');
     const reset = document.getElementById('trace-reset');
-    const result = {value: select.value,
+    const result = {value: select.value, open: select.matches(':open'),
         focus: document.activeElement === select ? 'normalize' :
                document.activeElement === reset ? 'reset' : 'other',
         events: state.events, truncated: state.truncated};
@@ -101,11 +101,12 @@ def keyboard_record(raw, stage, width):
         return value if isinstance(value, str) and value in allowed else 'UNKNOWN'
     events = raw.get('events', [])
     return {'width': width if type(width) is int and width in (360,390,768,1440) else None,
-            'stage': enum(stage, ('before-focus','focus','Space','ArrowDown','Enter','reset-focus','reset-Enter')),
+            'stage': enum(stage, ('before-focus','focus','Unicode-keyDown','Unicode-keyUp','reset-focus','reset-Enter')),
             'focus': enum(raw.get('focus'), ('normalize','reset','other')),
             'value': enum(raw.get('value'), ('0','1')),
+            'open': raw.get('open') if type(raw.get('open')) is bool else None,
             'events': [{'type': enum(e.get('type'), ('keydown','keypress','keyup','input','change')),
-                        'key': enum(e.get('key'), ('Space','ArrowDown','Enter','OTHER')),
+                        'key': enum(e.get('key'), ('Space','ArrowDown','Enter','別','OTHER')),
                         'trusted': e.get('trusted') is True,
                         'target': enum(e.get('target'), ('normalize','reset')),
                         'value': enum(e.get('value'), ('0','1'))}
@@ -122,24 +123,54 @@ def observe_keyboard(page, stage):
     return record
 
 
+def assert_key_delivery(records, key, target):
+    assert all(not r['truncated'] for r in records)
+    events = [e for r in records for e in r['events']]
+    keys = [e for e in events if e['type'] in ('keydown','keypress','keyup')]
+    assert [(e['type'], e['key'], e['trusted'], e['target']) for e in keys] == [
+        (kind, key, True, target) for kind in ('keydown','keypress','keyup')]
+    assert all(e['trusted'] and e['target'] == target for e in events)
+    return events
+
+
 def inspect_trace_keyboard(page, source, cases):
-    # Observation of the existing failing path, not a claimed native-key fix.
+    # Browser-generated trusted Unicode typeahead; not physical Japanese/IME
+    # input or native-popup navigation. Only attach to this already guarded page.
+    assert_trace_initial(page, source)
     page.evaluate(KEYBOARD_OBSERVER)
     try:
         observe_keyboard(page, 'before-focus')
         control = page.locator('#trace-normalize')
         control.focus()
-        observe_keyboard(page, 'focus')
-        for key in ('Space', 'ArrowDown', 'Enter'):
-            control.press(key)
-            observe_keyboard(page, key)
+        focused = observe_keyboard(page, 'focus')
+        assert focused['focus'] == 'normalize' and focused['value'] == '0'
+        assert focused['open'] is False
+        session = page.context.new_cdp_session(page)
+        try:
+            session.send('Input.dispatchKeyEvent', {'type': 'keyDown', 'key': '別',
+                         'text': '別', 'unmodifiedText': '別', 'modifiers': 0})
+            down = observe_keyboard(page, 'Unicode-keyDown')
+            session.send('Input.dispatchKeyEvent', {'type': 'keyUp', 'key': '別', 'modifiers': 0})
+            up = observe_keyboard(page, 'Unicode-keyUp')
+        finally:
+            session.detach()
+        events = assert_key_delivery([down, up], '別', 'normalize')
+        assert [(e['type'], e['value']) for e in events
+                if e['type'] in ('input','change')] == [('input','1'), ('change','1')]
+        assert up['focus'] == 'normalize' and up['open'] is False
         assert control.input_value() == '1'
-        assert_trace_frame(page.locator('#trace-output').inner_html(), cases[3])
+        output = page.locator('#trace-output')
+        assert_trace_frame(output.inner_html(), cases[3])
+        assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+        bars = output.locator('div[style*="width:"]')
+        for i, key in enumerate(['original_score','raw_score','rescored']):
+            ratio = bars.nth(i).evaluate('(e)=>e.getBoundingClientRect().width/e.parentElement.getBoundingClientRect().width')
+            assert abs(ratio-cases[3][key]) < .001
         reset = page.locator('#trace-reset')
         reset.focus()
-        observe_keyboard(page, 'reset-focus')
+        assert observe_keyboard(page, 'reset-focus')['focus'] == 'reset'
         reset.press('Enter')
-        observe_keyboard(page, 'reset-Enter')
+        assert_key_delivery([observe_keyboard(page, 'reset-Enter')], 'Enter', 'reset')
         assert_trace_initial(page, source)
     finally:
         page.evaluate(KEYBOARD_CLEANUP)

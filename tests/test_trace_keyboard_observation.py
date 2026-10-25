@@ -11,22 +11,59 @@ toy = importlib.util.module_from_spec(spec); spec.loader.exec_module(toy)
 CASES = json.loads((SOURCE / 'results.json').read_text())['synthetic']
 
 
+def event(kind, key, value, target='normalize', trusted=True):
+    return dict(type=kind, key=key, value=value, target=target, trusted=trusted)
+
+
 class Control:
     def __init__(self, page, selector):
         self.page, self.selector = page, selector
     def focus(self):
-        self.page.focus = self.selector
+        if self.page.mode != 'wrong-focus':
+            self.page.focus = self.selector
     def press(self, key):
         p = self.page; p.presses.append((self.selector, key))
-        if self.selector == '#trace-normalize' and key == 'Enter' and p.mode != 'no-selection':
-            p.value = '1'
-            p.html = toy.frame(CASES[2 if p.mode == 'stale-output' else 3])
-        if self.selector == '#trace-reset' and p.mode != 'no-reset':
+        assert self.selector == '#trace-reset' and key == 'Enter'
+        p.events = [event(k, 'Enter', p.value, 'reset') for k in ('keydown','keypress','keyup')]
+        if p.mode != 'no-reset':
             p.value = '0'; p.html = toy.frame(CASES[2])
     def input_value(self):
         return {'#trace-agent': '0', '#trace-alias': '1', '#trace-normalize': self.page.value}[self.selector]
     def inner_html(self):
         return self.page.html
+    def locator(self, selector):
+        assert selector == 'div[style*="width:"]'
+        return self
+    def nth(self, index):
+        self.index = index
+        return self
+    def evaluate(self, script):
+        assert 'getBoundingClientRect' in script
+        return 0 if self.page.mode == 'bad-geometry' else CASES[3][['original_score','raw_score','rescored'][self.index]]
+
+
+class Session:
+    def __init__(self, page):
+        self.page = page; self.calls = []; self.detached = False
+    def send(self, method, args):
+        p = self.page; self.calls.append((method, args))
+        if p.mode == 'send-error':
+            raise RuntimeError('mock transport failure')
+        if args['type'] == 'keyDown':
+            p.events = [event(k, '別', '0') for k in ('keydown','keypress')]
+            if p.mode != 'no-selection':
+                p.value = '1'
+                p.html = toy.frame(CASES[2 if p.mode == 'stale-output' else 3])
+            if p.mode != 'no-change':
+                p.events += [event(k, 'OTHER', '1') for k in ('input','change')]
+        else:
+            p.events = [event('keyup', '別', p.value)]
+        if p.mode == 'no-delivery':
+            p.events = []
+        if p.mode == 'untrusted':
+            for e in p.events: e['trusted'] = False
+    def detach(self):
+        self.detached = True
 
 
 class Page:
@@ -34,40 +71,58 @@ class Page:
     def __init__(self, mode):
         self.mode = mode; self.value = '0'; self.html = toy.frame(CASES[2])
         self.focus = None; self.presses = []; self.cleaned = False
+        self.events = []; self.context = self; self.session = None
+    def new_cdp_session(self, page):
+        assert page is self
+        self.session = Session(self)
+        return self.session
     def locator(self, selector):
         return Control(self, selector)
     def evaluate(self, script):
         if script == review.KEYBOARD_CLEANUP:
             self.cleaned = True
         elif script == review.KEYBOARD_SNAPSHOT:
-            return {'value': self.value, 'focus': {'#trace-normalize': 'normalize', '#trace-reset': 'reset'}.get(self.focus, 'other'),
-                    'events': [], 'truncated': False}
+            events, self.events = self.events, []
+            return {'value': self.value, 'open': self.mode == 'open-popup',
+                    'focus': {'#trace-normalize': 'normalize', '#trace-reset': 'reset'}.get(self.focus, 'other'),
+                    'events': events, 'truncated': False}
+        elif script == 'document.documentElement.scrollWidth<=innerWidth':
+            return True
         else:
             assert script == review.KEYBOARD_OBSERVER
 
 
-@pytest.mark.parametrize('mode', ['no-selection', 'stale-output', 'no-reset'])
-def test_original_gates_still_reject(mode, capsys):
+@pytest.mark.parametrize('mode', ['wrong-focus','open-popup','no-delivery','untrusted',
+                                 'no-change','no-selection','stale-output','bad-geometry','no-reset'])
+def test_gates_reject_mock_failures(mode):
     page = Page(mode)
     with pytest.raises(AssertionError):
         review.inspect_trace_keyboard(page, SOURCE / 'results.json', CASES)
     assert page.cleaned
-    records = [json.loads(line.split(' ', 1)[1]) for line in capsys.readouterr().err.splitlines()]
-    assert records[0]['value'] == '0'
-    assert records[1]['focus'] == 'normalize'
-    assert records[4]['stage'] == 'Enter'
-    assert records[4]['value'] == ('0' if mode == 'no-selection' else '1')
-    assert page.presses[:3] == [('#trace-normalize', k) for k in ('Space', 'ArrowDown', 'Enter')]
+    if page.session:
+        assert page.session.detached
+    else:
+        assert mode in ('wrong-focus','open-popup')
 
 
-def test_mock_success_preserves_reset_and_records_stages(capsys):
+def test_mock_success_exact_protocol_and_reset(capsys):
     page = Page('success')
     review.inspect_trace_keyboard(page, SOURCE / 'results.json', CASES)
-    assert page.cleaned and page.value == '0'
-    assert page.presses[-1] == ('#trace-reset', 'Enter')
+    assert page.cleaned and page.value == '0' and page.session.detached
+    assert page.session.calls == [
+        ('Input.dispatchKeyEvent', {'type':'keyDown','key':'別','text':'別','unmodifiedText':'別','modifiers':0}),
+        ('Input.dispatchKeyEvent', {'type':'keyUp','key':'別','modifiers':0})]
+    assert page.presses == [('#trace-reset', 'Enter')]
     records = [json.loads(line.split(' ', 1)[1]) for line in capsys.readouterr().err.splitlines()]
-    assert [r['stage'] for r in records] == ['before-focus','focus','Space','ArrowDown','Enter','reset-focus','reset-Enter']
+    assert [r['stage'] for r in records] == ['before-focus','focus','Unicode-keyDown','Unicode-keyUp','reset-focus','reset-Enter']
     assert records[-1]['value'] == '0'
+
+
+def test_session_detached_on_send_failure():
+    page = Page('send-error')
+    with pytest.raises(RuntimeError):
+        review.inspect_trace_keyboard(page, SOURCE / 'results.json', CASES)
+    assert page.session.detached and page.cleaned
 
 
 def test_allowlisted_bounded_records_do_not_promote_untrusted_events():
@@ -80,8 +135,8 @@ def test_allowlisted_bounded_records_do_not_promote_untrusted_events():
     assert all(e['trusted'] is False for e in result['events'])
     assert 'private' not in json.dumps(result) and 'secret' not in json.dumps(result)
     assert len(json.dumps(result)) < 2048
-    raw['events'] = [{'type': 'keydown', 'key': 'Space', 'target': 'normalize', 'value': '0', 'trusted': True}]
-    assert review.keyboard_record(raw, 'Space', 360)['events'] == raw['events']
+    raw['events'] = [{'type': 'keydown', 'key': '別', 'target': 'normalize', 'value': '0', 'trusted': True}]
+    assert review.keyboard_record(raw, 'Unicode-keyDown', 360)['events'] == raw['events']
 
 
 def test_closed_console_does_not_change_mock_gate(tmp_path, monkeypatch):
