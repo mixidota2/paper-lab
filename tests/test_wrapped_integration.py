@@ -9,7 +9,7 @@ import sys
 import pytest
 
 from catalog_expectations import EXISTING, WRAPPED, assert_catalog
-from wrapped_review import assert_reported, assert_synthetic
+from wrapped_review import assert_reported, assert_synthetic, inspect_wrapped_keyboard
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT/'papers'/WRAPPED
@@ -69,3 +69,76 @@ process.stdout.write(JSON.stringify(result));
         assert_reported(result['reported'][0]['html'],data,'store',0)
     with pytest.raises(AssertionError):
         assert_synthetic(result['synthetic'][0]['html'],data,2,2,2)
+
+
+@pytest.mark.parametrize('broken', [None, 'ignored-key', 'stale-output', 'ignored-reset',
+                                  'missing-focus', 'missing-key-events', 'untrusted-key-events',
+                                  'ignored-return-key'])
+def test_keyboard_gate_rejects_missing_interaction_or_output(broken):
+    # This exercises the gate's failure paths, not native browser key behavior.
+    # The protected macOS job remains required for the real native select.
+    text = (SOURCE/'experiment.md').read_text()
+    frames = json.loads(re.search(r'const frames=(.*?);const controls=', text, re.S)[1])
+    data = json.loads((SOURCE/'results.json').read_text())
+    values = ['2','2','2']
+    output = [frames[26]]
+    events = []
+    focused = [None]
+
+    def render():
+        c,s,m = map(int,values)
+        output[0] = frames[c*9+s*3+m]
+
+    class Control:
+        def __init__(self, index):
+            self.index = index
+
+        def input_value(self):
+            return values[self.index]
+
+        def focus(self):
+            if broken != 'missing-focus':
+                focused[0] = self.index
+
+        def evaluate(self, expression):
+            if 'document.activeElement' in expression:
+                return focused[0] == self.index
+            if 'addEventListener' in expression:
+                events.clear()
+                return
+            return events
+
+        def press(self, key):
+            assert self.index == focused[0] == 0 and key in ('0','+')
+            if broken != 'missing-key-events':
+                events.extend({'type': kind, 'key': key, 'trusted': broken != 'untrusted-key-events'}
+                              for kind in ['keydown','keypress','keyup'])
+            if broken != 'ignored-key' and not (broken == 'ignored-return-key' and key == '+'):
+                values[0] = {'0':'1', '+':'2'}[key]
+            if broken != 'stale-output':
+                render()
+
+    class Reset:
+        def focus(self):
+            focused[0] = 'reset'
+
+        def press(self, key):
+            assert key == 'Enter' and focused[0] == 'reset'
+            if broken != 'ignored-reset':
+                values[:] = ['1','0','1']
+                render()
+
+    class Simulation:
+        def inner_html(self):
+            return output[0]
+
+    class Page:
+        def locator(self, selector):
+            return {'#wrapped-reset':Reset(), '#wrapped-simulation':Simulation()}[selector]
+
+    controls = [Control(i) for i in range(3)]
+    if broken:
+        with pytest.raises(AssertionError):
+            inspect_wrapped_keyboard(Page(),data,controls)
+    else:
+        inspect_wrapped_keyboard(Page(),data,controls)

@@ -98,11 +98,32 @@ def inspect_wrapped(page, source):
             control.select_option(str(value))
         assert_synthetic(page.locator('#wrapped-simulation').inner_html(),data,c,s,m)
         assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
-    # A keyboard event must change the semantic output, not only the input.
-    controls[0].focus()
-    controls[0].press('Home')
-    assert controls[0].input_value() == '0'
-    assert_synthetic(page.locator('#wrapped-simulation').inner_html(),data,0,2,2)
+    inspect_wrapped_keyboard(page, data, controls)
+
+
+def inspect_wrapped_keyboard(page, data, controls):
+    # Native closed selects on macOS do not use Home to select the first item.
+    # ASCII '0'/'+' uniquely prefix the middle/last options and are supported
+    # by Playwright's US keyboard map. U+2212 is not a supported press() key.
+    # Keep both the exact selected value and the resulting semantic/geometry gate.
+    assert [x.input_value() for x in controls] == ['2','2','2']
+    for key, value in [('0',1), ('+',2)]:
+        # Blur/refocus resets the native type-ahead prefix between keystrokes.
+        controls[1].focus()
+        controls[0].focus()
+        assert controls[0].evaluate('(element) => element === document.activeElement')
+        controls[0].evaluate('''element => {
+            element.__wrappedKeyEvents = [];
+            for (const type of ['keydown', 'keypress', 'keyup'])
+                element.addEventListener(type, event => element.__wrappedKeyEvents.push(
+                    {type: event.type, key: event.key, trusted: event.isTrusted}), {once: true});
+        }''')
+        controls[0].press(key)
+        events = controls[0].evaluate('(element) => element.__wrappedKeyEvents')
+        assert events == [{'type': kind, 'key': key, 'trusted': True}
+                          for kind in ['keydown','keypress','keyup']]
+        assert [x.input_value() for x in controls] == [str(value),'2','2']
+        assert_synthetic(page.locator('#wrapped-simulation').inner_html(),data,value,2,2)
     reset = page.locator('#wrapped-reset')
     reset.focus()
     reset.press('Enter')
