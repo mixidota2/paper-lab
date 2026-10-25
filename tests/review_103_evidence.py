@@ -1,4 +1,6 @@
 """One durable outcome for completed assertions versus interrupted browser runs."""
+import ast
+import hashlib
 from html import escape
 import json
 from pathlib import Path
@@ -91,6 +93,100 @@ def console_diagnostic(error):
     return summary
 
 
+DIAGNOSTIC_LIMIT = 12
+CASE_EXCEPTION_TYPES = frozenset({
+    'AssertionError', 'KeyError', 'ValueError', 'TypeError', 'IndexError',
+    'AttributeError', 'TimeoutError', 'RuntimeError', 'OSError',
+    'CalledProcessError', 'TimeoutExpired', 'ProtectionStop', 'KeyboardInterrupt',
+})
+DIAGNOSTIC_SOURCES = frozenset({
+    'trace_review.py', 'catalog_expectations.py', 'wrapped_review.py',
+    'shelf_survey_browser.py', 'review_103_report.py', 'review_103_external.py',
+    'review_103.py', 'review_103_capture.py', 'review_103_evidence.py',
+    'reference_browser.py', 'macos_chrome_cdp.py', 'macos_cdp_review.py',
+})
+
+
+def planned_identifier(value, allowed):
+    return (value if isinstance(value, str) and value in allowed
+            and re.fullmatch(r'[a-z0-9-]{1,120}', value) else 'UNKNOWN')
+
+
+def case_diagnostic(error, name, plan):
+    """No exception text, URLs, paths or arbitrary runtime function names."""
+    result = {'case': planned_identifier(name, plan.get('required_cases', [])),
+              'type': type(error).__name__ if type(error).__name__ in CASE_EXCEPTION_TYPES else 'Exception',
+              'source': None}
+    root = Path(__file__).resolve().parent
+    tb = error.__traceback__
+    while tb is not None:
+        code = tb.tb_frame.f_code
+        path = Path(code.co_filename)
+        if path.name in DIAGNOSTIC_SOURCES and path == root / path.name:
+            try:
+                raw = path.read_bytes()
+                if hashlib.sha256(raw).hexdigest() == plan.get('source_hashes', {}).get(path.name):
+                    tree = ast.parse(raw)
+                    functions = [n for n in ast.walk(tree)
+                                 if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+                                 and n.name == code.co_name and n.lineno <= tb.tb_lineno <= n.end_lineno
+                                 and re.fullmatch(r'[A-Za-z_][A-Za-z_0-9]{0,79}', n.name)]
+                    if functions:
+                        result['source'] = {'file': path.name, 'line': tb.tb_lineno,
+                                            'function': functions[0].name}
+            except (OSError, SyntaxError, ValueError):
+                pass
+        tb = tb.tb_next
+    return result
+
+
+def summary_failure(case, plan):
+    safe = case.get('safe_case', {})
+    result = {'case': planned_identifier(case.get('name'), plan.get('required_cases', [])),
+              'type': safe.get('type') if safe.get('type') in CASE_EXCEPTION_TYPES else 'Exception',
+              'source': None}
+    source = safe.get('source')
+    if isinstance(source, dict) and source.get('file') in DIAGNOSTIC_SOURCES:
+        path = Path(__file__).resolve().parent / source['file']
+        try:
+            raw = path.read_bytes()
+            line = source.get('line')
+            if (hashlib.sha256(raw).hexdigest() == plan.get('source_hashes', {}).get(path.name)
+                    and type(line) is int):
+                for node in ast.walk(ast.parse(raw)):
+                    if (isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                            and node.name == source.get('function')
+                            and re.fullmatch(r'[A-Za-z_][A-Za-z_0-9]{0,79}', node.name)
+                            and node.lineno <= line <= node.end_lineno):
+                        result['source'] = {'file': path.name, 'line': line, 'function': node.name}
+                        break
+        except (OSError, SyntaxError, ValueError):
+            pass
+    return result
+
+
+def case_summary(report, plan):
+    """Bounded diagnostic view only; never used to determine acceptance."""
+    cases = report.get('cases', [])
+    failed = [c for c in cases if c.get('status') != 'PASS']
+    expected = plan.get('required_cases', [])
+    recorded = {c.get('name') for c in cases}
+    missing_cases = [n for n in expected if n not in recorded]
+    groups = {(a.get('slug'), a.get('width')) for a in report.get('action_checks', [])
+              if a.get('status', '').startswith('CONFIRMED:')}
+    missing_groups = [g for g in plan.get('semantic_groups', []) if tuple(g) not in groups]
+    slugs = {g[0] for g in plan.get('semantic_groups', [])}
+    return {'failed_count': len(failed),
+            'failed': [summary_failure(c, plan) for c in failed[:DIAGNOSTIC_LIMIT]],
+            'missing_case_count': len(missing_cases),
+            'missing_cases': [planned_identifier(n, expected) for n in missing_cases[:DIAGNOSTIC_LIMIT]],
+            'missing_semantic_count': len(missing_groups),
+            'missing_semantic': [[planned_identifier(g[0], slugs),
+                                  g[1] if type(g[1]) is int and g[1] in (360,390,768,1440) else None]
+                                 for g in missing_groups[:DIAGNOSTIC_LIMIT]],
+            'truncated': any(len(xs) > DIAGNOSTIC_LIMIT for xs in (failed, missing_cases, missing_groups))}
+
+
 class RunEvidence:
     def __init__(self,out,plan):
         self.out=Path(out);self.page=None;self.current=None
@@ -134,7 +230,7 @@ class RunEvidence:
             self.report["interrupted_case"]=self.diagnostic(error)
             raise
         except Exception as e:
-            self.report['cases'].append({'name':name,'status':'FAIL',**self.diagnostic(e)})
+            self.report['cases'].append({'name':name,'status':'FAIL','safe_case':case_diagnostic(e,name,self.report['preflight']),**self.diagnostic(e)})
             self.capture_failure(error=e)
             if fatal:raise
         except BaseException as error:
@@ -164,8 +260,14 @@ class RunEvidence:
                 'message': 'Exception details omitted from console'})
             try:
                 print('LAB_REVIEW_STOP '+json.dumps(summary), file=sys.stderr, flush=True)
-            except OSError:
+            except (OSError, ValueError):
                 pass  # Durable evidence and the existing failure result remain.
+        if interruption is None:
+            try:
+                print('LAB_REVIEW_CASES '+json.dumps(case_summary(self.report, self.report['preflight'])),
+                      file=sys.stderr, flush=True)
+            except (OSError, ValueError):
+                pass  # Diagnostic transport cannot alter the gate outcome.
         links=''.join(f'<li><a href="{escape(str(p.relative_to(self.out)))}">{escape(str(p.relative_to(self.out)))}</a></li>' for p in sorted(self.out.rglob('*.png')))
         (self.out/'index.html').write_text('<!doctype html><meta charset="utf-8"><title>103 Lab review evidence</title><h1>原寸の画面記録</h1><p>状態：'+escape(self.report['status'])+'</p><p>目視確認は未実施です。<a href="report.json">ケース・エラー・画面記録</a></p><ul>'+links+'</ul>')
         return self.report

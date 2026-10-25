@@ -100,9 +100,9 @@ def test_generated_downloads_and_embedded_explorer_match_sources(tmp_path):
     build(root=ROOT, site_dir=tmp_path / 'site')
     site = tmp_path / 'site'
     labs = sorted((ROOT / 'papers').glob('*/lab.yaml'))
-    assert len(labs) == 104
+    assert len(labs) == 105
     assert_catalog(p.parent.name for p in labs)
-    assert len(list((site / 'papers').glob('*.html'))) == 104
+    assert len(list((site / 'papers').glob('*.html'))) == 105
     for path in labs:
         slug = path.parent.name
         for name in ('results.json', 'run.py', 'lab.yaml'):
