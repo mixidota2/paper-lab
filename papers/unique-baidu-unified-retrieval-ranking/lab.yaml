@@ -40,7 +40,7 @@ source_review:
   url: https://arxiv.org/pdf/2609.23718v1
   scope: 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。
 core_idea:
-  author_claim: 行動feedbackを含むEQNでflat codeを学び、UIGNの利用者prefixとTDNのitem/code targetをearly fusionする。code予測と複数のranking教師を同じ表現へ流し、階層量子化の誤差伝播とretrieval/ranking間の情報損失を抑える。
+  author_claim: EQNは利用者の行動も使い、商品を階層のない意味コードへ割り当てる。共有モデルでは、UIGNがまとめた利用者情報を、TDNの候補商品・候補コードと処理の早い段階で組み合わせる。code予測と複数のranking教師を同じ表現へ流し、階層量子化の誤差伝播とretrieval/ranking間の情報損失を抑える。
   research_bot_interpretation: '[Sona](sona-yandex-music.html)のcascade置換、[VARG](varg-tmall-value-generative-retrieval.html)のpre-rank迂回、[LIGE-GR](lige-gr-meta-listwise.html)の追加listwiseとは導入単位が違う。UNIQUEはretrieval段に内側の粗・精rankingを持つ共有モデル。[GenPage](genpage-netflix-homepage.html)や[OGR](ogr-once-generated-ranked.html)の列・page最適化とも区別したい。[UniRec](unirec-chain-of-attribute.html)との共通点は統合だが、何を共有し何を出力するかを比較する必要がある。'
 sections:
   overview: Mobile Baiduのhomepage、discovery page、short videoが対象。意味codeを予測して候補を展開した後、user–item内積による粗ranking、候補targetを入れる精rankingが続く。統合されるのは表現と学習・配信部品であり、カタログ全件を一度に精rankingする方式でも、下流の推薦処理をすべて削除した方式でもない。

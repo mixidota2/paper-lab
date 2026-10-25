@@ -2,7 +2,7 @@
 
 UniVA: Unified Value Alignment for Generative Recommendation in Online Advertising at Tencent
 
-広告の生成確率が高くても、配信できて収益につながるとは限らない。TencentのUniVAは商用属性をSIDの末尾へ入れ、生成と価値の2ヘッドを融合し、リクエスト別の有効な枝だけを探索する。WeChat ChannelsでGMV +1.50%を報告。実験比率はv1の5%からv2の20%へ記述が変わっており、版を区別して読む。
+広告の生成確率が高くても、配信できて収益につながるとは限らない。TencentのUniVAは、広告の識別子の末尾に、入札額や広告主の目標に関する情報を入れる。生成のしやすさと見込まれる価値を組み合わせて候補を選び、その配信要求で表示できる広告だけを探索する。WeChat ChannelsでGMV +1.50%を報告。実験比率はv1の5%からv2の20%へ記述が変わっており、版を区別して読む。
 
 一次資料：[arXiv 2605.05803v2](https://arxiv.org/pdf/2605.05803v2)。判定：Must Read。
 

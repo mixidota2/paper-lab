@@ -11,7 +11,7 @@ topics:
 urls:
   paper: https://arxiv.org/abs/2607.25664
   arxiv: https://arxiv.org/abs/2607.25664
-  pdf: https://arxiv.org/pdf/2607.25664
+  pdf: https://arxiv.org/pdf/2607.25664v1
   official_code: null
 verdict: Worth Reading
 verification:
@@ -29,7 +29,7 @@ core_idea:
   author_claim: '基礎需要の滑らかさと一時変化の疎らさを制約にし、観測系列を説明する分解を求める。販促の応答を表す作用素はデータから推定し、商品間で情報を部分的に共有する。未来は基礎需要の外挿と既知の販促効果を組み合わせる。
 
 
-    [一次資料：§3.1–3.3 / §4 / Appendix R.6](https://arxiv.org/html/2607.25664)'
+    [一次資料：§3.1–3.3 / §4 / Appendix R.6](https://arxiv.org/pdf/2607.25664v1)'
   research_bot_interpretation: 低い変動率だけでは良い発注とは判断できない。急増を抑えた結果の欠品が高くつくなら、予測が安定して見えても損失は増える。費用の内訳まで示す点に読む価値がある。
 sections:
   overview: 平常時の需要と販促の一時的な動きを分ける。変動を抑える利点はあるが、欠品損失が重い条件では総費用が悪化する。
@@ -38,16 +38,16 @@ sections:
 
     CDは観測系列を、滑らかな基礎需要と一時的な変化に分解する。販促の効果が何日残るかを表す応答形を使うが、持続が見られない商品にまで長い効果を押し付けない。'
   why_it_might_work: 一時的な増加を平常水準へ混ぜなければ、上流へ不要な変動を伝えずに済むと考えられる。ただし分解は正則化なしには一意に決まらない。販促効果の持続が短いデータでは、複雑な応答形より基礎需要を安定させる部分が効いている可能性がある。
-  evidence: 'Abstractと§4の在庫評価は、M5とFavoritaで保管費用/欠品費用が約0.20を超えるときに総費用の優位が出ると報告し、その境界の95%区間を0.17〜0.25とする。業態に共通の閾値ではない。§3.3は、M5で販促後の負の応答は観測上回復されず、応答形の仮定として残ると説明する。
+  evidence: 'Abstractと§4の在庫評価は、M5の評価で保管費用/欠品費用が約0.20を超えるときに総費用の優位が出ると報告し、その境界の95%区間を0.17〜0.25とする。Favoritaへこの閾値を一般化できず、業態に共通の閾値でもない。原典v1 PDF p13–14・図2の1000 SKUとp10・表3の100 SKUは不一致で、対象件数は留保する。Appendix U p39はVR=Var(forecast)/Var(actual)の定義直後に負値を説明しており不整合がある。どちらを正しい定義とするかは決めず、指標の比較を留保する。§3.3は、M5で販促後の負の応答は観測上回復されず、応答形の仮定として残ると説明する。
 
 
-    [一次資料：§3.1–3.3 / §4 / Appendix R.6](https://arxiv.org/html/2607.25664)'
+    [一次資料：§3.1–3.3 / §4 / Appendix R.6](https://arxiv.org/pdf/2607.25664v1)'
   executable_understanding: '8期の需要に対して、変動を追う在庫と一定の在庫を置く。余剰と不足を実際に数え、費用比を動かして総費用の順位が反転するか確かめる。
 
 
     実行：`uv run papers/contextual-deconvolution/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json` へ保存する。'
   results: 初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。
-  what_we_verified: '**メカニズム：PARTIAL（部分的）**。確認したのは、このLabで明記した仮定の下での計算と条件による変化。原論文の機構全体を確認した意味ではない。
+  what_we_verified: '**メカニズム：PARTIAL（部分的）**。このLabで確認したのは、ここに示した仮定に基づく計算結果と、条件を変えたときの結果の変化です。原論文の仕組み全体は検証していません。
 
 
     8期の需要に対して、変動を追う在庫と一定の在庫を置く。余剰と不足を実際に数え、費用比を動かして総費用の順位が反転するか確かめる。'
@@ -56,17 +56,7 @@ sections:
 
 
     意図して省いたもの：分解の推定、販促応答の学習、在庫持越し、論文データ。'
-  mapping: '| 対象 | 原典とLabの対応 |
-
-    | --- | --- |
-
-    | 原論文 | [§3.1–3.3 / §4 / Appendix R.6](https://arxiv.org/html/2607.25664) |
-
-    | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |
-
-    | 小実験 | `run.py` → `papers/_toy_common.py` → `results.json` |
-
-    | 公式コード | このLabでは公式コードとの行単位の照合はしていない。 |'
+  mapping: mapping.md
   method: method.md
 question: 予測を滑らかにすると、在庫費用は本当に下がるか
 interactives:
@@ -75,7 +65,7 @@ interactives:
   caption: 8期の需要に対して、変動を追う在庫と一定の在庫を置く。余剰と不足を実際に数え、費用比を動かして総費用の順位が反転するか確かめる。
 source_review:
   checked: '2026-09-07'
-  url: https://arxiv.org/html/2607.25664
+  url: https://arxiv.org/pdf/2607.25664v1
   scope: 一次資料の方法・数式・実験条件を再確認。図は説明用の再構成。著者の性能・運用結果は独立再現していない。
 teaching_figures:
 - kind: equations
@@ -95,7 +85,7 @@ teaching_figures:
   - name: イベント発生日から伝播
     formula: A = Σₘ Σₖ φₘ(k) Sₖ diag(fₘ)
     explanation: fₘはイベント種別mのカレンダー、Sₖはk日ずらす行列。受け手の日でなく発生日の文脈が効く。
-  source: https://arxiv.org/html/2607.25664
+  source: https://arxiv.org/pdf/2607.25664v1
 - kind: matrix
   id: impulse
   title: 1日のイベントが後日へ伝わる
@@ -124,10 +114,10 @@ teaching_figures:
     - φ(3)
     - '0'
   corner: 影響が到着する日
-  source: https://arxiv.org/html/2607.25664
+  source: https://arxiv.org/pdf/2607.25664v1
 - kind: equations
   id: kernel
-  title: 負の裾はモデルの仮定として読む
+  title: 販促後に需要が減る形は、モデルの仮定である
   after: method
   locator: 表1・§3.3
   rationale: 推定事実とkernelの表現力を区別する。
@@ -138,4 +128,4 @@ teaching_figures:
 
       α > β > 0,  τ₁ < τ₂'
     explanation: 最初は正、遅い負の成分が裾に残る。純粋な指数減衰との比較も論文は報告している。
-  source: https://arxiv.org/html/2607.25664
+  source: https://arxiv.org/pdf/2607.25664v1

@@ -1,6 +1,6 @@
 # HGenPush: A Heterogeneous Generative Recommendation Architecture for Industrial Push Notification Systems
 
-KuaishouのHGenPushはvideo SIDとauthor中心のmixed SIDを生成し、pre-rankを迂回して既存rankerへ渡す。全構成のDAU +0.181%（p=0.04）、CTR +1.577%（p=0.11）。CTRの有意差は確認できない。
+KuaishouのHGenPushは、動画内容から作る識別子と、投稿者の情報を含む識別子の二つの経路で候補動画を集める。途中の粗い順位付けを省き、既存の最終順位付けモデルへ渡す。全構成のDAU +0.181%（p=0.04）、CTR +1.577%（p=0.11）。CTRの有意差は確認できない。
 
 ## 問い
 

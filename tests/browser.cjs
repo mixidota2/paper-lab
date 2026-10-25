@@ -7,7 +7,7 @@ const {pathToFileURL} = require('node:url');
 const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const site = path.resolve(__dirname, '../site');
 (async () => {
-  const browser = await chromium.launch({executablePath: process.env.CHROME_PATH || undefined, headless:true, args:['--no-sandbox','--disable-dev-shm-usage']});
+  const browser = await chromium.launch({executablePath: process.env.CHROME_PATH || undefined, headless:true, chromiumSandbox: true});
   const errors=[];
   try {
     for (const width of [360, 768, 1440]) {

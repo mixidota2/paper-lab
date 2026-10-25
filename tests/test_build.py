@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from catalog_expectations import assert_catalog
 from paper_lab.build import build
 from paper_lab.models import LabError, load_all_labs, load_lab
 
@@ -119,7 +120,8 @@ def test_library_has_the_full_registry_catalog_and_a_doi_only_paper():
     labs = load_all_labs(ROOT / "papers")
     arxiv_labs = {lab.id: lab.arxiv_id for lab in labs if lab.arxiv_id}
     assert arxiv_labs == EXPECTED
-    assert len(labs) == 101
+    assert len(labs) == 105
+    assert_catalog(lab.id for lab in labs)
     assert all(lab.urls.arxiv == f"https://arxiv.org/abs/{lab.arxiv_id}" for lab in labs if lab.arxiv_id)
     shelf = next(lab for lab in labs if lab.id == "whole-foods-shelf")
     assert not shelf.arxiv_id
@@ -180,3 +182,23 @@ status: published
     )
     with pytest.raises(LabError, match="must match arxiv_id"):
         load_lab(paper)
+
+
+def test_reference_implementation_hashes_copied_bytes(tmp_path):
+    import hashlib
+    import json
+    build(root=ROOT, site_dir=tmp_path/'site')
+    for slug in ('reasoncast-agentic-demand-forecasting', 'retailbench-long-horizon-store-agents'):
+        directory = tmp_path/'site'/'downloads'/slug
+        manifest = json.loads((directory/'implementation.json').read_text())
+        assert manifest['status'] == 'content-hash'
+        assert manifest['runtime'] == 'javascript'
+        assert manifest['algorithm'] == 'sha256'
+        assert set(manifest['files']) == {'model.js', 'interactive.js', 'run.py'}
+        for name, digest in manifest['files'].items():
+            assert digest == hashlib.sha256((directory/name).read_bytes()).hexdigest()
+        assert (directory/'implementation.js').read_text() == (
+            'window.ReferenceImplementation = ' + json.dumps(manifest, sort_keys=True) + ';\n')
+        html = (tmp_path/'site'/'papers'/f'{slug}.html').read_text()
+        assert html.index(f'{slug}/implementation.js') < html.index(f'{slug}/model.js')
+        assert 'commit' not in manifest

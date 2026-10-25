@@ -32,7 +32,7 @@ related_threads:
 - causal-retrieval
 status: published
 question: shopping 候補生成を、いつ呼ぶべきか
-summary: Pinterest は shopping 候補生成器の発火をリクエストごとに選ぶ。無作為 Shopping Holdout とオフライン replay で閾値を決める。本番の主方策は single-value（SV）であり、uplift
+summary: Pinterestは、買物向けの推薦候補を探す処理を呼び出すかどうかを、リクエストごとに決める。無作為 Shopping Holdout とオフライン replay で閾値を決める。本番の主方策は single-value（SV）であり、uplift
   の差をそのまま配信する方策とは区別する。
 source_review:
   checked: '2026-09-24'
@@ -45,7 +45,7 @@ core_idea:
     lower funnel は有意に変わらないと報告する。
   research_bot_interpretation: 判断するのは候補源を呼ぶ価値である。後段で商品の順位を決める前に、ユーザー・文脈・query ごとに shopping の候補生成を呼ぶか選ぶため、学習した因果信号の質と、本番で採用したスコア・閾値の効果を分けて読む必要がある。
 sections:
-  overview: Pinterest は shopping 候補生成器の発火をリクエストごとに選ぶ。無作為 Shopping Holdout とオフライン replay で閾値を決める。本番の主方策は single-value（SV）であり、uplift
+  overview: Pinterestは、買物向けの推薦候補を探す処理を呼び出すかどうかを、リクエストごとに決める。無作為 Shopping Holdout とオフライン replay で閾値を決める。本番の主方策は single-value（SV）であり、uplift
     の差をそのまま配信する方策とは区別する。
   problem: '目的が競合する。shopping 候補を毎回呼ぶと、買物行動が増える一方で Pin 保存などが減り、後段の ranker が表示する商品をうまく選べたとしても、既に払った候補生成の呼出し費用は取り戻せない。
 

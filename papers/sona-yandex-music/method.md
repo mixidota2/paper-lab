@@ -10,6 +10,6 @@
 ### teacherが知る順序を、今のdecoderが出す候補へ移す
 teacherは10層causal履歴encoderと6層candidate scorerを持つ。まずnext-item predictionで事前学習し、like > play > skip > dislikeの隣接pairをlogistic lossで学習する。補助headはBCE。最終配信にはteacherを置かない。
 
-studentの損失は NTP + rollout候補の平均MAE + impression候補の平均MAE。候補数を全部まとめて平均する式ではない。訓練rollout beamは32、評価・配信beamは1,024。教師の採点は現在のdecoder候補へ追従するため、生成器が変わったときの分布差を埋めやすい。
+配信用モデルの学習損失は、次のトークンを予測する損失（NTP）に、生成した候補と実際に表示された候補それぞれで求めた、教師の採点との平均絶対誤差（MAE）を足す。二種類の候補をまとめて平均するのではなく、それぞれの平均を加える。訓練rollout beamは32、評価・配信beamは1,024。教師の採点は現在のdecoder候補へ追従するため、生成器が変わったときの分布差を埋めやすい。
 
 イベントから配信重み更新までは中央値45分、p99で60分。15分のsession attributionと10分のcheckpoint配布を含む。teacherのrefreshは24時間ごと。GPUではTriton Inference Server、固定shapeのCUDA graph、torch.compile、bfloat16、beam向けtop-kと短いKV用kernelを使う。

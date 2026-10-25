@@ -12,7 +12,7 @@ F2の送信率は約15%、全体の報告量は元の約8.7%という著者報�
 
 M1はintentの要約、目的、購買力、活動groupを整理する。M2はStrategy Memoryを参照してschemaに従うJSONのstrategyを作る。たとえばranking_weight_boost、category_preference、experience_constraints。M3はTool Processによる決定的な変換結果であり、自由文のLLM出力ではない（§4.2）。
 
-MetaModelはnearlineで最新の有効bundleをcacheに書く。request時にはTool Processが版・schema・期限を検査し、許可されたfieldだけをretrieval、ranking、rerankingへ配る。同じcategoryの好みもretrievalでは候補quota、rankingではscatter幅、rerankingでは構成比として解釈する。既存cascadeのモデルと推薦リスト生成器は残る。LLMがitem IDや最終順列を直接出す構造ではない。
+MetaModelは、推薦の要求に応答する処理とは別に、最新の有効な設定一式（bundle）をキャッシュへ保存する。推薦要求を受けると、Tool Processがその版、データ形式、期限を検査する。検査を通った許可済みの設定項目だけを、候補取得、順位付け、並べ替えの各段階へ渡す。同じcategoryの好みもretrievalでは候補quota、rankingではscatter幅、rerankingでは構成比として解釈する。既存cascadeのモデルと推薦リスト生成器は残る。LLMがitem IDや最終順列を直接出す構造ではない。
 
 rankの目的ごとのsemantic level bは−2から2。元の重みw⁰と掛けたδを使って、校正済み予測値v̂の項を補正する。categoryのscatter幅はmax(1,既定値+b)。business supportは許可PlanIDだけで件数上限も守る。JSON、schema、allowlist、値域のどれかが失敗したらdefaultへ戻す。未実装のcontent-type levelはno-opとされるなど、意味的な提案のすべてに実行権があるわけではない。
 

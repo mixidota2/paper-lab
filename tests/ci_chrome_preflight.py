@@ -1,0 +1,111 @@
+"""Read-only checks for the runner's existing official Chrome and sandbox.
+
+Uses Playwright's supported branded channel, without installing a browser or
+modifying OS policy. A failed check stops CI; there is no fallback launch.
+"""
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import stat
+import subprocess
+
+import playwright
+from playwright.sync_api import sync_playwright
+
+
+def main():
+    assert os.getuid() != 0, 'Run the browser as the existing non-root runner user'
+    assert os.environ.get('CHROME_CHANNEL') == 'chrome'
+    chrome = Path('/opt/google/chrome/chrome')
+    # Read the pinned driver's channel mapping without launching any executable.
+    driver = Path(playwright.__file__).parent / 'driver/package/lib/coreBundle.js'
+    mapping = re.search(r'_createChromiumChannel\("chrome",\s*\{\s*"linux":\s*"([^"]+)"',
+                        driver.read_text())
+    assert mapping is not None, 'Cannot observe the installed driver channel mapping'
+    print('Playwright chrome channel launch path:', mapping.group(1), flush=True)
+    assert Path(mapping.group(1)) == chrome
+    resolved = chrome.resolve(strict=True)
+    for label, path, follow in (('launch-path lstat', chrome, False),
+                                ('launch-path stat', chrome, True),
+                                ('resolved-target stat', resolved, True)):
+        metadata = path.stat() if follow else path.lstat()
+        print(label + ':', json.dumps({
+            'path': str(path), 'follows_symlinks': follow,
+            'type': 'symlink' if stat.S_ISLNK(metadata.st_mode) else
+                    'regular' if stat.S_ISREG(metadata.st_mode) else 'other',
+            'uid': metadata.st_uid, 'gid': metadata.st_gid,
+            'mode': oct(stat.S_IMODE(metadata.st_mode)),
+            'device': metadata.st_dev, 'inode': metadata.st_ino,
+        }), flush=True)
+    print('launch-path readlink:', os.readlink(chrome) if chrome.is_symlink()
+          else 'NOT A SYMLINK', flush=True)
+    for path in (*reversed(resolved.parents), resolved.parent / 'chrome-sandbox'):
+        if path.exists():
+            metadata = path.stat()
+            print('Parent/helper stat:', json.dumps({
+                'path': str(path), 'uid': metadata.st_uid, 'gid': metadata.st_gid,
+                'mode': oct(stat.S_IMODE(metadata.st_mode)),
+                'type': 'directory' if stat.S_ISDIR(metadata.st_mode) else
+                        'regular' if stat.S_ISREG(metadata.st_mode) else 'other',
+            }), flush=True)
+        else:
+            print('Parent/helper:', str(path), 'NOT OBSERVED', flush=True)
+    for args in (['findmnt', '-T', str(resolved), '-n', '-o', 'TARGET,FSTYPE,OPTIONS'],
+                 ['getfacl', '-cp', str(resolved), str(resolved.parent)]):
+        if shutil.which(args[0]):
+            result = subprocess.run(args, text=True, capture_output=True)
+            print('Read-only filesystem query:', args[0], result.returncode,
+                  result.stdout.strip(), result.stderr.strip(), flush=True)
+        else:
+            print(args[0], 'NOT OBSERVED', flush=True)
+    assert resolved.is_file(), 'Chrome target is not a regular file'
+    info = chrome.stat()
+    print('Existing Chrome metadata:', json.dumps({
+        'path': str(chrome), 'resolved': str(chrome.resolve()),
+        'uid': info.st_uid, 'gid': info.st_gid,
+        'mode': oct(stat.S_IMODE(info.st_mode)), 'runner_uid': os.getuid(),
+    }), flush=True)
+    for args in (['dpkg-query', '-S', str(chrome)],
+                 ['dpkg-query', '-W', '-f=${Package} ${Version} ${Status}\n',
+                  'google-chrome-stable']):
+        result = subprocess.run(args, text=True, capture_output=True)
+        print('Package query:', result.returncode, result.stdout.strip(),
+              result.stderr.strip(), flush=True)
+    assert info.st_uid == 0 and not info.st_mode & (stat.S_IWGRP | stat.S_IWOTH)
+    print(subprocess.check_output([str(chrome), '--version'], text=True).strip())
+    # Record only public OS sandbox configuration, never the general environment.
+    for name in ('/etc/apparmor.d/chrome',
+                 '/proc/sys/kernel/apparmor_restrict_unprivileged_userns',
+                 '/sys/module/apparmor/parameters/enabled'):
+        path = Path(name)
+        if path.is_file():
+            data = path.read_bytes()
+            print(name, 'sha256=' + hashlib.sha256(data).hexdigest())
+            if name.startswith(('/proc/', '/sys/')):
+                print('value=' + data.decode().strip())
+        else:
+            print(name, 'NOT OBSERVED')
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(channel='chrome', chromium_sandbox=True)
+        print('Engine: Google Chrome (Chromium), version:', browser.version)
+        page = browser.new_page()
+        page.goto('chrome://sandbox')
+        # Chromium publishes these renderer-status flags via WebUI strings.js.
+        # sandboxGood requires a first-layer sandbox, PID/network namespaces,
+        # and seccomp-BPF; see sandbox_internals_ui.cc in Chromium's source.
+        status = page.evaluate('''async () => {
+            const {loadTimeData} = await import('chrome://resources/js/load_time_data.js');
+            return Object.fromEntries(['suid', 'userNs', 'pidNs', 'netNs',
+                'seccompBpf', 'seccompTsync', 'sandboxGood'].map(
+                    key => [key, loadTimeData.getBoolean(key)]));
+        }''')
+        print('Chrome renderer sandbox status:', json.dumps(status, sort_keys=True))
+        assert status['sandboxGood'], status
+        browser.close()
+
+
+if __name__ == '__main__':
+    main()

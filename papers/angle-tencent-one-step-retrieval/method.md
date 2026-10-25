@@ -6,7 +6,7 @@
 
 ## 生成してから捨てる候補を減らす
 
-図3のDCBSはintentを生成し、有効広告へ結び付かないabstractを除き、制約付きの木を再構成してabstract生成を続ける。intent配下がすべて無効なら、そのintentも落とす。配信可否はユーザー条件によって変わる。最後にdiscriminatorがqueryと組の関連性を評価する。
+図3のDCBSは、まず検索意図（intent）を生成する。有効な広告に結び付かないabstractを除いて探索用の木を組み直し、abstractの生成を続ける。intent配下がすべて無効なら、そのintentも落とす。配信可否はユーザー条件によって変わる。最後にdiscriminatorがqueryと組の関連性を評価する。
 
 Labはこの処理を組単位の選択へ縮約した。`retrieve` の事前filterは有効広告を持つ組を残し、その後で同じ固定スコア順にtop-kを取る。tokenごとの確率正規化や木の再構成を再現したコードではない。
 

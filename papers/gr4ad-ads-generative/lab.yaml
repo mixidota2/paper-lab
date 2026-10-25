@@ -60,7 +60,7 @@ source_review:
   pdf_version: v3
   pdf_sha256: a3bcb5f9096bfc22cdb51871bb353992cd8a0ee1a8156c5846c668432450b279
 core_idea:
-  author_claim: 著者はUA-SIDで広告固有の情報を符号化し、VSLとRSPOで興味と価値を学び、LazyARとDBSで配信費用を抑える。Kuaishou広告に0.16Bモデルを全面展開し、L20あたり500超QPS・100ms未満の推論を報告する（§4）。
+  author_claim: 著者は、広告固有の情報をIDに表すUA-SID、ユーザーの興味と広告の価値を学ぶVSL・RSPO、生成時の計算量を減らすLazyAR・DBSを組み合わせている。Kuaishou広告に0.16Bモデルを全面展開し、L20あたり500超QPS・100ms未満の推論を報告する（§4）。
   research_bot_interpretation: 個別の新型decoderだけを評価すると論点を外す。候補の識別、価値の教師、探索量の配分を合わせた改善である。ただしstackの差分表だけでは要素間の相互作用まで分離できない。報酬モデルの誤差や露出の偏りがあると、listwise整合性を上げても真の収益が上がるとは限らない。
 sections:
   overview: GR4ADは広告SID、価値に沿う学習、短い系列の復号、負荷に応じたbeam幅を合わせて設計する。Table 1の最終構成は収益+4.28%（対DLRM）、QPS+117%（対OneRec-V2）。比較基準を分けて、400M超ユーザーへの展開という著者報告を読む。

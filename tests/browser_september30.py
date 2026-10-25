@@ -9,7 +9,7 @@ def main():
  slugs=[s for s in SLUGS if (ROOT/'papers'/s/'lab.yaml').exists()]
  errors=[];states=0
  with sync_playwright() as p:
-  browser=p.chromium.launch(executable_path='/opt/google/chrome/chrome',args=['--no-sandbox','--disable-dev-shm-usage'])
+  browser=p.chromium.launch(executable_path='/opt/google/chrome/chrome',chromium_sandbox=True)
   for width in [360,390,768,1440]:
    page=browser.new_page(viewport={'width':width,'height':900});page.on('pageerror',lambda e:errors.append(str(e)))
    for s in slugs:

@@ -18,8 +18,8 @@ def widget(result):
         frames.append(svg)
     options=''.join(f'<option value="{i}">{escape(f["label"])}</option>' for i,f in enumerate(result['frames']))
     data=json.dumps(frames,ensure_ascii=False).replace('</','<\\/')
-    html='<figure class="teaching" data-b21><h3>固定上限を傾け、比例ゲインで発注を抑える</h3><label>係数 <select>'+options+'</select></label><script type="application/json" data-frames>'+data+'</script><div data-output aria-live="polite">'+frames[0]+'</div><figcaption>§5.3.2 の式を run.py で計算。性能曲線ではない。</figcaption></figure>'
-    html+='<figure class="teaching"><h3>平均費用が下がっても、認証は通らない</h3>'
-    html+=table(['人工需要の方策','平均費用','改善平均','LCB','UCB'],[[r['policy']]+[round(r[k],3) for k in ('cost','gain','lcb','ucb')] for r in result['replay']])
-    html+='<p>256経路、B=114、δ=0.05、比較数N=2。半径は21.093。ξ=0でも両候補のLCBが負なので、配備は参照CBSへ戻る。UCBが大きいだけでは選べない。</p><figcaption>人工需要の最小実験。論文の小標本t半径、需要シフト校正、LLM探索は未実装。</figcaption></figure>'
+    html='<figure class="teaching" data-b21><h3>不足量に応じて上限を変え、比例係数で発注量を調整する</h3><label>係数 <select>'+options+'</select></label><script type="application/json" data-frames>'+data+'</script><div data-output aria-live="polite">'+frames[0]+'</div><figcaption>§5.3.2 の式を run.py で計算。性能曲線ではない。</figcaption></figure>'
+    html+='<figure class="teaching"><h3>平均費用が下がっても、採用条件を満たすとは限らない</h3>'
+    html+=table(['人工需要の方策','平均費用','改善平均','改善量の信頼下限（LCB）','改善量の信頼上限（UCB）'],[[r['policy']]+[round(r[k],3) for k in ('cost','gain','lcb','ucb')] for r in result['replay']])
+    html+='<p>256経路、B=114、δ=0.05、比較数N=2。半径は21.093。ξ=0でも両候補のLCBが負なので、配備は参照CBSへ戻る。LCBで採用条件を確認し、通過した候補からUCBを使って選ぶ。この人工例では両方が不合格で、UCBが大きいだけでは選べない。</p><figcaption>人工需要の最小実験。論文の小標本t半径、需要シフト校正、LLM探索は未実装。</figcaption></figure>'
     return html

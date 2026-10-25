@@ -1,0 +1,3803 @@
+{
+  "model_version": "placement-toy-2",
+  "note": "独自の全幅商品toy。原論文のベンチマーク・多始点探索・実売上の再現ではない。",
+  "a": [
+    {
+      "input": {
+        "nu": 0.0,
+        "beta": 0.5,
+        "scale": 1.0
+      },
+      "candidates": [
+        {
+          "mode": "hang",
+          "faces": 1,
+          "profit": 12.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 0.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 3.0,
+                "mode": "hang",
+                "faces": 1,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "hang",
+          "faces": 2,
+          "profit": 16.970562748477143,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 0.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 6.0,
+                "mode": "hang",
+                "faces": 2,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "hang",
+          "faces": 3,
+          "profit": 20.784609690826528,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 0.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 9.0,
+                "mode": "hang",
+                "faces": 3,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "hang",
+          "faces": 4,
+          "profit": 24.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 0.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 12.0,
+                "mode": "hang",
+                "faces": 4,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "shelf",
+          "faces": 1,
+          "profit": 8.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 0.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 2.0,
+                "mode": "shelf",
+                "faces": 1,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 2,
+          "profit": 11.313708498984761,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 0.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 4.0,
+                "mode": "shelf",
+                "faces": 2,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 3,
+          "profit": 13.856406460551018,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 0.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 6.0,
+                "mode": "shelf",
+                "faces": 3,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 4,
+          "profit": 16.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 0.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 8.0,
+                "mode": "shelf",
+                "faces": 4,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        }
+      ],
+      "best": {
+        "mode": "hang",
+        "faces": 2,
+        "profit": 16.970562748477143,
+        "layout": {
+          "width": 2.0,
+          "height": 8.0,
+          "nu": 0.0,
+          "thickness": 0,
+          "boards": [],
+          "expected_ids": [
+            "A"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0,
+              "w": 2.0,
+              "h": 6.0,
+              "mode": "hang",
+              "faces": 2,
+              "max_faces": 4
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      "ties": [
+        {
+          "mode": "hang",
+          "faces": 2,
+          "profit": 16.970562748477143,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 0.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 6.0,
+                "mode": "hang",
+                "faces": 2,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        }
+      ],
+      "complete": true
+    },
+    {
+      "input": {
+        "nu": 1.0,
+        "beta": 0.5,
+        "scale": 1.0
+      },
+      "candidates": [
+        {
+          "mode": "hang",
+          "faces": 1,
+          "profit": 12.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 4.0,
+                "mode": "hang",
+                "faces": 1,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "hang",
+          "faces": 2,
+          "profit": 16.970562748477143,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 8.0,
+                "mode": "hang",
+                "faces": 2,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "hang",
+          "faces": 3,
+          "profit": 20.784609690826528,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 12.0,
+                "mode": "hang",
+                "faces": 3,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "hang",
+          "faces": 4,
+          "profit": 24.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 16.0,
+                "mode": "hang",
+                "faces": 4,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "shelf",
+          "faces": 1,
+          "profit": 8.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 2.0,
+                "mode": "shelf",
+                "faces": 1,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 2,
+          "profit": 11.313708498984761,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 4.0,
+                "mode": "shelf",
+                "faces": 2,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 3,
+          "profit": 13.856406460551018,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 6.0,
+                "mode": "shelf",
+                "faces": 3,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 4,
+          "profit": 16.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 8.0,
+                "mode": "shelf",
+                "faces": 4,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        }
+      ],
+      "best": {
+        "mode": "hang",
+        "faces": 2,
+        "profit": 16.970562748477143,
+        "layout": {
+          "width": 2.0,
+          "height": 8.0,
+          "nu": 1.0,
+          "thickness": 0,
+          "boards": [],
+          "expected_ids": [
+            "A"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0,
+              "w": 2.0,
+              "h": 8.0,
+              "mode": "hang",
+              "faces": 2,
+              "max_faces": 4
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      "ties": [
+        {
+          "mode": "hang",
+          "faces": 2,
+          "profit": 16.970562748477143,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 8.0,
+                "mode": "hang",
+                "faces": 2,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        }
+      ],
+      "complete": true
+    },
+    {
+      "input": {
+        "nu": 1.1,
+        "beta": 0.5,
+        "scale": 1.0
+      },
+      "candidates": [
+        {
+          "mode": "hang",
+          "faces": 1,
+          "profit": 12.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 4.1,
+                "mode": "hang",
+                "faces": 1,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "hang",
+          "faces": 2,
+          "profit": 16.970562748477143,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 8.2,
+                "mode": "hang",
+                "faces": 2,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "hang",
+          "faces": 3,
+          "profit": 20.784609690826528,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 12.3,
+                "mode": "hang",
+                "faces": 3,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "hang",
+          "faces": 4,
+          "profit": 24.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 16.4,
+                "mode": "hang",
+                "faces": 4,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "shelf",
+          "faces": 1,
+          "profit": 8.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 2.0,
+                "mode": "shelf",
+                "faces": 1,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 2,
+          "profit": 11.313708498984761,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 4.0,
+                "mode": "shelf",
+                "faces": 2,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 3,
+          "profit": 13.856406460551018,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 6.0,
+                "mode": "shelf",
+                "faces": 3,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 4,
+          "profit": 16.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 8.0,
+                "mode": "shelf",
+                "faces": 4,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        }
+      ],
+      "best": {
+        "mode": "shelf",
+        "faces": 4,
+        "profit": 16.0,
+        "layout": {
+          "width": 2.0,
+          "height": 8.0,
+          "nu": 1.1,
+          "thickness": 0,
+          "boards": [],
+          "expected_ids": [
+            "A"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0,
+              "w": 2.0,
+              "h": 8.0,
+              "mode": "shelf",
+              "faces": 4,
+              "max_faces": 4
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      "ties": [
+        {
+          "mode": "shelf",
+          "faces": 4,
+          "profit": 16.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 1.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 8.0,
+                "mode": "shelf",
+                "faces": 4,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        }
+      ],
+      "complete": true
+    },
+    {
+      "input": {
+        "nu": 5.0,
+        "beta": 0.5,
+        "scale": 1.0
+      },
+      "candidates": [
+        {
+          "mode": "hang",
+          "faces": 1,
+          "profit": 12.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 8.0,
+                "mode": "hang",
+                "faces": 1,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "hang",
+          "faces": 2,
+          "profit": 16.970562748477143,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 16.0,
+                "mode": "hang",
+                "faces": 2,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "hang",
+          "faces": 3,
+          "profit": 20.784609690826528,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 24.0,
+                "mode": "hang",
+                "faces": 3,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "hang",
+          "faces": 4,
+          "profit": 24.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 32.0,
+                "mode": "hang",
+                "faces": 4,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "shelf",
+          "faces": 1,
+          "profit": 8.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 2.0,
+                "mode": "shelf",
+                "faces": 1,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 2,
+          "profit": 11.313708498984761,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 4.0,
+                "mode": "shelf",
+                "faces": 2,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 3,
+          "profit": 13.856406460551018,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 6.0,
+                "mode": "shelf",
+                "faces": 3,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 4,
+          "profit": 16.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 8.0,
+                "mode": "shelf",
+                "faces": 4,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        }
+      ],
+      "best": {
+        "mode": "shelf",
+        "faces": 4,
+        "profit": 16.0,
+        "layout": {
+          "width": 2.0,
+          "height": 8.0,
+          "nu": 5.0,
+          "thickness": 0,
+          "boards": [],
+          "expected_ids": [
+            "A"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0,
+              "w": 2.0,
+              "h": 8.0,
+              "mode": "shelf",
+              "faces": 4,
+              "max_faces": 4
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      "ties": [
+        {
+          "mode": "shelf",
+          "faces": 4,
+          "profit": 16.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 8.0,
+                "mode": "shelf",
+                "faces": 4,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        }
+      ],
+      "complete": true
+    },
+    {
+      "input": {
+        "nu": 5.1,
+        "beta": 0.5,
+        "scale": 1.0
+      },
+      "candidates": [
+        {
+          "mode": "hang",
+          "faces": 1,
+          "profit": 12.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 8.1,
+                "mode": "hang",
+                "faces": 1,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "hang",
+          "faces": 2,
+          "profit": 16.970562748477143,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 16.2,
+                "mode": "hang",
+                "faces": 2,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "hang",
+          "faces": 3,
+          "profit": 20.784609690826528,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 24.3,
+                "mode": "hang",
+                "faces": 3,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "hang",
+          "faces": 4,
+          "profit": 24.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 32.4,
+                "mode": "hang",
+                "faces": 4,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "shelf",
+          "faces": 1,
+          "profit": 8.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 2.0,
+                "mode": "shelf",
+                "faces": 1,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 2,
+          "profit": 11.313708498984761,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 4.0,
+                "mode": "shelf",
+                "faces": 2,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 3,
+          "profit": 13.856406460551018,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 6.0,
+                "mode": "shelf",
+                "faces": 3,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 4,
+          "profit": 16.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 8.0,
+                "mode": "shelf",
+                "faces": 4,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        }
+      ],
+      "best": {
+        "mode": "shelf",
+        "faces": 4,
+        "profit": 16.0,
+        "layout": {
+          "width": 2.0,
+          "height": 8.0,
+          "nu": 5.1,
+          "thickness": 0,
+          "boards": [],
+          "expected_ids": [
+            "A"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0,
+              "w": 2.0,
+              "h": 8.0,
+              "mode": "shelf",
+              "faces": 4,
+              "max_faces": 4
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      "ties": [
+        {
+          "mode": "shelf",
+          "faces": 4,
+          "profit": 16.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 5.1,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 8.0,
+                "mode": "shelf",
+                "faces": 4,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        }
+      ],
+      "complete": true
+    },
+    {
+      "input": {
+        "nu": 6.0,
+        "beta": 0.5,
+        "scale": 1.0
+      },
+      "candidates": [
+        {
+          "mode": "hang",
+          "faces": 1,
+          "profit": 12.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 6.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 9.0,
+                "mode": "hang",
+                "faces": 1,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "hang",
+          "faces": 2,
+          "profit": 16.970562748477143,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 6.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 18.0,
+                "mode": "hang",
+                "faces": 2,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "hang",
+          "faces": 3,
+          "profit": 20.784609690826528,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 6.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 27.0,
+                "mode": "hang",
+                "faces": 3,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "hang",
+          "faces": 4,
+          "profit": 24.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 6.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 36.0,
+                "mode": "hang",
+                "faces": 4,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": false,
+          "reasons": [
+            "A:外枠超過"
+          ]
+        },
+        {
+          "mode": "shelf",
+          "faces": 1,
+          "profit": 8.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 6.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 2.0,
+                "mode": "shelf",
+                "faces": 1,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 2,
+          "profit": 11.313708498984761,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 6.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 4.0,
+                "mode": "shelf",
+                "faces": 2,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 3,
+          "profit": 13.856406460551018,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 6.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 6.0,
+                "mode": "shelf",
+                "faces": 3,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        },
+        {
+          "mode": "shelf",
+          "faces": 4,
+          "profit": 16.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 6.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 8.0,
+                "mode": "shelf",
+                "faces": 4,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        }
+      ],
+      "best": {
+        "mode": "shelf",
+        "faces": 4,
+        "profit": 16.0,
+        "layout": {
+          "width": 2.0,
+          "height": 8.0,
+          "nu": 6.0,
+          "thickness": 0,
+          "boards": [],
+          "expected_ids": [
+            "A"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0,
+              "w": 2.0,
+              "h": 8.0,
+              "mode": "shelf",
+              "faces": 4,
+              "max_faces": 4
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      "ties": [
+        {
+          "mode": "shelf",
+          "faces": 4,
+          "profit": 16.0,
+          "layout": {
+            "width": 2.0,
+            "height": 8.0,
+            "nu": 6.0,
+            "thickness": 0,
+            "boards": [],
+            "expected_ids": [
+              "A"
+            ],
+            "rects": [
+              {
+                "id": "A",
+                "x": 0,
+                "y": 0,
+                "w": 2.0,
+                "h": 8.0,
+                "mode": "shelf",
+                "faces": 4,
+                "max_faces": 4
+              }
+            ]
+          },
+          "feasible": true,
+          "reasons": []
+        }
+      ],
+      "complete": true
+    }
+  ],
+  "b_fixed": {
+    "input": {
+      "fixed_y": 4,
+      "nu": 1.0,
+      "thickness": 1.0,
+      "scale": 1.0
+    },
+    "candidates": [
+      {
+        "faces": [
+          1,
+          1
+        ],
+        "lower": "A",
+        "profit": 18.0,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 1.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          1,
+          1
+        ],
+        "lower": "B",
+        "profit": 18.0,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 1.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          1,
+          2
+        ],
+        "lower": "A",
+        "profit": 21.31370849898476,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          1,
+          2
+        ],
+        "lower": "B",
+        "profit": 21.31370849898476,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          1,
+          3
+        ],
+        "lower": "A",
+        "profit": 23.856406460551018,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 3.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          1,
+          3
+        ],
+        "lower": "B",
+        "profit": 23.856406460551018,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 3.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": false,
+        "reasons": [
+          "B:棚板下余白不足"
+        ]
+      },
+      {
+        "faces": [
+          2,
+          1
+        ],
+        "lower": "A",
+        "profit": 22.14213562373095,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 4.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 1.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": false,
+        "reasons": [
+          "A:棚板下余白不足",
+          "A:棚板との重なり"
+        ]
+      },
+      {
+        "faces": [
+          2,
+          1
+        ],
+        "lower": "B",
+        "profit": 22.14213562373095,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 4.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 1.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          2,
+          2
+        ],
+        "lower": "A",
+        "profit": 25.45584412271571,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 4.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": false,
+        "reasons": [
+          "A:棚板下余白不足",
+          "A:棚板との重なり"
+        ]
+      },
+      {
+        "faces": [
+          2,
+          2
+        ],
+        "lower": "B",
+        "profit": 25.45584412271571,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 4.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          2,
+          3
+        ],
+        "lower": "A",
+        "profit": 27.99854208428197,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 4.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 3.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": false,
+        "reasons": [
+          "A:棚板下余白不足",
+          "A:棚板との重なり"
+        ]
+      },
+      {
+        "faces": [
+          2,
+          3
+        ],
+        "lower": "B",
+        "profit": 27.99854208428197,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 4.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 3.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": false,
+        "reasons": [
+          "B:棚板下余白不足"
+        ]
+      },
+      {
+        "faces": [
+          3,
+          1
+        ],
+        "lower": "A",
+        "profit": 25.32050807568877,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 6.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 1.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": false,
+        "reasons": [
+          "A:棚板下余白不足",
+          "A:棚板との重なり",
+          "商品重複"
+        ]
+      },
+      {
+        "faces": [
+          3,
+          1
+        ],
+        "lower": "B",
+        "profit": 25.32050807568877,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 6.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 1.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": false,
+        "reasons": [
+          "A:外枠超過"
+        ]
+      },
+      {
+        "faces": [
+          3,
+          2
+        ],
+        "lower": "A",
+        "profit": 28.63421657467353,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 6.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": false,
+        "reasons": [
+          "A:棚板下余白不足",
+          "A:棚板との重なり",
+          "商品重複"
+        ]
+      },
+      {
+        "faces": [
+          3,
+          2
+        ],
+        "lower": "B",
+        "profit": 28.63421657467353,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 6.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": false,
+        "reasons": [
+          "A:外枠超過"
+        ]
+      },
+      {
+        "faces": [
+          3,
+          3
+        ],
+        "lower": "A",
+        "profit": 31.17691453623979,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 6.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 3.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": false,
+        "reasons": [
+          "A:棚板下余白不足",
+          "A:棚板との重なり",
+          "商品重複"
+        ]
+      },
+      {
+        "faces": [
+          3,
+          3
+        ],
+        "lower": "B",
+        "profit": 31.17691453623979,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 6.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 3.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": false,
+        "reasons": [
+          "A:外枠超過",
+          "B:棚板下余白不足"
+        ]
+      }
+    ],
+    "best": {
+      "faces": [
+        2,
+        2
+      ],
+      "lower": "B",
+      "profit": 25.45584412271571,
+      "layout": {
+        "width": 4.0,
+        "height": 9.0,
+        "nu": 1.0,
+        "thickness": 1.0,
+        "boards": [
+          4.0
+        ],
+        "expected_ids": [
+          "A",
+          "B"
+        ],
+        "rects": [
+          {
+            "id": "A",
+            "x": 0,
+            "y": 4.0,
+            "w": 4.0,
+            "h": 4.0,
+            "mode": "shelf",
+            "faces": 2,
+            "max_faces": 3
+          },
+          {
+            "id": "B",
+            "x": 0,
+            "y": 0.0,
+            "w": 4.0,
+            "h": 2.0,
+            "mode": "shelf",
+            "faces": 2,
+            "max_faces": 3
+          }
+        ]
+      },
+      "feasible": true,
+      "reasons": []
+    },
+    "ties": [
+      {
+        "faces": [
+          2,
+          2
+        ],
+        "lower": "B",
+        "profit": 25.45584412271571,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 4.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      }
+    ],
+    "complete": true
+  },
+  "b_free": {
+    "input": {
+      "fixed_y": null,
+      "nu": 1.0,
+      "thickness": 1.0,
+      "scale": 1.0
+    },
+    "candidates": [
+      {
+        "faces": [
+          1,
+          1
+        ],
+        "lower": "A",
+        "profit": 18.0,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 1.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          1,
+          1
+        ],
+        "lower": "B",
+        "profit": 18.0,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            3.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 3.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 1.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          1,
+          2
+        ],
+        "lower": "A",
+        "profit": 21.31370849898476,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          1,
+          2
+        ],
+        "lower": "B",
+        "profit": 21.31370849898476,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          1,
+          3
+        ],
+        "lower": "A",
+        "profit": 23.856406460551018,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 3.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          1,
+          3
+        ],
+        "lower": "B",
+        "profit": 23.856406460551018,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            5.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 5.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 3.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          2,
+          1
+        ],
+        "lower": "A",
+        "profit": 22.14213562373095,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            6.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 4.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 6.0,
+              "w": 4.0,
+              "h": 1.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          2,
+          1
+        ],
+        "lower": "B",
+        "profit": 22.14213562373095,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            3.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 3.0,
+              "w": 4.0,
+              "h": 4.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 1.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          2,
+          2
+        ],
+        "lower": "A",
+        "profit": 25.45584412271571,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            6.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 4.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 6.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          2,
+          2
+        ],
+        "lower": "B",
+        "profit": 25.45584412271571,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 4.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          2,
+          3
+        ],
+        "lower": "A",
+        "profit": 27.99854208428197,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            6.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 4.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 6.0,
+              "w": 4.0,
+              "h": 3.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          2,
+          3
+        ],
+        "lower": "B",
+        "profit": 27.99854208428197,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            5.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 5.0,
+              "w": 4.0,
+              "h": 4.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 3.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          3,
+          1
+        ],
+        "lower": "A",
+        "profit": 25.32050807568877,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            8.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 6.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 8.0,
+              "w": 4.0,
+              "h": 1.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          3,
+          1
+        ],
+        "lower": "B",
+        "profit": 25.32050807568877,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            3.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 3.0,
+              "w": 4.0,
+              "h": 6.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 1.0,
+              "mode": "shelf",
+              "faces": 1,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          3,
+          2
+        ],
+        "lower": "A",
+        "profit": 28.63421657467353,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            8.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 6.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 8.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": false,
+        "reasons": [
+          "B:外枠超過"
+        ]
+      },
+      {
+        "faces": [
+          3,
+          2
+        ],
+        "lower": "B",
+        "profit": 28.63421657467353,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            4.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 4.0,
+              "w": 4.0,
+              "h": 6.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 2.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": false,
+        "reasons": [
+          "A:外枠超過"
+        ]
+      },
+      {
+        "faces": [
+          3,
+          3
+        ],
+        "lower": "A",
+        "profit": 31.17691453623979,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            8.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 6.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 8.0,
+              "w": 4.0,
+              "h": 3.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": false,
+        "reasons": [
+          "B:外枠超過"
+        ]
+      },
+      {
+        "faces": [
+          3,
+          3
+        ],
+        "lower": "B",
+        "profit": 31.17691453623979,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            5.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 5.0,
+              "w": 4.0,
+              "h": 6.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 3.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": false,
+        "reasons": [
+          "A:外枠超過"
+        ]
+      }
+    ],
+    "best": {
+      "faces": [
+        2,
+        3
+      ],
+      "lower": "A",
+      "profit": 27.99854208428197,
+      "layout": {
+        "width": 4.0,
+        "height": 9.0,
+        "nu": 1.0,
+        "thickness": 1.0,
+        "boards": [
+          6.0
+        ],
+        "expected_ids": [
+          "A",
+          "B"
+        ],
+        "rects": [
+          {
+            "id": "A",
+            "x": 0,
+            "y": 0.0,
+            "w": 4.0,
+            "h": 4.0,
+            "mode": "shelf",
+            "faces": 2,
+            "max_faces": 3
+          },
+          {
+            "id": "B",
+            "x": 0,
+            "y": 6.0,
+            "w": 4.0,
+            "h": 3.0,
+            "mode": "shelf",
+            "faces": 3,
+            "max_faces": 3
+          }
+        ]
+      },
+      "feasible": true,
+      "reasons": []
+    },
+    "ties": [
+      {
+        "faces": [
+          2,
+          3
+        ],
+        "lower": "A",
+        "profit": 27.99854208428197,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            6.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 4.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 6.0,
+              "w": 4.0,
+              "h": 3.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      },
+      {
+        "faces": [
+          2,
+          3
+        ],
+        "lower": "B",
+        "profit": 27.99854208428197,
+        "layout": {
+          "width": 4.0,
+          "height": 9.0,
+          "nu": 1.0,
+          "thickness": 1.0,
+          "boards": [
+            5.0
+          ],
+          "expected_ids": [
+            "A",
+            "B"
+          ],
+          "rects": [
+            {
+              "id": "A",
+              "x": 0,
+              "y": 5.0,
+              "w": 4.0,
+              "h": 4.0,
+              "mode": "shelf",
+              "faces": 2,
+              "max_faces": 3
+            },
+            {
+              "id": "B",
+              "x": 0,
+              "y": 0.0,
+              "w": 4.0,
+              "h": 3.0,
+              "mode": "shelf",
+              "faces": 3,
+              "max_faces": 3
+            }
+          ]
+        },
+        "feasible": true,
+        "reasons": []
+      }
+    ],
+    "complete": true
+  },
+  "exact_expressions": {
+    "a_hang": "12*sqrt(2)",
+    "a_shelf": "16",
+    "b_fixed": "18*sqrt(2)",
+    "b_free": "10*sqrt(2)+8*sqrt(3)"
+  },
+  "geometry": "rational boundary checks in Python; full-width structure makes minimal support height sufficient",
+  "objective_tolerance": 1e-10,
+  "counterexamples": {
+    "area_but_no_fit": null,
+    "row_failure_witness": [
+      [
+        0,
+        0,
+        2,
+        3
+      ],
+      [
+        0,
+        3,
+        2,
+        1
+      ],
+      [
+        2,
+        0,
+        2,
+        3
+      ],
+      [
+        2,
+        3,
+        2,
+        1
+      ]
+    ]
+  },
+  "improvement_over_fixed": 0.09988660950737292
+}

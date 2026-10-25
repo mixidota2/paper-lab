@@ -1,6 +1,6 @@
 # PILOT Technical Report
 
-PILOTはExperiment Manager・Search Planner・Memory Curatorを、決定的な安全・統計・権限の境界で囲む。Taobaoの前後比較でbest-bucket IPVはROAM +1.00%に対し+1.40%、探索条件の達成率は53.3%から93.3%。設計は具体的だが、Manager×Plannerの2×2比較は未実施なのでWatchとする。
+PILOTでは、実験を進める役、候補を提案する役、過去の結果を整理する役の三つにAIエージェントを分ける。安全上の制約、統計的な判定基準、操作権限は、あらかじめ定めたプログラムで管理する。Taobaoの前後比較でbest-bucket IPVはROAM +1.00%に対し+1.40%、探索条件の達成率は53.3%から93.3%。設計は具体的だが、Manager×Plannerの2×2比較は未実施なのでWatchとする。
 
 ## 読み方
 

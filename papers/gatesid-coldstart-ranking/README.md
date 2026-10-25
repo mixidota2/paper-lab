@@ -1,6 +1,6 @@
 # GateSID：新商品ほど意味を借り、成熟商品では行動を残す
 
-GateSIDはSIDをranking特徴として使い、商品の成熟度に応じて意味と行動のattentionを混ぜる。生成decodeの手法ではない。Alibaba Internationalの2週間・総traffic 20%のA/BでGMV +2.6%、新商品（20日未満）+5.6%、追加遅延5ms未満を報告する。
+GateSIDは商品を表す識別子（SID）を順位付けの特徴として使う。商品内容と行動履歴から別々に求めたattention分布を、商品の成熟度に応じて学習した重みで組み合わせる。生成decodeの手法ではない。Alibaba Internationalの2週間・総traffic 20%のA/BでGMV +2.6%、新商品（20日未満）+5.6%、追加遅延5ms未満を報告する。
 
 一次資料：[2603.22916v2.pdf](https://arxiv.org/pdf/2603.22916v2)。SHA-256と節・表の対応は[mapping.md](mapping.md)。詳しい方法は[method.md](method.md)、サイト本文の原本は[lab.yaml](lab.yaml)。
 

@@ -3,6 +3,7 @@ from pathlib import Path
 import json
 import os
 from playwright.sync_api import sync_playwright
+from protected_firefox import launch_checked_firefox
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / 'site'
@@ -15,16 +16,25 @@ def main():
     errors = []
     with sync_playwright() as pw:
         chrome = os.environ.get('CHROME_PATH') or ('/opt/google/chrome/chrome' if Path('/opt/google/chrome/chrome').exists() else None)
-        browser = pw.chromium.launch(executable_path=chrome,
-                                     args=['--no-sandbox', '--disable-dev-shm-usage'])
+        from macos_chrome_cdp import connect_checked_cdp, verify_seatbelt
+        if os.environ.get('LAB_BROWSER') == 'macos-cdp':
+            browser = connect_checked_cdp(pw)
+        elif os.environ.get('LAB_BROWSER') == 'firefox':
+            browser = launch_checked_firefox(pw)
+        else:
+            browser = pw.chromium.launch(
+                                         **({"channel": os.environ["CHROME_CHANNEL"]} if os.environ.get("CHROME_CHANNEL") else {"executable_path": chrome}),
+                                         chromium_sandbox=True)
         for width in (360, 768, 1440):
             page = browser.new_page(viewport={'width': width, 'height': 900}, reduced_motion='reduce')
             page.on('pageerror', lambda e: errors.append(str(e)))
             for path in pages:
                 page.goto(path.as_uri())
+                if os.environ.get('LAB_BROWSER') == 'macos-cdp':
+                    verify_seatbelt(browser)
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), (path.name, width)
                 assert page.locator('figure.teaching').count() >= 2
-                assert page.locator('[data-ready=true]').count() == page.locator('[data-interactive]').count(), path.name
+                assert page.locator('[data-interactive][data-ready=true]').count() == page.locator('[data-interactive]').count(), path.name
                 for img in page.locator('img').all():
                     img.scroll_into_view_if_needed()
                     img.evaluate('(img)=>img.decode()')
@@ -36,7 +46,15 @@ def main():
                     slider.focus(); slider.press('End')
                     assert int(slider.input_value()) == len(data['frames'])-1
                     values = explorer.locator('.bar-label strong').all_text_contents()
-                    assert [float(v.replace(',', '')) for v in values] == [round(b['value'], 4) for b in data['frames'][-1]['bars']]
+                    assert [None if v == '推定不能' else float(v.replace(',', '')) for v in values] == [None if b['value'] is None else round(b['value'], 4) for b in data['frames'][-1]['bars']]
+                    slider.press('Home')
+                    first = data['frames'][0]
+                    # Current first values need no grouping; future cases must match JS ja-JP rounding/grouping.
+                    assert slider.get_attribute('aria-valuetext') == f"{data['label']}：{first['value']}{data['unit']}" or slider.get_attribute('aria-valuetext') == f"{data['label']}：{float(first['value']):g}{data['unit']}"
+                    for row, datum in zip(explorer.locator('.bar-row').all(), first['bars']):
+                        if datum['value'] is None:
+                            assert row.locator('strong').inner_text() == '推定不能'
+                            assert row.locator('.bar-fill').count() == 0
                     explorer.get_by_role('button', name='初期条件に戻す', exact=True).click()
                     assert int(slider.input_value()) == data['default']
                 if path.stem in NEW and width in (360, 1440):

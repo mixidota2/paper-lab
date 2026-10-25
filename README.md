@@ -1,6 +1,6 @@
 # Interactive Research Library
 
-一次資料を読み、仕組み・根拠・限界を日本語で説明する79件のLabです。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
+一次資料を読み、仕組み・根拠・限界を日本語で説明する103件のLabと、1件のテーマガイドを収録しています。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
 
 公開先：https://mixidota2.github.io/paper-lab/
 
@@ -9,12 +9,15 @@
 Python 3.10以上とuvを使います。コンテンツは `papers/<id>/lab.yaml`、実験値は `results.json` が原本です。`site/` は生成物なので直接編集しません。
 
 ```bash
-uv sync --extra dev
-for lab_run in papers/*/run.py; do uv run "$lab_run"; done
-uv run pytest
+uv sync --locked --extra dev --python 3.12
+uv run --locked pytest -q -ra --fail-on-skip
 uv run paper-lab build
 uv run python -m http.server --directory site 8000
 ```
+
+Pages公開前の必須検証は上記のpytestです。欠けた依存やskipも失敗にします。全103件のLabの読み込み、生成の決定性、配布ファイルと原本の一致、内部リンク、SIM2REALの在庫保存・未来情報非参照、APの有限列挙を検査します。NumPyはdev依存として固定しています。AP検査ではSciPyの学習処理を呼びません。
+
+各論文の `run.py` 全実行や著者モデルの学習は必須ゲートに含めません。依存・計算量を確認したうえで必要な実験だけを任意に実行してください。実ブラウザー確認は別途必要であり、pytest成功だけでは画面検証済み・公開確認済みにはなりません。sandboxを有効にしたChromeが起動できない環境では、画面・操作・読み上げをNOT TESTEDとして記録します。保護設定を変更して回避しません。
 
 サーバー起動後に http://localhost:8000 を開きます。生成済みHTMLを直接開いても図は動きます。図・フォント・スクリプトに外部CDNやAPIは使っていません。原論文へのリンクを開く際はネットワーク接続が必要です。
 
@@ -33,7 +36,7 @@ uv run python -m http.server --directory site 8000
 | timeline | 時間帯を分けた処理 | rows → label, nodes → title, text |
 | chart | 一次資料の報告値 | unit, maximum, bars → label, value |
 
-図と数式はHTMLで生成し、JSや数式CDNがなくても読めます。数式はUnicodeの添字・演算子と説明を使い、狭い画面では折り返します。行列だけは必要に応じて図の内部を横スクロールします。チャートは0起点の共通尺度と正確な数値を併記します。
+図と数式はHTMLで生成し、JSや数式CDNがなくても読めます。数式はUnicodeの添字・演算子と説明を使い、狭い画面では折り返します。棚割り3Labの数式図は、添字・指数・分数をブラウザー標準のMathMLで組版します（`formula_mathml`）。読み上げ用の文字式 `formula` も保持し、長い数式は図内で横にスクロールできます。行列だけは必要に応じて図の内部を横スクロールします。チャートは0起点の共通尺度と正確な数値を併記します。
 
 `figures` には各Labの `figures/` に置いたSVGなどを指定できます。`path`、`title`、`caption` と任意の `after` を持ち、`after: method` なら手法の節の直後に図を表示します。挿入位置を指定しない参考図は末尾にまとめます。SVGには説明文とviewBoxを付け、拡大リンクも表示します。文字の多い図は `layout: scroll` で最小表示幅を保ち、電話の画面では図内を横にスクロールできます。
 
@@ -118,3 +121,12 @@ Radarとして[GRACE](https://mixidota2.github.io/paper-lab/papers/grace-meta-ad
 - [muser-baidu-long-sequence-multi-interest](https://mixidota2.github.io/paper-lab/papers/muser-baidu-long-sequence-multi-interest.html)
 - [hgenpush-kuaishou-heterogeneous-push-gr](https://mixidota2.github.io/paper-lab/papers/hgenpush-kuaishou-heterogeneous-push-gr.html)
 - [t0-tsfm-forecasting-with-context](https://mixidota2.github.io/paper-lab/papers/t0-tsfm-forecasting-with-context.html)
+
+
+### テーマガイド
+
+最新研究・Lab一覧は `index.html`、テーマから選ぶ入口は `guides/index.html` です。棚割りガイドの原稿は `guides/shelf-decisions.md` にあり、共通の3Labへリンクします。ガイドをLabの件数に加えません。論文の発表・公開時期とガイド追加日を別に表示します。
+
+通常の全件ビルドでガイドも生成します。3Labがそろわない限定ビルドにはガイドを出さず、欠けたLabへのリンクを作りません。限定ビルドは本番サイトとは別の出力先へ作成してください。
+
+ブラウザー準備検査は `uv run --locked --extra dev pytest -q tests/test_review_103_preparation.py`。忘却教材の小数3桁表示を実際のJavaScriptと照合し、ガイドから共通Labへのリンクを検査します。保護付きmacOSブラウザーの検査入口 `tests/review_103.py` は、360px／1440pxでガイド一覧・本文・3Labの往復を検査し、原寸画像を保存する対象に含めています。準備検査の成功は実画面の確認完了を意味しません。

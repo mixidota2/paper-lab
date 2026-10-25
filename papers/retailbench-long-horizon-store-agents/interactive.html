@@ -1,0 +1,25 @@
+<style>
+[data-reference-lab] {border:2px solid #28685c;border-radius:12px;padding:clamp(12px,3vw,24px);margin:24px 0;background:#f6faf8;min-width:0}
+[data-reference-lab] .reference-fields {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+[data-reference-lab] label {display:block;font-weight:600}
+[data-reference-lab] input,[data-reference-lab] textarea,[data-reference-lab] select {display:block;width:100%;box-sizing:border-box;padding:8px;font:inherit;background:white;color:#152c26;border:1px solid #70857c;border-radius:4px}
+[data-reference-lab] button {padding:10px;margin:6px 6px 6px 0;font:inherit;cursor:pointer}
+[data-reference-lab] :focus-visible {outline:3px solid #a74e00;outline-offset:2px}
+[data-reference-lab] .reference-scroll {max-width:100%;overflow:auto;margin:16px 0}
+[data-reference-lab] table {min-width:520px;width:100%;font-variant-numeric:tabular-nums}
+[data-reference-lab] th,[data-reference-lab] td {padding:8px;border-bottom:1px solid #bccac3;white-space:nowrap}
+[data-reference-lab] svg {width:100%;height:auto}
+[data-reference-lab] [data-error] {color:#9c241c;font-weight:bold}
+</style><section data-reference-lab aria-label="現在条件を計算する教材">
+<p><strong>人工データを使った小実験・仕組みの一部を確認（PARTIAL）</strong> — 著者の実測値とは別の教材です。</p>
+<h3>予想してから、一つの条件を変える</h3>
+<label>変更すると、結果はどうなると思いますか？<select data-guess><option>まだ決めていない</option>改善する</option>同じになる</option>悪化する</option></select></label>
+<p>予想は採点されません。まず一つだけ値を変え、表の差と日ごとの動きを見て、予想の理由を確かめてください。</p>
+<p>手元資金モードの潜在需要は0〜9,007,199,254,740,991の整数に限ります。会計モードでは小数の需要も使えます。</p>
+<form><div class="reference-fields"><label>販売価格 p（通貨単位/個）<input name="price" type="number" step="any" required></label><label>1日の潜在需要 q（個/日）<input name="demand" type="number" step="any" required></label><label>1日の家賃 R（通貨単位/日）<input name="rent" type="number" step="any" required></label><label>初期現金 C₀（通貨単位）<input name="cash" type="number" step="any" required></label><label>共通日数 H：1〜365<input name="days" type="number" step="any" required></label><label>Aの仕入原価 c_A（通貨単位/個）<input name="cost_a" type="number" step="any" required></label><label>Aの返品率 r_A：0〜1（0.3は30%）<input name="return_a" type="number" step="any" required></label><label>Bの仕入原価 c_B（通貨単位/個）<input name="cost_b" type="number" step="any" required></label><label>Bの返品率 r_B：0〜1（0.3は30%）<input name="return_b" type="number" step="any" required></label><label>会計モード<select name="mode"><option value="accounting">基本会計（借入無制限）</option><option value="funded">手元資金で仕入れる（前払い）</option></select></label></div></form><button type="button" data-reset>初期条件に戻す</button>
+<p data-error role="alert"></p><div data-output aria-live="polite"></div>
+<h4>条件と計算結果を保存する</h4><button type="button" data-export>JSONを書き出す</button>
+<label>保存したJSONを貼り付ける<textarea data-json rows="5" spellcheck="false"></textarea></label>
+<button type="button" data-import>条件を読み込み、再計算する</button>
+<p>読み込んだ入力条件（inputs）だけを使い、保存済みの計算結果（output）は使わず、もう一度計算します。Tabで移動し、数値欄や選択欄はキーボードでも変更できます。</p>
+<noscript>この実験はJavaScriptが必要です。保存済みの例は後続の表、再計算は配布run.pyを利用してください。</noscript></section><script src="../downloads/retailbench-long-horizon-store-agents/implementation.js" defer></script><script src="../downloads/retailbench-long-horizon-store-agents/model.js" defer></script><script src="../downloads/retailbench-long-horizon-store-agents/interactive.js" defer></script>

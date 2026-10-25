@@ -44,3 +44,5 @@ Dynamic Beam Widthは[512,512,512]を[128,256,512]へ変え、最終候補数を
 reward systemでは実露出から学んだ価値モデルで、より広いbeamと探索により得た候補を採点する。そのログとVSLログで継続学習し、servingへパラメータを同期する。新規広告はUA-SID↔item indexへ追加する。[TAGR](tagr-live-sid.html)が扱う時間変化に応じたSID更新は別の軸であり、GR4ADのhashによる識別と補完的に検討できる。
 
 [一次資料：arXiv v3](https://arxiv.org/pdf/2602.22732v3)
+
+図の「最初」は、1つのSIDを構成するトークン列の先頭（s₁）を指す。最初の候補のID全体という意味ではない。長文生成の性能を保証する図ではない。[原典v3 §3.1.2式(2)・§3.2](https://arxiv.org/html/2602.22732v3)。

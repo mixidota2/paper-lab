@@ -1,6 +1,6 @@
 # CORAL：推薦の設定を、予算内で継続的に見直す
 
-CORALは候補源の予算やsegment別のserving処理を、数日ごとに更新するMetaのharness。videoのR3でsessions +0.16%、watch time +0.15%、追加serving費用なし。別surfaceの44%は初回の削減額の増加率であり、総費用−44%ではない。
+CORALは、推薦候補を集める経路に割り当てる計算予算や、利用者群ごとの配信処理を数日ごとに見直すMetaの仕組みである。videoのR3でsessions +0.16%、watch time +0.15%、追加serving費用なし。別surfaceの44%は初回の削減額の増加率であり、総費用−44%ではない。
 
 一次資料：[2609.02730v1.pdf](https://arxiv.org/pdf/2609.02730v1)。SHA-256と節・表の対応は[mapping.md](mapping.md)。詳しい方法は[method.md](method.md)、サイト本文の原本は[lab.yaml](lab.yaml)。
 

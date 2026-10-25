@@ -2,7 +2,7 @@
 
 Efficient Generative Retrieval for E-commerce Search with Semantic Cluster IDs and Expert-Guided RL
 
-TmallAPPのCQ-SIDは、一つのSIDから意味の近い商品群を取り出す召回チャネルだ。カテゴリ制約とquery-item対照学習で群を作り、EG-GRPOで既存の露出・クリックに合わせる。2週間のA/BでGMV +1.15%、UCTCVR +0.40%。購入の72.63%という値はチャネル構成比で、改善率ではない。
+TmallAPPのCQ-SIDは、意味の近い商品をまとめた識別子（SID）を生成し、その識別子に対応する商品群を既存の順位付け処理へ渡す仕組みである。カテゴリ制約とquery-item対照学習で群を作り、EG-GRPOで既存の露出・クリックに合わせる。2週間のA/BでGMV +1.15%、UCTCVR +0.40%。購入の72.63%という値はチャネル構成比で、改善率ではない。
 
 一次資料：[arXiv 2605.14434v1](https://arxiv.org/pdf/2605.14434v1)。判定：Worth Reading。
 

@@ -1,6 +1,6 @@
 # Proximal Residual Value Functions for Consistent Planning and Real-Time Execution
 
-Worth — 在庫の配置先を学ぶState-prox。分割配置の整合性をPCSPで特徴付け、オフライン費用を5.0%削減。
+Worth — State-proxは、届いた在庫をどの拠点に置くかを学習する。著者は、一括配置と分割配置の結果が一致するための条件を示した。過去の運用を模した比較方策に対し、未知商品・別期間のオフライン評価では、充足数量当たりの配送・移送費用が5.0%低かった。
 
 入荷在庫をどの拠点へ置くかを学ぶ研究。Amazon SCOTの著者らは、区分線形の残差関数と強凸な状態potentialを組み合わせ、計画と実行で同じ凸目的を使うState-proxを提案した。歴史的運用の代理方策に対するオフラインSCPUTは、未知商品・別期間で0.950、5.0%改善。現場A/Bは行っていない。
 

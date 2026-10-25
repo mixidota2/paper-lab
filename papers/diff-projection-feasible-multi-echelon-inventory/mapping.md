@@ -9,4 +9,4 @@
 
 原論文：[arXiv:2608.02343v1](https://arxiv.org/abs/2608.02343)。提供PDFの§4–6、図3–6、表1–5を確認した。図は数式・平均値から独自に描き直した。公式コードへのリンクは提供PDFで確認できず、公式コードは実行していない。
 
-制約比較はLabの解釈。[Constrained FBSDE](https://mixidota2.github.io/paper-lab/constrained-deep-inventory-fbsde.html)は状態の経路制約を扱う。[DeepStock](https://mixidota2.github.io/paper-lab/deepstock-policy-regularized-inventory-drl.html)は本論文でも引用される。OR-Transformerとの実験比較は行っていない。
+制約比較はLabの解釈。[Constrained FBSDE](constrained-deep-inventory-fbsde.html)は状態の経路制約を扱う。[DeepStock](deepstock-policy-regularized-inventory-drl.html)は本論文でも引用される。OR-Transformerとの実験比較は行っていない。

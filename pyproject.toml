@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0"]
+dev = ["pytest>=7.0", "numpy==2.2.6"]
 
 [project.scripts]
 paper-lab = "paper_lab.build:cli"

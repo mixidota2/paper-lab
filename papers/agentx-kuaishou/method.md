@@ -16,7 +16,7 @@ KEEPには最小効果量、有意性、許容できるguardrailのすべてが�
 
 `admit(h′) ⇔ mean[J(h′, task)−J(h, task)] > ε AND Safe(h′−h)`
 
-新旧harnessを同じreplay tasksで評価する点が重要だ。SGPO-Iはsession trace、SGPO-IIは過去MRをrequirement-only taskに変えたcoding replayを使う。後者は答えのpatchを実行agentから隠す。schema、tool境界、人のreview条件を壊す更新は採用しない。学習済みLLMの重み更新や、オンラインA/Bの代替ではない。
+変更前後の実行基盤（harness）を、同じ課題を再実行して比較する点が重要だ。SGPO-Iはsession trace、SGPO-IIは過去MRをrequirement-only taskに変えたcoding replayを使う。後者は答えのpatchを実行agentから隠す。schema、tool境界、人のreview条件を壊す更新は採用しない。学習済みLLMの重み更新や、オンラインA/Bの代替ではない。
 
 ### funnelの分母を固定する
 

@@ -30,7 +30,7 @@ verification:
   performance: NOT TESTED
   scaling: NOT TESTED
   production_applicability: NOT TESTED
-summary: 需要分類を教師信号に、共有LoRAと4専門枝を混ぜる。MASEは1.0667対TiRex 1.0818。木モデル・共変量・在庫指標との比較はない。
+summary: 需要の出方による分類を学習の手掛かりにし、全系列に共通する補正と、4つの需要クラス別の補正を組み合わせる。補正には、少数のパラメータでモデルの重みを調整するLoRAを使う。MASEは1.0667対TiRex 1.0818。木モデル・共変量・在庫指標との比較はない。
 question: 需要が途切れる頻度と数量のばらつきで、補正を分ける意味は何か
 source_review:
   checked: '2026-10-05'

@@ -35,7 +35,7 @@ source_review:
   url: https://arxiv.org/pdf/2609.19760v2
   scope: Figures 1–2; Eqs. (1), (3), (4); Proposition 8; Table 1; Figure 4
 core_idea:
-  author_claim: 商品説明から季節性の形を作り、検証データで上限付きbase-stockの方策族を選ぶ。運用時のLLM呼出しはゼロだが、統計予測の更新と方策パラメータの探索は続く。
+  author_claim: 商品説明から季節による需要変化の形を作る。さらに検証用データを使い、在庫を目標量まで補充しつつ1回の発注量に上限を設けるルールを選ぶ。運用時のLLM呼出しはゼロだが、統計予測の更新と方策パラメータの探索は続く。
   research_bot_interpretation: 注目点はLLMを置く段階にある。需要が欠品時も観測でき、仕入れ費用と発注固定費がゼロという条件が、強いORの基準を支える。実店舗の観測打切りや有料発注へ、そのまま移せるわけではない。
 sections:
   overview: SabreAgentは設計時にLLMが作った季節性の事前情報と発注ルールを固定し、運用時は予測と在庫最適化で発注する。InventoryBenchのNRは0.6311。改善の大部分はORの基本部分から来る。

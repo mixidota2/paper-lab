@@ -35,13 +35,15 @@ run.pyは標準ライブラリのみで単体実行可能。results.jsonとexper
 `tests/test_trace_lab.py` がrun.pyの4件の数値・不変性テストを通常のpytestから収集する。生成したresults.jsonとexperiment.mdが保存版に一致することも検査する。
 
 ```bash
-uv run pytest
-uv run --with playwright tests/browser_trace.py \
-  --site /tmp/paper-lab-trace-review \
-  --chrome /usr/bin/chromium \
-  --screenshots /tmp/trace-browser
+uv sync --locked --extra dev --python 3.12
+uv run --locked pytest -q -ra --fail-on-skip
+uv run --locked paper-lab build --out /tmp/paper-lab-trace-105
+uv run --locked python tests/review_103.py --preflight \
+  --site /tmp/paper-lab-trace-105 --out /tmp/trace-preflight-new
 ```
 
-ブラウザー検査は上記のビルド済み101件のサイトを使い、一時的なlocalhostサーバーを自動起動・終了する。`--chrome`には利用できるChromiumのパスを指定する。省略時はPlaywright既定のブラウザーを使う。4幅それぞれで全12条件の表示値・操作列・hash、初期化、キー操作、ローカルリンクを確認し、48枚の画像と標準出力のJSONを残す。外部リンクは一覧に記録するが、到達性を検証したとは扱わない。ログと画像はリポジトリ外に保存する。
+最新mainの104件を保持し、TRACEを加えた105件をビルドする。出力先は毎回新しいパスにする。事前検査はブラウザーを起動しない。`tests/test_trace_integration.py` は実際のインラインJavaScriptをNodeで動かし、12条件と初期化を検査するが、DOMの代用品を使うため画面・キーボード操作の検証ではない。
 
-ブラウザー検査は `chromium_sandbox=True` を明示して保護を有効にする。保護された状態で起動できない場合は検証未実施として扱い、sandboxの無効化や権限変更で回避しない。
+実ブラウザー検査は既存のPR macOS Chrome reviewから実行する。`tests/review_103.py` が署名・loopback CDP・Seatbeltを確認したChromeで、`tests/trace_review.py` の検査を呼ぶ。360・390・768・1440pxの各幅で12条件の点数・操作列・hash・棒の幅、初期化、キー操作を検査し、JavaScript無効時の初期表示も確認する。全サイトの内部リンク検査と、TRACE専用の必須検査を独立レポート判定に含める。
+
+旧 `tests/browser_trace.py` のLinux起動は使わない。以前のsandbox無効での48条件の結果は、今回の合格証拠にしない。保護確認に失敗した場合は停止し、設定・権限の変更や別の起動経路で回避しない。ローカルの数値・JavaScript・事前検査の成功と、macOS実ブラウザーの成功は別々に記録する。外部リンクの到達性、全文の目視、公開URLの版一致も別の確認事項である。

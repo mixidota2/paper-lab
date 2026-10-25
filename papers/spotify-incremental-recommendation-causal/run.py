@@ -26,7 +26,7 @@ assert ROWS[0]['p1_short']-ROWS[0]['p0_long'] < 0 < ROWS[0]['y1']-ROWS[0]['y0']
 out = {'experiment': 'synthetic_dual_threshold', 'verification': {'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},
        'rows': ROWS, 'baseline':evaluate(1), 'proposed':evaluate(.5), 'sweep':sweep,
        'checks':{'theta0_monotonicity':True,'baseline_at_one':True,'mismatched_subtraction_sign_counterexample':True},
-       'explorer':{'label':'自然再生の上限 θ₀','unit':'件','metric':'4組の合成データで表示する件数','default':5,'frames':[
+       'explorer':{'label':'自然再生の上限 θ₀','unit':'（確率）','metric':'4組の合成データで表示する件数','default':5,'frames':[
            {'value':x['theta0'],'note':f"合成例。追加再生の期待値 {x['expected_incremental_streams']}、全再生の期待値 {x['expected_total_streams']}。実測値ではない。",'bars':[{'label':'単一閾値','value':3},{'label':'二重閾値','value':x['impressions']}]} for x in sweep]}}
 Path(__file__).with_name('results.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n')
 print(json.dumps(out['checks']))

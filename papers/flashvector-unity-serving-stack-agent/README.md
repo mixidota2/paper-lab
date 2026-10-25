@@ -1,6 +1,6 @@
 # FlashVector: Agent for Hierarchical Model Serving Stack Optimization
 
-UnityのFlashVectorはNsight/eBPFの測定から層ごとの変更を提案し、本番traffic replayで全体のthroughputとlatencyを検証する。model serverは最大2× throughput・1.98× latency speedup、feature処理は約1.6×。局所速度と採択条件を分けて読む。
+UnityのFlashVectorは、計測結果を基にシステムの各部分の変更案を作る。実際の配信要求を再現して、システム全体で処理できる要求数と応答時間を確かめる。model serverは最大2× throughput・1.98× latency speedup、feature処理は約1.6×。局所速度と採択条件を分けて読む。
 
 ## 問い
 

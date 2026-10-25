@@ -1,6 +1,6 @@
 # STATIC：業務制約のtrieを、アクセラレータで読める配列へ変える
 
-STATICは許可されたSID集合のtrieをdense tableとCSRへ変換する。YouTubeのTPU v6e実験で制約処理0.033ms/step、3Bモデル推論の約0.25%。有効SIDを出すだけでなく「直近7日」の集合へ生成を限定できる点が主題だ。
+STATICは、許可したID列（SID）を先頭部分ごとにまとめた木（trie）を、アクセラレータが読み取りやすい配列へ変換する。先頭側には密な表（dense table）を使い、その先はゼロ以外の要素を行ごとに保存する形式（CSR）で持つ。YouTubeのTPU v6e実験で制約処理0.033ms/step、3Bモデル推論の約0.25%。有効SIDを出すだけでなく「直近7日」の集合へ生成を限定できる点が主題だ。
 
 一次資料：[2602.22647v2.pdf](https://arxiv.org/pdf/2602.22647v2)。SHA-256と節・表の対応は[mapping.md](mapping.md)。詳しい方法は[method.md](method.md)、サイト本文の原本は[lab.yaml](lab.yaml)。
 

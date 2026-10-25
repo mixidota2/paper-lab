@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ title }} | 研究ライブラリ</title><link rel="stylesheet" href="../assets/style.css"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231e4035'/%3E%3Cpath d='M8 8h7v16H8zm9 0h7v16h-7z' fill='%23fff'/%3E%3C/svg%3E">
+</head>
+<body><a class="skip-link" href="#guide">本文へ移動</a>
+<header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html">研究ライブラリ</a><nav class="entry-nav" aria-label="読む入口"><a href="../index.html#library">最新研究・Lab一覧</a><a href="index.html"{% if is_index %} aria-current="page"{% endif %}>テーマガイド</a></nav></div></header>
+<main id="guide" class="shell guide-page"><header class="paper-hero"><p class="eyebrow">テーマごとに研究を読む</p><h1>{{ title }}</h1><p>{{ paper_count }}件のLab ／ {{ guide_count }}件のテーマガイド</p></header>
+{% if is_index %}<section class="note-section"><h2>棚割りで何を決めたいか</h2><p>棚幅・品揃え・配置・補充について、手法とその根拠を比べます。関連するLabでは、詳しい説明を読み、限られた条件の実験を試せます。</p><a class="button" data-guide-link href="shelf-decisions.html">棚割りのテーマガイドを読む →</a><p>ガイド追加日：2026年10月16日。論文の発表時期は各原典に沿って別に記載しています。</p></section>
+{% else %}<article class="prose guide-body">{{ content | safe }}</article>{% endif %}
+</main><footer class="footer shell"><a href="../index.html#library">最新研究・Lab一覧へ</a><a href="index.html">テーマガイド一覧へ</a></footer></body></html>

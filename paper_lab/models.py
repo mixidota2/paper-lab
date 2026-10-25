@@ -20,9 +20,9 @@ VERIFICATION_STATUSES = (
 # Japanese display labels for Pages UI (values above remain in lab.yaml).
 VERIFICATION_STATUS_LABELS = {
     "CONFIRMED": "確認済み",
-    "PARTIAL": "部分的",
+    "PARTIAL": "一部のみ確認",
     "NOT OBSERVED": "未観測",
-    "NOT TESTED": "未検証",
+    "NOT TESTED": "まだ検証していない",
 }
 LAB_STATUSES = ("draft", "published")
 LAB_STATUS_LABELS = {
@@ -37,10 +37,10 @@ VERIFICATION_KEYS = (
     "production_applicability",
 )
 VERIFICATION_LABELS = {
-    "mechanism": "メカニズム",
+    "mechanism": "仕組みの確認",
     "performance": "性能",
-    "scaling": "スケーリング",
-    "production_applicability": "本番適用性",
+    "scaling": "大規模な条件での動作",
+    "production_applicability": "実際の業務で使えるか",
 }
 URL_LABELS = {
     "paper": "論文",
@@ -57,7 +57,7 @@ TOPIC_LABELS = {
     "retail-supply": "店舗・在庫・サプライ",
     "recommender-systems": "推薦システム",
     "causal-inference": "因果・増分",
-    "ml-systems": "MLシステム",
+    "ml-systems": "機械学習システム",
     "ai-agents": "AIエージェント",
 }
 ALLOWED_TOPICS = frozenset(TOPIC_LABELS)
@@ -67,16 +67,16 @@ ALLOWED_TOPICS = frozenset(TOPIC_LABELS)
 STANDARD_SECTIONS: list[tuple[str, str]] = [
     ("overview", "概要"),
     ("problem", "問題設定"),
-    ("core_idea", "核心"),
+    ("core_idea", "著者が提案した仕組み"),
     ("method", "モデル / 手法"),
-    ("why_it_might_work", "なぜ効きそうか"),
+    ("why_it_might_work", "効果についての考察"),
     ("evidence", "根拠"),
-    ("executable_understanding", "実行可能な理解"),
+    ("executable_understanding", "小実験で仕組みを確かめる"),
     ("results", "結果"),
     ("what_we_verified", "検証できたこと"),
     ("what_we_did_not_verify", "検証していないこと"),
     ("implementation", "実装"),
-    ("mapping", "原論文・公式コード対応"),
+    ("mapping", "原論文・公式コードと、このLabの対応"),
 ]
 
 _FILE_REF = re.compile(r"^[\w./-]+\.(md|txt|json|yaml|yml)$", re.IGNORECASE)
@@ -574,7 +574,7 @@ def _parse_interactives(value: Any, results: Any, paper_dir: Path) -> list[dict[
             for f in frames:
                 if not isinstance(f, dict) or not number(f.get("value")) or not isinstance(f.get("note"), str):
                     raise LabError(f"{paper_dir}: invalid explorer frame")
-                if not f.get("bars") or not all(isinstance(b.get("label"), str) and number(b.get("value")) and b["value"] >= 0 for b in f["bars"]):
+                if not f.get("bars") or not all(isinstance(b.get("label"), str) and "value" in b and (b["value"] is None or (number(b["value"]) and b["value"] >= 0)) for b in f["bars"]):
                     raise LabError(f"{paper_dir}: invalid explorer bars")
                 for line in f.get("lines", []):
                     if not isinstance(line.get("label"), str) or not line.get("values") or not all(number(v) for v in line["values"]):

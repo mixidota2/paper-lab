@@ -1,0 +1,84 @@
+id: assortment-replenishment-hard-constraints
+doi: 10.1007/s10696-023-09492-z
+arxiv_id: null
+submitted: '2023-04-02'
+year: 2024
+title: Decision support for managing assortments, shelf space, and replenishment in retail
+authors:
+- Alexander Hübner
+- Heinrich Kuhn
+topics:
+- retail-supply
+urls:
+  paper: https://link.springer.com/article/10.1007/s10696-023-09492-z
+  doi: https://doi.org/10.1007/s10696-023-09492-z
+  pdf: https://link.springer.com/content/pdf/10.1007/s10696-023-09492-z.pdf
+  official_code: null
+  arxiv: null
+verdict: Worth Reading
+status: draft
+related_threads: []
+figures: []
+interactives: []
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+question: 商品を減らした後の需要を棚在庫で受け止められるか
+summary: 代替需要を考えずに採用品を決めると、残した商品の棚在庫が足りなくなることがある。固定補充周期の合成例で、商品別の条件を確かめる。
+source_review:
+  checked: '2026-10-16'
+  url: https://link.springer.com/article/10.1007/s10696-023-09492-z
+  scope: 出版社HTMLの書誌を確認。詳細式・図6は提供された原典照合仕様を基に実装。原著実験の再現ではない。
+core_idea:
+  author_claim: 需要の面数依存と未採用品からの代替需要を含め、商品別の棚在庫条件を満たす採用品と面数を選ぶ。
+  research_bot_interpretation: 利益を比べる前に代替需要を含む総需要で実行可能性を確かめる。需要を切り詰めた評価を元の制約問題の最適値と混ぜない。
+sections:
+  overview: オンライン公開2023年、巻号2024年の既刊論文。独自の小規模な説明用実験として扱う。
+  problem: 需要が移った先の商品に、必要な棚在庫を確保できるか。
+  method: method.md
+  why_it_might_work: 採用品を変えるたびに需要を再計算すると、需要増を受け止めるための面数も同時に選べる。
+  evidence: '一次資料：[原論文](https://link.springer.com/article/10.1007/s10696-023-09492-z)。
+
+
+    原論文は単一カテゴリの実データを基に、未採用品の需要や代替率には生成した値を用いて評価しています。店舗導入の効果ではありません。2026年10月17日の追加調査でHTML本文§2〜5の関連箇所を確認した記録に基づきます。教材の詳細式・図6は提供された原典照合仕様に基づくため、全式の独立再照合が完了したとは扱いません。以下の24、16、1などは独自の合成入力の計算値です。'
+  executable_understanding: experiment.md
+  results: 3商品例では、代替需要を考えずに選んだ案は棚在庫の条件を満たしません。需要移転を含めて採用品と面数を選び直すと、利益は24になります。別の2商品例では両案が条件を満たし、基準案の利益は最適利益より37.5%低くなります。需要を切り詰めた例の利益20は、元の条件での最適利益1とは比較できません。
+  what_we_verified: validation.md
+  what_we_did_not_verify: 実ブラウザー、原著の近似実装、非公開実データ、実店舗の人件費・欠品率・需要推定精度は未検証。
+  implementation: implementation.md
+  mapping: mapping.md
+teaching_figures:
+- kind: equations
+  id: inventory-condition
+  title: 必要在庫を商品ごとに確かめる
+  after: method
+  locator: 式(6)、(9)
+  rationale: 合計在庫では不足を判定できない。
+  caption: fは欠品しない確率ではなく、固定周期需要の最低棚在庫比率。
+  source: https://link.springer.com/article/10.1007/s10696-023-09492-z
+  steps:
+  - name: 棚在庫
+    formula: qᵢ = gᵢ kᵢ
+    explanation: gは1面当たりの個数、kは横の面数。
+    formula_mathml: <math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>q</mi><mi>i</mi></msub><mo>=</mo><mrow><msub><mi>g</mi><mi>i</mi></msub><msub><mi>k</mi><mi>i</mi></msub></mrow></mrow></math>
+  - name: 必要量
+    formula: qᵢ ≥ fᵢ Dᵢ
+    explanation: 流入を含む総需要Dから、商品ごとの必要量を求める。
+    formula_mathml: <math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>q</mi><mi>i</mi></msub><mo>≥</mo><msub><mi>f</mi><mi>i</mi></msub><msub><mi>D</mi><mi>i</mi></msub></mrow></math>
+- kind: logic
+  id: one-step
+  title: 未採用先への枝は再配分しない
+  after: method
+  locator: 式(2)〜(4)
+  rationale: 固定移転率を保つ。
+  caption: 合成例T4。Aの潜在需要8のうちBへ4、Cへ2.4、未配分1.6。
+  source: https://link.springer.com/article/10.1007/s10696-023-09492-z
+  rows:
+  - label: A未採用
+    nodes:
+    - title: B採用
+      text: B自身の需要1個に、Aから移る4個を加え、総需要を5個とする。
+    - title: C未採用
+      text: Cへ向かう需要2.4個は売上に含めず、Bへ配り直しません。

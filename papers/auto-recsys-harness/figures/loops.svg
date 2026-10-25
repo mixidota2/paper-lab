@@ -5,12 +5,12 @@
 <path d="M236 126 L145 165" fill="none" stroke="#586c78" stroke-width="2" marker-end="url(#arrow)"/>
 <path d="M324 126 L413 165" fill="none" stroke="#586c78" stroke-width="2" marker-end="url(#arrow)"/>
 <rect x="24" y="178" width="246" height="145" rx="10" fill="#e2efea" stroke="#a6bdb5"/>
-<text x="38" y="205" class="">Execution Loop</text>
+<text x="38" y="205" class="">実行手順の改善</text>
 <text x="38" y="232" class="">失敗の原因と修正</text>
 <text x="38" y="259" class="">成功した投入手順</text>
 <text x="38" y="286" class="">→ model playbook</text>
 <rect x="290" y="178" width="246" height="145" rx="10" fill="#fff0da" stroke="#a6bdb5"/>
-<text x="304" y="205" class="">Idea Loop</text>
+<text x="304" y="205" class="">仮説の改善</text>
 <text x="304" y="232" class="">baselineとの差</text>
 <text x="304" y="259" class="">仮説の成否と条件</text>
 <text x="304" y="286" class="">→ experiment history</text>
