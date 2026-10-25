@@ -9,6 +9,7 @@ import sys
 import pytest
 import yaml
 
+from catalog_expectations import assert_catalog
 from paper_lab.build import build
 from paper_lab.models import load_lab
 
@@ -99,8 +100,9 @@ def test_generated_downloads_and_embedded_explorer_match_sources(tmp_path):
     build(root=ROOT, site_dir=tmp_path / 'site')
     site = tmp_path / 'site'
     labs = sorted((ROOT / 'papers').glob('*/lab.yaml'))
-    assert len(labs) == 103
-    assert len(list((site / 'papers').glob('*.html'))) == 103
+    assert len(labs) == 104
+    assert_catalog(p.parent.name for p in labs)
+    assert len(list((site / 'papers').glob('*.html'))) == 104
     for path in labs:
         slug = path.parent.name
         for name in ('results.json', 'run.py', 'lab.yaml'):
