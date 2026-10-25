@@ -2,11 +2,48 @@
 from html import escape
 import json
 from pathlib import Path
+import subprocess
+import sys
 import traceback
 
 
 class ProtectionStop(RuntimeError):
     """Abort without attempting more interactions or a weaker browser route."""
+
+
+def console_diagnostic(error):
+    """Allowlisted facts only; arbitrary exception text stays in the artifact."""
+    category = type(error).__name__
+    known = {'CalledProcessError', 'TimeoutExpired', 'AssertionError',
+             'ProtectionStop', 'KeyboardInterrupt', 'RuntimeError', 'OSError'}
+    summary = {'type': category if category in known else 'Exception',
+               'message': 'Failure details retained in report.json'}
+    commands = [
+        ['/usr/bin/codesign', '--verify', '--deep', '--strict', '--verbose=2',
+         '/Applications/Google Chrome.app'],
+        ['/usr/bin/codesign', '-dv', '--verbose=4', '/Applications/Google Chrome.app'],
+        ['/usr/bin/codesign', '--verify', '-R=anchor apple generic',
+         '/Applications/Google Chrome.app'],
+    ]
+    if isinstance(error, (subprocess.CalledProcessError, subprocess.TimeoutExpired)):
+        if error.cmd in commands:
+            summary['message'] = str(error)  # Exact fixed command; no arbitrary arguments.
+            if isinstance(error, subprocess.CalledProcessError):
+                summary['returncode'] = error.returncode
+            # Never dump stderr: return only recognized literal reason phrases.
+            stderr = error.stderr or ''
+            if isinstance(stderr, bytes):
+                stderr = stderr.decode('utf-8', errors='replace')
+            reasons = ['a sealed resource is missing or invalid',
+                       'code object is not signed at all',
+                       'invalid signature', 'resource envelope is obsolete',
+                       'code failed to satisfy specified code requirement(s)',
+                       'CSSMERR_TP_CERT_REVOKED', 'CSSMERR_TP_CERT_EXPIRED',
+                       'bundle format is ambiguous', 'unsealed contents present',
+                       'main executable failed strict validation',
+                       'file added', 'file modified', 'file missing']
+            summary['recognized_stderr_reasons'] = [x for x in reasons if x in stderr]
+    return summary
 
 
 class RunEvidence:
@@ -28,7 +65,8 @@ class RunEvidence:
     def diagnostic(self,error,page=None):
         p=page or self.page
         return {'type':type(error).__name__,'message':str(error),'traceback':traceback.format_exc(),
-                'case':self.current,'page':getattr(p,'url',None)}
+                'case':self.current,'page':getattr(p,'url',None),
+                'console':console_diagnostic(error)}
 
     def capture_failure(self,page=None,error=None):
         p=page or self.page
@@ -74,6 +112,15 @@ class RunEvidence:
         if self.report['status']!='STOPPED':
             self.report['status']='AUTOMATED PASS / publication pending' if self.report['automatic_status']=='PASS' else 'FAIL'
         self.persist()
+        if interruption is not None:
+            # Emit exactly the bounded fields also saved in stopped/report.json.
+            # Logging must not change a stopped run into a successful one.
+            summary = interruption.get('console', {'type': 'Interruption',
+                'message': 'Failure details retained in report.json'})
+            try:
+                print('LAB_REVIEW_STOP '+json.dumps(summary), file=sys.stderr, flush=True)
+            except OSError:
+                pass  # Durable evidence and the existing failure result remain.
         links=''.join(f'<li><a href="{escape(str(p.relative_to(self.out)))}">{escape(str(p.relative_to(self.out)))}</a></li>' for p in sorted(self.out.rglob('*.png')))
         (self.out/'index.html').write_text('<!doctype html><meta charset="utf-8"><title>103 Lab review evidence</title><h1>原寸の画面記録</h1><p>状態：'+escape(self.report['status'])+'</p><p>目視確認は未実施です。<a href="report.json">ケース・エラー・画面記録</a></p><ul>'+links+'</ul>')
         return self.report
