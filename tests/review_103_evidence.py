@@ -2,13 +2,59 @@
 from html import escape
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 import traceback
+import unicodedata
 
 
 class ProtectionStop(RuntimeError):
     """Abort without attempting more interactions or a weaker browser route."""
+
+
+STDERR_INPUT_LIMIT = 8192
+STDERR_TEXT_LIMIT = 2048
+
+
+def bounded_stderr(raw):
+    """Bound parsing/output; byte length is bytes or UTF-8 length for text."""
+    if raw is None:
+        return {'present': False, 'byte_length': None, 'truncated': False, 'text': None}
+    if isinstance(raw, bytes):
+        size = len(raw)
+        prefix = raw[:STDERR_INPUT_LIMIT]
+    else:
+        # Count without allocating a second unbounded copy of captured text.
+        size = sum(len(raw[i:i+STDERR_INPUT_LIMIT].encode('utf-8', errors='replace'))
+                   for i in range(0, len(raw), STDERR_INPUT_LIMIT))
+        prefix = raw[:STDERR_INPUT_LIMIT].encode('utf-8', errors='replace')[:STDERR_INPUT_LIMIT]
+    text = prefix.decode('utf-8', errors='replace')
+    # Remove terminal escape strings/sequences before redaction, including OSC links.
+    text = re.sub(r'\x1b\][^\x07\x1b]*(?:\x07|\x1b\\|$)', '', text)
+    text = re.sub(r'\x1b[P^_][\s\S]*?(?:\x1b\\|$)', '', text)
+    text = re.sub(r'\x1b\[[0-?]*[ -/]*[@-~]|\x1b[@-_]', '', text)
+    text = ''.join(' ' if c == '\t' else c for c in text
+                   if c in '\n\t' or unicodedata.category(c) not in ('Cc', 'Cf'))
+
+    def redact_url(match):
+        url = match.group()
+        url = re.sub(r'(?<=://)[^/?#]*@', '[REDACTED]@', url)
+        return re.split(r'[?#]', url, maxsplit=1)[0] + ('?[REDACTED]' if re.search(r'[?#]', url) else '')
+
+    text = re.sub(r'''(?i)\b[a-z][a-z0-9+.-]*://[^\s<>"']+''', redact_url, text)
+    text = re.sub(r'''(?i)(\b(?:bearer|basic)\s+)(?:"[^"]*(?:"|$)|'[^']*(?:'|$)|[^\s,;]+)''', r'\1[REDACTED]', text)
+    text = re.sub(
+        r'''(?i)(\b[\w.-]*(?:token|password|passwd|pwd|secret|credential|api[_-]?key|access[_-]?key(?:[_-]?id)?|key|signature|sig|authorization|auth|session|cookie)(?:[_-][\w.-]+)*["']?\s*[:=]\s*)(?:"[^"]*(?:"|$)|'[^']*(?:'|$)|[^\s,;]+)''',
+        r'\1[REDACTED]', text)
+    text = re.sub(r'(?i)(/(?:Users|home)/)[^/\r\n]+', r'\1[USER]', text)
+    text = re.sub(r'(?i)([A-Z]:\\Users\\)[^\\\r\n]+', r'\1[USER]', text)
+    text = re.sub(r'~[^/\r\n]*/', '~[USER]/', text)
+    text = re.sub(r'''/private/[^\s<>"']+''', '[PRIVATE_PATH]', text)
+    encoded = text.encode('utf-8')
+    return {'present': True, 'byte_length': size,
+            'truncated': size > STDERR_INPUT_LIMIT or len(encoded) > STDERR_TEXT_LIMIT,
+            'text': encoded[:STDERR_TEXT_LIMIT].decode('utf-8', errors='ignore')}
 
 
 def console_diagnostic(error):
@@ -17,7 +63,7 @@ def console_diagnostic(error):
     known = {'CalledProcessError', 'TimeoutExpired', 'AssertionError',
              'ProtectionStop', 'KeyboardInterrupt', 'RuntimeError', 'OSError'}
     summary = {'type': category if category in known else 'Exception',
-               'message': 'Failure details retained in report.json'}
+               'message': 'Exception type only; message and stderr omitted from console'}
     commands = [
         ['/usr/bin/codesign', '--verify', '--deep', '--strict', '--verbose=2',
          '/Applications/Google Chrome.app'],
@@ -30,10 +76,9 @@ def console_diagnostic(error):
             summary['message'] = str(error)  # Exact fixed command; no arbitrary arguments.
             if isinstance(error, subprocess.CalledProcessError):
                 summary['returncode'] = error.returncode
-            # Never dump stderr: return only recognized literal reason phrases.
-            stderr = error.stderr or ''
-            if isinstance(stderr, bytes):
-                stderr = stderr.decode('utf-8', errors='replace')
+            # Only these exact commands may expose bounded, sanitized stderr.
+            summary['stderr'] = bounded_stderr(error.stderr)
+            stderr = summary['stderr']['text'] or ''
             reasons = ['a sealed resource is missing or invalid',
                        'code object is not signed at all',
                        'invalid signature', 'resource envelope is obsolete',
@@ -116,7 +161,7 @@ class RunEvidence:
             # Emit exactly the bounded fields also saved in stopped/report.json.
             # Logging must not change a stopped run into a successful one.
             summary = interruption.get('console', {'type': 'Interruption',
-                'message': 'Failure details retained in report.json'})
+                'message': 'Exception details omitted from console'})
             try:
                 print('LAB_REVIEW_STOP '+json.dumps(summary), file=sys.stderr, flush=True)
             except OSError:
