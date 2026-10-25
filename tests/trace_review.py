@@ -4,7 +4,7 @@ No browser launch, server, permission or security configuration lives here.
 from html.parser import HTMLParser
 from itertools import product
 import json
-import re
+import re, sys
 
 
 class Frame(HTMLParser):
@@ -52,6 +52,98 @@ def assert_trace_initial(page, source):
     assert_trace_frame(page.locator('#trace-output').inner_html(),data['synthetic'][2])
 
 
+
+KEYBOARD_OBSERVER = r"""() => {
+    const ids = ['trace-normalize', 'trace-reset'];
+    const state = {events: [], truncated: false, listeners: []};
+    const value = () => {
+        const v = document.getElementById(ids[0]).value;
+        return ['0', '1'].includes(v) ? v : 'UNKNOWN';
+    };
+    for (const id of ids) {
+        const element = document.getElementById(id);
+        for (const type of ['keydown', 'keypress', 'keyup', 'input', 'change']) {
+            const listener = event => {
+                if (state.events.length >= 8) { state.truncated = true; return; }
+                const keys = {' ': 'Space', ArrowDown: 'ArrowDown', Enter: 'Enter'};
+                state.events.push({type, key: keys[event.key] || 'OTHER',
+                    trusted: event.isTrusted === true,
+                    target: id === ids[0] ? 'normalize' : 'reset', value: value()});
+            };
+            element.addEventListener(type, listener);
+            state.listeners.push([element, type, listener]);
+        }
+    }
+    window.__traceKeyboardObservation = state;
+}"""
+KEYBOARD_SNAPSHOT = r"""() => {
+    const state = window.__traceKeyboardObservation;
+    const select = document.getElementById('trace-normalize');
+    const reset = document.getElementById('trace-reset');
+    const result = {value: select.value,
+        focus: document.activeElement === select ? 'normalize' :
+               document.activeElement === reset ? 'reset' : 'other',
+        events: state.events, truncated: state.truncated};
+    state.events = []; state.truncated = false;
+    return result;
+}"""
+KEYBOARD_CLEANUP = r"""() => {
+    const state = window.__traceKeyboardObservation;
+    for (const [element, type, listener] of state.listeners)
+        element.removeEventListener(type, listener);
+    delete window.__traceKeyboardObservation;
+}"""
+
+
+def keyboard_record(raw, stage, width):
+    """Finite console fields; never log labels, DOM or arbitrary event strings."""
+    def enum(value, allowed):
+        return value if isinstance(value, str) and value in allowed else 'UNKNOWN'
+    events = raw.get('events', [])
+    return {'width': width if type(width) is int and width in (360,390,768,1440) else None,
+            'stage': enum(stage, ('before-focus','focus','Space','ArrowDown','Enter','reset-focus','reset-Enter')),
+            'focus': enum(raw.get('focus'), ('normalize','reset','other')),
+            'value': enum(raw.get('value'), ('0','1')),
+            'events': [{'type': enum(e.get('type'), ('keydown','keypress','keyup','input','change')),
+                        'key': enum(e.get('key'), ('Space','ArrowDown','Enter','OTHER')),
+                        'trusted': e.get('trusted') is True,
+                        'target': enum(e.get('target'), ('normalize','reset')),
+                        'value': enum(e.get('value'), ('0','1'))}
+                       for e in events[:8] if isinstance(e, dict)],
+            'truncated': raw.get('truncated') is True or len(events) > 8}
+
+
+def observe_keyboard(page, stage):
+    record = keyboard_record(page.evaluate(KEYBOARD_SNAPSHOT), stage, page.viewport_size['width'])
+    try:
+        print('LAB_TRACE_KEYBOARD '+json.dumps(record), file=sys.stderr, flush=True)
+    except (OSError, ValueError):
+        pass
+    return record
+
+
+def inspect_trace_keyboard(page, source, cases):
+    # Observation of the existing failing path, not a claimed native-key fix.
+    page.evaluate(KEYBOARD_OBSERVER)
+    try:
+        observe_keyboard(page, 'before-focus')
+        control = page.locator('#trace-normalize')
+        control.focus()
+        observe_keyboard(page, 'focus')
+        for key in ('Space', 'ArrowDown', 'Enter'):
+            control.press(key)
+            observe_keyboard(page, key)
+        assert control.input_value() == '1'
+        assert_trace_frame(page.locator('#trace-output').inner_html(), cases[3])
+        reset = page.locator('#trace-reset')
+        reset.focus()
+        observe_keyboard(page, 'reset-focus')
+        reset.press('Enter')
+        observe_keyboard(page, 'reset-Enter')
+        assert_trace_initial(page, source)
+    finally:
+        page.evaluate(KEYBOARD_CLEANUP)
+
 def inspect_trace(page, source):
     data=json.loads(source.read_text()); cases=data['synthetic']
     assert len(cases)==12
@@ -72,11 +164,5 @@ def inspect_trace(page, source):
             assert abs(ratio-cases[a*4+b*2+n][key])<.001
     page.locator('#trace-reset').click()
     assert_trace_initial(page,source)
-    # Open the native select with a trusted key, navigate, then commit selection.
-    control=page.locator('#trace-normalize');control.focus()
-    control.press('Space');control.press('ArrowDown');control.press('Enter')
-    assert control.input_value()=='1'
-    assert_trace_frame(page.locator('#trace-output').inner_html(),cases[3])
-    page.locator('#trace-reset').focus();page.locator('#trace-reset').press('Enter')
-    assert_trace_initial(page,source)
+    inspect_trace_keyboard(page, source, cases)
     assert page.locator('img').evaluate_all('(xs)=>xs.every(x=>x.complete&&x.naturalWidth>0)')
