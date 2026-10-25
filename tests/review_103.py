@@ -1,4 +1,4 @@
-"""Prepared 103-Lab review. --preflight never launches a browser; --run is explicit.
+"""Prepared 104-Lab review. --preflight never launches a browser; --run is explicit.
 Existing macOS signed-Chrome/loopback-CDP/Seatbelt guards are mandatory.
 """
 import argparse
@@ -16,6 +16,8 @@ import subprocess
 import sys
 import time
 from review_103_evidence import RunEvidence, ProtectionStop
+from catalog_expectations import assert_catalog, WRAPPED
+from wrapped_review import inspect_wrapped, assert_wrapped_initial
 from review_measurements import assert_percent_width
 import tempfile
 from urllib.parse import unquote, urljoin, urlsplit
@@ -73,10 +75,13 @@ def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def preflight(site):
     pages=sorted((site/'papers').glob('*.html'))
-    assert len(pages)==103, f'Expected all 103 pages, got {len(pages)}'
+    assert len(pages)==104, f'Expected all 104 pages, got {len(pages)}'
+    assert_catalog(p.stem for p in pages)
     guide_pages=sorted((site/'guides').glob('*.html'))
     assert {p.name for p in guide_pages}=={'index.html','shelf-decisions.html'}
     docs={p:Document(p.read_text()) for p in [site/'index.html',*pages,*guide_pages]}
+    assert {'wrapped-outcome','wrapped-time','wrapped-ci','wrapped-control','wrapped-shock',
+            'wrapped-mismatch','wrapped-reset','wrapped-simulation'} <= docs[site/'papers'/f'{WRAPPED}.html'].ids
     checked=set();external=set()
     for path,doc in docs.items():
         for link in doc.links+doc.assets:
@@ -107,7 +112,8 @@ def preflight(site):
         doc=Document((site/'downloads'/slug/'interactive.html').read_text())
         assert set(ids)<=doc.ids,(slug,set(ids)-doc.ids)
         assert all((site/'downloads'/slug/f).is_file() for f in ['interactive.js','model.js','results.json'])
-    required=['compatibility','local-http-links','reference-independent-metrics-curves-save-reload']
+    required=[f'wrapped-{w}' for w in (360,1440)]+['nojs-'+WRAPPED]
+    required+=['compatibility','local-http-links','reference-independent-metrics-curves-save-reload']
     required += [f'load-{p.stem}-{w}' for w in (360,768,1440) for p in pages]
     required += [f'library-search-{w}' for w in (360,768,1440)]
     required += [f'guide-navigation-{w}' for w in (360,1440)]
@@ -115,16 +121,16 @@ def preflight(site):
     required += [f'detail-{slug}-{w}' for w in (360,1440) for slug in sorted(set(EXPLORERS+STATIC+list(DISPLAY)))]
     required += [f'shelf-{slug}-{w}' for w in (360,1440) for slug in SHELF]
     required += [f'nojs-{slug}' for slug in NOJS]+[f'svg-bounds-{slug}' for slug in LEGACY_SVG]
-    sources=['shelf_survey_browser.py','review_103_report.py','review_103_external.py','review_103.py','review_103_capture.py','review_103_evidence.py','reference_browser.py','macos_chrome_cdp.py','macos_cdp_review.py']
+    sources=['catalog_expectations.py','wrapped_review.py','shelf_survey_browser.py','review_103_report.py','review_103_external.py','review_103.py','review_103_capture.py','review_103_evidence.py','reference_browser.py','macos_chrome_cdp.py','macos_cdp_review.py']
     for name in sources:ast.parse((ROOT/'tests'/name).read_text(),filename=name)
     # Known existing dependency only. No browser engine is imported or launched here.
-    result={'status':'CONFIRMED preflight only','pages':103,'theme_guides':1,'guide_pages':2,'local_targets':len(checked),'local_paths':sorted(checked),
+    result={'status':'CONFIRMED preflight only','pages':104,'theme_guides':1,'guide_pages':2,'local_targets':len(checked),'local_paths':sorted(checked),
       'external_urls_listed_not_requested':len(external),'widths':[360,768,1440],'detailed_widths':[360,1440],
-      'required_cases':required,'semantic_groups':[[slug,w] for w in (360,1440) for slug in sorted(set(EXPLORERS+list(DISPLAY)))],
+      'required_cases':required,'semantic_groups':[[slug,w] for w in (360,1440) for slug in sorted(set(EXPLORERS+list(DISPLAY)+[WRAPPED]))],
       'browser':'NOT TESTED','launch':'NOT TESTED on this host',
-      'host_platform':platform.system(),'source_hashes':{n:digest(ROOT/'tests'/n) for n in sources},
+      'host_platform':platform.system(),'source_hashes':{n:digest(ROOT/'tests'/n) for n in sources+['main_103_catalog.json']},
       'page_hashes':{p.relative_to(site).as_posix():digest(p) for p in docs},
-      'planned_detailed_pages':sorted(set(SHELF+EXPLORERS+STATIC+list(DISPLAY)+REFS)),
+      'planned_detailed_pages':sorted(set(SHELF+EXPLORERS+STATIC+list(DISPLAY)+REFS+[WRAPPED])),
       'shelf_restore':'No import control exists. Download, reload, replay saved controls, re-download and compare. Never claim native import support.'}
     return result
 
@@ -501,13 +507,13 @@ def _runtime(site,out,plan,evidence):
                     task(f'shelf-survey-{width}',survey_rendering)
                     def guide_navigation():
                         assert page.goto(base+'/index.html').ok;settled(page)
-                        assert page.locator('[data-paper]').count()==103
+                        assert page.locator('[data-paper]').count()==104
                         page.get_by_role('navigation',name='読む入口').get_by_role('link',name='テーマガイド',exact=True).click();settled(page)
                         assert page.url.endswith('/guides/index.html')
                         snapshot(page,out,f'guide-index-{width}')
                         page.locator('[data-guide-link]').click();settled(page)
                         assert page.url.endswith('/guides/shelf-decisions.html')
-                        assert '103件のLab ／ 1件のテーマガイド' in page.locator('main').inner_text()
+                        assert '104件のLab ／ 1件のテーマガイド' in page.locator('main').inner_text()
                         snapshot(page,out,f'shelf-guide-{width}')
                         for slug in SHELF:
                             page.locator(f'.guide-body a[href="../papers/{slug}.html"]').first.click();settled(page)
@@ -515,11 +521,11 @@ def _runtime(site,out,plan,evidence):
                             page.get_by_role('link',name='棚割りのテーマガイドへ',exact=True).click();settled(page)
                             assert page.url.endswith('/guides/shelf-decisions.html')
                         page.get_by_role('navigation',name='読む入口').get_by_role('link',name='最新研究・Lab一覧',exact=True).click();settled(page)
-                        assert page.locator('[data-paper]').count()==103
+                        assert page.locator('[data-paper]').count()==104
                     if width!=768:task(f'guide-navigation-{width}',guide_navigation)
                     def library_search():
                         assert page.goto(base+'/index.html').ok;settled(page)
-                        assert page.locator('[data-paper]:visible').count()==103
+                        assert page.locator('[data-paper]:visible').count()==104
                         if width in (360,1440):
                             guard(browser)
                             viewport_snapshot(page,out,f'library-initial-{width}',evidence)
@@ -528,7 +534,7 @@ def _runtime(site,out,plan,evidence):
                         page.get_by_role('searchbox').fill('no-such-paper-xyz')
                         assert page.locator('[data-paper]:visible').count()==0 and page.locator('[data-empty]').is_visible()
                         page.get_by_role('button',name='条件を消去',exact=True).click()
-                        assert page.locator('[data-paper]:visible').count()==103
+                        assert page.locator('[data-paper]:visible').count()==104
                     task(f'library-search-{width}',library_search)
                     for path in sorted((site/'papers').glob('*.html')):
                         def visit(path=path):
@@ -618,6 +624,15 @@ def _runtime(site,out,plan,evidence):
                                 assert next_button.is_disabled()
                             snapshot(page,out,f'{slug}-{width}-after-switches')
                         task(f'detail-{slug}-{width}',detail)
+                    def wrapped_detail():
+                        guard(browser)
+                        assert page.goto(f'{base}/papers/{WRAPPED}.html').ok
+                        settled(page)
+                        assert_paper_heading(page)
+                        inspect_wrapped(page, ROOT/'papers'/WRAPPED/'results.json')
+                        report['action_checks'].append({'slug':WRAPPED,'width':width,'status':'CONFIRMED: all 6 reported and 27 synthetic states, geometry, keyboard and reset'})
+                        snapshot(page,out,f'{WRAPPED}-{width}-checked')
+                    task(f'wrapped-{width}',wrapped_detail)
                     for slug in SHELF:task(f'shelf-{slug}-{width}',lambda slug=slug:shelf_checks(page,base,out,slug,width))
                     page.close()
                 nojs=browser.new_page(java_script_enabled=False,viewport={'width':360,'height':900})
@@ -625,6 +640,15 @@ def _runtime(site,out,plan,evidence):
                 nojs.on('requestfailed',lambda r:evidence.event('requestfailed',r.url+' '+str(r.failure),nojs))
                 nojs.on('response',lambda r:evidence.event('http-error',f'{r.status} {r.url}',nojs) if r.status>=400 else None)
                 try:
+                    def wrapped_fallback():
+                        assert nojs.goto(f'{base}/papers/{WRAPPED}.html',wait_until='load').ok
+                        guard(browser)
+                        assert_paper_heading(nojs)
+                        assert_wrapped_initial(nojs, ROOT/'papers'/WRAPPED/'results.json')
+                        assert nojs.locator('noscript:visible').count()==2
+                        assert nojs.evaluate('document.documentElement.scrollWidth<=innerWidth')
+                        nojs.screenshot(path=str(out/f'{WRAPPED}-360-nojs.png'),full_page=False)
+                    task('nojs-'+WRAPPED,wrapped_fallback)
                     for slug in NOJS:
                         def fallback(slug=slug):
                             assert nojs.goto(f'{base}/papers/{slug}.html',wait_until='load').ok

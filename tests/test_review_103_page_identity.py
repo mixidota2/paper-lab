@@ -85,11 +85,15 @@ class PageIdentityTests(unittest.TestCase):
                 self.assertEqual(svg.tag, '{http://www.w3.org/2000/svg}svg')
                 self.assertEqual(svg.attrib['viewBox'], '0 0 32 32')
                 self.assertGreater(len(svg), 0)
-    def test_both_paper_navigation_paths_use_identity_contract(self):
+    def test_all_paper_navigation_paths_use_identity_contract(self):
         tree = ast.parse((ROOT/'tests/review_103.py').read_text())
         calls = [node for node in ast.walk(tree) if isinstance(node, ast.Call)]
         identity_calls = [node for node in calls if isinstance(node.func, ast.Name) and node.func.id == 'assert_paper_heading']
-        self.assertEqual(sorted(node.args[0].id for node in identity_calls), ['nojs', 'page'])
+        self.assertEqual(sorted(node.args[0].id for node in identity_calls), ['nojs', 'nojs', 'page', 'page'])
+        for name, page in [('visit','page'),('fallback','nojs'),('wrapped_detail','page'),('wrapped_fallback','nojs')]:
+            route = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == name)
+            checks = [node for node in ast.walk(route) if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == 'assert_paper_heading']
+            self.assertEqual([node.args[0].id for node in checks], [page], name)
         ambiguous = [node for node in calls if isinstance(node.func, ast.Attribute) and node.func.attr == 'locator' and node.args and isinstance(node.args[0], ast.Constant) and node.args[0].value == 'h1']
         self.assertEqual(ambiguous, [], 'Unscoped h1 locator remains in browser review')
 
