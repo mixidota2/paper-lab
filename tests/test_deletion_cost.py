@@ -11,7 +11,7 @@ P=ROOT/'papers'/'trajectory-deletion-prefix-cost'
 spec=importlib.util.spec_from_file_location('deletion_model',P/'run.py')
 m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 
-@pytest.mark.parametrize('a,b,want', [([],[],0),([],[1],0),([1],[],0),([1],[1],1),([1,2],[1,2,3],2),([1,2],[9,2],0),([1,2,3],[1,3],1),([1,1],[1,1],2)])
+@pytest.mark.parametrize('a,b,want', [([],[],0),([],[1],0),([1],[],0),([1],[1],1),([1,2],[1,2,3],2),([1,2],[9,2],0),([1,2,3],[1,3],1),([1,1],[1,1],2),([1,2,1],[1,1,2],1),([2,1,1],[1,2,1],0)])
 def test_lcp(a,b,want):
  assert m.lcp(a,b)==want
 
@@ -31,6 +31,7 @@ def test_all_conditions_independently(a):
   for r in s[side]['rows']:
    # Independent longest-prefix definition: max valid prefix length.
    current=r['prompt']
+   assert len(current)==len(set(current)), 'Every generated teaching prompt uses unique IDs'
    c=max(k for k in range(min(len(prev),len(current))+1) if prev[:k]==current[:k])
    assert r['c']==c
    assert r['n']==len(current)==r['c']+r['new']+r['rebilled']
@@ -124,3 +125,27 @@ def test_plan_keeps_all_main_cases_and_requires_new_semantics(tmp_path):
  assert len(plan['required_cases'])==406
  assert all([slug,w] in plan['semantic_groups'] for w in (360,768,1440))
  assert 'deletion_review.py' in plan['source_hashes']
+
+
+@pytest.mark.parametrize('a',list(itertools.product((0,.5,.9,1),range(3),(2,4),(2,4))))
+def test_recovery_preserves_chronological_append_only_prefix(a):
+ s=m.scenario(*a);rows=s['changed']['rows'];recovery_index=s['rewrite_call']
+ recovery=rows[recovery_index]
+ # Additional call only appends R; following ordinary calls append new turns
+ # after R and reuse the entire prior prompt, with no hidden reordering.
+ assert recovery['c']==len(rows[recovery_index-1]['prompt'])
+ assert recovery['prompt'][-a[3]:]==[f'R{j}' for j in range(a[3])]
+ for previous,current in zip(rows[recovery_index:],rows[recovery_index+1:]):
+  assert current['prompt'][:len(previous['prompt'])]==previous['prompt']
+  assert current['c']==len(previous['prompt'])
+  assert current['rebilled']==0
+
+
+def test_retrieval_two_has_no_hidden_reordering_surcharge():
+ s=m.scenario(.9,1,4,2)
+ assert s['changed']['total']==pytest.approx(95.9)
+ assert [r['c'] for r in s['changed']['rows']]==[0,2,6,7,12,14,18]
+ assert m.scenario()['baseline']['total']==pytest.approx(87)
+ assert m.scenario()['changed']['total']==pytest.approx(87.3)
+ assert m.scenario(0,1,4,0)['baseline']['total']==132
+ assert m.scenario(0,1,4,0)['changed']['total']==126

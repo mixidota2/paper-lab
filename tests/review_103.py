@@ -276,6 +276,80 @@ def assert_changed_output(page, control):
     return 'NOT TESTED: input exercised; semantic output assertion still required'
 
 
+EXPLORER_DOM = r"""(panel, expectedWidths) => {
+    const text = (root, selector) => [...root.querySelectorAll(selector)].map(e=>e.innerText);
+    return {
+        bars: [...panel.querySelectorAll('.bar-row')].map(row=>({
+            strongs: text(row, 'strong'),
+            widths: [...row.querySelectorAll('.bar-fill')].map(e=>e.style.width)})),
+        tables: [...panel.querySelectorAll('table')].map(table=>({
+            head: text(table, 'thead th'),
+            rows: [...table.querySelectorAll('tbody tr')].map(row=>({
+                heads: text(row, 'th'), cells: text(row, 'td')}))})),
+        lines: [...panel.querySelectorAll('svg polyline')].map(e=>e.getAttribute('points')),
+        text: panel.innerText,
+        expectedWidths: expectedWidths.map(value=>{
+            if (value === null) return null;
+            const probe = document.createElement('div');
+            probe.style.width = `${value}%`;
+            return probe.style.width;
+        })
+    };
+}"""
+
+
+def explorer_dom(panel, widths=()):
+    # Only read the fresh DOM. Expected percentages come from Python below;
+    # JS serializes CSS numbers but neither calculates nor judges model values.
+    assert all(v is None or (math.isfinite(v) and v >= 0) for v in widths)
+    return panel.evaluate(EXPLORER_DOM, list(widths))
+
+
+def assert_explorer_bars(dom, frame):
+    rows=dom['bars'];assert len(rows)==len(frame['bars']), 'Bar count differs from saved frame'
+    assert len(dom['tables'])==(2 if frame.get('lines') else 1), 'Unexpected table count'
+    table_rows=dom['tables'][0]['rows'];assert len(table_rows)==len(rows)
+    for row,item,tr in zip(rows,frame['bars'],table_rows,strict=True):
+        assert len(row['strongs'])==1
+        shown=row['strongs'][0]
+        assert tr['heads']==[item['label']] and tr['cells']==[shown]
+        if item['value'] is None:assert shown=='推定不能' and row['widths']==[]
+        else:assert math.isclose(float(shown.replace(',','')),item['value'],abs_tol=.000051)
+
+
+def assert_explorer_widths(dom, frame):
+    assert len(dom['bars'])==len(dom['expectedWidths'])==len(frame['bars'])
+    for row,item,expected in zip(dom['bars'],frame['bars'],dom['expectedWidths'],strict=True):
+        if item['value'] is None:assert row['widths']==[] and expected is None
+        else:
+            assert expected.endswith('%')
+            assert row['widths']==[expected]
+
+
+def assert_explorer_lines(dom, frame, axes):
+    lines=dom['lines'];series_list=frame.get('lines',[])
+    assert len(lines)==len(series_list)
+    if not series_list:return
+    all_values=[v for s in series_list for v in s['values']];lo=min(0,*all_values);hi=max(1e-9,*all_values)
+    n=max(len(s['values']) for s in series_list)
+    assert len(dom['tables'])==2
+    table=dom['tables'][1];assert len(table['rows'])==n
+    assert len(table['head'])==len(series_list)+1
+    heads=[h for row in table['rows'] for h in row['heads']]
+    assert all(len(row['heads'])==1 for row in table['rows'])
+    assert heads==[str(axes['start']+k) for k in range(n)]
+    assert axes['caption'] in dom['text']
+    # Cell counts are checked once per row, including all rows and extra cells.
+    assert all(len(row['cells'])==len(series_list) for row in table['rows'])
+    for j,(points,series) in enumerate(zip(lines,series_list,strict=True)):
+        pts=assert_polyline(points,series['values'],n,lo,hi)
+        for k,(x,y) in enumerate(pts):
+            assert math.isclose(x,48+440*k/max(1,n-1),abs_tol=1e-7)
+            assert math.isclose(y,204-176*(series['values'][k]-lo)/(hi-lo or 1),abs_tol=1e-7)
+            shown=table['rows'][k]['cells'][j]
+            assert math.isclose(float(shown.replace(',','')),series['values'][k],abs_tol=.000051)
+
+
 def explorer_checks(page):
     for panel in page.locator('[data-interactive=explorer]').all():
         data=json.loads(panel.locator('[data-results]').text_content())
@@ -284,46 +358,17 @@ def explorer_checks(page):
         panel.locator('details').evaluate('(e)=>e.open=true')
         for i,frame in enumerate(data['frames']):
             change(slider,i)
-            rows=panel.locator('.bar-row').all()
-            assert len(rows)==len(frame['bars']), 'Bar count differs from saved frame'
-            assert panel.locator('table').first.locator('tbody tr').count()==len(frame['bars'])
-            table_rows=panel.locator('table').first.locator('tbody tr').all()
-            assert len(table_rows)==len(rows)
-            for j,(row,item) in enumerate(zip(rows,frame['bars'],strict=True)):
-                shown=row.locator('strong').inner_text()
-                assert table_rows[j].locator('th').count()==1 and table_rows[j].locator('td').count()==1
-                assert table_rows[j].locator('th').inner_text()==item['label']
-                assert table_rows[j].locator('td').inner_text()==shown
-                if item['value'] is None:assert shown=='推定不能' and row.locator('.bar-fill').count()==0
-                else:assert math.isclose(float(shown.replace(',','')),item['value'],abs_tol=.000051)
+            assert_explorer_bars(explorer_dom(panel),frame)
             scale=panel.get_by_role('button',name='棒の尺度：',exact=False)
             for local in (False,True):
                 if (scale.get_attribute('aria-pressed')=='true')!=local:scale.click()
                 values=[b['value'] for f in ([frame] if local else data['frames']) for b in f['bars'] if b['value'] is not None]
                 maximum=max([1e-9,*values])
-                for row,item in zip(rows,frame['bars'],strict=True):
-                    if item['value'] is not None:
-                        assert row.locator('.bar-fill').count()==1
-                        assert_percent_width(row.locator('.bar-fill'),100*item['value']/maximum)
+                widths=[None if b['value'] is None else 100*b['value']/maximum for b in frame['bars']]
+                assert_explorer_widths(explorer_dom(panel,widths),frame)
             scale.click()  # Restore shared scale before subsequent state checks.
-            if frame.get('lines'):
-                lines=panel.locator('svg polyline').all();assert len(lines)==len(frame['lines'])
-                all_values=[v for s in frame['lines'] for v in s['values']];lo=min(0,*all_values);hi=max(1e-9,*all_values)
-                n=max(len(s['values']) for s in frame['lines'])
-                table=panel.locator('table').nth(1)
-                assert table.locator('tbody tr').count()==n
-                assert table.locator('thead th').count()==len(frame['lines'])+1
-                assert table.locator('tbody th').first.inner_text()==str(axes['start'])
-                assert table.locator('tbody th').last.inner_text()==str(axes['start']+n-1)
-                assert axes['caption'] in panel.inner_text()
-                for j,(line,series) in enumerate(zip(lines,frame['lines'],strict=True)):
-                    pts=assert_polyline(line.get_attribute('points'),series['values'],n,lo,hi)
-                    for k,(x,y) in enumerate(pts):
-                        assert table.locator('tbody tr').nth(k).locator('td').count()==len(frame['lines'])
-                        assert math.isclose(x,48+440*k/max(1,n-1),abs_tol=1e-7)
-                        assert math.isclose(y,204-176*(series['values'][k]-lo)/(hi-lo or 1),abs_tol=1e-7)
-                        shown=table.locator('tbody tr').nth(k).locator('td').nth(j).inner_text()
-                        assert math.isclose(float(shown.replace(',','')),series['values'][k],abs_tol=.000051)
+            assert scale.get_attribute('aria-pressed')=='false'
+            assert_explorer_lines(explorer_dom(panel),frame,axes)
         panel.get_by_role('button',name='初期条件に戻す',exact=True).click()
         assert slider.input_value()==str(data['default'])
         assert panel.locator('.explorer-note').inner_text()==data['frames'][data['default']]['note']

@@ -22,8 +22,9 @@ def ledger(prompts, outputs, cache_price=.1):
         if output < 0:
             raise ValueError('Negative output')
         c = lcp(previous, prompt)
-        # Position-based suffix re-billing: only tokens retained from the old
-        # prompt after its first mismatch, not newly appended tokens.
+        # Diagnostic coloring/counting assumes unique artificial token IDs within
+        # each prompt (enforced by scenario), not repeated tokenizer values.
+        # The LCP and total cost above/below still use ordered value equality.
         old = set(previous[c:])
         rebilled = sum(token in old for token in prompt[c:])
         new = len(prompt) - c - rebilled
@@ -49,17 +50,21 @@ def scenario(discount=.9, position=1, timing=4, retrieval=0):
     history = ['S1','S2']
     active = None if position == 3 else max(timing, position+2)
     removed = set(turns[position][1:3]) if position < 3 else set()
-    recovered = []
+    changed_history = history.copy()
     for call in range(1,7):
         baseline = history.copy()
         prompts.append(baseline);out.append(2)
-        current = [t for t in history if not (active and call >= active and t in removed)] + recovered
+        if active == call:
+            changed_history = [t for t in changed_history if t not in removed]
+        current = changed_history.copy()
         changed.append(current);changed_out.append(2)
         if active == call and retrieval:
             # Additional read returns synthetic R tokens and requires one output.
-            recovered = [f'R{j}' for j in range(retrieval)]
-            changed.append(current + recovered);changed_out.append(1)
+            changed_history += [f'R{j}' for j in range(retrieval)]
+            changed.append(changed_history.copy());changed_out.append(1)
         history += turns[call-1]
+        changed_history += turns[call-1]
+    assert all(len(prompt) == len(set(prompt)) for prompt in prompts + changed), 'Teaching IDs must be unique per prompt'
     return dict(args=dict(discount=discount,position=position,timing=timing,retrieval=retrieval),
                 rewrite_call=active, removed=sorted(removed),
                 baseline=ledger(prompts,out,1-discount), changed=ledger(changed,changed_out,1-discount))

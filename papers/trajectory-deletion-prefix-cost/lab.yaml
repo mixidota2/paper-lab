@@ -19,7 +19,7 @@ urls:
 verdict: Worth Reading
 status: draft
 question: 履歴を短くしたのに、なぜ入力の費用が増えるのか
-summary: 削除したトークン数だけでは費用を判断できない。再利用できなくなる接頭辞と、情報を探し直す呼出しを分け、合成のトークン台帳で差額を追う。
+summary: 削除したトークン数だけでは費用を判断できない。先頭から一致する部分の再利用、最初の変更以降の再課金、情報を探し直す呼出しを分け、合成のトークン台帳で差額を追う。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
