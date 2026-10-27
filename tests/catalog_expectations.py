@@ -1,9 +1,13 @@
-"""Pinned main catalog: adding TRACE must retain every existing Lab."""
+"""Pinned main catalog: adding EpiSEM must retain every existing Lab."""
 import json
 from pathlib import Path
 
 WRAPPED = 'wrapped-produce-placement-controlled-trial'
 TRACE = 'trace-verifier-brittleness'
+EPISEM = 'episem-missing-evidence-recovery'
+CURRENT = json.loads(Path(__file__).with_name('main_105_catalog.json').read_text())
+assert CURRENT['base'] == 'b249cf98c1460c08ed584cba9900fb0aa0815646'
+assert len(CURRENT['ids']) == len(set(CURRENT['ids'])) == 105
 BASE = json.loads(Path(__file__).with_name('main_104_catalog.json').read_text())
 EXISTING = frozenset(BASE['ids'])
 assert BASE['base'] == '38e98ef18dde9a88c14cd12a79827084187eff6c'
@@ -14,5 +18,6 @@ assert TRACE not in EXISTING
 
 def assert_catalog(ids):
     actual = list(ids)
-    assert len(actual) == len(set(actual)) == 105
-    assert set(actual) == EXISTING | {TRACE}, 'Existing main Labs must remain; only TRACE is added'
+    assert len(actual) == len(set(actual)) == 106
+    assert set(CURRENT['ids']) == EXISTING | {TRACE}
+    assert set(actual) == set(CURRENT['ids']) | {EPISEM}, 'Existing main Labs must remain; only EpiSEM is added'
