@@ -5,7 +5,7 @@ from pathlib import Path
 import re
 import subprocess
 import pytest
-from catalog_expectations import BASE, EXISTING, TRACE, assert_catalog
+from catalog_expectations import BASE, EXISTING, TRACE, DELETION, assert_catalog
 from trace_review import assert_trace_frame
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -15,7 +15,7 @@ LAB=ROOT/'papers'/TRACE
 def test_current_main_exact_catalog_preserved():
     assert BASE['base']=='38e98ef18dde9a88c14cd12a79827084187eff6c'
     assert len(EXISTING)==104
-    assert_catalog([*EXISTING,TRACE])
+    assert_catalog([*EXISTING,TRACE,DELETION])
     with pytest.raises(AssertionError):assert_catalog([*EXISTING,'wrong-id'])
     with pytest.raises(AssertionError):assert_catalog([*EXISTING,TRACE,TRACE])
 
@@ -65,7 +65,7 @@ def test_trace_is_mandatory_and_missing_case_or_semantics_fails(tmp_path):
     assert len(baseline['required_cases'])==391
     assert set(baseline['required_cases']) <= set(names)
     assert all(group in plan['semantic_groups'] for group in baseline['semantic_groups'])
-    assert len(names)==399
+    assert len(names)==406
     assert {f'trace-{w}' for w in (360,390,768,1440)}|{'nojs-'+TRACE} <= set(names)
     assert all([TRACE,w] in plan['semantic_groups'] for w in (360,390,768,1440))
     report={'preflight':plan,'browser':'EXECUTED','execution_completed':True,'cases':[{'name':n,'status':'PASS'} for n in names],

@@ -1,4 +1,4 @@
-"""Prepared 105-Lab review. --preflight never launches a browser; --run is explicit.
+"""Prepared 106-Lab review. --preflight never launches a browser; --run is explicit.
 Existing macOS signed-Chrome/loopback-CDP/Seatbelt guards are mandatory.
 """
 import argparse
@@ -16,7 +16,8 @@ import subprocess
 import sys
 import time
 from review_103_evidence import RunEvidence, ProtectionStop
-from catalog_expectations import assert_catalog, WRAPPED, TRACE
+from deletion_review import inspect_deletion
+from catalog_expectations import assert_catalog, WRAPPED, TRACE, DELETION
 from trace_review import inspect_trace, assert_trace_initial
 from wrapped_review import inspect_wrapped, assert_wrapped_initial
 from review_measurements import assert_percent_width
@@ -76,7 +77,7 @@ def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def preflight(site):
     pages=sorted((site/'papers').glob('*.html'))
-    assert len(pages)==105, f'Expected all 105 pages, got {len(pages)}'
+    assert len(pages)==106, f'Expected all 106 pages, got {len(pages)}'
     assert_catalog(p.stem for p in pages)
     guide_pages=sorted((site/'guides').glob('*.html'))
     assert {p.name for p in guide_pages}=={'index.html','shelf-decisions.html'}
@@ -114,7 +115,8 @@ def preflight(site):
         doc=Document((site/'downloads'/slug/'interactive.html').read_text())
         assert set(ids)<=doc.ids,(slug,set(ids)-doc.ids)
         assert all((site/'downloads'/slug/f).is_file() for f in ['interactive.js','model.js','results.json'])
-    required=[f'trace-{w}' for w in (360,390,768,1440)]+['nojs-'+TRACE]
+    required=[f'deletion-{w}' for w in (360,768,1440)]+['nojs-'+DELETION]
+    required += [f'trace-{w}' for w in (360,390,768,1440)]+['nojs-'+TRACE]
     required += [f'wrapped-{w}' for w in (360,1440)]+['nojs-'+WRAPPED]
     required+=['compatibility','local-http-links','reference-independent-metrics-curves-save-reload']
     required += [f'load-{p.stem}-{w}' for w in (360,768,1440) for p in pages]
@@ -124,16 +126,16 @@ def preflight(site):
     required += [f'detail-{slug}-{w}' for w in (360,1440) for slug in sorted(set(EXPLORERS+STATIC+list(DISPLAY)))]
     required += [f'shelf-{slug}-{w}' for w in (360,1440) for slug in SHELF]
     required += [f'nojs-{slug}' for slug in NOJS]+[f'svg-bounds-{slug}' for slug in LEGACY_SVG]
-    sources=['trace_review.py','catalog_expectations.py','wrapped_review.py','shelf_survey_browser.py','review_103_report.py','review_103_external.py','review_103.py','review_103_capture.py','review_103_evidence.py','reference_browser.py','macos_chrome_cdp.py','macos_cdp_review.py']
+    sources=['deletion_review.py','trace_review.py','catalog_expectations.py','wrapped_review.py','shelf_survey_browser.py','review_103_report.py','review_103_external.py','review_103.py','review_103_capture.py','review_103_evidence.py','reference_browser.py','macos_chrome_cdp.py','macos_cdp_review.py']
     for name in sources:ast.parse((ROOT/'tests'/name).read_text(),filename=name)
     # Known existing dependency only. No browser engine is imported or launched here.
-    result={'status':'CONFIRMED preflight only','pages':105,'theme_guides':1,'guide_pages':2,'local_targets':len(checked),'local_paths':sorted(checked),
+    result={'status':'CONFIRMED preflight only','pages':106,'theme_guides':1,'guide_pages':2,'local_targets':len(checked),'local_paths':sorted(checked),
       'external_urls_listed_not_requested':len(external),'widths':[360,768,1440],'detailed_widths':[360,1440],'trace_widths':[360,390,768,1440],
-      'required_cases':required,'semantic_groups':[[slug,w] for w in (360,1440) for slug in sorted(set(EXPLORERS+list(DISPLAY)+[WRAPPED]))]+[[TRACE,w] for w in (360,390,768,1440)],
+      'required_cases':required,'semantic_groups':[[slug,w] for w in (360,1440) for slug in sorted(set(EXPLORERS+list(DISPLAY)+[WRAPPED]))]+[[TRACE,w] for w in (360,390,768,1440)]+[[DELETION,w] for w in (360,768,1440)],
       'browser':'NOT TESTED','launch':'NOT TESTED on this host',
       'host_platform':platform.system(),'source_hashes':{n:digest(ROOT/'tests'/n) for n in sources+['main_103_catalog.json','main_104_catalog.json']},
       'page_hashes':{p.relative_to(site).as_posix():digest(p) for p in docs},
-      'planned_detailed_pages':sorted(set(SHELF+EXPLORERS+STATIC+list(DISPLAY)+REFS+[WRAPPED,TRACE])),
+      'planned_detailed_pages':sorted(set(SHELF+EXPLORERS+STATIC+list(DISPLAY)+REFS+[WRAPPED,TRACE,DELETION])),
       'shelf_restore':'No import control exists. Download, reload, replay saved controls, re-download and compare. Never claim native import support.'}
     return result
 
@@ -510,13 +512,13 @@ def _runtime(site,out,plan,evidence):
                     task(f'shelf-survey-{width}',survey_rendering)
                     def guide_navigation():
                         assert page.goto(base+'/index.html').ok;settled(page)
-                        assert page.locator('[data-paper]').count()==105
+                        assert page.locator('[data-paper]').count()==106
                         page.get_by_role('navigation',name='読む入口').get_by_role('link',name='テーマガイド',exact=True).click();settled(page)
                         assert page.url.endswith('/guides/index.html')
                         snapshot(page,out,f'guide-index-{width}')
                         page.locator('[data-guide-link]').click();settled(page)
                         assert page.url.endswith('/guides/shelf-decisions.html')
-                        assert '105件のLab ／ 1件のテーマガイド' in page.locator('main').inner_text()
+                        assert '106件のLab ／ 1件のテーマガイド' in page.locator('main').inner_text()
                         snapshot(page,out,f'shelf-guide-{width}')
                         for slug in SHELF:
                             page.locator(f'.guide-body a[href="../papers/{slug}.html"]').first.click();settled(page)
@@ -524,11 +526,11 @@ def _runtime(site,out,plan,evidence):
                             page.get_by_role('link',name='棚割りのテーマガイドへ',exact=True).click();settled(page)
                             assert page.url.endswith('/guides/shelf-decisions.html')
                         page.get_by_role('navigation',name='読む入口').get_by_role('link',name='最新研究・Lab一覧',exact=True).click();settled(page)
-                        assert page.locator('[data-paper]').count()==105
+                        assert page.locator('[data-paper]').count()==106
                     if width!=768:task(f'guide-navigation-{width}',guide_navigation)
                     def library_search():
                         assert page.goto(base+'/index.html').ok;settled(page)
-                        assert page.locator('[data-paper]:visible').count()==105
+                        assert page.locator('[data-paper]:visible').count()==106
                         if width in (360,1440):
                             guard(browser)
                             viewport_snapshot(page,out,f'library-initial-{width}',evidence)
@@ -537,7 +539,7 @@ def _runtime(site,out,plan,evidence):
                         page.get_by_role('searchbox').fill('no-such-paper-xyz')
                         assert page.locator('[data-paper]:visible').count()==0 and page.locator('[data-empty]').is_visible()
                         page.get_by_role('button',name='条件を消去',exact=True).click()
-                        assert page.locator('[data-paper]:visible').count()==105
+                        assert page.locator('[data-paper]:visible').count()==106
                     task(f'library-search-{width}',library_search)
                     for path in sorted((site/'papers').glob('*.html')):
                         def visit(path=path):
@@ -656,6 +658,23 @@ def _runtime(site,out,plan,evidence):
                         snapshot(trace_page,out,f'{TRACE}-{trace_width}-checked')
                     task(f'trace-{trace_width}',trace_detail)
                     trace_page.close()
+                for deletion_width in (360,768,1440):
+                    dp=browser.new_page(viewport={'width':deletion_width,'height':900},device_scale_factor=1)
+                    evidence.page=dp
+                    dp.on('pageerror',lambda error,p=dp:evidence.event('pageerror',error,p))
+                    dp.on('requestfailed',lambda r,p=dp:evidence.event('requestfailed',r.url+' '+str(r.failure),p))
+                    dp.on('console',lambda message,p=dp:evidence.event('console-error',message.text,p) if message.type=='error' else None)
+                    dp.on('response',lambda r,p=dp:evidence.event('http-error',f'{r.status} {r.url}',p) if r.status>=400 and r.url.startswith(base) else None)
+                    def deletion_detail():
+                        guard(browser)
+                        assert dp.goto(f'{base}/papers/{DELETION}.html').ok
+                        settled(dp)
+                        assert_paper_heading(dp)
+                        inspect_deletion(dp,ROOT/'papers'/DELETION/'results.json')
+                        report['action_checks'].append({'slug':DELETION,'width':deletion_width,'status':'CONFIRMED: 144 ledgers, exact tokens, costs, reset via Enter'})
+                        snapshot(dp,out,f'{DELETION}-{deletion_width}-checked')
+                    task(f'deletion-{deletion_width}',deletion_detail)
+                    dp.close()
                 nojs=browser.new_page(java_script_enabled=False,viewport={'width':360,'height':900})
                 evidence.page=nojs
                 nojs.on('requestfailed',lambda r:evidence.event('requestfailed',r.url+' '+str(r.failure),nojs))
@@ -679,6 +698,15 @@ def _runtime(site,out,plan,evidence):
                         assert nojs.evaluate('document.documentElement.scrollWidth<=innerWidth')
                         nojs.screenshot(path=str(out/f'{TRACE}-360-nojs.png'),full_page=False)
                     task('nojs-'+TRACE,trace_fallback)
+                    def deletion_fallback():
+                        assert nojs.goto(f'{base}/papers/{DELETION}.html',wait_until='load').ok
+                        guard(browser)
+                        assert_paper_heading(nojs)
+                        assert nojs.locator('#deletion-toy noscript').is_visible()
+                        assert '費用単位' in nojs.locator('#deletion-output').inner_text()
+                        assert nojs.evaluate('document.documentElement.scrollWidth<=innerWidth')
+                        nojs.screenshot(path=str(out/f'{DELETION}-360-nojs.png'),full_page=False)
+                    task('nojs-'+DELETION,deletion_fallback)
                     for slug in NOJS:
                         def fallback(slug=slug):
                             assert nojs.goto(f'{base}/papers/{slug}.html',wait_until='load').ok
