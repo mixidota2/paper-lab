@@ -125,8 +125,11 @@ def test_plan_keeps_all_main_cases_and_requires_new_semantics(tmp_path):
  episem='episem-missing-evidence-recovery'
  episem_cases={f'episem-{w}' for w in (360,768,1440)}|{'nojs-'+episem}|{f'load-{episem}-{w}' for w in (360,768,1440)}
  assert len(added)==len(episem_cases)==7
- assert set(plan['required_cases'])==main_cases|added|episem_cases
- assert len(plan['required_cases'])==413
+ arc='featurearc-inherited-defects-chain-gates'
+ arc_cases={f'featurearc-{w}' for w in (360,768,1440)}|{'nojs-'+arc}|{f'load-{arc}-{w}' for w in (360,768,1440)}
+ assert len(arc_cases)==7
+ assert set(plan['required_cases'])==main_cases|added|episem_cases|arc_cases
+ assert len(plan['required_cases'])==420
  assert all([slug,w] in plan['semantic_groups'] for w in (360,768,1440))
  assert 'deletion_review.py' in plan['source_hashes']
 

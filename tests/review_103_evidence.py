@@ -230,7 +230,7 @@ CASE_EXCEPTION_TYPES = frozenset({
     'CalledProcessError', 'TimeoutExpired', 'ProtectionStop', 'KeyboardInterrupt',
 })
 DIAGNOSTIC_SOURCES = frozenset({
-    'episem_review.py', 'trace_review.py', 'catalog_expectations.py', 'wrapped_review.py',
+    'featurearc_review.py', 'episem_review.py', 'trace_review.py', 'catalog_expectations.py', 'wrapped_review.py',
     'shelf_survey_browser.py', 'review_103_report.py', 'review_103_external.py',
     'review_103.py', 'review_103_capture.py', 'review_103_evidence.py',
     'reference_browser.py', 'macos_chrome_cdp.py', 'macos_cdp_review.py',

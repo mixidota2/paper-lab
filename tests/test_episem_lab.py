@@ -114,7 +114,7 @@ def test_399_existing_cases_retained_and_new_gates_required(tmp_path):
     assert len(baseline['required_cases'])==399
     assert set(baseline['required_cases'])<=set(plan['required_cases'])
     assert all(g in plan['semantic_groups'] for g in baseline['semantic_groups'])
-    assert len(plan['required_cases'])==len(set(plan['required_cases']))==413
+    assert len(plan['required_cases'])==len(set(plan['required_cases']))==420
     assert {f'episem-{w}' for w in (360,768,1440)}|{'nojs-'+EPISEM}<=set(plan['required_cases'])
     assert plan['source_hashes']['episem_review.py']==hashlib.sha256((ROOT/'tests/episem_review.py').read_bytes()).hexdigest()
     report={'preflight':plan,'browser':'EXECUTED','execution_completed':True,'cases':[{'name':n,'status':'PASS'} for n in plan['required_cases']], 'events':[],'action_checks':[{'slug':s,'width':w,'status':'CONFIRMED: unit fixture only'} for s,w in plan['semantic_groups']]}

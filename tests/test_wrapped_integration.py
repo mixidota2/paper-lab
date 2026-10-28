@@ -8,7 +8,7 @@ import sys
 
 import pytest
 
-from catalog_expectations import EXISTING, WRAPPED, TRACE, EPISEM, DELETION, assert_catalog
+from catalog_expectations import EXISTING, WRAPPED, TRACE, EPISEM, DELETION, FEATUREARC, assert_catalog
 from wrapped_review import assert_reported, assert_synthetic, inspect_wrapped_keyboard
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,7 +16,7 @@ SOURCE = ROOT/'papers'/WRAPPED
 
 
 def test_catalog_rejects_replacement_of_an_existing_lab():
-    assert_catalog(EXISTING | {TRACE, EPISEM, DELETION})
+    assert_catalog(EXISTING | {TRACE, EPISEM, DELETION, FEATUREARC})
     with pytest.raises(AssertionError):
         assert_catalog((EXISTING - {sorted(EXISTING)[0]}) | {TRACE,EPISEM,'invented-replacement'})
 
