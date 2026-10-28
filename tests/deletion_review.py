@@ -2,6 +2,36 @@
 import json
 
 
+def assert_ledger_geometry(rows):
+    """Every painted token/text rectangle stays inside its own table cell."""
+    assert rows
+    for row in rows:
+        assert len(row['geometry']) == 6
+        for cell in row['geometry']:
+            left, top, right, bottom = cell['box']
+            assert right > left and bottom > top
+            for x0, y0, x1, y1 in cell['content']:
+                assert left - 1 <= x0 <= x1 <= right + 1, 'Ledger content crosses a column boundary'
+                assert top - 1 <= y0 <= y1 <= bottom + 1, 'Ledger content crosses a row boundary'
+
+
+LEDGER_DOM = r"""(rows)=>rows.map(r=>{
+ const box=e=>{const b=e.getBoundingClientRect();return [b.left,b.top,b.right,b.bottom]};
+ return {cells:[...r.cells].map(c=>c.innerText),
+   tokens:[...r.querySelectorAll('.token')].map(e=>({text:e.textContent,c:e.className})),
+   geometry:[...r.cells].map(c=>{
+     const content=[...c.querySelectorAll('.tokens,.token')].map(box);
+     const walker=document.createTreeWalker(c,NodeFilter.SHOW_TEXT);
+     while(walker.nextNode()){
+       if(!walker.currentNode.textContent.trim())continue;
+       const range=document.createRange();range.selectNodeContents(walker.currentNode);
+       for(const b of range.getClientRects())content.push([b.left,b.top,b.right,b.bottom]);
+     }
+     return {box:box(c),content};
+   })};
+})"""
+
+
 def inspect_deletion(page, source):
     cases=json.loads(source.read_text())['synthetic']
     for case in cases:
@@ -11,7 +41,8 @@ def inspect_deletion(page, source):
         assert out.locator('[data-baseline]').inner_text()==f"{case['baseline']['total']:.2f}"
         assert out.locator('[data-changed]').inner_text()==f"{case['changed']['total']:.2f}"
         assert out.locator('[data-delta]').inner_text()==f"{case['changed']['total']-case['baseline']['total']:.2f}"
-        dom=out.locator('tbody tr').evaluate_all('(rows)=>rows.map(r=>({cells:[...r.cells].map(c=>c.innerText),tokens:[...r.querySelectorAll(".token")].map(e=>({text:e.textContent,c:e.className}))}))')
+        dom=out.locator('tbody tr').evaluate_all(LEDGER_DOM)
+        assert_ledger_geometry(dom)
         assert len(dom)==len(case['changed']['rows'])
         previous=[]
         for row,actual in zip(case['changed']['rows'],dom):
