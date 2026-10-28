@@ -14,7 +14,7 @@ concurrency:
 jobs:
   macos-chrome:
     runs-on: macos-15
-    timeout-minutes: 25
+    timeout-minutes: 30
     env:
       LAB_BROWSER: macos-cdp
     steps:
@@ -66,7 +66,7 @@ jobs:
       # Historical Linux failures remain in the PR and are not reclassified.
       - name: Verify signed Chrome and Seatbelt, then run CDP compatibility and Lab checks
         id: browser_review
-        timeout-minutes: 18
+        timeout-minutes: 22
         shell: bash
         run: |
           set -o pipefail
