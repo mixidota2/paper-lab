@@ -112,6 +112,9 @@ def test_capture_instrumentation_preserves_original_ast():
     old=baseline('tests/review_103_capture.py').body[-1]
     new=next(n for n in ast.parse((ROOT/'tests/review_103_capture.py').read_text()).body if isinstance(n,ast.FunctionDef) and n.name=='_capture')
     class Strip(ast.NodeTransformer):
+        def visit_Expr(self,n):
+            if ast.dump(n)==ast.dump(ast.parse('owned.append(True)').body[0]):return None
+            return n
         def visit_With(self,n):
             if isinstance(n.items[0].context_expr,ast.Call) and getattr(n.items[0].context_expr.func,'id',None)=='timed_phase':
                 return [self.visit(x) for x in n.body]

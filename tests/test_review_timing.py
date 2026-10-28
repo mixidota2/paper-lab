@@ -20,6 +20,7 @@ def test_phase_accumulates_and_preserves_error(monkeypatch):
 def test_capture_timing_return_and_error(tmp_path,monkeypatch,failure):
     error=ValueError('original');result={'tiles':[]}
     def capture(*args):
+        args[-1].append(True)  # Simulate successful directory ownership.
         if failure:raise error
         return result
     monkeypatch.setattr(c,'_capture',capture)
@@ -33,7 +34,9 @@ def test_capture_timing_return_and_error(tmp_path,monkeypatch,failure):
 
 def test_timing_write_failure_does_not_replace_original(tmp_path,monkeypatch):
     error=RuntimeError('original')
-    def fail(*args):raise error
+    def fail(*args):
+        args[-1].append(True)
+        raise error
     monkeypatch.setattr(c,'_capture',fail)
     with pytest.raises(RuntimeError) as caught:c.capture(None,tmp_path/'absent')
     assert caught.value is error
@@ -61,3 +64,30 @@ def test_unplanned_id_not_copied_into_timing(tmp_path):
     evidence=RunEvidence(tmp_path,{'required_cases':['case']})
     evidence.case('untrusted',lambda:None)
     assert evidence.report.get('case_timings',{})=={}
+
+
+@pytest.mark.parametrize('existing_receipt', [False, True])
+def test_duplicate_destination_preserves_all_evidence(tmp_path, existing_receipt):
+    destination=tmp_path/'capture'
+    destination.mkdir()
+    (destination/'000.png').write_bytes(b'original image sentinel')
+    (destination/'segments.json').write_bytes(b'original manifest sentinel')
+    if existing_receipt:
+        (destination/'capture-timing.json').write_bytes(b'original timing sentinel')
+    before={p.name:p.read_bytes() for p in destination.iterdir()}
+    # None page also proves no browser operation is attempted after rejection.
+    with pytest.raises(FileExistsError) as caught:
+        c.capture(None,destination)
+    assert caught.value.filename==str(destination)
+    assert {p.name:p.read_bytes() for p in destination.iterdir()}==before
+
+
+def test_real_owned_directory_records_original_failure(tmp_path):
+    class Page:
+        def evaluate(self,*args):raise RuntimeError('original browser error')
+    destination=tmp_path/'new-capture'
+    with pytest.raises(RuntimeError,match='original browser error'):
+        c.capture(Page(),destination)
+    receipt=json.loads((destination/'capture-timing.json').read_text())
+    assert receipt['phases']['readiness']['count']==1
+    assert receipt['phases']['readiness']['elapsed_s']>=0

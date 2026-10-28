@@ -8,10 +8,11 @@ import time
 from contextlib import contextmanager
 
 
-def _capture(page, destination, region, horizontal, timings):
+def _capture(page, destination, region, horizontal, timings, owned):
     """No resizing/stitching. A region limits vertical coverage, not pixel scale."""
     destination = Path(destination)
     destination.mkdir(parents=True, exist_ok=False)
+    owned.append(True)
     with timed_phase(timings, "readiness"):
         page.evaluate("() => { for (const i of document.images) i.loading='eager'; }")
         page.wait_for_function("document.fonts.status==='loaded' && [...document.images].every(i=>i.complete && i.naturalWidth>0)")
@@ -88,12 +89,14 @@ def capture(page, destination, region=None, horizontal=True):
     # Fixed phase keys/count aggregates only. Children have separate receipts;
     # horizontal_children is inclusive and must not be added to their totals.
     timings = {}
+    owned = []
     started = time.monotonic()
     try:
-        return _capture(page, destination, region, horizontal, timings)
+        return _capture(page, destination, region, horizontal, timings, owned)
     finally:
         receipt = {'elapsed_s': max(0, time.monotonic()-started), 'phases': timings}
         try:
-            (Path(destination)/'capture-timing.json').write_text(json.dumps(receipt))
+            if owned:
+                (Path(destination)/'capture-timing.json').write_text(json.dumps(receipt))
         except OSError:
             pass  # Diagnostic transport must never replace the original error.
