@@ -23,8 +23,8 @@ def site(tmp_path_factory):
 
 def test_all_pages_links_and_declared_targets_preflight(site):
     p=m.preflight(site)
-    assert p['pages']==105 and p['local_targets']>500
-    assert len(p['planned_detailed_pages'])==29
+    assert p['pages']==106 and p['local_targets']>500
+    assert len(p['planned_detailed_pages'])==30
     assert m.WRAPPED in p['planned_detailed_pages']
     assert p['browser']=='NOT TESTED'
     assert m.EXPLORERS==['vn2-stockout-catboost','whole-foods-shelf','contextual-deconvolution']
@@ -163,12 +163,12 @@ def test_full_build_has_no_private_absolute_paths(site):
 def test_guide_navigation_counts_and_canonical_lab_links(site):
     index=m.Document((site/'index.html').read_text())
     assert 'guides/index.html' in index.links
-    assert len([a for t,a in index.tags if 'data-paper' in a])==105
+    assert len([a for t,a in index.tags if 'data-paper' in a])==106
     listing=m.Document((site/'guides/index.html').read_text())
     assert 'shelf-decisions.html' in listing.links
     guide=(site/'guides/shelf-decisions.html').read_text()
     links=m.Document(guide).links
-    assert '105件のLab ／ 1件のテーマガイド' in guide
+    assert '106件のLab ／ 1件のテーマガイド' in guide
     assert 'オンライン公開2023年' in guide and 'オンライン公開2025年' in guide
     assert '追加日は2026年10月16日' in guide
     for slug in m.SHELF:
@@ -215,7 +215,7 @@ def test_required_case_manifest_and_regression_sets(site):
     plan=m.preflight(site)
     names=plan['required_cases']
     assert len(names)==len(set(names))
-    assert sum(n.startswith('load-') and n.endswith('-768') for n in names)==105
+    assert sum(n.startswith('load-') and n.endswith('-768') for n in names)==106
     assert len(m.NOJS)==9 and len(m.LEGACY_SVG)==6
     assert all('nojs-'+s in names for s in m.NOJS)
     assert all('svg-bounds-'+s in names for s in m.LEGACY_SVG)
