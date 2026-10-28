@@ -14,7 +14,7 @@ concurrency:
 jobs:
   macos-chrome:
     runs-on: macos-26
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
       LAB_BROWSER: macos-cdp
     steps:
