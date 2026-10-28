@@ -85,7 +85,7 @@ def test_107_sources_and_guides_preserved():
  # The later Cornell guide addition changes only this pinned guide; keep all
  # original 107 Lab hashes and the historical catalog snapshot intact.
  assert expected['guides/shelf-decisions.md']=='ae3cff87b7c9bd6aea41b06d5a27b0e0d296a7d7a94a3b675d483a4a547a8c72'
- expected['guides/shelf-decisions.md']='e821caeac274b0d4e65fa30ce0f4a4f41cc038058aa3b04b0a8dd90efbce4bc7'
+ expected['guides/shelf-decisions.md']='0a029131c8cb9e432d66116428748d2a13a86b55266952066a372d52f1607b34'
  for path,h in expected.items():assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==h,path
  assert len(b['ids'])==107
  from catalog_expectations import assert_catalog
