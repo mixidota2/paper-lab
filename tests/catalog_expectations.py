@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 WRAPPED = 'wrapped-produce-placement-controlled-trial'
+DELETION = 'trajectory-deletion-prefix-cost'
 TRACE = 'trace-verifier-brittleness'
 EPISEM = 'episem-missing-evidence-recovery'
 CURRENT = json.loads(Path(__file__).with_name('main_105_catalog.json').read_text())
@@ -18,6 +19,6 @@ assert TRACE not in EXISTING
 
 def assert_catalog(ids):
     actual = list(ids)
-    assert len(actual) == len(set(actual)) == 106
+    assert len(actual) == len(set(actual)) == 107
     assert set(CURRENT['ids']) == EXISTING | {TRACE}
-    assert set(actual) == set(CURRENT['ids']) | {EPISEM}, 'Existing main Labs must remain; only EpiSEM is added'
+    assert set(actual) == set(CURRENT['ids']) | {EPISEM, DELETION}, 'Existing main Labs must remain; EpiSEM and deletion-cost Labs coexist'

@@ -287,7 +287,7 @@ def build(
     for lab in labs:
         download_dir = site / "downloads" / lab.id
         download_dir.mkdir(parents=True)
-        for name in ("run.py", "results.json", "lab.yaml", "README.md", "method.md", "experiment.md", "validation.md", "implementation.md", "mapping.md", "NOTICE.txt", "official-check.json", "plot.py", "author-orderbook.csv", "model.js", "interactive.js"):
+        for name in ("run.py", "results.json", "lab.yaml", "README.md", "method.md", "experiment.md", "validation.md", "implementation.md", "mapping.md", "NOTICE.txt", "official-check.json", "plot.py", "render.py", "author-orderbook.csv", "model.js", "interactive.js"):
             source = lab.source_dir / name
             if source.is_file():
                 shutil.copy2(source, download_dir / name)

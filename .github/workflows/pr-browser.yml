@@ -13,8 +13,8 @@ concurrency:
 
 jobs:
   macos-chrome:
-    runs-on: macos-26
-    timeout-minutes: 20
+    runs-on: macos-15
+    timeout-minutes: 30
     env:
       LAB_BROWSER: macos-cdp
     steps:
@@ -46,11 +46,27 @@ jobs:
           set -o pipefail
           mkdir -p browser-review
           uv run --locked python tests/review_103.py --preflight --site site --out browser-review/preflight 2>&1 | tee browser-review/preflight.log
+      - name: Preserve public build for independent browser preview
+        id: build_preview
+        if: ${{ success() && steps.preflight.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-site-${{ github.sha }}
+          path: |
+            site/index.html
+            site/assets/
+            site/papers/
+            site/guides/
+            site/figures/
+            site/downloads/
+          include-hidden-files: false
+          if-no-files-found: error
+          retention-days: 7
       # Existing official Chrome, direct minimal launch; no browser/OS installation.
       # Historical Linux failures remain in the PR and are not reclassified.
       - name: Verify signed Chrome and Seatbelt, then run CDP compatibility and Lab checks
         id: browser_review
-        timeout-minutes: 18
+        timeout-minutes: 22
         shell: bash
         run: |
           set -o pipefail

@@ -16,7 +16,8 @@ def test_existing_runner_permissions_and_full_build_order():
     w=WORKFLOW;j=w['jobs']['macos-chrome'];steps=j['steps']
     assert w['on']=={'pull_request':{'branches':['main','master']}}
     assert w['permissions']=={'contents':'read'}
-    assert j['runs-on']=='macos-26' and j['timeout-minutes']=='20'
+    assert j['runs-on']=='macos-15' and j['timeout-minutes']=='30'
+    assert next(s for s in steps if s.get('id')=='browser_review')['timeout-minutes']=='22'
     assert steps[0]['with']['persist-credentials']=='false'
     # The launcher integrity test reads a pinned historical commit with git show.
     assert steps[0]['with']['fetch-depth']=='0'
@@ -35,6 +36,25 @@ def test_existing_runner_permissions_and_full_build_order():
     assert upload['with']['path']=='browser-review/' and upload['with']['retention-days']=='7'
     assert "!cancelled()" in upload['if'] and "steps.preflight.outcome != 'skipped'" in upload['if']
     assert upload['with']['if-no-files-found']=='warn'
+
+
+def test_public_preview_is_allowlisted_and_saved_before_browser_guard():
+    steps=WORKFLOW['jobs']['macos-chrome']['steps']
+    preview=next(s for s in steps if s.get('id')=='build_preview')
+    pre=next(s for s in steps if s.get('id')=='preflight')
+    browser=next(s for s in steps if s.get('id')=='browser_review')
+    assert steps.index(pre)+1 == steps.index(preview)
+    assert steps.index(preview)+1 == steps.index(browser)
+    assert preview['if']=="${{ success() && steps.preflight.outcome == 'success' }}"
+    assert preview['uses']=='actions/upload-artifact@v4'
+    assert preview['with']=={
+        'name':'public-site-${{ github.sha }}',
+        'path':'site/index.html\nsite/assets/\nsite/papers/\nsite/guides/\nsite/figures/\nsite/downloads/\n',
+        'include-hidden-files':'false',
+        'if-no-files-found':'error',
+        'retention-days':'7',
+    }
+    assert len([s for s in steps if s.get('uses')=='actions/upload-artifact@v4'])==2
 
 
 @pytest.mark.parametrize('exit_code',[0,1,2])
