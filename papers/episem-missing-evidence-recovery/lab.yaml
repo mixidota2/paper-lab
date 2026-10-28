@@ -1,0 +1,79 @@
+id: episem-missing-evidence-recovery
+title: 'EpiSEM-Bench: Evaluating Safety and Evidence Recovery in LLM Agents under Missing Evidence'
+authors: [Qijin Zhang, Hanzhen Wang, Yuehan Zhao, Haoyu Dai, Yao Shu, Zhongxiang Dai, Shuang Qiu]
+year: 2026
+arxiv_id: '2610.31650'
+submitted: '2026-10-22'
+topics: [ai-agents, ml-systems]
+urls:
+  paper: https://arxiv.org/html/2610.31650v1
+  arxiv: https://arxiv.org/abs/2610.31650
+  pdf: https://arxiv.org/pdf/2610.31650v1
+  official_code: null
+verdict: Worth Reading
+status: draft
+question: 欠けた証拠を回収して、禁止側では止まり、許可側では完遂できるか
+summary: 返された情報が全て真でも、行動を許可する事実が欠けていることがある。EpiSEMは観測と世界状態を分け、同じ依頼の禁止・許可双子で回収後の行動を測る。自作の2 taskで、常に拒否する安全さと、証拠を回収して適切に進める有用さを区別する。
+related_threads: [agent-evaluation-and-evidence-recovery]
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-10-25'
+  url: https://arxiv.org/html/2610.31650v1
+  scope: v1本文§3・式(1)(2)、Table 1、Appendix B/C/EをHTMLとPDFで照合。著者コード・モデル実行は未確認。発表10月22日、告知10月23日。
+core_idea:
+  author_claim: 著者は、同じ欠落を持つ禁止・許可世界で、独立に証拠を得て適切に行動できるかを測る。禁止行動の回避だけでも、許可側の完遂だけでも、有用な回収の代わりにはならない。
+  research_bot_interpretation: 運用評価では、ツールが正しい情報を返したかに加え、許可判断に必要な事実が揃ったか、実行前に回収したか、許可側を不要に止めていないかを一緒に見る価値がある。
+sections:
+  overview: 'EpiSEM-Bench（arXiv 2610.31650v1、2026年10月22日）を読むためのLab。300対・6領域・60 familyの原実験と、自作の決定論的toyを分ける。Worth Readingは評価設計の価値への判断で、モデル順位や本番安全の保証ではない。'
+  problem: '禁止側で支払いを止めるだけなら、全て拒否する方策でも達成できる。同じ依頼が許可される世界では支払いを完了できるか。さらに、偶然許可されていたため成功したのか、必要な証拠を実行前に回収したのかを区別する。'
+  method: method.md
+  why_it_might_work: '推論：採点側に完全状態を残し、観測だけを変えると、欠落を許可の変更と取り違えずに評価できる。両世界のANDは、無条件拒否と無条件実行を同時に排除する。ただし、完全に正しいauditを仮定した評価である。'
+  evidence: evidence.md
+  executable_understanding: experiment.md
+  results: '自作toyでは、常に拒否する方策はUCR 0・SBM 100%でもFull SWS/PUR 0。回収後に判断する方策は、REで両世界の厳密回収を達成する。単一critical欠落時だけ回収すると、PURは(2/3+3/7)/2=54.76%。maskを一括した5/10=50%とは異なる。これらは著者モデルの成績ではない。'
+  what_we_verified: 'CONFIRMED：自作2 taskの全480条件、通常readで欠落が戻らないこと、auditが全欠落を返すこと、commit後回収が未実行であること、UCRのtask分母、SBMの全列挙条件、PURのANDと等重みを検査した。PARTIAL：原典の評価設計の最小表現。'
+  what_we_did_not_verify: '実LLM・著者300 taskの再現、モデル順位の安定性、実APIの安全保証、信頼区間、本番再現はNOT TESTED。著者コード公開リンクはNOT OBSERVED。temperature 0・条件ごと1 rollout、モデルごとのadaptive coverage、完全auditという制約がある。'
+  implementation: 'run.pyがPython参照結果を保存し、model.jsが同じ自作規則をブラウザーで計算する。interactive.jsは両世界の経過と全task集計を表示する。READMEにuvでの再実行手順、mappingに原式と簡略化の対応を示す。'
+  mapping: mapping.md
+figures: []
+interactives: []
+teaching_figures:
+- id: evidence-world
+  kind: logic
+  title: 隠すのは観測、判断の基準は完全状態
+  after: method
+  source: https://arxiv.org/html/2610.31650v1
+  locator: §3・Fig 1
+  rationale: 欠落と許可の変更を区別する。
+  caption: 原図の転載ではなく、自作toyの情報の流れ。
+  rows:
+  - label: 同じ依頼
+    nodes:
+    - {title: 禁止世界 / 許可世界, text: 依頼とツールは共通。許可条件だけが違う。}
+    - {title: 同じmaskで観測を隠す, text: 通常readは繰り返しても欠落したまま。}
+  - label: 実行前
+    nodes:
+    - {title: REの独立audit, text: 有効な照会で全欠落を回収する。}
+    - {title: 両世界で判断, text: 禁止側は停止、許可側は完遂。commit後の回収は修復にならない。}
+- id: paired-denominators
+  kind: equations
+  title: 自作toy：回収成功の分母を追う
+  after: results
+  source: https://arxiv.org/html/2610.31650v1#S3.E2
+  locator: 式(2)を自作2 taskへ適用
+  rationale: task等重みとmask一括集計の違いを、同じ成功件数で比べる。
+  caption: 自作の「1個欠落時だけ回収」方策。著者のモデル成績ではない。
+  steps:
+  - name: 各taskの両世界AND
+    formula: 'payment: 2/3、export: 3/7'
+    explanation: 単一critical欠落だけ成功する。2個のcriticalには非空maskが3通り、3個には7通りある。
+  - name: taskを等重みにするPUR
+    formula: '(2/3 + 3/7) / 2 = 23/42 ≈ 54.76%'
+    explanation: maskが多いtaskも少ないtaskも、最後の平均では同じ1件として扱う。
+  - name: 一括集計との違い
+    formula: '(2 + 3) / (3 + 7) = 50%'
+    explanation: これはPURではない。7 maskを持つtaskに大きな重みを付けた別の集計になる。

@@ -1,8 +1,13 @@
 """One durable outcome for completed assertions versus interrupted browser runs."""
 import ast
+import ctypes
+import errno
 import hashlib
 from html import escape
 import json
+import os
+import stat
+import time
 from pathlib import Path
 import re
 import subprocess
@@ -59,6 +64,124 @@ def bounded_stderr(raw):
             'text': encoded[:STDERR_TEXT_LIMIT].decode('utf-8', errors='ignore')}
 
 
+XATTR_BUNDLE_COMPONENTS = ('Applications', 'Google Chrome.app')
+XATTR_NAMES = frozenset({'com.apple.FinderInfo', 'com.apple.ResourceFork',
+                         'com.apple.quarantine', 'com.apple.provenance'})
+XATTR_MAX_PATHS = 1024
+XATTR_MAX_RECORDS = 16
+XATTR_MAX_SECONDS = 3
+XATTR_NAME_BYTES = 8192
+
+
+def darwin_xattr_reader():
+    """Apple flistxattr(2): bounded NUL-separated names on an already-open fd.
+
+    https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/flistxattr.2.html
+    No size-growth retry, values, path-based lookup, or non-Darwin fallback.
+    """
+    if sys.platform != 'darwin':
+        raise OSError(errno.ENOTSUP, 'Darwin names interface unavailable')
+    library = ctypes.CDLL('/usr/lib/libSystem.B.dylib', use_errno=True)
+    function = library.flistxattr
+    function.argtypes = [ctypes.c_int, ctypes.c_void_p, ctypes.c_size_t, ctypes.c_int]
+    function.restype = ctypes.c_ssize_t
+
+    def names(fd):
+        buffer = ctypes.create_string_buffer(XATTR_NAME_BYTES)
+        size = function(fd, buffer, XATTR_NAME_BYTES, 0)
+        if size < 0:
+            raise OSError(ctypes.get_errno(), 'Attribute names unavailable')
+        if size > XATTR_NAME_BYTES:
+            raise OSError(errno.ERANGE, 'Attribute names exceed bound')
+        if size == 0:
+            return []
+        raw = buffer.raw[:size]
+        if not raw.endswith(b'\0'):
+            raise OSError(errno.EINVAL, 'Malformed attribute names')
+        return raw[:-1].decode('utf-8', errors='strict').split('\0')
+
+    return names
+
+
+def chrome_xattr_names():
+    """Bounded read-only names, never values; every open rejects symlinks."""
+    result = {'records': [], 'visited': 0, 'errors': 0, 'omitted': 0,
+              'unlisted_names': 0, 'limited': False}
+    names_for_fd = darwin_xattr_reader()
+    deadline = time.monotonic() + XATTR_MAX_SECONDS
+    flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
+
+    def visit(fd, relative, depth):
+        if result['visited'] >= XATTR_MAX_PATHS or time.monotonic() >= deadline:
+            result['limited'] = True
+            return
+        result['visited'] += 1
+        mode = os.fstat(fd).st_mode
+        if not (stat.S_ISDIR(mode) or stat.S_ISREG(mode)):
+            result['omitted'] += 1
+            return
+        try:
+            names = names_for_fd(fd)
+            allowed = sorted(XATTR_NAMES.intersection(names))
+            result['unlisted_names'] += min(64, sum(n not in XATTR_NAMES for n in names))
+            if allowed:
+                if len(result['records']) < XATTR_MAX_RECORDS:
+                    result['records'].append({'path': relative or '.', 'names': allowed})
+                else:
+                    result['omitted'] += 1
+                    result['limited'] = True
+        except OSError:
+            result['errors'] += 1
+        if not stat.S_ISDIR(mode):
+            return
+        if depth >= 32:
+            result['limited'] = True
+            return
+        try:
+            with os.scandir(fd) as entries:
+                for entry in entries:
+                    if result['visited'] >= XATTR_MAX_PATHS or time.monotonic() >= deadline:
+                        result['limited'] = True
+                        break
+                    name = entry.name
+                    path = relative + '/' + name if relative else name
+                    # Reject control/escape characters, oversized or sensitive names.
+                    if (name in ('.', '..') or len(path) > 240 or
+                        not re.fullmatch(r'[A-Za-z0-9 _().+/-]+', path) or
+                        re.search(r'(?i)token|password|secret|credential|api[_-]?key', path)):
+                        result['omitted'] += 1
+                        result['limited'] = True
+                        continue
+                    child = None
+                    try:
+                        mode = entry.stat(follow_symlinks=False).st_mode
+                        if not (stat.S_ISDIR(mode) or stat.S_ISREG(mode)):
+                            result['omitted'] += 1
+                            continue
+                        child = os.open(name, flags, dir_fd=fd)
+                        visit(child, path, depth + 1)
+                    except OSError:
+                        result['errors'] += 1
+                    finally:
+                        if child is not None:
+                            os.close(child)
+        except OSError:
+            result['errors'] += 1
+
+    root = None
+    try:
+        root = os.open('/', flags | os.O_DIRECTORY)
+        for component in XATTR_BUNDLE_COMPONENTS:
+            child = os.open(component, flags | os.O_DIRECTORY, dir_fd=root)
+            os.close(root)
+            root = child
+        visit(root, '', 0)
+    finally:
+        if root is not None:
+            os.close(root)
+    return result
+
+
 def console_diagnostic(error):
     """Allowlisted facts only; arbitrary exception text stays in the artifact."""
     category = type(error).__name__
@@ -90,6 +213,13 @@ def console_diagnostic(error):
                        'main executable failed strict validation',
                        'file added', 'file modified', 'file missing']
             summary['recognized_stderr_reasons'] = [x for x in reasons if x in stderr]
+            if (isinstance(error, subprocess.CalledProcessError) and
+                error.returncode != 0 and error.cmd == commands[0]):
+                try:
+                    summary['chrome_xattr_names'] = chrome_xattr_names()
+                except Exception:
+                    # Diagnostic failure must never replace the original failure.
+                    summary['chrome_xattr_names'] = {'status': 'unavailable'}
     return summary
 
 
@@ -100,7 +230,7 @@ CASE_EXCEPTION_TYPES = frozenset({
     'CalledProcessError', 'TimeoutExpired', 'ProtectionStop', 'KeyboardInterrupt',
 })
 DIAGNOSTIC_SOURCES = frozenset({
-    'trace_review.py', 'catalog_expectations.py', 'wrapped_review.py',
+    'episem_review.py', 'trace_review.py', 'catalog_expectations.py', 'wrapped_review.py',
     'shelf_survey_browser.py', 'review_103_report.py', 'review_103_external.py',
     'review_103.py', 'review_103_capture.py', 'review_103_evidence.py',
     'reference_browser.py', 'macos_chrome_cdp.py', 'macos_cdp_review.py',

@@ -89,8 +89,8 @@ class PageIdentityTests(unittest.TestCase):
         tree = ast.parse((ROOT/'tests/review_103.py').read_text())
         calls = [node for node in ast.walk(tree) if isinstance(node, ast.Call)]
         identity_calls = [node for node in calls if isinstance(node.func, ast.Name) and node.func.id == 'assert_paper_heading']
-        self.assertEqual(sorted(node.args[0].id for node in identity_calls), ['dp', 'nojs', 'nojs', 'nojs', 'nojs', 'page', 'page', 'trace_page'])
-        for name, page in [('visit','page'),('fallback','nojs'),('wrapped_detail','page'),('wrapped_fallback','nojs'),('trace_detail','trace_page'),('trace_fallback','nojs')]:
+        self.assertEqual(sorted(node.args[0].id for node in identity_calls), ['dp', 'episem_page', 'nojs', 'nojs', 'nojs', 'nojs', 'nojs', 'page', 'page', 'trace_page'])
+        for name, page in [('visit','page'),('fallback','nojs'),('wrapped_detail','page'),('wrapped_fallback','nojs'),('trace_detail','trace_page'),('trace_fallback','nojs'),('episem_detail','episem_page'),('episem_fallback','nojs'),('deletion_detail','dp'),('deletion_fallback','nojs')]:
             route = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == name)
             checks = [node for node in ast.walk(route) if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == 'assert_paper_heading']
             self.assertEqual([node.args[0].id for node in checks], [page], name)
