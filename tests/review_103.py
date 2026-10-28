@@ -408,6 +408,50 @@ def viewport_snapshot(page,out,name,evidence):
     evidence.persist()
 
 
+ASSORTMENT_DOM = """(expectedWidths) => {
+    const serialize = value => {
+        const probe = document.createElement('div');
+        probe.style.width = `${value}%`;
+        return probe.style.width;
+    };
+    return {
+        rows: [...document.querySelectorAll('#rows tr')].map(r => [...r.querySelectorAll('td')].map(c => c.textContent)),
+        stocks: [...document.querySelectorAll('#bars > p')].filter(p => p.textContent.includes('棚在庫')).map(p => ({
+            text: p.innerText,
+            stock: [...p.querySelectorAll('.bar:not(.required)')].map(b => b.style.width),
+            required: [...p.querySelectorAll('.bar.required')].map(b => b.style.width)
+        })),
+        summary: document.querySelector('#summary').innerText,
+        expectedWidths: expectedWidths.map(pair => pair.map(serialize))
+    };
+}"""
+
+
+def assert_assortment_dom(page, selected):
+    # One fresh DOM read after every state change; expectations remain Python.
+    active = [r for r in selected['rows'] if r['k']] if selected else []
+    scale = max(1, *[v for r in selected['rows'] for v in [r['stock'], r['required']]]) if selected else 1
+    widths = [[60*r['stock']/scale, 60*r['required']/scale] for r in active]
+    assert all(math.isfinite(v) and v >= 0 for pair in widths for v in pair)
+    measured = page.evaluate(ASSORTMENT_DOM, widths)
+    if not selected:
+        assert 'ありません' in measured['summary']
+        return
+    assert len(measured['rows']) == len(selected['rows'])
+    for cells, r in zip(measured['rows'], selected['rows']):
+        assert cells == [r['id'], str(r['k'])] + [f'{v:.3f}' for v in [r['direct'], r['transfer'], r['stock'], r['required'], max(0, -r['slack'])]]
+    assert len(measured['stocks']) == len(active)
+    assert len(measured['expectedWidths']) == len(active)
+    for stock, r, expected in zip(measured['stocks'], active, measured['expectedWidths']):
+        assert stock['text'].startswith(f'{r["id"]} 棚在庫')
+        assert len(stock['stock']) == len(stock['required']) == 1
+        assert len(expected) == 2
+        for actual, value in zip([stock['stock'][0], stock['required'][0]], expected):
+            assert value.endswith('%')
+            assert actual == value
+    assert f'{selected["profit"]:.3f}' in measured['summary']
+
+
 def shelf_checks(page,base,out,slug,width):
     url=f'{base}/downloads/{slug}/interactive.html'
     assert page.goto(url).ok
@@ -451,24 +495,7 @@ def shelf_checks(page,base,out,slug,width):
             for mode in ['best','no_substitution','reevaluated','fixed']+(['t4'] if case=='T4' else []):
                 change(page.locator('#mode'),mode)
                 selected=page.evaluate("(()=>{const m=document.querySelector('#mode').value;return m==='best'?result.oracle.best:m==='fixed'?result.fixed_assortment.best:m==='t4'?ReplenishmentModel.evaluate(data,[0,1,0]):result[m]})()")
-                if selected:
-                    rows=page.locator('#rows tr');assert rows.count()==len(selected['rows'])
-                    for i,r in enumerate(selected['rows']):
-                        assert rows.nth(i).locator('td').all_text_contents()==[r['id'],str(r['k'])]+[f'{v:.3f}' for v in [r['direct'],r['transfer'],r['stock'],r['required'],max(0,-r['slack'])]]
-                    active=[r for r in selected['rows'] if r['k']]
-                    scale=max(1,*[v for r in selected['rows'] for v in [r['stock'],r['required']]])
-                    stock_rows=page.locator('#bars > p').filter(has_text='棚在庫')
-                    assert stock_rows.count()==len(active)
-                    for j,r in enumerate(active):
-                        stock_row=stock_rows.nth(j)
-                        assert stock_row.inner_text().startswith(f'{r["id"]} 棚在庫')
-                        stock_bar=stock_row.locator('.bar:not(.required)')
-                        required_bar=stock_row.locator('.bar.required')
-                        assert stock_bar.count()==required_bar.count()==1
-                        assert_percent_width(stock_bar,60*r['stock']/scale)
-                        assert_percent_width(required_bar,60*r['required']/scale)
-                    assert f'{selected["profit"]:.3f}' in page.locator('#summary').inner_text()
-                else:assert 'ありません' in page.locator('#summary').inner_text()
+                assert_assortment_dom(page, selected)
                 snapshot(page,out,f'{slug}-{width}-{case}-{mode}',page.locator('#summary').locator('..'))
         page.locator('#case').select_option('T1');change(page.locator('#S'),0)
         assert '棚幅0' in page.locator('#shelf').inner_text()

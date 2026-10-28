@@ -46,9 +46,9 @@ class Page:
 class Regression(unittest.TestCase):
     def test_stock_selector_source_contract(self):
         source=(Path(__file__).with_name('review_103.py')).read_text()
-        self.assertIn("stock_rows=page.locator('#bars > p').filter(has_text='棚在庫')",source)
-        self.assertIn('assert stock_rows.count()==len(active)',source)
-        self.assertIn('assert stock_bar.count()==required_bar.count()==1',source)
+        self.assertIn("document.querySelectorAll('#bars > p')].filter(p => p.textContent.includes('棚在庫'))",source)
+        self.assertIn("assert len(measured['stocks']) == len(active)",source)
+        self.assertIn("assert len(stock['stock']) == len(stock['required']) == 1",source)
         self.assertNotIn("widths=page.locator('#bars .bar')",source)
 
     def test_cssom_canonical_match(self):
