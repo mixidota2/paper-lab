@@ -230,7 +230,7 @@ CASE_EXCEPTION_TYPES = frozenset({
     'CalledProcessError', 'TimeoutExpired', 'ProtectionStop', 'KeyboardInterrupt',
 })
 DIAGNOSTIC_SOURCES = frozenset({
-    'episem_review.py', 'trace_review.py', 'catalog_expectations.py', 'wrapped_review.py',
+    'featurearc_review.py', 'episem_review.py', 'trace_review.py', 'catalog_expectations.py', 'wrapped_review.py',
     'shelf_survey_browser.py', 'review_103_report.py', 'review_103_external.py',
     'review_103.py', 'review_103_capture.py', 'review_103_evidence.py',
     'reference_browser.py', 'macos_chrome_cdp.py', 'macos_cdp_review.py',
@@ -354,6 +354,10 @@ class RunEvidence:
 
     def case(self,name,fn,fatal=False):
         self.current=name
+        started=time.monotonic()
+        self.report['current_case_timing']={'case':planned_identifier(name,self.report['preflight'].get('required_cases',[])),
+                                            'started_monotonic_s':started}
+        self.persist()
         try:
             fn();self.report['cases'].append({'name':name,'status':'PASS','page':getattr(self.page,'url',None)})
         except ProtectionStop as error:
@@ -366,7 +370,13 @@ class RunEvidence:
         except BaseException as error:
             self.report["interrupted_case"]=self.diagnostic(error)
             raise
-        finally:self.persist();self.current=None
+        finally:
+            timing={**self.report['current_case_timing'], 'elapsed_s':max(0,time.monotonic()-started)}
+            # At most one timing per planned identifier; no arbitrary DOM content.
+            if name in self.report['preflight'].get('required_cases',[]):
+                self.report.setdefault('case_timings',{})[name]=timing
+            self.report['current_case_timing']=None
+            self.persist();self.current=None
 
     def finalize(self,completed,interruption=None):
         self.report['execution_completed']=completed

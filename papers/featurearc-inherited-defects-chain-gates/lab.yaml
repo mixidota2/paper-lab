@@ -1,0 +1,89 @@
+id: featurearc-inherited-defects-chain-gates
+title: 'FeatureArc: Benchmarking Coding Agents on Evolving Features'
+authors:
+- Yunlong Wang
+- Alyssa Wu
+- Cuiyun Gao
+- Jia Feng
+- Songyuanyi Lu
+- Zhichao Hu
+year: 2026
+arxiv_id: '2610.37434'
+submitted: '2026-10-27'
+topics:
+- ai-agents
+- ml-systems
+urls:
+  paper: https://arxiv.org/html/2610.37434v1
+  arxiv: https://arxiv.org/abs/2610.37434
+  pdf: https://arxiv.org/pdf/2610.37434v1
+verdict: Worth Reading
+status: draft
+question: 最後の追加と自己テストが通っても、なぜ機能全体は壊れたままなのか
+summary: 以前の実装漏れ、後の変更による回帰、自己テストの期待値の誤りを分ける。3段階の自作プログラムを動かし、局所の合格と最終コードへの受入検査の違いを追う。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-10-28'
+  url: https://arxiv.org/html/2610.37434v1
+  scope: HTML §I–VIII・Tables I–IV・図キャプション。著者code/dataはNOT OBSERVED。
+core_idea:
+  author_claim: 同じ機能を段階的に拡張した最終コードは、最終段階とは別の受入検査が必要。
+  research_bot_interpretation: Worth Reading：採点と自分の検査を分離する評価設計を学ぶ。モデル選びの順位表としては推奨しない。
+sections:
+  overview: 2026年10月27日公開のv1。独立した受入期待値を持ち、最終コードで全機能を確かめるという設計を読む。
+  problem: 新機能の表示を直しても、そこから呼ぶ絞込みが境界値を落としたままなら、利用者が頼んだ結果は返らない。表示のテストが通ることと、要求全体が満たされることは異なる。
+  method: method.md
+  why_it_might_work: 教材上の推論：仕様例と実際の戻り値を並べると、実装と自己テストが同じ誤解を共有している場合も見つけられる。ただし、有限の例で通ることは全入力の正しさの証明ではない。
+  evidence: evidence.md
+  executable_understanding: experiment.md
+  results: reportedは著者の集計。syntheticは5種類の実装×仮想修正2条件の実行記録。集計値は手作りの例集合に依存し、原論文の成功率と比較しない。
+  what_we_verified: 限定した計算命題をテストする。状態の継承、最後の局所合格と全体失敗、以前の失敗後の回復、両chain suiteのAND、分母0を含む集計を確認する。
+  what_we_did_not_verify: 9構成はClaude Code、1構成はCodexでmodelとharnessが結合している。task bootstrapはseed反復ではない。前段失敗や自己テストの色による条件付き比較は観察であり、修復策の因果効果ではない。軌跡ラベルはLLM多数決と第一著者の限定的な盲検確認を用いる。初段と最終は要求範囲が異なり、独立な段階成功確率とは読めない。36.2%の初段から未回復の失敗は回復例を含まないため、初段合格62.7%の補数ではない。社内評価への利用を実ユーザーの便益実証とは扱わない。
+  implementation: READMEのuv手順で結果と埋込みHTMLを再生成する。実験は標準Python、表示は外部通信のないJavaScript。著者配布物を実行していない。
+figures: []
+interactives: []
+teaching_figures:
+- id: carry
+  kind: timeline
+  title: 失敗したコードも次の要求の土台になる
+  after: method
+  source: https://arxiv.org/html/2610.37434v1
+  locator: §II-Bを基にした自作の整数列の例
+  rationale: 同一状態と、読者に見える判定の経路を分ける。
+  caption: 自作模式図。隠れた判定から実装へのフィードバック線はない。
+  rows:
+  - label: 第1段階
+    nodes:
+    - title: 閾値以上を残す
+      text: '[1,2,3] → [2,3] が仕様。> だと [3]。'
+  - label: 第2段階
+    nodes:
+    - title: 前の関数を呼び、1件に制限
+      text: 欠陥があれば [3] のまま。失敗しても巻き戻さない。
+  - label: 第3段階
+    nodes:
+    - title: 文字列として表示
+      text: 境界を含まない局所例だけなら合格しうる。
+  - label: 最終コード
+    nodes:
+    - title: 全機能用の別suite
+      text: chain F2Pとchain P2Pを両方検査。
+- id: and
+  kind: equations
+  title: 最後の段階ではなく、最後のコードを判定する
+  after: method
+  source: https://arxiv.org/html/2610.37434v1
+  locator: §II-B・IV-D
+  rationale: ANDの対象と分母を明示する。
+  caption: 評価定義をこのLabの記号で表す。独立確率の積ではない。
+  steps:
+  - name: 段階k
+    formula: Gₖ = F2Pₖ(Sₖ₊₁) ∧ P2Pₖ(Sₖ₊₁)
+    explanation: 段階ごとの新要求と既存動作を同じ変更後コードで検査。
+  - name: 最終
+    formula: Gchain = F2Pchain(Sₙ) ∧ P2Pchain(Sₙ)
+    explanation: 最終コードへ別の全機能suiteを適用。途中に失敗しても修正済みなら合格しうる。

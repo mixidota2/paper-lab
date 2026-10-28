@@ -1,4 +1,4 @@
-"""Prepared 107-Lab review. --preflight never launches a browser; --run is explicit.
+"""Prepared 108-Lab review. --preflight never launches a browser; --run is explicit.
 Existing macOS signed-Chrome/loopback-CDP/Seatbelt guards are mandatory.
 """
 import argparse
@@ -16,8 +16,9 @@ import subprocess
 import sys
 import time
 from review_103_evidence import RunEvidence, ProtectionStop
+from featurearc_review import inspect_featurearc
 from deletion_review import inspect_deletion
-from catalog_expectations import assert_catalog, WRAPPED, TRACE, EPISEM, DELETION
+from catalog_expectations import assert_catalog, WRAPPED, TRACE, EPISEM, DELETION, FEATUREARC
 from episem_review import inspect_episem
 from trace_review import inspect_trace, assert_trace_initial
 from wrapped_review import inspect_wrapped, assert_wrapped_initial
@@ -78,7 +79,7 @@ def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def preflight(site):
     pages=sorted((site/'papers').glob('*.html'))
-    assert len(pages)==107, f'Expected all 107 pages, got {len(pages)}'
+    assert len(pages)==108, f'Expected all 108 pages, got {len(pages)}'
     assert_catalog(p.stem for p in pages)
     guide_pages=sorted((site/'guides').glob('*.html'))
     assert {p.name for p in guide_pages}=={'index.html','shelf-decisions.html'}
@@ -119,6 +120,7 @@ def preflight(site):
     assert {'ep-task','ep-mask','ep-irrelevant','ep-setting','ep-policy','ep-timing','ep-next','ep-end','ep-reset','ep-output'} <= docs[site/'papers'/f'{EPISEM}.html'].ids
     required=[f'trace-{w}' for w in (360,390,768,1440)]+['nojs-'+TRACE]
     required += [f'episem-{w}' for w in (360,768,1440)]+['nojs-'+EPISEM]
+    required += [f'featurearc-{w}' for w in (360,768,1440)]+['nojs-'+FEATUREARC]
     required += [f'deletion-{w}' for w in (360,768,1440)]+['nojs-'+DELETION]
     required += [f'wrapped-{w}' for w in (360,1440)]+['nojs-'+WRAPPED]
     required+=['compatibility','local-http-links','reference-independent-metrics-curves-save-reload']
@@ -129,16 +131,16 @@ def preflight(site):
     required += [f'detail-{slug}-{w}' for w in (360,1440) for slug in sorted(set(EXPLORERS+STATIC+list(DISPLAY)))]
     required += [f'shelf-{slug}-{w}' for w in (360,1440) for slug in SHELF]
     required += [f'nojs-{slug}' for slug in NOJS]+[f'svg-bounds-{slug}' for slug in LEGACY_SVG]
-    sources=['deletion_review.py','episem_review.py','trace_review.py','catalog_expectations.py','wrapped_review.py','shelf_survey_browser.py','review_103_report.py','review_103_external.py','review_103.py','review_103_capture.py','review_103_evidence.py','reference_browser.py','macos_chrome_cdp.py','macos_cdp_review.py']
+    sources=['featurearc_review.py','deletion_review.py','episem_review.py','trace_review.py','catalog_expectations.py','wrapped_review.py','shelf_survey_browser.py','review_103_report.py','review_103_external.py','review_103.py','review_103_capture.py','review_103_evidence.py','reference_browser.py','macos_chrome_cdp.py','macos_cdp_review.py']
     for name in sources:ast.parse((ROOT/'tests'/name).read_text(),filename=name)
     # Known existing dependency only. No browser engine is imported or launched here.
-    result={'status':'CONFIRMED preflight only','pages':107,'theme_guides':1,'guide_pages':2,'local_targets':len(checked),'local_paths':sorted(checked),
+    result={'status':'CONFIRMED preflight only','pages':108,'theme_guides':1,'guide_pages':2,'local_targets':len(checked),'local_paths':sorted(checked),
       'external_urls_listed_not_requested':len(external),'widths':[360,768,1440],'detailed_widths':[360,1440],'trace_widths':[360,390,768,1440],
-      'required_cases':required,'semantic_groups':[[slug,w] for w in (360,1440) for slug in sorted(set(EXPLORERS+list(DISPLAY)+[WRAPPED]))]+[[TRACE,w] for w in (360,390,768,1440)]+[[slug,w] for slug in (EPISEM,DELETION) for w in (360,768,1440)],
+      'required_cases':required,'semantic_groups':[[slug,w] for w in (360,1440) for slug in sorted(set(EXPLORERS+list(DISPLAY)+[WRAPPED]))]+[[TRACE,w] for w in (360,390,768,1440)]+[[slug,w] for slug in (EPISEM,DELETION,FEATUREARC) for w in (360,768,1440)],
       'browser':'NOT TESTED','launch':'NOT TESTED on this host',
-      'host_platform':platform.system(),'source_hashes':{n:digest(ROOT/'tests'/n) for n in sources+['main_103_catalog.json','main_104_catalog.json','main_105_catalog.json','main_105_review_cases.json']},
+      'host_platform':platform.system(),'source_hashes':{n:digest(ROOT/'tests'/n) for n in sources+['main_103_catalog.json','main_104_catalog.json','main_105_catalog.json','main_105_review_cases.json','main_107_catalog.json']},
       'page_hashes':{p.relative_to(site).as_posix():digest(p) for p in docs},
-      'planned_detailed_pages':sorted(set(SHELF+EXPLORERS+STATIC+list(DISPLAY)+REFS+[WRAPPED,TRACE,EPISEM,DELETION])),
+      'planned_detailed_pages':sorted(set(SHELF+EXPLORERS+STATIC+list(DISPLAY)+REFS+[WRAPPED,TRACE,EPISEM,DELETION,FEATUREARC])),
       'shelf_restore':'No import control exists. Download, reload, replay saved controls, re-download and compare. Never claim native import support.'}
     return result
 
@@ -406,6 +408,50 @@ def viewport_snapshot(page,out,name,evidence):
     evidence.persist()
 
 
+ASSORTMENT_DOM = """(expectedWidths) => {
+    const serialize = value => {
+        const probe = document.createElement('div');
+        probe.style.width = `${value}%`;
+        return probe.style.width;
+    };
+    return {
+        rows: [...document.querySelectorAll('#rows tr')].map(r => [...r.querySelectorAll('td')].map(c => c.textContent)),
+        stocks: [...document.querySelectorAll('#bars > p')].filter(p => p.textContent.includes('棚在庫')).map(p => ({
+            text: p.innerText,
+            stock: [...p.querySelectorAll('.bar:not(.required)')].map(b => b.style.width),
+            required: [...p.querySelectorAll('.bar.required')].map(b => b.style.width)
+        })),
+        summary: document.querySelector('#summary').innerText,
+        expectedWidths: expectedWidths.map(pair => pair.map(serialize))
+    };
+}"""
+
+
+def assert_assortment_dom(page, selected):
+    # One fresh DOM read after every state change; expectations remain Python.
+    active = [r for r in selected['rows'] if r['k']] if selected else []
+    scale = max(1, *[v for r in selected['rows'] for v in [r['stock'], r['required']]]) if selected else 1
+    widths = [[60*r['stock']/scale, 60*r['required']/scale] for r in active]
+    assert all(math.isfinite(v) and v >= 0 for pair in widths for v in pair)
+    measured = page.evaluate(ASSORTMENT_DOM, widths)
+    if not selected:
+        assert 'ありません' in measured['summary']
+        return
+    assert len(measured['rows']) == len(selected['rows'])
+    for cells, r in zip(measured['rows'], selected['rows']):
+        assert cells == [r['id'], str(r['k'])] + [f'{v:.3f}' for v in [r['direct'], r['transfer'], r['stock'], r['required'], max(0, -r['slack'])]]
+    assert len(measured['stocks']) == len(active)
+    assert len(measured['expectedWidths']) == len(active)
+    for stock, r, expected in zip(measured['stocks'], active, measured['expectedWidths']):
+        assert stock['text'].startswith(f'{r["id"]} 棚在庫')
+        assert len(stock['stock']) == len(stock['required']) == 1
+        assert len(expected) == 2
+        for actual, value in zip([stock['stock'][0], stock['required'][0]], expected):
+            assert value.endswith('%')
+            assert actual == value
+    assert f'{selected["profit"]:.3f}' in measured['summary']
+
+
 def shelf_checks(page,base,out,slug,width):
     url=f'{base}/downloads/{slug}/interactive.html'
     assert page.goto(url).ok
@@ -449,24 +495,7 @@ def shelf_checks(page,base,out,slug,width):
             for mode in ['best','no_substitution','reevaluated','fixed']+(['t4'] if case=='T4' else []):
                 change(page.locator('#mode'),mode)
                 selected=page.evaluate("(()=>{const m=document.querySelector('#mode').value;return m==='best'?result.oracle.best:m==='fixed'?result.fixed_assortment.best:m==='t4'?ReplenishmentModel.evaluate(data,[0,1,0]):result[m]})()")
-                if selected:
-                    rows=page.locator('#rows tr');assert rows.count()==len(selected['rows'])
-                    for i,r in enumerate(selected['rows']):
-                        assert rows.nth(i).locator('td').all_text_contents()==[r['id'],str(r['k'])]+[f'{v:.3f}' for v in [r['direct'],r['transfer'],r['stock'],r['required'],max(0,-r['slack'])]]
-                    active=[r for r in selected['rows'] if r['k']]
-                    scale=max(1,*[v for r in selected['rows'] for v in [r['stock'],r['required']]])
-                    stock_rows=page.locator('#bars > p').filter(has_text='棚在庫')
-                    assert stock_rows.count()==len(active)
-                    for j,r in enumerate(active):
-                        stock_row=stock_rows.nth(j)
-                        assert stock_row.inner_text().startswith(f'{r["id"]} 棚在庫')
-                        stock_bar=stock_row.locator('.bar:not(.required)')
-                        required_bar=stock_row.locator('.bar.required')
-                        assert stock_bar.count()==required_bar.count()==1
-                        assert_percent_width(stock_bar,60*r['stock']/scale)
-                        assert_percent_width(required_bar,60*r['required']/scale)
-                    assert f'{selected["profit"]:.3f}' in page.locator('#summary').inner_text()
-                else:assert 'ありません' in page.locator('#summary').inner_text()
+                assert_assortment_dom(page, selected)
                 snapshot(page,out,f'{slug}-{width}-{case}-{mode}',page.locator('#summary').locator('..'))
         page.locator('#case').select_option('T1');change(page.locator('#S'),0)
         assert '棚幅0' in page.locator('#shelf').inner_text()
@@ -560,13 +589,13 @@ def _runtime(site,out,plan,evidence):
                     task(f'shelf-survey-{width}',survey_rendering)
                     def guide_navigation():
                         assert page.goto(base+'/index.html').ok;settled(page)
-                        assert page.locator('[data-paper]').count()==107
+                        assert page.locator('[data-paper]').count()==108
                         page.get_by_role('navigation',name='読む入口').get_by_role('link',name='テーマガイド',exact=True).click();settled(page)
                         assert page.url.endswith('/guides/index.html')
                         snapshot(page,out,f'guide-index-{width}')
                         page.locator('[data-guide-link]').click();settled(page)
                         assert page.url.endswith('/guides/shelf-decisions.html')
-                        assert '107件のLab ／ 1件のテーマガイド' in page.locator('main').inner_text()
+                        assert '108件のLab ／ 1件のテーマガイド' in page.locator('main').inner_text()
                         snapshot(page,out,f'shelf-guide-{width}')
                         for slug in SHELF:
                             page.locator(f'.guide-body a[href="../papers/{slug}.html"]').first.click();settled(page)
@@ -574,11 +603,11 @@ def _runtime(site,out,plan,evidence):
                             page.get_by_role('link',name='棚割りのテーマガイドへ',exact=True).click();settled(page)
                             assert page.url.endswith('/guides/shelf-decisions.html')
                         page.get_by_role('navigation',name='読む入口').get_by_role('link',name='最新研究・Lab一覧',exact=True).click();settled(page)
-                        assert page.locator('[data-paper]').count()==107
+                        assert page.locator('[data-paper]').count()==108
                     if width!=768:task(f'guide-navigation-{width}',guide_navigation)
                     def library_search():
                         assert page.goto(base+'/index.html').ok;settled(page)
-                        assert page.locator('[data-paper]:visible').count()==107
+                        assert page.locator('[data-paper]:visible').count()==108
                         if width in (360,1440):
                             guard(browser)
                             viewport_snapshot(page,out,f'library-initial-{width}',evidence)
@@ -587,7 +616,7 @@ def _runtime(site,out,plan,evidence):
                         page.get_by_role('searchbox').fill('no-such-paper-xyz')
                         assert page.locator('[data-paper]:visible').count()==0 and page.locator('[data-empty]').is_visible()
                         page.get_by_role('button',name='条件を消去',exact=True).click()
-                        assert page.locator('[data-paper]:visible').count()==107
+                        assert page.locator('[data-paper]:visible').count()==108
                     task(f'library-search-{width}',library_search)
                     for path in sorted((site/'papers').glob('*.html')):
                         def visit(path=path):
@@ -706,6 +735,22 @@ def _runtime(site,out,plan,evidence):
                         snapshot(trace_page,out,f'{TRACE}-{trace_width}-checked')
                     task(f'trace-{trace_width}',trace_detail)
                     trace_page.close()
+                for arc_width in (360,768,1440):
+                    ap=browser.new_page(viewport={'width':arc_width,'height':900},device_scale_factor=1)
+                    evidence.page=ap
+                    ap.on('pageerror',lambda error,p=ap:evidence.event('pageerror',error,p))
+                    ap.on('requestfailed',lambda r,p=ap:evidence.event('requestfailed',r.url+' '+str(r.failure),p))
+                    ap.on('console',lambda message,p=ap:evidence.event('console-error',message.text,p) if message.type=='error' else None)
+                    ap.on('response',lambda r,p=ap:evidence.event('http-error',f'{r.status} {r.url}',p) if r.status>=400 and r.url.startswith(base) else None)
+                    def arc_detail():
+                        guard(browser)
+                        assert ap.goto(f'{base}/papers/{FEATUREARC}.html').ok
+                        settled(ap)
+                        assert_paper_heading(ap)
+                        inspect_featurearc(ap,ROOT/'papers'/FEATUREARC/'results.json',lambda name:snapshot(ap,out,f'{FEATUREARC}-{arc_width}-{name}'))
+                        report['action_checks'].append({'slug':FEATUREARC,'width':arc_width,'status':'CONFIRMED: 10 scenarios, 30 stages, independent expectations, chain AND, state, native next/reset and geometry'})
+                    task(f'featurearc-{arc_width}',arc_detail)
+                    ap.close()
                 for deletion_width in (360,768,1440):
                     dp=browser.new_page(viewport={'width':deletion_width,'height':900},device_scale_factor=1)
                     evidence.page=dp
@@ -764,6 +809,17 @@ def _runtime(site,out,plan,evidence):
                         assert nojs.evaluate('document.documentElement.scrollWidth<=innerWidth')
                         nojs.screenshot(path=str(out/f'{TRACE}-360-nojs.png'),full_page=False)
                     task('nojs-'+TRACE,trace_fallback)
+                    def arc_fallback():
+                        assert nojs.goto(f'{base}/papers/{FEATUREARC}.html',wait_until='load').ok
+                        guard(browser)
+                        assert_paper_heading(nojs)
+                        assert nojs.locator('#arc-toy noscript').is_visible()
+                        assert nojs.locator('[data-stage-gate]').inner_text()=='FAIL'
+                        assert nojs.locator('[data-gate="stage F2P"]').inner_text()=='FAIL'
+                        assert nojs.locator('[data-gate="自己テスト"]').inner_text()=='PASS'
+                        assert nojs.evaluate('document.documentElement.scrollWidth<=innerWidth')
+                        nojs.screenshot(path=str(out/f'{FEATUREARC}-360-nojs.png'),full_page=False)
+                    task('nojs-'+FEATUREARC,arc_fallback)
                     def deletion_fallback():
                         assert nojs.goto(f'{base}/papers/{DELETION}.html',wait_until='load').ok
                         guard(browser)
