@@ -99,6 +99,7 @@ console.log(JSON.stringify(frames));
         def handle_endtag(self,tag):
             if tag=='span':self.active=False
     assert len(frames)==144
+    assert all('class="deletion-ledger tablewrap"' in html for html in frames)
     for c,html in zip(m.results()['synthetic'],frames):
         assert f"<strong data-changed>{c['changed']['total']:.2f}</strong>" in html
         parsed=Tokens();parsed.feed(html)
@@ -154,17 +155,26 @@ def test_retrieval_two_has_no_hidden_reordering_surcharge():
  assert m.scenario(0,1,4,0)['changed']['total']==126
 
 
-@pytest.mark.parametrize('violation',[None,'old-fixed-columns','numeric-text','row-height','missing-cell'])
+@pytest.mark.parametrize('violation',[None,'old-fixed-columns','numeric-text','row-height','missing-cell','split-decimal','wrap-enabled','split-header'])
 def test_ledger_geometry_detects_cross_cell_content(violation):
  from deletion_review import assert_ledger_geometry
  # Six disjoint cells. The old 640px fixed layout gave the token cell
  # roughly107px while its content required200px: viewport bounds still pass.
  row={'geometry':[{'box':[i*107,0,(i+1)*107,80],
-                    'content':[[i*107+10,10,(i+1)*107-10,30]]} for i in range(6)]}
+                    'content':[[i*107+10,10,(i+1)*107-10,30]],
+                    'textRects':[[i*107+10,10,(i+1)*107-10,30]],'whiteSpace':'nowrap'} for i in range(6)]}
+ import copy
+ row['headers']=copy.deepcopy(row['geometry'])
  if violation=='old-fixed-columns':row['geometry'][1]['content']=[[117,10,317,30]]
  if violation=='numeric-text':row['geometry'][2]['content']=[[180,10,260,30]]
  if violation=='row-height':row['geometry'][1]['content']=[[117,10,200,100]]
  if violation=='missing-cell':row['geometry'].pop()
+ if violation=='split-decimal':
+  # Both fragments remain inside the cost cell, so containment alone passes.
+  row['geometry'][5]['textRects']=[[545,10,560,30],[545,35,560,55]]
+  row['geometry'][5]['content']=row['geometry'][5]['textRects']
+ if violation=='wrap-enabled':row['geometry'][2]['whiteSpace']='normal'
+ if violation=='split-header':row['headers'][2]['textRects']=[[224,10,240,30],[224,35,240,55]]
  if violation is None:assert_ledger_geometry([row])
  else:
   with pytest.raises(AssertionError):assert_ledger_geometry([row])
@@ -175,5 +185,8 @@ def test_ledger_owns_scrollable_content_sized_layout():
  css=(P/'experiment.md').read_text().split('</style>',1)[0]
  rules=dict(re.findall(r'([^{}]+)\{([^{}]+)\}',css.split('<style>',1)[1]))
  table=rules['.deletion-ledger table']
- assert 'table-layout:auto' in table and 'min-width:640px' in table
+ assert 'table-layout:auto' in table and 'min-width:800px' in table
  assert 'overflow-x:auto' in rules['.deletion-ledger']
+
+ assert 'width:320px' in rules['.deletion-ledger th:nth-child(2),.deletion-ledger td:nth-child(2)']
+ assert 'white-space:nowrap' in rules['.deletion-ledger thead th,.deletion-ledger tbody th,.deletion-ledger td:not(:nth-child(2))']

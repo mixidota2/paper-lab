@@ -3,33 +3,46 @@ import json
 
 
 def assert_ledger_geometry(rows):
-    """Every painted token/text rectangle stays inside its own table cell."""
+    """Painted content stays in-cell; numbers and headings remain one line."""
+    def check(cell, atomic):
+        left, top, right, bottom = cell['box']
+        assert right > left and bottom > top
+        for x0, y0, x1, y1 in cell['content']:
+            assert left - 1 <= x0 <= x1 <= right + 1, 'Ledger content crosses a column boundary'
+            assert top - 1 <= y0 <= y1 <= bottom + 1, 'Ledger content crosses a row boundary'
+        if atomic:
+            assert cell['whiteSpace'] == 'nowrap', 'Ledger numeric/header wrapping enabled'
+            assert len(cell['textRects']) == 1, 'Ledger numeric/header text splits across lines'
+            x0, y0, x1, y1 = cell['textRects'][0]
+            assert x1 > x0 and y1 > y0, 'Ledger text is not painted'
     assert rows
+    assert len(rows[0]['headers']) == 6
+    for cell in rows[0]['headers']:
+        check(cell, True)
     for row in rows:
         assert len(row['geometry']) == 6
-        for cell in row['geometry']:
-            left, top, right, bottom = cell['box']
-            assert right > left and bottom > top
-            for x0, y0, x1, y1 in cell['content']:
-                assert left - 1 <= x0 <= x1 <= right + 1, 'Ledger content crosses a column boundary'
-                assert top - 1 <= y0 <= y1 <= bottom + 1, 'Ledger content crosses a row boundary'
+        for index, cell in enumerate(row['geometry']):
+            check(cell, index != 1)
 
 
-LEDGER_DOM = r"""(rows)=>rows.map(r=>{
+LEDGER_DOM = r"""(rows)=>{
  const box=e=>{const b=e.getBoundingClientRect();return [b.left,b.top,b.right,b.bottom]};
- return {cells:[...r.cells].map(c=>c.innerText),
+ const geometry=c=>{
+   const content=[...c.querySelectorAll('.tokens,.token')].map(box),textRects=[];
+   const walker=document.createTreeWalker(c,NodeFilter.SHOW_TEXT);
+   while(walker.nextNode()){
+     if(!walker.currentNode.textContent.trim())continue;
+     const range=document.createRange();range.selectNodeContents(walker.currentNode);
+     for(const b of range.getClientRects())textRects.push([b.left,b.top,b.right,b.bottom]);
+   }
+   return {box:box(c),content:content.concat(textRects),textRects,whiteSpace:getComputedStyle(c).whiteSpace};
+ };
+ return rows.map((r,i)=>({cells:[...r.cells].map(c=>c.innerText),
    tokens:[...r.querySelectorAll('.token')].map(e=>({text:e.textContent,c:e.className})),
-   geometry:[...r.cells].map(c=>{
-     const content=[...c.querySelectorAll('.tokens,.token')].map(box);
-     const walker=document.createTreeWalker(c,NodeFilter.SHOW_TEXT);
-     while(walker.nextNode()){
-       if(!walker.currentNode.textContent.trim())continue;
-       const range=document.createRange();range.selectNodeContents(walker.currentNode);
-       for(const b of range.getClientRects())content.push([b.left,b.top,b.right,b.bottom]);
-     }
-     return {box:box(c),content};
-   })};
-})"""
+   geometry:[...r.cells].map(geometry),
+   headers:i===0?[...r.closest('table').tHead.rows[0].cells].map(geometry):[]
+ }));
+}"""
 
 
 def inspect_deletion(page, source):
