@@ -38,6 +38,25 @@ def test_existing_runner_permissions_and_full_build_order():
     assert upload['with']['if-no-files-found']=='warn'
 
 
+def test_public_preview_is_allowlisted_and_saved_before_browser_guard():
+    steps=WORKFLOW['jobs']['macos-chrome']['steps']
+    preview=next(s for s in steps if s.get('id')=='build_preview')
+    pre=next(s for s in steps if s.get('id')=='preflight')
+    browser=next(s for s in steps if s.get('id')=='browser_review')
+    assert steps.index(pre)+1 == steps.index(preview)
+    assert steps.index(preview)+1 == steps.index(browser)
+    assert preview['if']=="${{ success() && steps.preflight.outcome == 'success' }}"
+    assert preview['uses']=='actions/upload-artifact@v4'
+    assert preview['with']=={
+        'name':'public-site-${{ github.sha }}',
+        'path':'site/index.html\nsite/assets/\nsite/papers/\nsite/guides/\nsite/figures/\nsite/downloads/\n',
+        'include-hidden-files':'false',
+        'if-no-files-found':'error',
+        'retention-days':'7',
+    }
+    assert len([s for s in steps if s.get('uses')=='actions/upload-artifact@v4'])==2
+
+
 @pytest.mark.parametrize('exit_code',[0,1,2])
 def test_exact_browser_shell_preserves_exit_and_collects_log(tmp_path,exit_code):
     step=next(s for s in WORKFLOW['jobs']['macos-chrome']['steps'] if s.get('id')=='browser_review')
