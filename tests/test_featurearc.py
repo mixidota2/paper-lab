@@ -3,6 +3,7 @@ import copy
 import hashlib
 import importlib.util
 import json
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -139,11 +140,16 @@ process.stdout.write(JSON.stringify(frames));
   text=Text(frame).text;s=case['stages'][stage]
   assert f'data-stage="{stage}"' in frame
   assert f'data-stage-gate>{"PASS" if s["gate"] else "FAIL"}' in frame
-  suites=[s['self_test'],s['f2p'],s['p2p']]+([case['chain']['f2p'],case['chain']['p2p']] if stage==2 else [])
-  for suite in suites:
+  suites=[('自己テスト',s['self_test']),('stage F2P',s['f2p']),('stage P2P',s['p2p'])]+([('chain F2P',case['chain']['f2p']),('chain P2P',case['chain']['p2p'])] if stage==2 else [])
+  cards=re.findall(r'<section class="arc-suite">(.*?)</section>',frame)
+  assert len(cards)==len(suites)
+  for card,(label,suite) in zip(cards,suites):
+   text=Text(card).text
+   expectation='自己テストの期待値' if label=='自己テスト' else '仕様の期待値'
+   assert ('仕様の期待値' if label=='自己テスト' else '自己テストの期待値') not in text
    for c in suite['checks']:
     v=lambda x:json.dumps(x,ensure_ascii=False,separators=(',',':'))
-    assert f'仕様の期待値 {v(c["expected"])} ／ 実際 {v(c["actual"])}' in text
+    assert f'{expectation} {v(c["expected"])} ／ 実際 {v(c["actual"])}' in text
   assert ('data-chain-gate' in frame)==(stage==2)
 
 
@@ -154,7 +160,8 @@ def dom_fixture(case,stage):
  v=lambda x:json.dumps(x,ensure_ascii=False,separators=(',',':'))
  d=dict(stage=str(stage),stageGate='PASS' if s['gate'] else 'FAIL',chainGate=('PASS' if case['chain']['gate'] else 'FAIL') if stage==2 else None,pending=stage!=2,geometry=[dict(box=[0,0,100,20],text=[[1,1,99,19]])],suites=[])
  for label,suite in suites:
-  d['suites'].append(dict(label=label,gate='PASS' if suite['passed'] else 'FAIL',checks=[f'{c["name"]}：'+('PASS' if c['passed'] else 'FAIL')+f' {c["op"]}({v(c["values"])}, 閾値 {c["threshold"]}, 上限 {c["limit"]}) 仕様の期待値 {v(c["expected"])} ／ 実際 {v(c["actual"])}' for c in suite['checks']]))
+  expectation='自己テストの期待値' if label=='自己テスト' else '仕様の期待値'
+  d['suites'].append(dict(label=label,gate='PASS' if suite['passed'] else 'FAIL',checks=[f'{c["name"]}：'+('PASS' if c['passed'] else 'FAIL')+f' {c["op"]}({v(c["values"])}, 閾値 {c["threshold"]}, 上限 {c["limit"]}) {expectation} {v(c["expected"])} ／ 実際 {v(c["actual"])}' for c in suite['checks']]))
  assert_arc_dom(d,case,stage)
  return d
 
@@ -170,3 +177,32 @@ def test_browser_assertion_rejects_false_success(mutation):
  if mutation=='value':d['suites'][0]['checks'][0]='invented'
  if mutation=='geometry':d['geometry'][0]['text'][0][2]=120
  with pytest.raises(AssertionError):assert_arc_dom(d,c,2)
+
+
+def test_initial_nojs_and_wrong_oracle_card_labels():
+ sys.path.insert(0,str(P))
+ try:
+  spec=importlib.util.spec_from_file_location('arc_label_render',P/'render.py')
+  renderer=importlib.util.module_from_spec(spec);spec.loader.exec_module(renderer)
+ finally:sys.path.remove(str(P))
+ initial=(P/'experiment.md').read_text().split('<script id="arc-data"')[0]
+ cards=re.findall(r'<section class="arc-suite">(.*?)</section>',initial)
+ assert len(cards)==3
+ assert '自己テストの期待値' in cards[0] and '仕様の期待値' not in cards[0]
+ for card in cards[1:]:
+  assert '仕様の期待値' in card and '自己テストの期待値' not in card
+ oracle=m.simulate('oracle')['stages'][0]
+ wrong=renderer.suite('自己テスト',oracle['self_test'])
+ accepted=renderer.suite('stage F2P',oracle['f2p'])
+ assert '自己テストの期待値 <code>[3]</code>' in wrong
+ assert '仕様の期待値' not in wrong
+ assert '仕様の期待値 <code>[2,3]</code>' in accepted
+
+
+@pytest.mark.parametrize('suite_index',[0,1,2,3,4])
+def test_browser_gate_rejects_swapped_expectation_labels(suite_index):
+ from featurearc_review import assert_arc_dom
+ case=m.simulate('oracle');actual=dom_fixture(case,2)
+ old,new=('自己テストの期待値','仕様の期待値') if suite_index==0 else ('仕様の期待値','自己テストの期待値')
+ actual['suites'][suite_index]['checks']=[s.replace(old,new) for s in actual['suites'][suite_index]['checks']]
+ with pytest.raises(AssertionError):assert_arc_dom(actual,case,2)

@@ -8,7 +8,8 @@ from run import SCENARIOS
 def suite(label,s):
     status=lambda b:'PASS' if b else 'FAIL'
     v=lambda x:html.escape(json.dumps(x,ensure_ascii=False,separators=(',',':')))
-    checks=''.join(f'<p class="arc-check"><strong>{c["name"]}：{status(c["passed"])}</strong><br><code>{c["op"]}({v(c["values"])}, 閾値 {c["threshold"]}, 上限 {c["limit"]})</code><br>仕様の期待値 <code>{v(c["expected"])}</code> ／ 実際 <code>{v(c["actual"])}</code></p>' for c in s['checks'])
+    expectation='自己テストの期待値' if label=='自己テスト' else '仕様の期待値'
+    checks=''.join(f'<p class="arc-check"><strong>{c["name"]}：{status(c["passed"])}</strong><br><code>{c["op"]}({v(c["values"])}, 閾値 {c["threshold"]}, 上限 {c["limit"]})</code><br>{expectation} <code>{v(c["expected"])}</code> ／ 実際 <code>{v(c["actual"])}</code></p>' for c in s['checks'])
     return f'<section class="arc-suite"><h4>{label} <b data-gate="{label}">{status(s["passed"])}</b></h4>{checks}</section>'
 
 

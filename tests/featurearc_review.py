@@ -17,11 +17,14 @@ def assert_arc_dom(actual, case, stage):
         assert got['label']==label
         assert got['gate']==('PASS' if expected['passed'] else 'FAIL')
         assert len(got['checks'])==len(expected['checks'])
+        expectation='自己テストの期待値' if label=='自己テスト' else '仕様の期待値'
+        other='仕様の期待値' if label=='自己テスト' else '自己テストの期待値'
         for text,c in zip(got['checks'],expected['checks']):
             compact=lambda value:json.dumps(value,ensure_ascii=False,separators=(',',':'))
             assert c['name']+'：'+('PASS' if c['passed'] else 'FAIL') in text
             assert f"{c['op']}({compact(c['values'])}, 閾値 {c['threshold']}, 上限 {c['limit']})" in text
-            assert f"仕様の期待値 {compact(c['expected'])} ／ 実際 {compact(c['actual'])}" in text
+            assert other not in text
+            assert f"{expectation} {compact(c['expected'])} ／ 実際 {compact(c['actual'])}" in text
     for item in actual['geometry']:
         left,top,right,bottom=item['box']
         assert right>left and bottom>top

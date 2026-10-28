@@ -5,7 +5,7 @@ const scenario=document.getElementById('arc-scenario'), repair=document.getEleme
 let stage=0;
 const status=x=>x?'PASS':'FAIL';
 const val=x=>JSON.stringify(x);
-const suite=(label,s)=>`<section class="arc-suite"><h4>${label} <b data-gate="${label}">${status(s.passed)}</b></h4>${s.checks.map(c=>`<p class="arc-check"><strong>${c.name}：${status(c.passed)}</strong><br><code>${c.op}(${val(c.values)}, 閾値 ${c.threshold}, 上限 ${c.limit})</code><br>仕様の期待値 <code>${val(c.expected)}</code> ／ 実際 <code>${val(c.actual)}</code></p>`).join('')}</section>`;
+const suite=(label,s)=>`<section class="arc-suite"><h4>${label} <b data-gate="${label}">${status(s.passed)}</b></h4>${s.checks.map(c=>`<p class="arc-check"><strong>${c.name}：${status(c.passed)}</strong><br><code>${c.op}(${val(c.values)}, 閾値 ${c.threshold}, 上限 ${c.limit})</code><br>${label==='自己テスト'?'自己テストの期待値':'仕様の期待値'} <code>${val(c.expected)}</code> ／ 実際 <code>${val(c.actual)}</code></p>`).join('')}</section>`;
 const stateText=s=>`絞込み=${s.filter?'実装済み':'未実装'} ／ 制限=${s.cap?'実装済み':'未実装'} ／ 表示=${s.render?'実装済み':'未実装'} ／ 境界=${s.inclusive?'含む':'除く'} ／ 合計=${s.signed?'符号を保持':'絶対値へ変更'}`;
 function render(){
  const c=data.synthetic.find(c=>c.scenario===scenario.value&&c.repair===repair.checked),s=c.stages[stage];
