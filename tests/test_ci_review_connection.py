@@ -17,7 +17,7 @@ def test_existing_runner_permissions_and_full_build_order():
     assert w['on']=={'pull_request':{'branches':['main','master']}}
     assert w['permissions']=={'contents':'read'}
     assert j['runs-on']=='macos-15' and j['timeout-minutes']=='30'
-    assert next(s for s in steps if s.get('id')=='browser_review')['timeout-minutes']=='22'
+    assert next(s for s in steps if s.get('id')=='browser_review')['timeout-minutes']=='26'
     assert steps[0]['with']['persist-credentials']=='false'
     # The launcher integrity test reads a pinned historical commit with git show.
     assert steps[0]['with']['fetch-depth']=='0'
