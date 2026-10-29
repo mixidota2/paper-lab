@@ -109,7 +109,11 @@ class Native:
         self.evidence.append({'command':args,'returncode':r.returncode,
                               'stdout':r.stdout.decode(errors='replace')[:16000],
                               'stderr':r.stderr.decode(errors='replace')[:16000]})
-        if r.returncode: raise RestoreStopped('command failed: '+repr(args))
+        if args == ['/usr/bin/ditto', '--help']:
+            usage = (r.stdout + r.stderr).decode(errors='replace')
+            if r.returncode not in (0, 1) or not all(x in usage for x in ('Usage: ditto', '--rsrc', '--extattr', '--acl', '--qtn')):
+                raise RestoreStopped('native preservation options not established')
+        elif r.returncode: raise RestoreStopped('command failed: '+repr(args))
         return r
     def identity(self,path):
         value=path.lstat();return (value.st_dev,value.st_ino)
@@ -132,7 +136,8 @@ class Native:
         info=plistlib.loads(self.command(['/usr/sbin/diskutil','info','-plist',str(self.mount)]).stdout)
         if not all(info.get(key) is False for key in ('Writable', 'WritableMedia', 'WritableVolume')):
             raise RestoreStopped('vendor mount not read-only')
-        helptext=self.command(['/usr/bin/ditto','--help']).stdout.decode(errors='replace')
+        helpresult=self.command(['/usr/bin/ditto','--help'])
+        helptext=(helpresult.stdout + helpresult.stderr).decode(errors='replace')
         # Current utility must advertise preservation, not just remembered semantics.
         if not all(x in helptext for x in ['--rsrc','--extattr','--acl','--qtn']):
             raise RestoreStopped('native preservation options not established')

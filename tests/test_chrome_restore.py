@@ -282,9 +282,25 @@ def test_native_readonly_contract_from_diskutil(tmp_path, monkeypatch, override)
   calls.append(args)
   if args[0]=='/usr/sbin/diskutil':return SimpleNamespace(stdout=plistlib.dumps(info) if None not in info.values() else plistlib.dumps({k:v for k,v in info.items() if v is not None}))
   assert args==['/usr/bin/ditto','--help']
-  return SimpleNamespace(stdout=b'--rsrc --extattr --acl --qtn')
+  return SimpleNamespace(stdout=b'--rsrc --extattr --acl --qtn',stderr=b'')
  monkeypatch.setattr(n,'command',command)
  if override is None:n.preconditions(app,source)
  else:
   with pytest.raises(m.RestoreStopped,match='vendor mount not read-only'):n.preconditions(app,source)
   assert len(calls)==1
+
+@pytest.mark.parametrize('code,body,allowed',[(1,b'Usage: ditto\n --rsrc --extattr --acl --qtn',True),(0,b'Usage: ditto\n --rsrc --extattr --acl --qtn',True),(2,b'Usage: ditto\n --rsrc --extattr --acl --qtn',False),(1,b'error',False),(1,b'Usage: ditto\n --rsrc --extattr --acl',False)])
+def test_native_help_exact_usage_contract(tmp_path,monkeypatch,code,body,allowed):
+ from types import SimpleNamespace
+ monkeypatch.setattr(m.subprocess,'run',lambda *a,**kw:SimpleNamespace(returncode=code,stdout=b'',stderr=body))
+ n=m.Native(tmp_path,[])
+ if allowed:assert n.command(['/usr/bin/ditto','--help']).returncode==code
+ else:
+  with pytest.raises(m.RestoreStopped):n.command(['/usr/bin/ditto','--help'])
+ assert n.evidence[0]['returncode']==code
+
+@pytest.mark.parametrize('args',[['/usr/bin/ditto','src','dst'],['/usr/bin/codesign','--verify','bundle'],['/usr/sbin/spctl','--assess','bundle'],['/other/ditto','--help']])
+def test_native_other_commands_still_require_zero(tmp_path,monkeypatch,args):
+ from types import SimpleNamespace
+ monkeypatch.setattr(m.subprocess,'run',lambda *a,**kw:SimpleNamespace(returncode=1,stdout=b'',stderr=b'Usage: ditto\n --rsrc --extattr --acl --qtn'))
+ with pytest.raises(m.RestoreStopped):m.Native(tmp_path,[]).command(args)
