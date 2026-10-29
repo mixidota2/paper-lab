@@ -1,0 +1,54 @@
+name: Chrome dependency native probe (not a Lab gate)
+
+on:
+  push:
+    branches: [codex/lab-chrome-native-probe]
+    paths:
+      - .github/workflows/chrome-native-probe.yml
+      - tests/chrome_restore.py
+      - tests/chrome_restore_probe.py
+      - tests/test_chrome_restore.py
+      - tests/test_chrome_restore_probe.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chrome-native-probe
+  cancel-in-progress: false
+
+jobs:
+  native-prerequisites-only:
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: false
+      - name: Identify diagnosis-only source and runner
+        run: |
+          git rev-parse HEAD
+          sw_vers
+          shasum -a 256 tests/chrome_restore.py tests/chrome_restore_probe.py
+      - name: Install locked validation dependencies
+        timeout-minutes: 1
+        run: uv sync --locked --extra dev --python 3.12
+      - name: Run focused restoration safety tests only
+        timeout-minutes: 1
+        run: uv run --locked pytest -q -ra --fail-on-skip tests/test_chrome_restore.py tests/test_chrome_restore_probe.py
+      - name: Probe vendor distribution and native metadata copy without installation
+        timeout-minutes: 6
+        run: uv run --locked python tests/chrome_restore_probe.py --out browser-native-probe
+      - name: Preserve diagnostic evidence, never a gate result
+        if: ${{ always() }}
+        timeout-minutes: 1
+        uses: actions/upload-artifact@v4
+        with:
+          name: chrome-native-probe-${{ github.sha }}
+          path: browser-native-probe/
+          if-no-files-found: warn
+          retention-days: 7
