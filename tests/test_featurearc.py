@@ -81,12 +81,8 @@ def test_regeneration_exact_and_compact():
 def test_107_sources_and_guides_preserved():
  b=json.loads((ROOT/'tests/main_107_catalog.json').read_text())
  assert b['base']=='ad841a1965bab4e19cce2aa1ed7613b71b4bf922'
- expected=dict(b['source_hashes'])
- # The later Cornell guide addition changes only this pinned guide; keep all
- # original 107 Lab hashes and the historical catalog snapshot intact.
- assert expected['guides/shelf-decisions.md']=='ae3cff87b7c9bd6aea41b06d5a27b0e0d296a7d7a94a3b675d483a4a547a8c72'
- expected['guides/shelf-decisions.md']='0a029131c8cb9e432d66116428748d2a13a86b55266952066a372d52f1607b34'
- for path,h in expected.items():assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==h,path
+ from shelf_guide_preservation import verify_preserved_source
+ for path,h in b['source_hashes'].items():verify_preserved_source(ROOT,path,h)
  assert len(b['ids'])==107
  from catalog_expectations import assert_catalog
  ids=[p.parent.name for p in (ROOT/'papers').glob('*/lab.yaml')];assert_catalog(ids)
