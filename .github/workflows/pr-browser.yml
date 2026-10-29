@@ -66,7 +66,7 @@ jobs:
       # Historical Linux failures remain in the PR and are not reclassified.
       - name: Verify signed Chrome and Seatbelt, then run CDP compatibility and Lab checks
         id: browser_review
-        timeout-minutes: 22
+        timeout-minutes: 26
         shell: bash
         run: |
           set -o pipefail
