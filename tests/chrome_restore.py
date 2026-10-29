@@ -130,7 +130,8 @@ class Native:
         # No running browser may observe a partial installation transition.
         self.assert_idle()
         info=plistlib.loads(self.command(['/usr/sbin/diskutil','info','-plist',str(self.mount)]).stdout)
-        if info.get('ReadOnlyVolume') is not True: raise RestoreStopped('vendor mount not read-only')
+        if not all(info.get(key) is False for key in ('Writable', 'WritableMedia', 'WritableVolume')):
+            raise RestoreStopped('vendor mount not read-only')
         helptext=self.command(['/usr/bin/ditto','--help']).stdout.decode(errors='replace')
         # Current utility must advertise preservation, not just remembered semantics.
         if not all(x in helptext for x in ['--rsrc','--extattr','--acl','--qtn']):

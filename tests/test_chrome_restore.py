@@ -261,3 +261,30 @@ def test_equivalent_concurrent_replacement_cannot_pass(tmp_path):
 def test_native_root_symlink_rejected(tmp_path):
  app,src=setup(tmp_path);link=tmp_path/'link.app';link.symlink_to(src)
  with pytest.raises(m.RestoreStopped,match='root symlink'):m.Native(tmp_path,[]).verify(link)
+
+@pytest.mark.parametrize('override', [None, {}, {'Writable': True}, {'WritableMedia': True}, {'WritableVolume': True}, {'WritableVolume': 0}, {'WritableVolume': 'false'}, {'WritableVolume': None}, {'ReadOnlyVolume': True}])
+def test_native_readonly_contract_from_diskutil(tmp_path, monkeypatch, override):
+ import plistlib
+ from types import SimpleNamespace
+ app=tmp_path/'selected.app';app.mkdir()
+ mount=tmp_path/'mount';mount.mkdir();source=mount/'Google Chrome.app';source.mkdir()
+ n=m.Native(mount,[])
+ monkeypatch.setattr(m,'APP',app)
+ monkeypatch.setattr(m.platform,'system',lambda:'Darwin')
+ monkeypatch.setattr(m.os,'getuid',lambda:501)
+ monkeypatch.setattr(n,'assert_idle',lambda:None)
+ info={'Writable':False,'WritableMedia':False,'WritableVolume':False}
+ if override is not None:
+  if not override or 'ReadOnlyVolume' in override:info=override
+  else:info.update(override)
+ calls=[]
+ def command(args):
+  calls.append(args)
+  if args[0]=='/usr/sbin/diskutil':return SimpleNamespace(stdout=plistlib.dumps(info) if None not in info.values() else plistlib.dumps({k:v for k,v in info.items() if v is not None}))
+  assert args==['/usr/bin/ditto','--help']
+  return SimpleNamespace(stdout=b'--rsrc --extattr --acl --qtn')
+ monkeypatch.setattr(n,'command',command)
+ if override is None:n.preconditions(app,source)
+ else:
+  with pytest.raises(m.RestoreStopped,match='vendor mount not read-only'):n.preconditions(app,source)
+  assert len(calls)==1
