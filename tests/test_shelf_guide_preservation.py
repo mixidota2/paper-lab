@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import subprocess
 import pytest
-from shelf_guide_preservation import GUIDE, BEFORE, AFTER, SYNTHESIS, PATCH_SHA, DCMP_PATCH_SHA, LAYOUT, LAYOUT_PATCH_SHA, reverse_exact, sha, verify_preserved_source
+from shelf_guide_preservation import GUIDE, BEFORE, AFTER, SYNTHESIS, PATCH_SHA, DCMP_PATCH_SHA, LAYOUT, WORDING, WORDING_NEW, WORDING_OLD, LAYOUT_PATCH_SHA, reverse_exact, sha, verify_preserved_source
 
 ROOT = Path(__file__).resolve().parents[1]
 PATCH = (ROOT / 'tests/fixtures/shelf-guide-20261029.patch').read_bytes()
@@ -20,6 +20,9 @@ def prepare(tmp_path, data=None):
 
 def test_reviewed_revision_and_previous_version_both_pass(tmp_path):
     target = prepare(tmp_path)
+    assert sha(target.read_bytes()) == WORDING
+    verify_preserved_source(tmp_path, GUIDE, BEFORE, patch_bytes=PATCH, dcmp_patch_bytes=DCMP_PATCH, layout_patch_bytes=LAYOUT_PATCH)
+    target.write_bytes(target.read_bytes().replace(WORDING_NEW.encode(), WORDING_OLD.encode()))
     assert sha(target.read_bytes()) == LAYOUT
     verify_preserved_source(tmp_path, GUIDE, BEFORE, patch_bytes=PATCH, dcmp_patch_bytes=DCMP_PATCH, layout_patch_bytes=LAYOUT_PATCH)
     target.write_bytes(reverse_exact(target.read_bytes(), LAYOUT_PATCH, LAYOUT_PATCH_SHA, AFTER))
