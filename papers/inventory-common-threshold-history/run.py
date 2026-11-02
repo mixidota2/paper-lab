@@ -2,7 +2,8 @@
 from dataclasses import dataclass
 from fractions import Fraction as F
 from functools import lru_cache
-from math import expm1, isfinite
+from math import isfinite
+from decimal import Decimal, localcontext, ROUND_HALF_EVEN
 from pathlib import Path
 import json
 
@@ -75,7 +76,12 @@ def cdf(z):
         return 0.0
     if z >= 1:
         return 1.0
-    return expm1(float(z)) / expm1(1)
+    # Fixed correctly-rounded decimal exponential avoids platform libm last-bit differences.
+    with localcontext() as ctx:
+        ctx.prec = 50
+        ctx.rounding = ROUND_HALF_EVEN
+        value = Decimal(z.numerator) / Decimal(z.denominator) if isinstance(z, F) else Decimal(z)
+        return float((value.exp() - 1) / (Decimal(1).exp() - 1))
 
 
 def fixture(signal=True, lead=0):

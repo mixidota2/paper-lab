@@ -194,3 +194,16 @@ console.log(JSON.stringify(ui.view(data,ui.defaults())));
     assert strip(v['rows']) in strip(html)
     assert '__DATA__' not in html and '<noscript>' in html
     assert 'min-width:740px' in html and 'white-space:nowrap' in html and 'overflow-x:auto' in html
+
+
+def test_cdf_fixed_precision_independent_of_ambient_decimal_context():
+    from decimal import localcontext, ROUND_UP
+    points = (F(1,1000), F(1,3), F(49,51))
+    expected = [m.cdf(x) for x in points]
+    with localcontext() as ctx:
+        ctx.prec = 7
+        ctx.rounding = ROUND_UP
+        assert [m.cdf(x) for x in points] == expected
+    for x, actual in zip(points, expected):
+        assert math.isclose(actual, math.expm1(float(x))/math.expm1(1), rel_tol=1e-15)
+    assert m.cdf(0) == 0 and m.cdf(1) == 1
