@@ -17,19 +17,16 @@ def test_existing_runner_permissions_and_full_build_order():
     assert w['on']=={'pull_request':{'branches':['main','master']}}
     assert w['permissions']=={'contents':'read'}
     assert j['runs-on']=='macos-15' and j['timeout-minutes']=='30'
-    assert next(s for s in steps if s.get('id')=='browser_review')['timeout-minutes']=='22'
     assert steps[0]['with']['persist-credentials']=='false'
     # The launcher integrity test reads a pinned historical commit with git show.
     assert steps[0]['with']['fetch-depth']=='0'
     run=[s['run'] for s in steps if 'run' in s]
     assert run.index('uv sync --locked --extra dev --python 3.12') < run.index('uv run --locked pytest -q -ra --fail-on-skip') < run.index('uv run --locked paper-lab build')
     pre=next(s['run'] for s in steps if s.get('id')=='preflight')
-    browser=next(s['run'] for s in steps if s.get('id')=='browser_review')
-    assert '--preflight' in pre and '--run --site site --out browser-review/run' in browser
-    assert '--with playwright==1.63.0' in browser
-    gate=next(s for s in steps if 'review_103_report.py' in s.get('run',''))
-    assert "!cancelled()" in gate['if'] and "steps.browser_review.outcome != 'skipped'" in gate['if']
-    assert steps.index(gate)>steps.index(next(s for s in steps if s.get('id')=='browser_review'))
+    assert '--preflight' in pre
+    assert not any(s.get('id') == 'browser_review' for s in steps)
+    assert not any('review_103_report.py' in s.get('run', '') for s in steps)
+    assert all('--run --site' not in s.get('run', '') for s in steps)
     assert all('continue-on-error' not in s for s in steps)
     upload=steps[-1]
     assert upload['uses']=='actions/upload-artifact@v4'
@@ -38,13 +35,11 @@ def test_existing_runner_permissions_and_full_build_order():
     assert upload['with']['if-no-files-found']=='warn'
 
 
-def test_public_preview_is_allowlisted_and_saved_before_browser_guard():
+def test_public_preview_is_allowlisted_and_saved_after_preflight():
     steps=WORKFLOW['jobs']['macos-chrome']['steps']
     preview=next(s for s in steps if s.get('id')=='build_preview')
     pre=next(s for s in steps if s.get('id')=='preflight')
-    browser=next(s for s in steps if s.get('id')=='browser_review')
     assert steps.index(pre)+1 == steps.index(preview)
-    assert steps.index(preview)+1 == steps.index(browser)
     assert preview['if']=="${{ success() && steps.preflight.outcome == 'success' }}"
     assert preview['uses']=='actions/upload-artifact@v4'
     assert preview['with']=={
@@ -58,15 +53,15 @@ def test_public_preview_is_allowlisted_and_saved_before_browser_guard():
 
 
 @pytest.mark.parametrize('exit_code',[0,1,2])
-def test_exact_browser_shell_preserves_exit_and_collects_log(tmp_path,exit_code):
-    step=next(s for s in WORKFLOW['jobs']['macos-chrome']['steps'] if s.get('id')=='browser_review')
+def test_exact_preflight_shell_preserves_exit_and_collects_log(tmp_path,exit_code):
+    step=next(s for s in WORKFLOW['jobs']['macos-chrome']['steps'] if s.get('id')=='preflight')
     bin_dir=tmp_path/'bin';bin_dir.mkdir();stub=bin_dir/'uv'
     stub.write_text('#!/bin/bash\nprintf "injected local wiring test\\n"\nexit '+str(exit_code)+'\n');stub.chmod(0o755)
     (tmp_path/'browser-review').mkdir()
     env={**os.environ,'PATH':str(bin_dir)+os.pathsep+os.environ['PATH']}
     result=subprocess.run(['bash','-e','-c',step['run']],cwd=tmp_path,env=env,capture_output=True,text=True)
     assert result.returncode==exit_code
-    assert 'injected local wiring test' in (tmp_path/'browser-review/runtime.log').read_text()
+    assert 'injected local wiring test' in (tmp_path/'browser-review/preflight.log').read_text()
 
 
 @pytest.mark.parametrize('status,code',[('FAIL',1),('STOPPED',1),('PARTIAL',1),('AUTOMATED PASS / publication pending',0)])

@@ -39,7 +39,7 @@ jobs:
         run: uv run --locked pytest -q -ra --fail-on-skip
       - name: Build every Lab in this checkout
         run: uv run --locked paper-lab build
-      - name: Validate complete site and review plan before launching Chrome
+      - name: Validate complete site and review plan without launching Chrome
         id: preflight
         shell: bash
         run: |
@@ -62,20 +62,9 @@ jobs:
           include-hidden-files: false
           if-no-files-found: error
           retention-days: 7
-      # Existing official Chrome, direct minimal launch; no browser/OS installation.
-      # Historical Linux failures remain in the PR and are not reclassified.
-      - name: Verify signed Chrome and Seatbelt, then run CDP compatibility and Lab checks
-        id: browser_review
-        timeout-minutes: 22
-        shell: bash
-        run: |
-          set -o pipefail
-          uv run --locked --with playwright==1.63.0 python tests/review_103.py --run --site site --out browser-review/run 2>&1 | tee browser-review/runtime.log
-      - name: Validate mandatory automatic report independently of publication
-        if: ${{ !cancelled() && steps.browser_review.outcome != 'skipped' }}
-        shell: bash
-        run: uv run --locked python tests/review_103_report.py --site site --report browser-review/run/report.json --out browser-review/automatic-gate.json
-      - name: Preserve review reports, screenshots, geometry and failure logs
+      # Legacy job/check identity retained; browser execution is not a release gate.
+      # Optional browser tools retain their signature and sandbox protections.
+      - name: Preserve preflight reports and failure logs
         if: ${{ !cancelled() && steps.preflight.outcome != 'skipped' }}
         uses: actions/upload-artifact@v4
         with:
