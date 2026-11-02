@@ -82,7 +82,7 @@ def preflight(site):
     assert len(pages)==109, f'Expected all 109 pages, got {len(pages)}'
     assert_catalog(p.stem for p in pages)
     guide_pages=sorted((site/'guides').glob('*.html'))
-    assert {p.name for p in guide_pages}=={'index.html','shelf-decisions.html'}
+    assert {p.name for p in guide_pages}=={'index.html','shelf-decisions.html','forecast-to-replenishment.html'}
     docs={p:Document(p.read_text()) for p in [site/'index.html',*pages,*guide_pages]}
     assert {'wrapped-outcome','wrapped-time','wrapped-ci','wrapped-control','wrapped-shock',
             'wrapped-mismatch','wrapped-reset','wrapped-simulation'} <= docs[site/'papers'/f'{WRAPPED}.html'].ids
@@ -134,7 +134,7 @@ def preflight(site):
     sources=['featurearc_review.py','deletion_review.py','episem_review.py','trace_review.py','catalog_expectations.py','wrapped_review.py','shelf_survey_browser.py','review_103_report.py','review_103_external.py','review_103.py','review_103_capture.py','review_103_evidence.py','reference_browser.py','macos_chrome_cdp.py','macos_cdp_review.py']
     for name in sources:ast.parse((ROOT/'tests'/name).read_text(),filename=name)
     # Known existing dependency only. No browser engine is imported or launched here.
-    result={'status':'CONFIRMED preflight only','pages':109,'theme_guides':1,'guide_pages':2,'local_targets':len(checked),'local_paths':sorted(checked),
+    result={'status':'CONFIRMED preflight only','pages':109,'theme_guides':2,'guide_pages':3,'local_targets':len(checked),'local_paths':sorted(checked),
       'external_urls_listed_not_requested':len(external),'widths':[360,768,1440],'detailed_widths':[360,1440],'trace_widths':[360,390,768,1440],
       'required_cases':required,'semantic_groups':[[slug,w] for w in (360,1440) for slug in sorted(set(EXPLORERS+list(DISPLAY)+[WRAPPED]))]+[[TRACE,w] for w in (360,390,768,1440)]+[[slug,w] for slug in (EPISEM,DELETION,FEATUREARC) for w in (360,768,1440)],
       'browser':'NOT TESTED','launch':'NOT TESTED on this host',
@@ -595,7 +595,7 @@ def _runtime(site,out,plan,evidence):
                         snapshot(page,out,f'guide-index-{width}')
                         page.locator('[data-guide-link]').click();settled(page)
                         assert page.url.endswith('/guides/shelf-decisions.html')
-                        assert '109件のLab ／ 1件のテーマガイド' in page.locator('main').inner_text()
+                        assert '109件のLab ／ 2件のテーマガイド' in page.locator('main').inner_text()
                         snapshot(page,out,f'shelf-guide-{width}')
                         for slug in SHELF:
                             page.locator(f'.guide-body a[href="../papers/{slug}.html"]').first.click();settled(page)

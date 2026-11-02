@@ -1,0 +1,104 @@
+checked: '2026-11-02'
+period_start: '2025-11-01'
+period_end: '2026-11-30'
+cards:
+- id: zalando
+  company: Zalando
+  title: 確率予測から補充推奨へ
+  period: current
+  domain: retail
+  evaluation: backtest
+  publication_date: '2026-01-15'
+  material: 企業ブログ（効果量の出典）
+  task: EC販売者への補充推奨。返品と納期の不確実性も扱う。
+  scope: 2023-10〜2024-09の約200万article・800販売者のバックテスト。別の実装ブログの500万SKUとは集計単位・範囲が異なる。
+  forecast: 2026年の発表はLightGBMの分位点予測。2025年の実装記事はMLForecastとconformal inferenceを記す。売上と在庫可用性から需要を構成するが、検閲補正式は未確認。
+  policy: 拡張(R,s,Q)と12週シミュレーションで費用の75分位を最適化。返品・納期も確率的に扱う。容量・MOQなどの詳細は未確認。
+  result: 人の判断に対しGMV +22.11%、物流費控除後GMV +21.95%。全提案採用の仮想結果で、本番A/Bではない。粗利や会計利益の実測増加とは扱わない。
+  operation: 2025-06-30の実装ブログは500万SKUの週次予測2時間未満、日次・対話型推奨を報告。提案採用率・導入上の障害の定量評価は未確認。
+  limitation: 対応査読論文は2025-12-19、2026-01-30に図訂正。今回その本文は未取得で、効果は企業ブログ報告として扱う。実装記事は重点期間より前の補助資料。
+  sources:
+  - label: 発表・効果量（2026-01-15）
+    url: https://engineering.zalando.com/posts/2026/01/publication-replenishment-engine.html
+  - label: 実装（2025-06-30、期間外の補助資料）
+    url: https://engineering.zalando.com/posts/2025/06/inventory-optimisation-system.html
+  - label: 対応論文（本文未取得）
+    url: https://doi.org/10.1038/s41598-025-32537-2
+- id: jd-orpr
+  company: JD ORPR
+  title: OR教師を学び、RLで調整する
+  period: current
+  domain: retail
+  evaluation: observational
+  publication_date: '2025-12-22'
+  material: プレプリント（v2：2026-01-06）
+  task: 商品×配送センター（DC）の補充。OR教師からニューラル方策へ移し、RLOOで調整する。
+  scope: 2025年9月の本番比較は331 SKU・3,899 SKU–DC。管理者選定と傾向スコアマッチング（PSM）による比較で、無作為化ではない。
+  forecast: 需要補助出力は点予測。欠品で観測されなかった需要の補正方法は未確認。
+  policy: OR教師→教師あり事前学習→RL調整。MOQ、発注周期、納期を扱う。任意の追加制約に対する充足保証は未確認。
+  result: 単純比較は回転日数−5.27日、在庫有率+2.29%（単位は原文表記）、保有費−29.95%。追加の差の差分析（DiD）は−4.07日、+0.47%（同）、保有費の前年比増加率差−18.35パーセントポイント。単純比較とDiDは別の推定値であり、率の表記を相対%やポイントへ独自変換しない。
+  operation: 約93万パラメータ。GPU1基で事前学習1.5–2時間、RL5–6時間と著者が報告。推論費・運用時の人手修正率は未確認。
+  limitation: 現場の反実仮想欠品損失は評価外。選定・マッチング後にも未観測交絡の可能性があり、無作為化A/Bの因果効果とは扱わない。
+  sources:
+  - label: 著者本文 §§3–5（v2）
+    url: https://arxiv.org/html/2512.19001v2
+- id: amazon-rme
+  company: Amazon RME共著
+  title: 店舗商品ではなく、保全補修部品の配置
+  period: current
+  domain: maintenance
+  evaluation: model
+  publication_date: '2026-09-11'
+  material: プレプリント（指定DOIとは別研究）
+  task: 物流拠点で設備を保全する補修部品のネットワーク配置。店舗販売商品の補充とは対象が異なる。
+  scope: 246物流拠点の企業ケース。実店舗の顧客向けSKU数ではない。
+  forecast: 需要予測器、点・分位・分布などの予測出力、需要検閲の処理は未確認。最終評価は確率在庫モデルで行う。
+  policy: GNNによる近似評価、探索、set partitioningを使い、最終案を確率在庫MILPで評価。納期・容量などの詳細条件はこの要約では未確認。
+  result: 6反復で、比較法に対するモデル上の節約額が30.5%改善。実際の総費用30.5%削減ではない。サービス約99.8%は需要を満たす週の割合をシナリオ平均した値で、数量fill rateとは区別する。
+  operation: モデルによる企業ケース評価であり、本番A/Bではない。実導入範囲・導入後の実現節約額・計算時間は未確認。
+  limitation: 指定DOI 10.1080/00207543.2026.2655026の全文は取得できていない。関連する別研究を掲載しており、指定原典の読了・同一性を主張しない。
+  sources:
+  - label: 読解対象の著者本文（別研究）
+    url: https://arxiv.org/html/2609.12524v1
+  - label: 指定DOI（全文未取得・上の本文と同一とは扱わない）
+    url: https://doi.org/10.1080/00207543.2026.2655026
+- id: alibaba
+  company: Alibaba
+  title: 供給者の応答もモデル化するRL
+  period: legacy
+  domain: retail
+  evaluation: observational
+  publication_date: '2023-09-26'
+  material: IJAA査読論文／著者公開本文
+  task: Tmall MartとFreshippoの自社在庫補充。供給者の応答を教師あり学習し、補充をDRLで学ぶ。
+  scope: 2021年7〜11月、MARL 40,000 SKU×倉庫ペアの本番マッチング比較。初期は低回転商品中心で、販促祭前に停止した。
+  forecast: 供給者の応答モデルを使う。需要予測の出力型と需要検閲補正は未確認。
+  policy: 供給者モデルと補充RLを組み合わせる。納期・発注制約の詳細、計算時間は未確認。
+  result: 人手に対し在庫日数−37.45%。欠品は原文「1.3% reduction」で、相対%かパーセントポイントか断定しない。
+  operation: 本番比較の報告はあるが、無作為化A/Bではない。現在の継続利用と対象全体への拡大範囲は未確認。
+  limitation: 対象選定と販促期間の除外があり、小売全体へ一般化しない。重点期間外の比較事例。
+  sources:
+  - label: 出版社・刊行情報
+    url: https://doi.org/10.1287/inte.2023.1160
+  - label: 著者公開本文 pp.372–376
+    url: https://www.researchgate.net/publication/374212093_AI_vs_Human_Buyers_A_Study_of_Alibaba%27s_Inventory_Replenishment_System
+- id: jd-e2e
+  company: JD E2E
+  title: 事後最適解を教師にする
+  period: legacy
+  domain: retail
+  evaluation: observational
+  publication_date: '2022-12-13'
+  material: Management Science（2023年2月号）／著者稿
+  task: 商品×DCの補充量を、需要RNN・納期MLP等から出力する。事後DP解を教師とする教師ありE2Eであり、RLではない。
+  scope: 著者稿の現場比較は2020-03-30〜04-30、9,308 SKU・12 DC。自主参加とマッチングによる比較で、無作為化ではない。
+  forecast: 需要RNNと納期MLPを含む。需要出力の点・分布の区別、検閲補正はこの要約では未確認。
+  policy: 事後DPラベルで直接の補充判断を学習。理論上は完全バックオーダー・到着順維持の仮定があり、本番条件と異なる。
+  result: 総費用−40.4%は期間内比較。DiDは別に−637.24評価費用単位で、会計利益ではない。両者を同じ効果量へ換算しない。
+  operation: 現場比較の報告がある。教師生成・学習・推論の計算費と、現在の継続運用は未確認。
+  limitation: 出版社最終版との全文照合は未完。理論モデルと本番の条件が完全一致するとは扱わない。重点期間外の比較事例。
+  sources:
+  - label: 刊行情報
+    url: https://doi.org/10.1287/mnsc.2022.4564
+  - label: 著者稿 §§3,5
+    url: https://alicemengqi.github.io/site/files/End_to_End_revision3-10.pdf

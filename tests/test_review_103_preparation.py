@@ -168,15 +168,15 @@ def test_guide_navigation_counts_and_canonical_lab_links(site):
     assert 'shelf-decisions.html' in listing.links
     guide=(site/'guides/shelf-decisions.html').read_text()
     links=m.Document(guide).links
-    assert '109件のLab ／ 1件のテーマガイド' in guide
+    assert '109件のLab ／ 2件のテーマガイド' in guide
     assert 'オンライン公開2023年' in guide and 'オンライン公開2025年' in guide
     assert '追加日は2026年10月16日' in guide
     for slug in m.SHELF:
         assert f'../papers/{slug}.html' in links
         assert '../guides/shelf-decisions.html' in m.Document((site/'papers'/f'{slug}.html').read_text()).links
     p=m.preflight(site)
-    assert p['theme_guides']==1 and p['guide_pages']==2
-    assert {'index.html','guides/index.html','guides/shelf-decisions.html'} <= set(p['local_paths'])
+    assert p['theme_guides']==2 and p['guide_pages']==3
+    assert {'index.html','guides/index.html','guides/shelf-decisions.html','guides/forecast-to-replenishment.html'} <= set(p['local_paths'])
 
 
 def test_forgetting_actual_script_initial_and_noninitial_display():
