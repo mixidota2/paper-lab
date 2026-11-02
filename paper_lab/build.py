@@ -8,6 +8,8 @@ CLI:
 
 from __future__ import annotations
 
+from .inventory_ct import widget as inventory_ct_widget
+
 import argparse
 import hashlib
 import json
@@ -195,6 +197,8 @@ def paper_sections(lab: Lab) -> list[dict[str, Any]]:
             html += exaone05_widget(lab.results)
             html += sparse05_widget(lab.results)
             html += forgetting05_widget(lab.results)
+            if lab.id == "inventory-common-threshold-history":
+                html += inventory_ct_widget(lab.results, lab.source_dir)
 
         rendered.append(
             {

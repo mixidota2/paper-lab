@@ -89,7 +89,12 @@ def baseline(path):return ast.parse(subprocess.check_output(['git','show',f'{BAS
 
 
 def test_only_assortment_block_changed_and_all_capture_calls_preserved():
-    old=baseline('tests/review_103.py');new=ast.parse((ROOT/'tests/review_103.py').read_text())
+    old=baseline('tests/review_103.py')
+    # Only the exact catalog-count delta is authorized beyond batching.
+    old_text=ast.unparse(old)
+    assert old_text.count('108')==9
+    old=ast.parse(old_text.replace('108','109'))
+    new=ast.parse((ROOT/'tests/review_103.py').read_text())
     def normalize(tree,new=False):
         tree=copy.deepcopy(tree)
         if new:

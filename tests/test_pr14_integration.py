@@ -40,7 +40,7 @@ def expected_runner():
     end = deletion.index('                    for slug in NOJS:',start)
     anchor = '                    def episem_fallback():\n'
     expected = replace_once(expected,anchor,deletion[start:end]+anchor)
-    expected = expected.replace('107','108')
+    expected = expected.replace('107','109')
     expected = expected.replace('from deletion_review import inspect_deletion','from featurearc_review import inspect_featurearc\nfrom deletion_review import inspect_deletion')
     expected = expected.replace('TRACE, EPISEM, DELETION','TRACE, EPISEM, DELETION, FEATUREARC')
     expected = expected.replace("    required += [f'deletion-{w}'","    required += [f'featurearc-{w}' for w in (360,768,1440)]+['nojs-'+FEATUREARC]\n    required += [f'deletion-{w}'")
