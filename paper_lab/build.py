@@ -8,6 +8,7 @@ CLI:
 
 from __future__ import annotations
 
+from .assortment_observation import widget as assortment_observation_widget
 from .inventory_ct import widget as inventory_ct_widget
 from .replenishment_guide import SLUG as REPLENISHMENT_GUIDE, load_cards, render_cards
 
@@ -198,6 +199,8 @@ def paper_sections(lab: Lab) -> list[dict[str, Any]]:
             html += exaone05_widget(lab.results)
             html += sparse05_widget(lab.results)
             html += forgetting05_widget(lab.results)
+            if lab.id == "assortment-observation-budget":
+                html += assortment_observation_widget(lab.results, lab.source_dir)
             if lab.id == "inventory-common-threshold-history":
                 html += inventory_ct_widget(lab.results, lab.source_dir)
 

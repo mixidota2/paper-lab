@@ -40,10 +40,10 @@ def expected_runner():
     end = deletion.index('                    for slug in NOJS:',start)
     anchor = '                    def episem_fallback():\n'
     expected = replace_once(expected,anchor,deletion[start:end]+anchor)
-    expected = expected.replace('107','109')
+    expected = expected.replace('107','110')
     expected = replace_once(expected, "{'index.html','shelf-decisions.html'}", "{'index.html','shelf-decisions.html','forecast-to-replenishment.html'}")
     expected = replace_once(expected, "'theme_guides':1,'guide_pages':2", "'theme_guides':2,'guide_pages':3")
-    expected = replace_once(expected, '109件のLab ／ 1件のテーマガイド', '109件のLab ／ 2件のテーマガイド')
+    expected = replace_once(expected, '110件のLab ／ 1件のテーマガイド', '110件のLab ／ 2件のテーマガイド')
     expected = expected.replace('from deletion_review import inspect_deletion','from featurearc_review import inspect_featurearc\nfrom deletion_review import inspect_deletion')
     expected = expected.replace('TRACE, EPISEM, DELETION','TRACE, EPISEM, DELETION, FEATUREARC')
     expected = expected.replace("    required += [f'deletion-{w}'","    required += [f'featurearc-{w}' for w in (360,768,1440)]+['nojs-'+FEATUREARC]\n    required += [f'deletion-{w}'")
