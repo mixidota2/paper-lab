@@ -128,8 +128,8 @@ def test_plan_keeps_all_main_cases_and_requires_new_semantics(tmp_path):
  arc='featurearc-inherited-defects-chain-gates'
  arc_cases={f'featurearc-{w}' for w in (360,768,1440)}|{'nojs-'+arc}|{f'load-{arc}-{w}' for w in (360,768,1440)}
  assert len(arc_cases)==7
- assert set(plan['required_cases'])==main_cases|added|episem_cases|arc_cases|{f'load-inventory-common-threshold-history-{w}' for w in (360,768,1440)}
- assert len(plan['required_cases'])==423
+ assert set(plan['required_cases'])==main_cases|added|episem_cases|arc_cases|{f'load-{new}-{w}' for new in ('inventory-common-threshold-history','assortment-observation-budget') for w in (360,768,1440)}
+ assert len(plan['required_cases'])==426
  assert all([slug,w] in plan['semantic_groups'] for w in (360,768,1440))
  assert 'deletion_review.py' in plan['source_hashes']
 
