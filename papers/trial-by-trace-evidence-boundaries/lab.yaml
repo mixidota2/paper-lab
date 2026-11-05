@@ -1,0 +1,81 @@
+id: trial-by-trace-evidence-boundaries
+title: 'Trial by Trace: Benchmarking AI Agent Harnesses for Reliability and Failure
+  Attribution'
+authors:
+- TraceLite AI
+year: 2026
+arxiv_id: '2610.32285'
+submitted: '2026-10-23'
+topics:
+- ai-agents
+- ml-systems
+urls:
+  paper: https://arxiv.org/html/2610.32285v1
+  arxiv: https://arxiv.org/abs/2610.32285
+verdict: Worth Reading
+status: draft
+question: 成果が正しければ、実行基盤も正しいか
+summary: 成果と情報伝達の判定を分け、未実行状態の解決と候補関係の限界を合成例で確認します。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-11-03'
+  url: https://arxiv.org/html/2610.32285v1
+  scope: Web本文§2–4、§5.1–5.2。§5.3表本文はHTMLで未表示。作者コード・原記録未取得。
+core_idea:
+  author_claim: 成果の判定と実行基盤の判定を分け、出所の異なる証拠を対応付ける評価を提案します。
+  research_bot_interpretation: 合格と因果説明を別々に検討するための教材として読みます。
+sections:
+  overview: 論文の評価規則を説明する自作教材です。企業効果や作者実験を再現したものではありません。 [一次資料の書誌情報](https://arxiv.org/abs/2610.32285)。
+  problem: 完成物だけの検査では、途中の情報伝達が正しかったか分かりません。
+  method: method.md
+  why_it_might_work: 外部の実状態とモデルに渡った情報を別に確かめると、異なる失敗を区別できます。
+  evidence: 一次資料：原典§3.4表4・式3、§3.5式4/6との対応を確認しています。候補関係は因果証明ではありません。
+  executable_understanding: 操作する数値は合成例です。実記録の整合性を検査する機能ではありません。
+  results: 64条件は自作入力の組合せです。ダウンロードしたresults.jsonで各条件の数値を確認できます。
+  what_we_verified: 限定例の数値と原典規則の対応を確認。判定器自体の信頼性は検証していません。
+  what_we_did_not_verify: 実trace、測定整合性、因果伝播、原著実験、実ブラウザは未検証です。
+  implementation: 標準Node.jsで計算し、uv経由のrun.pyから再生成します。外部APIは使いません。
+figures: []
+interactives: []
+teaching_figures:
+- id: evidence-boundaries
+  kind: logic
+  title: 判定から因果説明までの段階
+  after: method
+  source: https://arxiv.org/html/2610.32285v1
+  locator: §3.4–3.5
+  rationale: 異なる確度の判断を混同しない自作図。
+  caption: 矢印だけで検証が済むわけではありません。
+  rows:
+  - label: 検証の順序
+    nodes:
+    - title: 測定整合性
+      text: 採点に使える記録か
+    - title: 二層判定
+      text: 成果と基盤を別に採点
+    - title: 候補関係
+      text: 事前条件と失敗端点が一致
+    - title: 追加の検証
+      text: 途中の変化・順序・競合説明を照合
+- id: layer-score
+  kind: equations
+  title: 同じ完成物でも二層の得点は異なる
+  after: evidence
+  source: https://arxiv.org/html/2610.32285v1
+  locator: §3.4 式3を使った自作例
+  rationale: 成果だけの合格と両層合格の違いを数値で示す。
+  caption: 各層2項目。論文の実験集計ではありません。
+  steps:
+  - name: 成果は全項目合格
+    formula: pA/nA = 2/2 = 1
+    explanation: 成果の2項目はともに合格。
+  - name: 基盤に1項目の不合格
+    formula: pH/nH = 1/2
+    explanation: 不合格の原因が確定したという意味ではない。
+  - name: 層を等重みで平均
+    formula: S = 50 × 1 + 50 × (1/2) = 75
+    explanation: 成果全項目合格でも総合100点にはならない。
