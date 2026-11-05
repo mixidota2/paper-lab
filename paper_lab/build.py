@@ -8,6 +8,7 @@ CLI:
 
 from __future__ import annotations
 
+from .trial_trace import widget as trial_trace_widget
 from .assortment_observation import widget as assortment_observation_widget
 from .inventory_ct import widget as inventory_ct_widget
 from .replenishment_guide import SLUG as REPLENISHMENT_GUIDE, load_cards, render_cards
@@ -182,6 +183,8 @@ def paper_sections(lab: Lab) -> list[dict[str, Any]]:
             html = markdown_to_html(lab.sections.get(key, ""))
 
         if key == "executable_understanding":
+            if lab.id == "trial-by-trace-evidence-boundaries":
+                html += trial_trace_widget(lab.source_dir)
             if lab.id in {"reasoncast-agentic-demand-forecasting", "retailbench-long-horizon-store-agents"}:
                 html += (lab.source_dir / "interactive.html").read_text(encoding="utf-8")
             html += batch08_widget(lab.results)
@@ -318,7 +321,7 @@ def build(
     for lab in labs:
         download_dir = site / "downloads" / lab.id
         download_dir.mkdir(parents=True)
-        for name in ("run.py", "results.json", "lab.yaml", "README.md", "method.md", "experiment.md", "validation.md", "implementation.md", "mapping.md", "NOTICE.txt", "official-check.json", "plot.py", "render.py", "author-orderbook.csv", "model.js", "interactive.js"):
+        for name in ("run.py", "results.json", "lab.yaml", "README.md", "method.md", "experiment.md", "validation.md", "implementation.md", "mapping.md", "NOTICE.txt", "official-check.json", "plot.py", "render.py", "author-orderbook.csv", "model.js", "interactive.js", "ui.js", "test.cjs"):
             source = lab.source_dir / name
             if source.is_file():
                 shutil.copy2(source, download_dir / name)

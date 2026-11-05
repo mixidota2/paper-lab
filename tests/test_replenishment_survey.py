@@ -126,10 +126,10 @@ console.log('36 combinations, native-handler wiring, empty state and reset PASS 
 
 def test_full_build_guide_sources_links_and_existing_labs_preserved(tmp_path):
     site=tmp_path/'site';labs=build(root=ROOT,site_dir=site)
-    assert len(labs)==110
+    assert len(labs)==111
     from review_103 import preflight
     p=preflight(site)
-    assert p['theme_guides']==2 and p['guide_pages']==3 and len(p['required_cases'])==426
+    assert p['theme_guides']==2 and p['guide_pages']==3 and len(p['required_cases'])==429
     target=site/'guides/forecast-to-replenishment.html';text=target.read_text();doc=Document(text)
     assert sum(t=='article' and 'data-evidence-card' in a for t,a in doc.tags)==5
     assert '<!-- EVIDENCE_CARDS -->' not in text

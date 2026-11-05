@@ -1,0 +1,997 @@
+{
+  "note": "自作の64条件。原著の実行結果ではありません。",
+  "cases": [
+    {
+      "a": 0,
+      "h": 0,
+      "g": false,
+      "b": false,
+      "q": false,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 0,
+      "g": false,
+      "b": false,
+      "q": true,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 0,
+      "g": false,
+      "b": true,
+      "q": false,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 0,
+      "g": false,
+      "b": true,
+      "q": true,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 0,
+      "g": true,
+      "b": false,
+      "q": false,
+      "result": {
+        "admitted": true,
+        "agent": 0.5,
+        "harness": 0.5,
+        "score": 50,
+        "success": false,
+        "clean": false,
+        "raw": true,
+        "adjusted": true,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 0,
+      "g": true,
+      "b": false,
+      "q": true,
+      "result": {
+        "admitted": true,
+        "agent": 0.5,
+        "harness": 0.5,
+        "score": 50,
+        "success": false,
+        "clean": false,
+        "raw": true,
+        "adjusted": true,
+        "link": true,
+        "validated": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 0,
+      "g": true,
+      "b": true,
+      "q": false,
+      "result": {
+        "admitted": true,
+        "agent": 0.5,
+        "harness": 0.5,
+        "score": 50,
+        "success": false,
+        "clean": false,
+        "raw": true,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 0,
+      "g": true,
+      "b": true,
+      "q": true,
+      "result": {
+        "admitted": true,
+        "agent": 0.5,
+        "harness": 0.5,
+        "score": 50,
+        "success": false,
+        "clean": false,
+        "raw": true,
+        "adjusted": false,
+        "link": true,
+        "validated": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 1,
+      "g": false,
+      "b": false,
+      "q": false,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 1,
+      "g": false,
+      "b": false,
+      "q": true,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 1,
+      "g": false,
+      "b": true,
+      "q": false,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 1,
+      "g": false,
+      "b": true,
+      "q": true,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 1,
+      "g": true,
+      "b": false,
+      "q": false,
+      "result": {
+        "admitted": true,
+        "agent": 0.5,
+        "harness": 1,
+        "score": 75,
+        "success": false,
+        "clean": false,
+        "raw": false,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 1,
+      "g": true,
+      "b": false,
+      "q": true,
+      "result": {
+        "admitted": true,
+        "agent": 0.5,
+        "harness": 1,
+        "score": 75,
+        "success": false,
+        "clean": false,
+        "raw": false,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 1,
+      "g": true,
+      "b": true,
+      "q": false,
+      "result": {
+        "admitted": true,
+        "agent": 0.5,
+        "harness": 1,
+        "score": 75,
+        "success": false,
+        "clean": false,
+        "raw": false,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 1,
+      "g": true,
+      "b": true,
+      "q": true,
+      "result": {
+        "admitted": true,
+        "agent": 0.5,
+        "harness": 1,
+        "score": 75,
+        "success": false,
+        "clean": false,
+        "raw": false,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 2,
+      "g": false,
+      "b": false,
+      "q": false,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 2,
+      "g": false,
+      "b": false,
+      "q": true,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 2,
+      "g": false,
+      "b": true,
+      "q": false,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 2,
+      "g": false,
+      "b": true,
+      "q": true,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 2,
+      "g": true,
+      "b": false,
+      "q": false,
+      "result": {
+        "admitted": true,
+        "agent": 0.5,
+        "harness": 0.5,
+        "score": 50,
+        "success": false,
+        "clean": false,
+        "raw": true,
+        "adjusted": true,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 2,
+      "g": true,
+      "b": false,
+      "q": true,
+      "result": {
+        "admitted": true,
+        "agent": 0.5,
+        "harness": 0.5,
+        "score": 50,
+        "success": false,
+        "clean": false,
+        "raw": true,
+        "adjusted": true,
+        "link": true,
+        "validated": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 2,
+      "g": true,
+      "b": true,
+      "q": false,
+      "result": {
+        "admitted": true,
+        "agent": 0.5,
+        "harness": 0.5,
+        "score": 50,
+        "success": false,
+        "clean": false,
+        "raw": true,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 2,
+      "g": true,
+      "b": true,
+      "q": true,
+      "result": {
+        "admitted": true,
+        "agent": 0.5,
+        "harness": 0.5,
+        "score": 50,
+        "success": false,
+        "clean": false,
+        "raw": true,
+        "adjusted": false,
+        "link": true,
+        "validated": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 3,
+      "g": false,
+      "b": false,
+      "q": false,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 3,
+      "g": false,
+      "b": false,
+      "q": true,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 3,
+      "g": false,
+      "b": true,
+      "q": false,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 3,
+      "g": false,
+      "b": true,
+      "q": true,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 3,
+      "g": true,
+      "b": false,
+      "q": false,
+      "result": {
+        "admitted": true,
+        "agent": 0.5,
+        "harness": 0.5,
+        "score": 50,
+        "success": false,
+        "clean": false,
+        "raw": true,
+        "adjusted": true,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 3,
+      "g": true,
+      "b": false,
+      "q": true,
+      "result": {
+        "admitted": true,
+        "agent": 0.5,
+        "harness": 0.5,
+        "score": 50,
+        "success": false,
+        "clean": false,
+        "raw": true,
+        "adjusted": true,
+        "link": true,
+        "validated": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 3,
+      "g": true,
+      "b": true,
+      "q": false,
+      "result": {
+        "admitted": true,
+        "agent": 0.5,
+        "harness": 0.5,
+        "score": 50,
+        "success": false,
+        "clean": false,
+        "raw": true,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 0,
+      "h": 3,
+      "g": true,
+      "b": true,
+      "q": true,
+      "result": {
+        "admitted": true,
+        "agent": 0.5,
+        "harness": 0.5,
+        "score": 50,
+        "success": false,
+        "clean": false,
+        "raw": true,
+        "adjusted": false,
+        "link": true,
+        "validated": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 0,
+      "g": false,
+      "b": false,
+      "q": false,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 0,
+      "g": false,
+      "b": false,
+      "q": true,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 0,
+      "g": false,
+      "b": true,
+      "q": false,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 0,
+      "g": false,
+      "b": true,
+      "q": true,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 0,
+      "g": true,
+      "b": false,
+      "q": false,
+      "result": {
+        "admitted": true,
+        "agent": 1,
+        "harness": 0.5,
+        "score": 75,
+        "success": true,
+        "clean": false,
+        "raw": true,
+        "adjusted": true,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 0,
+      "g": true,
+      "b": false,
+      "q": true,
+      "result": {
+        "admitted": true,
+        "agent": 1,
+        "harness": 0.5,
+        "score": 75,
+        "success": true,
+        "clean": false,
+        "raw": true,
+        "adjusted": true,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 0,
+      "g": true,
+      "b": true,
+      "q": false,
+      "result": {
+        "admitted": true,
+        "agent": 1,
+        "harness": 0.5,
+        "score": 75,
+        "success": true,
+        "clean": false,
+        "raw": true,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 0,
+      "g": true,
+      "b": true,
+      "q": true,
+      "result": {
+        "admitted": true,
+        "agent": 1,
+        "harness": 0.5,
+        "score": 75,
+        "success": true,
+        "clean": false,
+        "raw": true,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 1,
+      "g": false,
+      "b": false,
+      "q": false,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 1,
+      "g": false,
+      "b": false,
+      "q": true,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 1,
+      "g": false,
+      "b": true,
+      "q": false,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 1,
+      "g": false,
+      "b": true,
+      "q": true,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 1,
+      "g": true,
+      "b": false,
+      "q": false,
+      "result": {
+        "admitted": true,
+        "agent": 1,
+        "harness": 1,
+        "score": 100,
+        "success": true,
+        "clean": true,
+        "raw": false,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 1,
+      "g": true,
+      "b": false,
+      "q": true,
+      "result": {
+        "admitted": true,
+        "agent": 1,
+        "harness": 1,
+        "score": 100,
+        "success": true,
+        "clean": true,
+        "raw": false,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 1,
+      "g": true,
+      "b": true,
+      "q": false,
+      "result": {
+        "admitted": true,
+        "agent": 1,
+        "harness": 1,
+        "score": 100,
+        "success": true,
+        "clean": true,
+        "raw": false,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 1,
+      "g": true,
+      "b": true,
+      "q": true,
+      "result": {
+        "admitted": true,
+        "agent": 1,
+        "harness": 1,
+        "score": 100,
+        "success": true,
+        "clean": true,
+        "raw": false,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 2,
+      "g": false,
+      "b": false,
+      "q": false,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 2,
+      "g": false,
+      "b": false,
+      "q": true,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 2,
+      "g": false,
+      "b": true,
+      "q": false,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 2,
+      "g": false,
+      "b": true,
+      "q": true,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 2,
+      "g": true,
+      "b": false,
+      "q": false,
+      "result": {
+        "admitted": true,
+        "agent": 1,
+        "harness": 1,
+        "score": 100,
+        "success": true,
+        "clean": true,
+        "raw": false,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 2,
+      "g": true,
+      "b": false,
+      "q": true,
+      "result": {
+        "admitted": true,
+        "agent": 1,
+        "harness": 1,
+        "score": 100,
+        "success": true,
+        "clean": true,
+        "raw": false,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 2,
+      "g": true,
+      "b": true,
+      "q": false,
+      "result": {
+        "admitted": true,
+        "agent": 1,
+        "harness": 1,
+        "score": 100,
+        "success": true,
+        "clean": true,
+        "raw": false,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 2,
+      "g": true,
+      "b": true,
+      "q": true,
+      "result": {
+        "admitted": true,
+        "agent": 1,
+        "harness": 1,
+        "score": 100,
+        "success": true,
+        "clean": true,
+        "raw": false,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 3,
+      "g": false,
+      "b": false,
+      "q": false,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 3,
+      "g": false,
+      "b": false,
+      "q": true,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 3,
+      "g": false,
+      "b": true,
+      "q": false,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 3,
+      "g": false,
+      "b": true,
+      "q": true,
+      "result": {
+        "admitted": false,
+        "score": null,
+        "link": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 3,
+      "g": true,
+      "b": false,
+      "q": false,
+      "result": {
+        "admitted": true,
+        "agent": 1,
+        "harness": 0.5,
+        "score": 75,
+        "success": true,
+        "clean": false,
+        "raw": true,
+        "adjusted": true,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 3,
+      "g": true,
+      "b": false,
+      "q": true,
+      "result": {
+        "admitted": true,
+        "agent": 1,
+        "harness": 0.5,
+        "score": 75,
+        "success": true,
+        "clean": false,
+        "raw": true,
+        "adjusted": true,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 3,
+      "g": true,
+      "b": true,
+      "q": false,
+      "result": {
+        "admitted": true,
+        "agent": 1,
+        "harness": 0.5,
+        "score": 75,
+        "success": true,
+        "clean": false,
+        "raw": true,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    },
+    {
+      "a": 1,
+      "h": 3,
+      "g": true,
+      "b": true,
+      "q": true,
+      "result": {
+        "admitted": true,
+        "agent": 1,
+        "harness": 0.5,
+        "score": 75,
+        "success": true,
+        "clean": false,
+        "raw": true,
+        "adjusted": false,
+        "link": false,
+        "validated": false
+      }
+    }
+  ]
+}
