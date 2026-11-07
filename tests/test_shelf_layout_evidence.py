@@ -3,7 +3,7 @@ from pathlib import Path
 import re
 import pytest
 from paper_lab.build import markdown_to_html
-from shelf_guide_preservation import (GUIDE, BEFORE, AFTER, LAYOUT_PATCH_SHA,
+from shelf_guide_preservation import (GUIDE, BEFORE, AFTER, LAYOUT, WORDING_NEW, WORDING_OLD, sha, LAYOUT_PATCH_SHA,
                                       reverse_exact, verify_preserved_source)
 ROOT = Path(__file__).resolve().parents[1]
 PATCH = (ROOT / 'tests/fixtures/shelf-guide-layout-integration-20261030.patch').read_bytes()
@@ -31,14 +31,16 @@ def test_evidence_units_uncertainty_scope_and_sources():
 
 
 def test_exact_prior_bytes_and_all_existing_anchors_preserved():
-    previous = reverse_exact(TEXT.encode(), PATCH, LAYOUT_PATCH_SHA, AFTER).decode()
+    layout_text = TEXT.replace(WORDING_NEW, WORDING_OLD)
+    assert sha(layout_text.encode()) == LAYOUT
+    previous = reverse_exact(layout_text.encode(), PATCH, LAYOUT_PATCH_SHA, AFTER).decode()
     old_anchors = re.findall(r'id="([^"]+)"', previous)
     new_anchors = re.findall(r'id="([^"]+)"', TEXT)
     assert [a for a in new_anchors if a != 'iceland-layout-evaluation'] == old_anchors
     assert new_anchors.count('iceland-layout-evaluation') == 1
     # This candidate is additions only: all prior lines stay in the same order.
     import difflib
-    assert not any(line.startswith('- ') for line in difflib.ndiff(previous.splitlines(), TEXT.splitlines()))
+    assert not any(line.startswith('- ') for line in difflib.ndiff(previous.splitlines(), layout_text.splitlines()))
     html = markdown_to_html(TEXT)
     assert 'id="iceland-layout-evaluation"' in html
     assert 'href="#iceland-layout-evaluation"' in html
