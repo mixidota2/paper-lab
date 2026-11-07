@@ -1,0 +1,463 @@
+{
+  "scope": "Historical authored discovery findings and terminology, not query or execution logs. Not a systematic review or verified-current bibliography. Ratings are historical research judgments. Primary claims were not freshly revalidated for this migration.",
+  "findings": [
+    {
+      "date": "2026-09-04",
+      "findings": "2607.25346 (Case Against Generation for Retrieval, Meta); 2606.00422 (UniPinRec, Pinterest); adjacent 2503.05493 RecBench",
+      "terminology": "MAM (Masked Action Modeling); CE2TT distillation; EOS pooling; Coconut-style latent user-tower reasoning; PinRec; OneRec-Think / ORT; MixLM"
+    },
+    {
+      "date": "2026-09-04",
+      "findings": "2606.08529 (Scaffold Effects on GAIA); 2606.05670 (Do More Agents Help? / BenchAgent); adjacent 2607.22585 / 2608.26218 harness coding-agent studies; 2604.02460 equal-budget SAS vs MAS",
+      "terminology": "elicitation gap; Planner-Actor-Rater (PAR); BenchAgent SI vs PAE; workflow lift; harness–model pair as evaluation unit; Jason Starace"
+    },
+    {
+      "date": "2026-09-04",
+      "findings": "2509.26468 (fev-bench — covariates > multivariate for TSFM gains); 2505.16319 (FreshRetailNet-50K); Chronos-2 / TabPFN-TS mentioned as covariate-capable",
+      "terminology": "fev / fev-bench; FreshRetailNet-50K; TabPFN-TS; Chronos-2 covariate support; Tobit ETS (earlier adjacent)"
+    },
+    {
+      "date": "2026-09-04",
+      "findings": "2608.22968 (Do TSFMs pay off for industrial monitoring?); 2608.24303 (Causal Analysis for TSFMs)",
+      "terminology": "anytime-valid gating on forecast streams (2608.30502)"
+    },
+    {
+      "date": "2026-09-07",
+      "findings": "2603.15802 ApolloPFN (exogenous PFN, M5 promo/price); 2601.18919 VN2 CatBoost stockout+cost-aware winner; 2607.25664 Contextual Deconvolution (honest h/p inventory-cost); ACM GeoIndustry 2025 Whole Foods shelf causal lift; exploration 2512.12059 Forecast Critic",
+      "terminology": "ApolloPFN; SRNGN; VN2 Inventory Planning Challenge; Contextual Deconvolution (CD); Variance Ratio / h/p crossover; Debiased Hierarchical Group Lasso shelf elasticity; Forecast Critic"
+    },
+    {
+      "date": "2026-09-07",
+      "findings": "2609.00986 (TGR, Tencent) Must Read",
+      "terminology": "CCFormer; BARGE (ICA/HPR/DPD); HiGR (PCRQ-VAE/HSD/ORPO); TGR-Reason reason tokens; OSQ-VAE"
+    },
+    {
+      "date": "2026-09-07",
+      "findings": "2605.27922 (Harness-Bench) Worth Reading; 2608.26197 (Harness Engineering) radar",
+      "terminology": "execution alignment; model–harness configuration; Structured Planning gate"
+    },
+    {
+      "date": "2026-09-07",
+      "findings": "2609.01240 (ReST, ByteDance) Worth Reading",
+      "terminology": "sequence starvation; Dual-Gated Attention; RoTE; SRN; shared-prefix serving"
+    },
+    {
+      "date": "2026-09-07",
+      "findings": "2605.00324 (IEFF feature fading) radar for ml-pipeline-modularity",
+      "terminology": "IEFF elastic feature fading"
+    },
+    {
+      "date": "2026-09-08",
+      "findings": "2603.17540 GLIDE Spotify (Must Read); 2607.24995 Understanding SIDs / ISD (Worth Reading); adjacent Watch 2606.00324 PrefixMem (Pinterest)",
+      "terminology": "GLIDE; Residual K-Means (R-KMeans) production quantizer; soft-prompt CF user embeddings; Item-Supported Decoding (ISD); PrefixMem; Prefix Ceiling"
+    },
+    {
+      "date": "2026-09-08",
+      "findings": "2609.04875 Execution-State Unlearning (Worth Reading / Radar-featured)",
+      "terminology": "execution-state unlearning; Provenance-Guided Selective Replay; Leak@probes; behavioral extraction residue"
+    },
+    {
+      "date": "2026-09-08",
+      "findings": "none cleared bar (2603.16815 multi-echelon inventory cost = incremental student-style; 2606.04900 multi-objective forecast combination incremental vs VN2/CD; 2608.24132 GBDT→deep support recommender timed out / park pending primary read)",
+      "terminology": "(none retained)"
+    },
+    {
+      "date": "2026-09-09",
+      "findings": "2605.14840 ChronosFlow-ICGPS (Worth Reading); adjacent radar 2608.12680 Restricted Logit Demand Transfer (Walmart)",
+      "terminology": "ICGPS; ChronosFlow; completion kernel / deployment penalty; Restricted Logit DT; Store Yule’s Q substitution score; MCK-UCB; RAPDL"
+    },
+    {
+      "date": "2026-09-09",
+      "findings": "2507.20753 OTTO DNN vs LambdaMART (Worth Reading); adjacent Watch 2608.28905 SID-OPE (Criteo); radar Harness-R1 path from agent scout overlap",
+      "terminology": "OTTO LTR team (Lutz/Wilm/Duwe); SNIPS_hier / code-prefix OPE; PRQ-KMeans (parked tokenizer)"
+    },
+    {
+      "date": "2026-09-09",
+      "findings": "2609.04518 Multi-Harness RL (Worth Reading); 2609.04871 AutoLR NetEase (Worth Reading); Watch 2608.02276 Harness-R1",
+      "terminology": "Within vs Cross GRPO grouping; KEEP ratchet; AutoLR / Auto Launch Review; Harness-R1 engineer"
+    },
+    {
+      "date": "2026-09-09",
+      "findings": "2608.12680 Walmart Demand Transfer (Park — assumptions-heavy, not causal RCT); no new TSFM-vs-GBDT or planogram RCT cleared bar",
+      "terminology": "Restricted logit demand transfer (DT) coefficients at 1M+ items"
+    },
+    {
+      "date": "2026-09-10",
+      "findings": "2608.06213 Gryphon-v2 (Must Read); 2606.08604 Gryphon (Worth Reading)",
+      "terminology": "Gryphon / Gryphon-v2 (Yandex Music); Item-Level Scoring Module (ILSM); Rollout Distillation; Teacher Ranker (training-only); collision class expansion + item budget"
+    },
+    {
+      "date": "2026-09-10",
+      "findings": "2609.00643 REVISE (Radar/Watch); adjacent mentions PlanFence 2609.03340 / TROVE 2609.05019 (not featured)",
+      "terminology": "validity-guided recovery; revision delta × dependency impact; latest-version oracle"
+    },
+    {
+      "date": "2026-09-10",
+      "findings": "none cleared bar (Decathlon Chronos-2 AWS blog already known; 2506.05941 parked; OPTIMUS parked)",
+      "terminology": "(none retained)"
+    },
+    {
+      "date": "2026-09-11",
+      "findings": "2603.02999 OneRanker (Must Read); 2608.24034 TAGR (Worth Reading)",
+      "terminology": "OneRanker / Fake Item Tokens / Distributional Consistency (DC) loss; TAGR / LSID / IAG / MF-NTP / IOPO (Kuaishou)"
+    },
+    {
+      "date": "2026-09-11",
+      "findings": "2607.06273 AgentTether (Radar/Watch); PlanFence/TROVE remain non-featured (controlled safety / skill orchestration)",
+      "terminology": "Critical Transition Graph; Repair Memory; Check→Decide→Inject intervention guards"
+    },
+    {
+      "date": "2026-09-11",
+      "findings": "none cleared bar (playbooks/methodology only; no new retail paper with decision metrics + causal ID)",
+      "terminology": "(none retained)"
+    },
+    {
+      "date": "2026-09-14",
+      "findings": "2607.24439 UniR2 (Must Read); 2602.22732 GR4AD (Worth Reading); adjacent Watch 2608.03150 UniGD",
+      "terminology": "UniR2 / DQ-PCA / ranking LoRA isolation; GR4AD / UA-SID / MGMR / LazyAR / RSPO / DBS"
+    },
+    {
+      "date": "2026-09-14",
+      "findings": "2609.10922 Auto-RecSys (Worth Reading); Radar Watch 2608.02464 telemetry failure detect+repair",
+      "terminology": "Auto-RecSys playbook dual-loop; human bandwidth per idea; cognitive-procedural separation"
+    },
+    {
+      "date": "2026-09-14",
+      "findings": "none cleared bar (CD/VN2 already known; blogs/old Dominick’s experiments; OPTIMUS parked)",
+      "terminology": "(none retained for report)"
+    },
+    {
+      "date": "2026-09-15",
+      "findings": "2607.24255 OxygenREC-v2 (Must Read); adjacent Watch 2602.22913 SIGMA; 2607.11392 CRID",
+      "terminology": "OxygenREC-v2 / IDGR / behavior instruction Ib; entropy-aware privileged self-distillation; UCTCVR"
+    },
+    {
+      "date": "2026-09-15",
+      "findings": "2603.00632 QuaSID (Worth Reading); Watch 2605.25330 Faithful SID tokenizer eval; Watch CRID",
+      "terminology": "QuaSID / HaMR / Conflict-Aware Valid Pair Masking; CCE ItemHit/ItemNDCG; ZCR; CRID cluster-rank DocID"
+    },
+    {
+      "date": "2026-09-15",
+      "findings": "2609.01622 RecEvolve (Worth Reading); Radar Watch 2607.29241 RecHarness",
+      "terminology": "RecEvolve Orchestrator KEEP/rollback; in-batch-negative batch-size reward hack; RecHarness Thompson arm router + jump-basin"
+    },
+    {
+      "date": "2026-09-15",
+      "findings": "none cleared bar (VN2/CD/FAME/TimesFM-3 blog already known or accuracy-only; no new staggered planogram RCT)",
+      "terminology": "(none retained for report)"
+    },
+    {
+      "date": "2026-09-16",
+      "findings": "2605.05803 UniVA (Must Read); 2605.14434 CQ-SID/EG-GRPO (Worth Reading); Watch 2607.18796 TSGR; Watch 2511.18793 NEZHA",
+      "terminology": "UniVA / Commercial SID (CSID) / Generation-as-Ranking (GAR) / personalized valid-path trie; CQ-SID / EG-GRPO expert injection; TSGR QP-SID / VRM; NEZHA self-draft + hash-set verifier"
+    },
+    {
+      "date": "2026-09-16",
+      "findings": "2602.03338 Intervention Paradox (Worth Reading); Watch 2512.04123 MAP (production survey rates)",
+      "terminology": "disruption–recovery tradeoff; p*=d/(r+d) intervention threshold; 50-task pre-deployment pilot"
+    },
+    {
+      "date": "2026-09-16",
+      "findings": "Watch 2603.10511 PATRO (theory+numerical dual adjustments; not field RCT); no new matched TSFM↔GBDT promo+stockout bake-off; no field staggered planogram RCT cleared bar",
+      "terminology": "PATRO Predict–Adjust–Then–Rollout–Optimize; dual rollout vs downstream adjustment complementarity"
+    },
+    {
+      "date": "2026-09-17",
+      "findings": "2606.31031 GenPage (Must Read); 2604.12234 UniRec (Must Read); Watch 2602.22647 STATIC; Watch 2607.10044 FlashTrie; Watch 2603.22916 GateSID",
+      "terminology": "GenPage / WBC homepage generation (Netflix); UniRec / Chain-of-Attribute (CoA) / Capacity-constrained SID (Shopee); STATIC CSR trie constrained decoding (YouTube); FlashTrie GPU succinct trie; GateSID GFSA/GRCA (Alibaba International)"
+    },
+    {
+      "date": "2026-09-17",
+      "findings": "2606.26859 AgentX (Worth Reading); Watch 2609.02730 CORAL (Meta config harness)",
+      "terminology": "AgentX KEEP/EXTEND/DISCARD + SGPO harness evolution; CORAL constraint-optimized agentic loop / engagement–efficiency frontier"
+    },
+    {
+      "date": "2026-09-17",
+      "findings": "none cleared bar (censored-newsvendor theory 2602.16842 parked; Offline KM multi-product already known; no new staggered planogram RCT; no matched TSFM↔GBDT promo+stockout bake-off)",
+      "terminology": "(none retained for report)"
+    },
+    {
+      "date": "2026-09-18",
+      "findings": "2608.17613 OGR (Must Read)",
+      "terminology": "OGR / TUSID / GL2P / SPA / CountSketch collaborative injection (CCE) / confidence-aware weighting (CAW)"
+    },
+    {
+      "date": "2026-09-18",
+      "findings": "2608.09408 DREAM (Worth Reading); Watch/Radar 2608.18637 PILOT",
+      "terminology": "DREAM Intent Engine L0/L1/L2; Meta Engine M1→M2→M3; Reward Dual Loop; PILOT Experiment Manager / Search Planner / Memory Curator; ROAM reactive baseline; PolicyTree"
+    },
+    {
+      "date": "2026-09-18",
+      "findings": "Watch/Radar AdaSID 2604.23522; no new matched TSFM↔GBDT or staggered planogram RCT cleared bar",
+      "terminology": "AdaSID"
+    },
+    {
+      "date": "2026-09-21",
+      "findings": "2609.18148 LIGE-GR (Must Read); 2608.11015 Sona (Must Read); Watch 2608.07989 PushDualGen",
+      "terminology": "LIGE-GR / Palette decoder / ListVM / context-aware CA vs context-free CF; Sona / History Compression / Teacher Ranker distillation ladder; PushDualGen SID+copy"
+    },
+    {
+      "date": "2026-09-21",
+      "findings": "2609.16407 UVR / Wolt (Worth Reading); Watch 2607.28895 SnapLGR; Watch 2604.03949 Snap SID design choices; Watch 2608.18779 SIDScope",
+      "terminology": "UVR / trial-biased YetiRank / Merchant Trial Rate; SnapLGR CPT→SFT; SIDScope D1–D7 diagnostics"
+    },
+    {
+      "date": "2026-09-21",
+      "findings": "none cleared bar (no new matched TSFM↔GBDT; no staggered planogram RCT; agent harness already covered by DREAM/PILOT/CORAL/RecHarness)",
+      "terminology": "(none retained for report)"
+    },
+    {
+      "date": "2026-09-22",
+      "findings": "2609.14493 VARG (Tmall), 2608.29652 ICEGR (Baidu), 2608.00938 GRACE (Meta ads), 2609.16625 AURA (Disney), 2609.21257 EvoPilot (video discovery)",
+      "terminology": "VARG-ID, Prefix-GRPO, LO-SFT; ICEGR Intent-Aware SID; GTM Generative Target Matching; diagnosis-first failure taxonomy; typed adapter and durable verification records"
+    },
+    {
+      "date": "2026-09-22",
+      "findings": "no new hybrid ranking paper clearing bar; AURA 2609.16625; EvoPilot 2609.21257; SIDInspector 2606.10375 (Radar)",
+      "terminology": "mapping-first SID tokenizer diagnostics; diagnosis→PR; verify-don't-trust"
+    },
+    {
+      "date": "2026-09-22",
+      "findings": "2609.13840 Accuracy Is Not Service (decision-aware intermittent demand; accuracy↔service inversion); no field staggered planogram RCT; CEDAR and GBM intermittent-demand results parked",
+      "terminology": "Bias-Direction Diagnostic (BDD); RUF regenerate-until-fidelity; complete-order fill rate (COFR)"
+    },
+    {
+      "date": "2026-09-23",
+      "findings": "2609.22747 Beyond Raw Engagement Netflix (Must Read); 2609.23718 UNIQUE Baidu (Worth Reading); 2609.17391 FlashVector Unity (Worth Reading); Watch/Radar 2609.23877 YT Music; 2609.23677 MuSeR; 2607.03362 HGenPush; 2602.08575 RankGR",
+      "terminology": "counterfactual observability / row incrementality; UNIQUE flat quantization early-fusion; FlashVector profile–diagnose–optimize–verify serving agent; Chained-MTP (HGenPush); YDD shelf engagement"
+    },
+    {
+      "date": "2026-09-23",
+      "findings": "FlashVector 2609.17391 (serving agent layer); YT Music 2609.23877 (offline LLM rationales); no new hybrid Transformer–GBDT clearing bar beyond UVR",
+      "terminology": "serving-stack agent; LLM rationale holdback"
+    },
+    {
+      "date": "2026-09-23",
+      "findings": "Watch t0 2609.24559 (covariate TSFM +6.3 skill; not retail promo+stockout bake-off); no field staggered planogram RCT cleared bar; FreshRetailNet/VN2/Restricted-Logit already known",
+      "terminology": "t0-alpha/t0-beta"
+    },
+    {
+      "date": "2026-09-24",
+      "findings": "2608.26804 Spotify Incremental Recommendation (Must); 2607.14161 Pinterest Causal Retrieval (Worth); 2609.04961 SAM-D2Q AliExpress (Radar)",
+      "terminology": "attribution window mismatch; dual-threshold targeting (Spotify); Shopping Holdout + reverse metrics + linear-time offline replay (Pinterest); SAM-D2Q multimodal Doc2Query + GRPO business alignment (AliExpress)"
+    },
+    {
+      "date": "2026-09-24",
+      "findings": "2609.26777 SWE-Serve (Worth)",
+      "terminology": "SWE-Serve; model-serving E2E gap; mini-SWE-agent vs Codex/Claude Code on SGLang tasks"
+    },
+    {
+      "date": "2026-09-24",
+      "findings": "none clearing bar",
+      "terminology": "(none retained beyond SWE-Serve harness sensitivity)"
+    },
+    {
+      "date": "2026-09-24",
+      "findings": "Watch/Radar IGPO 2609.04813 (Huawei inventory-grounded training-free policy guidelines; CTR +3.17% / bad-case −38.9%); no field staggered planogram RCT; no matched promo+stockout TSFM↔GBDT bake-off",
+      "terminology": "IGPO; inventory portrait; Policy Guidelines vs environment facts; false no-inventory / false match rates"
+    },
+    {
+      "date": "2026-09-25",
+      "findings": "2609.18296 ANGLE Tencent One-Step Retrieval (Worth Reading); no PushDualGen↔HGenPush / UNIQUE↔OGR matched bake-offs",
+      "terminology": "ANGLE; GDR-LLM; intent-abstract hierarchical text IDs; WTS/QBS"
+    },
+    {
+      "date": "2026-09-25",
+      "findings": "2608.10182 LinkedIn From Prediction to Incrementality (Must Read)",
+      "terminology": "DragonBandit; last-layer Laplace TS; dual LP allocation; withhold-negative send; agentic A/B scaffolding; delivery/cost feedback controller"
+    },
+    {
+      "date": "2026-09-25",
+      "findings": "Radar 2609.28383 Beyond a Scalar DSI; Crossflow 2609.27085 parked",
+      "terminology": "Distributional Serving Interface (DSI); provider→summary→readout"
+    },
+    {
+      "date": "2026-09-25",
+      "findings": "Radar 2609.27606 SGC direction drift (IGPO-adjacent); no hybrid listwise / SID eligibility clearing bar",
+      "terminology": "direction drift; SGC wrappers (Perception/Grounding/Interaction)"
+    },
+    {
+      "date": "2026-09-28",
+      "findings": "none clearing bar (GBM intermittent / last-mile assortment parked)",
+      "terminology": "(none retained)"
+    },
+    {
+      "date": "2026-09-28",
+      "findings": "2609.28589 OneTrans-V2 (Worth Reading; GMV +9.74% / 3.2× QPS) — map-moving cascade-preserving unify",
+      "terminology": "DCGR decision-conditioned generative retrieval; business offset; Sequence-Native Training (SNT)"
+    },
+    {
+      "date": "2026-09-28",
+      "findings": "Radar 2609.24974 Harness-Zero; Watch 2609.19759 SAIGE",
+      "terminology": "Harness-Zero / agent-as-harness distillation; SAIGE sparse vs dense dependency"
+    },
+    {
+      "date": "2026-09-28",
+      "findings": "Radar Evaluation Choices (unit of analysis / selection-rule floor–ceiling / M5 replay)",
+      "terminology": "floor-to-ceiling selection capture; aggregation dial"
+    },
+    {
+      "date": "2026-09-29",
+      "findings": "2609.19760 SabreAgent (Must); 2609.01933 OR-Transformer (Worth); Radar 2602.22685 Switch-Hurdle; Watch 2608.14275 Joint Placement; InventoryBench 2602.12631; Skip 2603.16815 Beyond Accuracy",
+      "terminology": "SabreAgent design-time LLM / projected-inventory shortfall; OR-Transformer pathwise JRP; Switch-Hurdle STE Top-1 + hurdle NB; InventoryBench (Baek et al.)"
+    },
+    {
+      "date": "2026-09-29",
+      "findings": "none clearing bar (OneTrans-V2 already featured 09-28; no UNIQUE↔OGR / PushDualGen↔HGenPush matched bake-off)",
+      "terminology": "(none retained)"
+    },
+    {
+      "date": "2026-09-29",
+      "findings": "SabreAgent must (design-time inventory); no new FlashVector∘Harness-Zero / SWE-Serve E2E compose",
+      "terminology": "design-time vs runtime LLM placement for inventory"
+    },
+    {
+      "date": "2026-09-30",
+      "findings": "SSRN abstract_id=6788658 confirmed (Sui/Xiao/Xin/Huang/Cao); no arXiv; PDF blocked — remain Park",
+      "terminology": "holiday rate (promotion-intensity covariate); LoRA ≈ full FT (secondary)"
+    },
+    {
+      "date": "2026-09-30",
+      "findings": "Radar ISOMORPH 2605.12768; Skip thin AAIRM 2511.23366",
+      "terminology": "Isomorph Markov logistics twin; fill rate / edge utilization as forecast targets; forward UQ"
+    },
+    {
+      "date": "2026-09-30",
+      "findings": "still empty (Experimental Assortments 2602.16137 theory Watch only)",
+      "terminology": "(none retained for field RCT)"
+    },
+    {
+      "date": "2026-09-30",
+      "findings": "Must InvEvolve 2605.00369; Worth RetailBench 2603.16453; Radar Constrained Deep Inventory FBSDE 2609.11817 (Amazon)",
+      "terminology": "InvEvolve LGPS / Tilted-CBS / Tilted-PIC; RetailBench Dominick's POMDP; high-relative-degree CBF pathwise budgets"
+    },
+    {
+      "date": "2026-09-30",
+      "findings": "none clearing bar (PushDualGen already Watch; no matched bake-off)",
+      "terminology": "(none retained)"
+    },
+    {
+      "date": "2026-09-30",
+      "findings": "none clearing bar; RA-DFL visible via Exa without arXiv ID — Park watch",
+      "terminology": "RA-DFL (pending arXiv)"
+    },
+    {
+      "date": "2026-10-01",
+      "findings": "Must DeepStock 2603.19621 (Alibaba Tmall 100% DRL + base-stock/coeff regularization; DiD + counterfactual SR/TT)",
+      "terminology": "DeepStock Base/Coeff/Both regularizations; Stockout Rate ℓ_SR + Turnover Time ℓ_TT; Linwei Xin co-author with Alibaba deployment"
+    },
+    {
+      "date": "2026-10-01",
+      "findings": "Worth Hard Constraints Diff Projection 2608.02343 (ASML −3.22%; cites DeepStock)",
+      "terminology": "dual-informed integer mapping; HDPO+QP projection; ASML Research Challenge 2025"
+    },
+    {
+      "date": "2026-10-01",
+      "findings": "Radar Bridging Forecast Accuracy 2601.21844 (TruckParts open-source; Croston beats XGBoost on cost); RA-DFL still Park (no arXiv); Watch Scalable DFL 2605.18005",
+      "terminology": "TruckParts-Demand-Inventory-Simulator; RA-DFL censoring-consistent decision loss (pending)"
+    },
+    {
+      "date": "2026-10-01",
+      "findings": "still Park — PDF unreachable; no arXiv"
+    },
+    {
+      "date": "2026-10-01",
+      "findings": "still empty for field staggered planogram/assortment RCT; only consulting playbooks / unrelated staged-rollout econ"
+    },
+    {
+      "date": "2026-10-01",
+      "findings": "none clearing bar (Harness-Zero∘SWE-Serve still empty; Flowr Skip; DeepStock is DRL structure cell not LLM agent)"
+    },
+    {
+      "date": "2026-10-01",
+      "findings": "none clearing bar (UNIQUE/OneTrans-V2 already featured; no UNIQUE↔OGR / PushDualGen↔HGenPush matched bake-off)"
+    },
+    {
+      "date": "2026-10-02",
+      "findings": "Must ORPR 2512.19001 (JD OR-pretrain+RLOO; field −5.27d / +2.29% ISR / −29.95% holding + DiD); Worth Proximal Residual 2609.23242 (Amazon SCOT placement −5% OOS)",
+      "terminology": "ORPR Pretrain-then-Reinforce / RLOO inventory; Proximal residual / PCSP / State-prox; JD Team Y overlap with SabreAgent"
+    },
+    {
+      "date": "2026-10-02",
+      "findings": "Radar RA-DFL (journal primary; M5 −3.7% vs LightGBM-QR; CVaR-on-PTO +9.7%); Park censored-demand-tsfm (no arXiv)",
+      "terminology": "censoring-consistent decision loss; state-conditional risk level (RA-DFL)"
+    },
+    {
+      "date": "2026-10-02",
+      "findings": "Worth Proximal Residual (placement consistency cell); Diff Projection already featured 10-01"
+    },
+    {
+      "date": "2026-10-02",
+      "findings": "still empty (1994 Dreze / consulting playbooks only); Watch ACT/WAIT synthetic pricing abstention"
+    },
+    {
+      "date": "2026-10-02",
+      "findings": "still Park — PDF unreachable; no arXiv"
+    },
+    {
+      "date": "2026-10-02",
+      "findings": "none clearing bar (Harness-Zero∘SWE-Serve still empty; ORPR is OR+RL not LLM agent; sharpens SabreAgent contrast)"
+    },
+    {
+      "date": "2026-10-02",
+      "findings": "none new matched bake-off (OGR 2608.17613 previously identified on 2026-09-18)"
+    },
+    {
+      "date": "2026-10-05",
+      "findings": "Must Zalando High-frequency pricing 2606.13741 (23 randomized A/Bs, PCII +6.00% [0.79, 11.03]); Watch structure-guided substitutable dynamic pricing 2609.24605",
+      "terminology": "Zalando Pricing (Birr, Huelden, Januschowski); LTP+α·NMV weighted-sum Pareto; \"do no harm\" adoption bar; Tweedie vs MSE promise-vs-delivery"
+    },
+    {
+      "date": "2026-10-05",
+      "findings": "Worth EXAONE Demand 2609.30880; Radar When-Not-How-Much 2609.39386; Watch 2609.27912 (global GBDT collapse at hierarchy total), 2610.02058 (SimpleTimeBench), 2609.39445 (RR-MoA), 2609.40117 (RBV regime bias), 2609.28607 (fable.intermittent); Skip 2610.00589 (TimesFM-3 sim)",
+      "terminology": "LG AI Research EXAONE TS line (EXAONE Finance 2609.04239); demand-class routed LoRA MoE; within-window event ranking / AP skill; normalization-induced routing collapse; RetailShiftBench"
+    },
+    {
+      "date": "2026-10-05",
+      "findings": "FreshRetailNet v3 (\"FreshRetailNet-LT\", 2026-06-09) Chronos-2 zero-shot/LoRA vs TFT under recovery — Watch (no GBDT, accuracy only; v4/v5 reverted title); Watch Biased SAA 2609.39397 (theory)"
+    },
+    {
+      "date": "2026-10-05",
+      "findings": "Watch 2609.29080 (LMD driver misconduct IV, −1.60% next-day deliveries); Watch RAID 2606.16925 (true cold start; LightGBM wins retail CRPS); SC risk GNN 2609.32741 (prelim, not logged); Learning to Staff 2603.24883 (offline RL warehouse sim, not logged)"
+    },
+    {
+      "date": "2026-10-05",
+      "findings": "Park \"Beyond the Shelf\" (6 treated vs 10 control stores, +21.2% / +27.6%); otherwise Dreze 1994 again"
+    },
+    {
+      "date": "2026-10-05",
+      "findings": "Radar 2609.29875 (externalization gap 67.3% vs 36.2%; trajectory amplification); Watch AgentX-Model 2609.30001, agent serving trace 2609.34432; Skip 2609.39958, 2609.37658, 2609.27385",
+      "terminology": "trajectory amplification; internalization–externalization gap; WorkBuddyBench"
+    },
+    {
+      "date": "2026-10-05",
+      "findings": "none map-moving; Watch 2609.38999 (LLM vs aggregate user context conditional on habitual/exploratory); Skip GEAR 2609.39327"
+    },
+    {
+      "date": "2026-10-05",
+      "findings": "no material changes (versions unchanged; DeepStock code already known); Bitter Lesson primary text unavailable at that historical review"
+    },
+    {
+      "date": "2026-10-08",
+      "findings": "Worth Sim2Real policy-conditioned inbound forecasting 2610.03662 (Amazon); Radar traffic forecast-to-decision 2610.06992; Watch 2610.04385 (Rashomon-robust newsvendor), 2610.07232 (TSFM load under covariate uncertainty), 2610.08337 (redispatch LightGBM vs zero-censored Transformer); Skip 2610.08409, 2610.07834",
+      "terminology": "policy-conditioned forecasting / forecasting cold start under policy change; Exo-IDP counterfactual rollouts as training data; layered forecast-to-decision admission (temporal observability, action identifiability, oracle structural value)"
+    },
+    {
+      "date": "2026-10-08",
+      "findings": "Park Azar 2026 FreshRetailNet leakage-free IMR/Tobit + LightGBM + newsvendor pipeline (no arXiv); closest prior to Sim2Real = Outbound Modeling 2507.10890 (same group); planogram: only Beyond the Shelf / STARS again"
+    },
+    {
+      "date": "2026-10-08",
+      "findings": "Worth What Does a Harness Buy? 2610.04433; Radar HEAR 2610.06597; Watch ServeLearnBench 2610.07792, SHarP 2610.04178, compaction-harm 2610.08722, Coda 2610.03088",
+      "terminology": "rerun flip rate as harness-comparison yardstick; per-step preamble cost model; harness–engine pairing protocol"
+    },
+    {
+      "date": "2026-10-08",
+      "findings": "Watch SIFT Airbnb 2610.07810, context-sufficiency 2610.00654; nothing map-moving (no UNIQUE↔OGR, PushDualGen↔HGenPush)"
+    },
+    {
+      "date": "2026-10-08",
+      "findings": "no material changes (versions as previously known)"
+    }
+  ]
+}

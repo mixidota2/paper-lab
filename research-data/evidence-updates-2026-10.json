@@ -1,0 +1,143 @@
+{
+  "scope": "Historical scientific findings and caveats, not individual reading or publication state.",
+  "evidence_updates": [
+    {
+      "date": "2026-10-16",
+      "thread": "causal-placement-and-assortment",
+      "question": "Does a controlled store rollout identify durable placement or assortment effects beyond simulated causal lift?",
+      "paper_id": "10.1371/journal.pmed.1004575",
+      "evidence": "WRAPPED18 intervention plus18 matched control stores; household primary6month+3.3ppCI[-2.5,9.2], store secondary immediate+.32SD[.11,.53],6month+.18[-.16,.52].",
+      "interpretation": "Adds real store and household endpoints to earlier simulation evidence; nonrandom refurbishment and bundled range+location cannot identify pure shelving effect.",
+      "unresolved": "Randomized staggered rollout, separate placement/range, persistent consumer and inventory outcomes still missing.",
+      "source": "https://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.1004575",
+      "publication_date": "2026-03-31",
+      "retrieval_date": "2026-10-16"
+    },
+    {
+      "date": "2026-10-16",
+      "thread": "agent-architecture-and-harness",
+      "question": "When harness scores change, did agent behavior improve, or did measurement change?",
+      "paper_id": "2610.11678",
+      "evidence": "TRACE combines paired reruns, trajectory checks and fixed-trajectory rescoring;88new tasks x3 repetitions;7/8 equivalentwithin10pp,6/8Bonferroni; rerunflips14.7-35.6%.",
+      "interpretation": "Extends Harness Buy/HEAR from cost and serving effects to evaluator attribution. Same-record rescore is essential for a verifier claim; fresh rollouts only establish whole-system sensitivity.",
+      "unresolved": "Qwenformat inconclusive; native partlyLLM reward not truth; exactStudy2/3 public artifact missing; no deployment or training-loop superiority.",
+      "source": "https://arxiv.org/html/2610.11678v1",
+      "publication_date": "2026-10-08",
+      "retrieval_date": "2026-10-16"
+    },
+    {
+      "date": "2026-10-16",
+      "thread": "observed-sales-vs-latent-demand",
+      "question": "Does demand recovery improve actual inventory/service outcomes rather than an observed-sales proxy?",
+      "paper_id": "10.3390/inventions11050089",
+      "evidence": "Azar publisher DOI and official FreshRetailnet-50k-Analysis v1.1.0 found; author run_manifest explicitly evaluates proxy profit/fill against censored observed sales.",
+      "interpretation": "Important metadata/access improvement, not a validated latent-demand outcome. Full text unavailable; no reproduction.",
+      "unresolved": "Read primary full paper when legitimately accessible; validate actual latent demand/service rather than promote code proxy.",
+      "source": "https://github.com/josephazar/FreshRetailnet-50k-Analysis",
+      "retrieval_date": "2026-10-16"
+    },
+    {
+      "date": "2026-10-16",
+      "thread": "observed-sales-vs-latent-demand",
+      "question": "Can known historical stock avoid a separate censoring model when learning a decision directly?",
+      "paper_id": "2610.17465",
+      "evidence": "SCQ subtractive adjustment; conditional independence and target-quantile exploration required. M5 experiments synthetically create stock and latent demand on2919smooth/erratic series; noGBDT/TSFM.",
+      "interpretation": "Useful next theory/implementation review, not closure of operational recovery gap; appendix regularization and model-class confounding need scrutiny.",
+      "source": "https://arxiv.org/html/2610.17465v1",
+      "publication_date": "2026-10-12",
+      "retrieval_date": "2026-10-16"
+    },
+    {
+      "date": "2026-10-22",
+      "thread": "causal-placement-and-assortment",
+      "paper_id": "10.1371/journal.pone.0346492",
+      "interpretation": "Exposure gains must be checked against navigation costs at aisle level. Single-store before/after does not close controlled staggered rollout gap.",
+      "source": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0346492",
+      "publication_date": "2026-04-22",
+      "retrieval_date": "2026-10-22"
+    },
+    {
+      "date": "2026-10-23",
+      "paper_id": "10.2139/ssrn.6788658",
+      "interpretation": "Paper-linked CGPZ code inspected read-only in cloud browser and independently reviewed. Default fresh-cache Prophet teacher fits weeks3–70 before validation41–70, so validation covariates can depend on validation targets. This is static snapshot data-flow, not proof of paper execution or measured impact; price-only headline unaffected and test71–100 targets not fitted. Validation-grid19 in code versus21 in manuscript; native21 training is distinct. Baseline/Chronos clipping differs, potentially intentional book fidelity."
+    },
+    {
+      "date": "2026-10-23",
+      "paper_id": "10.1371/journal.pmed.1004575",
+      "interpretation": "Official S2 Box all one page read and visually inspected. Logistic household model/time dummies/woman random effects and ITS terms/delta-method CIs confirmed. No residual correlation/estimation or probability-difference conversion details provided; no replication. Supersedes prior S2-unread statements as current read status only.",
+      "source": "https://doi.org/10.1371/journal.pmed.1004575.s006",
+      "retrieved_at": "2026-10-22T23:58:02Z"
+    },
+    {
+      "date": "2026-10-26",
+      "thread": "agent-architecture-and-harness",
+      "paper_id": "2610.31650",
+      "interpretation": "Truthful incomplete observations require evidence recovery evaluated jointly in prohibited/permitted twins. UCR task scope, observed SBM and paired useful recovery answer different questions; no model-ranking or production-safety guarantee.",
+      "source": "https://arxiv.org/html/2610.31650v1",
+      "publication_date": "2026-10-22",
+      "announcement_date": "2026-10-23",
+      "retrieval_date": "2026-10-26 JST"
+    },
+    {
+      "date": "2026-10-26",
+      "thread": "observed-sales-vs-latent-demand",
+      "paper_id": "10.31235/osf.io/a2twx_v1",
+      "interpretation": "Batch freshness and conditional markdown value are relevant, but single-store controlled before/after cannot isolate production/freshness changes. Figure7 diagram+3.61% versus caption+0.9% differs visibly; not a numerical reproduction basis.",
+      "source": "https://www.kohei-hayashida.com/files/papers/demand_estimation_pricing_perishable_food.pdf",
+      "publication_date": "2026-06-04",
+      "retrieval_date": "2026-10-26 JST"
+    },
+    {
+      "date": "2026-10-28",
+      "thread": "agent-architecture-and-harness",
+      "paper_id": "2610.35496",
+      "interpretation": "Memory reduction must price prefix invalidation and selective reacquisition, not only retained tokens or passed tasks. Modeled pricing on logged trajectories is not a provider bill or equivalence test.",
+      "source": "https://arxiv.org/html/2610.35496v1",
+      "publication_date": "2026-10-26",
+      "retrieval_date": "2026-10-28 JST"
+    },
+    {
+      "date": "2026-10-28",
+      "thread": "tabular-vs-neural-forecasting",
+      "paper_id": "2610.34797",
+      "interpretation": "Action-conditioned forecast benchmark does not establish action-effect identification. M5 RMSE improvement coexists with MAE/MASE deterioration; no matched GBDT, censor recovery or service outcome.",
+      "source": "https://arxiv.org/html/2610.34797v1",
+      "publication_date": "2026-10-26",
+      "retrieval_date": "2026-10-28 JST"
+    },
+    {
+      "date": "2026-10-28",
+      "thread": "observed-sales-vs-latent-demand",
+      "paper_id": "10.1111/jbl.70079",
+      "interpretation": "Inventory record repair is a distinct operational measurement problem. One matched store pair with coin-flip assignment and SKU-clustered inference does not establish general audit ROI or ex-ante targeting. Older catch-up, not new publication.",
+      "source": "https://onlinelibrary.wiley.com/doi/10.1111/jbl.70079",
+      "publication_date": "2026-07-07",
+      "retrieval_date": "2026-10-28 JST"
+    },
+    {
+      "date": "2026-10-28",
+      "paper_id": "2610.35767",
+      "interpretation": "RCA comparison useful but task-contract/reimplementation and incomplete model coverage limit causal harness attribution.",
+      "source": "https://arxiv.org/html/2610.35767v1",
+      "publication_date": "2026-10-26"
+    },
+    {
+      "date": "2026-10-30",
+      "paper_id": "2603.24883",
+      "finding": {
+        "url": "https://arxiv.org/html/2603.24883v1",
+        "version": "v1",
+        "publication_date": "2026-03-25",
+        "retrieved_date": "2026-10-30 JST",
+        "read_scope": "Main sections 1–5, equation 1, Tables 1–4 and figure captions. Bibliography not exhaustive; no PDF pixel audit, code/data or reproduction.",
+        "summary": "Warehouse staffing is evaluated in learned/handcrafted simulators, not live deployment. Against replayed historical allocations, actor-critic reports +2.4% throughput and best-trajectory behavior cloning +2.1%. The replayed baseline cannot respond to simulated state drift, whereas the learned policy can; this is not evidence of superiority to live workers. LLM and offline-RL results use different simulators and are not directly comparable. Confidence intervals exclude training-seed variation. DPO preference generation and evaluation share simulator dynamics."
+      }
+    }
+  ],
+  "open_research_questions": [
+    "Promo/stockout-controlled TSFM vs GBDT including inventory/service outcomes",
+    "Staggered store planogram randomized field test with control stores",
+    "Structural latent-demand recovery linked to service outcomes; FreshRetailNet/Azar arXiv follow-up",
+    "Harness-Zero plus SWE-Serve end-to-end verification"
+  ]
+}
