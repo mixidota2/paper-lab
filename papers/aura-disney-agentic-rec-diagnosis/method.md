@@ -8,7 +8,7 @@ Session selectionはrandom・stratified・engineer SQL・agent提案を組み合
 
 ### 高価な推論は圧縮後へ回す
 
-Gemini 3 Flashが大量分類・統合、Gemini 3.1 Proが分析・検証・要約、Claude Opus 4.6がcode提案を担う（Table 5）。決定的なorchestratorがroutingする。rubricを採点するmodelと実際の作業modelを区別する。
+Gemini 3 Flashが大量分類・統合、Gemini 3.1 Proが分析・検証・要約、Claude Opus 4.6がcode提案を担う（Table 5）。決定的なorchestratorがroutingする。rubricは診断出力を点検する評価基準であり、その適合数は利用者への推薦精度ではない。rubricを採点するmodelと実際の作業modelを区別する。
 
 Hypothesis stageはranker code、feature、label、training、schemaを参照し、変更箇所へ仮説を結び付ける。これは形式的な因果推論ではない。Code stageは生成→別model評価→修正を回し、最後にpath/importの実在をprogrammaticに検査する。session IDも入力に存在するか調べ、parse失敗をdata-quality flagとして残す。
 

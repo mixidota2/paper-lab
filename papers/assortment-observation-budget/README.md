@@ -13,7 +13,7 @@ uv run --locked paper-lab build --out dist/assortment-preview
 uv run --locked python tests/review_103.py --preflight --site dist/assortment-preview --out /tmp/assortment-preflight-new
 ```
 
-run.pyは標準ライブラリだけで動き、同じ場所のresults.jsonをcompact JSONとして再生成します。配布run.pyは単独で動きます。96条件＝4選好×8予算×3倍率。Cの最大有効経路数は1296、mは2〜9。乱数もseedもありません。生成前にこの予算を固定しました。
+run.pyは標準ライブラリだけで動き、同じ場所のresults.jsonを、不要な空白を省いたJSON形式で再生成します。配布run.pyは単独で動きます。96条件＝4選好×8予算×3倍率。Cの最大有効経路数は1296、mは2〜9。乱数もseedもありません。生成前にこの予算を固定しました。
 
 Aは正の厳密降順の有理数列。画面は6候補に限定。B/Cは(3a,2a,a)の正倍率のみ。Bの厳密二項計算はm≤128、Cは⌊m/2⌋≤4で累乗・列挙前に拒否します。これは教材の資源制限で、理論上限ではありません。任意巨大分数のビット長まで安全という保証はしません。統合UIはm≤9で計算済み条件だけを選びます。
 

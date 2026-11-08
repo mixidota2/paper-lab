@@ -61,7 +61,7 @@ sections:
     suggestion費用はOpus 4.6の料金からの推定で、全項目が実測telemetryではない。'
   executable_understanding: '`uv run papers/aura-disney-agentic-rec-diagnosis/run.py`。人工カテゴリを割合のみとtop-N/count/割合＋safety例外で選び、証拠session・code
     pathが存在するかを検査する。noise内の差をholdにする例も示すが、この数値gateはLabの説明用で、AURAの公式出荷規則ではない。'
-  results: 5%のみでは5カテゴリ中3つを残し、件数・safety例外を加えると5つが残る。10件のage問題が消えなくなる。架空session、架空path、証拠なしの3変異を拒否し、有効なfindingだけを通した。これは診断内容が正しいことや、genre問題の原因を推定できることの確認ではない。
+  results: 5%のみでは5カテゴリ中3つを残し、件数・safety例外を加えると5つが残る。10件のage問題が消えなくなる。架空session、架空path、証拠なしの3変異を拒否し、有効なfindingだけを通した。ここで検査するのは、挙げられた参照が入力の集合に存在するかどうか。参照先の内容が診断を裏付けるかまでは判定しない。これは診断内容が正しいことや、genre問題の原因を推定できることの確認ではない。
   what_we_verified: Mechanism PARTIAL。低頻度category保持と参照の存在確認を人工入力で実行した。架空参照の拒否はCONFIRMED。診断品質のrubric上昇は著者報告でありLabではNOT
     TESTED。
   what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。session判定、因果推論、LLM間一致、実rankerの学習、A/Bを実行していない。提示メモの「出荷を拒否」は慎重に読む必要がある。原典は修正を未実証のopen

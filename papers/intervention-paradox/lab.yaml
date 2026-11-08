@@ -63,7 +63,7 @@ sections:
 
     pilotはQwenで成功10.7%±1.9%、p≈89%、r≈12%、d≈56%、p*≈82%と報告。202タスク評価のbaseline 5.8%とは別の集計である。単一の50タスクから10.7%が出る集計の詳細も十分でない。criticはALFWorld軌跡で学習していないが、温度較正には同domainのvalidationを使う。[一次資料
     §3–4、付録A/C](https://arxiv.org/pdf/2602.03338v1)'
-  executable_understanding: 'A/B/C/Dの小さい整数組を列挙し、直接の成功率差(C−B)/Nとp r−(1−p)dが一致するか検証する。操作図ではr=0.12、d=0.56を固定し、baseline失敗率pだけを動かす。さらに、この既知の確率から50タスクのpilotを2,000回生成し、有限標本で判断が揺れる程度を見る。AUROCやLLMの振る舞いは生成しない。
+  executable_understanding: 'A/B/C/Dの小さい整数組を列挙し、直接の成功率差(C−B)/Nとp r−(1−p)dが一致するか検証する。操作図ではr=0.12、d=0.56を固定し、baseline失敗率pだけを動かす。表示する回復・破壊の件数は、固定した率から計算した期待値であり、実際に観測した整数の件数ではない。さらに、この既知の確率から50タスクのpilotを2,000回生成し、有限標本で判断が揺れる程度を見る。AUROCやLLMの振る舞いは生成しない。
 
 
     <div class="paper-probe teaching" data-paper-probe="intervention-paradox"><h3>失敗率pと、介入の損益分岐点</h3><p>r=12%、d=56%を固定した感度分析。p*は82.35%。criticのaction閾値τを調節する操作ではない。</p><label>介入なしの失敗率p：<output

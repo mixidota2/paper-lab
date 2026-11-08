@@ -86,10 +86,10 @@ sections:
   executable_understanding: '`uv run papers/gryphon-v2-cascade/run.py`
 
 
-    2特徴の線形学生を、固定の線形教師 y=0.8x₁−0.6x₂ に MAE で近づける。表示候補では x₂=0、rollout 候補では x₁=0 と意図して分ける。impression-only、rollout-only、両方の3条件を同じ初期値・2400更新で比較する。各候補源で平均してから足す。
+    2特徴の線形学生を、固定の線形教師 y=0.8x₁−0.6x₂ に MAE で近づける。表示候補では x₂=0、rollout 候補では x₁=0 と意図して分ける。impression-only、rollout-only、両方の3条件を同じ初期値・2400更新で比較する。候補源ごとに教師との誤差の絶対値を合計し、その候補源の件数で割って平均を求める。得られた平均どうしを足す。全候補をまとめた平均ではない。
 
 
-    学習と異なる座標で教師誤差と pair accuracy proxy を測る。proxy の正解順も教師から作るため、論文のユーザーラベルによる WPA と同一ではない。衝突と再採点の例は [ILSM Lab](gryphon-ilsm.html#executable_understanding)
+    学習と異なる座標で教師誤差と pair accuracy proxy を測る。proxyは、教師が厳密な上下関係を付けた候補の組のうち、学生も同じ上下関係を付けた割合。学生の同点は一致に数えない。proxy の正解順も教師から作るため、論文のユーザーラベルによる WPA と同一ではない。衝突と再採点の例は [ILSM Lab](gryphon-ilsm.html#executable_understanding)
     で実行できる。'
   results: 片方の候補源だけでは、観測しない特徴の重みが初期値0のまま残る。混合すると両方向の教師信号を学べる。この例では、片方の候補源からは一方の特徴がまったく観測できないように入力を作っているので、混合による改善をそのまま本番の候補分布へ当てはめたり、原典
     Table 3 の差の大きさを予測したりはできない。

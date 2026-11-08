@@ -125,7 +125,7 @@ teaching_figures:
   steps:
   - name: 生成
     formula: Lgen = −Σ log πθ(token | query, prefix)
-    explanation: 関連広告のintentとabstractを教師にする。非関連広告では生成損失をmaskする。
+    explanation: 関連広告のintentとabstractを教師にする。非関連広告では生成損失を計算対象から外す（mask）。非関連広告を学習全体から捨てるのではなく、関連性の判定には使う。
   - name: 関連性
     formula: Ldis = −[y log p̂ + (1−y) log(1−p̂)]
     explanation: 関連・非関連の教師でdiscriminatorを学習する（式4）。

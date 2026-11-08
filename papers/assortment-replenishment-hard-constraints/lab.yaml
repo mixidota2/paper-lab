@@ -33,7 +33,7 @@ source_review:
   scope: 出版社HTMLの書誌を確認。詳細式・図6は提供された原典照合仕様を基に実装。原著実験の再現ではない。
 core_idea:
   author_claim: 需要の面数依存と未採用品からの代替需要を含め、商品別の棚在庫条件を満たす採用品と面数を選ぶ。
-  research_bot_interpretation: 利益を比べる前に代替需要を含む総需要で実行可能性を確かめる。需要を切り詰めた評価を元の制約問題の最適値と混ぜない。
+  research_bot_interpretation: 利益を比べる前に、代替需要を含む総需要に対して、商品ごとの棚在庫条件と棚幅の条件を満たすか確かめる。需要を切り詰めた評価を元の制約問題の最適値と混ぜない。
 sections:
   overview: オンライン公開2023年、巻号2024年の既刊論文。独自の小規模な説明用実験として扱う。
   problem: 需要が移った先の商品に、必要な棚在庫を確保できるか。
@@ -65,7 +65,7 @@ teaching_figures:
     formula_mathml: <math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>q</mi><mi>i</mi></msub><mo>=</mo><mrow><msub><mi>g</mi><mi>i</mi></msub><msub><mi>k</mi><mi>i</mi></msub></mrow></mrow></math>
   - name: 必要量
     formula: qᵢ ≥ fᵢ Dᵢ
-    explanation: 流入を含む総需要Dから、商品ごとの必要量を求める。
+    explanation: 未採用品から移る分を含む総需要Dに最低棚在庫比率fを掛け、商品ごとの必要量を求める。
     formula_mathml: <math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>q</mi><mi>i</mi></msub><mo>≥</mo><msub><mi>f</mi><mi>i</mi></msub><msub><mi>D</mi><mi>i</mi></msub></mrow></math>
 - kind: logic
   id: one-step

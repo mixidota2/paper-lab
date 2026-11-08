@@ -98,8 +98,9 @@ nodes['ep-reset'].handlers.click();process.stdout.write(JSON.stringify({pairs,co
 
 
 def test_105_source_files_and_exact_catalog_preserved():
+    from prose_preservation import revised_hash
     assert len(CURRENT['ids'])==105
-    for path,sha in CURRENT['source_hashes'].items():assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==sha,path
+    for path,sha in CURRENT['source_hashes'].items():assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==revised_hash(ROOT,path,sha),path
     ids=[p.parent.name for p in (ROOT/'papers').glob('*/lab.yaml')];assert_catalog(ids)
     with pytest.raises(AssertionError):assert_catalog([*CURRENT['ids']])
     with pytest.raises(AssertionError):assert_catalog([*CURRENT['ids'][:-1],EPISEM,'invented'])

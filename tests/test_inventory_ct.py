@@ -207,3 +207,65 @@ def test_cdf_fixed_precision_independent_of_ambient_decimal_context():
     for x, actual in zip(points, expected):
         assert math.isclose(actual, math.expm1(float(x))/math.expm1(1), rel_tol=1e-15)
     assert m.cdf(0) == 0 and m.cdf(1) == 1
+
+
+
+@pytest.mark.parametrize('power', (9, 20, 49, 50, 60, 100, 200, 300))
+def test_cdf_tiny_positive_keeps_significant_digits(power):
+    z = F(1, 10**power)
+    actual = m.cdf(z)
+    assert actual > 0
+    assert math.isclose(actual, math.expm1(float(z))/math.expm1(1), rel_tol=2e-15)
+    assert math.isclose(m.tight(z)['ratio'], math.e/(math.e-1), rel_tol=1e-9)
+
+
+def test_tight_rejects_subnormal_inputs_after_float_conversion():
+    import sys
+    from decimal import Decimal
+    for e in (math.nextafter(0., 1.), math.nextafter(sys.float_info.min, 0.),
+              sys.float_info.min/2, Decimal('1e-320'), F(1, 10**320)):
+        with pytest.raises(ValueError, match='normal'):
+            m.tight(e)
+
+
+def test_tight_accepts_normal_lower_boundary():
+    import sys
+    for e in (sys.float_info.min, math.nextafter(sys.float_info.min, math.inf), 1e-300):
+        assert math.isclose(m.tight(e)['ratio'], math.e/(math.e-1), rel_tol=2e-15)
+
+
+def test_cdf_small_series_switch_is_continuous_and_context_independent():
+    from decimal import localcontext, ROUND_UP
+    xs = (math.nextafter(1e-8, 0.), 1e-8, math.nextafter(1e-8, math.inf))
+    values = [m.cdf(x) for x in xs]
+    assert values == sorted(values)
+    for x, actual in zip(xs, values):
+        assert math.isclose(actual, math.expm1(x)/math.expm1(1), rel_tol=2e-15)
+    tiny = m.cdf(F(1, 10**60))
+    with localcontext() as ctx:
+        ctx.prec = 7
+        ctx.rounding = ROUND_UP
+        assert m.cdf(F(1, 10**60)) == tiny
+
+
+@pytest.mark.parametrize('strict_traps', (False, True))
+def test_cdf_isolates_exponents_traps_and_flags(strict_traps):
+    from decimal import localcontext, Inexact, Rounded, Underflow, Overflow
+    import sys
+    xs = (F(1, 10**100), sys.float_info.min, F(1, 3), .999)
+    expected = [m.cdf(x) for x in xs]
+    ratios = [m.tight(x)['ratio'] for x in xs[:2]]
+    with localcontext() as ctx:
+        ctx.prec = 7
+        ctx.Emin = -9
+        ctx.Emax = 9
+        ctx.clamp = 1
+        for signal in (Inexact, Rounded, Underflow, Overflow):
+            ctx.traps[signal] = strict_traps
+        ctx.clear_flags()
+        before = (ctx.prec, ctx.Emin, ctx.Emax, ctx.clamp, dict(ctx.traps), dict(ctx.flags))
+        assert [m.cdf(x) for x in xs] == expected
+        assert [m.tight(x)['ratio'] for x in xs[:2]] == ratios
+        assert (ctx.prec, ctx.Emin, ctx.Emax, ctx.clamp, dict(ctx.traps), dict(ctx.flags)) == before
+    for ratio in ratios:
+        assert math.isclose(ratio, math.e/(math.e-1), rel_tol=2e-15)

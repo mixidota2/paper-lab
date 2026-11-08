@@ -94,7 +94,7 @@ sections:
   results: memoryが成熟すると既知カテゴリの修正が減り、baseline変更後は再学習が必要になる。並行実行では先行jobが完了するまで教訓を読めず、同じ失敗を複数workerが踏む。版を無視する条件は見かけの修正数が少ないが、新baselineに古い知識を適用するためunsafe_reuseを立てる。小さい数字だけを良い結果と扱わない。
   what_we_verified: Mechanism PARTIAL。完了時刻より前の知識を参照しないこと、baseline別の記憶で移行時に失敗が戻ること、人の作業時間と経過時間が別の量であることを合成規則で確認した。
   what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。自然言語から失敗原因を抽出する能力、LLMの実行能力、実際の人時、分散storageの競合制御、推薦精度、実験案の新規性は未検証。基盤LLMの具体的なモデル名・版、対象推薦モデルの再現可能な設定、公開ログと公式実装URLは本文で確認できない。
-  implementation: '`simulate()` は完了時刻つきのカテゴリ集合をmemoryとして使い、各jobの開始時点でsnapshotを作る。自然言語のplaybookを完全に理解するという強い仮定を置く。baseline別keyは本Labの安全側の設計で、原論文の実装を復元したものではない。'
+  implementation: '`simulate()` は完了時刻つきのカテゴリ集合をmemoryとして使い、各jobの開始時点でsnapshotを作る。その時点までに完了した実験の教訓だけを読み、実行中の別jobが後で得る知識は先取りしない。自然言語のplaybookを完全に理解するという強い仮定を置く。baseline別keyは本Labの安全側の設計で、原論文の実装を復元したものではない。'
 figures:
 - path: figures/loops.svg
   title: 手順の改善と仮説の改善を別の記憶へ戻す

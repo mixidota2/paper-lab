@@ -82,7 +82,7 @@ sections:
   results: 全 SID を残す条件では Recall@2 が0.5から1.0になる。beam 幅を狭めて D を落とすと、再採点後も1.0には届かない。これは反例である。学習による改善率は測っていない。
   what_we_verified: Mechanism PARTIAL。SID の同点、同じ候補集合内の再順位付け、候補から脱落した曲は回復できないという境界を確認した。
   what_we_did_not_verify: ILSM の学習、曲 ID の汎化、コールドスタート、カタログ更新、実測レイテンシー、本番の TLT は NOT TESTED。独立なラベルで scorer を学習していないので、手で設定したスコアが得られるかも未検証である。
-  implementation: 標準ライブラリだけの `run.py` 単体で動く。`experiment()` が SID の確率積、衝突展開、同点処理、Recall を計算する。原典 §3.2 の cross-attention
+  implementation: 標準ライブラリだけの `run.py` 単体で動く。`experiment()` が SID の確率積、衝突展開、同点処理、Recall を計算する。Recallの分母は、候補に残った正解曲数ではなく、合成例で定義した全正解曲数。候補から脱落した正解曲も分母に残す。原典 §3.2 の cross-attention
     と §3.3 の sampled softmax は説明だけにとどめ、toy では明示的なスコアに置き換えた。
   mapping: '| 原論文 | この Lab | 省略・公式実装 |
 

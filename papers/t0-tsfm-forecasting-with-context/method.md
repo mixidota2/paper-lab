@@ -10,6 +10,6 @@ alphaのnative分位点は0.1/0.25/0.5/0.75/0.9。最小分位点を直接予測
 
 ### 情報の価値とforecastの価値を分ける
 
-同じcheckpointの入切比較はcovariate経路の寄与を捉えるが、その予定が正確か、欠品した売上が需要を表すかは別の問題。さらに出力は各時点のmarginal quantileで、時間・商品間のjoint distributionは持たない。補充費用を計算するには追加の意思決定検証が要る。
+同じcheckpointの入切比較はcovariate経路の寄与を捉えるが、その予定が正確か、欠品した売上が需要を表すかは別の問題。さらに出力は各時点を個別に見る分位点（marginal quantile）であり、時間・商品をまたいで需要がどう同時に変動するかを表す同時分布（joint distribution）は持たない。補充費用を計算するには追加の意思決定検証が要る。
 
 本文のalpha通常推論はnative範囲外のquantileを端点に留め、IQF tail外挿を別途評価する。確認時の公式READMEは外挿対応を説明しているので、論文v1と現行APIを同一仕様と決めつけない。

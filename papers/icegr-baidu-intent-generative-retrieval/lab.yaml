@@ -106,7 +106,7 @@ teaching_figures:
     explanation: 同queryからのco-clickを使う。content類似度だけではない。
   - name: 元表現へのanchor
     formula: Hᵗ = (1−αg) ÂHᵗ⁻¹ + αgX
-    explanation: αg=0.2、3 step。graphだけへ流れ切らない。
+    explanation: αg=0.2、3 step。各回、近傍から伝わった表現に元の商品表現を混ぜ、商品の出発点の情報も残す。
   - name: margin係数
     formula: βeff = β · clip(1 + log((2−Δr)/(2+Δr)), 0.2, 1.8)
     explanation: Δrは正例・負例のcomposite score差。欠損時は倍率1。

@@ -2,13 +2,13 @@
 
 ## Overview — 概要
 
-**Worth Reading：harnessの差を、同じ構成の再実行の差と並べる。** SWE-bench Verifiedのhard45では、成否が入れ替わる課題の割合は再実行もharness交換も中央値13%。モデル交換は約22%だった。残りの447課題から成る評価集合「pool447」では、2つのQwenモデルを使って比較した。Claude Codeとmini-SWE-agentの成功率の差は、事前に定めた±5ポイントの範囲内と判定された。
+**Worth Reading：エージェントの実行を管理する仕組み（harness）の差を、同じ構成の再実行の差と並べる。** SWE-bench Verifiedのhard45では、成否が入れ替わる課題の割合は再実行もharness交換も中央値13%。モデル交換は約22%だった。残りの447課題から成る評価集合「pool447」では、2つのQwenモデルを使って比較した。Claude Codeとmini-SWE-agentの成功率の差は、事前に定めた±5ポイントの範囲内と判定された。
 
 これは「どんなharnessでも同じ」という結果ではない。有意な差はOpenCodeの不利として現れ、費用は同一モデルでも最大約3倍違う。小さな成功率差を主張する前に、再実行と十分な課題数を確保したい。
 
 ## Problem — 問題設定
 
-モデルを固定しても、system prompt、tool schema、履歴圧縮、打ち切り時の回復はharnessごとに違う。一度の得点差だけでは、この構成差と実行ごとの揺れを分けられない。
+モデルを固定しても、共通指示（system prompt）、ツールの入力仕様（tool schema）、履歴圧縮、打ち切り時の回復はharnessごとに違う。一度の得点差だけでは、この構成差と実行ごとの揺れを分けられない。
 
 著者はClaude Code 2.1、mini-SWE-agent 2.4.6、OpenCode 1.18を固定し、Harbor 0.22.0で1試行1コンテナー、300 step上限とした。ネットワークを切った492課題のうち45件がhard45、残りがpool447。初期のネット接続試行ではDeepSeek/Qwenの71%が上流の修正を取得したため、その試行群は捨てている。
 
@@ -20,13 +20,13 @@
 
 ## モデルと式
 
-モデルは固定する。比較モデルはQwen3.6-35B-A3B、Qwen3.8-27B、DeepSeek-V4-Flash、GLM-5.3-Flash、HY4-Preview。Claude Opus 5はClaude Code内だけの参照で、pool447の比較は2つのQwenに限られる。
+harness間の比較ではモデルを固定する。比較モデルはQwen3.6-35B-A3B、Qwen3.8-27B、DeepSeek-V4-Flash、GLM-5.3-Flash、HY4-Preview。Claude Opus 5はClaude Code内だけの参照で、pool447の比較は2つのQwenに限られる。
 
-同じ課題でAだけ成功した件数をb、Bだけをcとすると、`Δ=(b−c)/n`、不一致率は`q=(b+c)/n`。得点差と、課題の成否が入れ替わる割合は別の量である。McNemarの両側正確検定を使い、対応差の95% Newcombe区間を示す。等価性はTOST、許容幅±5ポイント、90%区間で判定する。
+両構成で有効な結果がある課題のペア数をnとする。同じ課題でAだけ成功した件数をb、Bだけをcとすると、`Δ=(b−c)/n`、不一致率は`q=(b+c)/n`。得点差と、課題の成否が入れ替わる割合は別の量である。McNemarの両側正確検定を使い、対応差の95% Newcombe区間を示す。等価性はTOST、許容幅±5ポイント、90%区間で判定する。
 
-検出力は`M∼Binomial(n,q)`、`B|M∼Binomial(M,(1+Δ/q)/2)`を積分する。不一致件数Mを丸めて固定しない。帰無仮説ではB|Mの成功確率は1/2で、両側p≤0.05となる確率が検出力である。
+仮定した成功率差を検定で検出できる確率を、検出力と呼ぶ。検出力は`M∼Binomial(n,q)`、`B|M∼Binomial(M,(1+Δ/q)/2)`を積分する。不一致件数Mを丸めて固定しない。p値は帰無仮説のB|Mの成功確率1/2で計算する。仮定した差Δの下で、両側p≤0.05となる確率が検出力である。
 
-費用は別に測る。token費用の理解には`Iₖ ≈ P + U + gk`、`ΣIₖ = N(P+U)+gN(N−1)/2`を使う。Pはharnessの定型入力、Uは課題文、gは履歴の増加、Nはstep数。請求はcache hit、miss、出力の単価を分けて足す。下の計算機は入力のみの近似であり、圧縮時点を動かす操作も説明用である。
+費用は別に測る。tokenはモデルが処理するテキストの単位、stepは実行ステップを指す。token費用の理解には`Iₖ ≈ P + U + gk`、`ΣIₖ = N(P+U)+gN(N−1)/2`を使う。Pはharnessの定型入力、Uは課題文、gは履歴の増加、Nはstep数。請求はキャッシュを再利用するcache hit、再利用しないmiss、出力の単価を分けて足す。下の計算機は入力のみの近似であり、圧縮時点を動かす操作も説明用である。
 
 ## Why It Might Work — 解釈
 
@@ -36,7 +36,7 @@
 
 ## Evidence — 著者報告
 
-[一次資料：原論文 Table 1 / Fig.2 / Appendix F–G](https://arxiv.org/pdf/2610.04433v1)の著者報告。pool447は集合名で、有効ペア数は444〜445件である。
+[一次資料：原論文 Table 1 / Fig.2 / Appendix F–G](https://arxiv.org/pdf/2610.04433v1)の著者報告。pool447は集合名で、有効ペア数は444〜445件である。表のCCはClaude Code、miniはmini-SWE-agent、OCはOpenCode。ppは成功率の差を表すパーセントポイントである。
 
 | モデル・差の向き | n | b / c | 差 pp [95% CI] | 判定 |
 | --- | --- | --- | --- | --- |

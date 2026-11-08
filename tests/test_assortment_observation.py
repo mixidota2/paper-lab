@@ -279,12 +279,32 @@ def test_preexisting_sources_and_case_ids_preserved(tmp_path):
     import hashlib
     base='2dcd139222067425c39d753a999bc9c4223c6d18'
     listing=subprocess.check_output(['git','ls-tree','-r',base,'papers','guides'],cwd=ROOT,text=True)
+    # Explicit prose-only revisions retain both the historical blob identity and
+    # the exact replacement bytes. No directory-wide preservation exemption.
+    revisions=json.loads((ROOT/'tests/prose_revision_hashes.json').read_text())['files']
+    seen_revisions=set()
     count=0
     for line in listing.splitlines():
         left,path=line.split('\t');sha=left.split()[2]
         content=(ROOT/path).read_bytes()
-        assert hashlib.sha1(b'blob '+str(len(content)).encode()+b'\0'+content).hexdigest()==sha,path
+        if path in revisions:
+            assert revisions[path]['before_blob']==sha,path
+            assert hashlib.sha256(content).hexdigest()==revisions[path]['after_sha256'],path
+            seen_revisions.add(path)
+        else:
+            assert hashlib.sha1(b'blob '+str(len(content)).encode()+b'\0'+content).hexdigest()==sha,path
         count+=1
+    # These five files were introduced after this historical baseline. Check
+    # their exact old/new identities against the later release, not that tree.
+    later_revisions={f'papers/assortment-observation-budget/{name}' for name in
+                     ('README.md','evidence.md','interactive.html','lab.yaml','method.md')}
+    assert set(revisions)-seen_revisions==later_revisions
+    for path in later_revisions:
+        old=subprocess.check_output(['git','show','d97532ffce0461af70347f8380da1b2a4466b22a:'+path],cwd=ROOT)
+        row=revisions[path]
+        assert hashlib.sha1(b'blob '+str(len(old)).encode()+b'\0'+old).hexdigest()==row['before_blob'],path
+        assert hashlib.sha256(old).hexdigest()==row['before_sha256'],path
+        assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==row['after_sha256'],path
     assert count>=750
     from paper_lab.build import build
     from review_103 import preflight
@@ -305,3 +325,14 @@ def test_preexisting_sources_and_case_ids_preserved(tmp_path):
     assert not (site/'downloads/assortment-observation-budget/interactive.html').exists()
     html=(site/'papers/assortment-observation-budget.html').read_text()
     assert '__DATA__' not in html and '__JS__' not in html
+
+
+def test_prose_revision_requires_exact_prior_identity():
+    from prose_preservation import revised_hash
+    revisions=json.loads((ROOT/'tests/prose_revision_hashes.json').read_text())['files']
+    for path,row in revisions.items():
+        for algorithm in ('sha256','blob'):
+            assert revised_hash(ROOT,path,row['before_'+algorithm],algorithm)==row['after_'+algorithm]
+            with pytest.raises(AssertionError):
+                revised_hash(ROOT,path,'unreviewed',algorithm)
+    assert revised_hash(ROOT,'papers/unlisted/method.md','must-still-match')=='must-still-match'

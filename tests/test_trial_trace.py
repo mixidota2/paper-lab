@@ -4,12 +4,13 @@ import hashlib,json,subprocess,shutil
 from html.parser import HTMLParser
 from paper_lab.build import build
 from catalog_expectations import assert_catalog
+from prose_preservation import revised_hash
 ROOT=Path(__file__).resolve().parents[1];SLUG='trial-by-trace-evidence-boundaries';P=ROOT/'papers'/SLUG
 
 def test_existing_catalog_sources_and_new_plan(tmp_path):
     baseline=json.loads((ROOT/'tests/trial_trace_baseline.json').read_text())
     assert baseline['base']=='d97532ffce0461af70347f8380da1b2a4466b22a'
-    for path,digest in baseline['sources'].items():assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==digest,path
+    for path,digest in baseline['sources'].items():assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==revised_hash(ROOT,path,digest),path
     assert len(baseline['ids'])==110
     assert_catalog([*baseline['ids'],SLUG])
     from review_103 import preflight

@@ -12,6 +12,6 @@ SQE-SFTはcatalogからSPU、brand、category、series、model、attributeを抽
 
 0.6B relevance modelのSRSと、click・purchase・GMVからcategory平均へ平滑化したSBPを用いる。SRAは関連性で選好方向を決め、BPRは関連性の近い候補間でbusiness順を決める。SRS/SBPを[0,1]へ揃えた等重み平均rからΔr=r⁺−r⁻を計算する。
 
-βeffは大きい正marginほど小さくなる。既にoffline根拠が明白なpairへの重複した更新を弱め、僅差のpairを強くする設計である。ただしβはsigmoid内の係数なので、実際のgradientの大きさは現在のpolicy比にも依存する。正解SIDへのlength-normalized SFT項も残す。
+βeffは大きい正marginほど小さくなる。既にoffline根拠が明白なpairへの重複した更新を弱め、僅差のpairを強くする設計である。ただしβはsigmoid内の係数なので、実際のgradientの大きさは現在のpolicy比にも依存する。正解SIDのlog確率をそのSIDの長さで割る教師あり項（length-normalized SFT）も残し、選好の比較に加えて正解SIDを出すよう学習する。
 
 backboneはoffline比較・onlineとも0.5B。1.5/3/7Bでも検討するが、本文で確認できるのはサイズであり、Qwenなどの固有model名を補わない。

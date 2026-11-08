@@ -74,7 +74,7 @@ sections:
 
     一方、WBCは露出ログと内部reward systemを受け継ぐ。ランダム負例は未露出作品の過大評価を抑えるが、人気への事前バイアスも入る。RLのオフライン報酬上昇は、学習に使ったreward modelで評価しているため独立した裏付けには弱い。'
   method: method.md
-  executable_understanding: '2行×3作品の人工ホームに候補外の高score作品を置く。同じscore関数で無制約、全逐次、先頭1件のみ逐次、行全体一括を比較する。Aを選ぶとCのscoreが上がる設定により、行内条件付けが変わる場面を作る。forward回数は計算手順の数で、20%の遅延再現ではない。
+  executable_understanding: '2行×3作品の人工ホームに候補外の高score作品を置く。同じscore関数で無制約、全逐次、先頭1件のみ逐次、行全体一括を比較する。Aを選ぶとCのscoreが上がる設定により、行内条件付けが変わる場面を作る。一括で選ぶ部分では、その部分の途中で作品を追加してもスコアを計算し直さない。forward回数は計算手順の数で、20%の遅延再現ではない。
 
 
     <figure class="teaching batch17"><h3>同じscoreで生成手順を変える</h3><div class="matrix-scroll" tabindex="0" role="region"
@@ -113,7 +113,7 @@ teaching_figures:
     explanation: 生成時の条件付け。WBCの学習目的と同じ意味ではない。
   - name: WBC
     formula: L=−Σ w[b log σ(z)+(1−b)log(1−σ(z))]
-    explanation: §5.2の文章をLabで記号化。報酬の符号と大きさを分ける。
+    explanation: §5.2の文章をLabで記号化。報酬の符号を二値ラベル、大きさを学習時の重みにする。良い反応かどうかと、その例をどれほど強く学ぶかを分ける。
   - name: mask
     formula: z′_v=z_v+m_v, m_v∈{0,−∞}
     explanation: 候補集合と業務規則に反するtokenを出さない。

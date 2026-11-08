@@ -82,7 +82,7 @@ sections:
 
     ただしbeamを広げれば必ず事業価値が増えるわけではない。候補品質、teacherとの整合、後段の上限に依存する。p99と平均を取り違えるとSLOの余裕も過大評価する。'
   method: method.md
-  executable_understanding: 2段の固定NAR確率表からprefix制約付きbeam searchをCPUで実行する。beam1で落ちる最適系列がbeam2で残る例と、depth-only filterが無効な組合せを返す例を比べる。GPUの時間を測った実験ではない。
+  executable_understanding: 前のtokenによって確率表を変えない非自己回帰（NAR）の設定を置き、2段の固定確率表からprefix制約付きbeam searchをCPUで実行する。beam1で落ちる最適系列がbeam2で残る例と、depth-only filterが無効な組合せを返す例を比べる。GPUの時間を測った実験ではない。
   results: 人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。
   what_we_verified: '**Mechanism: PARTIAL**。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。
 
@@ -115,7 +115,7 @@ teaching_figures:
     explanation: synthetic実験はprefix非依存のNAR確率表を使う。
   - name: 制約
     formula: 'next={prefix+v : child(prefix,v) exists}'
-    explanation: 深さごとのtoken集合だけでは不十分。
+    explanation: その深さに出現できるtokenでも、現在のprefixから続く枝があるとは限らない。登録列の先頭部分として実際につながる組合せだけを残す。
   - name: beam
     formula: active=TopB(next)
     explanation: GPUでは候補のmergeと選別までdevice内に保つ。

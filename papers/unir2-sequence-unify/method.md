@@ -17,7 +17,7 @@ Wq/Wk/Wv/Woのbase射影を共有し、FFNは生成用とranking用を分ける�
 ### stop-gradientの先にranking専用の適応経路を残す
 生成損失は `L_gen = −Σ_i α_i log p(q_i | u, q_<i)`、αは前の階層ほど大きい。ランキング入力は `z = Concat(u, v, h_lastSID, h_rank)` で、元のユーザー・author特徴も残す。MMoE（タスクごとのgateが複数expertを混合するモデル）とタスク別towerで予測し、`L_rank = Σ_t ω_t BCE(ŷ_t, y_t)` を最小化する（式12–15）。
 
-rankingのQ/K/Vでは `X_rank = sg(WX) + B_rank A_rank X` とする（式17）。sgはbase経路への逆伝播を止め、低rank行列BとAがranking側の変化を担う。生成経路ではこのLoRAを使わない。ranking側FFNとtowerも学習対象になる。原典は生成用・ranking用のパラメータ集合を分けつつ、疎なembedding集合は共有すると記す（式18）。本Labでは「全パラメータが完全隔離」とは説明しない。
+rankingのQ/K/Vでは `X_rank = sg(WX) + B_rank A_rank X` とする（式17）。sgは前向きの計算ではbase経路の値を使うが、ranking損失からその経路への逆伝播を止める。低rank行列BとAがranking側の変化を担う。生成経路ではこのLoRAを使わない。ranking側FFNとtowerも学習対象になる。原典は生成用・ranking用のパラメータ集合を分けつつ、疎なembedding集合は共有すると記す（式18）。本Labでは「全パラメータが完全隔離」とは説明しない。
 
 ### 二段階学習はSID表現が安定してから識別を加える
 第1段階は生成損失のみ。第2段階はそのcheckpointから始める。同じ系列にranking損失を追加する。rankingには全sample streamを見せ、各タスクの意味に合うsample maskを掛ける。生成側はクリックを残し、露出をrandom samplingして分布学習に使う。先にSIDの意味を安定させるのは、変動する表現をもとにランカーが誤った識別境界を学ぶのを避けるためだと著者は説明する（§5.1）。

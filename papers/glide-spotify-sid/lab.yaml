@@ -104,7 +104,7 @@ teaching_figures:
     explanation: xₑはエピソードのタイトルと説明から得た内容ベクトル。ユーザーCFとは別。
   - name: 最も近い重心
     formula: cₘ = argminⱼ ‖rₘ₋₁ − μₘ,ⱼ‖₂
-    explanation: 各段mの256個の重心から1つを選ぶ。
+    explanation: 各段mの256個の重心から、その段までに残った成分に最も近い1つを選ぶ。
   - name: 説明済みの成分を引く
     formula: rₘ = rₘ₋₁ − μₘ,cₘ ; SID(e) = (c₁,c₂,c₃,c₄)
     explanation: 4段で4 tokens。段ごとに語彙を分けるため追加語彙は4×256=1,024。

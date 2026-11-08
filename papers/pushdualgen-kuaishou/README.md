@@ -21,7 +21,7 @@ PushDualGenはKuaishouのpush通知向け推薦で、先にSID、その後に任
 
 ## Core Idea
 
-parallel SIDで履歴を圧縮し、SID-firstの二段生成でcopyをskip可能にする。生成信号と既存user特徴を融合してANN検索へ渡す。
+parallel SIDで履歴を圧縮し、識別子を先に生成するSID-firstの順序によって、後続の通知説明文（copy）を必要な場合だけ生成する。生成信号と既存user特徴を融合してANN検索へ渡す。
 
 解釈: 追加の生成経路を既存推薦へ接続する点で[LIGE-GR](lige-gr-meta-listwise.html)と比較できる。ただし変更場所はpushの候補表現であり、列内の順序最適化ではない。
 

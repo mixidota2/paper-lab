@@ -8,7 +8,7 @@ batch Bの元のrewardをR⁰、patch後をRᴾとすると、`Δ_B(P)=(1/|B|)Σ
 
 初期の教師あり学習（SFT）には、GPT-5.5 teacherが提案し、実行検証を通った約1,000編集例を使う。RLは別課題splitの約1,500failure packetで学習する。1packetにつきK=8のpatchをsampleし、`A_k=(r_k−mean(r))/std(r)` と群内で標準化する。このadvantageをengineerのtoken確率比に掛けるclipped GRPOを使う。targetの重みへは逆伝播しない（式2–4、Algorithm 1）。
 
-WebShopの学習rewardはshaped score、ALFWorldとDBBenchは二値成功であり、全てを二値rewardだと理解してはいけない。主結果では3環境の成功率を等重みで平均する。
+WebShopの学習rewardはshaped score、ALFWorldとDBBenchは二値成功であり、全てを二値rewardだと理解してはいけない。主結果では3環境の成功率を等重みで平均する。各環境の課題数が違っても、環境ごとの率を同じ重みで扱う。全課題を一つにまとめた成功率とは区別する。
 
 ### 同じbatchでの改善と、未見課題への移植を分ける
 主目的は失敗を見たbatchの同じ課題を再実行するtransductiveな改善。別課題・別targetへの適用は追加実験で扱う。未見targetへの転移では、そのtarget自身の失敗から新しいpatchを作るため、一つのpatchの万能性とは違う。

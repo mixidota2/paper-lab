@@ -55,7 +55,7 @@ sections:
 
 
     [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2609.04518v1)'
-  executable_understanding: '固定スクリプトが出した8軌跡を、テキスト、JSON、XML風の3インターフェースで採点する。A/Bのsource報酬についてWithinとCrossのadvantageを計算し、軌跡ごとの値をresults.jsonに保存する。
+  executable_understanding: '固定スクリプトが出した8軌跡を、テキスト、JSON、XML風の3インターフェースで採点する。A/Bのsource報酬についてWithinとCrossのadvantageを計算し、軌跡ごとの値をresults.jsonに保存する。この人工例の標準偏差は、群内の平均との差を二乗して群の全件数で平均し、その平方根を取る。報酬そのものは変更しない。
 
 
     方策更新は実装しない。未見形式でのスコアが変わらないのは固定軌跡の対照であり、学習後の移植性を測った論文の帰無結果の再現ではない。'

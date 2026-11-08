@@ -73,8 +73,7 @@ sections:
 
 
     **表の不整合**：Table 4のModel BはSLO 250 msに対してchosen trialのp99が271 ms。本文のSLO内採択という基準とこの行は整合しない。誤植か計測条件差かは確認できないため、全選択trialがSLOを満たしたとは記載しない。'
-  executable_understanding: '`uv run papers/flashvector-unity-serving-stack-agent/run.py`。人工の候補変更を、出力の一致→局所改善→全体throughput→p99
-    SLOの順で判定する。局所2倍でも全体が遅い変更、throughputが増えてもSLOを破る変更を棄却する。これは採択規則の実装であり、実traffic replayやagentの実行ではない。
+  executable_understanding: '`uv run papers/flashvector-unity-serving-stack-agent/run.py`。人工の候補変更を、出力の一致、測定値が有限であること、p99 SLO、全体throughputの退行がないこと、局所と全体の改善がnoiseを超えることの順で判定する。途中で不合格になれば、以降の判定へ進まない。局所2倍でも全体が遅い変更、throughputが増えてもSLOを破る変更を棄却する。これは採択規則の実装であり、実traffic replayやagentの実行ではない。
 
 
     <figure class="teaching" data-b21><h3>この変更を採択するか</h3><label>人工candidate <select><option value="0">局所だけ2倍</option><option

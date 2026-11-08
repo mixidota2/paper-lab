@@ -58,7 +58,7 @@ sections:
     10組のclean/fault replayは全clean受理・全fault拒否。ただしfunnel/evaluator identity等3組はpost-study強化の検査で、全37日間に自動検知していたわけではない。'
   executable_understanding: '`uv run papers/evopilot-verify-dont-trust-autoresearch/run.py`。出力Kを無視する壊れたevaluatorと修正版へK=1/600を与える。別に同じbase/data/evaluatorと承認差分を照合し、depth不一致・evaluator変更・data変更・no-op・証拠欠落を注入して拒否を確かめる。'
   results: 壊れた人工evaluatorはK=1と600で同じhit率1.0。修正版は0.01/0.20へ分かれる。5種類のfaultはすべて拒否し、clean
-    pairだけ機械検査を通過。human_reviewはpendingのまま記録するので、機械検査の成功を人間の承認済みと扱わない。原典の−22 ppを人工実験で再現するよう値を設定していない。
+    pairだけ機械検査を通過。human_reviewはpendingのまま記録するので、機械検査の成功を人間の承認済みと扱わない。この人工例では、許可した変更が実際には起きていない場合も拒否する。許可外の差分がないことだけでは、意図した比較を実行できた証拠にならない。原典の−22 ppを人工実験で再現するよう値を設定していない。
   what_we_verified: Mechanism PARTIAL。実現Kの反証probeと、pairの許可外差分・no-op・欠落の拒否は人工artifactでCONFIRMED。canonical
     recordのhashも計算する。
   what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。本番MBR学習、数億動画index、37日agent運用、offline

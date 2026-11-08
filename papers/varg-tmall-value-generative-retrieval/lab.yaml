@@ -46,7 +46,7 @@ sections:
     +0.22%、PCTR +0.31%を著者が報告した。
   problem: 通常の検索経路は複数retrieval→merge→pre-rank→final rank。VARGの生成SIDは商品へ戻し、予約quotaでpre-rankを通さず合流する。final
     rankerそのものを削除した実験ではない。クラスタ単位の曖昧なIDでは低価値商品も枠を使い、毎日IDを価値順に振り直すと昨日学習した住所が別の商品を指す。選別と住所の安定性を同時に扱う必要がある。
-  why_it_might_work: '解釈: 3番目のtokenの局所順序が価値の事前情報になるため、意味的に近い商品から選ぶ最後の判断を補助できる。EB平滑化は少数clickでCVRが極端になる問題を抑える。rankerの正の優位分だけを報酬に加えると、観測行動がない候補にも学習信号が届く。ただし既存rankerの偏りを引き継ぎ、共有slotの増加は候補展開数を増やす。新商品の意味や価値が急変すれば、住所固定との緊張が残る。'
+  why_it_might_work: '解釈: 3番目のtokenの局所順序が価値の事前情報になるため、意味的に近い商品から選ぶ最後の判断を補助できる。EB平滑化は、購入・カートの信号をクリック数で割る比率に全体の事前情報を加え、少数clickだけでCVRが極端になる問題を抑える。rankerの正の優位分だけを報酬に加えると、観測行動がない候補にも学習信号が届く。ただし既存rankerの偏りを引き継ぎ、共有slotの増加は候補展開数を増やす。新商品の意味や価値が急変すれば、住所固定との緊張が残る。'
   evidence: '一次資料の著者報告。
 
 
@@ -129,7 +129,7 @@ teaching_figures:
     explanation: 旧商品は住所を保持。新prefixだけK₃−1を上限にする。
   - name: 局所順序教師
     formula: q(r|r*) ∝ exp(−|r−r*|/τ) · 1[|r−r*|≤R]
-    explanation: 合法な近傍で正規化。exact lossを残す。
+    explanation: 正解の順位に近い合法な番号へ教師確率を配り、その合計を正規化する。正解番号そのものを当てるexact lossも残す。
   - name: 合法枝の重み
     formula: φ(n;N) = d + (1−d) log(n)/log(N)
     explanation: N=1ならd。枝の多い位置のpolicy lossを強める。

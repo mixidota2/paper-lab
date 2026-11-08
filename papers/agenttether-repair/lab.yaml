@@ -78,7 +78,7 @@ sections:
 
     6個のTUに既知の依存を置き、TU1の誤った引数がTU3を経てTU5の失敗になる。無関係な枝にはエラーを多く置く。直近、頻度、依存祖先をたどる方法を比較する。別の例では指示状態を毎step0.82倍に減衰させ、閾値0.55を下回ると最短3step間隔で戻す。'
   results: 直近はTU5、頻度はTU4、依存をたどる方法は真の原因TU1を選ぶ。TU1→TU3の辺を欠落させるとTU3を誤選択する。checkpointは合成の指示状態を維持するが、原典のfirst-violation生存曲線とは異なる量である。すでに違反した実行を再び遵守扱いにする推計ではない。
-  what_we_verified: Mechanism PARTIAL。既知グラフ上の原因候補探索、欠落辺の反例、cooldown、証拠なしの拒否、完了後の停止、書き込み後はloopのみ許す条件を確認した。指示状態を戻す効果は仮定として与えており、LLMの遵守改善を実証していない。
+  what_we_verified: Mechanism PARTIAL。既知グラフ上の原因候補探索、欠落辺の反例、cooldown、証拠なしの拒否、完了後の停止、書き込み後はloopのみ許す条件を確認した。この例外も、証拠があること、問題が未解決であること、必要な介入間隔が空いていることを免除しない。指示状態を戻す効果は仮定として与えており、LLMの遵守改善を実証していない。
   what_we_did_not_verify: HGT、Isolation Forest、診断LLM、verifier、τ-benchの修復率、本番介入率はNOT TESTED。原典の匿名コードURLは記載を確認したが実行していない。tool-return
     hookはツール実行後なので、送金などの副作用を事前に遮断する保証はない。
   implementation: '`localize()` は失敗の祖先集合にある異常TUのうち最も早いものを選ぶ教材用規則。原典のHGTとLLMによる帰責を代替する実装ではない。`guard()` は最小の条件式、`adherence()`

@@ -112,7 +112,7 @@ teaching_figures:
   steps:
   - name: 群別の学習
     formula: L = mean(D₁, BCE(y,p̂₁)) + mean(D₀, BCE(y,p̂₀))
-    explanation: 共有 trunk へは両群、各 head へは対応する群の勾配だけを流す。
+    explanation: 共有 trunk は両群に共通する表現を学び、各 head は対応する群の結果を予測する。更新の勾配はtrunkへは両群から、各headへは対応する群からだけ流す。
   - name: 推薦後の反応
     formula: p̂₁ ≥ θ₁
     explanation: 低い反応確率の組を除く。

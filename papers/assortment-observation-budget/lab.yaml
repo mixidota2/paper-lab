@@ -15,7 +15,7 @@ urls:
 verdict: Worth Reading
 status: draft
 question: 同じ品揃えを多くの顧客に試すことと、試す品揃えを増やすことは同じか
-summary: 無観測の収益cutと、1種類・2種類の品揃えから選ぶ規則を分ける。3商品の小さな厳密計算で、観測予算と最終品揃えの後悔をつなぐ。
+summary: 顧客を観測せず収益順のどこまでを売るか決める規則と、1種類・2種類の品揃えを試してから決める規則を比べます。3商品の厳密計算で、観測数によって最適な品揃えからの期待収益の差（後悔）がどう変わるかを確かめます。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -54,7 +54,7 @@ teaching_figures:
   rows:
   - label: A：観測0
     nodes:
-    - title: 収益cut
+    - title: 収益順の区切り
       text: 除外側と包含側の最大損失を比較 → [2]
   - label: B：種類1
     nodes:

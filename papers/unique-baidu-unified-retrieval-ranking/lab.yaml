@@ -149,7 +149,7 @@ teaching_figures:
     explanation: production比較。階層RQ-VAEとflatで同じ容量でも探索と誤差伝播は違う。
   - name: 頻度で距離を補正
     formula: dⱼ(z) = ‖z̄ − eⱼ‖² (pⱼ / (1/M))^τ
-    explanation: τ=0は通常の最近傍。人気codeの費用を上げる。p=0への実装上の処理は本文だけでは確定できない。
+    explanation: τ=0は通常の最近傍。正のτでは、一様な使用率より多く使われるcodeの距離を大きくし、そこへ割り当てにくくする。p=0への実装上の処理は本文だけでは確定できない。
   - name: 共有する学習
     formula: L = Ldisc + α Lgen + η Lcode + β Lquant
     explanation: CTR等の教師、code生成、DSSM code学習、量子化の4項。

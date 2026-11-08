@@ -16,7 +16,7 @@ IAGは軽量TransformerであるLazy Decoderを使う。MSIでは直近の入室
 
 `Pθ(y|M_u(t)) = Π_l Pθ(s_l | s_<l, M_u(t))`
 
-MF-NTPはどのログを強く学ぶかを決める。
+MF-NTPはどのログを強く学ぶかを決める。各ログと各階層の重みを掛けて損失を足し、その重みの総和で割る。分母はログの生件数ではない。
 
 `w(x) = w_feedback(x) · w_user(x) · w_eCPM(x)`
 

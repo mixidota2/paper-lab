@@ -58,7 +58,7 @@ sections:
 
 
     追加gateはLabの例で、AutoLRの稼働実装ではない。表示するのは採択差分の和であり、同じ評価集合で直接測ったAUCの推移とは区別する。'
-  results: 下表は200seedの平均。one_run_keepの見かけの累積改善が正でも、全候補の真の改善はゼロのままだ。追加確認を使うrepeat_evidence_gateと、偽のKEEPを一度でも起こしたrun数を比較する。
+  results: 下表は200seedの集計。one_run_keepの見かけの累積改善が正でも、全候補の真の改善はゼロのままだ。追加確認を使うrepeat_evidence_gateと、偽のKEEPを一度でも起こしたrun数を比較する。同じrunで何度採択しても、この件数には一度だけ数える。採択回数の平均とは別の集計である。
   what_we_verified: 真値が改善しなくても、採択差分の累積は単調に増え、コード系譜が更新される。独立した再評価にはその上昇が引き継がれない。追加証拠のgateで偽のKEEPが減るかを、全seedの件数と平均で確認する。
   what_we_did_not_verify: 実DASHENの指標分布、候補生成、Council、GPU訓練、オンライン効果は未検証。toyの正規ノイズと独立反復は理想化で、共有データを繰り返し見る適応的過学習を表していない。反復評価gateだけで永続的な安全性を保証しない。実運用では校正profileの版、guardrail、確認後のcommitとrollbackまで設計する必要がある。
   implementation: 'リポジトリのルートで `uv run papers/autolr-dashen/run.py` を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの

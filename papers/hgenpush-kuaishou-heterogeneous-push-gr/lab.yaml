@@ -96,10 +96,10 @@ teaching_figures:
   steps:
   - name: token k
     formula: p(sₖ | h,s<ₖ) = softmax(FFNₖ(h + Σⱼ<ₖ Embⱼ(sⱼ)))
-    explanation: hは共有decoderが作った固定interest。prefixが変われば後tokenも変わる。
+    explanation: hは共有decoderが作った利用者の関心表現で、生成中は固定する。そこへ既に生成したSID tokenの表現を足すため、prefixが変われば後続tokenの分布も変わる。
   - name: sequence比
     formula: w = exp[(1/L) Σₖ log(pθ(sₖ|h,s<ₖ)/pold(sₖ|h,s<ₖ))]
-    explanation: tokenの確率比を算術平均しない。
+    explanation: 各tokenの新旧方策の確率比について、対数を平均してから指数を取る。したがって比そのものの算術平均ではなく、幾何平均になる。
   - name: GSISPO
     formula: L = −(1/G) Σg sg(clip(wg,1−ε,1+ε)) Âg log πθ(sg|h)
     explanation: clipはimportance weightに置く。通常のPPO clipと同じ操作ではない。

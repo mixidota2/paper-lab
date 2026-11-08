@@ -61,11 +61,11 @@ teaching_figures:
   steps:
   - name: 需要と利益
     formula: Dᵢ = αᵢₚ (ab)^βᵢ,  Π = Σᵢ mᵢDᵢ
-    explanation: 左右や高さの座標は需要式に入れない。
+    explanation: 左右や高さの座標は需要式に入れず、商品が棚に収まり、互いに重ならないかを判定するために使う。
     formula_mathml: <math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mrow><msub><mi>D</mi><mi>i</mi></msub><mo>=</mo><mrow><msub><mi>α</mi><mi>ip</mi></msub><msup><mrow><mo>(</mo><mi>a</mi><mi>b</mi><mo>)</mo></mrow><msub><mi>β</mi><mi>i</mi></msub></msup></mrow></mrow><mo>,</mo><mrow><mi>Π</mi><mo>=</mo><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>m</mi><mi>i</mi></msub><msub><mi>D</mi><mi>i</mi></msub></mrow></mrow></mrow></math>
   - name: 高さ比
     formula: αᵢ₁ = αᵢ₀ hᵢ₁ / hᵢ₀
-    explanation: 取り出し余白を高さ比へ入れない。
+    explanation: 高さ比は商品本体の高さで求める。取り出し余白は置ける面数の判定に使い、基礎需要を変える高さ比には入れない。
     formula_mathml: <math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>α</mi><mi>i1</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>α</mi><mi>i0</mi></msub><msub><mi>h</mi><mi>i1</mi></msub></mrow><msub><mi>h</mi><mi>i0</mi></msub></mfrac></mrow></math>
 - kind: logic
   id: height-components

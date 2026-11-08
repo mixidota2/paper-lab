@@ -47,7 +47,7 @@ Sonaは候補生成・prerank・最終rankを、共有履歴encoder、SID decode
 
 ## Executable Understanding
 
-解析的teacherを同じ線形studentへ蒸留し、impressions only、rollouts only、両source平均の和を比較する。学習で使わないrollout候補120件でMAEとpair accuracyを測る。別に履歴attentionの項数を計算するが、これは計算構造の比較で、論文の「約半分の推論費用」を再測定した値ではない。
+解析的teacherを同じ線形studentへ蒸留し、impressions only、rollouts only、両source平均の和を比較する。学習で使わないrollout候補120件でMAEとpair accuracyを測る。MAEは候補ごとの採点差の絶対値の平均、pair accuracyは候補の全ての組のうちteacherとstudentが同じ向きに厳密な順位を付けた割合である。別に履歴attentionの項数を計算するが、これは計算構造の比較で、論文の「約半分の推論費用」を再測定した値ではない。
 
 ## Results
 
