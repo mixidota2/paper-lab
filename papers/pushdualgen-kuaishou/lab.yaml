@@ -35,7 +35,7 @@ source_review:
   version: v1
   html_sha256: d9b5a6a513a106135d568004ffd4adcc31579c92052b59ab6da94388839fe89c
 core_idea:
-  author_claim: parallel SIDで履歴を圧縮し、SID-firstの二段生成でcopyをskip可能にする。生成信号と既存user特徴を融合してANN検索へ渡す。
+  author_claim: parallel SIDで履歴を圧縮し、識別子を先に生成するSID-firstの順序によって、後続の通知説明文（copy）を必要な場合だけ生成する。生成信号と既存user特徴を融合してANN検索へ渡す。
   research_bot_interpretation: 追加の生成経路を既存推薦へ接続する点で[LIGE-GR](lige-gr-meta-listwise.html)と比較できる。ただし変更場所はpushの候補表現であり、列内の順序最適化ではない。
 sections:
   overview: PushDualGenはKuaishouのpush通知向け推薦で、先にSID、その後に任意のcopyを生成する。14日間、platform trafficの計15%を均等に割り当てたA/Bで、Effective
@@ -89,7 +89,7 @@ teaching_figures:
   steps:
   - name: 先に候補を決める
     formula: P(SID,copy | X) = P(SID | X) P(copy | X,SID)
-    explanation: copyは後続条件。訓練での共有重みへの影響は残る。
+    explanation: copyは履歴Xと先に生成したSIDを条件にするため、配信時にcopyを省略しても先行SIDを変更しない。ただし訓練でcopyの損失が共有重みへ与える影響は残る。
   - name: 既存user特徴との融合
     formula: e′ᵤ = eᵤ + eₛ → ANN(e′ᵤ, eᵥ)
     explanation: Top-20 SIDをeₛへencode。実運用の係数は両方1。

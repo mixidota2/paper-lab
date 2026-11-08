@@ -90,7 +90,7 @@ sections:
     class="b21-tokens"><span>1: A</span><span>2: A</span><span>3: A</span><span>4: A</span><span>5: A</span><span>6:
     A</span><span>7: A</span><span>8: A</span><span>9: A</span><span>10: A</span><span>11: A</span><span>12: A</span></div><p>無効な提案
     12 回 ／ 連続反復 11 回 ／ 見送り 0 回</p></div><figcaption>§5–6 / Fig. 2の機構を12ターンへ縮小。表示値はrun.py / results.jsonから生成。速度のsimulationではない。</figcaption></figure>'
-  results: 固定優先順では12回とも使えないAを提案する。所持条件の照合を加えると無効提案は0回になるが、Bの連続反復が11回残る。履歴制御を加えると無効提案と連続反復はともに0回、見送りは2回となる。これらは人工設定の結果であり、論文のTGAやSGAの再現値ではない。
+  results: 固定優先順では12回とも使えないAを提案する。所持条件の照合を加えると無効提案は0回になるが、Bの連続反復が11回残る。履歴制御を加えると無効提案と連続反復はともに0回、見送りは2回となる。連続反復は、隣り合うターンに同じ候補を提案した組を数える。見送りを挟んだ再提案は数えない。これらは人工設定の結果であり、論文のTGAやSGAの再現値ではない。
   what_we_verified: Mechanism PARTIAL。hard conflict時の候補除外、同一seedでの再生、直前候補の除外、候補が空のときの見送りを確認した。これらの局所規則はCONFIRMED。W1ではsnapshotがない場合と未登録intentの場合にfallbackへ進むことを確認した。
   what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。自然言語のintent・slot抽出、streaming
     parser、実toolの並列実行、生成文の整合性、200セッションの人手評価、1.5秒の速度、本番A/Bは再検証していない。本文の製品A/B改善量は未開示。IGPOとの統合、ECの在庫推薦やコード補完への転用も未検証である。

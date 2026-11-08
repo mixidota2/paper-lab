@@ -4,7 +4,7 @@
 残差量子化は各段で近い中心を選び、残差を次段へ渡す。MRは初期のcodebookを大きくし、意味の大きな違いを先に分ける。各段はbalanced k-meansで利用の偏りを抑える。MGはitem/account IDやconversion typeなどをhashし、最後の数値層へ置く。同じ意味の広告を業務上区別する役割を持つ（Figure 2）。hashなので衝突ゼロの保証はない。
 
 ### VSLは価値を加味した模倣、RSPOはlistの相対順位を学ぶ
-VSLはSIDの次token予測に、等頻度bucketへ離散化したeCPM tokenの予測を加える。このtokenはSIDの後に置かれ、生成広告の並べ替えに使える。ユーザーの長期広告価値と行動の深さの積をsample weightにする。
+VSLはSIDの次token予測に、各区分の事例数がそろうよう値を分けた等頻度bucketのeCPM tokenの予測を加える。このtokenはSIDの後に置かれ、生成広告の並べ替えに使える。ユーザーの長期広告価値と行動の深さの積をsample weightにする。
 
 `L_NTP = −Σ_t log p(s_t | s_<t, X) − λ_e log p(v_bucket | y, X)`
 
@@ -23,7 +23,7 @@ RSPOは報酬v_i（eCPM）の低い候補集合 `E_i = {j : v_j < v_i}` に対�
 C_ijは参照分布が利用可能で信頼できるとき1、それ以外は0。原典式18は対象集合内の平均log確率比が閾値δ未満かで判定する。別pipeline由来のsampleや古い参照分布を扱う工夫である。Appendix A.1のNDCGcostの上界という議論は、このscoreと重みの定義に関するもので、真の収益改善の保証ではない。
 
 ### UVRは順位のずれで学習の配分を変える
-モデル確率の順位r_pと報酬順位r_vから `A(i)=|r_p(i)−r_v(i)|/(n−1)` を計算する。ずれが大きいとVSL、小さいとRLを強める。
+モデル確率の順位r_pと報酬順位r_vから `A(i)=|r_p(i)−r_v(i)|/(n−1)` を計算する。順位差の絶対値を、候補数に応じた最大の順位差で割っている。ずれが大きいとVSL、小さいとRLを強める。
 
 `w_VSL(i)=w₀ exp[A(i) log(1+v_i)]`
 

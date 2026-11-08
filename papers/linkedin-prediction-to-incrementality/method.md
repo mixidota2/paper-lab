@@ -4,7 +4,7 @@ Fig. 1の共有表現は、接触履歴を読むTransformer、会員embedding、
 
 識別の仮定は別に要る。targeted regularizationも、その代わりにはならない。
 
-価値は差で決まる。Eq. 1ではτ=μ₁−μ₀と定義する。最終層の線形化Laplace近似（LLA）は、学習済みcheckpointの周りの曲率からlogitの不確実性を近似する。Thompson samplingで引いた増分値を、Eq. 3の全体最適化へ渡す。本番はlast-layer LLAを選んだ。Bayes by Backpropはオフライン比較で使う。
+価値は差で決まる。Eq. 1ではτ=μ₁−μ₀と定義する。最終層の線形化Laplace近似（LLA）は、学習済みcheckpointの周りの曲率からlogitの不確実性を近似する。Thompson samplingでは推定の不確実性を表す分布から値を抽選する。その抽選に基づく増分値を、Eq. 3の全体最適化へ渡す。本番はlast-layer LLAを選んだ。Bayes by Backpropはオフライン比較で使う。
 
 ### 双対変数を共有し、会員ごとに解く
 

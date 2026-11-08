@@ -180,7 +180,7 @@ teaching_figures:
     explanation: 観測窓と例外審査の情報も判定に残す。
   - name: paired replay
     formula: ΔJ=mean_j[J(h′,task_j)−J(h,task_j)]
-    explanation: 同じtaskで新旧のharnessを比較する。
+    explanation: 同じtaskで新旧のharnessを比較する。課題ごとに新旧の評価値の差を求め、その差を合計して課題数で割る。
   - name: 更新
     formula: accept ⇔ ΔJ>ε ∧ Safe(Δh)
     explanation: 自然言語の診断を利用する。数値gradientでLLM重みを更新しない。

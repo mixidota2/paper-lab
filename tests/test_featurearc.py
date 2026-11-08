@@ -82,7 +82,8 @@ def test_107_sources_and_guides_preserved():
  b=json.loads((ROOT/'tests/main_107_catalog.json').read_text())
  assert b['base']=='ad841a1965bab4e19cce2aa1ed7613b71b4bf922'
  from shelf_guide_preservation import verify_preserved_source
- for path,h in b['source_hashes'].items():verify_preserved_source(ROOT,path,h)
+ from prose_preservation import revised_hash
+ for path,h in b['source_hashes'].items():verify_preserved_source(ROOT,path,revised_hash(ROOT,path,h))
  assert len(b['ids'])==107
  from catalog_expectations import assert_catalog
  ids=[p.parent.name for p in (ROOT/'papers').glob('*/lab.yaml')];assert_catalog(ids)

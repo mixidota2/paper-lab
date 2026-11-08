@@ -10,7 +10,7 @@ query-itemの双方向InfoNCEを加え、再構成誤差＋commitment＋対照�
 
 商品title→SID、query→SID、user+query→SIDの順にSFTする。query段ではクリック・購入に対応するSIDを3つsample。個人化段では性別・年齢帯・関連カテゴリの最近のクリックSIDも入力する。最後に既存rankingとの整合を狙うEG-GRPOを行う。
 
-報酬は購入またはクリック1.0、露出のみ0.5、有効SIDのみ0.1、無効0。順位の上から最初に該当する条件を使い、加算しない。通常8出力の群へ、クリックまたは露出集合からK個の正解SIDをpseudo-generated outputとして注入する。広げた群で平均・標準偏差を計算し、clipped policy gradientへ入れる。expertはオンラインに正解を渡す仕掛けではない。[式8–10、Algorithm 2](https://arxiv.org/pdf/2605.14434v1)
+報酬は購入またはクリック1.0、露出のみ0.5、有効SIDのみ0.1、無効0。順位の上から最初に該当する条件を使い、加算しない。通常8出力の群へ、クリックまたは露出集合からK個の正解SIDをpseudo-generated outputとして注入する。広げた群で平均・標準偏差を計算し、clipped policy gradientへ入れる。expertは、学習時に報酬差を作るために加える教師例である。配信時に正解SIDを渡す仕掛けではない。[式8–10、Algorithm 2](https://arxiv.org/pdf/2605.14434v1)
 
 式10の掲載式にはKL項がない一方、§4.1の設定はKL weight=1.0と記す。完全な学習lossやoff-policy注入の補正を再構成できたとは扱わない。
 

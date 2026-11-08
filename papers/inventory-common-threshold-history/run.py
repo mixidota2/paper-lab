@@ -3,9 +3,11 @@ from dataclasses import dataclass
 from fractions import Fraction as F
 from functools import lru_cache
 from math import isfinite
-from decimal import Decimal, localcontext, ROUND_HALF_EVEN
+from decimal import (Decimal, Context, localcontext, ROUND_HALF_EVEN, MIN_EMIN, MAX_EMAX,
+                     InvalidOperation, DivisionByZero, Overflow)
 from pathlib import Path
 import json
+from sys import float_info
 
 SLUG = 'inventory-common-threshold-history'
 
@@ -77,11 +79,25 @@ def cdf(z):
     if z >= 1:
         return 1.0
     # Fixed correctly-rounded decimal exponential avoids platform libm last-bit differences.
-    with localcontext() as ctx:
-        ctx.prec = 50
-        ctx.rounding = ROUND_HALF_EVEN
+    with localcontext(Context(prec=50, rounding=ROUND_HALF_EVEN,
+                              Emin=MIN_EMIN, Emax=MAX_EMAX, capitals=1, clamp=0,
+                              traps=[InvalidOperation, DivisionByZero, Overflow])):
         value = Decimal(z.numerator) / Decimal(z.denominator) if isinstance(z, F) else Decimal(z)
-        return float((value.exp() - 1) / (Decimal(1).exp() - 1))
+        if 0 < value < Decimal('1e-8'):
+            # exp(value) - 1 loses all digits when value is smaller than
+            # the context precision. Sum expm1 directly instead.
+            term = numerator = value
+            n = 2
+            while True:
+                term = term * value / n
+                updated = numerator + term
+                if updated == numerator:
+                    break
+                numerator = updated
+                n += 1
+        else:
+            numerator = value.exp() - 1
+        return float(numerator / (Decimal(1).exp() - 1))
 
 
 def fixture(signal=True, lead=0):
@@ -186,9 +202,16 @@ def optimum(tree):
 
 
 def tight(epsilon):
+    """Float-cost example; epsilon must remain normal after float conversion.
+
+    Subnormal costs have insufficient relative precision for a useful ratio.
+    The CDF itself still returns the nearest representable float.
+    """
     e = float(epsilon)
     if not isfinite(e) or not 0 < e < .5:
         raise ValueError('tight example requires 0 < epsilon < 0.5')
+    if e < float_info.min:
+        raise ValueError('tight example requires normal float epsilon >= ' + str(float_info.min))
     probability = cdf(e/(1-e))
     cost = e+(1-2*e)*probability
     return dict(epsilon=e, order_probability=probability, opt=e, cost=cost, ratio=cost/e)

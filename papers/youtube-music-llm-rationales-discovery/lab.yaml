@@ -46,7 +46,7 @@ sections:
   overview: 対象はYouTube Music homepageの発見用YDD棚。従来は「好きなartistのfan向け」などの定型理由を、co-watchやaudio embeddingの類似度閾値から付ける。LLMはtaste
     groupに基づくartist候補と自然言語の理由をofflineで作り、候補追加と既存候補への理由付与の両方に使う。
   problem: 未知のartistが候補にいても、利用者が選ぶ根拠を持たなければ聴かれない。一方、requestごとのLLM生成は費用とlatencyが重い。さらに架空artistや既聴artistが混じると、発見という目的を満たせない。候補の実在性と理由の妥当性は別々に確認する必要がある。
-  why_it_might_work: 利用者の好みとの接点を理由文で示せば、未知の曲を選ぶ負担が下がると考えられる。offline生成は履歴を長く読み、品質検査をrequest外へ移せる。ただし心理的信頼そのものを直接測定した実験ではない。KGに実在するartistでも、理由文の音楽的説明が正しいとは限らない。
+  why_it_might_work: 利用者の好みとの接点を理由文で示せば、未知の曲を選ぶ負担が下がると考えられる。offline生成は履歴を長く読み、品質検査をrequest外へ移せる。ただし心理的信頼そのものを直接測定した実験ではない。知識グラフ（KG）でartistの実在を確認できても、理由文が述べる音楽的な特徴や好みとの接点まで正しいとは限らない。
   evidence: '[一次資料PDF §3–4 / Table 1](https://arxiv.org/pdf/2609.23877v1) の著者報告。
 
 
@@ -98,7 +98,7 @@ teaching_figures:
   - label: 次のonline
     nodes:
     - title: cache取得
-      text: nominationとannotation
+      text: 候補の追加と、既存候補への理由付与
     - title: 既存ranker
       text: reward・多様性で棚へ
   source: https://arxiv.org/pdf/2609.23877v1

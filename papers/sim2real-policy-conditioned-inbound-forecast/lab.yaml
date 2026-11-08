@@ -19,7 +19,7 @@ urls:
   official_code: null
 verdict: Worth Reading
 status: published
-summary: 方策を替えると入荷量も変わる。新方策の模擬データで応答を学ぶ研究だが、改善の大きさは2つの実配備で異なる。
+summary: 発注規則（方策）を替えると入荷量も変わる。新方策の模擬データで応答を学ぶ研究だが、改善の大きさは2つの実配備で異なる。
 question: 自社の方策を替えた日の入荷を、何で学ぶか
 verification:
   mechanism: PARTIAL
@@ -37,7 +37,7 @@ core_idea:
   research_bot_interpretation: 本Labの解釈：シミュレーターの精度と、学習データとしての有用性は別々に測りたい。MadekaらのExo-IDP、Eisenachらの容量調整、Wangらのdual
     coordinatorを引き継ぎ、ここでは「方策が変える予測対象」を実配備で評価した点が中心となる。データ源や方策整合が改善の原因だと単独に識別した実験ではない。
 sections:
-  overview: '**Worth Reading：方策を替えると、予測する入荷量そのものが変わる。** Amazonの2つの実配備を後から評価した研究。新方策を動かしたシミュレーターで予測器を学ぶと、旧方策の実履歴で学ぶ同じ予測器より、総入荷量のMAPEの点推定値が低かった。Study
+  overview: '**Worth Reading：発注規則（方策）を替えると、予測する入荷量そのものが変わる。** Amazonの2つの実配備を後から評価した研究。新方策を動かしたシミュレーターで予測器を学ぶと、旧方策の実履歴で学ぶ同じ予測器より、総入荷量の予測誤差を実績で割った割合の絶対値を平均した指標（MAPE）の点推定値が低かった。Study
     1では旧履歴学習との差が1.2〜3.1ポイントにとどまり信頼区間も重なる一方、別の方策を配備したStudy 2では12.5〜18.7ポイントの差があるため、両研究を同じ強さの改善証拠とは読めない。
 
 
@@ -135,9 +135,9 @@ teaching_figures:
   title: 商品表現を集約するか、商品予測を足すか
   after: why_it_might_work
   locator: Appendix B / Table 4
-  caption: 両decoderを同じモデル名として混ぜず、集約の位置を区別する。
+  caption: 二つの出力方式（decoder）を同じモデル名として混ぜず、集約の位置を区別する。
   source: https://arxiv.org/pdf/2610.03662v1
-  rationale: 両decoderを同じモデル名として混ぜず、集約の位置を区別する。
+  rationale: 二つの出力方式（decoder）を同じモデル名として混ぜず、集約の位置を区別する。
   rows:
   - label: 教師データ
     nodes:
@@ -145,9 +145,9 @@ teaching_figures:
       text: 階段状の目標を生成
     - title: dual coordinator
       text: Gからλへ
-    - title: 固定方策のrollout
-      text: 内生状態と総入荷Jを再計算
-  - label: 共有encoder
+    - title: 固定方策の模擬実行
+      text: 在庫などの内生状態と総入荷Jを再計算
+  - label: 履歴を変換する共有encoder
     nodes:
     - title: 64週の商品履歴
       text: dilated causal CNN、幅32

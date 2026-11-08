@@ -61,8 +61,7 @@ sections:
 
     オフラインではimpressions onlyのTeacher Recall@10は0.2983、rollouts + impressionsは0.5654。2k・RMなしの0.0381から、4層RMでは0.6005へ上がる。8k
     full attentionは0.6586、History Compressionは0.6474で、完全に同じ精度ではない。WPAは圧縮版0.6033、full版0.6029。指標間で優劣が違う。'
-  executable_understanding: 解析的teacherを同じ線形studentへ蒸留し、impressions only、rollouts only、両source平均の和を比較する。学習で使わないrollout候補120件でMAEとpair
-    accuracyを測る。別に履歴attentionの項数を計算するが、これは計算構造の比較で、論文の「約半分の推論費用」を再測定した値ではない。
+  executable_understanding: 解析的teacherを同じ線形studentへ蒸留し、impressions only、rollouts only、両source平均の和を比較する。学習で使わないrollout候補120件でMAEとpair accuracyを測る。MAEは候補ごとの採点差の絶対値の平均、pair accuracyは候補の全ての組のうちteacherとstudentが同じ向きに厳密な順位を付けた割合である。別に履歴attentionの項数を計算するが、これは計算構造の比較で、論文の「約半分の推論費用」を再測定した値ではない。
   results: 合成条件では両sourceのpair accuracyは1.0、impressions onlyは約0.791。両sourceのMAEはrollouts onlyより大きく、全指標で勝ったとは言えない。impression側で一つの特徴が常に0という設計なので、その特徴の係数を学べない状況を意図的に作っている。
   what_we_verified: Mechanism PARTIAL。候補分布を変えると、同じteacher・studentでも未使用候補との一致が変わることを確認した。2つのsourceで個別に平均を取り、Eq. §4.2どおり加算した。seedと訓練回数を固定した。
   what_we_did_not_verify: Transformer、Qwen tokenizer、残差量子化、NTPとの共有勾配、実catalog collision、45分の更新loopは未検証。Performance
@@ -87,7 +86,7 @@ teaching_figures:
     explanation: NTPはpositive impressionsのみ。
   - name: 候補源ごとの平均
     formula: L_source = Σ_head mean_c |RM(c) − Teacher(c)|
-    explanation: rolloutとimpressionは別々に平均する。教師は凍結。
+    explanation: 生成した候補（rollout）と実際に表示された候補（impression）を別々に平均する。件数の多い側が自動的に重くなる混合平均ではない。教師は凍結。
   - name: 教師との順序一致
     formula: TeacherRecall@k = |Topk(RM) ∩ Topk(Teacher)| / k
     explanation: 同じ生成候補pool内で測る。catalog全体の正解recallとは異なる。

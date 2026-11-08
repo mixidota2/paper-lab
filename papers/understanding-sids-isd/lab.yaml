@@ -54,7 +54,7 @@ teaching_figures:
     explanation: 観測履歴hから未消費アイテムを順位付け。test targetの正体は入力しない。
   - name: prefixを支える最上位
     formula: 'rᵢₜₑₘ(p) = min { rQ(i) : i ∈ Q(h) ∩ Sₚ }'
-    explanation: Sₚはprefix pを持つアイテム集合。該当なしなら∞。
+    explanation: Sₚはprefix pを持つアイテム集合。支援集合Q(h)にも属するアイテムのうち最上位の順位を使い、該当なしなら∞。
   - name: 順位融合してからbeam削減
     formula: F(p) = 1/(κ + rdec(p)) + 1/(κ + rᵢₜₑₘ(p))
     explanation: ∞の項は0。rdecは累積系列確率での順位。上位B個を残す。

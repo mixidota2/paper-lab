@@ -4,7 +4,7 @@
 
 | 原典 | Lab | 境界 |
 | --- | --- | --- |
-| Table 1–2 / Fig.2 | 通信図 | 4方向の意味と受理/完了の違いを段階表示。wire formatの実装ではない。 |
+| Table 1–2 / Fig.2 | 通信図 | 4種類のメッセージの意味と受理/完了の違いを段階表示。通信データ形式（wire format）の実装ではない。 |
 | §4.2 / Appendix A.2 | schedule() | hot優先と待機保護を単一スロットで縮約。全prefix一致のtoy。 |
 | Table 3–6 | lab.yaml / results.jsonのpaper | SCBenchとMooncakeを別の系列で保存。独立再現ではない。 |
 | Eq.4–5 / Appendix A.1 | method節 | 6構成の役割別選択を説明。GPU/KVモードの実装は省略。 |

@@ -10,7 +10,7 @@ FlashTrieは圧縮trieとbeam展開・検査・選別をGPU内へまとめる。
 uv run papers/flashtrie-gpu-beam/run.py
 ```
 
-2段の固定NAR確率表からprefix制約付きbeam searchをCPUで実行する。beam1で落ちる最適系列がbeam2で残る例と、depth-only filterが無効な組合せを返す例を比べる。GPUの時間を測った実験ではない。
+前のtokenによって確率表を変えない非自己回帰（NAR）の設定を置き、2段の固定確率表からprefix制約付きbeam searchをCPUで実行する。beam1で落ちる最適系列がbeam2で残る例と、depth-only filterが無効な組合せを返す例を比べる。GPUの時間を測った実験ではない。
 
 ## 検証範囲
 

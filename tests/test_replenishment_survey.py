@@ -147,4 +147,5 @@ def test_full_build_guide_sources_links_and_existing_labs_preserved(tmp_path):
         after=subprocess.check_output(['git','hash-object',path],cwd=ROOT,text=True).strip()
         # Explicit CDF portability repair: exact blob identities, all other source unchanged.
         portability_repair = {'papers/inventory-common-threshold-history/run.py': 'e0bd34bd4ac3b2139c3b6064f0dfc75e41a5d2e6', 'papers/inventory-common-threshold-history/README.md': '73d49ee6ab6ea7e3fbb790397cf58ffafd2561e3', 'papers/inventory-common-threshold-history/results.json': '4e7459bc5e8fbd88da253ba91afa77db2a7b8cb9'}
-        assert after==portability_repair.get(path,before),path
+        from prose_preservation import revised_hash
+        assert after==revised_hash(ROOT,path,portability_repair.get(path,before),'blob'),path

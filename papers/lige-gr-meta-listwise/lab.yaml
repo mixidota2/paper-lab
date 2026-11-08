@@ -97,7 +97,7 @@ teaching_figures:
     explanation: p(空列)=1。動画単体の確率と累積到達確率を分ける。
   - name: 列の期待価値
     formula: ListVMgolden(V) = Σₜ p(Vₜ₋₁) [itemVM(CAₜ) + CLₜ]
-    explanation: CL=−∞の候補は加算前に除外する。
+    explanation: 前の位置まで視聴が続く確率で、その位置の価値を重み付けする。CL=−∞の候補は加算前に除外する。
   - name: 探索の判定
     formula: Q(Vₜ) = ListVMgolden(Vₜ) + s̄ Σⱼ qₜ^(j d̄/dₜ)
     explanation: 残り位置j=1…T−t。全長では将来項は0。

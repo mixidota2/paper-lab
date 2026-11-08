@@ -12,7 +12,7 @@ Switch-HurdleはTop-1 MoE encoderと自己回帰hurdle decoderを組み合わせ
 
 ## Core Idea — 著者の主張と解釈
 
-著者の主張：学習したrouterが各tokenを1つのexpertへ送り、decoderは需要の発生確率と正の需要量を別々に予測する。正の量にはゼロで切り詰めた負の二項分布を使う。
+著者の主張：学習した振り分け器（router）が各tokenを1つの処理ネットワーク（expert）へ送り、予測を出すdecoderは需要の発生確率と正の需要量を別々に予測する。正の量にはゼロで切り詰めた負の二項分布を使う。
 
 Labの解釈：ゼロの頻度と発生時の大きさを分ける設計は、間欠需要を読む助けになる。ただしAccuracy Is Not Serviceが問う、精度と在庫サービスのずれを解消した研究とはいえない。
 

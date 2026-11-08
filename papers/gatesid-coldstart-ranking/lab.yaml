@@ -106,7 +106,7 @@ teaching_figures:
     explanation: ID表現と掲載期間・露出・クリックなどから学習。
   - name: GFSA
     formula: S_fused=w S_sid+(1−w)S_item
-    explanation: 同じ分布を両方の履歴表現へ適用する。
+    explanation: 履歴の各位置をどれだけ参照するかという重みの分布を混ぜ、その同じ分布を意味側・行動側の両方の履歴表現へ適用する。
   - name: GRCA
     formula: L=L_rank+λ·mean_i[w_i ℓ_cl(i)]
-    explanation: 意味の比率と整列の強さを同じgateで制御。
+    explanation: 意味側の比率を決めるgateを、同じ商品の意味表現と行動表現を近付ける対照損失にも掛ける。商品ごとの重み付き損失を平均して順位付けの損失へ加える。

@@ -16,16 +16,18 @@ function forest(el,rows,min,max,band=false){const x=v=>175+(v-min)/(max-min)*360
 
 SIM = r'''
 <h3>発注規則を変えると入荷量も変わる</h3>
+<p>Gは容量目標、λは各商品へ共通に伝える入荷コスト、πは発注規則、Xはその判断に使う状態です。ψは、候補のλに対して入荷量がどう変わるかを予測します。</p>
 <div class="flow"><div><b>容量計画 G → λ</b><p>容量の調整役が共通コストを通知</p></div><div><b>π(X,λ) → 注文 a → 入荷 J</b><p>納期を経た入荷が容量を消費</p></div><div><b>Ĵ=ψ(X,λ) → 容量計画へ</b><p>候補λの応答を先読みして調整</p></div></div>
 <p class="band">旧履歴にはπ₀の応答だけが残る。需要と納期の系列を固定して新しい発注規則π₁を再実行し、教師データを作る。</p>
 <h3>同じ需要を再生し、内生状態だけを計算し直す</h3>
+<p>内生状態とは、発注によって変わる在庫・未着注文・入荷です。コストを選んで週を送ると、需要を変えずに発注と在庫の動きを比較できます。ここからの在庫図は自作の人工例で、下の転移評価は著者報告です。</p>
 <div class="cols"><label>共通入荷コスト λ<select data-cost><option value="0">0</option><option value="2">2</option><option value="4">4</option></select></label><label>表示週 <output data-week-label></output><input data-week type="range" min="1" max="23" value="8"></label></div>
 <div class="plot"><svg viewBox="0 0 600 265" role="img" aria-label="固定需要とλ別の入荷・在庫の時系列" data-replay></svg></div>
 <div class="legend"><span style="color:#7d8990">● 需要：全λで同じ</span><span style="color:#176d79">● 入荷</span><span style="color:#b86d34">● 期末在庫</span></div>
 <div class="cards" data-stock></div><p class="eq" data-equation aria-live="polite"></p>
 <p class="muted">人工24商品。納期は1〜2週。図は需要・入荷・在庫の総量、Eq.2は商品別に計算してから合算する。総量にminを適用したものではない。</p>
 <h3>再現性の傾きと、転移後のMAPEを分けて読む</h3>
-<div class="cols"><div class="card"><h4>Table 1：実績 / 模擬の回帰</h4><div data-fidelity></div><p class="muted">横軸：模擬、縦軸：実績。傾き1が尺度の一致。R²は別の診断。</p></div><div><label>実運用での評価<select data-study><option>S1</option><option>S2</option></select></label><p>S1：約2万商品・1年<br>S2：約10万商品・3カ月</p><p>● 旧方策履歴　● 模擬学習<br>橙色の線：模擬→逐次補正の点推定値</p></div></div>
+<div class="cols"><div class="card"><h4>Table 1：模擬値から実績を説明する回帰</h4><div data-fidelity></div><p class="muted">横軸：模擬、縦軸：実績。傾き1が尺度の一致。R²は別の診断。</p></div><div><label>実運用での評価<select data-study><option>S1</option><option>S2</option></select></label><p>S1：約2万商品・1年<br>S2：約10万商品・3カ月</p><p>● 旧方策履歴　● 模擬学習<br>橙色の線：模擬→逐次補正の点推定値</p></div></div>
 <div class="plot"><svg class="wide" viewBox="0 0 600 300" role="img" aria-label="予測期間別MAPEと95%信頼区間" data-transfer></svg></div>
 <p class="muted">MAPEは、集計した入荷量の予測について、実績に対する絶対誤差の割合を週ごとの予測起点で平均した値。予測期間ごとに評価する。公表値で実績が0の場合の処理は、確認された本文では明示されていない。教材の分母max(J,1)とは区別する。<a href="https://arxiv.org/html/2610.03662v1">原典§4・Tables 2–3</a>。著者報告 Table 2–3。青緑：模擬、灰：旧履歴、橙：補正後。線は各群の95%信頼区間であり、対応する差の信頼区間ではない。補正後の信頼区間は図では省略し、本文の値と原表を参照する。</p>
 '''
@@ -39,8 +41,10 @@ HARNESS = r'''
 <h3>差を測る物差し：何も替えない再実行</h3><div class="cards" data-flips></div>
 <p class="muted">Fig.2のhard45中央値。成否の反転率であり、成功率の差ではない。</p>
 <h3>±5ポイントの帯と、対応差の95%区間</h3><div class="plot"><svg class="wide" role="img" aria-label="pool447のharness間の成功率差と信頼区間" data-forest></svg></div>
-<p class="muted">Table 1。単位pp、右が先に書いたharnessの優位。緑の帯は±5。差が事前に定めた範囲内かを調べる等価性検定（TOST）には90%区間を使う。95%区間を帯へ収める判定ではない。</p>
+<p>図のCCはClaude Code、miniはmini-SWE-agent、OCはOpenCodeです。harnessはモデルに渡す指示やツール、履歴、実行の継続・終了を管理する仕組みです。</p>
+<p class="muted">Table 1。単位pp（パーセントポイント）、右が先に書いたharnessの優位。緑の帯は±5。差が事前に定めた範囲内かを調べる等価性検定（TOST）には90%区間を使う。95%区間を帯へ収める判定ではない。</p>
 <h3>この課題数で、どれほどの差が見えるか</h3>
+<p>nは両構成を比較できる課題のペア数、qは同じ課題の成否が構成間で異なる割合です。検出力は、仮定した成功率差Δを検定で見つけられる確率です。到達不可は、そのnとqでは目標の検出力に届かないことを表します。</p>
 <div class="cols"><label>対応する課題数 n<select data-n><option>45</option><option>100</option><option>200</option><option selected>447</option><option>800</option></select></label><label>不一致率 q<select data-q><option value="0.07">7%</option><option value="0.14">14%（丸め）</option><option value="0.14008941877794337">14.0089%（45課題の集合hard45での実測）</option><option value="0.14392803598200898" selected>14.3928%（447課題の集合pool447での実測）</option><option value="0.27">27%</option></select></label></div>
 <div class="cards" data-power aria-live="polite"></div><p class="eq">M ~ Binomial(n,q) → B|M ~ Binomial(M,(1+Δ/q)/2) → exact McNemar p≤.05</p><p class="muted">Pythonの厳密計算。差Δはq以下。45件・14%では80%検出力に到達する差が存在しない。447件は丸めた14%なら5.09pp、実測14.3928%なら5.16ppとなり論文の約5.2ppと一致する。</p>
 <h3>入力トークンの費用を、初期入力・履歴の増加・実行ステップ数に分けて考える</h3>
@@ -60,12 +64,15 @@ for(const sel of ['[data-n]','[data-q]'])$(sel).addEventListener('change',power)
 
 TRAFFIC = r'''
 <h3>予測を制御へ入れる前の5つの関門</h3>
+<p>関門を選ぶと、予測誤差から実際の行動選択まで、どの条件を点検するかを表示します。MAEは予測と実績の絶対差の平均、historical meanは過去平均、CQRは予測区間の校正です。lag-0は判断中の当該区間、slotは投影する時間区分を指します。</p>
 <div class="cols"><div class="gates" data-gates></div><div class="card" data-gate-detail aria-live="polite"></div></div>
 <h3>9交差点でも、選べるのは2地点</h3><div class="cols"><div class="junctions" data-junctions></div><div class="card"><span class="big">1⁷ × 8² = 64</span><p>同じ車両進行方向の組（空集合を除く）を重複除去した実効行動。最終版は64組合せを全探索する。</p><p class="muted">模式的な並び。実際の地理や交差点IDの対応を示す地図ではない。</p></div></div>
 <h3>全体で90%を含む予測区間でも、高需要群で90%とは限らない</h3><div class="cols" data-coverage></div>
 <h3>設定を固定したテスト7日：正が改善、ゼロをまたぐ区間</h3><div class="plot"><svg class="wide" role="img" aria-label="予測を使う条件と将来需要が分かる条件の、待ち行列と下流の詰まりによる上流への滞留の改善率、および95%信頼区間" data-effects></svg></div>
+<p>queueは待ち行列、spillbackは下流の詰まりが上流まで広がる滞留です。予測を使わない条件を基準にした改善率で、負の値は悪化を表します。oracleは将来需要が分かる比較条件であり、実際に使える予測器ではありません。</p>
 <p class="muted">Fig.4。独立単位は7日。50,000 bootstrap反復は50,000日分の証拠ではない。</p>
 <h3>同じ予測改善を、異なる行動集合へ渡す</h3>
+<p>以下は自作の補充例です。historicalは一定値の基準予測、oracleは需要をそのまま渡す条件です。決定費用は選んだ補充量と需要の絶対差の平均。費用削減は、同じ行動集合のhistoricalを分母とした削減率です。</p>
 <label>補充の選択肢<select data-actions><option value="one">{8}：1つだけ</option><option value="several">{4,8,12}：需要に応じて替えられる</option><option value="irrelevant">{0,1,2}：複数あるが需要より小さい</option></select></label>
 <div class="tablewrap"><table><thead><tr><th>予測</th><th>MAE</th><th>決定費用</th><th>費用削減</th><th>選んだ量</th></tr></thead><tbody data-toy></tbody></table></div><p class="eq" data-oracle aria-live="polite"></p>
 <p class="muted">人工600需要、|a−D|の1期間費用。小売への解釈を試すtoyで、交通制御性能の再現ではない。</p>
@@ -77,10 +84,11 @@ function toy(){let c=d.cases[$('[data-actions]').value];$('[data-toy]').innerHTM
 '''
 
 HEAR = r'''
-<h3>通信の意味を1往復ずつ追う</h3><div class="lanes"><div>実行支援側（Harness）<br>役割・依存・再利用予定</div><div>推論処理側（Engine）<br>KV・queue・資源圧力</div></div>
+<h3>通信の意味を1往復ずつ追う</h3><div class="lanes"><div>実行支援側（Harness）<br>役割・依存・再利用予定</div><div>推論処理側（Engine）<br>KV・待ち行列・資源の混雑状況</div></div>
 <div data-messages></div><button type="button" data-next>次の通信へ</button> <button type="button" data-reset>先頭へ</button><p class="eq" data-force aria-live="polite"></p>
-<p class="muted">Fig.2 / Table 1–2を説明する模式例。規格で必須の通信順やwire formatではない。</p>
+<p class="muted">Fig.2 / Table 1–2を説明する模式例。規格で必須の通信順や通信データ形式（wire format）ではない。prefixは文脈の先頭部分、prepareは利用の準備、versionは文脈の版を表します。</p>
 <h3>平均を縮めても、キャッシュを再利用できず前処理が必要な要求の待ちは伸びる</h3>
+<p>FCFSは到着順、Cache-Awareはキャッシュを再利用できる要求を優先する方策です。Guardは長く待った要求の追い越しを止めます。TTFTは要求到着から最初のトークンが出るまでの時間です。</p>
 <div class="legend"><span>緑：キャッシュを再利用</span><span>桃：再利用できず、古い保存状態（KV）を削除</span><span>下線：待機保護</span></div>
 <div data-timelines></div><div class="card" data-event aria-live="polite"></div>
 <div class="plot"><svg viewBox="0 0 600 220" role="img" aria-label="toyの平均と最大TTFT比較" data-latency></svg></div>

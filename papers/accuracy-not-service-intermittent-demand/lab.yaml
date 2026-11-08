@@ -32,15 +32,14 @@ source_review:
   url: https://arxiv.org/pdf/2609.13840v1
   scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。
 core_idea:
-  author_claim: 同一在庫方策で手法を比較すると、間欠需要の強い部品契約で精度順位とservice順位が逆転する。偏りの方向を診断し、Chronos-2の非ゼロ条件付き正規化でserviceを改善する。
-  research_bot_interpretation: '[Contextual Deconvolution](contextual-deconvolution.html)は在庫費用との整合、[VN2](vn2-stockout-catboost.html)は予測と発注policyの組を問う。本論文は固定policyで予測の偏りを切り分ける。[ChronosFlow-ICGPS](https://arxiv.org/abs/2605.14840)は発注量に依存して打ち切られた需要を生成補完する研究で、観測需要に対する正規化補正とは問題が異なる。これらを接続するなら、潜在需要の回復、COFR、在庫費用を別々に評価したい。'
+  author_claim: 同一在庫方策で手法を比較すると、需要のない期間が多い部品契約で、予測精度の順位と注文完納率の順位が逆転する。偏りの方向を診断し、Chronos-2の需要が正の期間だけから求めた平均・標準偏差による正規化で、注文完納率を改善する。
+  research_bot_interpretation: '[Contextual Deconvolution](contextual-deconvolution.html)は在庫費用との整合、[VN2](vn2-stockout-catboost.html)は予測と発注規則の組を問う。本論文は発注規則を固定して予測の偏りを切り分ける。[ChronosFlow-ICGPS](https://arxiv.org/abs/2605.14840)は発注量に依存して打ち切られた需要を生成補完する研究で、観測需要に対する正規化補正とは問題が異なる。これらを接続するなら、潜在需要の回復、COFR、在庫費用を別々に評価したい。'
 sections:
   overview: 少しずつ外す予測より、余分に見積もる予測の方が注文を完納できる場合がある。本論文の対象は月次の間欠・塊状需要を持つ物流部品。38手法を同じ補充規則へ入れると、20,330件の実注文で精度と完納の順位が逆向きになった。これは「精度を捨てればよい」という結論ではない。追加在庫を含む意思決定の評価が必要になる。
-  problem: 精度benchmarkは4,021品目、注文評価はそのうち3,828品目・41 platform。Chronos補正の集計は4,558品目で、同じ分母ではない。1注文の全明細が揃った場合だけ成功と数えるCOFRでは、一品の不足が注文全体の失敗になる。RAFとM5には実multi-item
-    order logがないため、3領域の比較には品目単位のfill proxyを使う。
+  problem: 精度benchmarkは4,021品目、注文評価はそのうち3,828品目・41 platform。Chronos補正の集計は4,558品目で、同じ分母ではない。1注文の全明細が揃った注文数を全注文数で割るCOFRでは、一品の不足が注文全体の失敗になる。RAFとM5には複数品目を含む実注文の記録がないため、3領域の比較には品目単位の充足を測る代理指標（fill proxy）を使う。
   why_it_might_work: '解釈: ゼロが多い履歴では平均が小さくなり、絶対誤差を減らす予測は需要の山を低く見積もりやすい。平均予測を上げれば同じ分散・safety
     factorの在庫目標は上がる。ただし完納できない注文を棄却して在庫を保存する規則では、目標が大きいほど実現COFRが必ず上がるとは限らない。論文のProposition
-    1も保証するのはstock targetの順序だけである。'
+    1も保証するのは在庫目標（stock target）の大小関係だけである。'
   evidence: '一次資料の著者報告。
 
 
@@ -76,7 +75,7 @@ sections:
 
     RUFは5,000品目の公開合成panel。実品目の集約templateから発生×量を生成し、class・zero率の一致を最大10回で検査する。非cold-startの84%がgateを通る。周辺分布と依存の整合は認証対象だが、機密の実注文そのものではない。38手法でρ=−0.47、補正MASE
     0.765→0.807とproxy +17.6〜21.4 ppを報告する。LabではRUF全38手法を再実行していない。'
-  executable_understanding: '`uv run papers/accuracy-not-service-intermittent-demand/run.py`。固定seedの4品目・144人工注文を同一順序・同一補充規則でreplayし、予測倍率を変えてMAE・COFR・平均在庫を測る。別に正規化と逆変換、全ゼロ・単一正値の端点を確認する。公式公開CSVによる38手法の順位散布図は著者集計の再描画であり、この人工replayとは別。'
+  executable_understanding: '`uv run papers/accuracy-not-service-intermittent-demand/run.py`。乱数の初期値（seed）を固定した4品目・144人工注文を同一順序・同一補充規則で再生し、予測倍率を変えてMAE・COFR・平均在庫を測る。別に正規化と逆変換、全ゼロ・単一正値の端点を確認する。公式公開CSVによる38手法の順位散布図は著者集計の再描画であり、この人工replayとは別。'
   results: 人工replayでは予測倍率0.5→4でCOFR 47.9→97.9%、平均在庫9.01→34.95単位。ここではMAEも3.98→2.36へ改善するので、論文の精度逆転はNOT
     OBSERVED。設計した人工需要が同じregimeを再現するとは限らない。一方、注文[3],[1],[1]に初期在庫2と3を与える反例では、COFRが2/3→1/3へ低下する。在庫目標の大小と注文完納の単調性を区別できる。
     公開CSVの順位から相関を再計算するとρ=-0.555264。これは著者集計の確認であり、生データからの再現ではない。
@@ -96,10 +95,10 @@ teaching_figures:
   caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
   source: https://arxiv.org/pdf/2609.13840v1
   steps:
-  - name: lead-time需要
+  - name: 発注から到着までの需要
     formula: Yᵢ = Σₕ yᵢ,o+h ; Ŷᵢ = H r̂ᵢ
-    explanation: 月ごとの誤差とlead-time全体の誤差は違う。
-  - name: 固定方策のstock target
+    explanation: 月ごとの誤差と、発注から到着までの期間全体で合計した需要の誤差は違う。
+  - name: 固定した発注規則の在庫目標
     formula: Sᵢ = max(0, μ̂ᵢ(L+R) + z σ̂ᵢ√(L+R))
     explanation: 同じσならΔS=(L+R)Δμ。保証は在庫目標まで。
   - name: 全明細が揃って初めて成功
@@ -107,13 +106,13 @@ teaching_figures:
     explanation: 1明細でも不足すればその注文は失敗。
   - name: 正規化の変更
     formula: x̂nz = (x − E[x|x>0]) / std(x|x>0)
-    explanation: 統計は学習contextだけ。逆変換も同じ統計を使う。
+    explanation: 平均・標準偏差は予測時点までの学習用履歴だけから求める。逆変換も同じ統計を使う。
 - kind: matrix
   id: regimes
-  title: 順位相関の符号は需要regimeで変わる
+  title: 順位相関の符号は需要の発生パターンで変わる
   after: evidence
   locator: §IV-A / Fig. 3
-  rationale: 順位相関の符号は需要regimeで変わる
+  rationale: 順位相関の符号は需要の発生パターンで変わる
   caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
   source: https://arxiv.org/pdf/2609.13840v1
   columns:

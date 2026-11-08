@@ -67,7 +67,7 @@ sections:
 
 
     日次学習はFlyte/Kubernetes、推論はCPU、feature取得等を含むp99は約60ms。classifierは学習時に見た店舗だけを識別するため、新店追加も日次更新の理由になる。'
-  executable_understanding: 同じ合成logit・距離特徴を使い、pairwise logistic lossのtrial/reorder重み比だけを1、2、3、5へ変える。未使用400sessionで両群MRRを分けて測る。全店舗で最高logitの店が配達不可なら除外されることと、smoothed
+  executable_understanding: 同じ合成logit・距離特徴を使い、pairwise logistic lossのtrial/reorder重み比だけを1、2、3、5へ変える。未使用400sessionで両群MRRを分けて測る。正解店の順位の逆数をsessionごとに求め、trialとreorderそれぞれのsession数で割って平均する。全店舗で最高logitの店が配達不可なら除外されることと、smoothed
     targetの総和も検査する。これは学習できる線形代理で、CatBoostやTransformerの再実装ではない。
   what_we_verified: Mechanism PARTIAL。固定した2候補の曖昧な意図分布で、重み比を上げるとtrial MRRは0.5から1.0、reorder MRRは1.0から0.5へ動いた。重みで目的を変える操作の確認であり、trial性能向上の一般的な証拠ではない。
   what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。実CatBoost、双方向Transformer、国別データ、配信60ms、A/Bを再現していない。原典も、同条件でlogitを抜くablationと領域別Transformerを用いた対照を未実施としており、V3の改善をcross-domain

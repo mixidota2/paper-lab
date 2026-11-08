@@ -108,7 +108,7 @@ teaching_figures:
   steps:
   - name: 同じ全batchの差
     formula: Δ_B(P) = meanᵢ∈B [Rᵢᴾ − Rᵢ⁰]
-    explanation: もともと成功していた課題を壊したpatchは減点される。
+    explanation: 失敗した課題だけでなく、同じbatchの全課題で修正前後の報酬差を平均する。もともと成功していた課題を壊したpatchは減点される。
   - name: engineerの群内比較
     formula: A_k = (r_k − μ_B) / σ_B ; K=8
     explanation: 同じpacketから作ったpatch同士を比較し、engineerだけを更新する。

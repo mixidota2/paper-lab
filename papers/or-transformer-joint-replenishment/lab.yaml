@@ -33,14 +33,13 @@ source_review:
   url: https://arxiv.org/pdf/2609.01933v2
   scope: Figure 3.1; Eq. (2); Eqs. (1)–(2); Appendix C.3; Table D.5; Figure 4.1
 core_idea:
-  author_claim: 共通の固定費を払って共同発注を行うかどうかの離散的な判断Yと、各商品の連続的な発注量Qを分けて学習する。Yにはscore gradient、Qには在庫動態を通じたpathwise
-    gradientを使う。
+  author_claim: 共通の固定費を払って共同発注を行うかどうかの離散的な判断Yと、各商品の連続的な発注量Qを分けて学習する。Yには行動の対数確率を微分するscore gradient、Qにはサンプルした需要と発注の有無を固定し、在庫動態を通じて費用を微分するpathwise gradientを使う。
   research_bot_interpretation: Transformerだけの効果とは読めない。Transformer-PPOとの比較は数量の勾配推定法、MLPを使うHPOとの比較は商品間の表現を考える材料になる。ただし各要素の寄与を完全に分離した因果推定ではない。
 sections:
   overview: OR-Transformerは商品順に依存しないTransformerと、在庫動態を通る勾配で共同補充を学ぶ。1,024商品で最良の学習比較法より費用が約75%低い。合成環境での結果であり、実店舗の導入効果ではない。
-  problem: 複数商品に共通の発注固定費Kがある。注文を開いたら各商品へ数量を配分し、欠品分はbacklogとして繰り越す。評価は相関のある合成Poisson需要、異なる納期と商品別費用を用いる。DingdongやJDの現場データでも、棚割りRCTでもない。
+  problem: 複数商品に共通の発注固定費Kがある。注文を開いたら各商品へ数量を配分し、欠品分は未納需要（backlog）として翌期へ繰り越す。評価は相関のある合成Poisson需要、異なる納期と商品別費用を用いる。DingdongやJDの現場データでも、棚割りRCTでもない。
   why_it_might_work: 解釈：商品を並べ替えても問題は変わらないため、位置IDを使わない共有表現が自然である。数量を変えた影響は将来の在庫費用まで伝わる。その経路を直接微分すれば、数量ごとにサンプル報酬だけから効果を推測する負担を減らせる。
-  evidence: '一次資料[Table D.5・Figures 1.1, 4.1](https://arxiv.org/pdf/2609.01933v2)の著者報告。128個の固定評価episodeを使う。50意思決定の比較では1,024商品の費用がOR-Transformer
+  evidence: '一次資料[Table D.5・Figures 1.1, 4.1](https://arxiv.org/pdf/2609.01933v2)の著者報告。128個の固定した評価経路（episode）を使う。50意思決定の比較では1,024商品の費用がOR-Transformer
     0.35M、最良の学習比較法PPO 1.39M。1・4商品ではHPOが最良なので、全規模での優位ではない。
 
 
@@ -51,7 +50,7 @@ sections:
 
     固定重みのスカラーself-attentionで6通りの商品順を試す。2期のbacklog費用では、同じQに対する解析勾配を中央差分と照合し、注文を開くBernoulli変数のscore
     gradientも厳密な期待費用の微分と比較する。'
-  results: 商品を並べ替えると数量出力だけが同じ順に入れ替わり、global出力は変わらない。Qが0.5、2.5、4.5の場合、数量方向の費用勾配はそれぞれ−8、−3、2。過少在庫では増量が費用を下げ、十分な在庫では保有費用が増える。
+  results: 商品を並べ替えると商品別の数量表現だけが同じ順に入れ替わり、全体を表すglobal出力は変わらない。この最小例の表現は未学習で、発注量そのものではない。Qが0.5、2.5、4.5の場合、数量方向の費用勾配はそれぞれ−8、−3、2。過少在庫では増量が費用を下げ、十分な在庫では保有費用が増える。
   what_we_verified: CONFIRMED：固定attentionの順序同変性、区分的に滑らかな在庫費用の微分、Bernoulliのscore gradientの恒等式。MechanismはPARTIAL。
   what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Transformerの学習、PPO/HPOとの訓練比較、1,024商品、Gurobi、実店舗での運用は未検証。屈曲点での微分や長い納期の学習安定性も調べていない。
   implementation: attention()はglobal tokenと商品tokenに同じ演算を適用する。cost()は2期の保有費用とbacklog費用、derivative()はそのQ微分。Kは1回だけ課金し、閉じた注文ではQが在庫へ影響しない。
@@ -75,9 +74,9 @@ teaching_figures:
   - label: 独立した3ネットワーク
     nodes:
     - title: 注文を開く
-      text: global出力からp、Yをサンプル
+      text: global出力から発注確率pを求め、発注の有無Yを抽選
     - title: 数量
-      text: 商品出力からQᵢ。並べ替えに同変
+      text: 商品出力からQᵢ。商品順を変えると出力も同じ順に変わる
     - title: critic
       text: global出力から将来費用V
   source: https://arxiv.org/pdf/2609.01933v2

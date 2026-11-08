@@ -4,7 +4,7 @@
 
 | 原典 | Lab | 境界 |
 | --- | --- | --- |
-| §3.1 Eq.1–2 | rollout() | 商品別の未着注文と在庫保存則。需要・納期を同じseedで再生。 |
+| §3.1 Eq.1–2 | rollout() | 商品別の未着注文と在庫保存則。需要・納期を同じ乱数初期値（seed）で再生。 |
 | §3.2 Eq.3 / Appendix B | fit(), experiment() | CNNを7特徴の線形回帰に置換。Haar samplerとdual coordinatorは省略。 |
 | §3.3 Eq.4 | experiment()の校正ループ | 1週予測の過去観測だけでα,βを更新。多期間共有は省略。 |
 | Table 1–3,5,8–9 | lab.yaml / results.jsonのpaper | 著者数値の転記。toyの尺度0.7はTable 1の傾きを再現しない。 |

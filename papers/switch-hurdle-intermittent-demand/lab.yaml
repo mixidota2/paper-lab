@@ -31,7 +31,7 @@ source_review:
   url: https://arxiv.org/pdf/2602.22685v1
   scope: Figure 1; Eqs. (8)–(14); Figure 1; Eqs. (2)–(3); Table 4; Figures 4–5
 core_idea:
-  author_claim: 学習したrouterが各tokenを1つのexpertへ送り、decoderは需要の発生確率と正の需要量を別々に予測する。正の量にはゼロで切り詰めた負の二項分布を使う。
+  author_claim: 学習した振り分け器（router）が各tokenを1つの処理ネットワーク（expert）へ送り、予測を出すdecoderは需要の発生確率と正の需要量を別々に予測する。正の量にはゼロで切り詰めた負の二項分布を使う。
   research_bot_interpretation: ゼロの頻度と発生時の大きさを分ける設計は、間欠需要を読む助けになる。ただしAccuracy Is Not
     Serviceが問う、精度と在庫サービスのずれを解消した研究とはいえない。
 sections:
@@ -95,7 +95,7 @@ teaching_figures:
   - label: decoder
     nodes:
     - title: 自己回帰
-      text: 過去の出力とencoder memoryを参照
+      text: 過去の出力と、入力履歴を符号化したencoder memoryを参照
     - title: hurdle head
       text: p⁺、μ、αを出す
   source: https://arxiv.org/pdf/2602.22685v1

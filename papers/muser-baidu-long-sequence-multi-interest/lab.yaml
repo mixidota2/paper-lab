@@ -133,8 +133,8 @@ teaching_figures:
     explanation: M個のqueryが圧縮履歴を読む。
   - name: 候補に応じた混合
     formula: αₘ = softmaxₘ(cos(uₘ,eᵢ)/τ), u = Σₘ αₘuₘ
-    explanation: 単一の平均を全候補へ共用しない。
+    explanation: 候補と各interest vectorの類似度から、interest間で総和が一になる重みを作る。候補ごとに重みが変わるので、単一の平均を全候補へ共用しない。
   - name: head重複へのpenalty
     formula: Lorth = (1/M²) Σₘ≠ₙ (uₘᵀuₙ)²
-    explanation: 数学的な非相関を促す。意味の解釈可能性を保証しない。
+    explanation: 異なるheadの内積を二乗して足し、head数の二乗で割る。同じhead同士は和から除くが、分母は異なる組の数ではない。内積を小さくする正則化であり、意味の解釈可能性を保証しない。
   source: https://arxiv.org/pdf/2609.23677v1

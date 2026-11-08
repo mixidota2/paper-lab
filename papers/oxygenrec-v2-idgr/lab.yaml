@@ -120,10 +120,10 @@ teaching_figures:
   - name: 幾何報酬・式5–7
     formula: ωₜ = γᵗ⁻¹ / Σⱼ₌₁ᴸ γʲ⁻¹; Rᵢ = Σₜ₌₁ᴸ ωₜ 𝟙[ŷᵢ,ₜ = y*ₜ]; k = argmaxᵢ Rᵢ; LVR = E[−Rₖ Σₜ log πS(ŷₖ,ₜ | X,
       ŷₖ,<ₜ)]
-    explanation: 一致はtoken単位。選択軌跡の全tokenをRₖで重み付けする。
+    explanation: 一致はtoken単位。位置ごとの幾何重みの総和を一にして、一致した位置の重みを足す。選択軌跡の全tokenをRₖで重み付けするため、不一致位置のlog確率も損失に含まれる。
   - name: 教師の確信度・式8–10
     formula: Aₜ = log πT(ŷₜ | X,F,ŷ<ₜ) − log πS(ŷₜ | X,ŷ<ₜ); Hᵀₜ = −Σᵥ πT(v | X,F,ŷ<ₜ) log πT(v | X,F,ŷ<ₜ)
-    explanation: gˡₜ=𝟙[Hᵀₜ<τₗ]、gʰₜ=𝟙[Hᵀₜ>τₕ]。各gをΣⱼgⱼ+εで割った値がg̃。
+    explanation: gˡₜ=𝟙[Hᵀₜ<τₗ]、gʰₜ=𝟙[Hᵀₜ>τₕ]。各gをΣⱼgⱼ+εで割った値がg̃。低・高の経路ごとに、選ばれた位置の数とεの和で正規化する。どの位置も選ばれない経路の損失はゼロになる。
   - name: 低entropy・式11
     formula: LSD = E[−Σₜ g̃ˡₜ sg(Aₜ) log πS(ŷₜ | X,ŷ<ₜ)]
     explanation: advantage側へ勾配を戻さない。負のadvantageもあり得る。

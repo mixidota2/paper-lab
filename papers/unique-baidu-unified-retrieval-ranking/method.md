@@ -4,7 +4,7 @@ End-to-End Quantization Networkはitem ID、category、publisher、titleなど�
 
 ### UIGNとTDNはtargetを早い段階で交差させる
 
-User Interest Generation Networkのprefixはprofile、短期・中期・interest履歴を連結する。Target-Code-Aware Discriminative Networkではcode targetとitem targetがprefixを参照する。code logitはuser–codeの交差表現をMLPへ入れて得る。単独user embeddingとcode embeddingの類似度だけではない。
+User Interest Generation Networkのprefixはprofile、短期・中期・interest履歴を連結する。Target-Code-Aware Discriminative Networkではcode targetとitem targetがprefixを参照する。各codeの選択スコア（logit）は、候補codeに応じてユーザー情報を参照した交差表現をMLPへ入れて得る。単独user embeddingとcode embeddingの類似度だけではない。
 
 公開benchmarkのTransformerは3層、4 head、hidden 512、dropoutなし。item/user embedding 256、code embedding 64、codebook 1,024。最大501 tokenはprofile 1、短期100、中期200、interest 200。productionの16,384 codeと混同しない。lossはbinary feedbackの重み付きBCE、durationのMSE、codeのcross entropy、DSSM教師、量子化正則化を合わせる。
 

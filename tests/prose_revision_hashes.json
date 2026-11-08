@@ -1,0 +1,1356 @@
+{
+  "base": "d97532ffce0461af70347f8380da1b2a4466b22a",
+  "purpose": "Exact reviewed prose revisions and inventory numeric repair; all other baseline files remain byte-identical.",
+  "files": {
+    "papers/hear-harness-engine-serving-protocol/README.md": {
+      "before_blob": "492a943232ed1deb9993049b29ce7f508cca85a1",
+      "before_sha256": "ba664296ce87ef67e244be9aaa20e41dd3abf457e40e825e6f39a5dfc0981e6a",
+      "after_blob": "7b47f89a0a367ee59a050fb02130a2ad08275c18",
+      "after_sha256": "efe0a965372b6634355570289b697729f158d631da950880fef5b8b81ed55857"
+    },
+    "papers/hear-harness-engine-serving-protocol/lab.yaml": {
+      "before_blob": "9fee6d770feee0342d621b588ec220f53858b36a",
+      "before_sha256": "1d9ec7e03f9770af114ac4edff70b03cebd362d34c81080e32881abc805c050c",
+      "after_blob": "cfc9f54fb8b6849c3aa55dada64f189743f87ac4",
+      "after_sha256": "b6eab0a38c8cb04d9c547bbb26696f56b9c99aba81d48ece788960a1865ff210"
+    },
+    "papers/hear-harness-engine-serving-protocol/method.md": {
+      "before_blob": "b18a95e9bef2580f23c2fee998c50a6ff6ffe8de",
+      "before_sha256": "a9993aa73717c4408480ba510ec83ce9c63cb53b91ca216ab3b1934bf7421643",
+      "after_blob": "1424b8e40453ac4ac3164871c98b7c58fc047639",
+      "after_sha256": "14c4cbe9ae2617d9b90f4b2d88c2844b7aa633107cb4e43658ccc1b93b665664"
+    },
+    "papers/inventory-common-threshold-history/README.md": {
+      "before_blob": "73d49ee6ab6ea7e3fbb790397cf58ffafd2561e3",
+      "before_sha256": "60056bef22d1821bbb1d0e394cbe37add8c2619ff1e9e2e3f3dbbe56dbd5baed",
+      "after_blob": "18d2e86a0dafd7bce91e0ce30f7316dd43623efc",
+      "after_sha256": "fc08252bf3aac5fb4b05d26b83127dcf80b9904237c37ae3e1875e3768b61689"
+    },
+    "papers/inventory-common-threshold-history/lab.yaml": {
+      "before_blob": "73e5126f535e1783bbb4442c2a44566dfe73fa7e",
+      "before_sha256": "c85c90c3603a1d858f115b7f158efdda9ae86f9e32cc004026acc3cd766d8555",
+      "after_blob": "b7ca22c5dd786b3837b83d1c239c2c38941c759c",
+      "after_sha256": "aa29fb5be8b85c7866e31fb1d74f192f5cadaa0d6f3829f598a6a3202aa44dc3"
+    },
+    "papers/inventory-common-threshold-history/method.md": {
+      "before_blob": "2db9f559d5c3b459822c465f44390617b2bfed32",
+      "before_sha256": "a841401d5776c3cdad5a483b71e0406d83158cab4e4b7b786076e75ea419d448",
+      "after_blob": "90d1014971453faeeb974bf7e6291c985e3bc632",
+      "after_sha256": "fb6527307c1ed90c4979a8af9e7479faae79c7d0192a41a6854c4f8ce7e66d8a"
+    },
+    "papers/hear-harness-engine-serving-protocol/mapping.md": {
+      "before_blob": "08f8797019b86509ea4febd5ac366efb3f6e1ee4",
+      "before_sha256": "67f777a68782afcda9612ab4ff087d76717e2ead35239bed7c853f867622afa0",
+      "after_blob": "157b77043d10ab120794bd1c1254e2926c5a90d5",
+      "after_sha256": "3e41b44e0f0cf04cb1212b7e458d8f8ec5a2fc964f949f69842e8eb39e176692"
+    },
+    "papers/inventory-common-threshold-history/evidence.md": {
+      "before_blob": "ebd6b45440488cc99f0e6c4be01916613dfa33b9",
+      "before_sha256": "b950c34cac0b7ff4b2ce57bf0bd81d468f9ae8db1163822accb0efec221316d6",
+      "after_blob": "6f6f2798e94b177477c8d3ef9183db6c59aac013",
+      "after_sha256": "c28b49971b7ca2dba1bb3d358e79f1826d39d1dfdab101bd77acc6e7d67ddf18"
+    },
+    "papers/inventory-common-threshold-history/interactive.html": {
+      "before_blob": "b3b1c72255c1ce78467c8ddee685b4fb9b17cf60",
+      "before_sha256": "1c48e4170ca535aeac8abc95a984d16d64040d701ab160d647eb0ec773a81a28",
+      "after_blob": "cca0b05a1f48262eeb88a33da63078e1d324b2e8",
+      "after_sha256": "bcb49d87c4d7f173d2f036a02de4396fe854278ab565e10bed7cf9851282214c"
+    },
+    "guides/forecast-to-replenishment.md": {
+      "before_blob": "b09e37ce5912b64964a2483ac3c213e8d956569a",
+      "before_sha256": "9aa3cf7ef9fcb9a69c25ae397d809dc7d087ee0fa3bcbe083b5e8fe3002caa0e",
+      "after_blob": "0f5a44c3fa1b1d2405772ed0bc70ff3e7931a572",
+      "after_sha256": "aad5560dfdb10dea6744bbdb750676c6dab18afc1e5d09917a1b6f9004d2f0f2"
+    },
+    "guides/replenishment-evidence.yaml": {
+      "before_blob": "9649053a916fd25e1fccd4238152f2f77efbb410",
+      "before_sha256": "a990e1986626ae2bd793c0e6328870c33230addd1004b2e914806a4f705acd75",
+      "after_blob": "557810be8e305ff676b3d70cd70257683072f99f",
+      "after_sha256": "8fe85d3e20ee7496111af05bfdbe25a0b9e7c20f4c6bcfb72d207f9cd1bb7523"
+    },
+    "papers/harness-buys-tokens-not-pass-rate/README.md": {
+      "before_blob": "1a7c7c3aa5b114b4a815e5147ca856bad9d0fd11",
+      "before_sha256": "1372374e3b52856075b250b892e6aee547bdbc4a017bc4e9801b02bc9ab3e05a",
+      "after_blob": "1b6176b7237072264d6224aa8be21b62a8f8078b",
+      "after_sha256": "cc66860a135074266921fa2e4f48c3d0c5e5dcd9e769f7a18180acdbccddbc45"
+    },
+    "papers/harness-buys-tokens-not-pass-rate/lab.yaml": {
+      "before_blob": "c922f4c126d6b90569f4a9e658a43a36d294bf92",
+      "before_sha256": "6abd79841998d7c44805ce6edc5543c35d0767ae88ba65030d715d252aa9d5fa",
+      "after_blob": "303b07e62801d1a8e55c2bb4ac1373fabc834ef5",
+      "after_sha256": "3ebd4ee856681f09aa110a56304abe738d6ebfc09503e5b382b9685e40a3c4b1"
+    },
+    "papers/harness-buys-tokens-not-pass-rate/method.md": {
+      "before_blob": "579c941c1c48ec4e588e8fb2af9f633b8a710c88",
+      "before_sha256": "0b999b1272869400bbcf662832ea50629806ab3bae180703674a9a171bae4ef4",
+      "after_blob": "295bae139306dc194801634fb8234638e09e1fd0",
+      "after_sha256": "0f9e4b4dd9328a99261d0fd54e827bc25ae6bbd1c7f585fd2206df90246aadf7"
+    },
+    "papers/sim2real-policy-conditioned-inbound-forecast/README.md": {
+      "before_blob": "d7ef74a14ed966d26ba3fcfed5312306199be03f",
+      "before_sha256": "3ba4823a71571eccac2688357a12dd962d8030d91e05242aa90cd4e891d5abde",
+      "after_blob": "93bd5b0e7d9f8f47590956cb28f1b17cdb7f2200",
+      "after_sha256": "88da5a5276ede822653c4ae4f6eece09012d23770edb885d7c93226b00edb1fd"
+    },
+    "papers/sim2real-policy-conditioned-inbound-forecast/lab.yaml": {
+      "before_blob": "0b4a2ba349236d3d93edea633cd5f73d3bcae089",
+      "before_sha256": "6e46015246448ef2296ea5a3a77dcd8cb7ee2fdcd960a04fa23bffe3f2753f4e",
+      "after_blob": "8d51a8540b8d800f3c87b6fc936531e862285ed3",
+      "after_sha256": "53c8280cf1da4257589b9a6d1f12281c2d515d9e9cdcb8b7c3d14c85a6fc3b5c"
+    },
+    "papers/sim2real-policy-conditioned-inbound-forecast/mapping.md": {
+      "before_blob": "724280ba96bf63966e1ab5c544e5ce164ae0d17f",
+      "before_sha256": "8a5daf35c3ed6191a5db32c13a9bce154fe4d4fcde9810627c7f9cfec3e7fd93",
+      "after_blob": "8c75de8a765195e1d58e15515947b4eba77629f4",
+      "after_sha256": "ea20735310a04d3d002f8f80e7f812e3d44e50a3d3f457dd306ecb6014a2f45e"
+    },
+    "papers/sim2real-policy-conditioned-inbound-forecast/method.md": {
+      "before_blob": "154d7c0e477220bf1d12b29983ad33fdf4bf4028",
+      "before_sha256": "f1f4e29d25db9858730dd9a712641e324fe6db4b7b260f6b2caf086e43500381",
+      "after_blob": "791ad7015c5d050cc87633ca1994a45949a0a7a7",
+      "after_sha256": "0edb5885e8ecf4d0cf27be2919a909cd7b9f2628a1e447dcf49b86ac6037a3f3"
+    },
+    "papers/traffic-forecast-to-decision-value/README.md": {
+      "before_blob": "78bdaa296aab1fc818f3d5bff407ee756bb1a53b",
+      "before_sha256": "d14e403a7456cb39241807029ef2c6e65a7f802a20e86adff630a8625a25a3f6",
+      "after_blob": "199342c92e1ffbbcafbe94d26892e3da82705ba9",
+      "after_sha256": "df2c94ed13b98a34ab43f361bbb8d77449a8b6969c3d37f580991fb331963a39"
+    },
+    "papers/traffic-forecast-to-decision-value/lab.yaml": {
+      "before_blob": "4eaf2fb55386b2336214cfdaaad804cc885228da",
+      "before_sha256": "4283fcb36d5b07b8e96a2ad4164656a91e45f5994e7217dc50e1da178bf2335a",
+      "after_blob": "616c41c1e3f7745a64730b1a4f84b09747fa71e5",
+      "after_sha256": "e36f4718ce0ea3333e39db1f0fa0896a62a119c47a7561e8aba3989e65884c3c"
+    },
+    "papers/traffic-forecast-to-decision-value/method.md": {
+      "before_blob": "66c9763c7dbc2c14ea77a5dca9aa0ca77c9c9a8a",
+      "before_sha256": "a4ad4427ed9ad02becedf8d589e8618200b5e0523e76149a747b06f35cef120d",
+      "after_blob": "465ed403e34a9283603a2b23842625024ed55dd2",
+      "after_sha256": "bcd379e7767182e96d612fbbb246775f10965f3b95c8fa96882510c36ad037c0"
+    },
+    "papers/whole-foods-shelf/lab.yaml": {
+      "before_blob": "86b2c08374265d0abaac22eddc461ad2a0a0dd8e",
+      "before_sha256": "080f091b718e98f48464bbdcbdde04f06fef152a93553bca50a3c17b3b49b940",
+      "after_blob": "2e9e5692b8327e45f79f606053deb65cadc0cf0c",
+      "after_sha256": "58fb86d81c03043710311c1b71310fbbf43951274da4e17ebf188943991a8e5c"
+    },
+    "papers/whole-foods-shelf/method.md": {
+      "before_blob": "f10643b34db4a47b46c1232f88fde46dc5d8934a",
+      "before_sha256": "fbf9c0fcb52251dc149f0693e096e2f1535a4e94bc5141a70519f2b9bfb0bed2",
+      "after_blob": "b7e946dc2dbc122e818fffd6ab194aa7f1738aa3",
+      "after_sha256": "2ddbac7bf8073ca39e38ecf729bcd7189410fe6489d961aa232aabc1927441fc"
+    },
+    "papers/whole-foods-shelf/mapping.md": {
+      "before_blob": "e1eb55eab1a10576f0fb4c8ec3f8a6bb38e749b5",
+      "before_sha256": "be3a61a46c69753bc8027e20497a04dbf4d28092409782dfa40356569f4a520f",
+      "after_blob": "a14cee654a980747da5ae9d4324825710f183190",
+      "after_sha256": "80ed9a4e88696eac11a4dc9b1373bcaa8298e90d37caee6020e6e1a7ddc24df7"
+    },
+    "papers/vn2-stockout-catboost/lab.yaml": {
+      "before_blob": "701f3fe332c1db803590e00da5baa2a51455b1e5",
+      "before_sha256": "c19599e6b93b10b68afa8aba80c114b117d8fc19da9f8aaf79986949041d7377",
+      "after_blob": "6d9155dcd048f7ea951328b366226a7c50cdd131",
+      "after_sha256": "e2984bd6064bf8d325924a1bc39785a80368ca2a44290f2bb7a40b3550e49d68"
+    },
+    "papers/vn2-stockout-catboost/method.md": {
+      "before_blob": "ea9874e18c29f9f46722fe9f2fe72dbe70946616",
+      "before_sha256": "36c788b3e9bb378fa79bd80fcbac6f3b9c10702228ffb270ade942f371055232",
+      "after_blob": "e276cdf9eba695e1a1cebdf55f69172b419e8da5",
+      "after_sha256": "50c29db6e2ac38f633ee4d59ac1155700f3234d7acaca7d365e67916c5c3aa2f"
+    },
+    "papers/contextual-deconvolution/lab.yaml": {
+      "before_blob": "6de98d524704497e5656609e24de9a91d9ca01b3",
+      "before_sha256": "f5deeac374b38c0861d466c004404f639238249d10d13996d45706452f9d8e1a",
+      "after_blob": "fb3e65beb03913e785c667a2bac3a62609fa2adf",
+      "after_sha256": "ce7e0752caff7a773787304105474f35f0365b90e9a4e6fe735847c0ec7e185f"
+    },
+    "papers/contextual-deconvolution/method.md": {
+      "before_blob": "3d95c870e9814cce961d8356d53a81c1908a9ecf",
+      "before_sha256": "9d55b5bdd6d09bbfc4fe487c7b6ca1598cb8aa93d7557eaf54abb919162c3a31",
+      "after_blob": "a5340ae80a7f961c1d97c8a96c0b0221a5ac534e",
+      "after_sha256": "7de183578f562487c9d52ebdb528577127cea77068a85d67d67b87e21b8b56cd"
+    },
+    "papers/contextual-deconvolution/mapping.md": {
+      "before_blob": "1c823d024ccc0851aac829610319052f7012a71c",
+      "before_sha256": "a28b3aed71fe11aaa76f7c084c6054488c0d834834747ea4a12ebf6f3624c0de",
+      "after_blob": "97ba2ce2bd63ed40bb925d1988dcdd8b0f03d61c",
+      "after_sha256": "249e38c137e9f8a6e6fb3ee9d7c6650c3af5c5b8477e68bf1734f197e840818a"
+    },
+    "papers/forecast-critic/lab.yaml": {
+      "before_blob": "a6d768c25861a2e507f25145ca5a09e10ccc2688",
+      "before_sha256": "c023b0ce0d852229ec3f9b3108f8af58ff4bda15a0d06604dbbc57eea00ff483",
+      "after_blob": "378a1279e31ddbda1914b93dc851b0cc133009b3",
+      "after_sha256": "134678b4c82b6f1fa11667529e62c7a109379469c36c6a98a0f43ad517c69b4c"
+    },
+    "papers/forecast-critic/method.md": {
+      "before_blob": "717dbcaf1cdd173b102782d549d72f7b708e097b",
+      "before_sha256": "b5c93d83222bc5ba1800c33b156b70a35b3d97bf01d819f2ace136c8c4df6699",
+      "after_blob": "3e76de6a5f5f3a77a8a7fbb0000961f27e98c40f",
+      "after_sha256": "fbbba8bfde0d63102db682efd7b7c9a3905ea3cba63b9a0b4fde517fb989fbcb"
+    },
+    "papers/forecast-critic/mapping.md": {
+      "before_blob": "59b37f17e12a831785d2909d679585ee6fcc321f",
+      "before_sha256": "14325ac4e06e4d75d6407a0aaf1bc8468fc51f6046320aaf941c411720c8e7c2",
+      "after_blob": "d6f37bc69c99aa44c8f394d27787632658de4779",
+      "after_sha256": "c054cdfc92d4deedb16f61000b7517ce4deb7b6f5e3a2c0f6b4a57fd7de505aa"
+    },
+    "papers/apollopfn/lab.yaml": {
+      "before_blob": "33c94c938425e2c0a6577ab67d75e833e8af97e5",
+      "before_sha256": "145cc1e9d06d8ed540b7faebbd64ac042a077dbf2338fa9ce19d4ad436aea258",
+      "after_blob": "ae115901908c69d4b38d4f4b882baa4eb35261f8",
+      "after_sha256": "60416d5c46cc14ff9dcbf744f66fae74f1b013aebd587446eaca1587802647ff"
+    },
+    "papers/apollopfn/method.md": {
+      "before_blob": "ac12267c3e8edb30aae515a8132d52c59708bb06",
+      "before_sha256": "df0f1c8a9d4e05822c1b27a0a8f2e84e8bedb70a3456bb41ba9771703828dd5a",
+      "after_blob": "1dbc5eff6fecc24769df9c58cb85fb21240b9a4e",
+      "after_sha256": "90081e36882b7188049f49975076f2926ca80e5326c558a7d868df35a75fdba5"
+    },
+    "papers/accuracy-not-service-intermittent-demand/lab.yaml": {
+      "before_blob": "2435feec8ff569fd0b4a9d61ef9c49c68f2b2dab",
+      "before_sha256": "2206b6af9fea19e07568fa05621e35e24f3f149cdb4da07eb3fae885617eefab",
+      "after_blob": "56417e95c72dcfe08be948a01123bb40b5e69821",
+      "after_sha256": "bbe71823f7b25fd1e54bd0d1c1675dfe8c2ada2a561f05f6baefffdb1212f5e3"
+    },
+    "papers/accuracy-not-service-intermittent-demand/method.md": {
+      "before_blob": "384ee47cddef0750bb184d785629331124dbb670",
+      "before_sha256": "21a82721126a26db26663187af582d60417fdc33681ff16a889d1e6061a1820d",
+      "after_blob": "a735a03a3a21152f53c15b0813d9379253c6234e",
+      "after_sha256": "77ad263d0cd70ccc3d7e8dc39dc160b0679837d81c045a51e8e1c493c6d14b4b"
+    },
+    "papers/bridging-forecast-accuracy-inventory-kpis/README.md": {
+      "before_blob": "9165f3c36b2ad7ee65dccc5dd9a3ee72c265426c",
+      "before_sha256": "3d0dd790bda86f2de56bca6d5a7ee30dc43ef480ca19d10796c19f847eeb7005",
+      "after_blob": "70d1d5986f3407a6c323afbe4edd7f3a85c432a5",
+      "after_sha256": "37c11f4b86a3370809212c75ab66f32d8689a6b984de051ce8d1d39422d0c771"
+    },
+    "papers/bridging-forecast-accuracy-inventory-kpis/lab.yaml": {
+      "before_blob": "a43fca2830e8ee2f89a669b7451e02cf005f08dc",
+      "before_sha256": "040f9477b857dea4eb4a9cbb613dab76bce86606b33b54bc15bfde7e8098fa35",
+      "after_blob": "3103096e0971a2b16dfe062e20d88b2d96f608f6",
+      "after_sha256": "0b7872340cd85275f5e0ac368bf89b6a0ba1a50192f02fbd2156f5bc7b6f72a0"
+    },
+    "papers/bridging-forecast-accuracy-inventory-kpis/method.md": {
+      "before_blob": "929d8a99f691c8efdb657fc72e48bc8d2a116266",
+      "before_sha256": "35895dfd52fce145f62f2cb6f3e111ac2d47763e7593cbbde5fc1940b14e77bc",
+      "after_blob": "b159f19cc03cb8b3127e42a82c0907e4d6261111",
+      "after_sha256": "382298cc182beb092a12d082debcf62d03e85c02abfec07860eb71b1c5defe1d"
+    },
+    "papers/constrained-deep-inventory-fbsde/README.md": {
+      "before_blob": "b3c38cf4d8c773bd1961b923ba60daef959d1d31",
+      "before_sha256": "40f86424c96ea31525d7ae5c0a34957356f2b2373ed6df49b3f66fa4f5d0b53a",
+      "after_blob": "37b0fdcb858613dd6389ed5ce7fa31d072a7fd55",
+      "after_sha256": "e9f8fd60f4236d2599edadbae78e3a61e6a5f78d1d00c47b05096df6dd2a22fb"
+    },
+    "papers/constrained-deep-inventory-fbsde/lab.yaml": {
+      "before_blob": "4e6b5d8f6b566a902b42a0f8cae25df8f282f3bc",
+      "before_sha256": "741a070035969d459cf96f95eff107ae9ab30161bb13aacb930198204fa1db80",
+      "after_blob": "bfcb7373bf9e9da39c92d8d3d7c5f10090c12434",
+      "after_sha256": "2ca7a73ed0f7690cc66907e831fdfda55d82fb714d2ba19ee6c6275f371b013b"
+    },
+    "papers/constrained-deep-inventory-fbsde/method.md": {
+      "before_blob": "f970c145eed7def2411d22f2091d58465345701d",
+      "before_sha256": "c698650e497692116e661020ddf103e21020e5aa781b925ef543b02f619a9c50",
+      "after_blob": "5c486af1440bb104b6d19b242424d058371a3fb1",
+      "after_sha256": "d5a7721e70450ff76bc4c4af9f2a5610c378d25455289752a6b6077b5f6daa60"
+    },
+    "papers/deepstock-policy-regularized-inventory-drl/README.md": {
+      "before_blob": "d9cbc520cdd8d036eab2faeb17e03dca884ac494",
+      "before_sha256": "629b0f5862100f86f2e72f243224d30892b17e17b1d3f6f3452bf5728c6793c5",
+      "after_blob": "1d519f67c03198e561491aeb45b7c6f1d269c103",
+      "after_sha256": "1aac99d02ba8f26070ef29eec250399c15682af9eb00cb4c026094dae83b0aef"
+    },
+    "papers/deepstock-policy-regularized-inventory-drl/lab.yaml": {
+      "before_blob": "20125284d1104d963ad79defbd8f81b56bc0632e",
+      "before_sha256": "4e928a134434c2b0bd8557c2cb96450d9fae6efc17d95cbf1e20b36edad59a2a",
+      "after_blob": "b3b55b39b6e85a09d178cc72c087eaf73336810e",
+      "after_sha256": "9ae24e24044fd698b1477f697e71ec91ee5bdd7857f41e8d3614ccc3a4161842"
+    },
+    "papers/diff-projection-feasible-multi-echelon-inventory/README.md": {
+      "before_blob": "6e9d18647b33bd85025ba441e861007118e8d350",
+      "before_sha256": "ed4865a2ac1669edceb1de5c9d1908d435438d3329145b0401c47fc0ccf42c13",
+      "after_blob": "0c80b2ed818fbe90ab3ce136a2b56547875f815b",
+      "after_sha256": "de800303e6fbc39819e2b97c0b4c0ae74393d12ffec1a7cc7eb5b4f7d690854a"
+    },
+    "papers/diff-projection-feasible-multi-echelon-inventory/lab.yaml": {
+      "before_blob": "574466df77818638f4ccc543b07c4d635e65f8f8",
+      "before_sha256": "84c1cb71491b0d02a9989d19d100d7edb6717e55586c1be112c3dc9421304c0e",
+      "after_blob": "c94a0d44e7a8b1d91742f3728571f3efce0dea7f",
+      "after_sha256": "00dc71e41c886f21b82e9d34e802a1e176ab76b1570b7b4faf4b21a56f8439bd"
+    },
+    "papers/diff-projection-feasible-multi-echelon-inventory/method.md": {
+      "before_blob": "bdcce82a6cceda4db96036e42c4ebc901231f4d2",
+      "before_sha256": "7fc7b99cfa3ab3720c11511a0b633fbd955d596a884859433c94191bdff86368",
+      "after_blob": "68eca944ab3d40ba6f6fe070ac00cafef62ea323",
+      "after_sha256": "65ad757cffb29a6e4e8230b35ad84c407f7c62bc97eb73c5b6982911a3ca5ec6"
+    },
+    "papers/or-transformer-joint-replenishment/README.md": {
+      "before_blob": "749eaee6f1204b012dce3ab0a1cac10e77dcee96",
+      "before_sha256": "06309c3692180e004032700f2dfe1b0c6367e9864d3ff8c13ca114c9e0bb928a",
+      "after_blob": "ec20edd0e3936c419568ced3af2581e46515574f",
+      "after_sha256": "2ac74f662876a01037458a388a9f318260f504f636a7a0364508ef7d4a496b9f"
+    },
+    "papers/or-transformer-joint-replenishment/lab.yaml": {
+      "before_blob": "707cb1111ec42b1c548e87f0de8248806c829852",
+      "before_sha256": "accc8e76654165d91d28a9c6d9494e9ad2719f7b182b91c947fe49d3d782c9d4",
+      "after_blob": "7bd071c886006c0da317d7f7db2aad4d67788e1c",
+      "after_sha256": "44d17d471f6995bb1c632f98e45bf9f113c152ef8d979089562e9b28d0387e60"
+    },
+    "papers/or-transformer-joint-replenishment/method.md": {
+      "before_blob": "c0e70e968a2367104a6a49d9c638583134a6867b",
+      "before_sha256": "6831cc1add3a379b6b3972054453b2c766a573a2666893d66d009e16741bb8d9",
+      "after_blob": "b83a7040ca55105386a056389c29a195072e93e6",
+      "after_sha256": "a2752c201f12a11da86d660be758db8caf91025140b69f23951bb575224c96a6"
+    },
+    "papers/orpr-or-guided-pretrain-reinforce-inventory/README.md": {
+      "before_blob": "c30590c465b6043d8e7a3e4763d9b1c388379e55",
+      "before_sha256": "617417702c09e80236f54fec9b31823397895601b36fa4b40b8f8ad7f37a0408",
+      "after_blob": "f611fc47ca0171bf4fc0fcc92f082210d038079d",
+      "after_sha256": "7cd0cac526aa1ea65b51cfa02daee944172a190ec3b75ee592bbbde77bed25d6"
+    },
+    "papers/orpr-or-guided-pretrain-reinforce-inventory/lab.yaml": {
+      "before_blob": "32c6684c96f7b68dcf95e7f92b0e1aac78061ed3",
+      "before_sha256": "4845c84b832f00cd0b46f7a4f6ceb6958ab7965a2c90539e3ce5ac9c8dd269fc",
+      "after_blob": "b992b4b9085dc8cba0db6a825dfc1fc6f1565bbd",
+      "after_sha256": "815b7c50abf5ca9da45d573833c5a69234e3ee0bf77bde12a9865ac76044a7ab"
+    },
+    "papers/orpr-or-guided-pretrain-reinforce-inventory/method.md": {
+      "before_blob": "bda3eb04350c5d6d514d4c6545164977d7c46fc6",
+      "before_sha256": "92049bda1c31144afdab2a82dd960f4b2331ff30cc29df54c8655effc68faf42",
+      "after_blob": "deccc71db067a725368fa6fed493250f0211dafe",
+      "after_sha256": "3d31c2ca5ffdb5abe9d05558cdf808b10e841a98f618104e616197a4dc2f71c1"
+    },
+    "papers/ra-dfl-risk-aware-decision-focused-inventory/README.md": {
+      "before_blob": "01d235deff04420f883336117f1bb928504282ae",
+      "before_sha256": "669dd0e55d5235a6c0902670f20c9f099fc0bd7408daa4a86d0acfdaba78f5cd",
+      "after_blob": "1c5653f4595c8dbc5cc97a11bedd618763d5f09c",
+      "after_sha256": "5939d9eb6a3dcc158a400a7be54bca27c113f58728564ae0aaddf50bf8dc6a86"
+    },
+    "papers/ra-dfl-risk-aware-decision-focused-inventory/lab.yaml": {
+      "before_blob": "ca34fdd76217a59bf982fd3a6b5f8ad84e239369",
+      "before_sha256": "9b79880ea356fb8a69dd959f76ef94fc40a3866a582eb69b0e59f7c55bb8cd5f",
+      "after_blob": "32e50dec0e9c60545f5a3f798a661bda2a7ffa30",
+      "after_sha256": "3e3789107678174634eafa7877d34317d6bcec3a793412c575d6a62b7ca0bd22"
+    },
+    "papers/ra-dfl-risk-aware-decision-focused-inventory/method.md": {
+      "before_blob": "79afd01699958d7fa31de95ed027b8866bd2baf5",
+      "before_sha256": "a976a26774cdb6128a7c3a138f664f0eca4800317b495b0291bdb87ac4b67f46",
+      "after_blob": "8d4e19c7f4e9817320ba64315b9b46d84132a0ce",
+      "after_sha256": "a410859846ec0a21c246264a117c893ffb304de78de167380c5479bc49aef645"
+    },
+    "papers/invevolve-whitebox-inventory-evolution/README.md": {
+      "before_blob": "fc924ded5ce3e4e4c80580fcdc1842fe364f1d53",
+      "before_sha256": "c429f70287c73b5457987c5e672f0da15cfac76e2959cc1f8d22b67992c0e5b9",
+      "after_blob": "a130018d47dfa7fbdb67d2cc64dd8076609be4bc",
+      "after_sha256": "0456fec3483f7e1baf5e533ee2f63e7d0862d0507f99de087eb36dd67604758c"
+    },
+    "papers/invevolve-whitebox-inventory-evolution/lab.yaml": {
+      "before_blob": "ec9d34fae0e3008888e84e574e0b50ee91946034",
+      "before_sha256": "2df2501abe030866e9b4405303ed54dc3d14de9408b43ce2d546b0423b72f1d9",
+      "after_blob": "23c722f5cb3892e94fcd735574c4ce1e5af1b36c",
+      "after_sha256": "f4a87e5ce9ef5658876811ac1269b686e80691e9087880abd43679b9df19e1f5"
+    },
+    "papers/invevolve-whitebox-inventory-evolution/method.md": {
+      "before_blob": "8fb92adb34c4872cff4699cee166ac3f40b8665a",
+      "before_sha256": "6662e5f45f025ea09922281fdfb3431025ea17831e282eef288702bb35e298b3",
+      "after_blob": "7f5968c806ab0c91f2542c3100a3cbdd82f07e02",
+      "after_sha256": "4219981b0d24ca334b55f57fb3802666a19d82ae5a9c16ef53a9968ad579cbe3"
+    },
+    "papers/isomorph-supply-chain-digital-twin/README.md": {
+      "before_blob": "3342b230f8abb4301291a61f40c319dc64af068b",
+      "before_sha256": "c32265b6a1d5618a8faff03278b69548e1b2cb38f1251d368a66e4ebe42ab7bb",
+      "after_blob": "c1c4472b8b46c2d57a97ad851ad1942c4dcbae6e",
+      "after_sha256": "fef5be7265042e5bc38da680f1e8c7d106e7277e21b5ce6becec09dd96b8446b"
+    },
+    "papers/isomorph-supply-chain-digital-twin/lab.yaml": {
+      "before_blob": "a4251d7b2dc753474ab61558352a940074088e55",
+      "before_sha256": "a32fd824230c51495a457809529a5c4afce44dc2ed5b146fa70fbb9787839c54",
+      "after_blob": "662f340a83845958eeb10f84e19b7921a8408ffe",
+      "after_sha256": "6f5d01b6b35f1de364552c87ed33f9fd6a42995869922beb2cb5b1b34e03786b"
+    },
+    "papers/proximal-residual-value-inventory-placement/README.md": {
+      "before_blob": "6408996c023e509e05bb1b2da627972c51a714b3",
+      "before_sha256": "c42a99b1e59a594ddc115c65a5dfec9dd1af55439e1b7d36a04ce67543b50979",
+      "after_blob": "2e486f50d92f31407c81a474f0794866c6bcca8c",
+      "after_sha256": "debe61717c6664568d432334d5573929cb4e1b7c5de937e63bd1c7f520949b22"
+    },
+    "papers/proximal-residual-value-inventory-placement/lab.yaml": {
+      "before_blob": "acb8f1c4158c747f662fbbca322cc197a43aa63c",
+      "before_sha256": "72e97b5c3131ff2a088da64b93af0645d3ef1193bbc95284bde3cad0a4f1fabc",
+      "after_blob": "85c3d8a7b298a6e3ed6c0faf5f45cd182fffe706",
+      "after_sha256": "1970b2d750157ff151d290e308db48b96063d92e063aca12fd2838220ee9d3b7"
+    },
+    "papers/sabreagent-design-time-inventory/README.md": {
+      "before_blob": "ba265084ff73186e91daccfe55338e3e58196dbc",
+      "before_sha256": "96672b4463de26f32ec836beeafc96d3acd6f97fb244f0ee8b58fd60315147a2",
+      "after_blob": "e0307bccdb2f6138681657c8b5aa69d16933d283",
+      "after_sha256": "c5487ceae404e305c9011cd09a08f3a87991599362d262b9129bf670bb6358b0"
+    },
+    "papers/sabreagent-design-time-inventory/lab.yaml": {
+      "before_blob": "caf693cff24b348d77d8048b3960431237ea2ecc",
+      "before_sha256": "1eabe7474c79d7c448ec0c409dd634b86ece3690b6bd016027e19f242b86786b",
+      "after_blob": "aac6a2a15d506845c34a27bcb05a0263afe114fa",
+      "after_sha256": "3c155d4d32e6ee831d24217dc972ada80007ce7f225611d195f8e7caf3292844"
+    },
+    "papers/sabreagent-design-time-inventory/method.md": {
+      "before_blob": "b7228994946635a8096ea2c32b8c6839ec9162db",
+      "before_sha256": "3c1c835808f0ccc758fd21fb9c5e7bbac0c9101d96a9f1905d9fb7dc3156d8c2",
+      "after_blob": "f5b5292d59a39eddd8f53093aa97440a7f3b4466",
+      "after_sha256": "2208e6b392a42342463d27c744d662117f5672c51f0b529bc826a00cadea4931"
+    },
+    "papers/scope-coupled-supply-chain-policies/README.md": {
+      "before_blob": "99b8ec6bbe7149b67a76e173c2361b929990dd0a",
+      "before_sha256": "54c239d98e2cefe08b98da54608f6a4aa2b5c0b5a5405ba861b4337ef61c13ad",
+      "after_blob": "4967c4ffce5e565ae34df139b84124b3725f2179",
+      "after_sha256": "8fee5a5ce1277f913a3b8a36afcf0a05e341a1099d6937f44aa8e6c2e30362ea"
+    },
+    "papers/scope-coupled-supply-chain-policies/lab.yaml": {
+      "before_blob": "decc5642592d39f08b157fce982c60ac2a6bdedc",
+      "before_sha256": "544e733c8f3d89b705efb405ec6d1125b2e2aa8a8e940eefe8736d1a52349e1e",
+      "after_blob": "bc6dea9b4eb58f3a978604a03f6dadf1762c73fa",
+      "after_sha256": "b64a113c33ee556652dd9b9eab23578f70f6976dd3b5641b370da9552c0c9544"
+    },
+    "papers/scope-coupled-supply-chain-policies/method.md": {
+      "before_blob": "ae4bfb8d3c9f1d578c128fcfef1da2ee71a6e58b",
+      "before_sha256": "5e5d3e0755cacec0676a83333510b772b25ea18a774c7ca3dd94c276cbc94a0c",
+      "after_blob": "182081eedc434dbc3902c9965b6b5d8c61e48d01",
+      "after_sha256": "d237a3a2ec1c746dfab748924e50475b1b4e21a21f631b9217dd11c3388727d1"
+    },
+    "papers/switch-hurdle-intermittent-demand/README.md": {
+      "before_blob": "b5cce122ed006ad5fa2d0acdeed444eb54bd878e",
+      "before_sha256": "1d9405eee6f10a1fc445ebc2c841d0ba9dc5816e0bad30a79385892a1542adb3",
+      "after_blob": "db2164272d98d80eff37f8e7e83844cbb79c5c16",
+      "after_sha256": "ea826dee415cbdfa7ec699c2332a6f7dcf1bd01c7e2ed47a722641dd1d654ed2"
+    },
+    "papers/switch-hurdle-intermittent-demand/lab.yaml": {
+      "before_blob": "6c7cf69908cba6b999d549fbf2763d9769eede8f",
+      "before_sha256": "7e2e608371f86fcfd0319a359306e56101e81073fa414dbe57cebffbaa6f74ff",
+      "after_blob": "336c75ef612661140c45d8f05bd4da31a56258db",
+      "after_sha256": "3267a9366d8459e2466009967074d95ff6ad4b54e8dc77531477a8f21497d77a"
+    },
+    "papers/switch-hurdle-intermittent-demand/method.md": {
+      "before_blob": "74420021e3cd82ea7f1df7d66080536eba7acd23",
+      "before_sha256": "3492a86aa67a6bd825452680239d87b9a46f5e42986dd782962af169efa80d16",
+      "after_blob": "7b953bc020a3424916179523ce6408258259cc6a",
+      "after_sha256": "41dd3e30da54f52f942a35697b097f6f3b7b58780cbcbaadec12785a1972efb4"
+    },
+    "papers/evaluation-choices-forecasting-leaderboard/README.md": {
+      "before_blob": "2ce11751ee3c20f0206131c981bbb872684b7536",
+      "before_sha256": "91c0babeb752d9111f8ba32d877e5b65caf826d4b609fe628012f3afa0c71eda",
+      "after_blob": "7deb86982ebea57668f1f82b9035970ceae9fff3",
+      "after_sha256": "7ff226c2e3d7a0dfe25261c0216dbd16b604cc9e94e7472e192d29040f0d8d87"
+    },
+    "papers/evaluation-choices-forecasting-leaderboard/lab.yaml": {
+      "before_blob": "7f84d3fda706db33807ab827c140bcf8c6ee3637",
+      "before_sha256": "5e36fb6d38475f96de309e0698f058db9442b044c9647c03bce60d3e303a4db2",
+      "after_blob": "b4942f935a083a8f302e27946b8660dbf8327a3f",
+      "after_sha256": "f33b2f1b1ff80c36f22a96c4c818e50e23269b28b2c6b26d4f17c0551438a1ec"
+    },
+    "papers/evaluation-choices-forecasting-leaderboard/method.md": {
+      "before_blob": "3846ad4937792309d7d3133d9d13b17b4b1885db",
+      "before_sha256": "4fe6cccb91e6492306e92d64f4bc0e170041b38fbc0595040001d7eb2b718ffc",
+      "after_blob": "18bebedb64469bef25af2f16ff788a36350aa191",
+      "after_sha256": "a02447d3fa4dac9079eb3cdd3fb4118fe14931ee99b9cf1389a2d99e853b5702"
+    },
+    "papers/exaone-demand-routed-tsfm/README.md": {
+      "before_blob": "8731ea74e5c99a1d2b490c316d2c4e98c4257a57",
+      "before_sha256": "bab07483844b962e8425e68496563ac286c1ba71d10adc23d36187cfec65d25a",
+      "after_blob": "6e136ac1326075ca12d054a4b4886e72793af87f",
+      "after_sha256": "99cbcd8a56f9b37434b2cda0870f5640e814b3bb49b1005315fa739ebe393f7b"
+    },
+    "papers/exaone-demand-routed-tsfm/lab.yaml": {
+      "before_blob": "c169ff576d7ae10e51118aaadcc5a6e3c12d2c76",
+      "before_sha256": "de851a53b3b9a956cca2c50f052cc7d380d5f1b89cf3cb85efc26d03523948a8",
+      "after_blob": "e9eb425d43cdb1c765dae93257f9787f6db8ea9d",
+      "after_sha256": "2c3f37541aa2bb6cb8542d00d215cc2991fd5bb9b83103a21cfff6a011db0be5"
+    },
+    "papers/exaone-demand-routed-tsfm/method.md": {
+      "before_blob": "96f5f4d9815f5cdfe97e674dec7336099fdae576",
+      "before_sha256": "9fc82c750b38041bfcd7c6f5d6eb52426c29f1d0a690174dcc51ea8f762812f5",
+      "after_blob": "33686f6dd2343fe4c4fc96bc4bb2d0b8c1356a88",
+      "after_sha256": "5abb3779eb7e3309afab63283a765b0543ffc2c4b55b6ea5cd43ef7c5decf016"
+    },
+    "papers/reasoncast-agentic-demand-forecasting/README.md": {
+      "before_blob": "081d529b2a7302605a3654e9d62f4f8f16fa9568",
+      "before_sha256": "b2d865a5e3bc5d94e7c5c524f4632650d0401f878d25b50a02d45249f21c3053",
+      "after_blob": "62ddf67b5cbeb39713bf8c75fe656d80041dc639",
+      "after_sha256": "4a4f8792b136a7a551597515d235360bd2c2d7711eca16e141285f74fe63d959"
+    },
+    "papers/reasoncast-agentic-demand-forecasting/lab.yaml": {
+      "before_blob": "506ae14a7005c14f7dfad109599e342cd0226313",
+      "before_sha256": "27c99fdb48fa28d877ae3b68cfbd7b12055df7c6d892ba457014f76ad266ce33",
+      "after_blob": "c20bf8ed53292ac0404223dafaab5af4dafede9b",
+      "after_sha256": "f48f205d406d988f9c2031af2de432bbeb6c07392bd0089bdd5729722a910d61"
+    },
+    "papers/reasoncast-agentic-demand-forecasting/mapping.md": {
+      "before_blob": "bad9592cdf2e56de5f09c7350b98f121837da647",
+      "before_sha256": "a69b90f6de5a2fc2abc6ce4f486a1da0d5a1bccfe44323ab23229d3f9c746507",
+      "after_blob": "5807730d04497e391c014e83e94ccd7ad83813b4",
+      "after_sha256": "d0e3246d9ccd627382bacc7ab83341fcef53dce674f2b512fa357f79d898a3d9"
+    },
+    "papers/reasoncast-agentic-demand-forecasting/method.md": {
+      "before_blob": "d89aa6e8757e4e5a0ae657a2165e2bbec900dbb7",
+      "before_sha256": "c76d1bdffe3898d1b0f4c071c2d61678c098ae8f2f423886c01398a94330fdbc",
+      "after_blob": "f7148dc43374ceda4bb8b254f1e284077694316b",
+      "after_sha256": "743a7a546bc3012908ccda303cf908793ce75362f0f5ffa5da58eba1f963f0a0"
+    },
+    "papers/t0-tsfm-forecasting-with-context/lab.yaml": {
+      "before_blob": "3548b8fbce4c74cce71bcad41c041b4aaee952fa",
+      "before_sha256": "8f9134c35655053c7822e9b277a3453f4febe0c2e4612819dfc818ced3074bc8",
+      "after_blob": "feaead9b39963a5366d0ae4bbd051780110993d6",
+      "after_sha256": "a2be9ab660e67ded592fee470d7a36076c1bb19522959d1f44c5ac6cfc09abfe"
+    },
+    "papers/t0-tsfm-forecasting-with-context/method.md": {
+      "before_blob": "f766ec51e30d244a6c2c1522c8b2cf5a31b1ce14",
+      "before_sha256": "912140e15fc67bde99b81cc1fa3b41b75397c4f6d3a1aa4fe8941194f3707039",
+      "after_blob": "9067afcafb4d5fa2ff5022fde975e3d7d6a4770d",
+      "after_sha256": "7fbdf0dd70ff77ac7afacfdb65f32f2ff9343c25eb8ca3a6c08f4984d01c9952"
+    },
+    "papers/walmart-demand-transfer/lab.yaml": {
+      "before_blob": "28d3864597b81a827a933fb384c8aa192a40a382",
+      "before_sha256": "f6cd7eef65b413b50fad4a6bc03364b5a85741300560677d701553f33e9bbfb7",
+      "after_blob": "101918241c2321eff98813969017a004df4166e3",
+      "after_sha256": "c2ac21f693d877fd33ada024243bf8227aade9d15288a563da8d787172c877f2"
+    },
+    "papers/walmart-demand-transfer/method.md": {
+      "before_blob": "77755f512e81ddb814f4755a0f8c2e1a6c7923de",
+      "before_sha256": "d1d15d44b9e31640e27f6068ce4cbfa35bf074804a962f3824690bbc9b347060",
+      "after_blob": "c17dc145e12a9c8bbed2fce28635d736848bea5f",
+      "after_sha256": "681113a78794678b97fed417284a0760a04bb07d34ebbfe85374bfdbebc01dda"
+    },
+    "papers/zalando-sales-event-pricing-forecast-optimize/README.md": {
+      "before_blob": "7f969f39a908d2332054d80d69b8f8e80be1fda6",
+      "before_sha256": "caf38227b607dceb8c8544a339bd2f56a1d8b5a9d7014e90d44a9674814b39f5",
+      "after_blob": "74063b6993a6dfc34f85c6ce34af205768a9962b",
+      "after_sha256": "05b9cae2c473876552f95340449d0236d56387112ae1a4da73d7eeb4cac721e1"
+    },
+    "papers/zalando-sales-event-pricing-forecast-optimize/lab.yaml": {
+      "before_blob": "29c394690a1830ee4a36ea5bfdd8e68e6c0a50ca",
+      "before_sha256": "e94ca66097cf46221c99bbb2c9282c00d645dd55b82bfc6e6965dcea4c38caf9",
+      "after_blob": "ad4d2d9d3b40b28ace11c978a0c25e23972ec940",
+      "after_sha256": "8103eb6cab668ba8d9210c351639dedfc6b71bf7a5ef39ef513edfcf708e551f"
+    },
+    "papers/zalando-sales-event-pricing-forecast-optimize/method.md": {
+      "before_blob": "9d496c9657480b3cc9ef17077303f2e3ef7ac7b5",
+      "before_sha256": "ea83be966f83dbfe15332baa3c611df15f1558c49ef07b06cc8e589ab36c1173",
+      "after_blob": "d47e03de50c1a89e605dca29ce25c08d9bdbfcce",
+      "after_sha256": "b6472c6655c6cb5c0d30081a9b18a3381a3051e4adbdcdbfe99f044ad6d8ef3e"
+    },
+    "papers/assortment-replenishment-hard-constraints/lab.yaml": {
+      "before_blob": "9e0fc52552132aab9decf069b21dc66b4a108cc8",
+      "before_sha256": "f8a73bf37981352911cfa368a31bde24fda69b5057661f2ee36474991df3d503",
+      "after_blob": "9b531e8e63ea229fcc1e219eff0d1c47fe765816",
+      "after_sha256": "ab29ea8be12a3209b6ec9de29b3bbd76c3aee5f46a4b57221adc2f7e4040ffc5"
+    },
+    "papers/retailbench-long-horizon-store-agents/README.md": {
+      "before_blob": "b88420ae5b34a977afaf6153bf7370e0fd8c4bcd",
+      "before_sha256": "844ed51d7c241aac439cbef92c713ab42bb60a37f09c99226d863c5100ff1aa3",
+      "after_blob": "f27a50f7f2dc06868d5b91803e93338db913229d",
+      "after_sha256": "7c88459ed9103ba480257f19497ef25d8bc17ec1e9c7df8861d1dd8cb8917d8c"
+    },
+    "papers/retailbench-long-horizon-store-agents/mapping.md": {
+      "before_blob": "bdc97525f5a2c5232245ce6e1af2e78d889f69cb",
+      "before_sha256": "5b12012cd2a1c5c15e6d82ed472396d11c92d3af510c15204c7cc7be8a1aeb6a",
+      "after_blob": "ad27635fbdb5901b3229e33ee20115a1cb5a69e5",
+      "after_sha256": "86d97b3460ebab2513f47ffd92ec278283cccc6539e7f753d0d26c146dfe687b"
+    },
+    "papers/retailbench-long-horizon-store-agents/method.md": {
+      "before_blob": "5b4b16a6d136cb20f4335e9ca92b8315c104a0d1",
+      "before_sha256": "bc240bb3d5c23760d84857652be04386e197f3a722acd84460384269bc4f6f56",
+      "after_blob": "07603cb8175cfda8638e8e48f4ad140806c6bcb6",
+      "after_sha256": "5ac99ed17c3aa50fe5a55806ca108be933d899397459bf3ca0c1fcf306fbfcca"
+    },
+    "papers/shelf-placement-options/lab.yaml": {
+      "before_blob": "84716ae9fed8e1fd4febc7da5931bdd07d1b5092",
+      "before_sha256": "114167b30fd365f93a6a27cc192792d2db6803452ae7f18f07a92b9791a95e5d",
+      "after_blob": "e644e8daa50ec1f4293343734a8d7757771a31c0",
+      "after_sha256": "448b582042888074270ebbd747d9094c626b78ae90bb56f16f468fc58716cb84"
+    },
+    "papers/storewide-shelf-decomposition/lab.yaml": {
+      "before_blob": "6318e4d02de01b857a38e890cc7561aca9d0f339",
+      "before_sha256": "3eeb6614285b5e0f9fe9a3500cbeaac059ba79c8711a24be1ea7bab4ca54fb44",
+      "after_blob": "e2907340ec6c850d234317ef28caac55ead8cc2e",
+      "after_sha256": "f45ab0a59f12ba7413bf86888f8e76d9de113e163be5e0e826608cd6fdf027b3"
+    },
+    "papers/tsfm-sparse-event-ranking/README.md": {
+      "before_blob": "8603354d72f45b8476879c5fba5e3569cd3aa8d9",
+      "before_sha256": "2d9d143c22a1a82cd59d5b217381495b5f558e161c31b9a711e0aa976a3b2cff",
+      "after_blob": "48252249333d519138095f1648beb4b83cd0f085",
+      "after_sha256": "a0046a837a3d421fea1c6e7aadac2b0041c7e0ba42cddb51ee04965014a755d5"
+    },
+    "papers/tsfm-sparse-event-ranking/lab.yaml": {
+      "before_blob": "4532a04f5581c2b2eae4c1337c624761937c44c1",
+      "before_sha256": "727db4c7285dabf4f5788fbf743bcac4d29cf2f05007f90ab4b088dc39386c91",
+      "after_blob": "b6e8032872e9e2deb636799b07562eba0a104e72",
+      "after_sha256": "a0519988140ec4e8a77a894b27fca19649c0664988331d95905bf25c113ba292"
+    },
+    "papers/wrapped-produce-placement-controlled-trial/lab.yaml": {
+      "before_blob": "11040f00ecdbcae0e335121879b2ff917208e7a1",
+      "before_sha256": "b306eba65ecf45e2bc2bc44d6389eb47c039643d1b7abf3696efde8184e44755",
+      "after_blob": "7fe9dab9bca679d3c3d7129976ac898ed17c4c8d",
+      "after_sha256": "9bdbced0a9feaa5538a0bbba9b7234d8ce4e5437a3e582292f08af62e922c08d"
+    },
+    "papers/beyond-scalar-dsi-watchtime/README.md": {
+      "before_blob": "a76bcd2d33005d742c61d2b23c2bbe3a01bf765f",
+      "before_sha256": "a5c6c070140acc3b5d1dfe8ea039f01025825c83850fe40d90daa6a529aa7428",
+      "after_blob": "f974c3ad734d726c1e61c7f8138e65062c3fcc31",
+      "after_sha256": "90da3d8f2a795c984929a8e4076dc0a02734b2a931a7f7d1cb200af091c7a38f"
+    },
+    "papers/beyond-scalar-dsi-watchtime/lab.yaml": {
+      "before_blob": "8dec2b8b9556ae39ee5b255a55008802688ea654",
+      "before_sha256": "03eeb634eb6885dce21be532614f9685fd24cf8e5e42df9dc8a5c076aafccdad",
+      "after_blob": "b1be8e3ad2657e7acd0a4abff1de23d9f3a6726b",
+      "after_sha256": "22f9cd98190d7f5b2bc1c299ee9095ac8d7c6579ffad34150816b61f13584133"
+    },
+    "papers/netflix-counterfactual-observability/lab.yaml": {
+      "before_blob": "ec67af22aa990df03996e36cc8484ba1e1baf91a",
+      "before_sha256": "72b3afad9d62153ea69eb42e281ef388600f5d45688638c3836e19d374c406ba",
+      "after_blob": "4705f50428efd5addaf5ea1f8fb8913c17156413",
+      "after_sha256": "308cc91b027d048166277c3546349af9ad26f7679bd3351968f92d68f2a46120"
+    },
+    "papers/otto-gbdt-vs-dnn-ltr/lab.yaml": {
+      "before_blob": "65a6eed3aeeb4afa172faad31cfe8b6968c46229",
+      "before_sha256": "f922a8c47ad160c24394df0096e6e1f0f2a5e5a665f9b42e62ecb515ec106efb",
+      "after_blob": "711fb233516d44d9a9ed7a1208e722c68c2df7e2",
+      "after_sha256": "c34db9fd6be75f8b60b6e54ece8b278c977a6d24e3ec1d84c48df1511c99745c"
+    },
+    "papers/otto-gbdt-vs-dnn-ltr/method.md": {
+      "before_blob": "f496db8903ded67ae0918e6b7435b6b970fff65c",
+      "before_sha256": "c0bc4032be460fbc46ace8a27ebce9cad74617aac49a8ca6829877dcbf0a15e4",
+      "after_blob": "89f55b5bf7d365b536a9b23bad01b415e647d13c",
+      "after_sha256": "70d1f5e767d62dd95b3f9c650056a96230b7e0ed71448815f0d29ac373f576a0"
+    },
+    "papers/static-constrained-gr/lab.yaml": {
+      "before_blob": "d27c307285fa34f613e3cea83079e24c8dd9305c",
+      "before_sha256": "d3b77ceb644dad06cd546e021e03c166c7d63497fee47ccb726ac204c2c610bc",
+      "after_blob": "1aa60e9e1e84feb4aeb8ef8c435cb359e1c0e21d",
+      "after_sha256": "e92ad072ab930cc58eec88a6e4c2945bbbca6125ff6e4b93a32d1fddd6c122fc"
+    },
+    "papers/tgr/lab.yaml": {
+      "before_blob": "e1dbc4c3e6eba8b435ab6ad768ea332be856b64d",
+      "before_sha256": "c0429e25417700be42dbeeb5fa608f6b79c997f899a9dd84a8c4240ac30e838f",
+      "after_blob": "40319c0bc232f5261e2c426d6fcba491b50e4076",
+      "after_sha256": "9acd8cfc6899dbdceebd42a5a636bfddbbcb73224b70019c047cb5e54b2e18ba"
+    },
+    "papers/unipinrec/README.md": {
+      "before_blob": "a63d61bf604007c9fa925d396b5a3ec8fba72275",
+      "before_sha256": "8b6bc0bbbf724d4d311cef3a7b3ed9f0843d626b7b0351594ae3ddc9301a5ea6",
+      "after_blob": "16d36cd9435437d6f4d5fb098b75cf4215d59afd",
+      "after_sha256": "deb7cac7d177c3a243e06f67d9c47205ceac699f8284b777700e8c11571e6635"
+    },
+    "papers/unipinrec/lab.yaml": {
+      "before_blob": "55d271a90ad4da141ea3f36131c724faf687c92f",
+      "before_sha256": "c9ba38d82218234dc49b3753e6f90b468914e650758c83782abfe28aab970a71",
+      "after_blob": "c8bfa2507101f57ca9a05f899c91b7382dcfb9b6",
+      "after_sha256": "e36d31b25ef7f840c8f1274ad9a33dbc78249e5aa776c6e97a81e4a82fc93721"
+    },
+    "papers/unipinrec/method.md": {
+      "before_blob": "09de6b2ad4b92e09d707f2d36e6c0d8a6ed4beb3",
+      "before_sha256": "65833f0e8caddaa90d9b413fe226b2d315ece31be928daefaf86cd2b9791a7f8",
+      "after_blob": "88271ac282bba80db5817ee0ef6b915c8013a1d9",
+      "after_sha256": "3b1d30ab89ec95eab45c8f0ae72789e2e7b25cc1f1784813e0969d42c60ec874"
+    },
+    "papers/cq-sid-eg-grpo-tmall/lab.yaml": {
+      "before_blob": "18bc7ee2c73aa1b75c8ef7ace53e196f61dae372",
+      "before_sha256": "c50456de8eaaacd306048c7a686a9ff64b76d6457b5e0f2643544a052edfdd6a",
+      "after_blob": "f2d776bca62ff76d70acdc2b083f240440b886f7",
+      "after_sha256": "9c562f7d18bd947366626d458aca78739c507f4560c2e971aa93992bf9575f15"
+    },
+    "papers/cq-sid-eg-grpo-tmall/method.md": {
+      "before_blob": "8910891041f913f363258f8cbad29f2412d0faf0",
+      "before_sha256": "d0555631be980deb04a270e8ff1258ebca896fb935365db4802a43d5f38c1ba0",
+      "after_blob": "5d8f87adb37c0cccdf219b601b17afaa873229a3",
+      "after_sha256": "7c9ee5685ce8c629c10eaea1c8d33ad7e26af1f47334675fb63dc87596c72ccb"
+    },
+    "papers/flashtrie-gpu-beam/README.md": {
+      "before_blob": "1ed012c45281f4fe8f335dd8f45f7a6749b809c8",
+      "before_sha256": "9477f4da7293ed1aeb0c0d6a59a89741508ceb9785ddf7ea5f78212dac0e8e51",
+      "after_blob": "4f2e18886e3fea6273893197026c0afbad4fa740",
+      "after_sha256": "5b2a4bda02e204499e940c9cfcc3cb3641fc6d529ba0c0799e3591b32e0f49ab"
+    },
+    "papers/flashtrie-gpu-beam/lab.yaml": {
+      "before_blob": "7f754437761fccfbc21ddd923556130d52a4df76",
+      "before_sha256": "640d3c4308b3c9fffbb7d6538baf7b3eeb5f39fe326a79bb4cc4f28a6e176ab9",
+      "after_blob": "6678d83939514c2000919ed65edc3f923725178d",
+      "after_sha256": "a9bc6fdaccf080977b9313243607157307bddde1a01bb54126ed204320fbe602"
+    },
+    "papers/hgenpush-kuaishou-heterogeneous-push-gr/lab.yaml": {
+      "before_blob": "ee4f4904f7001b09201574162b4672994e402589",
+      "before_sha256": "10e837e9165900232e8ca9adb121025a4a7b4b139d26648c118f19c6f46db82b",
+      "after_blob": "c4bf8d69e73831c2567d92a63d64eafd254237db",
+      "after_sha256": "1e39458c729b6433dadf624e459e2c332e82af4acd73a8bcd96a85938f36a20e"
+    },
+    "papers/pushdualgen-kuaishou/README.md": {
+      "before_blob": "e153ed77b8e648883dc60c664b6033996c8f5220",
+      "before_sha256": "6df940bf4acfa9d1f6402ac368ded40c10f2d4d09aa3e2cfffb981536cef151f",
+      "after_blob": "4cf07d722598a48daa9ff3b89746445c57914922",
+      "after_sha256": "181e59b1ade4e832f6bfe458fa453237bf1c2e240021723ebbb8628a923d79f0"
+    },
+    "papers/pushdualgen-kuaishou/lab.yaml": {
+      "before_blob": "2758d28571becfece2acafad2e8a1678a8b8848d",
+      "before_sha256": "2a871d7906263c0120ef703bb1775cc7277ba48ee4c6f1025049c76ce4444a61",
+      "after_blob": "a13bdf5451e8ba3f76f1f7dd16a1d52dc6b34530",
+      "after_sha256": "fd18debbb5a366c40750a4c916aac61cee072fb8302b119b73560ceb6cd1d9ef"
+    },
+    "papers/univa-commercial-sid-gar/lab.yaml": {
+      "before_blob": "2ae12b12e26943322920617400421802d23bf021",
+      "before_sha256": "b8fcd1fbfe29d3c9ca5d40af1257f0dde82d103a9a8196060cb35a1f2a441024",
+      "after_blob": "e192282aa6bef7d18a776b64725405c5ad520db3",
+      "after_sha256": "2722d4a585b8ec3bda8e6d0c542e36c5b4e49ffc44e91a4b975f5629421d196e"
+    },
+    "papers/varg-tmall-value-generative-retrieval/lab.yaml": {
+      "before_blob": "8b1a93611f43d66bcf6b7633a05cdaf6094b5e40",
+      "before_sha256": "1c40fe66f6053e42124e17fb90eb87c788163771812fc179e20ba0f6efb8efde",
+      "after_blob": "9d55cece62a109f3104acc09812c062dc4a24e90",
+      "after_sha256": "10db15efd559af964639c2ea0311875ba8d0499a3ed2b84469fdcf224d387619"
+    },
+    "papers/gatesid-coldstart-ranking/lab.yaml": {
+      "before_blob": "5ba53c97045b301ed2c473acbc633e83d9985e50",
+      "before_sha256": "d19eb17c7270507ccb7ef5e075fe6bd0c4baacbcd171b0e1a4f532bba50f0220",
+      "after_blob": "d11005fbdc600694204cca9693db809789cec24d",
+      "after_sha256": "c6873f31034c0d955f6e51893a2758ba27ac794159dbbff8f9f7303d5449ac17"
+    },
+    "papers/glide-spotify-sid/lab.yaml": {
+      "before_blob": "a6041206fbaaa2f8aec2ffd6cee31fd87792ceb2",
+      "before_sha256": "18838e8d93e63d8f68b0ca2e86b7c1c4d87f8e29788cae05459dff33c2a7e693",
+      "after_blob": "95a5f11a1fd69c750d903519585aa382f3970990",
+      "after_sha256": "38bb4d8437d4f03c76d8d900e47827667b0e11c0107b61d9c245960fc4ba6013"
+    },
+    "papers/glide-spotify-sid/method.md": {
+      "before_blob": "247be21d6f9ed6dc8c9da6f147eb2898a614f92b",
+      "before_sha256": "c2085d58868b609cb7b12973ae5216c2363b08905bf3ef35e9bd2e5fd8f579fa",
+      "after_blob": "502231b9a0fd2128bcf0302ecefbdef66ac00bab",
+      "after_sha256": "a30b8af4d704751209de122f02d2ffaf93a5a7635fe0228b039b5157e2b5a5fb"
+    },
+    "papers/quasid-collision-qualified-sid/lab.yaml": {
+      "before_blob": "fe89d6214dec5adbd230434ebc698802497efb0c",
+      "before_sha256": "835b51bddf8a6c8925934a74e4d643a74208c4be24c45381c786b17dd52247d8",
+      "after_blob": "4f5a17a994e307ef1a5606b1f0080c0823b9d8a5",
+      "after_sha256": "021ef7c6b7dae73dde6d3c3f6e92a3df377f0ec2937b7d989edbdab79a752a48"
+    },
+    "papers/sidinspector-mapping-diagnostics/lab.yaml": {
+      "before_blob": "09ebf089dfae6505df392b56e61846ce1649662a",
+      "before_sha256": "9e2174b18e601f11d6e7f39ec12299286c15527bd58aeff4b0b2a588f555e220",
+      "after_blob": "0660706694300828adb4dffb13d29b3a11931c5b",
+      "after_sha256": "72cfaff881b9dc713f753774a382da046bb6e624835b902e10584a744c5e1261"
+    },
+    "papers/sidinspector-mapping-diagnostics/method.md": {
+      "before_blob": "8316949c00897b2ec80ef3966477773745b3ab89",
+      "before_sha256": "0c0c1a48838f864a300db9c954c9145026fc8ee4010f903ac2d6f87de498d37f",
+      "after_blob": "c430e902a3c8a7503002a61047bf42f3c7162c0a",
+      "after_sha256": "31dee8ea62ae9b9d5412747dd93eb460391711e32c9fe11beaba8e544182a2d0"
+    },
+    "papers/sidscope-diagnostics/method.md": {
+      "before_blob": "409ec423ae130e6ffc8059c8ff136f1c71050a7e",
+      "before_sha256": "04840230241a295bb419964ae7bcca920077233a595eb286950ba8de45c2fd32",
+      "after_blob": "86b6686eaafcb0d092b58bf3f5d6b8fa8a209247",
+      "after_sha256": "e123b5e9df612d3d859c9c4950bfa4cb44f417b8859c75316bbd3c536bee10fe"
+    },
+    "papers/understanding-sids-isd/lab.yaml": {
+      "before_blob": "4ef6f43484e780ad0bdb460e8f1a84819e4ded5f",
+      "before_sha256": "e97a4ed5f1d51c69de7820d51886a03ee474583a8f9af381e3d3bbb31b6f0ca8",
+      "after_blob": "ab421297f8ff855cb7c929d3d9ef3bdc1c1203c9",
+      "after_sha256": "68d1f3fb5e2687b44c4e5d985e00a566e11f7b2d0aa80372b8b6323e95167ec9"
+    },
+    "papers/understanding-sids-isd/method.md": {
+      "before_blob": "026486ee1e583afa3d211ad765d6378b5dccb859",
+      "before_sha256": "10228a4d7f798385e4db72001e24447a3f3aa223d97d813ced7e2d7de2c7cc57",
+      "after_blob": "74aaac36cba59224dfc66cf4153c2834592d5aea",
+      "after_sha256": "416badf3924ce234c41618ab10cea88c5707faf33a4c1fdf05129b5babeac78f"
+    },
+    "papers/gr4ad-ads-generative/method.md": {
+      "before_blob": "6be30f9edd81370fc3d39c9da0d82bd8b478d100",
+      "before_sha256": "7c2f96dd0f2c606043e215d8e135d8ee284379cc62a10f29abcedeada633fecc",
+      "after_blob": "e5c3adb51a01d6113a5f27dd5e06b291f4899737",
+      "after_sha256": "b6510ce37a643b8fd8b384de588cb70ebe20099b0e6a18e669f2d03c20a12631"
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/lab.yaml": {
+      "before_blob": "70bb92a56344d66c3dd478c24b7a8813f2509fcd",
+      "before_sha256": "1d4d53cb850027e4111343d02c138649cec6065b18e99652855a04abea34600e",
+      "after_blob": "16cdebdc473cf99d361b6e4daa8023c04f964233",
+      "after_sha256": "94242c46b0b906e6919d56e181ff056f4e9d9c6d98e51a28feb721a9099321ca"
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/method.md": {
+      "before_blob": "18a33710dd5af539dfc196937f688d9bda5cfc35",
+      "before_sha256": "6c737f1521bed132f4872650cec5b4b2ee511db04b49f30c57e4f991e6ee6ef7",
+      "after_blob": "01f3b9de9ca0c53c2b27ae9d50e0798431b91205",
+      "after_sha256": "031985d8dc144b03bfd7408a0745795525248166dcdbb43c8382c9cee096f3b1"
+    },
+    "papers/snaplgr-snapchat/method.md": {
+      "before_blob": "6c70910254c51a7f802b7a4e1f30a0acfb218b52",
+      "before_sha256": "e7d0dd1d4561b6433b58e56b4d86af122707dde1f6a4d5d35539e2384f53a383",
+      "after_blob": "70cd89515a06d4d985ca04f392441589e7f0bca7",
+      "after_sha256": "60569f09ff650fed159fb5453dc647cc620476cca40c8c9a0f5fd032c8181914"
+    },
+    "papers/unique-baidu-unified-retrieval-ranking/lab.yaml": {
+      "before_blob": "ae8f44b8e5923dae86ac86032ecd30bd4d2f7116",
+      "before_sha256": "c55ec92410f3487beb7bc42a04ceedb1bc0857a29632ef9993e4e4f840fac375",
+      "after_blob": "98fd0f69574c49ffb35e23be6ecc3a4bc60511e2",
+      "after_sha256": "8cb46fdbfb06cc2822e2e49e37c63cfe5f446f61a8ed02e0ef5f146b21672304"
+    },
+    "papers/unique-baidu-unified-retrieval-ranking/method.md": {
+      "before_blob": "61dbddab93d5108cc9ba579e2702a43d67e4b94d",
+      "before_sha256": "dcdec4e618156cb2f7700da306be427a65cf5e506c912b36a72fa63312bf4c92",
+      "after_blob": "28bb7b4d16de706754943939c48d83b3c0d5e7c5",
+      "after_sha256": "475addc1353cbc911f030933cc7d34cad457473731561f85eed4f57bf9b10764"
+    },
+    "papers/unir2-sequence-unify/lab.yaml": {
+      "before_blob": "2fee3dc96e449b6ba5a3785c0c702859a50f26cb",
+      "before_sha256": "6a766db86a93ef2acbc3d2c9ee19b12abbab5038f80931765ddac5972cbd66de",
+      "after_blob": "29bae86b8c16de38b7061ea94c1f90f8e94c9aa3",
+      "after_sha256": "a94684ace24160e9c3c0ff99831f0a03f948752a3fc41276576a9145fd5d4124"
+    },
+    "papers/unir2-sequence-unify/method.md": {
+      "before_blob": "1bc8e2fd3ef2a265af284c1e8629bf537e64e1fa",
+      "before_sha256": "28cbdfe4d7bb6e0609d0d820b1b9be2f1fda7a6b0af934ae220f4cff0fce693e",
+      "after_blob": "f1d75d62400d40b32fff635a72c1e392b5357b2c",
+      "after_sha256": "93c0bee5ee62c2d7087cc2c15c840f7d675d0c1af13240b20fd8bdd33c744eea"
+    },
+    "papers/unirec-chain-of-attribute/lab.yaml": {
+      "before_blob": "177a9cf55f5e6f249db9c4dc0341a4772909429b",
+      "before_sha256": "fe94c397d8f69bff08897eb167a0065b654843e1146cb11ee66ea959b808cadd",
+      "after_blob": "7c1f13c278395fbf3c031fc1238483a509e6f6c9",
+      "after_sha256": "61e0a86c85097af330465566efe9d5d88d84fa143ae54e9fa4c60bc4920da724"
+    },
+    "papers/linkedin-prediction-to-incrementality/README.md": {
+      "before_blob": "80e6cae929eccac74e0b38ef4259e22fb591ac7f",
+      "before_sha256": "d66b1e5d089435f0613e33881e57b315a3e60ccad7d4ab0f0a13457ba5987e6d",
+      "after_blob": "11a519f91aa06d1dbb1cb88e1e16c255741fa6de",
+      "after_sha256": "790f9070c7f4b55bdbf69797917478df46a20b3ebd308aed91be146218b58278"
+    },
+    "papers/linkedin-prediction-to-incrementality/lab.yaml": {
+      "before_blob": "8fddbda0a49d0ad20407107f261b8712259b0226",
+      "before_sha256": "41fb5d76bc9fb17bd98652ea3c1e8b48b529ad0078c59780f794a7fc4bfbcdeb",
+      "after_blob": "315abb3528381b4d556a83a0434ddf0d8ee98fa7",
+      "after_sha256": "53e0a345ab93ceb667fc10ac4822d22e8063dcaba9d20f76d374c5167b741236"
+    },
+    "papers/linkedin-prediction-to-incrementality/method.md": {
+      "before_blob": "ae551cf6647a12fcf32b01eb42ffda5e017656b0",
+      "before_sha256": "d680b5861a9f16458b9cd70e0124f7d101f2d5b8d289dfb243f7c097dc4745ad",
+      "after_blob": "0482742e09f927b445b8fd8498eb15ff90cb8519",
+      "after_sha256": "ffa6ed77c118fb8821a5dc0f85fefbcc492d11c109e643af036151afb8ec232d"
+    },
+    "papers/pinterest-causal-retrieval-shopping/lab.yaml": {
+      "before_blob": "ca62a09f7aa3208f26f4b9c58f18e88fafd64589",
+      "before_sha256": "b16af1d62681c9762f08c6c2fa75bb86157b1a861929ddd8099846c6ec8549be",
+      "after_blob": "d37ad4144e19cf4570121a686b71d74efb29c754",
+      "after_sha256": "9b0007a3bc7c2c637a97b11f563879a69558c13cf35427a2d962728b7092f45d"
+    },
+    "papers/pinterest-causal-retrieval-shopping/method.md": {
+      "before_blob": "dbf97b03181109ad662ac83068731c7492a7017e",
+      "before_sha256": "87e7c3aac76e552829866bbcdb0a047c8ed7e3980885d879c88c409c483771b8",
+      "after_blob": "e3fb93fd8a1f12bd512abe9e98ca7473f83f4ec2",
+      "after_sha256": "acfb4802f1429d8b4cd74f34035593cd686f87298e2331d764d2e98c2d294047"
+    },
+    "papers/sona-yandex-music/README.md": {
+      "before_blob": "6d5c0ece889cf4fbc49f51128fabba2bf2656bb9",
+      "before_sha256": "c294e759555bfded7455e0cecc19bb040174ae6477e8415767c891a4f79e7722",
+      "after_blob": "70ecb5c8922ebf196b073daa515791a250fb0705",
+      "after_sha256": "6b37c44f68b60398cfc5b4b40d58817dbf2c849761c5a5fe8f8d9c5e0ef0774c"
+    },
+    "papers/sona-yandex-music/lab.yaml": {
+      "before_blob": "c11a625a28a17c2c860fea24de710bd5516c9ded",
+      "before_sha256": "1a6f0fe6a30c51de2c5858c9f8138a60d9d9f2b9c8fc122ba747f4c774352a66",
+      "after_blob": "36867071b07759fdf38b0086b70de647dbb52ded",
+      "after_sha256": "34e8d4c055b321c3599385f577741511c5d0dbbc0f43e2e70bf5484261e44d84"
+    },
+    "papers/spotify-incremental-recommendation-causal/lab.yaml": {
+      "before_blob": "35d4a81e879d07d9e24266ff771b86c6b8fd4cca",
+      "before_sha256": "5ea57ac6c9182d81e715c95d76e8dd6b76492e6f81c87453855aef92af634f36",
+      "after_blob": "724f288b14c5b113d63ecf58522b0474c2c602b7",
+      "after_sha256": "38497e24f3a7908433d3cd571e1fb0514f629e99fbe63e383af94d56484c15cd"
+    },
+    "papers/spotify-incremental-recommendation-causal/method.md": {
+      "before_blob": "2af1cffd13fd5500fa2af2c48a559e4c3c73c86b",
+      "before_sha256": "dc1125b5041fdf9d1736be9c8ff71e78bf7f39ffd7353909ec292d66696aa2e5",
+      "after_blob": "6125260e7738fab649ad3b191febe9f16ea8f99c",
+      "after_sha256": "ced61ac8a49e713b6105701be1b9348886630cf48ebe23694d84e50d14d85782"
+    },
+    "papers/uvr-wolt-trial-reorder/README.md": {
+      "before_blob": "9272c4d3028a4054113f94736410b7566a776e39",
+      "before_sha256": "497ceec40a804b8eb1d24232d90c1aa6ebff44ee4525e1379536543272b875c1",
+      "after_blob": "7c07dc321ab2e732e03c9f5f7f2b358bb8070327",
+      "after_sha256": "4213882cbd238ff9bab7adb59918eb5cf66566f4fe78c6998b2ce461dab8d445"
+    },
+    "papers/uvr-wolt-trial-reorder/lab.yaml": {
+      "before_blob": "22cf411ddd0d186804ab413c2d98f7a84b2c0eb7",
+      "before_sha256": "f1776fefe5e857e7d5d4f21cd4ebc58e2f8851b8543b67c397c5f71e02866f2e",
+      "after_blob": "fc51886fbd3a62790516dc8edd5f367f5db341e7",
+      "after_sha256": "809dab25bfaa9fb8e94de6e387c7b4d7e30d8d06d29f94a8fd45dcc87e0585e7"
+    },
+    "papers/uvr-wolt-trial-reorder/method.md": {
+      "before_blob": "c2dba80113bfc521ce649d7faf38179dc2182e40",
+      "before_sha256": "5eef43029948bca26e3e31164a4288960ff9b8a041181b75f15ede595c20686f",
+      "after_blob": "9632b4ad83d5ae0e44ad7931c9cc439f78fc1899",
+      "after_sha256": "4c9828d5b7ac5b9486421ea6a0cbd95404922e52cd434324b1c6e0c104220e7f"
+    },
+    "papers/youtube-music-llm-rationales-discovery/lab.yaml": {
+      "before_blob": "42c0df2dacd895f90a1155f1d26f9f3828436626",
+      "before_sha256": "1b0ddf195bd2aad2255cf9614c407b95a047da7b07ac23bde7821a81a86598f4",
+      "after_blob": "8ea04d2caa84ede2aa9c4533493d06905e6e2efe",
+      "after_sha256": "14f37c8cafce74370ca2f5347da3b326e0d931d2b0fa0e59fea2d80dbb929c8a"
+    },
+    "papers/angle-tencent-one-step-retrieval/lab.yaml": {
+      "before_blob": "a304d4a47dab09eb218589a8d2e4906cb54ceb23",
+      "before_sha256": "fd45e8da1d3deda17297e2ee041d7d80633f2f61ec4b13df649876a703f64eaf",
+      "after_blob": "499668d9863114806c985aef1c3705432929846b",
+      "after_sha256": "7a00256c15731268d60511eb940c6bc71da1b4b1c6d808bd015954d1e9e71c6a"
+    },
+    "papers/angle-tencent-one-step-retrieval/method.md": {
+      "before_blob": "15dda5e6fd1de9e89974a9b2da84dbb356da60a2",
+      "before_sha256": "205ba218fc98caf97905498fb9804a022692d53ab82378d420763f48d0b27da0",
+      "after_blob": "678841c532383e6a33463f9cb608188a36af697f",
+      "after_sha256": "b911a5679762bb589480f1a8db7b2a34d925de373cf5b268f6eb3b4b537787b9"
+    },
+    "papers/case-against-generation-retrieval/README.md": {
+      "before_blob": "30c48fc3b9f26ef8c0fb1ccef4aec35ce90eb7f9",
+      "before_sha256": "90882259e75b6856628e3d863a974e15f368c6fd2d6d82e6b8f737697c741cf8",
+      "after_blob": "83bebaa1b0b81b0b82ee31f62ccde1157c971ddb",
+      "after_sha256": "5d9b49e2304667ceba1622be03e14850ca5748ccac84e27ceccf86ba32445b32"
+    },
+    "papers/case-against-generation-retrieval/lab.yaml": {
+      "before_blob": "35237b48ad4dc9b7bcf75ed1f2ae8292778a907e",
+      "before_sha256": "add2158c07782e132293a8ce745fdfcdd65a4571e78e9d02e9f46305782cc50a",
+      "after_blob": "aa17d08be2da679a5bba5eba907060b3d02cb03c",
+      "after_sha256": "5337b75e510d0c702130c5a5b30e163c89615fc1ae24770625808fac3f89504a"
+    },
+    "papers/case-against-generation-retrieval/method.md": {
+      "before_blob": "caf69929d54c062c1fd817a4d041aed1517bdcfe",
+      "before_sha256": "1609b685c3bc05b64f4a0512b6d649f5f06710364b5bccfdbccba3793e6e310a",
+      "after_blob": "2ba20648859fc418d7fd8ad221394f98ea7ff72a",
+      "after_sha256": "7d620075e6c9d27efead8404bcf29e1cb5fcbc50da247c0a0ae1852a0f9e9dd1"
+    },
+    "papers/igpo-huawei-inventory-grounded-search/README.md": {
+      "before_blob": "a9dacb9751c5ef5891d3fa6b17bd08ec528fe08d",
+      "before_sha256": "392db9e265980500f5a1501599f566f492673765d7b9791908b95a4786774f20",
+      "after_blob": "6bc1e8c081daeec427193f71b6c099367f1203db",
+      "after_sha256": "ba15fd48241fd9eb754ef480efb9be16a0a1ee13e8e627576128ff9925b67ce6"
+    },
+    "papers/igpo-huawei-inventory-grounded-search/lab.yaml": {
+      "before_blob": "daafe51dae4aab6983df56cdf14bf585c69e8e37",
+      "before_sha256": "7b1d59f8239cd30745b038d2a8b616d8717ae8a585b1c3feb9c4e6f03cc5a07b",
+      "after_blob": "616b19ce9ea965cff36dcf140fa2c665f89b499a",
+      "after_sha256": "af555c5b726be70001b03452c3ea9c5f19bd37811a4996c6dac8b150192c13ac"
+    },
+    "papers/lige-gr-meta-listwise/lab.yaml": {
+      "before_blob": "817d303f2e9acc4d45c1072f5bbbb8bc76df0504",
+      "before_sha256": "e24ff244e183bc59f55ed13ee6ccc26b0e805f639cade9eae7ae1249706376a6",
+      "after_blob": "b75310f913276ad40e83b5d320bd5c9faf05a27e",
+      "after_sha256": "793b9107dbfff21a437486ee4b5c6093f2182ca2f7c07dad0f0f9bd88c0d249d"
+    },
+    "papers/lige-gr-meta-listwise/method.md": {
+      "before_blob": "46c62f8c0b81f3605584c7240ac55171cb169e24",
+      "before_sha256": "22c07c1947eb4b455c003bf1a82f251b25d069e10353f60cd5d5bb32eb825c94",
+      "after_blob": "22cb0f58ed3e54f32314ef22c2b55c732d7b27de",
+      "after_sha256": "faa30b86ee259508e1f9502409fdcf52c9e3c1c07c44b5735ccd8b018a282890"
+    },
+    "papers/ogr-once-generated-ranked/lab.yaml": {
+      "before_blob": "7bfb71a5388e06a18106dee262f3bea6be7eef12",
+      "before_sha256": "5cbd4dd5f328c8710a679895ed89517083293f91d14b8ad380e372ff2d661a11",
+      "after_blob": "9912bba11231ddfab8516ea6ccbb893dfda059c0",
+      "after_sha256": "b3ff071b52dd042e33babd6ccbc05c696319172c942b04d50bc7af6241913fff"
+    },
+    "papers/ogr-once-generated-ranked/method.md": {
+      "before_blob": "ee208f25ae5ad6f251652e4c87e7e1c9a0653c5d",
+      "before_sha256": "068e068ea520e33749b509f982c10bdd561f405990f2bf06545d4649219ad052",
+      "after_blob": "e5b3e23f8a13f6c5046e7d58ab2fd881ab520f2b",
+      "after_sha256": "f97271beeca18ff65da50cd176d78c21435bd9d480804aca2bcb0b79354dd0ae"
+    },
+    "papers/sam-d2q-aliexpress-doc2query/README.md": {
+      "before_blob": "2db368b9888fea2679b6db4363b7f8db0ceebcb9",
+      "before_sha256": "7e44880ae1ea639c53744eaff32c55567fc5413d54f944fdfa560c569b374928",
+      "after_blob": "b7b716af884ef1da91deb6a4e733f912b760042b",
+      "after_sha256": "8422d53f80ec56710f240c811dd0bdf5adec585151a45737df40185e3dc5114e"
+    },
+    "papers/sam-d2q-aliexpress-doc2query/lab.yaml": {
+      "before_blob": "eea005cfa5d411a7f311e495786c990cd7ec65d5",
+      "before_sha256": "8d2aac3258a2c7a0bf3be350a895a1f630cd9bf141cc61a472102569b4485567",
+      "after_blob": "b3cc55b142844b4fa51a814fc32e9059c2b70801",
+      "after_sha256": "471dea97c210261fc09baeb97d530bda78809e5bb921b38f96015a06e0630da1"
+    },
+    "papers/sam-d2q-aliexpress-doc2query/method.md": {
+      "before_blob": "8a99baa553706c2f18b0f724d5b176d5ec6a89dd",
+      "before_sha256": "711f320acbe4e1468ac9f98b92e4480a07a3ae2ffa00089eafdc7c9914f88203",
+      "after_blob": "f3b90d2492054fa02a4c02cea4a616db24919ac4",
+      "after_sha256": "4382684271b8ce3cbe4f51d0374d2f6b1a3da60a1eb9b402e925532ee0329334"
+    },
+    "papers/gryphon-ilsm/lab.yaml": {
+      "before_blob": "c18d0d4c2f498f046f6a652892af0d64f97ec4b4",
+      "before_sha256": "d3dfc82e6519547611cc5339e82215650afdee5ce8dc13c42dc32043f377240e",
+      "after_blob": "bf8ddec764bfff6945f328d0e94758fd208d7fde",
+      "after_sha256": "f7215bff8b57ff248972720851dee224f934ff930afffdd7901d0e4254670ada"
+    },
+    "papers/gryphon-ilsm/method.md": {
+      "before_blob": "5f75109e67786db226fc7533e163341a71d2f396",
+      "before_sha256": "128c04ea797c4d7d194e5abcb105ec12d9b728821f6c845f5b99dd3d5f48d51d",
+      "after_blob": "74eccdc08a3861bf192de1dbea04ddda9c967fd3",
+      "after_sha256": "ae11fc1428637739cc7272e4d4366da6c82e1d29433e7d92398e55dfb94e6fb5"
+    },
+    "papers/gryphon-v2-cascade/lab.yaml": {
+      "before_blob": "2acd4a126491ef4f006ef14edca67a0553e94397",
+      "before_sha256": "05cea1164e094b0864660f8479acfc08c777a0616e99cc3a795f02fa7daaf736",
+      "after_blob": "5200e550f336bdde87eb7966014ed7f0e614a599",
+      "after_sha256": "43221196d2123869f03c13cfe279510f1fa6fcace3b2060f2c05325e59c87f4e"
+    },
+    "papers/muser-baidu-long-sequence-multi-interest/lab.yaml": {
+      "before_blob": "c7377597d7f46992e298f4d30dd03d5f7164e57a",
+      "before_sha256": "aaa8cce3aa9020e3ba5b6f6ffd7fb8064449e5717e518e2b8fd75089d29b22a4",
+      "after_blob": "5d350331faaa4f7a4ae8de2c43db1921700e76b1",
+      "after_sha256": "baa8ef01ad21f9be97df29cf9d6d4c840f8f4912790ece65f3f942af5ff7f183"
+    },
+    "papers/oneranker-ads/lab.yaml": {
+      "before_blob": "c4ffebe106924523c49bce9073823c011fd895e8",
+      "before_sha256": "f93fc00382b445b9c69c86e1546d664a43612ec755c3db961bfacf1df14fb134",
+      "after_blob": "83021ec38973ff422bac47e247d208b623b4a6cd",
+      "after_sha256": "a9948d48d4ce43e64d90134d7a1d647d58448bd20850d08cacea718eb3149ddf"
+    },
+    "papers/oneranker-ads/method.md": {
+      "before_blob": "5d6f89641214d9731720fd52765b9e8ee8476d62",
+      "before_sha256": "bb9d2742df68079717ea9acc5cf93a299e78c7bbdb0db61de8a709b3e88acf7f",
+      "after_blob": "ef8924deef5a0e20669512ba8520ec895d86a577",
+      "after_sha256": "8241ac5a23cd9113a7eff9cf2170fda5aad6c598d4500d96651576394922348e"
+    },
+    "papers/onetrans-v2-cascade-unification/README.md": {
+      "before_blob": "921d62e70a6f54981757cba2365171b01e1b9507",
+      "before_sha256": "190a433d9ed3a45f0f27ef5a25f364d67a36b9a7c21f770a6b916c527763f4e5",
+      "after_blob": "ba1b63cf22e250c23abfa61b25dbecadd4ca0559",
+      "after_sha256": "0d9f22102c73910a6cf7e3ef18fad0b096f159dbcd3795fd720f0fe0ee8a9294"
+    },
+    "papers/onetrans-v2-cascade-unification/method.md": {
+      "before_blob": "b48197218e310d2a3d403be578a3240aa4b2f827",
+      "before_sha256": "8461c811dc36ad6ef16a88e378c41429dc2251af8777288c046b6087259df1ef",
+      "after_blob": "9434f2b85c70385a3a47d8bdf026d2ba64add8ce",
+      "after_sha256": "54dd80fdf0be0cdf1641b4de4ad0551ecbf5fb9806c58c3cf18465df7731ccfc"
+    },
+    "papers/oxygenrec-v2-idgr/lab.yaml": {
+      "before_blob": "86f826baeb41861b4ea942642a716abd2d42dcdc",
+      "before_sha256": "f0d27fdd74bca40ac92cd51c3a941e807861ce3b46357c5ccf8e272ed405c1c7",
+      "after_blob": "37c88dc0f8fb368ce7433a800e973bd3ee8c1e3a",
+      "after_sha256": "28d40694933cb79c8c0b30c7ac535ae721cffc97a13449fc0762b6f45d266e14"
+    },
+    "papers/agentx-kuaishou/lab.yaml": {
+      "before_blob": "483f9e3386450a562d29afcee286eeb51b786177",
+      "before_sha256": "82d15f20baab967d6e61874ab64fb19ebdb8556bae99c310be796cad876ca83b",
+      "after_blob": "e1c22f0375b072a0fa9ccdbfa90cbcbefc853557",
+      "after_sha256": "9d562852709c2cb60791f218e610be19b207e8401f6069382dbf0a9de5ca32cc"
+    },
+    "papers/agentx-kuaishou/method.md": {
+      "before_blob": "f92ade449c3ad2798c83ca43f707251fc9f606c7",
+      "before_sha256": "47113ad6a647c34cc7d47cc2cfe7dd4b5b6bb640332607a4f4817f4be8207263",
+      "after_blob": "38b7798d358f812e106a675f11c5de4e1810f802",
+      "after_sha256": "48d1199c59bc2d980fd2c63284178a7b5587ca3bb96d6c2c1c0b3d69b871e73c"
+    },
+    "papers/aura-disney-agentic-rec-diagnosis/lab.yaml": {
+      "before_blob": "744a24712c26ca4096997854f9e0a1fc50a1b62e",
+      "before_sha256": "fcd0150faf109b8a6145f601522889a0dea30b3bd26c0ae3aaf42e1bf2875496",
+      "after_blob": "b4304060e1acaf59620ebe72e2d6b270fb27f083",
+      "after_sha256": "b5b6e6454139fd2be818b410dfc7511de0b6bcc58aa09e0d1d9f935d12240897"
+    },
+    "papers/aura-disney-agentic-rec-diagnosis/method.md": {
+      "before_blob": "619fa040b6973bb519276a5b3c1656eaab27d7ed",
+      "before_sha256": "71a76adbb68e53318a490fb7f6753d7a17b0ade1e9e500ba65026d270c6c1be3",
+      "after_blob": "1d2ea28fe896dc72084e0cea010d9d456afe1bb1",
+      "after_sha256": "76b2669e7736830e80ac9863225228a046869fd0da221c4651dc5a05e24c26ec"
+    },
+    "papers/genpage-netflix-homepage/README.md": {
+      "before_blob": "df4650032712c14ba60cc1b963f43bb8868ff7f0",
+      "before_sha256": "f525689c4400d30416e60896b6d3cf175f7652f7f2969c83b1da91d10a9c699c",
+      "after_blob": "17fc2ad4c0964de6181e0b6d7af6b96d9f6c810c",
+      "after_sha256": "5add7d6537736fb328363f68e82c572a917813a3f0227d56e9991a8ae6647b86"
+    },
+    "papers/genpage-netflix-homepage/lab.yaml": {
+      "before_blob": "777f214778d6b3e841ec43fca40915f0c30df87c",
+      "before_sha256": "c0ccf156bfbea07988b6e53e0cd3f013cc1cc85227b9a5ae5ba2d40b94b278e5",
+      "after_blob": "71bbd6062b482b3db9c26802b67f6fc52328b470",
+      "after_sha256": "5a7ec0cf9a7648c5295ef36b0d41ff61b5618f6e518b2e6e27b373e20a7bf444"
+    },
+    "papers/rest-sequence-ranking/lab.yaml": {
+      "before_blob": "aebc9bf9a05153fda56fdca815d93c44a097a65e",
+      "before_sha256": "282c0bc8329422f4d3feec0ad86e901e8f8171844a449896a30e8f5f3dc27d33",
+      "after_blob": "861cd1c81a506fabeee9b71b343299a6290fe374",
+      "after_sha256": "8623433e8b462061141789918fb5c42f51f67fd022abeeb865affae36ede59a6"
+    },
+    "papers/sid-ope-hierarchy/lab.yaml": {
+      "before_blob": "bdc062b3c91c79d9eb316b3b5705597c2e5dafcd",
+      "before_sha256": "53cf749d5ed1cf062d956b54c70ea7f919bdeb57f399e405d032600fe365348f",
+      "after_blob": "4320ab8b572f19d2bb0fea709a45a09c619be32d",
+      "after_sha256": "3a1fd303a411e7e27f123f0d6238c8d93b19c468357f86feaf33e3027d473419"
+    },
+    "papers/sid-ope-hierarchy/method.md": {
+      "before_blob": "cf2bd9d5c04e2faf0e6d127450ec6cdd48a84559",
+      "before_sha256": "5fd82a528c54cde3c6ff811a2903666399259314e4d6d10e812e46b9e7b9860b",
+      "after_blob": "8ee2e19bd7391c996c957f825e99146cfcf0a71f",
+      "after_sha256": "34c247d26e9869a26402b8bf903a8ae9f04c4a73bc6dcbcf5e0983bcbc6ec1e2"
+    },
+    "papers/tagr-live-sid/lab.yaml": {
+      "before_blob": "21a681e7d69b34e4b36186d4c8a123a8d151a7da",
+      "before_sha256": "99532d30d5de4459298789e746543d6f628706495b8763bc964389407223eaf0",
+      "after_blob": "1ddc9002638462f206efb12ee900e8c0ba25a006",
+      "after_sha256": "31cd28d35fe1bb14666b3af07246adcc291e9a8d20234725f682bb32baa11d04"
+    },
+    "papers/tagr-live-sid/method.md": {
+      "before_blob": "d2f6fc6d25f894dc0d3fc2dc67daf50c32f5ac4e",
+      "before_sha256": "95a5c70e4677c3f8bb425e468754f39d56fa4d3288c4fd5e66b679283e47ca0e",
+      "after_blob": "eaac252f61686129baabe855d0c68be759f43ed3",
+      "after_sha256": "7ee0db939d9d45df3114f86a7594d87f9b89b2a1d59fb8bf272402c8e5fe07c6"
+    },
+    "papers/auto-recsys-harness/lab.yaml": {
+      "before_blob": "630e588f0f596d4e10efc0196d8c5169ad27081f",
+      "before_sha256": "6c9f2334d983810f9a4013fc2fa0d19c93b0012fd8585670141f7e89163ea3e1",
+      "after_blob": "da63f71a83d77f3b6be982f5efd604490ca7c529",
+      "after_sha256": "ebaa53a57d44be8e31f9b9865632175c9a41fd3075d29f136083001ab193b3a5"
+    },
+    "papers/auto-recsys-harness/method.md": {
+      "before_blob": "b747b282c47075cd8251169aeaf0583ee04c8461",
+      "before_sha256": "027735d91fcdf121ed62cb79021fb9dea13618bc0e55d7a726f8c90235ce60c2",
+      "after_blob": "d1edb2a168f384d9b566e861772f6db3fc36df9e",
+      "after_sha256": "2674acd92e9b899d0caa785da0dd4e36dd879704bbd48b0585869882ee0dd3f3"
+    },
+    "papers/autolr-dashen/lab.yaml": {
+      "before_blob": "06823274ec1bc7c59a38587b89fdc0989f9749ec",
+      "before_sha256": "d7f2162830eeef7fdb66de3bfac0f0e60f18ded3b1a8bc616649a05820943a57",
+      "after_blob": "3e0005e65b34dfe375cf8742ff1257dcc1e0081a",
+      "after_sha256": "37b33489b79f5f0a09aee5aef4f9def411c0b4d05d6c2263b6f3dd06f71f5acb"
+    },
+    "papers/autolr-dashen/method.md": {
+      "before_blob": "6da28db23ec0079687104f1c660a541e1962e78a",
+      "before_sha256": "3feb82158539a60742d9605cea797f7965cd342b7d1d92a5ab5731f1175f3665",
+      "after_blob": "4abd9cc256f6f884b96810abfa3de54ef97cb26e",
+      "after_sha256": "ec5b380607d3f1056a1b9ce5dafa4262850964794c14d6c4e1c507d1e0ba4517"
+    },
+    "papers/coral-meta-config-harness/README.md": {
+      "before_blob": "d5e7cc6ff02aa37931fc42eefa6389ba77b56913",
+      "before_sha256": "9c460de0096295d474ed5fb898963253c868ff574182b736af1798bf095ed600",
+      "after_blob": "dced7631bdd96194714a530a08d63df6786680a6",
+      "after_sha256": "afc8c7597777136aef1ce6b3646e547ff83077214c882ab676deee5461c7d1a8"
+    },
+    "papers/coral-meta-config-harness/lab.yaml": {
+      "before_blob": "ca70a0aed332cf8bdf07abb8d041438dc4c8bfdc",
+      "before_sha256": "d9fb39408649ae7782b8cfb38e76ba92b224d3a4f781ac8b9d5ab25f6fc70e9f",
+      "after_blob": "11034846193f34a841e7349c05b637a77d640e42",
+      "after_sha256": "76c1932c36dc986993419e815b63c51ae9ca34cc9e510269227a7a0ebbae079c"
+    },
+    "papers/dream-taobao-agentic-control/lab.yaml": {
+      "before_blob": "7f38d572d972bbc3edabc4b79d0e475d546b6176",
+      "before_sha256": "e4328e86157e605fb9686658595321719630dc57c3c7c894d5d1555190e6ea12",
+      "after_blob": "3b0cd4658013da3199eed7360f1371ab0a7626c4",
+      "after_sha256": "fae0115dda272140e8937b7158f7127d6efaa3c62f9c0c3685af930fc84e0603"
+    },
+    "papers/pilot-experiment-lifecycle/lab.yaml": {
+      "before_blob": "f1e41206b2ee8e599a5d23a0b1e08cd8ba4788b3",
+      "before_sha256": "cbff13ac198fe0fef78acd24b8de461de3bb0c136e026fbb5888e22a6ba385d3",
+      "after_blob": "2c44ade30e539f0f4db7ca561e62db149064ead4",
+      "after_sha256": "f1b1aa9327afc28350c832057c7c9aa5c8a28d4fa6161382a539624517e550ea"
+    },
+    "papers/pilot-experiment-lifecycle/method.md": {
+      "before_blob": "6ec6b5279c34f90c77b5d26aebcb1e612164d45e",
+      "before_sha256": "7f5a87995b602409f819f7bd155d6e7e72876c9485189d5ea0873a3756c2c9ba",
+      "after_blob": "b0de9a4e91c10c42cea647787af0a0c6096e8713",
+      "after_sha256": "7479a13d39cc6e3a172051a1b849a5faea516a9d971646f7b2453f7cec859f06"
+    },
+    "papers/recevolve-autonomous-rec/lab.yaml": {
+      "before_blob": "f91ca3215b63877106cbef65b61ed2b4d6e73f1a",
+      "before_sha256": "13e1e72f4c3496dae828d9f3cb6378dc808f5de7eaff33a999d53613d31de2be",
+      "after_blob": "74d58e5a060604f327cdd8c5905d7d29a22d2971",
+      "after_sha256": "050f957f4a21812fe1438d151c813a5f02a83642f662b409c7f15e3f7b56abc9"
+    },
+    "papers/harness-bench/lab.yaml": {
+      "before_blob": "b6c0e0d60d680313b012311c7d28fa08a75d0f4e",
+      "before_sha256": "2f06573e33e3a6b7151cda9e63f41ec06645f3df3826c610c09d49e6dcbcaf7e",
+      "after_blob": "7911cc80cf385fbce582fd87a82a3ba31a68fbbc",
+      "after_sha256": "6cb05d315fa537fbdc653b854f79e3ebe2dbe95564c144c14adf9ec3e860c527"
+    },
+    "papers/harness-r1/lab.yaml": {
+      "before_blob": "e037a0f6ed94a696ce3d7ddee311c62eaf9722fe",
+      "before_sha256": "be63fcb15cfdd49d8654bd831e0409dab3350f7f98ccef89f8ed17ea8e9e53d9",
+      "after_blob": "2094d24083104cfc7295d99635fa82099e1aab2a",
+      "after_sha256": "03a588e63c0b2bd5f8a9819242689d7ed4291584af26646866393ad091fa3fb9"
+    },
+    "papers/harness-r1/method.md": {
+      "before_blob": "9dfeec079c15d1afe3e28e80eba97b7288b72acf",
+      "before_sha256": "09be1032483c91fdfbca0d57bd3a2f3c0df6aa87788fe85fe254b387a6416906",
+      "after_blob": "73a186ca1cbff0afa48366b600a79534b60683e9",
+      "after_sha256": "0b3cb942e248680dcde4f670bceac18e471462df6227592d90b1060305c02715"
+    },
+    "papers/harness-zero-distillation/README.md": {
+      "before_blob": "af02c4102480d23f3130f353d10f5c8f71536a4c",
+      "before_sha256": "12fd93918372ea2d90eb3fbfc8cfd2be685e58cc1615c01fd76cacc220b64228",
+      "after_blob": "ed4c3604d8bb2cd57408047d09bf95eb99e90404",
+      "after_sha256": "6e870f43a7bfa76a209e8e10c1af490f040daa71538b5bfb272f938cd832021c"
+    },
+    "papers/harness-zero-distillation/lab.yaml": {
+      "before_blob": "a52a50bb9dd7c6cee0d66c039425397ccc35eeeb",
+      "before_sha256": "b4a1950171bf5be45c4306fcb20528be038bc3a72cb74b0e7b5bcaf82128fb79",
+      "after_blob": "f9a3887159d39581fda343e5758e5377b01488c3",
+      "after_sha256": "1a09475cb2f9e430229ae57ac49dcce1bee22d66b4fec6225e614e92f4bc70d5"
+    },
+    "papers/harness-zero-distillation/method.md": {
+      "before_blob": "118bbe58c1f473ef72aab63fde6ae02eda48e18f",
+      "before_sha256": "611429edf31746e049dd2204b930b2866e61fb7b52415ca395535013db790ebb",
+      "after_blob": "ccd1d886f6b98432a2a2a87da0255d54becd54da",
+      "after_sha256": "b13a48fb670a6dbf5f7f747a4e2e1652fcbeb2985ede3c5ab5475321c71ae6f4"
+    },
+    "papers/intervention-paradox/lab.yaml": {
+      "before_blob": "5f8759caadd28cb5e332555c4d2eff9878faa153",
+      "before_sha256": "88970665fdc7f8f9345bf5456821071221b7d90a497628ab2ee82fcbf1e9777a",
+      "after_blob": "dde8c9eeddeffe49f48a16096c215df27c99f3cd",
+      "after_sha256": "2d2efd4bba6e4ffda20ab7f7306d5a51c4da9f14fe7ce7f4148660116c354705"
+    },
+    "papers/intervention-paradox/method.md": {
+      "before_blob": "b0098473c4020d6cddfd7e06c0d9a80a3720ccda",
+      "before_sha256": "e3c015e747d86670c3a60db200ff189f7c61e9cb3044dd22f31148f916c61a2f",
+      "after_blob": "75d8ea4a17c5fc164a4acd044528d66ee836cb6e",
+      "after_sha256": "2ca7a5e78390ed6ce9def6485e55639954ee0dd5ded0328e945c3810e14465e4"
+    },
+    "papers/multi-harness-rl/lab.yaml": {
+      "before_blob": "89278553c42cef2c85fb5d9aaffda1502d66b68c",
+      "before_sha256": "03ea75276eb18981bcf1f52aa1a9b8cb7af09fe3b9bbbaa1d49ea3420c1238a9",
+      "after_blob": "5377e36a719edc8794f5e70803cbaf6114a5129b",
+      "after_sha256": "0c92651cf37e9fc0b970b04cabb892a3d731cf7023005d1fa12e4655a2a1a76d"
+    },
+    "papers/scaffold-effects-gaia/README.md": {
+      "before_blob": "08adf9d52150d4a3e38419fee769dfcb56b2daaf",
+      "before_sha256": "f40e0bd78ab1a854252cc5fcc529275a94f49a837fab2757af0f443ac8d57c4d",
+      "after_blob": "8502d1557e017d90aecb828934ee956bbf8425c4",
+      "after_sha256": "caacbd11640e14c59bae1dad3afdae30ccaa981705372874653d58dac29e02ba"
+    },
+    "papers/scaffold-effects-gaia/lab.yaml": {
+      "before_blob": "667088aeae29a01aa6342b362bbac99c86c832ce",
+      "before_sha256": "d3c278768b8e7dfa092aff51c6aaa0796a54c3c3c716028e3163e87dc9b9addb",
+      "after_blob": "a963f58f240e35f58e4a3f69046d58f86c630736",
+      "after_sha256": "1d0b74c1fd1a33f5d153ce06b30e0c764496378f8c6240d1499a83ef8ed6a55d"
+    },
+    "papers/agent-reasoning-forgetting-externalized-state/README.md": {
+      "before_blob": "632ccfc921cc350bf4307521576402dbf14d7691",
+      "before_sha256": "5233ee08c7a7da2883773fb5188f37e510a820665b07da00a598ba3044aea9bf",
+      "after_blob": "0b3234b84282bc29fb5d79b1981d5945bf4fa3f3",
+      "after_sha256": "76c827b24801b296680472eec1ffcfbfe7abd28a0093a61a79aa1bc3febd64fa"
+    },
+    "papers/agent-reasoning-forgetting-externalized-state/lab.yaml": {
+      "before_blob": "4e778d60b43b194b46e1b0d566de9f9724082e4a",
+      "before_sha256": "8bebed8211281019627cb7306ac93c4fe934966db923925559a1f9c9c78a3256",
+      "after_blob": "1a3a510ba9a22878676868dfbefccaf758082969",
+      "after_sha256": "c8e8b08c5b5ec848e650e1909928c60a5c35c0b8231b6ecb244a20b2d80a4a24"
+    },
+    "papers/agenttether-repair/lab.yaml": {
+      "before_blob": "c9e14b8d942185815d6af859a22f12387e9a8bf0",
+      "before_sha256": "029cae14e5a58e93d9bcf6334a4a2e43492c964fdb18e3104ab8238bc67bac61",
+      "after_blob": "f74a6a7e49d727729b0b6591ef1d50dd27b282b5",
+      "after_sha256": "e451838d3ba66141928ac311b1f6e136dbefdbace6f89280120caf0d07734dc2"
+    },
+    "papers/execution-state-unlearning/method.md": {
+      "before_blob": "0c8214ddc6bcd212a94a2bafebe0f6b8d4520c01",
+      "before_sha256": "519611d8ac97c20da71d0d9ffb4facb9f0fa531e0960966b61ab7bc4971225d2",
+      "after_blob": "089bbd8e39214680d224fab3cd18322024a76e68",
+      "after_sha256": "86031571fda4b578bb5fdf108cbfacf8b498c026b70e64c85b6aaf289b3da2c2"
+    },
+    "papers/revise-recovery/lab.yaml": {
+      "before_blob": "ae61e170ba8822d4f7308fc344fc9bf71630f059",
+      "before_sha256": "f04ebe69f8fc93f2da796324b3b6a7a91e9dfcff9051985be719a13a985f5653",
+      "after_blob": "a96201042255d09eb6b4df42e2f7bc930dde3a18",
+      "after_sha256": "babf979083dc1203fad69b34f963dfd0a4991204a8eb11c9481cda9bb29cbdb7"
+    },
+    "papers/sgc-state-grounded-conditioning/README.md": {
+      "before_blob": "54eb80488f6f100a21e6cdc9fb16beb9091e2589",
+      "before_sha256": "02327de29d88701b1f4c401f3cadda4d52be180ab20ba9aef8d145be9c8d128b",
+      "after_blob": "32887063343596696ec15d0b22887293ec18ccd3",
+      "after_sha256": "c22ef2e26088e4a1bf30294a7fad7dd544417c508963e6f0953eac0ac2c6a6db"
+    },
+    "papers/sgc-state-grounded-conditioning/lab.yaml": {
+      "before_blob": "06e8d818425002a3d9d2ad60cbf102c442f14bad",
+      "before_sha256": "d6bd4603015148159018b265fe35c7634137d4e322792d5589e65034ea63b93b",
+      "after_blob": "5f77c5ef0ce02239902b6f91cfad3aafca86d7b3",
+      "after_sha256": "c43159549cb5dce3f1350a17862b79ea1af63737a5f8d467ad4ce44f37043aad"
+    },
+    "papers/trajectory-deletion-prefix-cost/method.md": {
+      "before_blob": "d76d45e6b5c3e8ecf33260bb80ea82945b9f4b32",
+      "before_sha256": "4b88e9249c4638a64de213648c49a838cde51b0dfffe33d2cef26ee3a3fbc1ab",
+      "after_blob": "0c76af0a7a63d6e04e8ee488e21b9a9b46cb51b6",
+      "after_sha256": "a37cfa853259f4d496de2b5e82f13cd3367f1aee5769072f68c0ea86a49f385f"
+    },
+    "papers/episem-missing-evidence-recovery/method.md": {
+      "before_blob": "0f8390683dafec66759315aa5e6198aa86707777",
+      "before_sha256": "38d82cfbff48f31c5bdb619d9842188e6be7172b7c1bba65863ace524d33820b",
+      "after_blob": "95807fca98656009abd57375a683fff23b82e533",
+      "after_sha256": "f37ab305ebbf29f2dd4e0bf2aa9c49dd7e5ced1501986c2392020de8cd53bf70"
+    },
+    "papers/evopilot-verify-dont-trust-autoresearch/lab.yaml": {
+      "before_blob": "a33f94a063463e6555b6951732992398e50b5232",
+      "before_sha256": "f70f21e890f40ce1b2193b1504b55800fb7d2b96ae23f518080b5bba127c27cf",
+      "after_blob": "e06b90984be5125a37d3ea13a41df571398bd664",
+      "after_sha256": "590bf3453451585ea7c170023d675dc76c3c570466cba729230188d2af09a3c0"
+    },
+    "papers/featurearc-inherited-defects-chain-gates/method.md": {
+      "before_blob": "cb1933f38da92f8439c409049d0cf75916d2688c",
+      "before_sha256": "2a085f77469b76f407d807f0bc25a1b71db1fa95cc35c91a45c9a32f72ee887e",
+      "after_blob": "8cf820120feebadaebae94daa7bb5bf9de0dbdad",
+      "after_sha256": "2398417db8a414891a6d14d20d80e65f81bdcd29894851c09e2dd215fd7a26ca"
+    },
+    "papers/flashvector-unity-serving-stack-agent/lab.yaml": {
+      "before_blob": "117ce8711cec3e62ae04570dcd507c86aa62a54b",
+      "before_sha256": "a98cdffe70b61fad7efa0cbc7f7b9bb1706a44f47e3f9dbd3d6ce20a197c8428",
+      "after_blob": "5c996d35269d14593eba1ab7b75289493dc73284",
+      "after_sha256": "51bf54b0abaa93df3a94dea9402ebc14c432f0f123258eaa8063ff2bbbc105fc"
+    },
+    "papers/grace-meta-ads-gtm-serving/method.md": {
+      "before_blob": "eb746614c7b3f54302381637f4f743ff633be20f",
+      "before_sha256": "9725120c82499a27ec666faa120a8e69732b20c6d6bb66f44542e690607c4b43",
+      "after_blob": "53ebd1035a55c10485abd6adbcdfe393f70aeea7",
+      "after_sha256": "047eb4dadaa9d99a6dff522dd6346614a17a125f55e55f92be21cefe7612b68e"
+    },
+    "papers/swe-serve-inference-serving-agents/README.md": {
+      "before_blob": "a6feacbedde016dd875b77e57fad6a2c8ce133c6",
+      "before_sha256": "e21850343506277a4c403784e02f14a9f468c980fe3fce05181995be3a5f47a1",
+      "after_blob": "6b5dc1ab5fc127930b404b60faf0e9d3eda92501",
+      "after_sha256": "6ef6a4faeb716d9495ba417505e062808ca8bb31e6cc235167d141e54dfbf5ce"
+    },
+    "papers/swe-serve-inference-serving-agents/lab.yaml": {
+      "before_blob": "0b4c0a3a531b2e1cf8de5165ca9ce2d9912fa446",
+      "before_sha256": "9a6740194c0efe273b8100f92856f3c9beb67ff3bc1636049bdb8ab22a9751ba",
+      "after_blob": "8a389843534efcb0742c2305b2c667838639a72c",
+      "after_sha256": "6ecc8a8a47482424bba12e939bef315178c2b5b4926d81c884c6883cda0f52ed"
+    },
+    "papers/trace-verifier-brittleness/method.md": {
+      "before_blob": "d57a678a7d3dd30ac528a92b450ba6fbfa8cfd11",
+      "before_sha256": "0b142cbc9490c212ac6c8b36572cb912f249334a8956e7be31b2b1ad6d190197",
+      "after_blob": "a18251c256f2b77a3916033c1e82aa19b7a7b5b0",
+      "after_sha256": "518fbe89d477632d8ba89bdac85e4cca37b75dc691f25c85050af2aea87059f5"
+    },
+    "papers/assortment-observation-budget/README.md": {
+      "before_blob": "dbf64e6618caeb5152a9531cfe8f59ee47ab3eb2",
+      "before_sha256": "daf0d18d8e9291ba8fa693f94b25e7f7d44cf43fd6921fb397784c714e663911",
+      "after_blob": "28c3ef85152a10e5be3c762bd40f86fa1be4df12",
+      "after_sha256": "1c8135fef099bbfa84db578374b78347517571471e4b6b50b26384594ce346c1"
+    },
+    "papers/assortment-observation-budget/evidence.md": {
+      "before_blob": "dd99c1d984838495200890302f26cc06dffd69ac",
+      "before_sha256": "7fa704a2eee9a19817b512380145d7f81368fc9bc0c17a09f5d4438c325c987b",
+      "after_blob": "c46d9c82674167efde59550404d4a4bf9515f590",
+      "after_sha256": "81132658806fd6ca6e24188ffab6e2f66daadee7b4ebc7651c4d8960f19f29b4"
+    },
+    "papers/assortment-observation-budget/interactive.html": {
+      "before_blob": "1c40ae8c16360b1560ca78987803f474b6e66364",
+      "before_sha256": "e49059679617a0ff4f10acb5a9eed4cc9cdac744d96ffd526dd6b0246a0b3618",
+      "after_blob": "ee22039539f741f66b88479aea3479fa01e52e9c",
+      "after_sha256": "ccbd5810722506219e9767b77a3df0483390954ef25e96debc540d1eb8f5ad2f"
+    },
+    "papers/assortment-observation-budget/lab.yaml": {
+      "before_blob": "9a949625947fa5d5600fe378095be0295be8640e",
+      "before_sha256": "82096ecdb535fa42a40e4012f1ad4ee66b2a224a22a857a328018a5a6515adab",
+      "after_blob": "f641a0edd2fbfdf6c9a708207acab095870f1257",
+      "after_sha256": "8e5918e5be287848e76a5226adddaa3e55935c4a60e5ab90b71965376e9a3112"
+    },
+    "papers/assortment-observation-budget/method.md": {
+      "before_blob": "0cf077e8a7c5c351a7371012ed4c23a0b1fbb084",
+      "before_sha256": "3fe342c2d4310299559c0dddee90f050e0a977987d1998a2cbae5bcf4d013829",
+      "after_blob": "c299bc73a95123116ab9362cf25f9ecb7e51871c",
+      "after_sha256": "51f3a876f36b76fde86dd094e365f96c565a855882d4d5d64d1115c0a80c7278"
+    },
+    "papers/inventory-common-threshold-history/run.py": {
+      "before_blob": "e0bd34bd4ac3b2139c3b6064f0dfc75e41a5d2e6",
+      "before_sha256": "26426b919007d6badf0f970a7fa470beadd4f4e0646b3ba809b4c2d9084ad80e",
+      "after_blob": "855203bcff4c3028b330bb89202004cd7aac5aa5",
+      "after_sha256": "4479666d5d0ab7027befc0b699cc33ea8a73f0636ee9a0754fac4d3290c08571"
+    }
+  }
+}

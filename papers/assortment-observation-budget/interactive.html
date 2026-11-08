@@ -3,7 +3,7 @@
 #aob {max-width:100%;min-width:0} #aob .aob-controls {display:flex;flex-wrap:wrap;gap:1rem} #aob label {display:flex;flex-direction:column;gap:.3rem;max-width:100%} #aob select,#aob input {max-width:100%;font:inherit;padding:.4rem} #aob .aob-scroll {max-width:100%;overflow-x:auto} #aob table {min-width:640px;table-layout:auto} #aob td {white-space:nowrap;padding:.6rem} #aob th {min-width:70px;padding:.6rem} #aob .aob-bar {display:block;height:10px;background:#356d57;max-width:100%} #aob [role=alert] {color:#9f2920} #aob button {font:inherit;padding:.6rem} @media(max-width:480px){#aob .aob-controls{flex-direction:column} #aob label{width:100%}}
 </style>
 <h3>A：観測せずに選ぶcut</h3>
-<p>このパネルだけは商品数・収益を変えます。g₀は未知の選好全体に対する最悪時の値です。</p>
+<p>cut kは収益順に先頭からk商品を選ぶ区切りです。このパネルだけは商品数・収益を変えます。g₀は未知の選好全体に対する最悪時の値です。除外側は売らない商品の最高収益、包含側は選ぶ商品の最高収益と最低収益の差を表します。「半額上界」は最高収益の半分という上界で、値引きの設定ではありません。</p>
 <label>正で厳密降順の収益<select id="aob-a"><option value="0">3, 2, 1</option><option value="1">2, 1（同値cut）</option><option value="2">7（1商品）</option><option value="3">9, 5, 2</option><option value="4">3/2, 1, 1/2</option><option value="5">8, 7, 6, 1</option></select></label>
 <p id="aob-aSummary-output" aria-live="polite">__ASUMMARY__</p>
 <div class="aob-scroll" tabindex="0" role="region" aria-label="cutごとの二つの損失。横スクロール可能"><table><thead><tr><th>cut k</th><th>除外側 rₖ₊₁</th><th>包含側 r₁−rₖ</th><th>最大値</th></tr></thead><tbody id="aob-rows">__ROWS__</tbody></table></div>
@@ -15,10 +15,11 @@
 <label>収益倍率 a<select id="aob-scale"><option value="1/2">1/2</option><option value="1" selected>1</option><option value="2">2</option></select></label>
 <label>判断規則に入れる例示観測<select id="aob-observation"><option value="0">すべて非購入</option><option value="1">第1群で購入</option><option value="2">第2群で商品2</option><option value="3">同率・B閾値以上</option></select></label>
 </div>
+<p>「有効経路」は判断に使う観測列の組合せ数で、選んだ選好では確率がゼロになる列も数えます。観測IDは購入した商品の番号で、非購入を0とします。</p>
 <p id="aob-error" role="alert"></p><p id="aob-summary-output" aria-live="polite">__SUMMARY__</p>
 <div class="aob-scroll" tabindex="0" role="region" aria-label="確率と期待収益。横スクロール可能"><table><thead><tr><th>方式</th><th>P([1])</th><th>P([2])</th><th>P([3])</th><th>期待収益</th><th>期待後悔</th></tr></thead><tbody id="aob-comparison">__COMPARISON__</tbody></table></div>
 <p>[k]は商品1〜k。確率は最終品揃えの分布です。Aは観測0件。棒は同じ選好での期待後悔で、横幅全体を最高収益3aに揃えています。</p><div id="aob-bars">__BARS__</div>
-<p id="aob-observation-output" aria-live="polite">__OBSERVATION__</p><p>例示経路は判断規則の入力確認用です。選択した選好で確率0になる経路もあります。例示経路の切替は上の期待値を変えません。</p>
+<p id="aob-observation-output" aria-live="polite">__OBSERVATION__</p><p>第1群は商品1だけ、第2群は商品1と2を提示した観測です。例示経路は判断規則の入力確認用です。選択した選好で確率0になる経路もあります。例示経路の切替は上の期待値を変えません。</p>
 <button id="aob-reset" type="button">初期条件に戻す</button>
 <noscript><p>JavaScript無効時は初期条件の計算表を表示します。再計算は配布run.pyを使ってください。</p></noscript>
 <script id="aob-data" type="application/json">__DATA__</script><script>__JS__</script>

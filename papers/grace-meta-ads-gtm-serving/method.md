@@ -6,7 +6,7 @@ cross-attentionではbeamをquery次元へまとめて共有K/Vの再読込を�
 
 ### 低cardinalityはbitmask、高cardinalityはBloom
 
-国・年齢などの条件をbit範囲へ割り当て、prefix配下の広告maskをORする。user属性のbitがすべて含まれれば通す。配下に適格広告があれば、この検査は通る。ただし通過したprefixに適格広告があるとは限らない。異なる広告の属性を組み合わせた偽陽性が生じる。
+国・年齢などの条件をbit範囲へ割り当て、prefix配下の広告maskをORする。user属性のbitがすべて含まれれば通す。配下に適格広告があれば、この検査は通る。ただし通過したprefixに適格広告があるとは限らない。異なる広告の属性を組み合わせた偽陽性が生じる。要求の各属性がどこかの広告にあることと、同じ広告が全ての属性を満たすことは異なるため、最後は広告ごとに照合する。
 
 場所など高cardinality条件は256 bit（int64×4）のBloomを用いる。request側の複数locationのうち一つでも包含検査を通れば候補となる。OR集約の偽陽性にhash衝突も加わる。論文は後段のad-level検査を維持し、SID-levelの効果を最終広告pass率で評価している。
 

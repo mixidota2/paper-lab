@@ -4,7 +4,7 @@
 
 ### D1–D5が測る対象
 
-D1はlevelごとの利用code数、entropy、不均衡、prefix数。D2はfull SIDを共有するbucketに入ったitemの割合で、重複したcode値の個数とは違う。D3はtrain interactionから作ったco-occurrence top-k近傍のうち、同prefixを保つ割合。edge重み付きとitem平均を分ける。metadata purityは補助的な文脈であり、行動的一致の代用ではない。
+D1はlevelごとの利用code数、entropy、不均衡、prefix数。D2はfull SIDを共有するbucketに入ったitemの割合で、重複したcode値の個数とは違う。D3はtrain interactionから作ったco-occurrence top-k近傍のうち、同prefixを保つ割合。edgeの重みを合計して求める割合と、itemごとに求めた割合の平均は、各itemの寄与が異なるため区別する。metadata purityは補助的な文脈であり、行動的一致の代用ではない。
 
 D4はpopularityでhead/mid/tailを分け、unique SID配分やprefix構造を点検する。D5は深さ・active prefix・fan-out等の構造費用を記録する。生成model・GPU・beamを測らずに、D5からserving latencyを主張しない。
 

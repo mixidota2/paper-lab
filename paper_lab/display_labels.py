@@ -8,7 +8,7 @@ LABELS = {'agentx-kuaishou': {'利益あり': '改善条件を満たす例', '�
                                            '在庫を参照：正答': '現時点の商品カタログを参照：正答数',
                                            'probeが商品cを見落とす': '検索が商品cを取得できない'},
  'ogr-once-generated-ranked': {'OGR総演算': '全処理で数えた演算回数'},
- 'traffic-forecast-to-decision-value': {'value_percent': '意思決定損失の削減率（過去平均予測を基準、%）'},
+ 'traffic-forecast-to-decision-value': {'value_percent': '意思決定損失の削減率（一定値の基準予測との比較、%）'},
  'vn2-stockout-catboost': {'非欠品日のみ：平均': '在庫上限に達しなかった期間だけの平均'},
  'pilot-experiment-lifecycle': {'証明済みのpromote': '判定用の証明書を与えた候補の採用'},
  'auto-recsys-harness': {'human_minutes': '人が作業した時間（分）', 'wall_clock_minutes': '開始から終了までの経過時間（分）'},
