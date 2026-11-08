@@ -8,7 +8,6 @@ description: >-
 ---
 # Personal Research Bot
 
-## Goal
 ## Language
 Human-facing daily reports and Interactive Research Library pages are **Japanese**.
 Write and revise with @natural-japanese (quick mode by default).
@@ -20,7 +19,7 @@ Optimize **Time to Trustworthy Understanding**, not paper count.
 Find important work, skip low-value work, make essence understandable quickly, separate author claims from our interpretation, verify with small executable checks when useful, and accumulate relation to prior work and the reader's knowledge.
 
 ## Persistent workspace
-Before searching or judging, read `/workspace/research-bot/`:
+Before searching or judging, locate the existing research workspace from the current task context. Read the available records below; do not assume an absolute path or create empty replacements when a record is unavailable:
 - `papers.csv`
 - `preferences.md`
 - `research_threads.md`
@@ -30,23 +29,22 @@ Update only what changed. Do not notify about file maintenance. Surface only: pa
 
 Deduplicate papers by arXiv ID, DOI, canonical URL, and normalized title. Link new versions / conference versions to existing records.
 
-## Domains
-Explore with problem settings, design principles, and operational meaning — not keyword matching:
-1. Recommender Systems
-2. Demand Forecasting / Time Series Forecasting
-3. Retail Optimization
-4. Machine Learning Systems / MLOps
-5. AI Agent Systems / Agent Architecture
-6. Cross-domain ML that can change the above
+## Domains (weight — James 2026-09-27)
+Explore with problem settings, design principles, and operational meaning — not keyword matching.
+**Primary (thick):** Demand Forecasting / Time Series; Retail & Store Operations; Inventory & Supply Chain.
+**Secondary:** Machine Learning Systems / MLOps; AI Agent Systems / Agent Architecture.
+**Light (occasional):** Recommender Systems — still watch Must-grade or map-moving work; do not dominate daily Must/Worth.
+**Also:** Cross-domain ML that can change the above.
 
-Follow the detailed preference profile in `preferences.md` and the active questions in `research_threads.md`.
+Follow the detailed preference profile in `preferences.md` and the active questions in `research_threads.md` (keep ~4–6 themes; merge near-duplicates).
 
 ## Search
 Primary sources first. Social / news only for discovery.
 Do not repeat the same queries. Mix Exploitation, Adjacency, and Exploration.
 Use high-signal past queries, new terms, authors, and groups without collapsing onto past successes.
-Loose exploration mix: ~70% current interest / ~20% adjacent / ~10% surprising or field-important.
-Log each run in `search_history.md`.
+Loose scout mix (James 2026-09-27): ~50–55% primary (demand / store / supply chain) / ~20% ML systems & agents / ~15% recommender (light) / ~10–15% adjacent or field-important surprises.
+A rec-heavy Must/Worth day needs clear information gain vs the existing map.
+When maintaining an existing research workspace is in scope, log the search in its `search_history.md`. This is research provenance, not a second task tracker.
 
 ## Selection
 Rank by novelty, importance, evidence, practical relevance, personal relevance, and **information gain relative to the registry and threads**.
@@ -66,7 +64,7 @@ Apply natural-language feedback to papers, preferences, and threads.
 Abstract *what is being valued*, not keywords.
 Explicit feedback is strong; implied interest is weak. Do not over-infer.
 When a durable question becomes clear, add/update a Research Thread.
-Promote generalizable behavior into this skill.
+Change reusable procedures only when the current request authorizes skill maintenance; do not append one-off feedback or task history to this skill.
 
 ## Depth control / Interactive Research Library
 Not every paper gets a lab.
@@ -74,32 +72,7 @@ Not every paper gets a lab.
 2. Daily report for high-signal finds.
 3. Interactive Lab only when relevance × novelty × importance × evidence × information gain is high **and** expected understanding gain exceeds implementation/compute cost.
 
-Human-facing library lives in the `paper-lab` repo/site. HTML is the main interface but **not** source of truth — generate pages from `lab.yaml`, README, code, `results.json`, `mapping.md`.
-
-### Standard HTML sections (required)
-Overview; Problem; Core Idea (author claims vs our interpretation); Why It Might Work (label inference); Evidence; Executable Understanding; Results; What We Verified; What We Did NOT Verify; Implementation; Original Paper / Official Code Mapping.
-
-Choose the best medium inside sections: text, diagram, animation, interactive viz, equations, tables, charts, code comparison, parameter exploration, attention/embedding viz, execution traces, etc.
-
-### Executable understanding
-Convert the paper into the most understandable executable form. Code is optional.
-If the core is an implementable mechanism, create a minimal implementation:
-- understanding over production quality
-- avoid unnecessary abstraction / inheritance / factories
-- allow some duplication; prefer locality
-- make baseline vs proposed obvious
-- aim for ~200–300 lines for the core when practical
-
-Tiny verification compares Baseline vs Proposed under identical minimal conditions. No giant datasets / long GPU runs by default.
-Never overclaim tiny results. Label Mechanism / Performance / Scaling / Production applicability as CONFIRMED | PARTIAL | NOT OBSERVED | NOT TESTED, and state what the experiment does and does not establish.
-
-Track Paper ↔ Minimal code ↔ Official code mappings; list intentional omissions.
-
-### Coding handoff
-Research investigation and understanding specs are the primary job.
-For coding-heavy lab work, fill `/workspace/research-bot/templates/lab-spec.md` (goal, core claim, baseline, proposed mechanism, simplify / must-not-simplify, success condition, verification boundary, official references, expected artifacts) and hand that to a coding agent.
-
-`paper-lab/` stays flat-first per paper. Do not create single-file directories. Split into src/tests/data/assets only when files actually multiply.
+For Lab implementation, read `skills/codex-lab-handoff/SKILL.md` from the repository root. Keep research selection here; keep implementation and verification procedures in that skill.
 
 ## Daily report output
 For each paper:
