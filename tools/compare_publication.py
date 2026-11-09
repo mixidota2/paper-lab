@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Compare a pinned local Lab build with its public Pages bytes. Read-only GETs."""
+"""Compare a pinned local Lab build with its public Pages bytes. Read-only GETs.
+
+Only safe-URL HTTP 502/503/504 without Retry-After get up to three attempts,
+waiting 1 then 2 seconds. Other failures and byte mismatches are terminal.
+Retry-After responses stop rather than guessing or overriding server timing.
+"""
 from __future__ import annotations
 import argparse
 import concurrent.futures
@@ -10,6 +15,8 @@ import json
 import pathlib
 import re
 import sys
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -232,7 +239,7 @@ def local_links(site, manifest):
             'external_references_not_fetched': external, 'issues': issues}
 
 
-def check(site, manifest_path, expected_manifest_sha256, out, *, fetcher=fetch, workers=4, timeout=20):
+def check(site, manifest_path, expected_manifest_sha256, out, *, fetcher=fetch, workers=4, timeout=20, sleeper=time.sleep):
     if type(workers) is not int or not 1 <= workers <= 8:
         raise ValueError('Workers must be between 1 and 8')
     if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not 0 < timeout <= 60:
@@ -259,22 +266,58 @@ def check(site, manifest_path, expected_manifest_sha256, out, *, fetcher=fetch, 
         url = BASE + urllib.parse.quote(entry['path'], safe='/')
         record = {'path': entry['path'], 'url': url, 'started_at': now(),
                   'expected_sha256': entry['sha256'], 'expected_size': entry['size']}
-        try:
-            raw, receipt = fetcher(url, entry['size'], timeout)
-            if not isinstance(raw, bytes) or not isinstance(receipt, dict):
-                raise ValueError('Fetcher returned an invalid response')
-            if type(receipt.get('http_status')) is not int or receipt['http_status'] != 200:
-                raise ValueError('Successful HTTP receipt missing')
-            allowed_url(receipt.get('final_url'))
-            if len(raw) > entry['size'] + 1:
-                raise ValueError('Fetcher exceeded the bounded response size')
-            record.update(receipt=receipt, observed_size=len(raw), observed_sha256=sha256(raw))
-            record['status'] = 'match' if len(raw) == entry['size'] and sha256(raw) == entry['sha256'] else 'mismatch'
-            destination = out / 'received' / entry['path']
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            destination.write_bytes(raw)
-        except Exception as exc:
-            record.update(status='fetch_failed', error=type(exc).__name__ + ': ' + str(exc))
+        record['attempts'] = []
+        for number in range(1, 4):
+            attempt = {'number': number, 'started_at': now(), 'wait_seconds': 0}
+            retry = False
+            try:
+                raw, receipt = fetcher(url, entry['size'], timeout)
+                if not isinstance(raw, bytes) or not isinstance(receipt, dict):
+                    raise ValueError('Fetcher returned an invalid response')
+                if type(receipt.get('http_status')) is not int or receipt['http_status'] != 200:
+                    raise ValueError('Successful HTTP receipt missing')
+                allowed_url(receipt.get('final_url'))
+                if len(raw) > entry['size'] + 1:
+                    raise ValueError('Fetcher exceeded the bounded response size')
+                record.update(receipt=receipt, observed_size=len(raw), observed_sha256=sha256(raw))
+                record['status'] = 'match' if len(raw) == entry['size'] and sha256(raw) == entry['sha256'] else 'mismatch'
+                destination = out / 'received' / entry['path']
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes(raw)
+                attempt.update(status=record['status'], http_status=receipt['http_status'])
+            except Exception as exc:
+                record.update(status='fetch_failed', error=type(exc).__name__ + ': ' + str(exc))
+                attempt.update(status='fetch_failed', error=record['error'])
+                if isinstance(exc, urllib.error.HTTPError):
+                    attempt['http_status'] = exc.code
+                    try:
+                        allowed_url(exc.url)
+                        if exc.code in (502, 503, 504):
+                            if exc.headers is not None and exc.headers.get('Retry-After') is not None:
+                                attempt['retry_decision'] = 'stop_server_retry_after'
+                            elif number < 3:
+                                retry = True
+                            else:
+                                attempt['retry_decision'] = 'stop_attempt_limit'
+                    except (ValueError, TypeError):
+                        attempt['retry_decision'] = 'stop_unsafe_error_url'
+                    finally:
+                        exc.close()
+            attempt['finished_at'] = now()
+            attempt.setdefault('retry_decision', 'retry_transient_http' if retry else 'stop')
+            attempt['wait_seconds'] = number if retry else 0
+            record['attempts'].append(attempt)
+            if record['status'] != 'fetch_failed':
+                record.pop('error', None)
+            # Persist each outcome before waiting; interrupted runs retain early failures.
+            ledger = out / 'attempts' / (sha256(entry['path'].encode('utf-8')) + '.json')
+            ledger.parent.mkdir(parents=True, exist_ok=True)
+            temporary = ledger.with_suffix('.tmp')
+            temporary.write_text(json.dumps(record, ensure_ascii=False, sort_keys=True, indent=2) + '\n', encoding='utf-8')
+            temporary.replace(ledger)
+            if not retry:
+                break
+            sleeper(number)
         record['finished_at'] = now()
         return record
     save()
