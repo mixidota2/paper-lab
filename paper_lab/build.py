@@ -231,21 +231,70 @@ def jinja_env() -> Environment:
     return env
 
 
+
+def _reject_output_overlap(site: Path, source: Path) -> None:
+    source = source.resolve()
+    if site == source or site in source.parents or source in site.parents:
+        raise LabError(f"Unsafe build output overlaps source: {site} ({source})")
+
+
+def _validate_output(root: Path, papers: Path, site: Path) -> None:
+    # Generated directories may live below root; root itself and ancestors may not.
+    if site == root or site in root.parents:
+        raise LabError(f"Unsafe build output contains project root: {site}")
+    protected = [papers, Path(__file__).resolve().parent, TEMPLATES_DIR]
+    protected += [root / name for name in (
+        "papers", "paper_lab", "guides", "research-data", "tests", "tools",
+        "skills", ".cursor", ".agents", ".github", ".git",
+    )]
+    protected += [path for path in root.iterdir() if path.is_file()] if root.is_dir() else []
+    for source in protected:
+        _reject_output_overlap(site, source)
+    if site.exists() and not site.is_dir():
+        raise LabError(f"Build output is not a directory: {site}")
+
 def build(
     root: Path | None = None,
     papers_dir: Path | None = None,
     site_dir: Path | None = None,
 ) -> list[Lab]:
-    root = find_root(root)
-    papers = Path(papers_dir) if papers_dir else root / "papers"
-    site = Path(site_dir) if site_dir else root / "site"
-    papers = papers.resolve()
-    site = site.resolve()
+    try:
+        root = find_root(root).resolve()
+        papers = (Path(papers_dir) if papers_dir else root / "papers").resolve()
+        site = (Path(site_dir) if site_dir else root / "site").resolve()
+        _validate_output(root, papers, site)
+    except (OSError, RuntimeError) as exc:
+        raise LabError(f"Cannot resolve safe build paths: {exc}") from exc
 
     if not papers.is_dir():
         raise LabError(f"papers directory not found: {papers}")
 
     labs = load_all_labs(papers)
+    # A selected Lab or a source file may itself be reached through a symlink.
+    try:
+        # Resolve individual inputs too: a protected directory can contain links
+        # to originals in the output. Check terminal figure paths explicitly;
+        # rglob does not descend through symlinked intermediate directories.
+        inputs = [TEMPLATES_DIR / name for name in (
+            "style.css", "library.js", "interactives.js", "index.html",
+            "paper.html", "guide.html", "teaching.html",
+        )]
+        inputs += [root / "guides" / name for name in (
+            "shelf-decisions.md", f"{REPLENISHMENT_GUIDE}.md",
+            "replenishment-evidence.yaml", "replenishment-filter.js",
+        )]
+        inputs.append(papers / "_toy_common.py")
+        for source in inputs:
+            _reject_output_overlap(site, source)
+        for lab in labs:
+            _reject_output_overlap(site, lab.source_dir)
+            for figure in lab.figures:
+                _reject_output_overlap(site, lab.source_dir / figure["path"])
+            for source in lab.source_dir.rglob("*"):
+                if source.is_symlink():
+                    _reject_output_overlap(site, source)
+    except (OSError, RuntimeError) as exc:
+        raise LabError(f"Cannot resolve safe Lab source paths: {exc}") from exc
     env = jinja_env()
 
     # site/ is entirely generated. Recreate it so a build cannot retain stale files.
