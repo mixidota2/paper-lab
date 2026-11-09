@@ -27,6 +27,7 @@
     count.textContent = `${matching.length}件`;
     empty.hidden = matching.length !== 0;
   }
+  form.addEventListener("submit", (event) => { event.preventDefault(); update(); });
   form.addEventListener("input", update);
   form.addEventListener("change", update);
   clear.addEventListener("click", () => { form.reset(); update(); search.focus(); });
