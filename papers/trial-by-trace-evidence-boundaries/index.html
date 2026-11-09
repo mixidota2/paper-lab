@@ -3,9 +3,15 @@
 <h2>仕組みと図</h2><div class="diagram" role="img" aria-label="測定の整合性確認後、成果と基盤を別採点し、失敗の候補関係を調べる自作図">測定記録の整合性 → 成果の判定A／基盤の判定H → 候補関係 → 別途、証拠による検証</div><p>得点は S=50 pA/nA + 50 pH/nH。各層内では項目を等重みとし、両層の全項目が合格した場合だけ100点です。測定不備は基盤の欠陥として数えません。</p>
 <h2>根拠</h2><p><a href="https://arxiv.org/html/2610.32285v1">Trial by Trace v1</a> §3.4・表4・式3、§3.5・式4/6をもとにした自作教材です。論文の基盤判定状態2は未実行で、成果全項目が合格なら1、そうでなければ0へ解決します。このため二層は統計的に独立ではありません。</p>
 <h2>操作できる合成例</h2><p>成果2項目と基盤2項目を採点します。各層の第2項目は合格で固定。下の選択は既に得られた判定を入力する教材で、実モデルや意味判定器は動かしません。割合は、この合成例の各層2項目のうち合格した項目の割合です。原著実験の成功率ではありません。測定の整合性や候補関係のチェック欄も、実際に検査した結果ではなく仮定の入力です。</p>
-<label>成果の第1項目<select id="a"><option value="1">合格</option><option value="0">不合格</option></select></label>
-<label>基盤の第1項目<select id="h"><option value="0">0：裏付けなし／不合格</option><option value="1">1：裏付けあり</option><option value="2">2：機構を実行していない</option><option value="3">3：機構の異常</option></select></label>
-<label><input id="g" type="checkbox" checked>測定記録の整合性を確認済み</label><label><input id="b" type="checkbox">基盤の不合格項目に観測の迂回がある</label><label><input id="q" type="checkbox">事前定義した候補関係の条件が一致</label><button id="reset">初期条件へ</button><pre id="out" aria-live="polite"></pre>
+<label>成果の第1項目<select id="a" disabled><option value="1">合格</option><option value="0">不合格</option></select></label>
+<label>基盤の第1項目<select id="h" disabled><option value="0">0：裏付けなし／不合格</option><option value="1">1：裏付けあり</option><option value="2">2：機構を実行していない</option><option value="3">3：機構の異常</option></select></label>
+<label><input id="g" disabled type="checkbox" checked>測定記録の整合性を確認済み</label><label><input id="b" disabled type="checkbox">基盤の不合格項目に観測の迂回がある</label><label><input id="q" disabled type="checkbox">事前定義した候補関係の条件が一致</label><button id="reset" disabled>初期条件へ</button><pre id="out" aria-live="polite">成果 100%／基盤 50%／総合 75点
+成果全項目合格：true
+両層全項目合格：false
+調整前の基盤不合格：true
+迂回調整後：true
+候補関係：false
+因果伝播の検証：未実施</pre><noscript><p>JavaScriptが無効なため、初期条件の結果のみを表示しています。条件の変更はできません。</p></noscript>
 <p>迂回の指定は得点を直しません。調整した集合からは除きますが、論文の候補関係は調整前の不合格集合を使います。候補が成立しても、因果伝播が検証された意味にはなりません。</p>
 <h2>限界</h2><p>ここでは基盤項目0を欠陥確定と扱いません。原記録の照合、途中の情報変化、出来事の順序、競合する説明の検討は自動化していません。著者の実験再現・性能比較・実務効果は未検証です。</p>
 <h2>実装</h2><p><a href="model.js">自作計算</a>・<a href="results.json">全64条件</a>。ブラウザの操作処理も自動テストで検査します。測定不備の際は得点を表示しません。64条件は、成果2状態×基盤4状態×チェック欄の2状態を3個、という自作の組合せであり、原著の実行件数ではありません。</p></main><script src="model.js"></script><script src="ui.js"></script></html>
