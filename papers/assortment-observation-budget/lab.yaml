@@ -1,0 +1,84 @@
+id: assortment-observation-budget
+title: The Value of Experiments in Assortment Optimization
+authors:
+- Mohammadreza Ahmadnejadsaein
+- Amine Bennouna
+- Omar El Housni
+year: 2026
+arxiv_id: '2610.40557'
+submitted: '2026-10-29'
+topics:
+- retail-supply
+urls:
+  paper: https://arxiv.org/html/2610.40557v1
+  arxiv: https://arxiv.org/abs/2610.40557
+verdict: Worth Reading
+status: draft
+question: 同じ品揃えを多くの顧客に試すことと、試す品揃えを増やすことは同じか
+summary: 顧客を観測せず収益順のどこまでを売るか決める規則と、1種類・2種類の品揃えを試してから決める規則を比べます。3商品の厳密計算で、観測数によって最適な品揃えからの期待収益の差（後悔）がどう変わるかを確かめます。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-11-03'
+  url: https://arxiv.org/html/2610.40557v1
+  scope: Web HTMLの§2–3、§5 Theorem 5.1、§6 Theorem 6.1を読解。付録の全証明は未検証。原本bytes/hashと著者コードは未取得。
+core_idea:
+  author_claim: 未知の顧客選好のもとで、限られた品揃え実験から最終品揃えを決める最悪時後悔を特徴付ける。
+  research_bot_interpretation: Worth Reading。観測数mと品揃え種類数dを区別する設計の教材として読む。店舗成果の実証ではない。
+sections:
+  overview: 2026年10月29日提出のv1。以下は自作の数式検算と有限例であり、著者コードや店舗実験の再現ではありません。 [論文の書誌情報](https://arxiv.org/abs/2610.40557)。
+  problem: 顧客の好みが分からないとき、何を試し、何を最終的に売るか。同じ商品の購入を何度観察しても、提示しなかった商品への選好は直接は見えません。
+  method: method.md
+  why_it_might_work: Aは収益だけで除外と包含の損失を釣り合わせます。B/Cは事前に決めた提示集合から観測し、決められた規則で最終集合を選びます。観測の種類と量は別の資源です。
+  evidence: evidence.md
+  executable_understanding: experiment.md
+  results: 計算値はすべて自作。96条件の期待後悔を厳密有理数で保存し、一般の最悪時保証とは別に表示します。
+  what_we_verified: CONFIRMED：有限計算、等号・同率、予算上限、再生成、表示と判断規則の対応。一般理論との対応はPARTIAL。
+  what_we_did_not_verify: 著者コードと原本bytes/hashはNOT OBSERVED。全証明、大規模性能、店舗効果、手動ブラウザーはNOT
+    TESTED。
+  implementation: run.pyは標準ライブラリ、再実行はuv。詳細はREADMEとmapping。外部APIや実際の顧客データは使いません。
+figures: []
+interactives: []
+teaching_figures:
+- id: observation-plan
+  kind: timeline
+  title: 提示の種類を先に固定し、観測後に最終集合を選ぶ
+  after: method
+  source: https://arxiv.org/html/2610.40557v1
+  locator: §3、Theorem 5.1・6.1
+  rationale: 観測予算と決定時点を混同しないための自作図。
+  caption: (3,2,1)に限定したB/C。Aは観測しない。全て最終品揃えの評価。
+  rows:
+  - label: A：観測0
+    nodes:
+    - title: 収益順の区切り
+      text: 除外側と包含側の最大損失を比較 → [2]
+  - label: B：種類1
+    nodes:
+    - title: '[1]をm回'
+      text: 購入割合 ≥ 2/3 → [1]、それ以外 → [2]
+  - label: C：種類2
+    nodes:
+    - title: '[1]と[2]をτ回ずつ'
+      text: 平均収益が最大の群。最大値 < 1なら[3]。余りは判断に不使用。
+- id: exact-expectation
+  kind: equations
+  title: 一つの観測経路から、確率で重み付けした後悔へ
+  after: evidence
+  source: https://arxiv.org/html/2610.40557v1
+  locator: §2.3を使ったLab独自の有限例
+  rationale: 単一路の後悔と期待後悔の違いを計算で示す。
+  caption: 自作計算：r=(3,2,1)、v=(1,1,1)、Cのm=2。理論上界や店舗成果ではない。
+  steps:
+  - name: 全情報の基準
+    formula: R* = max(3/2, 5/3, 3/2) = 5/3
+    explanation: 同じ真の選好で最終品揃えを最適化する。
+  - name: 最終集合の確率で平均
+    formula: E[R] = (1/2)(3/2) + (1/3)(5/3) + (1/6)(3/2) = 14/9
+    explanation: 非購入を含む全6観測経路を、最終集合ごとにまとめた確率。
+  - name: 期待後悔
+    formula: R* − E[R] = 5/3 − 14/9 = 1/9
+    explanation: たまたま[1]を選んだ単一路の後悔1/6とは異なる。

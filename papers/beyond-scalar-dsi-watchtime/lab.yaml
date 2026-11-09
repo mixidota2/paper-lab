@@ -32,7 +32,7 @@ source_review:
   pdf_sha256: fe20b8854c01f2fe258be729b71d9d2ea25c71e03893e56a833b8f16593ec86d
 core_idea:
   author_claim: 固定した分布推定器から27次元の要約を渡し、共通の生特徴と合わせてタスク別の読み出し層を学習する。公開データで秒数予測と検索を改善する。
-  research_bot_interpretation: 中心は下流へ渡す情報の設計にある。四状態の細分化が唯一の有効な構成だとは、追加対照実験も支持していない。
+  research_bot_interpretation: 中心は、視聴時間の分布から何を残して、秒数予測や順位付けをする下流モデルへ渡すかという設計にある。四状態の細分化が唯一の有効な構成だとは、追加対照実験も支持していない。
 sections:
   overview: DSI は視聴時間の平均に加え、完了や overplay の確率を下流へ渡す設計である。公開3データセットで最良の比較手法に対し MAE を1.9%〜8.5%削減したと著者は報告する。本番 A/B はない。
   problem: 動画長が同じでも、毎回10秒見る集団と、半数が0秒・半数が20秒見る集団は平均10秒になる。平均と動画長だけでは完了確率を区別できない。Fig. 1 の動画長による曖昧さを解消しても、この分布の曖昧さは残る。
@@ -67,7 +67,7 @@ sections:
   executable_understanding: '`UV_CACHE_DIR=/tmp/paper-lab-uv uv run papers/beyond-scalar-dsi-watchtime/run.py`
 
 
-    二つの人工分布を比べる。条件は共通。平均と動画長は固定する。変えるのは四状態の確率だけ。overplay の二値予測に対する期待 Brier score と、Eq. 5–6 の合法領域への正規化を確かめる。学習はしない。'
+    二つの人工分布を比べる。条件は共通。平均と動画長は固定する。変えるのは四状態の確率だけ。overplay の二値予測に対する期待 Brier score と、Eq. 5–6 の合法領域への正規化を確かめる。Brier score は、予測した確率と発生・非発生を表す値の差を二乗した誤差で、ここでは人工分布の確率で重み付けして平均する。学習はしない。'
   results: 二群を半数ずつ混ぜる。平均だけを受け取る最良の共通予測は overplay 確率0.25となり、期待 Brier score は0.1875。真の分布を渡す場合は0.125。人工分布の反例に限る。DSI
     の学習精度は測っていない。秒数の平均予測は両方式で同じ10秒である。
   what_we_verified: Mechanism PARTIAL。平均と動画長の一致、overplay 確率の差、合法領域の正規化、completion の動画終端への集約、状態境界の5項目を CONFIRMED

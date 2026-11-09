@@ -1,0 +1,8 @@
+{
+  "url": "https://arxiv.org/html/2603.24883v1",
+  "version": "v1",
+  "publication_date": "2026-03-25",
+  "retrieved_date": "2026-10-30 JST",
+  "read_scope": "Main sections 1–5, equation 1, Tables 1–4 and figure captions. Bibliography not exhaustive; no PDF pixel audit, code/data or reproduction.",
+  "summary": "Warehouse staffing is evaluated in learned/handcrafted simulators, not live deployment. Against replayed historical allocations, actor-critic reports +2.4% throughput and best-trajectory behavior cloning +2.1%. The replayed baseline cannot respond to simulated state drift, whereas the learned policy can; this is not evidence of superiority to live workers. LLM and offline-RL results use different simulators and are not directly comparable. Confidence intervals exclude training-seed variation. DPO preference generation and evaluation share simulator dynamics."
+}

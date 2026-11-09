@@ -124,5 +124,5 @@ teaching_figures:
     explanation: 処置前featureと登録済みbundleの範囲だけを探索する。
   - name: 探索の達成率
     formula: Search Efficiency=Σbucket Σcondition I[達成]/(3B)
-    explanation: B=5。PILOT 14/15、ROAM 8/15。速度や勝率ではない。
+    explanation: B=5。PILOT 14/15、ROAM 8/15。各bucketで満たした条件を個別に数える割合で、全条件を満たしたbucketの割合ではない。速度や勝率ではない。
   source: https://arxiv.org/pdf/2608.18637v1

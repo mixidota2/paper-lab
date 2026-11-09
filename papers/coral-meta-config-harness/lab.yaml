@@ -79,7 +79,7 @@ sections:
 
     ただし予算内であることはengagement改善の保証ではない。before/afterだけのattributionは季節性や上流変更と混ざる。A/Bが利用可能な場合のtreatment effectと、記憶に残るagent自身の解釈を同じ確度で扱わない。'
   method: method.md
-  executable_understanding: '3つの手作り予算提案を、非負・合計10以下の集合へEuclidean projectionする。既に実行可能な提案は保存する。離散menuも全列挙で最も近い実行可能な構成を選ぶ。初回節約10・元費用100という人工値で「節約額44%増」の分母を示す。
+  executable_understanding: '3つの手作り予算提案を、非負・合計10以下の集合へEuclidean projectionする。各設定値と提案値の差を二乗して合計し、それが最小になる予算内の設定を選ぶ。既に実行可能な提案は保存する。離散menuも全列挙で最も近い実行可能な構成を選ぶ。初回節約10・元費用100という人工値で「節約額44%増」の分母を示す。
 
 
     <figure class="teaching batch17"><h3>提案を変えると、予算超過分だけ射影される</h3><div class="matrix-scroll" tabindex="0" role="region"

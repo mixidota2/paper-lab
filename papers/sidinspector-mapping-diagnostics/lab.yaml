@@ -120,7 +120,7 @@ teaching_figures:
     explanation: 3 itemが1 codeを共有すれば、3 itemすべてを数える。
   - name: weighted prefix recovery
     formula: D3ℓ = Σᵢⱼ wᵢⱼ 1[pℓ(i)=pℓ(j)] / Σᵢⱼ wᵢⱼ
-    explanation: 近傍edgeとdepthを揃えて比較する。
+    explanation: 同じprefixに残る近傍edgeの重みを足し、全近傍edgeの重み合計で割る。近傍edgeとdepthを揃えて比較する。
 - kind: matrix
   id: address-vs-neighbor
   title: Musicalでは住所の一意性と近傍保持が分かれた

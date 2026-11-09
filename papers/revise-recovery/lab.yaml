@@ -84,7 +84,7 @@ sections:
     selective で再計算集合と最新版の値を比較する。
 
 
-    全フィールドの変更と依存情報 unknown も走らせる。別の certificate 検査で late read、古い親、情報欠落、安全でない effect を拒否し、有効な sibling を通す。ライフサイクル操作は計画を出すだけで、実際の並行
+    全フィールドの変更と依存情報 unknown も走らせる。別の certificate 検査で late read、古い親、情報欠落、安全でない effect を拒否し、変更された枝とは別で、検査条件を満たす枝（sibling）を通す。変更と無関係な読み取りであっても、親の状態や副作用の検査は省かない。ライフサイクル操作は計画を出すだけで、実際の並行
     cancel は行わない。'
   results: 予算だけの変更では restart/suffix が6ノード、selective が3ノードを再計算し、出力はすべて最新版の全体再計算と一致する。全体変更または unknown では selective
     も6ノードになる。呼び出し単価は同じと仮定し、時間や token の削減率へは換算しない。

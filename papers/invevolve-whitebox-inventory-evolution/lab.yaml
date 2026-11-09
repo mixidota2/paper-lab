@@ -36,7 +36,7 @@ source_review:
   scope: 本文§2、§4、§5、Fig. 2・5、Tables 2・3・6、付録E–Hを確認。
   url: https://arxiv.org/pdf/2605.00369v4
 core_idea:
-  author_claim: GRPOで学習したGLM-4.7-Flashが実行可能な在庫方策を生成する。参照方策へのLCB認証と、通過候補間のUCB選択を接続する。将来性能の保証には有効な信頼半径と分布差予算が必要。
+  author_claim: GRPOで学習したGLM-4.7-Flashが実行可能な在庫方策を生成する。参照方策に対する改善量の信頼下限（LCB）で候補の採用条件を確認し、通過した候補の信頼上限（UCB）で配備する方策を選ぶ。将来性能の保証には有効な信頼半径と分布差予算が必要。
   research_bot_interpretation: 方策コードを窓ごとに進化させる研究セル。SabreAgentの「設計時に季節事前分布を作り、凍結ORを実行」とは変更対象が異なる。InventoryBenchとの直接比較ではない。
 sections:
   overview: 'InvEvolveは、LLMが読める発注コードを生成し、同じ需要履歴で比較してから配備する仕組みである。著者報告では合成OODの25/30件、Dunnhumby
@@ -99,7 +99,7 @@ sections:
     12.402、Tilted-CBS 9.501、Tilted-PIC 10.037。係数は固定した。探索は省いた。
 
 
-    一方、費用上限114から得る半径は21.093。改善のLCBは−18.191と−18.728になり、ξ=0でも安全候補は空となる。平均費用の改善と統計的な採用条件が別物であることを確認できる。'
+    一方、費用上限114から得る半径は21.093。改善のLCBは−18.191と−18.728になり、ξ=0でも安全候補は空となる。観測した平均費用が下がっても、不確実性を差し引いた信頼下限で採用条件を満たすとは限らないことを確認できる。'
   what_we_verified: MechanismはPARTIAL。α=0でのCBSへの帰着、整数不足でのKp=1の一致、費用の有界性はCONFIRMED。共通需要経路での改善平均、LCB/UCBの計算を実行した。候補認証の成功はNOT
     OBSERVED。
   what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。GRPO学習、コード生成、champion更新、需要シフト予算の校正、公式の小標本半径、CJ復元、96条件の再最適化は実行していない。人工実験の費用差から、論文の勝率や将来配備の安全性は推論しない。

@@ -4,7 +4,7 @@ Brainstorm（§4）は過去実験、architecture、データ分析、外部研�
 
 KEEPには最小効果量、有意性、許容できるguardrailのすべてが必要。判定recordは `verdict, primary_effect, guardrail_status, statistical_method, observation_window, caveats` を持つ。重大な悪化はblock、中程度は人の例外審査、観察用指標はmonitoringとする。単一指標が少し悪化したら必ずDISCARDする設計ではない。複数の事業指標を合わせた経済価値の交換指標も使う（§6.3）。
 
-失敗recordには原因、pipeline段、目的、segment、変更leverを付け、次のBrainstormから検索可能にする。EXTENDは観測不足・不確実性を保持するために必要であり、KEEPの弱い言い換えではない。
+失敗recordには原因、pipeline段、目的、segment、変更leverを付け、次のBrainstormから検索可能にする。EXTENDは追加観測や人の審査を待つ判定で、現時点では採用を決めない。観測不足・不確実性を保持するために必要であり、KEEPの弱い言い換えではない。
 
 ### SGPOは数値勾配でモデルを訓練する手法ではない
 

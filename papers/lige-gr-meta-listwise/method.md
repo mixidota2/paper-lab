@@ -1,7 +1,7 @@
 ### CFを一度計算し、CAだけを位置ごとに動かす
 既存のcontext-free predictor（CF）が作ったユーザー・動画の中間表現を保存する。4層・4 headのGPT型causal Transformerであるcontext-aware predictor（CA）は、その表現と選択済みprefixを読み、like、skip、continueなどを予測し直す。CFはここではcollaborative filteringの略ではない。
 
-ListVM vanillaはCAによるitemVMとCLの和を全位置で足す。golden版は、その位置まで視聴が続く確率を掛ける。Paletteは各prefixを許可された未選択候補へ拡張し、累積価値と将来価値の和Qでtop-bを残す。論文はRLとして解釈するが、将来価値は別の価値ネットワークを学習したものではなく、既存の予測から作る閉形式の推定である。
+ListVM vanillaはCAによるitemVMとCLの和を全位置で足す。golden版は、その位置まで視聴が続く確率を各位置の価値に掛けてから足す。到達確率は、それまでに選んだ動画の継続確率を順に掛けた値であり、その位置の動画単体の継続確率とは異なる。Paletteは各prefixを許可された未選択候補へ拡張し、累積価値と将来価値の和Qでtop-bを残す。論文はRLとして解釈するが、将来価値は別の価値ネットワークを学習したものではなく、既存の予測から作る閉形式の推定である。
 
 duration-aware推定では、直前動画の継続確率を平均動画長へ換算する。長い動画の「全編後に残る確率」を後続位置ごとに繰り返すと、短い動画ばかり有利になるためだ。長期満足度の推定ではない。
 

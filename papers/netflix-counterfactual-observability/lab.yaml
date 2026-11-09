@@ -90,13 +90,13 @@ teaching_figures:
   steps:
   - name: 1. 対象policyの値
     formula: SNIPS(π) = Σⱼ rⱼ mⱼ/pⱼ ÷ Σⱼ mⱼ/pⱼ
-    explanation: pはlogging propensity、mはtargetとのmatch。以下の小実験は0/1のexact match。
+    explanation: pはログを集めた方策がその候補を選んだ確率、mは評価したい方策の選択との一致度。以下の小実験は0/1のexact matchで、一致する観測を選択確率の逆数で重み付けし、重みの合計で割る。
   - name: 2. 次善候補で埋める
     formula: Δᵢ = Σₖ wₖ [SNIPS(explore,k) − SNIPS(LOOᵢ,k)]
     explanation: 作品iの報酬だけを引かず、除去したpolicyの報酬を引く。
   - name: 3. 到達範囲を戻す
     formula: Incrementality(i) = Irreplaceability(i) × Universality(i)
-    explanation: eligible内での差とeligibleになる頻度を区別する。
+    explanation: 作品が候補に入った条件内での代替困難度と、その条件自体が起きる頻度を区別する。候補に入りにくい作品の条件内の差を、そのまま全体の貢献とはしない。
   - name: 4. 条件内のHájek差
     formula: Iᵢ = [Σ T r/π ÷ Σ T/π] − [Σ (1−T) r/(1−π) ÷ Σ (1−T)/(1−π)]
     explanation: 和はiが候補に入る標本Eᵢ上。両群を別々に自己正規化する。

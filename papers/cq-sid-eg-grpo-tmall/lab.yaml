@@ -148,7 +148,7 @@ teaching_figures:
     explanation: 表現を復元し、queryと商品を近づける。
   - name: 群のadvantage
     formula: A(oᵢ) = (R(oᵢ) − mean R)/(std R + ε)
-    explanation: 生成群とexpert群を一緒に正規化。全報酬が同じならA=0。
+    explanation: 生成した出力と教師例のexpertを同じ群に入れ、各報酬から群平均を引いて標準偏差とεの和で割る。全報酬が同じならA=0。
   - name: 更新
     formula: L = −mean min(ρᵢ Aᵢ, clip(ρᵢ,1−ε,1+ε) Aᵢ)
     explanation: ρは新旧方策の出力確率比。toyはρ=1の初期勾配だけを調べる。

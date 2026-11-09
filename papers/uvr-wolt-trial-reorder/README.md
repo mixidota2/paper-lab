@@ -53,7 +53,7 @@ V2の旧production比trial MRRは+12.5%〜+30.3%。reorderはFINのみ+6.7%、�
 
 ## Executable Understanding
 
-同じ合成logit・距離特徴を使い、pairwise logistic lossのtrial/reorder重み比だけを1、2、3、5へ変える。未使用400sessionで両群MRRを分けて測る。全店舗で最高logitの店が配達不可なら除外されることと、smoothed targetの総和も検査する。これは学習できる線形代理で、CatBoostやTransformerの再実装ではない。
+同じ合成logit・距離特徴を使い、pairwise logistic lossのtrial/reorder重み比だけを1、2、3、5へ変える。未使用400sessionで両群MRRを分けて測る。正解店の順位の逆数をsessionごとに求め、trialとreorderそれぞれのsession数で割って平均する。全店舗で最高logitの店が配達不可なら除外されることと、smoothed targetの総和も検査する。これは学習できる線形代理で、CatBoostやTransformerの再実装ではない。
 
 ## Results
 

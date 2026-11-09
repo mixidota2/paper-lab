@@ -1,0 +1,6 @@
+const assert=require('node:assert/strict'),fs=require('fs'),{evaluate}=require('./model.js');global.evaluate=evaluate;let rows=[];
+for(let a=0;a<2;a++)for(let h=0;h<4;h++)for(const g of [false,true])for(const b of [false,true])for(const q of [false,true]){let r=evaluate([a,1],[h,1],g,b,q);if(!g)assert.equal(r.score,null);else{const hb=[0,1,a,0][h];assert.equal(r.score,25*(a+1+hb+1));assert.equal(r.link,!hb&&!a&&q);assert.equal(r.adjusted,!hb&&!b);assert.equal(r.clean,!!a&&!!hb);}rows.push({a,h,g,b,q,result:r});}
+assert.equal(rows.length,64);assert.throws(()=>evaluate([],[]));assert.throws(()=>evaluate([1],[4]));assert.equal(evaluate([1],[0]).score,50);
+const nodes={};for(const id of ['a','h','g','b','q','reset','out'])nodes[id]={value:id==='a'?'1':'0',checked:id==='g',events:{},addEventListener(e,f){this.events[e]=f;}};
+require('./ui.js').mount({getElementById:id=>nodes[id]});const initial=nodes.out.textContent;nodes.a.value='0';nodes.a.events.change();assert.notEqual(initial,nodes.out.textContent);nodes.g.checked=false;nodes.g.events.change();assert(nodes.out.textContent.includes('保留'));nodes.reset.events.click();assert.equal(initial,nodes.out.textContent);
+fs.writeFileSync('results.json',JSON.stringify({note:'自作の64条件。原著の実行結果ではありません。',cases:rows},null,2)+'\n');console.log('PASS: 64 cases, independent score oracle, error inputs, change/admission/reset');

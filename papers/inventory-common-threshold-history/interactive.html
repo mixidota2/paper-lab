@@ -1,0 +1,30 @@
+<section class="ict" aria-label="共通閾値と履歴の実験">
+<style>
+.ict{background:#f0f5f2;padding:clamp(12px,3vw,28px);border:1px solid #b7ccc1;border-radius:14px;color:#173d34}.ict *{box-sizing:border-box}.ict .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}.ict label{display:block}.ict select,.ict button{font:inherit;padding:9px;max-width:100%;width:100%}.ict .scroll{overflow-x:auto;margin:16px 0}.ict table{width:100%;min-width:740px;border-collapse:collapse;table-layout:auto}.ict th,.ict td{padding:8px!important;white-space:nowrap;border-bottom:1px solid #c6d7cd;text-align:right}.ict th:first-child,.ict td:first-child{text-align:left}.ict .cards{display:flex;flex-wrap:wrap;gap:12px}.ict .cards p{flex:1;min-width:160px;background:white;padding:14px}.ict output{display:block;line-height:1.8}.ict .clock{display:inline-block;background:#d0e5dc;height:12px;max-width:100%;vertical-align:middle}.ict caption{text-align:left;font-weight:bold;margin-bottom:8px}.ict .note{border-left:4px solid #b07835;padding-left:12px}.ict button{width:auto;cursor:pointer}.ict .flow{display:flex;flex-wrap:wrap;gap:8px}.ict .flow span{background:white;padding:10px;border:1px solid #abc2b4}
+</style>
+<h3>予測が変わっても、過去に積んだ比率を残す</h3>
+<p>自作の3期間・4経路。需要の合計は最大3個、保管費は1個1期あたり2、未納費は1。各経路の確率は1/4です。画面のρは1回固定した値で、期待費用カードは別途ρの分布全体を積分しています。</p>
+<p>以下では、共通閾値方策をCT、同じ観測情報で期待費用を最小にする方策をOPTと略します。「時計」zは未納費と保管費の期待値の比率を積み上げた量で、経過時間ではありません。共通閾値ρに達した単位を発注します。</p>
+<div class="flow" aria-label="各期の処理の自作模式図"><span>需要の過去と当期の信号を観測</span><span>→ 当期のβ/αを足す</span><span>→ 同じρと比較</span><span>→ 発注後に当期需要が発生</span></div>
+<div class="controls">
+<label>需要木と納期<select id="ict-scenario"><option value="1-0">第2期の信号あり・納期0</option><option value="1-1">第2期の信号あり・納期1</option><option value="0-0">追加信号なし・納期0</option><option value="0-1">追加信号なし・納期1</option></select></label>
+<label>一度だけ選ぶ共通ρ<select id="ict-rho"><option>1/4</option><option>1/2</option><option>3/4</option></select></label>
+<label>表示する需要経路<select id="ict-leaf"><option value="0">0 → 0 → 2</option><option value="1">0 → 1 → 0</option><option value="2">1 → 0 → 2</option><option value="3">1 → 1 → 0</option></select></label>
+<label>比率の履歴<select id="ict-mode"><option value="historical">論文規則：当時の比率を保持</option><option value="recomputed">診断用：過去も当期情報で再計算</option></select></label>
+</div>
+<p class="note">診断用の再計算には論文の保証を適用しません。追加信号なし・納期0、ρ=3/4、需要経路「0 → 0 → 2」で、第2期の時計と発注を比較してください。将来の需要を事前に読む操作は、どちらにもありません。</p>
+<div class="cards" id="ict-expect">__EXPECT__</div>
+<output id="ict-output" aria-live="polite">__SUMMARY__</output>
+<div class="scroll" tabindex="0" role="region" aria-label="単位別の時計、横にスクロールできます"><table><caption>各単位の条件付き費用と時計</caption><thead><tr><th>期 / 単位</th><th>α</th><th>β</th><th>当期 β/α</th><th>累積 z</th><th>時計（上限1）</th><th>判断</th><th>費用分解</th></tr></thead><tbody id="ict-rows">__ROWS__</tbody></table></div>
+<p>発注した期はαを計上し、その期のβは計上しません。「発注済」の時計は説明用に継続計算した値で、再発注しません。α・βによる費用分解は条件付き期待値です。下の実費用とは経路ごとに一致するとは限りません。実費用は、この自作例で選んだ需要経路から計算した費用で、店舗で測定した費用ではありません。</p>
+<div class="scroll" tabindex="0" role="region" aria-label="在庫台帳、横にスクロールできます"><table><caption>選んだ経路の実際の在庫台帳</caption><thead><tr><th>期</th><th>当期需要</th><th>当期発注</th><th>累積入荷</th><th>期末在庫（負は未納）</th><th>実費用</th></tr></thead><tbody id="ict-ledger">__LEDGER__</tbody></table></div>
+<h3>1期間でも、共通閾値方策の上界へ近づく</h3>
+<p>§4.3の別のモデルです。納期0・需要は確率εで1、保管費と未納費はともに1。OPTは発注しない方策で費用ε。ここは上の保管費2の需要木と混ぜません。</p>
+<label>需要が1になる確率ε<select id="ict-epsilon"><option value="0">0.001</option><option value="1">0.01</option><option value="2">0.1</option><option value="3" selected>0.25</option><option value="4">0.49</option></select></label>
+<output id="ict-tight" aria-live="polite">__TIGHT__</output>
+<p>εを0へ近づけた極限がe/(e−1)。この方策の上界へ近づく例（tight例）であり、すべての在庫方策に対する近似不可能性ではありません。</p>
+<button type="button" id="ict-reset">初期条件に戻す</button>
+<noscript><p>JavaScript無効時は初期条件の計算表を表示しています。全96条件はダウンロードできるresults.jsonにあります。</p></noscript>
+<script type="application/json" id="ict-data">__DATA__</script>
+<script>__JS__</script>
+</section>

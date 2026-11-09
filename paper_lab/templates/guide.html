@@ -5,6 +5,7 @@
 <body><a class="skip-link" href="#guide">本文へ移動</a>
 <header class="masthead"><div class="shell masthead__inner"><a class="wordmark" href="../index.html">研究ライブラリ</a><nav class="entry-nav" aria-label="読む入口"><a href="../index.html#library">最新研究・Lab一覧</a><a href="index.html"{% if is_index %} aria-current="page"{% endif %}>テーマガイド</a></nav></div></header>
 <main id="guide" class="shell guide-page"><header class="paper-hero"><p class="eyebrow">テーマごとに研究を読む</p><h1>{{ title }}</h1><p>{{ paper_count }}件のLab ／ {{ guide_count }}件のテーマガイド</p></header>
-{% if is_index %}<section class="note-section"><h2>棚割りで何を決めたいか</h2><p>棚幅・品揃え・配置・補充について、手法とその根拠を比べます。関連するLabでは、詳しい説明を読み、限られた条件の実験を試せます。</p><a class="button" data-guide-link href="shelf-decisions.html">棚割りのテーマガイドを読む →</a><p>ガイド追加日：2026年10月16日。論文の発表時期は各原典に沿って別に記載しています。</p></section>
+{% if is_index %}{% if shelf_available %}<section class="note-section"><h2>棚割りで何を決めたいか</h2><p>棚幅・品揃え・配置・補充について、手法とその根拠を比べます。関連するLabでは、詳しい説明を読み、限られた条件の実験を試せます。</p><a class="button" data-guide-link href="shelf-decisions.html">棚割りのテーマガイドを読む →</a><p>ガイド追加日：2026年10月16日。論文の発表時期は各原典に沿って別に記載しています。</p></section>
+{% endif %}{% if survey_available %}<section class="note-section"><h2>需要予測を、どう補充判断へつなぐか</h2><p>企業の報告を対象業務・評価方法・年代で比べ、理論上の保証と現場で報告された成果を分けて読みます。店舗と商品（SKU）の組合せごとに、同じ条件で手法を比較する小規模検証（PoC）の案も掲載しています。</p><a class="button" data-replenishment-guide-link href="forecast-to-replenishment.html">需要予測と補充のテーマガイドを読む →</a><p>資料確認日：2026年11月2日。重点期間外の事例は別枠にしています。</p></section>{% endif %}
 {% else %}<article class="prose guide-body">{{ content | safe }}</article>{% endif %}
 </main><footer class="footer shell"><a href="../index.html#library">最新研究・Lab一覧へ</a><a href="index.html">テーマガイド一覧へ</a></footer></body></html>

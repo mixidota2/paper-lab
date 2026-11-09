@@ -8,6 +8,11 @@ CLI:
 
 from __future__ import annotations
 
+from .trial_trace import widget as trial_trace_widget
+from .assortment_observation import widget as assortment_observation_widget
+from .inventory_ct import widget as inventory_ct_widget
+from .replenishment_guide import SLUG as REPLENISHMENT_GUIDE, load_cards, render_cards
+
 import argparse
 import hashlib
 import json
@@ -178,6 +183,8 @@ def paper_sections(lab: Lab) -> list[dict[str, Any]]:
             html = markdown_to_html(lab.sections.get(key, ""))
 
         if key == "executable_understanding":
+            if lab.id == "trial-by-trace-evidence-boundaries":
+                html += trial_trace_widget(lab.source_dir)
             if lab.id in {"reasoncast-agentic-demand-forecasting", "retailbench-long-horizon-store-agents"}:
                 html += (lab.source_dir / "interactive.html").read_text(encoding="utf-8")
             html += batch08_widget(lab.results)
@@ -195,6 +202,10 @@ def paper_sections(lab: Lab) -> list[dict[str, Any]]:
             html += exaone05_widget(lab.results)
             html += sparse05_widget(lab.results)
             html += forgetting05_widget(lab.results)
+            if lab.id == "assortment-observation-budget":
+                html += assortment_observation_widget(lab.results, lab.source_dir)
+            if lab.id == "inventory-common-threshold-history":
+                html += inventory_ct_widget(lab.results, lab.source_dir)
 
         rendered.append(
             {
@@ -258,15 +269,38 @@ def build(
 
     shelf_ids = {"storewide-shelf-decomposition", "assortment-replenishment-hard-constraints", "shelf-placement-options"}
     guide_source = root / "guides" / "shelf-decisions.md"
-    guide_count = int(guide_source.is_file() and shelf_ids <= {lab.id for lab in labs})
+    shelf_available = guide_source.is_file() and shelf_ids <= {lab.id for lab in labs}
+    survey_source = root / "guides" / f"{REPLENISHMENT_GUIDE}.md"
+    survey_available = survey_source.is_file() and {"inventory-common-threshold-history", "orpr-or-guided-pretrain-reinforce-inventory", "bridging-forecast-accuracy-inventory-kpis"} <= {lab.id for lab in labs} and shelf_available
+    guide_count = int(shelf_available) + int(survey_available)
     if guide_count:
         guides_out = site / "guides"
         guides_out.mkdir()
         template = env.get_template("guide.html")
-        for name, title, is_index in [("index", "テーマガイド", True), ("shelf-decisions", "棚割りの判断と手法を比較する", False)]:
+        guide_entries = [("index", "テーマガイド", True, "")]
+        if shelf_available:
+            guide_entries.append(("shelf-decisions", "棚割りの判断と手法を比較する", False, markdown_to_html(guide_source.read_text(encoding="utf-8"))))
+        if survey_available:
+            evidence_source = root / "guides" / "replenishment-evidence.yaml"
+            try:
+                cards = load_cards(evidence_source)
+            except (ValueError, TypeError, KeyError) as exc:
+                raise LabError(f"Invalid replenishment survey: {exc}") from exc
+            survey = markdown_to_html(survey_source.read_text(encoding="utf-8"))
+            if survey.count("<!-- EVIDENCE_CARDS -->") != 1:
+                raise LabError("Survey requires exactly one evidence-card position")
+            survey = survey.replace("<!-- EVIDENCE_CARDS -->", render_cards(cards))
+            guide_entries.append((REPLENISHMENT_GUIDE, "需要予測から補充判断へ：企業事例と証拠の限界", False, survey))
+            shutil.copy2(root / "guides" / "replenishment-filter.js", assets / "replenishment-filter.js")
+            guide_downloads = site / "downloads" / "guides"
+            guide_downloads.mkdir(parents=True)
+            for source in (survey_source, evidence_source):
+                shutil.copy2(source, guide_downloads / source.name)
+        for name, title, is_index, content in guide_entries:
             (guides_out / f"{name}.html").write_text(template.render(
                 title=title, is_index=is_index, paper_count=len(labs), guide_count=guide_count,
-                content=markdown_to_html(guide_source.read_text(encoding="utf-8"))), encoding="utf-8")
+                shelf_available=shelf_available, survey_available=survey_available,
+                content=content), encoding="utf-8")
 
     index_html = env.get_template("index.html").render(
         labs=labs,
@@ -287,7 +321,7 @@ def build(
     for lab in labs:
         download_dir = site / "downloads" / lab.id
         download_dir.mkdir(parents=True)
-        for name in ("run.py", "results.json", "lab.yaml", "README.md", "method.md", "experiment.md", "validation.md", "implementation.md", "mapping.md", "NOTICE.txt", "official-check.json", "plot.py", "render.py", "author-orderbook.csv", "model.js", "interactive.js"):
+        for name in ("run.py", "results.json", "lab.yaml", "README.md", "method.md", "experiment.md", "validation.md", "implementation.md", "mapping.md", "NOTICE.txt", "official-check.json", "plot.py", "render.py", "author-orderbook.csv", "model.js", "interactive.js", "ui.js", "test.cjs"):
             source = lab.source_dir / name
             if source.is_file():
                 shutil.copy2(source, download_dir / name)

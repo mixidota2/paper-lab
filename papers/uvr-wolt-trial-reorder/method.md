@@ -6,7 +6,7 @@ V1/V2のclassifierは4層・4 head・幅128、FFN幅160のencoder-only Transform
 転移するのは同じ国の飲食店と小売の履歴である。国ごとに語彙とモデルを学習し、国間転移の実験はしていない。V3でも構造の異なる特徴を扱うため、飲食店と小売のCatBoostは別に持つ。「4 rankerを一つへ統合」は配信システム全体の記述で、木モデルが一個になったという意味ではない。
 
 ### trialの重みと漏洩防止を明示する
-classifierのlabel smoothingはε=0.2。正解の質量を1−ε、各クラスへε/|domain|を配り、w_new > w_cs > w_recでCEを重み付けする。V1のrankerはPairLogit、V2/V3はYetiRankPairwiseのNDCG mode。購入labelはtrial/reorderで同じとし、trialの優先度はsession重みへ置く。clickは購入より弱い段階labelにする。
+classifierのlabel smoothingはε=0.2。正解にまず1−εの質量を置き、さらに正解を含む各クラスへε/|domain|を配り、w_new > w_cs > w_recでCEを重み付けする。V1のrankerはPairLogit、V2/V3はYetiRankPairwiseのNDCG mode。購入labelはtrial/reorderで同じとし、trialの優先度はsession重みへ置く。clickは購入より弱い段階labelにする。
 
 rankerは直近30日のうち28日を学習、次の1日をvalidation、最後の1日をtestに使う。classifierの学習を2日前で切り、ranker評価日の正解がlogitへ漏れないようにする。購入なしsessionを除外しているため、このオフライン評価だけで全sessionのCVRは説明できない。
 

@@ -76,7 +76,7 @@ sections:
   executable_understanding: '`uv run papers/recevolve-autonomous-rec/run.py`
 
 
-    4 seeds × 128 queryで正例scoreと7999個の負例scoreを一度作り、1000・2000・4000・8000候補のNDCG@50を計算する。小さい集合は大きい集合のprefixで、正例もscoreも固定する。さらに人工的な5候補で事前失敗・job失敗・候補数変更・補助指標退化・正当な改善の分岐を実行する。'
+    4 seeds × 128 queryで正例scoreと7999個の負例scoreを一度作り、1000・2000・4000・8000候補のNDCG@50を計算する。小さい集合は大きい集合のprefixで、正例もscoreも固定する。各queryの指標を平均してからseed間で平均し、上位に正例が入らないqueryもゼロとして含める。さらに人工的な5候補で事前失敗・job失敗・候補数変更・補助指標退化・正当な改善の分岐を実行する。'
   results: 同じscoreでも、負例を減らすだけで平均NDCG@50が上がる。これは表現学習の改善ではない。候補数監査を外したfixtureではsmaller_batchをKEEPし、監査を入れるとROLLBACKする。監査はLab側の追加提案である。数値の判定器だけでreward
     hackingを防げないことを示す。
   what_we_verified: CONFIRMED：入れ子の候補集合で負例を増やしても正例順位が改善しないこと、rollback時に最良状態が保持されること、補助指標の閾値を満たさない候補が採択されないこと。Mechanism
@@ -131,7 +131,7 @@ teaching_figures:
     explanation: 採択時にM*とτを更新し、VCS_Commit()とLog KEEP。事前検証失敗、job失敗、条件未達はVCS_Rollback()。
   - name: 候補数の効果・Labの導出
     formula: rank = 1 + Σⱼ 𝟙[sⱼ ≥ s⁺]; NDCG@K = 𝟙[rank ≤ K] / log₂(rank+1)
-    explanation: 正例1件の合成評価。負例を除くだけでrankは悪化しない。これは原論文の番号付き式ではない。
+    explanation: 正例1件の合成評価。同点の負例も正例より前に数える。負例を除くだけでrankは悪化しない。これは原論文の番号付き式ではない。
   source: https://arxiv.org/html/2609.01622v1
 - id: trajectory
   kind: chart

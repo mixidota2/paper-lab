@@ -14,7 +14,7 @@ roundはcontinue、reject、promoteで処理する。rejectならChampionは変�
 
 ### PolicyTree：同じ8次元の設定を、誰に適用するかも探す
 
-各leafにstrategy bundleを持つ決定木で、登録済みの処置前featureだけを使ってユーザーを分岐する。全ユーザーは必ず1つのleafへ着地し、missing値の扱いも事前に定義する。木の深さ、leaf数、最小母集団比率、利用feature数、round数とtraffic予算には上限がある（§4.1）。
+各leafにstrategy bundleを持つ決定木で、施策を適用する前に定まる登録済みの特徴量だけを使ってユーザーを分岐する。施策によって変わった行動で事後的に群を分けない。全ユーザーは必ず1つのleafへ着地し、missing値の扱いも事前に定義する。木の深さ、leaf数、最小母集団比率、利用feature数、round数とtraffic予算には上限がある（§4.1）。
 
 固定baseline T₀は実験を通して動かさない。Champion T*は現在の確認済み基準、Challengerはそこへatomic actionを1つだけ加えた木。actionはsplit、prune、hashExpand、collapse、updateStrategyの5種類。Plannerは許可集合A(T*)の外の操作を作れない。Δtotalは固定baselineとの差、Δstepは現在のChampionとの差なので、基準の混同を避ける。
 

@@ -17,6 +17,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      publication_manifest_sha256: ${{ steps.publication.outputs.manifest_sha256 }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,6 +32,21 @@ jobs:
         run: uv run --locked pytest -q -ra --fail-on-skip
       - name: Generate complete site after required checks
         run: uv run --locked paper-lab build
+      - name: Fingerprint the tested complete site
+        id: publication
+        shell: bash
+        run: |
+          digest=$(uv run --locked python tools/compare_publication.py make --site site --source-id "$GITHUB_SHA" --out publication-manifest.json)
+          echo "manifest_sha256=$digest" >> "$GITHUB_OUTPUT"
+      - name: Preserve the exact expected publication
+        uses: actions/upload-artifact@v4
+        with:
+          name: publication-expected
+          path: |
+            site/
+            publication-manifest.json
+          include-hidden-files: true
+          if-no-files-found: error
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -44,3 +61,47 @@ jobs:
     steps:
       - id: deploy
         uses: actions/deploy-pages@v4
+
+  verify-publication:
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Retrieve the expected files from this workflow run
+        uses: actions/download-artifact@v4
+        with:
+          name: publication-expected
+          path: publication-expected
+      - name: Compare the public site with the tested build
+        timeout-minutes: 25
+        shell: bash
+        run: |
+          mkdir -p publication-diagnostics
+          status=0
+          python3 tools/compare_publication.py check \
+            --site publication-expected/site \
+            --manifest publication-expected/publication-manifest.json \
+            --manifest-sha256 '${{ needs.build.outputs.publication_manifest_sha256 }}' \
+            --out publication-evidence \
+            --workers 8 \
+            --timeout 20 \
+            > publication-diagnostics/stdout.txt \
+            2> publication-diagnostics/stderr.txt || status=$?
+          printf '%s\n' "$status" > publication-diagnostics/exit-code.txt
+          cat publication-diagnostics/stdout.txt
+          cat publication-diagnostics/stderr.txt >&2
+          exit "$status"
+      - name: Preserve publication comparison evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: publication-evidence
+          path: |
+            publication-evidence/
+            publication-diagnostics/
+          if-no-files-found: error

@@ -76,7 +76,7 @@ sections:
     [一次資料：版を固定したPDF](https://arxiv.org/pdf/2604.12234v4)。図表の箇所とSHA-256は末尾の対応表を参照。'
   overview: UniRecは属性→SIDの順に生成し、候補生成とrankingの統合を狙う。Shopeeの各bucket 20%のA/BでOverall PVCTR +5.37%、orders +4.76%、GMV
     +5.60%。属性条件付きの不確実性低下は理解しやすい一方、本文のBayesによるランキング同値性には追加条件が要る。
-  why_it_might_work: '【解釈】属性とSIDが相関するなら、属性を知った後の平均的な条件付きentropyは小さくなる。ただし正解属性を与えるteacher forcingと、誤る可能性のある属性を生成する推論は違う。属性段で落とした商品は後段SIDだけでは戻せない。
+  why_it_might_work: '【解釈】属性を知った後の条件付きentropyは、属性ごとの不確実性を、その属性が現れる確率で重み付けした平均である。同じ履歴・ユーザー情報を条件にすると、属性を知る前より平均では大きくならない。属性がSIDについて追加の情報を持つと、その分だけ小さくなる。ただし正解属性を与えるteacher forcingと、誤る可能性のある属性を生成する推論は違う。属性段で落とした商品は後段SIDだけでは戻せない。
 
 
     露出量をcapacityとして扱う設計は、商品数を揃えるだけでは防げない集中に対応する。一方、一つの商品の露出重みがcapacity上限を超える場合、商品を分割しない制約問題は実行不能になる。貪欲repairが常に成功するとは限らない。'
@@ -111,7 +111,7 @@ teaching_figures:
   steps:
   - name: capacity
     formula: V_k=Σ_{i:z_i=k}w_i ≤ τ·Σ_i w_i/K
-    explanation: 商品数ではなく露出重みの合計。
+    explanation: 同じcodeへ割り当てた商品の露出重みを合計し、全code平均に許容倍率を掛けた上限と比べる。商品数の均等化ではない。
   - name: entropy
     formula: H(S|P,U)−H(S|P,A,U)=I(S;A|P,U)
     explanation: 属性を条件に加えた平均の不確実性低下。

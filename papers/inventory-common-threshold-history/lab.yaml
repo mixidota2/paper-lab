@@ -1,0 +1,79 @@
+id: inventory-common-threshold-history
+title: 'Improved Approximation Guarantees for Periodic-Review Stochastic Inventory Control'
+authors: [Danny Segev]
+year: 2026
+arxiv_id: '2610.41475'
+submitted: '2026-10-30'
+topics: [demand-forecasting, retail-supply]
+urls:
+  paper: https://arxiv.org/html/2610.41475v1
+  arxiv: https://arxiv.org/abs/2610.41475
+verdict: Worth Reading
+status: draft
+question: 予測が更新されたとき、待つ判断の履歴は残すべきか
+summary: 未納を持ち越す費用と、早く発注して保管する費用の比率を、計算時点の情報のまま積み上げます。一度選んだ共通の閾値に達したら発注する規則を、需要の分岐を表す小さな木と1期間の例で追います。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-11-02'
+  url: https://arxiv.org/html/2610.41475v1
+  scope: Webで§1.1・Theorem 1.1、§2の単位別費用分解、§3.1〜3.2の方策、§4.1〜4.3、§5を読解。全証明・付録の独立検証は未完。ローカル原本bytes/hashは未取得。
+core_idea:
+  author_claim: 条件付き確率を正確に求められる在庫モデルで、期待費用の近似保証を2からe/(e−1)へ改善する共通閾値方策を示す。
+  research_bot_interpretation: Worth Reading。予測の更新と過去に計算した費用比率の記録を分ける設計が有用。ただし店舗の売上改善や実運用の実証ではなく、仮定を置いた期待費用の保証として読む。
+sections:
+  overview: 2026年10月30日付のarXiv v1を扱う。以下の計算と図は自作であり、著者コードの再現ではない。
+  problem: 今すぐ発注すれば保管費がかかり、待てば未納費がかかる。毎期予測が変わる場合、現在の予測だけで過去の費用比率まで書き換えると、論文が定義する発注規則から外れる。
+  method: method.md
+  why_it_might_work: 各単位で未納費と保管費の期待値の比率を積み上げ、同じ閾値を使うと、先の単位から順に発注する形を保てる。履歴を保持する規則と閾値の分布の組合せが重要で、単にランダムに発注すれば保証されるわけではない。
+  evidence: evidence.md
+  executable_understanding: experiment.md
+  results: results.jsonは自作需要木の96条件と、閾値分布を積分した期待費用、1期間の5条件を格納する。論文の上界と、この小規模計算の値を区別する。
+  what_we_verified: CONFIRMED：有限木の条件付き確率、費用分解、同じ情報に適応する有限DP、閾値の等号、ゼロ分母、再生成の一致。数学的保証の全証明は検証していないため、Mechanism全体はPARTIAL。
+  what_we_did_not_verify: 著者コードはNOT OBSERVED。原本ファイルのbytes/hashは未取得。大規模計算、実データの予測推定、計算時間の一般的保証、店舗効果はNOT TESTED。手動ブラウザー・実機の表示確認もNOT TESTED。
+  implementation: README.mdのuvコマンドで再生成する。Pythonが条件付き確率と発注を計算し、JavaScriptは保存済み条件を選んで表示する。外部API・乱数による実験・実発注は使わない。
+figures: []
+interactives: []
+teaching_figures:
+- id: historical-clock
+  kind: timeline
+  title: 新しい予測は当期の増分に使う
+  after: method
+  source: https://arxiv.org/html/2610.41475v1
+  locator: §2.1〜2.2、§3.1〜3.2
+  rationale: 過去の条件付き比率を維持する規則を時系列で示す。
+  caption: 自作図。ρは全期間・全単位で共通。停止した期のβは払わない。
+  rows:
+  - label: 開始前
+    nodes:
+    - title: ρを一度選ぶ
+      text: F(x) = (exp(x)−1)/(e−1)
+  - label: 第1期
+    nodes:
+    - title: H₁でα₁とβ₁を求める
+      text: z₁ = β₁/α₁。z₁ ≥ ρなら発注。
+  - label: 第2期
+    nodes:
+    - title: H₂で当期分だけ求める
+      text: z₂ = β₁/α₁ + β₂/α₂。左の項はH₁のまま。
+- id: tight-equations
+  kind: equations
+  title: 発注する確率から、1期間の期待費用へ
+  after: evidence
+  source: https://arxiv.org/html/2610.41475v1
+  locator: §4.3
+  rationale: 理論上界と1条件の数値の関係を示す。
+  caption: 原典の式を自作の説明図にしたもの。0<ε<1/2、保管費と未納費は1。
+  steps:
+  - name: 閾値に達する確率
+    formula: q = F(ε/(1−ε))
+    explanation: α=1−ε、β=εなので時計はε/(1−ε)。
+  - name: 需要と閾値の両方で平均
+    formula: E[C_CT] = ε + (1−2ε)q
+    explanation: 発注しない場合の費用εと、発注する場合の費用1−εを確率で重み付けする。
+  - name: 同じ情報の最適方策と比較
+    formula: E[C_CT] / OPT → e/(e−1)  （ε → 0）
+    explanation: OPT=ε。単一の需要経路に対する倍率ではない。

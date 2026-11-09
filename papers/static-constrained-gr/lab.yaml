@@ -118,10 +118,10 @@ teaching_figures:
   steps:
   - name: prefix集合
     formula: 'F(prefix,v)=1{∃c∈C: prefix+v ⊑ c}'
-    explanation: 業務で許可した集合Cの中だけを探索。
+    explanation: 現在のIDの先頭部分に次のトークンを足しても、許可集合Cのどれかの先頭部分であるときだけ、その枝を残す。
   - name: CSR
     formula: children(s)=indices[indptr[s]:indptr[s+1]]
-    explanation: 遷移先stateを並行した配列から読む。
+    explanation: 各stateはIDの先頭部分を表す。indptrで子の格納区間を切り出し、次のトークンと遷移先stateを対応する配列から読む。
   - name: mask
     formula: log p′(v)=log p(v) if F=1; −∞ otherwise
     explanation: Algorithm 1はLogSoftmax後にmaskを適用する。

@@ -60,7 +60,7 @@ sections:
     | covariateなし58課題 | 同一pass | 著者が完全一致を確認 |
 
 
-    skillは各taskのscaled quantile lossをseasonal naiveで割り、[0.01,100]へclipした比の幾何平均を1から引いて百分率にしたもの。CIはtask単位のbootstrapであり、全店舗の将来liftの区間ではない。
+    skillは各taskのscaled quantile lossをseasonal naiveで割り、[0.01,100]へclipした比の幾何平均を1から引いて百分率にしたもの。CIはtaskを単位に復元抽出して計算するbootstrapの区間であり、全店舗の将来の改善幅を表す区間ではない。
 
 
     German day-ahead価格ではquantile loss −51%、Rossmannの日次売上では販促・祝日・営業日の追加で−43%。一方、M5では価格・calendar等8変数を入れても週/月粒度で差は±2%未満。小売に無関係というわけではないが、欠品を制御したTSFM対GBDTのbakeoffではない。
@@ -128,7 +128,7 @@ teaching_figures:
     explanation: future targetの値で正規化統計を更新しない。
   - name: 順序を保つ分位点
     formula: q̂k+1 = q̂k + softplus(rk+1)
-    explanation: 正の差分を足す。calibrationまで保証する式ではない。
+    explanation: 正の差分を足して分位点の大小関係を保つ。実績が各分位点を下回る割合の適合（calibration）まで保証する式ではない。
   - name: skill
     formula: Skill = 100 × [1 − exp(mean(log(clip(Lmodel/Lseasonal-naive,0.01,100))))]
     explanation: Lはtaskのscaled quantile loss。seasonal naive比をtask間で幾何平均する。

@@ -132,7 +132,7 @@ teaching_figures:
     explanation: distinct usersが0ならα=0。
   - name: 重み付き連結
     formula: eᵤₙᵢ = [√(1−α)eₛₑₘ ; √α e꜀ₒₗ]
-    explanation: 各枝が単位normなら連結後も単位norm。
+    explanation: 意味枝と協調枝をそれぞれ長さで正規化してから重みを掛け、足し合わせずに連結する。各枝が単位normなら連結後も単位norm。
   - name: 報酬の校正
     formula: Δ = δpri + κ δaux
     explanation: 同符号ならκ=min(|δpri|,|δaux|)/max(|δpri|,|δaux|,ε)、それ以外0。

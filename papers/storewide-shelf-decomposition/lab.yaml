@@ -80,9 +80,9 @@ teaching_figures:
   steps:
   - name: 需要の2成分
     formula: Dᵢ = qᵢ fᵢ^β + s qᵢ U / B
-    explanation: 前半は陳列量による需要、後半は非採用品からの流入。
+    explanation: 前半は面数に応じた商品自身の需要。後半は未採用品の基礎需要の一部を、採用品の基礎需要比で配った流入。
     formula_mathml: <math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>D</mi><mi>i</mi></msub><mo>=</mo><mrow><msub><mi>q</mi><mi>i</mi></msub><msup><msub><mi>f</mi><mi>i</mi></msub><msub><mi>β</mi><mi>i</mi></msub></msup><mo>+</mo><mfrac><mrow><mi>s</mi><msub><mi>q</mi><mi>i</mi></msub><mi>U</mi></mrow><mi>B</mi></mfrac></mrow></mrow></math>
   - name: 費用を引く
     formula: Z = Σ(i∈A) [pᵢDᵢ − rDᵢ/(fᵢdᵢ) − c]
-    explanation: フェイスを増やすと補充費も変わる。β=0でも選択が変わりうる。
+    explanation: 補充費は需要を棚在庫で割った値に係数を掛ける近似。β=0でも、フェイスを増やして棚在庫が増えると補充費が下がり、選択が変わりうる。
     formula_mathml: <math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>Z</mi><mo>=</mo><mrow><munder><mo>∑</mo><mrow><mi>i</mi><mo>∈</mo><mi>A</mi></mrow></munder><mo>[</mo><msub><mi>p</mi><mi>i</mi></msub><msub><mi>D</mi><mi>i</mi></msub><mo>−</mo><mfrac><mrow><mi>r</mi><msub><mi>D</mi><mi>i</mi></msub></mrow><mrow><msub><mi>f</mi><mi>i</mi></msub><msub><mi>d</mi><mi>i</mi></msub></mrow></mfrac><mo>−</mo><mi>c</mi><mo>]</mo></mrow></mrow></math>

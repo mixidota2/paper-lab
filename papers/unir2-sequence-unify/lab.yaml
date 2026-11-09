@@ -86,8 +86,7 @@ sections:
   executable_understanding: '`uv run papers/unir2-sequence-unify/run.py`
 
 
-    mask toyは2履歴token、1プロフィール、BOS＋3 SID、2 item tokensを使う。行をquery、列をkeyとして、遮断した値を大きく変えても生成側の集計が変わらないことを確認する。学習toyは次token確率の目標0.8、ranking目標0.2という人工的な競合を与え、同じscalar
-    adapterを両条件に置く。200回、学習率0.1で更新する。'
+    mask toyは2履歴token、1プロフィール、BOS＋3 SID、2 item tokensを使う。行をquery、列をkeyとして、遮断した値を大きく変えても生成側の集計が変わらないことを確認する。学習toyは次token確率の目標0.8、ranking目標0.2という人工的な競合を与え、どちらの条件にも同じ単一の調整値（scalar adapter）を置き、調整できる自由度をそろえる。200回、学習率0.1で更新する。'
   results: 生成の事前学習点から始め、joint gradientではranking BCEが下がる一方、NTP交差エントロピーが増える。分離条件ではbaseを生成損失だけで更新し、ranking用adapterを動かすためNTPは初期値を保つ。これは固定した矛盾目標での結果で、常に共同学習が悪いという意味ではない。
   what_we_verified: Mechanism PARTIAL。生成側の未来・item情報の遮断と、ranking側の履歴除外を規則として確認した。adapterの自由度は同じにした。その条件でranking
     gradientをbaseから切り、生成側の損失を保てる合成例を実行した。

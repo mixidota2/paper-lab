@@ -63,7 +63,7 @@ sections:
 
 
     [一次資料：版を固定したPDF](https://arxiv.org/pdf/2608.09408v3)。図・表・式と実装の対応は末尾のmappingを参照。'
-  executable_understanding: '同じ既定設定に、手作りのM2風bundleを与える。有効ならIPVだけを補正し、期限切れ・範囲外・未知field・bool値ならdefaultへ戻す。既定値を全書換えしないことと、失敗したproposalが配信値に漏れないことを確認する。TTL=120、基準重み、予算2はLab独自の小さな条件であり、本番の値ではない。
+  executable_understanding: '同じ既定設定に、手作りのM2風bundleを与える。有効ならIPVの重みとscatter幅を補正し、期限切れ・範囲外・未知field・bool値ならdefaultへ戻す。既定値を全書換えしないことと、失敗したproposalが配信値に漏れないことを確認する。TTL=120、基準重み、予算2はLab独自の小さな条件であり、本番の値ではない。
 
 
     閾値0.7を超えるscoreでも予算が尽きれば呼び出さない人工traceも出す。scoreからintent品質やbusiness liftは求めない。replayの同点は報酬0になる。
@@ -114,7 +114,7 @@ teaching_figures:
     explanation: bは−2〜2のsemantic level、v̂は本番で校正した予測値。
   - name: 呼び出し
     formula: a*=1[Δ̂ ≥ λc C + λl L + μ]
-    explanation: 推定更新価値が費用・遅延・容量の価格を超えたら呼ぶ。
+    explanation: 推定更新価値が費用・遅延・容量の価格の合計以上なら呼ぶ。等号も呼び出し条件に含む。
   - name: offline報酬
     formula: r(x,a)=1[mean(E(strategy)) > mean(E(default))]
     explanation: 同点は0。取引の実測結果をofflineで生成した報酬ではない。

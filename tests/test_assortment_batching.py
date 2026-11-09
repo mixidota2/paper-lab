@@ -89,7 +89,20 @@ def baseline(path):return ast.parse(subprocess.check_output(['git','show',f'{BAS
 
 
 def test_only_assortment_block_changed_and_all_capture_calls_preserved():
-    old=baseline('tests/review_103.py');new=ast.parse((ROOT/'tests/review_103.py').read_text())
+    old=baseline('tests/review_103.py')
+    # Only the exact catalog and guide registration deltas differ beyond batching.
+    old_text=ast.unparse(old)
+    assert old_text.count('108')==9
+    old_text=old_text.replace('108','111')
+    for before,after in [
+        ("{'index.html', 'shelf-decisions.html'}", "{'index.html', 'shelf-decisions.html', 'forecast-to-replenishment.html'}"),
+        ("'theme_guides': 1, 'guide_pages': 2", "'theme_guides': 2, 'guide_pages': 3"),
+        ('111件のLab ／ 1件のテーマガイド', '111件のLab ／ 2件のテーマガイド'),
+    ]:
+        assert old_text.count(before)==1
+        old_text=old_text.replace(before,after)
+    old=ast.parse(old_text)
+    new=ast.parse((ROOT/'tests/review_103.py').read_text())
     def normalize(tree,new=False):
         tree=copy.deepcopy(tree)
         if new:

@@ -81,8 +81,11 @@ def test_regeneration_exact_and_compact():
 def test_107_sources_and_guides_preserved():
  b=json.loads((ROOT/'tests/main_107_catalog.json').read_text())
  assert b['base']=='ad841a1965bab4e19cce2aa1ed7613b71b4bf922'
- from shelf_guide_preservation import verify_preserved_source
- for path,h in b['source_hashes'].items():verify_preserved_source(ROOT,path,h)
+ from shelf_guide_preservation import GUIDE, verify_preserved_source
+ from prose_preservation import revised_hash
+ for path,h in b['source_hashes'].items():
+  # The guide's older baseline uses the exact reverse-patch chain.
+  verify_preserved_source(ROOT,path,h if path==GUIDE else revised_hash(ROOT,path,h))
  assert len(b['ids'])==107
  from catalog_expectations import assert_catalog
  ids=[p.parent.name for p in (ROOT/'papers').glob('*/lab.yaml')];assert_catalog(ids)
@@ -96,8 +99,8 @@ def test_all_old_cases_and_new_semantics(tmp_path):
  b=json.loads((ROOT/'tests/main_107_catalog.json').read_text())
  added={f'load-{P.name}-{w}' for w in (360,768,1440)}|{f'featurearc-{w}' for w in (360,768,1440)}|{'nojs-'+P.name}
  assert len(b['required_cases'])==413
- assert set(plan['required_cases'])==set(b['required_cases'])|added
- assert len(plan['required_cases'])==len(set(plan['required_cases']))==420
+ assert set(plan['required_cases'])==set(b['required_cases'])|added|{f'load-{new}-{w}' for new in ('inventory-common-threshold-history','assortment-observation-budget','trial-by-trace-evidence-boundaries') for w in (360,768,1440)}
+ assert len(plan['required_cases'])==len(set(plan['required_cases']))==429
  assert all([P.name,w] in plan['semantic_groups'] for w in (360,768,1440))
  assert plan['source_hashes']['featurearc_review.py']==hashlib.sha256((ROOT/'tests/featurearc_review.py').read_bytes()).hexdigest()
  assert (site/'downloads'/P.name/'results.json').read_bytes()==(P/'results.json').read_bytes()

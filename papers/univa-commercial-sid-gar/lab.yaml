@@ -200,7 +200,7 @@ teaching_figures:
   - label: 葉の解決
     nodes:
     - title: 複数広告 → 適格集合
-      text: I(x)と交差を取り、残った広告の最大bidで解決する。
+      text: 同じ葉を共有する広告と、その要求で配信可能な集合I(x)との共通部分を取り、残った広告のうち最大bidの広告を選ぶ。
   source: https://arxiv.org/pdf/2605.05803v2
 - kind: equations
   id: gar-math
@@ -215,7 +215,7 @@ teaching_figures:
     explanation: 上位L−1段は意味。末尾は属性群と群内binの一組。
   - name: GAR
     formula: ℓ_GAR[a] = o_gen[a] + αₗ qφ(s<l,a;x)
-    explanation: qはrequest条件付きの将来return。α=0でもRL済み生成方策は残る。
+    explanation: qは、その要求と現在のprefixで次のtokenを選んだ後に見込む将来return。α=0にすると配信時の価値加算は消えるが、RL済み生成方策は残る。
   - name: 配信
     formula: log π̃(a) = log softmax(ℓ_GAR + mₓ)[a]
     explanation: mₓは有効なら0、無効なら−∞。各prefixで正規化し、log確率の和でbeamを選ぶ。

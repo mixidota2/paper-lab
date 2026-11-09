@@ -1,6 +1,6 @@
 ### 共有表現へ二つの観測を流す
 
-Deep Twin Network は既存の multi-task shared-trunk model に holdback head を加え、各群の binary cross-entropy を群内平均して足す（Fig. 3、Eq. 4）。
+Deep Twin Network は既存の multi-task shared-trunk model に holdback head を加え、推薦あり・なしの各群で binary cross-entropy の合計をその群の件数で割り、得られた平均を足す（Fig. 3、Eq. 4）。
 
 | 更新する部分 | 学習データ |
 | --- | --- |

@@ -98,8 +98,9 @@ nodes['ep-reset'].handlers.click();process.stdout.write(JSON.stringify({pairs,co
 
 
 def test_105_source_files_and_exact_catalog_preserved():
+    from prose_preservation import revised_hash
     assert len(CURRENT['ids'])==105
-    for path,sha in CURRENT['source_hashes'].items():assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==sha,path
+    for path,sha in CURRENT['source_hashes'].items():assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==revised_hash(ROOT,path,sha),path
     ids=[p.parent.name for p in (ROOT/'papers').glob('*/lab.yaml')];assert_catalog(ids)
     with pytest.raises(AssertionError):assert_catalog([*CURRENT['ids']])
     with pytest.raises(AssertionError):assert_catalog([*CURRENT['ids'][:-1],EPISEM,'invented'])
@@ -114,7 +115,7 @@ def test_399_existing_cases_retained_and_new_gates_required(tmp_path):
     assert len(baseline['required_cases'])==399
     assert set(baseline['required_cases'])<=set(plan['required_cases'])
     assert all(g in plan['semantic_groups'] for g in baseline['semantic_groups'])
-    assert len(plan['required_cases'])==len(set(plan['required_cases']))==420
+    assert len(plan['required_cases'])==len(set(plan['required_cases']))==429
     assert {f'episem-{w}' for w in (360,768,1440)}|{'nojs-'+EPISEM}<=set(plan['required_cases'])
     assert plan['source_hashes']['episem_review.py']==hashlib.sha256((ROOT/'tests/episem_review.py').read_bytes()).hexdigest()
     report={'preflight':plan,'browser':'EXECUTED','execution_completed':True,'cases':[{'name':n,'status':'PASS'} for n in plan['required_cases']], 'events':[],'action_checks':[{'slug':s,'width':w,'status':'CONFIRMED: unit fixture only'} for s,w in plan['semantic_groups']]}
