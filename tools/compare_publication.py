@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Compare a pinned local Lab build with its public Pages bytes. Read-only GETs.
 
-Only safe-URL HTTP 502/503/504 without Retry-After get up to three attempts,
-waiting 1 then 2 seconds. Other failures and byte mismatches are terminal.
-Retry-After responses stop rather than guessing or overriding server timing.
+Only safe-URL HTTP 502/503/504 get up to three attempts, with 1/2 second
+backoff. A single valid Retry-After (delta-seconds or IMF-fixdate) may extend
+each wait to at most 5 seconds. Unsupported/ambiguous/long values stop.
+Other failures and byte mismatches are terminal.
 """
 from __future__ import annotations
 import argparse
@@ -29,9 +30,63 @@ def sha256(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
-def now():
-    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+def utc_now():
+    return datetime.datetime.now(datetime.timezone.utc)
 
+
+def now():
+    return utc_now().isoformat()
+
+
+
+def retry_after(headers, observed):
+    """Capture only Retry-After, bounded even for malformed/duplicate headers."""
+    if headers is None:
+        values = []
+    elif hasattr(headers, 'get_all'):
+        values = headers.get_all('Retry-After', [])
+    else:
+        values = [v for k, v in headers.items() if k.lower() == 'retry-after']
+    if not values:
+        return None
+    evidence = {'observed_at': observed.isoformat(), 'value_count': len(values), 'values': []}
+    for value in values[:8]:
+        text = str(value)
+        item = {'value': text[:128], 'characters': len(text), 'truncated': len(text) > 128}
+        if len(text) > 128:
+            item['sha256'] = sha256(text.encode('utf-8'))
+        evidence['values'].append(item)
+    evidence['omitted_values'] = max(0, len(values) - 8)
+    if len(values) != 1:
+        evidence['interpretation'] = 'duplicate'
+        return evidence
+    if not isinstance(values[0], str) or len(values[0]) > 128:
+        evidence['interpretation'] = 'invalid_or_too_long'
+        return evidence
+    value = values[0].strip(' 	')
+    if re.fullmatch(r'[0-9]+', value):
+        seconds = int(value)
+        evidence['format'] = 'delta-seconds'
+        deadline = observed + datetime.timedelta(seconds=min(seconds, 6))
+        if seconds > 5:
+            evidence['interpretation'] = 'exceeds_wait_limit'
+            return evidence
+    else:
+        try:
+            deadline = datetime.datetime.strptime(value, '%a, %d %b %Y %H:%M:%S GMT').replace(tzinfo=datetime.timezone.utc)
+            if deadline.strftime('%a, %d %b %Y %H:%M:%S GMT') != value:
+                raise ValueError('Noncanonical HTTP-date')
+        except ValueError:
+            evidence['interpretation'] = 'invalid_or_unsupported'
+            return evidence
+        evidence['format'] = 'IMF-fixdate'
+        seconds = max(0, (deadline - observed).total_seconds())
+        if seconds > 5:
+            evidence.update(interpretation='exceeds_wait_limit', server_not_before=deadline.isoformat())
+            return evidence
+    evidence.update(interpretation='valid', server_not_before=deadline.isoformat(),
+                    minimum_delay_seconds=seconds)
+    return evidence
 
 def safe_path(value):
     if not isinstance(value, str) or not value or '\\' in value or any(ord(c) < 32 or ord(c) == 127 for c in value):
@@ -239,7 +294,7 @@ def local_links(site, manifest):
             'external_references_not_fetched': external, 'issues': issues}
 
 
-def check(site, manifest_path, expected_manifest_sha256, out, *, fetcher=fetch, workers=4, timeout=20, sleeper=time.sleep):
+def check(site, manifest_path, expected_manifest_sha256, out, *, fetcher=fetch, workers=4, timeout=20, sleeper=time.sleep, clock=utc_now):
     if type(workers) is not int or not 1 <= workers <= 8:
         raise ValueError('Workers must be between 1 and 8')
     if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not 0 < timeout <= 60:
@@ -253,7 +308,7 @@ def check(site, manifest_path, expected_manifest_sha256, out, *, fetcher=fetch, 
         raise ValueError('Evidence output already exists')
     link_result = local_links(root, manifest)
     out.mkdir(parents=True, exist_ok=False)
-    report = {'status': 'running', 'started_at': now(), 'source_id': manifest['source_id'],
+    report = {'status': 'running', 'started_at': clock().isoformat(), 'source_id': manifest['source_id'],
               'manifest_sha256': expected_manifest_sha256, 'base_url': BASE,
               'expected_files': len(manifest['files']), 'files': [], 'links': link_result,
               'remote_file_inventory_exhaustive': False, 'published_or_updated': False,
@@ -264,11 +319,11 @@ def check(site, manifest_path, expected_manifest_sha256, out, *, fetcher=fetch, 
         temporary.replace(out / 'result.json')
     def one(entry):
         url = BASE + urllib.parse.quote(entry['path'], safe='/')
-        record = {'path': entry['path'], 'url': url, 'started_at': now(),
+        record = {'path': entry['path'], 'url': url, 'started_at': clock().isoformat(),
                   'expected_sha256': entry['sha256'], 'expected_size': entry['size']}
         record['attempts'] = []
         for number in range(1, 4):
-            attempt = {'number': number, 'started_at': now(), 'wait_seconds': 0}
+            attempt = {'number': number, 'started_at': clock().isoformat(), 'wait_seconds': 0}
             retry = False
             try:
                 raw, receipt = fetcher(url, entry['size'], timeout)
@@ -290,22 +345,29 @@ def check(site, manifest_path, expected_manifest_sha256, out, *, fetcher=fetch, 
                 attempt.update(status='fetch_failed', error=record['error'])
                 if isinstance(exc, urllib.error.HTTPError):
                     attempt['http_status'] = exc.code
+                    observed = clock()
+                    timing = retry_after(exc.headers, observed)
+                    if timing is not None:
+                        attempt['retry_after'] = timing
                     try:
                         allowed_url(exc.url)
                         if exc.code in (502, 503, 504):
-                            if exc.headers is not None and exc.headers.get('Retry-After') is not None:
+                            if timing is not None and timing['interpretation'] != 'valid':
                                 attempt['retry_decision'] = 'stop_server_retry_after'
                             elif number < 3:
                                 retry = True
+                                delay = max(number, timing['minimum_delay_seconds'] if timing else 0)
+                                attempt['wait_seconds'] = delay
+                                attempt['not_before'] = (observed + datetime.timedelta(seconds=delay)).isoformat()
+                                attempt['wait_reason'] = 'server_and_backoff' if timing else 'backoff'
                             else:
                                 attempt['retry_decision'] = 'stop_attempt_limit'
                     except (ValueError, TypeError):
                         attempt['retry_decision'] = 'stop_unsafe_error_url'
                     finally:
                         exc.close()
-            attempt['finished_at'] = now()
+            attempt['finished_at'] = clock().isoformat()
             attempt.setdefault('retry_decision', 'retry_transient_http' if retry else 'stop')
-            attempt['wait_seconds'] = number if retry else 0
             record['attempts'].append(attempt)
             if record['status'] != 'fetch_failed':
                 record.pop('error', None)
@@ -317,8 +379,16 @@ def check(site, manifest_path, expected_manifest_sha256, out, *, fetcher=fetch, 
             temporary.replace(ledger)
             if not retry:
                 break
-            sleeper(number)
-        record['finished_at'] = now()
+            sleeper(attempt['wait_seconds'])
+            attempt['wait_finished_at'] = clock().isoformat()
+            if 'retry_after' in attempt and clock() < datetime.datetime.fromisoformat(attempt['not_before']):
+                attempt['retry_decision'] = 'stop_clock_before_deadline'
+                retry = False
+            temporary.write_text(json.dumps(record, ensure_ascii=False, sort_keys=True, indent=2) + '\n', encoding='utf-8')
+            temporary.replace(ledger)
+            if not retry:
+                break
+        record['finished_at'] = clock().isoformat()
         return record
     save()
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
@@ -330,7 +400,7 @@ def check(site, manifest_path, expected_manifest_sha256, out, *, fetcher=fetch, 
     report['files'].sort(key=lambda item: item['path'])
     counts = {status: sum(item['status'] == status for item in report['files']) for status in ('match', 'mismatch', 'fetch_failed')}
     report['counts'] = counts
-    report['finished_at'] = now()
+    report['finished_at'] = clock().isoformat()
     try:
         report['expected_build_unchanged'] = make_manifest(root, manifest['source_id']) == manifest
     except (ValueError, OSError) as exc:
