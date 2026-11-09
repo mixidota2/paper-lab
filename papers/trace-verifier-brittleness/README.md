@@ -32,18 +32,21 @@ run.pyは標準ライブラリのみで単体実行可能。results.jsonとexper
 
 ## 通常テストと実ブラウザーでの検査
 
-`tests/test_trace_lab.py` がrun.pyの4件の数値・不変性テストを通常のpytestから収集する。生成したresults.jsonとexperiment.mdが保存版に一致することも検査する。
+公開前の必須検査は、ルートREADMEの「生成と検証」に従う通常のpytest、全Labのビルド、静的preflightです。実ブラウザー検査は任意です。既存の「PR macOS Chrome review」は名前を保持していますが、現在のworkflowが実行するのはこの3つの検査で、Chromeは起動しません。
+
+TRACE固有の検査では、`tests/test_trace_lab.py`がrun.pyの4件の数値・不変性テストを通常のpytestから収集し、生成したresults.jsonとexperiment.mdが保存版に一致することも検査します。`tests/test_trace_integration.py`は実際のインラインJavaScriptをNodeで動かし、12条件と初期化を検査します。DOMの代用品を使うため、画面やキーボード操作の検証ではありません。
+
+ローカルでビルドと静的preflightを行う場合は、毎回新しい専用ディレクトリを作ります。以下はリポジトリのルートで実行する例です。
 
 ```bash
-uv sync --locked --extra dev --python 3.12
-uv run --locked pytest -q -ra --fail-on-skip
-uv run --locked paper-lab build --out /tmp/paper-lab-trace-105
+review_dir=$(mktemp -d "${TMPDIR:-/tmp}/paper-lab-trace.XXXXXX")
+uv run --locked paper-lab build --out "$review_dir/site"
 uv run --locked python tests/review_103.py --preflight \
-  --site /tmp/paper-lab-trace-105 --out /tmp/trace-preflight-new
+  --site "$review_dir/site" --out "$review_dir/preflight"
 ```
 
-最新mainの104件を保持し、TRACEを加えた105件をビルドする。出力先は毎回新しいパスにする。事前検査はブラウザーを起動しない。`tests/test_trace_integration.py` は実際のインラインJavaScriptをNodeで動かし、12条件と初期化を検査するが、DOMの代用品を使うため画面・キーボード操作の検証ではない。
+全papers/を入力にし、限定したビルドで既存サイトを上書きしないでください。ビルドは出力先を作り直すため、既存の成果物があるパスを指定しません。preflightの出力先も、ビルド先とは別の未作成パスにします。静的preflightはブラウザーを起動しません。
 
-実ブラウザー検査は既存のPR macOS Chrome reviewから実行する。`tests/review_103.py` が署名・loopback CDP・Seatbeltを確認したChromeで、`tests/trace_review.py` の検査を呼ぶ。360・390・768・1440pxの各幅で12条件の点数・操作列・hash・棒の幅、初期化、キー操作を検査し、JavaScript無効時の初期表示も確認する。全サイトの内部リンク検査と、TRACE専用の必須検査を独立レポート判定に含める。
+保護付きmacOS Chromeを利用できる場合は、`tests/review_103.py --run`による実ブラウザー検査を任意で行えます。スクリプトは署名・loopback CDP・Seatbeltを確認してから、`tests/trace_review.py`の検査を呼びます。TRACEでは360・390・768・1440pxの各幅で12条件の点数・操作列・hash・棒の幅、初期化、キー操作を検査し、JavaScript無効時の初期表示も確認します。全サイトの内部リンク検査とTRACE固有の検査結果を記録します。この手順の記載は、現在の版で実行済みであることを意味しません。
 
-旧 `tests/browser_trace.py` のLinux起動は使わない。以前のsandbox無効での48条件の結果は、今回の合格証拠にしない。保護確認に失敗した場合は停止し、設定・権限の変更や別の起動経路で回避しない。ローカルの数値・JavaScript・事前検査の成功と、macOS実ブラウザーの成功は別々に記録する。外部リンクの到達性、全文の目視、公開URLの版一致も別の確認事項である。
+旧`tests/browser_trace.py`のLinux起動は使いません。以前のsandbox無効での48条件の結果を、現在の版の合格証拠にはしません。保護確認に失敗した場合は停止し、設定・権限の変更や別の起動経路で回避しません。数値・JavaScript・静的preflightの結果と実ブラウザーの結果は分け、実施していない検査は未実施と記録します。外部リンクの到達性、全文の目視、公開URLの版一致も別の確認事項です。
