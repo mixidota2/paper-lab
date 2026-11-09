@@ -75,7 +75,7 @@ def test_persistent_503_stops_at_three(tmp_path):
 
 @pytest.mark.parametrize('event', [
     (401, {}, None), (403, {}, None), (404, {}, None), (429, {}, None),
-    (500, {}, None), (503, {'Retry-After': '1'}, None),
+    (500, {}, None), (503, {'Retry-After': '6'}, None),
     (503, {'Retry-After': 'invalid'}, None),
     (503, {}, 'https://evil.invalid/x'), 'unsafe',
     b'<html>wrong!', TimeoutError('fixture'), ValueError('security violation'),
