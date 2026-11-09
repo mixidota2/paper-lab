@@ -28,6 +28,8 @@ def test_other_223_reviewed_prose_identities_are_unchanged():
         'after_blob': 'b5d820348e5418ee871c2139f4df507fb0fa4114',
         'after_sha256': '3fe2874e280af9b28c8ab19b45cb783eb6c9b2ff3aead902ebbbcd3380cf0e9d',
     }
+    # Pin the TRACE verification-doc correction separately; all 223 older entries stay unchanged.
+    assert original.pop('papers/trace-verifier-brittleness/README.md') == {'before_blob': '02824c799f843bd169933214afa6975fc9accc35', 'before_sha256': '82438c30f9e8197ea73719b81218f4320ae9bb272343e762e013534631b82db9', 'after_blob': '8ce0e685d1b76f1c5afb05bdf2327e74ea563d30', 'after_sha256': 'e96ba74dafbdff21d7d338f3bc45ec0b4d8e4bccf5b4bcea1056ae034743d6e5'}
     assert len(original) == 223
     canonical = json.dumps(original, sort_keys=True, separators=(',', ':')).encode()
     assert hashlib.sha256(canonical).hexdigest() == '1b67a628b52a403a6e94d9db30ef9888e23f09874a189ad767435b33dfe5c363'
