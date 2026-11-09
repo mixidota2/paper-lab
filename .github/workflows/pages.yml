@@ -101,6 +101,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: publication-evidence
+          include-hidden-files: true
           path: |
             publication-evidence/
             publication-diagnostics/
