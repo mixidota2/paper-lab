@@ -20,6 +20,14 @@ def manifest():
 
 def test_other_223_reviewed_prose_identities_are_unchanged():
     original = {p:r for p,r in manifest()['files'].items() if p not in BEFORE}
+    # PR20 adds one independently pinned guide revision; preserve all 223
+    # pre-existing identities and their canonical digest below.
+    assert original.pop('guides/shelf-decisions.md') == {
+        'before_blob': '3ced96fe9801736168f6e08a28707390f3325af2',
+        'before_sha256': '2657bd4b13da54ebbd1539a700d2b291be5e8db3976ee4d3b833271c11098184',
+        'after_blob': 'b5d820348e5418ee871c2139f4df507fb0fa4114',
+        'after_sha256': '3fe2874e280af9b28c8ab19b45cb783eb6c9b2ff3aead902ebbbcd3380cf0e9d',
+    }
     assert len(original) == 223
     canonical = json.dumps(original, sort_keys=True, separators=(',', ':')).encode()
     assert hashlib.sha256(canonical).hexdigest() == '1b67a628b52a403a6e94d9db30ef9888e23f09874a189ad767435b33dfe5c363'
