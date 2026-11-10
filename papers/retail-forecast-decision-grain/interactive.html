@@ -1,5 +1,5 @@
 <section id="grain-lab" aria-label="集計順序と発注費用の合成実験">
-<style>#grain-lab{max-width:100%;overflow-wrap:anywhere}#grain-lab .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:1rem}#grain-lab label{display:block;margin:.6rem 0}#grain-lab input,#grain-lab select,#grain-lab button{font:inherit;max-width:100%}#grain-lab pre{white-space:pre-wrap}#grain-lab .bar{height:.8rem;background:#26776d;max-width:100%}</style>
+<style>#grain-lab{max-width:100%;overflow-wrap:anywhere}#grain-lab .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:1rem}#grain-lab label{display:block;margin:.6rem 0}#grain-lab input,#grain-lab select,#grain-lab button,#grain-lab textarea{font:inherit;max-width:100%}#grain-lab pre{white-space:pre-wrap}#grain-lab .bar{height:.8rem;background:#26776d;max-width:100%}</style>
 <p>以下は著者の学習済みモデルを使わない自作例です。A・Bは仮の予測であり、特定手法の名前ではありません。すべて小さいほど良い費用として比較します。最初は商品ごとに1期、次は1窓1値の説明例で、一般の多期間Eq.7全体の実装ではありません。</p>
 <div class="grid"><fieldset><legend>1．ゼロ売上と集計粒度</legend>
 <p>実績は[100,第2商品の売上]、予測Aは[90,Aの第2予測]、Bは[80,0]。単価は両方1、歴史的金額の重みは等分です。</p>
@@ -20,5 +20,12 @@
 窓平均 A=0.5、B=0.05。pool A=1/101、B=10/101。
 単期発注損失=8（不足2×単価4）。いずれも自作合成例。</pre>
 <div id="grain-bars" aria-label="訂正式の費用比較"></div><p id="grain-error" role="alert"></p>
+<fieldset><legend>条件を保存して比較を再開</legend>
+<p>現在の入力条件と合成例の計算結果をJSONに保存します。読み込み時は条件から再計算し、保存されていた結果値は使いません。原著モデルの予測や実験結果を保存する機能ではありません。外部への送信はありません。</p>
+<button id="grain-download" type="button" disabled>現在の条件をJSON保存</button>
+<label>保存したJSONを貼り付ける <textarea id="grain-json" rows="8" spellcheck="false" disabled></textarea></label>
+<button id="grain-import" type="button" disabled>JSONの条件を読み込む</button>
+<p id="grain-transfer-status" role="status"></p>
+</fieldset>
 <noscript><p>JavaScriptが無効なため初期結果のみ表示しています。条件は変更できません。</p></noscript>
 </section>

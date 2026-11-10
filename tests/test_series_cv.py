@@ -271,3 +271,46 @@ def test_table3_transcription_matches_supplied_published_display_fixture():
     assert table['rows']==expected
     assert table['published_mean']==[.864,.858,.877,.857,.863,.859,.883]
     assert m.sensitivity('Holdout',False)['published_full_mean']==.858
+
+
+
+def test_q_text_underflow_never_becomes_valid_zero(tmp_path):
+    """Actual UI parsing must distinguish an unrepresentable Q from explicit zero."""
+    nodes=Controls((SOURCE/'interactive.html').read_text()).nodes
+    nodes['scv-table-data']={'textContent':(SOURCE/'table3.json').read_text()}
+    fixture={'nodes':nodes,'model':str(SOURCE/'model.js'),'ui':str(SOURCE/'interactive.js')}
+    code=r"""
+const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
+const f=FIXTURE,blobs=[];
+for(const n of Object.values(f.nodes)){n.events={};n.addEventListener=(e,fn)=>n.events[e]=fn;}
+const ctx={document:{getElementById:id=>f.nodes[id],createElement:()=>({click(){}})},
+ Blob:class{constructor(parts){this.text=parts.join('');}},
+ URL:{createObjectURL:b=>{blobs.push(b);return 'blob:test';},revokeObjectURL(){}}};
+vm.createContext(ctx);vm.runInContext(fs.readFileSync(f.model,'utf8'),ctx);
+vm.runInContext(fs.readFileSync(f.ui,'utf8'),ctx);
+const get=k=>f.nodes['scv-'+k],setQ=q=>{get('q').value=q;get('q').events.input();};
+const invalid=['1e-400','-1e-400','+1e-400','0.01e-400','.00001E-400',' 1e-400 ','1.00e-400','-0.01e-400'];
+for(const q of invalid){
+ setQ(q);assert.equal(get('download').disabled,true,'underflow must block saving: '+q);
+ assert.ok(get('error').textContent,'underflow must explain invalid input: '+q);
+ assert.equal(get('out').textContent,'入力不正：結果を保留');
+ const n=blobs.length;get('download').events.click();assert.equal(blobs.length,n);
+ // Recovery must work without reloading after each failed input.
+ setQ('auto');assert.equal(get('download').disabled,false);assert.equal(get('error').textContent,'');
+}
+for(const q of ['0','-0','+0','0e-400','-0.000E-400',' 0.000e+400 ']){
+ setQ(q);assert.equal(get('download').disabled,false,'explicit zero remains valid: '+q);
+ get('download').events.click();const saved=JSON.parse(blobs.at(-1).text);
+ assert.equal(saved.toy.Q,0);assert.equal(saved.toy.MASE,null);
+}
+for(const q of ['1e-308','1e-3','100','1.25e1']){
+ setQ(q);assert.equal(get('download').disabled,false,'representable Q remains valid: '+q);
+ get('download').events.click();const saved=JSON.parse(blobs.at(-1).text);
+ assert.equal(saved.toy.Q,Number(q));assert.ok(Number.isFinite(saved.toy.MASE));
+}
+setQ('5e-324');assert.equal(get('download').disabled,true); // Existing overflow guard remains.
+get('reset').events.click();assert.equal(get('q').value,'auto');assert.equal(get('download').disabled,false);
+console.log('Q text parser: 8 underflow cases, 6 explicit-zero cases, 4 finite cases, recovery and existing overflow guard');
+""".replace('FIXTURE',json.dumps(fixture,ensure_ascii=False))
+    script=tmp_path/'q-underflow.cjs';script.write_text(code)
+    subprocess.run(['node',str(script)],check=True)

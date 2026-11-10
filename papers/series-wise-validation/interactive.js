@@ -2,7 +2,15 @@
 const fmt=v=>v===null?'未定義':Number(v.toPrecision(8)).toString();
 const labels={fit:'学習ラベル',inner:'内側検証',outer:'外側検証',test:'最終test',unused:'選択対象外'};
 const colors={fit:'#b9dacb',inner:'#f7d085',outer:'#c3b1e1',test:'#efb4b0',unused:'#e6e9ed'};
-function render(){try{const scheme=get('scheme').value,stage=get('stage').value,s=get('series').value,o=Number(get('origin').value);if(!['inner','outer','final'].includes(stage)||!Number.isInteger(o)||o<92||o>96||get('origin').value.trim()===''||s.length!==1||!'ABCDEFGHIJ'.includes(s))throw Error('系列とorigin（92〜96の整数）を確認してください。');const qv=get('q').value;if(qv!=='auto'&&(qv.trim()===''||!Number.isFinite(Number(qv))||Number(qv)<0||Number(qv)>100))throw Error('Qはautoまたは0〜100の有限数です。');const toy=M.evaluate(undefined,scheme,qv==='auto'?null:Number(qv)),sensitivity=M.sensitivity(table,get('method').value,get('weather').checked),r=toy.records.find(r=>r.series===s&&r.origin===o);const co=stage==='inner'?84:stage==='outer'?88:o,eligible=stage==='final'||(stage==='inner'?'ABCDE':scheme==='series'?'FG':'ABCDE').includes(s);
+function parseQ(text){
+ if(text==='auto')return null;
+ const q=Number(text);
+ if(text.trim()===''||!Number.isFinite(q)||q<0||q>100)throw Error('Qはautoまたは0〜100の有限数です。');
+ // A nonzero decimal coefficient must not silently underflow to explicit Q=0.
+ if(q===0&&/[1-9]/.test(text.trim().split(/[eE]/)[0]))throw Error('Qが小さすぎて0になります。値を大きくして入力してください。');
+ return q;
+}
+function render(){try{const scheme=get('scheme').value,stage=get('stage').value,s=get('series').value,o=Number(get('origin').value);if(!['inner','outer','final'].includes(stage)||!Number.isInteger(o)||o<92||o>96||get('origin').value.trim()===''||s.length!==1||!'ABCDEFGHIJ'.includes(s))throw Error('系列とorigin（92〜96の整数）を確認してください。');const q=parseQ(get('q').value);const toy=M.evaluate(undefined,scheme,q),sensitivity=M.sensitivity(table,get('method').value,get('weather').checked),r=toy.records.find(r=>r.series===s&&r.origin===o);const co=stage==='inner'?84:stage==='outer'?88:o,eligible=stage==='final'||(stage==='inner'?'ABCDE':scheme==='series'?'FG':'ABCDE').includes(s);
 let cells='';for(let i=0;i<10;i++)for(let t=1;t<=100;t++){const id='ABCDEFGHIJ'[i],role=M.role(id,t,stage,scheme),context=eligible&&id===s&&t>co-8&&t<=co;cells+=`<rect x="${40+(t-1)*8}" y="${28+i*24}" width="8" height="20" fill="${colors[role]}" ${context?'stroke="#174e9a" stroke-width="2"':''}><title>${id} t${t}：${labels[role]}${context?'／予測入力context（学習用途とは別）':''}</title></rect>`;}
 const names=[...'ABCDEFGHIJ'].map((s,i)=>`<text x="10" y="${43+i*24}">${s}</text>`).join(''),ticks=[1,8,80,84,88,92,96,100].map(t=>`<text x="${40+(t-1)*8}" y="18" font-size="9">${t}</text>`).join('');
 get('split').innerHTML=`<svg viewBox="0 0 850 275" role="img" aria-label="系列A〜J、時点1〜100の分割とcontext。下の文字説明も参照">${names}${ticks}${cells}</svg>`;

@@ -183,7 +183,7 @@ for(let repeat=0;repeat<3;repeat++){
  assert.equal(n('bars').innerHTML,'');assert(!n('out').textContent.includes('未定義（分母0）'));
  fault=false;n('reset').events.click();assert.equal(n('out').textContent,initial);assert.equal(n('error').textContent,'');
 }
-// This UI has no download control; saved results and distributed model are tested separately.
-assert(!html.includes('download='));
+// Scenario saving is separate from static results; disabled during numeric failure.
+assert(html.includes('id="grain-download"'));
 '''
     subprocess.run(['node','-e',script,str(P)],check=True)
