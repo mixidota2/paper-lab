@@ -14,7 +14,7 @@ uv run --locked pytest -q -ra --fail-on-skip tests/test_series_cv.py
 uv run --locked python -m paper_lab.build --out /tmp/series-cv-preview
 ```
 
-保存JSONはoriginごとの予測・実績・誤差、contextと対象時点、選択結果、共通Qを含みます。UIのJSON保存では同じ合成結果と公表表の感度集計を別キーに分けます。原著の実行ログではありません。ダウンロードしたrun.pyには、同じディレクトリのtable3.jsonが必要です。
+保存JSONはoriginごとの予測・実績・誤差、contextと対象時点、選択結果、共通Qを含みます。UIのJSON保存では同じ合成結果と公表表の感度集計を別キーに分けます。原著の実行ログではありません。 ファイルを取得できない場合も、JSON保存ボタンを押すと同じ内容が画面の読み取り専用欄に表示されます。全内容をコピーして保存してください。条件変更・不正入力・初期化では、古い結果と混同しないよう欄を空にします。ダウンロードしたrun.pyには、同じディレクトリのtable3.jsonが必要です。
 
 ## 何を確認する教材か
 
