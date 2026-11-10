@@ -1,10 +1,13 @@
 """Mapping diagnostics on real user-supplied JSON or a declared six-item fixture.
 Usage: uv run run.py --mapping map.json --previous old.json --pairs pairs.json
 map.json: {"item_id": [0,1,2], ...}; pairs.json: [["a","b",weight], ...].
+Weights must be finite nonnegative numbers, not booleans. Unknown item pairs
+are excluded; zero total eligible weight has undefined alignment (JSON null).
 This is an independent subset of SIDScope, not its official implementation.
 """
 import argparse, hashlib, json, math
 from collections import Counter, defaultdict
+from fractions import Fraction
 from pathlib import Path
 
 def validate(mapping):
@@ -13,19 +16,38 @@ def validate(mapping):
     if len(lengths)!=1 or min(lengths)<1:raise ValueError('fixed nonzero SID depth required')
     if any(not isinstance(v,list) or any(not isinstance(x,int) or isinstance(x,bool) or x<0 for x in v) for v in mapping.values()):raise ValueError('SID levels must be nonnegative integers')
 
+def eligible_pairs(mapping, pairs):
+    if not isinstance(pairs, (list, tuple)):
+        raise ValueError('pairs must be a list of [item_id, item_id, weight]')
+    eligible = []
+    for index, pair in enumerate(pairs):
+        if not isinstance(pair, (list, tuple)) or len(pair) != 3:
+            raise ValueError(f'pairs[{index}] must contain two item IDs and a weight')
+        a, b, weight = pair
+        if not isinstance(a, str) or not isinstance(b, str):
+            raise ValueError(f'pairs[{index}] item IDs must be strings')
+        if (type(weight) not in (int, float) or weight < 0 or
+                (isinstance(weight, float) and not math.isfinite(weight))):
+            raise ValueError(f'pairs[{index}] weight must be finite and nonnegative')
+        # Validate even excluded pairs. Exact sums avoid overflow from large,
+        # individually finite weights; the final bounded ratio is a JSON number.
+        if a in mapping and b in mapping:
+            eligible.append((a, b, Fraction(weight)))
+    return eligible
+
 def diagnose(mapping,pairs=(),previous=None):
     validate(mapping); n=len(mapping); depth=len(next(iter(mapping.values())))
+    weights=eligible_pairs(mapping,pairs)
+    denominator=sum(w for a,b,w in weights)
     leaves=Counter(tuple(s) for s in mapping.values())
     profiles=[]
     for k in range(1,depth+1):
         counts=Counter(tuple(s[:k]) for s in mapping.values()); total=sum(counts.values())
         entropy=-sum((v/total)*math.log2(v/total) for v in counts.values())
-        weights=[(a,b,w) for a,b,w in pairs if a in mapping and b in mapping]
-        denominator=sum(w for a,b,w in weights)
         aligned=sum(w for a,b,w in weights if mapping[a][:k]==mapping[b][:k])
         fanout=defaultdict(set)
         for s in mapping.values():fanout[tuple(s[:k-1])].add(s[k-1])
-        profiles.append({'depth':k,'active_prefixes':len(counts),'entropy_bits':round(entropy,6),'collision_item_rate':sum(v for v in counts.values() if v>1)/n,'weighted_prefix_alignment':aligned/denominator if denominator else None,'max_fanout':max(map(len,fanout.values()))})
+        profiles.append({'depth':k,'active_prefixes':len(counts),'entropy_bits':round(entropy,6),'collision_item_rate':sum(v for v in counts.values() if v>1)/n,'weighted_prefix_alignment':float(aligned/denominator) if denominator else None,'max_fanout':max(map(len,fanout.values()))})
     common=set(mapping)&set(previous or {})
     return {'items':n,'unique_leaves':len(leaves),'collision_item_rate':sum(v for v in leaves.values() if v>1)/n,'duplicate_SID_rate':1-len(leaves)/n,'profiles':profiles,'common_items':len(common),'code_churn':sum(mapping[i]!=previous[i] for i in common)/len(common) if common else None,'D4':'NOT TESTED: popularity input omitted','generator_handoff':'NOT TESTED: mapping alone cannot validate checkpoint reuse'}
 
@@ -71,4 +93,5 @@ if __name__=='__main__':
         mapping=json.loads(a.mapping.read_text()); previous=json.loads(a.previous.read_text()) if a.previous else None;pairs=json.loads(a.pairs.read_text()) if a.pairs else []
         result={'input_sha256':hashlib.sha256(a.mapping.read_bytes()).hexdigest(),'diagnostics':diagnose(mapping,pairs,previous)}
     else:result=compute()
-    a.out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');print(json.dumps(result,ensure_ascii=False,indent=2))
+    text=json.dumps(result,ensure_ascii=False,indent=2,allow_nan=False)
+    a.out.write_text(text+'\n');print(text)
