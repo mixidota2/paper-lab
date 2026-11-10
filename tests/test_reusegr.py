@@ -114,16 +114,16 @@ def test_actual_ui_static_controls_events_json_invalid_reset_failure(tmp_path):
     assert all(nodes['rg-'+k]['disabled'] for k in ids)
     assert '<noscript>' in html and 'overflow-x:auto' in html and 'min-width:520px' in html
     code=r"""const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
-const fixture=FIXTURE, blobs=[],anchors=[],revoked=[];
+const fixture=FIXTURE, blobs=[],anchors=[],revoked=[],timers=[];
 function setup(fail){const nodes=structuredClone(fixture);for(const [id,n] of Object.entries(nodes)){n.events={};n.addEventListener=(ev,fn)=>{if(fail===id)throw Error('registration');n.events[ev]=fn;};}
-const ctx={document:{getElementById:id=>nodes[id],createElement:()=>({click(){anchors.push({...this});}})},Blob:class{constructor(a,o){this.text=a.join('');this.type=o.type;}},URL:{createObjectURL:b=>{blobs.push(b);return 'blob:local';},revokeObjectURL:u=>revoked.push(u)}};
+const ctx={setTimeout:(fn,ms)=>{assert.equal(ms,1000);timers.push(fn);},document:{getElementById:id=>nodes[id],createElement:()=>({click(){anchors.push({...this});}})},Blob:class{constructor(a,o){this.text=a.join('');this.type=o.type;}},URL:{createObjectURL:b=>{blobs.push(b);return 'blob:local';},revokeObjectURL:u=>revoked.push(u)}};
 vm.createContext(ctx);return {ctx,nodes};}
 const model=fs.readFileSync(MODEL,'utf8'),ui=fs.readFileSync(UI,'utf8');
 const {ctx,nodes}=setup(),get=k=>nodes['rg-'+k];vm.runInContext(model+'\n'+ui,ctx);
 const m=require(MODEL);
 for(const k of ['route','rank','budget-result','mix','preset-note','metric-label'])assert.equal(get(k).textContent,fixture['rg-'+k].textContent,k);
 function fire(k,v,e='change'){get(k).value=String(v);get(k).events[e]();}
-function save(){const n=blobs.length;get('download').events.click();assert.equal(blobs.length,n+1);const v=JSON.parse(blobs.at(-1).text);assert.equal(blobs.at(-1).type,'application/json');assert.equal(anchors.at(-1).download,'query-prefix-reuse-synthetic.json');assert.equal(revoked.at(-1),'blob:local');
+function save(){const n=blobs.length;get('download').events.click();assert.equal(blobs.length,n+1);const v=JSON.parse(blobs.at(-1).text);assert.equal(blobs.at(-1).type,'application/json');assert.equal(anchors.at(-1).download,'query-prefix-reuse-synthetic.json');assert.equal(revoked.length,n);timers.shift()();assert.equal(revoked.at(-1),'blob:local');assert.equal(get('json').value,blobs.at(-1).text);
 assert.deepEqual(v.toy,m.toy(v.toy.input.prepared,v.toy.input.depth,v.toy.input.query,v.toy.input.history,v.toy.input.budget));assert.deepEqual(v.projection,m.projection(v.projection.p));assert.equal(v.synthetic,true);assert.equal(v.model_version,m.version);assert(Object.values(v.projection).every(x=>typeof x!=='number'||Number.isFinite(x)));assert(!JSON.stringify(v.toy).includes('null')); return v;}
 save();for(const p of ['yes','no'])for(const d of [0,1,3])for(const b of [0,4,8]){fire('prepared',p);fire('depth',d);fire('history','right');fire('query','narrow');fire('budget',b,'input');save();}
 for(let k=0;k<6;k++){fire('preset',k);assert.equal(get('p').value,String(m.presets[k].p));assert.equal(save().preset.name,m.presets[k].name);}
@@ -148,3 +148,88 @@ def test_renderer_links_mapping_and_source_boundaries():
     for phrase in ['頻度表','採点した後','別の0.5B','原著ではd=3','query-macro']:
         assert phrase in text
     assert 'logged query-match mask' in (SOURCE/'README.md').read_text()
+
+
+@pytest.mark.parametrize('failure', [None, 'blob-missing', 'blob-throws', 'url-missing',
+                                    'url-throws', 'anchor-throws', 'click-throws', 'revoke-throws'])
+def test_export_fallback_download_failures_and_recovery(tmp_path, failure):
+    """Run the real export handler; simulated APIs do not prove a native download."""
+    html = (SOURCE/'interactive.html').read_text()
+    nodes = Controls(html).nodes
+    assert 'readonly disabled spellcheck="false"' in html
+    assert 'id="rg-export-status" role="status"' in html
+    assert nodes['rg-json']['disabled']
+    fixture = dict(nodes=nodes, model=str(SOURCE/'model.js'), ui=str(SOURCE/'interactive.js'), failure=failure)
+    code = r"""
+const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm'),f=FIXTURE;
+const nodes=f.nodes,blobs=[],anchors=[],created=[],revoked=[],timers=[];let failure=f.failure;
+for(const n of Object.values(nodes)){n.events={};n.addEventListener=(e,fn)=>n.events[e]=fn;}
+const n=k=>nodes['rg-'+k],M=require(f.model);
+const ctx={document:{getElementById:id=>nodes[id],createElement(tag){assert.equal(tag,'a');if(failure==='anchor-throws')throw Error('anchor');const a={click(){if(failure==='click-throws')throw Error('click');}};anchors.push(a);return a;}},
+ setTimeout(fn,ms){assert.equal(ms,1000);timers.push(fn);}};
+function install(){
+ if(failure==='blob-missing')delete ctx.Blob;
+ else ctx.Blob=class{constructor(parts,options){if(failure==='blob-throws')throw Error('blob');this.text=parts.join('');this.type=options.type;blobs.push(this);}};
+ if(failure==='url-missing')delete ctx.URL;
+ else ctx.URL={createObjectURL(){if(failure==='url-throws')throw Error('url');const id='blob:'+created.length;created.push(id);return id;},revokeObjectURL(url){revoked.push(url);if(failure==='revoke-throws')throw Error('revoke');}};
+}
+install();vm.createContext(ctx);vm.runInContext(fs.readFileSync(f.model,'utf8')+'\n'+fs.readFileSync(f.ui,'utf8'),ctx);
+assert.equal(n('json').value,'');assert.equal(n('json').disabled,true);
+const expected={synthetic:true,model_version:M.version,toy:M.toy(),projection:M.projection(1),preset:M.presets[0],metric:'hr'};
+const output=n('rank').textContent;
+assert.doesNotThrow(()=>n('download').events.click());
+assert.equal(n('json').disabled,false);assert.deepEqual(JSON.parse(n('json').value),expected);
+assert.equal(n('error').textContent,'');assert.equal(n('rank').textContent,output);
+assert(!n('export-status').textContent.includes('保存しました'));
+if(failure&&failure!=='revoke-throws')assert(n('export-status').textContent.includes('開始できません'));
+else assert(n('export-status').textContent.includes('用意しました'));
+assert.equal(revoked.length,0);assert.equal(timers.length,created.length);
+while(timers.length)assert.doesNotThrow(()=>timers.shift()());
+assert.deepEqual(revoked,created); // URLs are cleaned even after anchor/click failure.
+if(blobs.length){assert.equal(blobs[0].type,'application/json');assert.equal(blobs[0].text,n('json').value);}
+// The same page can retry after an unavailable download API recovers.
+failure=null;install();n('download').events.click();
+assert.equal(anchors.at(-1).download,'query-prefix-reuse-synthetic.json');
+assert.equal(n('json').value,blobs.at(-1).text);assert(n('export-status').textContent.includes('用意しました'));
+while(timers.length)timers.shift()();assert.deepEqual(revoked,created);
+""".replace('FIXTURE', json.dumps(fixture, ensure_ascii=False))
+    runner = tmp_path/'export-fallback.cjs'
+    runner.write_text(code)
+    subprocess.run(['node', str(runner)], check=True)
+
+
+def test_export_edit_reset_invalid_and_out_of_order_cleanup(tmp_path):
+    fixture = dict(nodes=Controls((SOURCE/'interactive.html').read_text()).nodes,
+                   model=str(SOURCE/'model.js'), ui=str(SOURCE/'interactive.js'))
+    code = r"""
+const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm'),f=FIXTURE;
+const nodes=f.nodes,timers=[],blobs=[],revoked=[];const n=k=>nodes['rg-'+k];
+for(const node of Object.values(nodes)){node.events={};node.addEventListener=(e,fn)=>node.events[e]=fn;}
+const ctx={document:{getElementById:id=>nodes[id],createElement:()=>({click(){}})},
+ Blob:class{constructor(parts){this.text=parts.join('');}},
+ URL:{createObjectURL(b){blobs.push(b);return 'blob:'+blobs.length;},revokeObjectURL(u){revoked.push(u);}},
+ setTimeout(fn){timers.push(fn);}};
+vm.createContext(ctx);vm.runInContext(fs.readFileSync(f.model,'utf8')+'\n'+fs.readFileSync(f.ui,'utf8'),ctx);
+function cleared(){assert.equal(n('json').value,'');assert.equal(n('json').disabled,true);assert.equal(n('export-status').textContent,'');}
+for(const event of ['input','change'])for(const [id,value] of [['prepared','no'],['depth','3'],['query','narrow'],['history','right'],['budget','0'],['preset','2'],['p','36.87'],['metric','recall']]){
+ n('reset').events.click();n('download').events.click();assert(n('json').value);
+ n(id).value=value;n(id).events[event]();cleared();
+ n('download').events.click();assert.equal(n('json').value,blobs.at(-1).text);
+}
+// Repeated saves may finish cleanup in any order without erasing newer JSON/status.
+n('download').events.click();const newest=n('json').value,status=n('export-status').textContent;
+assert.equal(revoked.length,0);while(timers.length)timers.pop()();
+assert.equal(new Set(revoked).size,blobs.length);assert.equal(n('json').value,newest);assert.equal(n('export-status').textContent,status);
+for(const value of ['', '-1', '9', '.5']){
+ n('budget').value=value;n('budget').events.input();cleared();assert.equal(n('download').disabled,true);
+ const before=blobs.length;n('download').events.click();assert.equal(blobs.length,before);cleared();
+ n('reset').events.click();cleared();assert.equal(n('download').disabled,false);
+ n('download').events.click();assert.equal(JSON.parse(n('json').value).toy.input.budget,4);
+}
+for(let i=0;i<3;i++){n('reset').events.click();cleared();}
+// Old cleanup after a reset has no authority to restore or alter the cleared fallback.
+while(timers.length)timers.shift()();cleared();
+""".replace('FIXTURE', json.dumps(fixture, ensure_ascii=False))
+    runner = tmp_path/'export-interruptions.cjs'
+    runner.write_text(code)
+    subprocess.run(['node', str(runner)], check=True)

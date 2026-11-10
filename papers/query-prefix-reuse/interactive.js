@@ -6,6 +6,7 @@ const controls=['prepared','depth','query','history','budget','preset','p','metr
 let saved=null;
 function number(id){const s=get(id).value;if(s.trim()==='')throw Error('空の数値入力');return Number(s);}
 function render(){
+ get('json').value='';get('json').disabled=true;get('export-status').textContent='';
  try {
   const prepared=get('prepared').value;
   if(!['yes','no'].includes(prepared))throw Error('準備状態が不正');
@@ -37,7 +38,22 @@ for(const id of controls)for(const event of ['input','change'])get(id).addEventL
  if(id==='p')get('preset').value='custom';render();
 });
 get('reset').addEventListener('click',reset);
-get('download').addEventListener('click',()=>{if(!saved)return;const b=new Blob([JSON.stringify(saved,null,2)+'\n'],{type:'application/json'}),url=URL.createObjectURL(b),a=document.createElement('a');a.href=url;a.download='query-prefix-reuse-synthetic.json';a.click();URL.revokeObjectURL(url);});
+get('download').addEventListener('click',()=>{
+ if(!saved)return;
+ // Keep the exact file contents available even if browser download APIs fail.
+ const text=JSON.stringify(saved,null,2)+'\n';get('json').value=text;get('json').disabled=false;
+ let url;
+ try {
+  const b=new Blob([text],{type:'application/json'});url=URL.createObjectURL(b);
+  const a=document.createElement('a');a.href=url;a.download='query-prefix-reuse-synthetic.json';a.click();
+  get('export-status').textContent='保存用JSONを用意しました。ファイルがダウンロードされない場合は、下の欄からコピーして保存してください。';
+ } catch(e) {
+  get('export-status').textContent='ファイルのダウンロードを開始できませんでした。下のJSON欄からコピーして保存してください。';
+ } finally {
+  // Do not revoke before the browser has had a chance to consume the URL.
+  if(url)setTimeout(()=>{try{URL.revokeObjectURL(url);}catch(e){}},1000);
+ }
+});
 render();
 if(saved)for(const id of [...controls,'reset','download'])get(id).disabled=false;
 })();
