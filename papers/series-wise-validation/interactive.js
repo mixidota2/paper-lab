@@ -10,7 +10,9 @@ function parseQ(text){
  if(q===0&&/[1-9]/.test(text.trim().split(/[eE]/)[0]))throw Error('Qが小さすぎて0になります。値を大きくして入力してください。');
  return q;
 }
-function render(){try{const scheme=get('scheme').value,stage=get('stage').value,s=get('series').value,o=Number(get('origin').value);if(!['inner','outer','final'].includes(stage)||!Number.isInteger(o)||o<92||o>96||get('origin').value.trim()===''||s.length!==1||!'ABCDEFGHIJ'.includes(s))throw Error('系列とorigin（92〜96の整数）を確認してください。');const q=parseQ(get('q').value);const toy=M.evaluate(undefined,scheme,q),sensitivity=M.sensitivity(table,get('method').value,get('weather').checked),r=toy.records.find(r=>r.series===s&&r.origin===o);const co=stage==='inner'?84:stage==='outer'?88:o,eligible=stage==='final'||(stage==='inner'?'ABCDE':scheme==='series'?'FG':'ABCDE').includes(s);
+function render(){
+get('json').value='';get('json').disabled=true;get('export-status').textContent='';
+try{const scheme=get('scheme').value,stage=get('stage').value,s=get('series').value,o=Number(get('origin').value);if(!['inner','outer','final'].includes(stage)||!Number.isInteger(o)||o<92||o>96||get('origin').value.trim()===''||s.length!==1||!'ABCDEFGHIJ'.includes(s))throw Error('系列とorigin（92〜96の整数）を確認してください。');const q=parseQ(get('q').value);const toy=M.evaluate(undefined,scheme,q),sensitivity=M.sensitivity(table,get('method').value,get('weather').checked),r=toy.records.find(r=>r.series===s&&r.origin===o);const co=stage==='inner'?84:stage==='outer'?88:o,eligible=stage==='final'||(stage==='inner'?'ABCDE':scheme==='series'?'FG':'ABCDE').includes(s);
 let cells='';for(let i=0;i<10;i++)for(let t=1;t<=100;t++){const id='ABCDEFGHIJ'[i],role=M.role(id,t,stage,scheme),context=eligible&&id===s&&t>co-8&&t<=co;cells+=`<rect x="${40+(t-1)*8}" y="${28+i*24}" width="8" height="20" fill="${colors[role]}" ${context?'stroke="#174e9a" stroke-width="2"':''}><title>${id} t${t}：${labels[role]}${context?'／予測入力context（学習用途とは別）':''}</title></rect>`;}
 const names=[...'ABCDEFGHIJ'].map((s,i)=>`<text x="10" y="${43+i*24}">${s}</text>`).join(''),ticks=[1,8,80,84,88,92,96,100].map(t=>`<text x="${40+(t-1)*8}" y="18" font-size="9">${t}</text>`).join('');
 get('split').innerHTML=`<svg viewBox="0 0 850 275" role="img" aria-label="系列A〜J、時点1〜100の分割とcontext。下の文字説明も参照">${names}${ticks}${cells}</svg>`;
@@ -20,6 +22,21 @@ get('table-rows').innerHTML=Object.entries(table.rows).filter(([k])=>get('weathe
 }catch(e){saved=null;get('error').textContent=e.message;get('out').textContent='入力不正：結果を保留';get('split').innerHTML='';get('table-out').textContent='';get('table-rows').innerHTML='';get('download').disabled=true;}}
 for(const k of keys)get(k).addEventListener(k==='weather'?'change':'input',render);
 get('reset').addEventListener('click',()=>{for(const [k,v] of Object.entries({scheme:'series',stage:'final',series:'H',origin:'92',q:'auto',method:'Holdout'}))get(k).value=v;get('weather').checked=true;render();});
-get('download').addEventListener('click',()=>{if(!saved)return;const url=URL.createObjectURL(new Blob([JSON.stringify(saved,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='series-cv-synthetic.json';a.click();URL.revokeObjectURL(url);});
+get('download').addEventListener('click',()=>{
+ if(!saved)return;
+ // Publish the exact JSON before invoking browser APIs that may be unavailable.
+ const text=JSON.stringify(saved,null,2);get('json').value=text;get('json').disabled=false;
+ let url;
+ try{
+  url=URL.createObjectURL(new Blob([text],{type:'application/json'}));
+  const a=document.createElement('a');a.href=url;a.download='series-cv-synthetic.json';a.click();
+  get('export-status').textContent='保存用JSONを用意しました。ファイルがダウンロードされない場合は、下の欄からコピーして保存してください。';
+ }catch(e){
+  get('export-status').textContent='ファイルのダウンロードを開始できませんでした。下のJSON欄からコピーして保存してください。';
+ }finally{
+  // Cleanup owns this URL only; it must not alter a later export or reset.
+  if(url)setTimeout(()=>{try{URL.revokeObjectURL(url);}catch(e){}},1000);
+ }
+});
 render();if(saved)for(const k of [...keys,'reset','download'])get(k).disabled=false;
 })();

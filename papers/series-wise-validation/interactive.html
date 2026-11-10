@@ -1,5 +1,5 @@
 <section id="scv-lab" aria-label="系列と時間の分割を動かす自作実験">
-<style>#scv-lab{max-width:100%;overflow-wrap:anywhere}#scv-lab .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:.7rem}#scv-lab label{display:block}#scv-lab input,#scv-lab select,#scv-lab button{font:inherit;max-width:100%}#scv-lab pre{white-space:pre-wrap}#scv-lab .scroll{overflow-x:auto;max-width:100%}#scv-lab svg{width:100%;min-width:680px;height:auto}#scv-lab table{border-collapse:collapse}#scv-lab td,#scv-lab th{padding:.3rem;border:1px solid #aaa}.scv-key{display:inline-block;padding:.3rem;margin:.2rem}</style>
+<style>#scv-lab{max-width:100%;overflow-wrap:anywhere}#scv-lab .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:.7rem}#scv-lab label{display:block}#scv-lab input,#scv-lab select,#scv-lab button,#scv-lab textarea{font:inherit;max-width:100%}#scv-lab textarea{box-sizing:border-box;width:100%}#scv-lab pre{white-space:pre-wrap}#scv-lab .scroll{overflow-x:auto;max-width:100%}#scv-lab svg{width:100%;min-width:680px;height:auto}#scv-lab table{border-collapse:collapse}#scv-lab td,#scv-lab th{padding:.3rem;border:1px solid #aaa}.scv-key{display:inline-block;padding:.3rem;margin:.2rem}</style>
 <p>これは原著の10ニューラルモデルを動かすものではありません。A〜Jの10本の合成系列を使い、選択と最終評価の境界を確認します。p=8、h=4、最終testは全系列のt93〜100です。</p>
 <div class="controls">
 <label>外側の比較対象 <select id="scv-scheme" disabled><option value="series">series：未学習F〜Gで選択</option><option value="time">time：学習済みA〜Eの未来で選択</option></select></label>
@@ -21,5 +21,9 @@
 <pre id="scv-table-out" aria-live="polite">初期値：HoldoutはTime-CVより7/11データセットで小さい。改善合計0.271のうちWeatherが0.195（約71.96%）。これは統計的な信頼区間ではありません。</pre>
 <div class="scroll"><table><thead><tr><th>dataset</th><th>選択手法</th><th>Time-CV</th></tr></thead><tbody id="scv-table-rows"></tbody></table></div>
 <button id="scv-reset" type="button" disabled>初期条件へ戻す</button> <button id="scv-download" type="button" disabled>合成予測と感度集計をJSON保存</button><p id="scv-error" role="alert"></p>
+<p id="scv-export-status" role="status"></p>
+<label for="scv-json">保存用JSON（上のJSON保存ボタンで表示）</label>
+<textarea id="scv-json" rows="8" readonly disabled spellcheck="false" aria-describedby="scv-json-help"></textarea>
+<p id="scv-json-help">ファイルを取得できない場合は、この欄の全内容をコピーしてテキストファイルに保存できます。条件を変えるか初期条件へ戻すと欄を空にするので、必要な結果は先に保存してください。</p>
 <noscript><p>JavaScriptが無効なため操作はできません。初期の分割条件と掲載値は上に残ります。全合成予測は配布results.jsonでも確認できます。</p></noscript>
 </section>

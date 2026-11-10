@@ -165,14 +165,14 @@ def test_actual_scripts_controls_invalid_reset_and_json_roundtrip(tmp_path):
     fixture={'nodes':nodes,'model':str(SOURCE/'model.js'),'ui':str(SOURCE/'interactive.js')}
     code=r"""
 const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
-const f=FIXTURE, blobs=[], anchors=[], revoked=[];
+const f=FIXTURE, blobs=[], anchors=[], revoked=[], timers=[];
 for(const n of Object.values(f.nodes)){n.events={};n.addEventListener=(e,fn)=>n.events[e]=fn;}
-const ctx={document:{getElementById:id=>f.nodes[id],createElement:()=>({click(){anchors.push({...this});}})},
+const ctx={setTimeout:(fn,ms)=>{assert.equal(ms,1000);timers.push(fn);},document:{getElementById:id=>f.nodes[id],createElement:()=>({click(){anchors.push({...this});}})},
  Blob:class{constructor(parts,opt){this.text=parts.join('');this.type=opt.type;}},
  URL:{createObjectURL:b=>{blobs.push(b);return 'blob:'+blobs.length;},revokeObjectURL:u=>revoked.push(u)}};
 vm.createContext(ctx);vm.runInContext(fs.readFileSync(f.model,'utf8'),ctx);vm.runInContext(fs.readFileSync(f.ui,'utf8'),ctx);
 const get=k=>f.nodes['scv-'+k],set=(k,v)=>{get(k).value=v;get(k).events.input();};
-function save(){get('download').events.click();const d=JSON.parse(blobs.at(-1).text);
+function save(){const n=revoked.length;get('download').events.click();assert.equal(revoked.length,n);assert.equal(timers.length,1);timers.shift()();const d=JSON.parse(blobs.at(-1).text);assert.equal(get('json').value,blobs.at(-1).text);
  assert.equal(anchors.at(-1).download,'series-cv-synthetic.json');assert.equal(blobs.at(-1).type,'application/json');
  assert.equal(revoked.at(-1),anchors.at(-1).href);assert.equal(d.toy.synthetic,true);
  const q=get('q').value==='auto'?null:Number(get('q').value);
@@ -281,9 +281,9 @@ def test_q_text_underflow_never_becomes_valid_zero(tmp_path):
     fixture={'nodes':nodes,'model':str(SOURCE/'model.js'),'ui':str(SOURCE/'interactive.js')}
     code=r"""
 const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
-const f=FIXTURE,blobs=[];
+const f=FIXTURE,blobs=[],timers=[];
 for(const n of Object.values(f.nodes)){n.events={};n.addEventListener=(e,fn)=>n.events[e]=fn;}
-const ctx={document:{getElementById:id=>f.nodes[id],createElement:()=>({click(){}})},
+const ctx={setTimeout:(fn,ms)=>{assert.equal(ms,1000);timers.push(fn);},document:{getElementById:id=>f.nodes[id],createElement:()=>({click(){}})},
  Blob:class{constructor(parts){this.text=parts.join('');}},
  URL:{createObjectURL:b=>{blobs.push(b);return 'blob:test';},revokeObjectURL(){}}};
 vm.createContext(ctx);vm.runInContext(fs.readFileSync(f.model,'utf8'),ctx);
@@ -310,6 +310,7 @@ for(const q of ['1e-308','1e-3','100','1.25e1']){
 }
 setQ('5e-324');assert.equal(get('download').disabled,true); // Existing overflow guard remains.
 get('reset').events.click();assert.equal(get('q').value,'auto');assert.equal(get('download').disabled,false);
+assert.equal(timers.length,blobs.length);while(timers.length)timers.shift()();
 console.log('Q text parser: 8 underflow cases, 6 explicit-zero cases, 4 finite cases, recovery and existing overflow guard');
 """.replace('FIXTURE',json.dumps(fixture,ensure_ascii=False))
     script=tmp_path/'q-underflow.cjs';script.write_text(code)
