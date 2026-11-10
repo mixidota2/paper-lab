@@ -1,5 +1,5 @@
 <section class="rg-lab" aria-label="ReuseGRの独立した理解実験">
-<style>.rg-lab{max-width:100%;min-width:0}.rg-controls{display:flex;flex-wrap:wrap;gap:1rem}.rg-controls label{display:grid;gap:.3rem}.rg-lab pre{white-space:pre-wrap;overflow-wrap:anywhere}.rg-tree{overflow-x:auto}.rg-tree ol{min-width:520px;line-height:1.9}.rg-lab table{width:100%}.rg-lab select,.rg-lab input{max-width:100%}.rg-lab [role=alert]{color:#a21818}</style>
+<style>.rg-lab{max-width:100%;min-width:0}.rg-controls{display:flex;flex-wrap:wrap;gap:1rem}.rg-controls label{display:grid;gap:.3rem}.rg-lab pre{white-space:pre-wrap;overflow-wrap:anywhere}.rg-tree{overflow-x:auto}.rg-tree ol{min-width:520px;line-height:1.9}.rg-lab table{width:100%}.rg-lab select,.rg-lab input{max-width:100%}.rg-lab textarea{box-sizing:border-box;width:100%;font:inherit}.rg-lab [role=alert]{color:#a21818}</style>
 <p><strong>合成SID木の操作です。</strong>0/1の4層・16葉を使います。原著の32値コードブック、7B/0.5Bモデル、学習されたBudgetCutを再現しません。投影のPはこの木の到達率とは独立です。</p>
 <div class="rg-controls">
 <label>準備状態<select id="rg-prepared" disabled><option value="yes">Prepared</option><option value="no">Cold miss</option></select></label>
@@ -26,5 +26,9 @@ HR@100投影 85.82%／Recall@100投影 46.05%</pre>
 <p id="rg-metric-label">HR@100：正解SIDを1つ以上得たqueryの割合</p>
 <table><caption>44,225 query、canonical history、3 seed平均。遅延はA100 1枚・batch 1。掲載値であり自作木の成績ではありません。</caption><thead><tr><th>手法</th><th>選択指標（%）</th><th>平均遅延</th></tr></thead><tbody id="rg-table-body"><tr><th>0.5B E2E</th><td>81.99%</td><td>117.00 ms</td></tr><tr><th>7B E2E</th><td>85.71%</td><td>168.88 ms</td></tr><tr><th>ReuseGR prepared</th><td>85.82%</td><td>71.45 ms</td></tr></tbody></table>
 <p id="rg-error" role="alert"></p><button type="button" id="rg-reset" disabled>初期条件へ</button> <button type="button" id="rg-download" disabled>合成条件と投影をJSON保存</button>
+<p id="rg-export-status" role="status"></p>
+<label for="rg-json">保存用JSON（読み取り専用）</label>
+<textarea id="rg-json" rows="8" readonly disabled spellcheck="false" aria-describedby="rg-json-help"></textarea>
+<p id="rg-json-help">JSON保存ボタンを押すと、ファイルと同じ内容をこの欄に表示します。条件を変えるか初期条件へ戻すと欄を空にします。外部への送信はありません。</p>
 <noscript><p>JavaScriptが無効なため初期条件だけを表示しています。条件の変更とJSON保存はできません。</p></noscript>
 </section>
