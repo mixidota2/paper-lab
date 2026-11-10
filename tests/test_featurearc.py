@@ -99,8 +99,8 @@ def test_all_old_cases_and_new_semantics(tmp_path):
  b=json.loads((ROOT/'tests/main_107_catalog.json').read_text())
  added={f'load-{P.name}-{w}' for w in (360,768,1440)}|{f'featurearc-{w}' for w in (360,768,1440)}|{'nojs-'+P.name}
  assert len(b['required_cases'])==413
- assert set(plan['required_cases'])==set(b['required_cases'])|added|{f'load-{new}-{w}' for new in ('inventory-common-threshold-history','assortment-observation-budget','trial-by-trace-evidence-boundaries') for w in (360,768,1440)}
- assert len(plan['required_cases'])==len(set(plan['required_cases']))==429
+ assert set(plan['required_cases'])==set(b['required_cases'])|added|{f'load-{new}-{w}' for new in ('inventory-common-threshold-history','assortment-observation-budget','trial-by-trace-evidence-boundaries','query-prefix-reuse','retail-forecast-decision-grain','series-wise-validation') for w in (360,768,1440)}
+ assert len(plan['required_cases'])==len(set(plan['required_cases']))==438
  assert all([P.name,w] in plan['semantic_groups'] for w in (360,768,1440))
  assert plan['source_hashes']['featurearc_review.py']==hashlib.sha256((ROOT/'tests/featurearc_review.py').read_bytes()).hexdigest()
  assert (site/'downloads'/P.name/'results.json').read_bytes()==(P/'results.json').read_bytes()

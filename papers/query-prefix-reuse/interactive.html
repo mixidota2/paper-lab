@@ -1,0 +1,30 @@
+<section class="rg-lab" aria-label="ReuseGRの独立した理解実験">
+<style>.rg-lab{max-width:100%;min-width:0}.rg-controls{display:flex;flex-wrap:wrap;gap:1rem}.rg-controls label{display:grid;gap:.3rem}.rg-lab pre{white-space:pre-wrap;overflow-wrap:anywhere}.rg-tree{overflow-x:auto}.rg-tree ol{min-width:520px;line-height:1.9}.rg-lab table{width:100%}.rg-lab select,.rg-lab input{max-width:100%}.rg-lab [role=alert]{color:#a21818}</style>
+<p><strong>合成SID木の操作です。</strong>0/1の4層・16葉を使います。原著の32値コードブック、7B/0.5Bモデル、学習されたBudgetCutを再現しません。投影のPはこの木の到達率とは独立です。</p>
+<div class="rg-controls">
+<label>準備状態<select id="rg-prepared" disabled><option value="yes">Prepared</option><option value="no">Cold miss</option></select></label>
+<label>深さd（coldでは予測深度）<select id="rg-depth" disabled><option>0</option><option selected>1</option><option>2</option><option>3</option></select></label>
+<label>合成queryのprefix集合<select id="rg-query" disabled><option value="wide">広い集合</option><option value="narrow">狭い集合</option></select></label>
+<label>現在の合成履歴<select id="rg-history" disabled><option value="left">目標0001</option><option value="right">目標1111</option></select></label>
+<label>採用する枝の上限（0〜8）<input id="rg-budget" type="number" min="0" max="8" step="1" value="4" disabled></label>
+</div>
+<p id="rg-route">Prepared：query prefix → 現在の履歴でsuffix → L4採点 → admission → 応答。7B待機なし。非同期準備：なし</p>
+<div class="rg-tree" tabindex="0" role="region" aria-label="到達可能なSID木。狭い画面は横スクロール"><ol id="rg-tree"><li>L1：0 / 1</li><li>L2：00 / 01 / 10 / 11</li><li>L3：000 / 001 / 010 / 011 / 100 / 101 / 110 / 111</li><li>L4：0000 / 0001 / 0010 / 0011 / 0100 / 0101 / 0110 / 0111 / 1000 / 1001 / 1010 / 1011 / 1100 / 1101 / 1110 / 1111</li></ol></div>
+<pre id="rg-rank" aria-live="polite">合成目標SID 0001／到達可能 true／返却 true
+0001 (score 10) → 1001 (score 9) → 0101 (score 8) → 0011 (score 7) → 0000 (score 6) → 1000 (score 5) → 0100 (score 4) → 0010 (score 3)</pre>
+<p id="rg-budget-result">L4採点済み 16葉 → 8枝のうち 4枝を採用 → 8葉を順位付け。採用数を変えてもL4採点済みの葉数は減りません。</p>
+<p>広い集合・履歴1111でd=1からd=3へ変えると、目標がprefixの外に出ます。履歴の順位付けでは取り戻せません。原著のd=3は全枝を通します。この教材の採用数は処理順を調べる独自の可変ノブです。</p>
+<h4>公表値の平均投影：PとQを分ける</h4>
+<div class="rg-controls"><label>Table 5の条件<select id="rg-preset" disabled><option value="0">Prepared</option><option value="1">Cold</option><option value="2">Static Q</option><option value="3">Static mix</option><option value="4">Backfill</option><option value="5">Rolling 1M</option><option value="custom">任意P</option></select></label>
+<label>準備済みlogged-row share P (%)<input id="rg-p" type="range" min="0" max="100" step="0.01" value="100" disabled></label></div>
+<pre id="rg-mix" aria-live="polite">P=100.00%：1 × 71.45 + 0.0000 × 117.00 = 71.45 ms（平均の投影）
+HR@100投影 85.82%／Recall@100投影 46.05%</pre>
+<p id="rg-preset-note">Table 5 Prepared：Q=100.00%（query数）、P=100.00%（logged rows）。掲載HR 85.82% [endpoint]、掲載mean 71.45 ms。Static Qの82.38%はpartition実測であり、同じPの投影83.40%と別です。</p>
+<p>P95/P99やオンライン売上効果は補間しません。83.16%は準備済みquery群の中のpositive-depth比率で、全trafficのhit rateではありません。</p>
+<h4>Table 1：1つ当たることと全正解の回収率</h4>
+<label>指標<select id="rg-metric" disabled><option value="hr">HR@100</option><option value="recall">SID Recall@100</option></select></label>
+<p id="rg-metric-label">HR@100：正解SIDを1つ以上得たqueryの割合</p>
+<table><caption>44,225 query、canonical history、3 seed平均。遅延はA100 1枚・batch 1。掲載値であり自作木の成績ではありません。</caption><thead><tr><th>手法</th><th>選択指標（%）</th><th>平均遅延</th></tr></thead><tbody id="rg-table-body"><tr><th>0.5B E2E</th><td>81.99%</td><td>117.00 ms</td></tr><tr><th>7B E2E</th><td>85.71%</td><td>168.88 ms</td></tr><tr><th>ReuseGR prepared</th><td>85.82%</td><td>71.45 ms</td></tr></tbody></table>
+<p id="rg-error" role="alert"></p><button type="button" id="rg-reset" disabled>初期条件へ</button> <button type="button" id="rg-download" disabled>合成条件と投影をJSON保存</button>
+<noscript><p>JavaScriptが無効なため初期条件だけを表示しています。条件の変更とJSON保存はできません。</p></noscript>
+</section>

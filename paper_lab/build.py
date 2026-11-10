@@ -8,6 +8,9 @@ CLI:
 
 from __future__ import annotations
 
+from .retail_grain import widget as retail_grain_widget
+from .series_cv import widget as series_cv_widget
+from .reusegr import widget as reusegr_widget
 from .trial_trace import widget as trial_trace_widget
 from .assortment_observation import widget as assortment_observation_widget
 from .inventory_ct import widget as inventory_ct_widget
@@ -183,6 +186,12 @@ def paper_sections(lab: Lab) -> list[dict[str, Any]]:
             html = markdown_to_html(lab.sections.get(key, ""))
 
         if key == "executable_understanding":
+            if lab.id == "retail-forecast-decision-grain":
+                html += retail_grain_widget(lab.source_dir)
+            if lab.id == "series-wise-validation":
+                html += series_cv_widget(lab.source_dir)
+            if lab.id == "query-prefix-reuse":
+                html += reusegr_widget(lab.source_dir)
             if lab.id == "trial-by-trace-evidence-boundaries":
                 html += trial_trace_widget(lab.source_dir)
             if lab.id in {"reasoncast-agentic-demand-forecasting", "retailbench-long-horizon-store-agents"}:
@@ -374,6 +383,11 @@ def build(
             source = lab.source_dir / name
             if source.is_file():
                 shutil.copy2(source, download_dir / name)
+        if lab.id == "retail-forecast-decision-grain":
+            shutil.copy2(lab.source_dir / "evidence.md", download_dir / "evidence.md")
+        if lab.id == "series-wise-validation":
+            for name in ("table3.json", "evidence.md"):
+                shutil.copy2(lab.source_dir / name, download_dir / name)
         if lab.id in {"storewide-shelf-decomposition", "assortment-replenishment-hard-constraints", "shelf-placement-options"}:
             shutil.copy2(lab.source_dir / "interactive.html", download_dir / "interactive.html")
         if lab.id in {"reasoncast-agentic-demand-forecasting", "retailbench-long-horizon-store-agents"}:

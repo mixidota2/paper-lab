@@ -1,0 +1,24 @@
+<section id="grain-lab" aria-label="集計順序と発注費用の合成実験">
+<style>#grain-lab{max-width:100%;overflow-wrap:anywhere}#grain-lab .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:1rem}#grain-lab label{display:block;margin:.6rem 0}#grain-lab input,#grain-lab select,#grain-lab button{font:inherit;max-width:100%}#grain-lab pre{white-space:pre-wrap}#grain-lab .bar{height:.8rem;background:#26776d;max-width:100%}</style>
+<p>以下は著者の学習済みモデルを使わない自作例です。A・Bは仮の予測であり、特定手法の名前ではありません。すべて小さいほど良い費用として比較します。最初は商品ごとに1期、次は1窓1値の説明例で、一般の多期間Eq.7全体の実装ではありません。</p>
+<div class="grid"><fieldset><legend>1．ゼロ売上と集計粒度</legend>
+<p>実績は[100,第2商品の売上]、予測Aは[90,Aの第2予測]、Bは[80,0]。単価は両方1、歴史的金額の重みは等分です。</p>
+<label>第2商品の売上 <input id="grain-y2" type="number" min="0" max="10000" value="0" disabled></label>
+<label>Aの第2予測 <input id="grain-a2" type="number" min="0" max="10000" value="1" disabled></label>
+<label>集計する単位 <select id="grain-group" disabled><option value="separate">別カテゴリとして評価</option><option value="together">同じカテゴリへ合計</option></select></label>
+<p>同じカテゴリでは商品を合計してから絶対値を取ります。旧式は各ノードの誤差を売上で割ってから歴史重みで平均します。</p></fieldset>
+<fieldset><legend>2．窓を平均する順序</legend><p>2つの窓の実績は[1,第2窓売上]。A=[0,第2窓売上]、B=[1,第2窓売上−10（下限0）]。</p>
+<label>第2窓売上 <input id="grain-window" type="number" min="0" max="10000" value="100" disabled></label>
+<p>各窓比率の等重み平均と、全窓の分子・分母を先に足す比率を並べます。分母0は未定義と表示し、黙って窓を除外しません。</p></fieldset>
+<fieldset><legend>3．独立した単期発注損失</legend>
+<label>発注量 q <input id="grain-q" type="number" min="0" max="10000" value="8" disabled></label>
+<label>観測売上 y <input id="grain-y" type="number" min="0" max="10000" value="10" disabled></label>
+<label>臨界比率 r <select id="grain-r" disabled><option value="0.5">0.5：不足単価1</option><option value="0.8" selected>0.8：不足単価4</option><option value="0.95">0.95：不足単価19</option></select></label>
+<p>超過単価は1。持越在庫・納期・fill rate・実利益を再現しません。観測売上が潜在需要と等しいとは限りません。</p></fieldset></div>
+<button id="grain-reset" type="button" disabled>初期値に戻す</button>
+<pre id="grain-out" aria-live="polite">初期値：旧式 A=500000000.05、B=0.1。訂正式 A=0.11、B=0.2。
+窓平均 A=0.5、B=0.05。pool A=1/101、B=10/101。
+単期発注損失=8（不足2×単価4）。いずれも自作合成例。</pre>
+<div id="grain-bars" aria-label="訂正式の費用比較"></div><p id="grain-error" role="alert"></p>
+<noscript><p>JavaScriptが無効なため初期結果のみ表示しています。条件は変更できません。</p></noscript>
+</section>

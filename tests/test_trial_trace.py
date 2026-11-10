@@ -12,11 +12,11 @@ def test_existing_catalog_sources_and_new_plan(tmp_path):
     assert baseline['base']=='d97532ffce0461af70347f8380da1b2a4466b22a'
     for path,digest in baseline['sources'].items():assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==revised_hash(ROOT,path,digest),path
     assert len(baseline['ids'])==110
-    assert_catalog([*baseline['ids'],SLUG])
+    assert_catalog([*baseline['ids'],SLUG,'query-prefix-reuse','retail-forecast-decision-grain','series-wise-validation'])
     from review_103 import preflight
     site=tmp_path/'site';build(root=ROOT,site_dir=site);plan=preflight(site)
-    added=[f'load-{SLUG}-{w}' for w in (360,768,1440)]
-    assert len(plan['required_cases'])==429
+    added=[f'load-{slug}-{w}' for slug in (SLUG,'query-prefix-reuse','retail-forecast-decision-grain','series-wise-validation') for w in (360,768,1440)]
+    assert len(plan['required_cases'])==438
     assert set(plan['required_cases'])==set(baseline['cases'])|set(added)
     assert [x for x in plan['required_cases'] if x not in added]==baseline['cases']
     for name in ('run.py','model.js','ui.js','test.cjs','results.json'):
