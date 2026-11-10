@@ -31,7 +31,9 @@ def test_other_223_reviewed_prose_identities_are_unchanged():
     # Pin the TRACE verification-doc correction separately; all 223 older entries stay unchanged.
     assert original.pop('papers/trace-verifier-brittleness/README.md') == {'before_blob': '02824c799f843bd169933214afa6975fc9accc35', 'before_sha256': '82438c30f9e8197ea73719b81218f4320ae9bb272343e762e013534631b82db9', 'after_blob': '8ce0e685d1b76f1c5afb05bdf2327e74ea563d30', 'after_sha256': 'e96ba74dafbdff21d7d338f3bc45ec0b4d8e4bccf5b4bcea1056ae034743d6e5'}
     # Pin export metadata separately; preserve the original 223-entry digest.
-    assert original.pop('papers/assortment-replenishment-hard-constraints/interactive.js') == {'before_blob': '69d549d345ec39b67b9cfac3e78383541f793802', 'before_sha256': '10a7b27ede498378a37297358d9eb5777b629c58280c43d06b3cb2d57d7e4d83', 'after_blob': 'a7c8a924f449d353c57ac08c8861125473a8e363', 'after_sha256': '57cd430016d852dc59e044cb2b4127a004be6e2ba14f8095bb8d649e245c0d7e'}
+    assert original.pop('papers/assortment-replenishment-hard-constraints/interactive.js') == {'before_blob': '69d549d345ec39b67b9cfac3e78383541f793802', 'before_sha256': '10a7b27ede498378a37297358d9eb5777b629c58280c43d06b3cb2d57d7e4d83', 'after_blob': 'd1bb7bfe6c491a970e99b5836ea08635f2fcce9f', 'after_sha256': 'f8c7275cc9a5a1a8d9120b682ace52588d2a47643174646ca55efde53bc10275'}
+    # Pin initial disabled controls separately; the 223-entry digest is unchanged.
+    assert original.pop('papers/assortment-replenishment-hard-constraints/interactive.html') == {'before_blob': '95a09aebbff2a91b37a495b91071e7c104550a04', 'before_sha256': 'f4e50095f7639c2fd9f7d5ee2a1caeb0d3d3b9a4d58239b16900effa1f7e8555', 'after_blob': 'da9397274256a953896bc30170ab7f16262ea441', 'after_sha256': '60ec99118451359e3edb6ff3cb6cbfab2499195a1ec749b8d310bb065eacac44'}
     assert len(original) == 223
     canonical = json.dumps(original, sort_keys=True, separators=(',', ':')).encode()
     assert hashlib.sha256(canonical).hexdigest() == '1b67a628b52a403a6e94d9db30ef9888e23f09874a189ad767435b33dfe5c363'
