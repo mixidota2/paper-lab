@@ -1,0 +1,87 @@
+id: retail-forecast-decision-grain
+title: 'World Models, Trees and Foundation Models for Retail Forecasting: Evidence
+  from Four Public Data Sets'
+authors:
+- Karthik Iyer
+- Madan Dabbeeru
+year: 2026
+arxiv_id: '2610.25170'
+submitted: '2026-10-18'
+topics:
+- demand-forecasting
+- retail-supply
+urls:
+  paper: https://arxiv.org/pdf/2610.25170v1
+  arxiv: https://arxiv.org/abs/2610.25170
+  official_code: https://github.com/karthik-iyer-au/retail-world-models
+verdict: Worth Reading
+status: draft
+question: 予測誤差が小さいモデルは、カテゴリ計画や発注でも良いのか
+summary: 販促計画の条件をそろえた比較でも、商品からカテゴリへの合計や、窓の平均順序、超過・不足費用によって順位は変わります。訂正されたカテゴリ費用と単期発注損失を、操作できる合成例で確かめます。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-11-09'
+  url: https://arxiv.org/pdf/2610.25170v1
+  scope: 指定本文と公式CSV・訂正式コードを読解。全補足・全図画素・原モデル実行は未検証。
+core_idea:
+  author_claim: 同じ公開データでも、意思決定の粒度と費用の定義によって最良モデルが変わる。
+  research_bot_interpretation: 予測精度の単一順位だけで採用を決めず、販促入力・集約順序・費用を固定して再評価するための資料。
+sections:
+  overview: 4公開データ源・9パネルを比較したv1を扱います。本文の原著報告と自作合成例を分けて表示します。
+  problem: 商品別の誤差を減らしても、カテゴリの合計や非対称な発注費用が同じように改善するとは限りません。
+  method: method.md
+  why_it_might_work: カテゴリ内で反対方向の誤差が相殺されることと、ゼロ売上を小さな定数で割ることを分けると、評価式の変更で順位が変わる理由が見えます。これはLabの解釈です。
+  evidence: evidence.md
+  executable_understanding: experiment.md
+  results: 保存値は初期合成例と9つの単期損失です。公表CSVの勝数は証拠節に分離しています。
+  what_we_verified: CONFIRMED：自作式・境界・再生成一致と、条件を限定した公式CSVの最小値集計。Mechanism全体はPARTIAL。
+  what_we_did_not_verify: 原モデル学習・推論、実店舗利益、運用性能、全補足と全図の画素監査はNOT TESTED。実ブラウザーも未検証。
+  implementation: READMEのuv手順で再生成します。外部APIや学習済みモデルを呼びません。
+figures: []
+interactives: []
+teaching_figures:
+- id: plan-state
+  kind: architecture
+  title: 過去状態から、計画あり・なしの予測を作る
+  after: method
+  source: https://arxiv.org/pdf/2610.25170v1
+  locator: §4 Figure2・Eq.3–4
+  rationale: world modelの計画あり・なしの状態展開と予測経路を示す。
+  caption: 自作説明図。liftは予測上の差で、因果効果ではありません。
+  rows:
+  - label: 過去
+    nodes:
+    - title: Transformer
+      text: 売上・価格・暦 → 状態 s_t
+  - label: 将来
+    nodes:
+    - title: 計画 p
+      text: gated transition → s_(t+h)(p)
+    - title: 計画なし p⁰
+      text: 同じ遷移 → s_(t+h)(p⁰)
+  - label: 読出し
+    nodes:
+    - title: log予測
+      text: log ℓ + baseline(p⁰) + readout(p) − readout(p⁰)
+- id: cost-order
+  kind: equations
+  title: 合計・絶対値・平均の順序を固定する
+  after: method
+  source: https://arxiv.org/pdf/2610.25170v1
+  locator: §5 Eq.7
+  rationale: カテゴリ・期・窓の順序を分離する。
+  caption: pは窓より前の平均単価。分母0は未定義です。
+  steps:
+  - name: カテゴリ内合計
+    formula: y_nt = Σ_(i∈n) y_it
+    explanation: まず商品をまとめ、同じ期の予測と比較する。
+  - name: 窓内の費用
+    formula: C_k = Σ_n p_n Σ_t |y_nt − ŷ_nt| / Σ_n p_n Σ_t y_nt
+    explanation: 各期の絶対誤差を足し、単価で重み付けする。
+  - name: 窓間の報告値
+    formula: C̄ = (1/K) Σ_k C_k
+    explanation: 窓ごとの比率を同じ重みで平均。poolとは異なる。

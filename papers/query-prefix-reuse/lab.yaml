@@ -1,0 +1,81 @@
+id: query-prefix-reuse
+title: 'ReuseGR: Offline–Online Decoupled Generative Retrieval via Adaptive Prefix Reuse'
+authors: [Xujing Wang, Yufeng Chen, Boxuan Zhang, Chao Wei, Cai Xu, Jie Zhao, Weiru Zhang, Wei Zhao, Ziyu Guan]
+year: 2026
+arxiv_id: '2611.04259'
+submitted: '2026-11-03'
+topics: [recommender-systems, ml-systems]
+urls:
+  paper: https://arxiv.org/html/2611.04259v1
+  arxiv: https://arxiv.org/abs/2611.04259
+verdict: Worth Reading
+status: draft
+question: 検索語に共通の計算をどこまで準備し、現在の履歴をどこから使うか
+summary: 合成SID木でprefixの深さと履歴を変え、候補外になる境界を調べます。準備済みquery率とログ行率、実測品質と平均投影を分けます。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-11-09'
+  url: https://arxiv.org/html/2611.04259v1
+  scope: HTML §3–5、Eq.3、Figure2、Tables1/5、Appendix Aの履歴条件とC/Dの対応箇所。PDF全画素・公式実装・生ログは未監査。
+core_idea:
+  author_claim: queryだけの7B計画と現在の履歴を使う0.5B補完を分離し、準備済みprefixを共有します。
+  research_bot_interpretation: 共有による速度と、候補集合を早く固定することによる到達可能性の制限を、一緒に読む教材として扱います。
+sections:
+  overview: 検索語に共通のprefixを用意しても、現在の履歴による補完は残ります。自作例では共有の深さが候補を外す境界を操作します。原著モデルの再現ではありません。[一次資料](https://arxiv.org/abs/2611.04259)。
+  problem: 深く共有すれば常に良いとは限りません。prefixの外にあるSIDはsuffixの順位付けでは取り戻せず、深さだけから遅延も決まりません。
+  method: method.md
+  why_it_might_work: 【解釈】検索語に共通する先頭部分を事前計算すると要求ごとの計算を減らせます。ただし、その集合に現在の履歴に合う候補が残ることが必要です。自作例はこの条件を説明し、性能改善は証明しません。
+  evidence: '一次資料のTable 1は44,225 test queries、canonical histories、3 seed平均、A100 1枚・batch 1。0.5B E2E／7B E2E／prepared ReuseGRのHR@100は81.99／85.71／85.82%、SID Recall@100は45.53／50.96／46.05%、平均遅延は117.00／168.88／71.45 msです。高いHRと全正解の回収率は同じではありません。Table 5の混合平均遅延は全て投影です。14日user-level A/Bは各armに10%traffic、約12.8M users。RPM相対+1.05% [+.58,+1.52]、CTR+.93% [+.62,+1.24]。注文/requestは+.78%ですがp=.2104です。準備率からオンライン効果を比例推定しません。'
+  executable_understanding: experiment.md
+  results: 'Appendix Dの4段階は0.18+67.01+3.84+0.42=71.45 ms。planning 88 ms/query、1M entriesの10%日次更新は約2.44 A100 GPUh。1 hitで45.55 ms節約する単純計算では2 hitsで計画時間を覆います。これはbatch 1の計算時間の帳尻であり、費用・queue・stalenessを含む損益分岐ではありません。warm/cold P95 86.40/132.50 msから混合P95は計算しません。'
+  what_we_verified: CONFIRMEDは合成の境界・経路・採点後の採用・保存JSONと、公表値の算術検算です。MechanismはPARTIALです。
+  what_we_did_not_verify: 原学習・推論・商用ログ再現・実店舗・実遅延・P99・実ブラウザーはNOT TESTED。モデル成果物とログはNOT OBSERVED。preparedの履歴filterは7B top1 coarse code、baseline/coldはlogged query-match maskで異なり、他componentも一括変更されています。商用ログ非公開、現代LLM二塔対照なし、無query feedへの一般化は未検証です。
+  implementation: run.pyをuvで実行してresults.jsonを再生成します。model.jsは同じ定義域のスカラーAPIです。interactive.jsは実入力と保存Blobを代用DOMで検査します。実ブラウザー表示・日本語lintは未実施です。
+figures: []
+interactives: []
+teaching_figures:
+- id: request-paths
+  kind: architecture
+  title: 事前準備と現在の要求を分ける
+  after: method
+  source: https://arxiv.org/html/2611.04259v1
+  locator: Figure 2、§4、§5.7
+  rationale: preparedのrootとprefix、coldの別モデルを同一視しない。
+  caption: 正の深度のmissだけ非同期準備へ送ります。現在の要求は7B計画を待ちません。
+  rows:
+  - label: 非同期
+    nodes:
+    - title: queryのみ → 7B CellPlan
+      text: ReuseCutで深度を選び、生成prefixとscoreを保存
+  - label: prepared
+    nodes:
+    - title: d=0の空root または d>0のprefix
+      text: 現在の履歴 → PathKD済みLeafFill → 全L4採点
+    - title: BudgetCut → 併合順位
+      text: 採点後に枝を採用。L4推論の省略ではない
+  - label: cold
+    nodes:
+    - title: 別の0.5B E2E → 応答
+      text: 現在の履歴で全層生成。positive-depth missを別途準備キューへ
+- id: units-and-mixture
+  kind: equations
+  title: 枝数と混合の重みを分ける
+  after: evidence
+  source: https://arxiv.org/html/2611.04259v1
+  locator: Eq.3、Eq.21、Table5、Appendix D
+  rationale: 深さ・query数・ログ行数・正解回収の分母を区別する。
+  caption: 遅延の投影は平均だけ。品質端点をPで補間する仮定も明示します。
+  steps:
+  - name: オンライン計算
+    formula: T(d) = t₀ + Σ[t=d+1..4] Tₜ(Mₜ; θ) + tᵣ
+    explanation: Mₜは採点する枝数。深度だけでmsは決まらない。
+  - name: 混合平均の投影
+    formula: M̂(P) = P M₁ + (1−P) M₀
+    explanation: Pは準備済みlogged rowsの割合。Qというquery割合ではない。
+  - name: query等重みの指標
+    formula: HR = mean(正解を1つ以上取得); Recall = mean(取得した正解数 / 全正解数)
+    explanation: SID単位で評価。正解が複数あるためHRとRecallは別の値になる。

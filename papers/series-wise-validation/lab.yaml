@@ -1,0 +1,78 @@
+id: series-wise-validation
+title: 'Series-wise Cross-validation for Global Time Series Forecasting'
+authors: [Vitor Cerqueira, Mariana Oliveira, Luis Roque]
+year: 2026
+arxiv_id: '2611.08252'
+submitted: '2026-11-05'
+topics: [demand-forecasting, ml-systems]
+urls:
+  paper: https://arxiv.org/html/2611.08252v1
+  arxiv: https://arxiv.org/abs/2611.08252
+  official_code: https://github.com/vcerqueira/experiments-tscv
+verdict: Worth Reading
+status: draft
+question: 学習していない系列にも予測するなら、どの系列と時点でモデルを選ぶか
+summary: 系列と時間の分割を動かし、選択に使うラベル、予測時の過去context、最終testの役割を区別します。公表Table3の平均も分解します。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-11-09'
+  url: https://arxiv.org/html/2611.08252v1
+  scope: HTML本文§1–7、Tables1–11、Appendix A、図1–5キャプション。公式configを読取。全PDF画素と公式全実装は未監査、公式コードは未実行。
+core_idea:
+  author_claim: 未学習系列も運用対象に含む場合、系列で分けた検証がモデル選択と誤差推定に役立つかを比較しています。
+  research_bot_interpretation: 分割方式の優劣を一律に決めず、運用対象の系列と、選択時点で利用できる情報を先に定める教材として読みます。
+sections:
+  overview: 同じ系列の過去で学習し未来を評価すること自体はリークではありません。未学習系列を含む運用かどうかで評価対象が変わります。この教材は独自の合成例であり、10ニューラル構造の学習を再現しません。[一次資料の書誌情報](https://arxiv.org/abs/2611.08252)。
+  problem: 検証誤差の推定が良いことと、最終的に良いモデルを選べることは同じではありません。系列を分けても前処理や未来情報の漏洩が自動的になくなるわけではありません。
+  method: method.md
+  why_it_might_work: 【解釈】学習に含めない系列で選択すれば、未知の系列へ移す場面に近い評価になります。ただし、新しい系列にも予測時の過去contextを与えます。履歴ゼロのcold startを評価しているわけではありません。
+  evidence: evidence.md
+  executable_understanding: experiment.md
+  results: 自作例は10系列、5 origin、各4 stepの200誤差です。同じ対象時点の重複があるため、8時点等重みの誤差とは異なります。公表Table3のHoldoutは7/11勝、改善合計0.271のうちWeatherが0.195です。これは有意差や除外の妥当性を証明しません。
+  what_we_verified: CONFIRMEDは自作の境界、選択とtestの分離、共通Q、集計、保存JSONの検算範囲です。原著の一般的な優位性を確認した意味ではありません。
+  what_we_did_not_verify: 原モデルの学習・推論、全公式実装、PDF全画素、実店舗、在庫費用、TSFM zero-shot、実ブラウザー表示はNOT TESTED。著者実験の再現物はNOT OBSERVEDです。
+  implementation: run.pyをuv経由で実行しresults.jsonを再生成します。model.jsは同じ自作計算をブラウザー用に実装。table3.jsonは原著の公開表示値です。公式コードやAPIは実行しません。
+figures: []
+interactives: []
+teaching_figures:
+- id: selection-boundaries
+  kind: logic
+  title: 選択の段階ごとに利用できる情報を区切る
+  after: method
+  source: https://arxiv.org/html/2611.08252v1
+  locator: §3–4を説明する独自の10系列例
+  rationale: 原著の実験設定と混同せず、ラベル上限と予測時contextを別々に確認する。
+  caption: H〜Jは選択・fitから除外しますが、予測時の過去8点は入力できます。
+  rows:
+  - label: 自作例の選択と最終評価
+    nodes:
+    - title: 内側の選択
+      text: A〜Eのラベル≤84でfit、t85〜88でscale選択
+    - title: 外側の選択
+      text: A〜Eのラベル≤88でrefit、F〜Gのt89〜92でモデル選択
+    - title: 最終fit
+      text: A〜Gのラベル≤92。testを選択へ戻さない
+    - title: 固定重みの予測
+      text: 全系列でorigin92〜96、各4点。過去contextだけを更新
+- id: labels-and-weights
+  kind: equations
+  title: ラベルの終点と、誤差平均の分母を確認する
+  after: evidence
+  source: https://arxiv.org/html/2611.08252v1
+  locator: §4の評価尺度とAppendix Aを踏まえた独自例
+  rationale: originとラベル上限、系列共通Q、重複窓の重みを区別する。
+  caption: p=8、h=4は教材の設定で、原著の全データセット共通設定ではありません。
+  steps:
+  - name: 学習ラベルを上限までに収める
+    formula: origin + h ≤ cutoff → origin ≤ cutoff − 4
+    explanation: 内側84、外側88、最終92に対し、最後の学習originは80、84、88。
+  - name: 共通尺度で割る
+    formula: MASE = mean(|actual − prediction|) / Q
+    explanation: Qは全in-setの季節ナイーブ誤差の平均。教材の季節長は4。Q=0では未定義とし、欠損値は拒否。
+  - name: 重なる窓を平均する
+    formula: 5 × 4 = 20 errors per series; weights = (1,2,3,4,4,3,2,1)
+    explanation: 8時点を等重みにする評価とは分母と重みが違う。どちらも自作例として併記。

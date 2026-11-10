@@ -1,0 +1,25 @@
+<section id="scv-lab" aria-label="系列と時間の分割を動かす自作実験">
+<style>#scv-lab{max-width:100%;overflow-wrap:anywhere}#scv-lab .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:.7rem}#scv-lab label{display:block}#scv-lab input,#scv-lab select,#scv-lab button{font:inherit;max-width:100%}#scv-lab pre{white-space:pre-wrap}#scv-lab .scroll{overflow-x:auto;max-width:100%}#scv-lab svg{width:100%;min-width:680px;height:auto}#scv-lab table{border-collapse:collapse}#scv-lab td,#scv-lab th{padding:.3rem;border:1px solid #aaa}.scv-key{display:inline-block;padding:.3rem;margin:.2rem}</style>
+<p>これは原著の10ニューラルモデルを動かすものではありません。A〜Jの10本の合成系列を使い、選択と最終評価の境界を確認します。p=8、h=4、最終testは全系列のt93〜100です。</p>
+<div class="controls">
+<label>外側の比較対象 <select id="scv-scheme" disabled><option value="series">series：未学習F〜Gで選択</option><option value="time">time：学習済みA〜Eの未来で選択</option></select></label>
+<label>図の段階 <select id="scv-stage" disabled><option value="inner">内側ハイパラ選択</option><option value="outer">外側モデル選択</option><option value="final" selected>最終fitとrolling予測</option></select></label>
+<label>contextを見る系列 <select id="scv-series" disabled><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option selected>H</option><option>I</option><option>J</option></select></label>
+<label>最終評価のorigin（92〜96） <input id="scv-origin" type="number" min="92" max="96" step="1" value="92" disabled></label>
+<label>共通Q（auto、または0〜100） <input id="scv-q" type="text" value="auto" disabled></label>
+</div>
+<p>内側fitはA〜Eのラベルt≤84、t85〜88でハイパラを選択。外側refitはA〜Eのt≤88、series方式はF〜Gのt89〜92でモデルを選びます。time方式は同じA〜Eのt89〜92を使う自作の対照です。最終fitはA〜Gのt≤92。H〜Jは選択から除外しますが、予測時の過去8点は読めます。</p>
+<div aria-label="分割の凡例"><span class="scv-key" style="background:#b9dacb">学習ラベル</span><span class="scv-key" style="background:#f7d085">内側検証</span><span class="scv-key" style="background:#c3b1e1">外側検証</span><span class="scv-key" style="background:#efb4b0">最終test</span><span class="scv-key" style="background:#e6e9ed">選択対象外</span><span class="scv-key" style="border:2px solid #174e9a">青枠＝予測入力context（役割と重なる）</span></div>
+<div id="scv-split" class="scroll"><p>初期状態：A〜Gのt1〜92が最終学習範囲。H〜Jは学習に使わず、Hのt85〜92をorigin92のcontextとして使います。全系列のt93〜100は最終testです。</p></div>
+<pre id="scv-out" aria-live="polite">初期規則：学習originの上限は内側80、外側84、最終88。
+最終origin92〜96は各4点を予測します。時点93〜100の重みは1,2,3,4,4,3,2,1。
+最終testはモデル選択に使いません。実行時の数値はJavaScript有効時に計算します。</pre>
+<h3>公表Table3の平均を分解する</h3>
+<p>下は原著の丸め済みMASEです。合成実験とは別のデータです。Weatherの除外は感度診断であり、除外を推奨する操作ではありません。表示行の平均と掲載平均は丸めのため一致しない場合があります。</p>
+<label>比較手法 <select id="scv-method" disabled><option>Bootstrap</option><option selected>Holdout</option><option>Kf-CV</option><option>K-MC-CV</option><option>K-Bootstrap</option><option>K-Holdout</option><option>Time-CV</option></select></label>
+<label><input id="scv-weather" type="checkbox" checked disabled>Weatherを含める</label>
+<pre id="scv-table-out" aria-live="polite">初期値：HoldoutはTime-CVより7/11データセットで小さい。改善合計0.271のうちWeatherが0.195（約71.96%）。これは統計的な信頼区間ではありません。</pre>
+<div class="scroll"><table><thead><tr><th>dataset</th><th>選択手法</th><th>Time-CV</th></tr></thead><tbody id="scv-table-rows"></tbody></table></div>
+<button id="scv-reset" type="button" disabled>初期条件へ戻す</button> <button id="scv-download" type="button" disabled>合成予測と感度集計をJSON保存</button><p id="scv-error" role="alert"></p>
+<noscript><p>JavaScriptが無効なため操作はできません。初期の分割条件と掲載値は上に残ります。全合成予測は配布results.jsonでも確認できます。</p></noscript>
+</section>

@@ -37,7 +37,7 @@ def test_submit_preserves_actual_library_state(tmp_path):
     site = tmp_path / 'site'
     build(root=ROOT, site_dir=site)
     parsed = LibraryHTML((site / 'index.html').read_text())
-    assert len(parsed.cards) == 111
+    assert len(parsed.cards) == 114
     assert parsed.defaults == dict(search='', topic='', verdict='', sort='date')
     fixture = dict(cards=parsed.cards, defaults=parsed.defaults,
                    source=(site / 'assets/library.js').read_text())
@@ -80,7 +80,7 @@ function submit(){
  assert.equal(allowed,false);assert.equal(doc.activeElement,focus);
  assert.deepEqual(visible(),expected());
  assert.equal(countText,visible().length+'件');assert.equal(empty.hidden,visible().length!==0);
- assert.equal(parent.children.length,111);assert.equal(new Set(parent.children).size,111);
+ assert.equal(parent.children.length,114);assert.equal(new Set(parent.children).size,114);
 }
 function repeated(){
  const before=snapshot();
@@ -96,9 +96,9 @@ assert.equal(visible().length,0);assert.equal(empty.hidden,false);repeated();
 e.search.value='EXAONE';e.topic.value='';e.verdict.value='';submit();assert.equal(visible().length,1);
 clear.dispatchEvent(new Event('click'));
 assert.deepEqual(Object.fromEntries(Object.entries(e).map(([k,v])=>[k,v.value])),f.defaults);
-assert.equal(visible().length,111);assert.equal(e.sort.value,'date');assert.equal(doc.activeElement,e.search);
+assert.equal(visible().length,114);assert.equal(e.sort.value,'date');assert.equal(doc.activeElement,e.search);
 assert.deepEqual(visible(),expected());repeated();
-console.log('PASS:111 actual cards; synthetic submit, combined filters, zero, repeated, refresh, clear and focus');
+console.log('PASS:114 actual cards; synthetic submit, combined filters, zero, repeated, refresh, clear and focus');
 """
     path = tmp_path / 'library-submit.cjs'
     path.write_text(runner.replace('FIXTURE', json.dumps(fixture, ensure_ascii=False)))

@@ -1,0 +1,556 @@
+{
+  "model_version": "query-prefix-reuse-toy-1",
+  "synthetic": true,
+  "source": "https://arxiv.org/html/2611.04259v1",
+  "published_table1": [
+    {
+      "method": "0.5B E2E",
+      "hr": 81.99,
+      "recall": 45.53,
+      "ms": 117
+    },
+    {
+      "method": "7B E2E",
+      "hr": 85.71,
+      "recall": 50.96,
+      "ms": 168.88
+    },
+    {
+      "method": "ReuseGR prepared",
+      "hr": 85.82,
+      "recall": 46.05,
+      "ms": 71.45
+    }
+  ],
+  "published_table5": [
+    {
+      "name": "Prepared",
+      "q": 100,
+      "p": 100,
+      "hr": 85.82,
+      "ms": 71.45,
+      "quality": "endpoint"
+    },
+    {
+      "name": "Cold",
+      "q": 0,
+      "p": 0,
+      "hr": 81.99,
+      "ms": 117,
+      "quality": "endpoint"
+    },
+    {
+      "name": "Static Q",
+      "q": 20.97,
+      "p": 36.87,
+      "hr": 82.38,
+      "ms": 100.21,
+      "quality": "measured partition"
+    },
+    {
+      "name": "Static mix",
+      "q": 20.97,
+      "p": 36.87,
+      "hr": 83.4,
+      "ms": 100.21,
+      "quality": "projection"
+    },
+    {
+      "name": "Backfill",
+      "q": 42.15,
+      "p": 58.4,
+      "hr": 84.23,
+      "ms": 90.4,
+      "quality": "projection"
+    },
+    {
+      "name": "Rolling 1M",
+      "q": 68.5,
+      "p": 84.2,
+      "hr": 85.21,
+      "ms": 78.65,
+      "quality": "projection"
+    }
+  ],
+  "projections": [
+    {
+      "p": 1.0,
+      "mean_ms": 71.45,
+      "hr_percent": 85.82,
+      "recall_percent": 46.05,
+      "kind": "fixed-endpoint projection; not measured mixed traffic"
+    },
+    {
+      "p": 0.0,
+      "mean_ms": 117.0,
+      "hr_percent": 81.99,
+      "recall_percent": 45.53,
+      "kind": "fixed-endpoint projection; not measured mixed traffic"
+    },
+    {
+      "p": 0.36869999999999997,
+      "mean_ms": 100.205715,
+      "hr_percent": 83.402121,
+      "recall_percent": 45.721723999999995,
+      "kind": "fixed-endpoint projection; not measured mixed traffic"
+    },
+    {
+      "p": 0.36869999999999997,
+      "mean_ms": 100.205715,
+      "hr_percent": 83.402121,
+      "recall_percent": 45.721723999999995,
+      "kind": "fixed-endpoint projection; not measured mixed traffic"
+    },
+    {
+      "p": 0.584,
+      "mean_ms": 90.3988,
+      "hr_percent": 84.22672,
+      "recall_percent": 45.83368,
+      "kind": "fixed-endpoint projection; not measured mixed traffic"
+    },
+    {
+      "p": 0.8420000000000001,
+      "mean_ms": 78.64689999999999,
+      "hr_percent": 85.21485999999999,
+      "recall_percent": 45.96784,
+      "kind": "fixed-endpoint projection; not measured mixed traffic"
+    }
+  ],
+  "prepared_stages_ms": 71.45,
+  "planning_ms": 88,
+  "saving_ms": 45.55,
+  "compute_hits": 2,
+  "refresh_gpu_hours": 2.4444444444444446,
+  "positive_depth_within_prepared_percent": 83.16336913510457,
+  "default": {
+    "synthetic": true,
+    "model_version": "query-prefix-reuse-toy-1",
+    "input": {
+      "prepared": true,
+      "depth": 1,
+      "query": "wide",
+      "history": "left",
+      "budget": 4
+    },
+    "route": "prepared-prefix",
+    "waits_for_planner": false,
+    "async_prepare": false,
+    "active_depth": 1,
+    "prefixes": [
+      "0",
+      "1"
+    ],
+    "target": "0001",
+    "reachable": [
+      "0000",
+      "0001",
+      "0010",
+      "0011",
+      "0100",
+      "0101",
+      "0110",
+      "0111",
+      "1000",
+      "1001",
+      "1010",
+      "1011",
+      "1100",
+      "1101",
+      "1110",
+      "1111"
+    ],
+    "target_reachable": true,
+    "layer_nodes": [
+      2,
+      4,
+      8,
+      16
+    ],
+    "l4_scored": 16,
+    "branches": [
+      "000",
+      "100",
+      "010",
+      "001",
+      "110",
+      "101",
+      "011",
+      "111"
+    ],
+    "admitted": [
+      "000",
+      "100",
+      "010",
+      "001"
+    ],
+    "ranking": [
+      {
+        "sid": "0001",
+        "score": 10
+      },
+      {
+        "sid": "1001",
+        "score": 9
+      },
+      {
+        "sid": "0101",
+        "score": 8
+      },
+      {
+        "sid": "0011",
+        "score": 7
+      },
+      {
+        "sid": "0000",
+        "score": 6
+      },
+      {
+        "sid": "1000",
+        "score": 5
+      },
+      {
+        "sid": "0100",
+        "score": 4
+      },
+      {
+        "sid": "0010",
+        "score": 3
+      }
+    ],
+    "target_returned": true
+  },
+  "deep_counterexample": {
+    "synthetic": true,
+    "model_version": "query-prefix-reuse-toy-1",
+    "input": {
+      "prepared": true,
+      "depth": 3,
+      "query": "wide",
+      "history": "right",
+      "budget": 8
+    },
+    "route": "prepared-prefix",
+    "waits_for_planner": false,
+    "async_prepare": false,
+    "active_depth": 3,
+    "prefixes": [
+      "000",
+      "100"
+    ],
+    "target": "1111",
+    "reachable": [
+      "0000",
+      "0001",
+      "1000",
+      "1001"
+    ],
+    "target_reachable": false,
+    "layer_nodes": [
+      2,
+      2,
+      2,
+      4
+    ],
+    "l4_scored": 4,
+    "branches": [
+      "000",
+      "100"
+    ],
+    "admitted": [
+      "000",
+      "100"
+    ],
+    "ranking": [
+      {
+        "sid": "0001",
+        "score": 7
+      },
+      {
+        "sid": "1001",
+        "score": 6
+      },
+      {
+        "sid": "0000",
+        "score": 3
+      },
+      {
+        "sid": "1000",
+        "score": 2
+      }
+    ],
+    "target_returned": false
+  },
+  "root_comparison": {
+    "synthetic": true,
+    "model_version": "query-prefix-reuse-toy-1",
+    "input": {
+      "prepared": true,
+      "depth": 0,
+      "query": "wide",
+      "history": "right",
+      "budget": 8
+    },
+    "route": "prepared-root",
+    "waits_for_planner": false,
+    "async_prepare": false,
+    "active_depth": 0,
+    "prefixes": [
+      ""
+    ],
+    "target": "1111",
+    "reachable": [
+      "0000",
+      "0001",
+      "0010",
+      "0011",
+      "0100",
+      "0101",
+      "0110",
+      "0111",
+      "1000",
+      "1001",
+      "1010",
+      "1011",
+      "1100",
+      "1101",
+      "1110",
+      "1111"
+    ],
+    "target_reachable": true,
+    "layer_nodes": [
+      2,
+      4,
+      8,
+      16
+    ],
+    "l4_scored": 16,
+    "branches": [
+      "111",
+      "011",
+      "101",
+      "001",
+      "110",
+      "010",
+      "100",
+      "000"
+    ],
+    "admitted": [
+      "111",
+      "011",
+      "101",
+      "001",
+      "110",
+      "010",
+      "100",
+      "000"
+    ],
+    "ranking": [
+      {
+        "sid": "1111",
+        "score": 10
+      },
+      {
+        "sid": "0111",
+        "score": 9
+      },
+      {
+        "sid": "1011",
+        "score": 8
+      },
+      {
+        "sid": "0011",
+        "score": 7
+      },
+      {
+        "sid": "1101",
+        "score": 7
+      },
+      {
+        "sid": "0101",
+        "score": 6
+      },
+      {
+        "sid": "1110",
+        "score": 6
+      },
+      {
+        "sid": "0110",
+        "score": 5
+      },
+      {
+        "sid": "1001",
+        "score": 5
+      },
+      {
+        "sid": "0001",
+        "score": 4
+      },
+      {
+        "sid": "1010",
+        "score": 4
+      },
+      {
+        "sid": "0010",
+        "score": 3
+      },
+      {
+        "sid": "1100",
+        "score": 3
+      },
+      {
+        "sid": "0100",
+        "score": 2
+      },
+      {
+        "sid": "1000",
+        "score": 1
+      },
+      {
+        "sid": "0000",
+        "score": 0
+      }
+    ],
+    "target_returned": true
+  },
+  "cold_comparison": {
+    "synthetic": true,
+    "model_version": "query-prefix-reuse-toy-1",
+    "input": {
+      "prepared": false,
+      "depth": 3,
+      "query": "wide",
+      "history": "right",
+      "budget": 8
+    },
+    "route": "cold-e2e",
+    "waits_for_planner": false,
+    "async_prepare": true,
+    "active_depth": 0,
+    "prefixes": [
+      ""
+    ],
+    "target": "1111",
+    "reachable": [
+      "0000",
+      "0001",
+      "0010",
+      "0011",
+      "0100",
+      "0101",
+      "0110",
+      "0111",
+      "1000",
+      "1001",
+      "1010",
+      "1011",
+      "1100",
+      "1101",
+      "1110",
+      "1111"
+    ],
+    "target_reachable": true,
+    "layer_nodes": [
+      2,
+      4,
+      8,
+      16
+    ],
+    "l4_scored": 16,
+    "branches": [
+      "111",
+      "011",
+      "101",
+      "001",
+      "110",
+      "010",
+      "100",
+      "000"
+    ],
+    "admitted": [
+      "111",
+      "011",
+      "101",
+      "001",
+      "110",
+      "010",
+      "100",
+      "000"
+    ],
+    "ranking": [
+      {
+        "sid": "1111",
+        "score": 10
+      },
+      {
+        "sid": "0111",
+        "score": 9
+      },
+      {
+        "sid": "1011",
+        "score": 8
+      },
+      {
+        "sid": "0011",
+        "score": 7
+      },
+      {
+        "sid": "1101",
+        "score": 7
+      },
+      {
+        "sid": "0101",
+        "score": 6
+      },
+      {
+        "sid": "1110",
+        "score": 6
+      },
+      {
+        "sid": "0110",
+        "score": 5
+      },
+      {
+        "sid": "1001",
+        "score": 5
+      },
+      {
+        "sid": "0001",
+        "score": 4
+      },
+      {
+        "sid": "1010",
+        "score": 4
+      },
+      {
+        "sid": "0010",
+        "score": 3
+      },
+      {
+        "sid": "1100",
+        "score": 3
+      },
+      {
+        "sid": "0100",
+        "score": 2
+      },
+      {
+        "sid": "1000",
+        "score": 1
+      },
+      {
+        "sid": "0000",
+        "score": 0
+      }
+    ],
+    "target_returned": true
+  },
+  "not_tested": [
+    "models",
+    "commercial logs",
+    "money",
+    "queue",
+    "P95 mixture",
+    "P99",
+    "online lift"
+  ]
+}
