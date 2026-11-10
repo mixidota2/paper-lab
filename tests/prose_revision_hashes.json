@@ -1,6 +1,6 @@
 {
   "base": "d97532ffce0461af70347f8380da1b2a4466b22a",
-  "purpose": "Exact reviewed prose revisions and inventory numeric repair; all other baseline files remain byte-identical.",
+  "purpose": "Exact reviewed prose revisions, inventory numeric repair, and SIDScope weight validation; all other baseline files remain byte-identical.",
   "files": {
     "papers/hear-harness-engine-serving-protocol/README.md": {
       "before_blob": "492a943232ed1deb9993049b29ce7f508cca85a1",
@@ -1375,6 +1375,12 @@
       "before_sha256": "f4e50095f7639c2fd9f7d5ee2a1caeb0d3d3b9a4d58239b16900effa1f7e8555",
       "after_blob": "da9397274256a953896bc30170ab7f16262ea441",
       "after_sha256": "60ec99118451359e3edb6ff3cb6cbfab2499195a1ec749b8d310bb065eacac44"
+    },
+    "papers/sidscope-diagnostics/run.py": {
+      "before_blob": "3b4c0a00f4ad9ee4215183775011c7bd8f996eb5",
+      "before_sha256": "11474d7c288d6bb3ddd1da533b6ee2e53005a58e52e1d0b8287081e99b2b838a",
+      "after_blob": "8f8631c1faf4c3189d98db86ee66ed3c824d5fd1",
+      "after_sha256": "cc473858dd25b9797b3e044ac30b67bb38bfc191461379de4d76997d660171de"
     }
   }
 }

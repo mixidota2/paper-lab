@@ -34,6 +34,13 @@ def test_other_223_reviewed_prose_identities_are_unchanged():
     assert original.pop('papers/assortment-replenishment-hard-constraints/interactive.js') == {'before_blob': '69d549d345ec39b67b9cfac3e78383541f793802', 'before_sha256': '10a7b27ede498378a37297358d9eb5777b629c58280c43d06b3cb2d57d7e4d83', 'after_blob': 'd1bb7bfe6c491a970e99b5836ea08635f2fcce9f', 'after_sha256': 'f8c7275cc9a5a1a8d9120b682ace52588d2a47643174646ca55efde53bc10275'}
     # Pin initial disabled controls separately; the 223-entry digest is unchanged.
     assert original.pop('papers/assortment-replenishment-hard-constraints/interactive.html') == {'before_blob': '95a09aebbff2a91b37a495b91071e7c104550a04', 'before_sha256': 'f4e50095f7639c2fd9f7d5ee2a1caeb0d3d3b9a4d58239b16900effa1f7e8555', 'after_blob': 'da9397274256a953896bc30170ab7f16262ea441', 'after_sha256': '60ec99118451359e3edb6ff3cb6cbfab2499195a1ec749b8d310bb065eacac44'}
+    # Pin SIDScope's weight validation separately; keep the 223-entry digest.
+    assert original.pop('papers/sidscope-diagnostics/run.py') == {
+        'before_blob': '3b4c0a00f4ad9ee4215183775011c7bd8f996eb5',
+        'before_sha256': '11474d7c288d6bb3ddd1da533b6ee2e53005a58e52e1d0b8287081e99b2b838a',
+        'after_blob': '8f8631c1faf4c3189d98db86ee66ed3c824d5fd1',
+        'after_sha256': 'cc473858dd25b9797b3e044ac30b67bb38bfc191461379de4d76997d660171de',
+    }
     assert len(original) == 223
     canonical = json.dumps(original, sort_keys=True, separators=(',', ':')).encode()
     assert hashlib.sha256(canonical).hexdigest() == '1b67a628b52a403a6e94d9db30ef9888e23f09874a189ad767435b33dfe5c363'
