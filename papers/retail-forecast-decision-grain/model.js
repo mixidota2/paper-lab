@@ -43,5 +43,30 @@ function unpack(d){
   scenario(inputs); // Recompute before changing the UI; saved output is never trusted.
   return inputs;
 }
-const api={metrics,windows,loss,defaults,scenario,pack,unpack};if(typeof module!=='undefined')module.exports=api;else root.GrainModel=api;
+// Deltas describe arithmetic changes, not comparable model performance.
+const comparisonKind='retail-grain-comparison';
+function compare(baseline,current){
+  const b=pack(baseline),c=pack(current);
+  function difference(x,y){
+    if(x===null||y===null)return null;
+    if(typeof x==='object')return Object.fromEntries(Object.keys(x).map(k=>[k,difference(x[k],y[k])]));
+    return finite(y-x);
+  }
+  return {baseline:b,current:c,changed_inputs:Object.keys(defaults).filter(k=>b.inputs[k]!==c.inputs[k]),
+          delta:difference(b.output,c.output)};
+}
+function packComparison(baseline,current){
+  const result=compare(baseline,current);
+  return {schema:1,kind:comparisonKind,model_version:modelVersion,synthetic:true,
+          baseline:result.baseline,current:result.current,changed_inputs:result.changed_inputs,delta:result.delta,
+          note:'Current minus baseline. Changes to evaluation conditions are not evidence of performance improvement. The three examples use separate scales.'};
+}
+function unpackComparison(d){
+  if(!d||d.schema!==1||d.kind!==comparisonKind||d.model_version!==modelVersion||d.synthetic!==true)
+    throw Error('この教材の比較保存形式1・retail-grain-1の合成例JSONを使ってください。');
+  const baseline=unpack(d.baseline),current=unpack(d.current);
+  compare(baseline,current); // Validate both before a caller changes any state.
+  return {baseline,current};
+}
+const api={metrics,windows,loss,defaults,scenario,pack,unpack,compare,packComparison,unpackComparison};if(typeof module!=='undefined')module.exports=api;else root.GrainModel=api;
 })(globalThis);
