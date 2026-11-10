@@ -84,14 +84,14 @@
     const controls = el('div', 'interactive-controls');
     const previous = button('− ひとつ前', () => select(index-1));
     const next = button('＋ ひとつ先', () => select(index+1));
-    const reset = button('初期条件に戻す', () => select(data.default));
+    const reset = button('初期条件に戻す', () => {
+      localScale = false;
+      select(data.default);
+    });
     const scale = button('棒の尺度：全条件で固定', () => {
       localScale = !localScale;
-      scale.textContent = localScale ? '棒の尺度：この条件の最大値に合わせる' : '棒の尺度：全条件で固定';
-      scale.setAttribute('aria-pressed', localScale);
       render();
     });
-    scale.setAttribute('aria-pressed', 'false');
     controls.append(previous, next, reset, scale);
     const metric = el('p', 'chart-metric', data.metric + ' · 棒の起点は0');
     const chart = el('div', 'bar-chart');
@@ -112,6 +112,8 @@
     }
     function render() {
       const f = data.frames[index];
+      scale.textContent = localScale ? '棒の尺度：この条件の最大値に合わせる' : '棒の尺度：全条件で固定';
+      scale.setAttribute('aria-pressed', localScale);
       range.value = String(index);
       range.setAttribute('aria-valuetext', `${data.label}：${number(f.value)}${data.unit}`);
       value.value = `${number(f.value)}${data.unit}`;
