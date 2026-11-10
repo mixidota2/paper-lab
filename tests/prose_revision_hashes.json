@@ -1,6 +1,6 @@
 {
   "base": "d97532ffce0461af70347f8380da1b2a4466b22a",
-  "purpose": "Exact reviewed prose revisions, inventory numeric repair, and SIDScope weight validation; all other baseline files remain byte-identical.",
+  "purpose": "Exact reviewed prose revisions, inventory numeric repair, and SIDScope weight validation and FeatureArc download instructions; all other baseline files remain byte-identical.",
   "files": {
     "papers/hear-harness-engine-serving-protocol/README.md": {
       "before_blob": "492a943232ed1deb9993049b29ce7f508cca85a1",
@@ -1381,6 +1381,12 @@
       "before_sha256": "11474d7c288d6bb3ddd1da533b6ee2e53005a58e52e1d0b8287081e99b2b838a",
       "after_blob": "8f8631c1faf4c3189d98db86ee66ed3c824d5fd1",
       "after_sha256": "cc473858dd25b9797b3e044ac30b67bb38bfc191461379de4d76997d660171de"
+    },
+    "papers/featurearc-inherited-defects-chain-gates/README.md": {
+      "before_blob": "25acecdfa2256d5330d65d429f675142211d0e8d",
+      "before_sha256": "d0a038df909184e1a462d4aba50cc791aa9029fb2bd54f0babda2a1d3c78ed49",
+      "after_blob": "949c17409a3cfef47836238ad9431928ae94c8ed",
+      "after_sha256": "dcab188c66eb52b9ad1f76f0bffc67d7cff2a27a0367f63e30cf84acb698ca9e"
     }
   }
 }

@@ -41,6 +41,8 @@ def test_other_223_reviewed_prose_identities_are_unchanged():
         'after_blob': '8f8631c1faf4c3189d98db86ee66ed3c824d5fd1',
         'after_sha256': 'cc473858dd25b9797b3e044ac30b67bb38bfc191461379de4d76997d660171de',
     }
+    # Pin FeatureArc download instructions separately; keep all older identities.
+    assert original.pop('papers/featurearc-inherited-defects-chain-gates/README.md') == {'before_blob': '25acecdfa2256d5330d65d429f675142211d0e8d', 'before_sha256': 'd0a038df909184e1a462d4aba50cc791aa9029fb2bd54f0babda2a1d3c78ed49', 'after_blob': '949c17409a3cfef47836238ad9431928ae94c8ed', 'after_sha256': 'dcab188c66eb52b9ad1f76f0bffc67d7cff2a27a0367f63e30cf84acb698ca9e'}
     assert len(original) == 223
     canonical = json.dumps(original, sort_keys=True, separators=(',', ':')).encode()
     assert hashlib.sha256(canonical).hexdigest() == '1b67a628b52a403a6e94d9db30ef9888e23f09874a189ad767435b33dfe5c363'
