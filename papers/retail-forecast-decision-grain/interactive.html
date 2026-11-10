@@ -1,5 +1,5 @@
 <section id="grain-lab" aria-label="集計順序と発注費用の合成実験">
-<style>#grain-lab{max-width:100%;overflow-wrap:anywhere}#grain-lab .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:1rem}#grain-lab label{display:block;margin:.6rem 0}#grain-lab input,#grain-lab select,#grain-lab button,#grain-lab textarea{font:inherit;max-width:100%}#grain-lab pre{white-space:pre-wrap}#grain-lab .bar{height:.8rem;background:#26776d;max-width:100%}</style>
+<style>#grain-lab{max-width:100%;overflow-wrap:anywhere}#grain-lab .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:1rem}#grain-lab label{display:block;margin:.6rem 0}#grain-lab input,#grain-lab select,#grain-lab button,#grain-lab textarea{font:inherit;max-width:100%}#grain-lab .comparison-scroll{overflow-x:auto}#grain-lab table{border-collapse:collapse;width:100%}#grain-lab th,#grain-lab td{padding:.5rem;border-bottom:1px solid #aaa;text-align:right}#grain-lab th:first-child{text-align:left}#grain-lab pre{white-space:pre-wrap}#grain-lab .bar{height:.8rem;background:#26776d;max-width:100%}</style>
 <p>以下は著者の学習済みモデルを使わない自作例です。A・Bは仮の予測であり、特定手法の名前ではありません。すべて小さいほど良い費用として比較します。最初は商品ごとに1期、次は1窓1値の説明例で、一般の多期間Eq.7全体の実装ではありません。</p>
 <div class="grid"><fieldset><legend>1．ゼロ売上と集計粒度</legend>
 <p>実績は[100,第2商品の売上]、予測Aは[90,Aの第2予測]、Bは[80,0]。単価は両方1、歴史的金額の重みは等分です。</p>
@@ -20,8 +20,17 @@
 窓平均 A=0.5、B=0.05。pool A=1/101、B=10/101。
 単期発注損失=8（不足2×単価4）。いずれも自作合成例。</pre>
 <div id="grain-bars" aria-label="訂正式の費用比較"></div><p id="grain-error" role="alert"></p>
+<fieldset><legend>条件を固定して、変更前後を並べる</legend>
+<p>「現在の条件を基準にする」で比較元を固定し、上の入力を変えてください。3つの実験それぞれで、基準・現在・差を表示します。差は現在−基準です。集計単位・売上・費用条件が違う場合、差を予測性能の改善とは読めません。異なる尺度の値は合算しません。</p>
+<button id="grain-pin" type="button" disabled>現在の条件を基準にする</button>
+<button id="grain-clear-baseline" type="button" disabled>基準を解除する</button>
+<p id="grain-comparison-status" role="status">比較機能にはJavaScriptが必要です。</p>
+<div id="grain-comparison" class="comparison-scroll" tabindex="0" role="region" aria-label="基準と現在の比較表"></div>
+<p>基準はこのページを開いている間だけ保持します。ページの再読込と「初期値に戻す」で消えます。残す場合は「基準と現在をJSON保存」を使ってください。</p>
+<button id="grain-comparison-download" type="button" disabled>基準と現在をJSON保存</button>
+</fieldset>
 <fieldset><legend>条件を保存して比較を再開</legend>
-<p>現在の入力条件と合成例の計算結果をJSONに保存します。読み込み時は条件から再計算し、保存されていた結果値は使いません。原著モデルの予測や実験結果を保存する機能ではありません。外部への送信はありません。</p>
+<p>現在の入力条件と合成例の計算結果をJSONに保存します。基準と現在を保存した比較JSONも、同じ欄から読み込めます。単独の条件JSONを読み込む場合は、固定した基準を残して現在の条件だけを戻します。読み込み時は条件から再計算し、保存されていた結果値は使いません。原著モデルの予測や実験結果を保存する機能ではありません。外部への送信はありません。</p>
 <button id="grain-download" type="button" disabled>現在の条件をJSON保存</button>
 <label>保存したJSONを貼り付ける <textarea id="grain-json" rows="8" spellcheck="false" disabled></textarea></label>
 <button id="grain-import" type="button" disabled>JSONの条件を読み込む</button>
