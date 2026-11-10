@@ -29,7 +29,7 @@ event('reset','click');const first=await save();assert.deepEqual(await save(),fi
     subprocess.run(["node", "-e", script], cwd=root, check=True)
 
 
-def test_export_revision_is_only_version_metadata():
+def test_export_revision_preserves_version_metadata_after_readiness_change():
     import hashlib
     import json
     root = Path(__file__).resolve().parents[1]
@@ -43,6 +43,11 @@ def test_export_revision_is_only_version_metadata():
     ]
     row = json.loads((root / 'tests/prose_revision_hashes.json').read_text())['files'][path]
     assert hashlib.sha256(data.encode()).hexdigest() == row['after_sha256']
+    readiness = json.loads((root / 'tests/replenishment_readiness_revision.json').read_text())['files'][path]
+    for before, after in reversed(readiness['replacements']):
+        assert data.count(after) == 1
+        data = data.replace(after, before)
+    assert hashlib.sha256(data.encode()).hexdigest() == readiness['prior_sha256']
     for before, after in replacements:
         assert data.count(after) == 1
         data = data.replace(after, before)

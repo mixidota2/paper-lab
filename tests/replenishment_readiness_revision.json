@@ -1,0 +1,69 @@
+{
+  "base_commit": "ebe169cdc22adfbe4d7f06196343f8118b436532",
+  "files": {
+    "papers/assortment-replenishment-hard-constraints/interactive.html": {
+      "prior_sha256": "f4e50095f7639c2fd9f7d5ee2a1caeb0d3d3b9a4d58239b16900effa1f7e8555",
+      "after_sha256": "60ec99118451359e3edb6ff3cb6cbfab2499195a1ec749b8d310bb065eacac44",
+      "replacements": [
+        [
+          "id=\"case\"",
+          "id=\"case\" disabled"
+        ],
+        [
+          "id=\"S\"",
+          "id=\"S\" disabled"
+        ],
+        [
+          "id=\"f\"",
+          "id=\"f\" disabled"
+        ],
+        [
+          "id=\"t\"",
+          "id=\"t\" disabled"
+        ],
+        [
+          "id=\"beta\"",
+          "id=\"beta\" disabled"
+        ],
+        [
+          "id=\"lambda\"",
+          "id=\"lambda\" disabled"
+        ],
+        [
+          "id=\"mode\"",
+          "id=\"mode\" disabled"
+        ],
+        [
+          "id=\"reset\"",
+          "id=\"reset\" disabled"
+        ],
+        [
+          "id=\"download\"",
+          "id=\"download\" disabled"
+        ]
+      ]
+    },
+    "papers/assortment-replenishment-hard-constraints/interactive.js": {
+      "prior_sha256": "57cd430016d852dc59e044cb2b4127a004be6e2ba14f8095bb8d649e245c0d7e",
+      "after_sha256": "f8c7275cc9a5a1a8d9120b682ace52588d2a47643174646ca55efde53bc10275",
+      "replacements": [
+        [
+          "const lessons=",
+          "const controls=['case','S','f','t','beta','lambda','mode','reset','download'];\nfunction setReady(ready){for(const id of controls)$(id).disabled=!ready;}\nsetReady(false);$('summary').textContent='入力データを読み込んでいます。完了後に操作できます。';\nconst lessons="
+        ],
+        [
+          "function setup(){const d=",
+          "function setup(){if(!originals)return;const d="
+        ],
+        [
+          "originals=d.cases;modelVersion=d.model_version;setup();",
+          "originals=d.cases;modelVersion=d.model_version;setup();if(!result)throw Error('初期計算が完了しませんでした。');setReady(true);"
+        ],
+        [
+          ".catch(e=>{$('summary').textContent=",
+          ".catch(e=>{originals=data=result=modelVersion=null;setReady(false);$('summary').textContent="
+        ]
+      ]
+    }
+  }
+}
