@@ -364,3 +364,7 @@ body{background:white}
 .survey-decisions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: .8rem; margin-top: 1rem; }
 .survey-decisions > div { padding: .8rem; border: 1px solid #bacdbe; border-radius: 6px; }
 .survey-toc { display: flex; flex-wrap: wrap; gap: .5rem 1rem; padding: 1rem 0; }
+
+.explorer-export { margin-top: 1rem; }
+.explorer-export label { display: block; margin: .75rem 0 .35rem; }
+.explorer-export textarea { display: block; box-sizing: border-box; width: 100%; min-width: 0; font: .85rem/1.5 monospace; resize: vertical; }

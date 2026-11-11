@@ -1,6 +1,42 @@
 from pathlib import Path
 import yaml
 
+
+def test_metrics_scalar_header_is_japanese_and_preserves_values():
+    from copy import deepcopy
+    from paper_lab.build import _metrics_table
+
+    metrics = {"score": 0, "other": 12.5}
+    before = deepcopy(metrics)
+    html = _metrics_table(metrics)
+
+    assert "<thead><tr><th>指標</th><th>値</th></tr></thead>" in html
+    assert "<td colspan='1'>0</td>" in html
+    assert "<td colspan='1'>12.5</td>" in html
+    assert metrics == before
+
+
+def test_metrics_named_headers_translate_escape_and_keep_column_order():
+    from copy import deepcopy
+    from paper_lab.build import _metrics_table
+
+    metrics = {
+        "first": {"safe_total": 7, 'unknown<>&"': 2},
+        "second": {"safe_total": 0, "value": 9},
+    }
+    before = deepcopy(metrics)
+    html = _metrics_table(metrics, "execution-state-unlearning")
+
+    assert (
+        "<thead><tr><th>指標</th>"
+        "<th>忘却対象ではない入力値の合計</th>"
+        "<th>unknown&lt;&gt;&amp;&quot;</th><th>値</th></tr></thead>"
+    ) in html
+    assert "<td>7</td><td>2</td><td></td>" in html
+    assert "<td>0</td><td></td><td>9</td>" in html
+    assert metrics == before
+
+
 def test_orpr_model_size_is_parameter_count():
     lab = Path(__file__).resolve().parents[1] / "papers/orpr-or-guided-pretrain-reinforce-inventory"
     summary = yaml.safe_load((lab / "lab.yaml").read_text())["summary"]
