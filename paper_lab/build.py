@@ -242,8 +242,21 @@ def jinja_env() -> Environment:
 
 
 
+def _resolve_build_path(path: Path) -> Path:
+    """Resolve a path, allowing missing outputs but not unresolved link loops."""
+    resolved = path.resolve()
+    # Python 3.13 resolve(strict=False) no longer raises for symlink loops.
+    # stat follows the resolved path and reports ELOOP, unlike exists/is_dir
+    # which may suppress it. Missing targets remain valid for new outputs.
+    try:
+        resolved.stat()
+    except FileNotFoundError:
+        pass
+    return resolved
+
+
 def _reject_output_overlap(site: Path, source: Path) -> None:
-    source = source.resolve()
+    source = _resolve_build_path(source)
     if site == source or site in source.parents or source in site.parents:
         raise LabError(f"Unsafe build output overlaps source: {site} ({source})")
 
@@ -269,9 +282,9 @@ def build(
     site_dir: Path | None = None,
 ) -> list[Lab]:
     try:
-        root = find_root(root).resolve()
-        papers = (Path(papers_dir) if papers_dir else root / "papers").resolve()
-        site = (Path(site_dir) if site_dir else root / "site").resolve()
+        root = _resolve_build_path(find_root(root))
+        papers = _resolve_build_path(Path(papers_dir) if papers_dir else root / "papers")
+        site = _resolve_build_path(Path(site_dir) if site_dir else root / "site")
         _validate_output(root, papers, site)
     except (OSError, RuntimeError) as exc:
         raise LabError(f"Cannot resolve safe build paths: {exc}") from exc
