@@ -1,0 +1,16 @@
+{%- if frame.get('lines') -%}
+{%- set row_count = namespace(value=0) -%}
+{%- for line in frame['lines'] -%}
+{%- set row_count.value = [row_count.value, line['values'] | length] | max -%}
+{%- endfor -%}
+{%- if row_count.value -%}
+<details><summary>初期条件の系列を表で読む</summary>
+<p>初期条件の計算済みの値です。条件を切り替えるにはJavaScriptが必要です。</p>
+<p>{{ explorer_axes.caption if explorer_axes else '横軸：系列内の点番号。縦軸：各系列の値。' }}</p>
+<div class="chart-data" tabindex="0" role="region" aria-label="初期条件の系列データ">
+<table data-initial-lines><caption class="sr-only">初期条件の系列データ</caption>
+<thead><tr><th scope="col">{{ explorer_axes.label if explorer_axes else '点' }}</th>{% for line in frame['lines'] %}<th scope="col">{{ line.label }}</th>{% endfor %}</tr></thead>
+<tbody>{% for i in range(row_count.value) %}<tr><th scope="row">{{ i + (explorer_axes.start if explorer_axes else 1) }}</th>{% for line in frame['lines'] %}<td>{{ '—' if i >= line['values'] | length else '推定不能' if line['values'][i] is none else line['values'][i] }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+</table></div></details>
+{%- endif -%}
+{%- endif -%}

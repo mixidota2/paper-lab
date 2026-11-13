@@ -41,13 +41,13 @@
       {% for f in lab.teaching_figures if f.after == s.key %}{% include 'teaching.html' %}{% endfor %}
       {% if s.key == 'executable_understanding' %}
       {% for interactive in lab.interactives %}
-      <section class="interactive" id="interactive-{{ loop.index }}" data-interactive="{{ interactive.kind }}">
+      <section class="interactive" id="interactive-{{ loop.index }}" data-interactive="{{ interactive.kind }}"{% if interactive.kind == 'explorer' %} data-paper-id="{{ lab.id }}"{% endif %}>
         <p class="figure-badge">人工データを使った小実験・仕組みの一部を確認（PARTIAL）</p><h2>{{ interactive.title }}</h2><p>{{ interactive.caption }}</p>
         <script type="application/json" data-config>{{ interactive | tojson }}</script>
         {% if interactive.kind == 'explorer' %}<script type="application/json" data-axes>{{ explorer_axes | tojson }}</script><script type="application/json" data-results>{{ explorer_display | tojson }}</script>{% endif %}
         <div data-mount></div><div data-fallback>
         {% if interactive.kind == 'flow' %}<ol>{% for stage in interactive.stages %}<li>{{ stage.title }}：{{ stage.proposed }}<p>{{ stage.detail }}</p></li>{% endfor %}</ol>
-        {% else %}{% set frame = explorer_display.frames[explorer_display.default] %}<p>{{ explorer_display.label }}：{{ frame.value }}{{ explorer_display.unit }}</p><ul>{% for bar in frame.bars %}<li>{{ bar.label }}：{{ "推定不能" if bar.value is none else bar.value }}</li>{% endfor %}</ul><p>{{ frame.note }}</p>{% endif %}
+        {% else %}{% set frame = explorer_display.frames[explorer_display.default] %}<p>{{ explorer_display.label }}：{{ frame.value }}{{ explorer_display.unit }}</p><ul>{% for bar in frame.bars %}<li>{{ bar.label }}：{{ "推定不能" if bar.value is none else bar.value }}</li>{% endfor %}</ul><p>{{ frame.note }}</p>{% include 'explorer_fallback.html' %}{% endif %}
         </div><p class="source-note">数値の出所：このLabの results.json。論文の測定値ではありません。</p>
       </section>
       {% endfor %}{% endif %}

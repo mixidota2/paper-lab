@@ -3,6 +3,8 @@
   'use strict';
   const palette = ['#086b5e', '#a14d26', '#536893'];
   const number = value => value === null ? '推定不能' : Number(value).toLocaleString('ja-JP', {maximumFractionDigits: 4});
+  // Charts stay compact; the data table preserves every saved numeric digit.
+  const exactNumber = value => value === null ? '推定不能' : String(value);
   function el(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -70,7 +72,7 @@
     }
     render();
   }
-  function explorer(root, data, id, axes) {
+  function explorer(root, data, id, axes, paperId) {
     let index = data.default;
     let localScale = false;
     const label = el('label', 'slider-label', data.label);
@@ -92,7 +94,54 @@
       localScale = !localScale;
       render();
     });
-    controls.append(previous, next, reset, scale);
+    const exportDetails = el('details', 'explorer-export');
+    exportDetails.append(el('summary', '', '保存用JSONを読む・コピーする'));
+    const exportLabel = el('label', '', '現在の条件の保存用JSON');
+    exportLabel.htmlFor = `${id}-json`;
+    const exportText = el('textarea');
+    exportText.id = `${id}-json`;
+    exportText.readOnly = true;
+    exportText.rows = 10;
+    exportText.value = '';
+    const exportStatus = el('p', 'source-note');
+    exportStatus.setAttribute('role', 'status');
+    exportDetails.append(exportLabel, exportText);
+    const download = button('現在の条件を保存（JSON）', () => {
+      const payload = {
+        schema_version: 1,
+        kind: 'paper-lab-explorer-condition',
+        synthetic: true,
+        paper_id: paperId || null,
+        experiment_id: id,
+        condition_index: index,
+        condition_label: data.label,
+        condition_unit: data.unit,
+        metric: data.metric,
+        frame: data.frames[index],
+        axes: axes || null,
+        note: 'このLabのresults.jsonにある人工データの小実験です。原論文の性能や実業務での効果を検証するものではありません。',
+      };
+      // Keep an exact readable copy before invoking optional download APIs.
+      const text = JSON.stringify(payload, null, 2);
+      exportText.value = text;
+      exportDetails.open = true;
+      let url;
+      try {
+        url = URL.createObjectURL(new Blob([text], {type: 'application/json'}));
+        const link = el('a');
+        link.href = url;
+        const name = (paperId || 'paper-lab').replace(/[^a-zA-Z0-9_-]/g, '-');
+        link.download = `${name}-${id}-condition-${index + 1}.json`;
+        link.click();
+        exportStatus.textContent = '保存用JSONを用意しました。ファイルがダウンロードされない場合は、下の欄からコピーして保存してください。';
+      } catch (_) {
+        exportStatus.textContent = 'ファイルのダウンロードを開始できませんでした。下のJSON欄からコピーして保存してください。';
+      } finally {
+        // Each cleanup owns only its own URL, even after another export or reset.
+        if (url) setTimeout(() => { try { URL.revokeObjectURL(url); } catch (_) {} }, 1000);
+      }
+    });
+    controls.append(previous, next, reset, scale, download);
     const metric = el('p', 'chart-metric', data.metric + ' · 棒の起点は0');
     const chart = el('div', 'bar-chart');
     const note = el('p', 'explorer-note');
@@ -103,7 +152,7 @@
     const tableMount = el('div', 'chart-data');
     tableMount.tabIndex = 0; tableMount.setAttribute('role', 'region'); tableMount.setAttribute('aria-label', '実験データの表');
     details.append(tableMount);
-    root.append(label, range, controls, metric, chart, note, traces, details);
+    root.append(label, range, controls, metric, chart, note, traces, details, exportStatus, exportDetails);
     const maximum = Math.max(1e-9, ...data.frames.flatMap(f => f.bars.filter(b => b.value !== null).map(b => b.value)));
     range.addEventListener('input', () => select(Number(range.value)));
     function select(nextIndex) {
@@ -112,6 +161,9 @@
     }
     function render() {
       const f = data.frames[index];
+      exportText.value = '';
+      exportDetails.open = false;
+      exportStatus.textContent = '';
       scale.textContent = localScale ? '棒の尺度：この条件の最大値に合わせる' : '棒の尺度：全条件で固定';
       scale.setAttribute('aria-pressed', localScale);
       range.value = String(index);
@@ -139,7 +191,7 @@
       const head = el('thead'); const hr = el('tr');
       ['比較対象・指標', '値'].forEach(t => {const th=el('th','',t);th.scope='col';hr.append(th);});
       head.append(hr); const body=el('tbody');
-      f.bars.forEach(b => {const tr=el('tr');const th=el('th','',b.label);th.scope='row';tr.append(th,el('td','',number(b.value)));body.append(tr);});
+      f.bars.forEach(b => {const tr=el('tr');const th=el('th','',b.label);th.scope='row';tr.append(th,el('td','',exactNumber(b.value)));body.append(tr);});
       table.append(caption,head,body);tableMount.append(table);
       if (f.lines && f.lines.length) {
         drawLines(traces, f.lines, `${id}-plot`, axes);
@@ -148,7 +200,7 @@
         [axes ? axes.label : '点',...f.lines.map(l=>l.label)].forEach(t=>{const th=el('th','',t);th.scope='col';row.append(th);});
         header.append(row);traceTable.append(header);const rows=el('tbody');
         const n=Math.max(...f.lines.map(l=>l.values.length));
-        for(let i=0;i<n;i++) {const row=el('tr');const th=el('th','',i+(axes ? axes.start : 1));th.scope='row';row.append(th);f.lines.forEach(l=>row.append(el('td','',l.values[i] === undefined ? '—' : number(l.values[i]))));rows.append(row);}
+        for(let i=0;i<n;i++) {const row=el('tr');const th=el('th','',i+(axes ? axes.start : 1));th.scope='row';row.append(th);f.lines.forEach(l=>row.append(el('td','',l.values[i] === undefined ? '—' : exactNumber(l.values[i]))));rows.append(row);}
         traceTable.append(rows);tableMount.append(traceTable);
       }
     }
@@ -182,7 +234,7 @@
     try {
       const config = JSON.parse(section.querySelector('[data-config]').textContent);
       if (config.kind === 'flow') flow(mount, config);
-      else explorer(mount, JSON.parse(section.querySelector('[data-results]').textContent), `experiment-${i}`, JSON.parse(section.querySelector('[data-axes]').textContent));
+      else explorer(mount, JSON.parse(section.querySelector('[data-results]').textContent), `experiment-${i}`, JSON.parse(section.querySelector('[data-axes]').textContent), section.dataset.paperId);
       section.querySelector('[data-fallback]').hidden = true;
       section.dataset.ready = 'true';
     } catch (error) {

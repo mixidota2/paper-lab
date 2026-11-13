@@ -23,6 +23,7 @@ import sys
 from pathlib import Path
 from typing import Any, Sequence
 import shutil
+import tempfile
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markdown import Markdown
@@ -129,7 +130,7 @@ def _metrics_table(metrics: dict[str, Any], slug: str = "") -> str:
                     cols.append(str(col))
     if not cols:
         cols = ["value"]
-    head = "".join(f"<th>{_escape("値" if c == "value" else display_text(slug, c))}</th>" for c in cols)
+    head = "".join(f"<th>{_escape('値' if c == 'value' else display_text(slug, c))}</th>" for c in cols)
     body = []
     for name, spec in metrics.items():
         cells = [f"<th scope='row'>{_escape(display_text(slug, name))}</th>"]
@@ -241,8 +242,21 @@ def jinja_env() -> Environment:
 
 
 
+def _resolve_build_path(path: Path) -> Path:
+    """Resolve a path, allowing missing outputs but not unresolved link loops."""
+    resolved = path.resolve()
+    # Python 3.13 resolve(strict=False) no longer raises for symlink loops.
+    # stat follows the resolved path and reports ELOOP, unlike exists/is_dir
+    # which may suppress it. Missing targets remain valid for new outputs.
+    try:
+        resolved.stat()
+    except FileNotFoundError:
+        pass
+    return resolved
+
+
 def _reject_output_overlap(site: Path, source: Path) -> None:
-    source = source.resolve()
+    source = _resolve_build_path(source)
     if site == source or site in source.parents or source in site.parents:
         raise LabError(f"Unsafe build output overlaps source: {site} ({source})")
 
@@ -268,9 +282,9 @@ def build(
     site_dir: Path | None = None,
 ) -> list[Lab]:
     try:
-        root = find_root(root).resolve()
-        papers = (Path(papers_dir) if papers_dir else root / "papers").resolve()
-        site = (Path(site_dir) if site_dir else root / "site").resolve()
+        root = _resolve_build_path(find_root(root))
+        papers = _resolve_build_path(Path(papers_dir) if papers_dir else root / "papers")
+        site = _resolve_build_path(Path(site_dir) if site_dir else root / "site")
         _validate_output(root, papers, site)
     except (OSError, RuntimeError) as exc:
         raise LabError(f"Cannot resolve safe build paths: {exc}") from exc
@@ -304,11 +318,59 @@ def build(
                     _reject_output_overlap(site, source)
     except (OSError, RuntimeError) as exc:
         raise LabError(f"Cannot resolve safe Lab source paths: {exc}") from exc
+    # Complete generation before touching the last successful output. Both trees
+    # share a parent filesystem so directory renames do not fall back to copying.
+    site.parent.mkdir(parents=True, exist_ok=True)
+    workspace = Path(tempfile.mkdtemp(prefix=f".{site.name}-build-", dir=site.parent))
+    staged = workspace / "next"
+    backup = workspace / "previous"
+    retain_recovery = False
+    try:
+        _render_site(root, papers, staged, labs)
+        if site.exists():
+            site.rename(backup)
+        staged.rename(site)
+    except BaseException:
+        # Inspect paths rather than a flag set after rename: an interruption can
+        # arrive after the filesystem changed but before Python advances.
+        if backup.exists():
+            if site.exists():
+                retain_recovery = True
+                raise LabError(
+                    f"Build installation was interrupted. Check output at {site}; "
+                    f"previous output is retained at {backup}."
+                )
+            try:
+                backup.rename(site)
+            except BaseException as restore_error:
+                # Never clean up the only surviving copy after a failed rollback.
+                retain_recovery = True
+                raise LabError(
+                    f"Build installation and rollback failed. Check {site}; "
+                    f"recovery files are retained at {workspace}."
+                ) from restore_error
+        raise
+    finally:
+        if not retain_recovery:
+            try:
+                shutil.rmtree(workspace)
+            except OSError as cleanup_error:
+                # The output may already be installed. Report the leftover rather
+                # than presenting successful generation as a failed installation.
+                print(f"warning: Build temporary files remain at {workspace}: {cleanup_error}",
+                      file=sys.stderr)
+
+    print(f"Built {len(labs)} paper page(s) → {site}")
+    for lab in labs:
+        flag = " EXAMPLE" if lab.example else ""
+        print(f"  - {lab.id}: {lab.title}{flag}")
+    return labs
+
+
+def _render_site(root: Path, papers: Path, site: Path, labs: list[Lab]) -> None:
     env = jinja_env()
 
-    # site/ is entirely generated. Recreate it so a build cannot retain stale files.
-    if site.exists():
-        shutil.rmtree(site)
+    # Render into a new directory, so stale files cannot survive a successful build.
     assets = site / "assets"
     papers_out = site / "papers"
     assets.mkdir(parents=True)
@@ -434,12 +496,6 @@ def build(
     for existing in papers_out.glob("*.html"):
         if existing.name not in live:
             existing.unlink()
-
-    print(f"Built {len(labs)} paper page(s) → {site}")
-    for lab in labs:
-        flag = " EXAMPLE" if lab.example else ""
-        print(f"  - {lab.id}: {lab.title}{flag}")
-    return labs
 
 
 def _add_build_args(parser: argparse.ArgumentParser) -> None:
