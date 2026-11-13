@@ -1,0 +1,21 @@
+const {JSDOM}=require('jsdom');
+const fs=require('node:fs'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const root=require('node:path').resolve(process.argv[2] || require('node:path').join(__dirname,'..'));
+const html=fs.readFileSync(root+'/site/index.html','utf8');
+const original=fs.readFileSync(root+'/paper_lab/templates/library.js','utf8');
+assert.equal(original,fs.readFileSync(root+'/site/assets/library.js','utf8'));
+let source=original;
+if(process.env.NEGATIVE_CONTROL==='fallback') source=source.replace('readingText.value = text;','readingText.value = "";');
+if(process.env.NEGATIVE_CONTROL==='cancel') source=source.replace('readingImport.addEventListener("cancel", cancelReadingImport);','');
+if(process.env.NEGATIVE_CONTROL==='truncate') source=source.replace('JSON.stringify(payload, null, 2)', 'JSON.stringify({...payload,papers:payload.papers.slice(0,1)}, null, 2)');
+if(process.env.NEGATIVE_CONTROL) assert.notEqual(source,original,'negative mutation must change application source');
+const windows=[];
+const start=new Date().toISOString();
+function setup(){const dom=new JSDOM(html,{url:'https://mixidota2.github.io/paper-lab/?extra=keep#library',runScripts:'outside-only'}),w=dom.window,d=w.document,q=s=>d.querySelector(s);windows.push(w);w.eval(source);return {dom,w,d,q,fire:(el,type)=>el.dispatchEvent(new w.Event(type,{bubbles:true}))};}
+const tick=()=>new Promise(r=>setImmediate(r));
+(async()=>{
+{const {w,q,fire}=setup(),input=q('[data-library-controls]').elements.search;w.history.replaceState=()=>{throw new w.DOMException('blocked','SecurityError')};input.value='ＥＸＡＯＮＥ';fire(input,'input');const before=q('[data-result-count]').textContent;assert.match(q('[data-filter-url-status]').textContent,/URLに残せません/);fire(input,'compositionstart');input.value='欠品';fire(input,'input');w.dispatchEvent(new w.PageTransitionEvent('pageshow',{persisted:true}));assert.equal(input.value,'欠品');assert.notEqual(q('[data-result-count]').textContent,before);assert.equal(q('[data-reading-save]').disabled,false);assert.equal(new URL(w.location).searchParams.get('extra'),'keep');w.close();}
+{const {w,q}=setup();w.URL.createObjectURL=()=>{throw Error('unavailable')};q('[data-reading-save]').click();const payload=JSON.parse(q('[data-reading-json]').value);const visible=[...w.document.querySelectorAll('[data-paper]')].filter(c=>!c.hidden).map(c=>c.querySelector('h3 a').getAttribute('href'));assert.ok(visible.length>0);assert.equal(payload.paper_count,visible.length);assert.deepEqual(payload.papers.map(p=>p.lab_path),visible);assert.equal(payload.kind,'paper-lab-reading-list');assert.equal(payload.schema_version,1);assert.deepEqual(payload.filters,{search:'',topic:'',verdict:'',sort:'date'});assert.equal(q('[data-reading-preview]').open,true);assert.match(q('[data-reading-status]').textContent,/開始できません/);assert.match(q('[data-reading-status]').textContent,/コピー/);w.close();}
+{const {w,q,fire}=setup(),form=q('[data-library-controls]');form.elements.search.value='欠品';fire(form.elements.search,'input');const before=q('[data-result-count]').textContent;let finish;const file=new w.File(['{}'],'slow.json');file.text=()=>new Promise(r=>finish=r);const control=q('[data-reading-import]');Object.defineProperty(control,'files',{configurable:true,value:[file]});fire(control,'change');fire(control,'cancel');finish(JSON.stringify({kind:'paper-lab-reading-list',schema_version:1,filters:{search:'ＥＸＡＯＮＥ',topic:'',verdict:'',sort:'date'}}));await tick();assert.equal(form.elements.search.value,'欠品');assert.equal(q('[data-result-count]').textContent,before);assert.equal(q('[data-reading-import-status]').textContent,'');w.close();}
+console.log(JSON.stringify({start,end:new Date().toISOString(),status:'PASS',checks:['history SecurityError plus persisted pageshow keeps unsaved edit and ends IME','download URL failure retains complete copyable JSON','file cancel invalidates pending asynchronous import'],sha256:{html:crypto.createHash('sha256').update(html).digest('hex'),source:crypto.createHash('sha256').update(original).digest('hex')},scope:'Generated HTML + JSDOM actual DOM and handlers; failure injection. No native browser, picker, BFCache transport, download or deployed execution claim.'},null,2));
+})().catch(e=>{console.error(e);process.exitCode=1}).finally(()=>{for(const w of windows) w.close();});
