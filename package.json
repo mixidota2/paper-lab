@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "test:library-dom": "node tests/library-dom.cjs && node tests/library-fallback-dom.cjs"
+    "test:library-dom": "node tests/library-dom.cjs && node tests/library-fallback-dom.cjs && node tests/library-import-boundary.cjs"
   },
   "devDependencies": {
     "jsdom": "30.1.2"
