@@ -32,6 +32,14 @@ jobs:
         run: uv run --locked pytest -q -ra --fail-on-skip
       - name: Generate complete site after required checks
         run: uv run --locked paper-lab build
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+          cache: npm
+      - name: Install locked DOM validation dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate generated library HTML with real DOM events
+        run: npm run test:library-dom
       - name: Fingerprint the tested complete site
         id: publication
         shell: bash
