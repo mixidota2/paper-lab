@@ -39,6 +39,14 @@ jobs:
         run: uv run --locked pytest -q -ra --fail-on-skip
       - name: Build every Lab in this checkout
         run: uv run --locked paper-lab build
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+          cache: npm
+      - name: Install locked DOM validation dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate generated library HTML with real DOM events
+        run: npm run test:library-dom
       - name: Validate complete site and review plan without launching Chrome
         id: preflight
         shell: bash
