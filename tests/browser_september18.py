@@ -3,6 +3,7 @@ from pathlib import Path
 from urllib.parse import urlparse, unquote
 import json, os
 from playwright.sync_api import sync_playwright
+from catalog_expectations import assert_catalog
 
 ROOT=Path(__file__).resolve().parents[1]
 SLUGS=['ogr-once-generated-ranked','dream-taobao-agentic-control','pilot-experiment-lifecycle']
@@ -62,7 +63,7 @@ def main():
                     assert (ROOT/'papers'/slug/name).read_bytes()==(ROOT/'site/downloads'/slug/name).read_bytes()
                 if width in [360,1440]:page.screenshot(path=f'/tmp/{slug}-{width}-18.png',full_page=True)
             page.goto((ROOT/'site/index.html').as_uri())
-            assert page.locator('[data-paper]').count()==45
+            assert_catalog(page.locator('[data-paper]').evaluate_all('(nodes) => nodes.map(node => node.querySelector("h3 a").getAttribute("href").split("/").pop().slice(0,-5))'))
             for slug in SLUGS:assert page.locator(f'a[href="papers/{slug}.html"]').count()>=1
             page.close()
         page=browser.new_page(java_script_enabled=False,viewport={'width':360,'height':900})

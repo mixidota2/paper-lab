@@ -31,9 +31,9 @@ def main():
                 if slug=='flashtrie-gpu-beam':
                     control=page.locator('[data-b17=slo] select')
                     control.select_option('1')
-                    assert 'BWは200' in page.locator('[data-b17=slo] [data-output]').inner_text()
+                    assert '探索候補数（beam幅）は200' in page.locator('[data-b17=slo] [data-output]').inner_text()
                     control.select_option('4')
-                    assert 'BWは1000' in page.locator('[data-b17=slo] [data-output]').inner_text()
+                    assert '探索候補数（beam幅）は1000' in page.locator('[data-b17=slo] [data-output]').inner_text()
                 if slug=='gatesid-coldstart-ranking':
                     control=page.locator('[data-b17=gate] input')
                     control.focus();control.press('Home')
