@@ -3,6 +3,7 @@ from pathlib import Path
 from urllib.parse import urlparse,unquote
 import json
 from playwright.sync_api import sync_playwright
+from catalog_expectations import assert_catalog
 ROOT=Path(__file__).resolve().parents[1]
 SLUGS=['lige-gr-meta-listwise','sona-yandex-music','uvr-wolt-trial-reorder','pushdualgen-kuaishou','snaplgr-snapchat','sidscope-diagnostics']
 def main():
@@ -36,7 +37,7 @@ def main():
      page.screenshot(path=f'/tmp/research-2026-09-21/{slug}-{width}.png',full_page=True)
      page.locator('figure.teaching').first.screenshot(path=f'/tmp/research-2026-09-21/{slug}-figure-{width}.png')
    page.goto((ROOT/'site/index.html').as_uri())
-   assert page.locator('[data-paper]').count()==51
+   assert_catalog(page.locator('[data-paper]').evaluate_all('(nodes) => nodes.map(node => node.querySelector("h3 a").getAttribute("href").split("/").pop().slice(0,-5))'))
    for slug in SLUGS:assert page.locator(f'a[href="papers/{slug}.html"]').count()>=1
    page.close()
   page=browser.new_page(java_script_enabled=False,viewport={'width':360,'height':900})
