@@ -6,14 +6,14 @@ import yaml
 
 SLUG = 'forecast-to-replenishment'
 PERIOD = {'current': '重点期間の事例', 'legacy': '旧年の比較事例'}
-DOMAIN = {'retail': '販売在庫の補充', 'maintenance': '保全補修部品'}
+DOMAIN = {'retail': '販売在庫（補充・売切り）', 'maintenance': '保全補修部品'}
 EVALUATION = {'backtest': '計算バックテスト', 'model': 'モデルによる企業ケース評価',
               'observational': '観察的な本番比較（非無作為）', 'randomized': '現場の無作為比較'}
 FIELDS = {'task': '業務課題・分野', 'scope': '確認した規模・評価期間',
           'forecast': '予測出力・需要検閲', 'policy': '方策・制約・納期',
           'result': '著者・企業の報告値と比較条件', 'operation': '導入・計算・運用の報告',
           'limitation': '因果解釈・未確認事項'}
-IDS = ('zalando', 'jd-orpr', 'amazon-rme', 'alibaba', 'jd-e2e', 'fengyi-override')
+IDS = ('zalando', 'jd-orpr', 'amazon-rme', 'alibaba', 'jd-e2e', 'fengyi-override', 'waste-markdown')
 
 
 def load_cards(path):
@@ -59,7 +59,7 @@ def render_cards(data):
 <div class="repl-controls">'''
     for k,label,labels in [('period','発表時期',PERIOD),('domain','対象業務',DOMAIN),('evaluation','評価の種類',EVALUATION)]:
         html += f'<label>{label}<select id="repl-{k}" data-filter="{k}">{options(labels)}</select></label>'
-    html += '</div><button type="button" data-filter-reset>絞込みを解除</button><p role="status" aria-live="polite" data-filter-count>6件 / 全6件</p><p class="repl-empty" data-filter-empty hidden>条件に合う事例はありません。条件を変えるか、絞込みを解除してください。</p><noscript><p>JavaScriptが無効なため全事例を表示しています。以下の年代見出しと評価区分で比較できます。</p></noscript>'
+    html += f'</div><button type="button" data-filter-reset>絞込みを解除</button><p role="status" aria-live="polite" data-filter-count>{len(data["cards"])}件 / 全{len(data["cards"])}件</p><p class="repl-empty" data-filter-empty hidden>条件に合う事例はありません。条件を変えるか、絞込みを解除してください。</p><noscript><p>JavaScriptが無効なため全事例を表示しています。以下の年代見出しと評価区分で比較できます。</p></noscript>'
     for period,title in PERIOD.items():
         html += f'<section data-card-group="{period}"><h3>{title}</h3>'
         for c in data['cards']:
