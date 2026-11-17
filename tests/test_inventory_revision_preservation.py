@@ -53,6 +53,7 @@ def test_other_223_reviewed_prose_identities_are_unchanged():
     assert original['guides/replenishment-evidence.yaml']['after_blob'] == '8fa0dd76afeeec90e5662fadf81c2833e085b920'
     assert original['guides/replenishment-evidence.yaml']['after_sha256'] == '0d0063aa8f2200b6f981977689a3b047c583b6e22e532d61bdd49a5a05ce4a9d'
     original['guides/replenishment-evidence.yaml'] = {'before_blob': '9649053a916fd25e1fccd4238152f2f77efbb410', 'before_sha256': 'a990e1986626ae2bd793c0e6328870c33230addd1004b2e914806a4f705acd75', 'after_blob': '557810be8e305ff676b3d70cd70257683072f99f', 'after_sha256': '8fe85d3e20ee7496111af05bfdbe25a0b9e7c20f4c6bcfb72d207f9cd1bb7523'}
+    assert original.pop('guides/replenishment-filter.js') == {'before_blob': 'ad47c61ce27301a6e6dafe926d1d9ff3561aebaf', 'before_sha256': 'e9e906843ea20c866c8a3d1cc847cafbcb0c3ec5ac35e40f46ae531479113074', 'after_blob': '76915ef0369ded59c46df9482a9b2576505a115a', 'after_sha256': 'd4a1decbc8fdd3594c3976d87e90a4031e476c5d39dcfe1103efb636a36b15a9'}
     assert len(original) == 223
     canonical = json.dumps(original, sort_keys=True, separators=(',', ':')).encode()
     assert hashlib.sha256(canonical).hexdigest() == '1b67a628b52a403a6e94d9db30ef9888e23f09874a189ad767435b33dfe5c363'
