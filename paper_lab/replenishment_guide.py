@@ -8,12 +8,12 @@ SLUG = 'forecast-to-replenishment'
 PERIOD = {'current': '重点期間の事例', 'legacy': '旧年の比較事例'}
 DOMAIN = {'retail': '販売在庫の補充', 'maintenance': '保全補修部品'}
 EVALUATION = {'backtest': '計算バックテスト', 'model': 'モデルによる企業ケース評価',
-              'observational': '観察的な本番比較（非無作為）'}
+              'observational': '観察的な本番比較（非無作為）', 'randomized': '現場の無作為比較'}
 FIELDS = {'task': '業務課題・分野', 'scope': '確認した規模・評価期間',
           'forecast': '予測出力・需要検閲', 'policy': '方策・制約・納期',
           'result': '著者・企業の報告値と比較条件', 'operation': '導入・計算・運用の報告',
           'limitation': '因果解釈・未確認事項'}
-IDS = ('zalando', 'jd-orpr', 'amazon-rme', 'alibaba', 'jd-e2e')
+IDS = ('zalando', 'jd-orpr', 'amazon-rme', 'alibaba', 'jd-e2e', 'fengyi-override')
 
 
 def load_cards(path):
@@ -27,13 +27,16 @@ def load_cards(path):
     if not isinstance(cards, list) or tuple(c.get('id') for c in cards) != IDS:
         raise ValueError('exact reviewed card identities and order required')
     for c in cards:
-        required = {'id','company','title','period','domain','evaluation','publication_date','material','sources'} | set(FIELDS)
+        required = {'id','company','title','period','domain','evaluation','publication_date','material','sources','checked'} | set(FIELDS)
         if set(c) != required or any(not isinstance(c[k], str) or not c[k].strip() for k in required-{'sources'}):
             raise ValueError('complete textual card fields required')
         if c['period'] not in PERIOD or c['domain'] not in DOMAIN or c['evaluation'] not in EVALUATION:
             raise ValueError('unknown evidence classification')
+        reviewed = date.fromisoformat(c['checked'])
+        if reviewed > checked:
+            raise ValueError('card review date exceeds survey update')
         publication = date.fromisoformat(c['publication_date'])
-        if publication > checked or (c['period']=='current') != (start <= publication <= end):
+        if publication > reviewed or (c['period']=='current') != (start <= publication <= end):
             raise ValueError('publication date does not match period label')
         if not isinstance(c['sources'], list) or not c['sources']:
             raise ValueError('primary-source links required')
@@ -56,7 +59,7 @@ def render_cards(data):
 <div class="repl-controls">'''
     for k,label,labels in [('period','発表時期',PERIOD),('domain','対象業務',DOMAIN),('evaluation','評価の種類',EVALUATION)]:
         html += f'<label>{label}<select id="repl-{k}" data-filter="{k}">{options(labels)}</select></label>'
-    html += '</div><button type="button" data-filter-reset>絞込みを解除</button><p role="status" aria-live="polite" data-filter-count>5件 / 全5件</p><p class="repl-empty" data-filter-empty hidden>条件に合う事例はありません。条件を変えるか、絞込みを解除してください。</p><noscript><p>JavaScriptが無効なため全事例を表示しています。以下の年代見出しと評価区分で比較できます。</p></noscript>'
+    html += '</div><button type="button" data-filter-reset>絞込みを解除</button><p role="status" aria-live="polite" data-filter-count>6件 / 全6件</p><p class="repl-empty" data-filter-empty hidden>条件に合う事例はありません。条件を変えるか、絞込みを解除してください。</p><noscript><p>JavaScriptが無効なため全事例を表示しています。以下の年代見出しと評価区分で比較できます。</p></noscript>'
     for period,title in PERIOD.items():
         html += f'<section data-card-group="{period}"><h3>{title}</h3>'
         for c in data['cards']:
@@ -64,7 +67,7 @@ def render_cards(data):
                 continue
             html += f'<article class="evidence-card" id="case-{c["id"]}" data-evidence-card data-period="{period}" data-domain="{c["domain"]}" data-evaluation="{c["evaluation"]}">'
             html += f'<h4>{escape(c["company"])}：{escape(c["title"])}</h4><p class="evidence-tags">{DOMAIN[c["domain"]]} ／ {EVALUATION[c["evaluation"]]}</p>'
-            html += f'<p>主資料の公表日：<time datetime="{c["publication_date"]}">{c["publication_date"]}</time> ／ {escape(c["material"])}<br>確認日：{escape(data["checked"])} UTC</p><dl>'
+            html += f'<p>主資料の公表日：<time datetime="{c["publication_date"]}">{c["publication_date"]}</time> ／ {escape(c["material"])}<br>確認日：{escape(c["checked"])} UTC</p><dl>'
             for field,label in FIELDS.items():
                 html += f'<dt>{label}</dt><dd data-field="{field}">{escape(c[field])}</dd>'
             html += '</dl><p>一次出典・読解範囲：</p><ul>'

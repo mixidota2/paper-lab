@@ -45,11 +45,14 @@ def test_other_223_reviewed_prose_identities_are_unchanged():
     assert original.pop('papers/featurearc-inherited-defects-chain-gates/README.md') == {'before_blob': '25acecdfa2256d5330d65d429f675142211d0e8d', 'before_sha256': 'd0a038df909184e1a462d4aba50cc791aa9029fb2bd54f0babda2a1d3c78ed49', 'after_blob': '949c17409a3cfef47836238ad9431928ae94c8ed', 'after_sha256': 'dcab188c66eb52b9ad1f76f0bffc67d7cff2a27a0367f63e30cf84acb698ca9e'}
     # Pin the new worked example, then verify all other historical identities.
     row = original['guides/forecast-to-replenishment.md']
-    assert row['after_blob'] == '521d416f610c217bc8de644e9d6b11ff7abefbc4'
-    assert row['after_sha256'] == '8aff9c370603f1fd683ded548a35780a502bc67d4a7c70d4cb9c21c732616756'
+    assert row['after_blob'] == '21a067847540598026ffa8097966372e414a0699'
+    assert row['after_sha256'] == '65c4ede7198947eac23b9329aa3b5fa8ff394f85738edd2c42083a4100ee167c'
     original['guides/forecast-to-replenishment.md'] = dict(
         row, after_blob='0f5a44c3fa1b1d2405772ed0bc70ff3e7931a572',
         after_sha256='aad5560dfdb10dea6744bbdb750676c6dab18afc1e5d09917a1b6f9004d2f0f2')
+    assert original['guides/replenishment-evidence.yaml']['after_blob'] == '8fa0dd76afeeec90e5662fadf81c2833e085b920'
+    assert original['guides/replenishment-evidence.yaml']['after_sha256'] == '0d0063aa8f2200b6f981977689a3b047c583b6e22e532d61bdd49a5a05ce4a9d'
+    original['guides/replenishment-evidence.yaml'] = {'before_blob': '9649053a916fd25e1fccd4238152f2f77efbb410', 'before_sha256': 'a990e1986626ae2bd793c0e6328870c33230addd1004b2e914806a4f705acd75', 'after_blob': '557810be8e305ff676b3d70cd70257683072f99f', 'after_sha256': '8fe85d3e20ee7496111af05bfdbe25a0b9e7c20f4c6bcfb72d207f9cd1bb7523'}
     assert len(original) == 223
     canonical = json.dumps(original, sort_keys=True, separators=(',', ':')).encode()
     assert hashlib.sha256(canonical).hexdigest() == '1b67a628b52a403a6e94d9db30ef9888e23f09874a189ad767435b33dfe5c363'
