@@ -20,7 +20,7 @@
 <button type="button" data-reading-save disabled>表示中の読書リストを保存（JSON）</button>
 <p class="library-note" data-reading-status role="status"></p>
 <details data-reading-preview><summary>保存する内容を読む・コピーする</summary><label for="reading-list-json" data-reading-label>表示中の読書リストの保存用JSON</label><textarea id="reading-list-json" data-reading-json readonly rows="10"></textarea></details>
-<details><summary>保存済みJSONから検索条件を戻す</summary>
+<details data-reading-import-panel><summary>保存済みJSONから検索条件を戻す</summary>
 <p class="library-note" id="reading-import-help">このライブラリで保存したJSONを選ぶと、検索語・テーマ・読む優先度・並べ替えを戻します。現在のLabから選び直すため、保存時と内容や件数が異なる場合があります。ファイルはこの画面内で読み取り、サーバーへ送信しません。</p>
 <label for="reading-list-import">検索条件を戻すJSON（2 MiB以下）</label><input id="reading-list-import" type="file" accept=".json,application/json" data-reading-import aria-describedby="reading-import-help">
 <p class="library-note" data-reading-import-status role="status"></p>

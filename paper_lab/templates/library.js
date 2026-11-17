@@ -25,6 +25,7 @@
   const readingStatus = document.querySelector("[data-reading-status]");
   const readingImport = document.querySelector("[data-reading-import]");
   const readingImportStatus = document.querySelector("[data-reading-import-status]");
+  const readingImportPanel = document.querySelector("[data-reading-import-panel]");
   let importRequest = 0;
   let readingCards = [];
   let readingFilters = { ...defaults };
@@ -283,6 +284,16 @@
   if (readingImport && readingImportStatus) {
     readingImport.addEventListener("change", restoreReadingFilters);
     readingImport.addEventListener("cancel", cancelReadingImport);
+    if (readingImportPanel) {
+      // Cancel at the closing intent: toggle is asynchronous and close/reopen
+      // can coalesce into one event with open=true.
+      readingImportPanel.querySelector("summary").addEventListener("click", () => {
+        if (readingImportPanel.open) cancelReadingImport();
+      });
+      readingImportPanel.addEventListener("toggle", () => {
+        if (!readingImportPanel.open) cancelReadingImport();
+      });
+    }
   }
   if (!urlWritable) showURLStatus(false);
 })();
