@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 21529)
+Total output lines: 1392
+
 {
   "base": "d97532ffce0461af70347f8380da1b2a4466b22a",
   "purpose": "Exact reviewed prose revisions, inventory numeric repair, and SIDScope weight validation and FeatureArc download instructions; all other baseline files remain byte-identical.",
@@ -59,8 +62,8 @@
     "guides/forecast-to-replenishment.md": {
       "before_blob": "b09e37ce5912b64964a2483ac3c213e8d956569a",
       "before_sha256": "9aa3cf7ef9fcb9a69c25ae397d809dc7d087ee0fa3bcbe083b5e8fe3002caa0e",
-      "after_blob": "0f5a44c3fa1b1d2405772ed0bc70ff3e7931a572",
-      "after_sha256": "aad5560dfdb10dea6744bbdb750676c6dab18afc1e5d09917a1b6f9004d2f0f2"
+      "after_blob": "521d416f610c217bc8de644e9d6b11ff7abefbc4",
+      "after_sha256": "8aff9c370603f1fd683ded548a35780a502bc67d4a7c70d4cb9c21c732616756"
     },
     "guides/replenishment-evidence.yaml": {
       "before_blob": "9649053a916fd25e1fccd4238152f2f77efbb410",
@@ -636,108 +639,7 @@
       "before_blob": "a63d61bf604007c9fa925d396b5a3ec8fba72275",
       "before_sha256": "8b6bc0bbbf724d4d311cef3a7b3ed9f0843d626b7b0351594ae3ddc9301a5ea6",
       "after_blob": "16d36cd9435437d6f4d5fb098b75cf4215d59afd",
-      "after_sha256": "deb7cac7d177c3a243e06f67d9c47205ceac699f8284b777700e8c11571e6635"
-    },
-    "papers/unipinrec/lab.yaml": {
-      "before_blob": "55d271a90ad4da141ea3f36131c724faf687c92f",
-      "before_sha256": "c9ba38d82218234dc49b3753e6f90b468914e650758c83782abfe28aab970a71",
-      "after_blob": "c8bfa2507101f57ca9a05f899c91b7382dcfb9b6",
-      "after_sha256": "e36d31b25ef7f840c8f1274ad9a33dbc78249e5aa776c6e97a81e4a82fc93721"
-    },
-    "papers/unipinrec/method.md": {
-      "before_blob": "09de6b2ad4b92e09d707f2d36e6c0d8a6ed4beb3",
-      "before_sha256": "65833f0e8caddaa90d9b413fe226b2d315ece31be928daefaf86cd2b9791a7f8",
-      "after_blob": "88271ac282bba80db5817ee0ef6b915c8013a1d9",
-      "after_sha256": "3b1d30ab89ec95eab45c8f0ae72789e2e7b25cc1f1784813e0969d42c60ec874"
-    },
-    "papers/cq-sid-eg-grpo-tmall/lab.yaml": {
-      "before_blob": "18bc7ee2c73aa1b75c8ef7ace53e196f61dae372",
-      "before_sha256": "c50456de8eaaacd306048c7a686a9ff64b76d6457b5e0f2643544a052edfdd6a",
-      "after_blob": "f2d776bca62ff76d70acdc2b083f240440b886f7",
-      "after_sha256": "9c562f7d18bd947366626d458aca78739c507f4560c2e971aa93992bf9575f15"
-    },
-    "papers/cq-sid-eg-grpo-tmall/method.md": {
-      "before_blob": "8910891041f913f363258f8cbad29f2412d0faf0",
-      "before_sha256": "d0555631be980deb04a270e8ff1258ebca896fb935365db4802a43d5f38c1ba0",
-      "after_blob": "5d8f87adb37c0cccdf219b601b17afaa873229a3",
-      "after_sha256": "7c9ee5685ce8c629c10eaea1c8d33ad7e26af1f47334675fb63dc87596c72ccb"
-    },
-    "papers/flashtrie-gpu-beam/README.md": {
-      "before_blob": "1ed012c45281f4fe8f335dd8f45f7a6749b809c8",
-      "before_sha256": "9477f4da7293ed1aeb0c0d6a59a89741508ceb9785ddf7ea5f78212dac0e8e51",
-      "after_blob": "4f2e18886e3fea6273893197026c0afbad4fa740",
-      "after_sha256": "5b2a4bda02e204499e940c9cfcc3cb3641fc6d529ba0c0799e3591b32e0f49ab"
-    },
-    "papers/flashtrie-gpu-beam/lab.yaml": {
-      "before_blob": "7f754437761fccfbc21ddd923556130d52a4df76",
-      "before_sha256": "640d3c4308b3c9fffbb7d6538baf7b3eeb5f39fe326a79bb4cc4f28a6e176ab9",
-      "after_blob": "6678d83939514c2000919ed65edc3f923725178d",
-      "after_sha256": "a9bc6fdaccf080977b9313243607157307bddde1a01bb54126ed204320fbe602"
-    },
-    "papers/hgenpush-kuaishou-heterogeneous-push-gr/lab.yaml": {
-      "before_blob": "ee4f4904f7001b09201574162b4672994e402589",
-      "before_sha256": "10e837e9165900232e8ca9adb121025a4a7b4b139d26648c118f19c6f46db82b",
-      "after_blob": "c4bf8d69e73831c2567d92a63d64eafd254237db",
-      "after_sha256": "1e39458c729b6433dadf624e459e2c332e82af4acd73a8bcd96a85938f36a20e"
-    },
-    "papers/pushdualgen-kuaishou/README.md": {
-      "before_blob": "e153ed77b8e648883dc60c664b6033996c8f5220",
-      "before_sha256": "6df940bf4acfa9d1f6402ac368ded40c10f2d4d09aa3e2cfffb981536cef151f",
-      "after_blob": "4cf07d722598a48daa9ff3b89746445c57914922",
-      "after_sha256": "181e59b1ade4e832f6bfe458fa453237bf1c2e240021723ebbb8628a923d79f0"
-    },
-    "papers/pushdualgen-kuaishou/lab.yaml": {
-      "before_blob": "2758d28571becfece2acafad2e8a1678a8b8848d",
-      "before_sha256": "2a871d7906263c0120ef703bb1775cc7277ba48ee4c6f1025049c76ce4444a61",
-      "after_blob": "a13bdf5451e8ba3f76f1f7dd16a1d52dc6b34530",
-      "after_sha256": "fd18debbb5a366c40750a4c916aac61cee072fb8302b119b73560ceb6cd1d9ef"
-    },
-    "papers/univa-commercial-sid-gar/lab.yaml": {
-      "before_blob": "2ae12b12e26943322920617400421802d23bf021",
-      "before_sha256": "b8fcd1fbfe29d3c9ca5d40af1257f0dde82d103a9a8196060cb35a1f2a441024",
-      "after_blob": "e192282aa6bef7d18a776b64725405c5ad520db3",
-      "after_sha256": "2722d4a585b8ec3bda8e6d0c542e36c5b4e49ffc44e91a4b975f5629421d196e"
-    },
-    "papers/varg-tmall-value-generative-retrieval/lab.yaml": {
-      "before_blob": "8b1a93611f43d66bcf6b7633a05cdaf6094b5e40",
-      "before_sha256": "1c40fe66f6053e42124e17fb90eb87c788163771812fc179e20ba0f6efb8efde",
-      "after_blob": "9d55cece62a109f3104acc09812c062dc4a24e90",
-      "after_sha256": "10db15efd559af964639c2ea0311875ba8d0499a3ed2b84469fdcf224d387619"
-    },
-    "papers/gatesid-coldstart-ranking/lab.yaml": {
-      "before_blob": "5ba53c97045b301ed2c473acbc633e83d9985e50",
-      "before_sha256": "d19eb17c7270507ccb7ef5e075fe6bd0c4baacbcd171b0e1a4f532bba50f0220",
-      "after_blob": "d11005fbdc600694204cca9693db809789cec24d",
-      "after_sha256": "c6873f31034c0d955f6e51893a2758ba27ac794159dbbff8f9f7303d5449ac17"
-    },
-    "papers/glide-spotify-sid/lab.yaml": {
-      "before_blob": "a6041206fbaaa2f8aec2ffd6cee31fd87792ceb2",
-      "before_sha256": "18838e8d93e63d8f68b0ca2e86b7c1c4d87f8e29788cae05459dff33c2a7e693",
-      "after_blob": "95a5f11a1fd69c750d903519585aa382f3970990",
-      "after_sha256": "38bb4d8437d4f03c76d8d900e47827667b0e11c0107b61d9c245960fc4ba6013"
-    },
-    "papers/glide-spotify-sid/method.md": {
-      "before_blob": "247be21d6f9ed6dc8c9da6f147eb2898a614f92b",
-      "before_sha256": "c2085d58868b609cb7b12973ae5216c2363b08905bf3ef35e9bd2e5fd8f579fa",
-      "after_blob": "502231b9a0fd2128bcf0302ecefbdef66ac00bab",
-      "after_sha256": "a30b8af4d704751209de122f02d2ffaf93a5a7635fe0228b039b5157e2b5a5fb"
-    },
-    "papers/quasid-collision-qualified-sid/lab.yaml": {
-      "before_blob": "fe89d6214dec5adbd230434ebc698802497efb0c",
-      "before_sha256": "835b51bddf8a6c8925934a74e4d643a74208c4be24c45381c786b17dd52247d8",
-      "after_blob": "4f5a17a994e307ef1a5606b1f0080c0823b9d8a5",
-      "after_sha256": "021ef7c6b7dae73dde6d3c3f6e92a3df377f0ec2937b7d989edbdab79a752a48"
-    },
-    "papers/sidinspector-mapping-diagnostics/lab.yaml": {
-      "before_blob": "09ebf089dfae6505df392b56e61846ce1649662a",
-      "before_sha256": "9e2174b18e601f11d6e7f39ec12299286c15527bd58aeff4b0b2a588f555e220",
-      "after_blob": "0660706694300828adb4dffb13d29b3a11931c5b",
-      "after_sha256": "72cfaff881b9dc713f753774a382da046bb6e624835b902e10584a744c5e1261"
-    },
-    "papers/sidinspector-mapping-diagnostics/method.md": {
-      "before_blob": "8316949c00897b2ec80ef3966477773745b3ab89",
-      "before_sha256": "0c0c1a48838f864a300db9c954c9145026fc8ee4010f903ac2d6f87de498d37f",
-      "after_blob": "c430e902a3c8a7503002a61047bf42f3c7162c0a",
+      "after_sha256": "deb7cac7d177c3…1529 tokens truncated…er_blob": "c430e902a3c8a7503002a61047bf42f3c7162c0a",
       "after_sha256": "31dee8ea62ae9b9d5412747dd93eb460391711e32c9fe11beaba8e544182a2d0"
     },
     "papers/sidscope-diagnostics/method.md": {
