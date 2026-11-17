@@ -1,7 +1,7 @@
 /* Evidence filtering only. No requests, scoring, or effect-size ranking. */
 (function () {
   'use strict';
-  const allowed={period:['all','current','legacy'],domain:['all','retail','maintenance'],evaluation:['all','backtest','model','observational']};
+  const allowed={period:['all','current','legacy'],domain:['all','retail','maintenance'],evaluation:['all','backtest','model','observational','randomized']};
   const defaults=()=>({period:'all',domain:'all',evaluation:'all'});
   function matches(card,state) {
     return Object.keys(allowed).map(key=>{

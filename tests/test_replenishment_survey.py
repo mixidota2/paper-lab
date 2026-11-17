@@ -24,11 +24,11 @@ class Document(HTMLParser):
 
 def test_reviewed_source_contract_dates_scopes_and_units():
     data=load_cards(SOURCE);cards={c['id']:c for c in data['cards']}
-    assert data['checked']=='2026-11-02' and data['period_start']=='2025-11-01' and data['period_end']=='2026-11-30'
+    assert data['checked']=='2026-11-17' and data['period_start']=='2025-11-01' and data['period_end']=='2026-11-30'
     assert [(c['id'],c['publication_date'],c['evaluation'],c['period']) for c in data['cards']]==[
         ('zalando','2026-01-15','backtest','current'),('jd-orpr','2025-12-22','observational','current'),
         ('amazon-rme','2026-09-11','model','current'),('alibaba','2023-09-26','observational','legacy'),
-        ('jd-e2e','2022-12-13','observational','legacy')]
+        ('jd-e2e','2022-12-13','observational','legacy'),('fengyi-override','2026-07-01','randomized','current')]
     expected={
         'zalando':{'result':['GMV +22.11%','+21.95%','全提案採用の仮想結果','本番A/Bではない'],
                    'forecast':['分位点','検閲補正式は未確認'],'scope':['200万article','800販売者'],
@@ -77,8 +77,8 @@ def test_invalid_evidence_rejected(tmp_path,mutation):
 def test_cards_are_rendered_once_with_sources_and_escaped_fields():
     d=load_cards(SOURCE);html=render_cards(d);doc=Document(html)
     articles=[a for t,a in doc.tags if t=='article']
-    assert [a['id'] for a in articles]==['case-'+c['id'] for c in d['cards']]
-    assert len(articles)==5 and all('hidden' not in a for a in articles)
+    assert [a['id'] for a in articles]==['case-'+c['id'] for period in ['current','legacy'] for c in d['cards'] if c['period']==period]
+    assert len(articles)==6 and all('hidden' not in a for a in articles)
     text=''.join(doc.text)
     for c in d['cards']:
         for field in FIELDS:assert text.count(c[field])==1
@@ -103,25 +103,25 @@ const controls={period:node('all'),domain:node('all'),evaluation:node('all')},co
 const root={querySelectorAll(q){if(q==='[data-evidence-card]')return cards;if(q==='[data-card-group]')return groups;throw Error(q);},
  querySelector(q){const m=q.match(/^\[data-filter="(\w+)"\]$/);if(m)return controls[m[1]];return {'[data-filter-count]':count,'[data-filter-empty]':empty,'[data-filter-reset]':reset}[q];}};
 ui.mount(root);let combinations=0;
-for(const period of ['all','current','legacy'])for(const domain of ['all','retail','maintenance'])for(const evaluation of ['all','backtest','model','observational']){
+for(const period of ['all','current','legacy'])for(const domain of ['all','retail','maintenance'])for(const evaluation of ['all','backtest','model','observational','randomized']){
  const state={period,domain,evaluation};for(const k of Object.keys(state))controls[k].value=state[k];
  controls.evaluation.events.change();
  const expected=data.cards.map(c=>(period==='all'||c.period===period)&&(domain==='all'||c.domain===domain)&&(evaluation==='all'||c.evaluation===evaluation));
- assert.deepEqual(cards.map(c=>!c.hidden),expected);assert.equal(count.textContent,`${expected.filter(Boolean).length}件 / 全5件`);
+ assert.deepEqual(cards.map(c=>!c.hidden),expected);assert.equal(count.textContent,`${expected.filter(Boolean).length}件 / 全6件`);
  assert.equal(empty.hidden,expected.some(Boolean));
  for(const g of groups)assert.equal(g.hidden,!data.cards.some((c,i)=>c.period===g.dataset.cardGroup&&expected[i]));
  combinations++;
 }
-assert.equal(combinations,36);
+assert.equal(combinations,45);
 // Last state legacy/maintenance/observational is empty; reset must reveal all cards.
 assert(cards.every(c=>c.hidden));reset.events.click();assert(cards.every(c=>!c.hidden));
 assert.deepEqual(Object.fromEntries(Object.entries(controls).map(([k,c])=>[k,c.value])),ui.defaults());
 assert.throws(()=>ui.matches(cards[0].dataset,{...ui.defaults(),evaluation:'randomized-ab'}));
 for(const control of Object.values(controls))assert.equal(typeof control.events.change,'function');
-console.log('36 combinations, native-handler wiring, empty state and reset PASS (mock DOM, not browser)');
+console.log('45 combinations, native-handler wiring, empty state and reset PASS (mock DOM, not browser)');
 ''')
     r=subprocess.run(['node',str(script),str(GUIDES/'replenishment-filter.js'),str(payload)],capture_output=True,text=True,check=True)
-    assert '36 combinations' in r.stdout
+    assert '45 combinations' in r.stdout
 
 
 def test_full_build_guide_sources_links_and_existing_labs_preserved(tmp_path):
@@ -131,7 +131,7 @@ def test_full_build_guide_sources_links_and_existing_labs_preserved(tmp_path):
     p=preflight(site)
     assert p['theme_guides']==2 and p['guide_pages']==3 and len(p['required_cases'])==438
     target=site/'guides/forecast-to-replenishment.html';text=target.read_text();doc=Document(text)
-    assert sum(t=='article' and 'data-evidence-card' in a for t,a in doc.tags)==5
+    assert sum(t=='article' and 'data-evidence-card' in a for t,a in doc.tags)==6
     assert '<!-- EVIDENCE_CARDS -->' not in text
     for name in ['forecast-to-replenishment.md','replenishment-evidence.yaml']:
         assert (site/'downloads/guides'/name).read_bytes()==(GUIDES/name).read_bytes()
@@ -149,3 +149,18 @@ def test_full_build_guide_sources_links_and_existing_labs_preserved(tmp_path):
         portability_repair = {'papers/inventory-common-threshold-history/run.py': 'e0bd34bd4ac3b2139c3b6064f0dfc75e41a5d2e6', 'papers/inventory-common-threshold-history/README.md': '73d49ee6ab6ea7e3fbb790397cf58ffafd2561e3', 'papers/inventory-common-threshold-history/results.json': '4e7459bc5e8fbd88da253ba91afa77db2a7b8cb9'}
         from prose_preservation import revised_hash
         assert after==revised_hash(ROOT,path,portability_repair.get(path,before),'blob'),path
+
+
+def test_fengyi_randomized_units_and_limits():
+    data=load_cards(SOURCE)
+    c=next(c for c in data['cards'] if c['id']=='fengyi-override')
+    assert c['evaluation']=='randomized' and c['checked']=='2026-11-17'
+    assert all(x['checked']=='2026-11-02' for x in data['cards'] if x['id']!='fengyi-override')
+    assert 221+223+109==553
+    for value in ['553人','221人','223人','109人','46日間','増量','例外']:
+        assert value in c['scope']
+    for value in ['1.28%','1.95%','1.19%','有意差なし','log(数量+1)']:
+        assert value in c['result']
+    for value in ['同等性証明ではない','利益改善は未検証','制限群比','シミュレーション']:
+        assert value in c['limitation']
+    assert '担当者単位' in c['operation'] and '再無作為化' in c['operation']
