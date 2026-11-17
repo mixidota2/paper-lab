@@ -28,7 +28,8 @@ def test_reviewed_source_contract_dates_scopes_and_units():
     assert [(c['id'],c['publication_date'],c['evaluation'],c['period']) for c in data['cards']]==[
         ('zalando','2026-01-15','backtest','current'),('jd-orpr','2025-12-22','observational','current'),
         ('amazon-rme','2026-09-11','model','current'),('alibaba','2023-09-26','observational','legacy'),
-        ('jd-e2e','2022-12-13','observational','legacy'),('fengyi-override','2026-07-01','randomized','current')]
+        ('jd-e2e','2022-12-13','observational','legacy'),('fengyi-override','2026-07-01','randomized','current'),
+        ('waste-markdown','2026-07-03','observational','current')]
     expected={
         'zalando':{'result':['GMV +22.11%','+21.95%','全提案採用の仮想結果','本番A/Bではない'],
                    'forecast':['分位点','検閲補正式は未確認'],'scope':['200万article','800販売者'],
@@ -78,7 +79,7 @@ def test_cards_are_rendered_once_with_sources_and_escaped_fields():
     d=load_cards(SOURCE);html=render_cards(d);doc=Document(html)
     articles=[a for t,a in doc.tags if t=='article']
     assert [a['id'] for a in articles]==['case-'+c['id'] for period in ['current','legacy'] for c in d['cards'] if c['period']==period]
-    assert len(articles)==6 and all('hidden' not in a for a in articles)
+    assert len(articles)==7 and all('hidden' not in a for a in articles)
     text=''.join(doc.text)
     for c in d['cards']:
         for field in FIELDS:assert text.count(c[field])==1
@@ -107,7 +108,7 @@ for(const period of ['all','current','legacy'])for(const domain of ['all','retai
  const state={period,domain,evaluation};for(const k of Object.keys(state))controls[k].value=state[k];
  controls.evaluation.events.change();
  const expected=data.cards.map(c=>(period==='all'||c.period===period)&&(domain==='all'||c.domain===domain)&&(evaluation==='all'||c.evaluation===evaluation));
- assert.deepEqual(cards.map(c=>!c.hidden),expected);assert.equal(count.textContent,`${expected.filter(Boolean).length}件 / 全6件`);
+ assert.deepEqual(cards.map(c=>!c.hidden),expected);assert.equal(count.textContent,`${expected.filter(Boolean).length}件 / 全7件`);
  assert.equal(empty.hidden,expected.some(Boolean));
  for(const g of groups)assert.equal(g.hidden,!data.cards.some((c,i)=>c.period===g.dataset.cardGroup&&expected[i]));
  combinations++;
@@ -131,7 +132,7 @@ def test_full_build_guide_sources_links_and_existing_labs_preserved(tmp_path):
     p=preflight(site)
     assert p['theme_guides']==2 and p['guide_pages']==3 and len(p['required_cases'])==438
     target=site/'guides/forecast-to-replenishment.html';text=target.read_text();doc=Document(text)
-    assert sum(t=='article' and 'data-evidence-card' in a for t,a in doc.tags)==6
+    assert sum(t=='article' and 'data-evidence-card' in a for t,a in doc.tags)==7
     assert '<!-- EVIDENCE_CARDS -->' not in text
     for name in ['forecast-to-replenishment.md','replenishment-evidence.yaml']:
         assert (site/'downloads/guides'/name).read_bytes()==(GUIDES/name).read_bytes()
@@ -155,7 +156,7 @@ def test_fengyi_randomized_units_and_limits():
     data=load_cards(SOURCE)
     c=next(c for c in data['cards'] if c['id']=='fengyi-override')
     assert c['evaluation']=='randomized' and c['checked']=='2026-11-17'
-    assert all(x['checked']=='2026-11-02' for x in data['cards'] if x['id']!='fengyi-override')
+    assert all(x['checked']=='2026-11-02' for x in data['cards'] if x['id'] not in ('fengyi-override','waste-markdown'))
     assert 221+223+109==553
     for value in ['553人','221人','223人','109人','46日間','増量','例外']:
         assert value in c['scope']
@@ -164,3 +165,22 @@ def test_fengyi_randomized_units_and_limits():
     for value in ['同等性証明ではない','利益改善は未検証','制限群比','シミュレーション']:
         assert value in c['limitation']
     assert '担当者単位' in c['operation'] and '再無作為化' in c['operation']
+
+
+def test_markdown_evidence_keeps_units_design_and_adjacent_scope():
+    c=next(c for c in load_cards(SOURCE)['cards'] if c['id']=='waste-markdown')
+    assert c['evaluation']=='observational' and c['checked']=='2026-11-17'
+    assert 18+3*5+100==133
+    for field, phrases in {
+        'task':['補充量ではなく','隣接判断'],
+        'scope':['133店舗','39週','18店','各5店','100店','7週','8〜18週'],
+        'policy':['30%','価格変更とは別'],
+        'result':['+3.81ポイント','p=.008','−0.13ポイント','p=.098','5%水準の有意差なし','−0.21ポイント','p=.032','他2方式は有意ではない'],
+        'operation':['完全無作為ではない','平行トレンド','wild cluster bootstrap'],
+        'limitation':['値引販売数÷値引シール貼付件数','生鮮7部門の売上高','通常売価換算額','営業利益ではない','売上仮定','単一企業・短期','独立追試は未実施'],
+    }.items():
+        assert all(x in c[field] for x in phrases),field
+    assert any('7048139' in s['url'] for s in c['sources'])
+    assert any('408417190' in s['url'] and '表4・6' in s['label'] for s in c['sources'])
+    guide=(GUIDES/'forecast-to-replenishment.md').read_text()
+    assert '陳列・価格の変更で売り切る隣接事例' in guide

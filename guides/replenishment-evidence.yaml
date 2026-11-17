@@ -126,3 +126,26 @@ cards:
   sources:
   - label: 著者本文・表1（2026-07-01）
     url: https://arxiv.org/html/2607.00420v1
+- id: waste-markdown
+  checked: '2026-11-17'
+  company: 欧州スーパー（匿名）
+  title: 値下げを深くする前に、見つけやすさを変える
+  period: current
+  domain: retail
+  evaluation: observational
+  publication_date: '2026-07-03'
+  material: ワーキングペーパー（著者公開本文）
+  task: 補充量ではなく、期限間近の商品を売り切る隣接判断。
+  scope: 133店舗・39週。集中陳列18店、動的値付け3方式は各5店、未介入100店。集中陳列は7週、価格施策は8〜18週。
+  forecast: 予測器の詳細は未確認。本カードは需要予測精度を評価しない。
+  policy: 集中陳列は通常の30%値引きを保ち、商品を目立つ冷蔵売場へ集約。価格変更とは別の施策。
+  result: 集中陳列の値引き商品販売率は+3.81ポイント（p=.008）。金銭損失率は−0.13ポイント（p=.098）で5%水準の有意差なし。方式Aは−0.21ポイント（p=.032）、他2方式は有意ではない。
+  operation: 店舗選定は完全無作為ではない。店舗・週固定効果の差の差分析で、平行トレンドを仮定。価格施策は各5店と少ないため、店舗単位のwild cluster bootstrapで検定。
+  limitation: 販売率は店舗週の値引販売数÷値引シール貼付件数で、同じ商品群の追跡ではない。金銭損失は値引額と廃棄品の通常売価換算額の合計で、営業利益ではない。損失率の分母は生鮮7部門の売上高。年換算額は売上仮定を置く試算。単一企業・短期の比較であり、効果の独立追試は未実施。
+  sources:
+  - label: 著者公開本文 §§3.2・4–6、表4・6（2026-07-03公開）
+    url: https://www.researchgate.net/publication/408417190_Navigating_the_Waste-Markdown_Tradeoff_A_Field_Experiment_Comparing_Price_and_Information_Interventions
+  - label: DOI（SSRN本文は取得できず、上の著者公開稿を確認）
+    url: https://doi.org/10.2139/ssrn.7048139
+  - label: 著者所属機関の書誌情報
+    url: https://research.tilburguniversity.edu/en/publications/navigating-the-waste-markdown-tradeoff-a-field-experiment-compari/
