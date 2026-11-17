@@ -43,6 +43,13 @@ def test_other_223_reviewed_prose_identities_are_unchanged():
     }
     # Pin FeatureArc download instructions separately; keep all older identities.
     assert original.pop('papers/featurearc-inherited-defects-chain-gates/README.md') == {'before_blob': '25acecdfa2256d5330d65d429f675142211d0e8d', 'before_sha256': 'd0a038df909184e1a462d4aba50cc791aa9029fb2bd54f0babda2a1d3c78ed49', 'after_blob': '949c17409a3cfef47836238ad9431928ae94c8ed', 'after_sha256': 'dcab188c66eb52b9ad1f76f0bffc67d7cff2a27a0367f63e30cf84acb698ca9e'}
+    # Pin the new worked example, then verify all other historical identities.
+    row = original['guides/forecast-to-replenishment.md']
+    assert row['after_blob'] == '521d416f610c217bc8de644e9d6b11ff7abefbc4'
+    assert row['after_sha256'] == '8aff9c370603f1fd683ded548a35780a502bc67d4a7c70d4cb9c21c732616756'
+    original['guides/forecast-to-replenishment.md'] = dict(
+        row, after_blob='0f5a44c3fa1b1d2405772ed0bc70ff3e7931a572',
+        after_sha256='aad5560dfdb10dea6744bbdb750676c6dab18afc1e5d09917a1b6f9004d2f0f2')
     assert len(original) == 223
     canonical = json.dumps(original, sort_keys=True, separators=(',', ':')).encode()
     assert hashlib.sha256(canonical).hexdigest() == '1b67a628b52a403a6e94d9db30ef9888e23f09874a189ad767435b33dfe5c363'
