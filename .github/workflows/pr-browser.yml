@@ -80,6 +80,8 @@ jobs:
       - name: Verify layout release in signed sandboxed Chrome
         id: layout_browser
         shell: bash
+        env:
+          UV_HTTP_TIMEOUT: '120'
         run: |
           set -o pipefail
           uv run --locked --with playwright==1.63.0 python tests/layout_release_browser.py 2>&1 | tee browser-review/layout-browser.log
