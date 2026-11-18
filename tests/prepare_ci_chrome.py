@@ -1,7 +1,7 @@
-"""Install Google's signed DMG in the ephemeral macOS CI runner without stripping attributes.
+"""Install Google's signed universal PKG in the ephemeral macOS CI runner without stripping attributes.
 
-Distribution: Google Chrome Help 95346; runner-images install-chrome.sh uses
-Homebrew's google-chrome cask, which publishes the same dl.google.com DMG URL.
+Distribution: Google Chrome Enterprise Help 9020580 recommends Universal PKG.
+The dl.google.com URL is also documented by Microsoft's Intune Chrome sample.
 Never launches a browser or changes signature, ACL, ownership or sandbox policy.
 """
 import hashlib
@@ -14,7 +14,7 @@ import re
 import subprocess
 import tempfile
 
-URL = "https://dl.google.com/chrome/mac/universal/stable/GGRO/googlechrome.dmg"
+URL = "https://dl.google.com/chrome/mac/universal/stable/gcem/GoogleChrome.pkg"
 APP = Path("/Applications/Google Chrome.app")
 OUT = Path("browser-review/chrome-distribution.json")
 
@@ -35,8 +35,16 @@ def verify_bundle(app):
     return [line for line in identity if line.startswith(("Identifier=", "Authority=", "TeamIdentifier="))]
 
 
+def verify_package(package):
+    result = run(["/usr/sbin/pkgutil", "--check-signature", str(package)]).stdout
+    assert "Status: signed by a certificate trusted by macOS" in result
+    leaf = re.search(r"1\. Developer ID Installer: Google LLC \(([A-Z0-9]+)\)", result)
+    assert leaf is not None, "Google LLC installer identity is not confirmed"
+    return leaf.group(1)
+
+
 def install_bundle(source, destination, staging):
-    # Verify the untouched read-only source before copying or replacing anything.
+    # Verify the untouched extracted source before copying or replacing anything.
     source_identity = verify_bundle(source)
     staged = staging / "Google Chrome.app"
     assert not staged.exists()
@@ -60,30 +68,28 @@ def main():
     assert os.environ.get("RUNNER_ENVIRONMENT") == "github-hosted"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     record = {"status": "STARTED", "url": URL, "attribute_policy": "preserve all; no stripping",
-              "source": "Google HTTPS DMG; verify strict signature, Apple anchor and Google LLC identity"}
+              "source": "Google HTTPS Universal PKG; verify installer signature and extracted bundle signature, Apple anchor and Google LLC identity"}
     try:
-        with tempfile.TemporaryDirectory(prefix="lab-google-download-") as directory:
+        with tempfile.TemporaryDirectory(prefix="lab-google-package-") as directory:
             temp = Path(directory)
-            dmg = temp / "googlechrome.dmg"
+            package = temp / "GoogleChrome.pkg"
             response = run(["/usr/bin/curl", "--fail", "--silent", "--show-error", "--proto", "=https",
-                            "--tlsv1.2", "--output", str(dmg), "--write-out", "%{http_code}\n%{url_effective}", URL])
+                            "--tlsv1.2", "--output", str(package), "--write-out", "%{http_code}\n%{url_effective}", URL])
             assert response.stdout.splitlines() == ["200", URL], "Unexpected HTTP status or origin"
-            record["dmg_sha256"] = hashlib.sha256(dmg.read_bytes()).hexdigest()
-            mount = temp / "mounted"
-            mount.mkdir()
-            attached = False
-            try:
-                run(["/usr/bin/hdiutil", "attach", "-readonly", "-nobrowse", "-mountpoint", str(mount), str(dmg)])
-                attached = True
-                source = mount / "Google Chrome.app"
-                info = plistlib.loads((source / "Contents/Info.plist").read_bytes())
-                record["version"] = info["CFBundleShortVersionString"]
-                # Retain the old bundle unmodified until this ephemeral runner ends.
-                staging = Path(tempfile.mkdtemp(prefix="lab-chrome-staging-", dir="/Applications"))
-                record.update(install_bundle(source, APP, staging))
-            finally:
-                if attached:
-                    run(["/usr/bin/hdiutil", "detach", str(mount)])
+            record["package_sha256"] = hashlib.sha256(package.read_bytes()).hexdigest()
+            record["installer_team"] = verify_package(package)
+            expanded = temp / "expanded"
+            # Apple's package tool expands signed payloads; it does not run installer scripts.
+            run(["/usr/sbin/pkgutil", "--expand-full", str(package), str(expanded)])
+            sources = list(expanded.rglob("Google Chrome.app"))
+            assert len(sources) == 1 and sources[0].is_dir() and not sources[0].is_symlink()
+            source = sources[0]
+            info = plistlib.loads((source / "Contents/Info.plist").read_bytes())
+            record["version"] = info["CFBundleShortVersionString"]
+            identity = verify_bundle(source)
+            assert "TeamIdentifier=" + record["installer_team"] in identity
+            staging = Path(tempfile.mkdtemp(prefix="lab-chrome-staging-", dir="/Applications"))
+            record.update(install_bundle(source, APP, staging))
         record["status"] = "INSTALLED; launcher protection checks still required"
     except BaseException as error:
         record["status"] = "FAIL"
