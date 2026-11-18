@@ -65,7 +65,8 @@ def capture_segments(page, path):
             target=m['y']+m['height']-100
         footer=page.locator('.footer').bounding_box()
         assert footer and footer['y']>=0 and footer['y']+footer['height'] <= m['height'], footer
-        assert page.locator('.footer a').is_visible()
+        links = page.locator('.footer a').all()
+        assert links and all(link.is_visible() for link in links), 'Missing or hidden footer link'
         report=dict(bounds=bounds,tiles=tiles,footer=footer,method='Unresized viewport; 100px or greater overlap; no stitching')
         (path/'segments.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
         print('CAPTURE',path.name,json.dumps(dict(bounds=bounds,tiles=len(tiles),last=tiles[-1],footer=footer)),flush=True)
