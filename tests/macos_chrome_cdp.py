@@ -96,7 +96,13 @@ def verify_seatbelt(browser):
         os.kill(int(process['id']), 0)  # Confirm the CDP-reported renderer is alive.
         identity = command(['/bin/ps', '-p', str(process['id']), '-o', 'uid=,comm=']).stdout.strip()
         assert identity.split(maxsplit=1)[0] == str(os.getuid()), identity
-        assert 'Google Chrome Helper (Renderer)' in identity, identity
+        # Chromium supports both signed renderer helpers (crrev.com/c/7970768).
+        executable = identity.split(maxsplit=1)[1]
+        prefix = str(APP / 'Contents/Frameworks/Google Chrome Framework.framework/Versions')
+        assert re.fullmatch(
+            re.escape(prefix) + r'/[0-9]+(?:\.[0-9]+){3}/Helpers/'
+            r'(Google Chrome Helper \((?:Aperitif )?Renderer\))'
+            r'\.app/Contents/MacOS/\1', executable), identity
         ctypes.set_errno(0)
         result = check(int(process['id']), None, 0)
         print('Renderer Seatbelt:', process['id'], result, 'errno:', ctypes.get_errno(), flush=True)
