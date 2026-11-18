@@ -14,7 +14,7 @@ from .reusegr import widget as reusegr_widget
 from .trial_trace import widget as trial_trace_widget
 from .assortment_observation import widget as assortment_observation_widget
 from .inventory_ct import widget as inventory_ct_widget
-from .replenishment_guide import SLUG as REPLENISHMENT_GUIDE, load_cards, render_cards
+from .replenishment_guide import SLUG as REPLENISHMENT_GUIDE, load_cards, render_cards, survey_dates
 
 import argparse
 import hashlib
@@ -425,6 +425,7 @@ def _render_site(root: Path, papers: Path, site: Path, labs: list[Lab]) -> None:
             (guides_out / f"{name}.html").write_text(template.render(
                 title=title, is_index=is_index, paper_count=len(labs), guide_count=guide_count,
                 shelf_available=shelf_available, survey_available=survey_available, layout_available=layout_available,
+                survey_dates=survey_dates(cards) if survey_available else "",
                 content=content), encoding="utf-8")
 
     index_html = env.get_template("index.html").render(

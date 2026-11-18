@@ -1,0 +1,23 @@
+{
+  "base": "9d73076d9ade3ff3af9fc673a5e243d2a5609369",
+  "files": {
+    "guides/forecast-to-replenishment.md": {
+      "before_sha256": "415c641adcf64856a9546d9978154748f86d373b6d4ac8121c020787207387c1",
+      "before_blob": "bfbd0175035a52f58797a930d1423d0b7aaa5a19",
+      "after_sha256": "33be2ccb5f9cde98573d7ccbe14f0ceddb222ebcf288edba16bceb63dbe67ebb",
+      "after_blob": "d33f3a0fe626793ad8f79d58017f6f10392bfb1a"
+    },
+    "guides/replenishment-evidence.yaml": {
+      "before_sha256": "b55375fb34ca4b55453b1d7301ba323bf6466020cbc70e89f5a5985b801d6997",
+      "before_blob": "5e41df7ed8f46da8576adfe03638b418ad4cd496",
+      "after_sha256": "85b7fd3d43cfa30c803f87c321c951f606e0644c775548871b7bad9580053972",
+      "after_blob": "12db539a57e0ffc7d2b45e6aad117e3933826e05"
+    },
+    "paper_lab/templates/guide.html": {
+      "before_sha256": "5707d071525cba5f6746d13ac5c0a0b4cf8831c6dbec8b154a3d260a54064691",
+      "before_blob": "66cbb0190b1ce45f1170fc418a285bf67f81b1ae",
+      "after_sha256": "4dd856e645c8ddddf2a02ab29f3099bc01a247bddcdbacf21a26da070036fd94",
+      "after_blob": "e64e41fbc0b54ead9a48d1706b94d958a706e442"
+    }
+  }
+}

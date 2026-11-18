@@ -39,7 +39,9 @@ jobs:
       - name: Install locked DOM validation dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate generated library HTML with real DOM events
-        run: npm run test:library-dom
+        run: |
+          npm run test:library-dom
+          node tests/issue21-dom.cjs
       - name: Fingerprint the tested complete site
         id: publication
         shell: bash

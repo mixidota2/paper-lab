@@ -12,6 +12,7 @@ from reference_browser import local_site
 from review_103_evidence import console_diagnostic
 from review_capture import capture_segments
 from shelf_survey_browser import inspect_survey
+from replenishment_release_browser import inspect_replenishment
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "browser-review" / "layout-release"
@@ -101,6 +102,7 @@ def main():
                 assert page.url.endswith("/guides/store-layout-fixed-counts.html")
                 # Existing survey checks exercise related Lab navigation and MathML geometry.
                 inspect_survey(page, base, OUT, width, snapshot)
+                inspect_replenishment(page, base, OUT, width, snapshot)
                 assert page.goto(base + "/papers/sid-ope-hierarchy.html").ok
                 verify_seatbelt(browser)
                 fit(page)
