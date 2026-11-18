@@ -70,6 +70,12 @@ jobs:
           include-hidden-files: false
           if-no-files-found: error
           retention-days: 7
+      - name: Install verified official Chrome distribution
+        id: chrome_distribution
+        shell: bash
+        run: |
+          set -o pipefail
+          uv run --locked python tests/prepare_ci_chrome.py 2>&1 | tee browser-review/chrome-distribution.log
       - name: Verify layout release in signed sandboxed Chrome
         id: layout_browser
         shell: bash
