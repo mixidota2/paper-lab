@@ -15,10 +15,10 @@ def yomiyasu_hash(root, path, expected, algorithm='sha256'):
     """Apply the separately recorded November revision to an exact prior hash."""
     revisions = json.loads((root / 'tests/yomiyasu_revision_hashes.json').read_text())['files']
     if path not in revisions:
-        return expected
+        return issue21_hash(root, path, expected, algorithm)
     row = revisions[path]
     assert expected == row['before_' + algorithm], path
-    return row['after_' + algorithm]
+    return issue21_hash(root, path, row['after_' + algorithm], algorithm)
 
 
 def before_yomiyasu_replenishment(root, path, content):
@@ -35,3 +35,13 @@ def before_yomiyasu_replenishment(root, path, content):
     restored = content.replace(new, old)
     assert hashlib.sha256(restored.encode()).hexdigest() == row['before_sha256']
     return restored
+
+
+def issue21_hash(root, path, expected, algorithm='sha256'):
+    """Permit only the separately recorded Issue 21 update from exact prior bytes."""
+    revisions = json.loads((root / 'tests/issue21_revision_hashes.json').read_text())['files']
+    if path not in revisions:
+        return expected
+    row = revisions[path]
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]

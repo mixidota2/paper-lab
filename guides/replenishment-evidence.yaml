@@ -1,8 +1,17 @@
+updated: '2026-11-18'
 checked: '2026-11-17'
 period_start: '2025-11-01'
 period_end: '2026-11-30'
 cards:
 - id: zalando
+  comparison:
+    decision: 販売者への商品別補充推奨。バックテストは article 単位、実装記事の SKU 集計とは区別。
+    connection: LightGBMの分位点を需要シナリオへ渡し、拡張(R,s,Q)をモンテカルロで選ぶ。
+    assessment: 人の判断との計算比較。全提案採用を仮定し、実店舗の利益増を実測していない。
+    conditions: 返品・納期とライフサイクルをモデル化。実際の採用は販売者の判断による。
+  followup:
+    checked: '2026-11-18'
+    scope: 企業ブログの設計・目的関数・バックテスト・全提案採用の留保を再読。実装記事と対応査読論文は今回再取得していない。
   checked: '2026-11-02'
   company: Zalando
   title: 確率予測から補充推奨へ
@@ -26,6 +35,14 @@ cards:
   - label: 対応論文（本文未取得）
     url: https://doi.org/10.1038/s41598-025-32537-2
 - id: jd-orpr
+  comparison:
+    decision: SKU×配送センターの補充。日次の在庫・販売・発注で評価する。
+    connection: OR教師でニューラル方策を事前学習し、RLで調整する。需要の補助出力は点予測。
+    assessment: 実運用の観察的比較。管理者選定、PSM、DiDであり、無作為割付ではない。
+    conditions: MOQ・発注周期・納期を扱う。現場の反実仮想欠品損失は評価対象外。
+  followup:
+    checked: '2026-11-18'
+    scope: 著者HTML v2の§5、表3・4を再読し、対象単位・群選定・指標・比較設計を確認。全付録の再読ではない。
   checked: '2026-11-02'
   company: JD ORPR
   title: OR教師を学び、RLで調整する
@@ -45,6 +62,14 @@ cards:
   - label: 著者本文 §§3–5（v2）
     url: https://arxiv.org/html/2512.19001v2
 - id: amazon-rme
+  comparison:
+    decision: 補修部品の拠点ネットワーク配置。店舗販売商品の補充とは別の意思決定。
+    connection: GNNで候補群の評価値を近似し、探索・集合分割の後に確率在庫MILPで再評価する。需要予測器は未確認。
+    assessment: 企業データによるモデル評価。節約額の計算比較であり、導入後の実費削減ではない。
+    conditions: 補修部品のネットワークと下位在庫モデルを前提とする。実導入範囲は未確認。
+  followup:
+    checked: '2026-11-18'
+    scope: 別研究の著者HTML v1の§6、表6・8を再読。指定DOIは今回も本文を取得できず、別研究で調査完了とはしない。
   checked: '2026-11-02'
   company: Amazon RME共著
   title: 店舗商品ではなく、保全補修部品の配置
@@ -66,6 +91,14 @@ cards:
   - label: 指定DOI（全文未取得・上の本文と同一とは扱わない）
     url: https://doi.org/10.1080/00207543.2026.2655026
 - id: alibaba
+  comparison:
+    decision: SKU×倉庫の補充。販売在庫と供給者の応答を扱う。
+    connection: 供給者の納期・充足率の応答を学び、補充RLと組み合わせる。需要予測の出力型は未確認。
+    assessment: 自動発注と人手発注の本番マッチング比較。無作為化の因果効果とは扱わない。
+    conditions: 初期は低回転商品が中心。販促祭の準備前に実験を停止し、対象全体への一般化を避ける。
+  followup:
+    checked: '2026-11-18'
+    scope: 著者公開本文のImplementation ResultsとMARL比較を再読し、SKU×倉庫、マッチング、期間、報告値を確認。全文の再読ではない。
   checked: '2026-11-02'
   company: Alibaba
   title: 供給者の応答もモデル化するRL
@@ -87,6 +120,14 @@ cards:
   - label: 著者公開本文 pp.372–376
     url: https://www.researchgate.net/publication/374212093_AI_vs_Human_Buyers_A_Study_of_Alibaba%27s_Inventory_Replenishment_System
 - id: jd-e2e
+  comparison:
+    decision: SKU×配送センターの発注量。日次在庫・販売と注文・到着日を使う。
+    connection: 需要RNN・納期MLP等から補充量を直接出す。事後DP解を教師にする教師ありE2Eで、RLではない。
+    assessment: 自主参加とPSMによる現場比較。期間内の費用差とDiDは別の推定値。
+    conditions: 理論の完全バックオーダー・到着順維持は本番と異なる。継続運用と計算費は未確認。
+  followup:
+    checked: '2026-11-18'
+    scope: 著者稿§5.2–5.3、表2–4を再読。群選定・日次データ・費用比較を確認。出版社最終版との全文照合は未完。
   checked: '2026-11-02'
   company: JD E2E
   title: 事後最適解を教師にする
@@ -108,6 +149,14 @@ cards:
   - label: 著者稿 §§3,5
     url: https://alicemengqi.github.io/site/files/End_to_End_revision3-10.pdf
 - id: fengyi-override
+  comparison:
+    decision: 自販機の推奨補充量を人が減らす権限。担当者×機械×補充日のデータで評価。
+    connection: 既存の予測・補充方式を維持し、人が減らせるSKU数を変える。予測器の比較ではない。
+    assessment: 担当者単位の無作為割付とDiD。販売の有意差なしは同等性の証明ではなく、利益は未検証。
+    conditions: 機械ごとの減量上限を設ける。増量・倉庫欠品等の例外があり、全面的な上書き禁止とは異なる。
+  followup:
+    checked: '2026-11-18'
+    scope: 著者HTML v1の§3.3–4、表1を再読。割付単位、集計、固定効果、報告値を確認。§6の個別化シミュレーションは今回再読していない。
   checked: '2026-11-17'
   company: Fengyi Technology
   title: 人が減らせる補充品目を絞る
@@ -127,6 +176,14 @@ cards:
   - label: 著者本文・表1（2026-07-01）
     url: https://arxiv.org/html/2607.00420v1
 - id: waste-markdown
+  comparison:
+    decision: 期限間近商品の値下げ・陳列。店舗×商品の日次記録を店舗×週に集計する隣接事例。
+    connection: 通常値引きを保つ集中陳列と動的値付けを比較。補充最適化や予測器自体の比較ではない。
+    assessment: 店舗選定は完全無作為ではなくDiDで推定。販売率と金銭損失率は別指標で、営業利益ではない。
+    conditions: 既存の値引シール運用を使う。集中陳列は冷蔵売場へ集約し、価格施策と分ける。
+  followup:
+    checked: '2026-11-18'
+    scope: 著者公開稿§3.2–3.3、表4と結果説明を再読。導入・集計単位と指標を確認。SSRN本文と全文同一性は未確認。
   checked: '2026-11-17'
   company: 欧州スーパー（匿名）
   title: 値下げを深くする前に、見つけやすさを変える
