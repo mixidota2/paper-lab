@@ -2,12 +2,14 @@
 import hashlib
 import json
 import os
+import plistlib
 from pathlib import Path
 import subprocess
 from importlib.metadata import version
 from playwright.sync_api import sync_playwright
 from macos_chrome_cdp import chrome_process, connect_checked_cdp, verify_seatbelt
 from reference_browser import local_site
+from review_103_evidence import console_diagnostic
 from review_capture import capture_segments
 from shelf_survey_browser import inspect_survey
 
@@ -35,6 +37,10 @@ def main():
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), page.url
 
     try:
+        record["runner_image"] = {key: os.environ.get(key) for key in ("ImageOS", "ImageVersion", "RUNNER_OS", "RUNNER_ARCH")}
+        info = plistlib.loads(Path("/Applications/Google Chrome.app/Contents/Info.plist").read_bytes())
+        record["chrome_bundle"] = {key: info.get(key) for key in ("CFBundleIdentifier", "CFBundleShortVersionString", "CFBundleVersion")}
+        print("Distribution metadata:", json.dumps({"runner_image": record["runner_image"], "chrome_bundle": record["chrome_bundle"]}), flush=True)
         with chrome_process() as (endpoint, pid), local_site(SITE) as base, sync_playwright() as pw:
             os.environ.update(LAB_CDP_URL=endpoint, LAB_CHROME_PID=str(pid))
             browser = connect_checked_cdp(pw)
@@ -119,7 +125,8 @@ def main():
         record["status"] = "AUTOMATED PASS"
     except BaseException as error:
         record["status"] = "FAIL"
-        record["failure"] = {"type": type(error).__name__, "message": str(error)}
+        record["failure"] = console_diagnostic(error)
+        print("Protected browser failure:", json.dumps(record["failure"]), flush=True)
         raise
     finally:
         (OUT / "result.json").write_text(json.dumps(record, ensure_ascii=False, indent=2))
