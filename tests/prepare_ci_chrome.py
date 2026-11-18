@@ -37,6 +37,8 @@ def verify_bundle(app):
 
 def verify_package(package):
     result = run(["/usr/sbin/pkgutil", "--check-signature", str(package)]).stdout
+    from review_103_evidence import bounded_stderr
+    print("Installer signature diagnostic:", json.dumps(bounded_stderr(result)), flush=True)
     assert "Status: signed by a certificate trusted by macOS" in result
     leaf = re.search(r"1\. Developer ID Installer: Google LLC \(([A-Z0-9]+)\)", result)
     assert leaf is not None, "Google LLC installer identity is not confirmed"
