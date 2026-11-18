@@ -59,7 +59,7 @@ def test_reject_other_publisher_or_mismatched_identity(monkeypatch, identity):
 @pytest.mark.parametrize("output", [
     "Status: no signature\n1. Developer ID Installer: Google LLC (ABC123)",
     "Status: signed by an untrusted certificate\n1. Developer ID Installer: Google LLC (ABC123)",
-    "Status: signed by a certificate trusted by macOS\n1. Developer ID Installer: Someone Else (ABC123)",
+    "Status: signed by a developer certificate issued by Apple for distribution\nNotarization: trusted by the Apple notary service\nSigned with a trusted timestamp on: date\n1. Developer ID Installer: Someone Else (ABC123)\n3. Apple Root CA",
 ])
 def test_reject_unsigned_untrusted_or_other_installer(monkeypatch, output):
     monkeypatch.setattr(m, "run", lambda args: SimpleNamespace(stdout=output))
@@ -71,7 +71,15 @@ def test_accept_google_installer_only_after_pkgutil_trust_check(monkeypatch):
     calls = []
     def valid(args):
         calls.append(args)
-        return SimpleNamespace(stdout="Status: signed by a certificate trusted by macOS\n1. Developer ID Installer: Google LLC (ABC123)")
+        return SimpleNamespace(stdout="Status: signed by a developer certificate issued by Apple for distribution\nNotarization: trusted by the Apple notary service\nSigned with a trusted timestamp on: date\n1. Developer ID Installer: Google LLC (ABC123)\n3. Apple Root CA")
     monkeypatch.setattr(m, "run", valid)
     assert m.verify_package(Path("/fixture.pkg")) == "ABC123"
     assert calls == [["/usr/sbin/pkgutil", "--check-signature", "/fixture.pkg"]]
+
+
+@pytest.mark.parametrize("missing", ["Notarization: trusted by the Apple notary service", "3. Apple Root CA"])
+def test_reject_missing_notary_or_root(monkeypatch, missing):
+    text = "Status: signed by a developer certificate issued by Apple for distribution\nNotarization: trusted by the Apple notary service\nSigned with a trusted timestamp on: date\n1. Developer ID Installer: Google LLC (ABC123)\n3. Apple Root CA"
+    monkeypatch.setattr(m, "run", lambda args: SimpleNamespace(stdout=text.replace(missing, "missing")))
+    with pytest.raises(AssertionError):
+        m.verify_package(Path("/fixture.pkg"))
