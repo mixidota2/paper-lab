@@ -40,7 +40,7 @@ core_idea:
 sections:
   overview: SIDScopeは、item→SID対応表を受け取ったときに使う診断資源である。利用率、衝突、prefixの行動整合、人気別の解像度、trie構造、更新差、生成traceを分ける。オンラインA/Bはない。公式v1.0.1にはadapter、固定結果、CPU
     verifierがある。
-  problem: trieで有効なSIDを生成しても、そのSIDが複数itemを指していれば正解itemを一意に取れない。逆に衝突ゼロでも、prefixに行動上の近さがなければ探索の手掛かりになりにくい。対応表を更新して欠損を埋めても、旧checkpointが新しいコードの意味を知るとは限らない。
+  problem: trieで有効なSIDを生成しても、そのSIDが複数itemを指していれば正解itemを一意に取れない。逆に衝突ゼロでも、prefixに行動上の近さがなければ探索の手掛かりになりにくい。対応表を更新して欠損を埋めても、旧checkpointが新しいコードに対応した出力を返せるとは限らない。
   method: method.md
   why_it_might_work: '[QuaSID](quasid-collision-qualified-sid.html)の衝突を条件付きで評価する発想を、tokenizerを受け入れ、更新し、generatorへ渡す作業へ広げられる。D3がよい理由を「prefixを実際に候補探索に使うから」と限定すれば、診断から次の実験を選びやすい。全generatorのNDCGを予測する万能scoreにすると、原典が示す適用範囲を超える。'
   evidence: '一次資料の著者報告。

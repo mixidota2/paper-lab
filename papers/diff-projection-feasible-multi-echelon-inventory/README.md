@@ -6,7 +6,7 @@
 
 ## Problem — 共有資源が品目を結ぶ
 
-対象は生産計画だ。複数段階の在庫を扱う。複数の製品が資材や生産能力を共有するため、品目ごとの上限処理では実行可能性を保てない。未充足分は残る。バックオーダーとして繰り越す。売り逃しを扱う小売モデルや、食品売場の棚割りRCTへの実証ではない。
+対象は複数段階の在庫を扱う生産計画だ。複数の製品が資材や生産能力を共有するため、品目ごとの上限処理では実行可能性を保てない。未充足分は残る。バックオーダーとして繰り越す。売り逃しを扱う小売モデルや、食品売場の棚割りRCTへの実証ではない。
 
 ## Core Idea — 著者の主張とLabの解釈
 
@@ -57,7 +57,7 @@ ASML設定1の平均総費用はechelon DBS 286.99、MSP 289.25、提案法277.7
 
 ## Implementation — 標準Pythonで再実行する
 
-`UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/diff-projection-feasible-multi-echelon-inventory/run.py`でresults.jsonを再生成する。Python標準ライブラリだけを使用。乱数は使わない。GPUも不要。外部データもない。
+`UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/diff-projection-feasible-multi-echelon-inventory/run.py`でresults.jsonを再生成する。Python標準ライブラリだけを使用し、乱数は使わない。GPUは不要で、外部データもない。
 
 HTMLはlab.yaml、README.md、method.md、mapping.md、run.py、results.jsonから生成する。図の表示はpaper_lab/projection01.py。提供PDF内で公式コードへのリンクを確認できず、公式実装は未実行。
 

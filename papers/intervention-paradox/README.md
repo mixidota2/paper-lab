@@ -2,7 +2,7 @@
 
 Accurate Failure Prediction in Agents Does Not Imply Effective Failure Prevention
 
-Writerの研究は、失敗予測のAUROCが約0.94でも実行途中の介入が有害になり得ると示す。必要なのは救えた失敗と壊した成功の対応比較だ。MiniMax-M2.1のHotPotQAでは64%→38%（−26ポイント）、Qwen-3-8BのALFWorldでは5.8%→8.6%（+2.8ポイント）。いずれもベンチマーク実験で、稼働中の製品全体の成功率ではない。
+Writerの研究は、失敗予測のAUROCが約0.94でも実行途中の介入が有害になり得ると示す。介入なし・ありの結果を対応させ、失敗から成功へ変わった件数と、成功から失敗へ変わった件数を比べる必要がある。MiniMax-M2.1のHotPotQAでは64%→38%（−26ポイント）、Qwen-3-8BのALFWorldでは5.8%→8.6%（+2.8ポイント）。いずれもベンチマーク実験で、稼働中の製品全体の成功率ではない。
 
 一次資料：[arXiv 2602.03338v1](https://arxiv.org/pdf/2602.03338v1)。判定：Worth Reading。
 

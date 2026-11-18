@@ -2,11 +2,11 @@
 <style>#grain-lab{max-width:100%;overflow-wrap:anywhere}#grain-lab .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:1rem}#grain-lab label{display:block;margin:.6rem 0}#grain-lab input,#grain-lab select,#grain-lab button,#grain-lab textarea{font:inherit;max-width:100%}#grain-lab .comparison-scroll{overflow-x:auto}#grain-lab table{border-collapse:collapse;width:100%}#grain-lab th,#grain-lab td{padding:.5rem;border-bottom:1px solid #aaa;text-align:right}#grain-lab th:first-child{text-align:left}#grain-lab pre{white-space:pre-wrap}#grain-lab .bar{height:.8rem;background:#26776d;max-width:100%}</style>
 <p>以下は著者の学習済みモデルを使わない自作例です。A・Bは仮の予測であり、特定手法の名前ではありません。すべて小さいほど良い費用として比較します。最初は商品ごとに1期、次は1窓1値の説明例で、一般の多期間Eq.7全体の実装ではありません。</p>
 <div class="grid"><fieldset><legend>1．ゼロ売上と集計粒度</legend>
-<p>実績は[100,第2商品の売上]、予測Aは[90,Aの第2予測]、Bは[80,0]。単価は両方1、歴史的金額の重みは等分です。</p>
+<p>実績は[100,第2商品の売上]、予測Aは[90,Aの第2予測]、Bは[80,0]。単価は両方1、過去の売上金額に基づく重みは等分です。</p>
 <label>第2商品の売上 <input id="grain-y2" type="number" min="0" max="10000" value="0" disabled></label>
 <label>Aの第2予測 <input id="grain-a2" type="number" min="0" max="10000" value="1" disabled></label>
 <label>集計する単位 <select id="grain-group" disabled><option value="separate">別カテゴリとして評価</option><option value="together">同じカテゴリへ合計</option></select></label>
-<p>同じカテゴリでは商品を合計してから絶対値を取ります。旧式は各ノードの誤差を売上で割ってから歴史重みで平均します。</p></fieldset>
+<p>同じカテゴリでは商品を合計してから絶対値を取ります。旧式は各ノードの誤差を売上で割ってから、過去の売上金額に基づく重みで平均します。</p></fieldset>
 <fieldset><legend>2．窓を平均する順序</legend><p>2つの窓の実績は[1,第2窓売上]。A=[0,第2窓売上]、B=[1,第2窓売上−10（下限0）]。</p>
 <label>第2窓売上 <input id="grain-window" type="number" min="0" max="10000" value="100" disabled></label>
 <p>各窓比率の等重み平均と、全窓の分子・分母を先に足す比率を並べます。分母0は未定義と表示し、黙って窓を除外しません。</p></fieldset>

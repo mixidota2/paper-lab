@@ -304,6 +304,7 @@ def build(
         )]
         inputs += [root / "guides" / name for name in (
             "shelf-decisions.md", f"{REPLENISHMENT_GUIDE}.md",
+            "store-layout-fixed-counts.md",
             "replenishment-evidence.yaml", "replenishment-filter.js",
         )]
         inputs.append(papers / "_toy_common.py")
@@ -392,7 +393,9 @@ def _render_site(root: Path, papers: Path, site: Path, labs: list[Lab]) -> None:
     shelf_available = guide_source.is_file() and shelf_ids <= {lab.id for lab in labs}
     survey_source = root / "guides" / f"{REPLENISHMENT_GUIDE}.md"
     survey_available = survey_source.is_file() and {"inventory-common-threshold-history", "orpr-or-guided-pretrain-reinforce-inventory", "bridging-forecast-accuracy-inventory-kpis"} <= {lab.id for lab in labs} and shelf_available
-    guide_count = int(shelf_available) + int(survey_available)
+    layout_source = root / "guides" / "store-layout-fixed-counts.md"
+    layout_available = layout_source.is_file() and shelf_available and "whole-foods-shelf" in {lab.id for lab in labs}
+    guide_count = int(shelf_available) + int(survey_available) + int(layout_available)
     if guide_count:
         guides_out = site / "guides"
         guides_out.mkdir()
@@ -400,6 +403,8 @@ def _render_site(root: Path, papers: Path, site: Path, labs: list[Lab]) -> None:
         guide_entries = [("index", "テーマガイド", True, "")]
         if shelf_available:
             guide_entries.append(("shelf-decisions", "棚割りの判断と手法を比較する", False, markdown_to_html(guide_source.read_text(encoding="utf-8"))))
+        if layout_available:
+            guide_entries.append(("store-layout-fixed-counts", "店舗レイアウト最適化：棚本数を固定したカテゴリ配置", False, markdown_to_html(layout_source.read_text(encoding="utf-8"))))
         if survey_available:
             evidence_source = root / "guides" / "replenishment-evidence.yaml"
             try:
@@ -419,7 +424,7 @@ def _render_site(root: Path, papers: Path, site: Path, labs: list[Lab]) -> None:
         for name, title, is_index, content in guide_entries:
             (guides_out / f"{name}.html").write_text(template.render(
                 title=title, is_index=is_index, paper_count=len(labs), guide_count=guide_count,
-                shelf_available=shelf_available, survey_available=survey_available,
+                shelf_available=shelf_available, survey_available=survey_available, layout_available=layout_available,
                 content=content), encoding="utf-8")
 
     index_html = env.get_template("index.html").render(

@@ -16,7 +16,7 @@ python run.py
 
 ## リポジトリ全体で検証する
 
-リポジトリrootで、既存の固定依存を利用する。
+リポジトリのrootで、既存の固定依存を利用する。
 
 ```bash
 uv sync --locked --extra dev --python 3.12

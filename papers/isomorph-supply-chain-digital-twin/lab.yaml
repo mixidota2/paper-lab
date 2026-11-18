@@ -67,7 +67,7 @@ sections:
   what_we_verified: CONFIRMED：全252ステップで物量と未充足需要の保存則が成立し、3条件の需要は一致した。PARTIAL：到着先でのサービス処理を確認した。13拠点の経路探索や荷詰めは実装していない。
   what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Chronos、Moirai、TimesFM、ARIMA、ETS、PatchTSTの再学習・推論、bullwhip比、Forward
     UQの被覆率は追試していない。「最初の公開digital twin」は著者の位置づけとして扱い、網羅的な先行研究調査では確定していない。
-  implementation: run.pyは標準ライブラリだけで動く。simulate()で需要と容量の比較条件を固定し、assertで保存則を検査する。1辺・1期遅延へ簡略化した。補充の教材ルールは到着先にも(s,S)を使うため、公式の非到着先補充と同一ではない。ネットワーク図と論文値はlab.yaml、実験曲線はresults.jsonを正本とする。
+  implementation: run.pyは標準ライブラリだけで動く。simulate()で需要と容量の比較条件を固定し、assertで保存則を検査する。1辺・1期遅延へ簡略化した。補充の教材ルールは到着先にも(s,S)を使うため、公式の非到着先補充と同一ではない。ネットワーク図と論文値の原本はlab.yaml、実験曲線の原本はresults.jsonとする。
   mapping: mapping.md
 teaching_figures:
 - kind: matrix

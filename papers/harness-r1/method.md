@@ -4,7 +4,7 @@ targetは主実験でQwen3.5-9B。修正担当の別モデル（engineer、9B）
 初期化はcontextや状態を準備し、判断前は検索した手順や制約を渡す。行動直前は提案されたtool callを正規化・書換え・拒否し、feedback後は観測を解析して停滞から回復させる。文脈だけを編集する方式より広い実行権限を持つので、patchの検証と許可された返り値が重要になる。
 
 ### 成功していた課題も含めて再実行する
-batch Bの元のrewardをR⁰、patch後をRᴾとすると、`Δ_B(P)=(1/|B|)Σᵢ(Rᵢᴾ−Rᵢ⁰)`。有効かつ完全に評価できたpatchにはこの差を、invalid/no-op/未完了にはゼロを与える。たとえば失敗4件を成功へ直しても、元の成功5件を壊せば全体では悪化する。この回帰を見逃さないよう、再実行は全batchを対象にする（式1）。
+batch Bの元のrewardをR⁰、patch後をRᴾとすると、`Δ_B(P)=(1/|B|)Σᵢ(Rᵢᴾ−Rᵢ⁰)`。有効かつ完全に評価できたpatchにはこの差を、invalid/no-op/未完了にはゼロを与える。たとえば失敗4件を成功に変えても、元は成功していた5件を失敗させれば全体では悪化する。この回帰を見逃さないよう、再実行は全batchを対象にする（式1）。
 
 初期の教師あり学習（SFT）には、GPT-5.5 teacherが提案し、実行検証を通った約1,000編集例を使う。RLは別課題splitの約1,500failure packetで学習する。1packetにつきK=8のpatchをsampleし、`A_k=(r_k−mean(r))/std(r)` と群内で標準化する。このadvantageをengineerのtoken確率比に掛けるclipped GRPOを使う。targetの重みへは逆伝播しない（式2–4、Algorithm 1）。
 

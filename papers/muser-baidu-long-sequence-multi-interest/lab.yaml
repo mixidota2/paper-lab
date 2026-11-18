@@ -95,7 +95,7 @@ teaching_figures:
     explanation: 古い履歴。pool内の順序は保持しない。
   - name: middle
     formula: 1,200 ÷ 16 = 75 token
-    explanation: 中期をほどほどの解像度へ。
+    explanation: 中期の履歴は16件ずつまとめ、古い履歴より細かく残す。
   - name: recent
     formula: 800 ÷ 1 = 800 token
     explanation: 直近を細かく保つ。

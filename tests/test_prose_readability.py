@@ -458,7 +458,7 @@ def test_batch22_evidence_continuation_and_serving_units():
 def test_root_readme_catalog_and_validation_scope():
     readme = (ROOT/'README.md').read_text()
     count = len(list((ROOT/'papers').glob('*/lab.yaml')))
-    assert f'{count}件のLabと、2件のテーマガイド' in readme
+    assert f'{count}件のLabと、3件のテーマガイド' in readme
     assert f'全{count}件のLabの読み込み' in readme
     assert (ROOT/'guides/shelf-decisions.md').is_file()
     assert (ROOT/'guides/forecast-to-replenishment.md').is_file()

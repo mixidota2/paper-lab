@@ -12,4 +12,4 @@ GPUにはNsight Systems / Compute、serverとfeature処理にはeBPF由来のPyt
 
 Tritonの入力変換をC++化する事例、attentionを融合する事例、embedding bagをcompilerに見えるprimitiveへ分解する事例、featureのzero-copyや一括tensor割当はそれぞれ別の変更。Pythonの関数を速くした倍率を、広告配信全体の倍率へ適用できない。
 
-§5.4の設定探索は現在instance数とdynamic batch sizeの2軸で、queue policyはSLOから導く。production requestを隔離nodeでreplayし、二段モデルはpreprocessor出力を先に収集する。reviewed PRとcanaryがある点も、無審査で本番を自由に書き換えるagent像とは異なる。
+§5.4の設定探索は現在、instance数とdynamic batch sizeの2軸で行い、queue policyはSLOから導く。production requestを隔離nodeでreplayし、二段モデルはpreprocessor出力を先に収集する。reviewed PRとcanaryがある点も、無審査で本番を自由に書き換えるagent像とは異なる。

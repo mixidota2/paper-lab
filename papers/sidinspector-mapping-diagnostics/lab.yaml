@@ -62,7 +62,7 @@ sections:
     key・深さ不一致を拒否し、D1–D5を計算する。'
   results: 人工mappingの衝突item率は2/3→0へ減らせるが、prefixを交差させた一意mappingのD3は0。行動pairを同prefixに置く一意mappingはD3=1。両者ともfull
     SIDは一意であり、addressabilityとbehavioral alignmentが別であることを確認した。
-  what_we_verified: Mechanism PARTIAL。人工入力の契約違反拒否、非singleton bucketに属するitem比率、重み付き近傍回収、tailの一意SID比率、prefix数とfan-outを確認。局所計算はCONFIRMED。
+  what_we_verified: Mechanism PARTIAL。入力条件に違反する人工入力の拒否、非singleton bucketに属するitem比率、重み付き近傍回収、tailの一意SID比率、prefix数とfan-outを確認。局所計算はCONFIRMED。
   what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。公式packageの全gate、GRID/ReSID/LETTER/LC-Rec
     export、co-occurrence構築のsampling、generatorのRecall/NDCG、latencyとonline A/Bは未実行。D2の衝突率だけから衝突の害を判断しない。
   implementation: '`validate()`がadapter契約の小部分、`probe()`がD1–D5の人工診断。D1のused数は語彙budgetがないため絶対利用率に変換せず、D5のfan-outをmsへ換算しない。D3は固定edge集合のweighted

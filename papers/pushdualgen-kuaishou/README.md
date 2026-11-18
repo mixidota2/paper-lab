@@ -60,7 +60,7 @@ SID Pass@20はfull 0.422、SID adaptationなし0.366、parallel SIDなし0.401�
 
 ## What We Verified
 
-Mechanism PARTIAL。2つの履歴条件でcopyを省略しても先行SIDが変わらない。固定ベクトルの融合で候補順が変わることを確認した。文字単位のstep数は説明用で、壁時計の高速化率ではない。
+Mechanism PARTIAL。2つの履歴条件でcopyを省略しても先行SIDが変わらない。固定ベクトルの融合で候補順が変わることを確認した。文字単位のstep数は説明用で、実時間で測った高速化率ではない。
 
 ## What We Did NOT Verify
 

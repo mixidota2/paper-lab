@@ -68,7 +68,7 @@ sections:
 
     SID Pass@20はfull 0.422、SID adaptationなし0.366、parallel SIDなし0.401。これはオフラインSID予測で、copy省略だけのオンライン因果効果は報告されていない。'
   executable_understanding: 有限の履歴→SID→copy頻度モデルで、同じ履歴からcopy on/offを実行する。SID不変と出力単位削減を確認し、別の3動画の内積検索でuser-onlyとuser+SIDを比較する。Qwen学習や通知文の品質を擬似的な精度値で代用しない。
-  what_we_verified: Mechanism PARTIAL。2つの履歴条件でcopyを省略しても先行SIDが変わらない。固定ベクトルの融合で候補順が変わることを確認した。文字単位のstep数は説明用で、壁時計の高速化率ではない。
+  what_we_verified: Mechanism PARTIAL。2つの履歴条件でcopyを省略しても先行SIDが変わらない。固定ベクトルの融合で候補順が変わることを確認した。文字単位のstep数は説明用で、実時間で測った高速化率ではない。
   what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Omniの圧縮学習、parallel K-means、Qwen3のadaptationとSFT、ANN
     recall、copyの忠実性、通知の頻度制御、A/Bは未再現。原典§6にcopy then SIDという記述があるが、§3.2の式と結論はSID then copyで一致するため、ここでは後者を採用した。
   implementation: '`decode()`は経験頻度でSIDを選んだ後にcopyを選ぶ。`rank(beta)`はEq. 7の融合を内積全探索で例示する。ANN indexは省略。

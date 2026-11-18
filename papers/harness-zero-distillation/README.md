@@ -57,7 +57,7 @@ REPLACE例では棄却したoverwrite workbookが教師対象から消え、back
 
 ## What We Verified — 確認範囲
 
-CONFIRMED：採用応答だけを実行・学生履歴・教師対象へ渡し、棄却提案を除く契約。MechanismはPARTIAL。
+CONFIRMED：採用応答だけを実行・学生履歴・教師対象へ渡し、棄却提案を除く処理。MechanismはPARTIAL。
 
 ## What We Did NOT Verify — 未検証
 

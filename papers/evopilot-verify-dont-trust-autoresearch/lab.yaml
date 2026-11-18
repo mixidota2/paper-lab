@@ -38,7 +38,7 @@ core_idea:
   author_claim: 各実験が完了し、実験の来歴をたどれても、比較が妥当とは限らない。事前に承認した比較条件と、成果物に記録された実際の条件を照合する。必要な証拠が欠ける比較は受け付けない。
   research_bot_interpretation: '[AURA](aura-disney-agentic-rec-diagnosis.html)は何を直すべきかを診断し、EvoPilotは修正を比べた測定が有効かを検査する。[PILOT](pilot-experiment-lifecycle.html)の非同期実験運用や[AgentX](agentx-kuaishou.html)のkeep判定にも、比較条件が揃ったかという前提を追加できる。'
 sections:
-  overview: interaction headで精度が22 pp落ちたという結論は、controlだけ3,000件を評価していたため無効だった。宣言は両群K=600でも、実現した出力数が違った。EvoPilotの中心はagentを増やすことより、承認した差分とartifactの実現値を比較して記録することにある。最初に問題を捕まえたのはhuman
+  overview: interaction headで精度が22 pp落ちたという結論は、controlだけ3,000件を評価していたため無効だった。宣言は両群K=600でも、実現した出力数が違った。EvoPilotの中心はagentを増やすことより、承認した差分とartifactの実現値を比較して記録することにある。最初に問題を検出したのはhuman
     gateで、自動identity guardは事後強化だった。
   problem: 長いML実験はsource、data、training、publish、index、evaluatorをまたぐ。各runが成功し、どのrevisionで実行したか分かっても、二つのrunが同じ測定をしているとは限らない。code変更がno-op、eval日がtrainに混入、K/Pが宣言と不一致、といった問題を「modelが悪い」という結果から切り分ける必要がある。
   why_it_might_work: '解釈: proposalを実行権限や証拠と混同せず、typed adapterで実行し、artifactを独立verifierへ渡すと、agentの説明だけで比較を通しにくくなる。前回の失敗をmemoryに保存するだけでは防止策にならない。次回のartifactや状態遷移に適用できる検査へ変換して初めて強制力を持つ。evaluatorの意味自体が正しいかは人間の確認が残る。'

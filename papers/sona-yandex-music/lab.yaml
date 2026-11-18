@@ -37,7 +37,7 @@ core_idea:
 sections:
   overview: Sonaは候補生成・prerank・最終rankを、共有履歴encoder、SID decoder、Ranking Moduleを持つ一つの配信モデルへまとめる。My Vibeのスマートスピーカー面で、各群15%・7日間の最終A/BはActive
     Users +4.53%、Total Listening Time +6.30%。論文時点で全流量には展開しておらず、catalog coverage低下を課題としている。
-  problem: 音楽では同じ曲を繰り返し聴くこと自体に価値があり、動画feedと同じ重複抑制は当てはまらない。次の曲を当てる生成尤度だけでは、likeや聴き続ける価値に沿う順序を作れない。一方、重いteacherを各requestに出すと配信コストが高い。長い履歴を保持しつつ、teacherの採点を軽いRanking
+  problem: 音楽では同じ曲を繰り返し聴くこと自体に価値があり、動画feedと同じ重複抑制は当てはまらない。次の曲を当てる生成尤度だけでは、likeや聴き続ける価値に沿う順序を作れない。一方、重いteacherを各requestで実行すると配信コストが高い。長い履歴を保持しつつ、teacherの採点を軽いRanking
     Moduleへ移す必要がある。
   method: method.md
   why_it_might_work: 古い履歴もmemoryに残せば、直近だけでは分からない嗜好を生成と順位の双方で使える。計算をrecentへ集中するのは、その情報を全層で混ぜ直す費用を避けるためだ。蒸留の候補をrolloutと実表示の両方にすれば、生成分布への追従とログに残る行動の両方を扱える。ただし、教師と一致することは利用者の満足度と一致することを意味しない。

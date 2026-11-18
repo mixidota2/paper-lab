@@ -46,7 +46,7 @@ Performance / Scaling / Production applicabilityはNOT TESTED。Top-1 STEの学�
 
 ## Implementation — 実装
 
-nb()は平均・分散パラメータ化の負の二項確率、hurdle()は正の領域を1−P_NB(0)で正規化する。0から999までの和で確率と平均を照合する。図は0から20までを表示し、残りの尾確率も示す。
+nb()は平均・分散でパラメータ化した負の二項分布の確率を計算し、hurdle()は正の領域を1−P_NB(0)で正規化する。0から999までの和で確率と平均を照合する。図は0から20までを表示し、残りの尾確率も示す。
 
 ## Original Paper / Official Code Mapping — 原典との対応
 

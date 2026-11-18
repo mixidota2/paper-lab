@@ -14,7 +14,7 @@ InvEvolveは、LLMが読める発注コードを生成し、同じ需要履歴�
 
 著者は、GRPOで学習したGLM-4.7-Flash（30B MoE）によるLGPS（LLM-guided policy search）を提案する。候補コードを生成し、共通の需要経路でreplay評価し、改善の信頼下限LCBで候補を絞る。通過候補から信頼上限UCBが最大の方策を配備し、候補がなければ参照方策へ戻る。探索中のchampion昇格には、参照に対する安全性に加え、現championへの改善条件も置く。
 
-Labの解釈では、これは「方策そのものをコード空間で改善する」セルに入る。[SabreAgent](../sabreagent-design-time-inventory/README.md)のセルは「設計時に季節事前分布を構成し、凍結したORルールを実行する」。InvEvolveは窓ごとに方策探索を更新するが、各発注でLLMへ数量を直接尋ねる設計とは区別する。InventoryBenchとの直接対決ではない。
+Labの解釈では、これは「方策そのものをコード空間で改善する」研究に分類する。[SabreAgent](../sabreagent-design-time-inventory/README.md)は「設計時に季節事前分布を構成し、凍結したORルールを実行する」研究に分類する。InvEvolveは窓ごとに方策探索を更新するが、各発注でLLMへ数量を直接尋ねる設計とは区別する。InventoryBenchとの直接対決ではない。
 
 ## Why It Might Work — 生成の自由度と採用の慎重さを分ける
 

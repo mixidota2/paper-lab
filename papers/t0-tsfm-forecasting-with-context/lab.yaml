@@ -43,7 +43,7 @@ core_idea:
   research_bot_interpretation: '[ApolloPFN](apollopfn.html)と同じく外生変数を扱えるTSFMの証拠が増えた。ただし[Accuracy Is Not Service](accuracy-not-service-intermittent-demand.html)が問う在庫・注文充足への変換は残る。Chronos-2は変数軸attentionやcovariate
     ablationの近い比較対象。小売の販促有無、欠品による売上打切り、GBDTと同じ情報集合での比較を揃えて初めて導入判断へ進める。'
 sections:
-  overview: 主な読みどころはモデル間の順位より、同一checkpointに情報を追加する比較である。+6.3はskillのpercentage pointで、MAEが6.3%改善したという意味ではない。モデルの深掘りは主にt0-alphaで、t0-betaの256Mや21分位点へ混ぜない。
+  overview: 主な読みどころはモデル間の順位より、同一checkpointに情報を追加する比較である。+6.3はskillのpercentage pointで、MAEが6.3%改善したという意味ではない。モデルの詳しい説明は主にt0-alphaを扱うため、t0-betaの256Mや21分位点の仕様と混同しない。
   problem: 単変量モデルは販促日や休業日を知らない。情報を渡せるモデルでも、無関係な変数を無視できなければ逆効果になる。また「既知未来」として評価時に渡した情報が、発注時点でも本当に分かっていたかを確認する必要がある。将来の実天気や実売上を予定として渡せば漏洩になる。
   why_it_might_work: covariateがtargetを動かす人工系列を事前学習へ加え、変数間attentionでその関係を読めるようにする。未来の予定を読む経路には価値があるが、ノイズを無視できる保証はない。11/30課題の悪化やM5の小さい差は、covariate対応という機能名だけでは選定できないことを示す。
   evidence: '[一次資料PDF §5.1.2 / Tables 4–5 / §6](https://arxiv.org/pdf/2609.24559v1) の著者報告。

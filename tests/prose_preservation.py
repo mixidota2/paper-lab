@@ -4,8 +4,34 @@ import json
 
 def revised_hash(root, path, expected, algorithm='sha256'):
     revisions = json.loads((root / 'tests/prose_revision_hashes.json').read_text())['files']
+    if path in revisions:
+        row = revisions[path]
+        assert expected == row['before_' + algorithm], path
+        expected = row['after_' + algorithm]
+    return yomiyasu_hash(root, path, expected, algorithm)
+
+
+def yomiyasu_hash(root, path, expected, algorithm='sha256'):
+    """Apply the separately recorded November revision to an exact prior hash."""
+    revisions = json.loads((root / 'tests/yomiyasu_revision_hashes.json').read_text())['files']
     if path not in revisions:
         return expected
     row = revisions[path]
     assert expected == row['before_' + algorithm], path
     return row['after_' + algorithm]
+
+
+def before_yomiyasu_replenishment(root, path, content):
+    """Reverse only the reviewed T3 explanation, retaining all historical guards."""
+    target = 'papers/assortment-replenishment-hard-constraints/interactive.js'
+    if path != target:
+        return content
+    import hashlib
+    row = json.loads((root / 'tests/yomiyasu_revision_hashes.json').read_text())['files'][path]
+    assert hashlib.sha256(content.encode()).hexdigest() == row['after_sha256']
+    old = '需要の定義が違う利益は順位比較できません。'
+    new = '需要の定義が違う場合、利益の順位は比較できません。'
+    assert content.count(new) == 1
+    restored = content.replace(new, old)
+    assert hashlib.sha256(restored.encode()).hexdigest() == row['before_sha256']
+    return restored

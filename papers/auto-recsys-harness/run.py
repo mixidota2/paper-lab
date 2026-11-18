@@ -40,7 +40,7 @@ def main():
     assert mature[-1]['major_fixes'] == 0
     assert runs['versioned_memory']['human_minutes'] < runs['no_memory']['human_minutes']
     assert any(t['unsafe_reuse'] for t in runs['unversioned_memory']['trace'])
-    result = {'note': '全時間・失敗系列はLabの仮定。原論文31反復の復元ではない。自然言語の学習能力と分散基盤はNOT TESTED。',
+    result = {'note': '時間と失敗系列はすべてLabの仮定。原論文31反復の復元ではない。自然言語の学習能力と分散基盤はNOT TESTED。',
               'assumptions': {'training_minutes': 2880, 'recovery_minutes_per_fix': 30,
                               'review_human_minutes': 8, 'human_minutes_per_fix': 12,
                               'parallel_workers': 4, 'baseline_change_iteration': 21},

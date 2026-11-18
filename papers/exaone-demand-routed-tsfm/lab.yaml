@@ -79,13 +79,13 @@ sections:
 
 
     著者自身が36の比較TSFMを同一手順で実行している。値の重複検査で学習候補358,008系列を除外したが、既存モデルの事前学習データには同じ除外を適用できず、比較は非対称である。評価には電力・M4・計算資源が多く、販促共変量、在庫費用、サービス率の比較はない。'
-  executable_understanding: '`run.py`は5乱数seedで、4種類の人工需要を作る。各seedで別の160系列を使い、SES、Croston、SBA、TSBから全系列共通の手法を選ぶ。未使用320系列では150期間の履歴から30期間を予測し、同じ履歴とMASE分母で比べる。
+  executable_understanding: '`run.py`は5つの乱数seedで、4種類の人工需要を作る。各seedで別の160系列を使い、SES、Croston、SBA、TSBから全系列共通の手法を選ぶ。未使用320系列では150期間の履歴から30期間を予測し、同じ履歴とMASE分母で比べる。
 
 
     比較する混合方式はSmooth→SES、Intermittent→SBA、Erratic→Croston、Lumpy→TSBという説明用の割当で、式5–6のπで平均する。この対応はLabの仮定で、論文の学習結果ではない。数量はGamma分布から生成して丸め、Bernoulliの抽選で需要が発生するかを決める。論文の負の二項分布による生成器とは異なる。
 
 
-    ページの平面ではADIとCV²を動かし、πとπ̃を比較する。在庫図は潜在需要を固定して、販売数だけが在庫で切られる様子を見る。両者を分けて記録できることが、合成需要の利点である。'
+    ページの平面ではADIとCV²を動かし、πとπ̃を比較する。在庫図では潜在需要を固定し、販売数だけが在庫量で制限される様子を見る。両者を分けて記録できることが、合成需要の利点である。'
   results: 混合方式は5seed中4seedで、検証用データから選んだ共通手法よりMASEが悪化した。seed=19のみ0.8848→0.8702へ改善した。**安定した精度向上はNOT
     OBSERVED**。分類の重みが連続に変わることと、混ぜれば精度が上がることは別の命題である。数値はresults.jsonに保存する。
   what_we_verified: MechanismはPARTIAL。式5–6の確率和、両境界での均等比率、数量を10倍してもADIとCV²が変わらない性質はCONFIRMED。古典予測器の混合を実行したが、学習routerやLoRAは実装していない。
@@ -105,7 +105,7 @@ sections:
 teaching_figures:
 - kind: matrix
   id: exaone-eight-statistics
-  title: 8統計量は、需要の別々の性質を読む
+  title: 8統計量が表す需要の別々の性質
   after: method
   caption: 式4のrouter入力。需要量の単位を変えても値は変わらない。Lengthは観測数で、数量の単位には依存しない。
   source: https://arxiv.org/pdf/2609.30880v1

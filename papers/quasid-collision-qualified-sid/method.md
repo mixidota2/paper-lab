@@ -2,7 +2,7 @@
 
 shared encoder fθがmultimodal特徴xᵢをzᵢへ写す。残差量子化器が各層のcodeを選び、量子化ベクトルの和からdecoder hφが元特徴を再構成する。離散選択にはstraight-through estimator（順伝播は離散、逆伝播は連続の近似）を使う。これにSwingで作ったtrigger–target正例のdual-tower contrastive学習を加える。[§4.1](https://arxiv.org/html/2603.00632v1#S4.SS1)
 
-産業側の特徴は説明文、ASR transcript、key-frame画像をmultimodal LLMで埋め込む。具体的な産業encoder名は本文では特定されない。offlineのSentence-T5-XXLと同一だとは仮定しない。
+産業側では、説明文、ASR transcript、key-frame画像をmultimodal LLMで埋め込んで特徴として使う。具体的な産業encoder名は本文では特定されない。offlineのSentence-T5-XXLと同一だとは仮定しない。
 
 ### CVPMは2種類の良い重なりを除く
 

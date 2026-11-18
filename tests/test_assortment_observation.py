@@ -277,6 +277,7 @@ def test_responsive_static_contract(viewport):
 
 def test_preexisting_sources_and_case_ids_preserved(tmp_path):
     import hashlib
+    from prose_preservation import yomiyasu_hash
     base='2dcd139222067425c39d753a999bc9c4223c6d18'
     listing=subprocess.check_output(['git','ls-tree','-r',base,'papers','guides'],cwd=ROOT,text=True)
     # Explicit prose-only revisions retain both the historical blob identity and
@@ -289,10 +290,10 @@ def test_preexisting_sources_and_case_ids_preserved(tmp_path):
         content=(ROOT/path).read_bytes()
         if path in revisions:
             assert revisions[path]['before_blob']==sha,path
-            assert hashlib.sha256(content).hexdigest()==revisions[path]['after_sha256'],path
+            assert hashlib.sha256(content).hexdigest()==yomiyasu_hash(ROOT,path,revisions[path]['after_sha256']),path
             seen_revisions.add(path)
         else:
-            assert hashlib.sha1(b'blob '+str(len(content)).encode()+b'\0'+content).hexdigest()==sha,path
+            assert hashlib.sha1(b'blob '+str(len(content)).encode()+b'\0'+content).hexdigest()==yomiyasu_hash(ROOT,path,sha,'blob'),path
         count+=1
     # These five files were introduced after this historical baseline. Check
     # their exact old/new identities against the later release, not that tree.
@@ -304,7 +305,7 @@ def test_preexisting_sources_and_case_ids_preserved(tmp_path):
         row=revisions[path]
         assert hashlib.sha1(b'blob '+str(len(old)).encode()+b'\0'+old).hexdigest()==row['before_blob'],path
         assert hashlib.sha256(old).hexdigest()==row['before_sha256'],path
-        assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==row['after_sha256'],path
+        assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==yomiyasu_hash(ROOT,path,row['after_sha256']),path
     assert count>=750
     from paper_lab.build import build
     from review_103 import preflight
@@ -328,11 +329,11 @@ def test_preexisting_sources_and_case_ids_preserved(tmp_path):
 
 
 def test_prose_revision_requires_exact_prior_identity():
-    from prose_preservation import revised_hash
+    from prose_preservation import revised_hash, yomiyasu_hash
     revisions=json.loads((ROOT/'tests/prose_revision_hashes.json').read_text())['files']
     for path,row in revisions.items():
         for algorithm in ('sha256','blob'):
-            assert revised_hash(ROOT,path,row['before_'+algorithm],algorithm)==row['after_'+algorithm]
+            assert revised_hash(ROOT,path,row['before_'+algorithm],algorithm)==yomiyasu_hash(ROOT,path,row['after_'+algorithm],algorithm)
             with pytest.raises(AssertionError):
                 revised_hash(ROOT,path,'unreviewed',algorithm)
     assert revised_hash(ROOT,'papers/unlisted/method.md','must-still-match')=='must-still-match'

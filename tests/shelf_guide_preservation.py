@@ -10,6 +10,8 @@ SYNTHESIS = '47b62e83244b546f3bd07b7a45ec313c201e7e810105a545364c208671195893'
 AFTER = '0a609bf49bd5b243ff523e20ab9a99b97ba515f39e3c729bea604a81bd10b172'
 LAYOUT = '2657bd4b13da54ebbd1539a700d2b291be5e8db3976ee4d3b833271c11098184'
 WORDING = '3fe2874e280af9b28c8ab19b45cb783eb6c9b2ff3aead902ebbbcd3380cf0e9d'
+NOVEMBER = '721e1ec459a12bd8028d203fac055c7e34c0d07a29bbbc08b88d69f760b577ea'
+NOVEMBER_PATCH_SHA = '5be9c51055a82e92bb4b2fac4d9fdfaf88a1d799d8bd7713a36610fdcfd49f20'
 WORDING_OLD = 'Düsterhöftほかは対照群との比較を報告。Fisher・Vaidyanathanのタイヤは一部導入をモデル調整後の売上高で評価。無作為比較ではない'
 WORDING_NEW = 'Düsterhöftほかは対照群との比較を報告していますが、割付方法・店舗数・評価期間は未確認です。Fisher・Vaidyanathanのタイヤは一部導入をモデル調整後の売上高で評価しており、こちらは無作為比較ではありません。'
 LAYOUT_PATCH_SHA = '652c97a1b34596cfa02e435549c7cfba0cf93aa3277f96fdedfeb252d7385c55'
@@ -40,11 +42,19 @@ def reverse_exact(data, patch, patch_sha, expected):
         return restored
 
 
+def before_november(data):
+    if sha(data) != NOVEMBER:
+        return data
+    patch = (Path(__file__).parent / 'fixtures/shelf-guide-yomiyasu-20261118.patch').read_bytes()
+    return reverse_exact(data, patch, NOVEMBER_PATCH_SHA, WORDING)
+
+
 def verify_preserved_source(root, path, expected, *, patch_bytes=None, dcmp_patch_bytes=None, layout_patch_bytes=None):
     data = (root / path).read_bytes()
     if sha(data) == expected:
         return  # Every unchanged historical source remains valid.
     assert path == GUIDE and expected == BEFORE, path
+    data = before_november(data)
     assert sha(data) in (SYNTHESIS, AFTER, LAYOUT, WORDING), 'Guide differs from exact reviewed revisions'
     if sha(data) == WORDING:
         assert data.count(WORDING_NEW.encode()) == 1

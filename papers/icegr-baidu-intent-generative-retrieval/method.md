@@ -2,7 +2,7 @@
 
 8BのEC適応embedding modelでquery–product InfoNCEを学び、co-click graphを作る。edgeは同じqueryからのclick数の幾何平均を合計する。対称正規化した隣接行列で3回伝播し、各回0.2の元embeddingを混ぜる。
 
-さらに各商品の歴史query embeddingをclick頻度で加重平均する。query数に基づくη=min(1,log(|Qᵢ|+1)/log(51))をかけてgraph表現へ加算し、L2正規化する。fusion λ=1、最終256次元。3層・各1,024 codeのRQ-KMeansでSIDを作る。VARGの第3 tokenの価値順とは異なり、3層とも残差量子化である。
+さらに、各商品について過去のqueryのembeddingをclick頻度で加重平均する。query数に基づくη=min(1,log(|Qᵢ|+1)/log(51))をかけてgraph表現へ加算し、L2正規化する。fusion λ=1、最終256次元。3層・各1,024 codeのRQ-KMeansでSIDを作る。VARGの第3 tokenの価値順とは異なり、3層とも残差量子化である。
 
 ### 商品の暗記課題をqueryの教師へ変換する
 

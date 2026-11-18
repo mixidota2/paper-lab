@@ -18,7 +18,7 @@ Idea Evolution Loopは「なぜ仮説が効かなかったか」を学ぶ。base
 ### sessionが落ちても成果物を探して続ける
 新sessionはregistryとactive ideaのstateを読み、前sessionのtrajectoryから経緯を復元する。training中ならremote jobをpollし、次の処理へ進む（§6.2）。§7.3の事例では別serverのcheckoutに元commitがなくても、stateに保存されたdraft diffを共有review systemから取得して続行した。ログに何をしたか書くだけでなく、コード成果物へ到達できることが復旧の条件になる。
 
-research_botの批評として、atomic writeは単一更新の途中破損を防いでも、複数writerのlost updateを自動的に防がない。所有権移譲、冪等なjob投入、baselineの版を含む比較条件を別途確認したい。
+research_botの批評として、atomic writeは単一更新の途中破損を防いでも、複数writerのlost updateを自動的に防がない。所有権移譲、冪等なjob投入、baselineのバージョンを含む比較条件を別途確認したい。
 
 ### human bandwidthとwall-clockを分けて測る
 人の作業時間Hは、review・復旧などに注意を使った時間の和である。経過時間Wは最初の開始から最後の完了までで、queueやtrainingの待ちを含む。並行jobの所要時間を足した値とは異なる。以下は本Labの測定定義であり、原論文の数式ではない。

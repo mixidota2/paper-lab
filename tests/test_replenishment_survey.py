@@ -130,7 +130,7 @@ def test_full_build_guide_sources_links_and_existing_labs_preserved(tmp_path):
     assert len(labs)==114
     from review_103 import preflight
     p=preflight(site)
-    assert p['theme_guides']==2 and p['guide_pages']==3 and len(p['required_cases'])==438
+    assert p['theme_guides']==3 and p['guide_pages']==4 and len(p['required_cases'])==438
     target=site/'guides/forecast-to-replenishment.html';text=target.read_text();doc=Document(text)
     assert sum(t=='article' and 'data-evidence-card' in a for t,a in doc.tags)==7
     assert '<!-- EVIDENCE_CARDS -->' not in text
@@ -138,7 +138,7 @@ def test_full_build_guide_sources_links_and_existing_labs_preserved(tmp_path):
         assert (site/'downloads/guides'/name).read_bytes()==(GUIDES/name).read_bytes()
     assert (site/'assets/replenishment-filter.js').read_bytes()==(GUIDES/'replenishment-filter.js').read_bytes()
     assert 'forecast-to-replenishment.html' in (site/'guides/index.html').read_text()
-    assert '2件のテーマガイド' in (site/'guides/shelf-decisions.html').read_text()
+    assert '3件のテーマガイド' in (site/'guides/shelf-decisions.html').read_text()
     expected=render_cards(load_cards(SOURCE))
     assert expected in text
     # Preserve the completed inventory Lab and every other paper plus the original guide source.

@@ -6,7 +6,7 @@ small{display:block;color:#385d57}.bar{display:inline-block;height:18px;backgrou
 <p>利益＝粗利合計−補充費−商品採用費。需要と費用は同じ固定1期間、幅と金額は教材用単位です。</p><div class="controls" id="controls"></div><p><button id="reset">初期値に戻す</button> <button id="download">現在の入力と結果を保存</button></p>
 <div id="summary" aria-live="polite"></div><div id="shelf" role="img" aria-label="カテゴリの割当幅と実使用幅"></div><p class="muted">濃い色＝実使用幅、斜線＝割当内の空き。全店容量の未割当分は棚帯の外です。</p>
 <h3>カテゴリの割当幅ごとの最大利益：幅を押して採用商品を調べる</h3><p>幅のボタンで、そのカテゴリの別の割当幅を確認できます。上の棚帯と全店の最大利益は変わりません。選んだ2幅の合計が全店容量を超える場合もあり、下の詳細をそのまま全店の配置案にはできません。</p><div id="values" class="cards"></div><div id="selection"></div>
-<h3>容量を先に決めた場合、代替を無視した場合</h3><div class="scroll"><table><thead><tr><th>方式</th><th>A:Bの割当</th><th>利益</th></tr></thead><tbody id="comparisons"></tbody></table></div><p>基礎粗利比例は、商品制約を満たせる容量の組合せから基礎需要×1個当たり粗利の合計108:98から求めた目標幅に近いものを選びます。代替無視はs=0で選び、選んだ商品を現在のsで再評価します。初期値で差が0でも、方式が常に同じになるとは限りません。</p>
+<h3>容量を先に決めた場合、代替を無視した場合</h3><div class="scroll"><table><thead><tr><th>方式</th><th>A:Bの割当</th><th>利益</th></tr></thead><tbody id="comparisons"></tbody></table></div><p>基礎粗利比例は、基礎需要×1個当たり粗利の合計108:98から目標幅を求め、商品制約を満たせる容量の組合せのうち、目標幅に近いものを選びます。代替無視はs=0で選び、選んだ商品を現在のsで再評価します。初期値で差が0でも、方式が常に同じになるとは限りません。</p>
 <details><summary>6商品の入力を確認する</summary><div class="scroll"><table><thead><tr><th>商品ID</th><th>ブランド</th><th>基礎需要q</th><th>1個当たり粗利p</th><th>幅w</th><th>1面の奥行き方向の個数d</th></tr></thead><tbody id="inputs"></tbody></table></div><p>SKUは商品を区別する単位。金額は教材単位、需要と費用は同じ固定1期間に対応します。</p></details>
 <noscript>JavaScriptが無効です。初期値の最適割当はA:B=3:2、利益150.780593。A1を1フェイス、A2とB1を2フェイス採用します。計算の再実行にはrun.pyを使用できます。</noscript>
 <script src="model.js"></script><script src="interactive.js"></script></html>

@@ -1,5 +1,5 @@
 {
-  "note": "固定seedの人工注文。論文38手法・RUF・Chronos-2の再現ではない。MAEを使用し論文MASEと区別。",
+  "note": "固定seedの人工注文。論文38手法・RUF・Chronos-2の再現ではない。MAEを使い、論文で使われたMASEと区別している。",
   "scope": {
     "normalization_roundtrip": "CONFIRMED",
     "mechanism": "PARTIAL",

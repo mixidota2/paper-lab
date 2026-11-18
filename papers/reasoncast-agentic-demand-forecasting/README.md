@@ -84,7 +84,7 @@ WMAPE = 100 × 絶対誤差の総和 / 実績合計。日ごとの予測と実�
 
 ## 再実行と保存
 
-`uv run run.py` は保存済みresults.jsonを再生成します（このディレクトリで実行）。画面では任意の数値を直接変更し、JSONを書き出せます。JSONのinputsを再読込するとoutputは再計算されます。`uv run run.py --input comparison.json` でも入力を再計算して標準出力へ返せます。
+このディレクトリで `uv run run.py` を実行すると、保存済みresults.jsonを再生成します。画面では任意の数値を直接変更し、JSONを書き出せます。JSONのinputsを再読込するとoutputは再計算されます。`uv run run.py --input comparison.json` でも入力を再計算して標準出力へ返せます。
 
 Python標準ライブラリと小さなブラウザ計算だけを使います。数式・台帳の局所検証はCONFIRMED、論文全体の機構はPARTIAL。著者コード・学習・原論文性能・本番適用はNOT TESTED。実ブラウザの画面・キー操作・export/importもNOT TESTEDで、別環境での保護付き確認を残しています。
 

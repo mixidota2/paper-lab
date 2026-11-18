@@ -10,7 +10,7 @@
 | Table V / §IV-D | Evidence / 中心移動図 | 学習・全38手法 |
 | 公式 MANIFEST.md | 本文のRUF境界 | RUF v2全実行は未実施 |
 
-公式コードの `src/scripts/10_experiments/run_raf_instancenorm.py` と `run_synthetic_instancenorm.py` が正規化追試の入口。`validate_38_complete.py` は38手法・欠落0・fallback0を確認する。公式README/Manifestを2026-09-22に取得した。
+正規化の追試には公式コードの `src/scripts/10_experiments/run_raf_instancenorm.py` と `run_synthetic_instancenorm.py` を使う。`validate_38_complete.py` は38手法・欠落0・fallback0を確認する。公式README/Manifestを2026-09-22に取得した。
 
 公式公開先: [https://github.com/sfcheng-research/icdm-2026-reproduction](https://github.com/sfcheng-research/icdm-2026-reproduction)。READMEを確認したが、全実験の再実行はしていない。
 

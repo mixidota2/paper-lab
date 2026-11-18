@@ -1,6 +1,6 @@
 ## 需要発生から業務指標までをつなぐ
 
-原論文の需要生成は販売店・車両・部品（Dealer → Truck → Part）の階層を持つ。1日ずつ進める。部品の故障確率は、生存時間に応じるハザードhを積分し、`P(故障 | 現在まで生存) = 1 − exp(−∫h(u)du)`で決める（式1、Figure 1）。Exponential、Weibull、Log-logistic、Gompertzを使い、季節と車両の使用条件を重ねる。故障した部品の年齢をゼロへ戻し、販売店・部品型ごとに日次需要を集計する。
+原論文では、販売店・車両・部品（Dealer → Truck → Part）の階層に沿って、1日ずつ需要を生成する。部品の故障確率は、生存時間に応じるハザードhを積分し、`P(故障 | 現在まで生存) = 1 − exp(−∫h(u)du)`で決める（式1、Figure 1）。Exponential、Weibull、Log-logistic、Gompertzを使い、季節と車両の使用条件を重ねる。故障した部品の年齢をゼロへ戻し、販売店・部品型ごとに日次需要を集計する。
 
 Figure 3では、この需要を予測モデルと在庫費用シミュレータへ渡す。予測は最初の730日で学習し、次の365日を評価する。XGBoost、Random Forest、SVR、ARIMA、Croston、SBA、TSBのハイパーパラメータはMAEで選ぶ。
 

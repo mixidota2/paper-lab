@@ -8,7 +8,7 @@ OR-Transformerは商品順に依存しないTransformerと、在庫動態を通�
 
 ## Problem — 問題設定
 
-複数商品に共通の発注固定費Kがある。注文を開いたら各商品へ数量を配分し、欠品分は未納需要（backlog）として翌期へ繰り越す。評価は相関のある合成Poisson需要、異なる納期と商品別費用を用いる。DingdongやJDの現場データでも、棚割りRCTでもない。
+複数商品に共通の発注固定費Kがある。発注を行う場合は各商品へ数量を配分し、欠品分は未納需要（backlog）として翌期へ繰り越す。評価は相関のある合成Poisson需要、異なる納期と商品別費用を用いる。DingdongやJDの現場データでも、棚割りRCTでもない。
 
 ## Core Idea — 著者の主張と解釈
 
@@ -46,7 +46,7 @@ Performance / Scaling / Production applicabilityはNOT TESTED。Transformerの�
 
 ## Implementation — 実装
 
-attention()はglobal tokenと商品tokenに同じ演算を適用する。cost()は2期の保有費用とbacklog費用、derivative()はそのQ微分。Kは1回だけ課金し、閉じた注文ではQが在庫へ影響しない。
+attention()はglobal tokenと商品tokenに同じ演算を適用する。cost()は2期の保有費用とbacklog費用、derivative()はそのQ微分。Kは1回だけ課金し、発注しない場合はQが在庫へ影響しない。
 
 ## Original Paper / Official Code Mapping — 原典との対応
 

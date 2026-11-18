@@ -19,7 +19,11 @@ def prepare(tmp_path, data=None):
 
 
 def test_reviewed_revision_and_previous_version_both_pass(tmp_path):
+    from shelf_guide_preservation import NOVEMBER, before_november
     target = prepare(tmp_path)
+    assert sha(target.read_bytes()) == NOVEMBER
+    verify_preserved_source(tmp_path, GUIDE, BEFORE, patch_bytes=PATCH, dcmp_patch_bytes=DCMP_PATCH, layout_patch_bytes=LAYOUT_PATCH)
+    target.write_bytes(before_november(target.read_bytes()))
     assert sha(target.read_bytes()) == WORDING
     verify_preserved_source(tmp_path, GUIDE, BEFORE, patch_bytes=PATCH, dcmp_patch_bytes=DCMP_PATCH, layout_patch_bytes=LAYOUT_PATCH)
     target.write_bytes(target.read_bytes().replace(WORDING_NEW.encode(), WORDING_OLD.encode()))
