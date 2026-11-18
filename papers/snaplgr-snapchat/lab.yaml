@@ -40,7 +40,7 @@ core_idea:
 sections:
   overview: SnapLGRはQwen3-0.6Bを生成retrievalへ使うSnapchatの本番事例。既存の13M T5型GRに対し、7日間のオンラインA/BでView Time +0.37%。オフラインSID
     Recall@32の2.40倍という大きな差と、利用者体験の小さな相対改善を分けて読む。
-  problem: 事前学習LLMは社内のSID語彙を知らない。SIDの衝突、語彙の意味付け、短い出力を広いbeamで生成する配信費用を同時に扱う必要がある。retrievalの改善だけでは、後段rankerを通過して最終体験に効く量は分からない。
+  problem: 事前学習LLMは社内のSID語彙を知らない。SIDの衝突、語彙の意味付け、短い出力を広いbeamで生成する配信費用を同時に扱う必要がある。retrievalの改善だけでは、後段rankerを通した後に利用者体験がどれだけ改善するかは分からない。
   method: method.md
   why_it_might_work: decoder-onlyの容量を増やすと履歴からSIDへ写す関数が豊かになる。PPRの協調信号は、見た目が近いだけでなく一緒に見られる動画をコード空間へ近付ける。CPTは初期の意味付けに役立つが、SFT後は行動信号で空間が変わる。語彙の意味が最後まで保存されるという単純な説明は、原典のRSA結果と合わない。
   evidence: '一次資料の著者報告。
@@ -63,7 +63,7 @@ sections:
   what_we_verified: Mechanism PARTIAL。SID-levelとitem-levelの評価の違い、materialization規則が結果に与える影響を確認した。valueを正解に一致させた人工条件での勝利を、SnapLGRの品質の証拠にしていない。
   what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。QwenのCPT/SFT、PPR/RQ-VAE、TensorRT-LLM、分散worker、GPU
     speedup、実A/Bは未再現。toyのmax-valueは論文のvalue-weighted展開の簡略化で、本番の重みや候補budgetを再現していない。
-  implementation: '`materialize()`はSIDから動画集合を引き、二つの選択規則を比較する。`compute()`は同じ生成SIDを固定し、正解との相関だけを反転する。LLMの学習をしていない点を実験タイトルにも反映した。
+  implementation: '`materialize()`はSIDに対応する動画集合を取得し、二つの選択規則を比較する。`compute()`は同じ生成SIDを固定し、正解との相関だけを反転する。LLMの学習をしていない点を実験タイトルにも反映した。
 
 
     Python標準ライブラリだけで実行する。乱数を使う実験はseedを固定し、結果をコードと同じ場所に保存する。'

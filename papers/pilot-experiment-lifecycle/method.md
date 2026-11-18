@@ -4,7 +4,7 @@ Experiment Managerはtaskの受付、観察、異常対応、終了後の振り�
 
 task仕様Tは目的、指標、予算、観察期間、登録済みfeatureとstrategy、権限を含む。incomplete → awaiting → ready → frozenと固め、runtimeのplaybookも固定する。安全・統計policy > task仕様 > playbook > approvedな方法論 > 暫定hint > agentの推論という優先順を守る。学習した記憶が上位規則を書き換えることはない（§3.1）。
 
-実行可能なcommandを列挙するManager Guard、状態を唯一書き込むState Committer、変更不能なcertificateを出すStatistics Engineが、LLMの選択を囲む。Contract Builderは観測前に判断基準を固定し、Action EnumeratorとCandidate Validatorは探索可能なactionと提案の適合性を管理する（表2）。判断と強制を同じLLMへ任せないのが設計の中心である。
+LLMが選べる範囲は、実行可能なcommandを列挙するManager Guard、状態を唯一書き込むState Committer、変更不能なcertificateを出すStatistics Engineが制限する。Contract Builderは観測前に判断基準を固定し、Action EnumeratorとCandidate Validatorは探索可能なactionと提案の適合性を管理する（表2）。判断と強制を同じLLMへ任せないのが設計の中心である。
 
 ### 観察期間を、都合のよいliftで切らない
 
@@ -14,7 +14,7 @@ roundはcontinue、reject、promoteで処理する。rejectならChampionは変�
 
 ### PolicyTree：同じ8次元の設定を、誰に適用するかも探す
 
-各leafにstrategy bundleを持つ決定木で、施策を適用する前に定まる登録済みの特徴量だけを使ってユーザーを分岐する。施策によって変わった行動で事後的に群を分けない。全ユーザーは必ず1つのleafへ着地し、missing値の扱いも事前に定義する。木の深さ、leaf数、最小母集団比率、利用feature数、round数とtraffic予算には上限がある（§4.1）。
+各leafにstrategy bundleを持つ決定木で、施策を適用する前に定まる登録済みの特徴量だけを使ってユーザーを分岐する。施策によって変わった行動で事後的に群を分けない。全ユーザーは必ず1つのleafに割り当てられ、missing値の扱いも事前に定義する。木の深さ、leaf数、最小母集団比率、利用feature数、round数とtraffic予算には上限がある（§4.1）。
 
 固定baseline T₀は実験を通して動かさない。Champion T*は現在の確認済み基準、Challengerはそこへatomic actionを1つだけ加えた木。actionはsplit、prune、hashExpand、collapse、updateStrategyの5種類。Plannerは許可集合A(T*)の外の操作を作れない。Δtotalは固定baselineとの差、Δstepは現在のChampionとの差なので、基準の混同を避ける。
 

@@ -13,7 +13,7 @@ urls:
 verdict: Worth Reading
 status: draft
 question: 欠けた証拠を回収して、禁止側では止まり、許可側では完遂できるか
-summary: 返された情報が全て真でも、行動を許可する事実が欠けていることがある。EpiSEMは観測と世界状態を分け、同じ依頼の禁止・許可双子で回収後の行動を測る。自作の2 taskで、常に拒否する安全さと、証拠を回収して適切に進める有用さを区別する。
+summary: 返された情報が全て真でも、行動を許可する事実が欠けていることがある。EpiSEMは観測と世界状態を分け、同じ依頼が禁止される世界と許可される世界の対で、回収後の行動を測る。自作の2 taskで、常に拒否する安全さと、証拠を回収して適切に進める有用さを区別する。
 related_threads: [agent-evaluation-and-evidence-recovery]
 verification:
   mechanism: PARTIAL
@@ -37,7 +37,7 @@ sections:
   results: '自作toyでは、常に拒否する方策はUCR 0・SBM 100%でもFull SWS/PUR 0。回収後に判断する方策は、REで両世界の厳密回収を達成する。単一critical欠落時だけ回収すると、PURは(2/3+3/7)/2=54.76%。maskを一括した5/10=50%とは異なる。これらは著者モデルの成績ではない。'
   what_we_verified: 'CONFIRMED：自作2 taskの全480条件、通常readで欠落が戻らないこと、auditが全欠落を返すこと、commit後回収が未実行であること、UCRのtask分母、SBMの全列挙条件、PURのANDと等重みを検査した。PARTIAL：原典の評価設計の最小表現。'
   what_we_did_not_verify: '実LLM・著者300 taskの再現、モデル順位の安定性、実APIの安全保証、信頼区間、本番再現はNOT TESTED。著者コード公開リンクはNOT OBSERVED。temperature 0・条件ごと1 rollout、モデルごとのadaptive coverage、完全auditという制約がある。'
-  implementation: 'run.pyがPython参照結果を保存し、model.jsが同じ自作規則をブラウザーで計算する。interactive.jsは両世界の経過と全task集計を表示する。READMEにuvでの再実行手順、mappingに原式と簡略化の対応を示す。'
+  implementation: 'run.pyがPython参照結果を保存し、model.jsが同じ自作規則をブラウザーで計算する。interactive.jsは両世界の経過と全taskの集計を表示する。READMEにuvでの再実行手順、mappingに原式と簡略化の対応を示す。'
   mapping: mapping.md
 figures: []
 interactives: []

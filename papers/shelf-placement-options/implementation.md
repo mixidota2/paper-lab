@@ -1,4 +1,4 @@
-run.pyはPython標準ライブラリ。[model.js](../downloads/shelf-placement-options/model.js)と[interactive.js](../downloads/shelf-placement-options/interactive.js)を同じ場所に保存して画面を動かす。
+run.pyはPython標準ライブラリだけで動く。[model.js](../downloads/shelf-placement-options/model.js)と[interactive.js](../downloads/shelf-placement-options/interactive.js)を同じ場所に保存して画面を動かす。
 
 ### 補足 原典の容量近似式には単位の不整合がある
 

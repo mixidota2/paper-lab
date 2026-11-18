@@ -80,7 +80,8 @@ def test_readiness_revision_reverses_to_exact_published_sources():
         'papers/assortment-replenishment-hard-constraints/interactive.js',
     }
     for path, row in manifest['files'].items():
-        content = (ROOT / path).read_text()
+        from prose_preservation import before_yomiyasu_replenishment
+        content = before_yomiyasu_replenishment(ROOT, path, (ROOT / path).read_text())
         assert hashlib.sha256(content.encode()).hexdigest() == row['after_sha256']
         for before, after in reversed(row['replacements']):
             assert content.count(after) == 1

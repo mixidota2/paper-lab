@@ -37,7 +37,7 @@ source_review:
   url: https://arxiv.org/pdf/2605.00369v4
 core_idea:
   author_claim: GRPOで学習したGLM-4.7-Flashが実行可能な在庫方策を生成する。参照方策に対する改善量の信頼下限（LCB）で候補の採用条件を確認し、通過した候補の信頼上限（UCB）で配備する方策を選ぶ。将来性能の保証には有効な信頼半径と分布差予算が必要。
-  research_bot_interpretation: 方策コードを窓ごとに進化させる研究セル。SabreAgentの「設計時に季節事前分布を作り、凍結ORを実行」とは変更対象が異なる。InventoryBenchとの直接比較ではない。
+  research_bot_interpretation: 方策コードを窓ごとに進化させる研究に分類する。SabreAgentの「設計時に季節事前分布を作り、凍結ORを実行」とは変更対象が異なる。InventoryBenchとの直接比較ではない。
 sections:
   overview: 'InvEvolveは、LLMが読める発注コードを生成し、同じ需要履歴で比較してから配備する仕組みである。著者報告では合成OODの25/30件、Dunnhumby
     Complete Journey（CJ）の20/30件で最良の古典方策を上回る。CJの費用削減9.2%は**勝った20件に限る平均**で、全30件の平均ではない。

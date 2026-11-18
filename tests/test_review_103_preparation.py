@@ -66,10 +66,13 @@ def test_run_gate_refuses_non_macos_without_calling_runtime(site,tmp_path,monkey
     assert (tmp_path/'not-macos/stopped.json').exists()
 
 
-def test_existing_protected_launcher_is_unchanged():
+def test_existing_protections_allow_only_reviewed_renderer_identity_update():
     current=(ROOT/'tests/macos_chrome_cdp.py').read_bytes()
     baseline=subprocess.check_output(['git','show','92b23c658f26ea3d92ea431cd1b576967dd177ce:tests/macos_chrome_cdp.py'],cwd=ROOT)
-    assert current==baseline
+    old = b"        assert 'Google Chrome Helper (Renderer)' in identity, identity"
+    new = b"        # Chromium supports both signed renderer helpers (crrev.com/c/7970768).\n        executable = identity.split(maxsplit=1)[1]\n        prefix = str(APP / 'Contents/Frameworks/Google Chrome Framework.framework/Versions')\n        assert re.fullmatch(\n            re.escape(prefix) + r'/[0-9]+(?:\\.[0-9]+){3}/Helpers/'\n            r'(Google Chrome Helper \\((?:Aperitif )?Renderer\\))'\n            r'\\.app/Contents/MacOS/\\1', executable), identity"
+    assert baseline.count(old) == 1 and current.count(new) == 1
+    assert current == baseline.replace(old, new)
     assert 'chromium.launch(' not in (ROOT/'tests/review_103.py').read_text()
 
 
@@ -168,14 +171,14 @@ def test_guide_navigation_counts_and_canonical_lab_links(site):
     assert 'shelf-decisions.html' in listing.links
     guide=(site/'guides/shelf-decisions.html').read_text()
     links=m.Document(guide).links
-    assert '114件のLab ／ 2件のテーマガイド' in guide
+    assert '114件のLab ／ 3件のテーマガイド' in guide
     assert 'オンライン公開2023年' in guide and 'オンライン公開2025年' in guide
     assert '追加日は2026年10月16日' in guide
     for slug in m.SHELF:
         assert f'../papers/{slug}.html' in links
         assert '../guides/shelf-decisions.html' in m.Document((site/'papers'/f'{slug}.html').read_text()).links
     p=m.preflight(site)
-    assert p['theme_guides']==2 and p['guide_pages']==3
+    assert p['theme_guides']==3 and p['guide_pages']==4
     assert {'index.html','guides/index.html','guides/shelf-decisions.html','guides/forecast-to-replenishment.html'} <= set(p['local_paths'])
 
 
@@ -281,3 +284,37 @@ def test_no_external_budget_starts_no_worker(tmp_path,monkeypatch):
     monkeypatch.setattr(external.subprocess,'Popen',forbidden)
     rows,summary=external.bounded_check(['https://one.invalid'],tmp_path,0)
     assert summary['worker_started'] is False and rows[0]['result']=='NOT CONFIRMED'
+
+
+@pytest.mark.parametrize('helper,prefix,sandbox,accepted', [
+    ('Google Chrome Helper (Renderer)', '/Applications', 1, True),
+    ('Google Chrome Helper (Aperitif Renderer)', '/Applications', 1, True),
+    ('Google Chrome Helper (Aperitif Renderer)', '/Applications', 0, False),
+    ('Google Chrome Helper (Aperitif Renderer)', '/Applications', -1, False),
+    ('Google Chrome Helper (GPU)', '/Applications', 1, False),
+    ('Google Chrome Helper (Aperitif Renderer)', '/tmp', 1, False),
+    ('Google Chrome Helper (Renderer) malicious', '/Applications', 1, False),
+])
+def test_renderer_identity_and_seatbelt_remain_required(monkeypatch, helper, prefix, sandbox, accepted):
+    import macos_chrome_cdp as chrome
+    from types import SimpleNamespace
+    executable = (prefix + '/Google Chrome.app/Contents/Frameworks/'
+                  'Google Chrome Framework.framework/Versions/158.0.8127.37/Helpers/'
+                  + helper + '.app/Contents/MacOS/' + helper)
+    monkeypatch.setattr(chrome, 'command', lambda args: SimpleNamespace(stdout='501 ' + executable))
+    monkeypatch.setattr(chrome.os, 'getuid', lambda: 501)
+    monkeypatch.setattr(chrome.os, 'kill', lambda *args: None)
+    calls = []
+    class Check:
+        def __call__(self, pid, operation, flags):
+            calls.append((pid, operation, flags))
+            return sandbox
+    monkeypatch.setattr(chrome.ctypes, 'CDLL', lambda *args, **kw: SimpleNamespace(sandbox_check=Check()))
+    session = SimpleNamespace(send=lambda method: {'processInfo': [{'type': 'renderer', 'id': 123}]}, detach=lambda: None)
+    browser = SimpleNamespace(new_browser_cdp_session=lambda: session)
+    if accepted:
+        chrome.verify_seatbelt(browser)
+        assert calls == [(123, None, 0)]
+    else:
+        with pytest.raises(AssertionError):
+            chrome.verify_seatbelt(browser)

@@ -12,7 +12,7 @@ def widget(results,source):
     replacements=dict(ROWS=rows,COMPARISON=comparison,BARS=bars,
         ASUMMARY='r=(3, 2, 1)：最適cut 2、採用 k=2。g₀=1、半額上界=3/2。',
         SUMMARY=f'選好v=(1, 1, 1)、収益倍率=1、同じ選好の最適期待収益={c["oracle"]}。Cの総観測 2／判断に使用 2／判断に不使用 0。有効経路 6。',
-        OBSERVATION='例示経路（平均ではありません）：B 購入 0/2 → [2]。C 観測ID (0) と (0)、平均収益 0 / 0 → [3]。閾値=1。奇数の余りは[1]に提示しますが判断には使いません。',
+        OBSERVATION='例示経路（平均ではありません）：B 購入 0/2 → [2]。C 観測ID (0) と (0)、平均収益 0 / 0 → [3]。閾値=1。総観測数が奇数のときは、余りの1件には[1]を提示しますが、その観測は判断には使いません。',
         DATA=json.dumps(results,ensure_ascii=False,separators=(',',':')).replace('<','\\u003c'),JS=(source/'interactive.js').read_text())
     html=(source/'interactive.html').read_text()
     for key,value in replacements.items():html=html.replace('__'+key+'__',value)

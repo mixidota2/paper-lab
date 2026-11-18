@@ -12,4 +12,4 @@ Eq.1の`dᵢ=π(hᵢ,sⱼ)`は、harness情報hと最新の関連engine状態s�
 
 MooncakeのSession-Awareは別の保持方策で、完了済み会話から推定した継続確率pと処理していない時間（idle）を用いて`r=p exp(−idle/400)`で保持優先度を決める。意図を保持命令とは扱わない。
 
-役割別選択は`{vLLM, OmniKV} × {vLLM, H2O, SnapKV}`の6構成を開発時に測る。品質・安定性の条件を通した後、全体が完了するまでの時間（makespan）が小さい組を凍結する。BrowseComp-Plusは(vLLM,H2O)、DeepResearchBenchは(OmniKV,H2O)。正式評価の結果から後付けで選ばない。
+役割別選択は`{vLLM, OmniKV} × {vLLM, H2O, SnapKV}`の6構成を開発時に測る。品質・安定性の条件を満たすことを確認した後、全体が完了するまでの時間（makespan）が小さい組を固定する。BrowseComp-Plusは(vLLM,H2O)、DeepResearchBenchは(OmniKV,H2O)。正式評価の結果から後付けで選ばない。

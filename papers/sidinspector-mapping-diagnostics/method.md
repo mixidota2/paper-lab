@@ -1,6 +1,6 @@
 ### adapterは学習recipeではない
 
-必須はsid_assignments(item_id, sid_0, …, sid_L)。method/datasetラベルとprovenanceを添え、metadata、interaction、refresh pair、generator traceを同じitem keyへjoinする。key重複、missing code、深さ不一致、item countの不一致を先に拒否する。検査前の壊れたtableを診断値へ平均して隠さない。
+必須はsid_assignments(item_id, sid_0, …, sid_L)。method/datasetラベルとprovenanceを添え、metadata、interaction、refresh pair、generator traceを同じitem keyへjoinする。key重複、missing code、深さ不一致、item countの不一致を先に拒否する。検査前の不備があるtableをそのまま平均して診断値にまとめ、不備を見えなくしない。
 
 ### D1–D5が測る対象
 
@@ -14,4 +14,4 @@ D4はpopularityでhead/mid/tailを分け、unique SID配分やprefix構造を点
 
 D6はpaired refresh mappingのchurnを計算する実装済み拡張。D7はgenerator traceが渡されたときのinterface hookで、本文の実証対象ではない。[VARG](varg-tmall-value-generative-retrieval.html)のように日次住所固定を採る場合、D6で旧item churnと新itemのalias増加を別に追うという接続が考えられる。これはLab側の運用解釈である。
 
-[SIDScope](sidscope-diagnostics.html)もmapping・alias・prefix・handoffを扱うため、診断名の数を新規性と数えない。SIDInspectorを選ぶ具体的な理由は、手元のexportを小さい契約へ変換してD1–D5へ通せるかで判断したい。
+[SIDScope](sidscope-diagnostics.html)もmapping・alias・prefix・handoffを扱うため、診断名の数を新規性と数えない。SIDInspectorを選ぶ具体的な理由は、手元のexportを必要な入力形式へ変換し、D1–D5を実行できるかで判断したい。

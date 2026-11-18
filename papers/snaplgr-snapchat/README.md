@@ -17,7 +17,7 @@ SnapLGRはQwen3-0.6Bを生成retrievalへ使うSnapchatの本番事例。既存�
 
 ## Problem
 
-事前学習LLMは社内のSID語彙を知らない。SIDの衝突、語彙の意味付け、短い出力を広いbeamで生成する配信費用を同時に扱う必要がある。retrievalの改善だけでは、後段rankerを通過して最終体験に効く量は分からない。
+事前学習LLMは社内のSID語彙を知らない。SIDの衝突、語彙の意味付け、短い出力を広いbeamで生成する配信費用を同時に扱う必要がある。retrievalの改善だけでは、後段rankerを通した後に利用者体験がどれだけ改善するかは分からない。
 
 ## Core Idea
 
@@ -63,7 +63,7 @@ Performance / Scaling / Production applicabilityはNOT TESTED。QwenのCPT/SFT�
 
 ## Implementation
 
-`materialize()`はSIDから動画集合を引き、二つの選択規則を比較する。`compute()`は同じ生成SIDを固定し、正解との相関だけを反転する。LLMの学習をしていない点を実験タイトルにも反映した。
+`materialize()`はSIDに対応する動画集合を取得し、二つの選択規則を比較する。`compute()`は同じ生成SIDを固定し、正解との相関だけを反転する。LLMの学習をしていない点を実験タイトルにも反映した。
 
 Python標準ライブラリだけで実行する。乱数を使う実験はseedを固定し、結果をコードと同じ場所に保存する。
 

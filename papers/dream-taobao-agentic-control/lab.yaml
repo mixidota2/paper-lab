@@ -84,7 +84,7 @@ sections:
   results: 下の数値はLabの人工計算。著者報告のオンライン指標とは分けて読む。
   what_we_verified: '**Mechanism: PARTIAL**。人工条件の計算と境界条件を確認した。results.jsonのCONFIRMEDは小さな計算命題にだけ適用する。原論文の学習済みモデルや産業環境を再現した意味ではない。'
   what_we_did_not_verify: 'GRU・Intent Agent・Qwen3の学習、LLMのstrategy品質、TTL最適化、memory更新、実service replay、端末費用、online
-    liftは検証していない。toyの失敗閉鎖はschemaの小部分だけであり、本番の安全性を保証しない。
+    liftは検証していない。toyで失敗時にdefaultへ戻す処理はschemaの小部分だけを対象としており、本番の安全性を保証しない。
 
 
     **Performance / Scaling / Production applicability: NOT TESTED**。'

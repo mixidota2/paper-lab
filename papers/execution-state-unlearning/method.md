@@ -1,6 +1,6 @@
 ### 汚染した後半のcacheをそのまま再利用しない
 
-Transformerのkey/value cacheは、過去のtokenを処理した中間表現を保持する。対象zを読んだ後のtokenはzへ注意を向けて計算された可能性がある。対象の文字位置だけを抜いても、その後のcacheが対象非依存になるとは限らない。著者の保守的な依存モデルでは、対象が初めて入ったτ以降の派生状態を一括して再構成の対象にする。[一次資料：Lemma 2](https://arxiv.org/html/2609.04875)
+Transformerのkey/value cacheは、過去のtokenを処理した中間表現を保持する。対象zを読んだ後のtokenはzへ注意を向けて計算された可能性がある。対象の文字位置だけを抜いても、その後のcacheが対象に依存しなくなるとは限らない。著者の保守的な依存モデルでは、対象が初めて入ったτ以降の派生状態を一括して再構成の対象にする。[一次資料：Lemma 2](https://arxiv.org/html/2609.04875)
 
 Provenance-Guided Selective Replayのprovenanceは「どの情報から何を作ったか」の記録である。観測、prompt、モデルturn、要約、tool planの親子関係をたどり、対象の最初の流入点と影響先を探す。任意の部分だけ安全だと推測して残す手法ではない。
 
@@ -24,4 +24,4 @@ Leak@probesは、同じ忘却後状態に複数の問いを当て、どれかで
 
 ### 再計算回数とtoken節約は別の主張
 
-T−τ+1は逐次状態遷移の回数であり、各遷移で何tokenをdecodeするかは数えない。著者は後半の独立なturnを識別する強いoracleを使ってprefillへ置き換え、prefix cacheのみより追加の節約を得る。保守的な依存記録しかない実装では、その節約まで見込まずに費用を積もりたい。[一次資料：Corollary 1・The T−τ+1 law](https://arxiv.org/html/2609.04875)
+T−τ+1は逐次状態遷移の回数であり、各遷移で何tokenをdecodeするかは数えない。著者は後半の独立なturnを識別する強いoracleを使ってprefillへ置き換え、prefix cacheのみより追加の節約を得る。保守的な依存記録しかない実装では、その節約まで見込まずに費用を見積もりたい。[一次資料：Corollary 1・The T−τ+1 law](https://arxiv.org/html/2609.04875)

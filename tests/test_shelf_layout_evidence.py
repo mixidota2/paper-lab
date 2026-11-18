@@ -31,7 +31,8 @@ def test_evidence_units_uncertainty_scope_and_sources():
 
 
 def test_exact_prior_bytes_and_all_existing_anchors_preserved():
-    layout_text = TEXT.replace(WORDING_NEW, WORDING_OLD)
+    from shelf_guide_preservation import before_november
+    layout_text = before_november(TEXT.encode()).decode().replace(WORDING_NEW, WORDING_OLD)
     assert sha(layout_text.encode()) == LAYOUT
     previous = reverse_exact(layout_text.encode(), PATCH, LAYOUT_PATCH_SHA, AFTER).decode()
     old_anchors = re.findall(r'id="([^"]+)"', previous)

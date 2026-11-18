@@ -2,7 +2,7 @@
 
 patchは32時点。t0-alphaはhidden 512、8 head、時間attention 16層と変数attention 8層を持ち、RMSNorm・SwiGLU・QK normを使う。target yと過去変数xの時間方向はcausal、既知未来zは1:T+Hを双方向に読む。変数方向ではy/xがzを読める一方、zはy/xを読まない。逆参照を許すと、zの時間attentionを経由して未来targetが過去へ戻る。
 
-### 正規化にもcutoffを守らせる
+### cutoffに沿った正規化
 
 y/xは時点ごとのcausal mean/stdで標準化してarcsinhを取る。未来targetの教師はcutoff T時点の統計で固定する。zだけは既知なので全1:T+Hから統計を取れる。欠測はmaskし、統計とlossから外す。static covariateやtext metadataを直接読む機能は本報告の対象外。
 

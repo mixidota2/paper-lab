@@ -1,6 +1,6 @@
 <section id="scv-lab" aria-label="系列と時間の分割を動かす自作実験">
 <style>#scv-lab{max-width:100%;overflow-wrap:anywhere}#scv-lab .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:.7rem}#scv-lab label{display:block}#scv-lab input,#scv-lab select,#scv-lab button,#scv-lab textarea{font:inherit;max-width:100%}#scv-lab textarea{box-sizing:border-box;width:100%}#scv-lab pre{white-space:pre-wrap}#scv-lab .scroll{overflow-x:auto;max-width:100%}#scv-lab svg{width:100%;min-width:680px;height:auto}#scv-lab table{border-collapse:collapse}#scv-lab td,#scv-lab th{padding:.3rem;border:1px solid #aaa}.scv-key{display:inline-block;padding:.3rem;margin:.2rem}</style>
-<p>これは原著の10ニューラルモデルを動かすものではありません。A〜Jの10本の合成系列を使い、選択と最終評価の境界を確認します。p=8、h=4、最終testは全系列のt93〜100です。</p>
+<p>これは原著の10種類のニューラルモデルを動かすものではありません。A〜Jの10本の合成系列を使い、選択と最終評価の境界を確認します。p=8、h=4、最終testは全系列のt93〜100です。</p>
 <div class="controls">
 <label>外側の比較対象 <select id="scv-scheme" disabled><option value="series">series：未学習F〜Gで選択</option><option value="time">time：学習済みA〜Eの未来で選択</option></select></label>
 <label>図の段階 <select id="scv-stage" disabled><option value="inner">内側ハイパラ選択</option><option value="outer">外側モデル選択</option><option value="final" selected>最終fitとrolling予測</option></select></label>

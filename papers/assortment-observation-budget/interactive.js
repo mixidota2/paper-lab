@@ -30,7 +30,7 @@ function view(data,state){
  return {rows,comparison,bars,
  aSummary:`r=(${a.r.join(', ')})：最適cut ${a.optimal.join(', ')}、採用 k=${a.chosen}。g₀=${a.g0}、半額上界=${a.bound}。`,
  summary:`選好v=(${c.v.join(', ')})、収益倍率=${c.scale}、同じ選好の最適期待収益=${c.oracle}。Cの総観測 ${m}／判断に使用 ${c.effective}／判断に不使用 ${c.unused}。有効経路 ${c.paths}。`,
- observation:`例示経路（平均ではありません）：B 購入 ${d.x}/${m} → [${d.b}]。C 観測ID (${d.first.join(',')}) と (${d.second.join(',')})、平均収益 ${d.means.map(x=>x*scale).join(' / ')} → [${d.c}]。閾値=${scale}。奇数の余りは[1]に提示しますが判断には使いません。`};
+ observation:`例示経路（平均ではありません）：B 購入 ${d.x}/${m} → [${d.b}]。C 観測ID (${d.first.join(',')}) と (${d.second.join(',')})、平均収益 ${d.means.map(x=>x*scale).join(' / ')} → [${d.c}]。閾値=${scale}。総観測数が奇数のときは、余りの1件には[1]を提示しますが、その観測は判断には使いません。`};
 }
 function mount(doc){
  const get=k=>doc.getElementById('aob-'+k),data=JSON.parse(get('data').textContent),keys=Object.keys(defaults());

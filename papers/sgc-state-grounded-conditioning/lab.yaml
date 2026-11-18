@@ -136,7 +136,7 @@ teaching_figures:
     explanation: Eq. 1。回答の完結と、現在の状態に沿うことを分ける。
   - name: 2. 状態を制御変数へ変える
     formula: c₁=W₁(x,sᵢ꜀); c₂=W₂(x,sᶠˢ,c₁); c₃=W₃(x,sˢʰ,c₁)
-    explanation: Eq. 2 / Fig. 1。c1の依存を消して3つの独立処理と読まない。
+    explanation: Eq. 2 / Fig. 1。c1をW2とW3へ渡す依存関係を保ち、3つを独立した処理と解釈しない。
   - name: 3. 段落を選んでから書く
     formula: Conflicts = diff(QuerySlots, σ(sᶠˢ)); R ⊆ P ⊆ A
     explanation: Eq. 4 / Table 7。Aは利用可能、Rは必須、Pは選択した段落。同じ制約への肯定と否定を同時に選ばない。

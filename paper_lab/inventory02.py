@@ -110,7 +110,7 @@ def radfl(r):
             a, b = c['q']; light = 35 + 55*(c['objective']-lo)/(hi-lo)
             body += f'<rect x="{75+a*28}" y="{320-b*26}" width="23" height="21" fill="hsl(174 48% {light:.1f}%)"><title>{c["q"]}: {c["objective"]:.3f}</title></rect>'
         a, b = case['best']['q']
-        body += f'<rect x="{73+a*28}" y="{318-b*26}" width="27" height="25" fill="none" stroke="#bc482d" stroke-width="3"/><text x="53" y="340">0</text><text x="39" y="70">10</text><text x="348" y="373">10</text><text x="200" y="407">チャネルAへの配分</text><text x="220" y="90">濃いほど目的が小さい</text><text x="235" y="120">A+B ≤ 10</text>'
+        body += f'<rect x="{73+a*28}" y="{318-b*26}" width="27" height="25" fill="none" stroke="#bc482d" stroke-width="3"/><text x="53" y="340">0</text><text x="39" y="70">10</text><text x="348" y="373">10</text><text x="200" y="407">チャネルAへの配分</text><text x="220" y="90">濃いほど目的値が小さい</text><text x="235" y="120">A+B ≤ 10</text>'
         best = case['best']
         frames.append(svg(body, f'容量10、リスク重み{case["weight"]}、最適配分{best["q"]}', 425)+f'<p><strong>配分 {best["q"]}、平均費用 {best["mean"]:.3f}、CVaR₀.₈ {best["tail"]:.3f}</strong></p><p>赤枠は全探索の最小点。目的値は平均費用と高費用側のリスクを合わせた値。w={case["weight"]:.2f}、目的値 {best["objective"]:.3f}。色は各画面の最小〜最大で正規化し、画面間の色の濃さは比較しない。</p>')
         options.append(f'w={case["weight"]:.2f}')

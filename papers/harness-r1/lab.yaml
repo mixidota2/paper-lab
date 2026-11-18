@@ -48,7 +48,7 @@ sections:
   problem: '入力が少し違うだけで止まる。たとえばLLMが正しい商品を選んでいても、toolが受け付けない引数形式を送り、戻ってきたエラーも読めなければ、同じ失敗を繰り返す。固定の自己反省promptを追加しても安定して改善するとは限らない。
 
 
-    そこでHarness-R1は、失敗記録を読む別モデルに、どこへ実行可能な修正を入れるかを学習させる。修正器を育てる研究だ。'
+    そこでHarness-R1は、失敗記録を読む別モデルに、どこへ実行可能な修正を入れるかを学習させる。修正を提案するモデルを学習させる研究だ。'
   method: method.md
   why_it_might_work: '行動前のvalidationは、モデルが誤る引数形式を環境へ渡す前に直す。feedback後には回復を試みる。この二つの処理が協調すれば、誤った操作の繰り返しを避けながら、次の判断に使う観測も読みやすい形へ戻せる。
 
@@ -108,7 +108,7 @@ teaching_figures:
   steps:
   - name: 同じ全batchの差
     formula: Δ_B(P) = meanᵢ∈B [Rᵢᴾ − Rᵢ⁰]
-    explanation: 失敗した課題だけでなく、同じbatchの全課題で修正前後の報酬差を平均する。もともと成功していた課題を壊したpatchは減点される。
+    explanation: 失敗した課題だけでなく、同じbatchの全課題で修正前後の報酬差を平均する。もともと成功していた課題を失敗させたpatchは減点される。
   - name: engineerの群内比較
     formula: A_k = (r_k − μ_B) / σ_B ; K=8
     explanation: 同じpacketから作ったpatch同士を比較し、engineerだけを更新する。

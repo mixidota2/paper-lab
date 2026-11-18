@@ -34,7 +34,8 @@ def test_export_revision_preserves_version_metadata_after_readiness_change():
     import json
     root = Path(__file__).resolve().parents[1]
     path = 'papers/assortment-replenishment-hard-constraints/interactive.js'
-    data = (root / path).read_text()
+    from prose_preservation import before_yomiyasu_replenishment
+    data = before_yomiyasu_replenishment(root, path, (root / path).read_text())
     replacements = [
         ('let originals,data,result;', 'let originals,data,result,modelVersion;'),
         ('JSON.stringify({synthetic:true,selected_mode:',

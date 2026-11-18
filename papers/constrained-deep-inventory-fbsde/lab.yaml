@@ -84,7 +84,7 @@ sections:
   mapping: mapping.md
 core_idea:
   author_claim: '**著者の主張**：HJB方程式を前進後退確率微分方程式（FBSDE）で表し、価値と価値勾配をニューラルネットで学ぶ。各時点の発注は、4本の集計制約と商品ごとの制約を持つ二次計画（QP）で求める。輸送中在庫の制約は相対次数1、手元在庫は相対次数2となる。'
-  research_bot_interpretation: '**Labの解釈**：学習された費用勾配と、発注から到着までの遅れを考慮した制約を、同じ最適化問題へ入れる点が読む価値。安全という語だけで採用を判断せず、初期状態、予算切替時の条件、緩和変数、観測された違反を一緒に確認したい。'
+  research_bot_interpretation: '**Labの解釈**：学習された費用勾配と、発注から到着までの遅れを考慮した制約を、同じ最適化問題へ入れる点に読む価値がある。安全という語だけで採用を判断せず、初期状態、予算切替時の条件、緩和変数、観測された違反を一緒に確認したい。'
 source_review:
   primary: arXiv:2609.11817v1 supplied PDF
   reviewed: Sections II–V, Equations 1–21, Figures 1–3, Tables I–IV

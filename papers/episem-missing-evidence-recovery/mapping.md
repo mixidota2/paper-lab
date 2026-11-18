@@ -2,7 +2,7 @@
 
 | 原典 | Lab | 一致させた条件と省略 |
 |---|---|---|
-| §3.1、Fig 1 | run.py の TASKS / pair、model.js の tasks / pair | 同一request・schemaの禁止/許可双子。2種類の自作規則に簡略化。著者の300対ではない |
+| §3.1、Fig 1 | run.py の TASKS / pair、model.js の tasks / pair | request・schemaが同じで、実行が禁止される世界と許可される世界の対。2種類の自作規則に簡略化。著者の300対ではない |
 | §3.2 | rollout の hidden / visible / read_again | 全ての通常観測で欠落を維持。criticalとirrelevantを別指定。実ツールの複雑な露出経路は省略 |
 | §3.3、Appendix E | audit / audit_not_executed | REの有効auditだけが全欠落を正しい値で返す。commit後は実行不可。toyでは最終停止も終端にする |
 | §3.4、式(1)、Appendix B | boundary / metrics | baseline失敗は0、最小欠落数、全列挙後だけc+1。toyの集計は全mask固定coverage。著者のhash探索順序は再現しない |

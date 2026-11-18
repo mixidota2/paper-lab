@@ -20,7 +20,7 @@ SIM = r'''
 <div class="flow"><div><b>容量計画 G → λ</b><p>容量の調整役が共通コストを通知</p></div><div><b>π(X,λ) → 注文 a → 入荷 J</b><p>納期を経た入荷が容量を消費</p></div><div><b>Ĵ=ψ(X,λ) → 容量計画へ</b><p>候補λの応答を先読みして調整</p></div></div>
 <p class="band">旧履歴にはπ₀の応答だけが残る。需要と納期の系列を固定して新しい発注規則π₁を再実行し、教師データを作る。</p>
 <h3>同じ需要を再生し、内生状態だけを計算し直す</h3>
-<p>内生状態とは、発注によって変わる在庫・未着注文・入荷です。コストを選んで週を送ると、需要を変えずに発注と在庫の動きを比較できます。ここからの在庫図は自作の人工例で、下の転移評価は著者報告です。</p>
+<p>内生状態とは、発注によって変わる在庫・未着注文・入荷です。コストと表示週を選ぶと、需要を変えずに発注と在庫の動きを比較できます。ここからの在庫図は自作の人工例で、下の転移評価は著者報告です。</p>
 <div class="cols"><label>共通入荷コスト λ<select data-cost><option value="0">0</option><option value="2">2</option><option value="4">4</option></select></label><label>表示週 <output data-week-label></output><input data-week type="range" min="1" max="23" value="8"></label></div>
 <div class="plot"><svg viewBox="0 0 600 265" role="img" aria-label="固定需要とλ別の入荷・在庫の時系列" data-replay></svg></div>
 <div class="legend"><span style="color:#7d8990">● 需要：全λで同じ</span><span style="color:#176d79">● 入荷</span><span style="color:#b86d34">● 期末在庫</span></div>

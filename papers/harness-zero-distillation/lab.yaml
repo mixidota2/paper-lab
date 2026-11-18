@@ -62,7 +62,7 @@ sections:
     collect()でPASSとREPLACEを切り替え、実行対象・学生に見える履歴・教師対象を表示する。入力はBash相当の操作名を示す文字列であり、実際のファイルを変更しない。nll()は採用応答の確率を0.2から0.8へ変えたときの損失だけを計算する。'
   results: REPLACE例では棄却したoverwrite workbookが教師対象から消え、backup workbook then edit cell
     A1だけが残る。負の対数尤度は約1.609から0.223へ下がるが、これは仮定した確率の算術であり、モデル学習による能力獲得ではない。
-  what_we_verified: CONFIRMED：採用応答だけを実行・学生履歴・教師対象へ渡し、棄却提案を除く契約。MechanismはPARTIAL。
+  what_we_verified: CONFIRMED：採用応答だけを実行・学生履歴・教師対象へ渡し、棄却提案を除く処理。MechanismはPARTIAL。
   what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。harness進化、LLMによる点検、推論文のmask、LoRA
     SFT、28行動の検出、本番配信は実行していない。点検役を外した後の能力保持も人工例では確かめていない。
   implementation: collect() → 式(3)のPASS/REPLACEと学生可視履歴。nll() → 式(4)の1応答分の算術。重み更新と私的推論maskは省略。

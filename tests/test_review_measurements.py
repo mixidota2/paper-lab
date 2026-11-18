@@ -20,7 +20,7 @@ class Footer:
     def __init__(self,page):self.page=page
     def bounding_box(self):
         return {'x':12,'y':21580.28125-self.page.y,'width':321,'height':120.78125+self.page.footer_extra}
-    def is_visible(self):return True
+    def all(self):return [type('Link', (), {'is_visible': lambda self, value=value: value})() for value in self.page.links]
 class Session:
     def __init__(self,page):self.page=page
     def send(self,*args):
@@ -29,7 +29,8 @@ class Session:
     def detach(self):pass
 class Page:
     url='fixture://fractional-footer'
-    def __init__(self,margin=1,footer_extra=0):
+    def __init__(self,margin=1,footer_extra=0,links=(True,)):
+        self.links=links
         self.y=0;self.total=21701+margin;self.footer_extra=footer_extra;self.context=self
     def new_cdp_session(self,page):return Session(self)
     def locator(self,selector):return Footer(self)
@@ -68,6 +69,13 @@ class Regression(unittest.TestCase):
             self.assertEqual(report['tiles'][-1]['y'],20802)
             footer=report['footer'];self.assertLessEqual(footer['y']+footer['height'],900)
             self.assertEqual(footer['y']+footer['height'],899.0625)
+    def test_multiple_visible_footer_links(self):
+        with tempfile.TemporaryDirectory() as d:
+            capture_segments(Page(links=(True,True)),Path(d)/'capture.png')
+    def test_missing_or_hidden_footer_link_fails(self):
+        for links in [(),(True,False),(False,True)]:
+            with self.subTest(links=links),tempfile.TemporaryDirectory() as d,self.assertRaises(AssertionError):
+                capture_segments(Page(links=links),Path(d)/'capture.png')
     def test_no_clearance_still_fails_clipping(self):
         with tempfile.TemporaryDirectory() as d,self.assertRaises(AssertionError):capture_segments(Page(margin=0),Path(d)/'capture.png')
     def test_footer_overflow_mutation_fails(self):

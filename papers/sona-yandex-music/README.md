@@ -17,7 +17,7 @@ Sonaは候補生成・prerank・最終rankを、共有履歴encoder、SID decode
 
 ## Problem
 
-音楽では同じ曲を繰り返し聴くこと自体に価値があり、動画feedと同じ重複抑制は当てはまらない。次の曲を当てる生成尤度だけでは、likeや聴き続ける価値に沿う順序を作れない。一方、重いteacherを各requestに出すと配信コストが高い。長い履歴を保持しつつ、teacherの採点を軽いRanking Moduleへ移す必要がある。
+音楽では同じ曲を繰り返し聴くこと自体に価値があり、動画feedと同じ重複抑制は当てはまらない。次の曲を当てる生成尤度だけでは、likeや聴き続ける価値に沿う順序を作れない。一方、重いteacherを各requestで実行すると配信コストが高い。長い履歴を保持しつつ、teacherの採点を軽いRanking Moduleへ移す必要がある。
 
 ## Core Idea
 

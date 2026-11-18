@@ -1,4 +1,4 @@
-### UA-SIDは動画だけでなく商品と広告主を読む
+### UA-SIDに使う動画・商品・広告主の情報
 広告の表現UAEは、動画の視覚・ASR・OCRなど、商品の価格・title、advertiserの地域や属性を統合する。原典Table 2はbackboneをQwen3-VL-7Bと表記する。本Labではこのモデル名を原文に従って記し、別の公開モデル名へ補正しない。instruction tuningに加え、同時出現するVideo/Product/Advertiserの組を正例、batch内の他例を負例とするInfoNCEで表現を学ぶ（§3.1、式1）。
 
 残差量子化は各段で近い中心を選び、残差を次段へ渡す。MRは初期のcodebookを大きくし、意味の大きな違いを先に分ける。各段はbalanced k-meansで利用の偏りを抑える。MGはitem/account IDやconversion typeなどをhashし、最後の数値層へ置く。同じ意味の広告を業務上区別する役割を持つ（Figure 2）。hashなので衝突ゼロの保証はない。

@@ -100,7 +100,7 @@ teaching_figures:
     explanation: 長い周期ほど一回の荷量が増える。
   - name: 計画全体
     formula: U = V − L_cov − C_rt − C_inv
-    explanation: 品揃え価値から未被覆需要、配送、在庫の代理費用を引く。
+    explanation: 品揃えの価値から未被覆需要、配送、在庫の代理費用を引く。
   locator: Eqs. (1)–(2)
   after: method
   source: https://arxiv.org/pdf/2607.28488

@@ -57,7 +57,7 @@ sections:
 
     応答は遅くなる。追加遅延はp50 49.4 ms、p95 185.8 ms。追加prompt長は平均247.3 token、p95 568.2 token。training-freeは無計算という意味ではなく、offlineの探索・judge・規則候補の生成と検証を必要とする。'
   executable_understanding: '`uv run papers/igpo-huawei-inventory-grounded-search/run.py`。人工のケーキ3商品と4要求を使い、属性の移動、商品削除、probeの見落としを切り替える。固定属性だけを見るbaselineと、現在の属性充足率から検索先を選ぶ規則を比較する。正解ラベルは評価専用で、検索関数へは渡さない。'
-  results: 人工例の正答数は、元の属性で2→4、属性を移動すると0→4、商品aを削除すると1→4。probeが商品cを見落とす条件では2→3にとどまる。在庫参照の規則でもFNIは33.3%残った。対象要求を改善しても背景要求を壊す規則候補は、簡略なreplay検査で棄却した。人工例での結果だ。商用性能は未検証。
+  results: 人工例の正答数は、元の属性で2→4、属性を移動すると0→4、商品aを削除すると1→4。probeが商品cを見落とす条件では2→3にとどまる。在庫参照の規則でもFNIは33.3%残った。対象要求での結果が改善しても、背景要求での結果が悪化する規則候補は、簡略なreplay検査で棄却した。人工例での結果だ。商用性能は未検証。
   what_we_verified: Mechanism PARTIAL。現在の属性を読み直す固定規則が、人工の属性移動と商品削除を扱うことを確認した。CONFIRMEDは背景要求の回帰を棄却する検査と、probeの見落としが残る反例に限る。
   what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。DeepSeek-V3やQwen3-8Bを実行せず、embedding検索、規則の自動生成、LLM
     judge、商用A/B、実遅延は再現していない。実カタログの精度は不明。この4要求からは推定できない。

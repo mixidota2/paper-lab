@@ -115,7 +115,7 @@ teaching_figures:
     explanation: 条件付きの商品確率も順位に残る。
   - name: 比較
     formula: score = 決定の得点 + 商品の得点
-    explanation: βは柔らかい誘導の強さで、配信義務の制約ではない。
+    explanation: βは加点で順位を調整する強さで、配信を義務づける制約ではない。
   locator: Figure 3; Eq. (4)
   after: method
   source: https://arxiv.org/pdf/2609.28589

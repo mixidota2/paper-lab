@@ -7,7 +7,7 @@
 | §3.2 / D1,D2,D5 | diagnose | Gini・popularity D4は省略 |
 | §3.2 / D3 | weighted_prefix_alignment | 入力pairを使用。公式近傍抽出は省略 |
 | §6.3 / D6 | previous / code_churn | checkpoint適応は未検証 |
-| §5 / D7 | trace | 最小のvalid/ambiguous/target会計のみ |
+| §5 / D7 | trace | valid/ambiguous/targetの最小限の集計のみ |
 
 公式コード: [https://github.com/jdding/sidscope/tree/v1.0.1](https://github.com/jdding/sidscope/tree/v1.0.1)。v1.0.1を取得して確認。
 

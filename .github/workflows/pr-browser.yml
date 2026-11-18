@@ -35,6 +35,13 @@ jobs:
           git rev-parse HEAD
       - name: Install locked validation dependencies
         run: uv sync --locked --extra dev --python 3.12
+      - name: Install verified official Chrome distribution
+        id: chrome_distribution
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p browser-review
+          uv run --locked python tests/prepare_ci_chrome.py 2>&1 | tee browser-review/chrome-distribution.log
       - name: Required deterministic checks
         run: uv run --locked pytest -q -ra --fail-on-skip
       - name: Build every Lab in this checkout
@@ -70,10 +77,16 @@ jobs:
           include-hidden-files: false
           if-no-files-found: error
           retention-days: 7
-      # Legacy job/check identity retained; browser execution is not a release gate.
-      # Optional browser tools retain their signature and sandbox protections.
+      - name: Verify layout release in signed sandboxed Chrome
+        id: layout_browser
+        shell: bash
+        env:
+          UV_HTTP_TIMEOUT: '120'
+        run: |
+          set -o pipefail
+          uv run --locked --with playwright==1.63.0 python tests/layout_release_browser.py 2>&1 | tee browser-review/layout-browser.log
       - name: Preserve preflight reports and failure logs
-        if: ${{ !cancelled() && steps.preflight.outcome != 'skipped' }}
+        if: ${{ !cancelled() && (steps.preflight.outcome != 'skipped' || steps.chrome_distribution.outcome == 'failure') }}
         uses: actions/upload-artifact@v4
         with:
           name: macos-chrome-${{ github.sha }}

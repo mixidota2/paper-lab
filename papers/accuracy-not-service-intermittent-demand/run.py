@@ -60,7 +60,7 @@ def main():
     trap=[[[3],[1],[1]]]
     small=replay(trap,[2])[0];large=replay(trap,[3])[0]
     assert small>large
-    out={'note':'固定seedの人工注文。論文38手法・RUF・Chronos-2の再現ではない。MAEを使用し論文MASEと区別。',
+    out={'note':'固定seedの人工注文。論文38手法・RUF・Chronos-2の再現ではない。MAEを使い、論文で使われたMASEと区別している。',
       'scope':{'normalization_roundtrip':'CONFIRMED','mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},
       'seed':22,'sweep':rows,'normalization':norms,'counterexample':{'stock2_COFR':small,'stock3_COFR':large},
       'experiments':[{'name':'同一144注文・補充方策で予測倍率を変更','metrics':{str(r['alpha']):{'MAE':r['MAE'],'COFR':r['COFR'],'inventory':r['inventory_units']} for r in rows}}]}

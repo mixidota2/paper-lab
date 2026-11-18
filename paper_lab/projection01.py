@@ -8,7 +8,7 @@ def widget(result):
         return ''
     frames=[]
     display_names={'Free':'制約に当たらない（Free）','Pinned':'個別上限に固定（Pinned）','Competing':'共有上限を分け合う（Competing）'}
-    explanations={'Free':'制約から離れた点。目標の変化がそのまま行動へ伝わる。','Pinned':'第1座標は上限3に固定。z₁を増やしてもx₁は動かない。','Competing':'共有容量6が活性。z₁の増加はx₁を増やし、x₂を減らす。'}
+    explanations={'Free':'制約から離れた点。目標の変化がそのまま行動へ伝わる。','Pinned':'第1座標は上限3に固定。z₁を増やしてもx₁は動かない。','Competing':'共有容量6の制約が等号で成立している。z₁の増加はx₁を増やし、x₂を減らす。'}
     for case in result['cases']:
         z=case['target']; x=case['projected']; j=case['jacobian']
         def point(v):return (55+v[0]*52,375-v[1]*52)

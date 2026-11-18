@@ -2,7 +2,7 @@
 
 §2.1–2.2。MARISA由来のLOUDS構造を整数tokenへ拡張する。labelとsuffix indexを2-byteのlow部と、必要なnodeだけのbit-packed high部へ分け、32-bit tokenを扱いつつ支配的な配列を縮める。800M keyword列のindexは約3.1GBでA100 80GBのHBMに収める（§4.1）。
 
-一つのpersistent cooperative kernelが全T stepを処理する。active beamをCTAへ割り当て、512 threadsでtop-K展開とchild lookupを分担。子のtokenはbinary searchで検査し、候補をlock-freeに追加して、grid同期後にparallel merge sortでtop-Bへ落とす（Algorithm 1、Appendix D）。
+一つのpersistent cooperative kernelが全T stepを処理する。active beamをCTAへ割り当て、512 threadsでtop-K展開とchild lookupを分担。子のtokenはbinary searchで検査し、候補をlock-freeに追加して、grid同期後にparallel merge sortで上位B件へ絞る（Algorithm 1、Appendix D）。
 
 scoreは `σ′ = σ + log p(x_t | x_<t)`。存在しないprefixは展開しない。これは各深さで出現可能なtokenだけを許すPPT filterより強い条件だ。深さごとに有効でも、組み合わせた列が存在するとは限らない。
 

@@ -50,7 +50,7 @@ Performance / Scaling / Production applicabilityはNOT TESTED。Chronos、Moirai
 
 ## implementation
 
-run.pyは標準ライブラリだけで動く。simulate()で需要と容量の比較条件を固定し、assertで保存則を検査する。1辺・1期遅延へ簡略化した。補充の教材ルールは到着先にも(s,S)を使うため、公式の非到着先補充と同一ではない。ネットワーク図と論文値はlab.yaml、実験曲線はresults.jsonを正本とする。
+run.pyは標準ライブラリだけで動く。simulate()で需要と容量の比較条件を固定し、assertで保存則を検査する。1辺・1期遅延へ簡略化した。補充の教材ルールは到着先にも(s,S)を使うため、公式の非到着先補充と同一ではない。ネットワーク図と論文値の原本はlab.yaml、実験曲線の原本はresults.jsonとする。
 
 ## mapping
 

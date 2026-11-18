@@ -84,7 +84,7 @@ teaching_figures:
     explanation: 第1項は観測との一致、第2項はベースの滑らかさ、第3項は少数のショックを好む制約。λによって分解は変わる。
   - name: イベント発生日から伝播
     formula: A = Σₘ Σₖ φₘ(k) Sₖ diag(fₘ)
-    explanation: fₘはイベント種別mのカレンダー、Sₖはk日ずらす行列。受け手の日でなく発生日の文脈が効く。
+    explanation: fₘはイベント種別mのカレンダー、Sₖはk日ずらす行列。作用素には影響を受ける日ではなく発生日の文脈を使う。
   source: https://arxiv.org/pdf/2607.25664v1
 - kind: matrix
   id: impulse

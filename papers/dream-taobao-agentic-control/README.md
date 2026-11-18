@@ -23,7 +23,7 @@ lab.yaml、method.md、mapping.md、run.py、results.jsonが原本。site/は生
 
 **Mechanism: PARTIAL**。人工条件の計算と境界条件を確認した。results.jsonのCONFIRMEDは小さな計算命題にだけ適用する。原論文の学習済みモデルや産業環境を再現した意味ではない。
 
-GRU・Intent Agent・Qwen3の学習、LLMのstrategy品質、TTL最適化、memory更新、実service replay、端末費用、online liftは検証していない。toyの失敗閉鎖はschemaの小部分だけであり、本番の安全性を保証しない。
+GRU・Intent Agent・Qwen3の学習、LLMのstrategy品質、TTL最適化、memory更新、実service replay、端末費用、online liftは検証していない。toyで失敗時にdefaultへ戻す処理はschemaの小部分だけを対象としており、本番の安全性を保証しない。
 
 Performance / Scaling / Production applicability: NOT TESTED。モデル学習とオンラインA/Bは実行していない。
 

@@ -24,7 +24,10 @@ def test_existing_runner_permissions_and_full_build_order():
     assert run.index('uv sync --locked --extra dev --python 3.12') < run.index('uv run --locked pytest -q -ra --fail-on-skip') < run.index('uv run --locked paper-lab build')
     pre=next(s['run'] for s in steps if s.get('id')=='preflight')
     assert '--preflight' in pre
-    assert not any(s.get('id') == 'browser_review' for s in steps)
+    browser=next(s for s in steps if s.get('id')=='layout_browser')
+    assert 'playwright==1.63.0 python tests/layout_release_browser.py' in browser['run']
+    assert 'set -o pipefail' in browser['run']
+    assert steps.index(next(s for s in steps if s.get('id')=='build_preview')) < steps.index(browser)
     assert not any('review_103_report.py' in s.get('run', '') for s in steps)
     assert all('--run --site' not in s.get('run', '') for s in steps)
     assert all('continue-on-error' not in s for s in steps)
@@ -52,16 +55,17 @@ def test_public_preview_is_allowlisted_and_saved_after_preflight():
     assert len([s for s in steps if s.get('uses')=='actions/upload-artifact@v4'])==2
 
 
+@pytest.mark.parametrize('step_id,log_name',[('preflight','preflight.log'),('layout_browser','layout-browser.log')])
 @pytest.mark.parametrize('exit_code',[0,1,2])
-def test_exact_preflight_shell_preserves_exit_and_collects_log(tmp_path,exit_code):
-    step=next(s for s in WORKFLOW['jobs']['macos-chrome']['steps'] if s.get('id')=='preflight')
+def test_exact_preflight_shell_preserves_exit_and_collects_log(tmp_path,exit_code,step_id,log_name):
+    step=next(s for s in WORKFLOW['jobs']['macos-chrome']['steps'] if s.get('id')==step_id)
     bin_dir=tmp_path/'bin';bin_dir.mkdir();stub=bin_dir/'uv'
     stub.write_text('#!/bin/bash\nprintf "injected local wiring test\\n"\nexit '+str(exit_code)+'\n');stub.chmod(0o755)
     (tmp_path/'browser-review').mkdir()
     env={**os.environ,'PATH':str(bin_dir)+os.pathsep+os.environ['PATH']}
     result=subprocess.run(['bash','-e','-c',step['run']],cwd=tmp_path,env=env,capture_output=True,text=True)
     assert result.returncode==exit_code
-    assert 'injected local wiring test' in (tmp_path/'browser-review/preflight.log').read_text()
+    assert 'injected local wiring test' in (tmp_path/'browser-review'/log_name).read_text()
 
 
 @pytest.mark.parametrize('status,code',[('FAIL',1),('STOPPED',1),('PARTIAL',1),('AUTOMATED PASS / publication pending',0)])

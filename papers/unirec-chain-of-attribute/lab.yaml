@@ -38,7 +38,7 @@ source_review:
   version: 2604.12234v4
 core_idea:
   author_claim: 著者はCoAが生成と判別のfeature coverageの差を縮め、条件付きentropyを下げると主張する。capacity制約、CDC、RFT+DPOを加え、OneRec-V2より高いHRとオンライン改善を報告する（§3–4）。
-  research_bot_interpretation: 属性を持つ生成経路が有用という実証と、生成確率だけで判別rankingと同値という理論主張を分けたい。式3には一般にはp(f|u)の分母が必要だ。また実際のCoA設定はL2→L3カテゴリであり、sellerとbrandを常に生成した実験ではない。
+  research_bot_interpretation: 属性を持つ生成経路が有用という実証と、生成確率だけで判別rankingと同値という理論主張を分けたい。式3には一般にp(f|u)の分母が必要だ。また実際のCoA設定はL2→L3カテゴリであり、sellerとbrandを常に生成した実験ではない。
 sections:
   problem: '判別rankingは候補のカテゴリやsellerなどを直接見て、ユーザーとの組合せを評価できる。SIDだけを生成するモデルでは、圧縮時に失った属性を予測の途中で参照しにくい。さらに人気が一部のprefixへ集中すると、beamの枠を同じ領域が占める。
 

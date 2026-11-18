@@ -47,7 +47,7 @@ sections:
     [GenPage](genpage-netflix-homepage.html)はhomepageの行と配置、[UniRec](unirec-chain-of-attribute.html)はECの生成型cascade統合を扱う。OGRの単位はshort-videoの表示slateであり、同じページ生成と一括りにしない。[Gryphon](gryphon-v2-cascade.html)のsole
     candidate generatorという役割とも異なる。これらを同じcatalog・K・遅延制約で比較した実験はない。'
   method: method.md
-  why_it_might_work: 【解釈】意味枝を残して共起だけを信頼度で弱めれば、履歴の少ないitemを不安定な行動信号で壊しにくい。潜在表現で次位置を計画できればdecode待ちを減らせる。SPAは補助目的の暴走を抑える。ただしplannerの連続表現が正確か、観測されたslate以外にも報酬が一般化するかは別問題である。
+  why_it_might_work: 【解釈】意味枝を残して共起だけを信頼度で弱めれば、履歴の少ないitemを不安定な行動信号で壊しにくい。潜在表現で次位置を計画できればdecode待ちを減らせる。SPAは補助目的が主目的を逆転させるのを抑える。ただしplannerの連続表現が正確か、観測されたslate以外にも報酬が一般化するかは別問題である。
   evidence: '### オフラインの改善は、比較先とdatasetを分ける
 
 

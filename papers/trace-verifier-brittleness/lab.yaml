@@ -36,7 +36,7 @@ sections:
   executable_understanding: experiment.md
   results: '正しく操作する自作スクリプトでは、別名にしても操作列と状態のhashが一致し、採点だけが1.00→0.50へ落ちる。名前を正規化すると1.00へ戻る。書込みを省くスクリプトは正規化後も0。これらはLabで設計した規則の結果であり、論文の0.250や公開モデルの性能を再現した値ではない。'
   what_we_verified: '**CONFIRMED**：名前変更で正規の操作列・状態hashが不変なこと、再採点が記録を変更しないこと、正規化で点数だけ戻ること、本当の行動失敗は残ることをテストした。**PARTIAL**：TRACEの診断手順の一部を自作例で表現した。'
-  what_we_did_not_verify: 'Study 2/3の独立再現、LLMの再実行ノイズ、採点の正確性、学習による採点器の攻略、本番の失敗率はNOT TESTED。閲覧できる公開コードにはStudy 2/3に対応するアーカイブをNOT OBSERVED。存在しないと断定する意味ではない。native rewardにも一部LLM採点が入り、真実ラベルとしては扱えない。'
+  what_we_did_not_verify: 'Study 2/3の独立再現、LLMの再実行ノイズ、採点の正確性、学習による採点器の攻略、本番の失敗率はNOT TESTED。閲覧できる公開コードでは、Study 2/3に対応するアーカイブはNOT OBSERVEDだった。存在しないと断定する意味ではない。native rewardにも一部LLM採点が入り、真実ラベルとしては扱えない。'
   implementation: '`uv run papers/trace-verifier-brittleness/run.py --test` でテストし、`--test` を外して結果と操作画面を再生成する。標準ライブラリだけを使い、公式スクリプトやモデルAPIは実行しない。12条件の計算をPythonで行い、ブラウザーは表示だけ切り替える。詳細はREADMEとmappingを参照。'
 figures: []
 interactives: []
