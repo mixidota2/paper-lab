@@ -83,3 +83,50 @@ def inspect_replenishment(page, base, out, width, snapshot):
         record["status"] = "AUTOMATED PASS"
     finally:
         (out / f"replenishment-{width}.json").write_text(json.dumps(record, ensure_ascii=False, indent=2))
+
+def main():
+    """Check only the existing public Pages destination after byte verification."""
+    import os
+    import subprocess
+    from importlib.metadata import version
+    from playwright.sync_api import sync_playwright
+    from macos_chrome_cdp import chrome_process, connect_checked_cdp, verify_seatbelt
+    from review_103_evidence import console_diagnostic
+    assert version("playwright") == "1.63.0"
+    root = Path(__file__).resolve().parents[1]
+    out = root / "browser-review" / "replenishment-public"
+    out.mkdir(parents=True, exist_ok=False)
+    base = "https://mixidota2.github.io/paper-lab"
+    record = {"status": "STARTED", "base": base, "manual_visual_review": "NOT TESTED",
+              "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip(),
+              "widths": [], "errors": []}
+    def snapshot(page, directory, name, locator=None):
+        if locator is not None:
+            locator.scroll_into_view_if_needed()
+        page.screenshot(path=str(directory / (name + ".png")), full_page=False)
+    try:
+        with chrome_process() as (endpoint, pid), sync_playwright() as pw:
+            os.environ.update(LAB_CDP_URL=endpoint, LAB_CHROME_PID=str(pid))
+            browser = connect_checked_cdp(pw)
+            record["engine"] = browser.version
+            for width in (360, 1440):
+                page = browser.new_page(viewport={"width": width, "height": 900}, reduced_motion="reduce")
+                page.on("pageerror", lambda error: record["errors"].append(str(error)))
+                assert page.goto(base + "/guides/index.html").ok
+                verify_seatbelt(browser)
+                inspect_replenishment(page, base, out, width, snapshot)
+                verify_seatbelt(browser)
+                record["widths"].append(width)
+                page.close()
+            assert not record["errors"], record["errors"]
+            browser.close()
+        record["status"] = "AUTOMATED PASS"
+    except BaseException as error:
+        record["status"] = "FAIL"
+        record["failure"] = console_diagnostic(error)
+        raise
+    finally:
+        (out / "result.json").write_text(json.dumps(record, ensure_ascii=False, indent=2))
+
+if __name__ == "__main__":
+    main()

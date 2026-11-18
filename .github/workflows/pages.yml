@@ -116,3 +116,43 @@ jobs:
             publication-evidence/
             publication-diagnostics/
           if-no-files-found: error
+
+  verify-replenishment-browser:
+    needs: verify-publication
+    runs-on: macos-15
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      LAB_BROWSER: macos-cdp
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: false
+      - name: Install locked validation dependencies
+        run: uv sync --locked --extra dev --python 3.12
+      - name: Install verified official Chrome distribution
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p browser-review
+          uv run --locked python tests/prepare_ci_chrome.py 2>&1 | tee browser-review/chrome-distribution.log
+      - name: Verify published replenishment guide in protected Chrome
+        shell: bash
+        env:
+          UV_HTTP_TIMEOUT: '120'
+        run: |
+          set -o pipefail
+          uv run --locked --with playwright==1.63.0 python tests/replenishment_release_browser.py 2>&1 | tee browser-review/replenishment-public.log
+      - name: Preserve public browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: replenishment-public-${{ github.sha }}
+          path: browser-review/
+          if-no-files-found: error
+          retention-days: 7
