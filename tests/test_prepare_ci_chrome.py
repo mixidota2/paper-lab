@@ -54,3 +54,24 @@ def test_reject_other_publisher_or_mismatched_identity(monkeypatch, identity):
     monkeypatch.setattr(m, "run", lambda args: SimpleNamespace(stderr=identity))
     with pytest.raises(AssertionError):
         m.verify_bundle(Path("/fixture.app"))
+
+
+@pytest.mark.parametrize("output", [
+    "Status: no signature\n1. Developer ID Installer: Google LLC (ABC123)",
+    "Status: signed by an untrusted certificate\n1. Developer ID Installer: Google LLC (ABC123)",
+    "Status: signed by a certificate trusted by macOS\n1. Developer ID Installer: Someone Else (ABC123)",
+])
+def test_reject_unsigned_untrusted_or_other_installer(monkeypatch, output):
+    monkeypatch.setattr(m, "run", lambda args: SimpleNamespace(stdout=output))
+    with pytest.raises(AssertionError):
+        m.verify_package(Path("/fixture.pkg"))
+
+
+def test_accept_google_installer_only_after_pkgutil_trust_check(monkeypatch):
+    calls = []
+    def valid(args):
+        calls.append(args)
+        return SimpleNamespace(stdout="Status: signed by a certificate trusted by macOS\n1. Developer ID Installer: Google LLC (ABC123)")
+    monkeypatch.setattr(m, "run", valid)
+    assert m.verify_package(Path("/fixture.pkg")) == "ABC123"
+    assert calls == [["/usr/sbin/pkgutil", "--check-signature", "/fixture.pkg"]]
