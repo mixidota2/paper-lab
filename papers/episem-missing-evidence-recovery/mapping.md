@@ -1,14 +1,14 @@
-# 原典と自作実装の対応
+# 論文のどの条件を、教材のどこで確かめられるか
 
-| 原典 | Lab | 一致させた条件と省略 |
+| 論文の箇所 | 教材の対応コード・資料 | 再現した条件と省いたもの |
 |---|---|---|
-| §3.1、Fig 1 | run.py の TASKS / pair、model.js の tasks / pair | request・schemaが同じで、実行が禁止される世界と許可される世界の対。2種類の自作規則に簡略化。著者の300対ではない |
-| §3.2 | rollout の hidden / visible / read_again | 全ての通常観測で欠落を維持。criticalとirrelevantを別指定。実ツールの複雑な露出経路は省略 |
-| §3.3、Appendix E | audit / audit_not_executed | REの有効auditだけが全欠落を正しい値で返す。commit後は実行不可。toyでは最終停止も終端にする |
-| §3.4、式(1)、Appendix B | boundary / metrics | baseline失敗は0、最小欠落数、全列挙後だけc+1。toyの集計は全mask固定coverage。著者のhash探索順序は再現しない |
-| §3.4、式(2) | pair.paired / metrics.pur | 同一非空critical maskの両世界で厳密回収が必要。task内平均→task等重み |
-| Table 1、Appendix C.2 | evidence.md、results.json の reported | 最小限の著者報告値。syntheticと分離。順位を推奨しない |
+| §3.1、Fig 1 | run.py の TASKS / pair、model.js の tasks / pair | 依頼とツールの入出力形式は同じで、実行の可否だけが違う二つの世界を作ります。論文の300対ではなく、2種類の自作タスクを使います。 |
+| §3.2 | rollout の hidden / visible / read_again | 何度読み直しても同じ事実を隠します。安全規則に関わる事実と、行動に関係しない事実は別々に隠せます。実際のツールで別の経路から事実が見えるケースは扱いません。 |
+| §3.3、Appendix E | audit / audit_not_executed | REで有効な照会を実行した場合だけ、隠した事実がすべて正しい値で返ります。実行を確定した後は照会できません。この教材では最後に停止を選んだ場合も、そこで処理を終えます。 |
+| §3.4、式(1)、Appendix B | boundary / metrics | 完全な情報でも失敗すれば0。そうでなければ、失敗が見つかった最小の欠落数を数えます。c+1とするのは全組み合わせで失敗しなかった場合だけです。教材は全組み合わせを列挙し、論文のハッシュによる探索順は再現しません。 |
+| §3.4、式(2) | pair.paired / metrics.pur | 重要な事実を1個以上、同じ組み合わせで隠します。禁止・許可の両世界で、回収してから適切に行動した場合だけ成功です。タスク別に平均してから、各タスクを等しい重みで平均します。 |
+| Table 1、Appendix C.2 | evidence.md、results.json の reported | 著者の報告値の一部だけを引用しています。教材の計算結果（synthetic）とは別です。著者報告の順位をもとにモデル利用を勧めるものではありません。 |
 
-Pythonが参照結果を生成し、JavaScriptはブラウザーで同じ小さな規則を実行する。全480条件と全方策の集計を比較する。ブラウザーでの操作テストと、モデル性能の検証は別である。ネットワーク呼出し・認証・課金・実送信は実装しない。
+Pythonで参照結果を作り、ブラウザーではJavaScriptで同じ教材の規則を実行します。全480条件と全方策について二つの実装の結果を比較します。ブラウザーで画面を操作できることと、モデルの性能を検証することは別です。ネットワーク呼び出し、認証、課金、実際の送信は実装していません。
 
-[Qijin Zhangほか、EpiSEM-Bench、arXiv 2610.31650v1](https://arxiv.org/abs/2610.31650v1)、2026年10月22日。原典のライセンス表示はarXiv perpetual non-exclusive license。CC BYとは扱わず、図版・本文の大量転載をしない。説明、toy、操作画面は独自制作。公式コードの対応関数はNOT OBSERVED。
+[Qijin Zhangほか、EpiSEM-Bench、arXiv 2610.31650v1](https://arxiv.org/abs/2610.31650v1)、2026年10月22日。原典のライセンス表示は arXiv perpetual non-exclusive license です。CC BYとしては扱わず、図版や本文を大量に転載しません。説明・教材・操作画面は独自制作です。公式コードのうち対応する関数は確認できていません（NOT OBSERVED）。
