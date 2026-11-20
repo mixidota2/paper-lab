@@ -134,10 +134,10 @@
       "after_blob": "c50c56888c366ec94ebd4c8c0d511f1937e3c43e"
     },
     "paper_lab/inventory02.py": {
-      "before_blob": "99ea5c259dede2b1566afe249d24e36687f80b0a",
       "before_sha256": "67040ac2022d6310b8b997099855b09c490ed521b9b48f81b5123de44d57fd71",
-      "after_blob": "441ccc5a4de3272e94ea0c4a856d0dceea0df3b2",
-      "after_sha256": "29638a8555c45267c4bab401150351befe6b409d06015665b1c48a30798254c9"
+      "before_blob": "99ea5c259dede2b1566afe249d24e36687f80b0a",
+      "after_sha256": "5d5c57c389daffd18b3c5d7bdd5e6748112495c4f8b49079edb5bebea4cf0a16",
+      "after_blob": "8b94ac101f7f30724714f121ca64b99b94f5cd05"
     },
     "papers/ra-dfl-risk-aware-decision-focused-inventory/README.md": {
       "before_blob": "1c5653f4595c8dbc5cc97a11bedd618763d5f09c",
@@ -192,6 +192,36 @@
       "before_blob": "de479c5445ba87db3cc2a2bd00ebf7f9cdf0bcb1",
       "after_sha256": "26e75a8027769d26b6fed4cc03be085ea77085d1275876b81668136a014b5298",
       "after_blob": "11fc91d61431a338e0eff14c473edf4a0da2910c"
+    },
+    "papers/orpr-or-guided-pretrain-reinforce-inventory/README.md": {
+      "before_sha256": "b2d1d6f34405940563dace66d31af9d780f13729201b29b7267e5c56558860df",
+      "before_blob": "05a41da74bdd12277a9cd5f4187ac70413976d78",
+      "after_sha256": "91dbdd3d3b034284c690842b0dec178ac33360eadb34970011dc1bdddcf1db35",
+      "after_blob": "24b1b1aee4ff225f4258e59a3be84f5c96ada5ec"
+    },
+    "papers/orpr-or-guided-pretrain-reinforce-inventory/lab.yaml": {
+      "before_sha256": "faf98fd78ab9ba231c9e475066c4d83984202a94d0b58be0c1dc3bfaf6d6f67b",
+      "before_blob": "4adf9e4d985b9483ef289be4492ac3504257b0b0",
+      "after_sha256": "9a4022b1541b6cafca107865e7316f683a9a5592f9e18944e46010bd64f41ffc",
+      "after_blob": "079d756153227ea7e15afe480c6b232d6c7057ac"
+    },
+    "papers/orpr-or-guided-pretrain-reinforce-inventory/method.md": {
+      "before_sha256": "3d31c2ca5ffdb5abe9d05558cdf808b10e841a98f618104e616197a4dc2f71c1",
+      "before_blob": "deccc71db067a725368fa6fed493250f0211dafe",
+      "after_sha256": "b7b1fc864cfde94247ea98bf95859eb0029c8890860b82866abab39e2c1589dd",
+      "after_blob": "bb1aeb0bfa793bd16283731389269981a5c9a25a"
+    },
+    "papers/orpr-or-guided-pretrain-reinforce-inventory/mapping.md": {
+      "before_sha256": "8d8bb72d19b9bf675f4c36f349849c49c81c0af81a1e69b8e015dc504f1a7f38",
+      "before_blob": "d423ee4ea79e414961efacc95cc53278f25dc069",
+      "after_sha256": "87d7e55a1793f6deb864605d9de30479e1d1f42809f2adc5359356a85d7d8f26",
+      "after_blob": "30ae0b4e7bbc2b5bc8ba5b1e672861299a13d2aa"
+    },
+    "README.md": {
+      "before_sha256": "fba7ae359f96a4bd5c4b2afc32cd7e29e3f12fe65e1450ba46751800522254c8",
+      "before_blob": "5b3037d4eec920d7dcd173033b3e69b933f49dd7",
+      "after_sha256": "1910e6a22b556a87ecd1b5e1062036b5ae2c82d128daf447d782db159ef9ce21",
+      "after_blob": "9788ca6b82da251383e0f91534e37bdf02d271f1"
     }
   }
 }
