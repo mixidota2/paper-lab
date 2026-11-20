@@ -11,9 +11,9 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "papers" / "trial-by-trace-evidence-boundaries"
 CONTROL_IDS = ("a", "h", "g", "b", "q", "reset")
 INITIAL = ("成果 100%／基盤 50%／総合 75点\n"
-           "成果全項目合格：true\n両層全項目合格：false\n"
-           "調整前の基盤不合格：true\n迂回調整後：true\n"
-           "候補関係：false\n因果伝播の検証：未実施")
+           "成果の全項目が合格：はい\n両層の全項目が合格：いいえ\n"
+           "基盤に不合格項目がある：はい\n観測の迂回を除いても基盤に不合格が残る：はい\n"
+           "基盤から成果に失敗が伝わった可能性を調べる候補：該当なし\n実際に失敗が伝わったか：未検証")
 
 
 class Document(HTMLParser):
@@ -106,8 +106,8 @@ const get=name=>nodes[f.prefix+name];
 for(const id of Object.keys(f.controls))assert.equal(nodes[id].disabled,false,id);
 assert.equal(get('out').textContent,f.initial);
 function expected(r){return r.admitted?
- `成果 ${r.agent*100}%／基盤 ${r.harness*100}%／総合 ${r.score}点\n成果全項目合格：${r.success}\n両層全項目合格：${r.clean}\n調整前の基盤不合格：${r.raw}\n迂回調整後：${r.adjusted}\n候補関係：${r.link}\n因果伝播の検証：未実施`:
- '測定不備：採点・帰属を保留';}
+ `成果 ${r.agent*100}%／基盤 ${r.harness*100}%／総合 ${r.score}点\n成果の全項目が合格：${r.success ? "はい" : "いいえ"}\n両層の全項目が合格：${r.clean ? "はい" : "いいえ"}\n基盤に不合格項目がある：${r.raw ? "はい" : "いいえ"}\n観測の迂回を除いても基盤に不合格が残る：${r.adjusted ? "はい" : "いいえ"}\n基盤から成果に失敗が伝わった可能性を調べる候補：${r.link ? "該当" : "該当なし"}\n実際に失敗が伝わったか：未検証`:
+ '記録の整合性を確認していないため、採点と原因の判定を保留します。';}
 for(const c of f.cases){
  get('a').value=String(c.a);get('h').value=String(c.h);
  for(const id of ['g','b','q'])get(id).checked=c[id];
