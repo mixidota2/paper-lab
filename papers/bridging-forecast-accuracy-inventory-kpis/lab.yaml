@@ -1,7 +1,6 @@
 id: bridging-forecast-accuracy-inventory-kpis
 arxiv_id: '2601.21844'
-title: 'Bridging Forecast Accuracy and Inventory KPIs: A Simulation-Based Software
-  Framework'
+title: 'Bridging Forecast Accuracy and Inventory KPIs: A Simulation-Based Software Framework'
 authors:
 - So Fukuhara
 - Abdallah Alabdallah
@@ -19,8 +18,8 @@ urls:
   official_code: https://github.com/caisr-hh/TruckParts-Demand-Inventory-Simulator/releases/tag/IDA_2026
 verdict: Radar
 status: published
-question: MAEで選んだ予測モデルは、在庫費用でも最良か
-summary: MAEが最小の予測モデルが、在庫費用も最小にするとは限らない。TruckPartsは、トラック補修部品の人工需要、予測、在庫費用計算をつなぐ公開ソフトウェアである。著者の人工需要実験では、XGBoostとRandom Forestは平均絶対誤差（MAE）が小さく、Crostonは総費用が最小だった。将来の比較実験に使う基盤として読む。
+question: 予測誤差が小さくても、なぜ在庫費用は下がらないのか
+summary: 予測の外れが小さいモデルでも、欠品まで含めると費用が高くなることがあります。著者はトラックの補修部品の需要を人工的に作り、7モデルを同じ在庫ルールで比較しました。平均絶対誤差が小さかったのはXGBoostとRandom Forest、総費用が最も低かったのはCrostonです。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -35,77 +34,77 @@ source_review:
   scope: Sections 3–6; Table 1; Figures 1–6; IDA_2026 release
   url: https://arxiv.org/pdf/2601.21844v2
 core_idea:
-  author_claim: 予測精度と、費用・充足率などの在庫業務指標（KPI）を結ぶ公開基盤を提供する。人工実験では、精度改善が費用改善へ直結せず、シナリオごとに両者の関係も変わる。
-  research_bot_interpretation: Accuracy Is Not Serviceの問題意識を、費用と充足率を測る再利用可能な試験環境へ進める仕事と読む。現場での優位性の証拠はまだ薄く、需要生成と在庫方策の仮定を差し替える将来の実験基盤として位置づける。
+  author_claim: 著者は、補修部品の需要を人工的に作り、予測結果から在庫費用と充足率までを計算できる公開ソフトウェアTruckPartsを提供しました。予測の外れと費用の関係は、需要の条件によって変わると報告しています。
+  research_bot_interpretation: Labの読み方：Accuracy Is Not Serviceが示した「誤差だけでは運用上の良し悪しは分からない」という問題を、費用と充足率で試せる環境です。現場でどのモデルが優れるかの証拠ではありません。需要の作り方や在庫ルールの仮定を変えて、結論がどこで変わるかを調べる出発点です。
 sections:
-  overview: MAEが最小の予測モデルが、在庫費用も最小にするとは限らない。TruckPartsは、トラック補修部品の人工需要、予測、在庫費用計算をつなぐ公開ソフトウェアである。著者の人工需要実験では、XGBoostとRandom Forestは平均絶対誤差（MAE）が小さく、Crostonは総費用が最小だった。将来の比較実験に使う基盤として読む。
-  problem: 需要がない日が多い補修部品では、誤差の小ささと欠品回避の価値がずれる。対象は48の人工シナリオ。需要の傾向が時間とともに変わる4種類のドリフト条件、4種類の車両数範囲、3種類の部品寿命範囲を組み合わせ、4販売店で3年間を生成する。実測の需要系列による評価ではない。
-  why_it_might_work: 解釈：MAEは予測誤差の絶対値を平均し、同じ数量の過剰予測と過小予測を対称に数える。一方、在庫費用は保管、発注、緊急便、輸送、サービス不足の費用を通じて予測を評価する。ゼロ需要をよく当てても、稀な需要で補充が足りなければ費用が増える。この接続を固定条件で調べられる点に価値がある。
-  evidence: '一次資料の著者報告（v2 Table 1）：XGBoostとRandom ForestのMAEは丸め値で0.43、Crostonは0.52。総費用はそれぞれ約8.2×10⁵、7.5×10⁵、7.4×10⁵である。MAEはシナリオ平均と標準偏差、費用は全シナリオの合計。図では平均MAEと総費用を切り替え、同じモデルの順番を見る。
+  overview: 予測の外れが小さいモデルでも、欠品まで含めると費用が高くなることがあります。著者はトラックの補修部品の需要を人工的に作り、7モデルを同じ在庫ルールで比較しました。平均絶対誤差が小さかったのはXGBoostとRandom Forest、総費用が最も低かったのはCrostonです。
+  problem: 補修部品は、需要がない日が多く、売れる日にまとめて必要になることがあります。著者は時間とともに需要傾向が変わる条件4種類、車両数の範囲4種類、部品寿命の範囲3種類を掛け合わせ、48の条件を作りました。各条件で、4販売店の3年分を人工的に生成します。店舗で観測した需要の比較ではありません。
+  why_it_might_work: 平均絶対誤差（MAE）は実績と予測の差を絶対値にして平均します。同じ1個なら、多く予測しても少なく予測しても同じ誤差です。在庫費用では、持ちすぎれば保管費がかかり、足りなければ欠品や緊急便につながります。著者の試験環境では、保管・発注・緊急便・輸送・サービス不足の費用を通して、同じ予測でも費用がどう違うかを確認できます。
+  evidence: '一次資料の著者報告（v2 Table 1）では、XGBoostとRandom ForestのMAEは丸めるとともに0.43、Crostonは0.52です。一方、総費用はそれぞれ約8.2×10⁵、7.5×10⁵、7.4×10⁵でした。MAEはシナリオごとの値を平均し、ばらつきは標準偏差で示しています。費用は全シナリオの合計です。図では指標を切り替え、順位の違いを確認できます。
 
 
-    Figure 6のMAE–費用の順位相関は全体0.95に対し、シナリオ内の平均が−0.16。本文はRMSEでも平均−0.06と報告する。集計すると関係が変わるため、需要規模が異なるシナリオをまとめた相関だけでモデルを選ばない。これらは著者の報告値であり、Labで再計算した相関ではない。'
+    著者は、MAEと費用の順位相関を全体では0.95、シナリオごとに計算して平均すると−0.16と報告しています（Figure 6）。本文では、二乗平均平方根誤差（RMSE）と費用についても、シナリオ内の平均が−0.06です。需要の規模が違う条件をまとめた相関だけでは、個々の条件でどのモデルを選ぶべきか分かりません。Labはこれらの相関を再計算していません。'
   executable_understanding: '`UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/bridging-forecast-accuracy-inventory-kpis/run.py`
 
 
-    同じ人工需要と同じ補充規則でZeroとCrostonを比較する。最初の730日でCrostonを推定し、残る365日では固定予測を使う。欠品単価を1、5、20、50に切り替える。Zeroは木モデルの代理ではない。この小実験は、評価指標による順位逆転の仕組みだけを切り出す。'
-  results: 人工実験のMAEはZeroが0.537、Crostonが0.855。欠品単価50では総費用が9,800対3,395となり、予測誤差と費用の優劣が逆転した。需要数量のうち即時に満たせた数量の割合である充足率は0%対75%。単価1では196対994となり、費用でもZeroが低い。Crostonが常に有利という結果ではなく、欠品と保管の単価に依存する。
-  what_we_verified: CONFIRMED：人工実験の各日で在庫の収支と需要の分解を照合した。欠品単価50でのMAEと費用の順位逆転も確認した。MechanismはPARTIAL。論文全体の需要生成と費用計算の一部だけを、独立した説明用コードで扱っている。
-  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。公式の48シナリオ、7予測モデル、費用シミュレータは再実行していない。実験は全て人工需要で、論文も在庫方策のパラメータを全販売店・部品で固定する。価格、初期在庫、納期なども共通で、供給者の容量は無制限。販促と欠品を含むTSFM対GBDTの比較や、実店舗の棚割りRCTの証拠には使えない。
-  implementation: run.pyはPython標準ライブラリだけで動く。croston()が非ゼロ需要量と間隔を学習し、simulate()が共通の補充規則と費用を計算する。results.jsonは著者の報告値を転記したreportedと、自作の人工実験結果framesを分けて保存する。ページはlab.yaml、method.md、mapping.md、results.jsonから生成する。
+    Labの小実験では、毎日ゼロと予測するZeroと、需要が発生した日の数量と発生間隔から予測するCrostonを比較します。最初の730日でCrostonを学習し、次の365日はどちらの予測値も固定します。需要と補充ルールは共通です。欠品1個の費用を1、5、20、50に切り替えると、どちらの費用が低いかが変わります。ZeroはXGBoostなどの木モデルの代わりではありません。'
+  results: Labの実験では、MAEはZeroが0.537、Crostonが0.855で、欠品単価を変えても同じです。欠品単価50では、総費用がZeroの9,800に対しCrostonは3,395でした。需要数量のうち即時に満たせた数量の割合（充足率）は、それぞれ0%と75%です。欠品単価1では総費用が196と994になり、今度はZeroの方が低くなります。Crostonがいつも有利なのではなく、欠品を減らす価値と在庫を持つ費用の兼ね合いで変わります。
+  what_we_verified: CONFIRMED：毎日、前日の在庫と入荷から販売分を引くと残在庫になり、販売分と欠品分を足すと需要に一致することを確かめました。欠品単価50で、誤差ではZero、費用ではCrostonが有利になることも確認しました。仕組みの確認範囲はPARTIALです。原論文の需要生成や費用計算をすべて再現したわけではありません。
+  what_we_did_not_verify: 性能・規模を増やした場合の挙動・実務への適用はNOT TESTEDです。著者の48条件、7モデル、費用シミュレータは再実行していません。原論文も人工需要で評価し、在庫ルールのパラメータは全販売店・部品で固定しています。価格、初期在庫、納期を共通とし、供給者の容量には上限を置きません。販促と欠品を含む時系列基盤モデル（TSFM）対勾配ブースティング決定木（GBDT）の比較や、実店舗で棚割りを変えた無作為化比較試験（RCT）の根拠には使えません。
+  implementation: run.pyはPythonの標準ライブラリだけで動きます。croston()は需要があった日の数量と発生間隔から次の予測値を求め、simulate()は同じ補充ルールで在庫・欠品・費用を計算します。results.jsonのreportedには著者の報告値、framesにはLabの実験結果を保存しています。ページはlab.yaml、method.md、mapping.md、results.jsonから生成します。
   method: method.md
   mapping: mapping.md
 teaching_figures:
 - kind: matrix
   id: pipeline
-  title: 予測の前後で何を固定しているか
+  title: 論文では、需要を作ってから予測と在庫を比べる
   after: method
   locator: Figure 3; Sections 3–5
   source: https://arxiv.org/pdf/2601.21844v2
-  rationale: 予測の前後で何を固定しているか
-  caption: 原論文の構成を再整理した説明図。測定結果の追試ではない。
+  rationale: 各モデルで条件をそろえた箇所を示す
+  caption: 原論文の手順を整理した図。著者の結果を再計算したものではありません。
   columns:
   - 処理
   - 比較の条件
   rows:
   - label: 人工需要
     cells:
-    - 販売店 → 車両 → 部品の故障
-    - 48シナリオ、実需要の公開データなし
+    - 販売店ごとに車両と部品を設定し、故障から需要を作る
+    - 48条件。観測した需要を使った比較ではない
   - label: 予測
     cells:
     - XGBoost / Random Forest / SVR / ARIMA / Croston / SBA / TSB
-    - 730日学習、365日評価、MAEで調整
-  - label: 在庫KPI
+    - 730日で学習し、365日で評価。学習の設定はMAEで選ぶ
+  - label: 在庫の評価
     cells:
     - 費用と充足率
-    - 方策パラメータ、価格、納期などを共通化
+    - 在庫ルールの設定、価格、納期などをそろえる
 - kind: equations
   id: objective
-  title: 同じ予測を、異なる損失で読む
+  title: 予測誤差と、在庫や欠品にかかる費用は別の指標
   after: method
   locator: Section 4; Lab run.py
   source: https://arxiv.org/pdf/2601.21844v2
-  rationale: 同じ予測を、異なる損失で読む
-  caption: 原論文の構成を再整理した説明図。測定結果の追試ではない。
+  rationale: 同じ予測を予測誤差と費用で比べる
+  caption: Labの説明用実験で使う計算。原論文の費用モデルを再現した式ではありません。
   steps:
   - name: 予測誤差
     formula: MAE = mean(|d − f|)
-    explanation: 過大・過小の誤差を対称に数える。
+    explanation: 実際の需要dと予測fの差を絶対値にして平均します。
   - name: 説明用の在庫目標
     formula: S = ceil(5f)
-    explanation: Lab独自の固定規則。両予測へ同じ係数を使う。
+    explanation: 予測fを5倍して切り上げます。両モデルとも同じルールで補充します。
   - name: 説明用の費用
     formula: C = Σ I + p Σ U
-    explanation: Iは日末在庫、Uは欠品個数。欠品単価pで費用順位が変わる。
+    explanation: Iは日末在庫、Uは欠品個数、pは欠品1個の費用です。
 - kind: matrix
   id: research-map
-  title: 費用評価の試験環境として研究地図へ置く
+  title: この試験環境で分かることと、次に確かめたいこと
   after: method
   locator: Sections 4–6
   source: https://arxiv.org/pdf/2601.21844v2
-  rationale: 費用評価の試験環境として研究地図へ置く
-  caption: 原論文の構成を再整理した説明図。測定結果の追試ではない。
+  rationale: 費用と充足率の比較に使える範囲を示す
+  caption: 原論文の成果と残る問いを整理した図。測定結果の追試ではありません。
   columns:
   - この論文が加えるもの
   - 残る条件
@@ -113,12 +112,12 @@ teaching_figures:
   - label: Accuracy Is Not Serviceとの接続
     cells:
     - 誤差に加えて充足率と費用を測る
-    - KPIに対する方策側の調整は固定
+    - 費用が低くなるよう在庫ルールを調整した比較ではない
   - label: 需要の現実性
     cells:
-    - 故障寿命、季節性、ドリフトを設定
-    - 全て人工。実需要への校正は今後
+    - 故障までの寿命、季節性、時間による需要の変化を設定
+    - すべて人工需要。実際の需要に合わせた調整は未検証
   - label: 次の比較実験
     cells:
     - モデルを差し替える公開基盤
-    - 販促・欠品を含むTSFM対GBDT比較は未実施
+    - 販促・欠品を含む条件で、時系列基盤モデルと勾配ブースティング決定木の比較は未実施
