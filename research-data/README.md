@@ -1,22 +1,30 @@
-# Research data and dated reading notes
+# Labの調査データと読書記録
 
-This collection preserves scholarly metadata, short authored summaries, research questions and source-based analysis from reviews dated September–November 2026. It is a historical working collection, not a systematic literature review or a newly verified bibliography.
+2026年9月〜11月に読んだ論文の書誌情報、要約、調査の問い、出典に基づく分析をまとめています。当時の判断と、その判断に使った根拠をたどるための作業記録です。決めた検索手順で文献を網羅したレビューではなく、公開時に書誌情報をすべて確認し直した資料でもありません。
 
-## Contents
+## 知りたいことからファイルを選ぶ
 
-- `papers.csv`: 200 paper records, with source URLs, author metadata when available, topics, historical assessments and concise authored summaries. Blank cells mean the reviewed record did not establish a value. Assessments describe research judgments at the recorded date, not a reader’s unread status or a current recommendation.
-- `research-questions-2026-10-08.md`: eight connected research questions and the historical evidence behind them.
-- `historical-findings-2026-09-04-to-10-08.json`: scientific discovery findings and terminology from early reading notes.
-- `evidence-updates-2026-10.json` and `evidence-notes/`: dated primary-source interpretations, read scope, numerical caveats and unresolved questions.
-- `evidence-notes/trial-by-trace-2026-11-04.json`: an additional short historical summary, outside the 200-row registry, with its narrower verification scope.
-- `shelf/`: six-case analysis of forecast validation, actual shelf-allocation implementation, and realized outcomes, plus qualified case notes and primary-evidence gaps.
+| 知りたいこと | 開くファイル |
+| --- | --- |
+| 論文名、出典、調査時点での評価 | [論文一覧（200件）](papers.csv)。分かる範囲で著者情報、テーマ、要約も載せています。空欄は当時の記録で値を確認できなかった項目です。評価は記録日時点の判断で、現在の推奨や読者の既読・未読を示すものではありません。 |
+| 当時どんな問いを立てたか | [2026年10月8日時点の8つの問いと根拠](research-questions-2026-10-08.md) |
+| 調査の初期に何が分かったか | [9月4日〜10月8日の発見と用語](historical-findings-2026-09-04-to-10-08.json) |
+| 一次資料をどこまで確認したか | [10月の追記](evidence-updates-2026-10.json) と[出典別の読書記録](evidence-notes/)。確認した箇所、数値を読むときの注意、残った疑問を記録しています。[Trial by Trace](evidence-notes/trial-by-trace-2026-11-04.json) は一覧200件の外にある短い追記で、確認範囲も限られます。 |
+| 棚種配分や棚割りを変えた事例が知りたい | [棚割りの事例資料](shelf/)。6事例について、予測をどう確かめたか、実際に棚をどう変えたか、変更後に何が起きたかを分けています。一次資料で確認できなかった点も記録しています。 |
 
-## Interpretation and limits
+## 数字と過去の結論を読むとき
 
-Numbers in these notes are reported paper results or explicitly labeled authored calculations, not independent experimental reproduction. Simulated or model-predicted benefits are not realized business outcomes. Observational results are not automatically causal. Different versions, denominators, outcomes and time horizons must not be combined.
+ここにある数字は、論文などの出典が報告した値か、記録内で明示した独自の計算です。原著の実験を独立に再現した結果ではありません。モデルやシミュレーションで見込んだ改善は、実店舗の実績と区別してください。観察データから差が見えても、施策が差を生んだとは限りません。版、分母、指標、集計期間の異なる数字は一つの結果にまとめないでください。
 
-Dates and URLs are preserved from the reviewed records. External links, all bibliographic fields and original experiments were not freshly revalidated for this migration. Source-read limitations remain in the notes. Some metadata-only records have no full-text assessment. The two Exa URLs are discovery sources, not verified canonical primary papers. The non-arXiv shelf-framework record has a DOI and a blank arXiv ID. No paper PDFs, complete third-party articles, images, model weights or third-party code are included.
+日付とリンクは当時の記録を残しています。この資料を移した際に、すべてのリンク・書誌項目・原著実験を確認し直したわけではありません。論文の本文を評価せず、書誌情報だけ残した項目もあります。Exaへのリンク2件は資料発見の手がかりで、原著の正式な公開先とは確認できていません。arXivにない棚割りの枠組みの文献は、DOIを記録し、arXiv IDを空欄にしています。
 
-Historical negative searches are bounded non-discovery, not evidence that no research exists. The October 30 review did not establish complete October 29 announcement coverage. Earlier statements that WRAPPED S2 had not been read are superseded by the October 23 supplement note. Proximal Residual’s OOS means out-of-sample, not out-of-stock. Spine paper and repository figures remain unreconciled. A Bitter Lesson’s historical scholarly findings do not imply a current research priority or publication decision.
+過去の検索で資料が見つからなかったのは、そのとき探した範囲での結果です。10月30日の調査では、10月29日に発表された資料を網羅できたとは確認していません。古い記録を読むときは、次の追記と留保も合わせて確認してください。
 
-Private conversations, individual reading/feedback information, personal preferences, credentials, local file paths, automation instructions and notification/production logs are intentionally absent. The collection contains authored summaries and analysis with public scholarly source links; source publishers retain rights in their original works.
+- WRAPPED S2：未読とした初期の記録より、10月23日の追記が新しい情報です。
+- Proximal Residual の OOS：この記録では out-of-sample（学習などに使った標本の外）を指し、out-of-stock（欠品）ではありません。
+- Spine：論文とリポジトリの数値が異なる理由は未確認です。
+- A Bitter Lesson：当時の研究上の発見を記録したもので、現在の調査優先度や公開の判断を示してはいません。
+
+## 収録していないもの
+
+この資料には、公開された学術資料へのリンクと、調査担当者が書いた要約・分析を収録しています。論文のPDF、第三者の記事全文、画像、モデルの重み、第三者のコードは含みません。原著の権利は各権利者に残ります。非公開の会話、個人の読書やコメントの記録、個人の好み、認証情報、ローカルのパス、自動化の指示、通知や運用のログも収録していません。
