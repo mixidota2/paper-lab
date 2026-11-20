@@ -110,7 +110,7 @@
         `${index + 1}. ${line(paper.title)}`,
         `問い: ${line(paper.question)}`,
         `テーマ: ${paper.topics.map((value) => optionLabel(topic, value)).join("、")}`,
-        `読む優先度: ${paper.reading_priority} / 発表・公開時期: ${paper.published_date}`,
+        `読む優先度: ${optionLabel(verdict, paper.reading_priority)} / 発表・公開時期: ${paper.published_date}`,
         `${paper.lab_url ? "Lab URL" : "Lab 相対パス"}: ${paper.lab_url || paper.lab_path}`,
         "",
       );

@@ -3,6 +3,11 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const f=JSON.parse(fs.readFileSync(process.argv[2],'utf8')), mode=process.argv[3];
 assert.equal(f.cards.length,114);
+const expectedPriorityLabels={
+ '':'すべて',Must:'必読','Must Read':'優先して読む','Park / Exploration':'探索段階・いったん保留',
+ Radar:'動向を追う',Watch:'続報を待つ',Worth:'関連があれば読む','Worth Reading':'読む価値あり',
+};
+for(const value of f.options.verdict) assert.equal(f.labels.verdict[value],expectedPriorityLabels[value],`表示ラベル: ${value}`);
 for (const name of ['data-reading-save-text','data-reading-label','data-reading-list','data-reading-save','data-reading-preview','data-reading-json','data-reading-status']) assert.ok(f.fields.includes(name),name+' in generated page');
 const form=new EventTarget(),clear=new EventTarget(),win=new EventTarget(),save=new EventTarget(),saveText=new EventTarget();
 const label={textContent:''};
@@ -46,7 +51,8 @@ function snapshot(){
  assert.equal(lines[1],`表示件数: ${visible.length}件`);
  assert.equal(lines[2],`検索語: ${JSON.stringify(form.elements.search.value)}`);
  assert.equal(lines[3],`テーマ: ${f.labels.topic[form.elements.topic.value]}`);
- assert.equal(lines[4],`読む優先度: ${f.labels.verdict[form.elements.verdict.value]}`);
+ assert.equal(result.filters.verdict,form.elements.verdict.value,'JSONの絞り込み条件は翻訳しない');
+ assert.equal(lines[4],`読む優先度: ${expectedPriorityLabels[form.elements.verdict.value]}`);
  assert.equal(lines[5],`並べ替え: ${f.labels.sort[form.elements.sort.value]}`);
  assert.equal(lines[7],result.note.replace("lab_pathは", "Lab 相対パスは"));assert.match(lines[7],/性能順位/);assert.match(lines[7],/発表・公開時期/);
  const line=value=>String(value).replace(/\s+/g,' ').trim();
@@ -56,7 +62,8 @@ function snapshot(){
    assert.equal(lines[offset],`${i+1}. ${line(raw.title)}`);
    assert.equal(lines[offset+1],`問い: ${line(raw.question)}`);
    assert.equal(lines[offset+2],`テーマ: ${raw.dataset.topics.split('|').map(t=>f.labels.topic[t]).join('、')}`);
-   assert.equal(lines[offset+3],`読む優先度: ${out.reading_priority} / 発表・公開時期: ${out.published_date}`);
+   assert.equal(out.reading_priority,raw.dataset.verdict,'JSONには翻訳前の優先度を保存する');
+   assert.equal(lines[offset+3],`読む優先度: ${expectedPriorityLabels[raw.dataset.verdict]} / 発表・公開時期: ${out.published_date}`);
    assert.equal(lines[offset+4],`${out.lab_url?'Lab URL':'Lab 相対パス'}: ${out.lab_url||out.lab_path}`);
    assert.equal(lines[offset+5],'');
  });
