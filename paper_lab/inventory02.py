@@ -40,20 +40,20 @@ def orpr(r):
         body += f'<path d="M{x(case["budget"]):.2f} 40V290" stroke="#aa482e" stroke-dasharray="6 3"/>'
         for c in r['candidates']:
             color = '#137d79' if c['loss'] <= case['budget']+1e-9 else '#abb3b6'
-            body += f'<circle cx="{x(c["loss"]):.2f}" cy="{y(c["stock"]):.2f}" r="4" fill="{color}"><title>{c["days"]}日、在庫{c["stock"]:.2f}、売り逃し{c["loss"]:.2f}</title></circle>'
+            body += f'<circle cx="{x(c["loss"]):.2f}" cy="{y(c["stock"]):.2f}" r="4" fill="{color}"><title>{c["days"]}日分、期末在庫の合計 {c["stock"]:.2f}、売り逃し{c["loss"]:.2f}</title></circle>'
         best = case['best']
         if best:
             body += f'<circle cx="{x(best["loss"]):.2f}" cy="{y(best["stock"]):.2f}" r="9" fill="none" stroke="#102d47" stroke-width="3"/>'
-            text = f'選択：カテゴリA {best["days"][0]}日、B {best["days"][1]}日。累計在庫 {best["stock"]:.2f}、売り逃し {best["loss"]:.2f}。'
+            text = f'選択：カテゴリA {best["days"][0]}日分、B {best["days"][1]}日分。日ごとの期末在庫の合計 {best["stock"]:.2f}、売り逃し {best["loss"]:.2f}。'
         else:
-            text = '実行可能な候補なし。初日の未入荷による売り逃しを、この候補集合では避けられない。'
-        body += f'<text x="65" y="25">累計在庫（単価1）</text><text x="275" y="335">売り逃し（単価1）</text><text x="48" y="312">0</text><text x="440" y="312">{max_loss:.0f}</text><text x="12" y="52">{max_stock:.0f}</text>'
-        frames.append(svg(body, text)+f'<p><strong>{text}</strong></p><p>許容損失 {case["budget"]:.2f}、実行可能 {case["feasible"]}/100候補。緑が制約内、灰が制約外。輪は選択された在庫日数の組合せ。</p>')
+            text = '条件を満たす候補なし。初日に入荷しないため、どの候補でも売り逃しが上限を超えます。'
+        body += f'<text x="65" y="25">期末在庫の合計（単価1）</text><text x="275" y="335">売り逃し（単価1）</text><text x="48" y="312">0</text><text x="440" y="312">{max_loss:.0f}</text><text x="12" y="52">{max_stock:.0f}</text>'
+        frames.append(svg(body, text)+f'<p><strong>{text}</strong></p><p>売り逃しの上限 {case["budget"]:.2f}。100候補中 {case["feasible"]}件（緑）が上限以内です。灰色は上限を超えた候補、輪は上限以内で期末在庫の合計が最も少ない候補です。</p>')
         options.append(f'αloss={case["alpha"]:.2f}')
-    out = select_figure('在庫日数のラベルを選ぶ：許容損失を厳しくする', '式(2)のαloss', options, frames,
-                        'Labの合成需要。縦線より左が制約内。この教材の許容損失は、固定した合成需要の合計×(1−αloss)なので、αlossを大きくすると制約が厳しくなる。累計在庫は各日の在庫量の合計、売り逃しは満たせなかった需要の合計。ともに単価1で費用へ換算する。原論文§3.3の形式に対応し、JDの再現ではない。')
+    out = select_figure('売り逃しの上限を変え、補充日数を選ぶ', '売り逃しをどこまで抑えるか（式(2)のαloss）', options, frames,
+                        '縦線は売り逃しの上限です。上限は固定した合成需要の合計×(1−αloss)なので、αlossを大きくすると上限が下がります。縦軸は日ごとの期末在庫を足した量、横軸は満たせなかった需要の合計です。どちらも単価1で換算します。原論文§3.3の考え方を使う人工例で、JDの再現ではありません。')
     frames = []
-    labels = [('回転日数 TT', '日', 6), ('在庫あり日率', '比較ごとに単位が異なる', 3), ('保有費用', '比較ごとに単位が異なる', 32)]
+    labels = [('在庫回転日数（TT）', '日', 6), ('欠品しなかった日の割合', '単位と比較基準は表を参照', 3), ('保有費用', '単位と比較基準は表を参照', 32)]
     for j, (label, unit, limit) in enumerate(labels):
         vals = [r['paper_evidence']['field'][key][j] for key in ['psm', 'did']]
         body = ''
@@ -65,17 +65,17 @@ def orpr(r):
                 body += f'<path d="M260 {y0}V{y0+65}" stroke="currentColor"/><text x="15" y="{y0+18}">{name}（日）</text><rect x="{min(end,260):.2f}" y="{y0+32}" width="{abs(end-260):.2f}" height="20" fill="#137d79"/><text x="340" y="{y0+18}">{v:+.2f}日</text><text x="250" y="{y0+80}">0</text>'
             chart = svg(body, f'{label}: PSM {vals[0]}, DiD {vals[1]}', 230)
         else:
-            references = ['対応付けしたPSM A/B（表3の表記を維持）', '率の差（表4）'] if j == 1 else ['PSM A/Bの対照比', '前年比の差：処置+3.70% − 対照+22.05%']
+            references = ['需要や回転日数が近い対象の比較（表3の表記を維持）', '介入前後の変化の差（表4）'] if j == 1 else ['対応付け比較で対照群に比べた変化率', '前年比の差：処置+3.70% − 対照+22.05%']
             chart = table(['比較方法', '報告値', '単位', '比較基準'], [
                 ['PSM A/B', f'{vals[0]:+.2f}', '%', references[0]],
                 ['DiD', f'{vals[1]:+.2f}', 'ポイント', references[1]],
             ]).replace('aria-label="人工実験の比較"', 'aria-label="著者報告の比較"')
-        note = ['両方とも日数の差。PSMとDiDは異なる比較で、独立した2回の実験ではない。',
-                'PSMは原表の+2.29%表記を維持。DiDは率の差+0.47ppとして読む。単位と比較基準が異なるため、棒の長さで比較せず表で示す。',
-                'PSMは対照比−29.95%。DiDは前年比+22.05%と+3.70%の差−18.35pp。前年比での保有費用減少ではない。'][j]
+        note = ['どちらも日数の差です。対象を対応付けるPSMと、介入前後の差を比べるDiDは、同じ現場評価の異なる比較であり、独立した2回の実験ではありません。',
+                'PSMの+2.29%は原表の表記です。DiDの+0.47ポイントは率の差です。単位と比較基準が違うため、棒の長さでは比べません。',
+                'PSMは対照群に比べて29.95%低い値です。DiDでは前年比が対照群+22.05%、適用群+3.70%で、その差は−18.35ポイントです。適用群で保有費用が前年比で減ったわけではありません。'][j]
         frames.append(chart+f'<p><strong>{label}（{unit}）</strong>。{note}</p>')
-    return out + select_figure('現場の数値は、比較基準と単位ごとに読む', '表示指標', [x[0] for x in labels], frames,
-        '著者の表3–4。マネジャー選定・PSM・約30日・菓子3カテゴリ。欠品費用は現場評価から除外。')
+    return out + select_figure('著者が報告した現場結果を、指標ごとに読む', '表示指標', [x[0] for x in labels], frames,
+        '原論文の表3・4から。担当者が選んだ菓子3カテゴリを約30日間評価し、対象を対応付けた比較などを行いました。欠品費用は含みません。')
 
 
 def proximal(r):
