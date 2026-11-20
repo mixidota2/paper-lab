@@ -112,19 +112,19 @@ def radfl(r):
         a, b = case['best']['q']
         body += f'<rect x="{73+a*28}" y="{318-b*26}" width="27" height="25" fill="none" stroke="#bc482d" stroke-width="3"/><text x="53" y="340">0</text><text x="39" y="70">10</text><text x="348" y="373">10</text><text x="200" y="407">チャネルAへの配分</text><text x="220" y="90">濃いほど目的値が小さい</text><text x="235" y="120">A+B ≤ 10</text>'
         best = case['best']
-        frames.append(svg(body, f'容量10、リスク重み{case["weight"]}、最適配分{best["q"]}', 425)+f'<p><strong>配分 {best["q"]}、平均費用 {best["mean"]:.3f}、CVaR₀.₈ {best["tail"]:.3f}</strong></p><p>赤枠は全探索の最小点。目的値は平均費用と高費用側のリスクを合わせた値。w={case["weight"]:.2f}、目的値 {best["objective"]:.3f}。色は各画面の最小〜最大で正規化し、画面間の色の濃さは比較しない。</p>')
+        frames.append(svg(body, f'容量10、リスク重み{case["weight"]}、最適配分{best["q"]}', 425)+f'<p><strong>配分 {best["q"]}、平均費用 {best["mean"]:.3f}、CVaR₀.₈ {best["tail"]:.3f}</strong></p><p>赤枠は、66通りの中で平均費用と高い方20%の平均費用を重みづけした値が最小の配分。w={case["weight"]:.2f}、重みづけ後の値 {best["objective"]:.3f}。色の濃さは同じ画面の中だけで比べる。</p>')
         options.append(f'w={case["weight"]:.2f}')
-    out = select_figure('容量内で平均費用と高費用側のリスクを配分へ反映する', 'CVaRの重み', options, frames,
-                         'CVaR₀.₈は費用が高い側の20%に当たる部分の平均費用。境界で同じ費用が並ぶ場合も、合計20%になる重みで計算する。この教材は等確率の10シナリオなので高い側の2件に対応する。0.8は教材の設定で、論文の意思決定目的は0.9。<a href="https://hbemdata.org/index.php/ojs/article/download/198/176">原典§3.2式(4)・§4.4</a>。Labの合成シナリオ・整数配分。微分可能層と学習の再現ではない。全条件で同じ需要分布を使う。')
+    out = select_figure('費用が高い場合を重く見ると、在庫をどちらに置くか', '高い方20%の費用を重く見る度合い（w）', options, frames,
+                         'w=0なら平均費用だけ、w=1なら費用が高い方20%の平均（CVaR₀.₈）だけを見る。Labでは同じ確率の需要10通りを使うため、高い方2件に当たる。境界に同じ費用が並ぶ場合も、合計20%になるよう重みづけする。論文では高い方10%（CVaR₀.₉）を使う。<a href="https://hbemdata.org/index.php/ojs/article/download/198/176">原典§3.2式(4)・§4.4</a>。どの重みでも同じ合成需要で整数の配分を比べる。著者の学習や、配分を微分して学習に戻す処理は再現していない。')
     body = '<path d="M60 35V290H480" stroke="currentColor" fill="none"/>'
     for key, color in [('true','#137d79'), ('naive','#b85236'), ('masked','#355baa')]:
         points = ' '.join(f'{60+c["q"]*27},{290-c[key]*4}' for c in r['censoring'])
         body += f'<polyline points="{points}" fill="none" stroke="{color}" stroke-width="3" stroke-dasharray="{"6 3" if key=="masked" else "none"}"/>'
-    body += '<text x="12" y="22">費用</text><text x="20" y="58">60</text><text x="44" y="312">0</text><text x="160" y="315">4</text><text x="320" y="315">10</text><text x="435" y="335">注文量</text><text x="240" y="45" fill="#137d79">緑：真の需要10</text><text x="240" y="75" fill="#b85236">赤：売上4を需要と扱う</text><text x="240" y="105" fill="#355baa">青破線：masked loss</text>'
-    out += f'<figure class="teaching"><h3>余剰罰則を消しても、真の需要は分からない</h3>{svg(body,"売上4を超えるとmasked lossは0。真の需要10は同定できない。",350)}<figcaption>ρ=0、h=1、b=6のLab検算。この例のmasked lossは観測売上を超える発注量に余剰の罰則を課さないため、青線はq≥4で平坦。一般の拠点間の在庫移送（横持ち）を含む命題2の検証ではない。</figcaption></figure>'
+    body += '<text x="12" y="22">費用</text><text x="20" y="58">60</text><text x="44" y="312">0</text><text x="160" y="315">4</text><text x="320" y="315">10</text><text x="435" y="335">注文量</text><text x="240" y="45" fill="#137d79">緑：真の需要10</text><text x="240" y="75" fill="#b85236">赤：売上4を需要と扱う</text><text x="240" y="105" fill="#355baa">青破線：欠品を考慮</text>'
+    out += f'<figure class="teaching"><h3>余剰罰則を消しても、真の需要は分からない</h3>{svg(body,"欠品を考慮した損失は発注4以上で0のまま。需要10だったとは分からない。",350)}<figcaption>在庫移送なし（ρ=0）、保有費用1、欠品費用6の例。売上4を超えた発注を余剰と扱わないため、青い破線は発注4以上（q≥4）で横ばいになる。移送がある場合の命題2までは検証していない。</figcaption></figure>'
     rows = [(name, values[0], '#b85236' if name=='PTO + CVaR' else '#137d79' if name=='RA-DFL' else '#72818f') for name, values in r['paper_evidence']['m5'].items()]
-    return out + bars('負の結果も残す：CVaRを後付けすると費用+9.7%', rows, 6, '',
-        '著者の表II。LightGBM-QR PTO 4.903 → CVaR後付け5.380。RA-DFL 4.721はPTO比−3.7%。DFL-EV 4.690より平均費用は高い。')
+    return out + bars('M5では、同じ基準予測にCVaRを使う配分を足すと費用が9.7%増えた', rows, 6, '',
+        '著者の表II。LightGBM-QRで予測してから配分する基準は4.903、同じ予測にCVaRを使う配分を合わせると5.380。RA-DFLは4.721で基準より3.7%低いが、DFL-EVの4.690より高い。')
 
 
 def widget(result):
