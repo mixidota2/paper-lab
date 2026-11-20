@@ -1,159 +1,261 @@
-# Research questions and evidence as of 2026-10-08
+# 研究の問いと根拠（2026年10月8日時点）
 
-Historical authored synthesis. Later reviews may revise these statements. Bounded non-discovery does not establish that a research result does not exist. Figures are reported source claims, not independently reproduced results. In the historical notes, Proximal Residual’s OOS means out-of-sample, not out-of-stock.
+当時の調査担当者がまとめた記録です。結論は、その後の調査で変わる可能性があります。探した範囲で資料が見つからなくても、その研究が存在しないとは限りません。以下の数値は出典の報告値で、独立に再現した結果ではありません。過去のメモで Proximal Residual の OOS は out-of-sample（学習などに使った標本の外）を指し、out-of-stock（欠品）ではありません。
 
-## Thread: generative-rec-vs-retrieval
-- question: Does generative recommendation actually replace traditional retrieval / multi-stage candidate generation, or only complement it?
-- current understanding: Thirteen industrial paths now coexist. Prior (1)–(12) through VARG search pre-rank bypass (2026-09-22). (13) **UNIQUE (Baidu Mobile): early-fusion unify of generative code retrieval + target-aware ranking** with feedback-aware single-layer flat quantization (vs hierarchical RQ-VAE error cascade); homepage/discovery/short-video watch duration +0.96% / distribution volume +1.08%; P99 89 ms. Radar/Watch: HGenPush (Kuaishou push heterogeneous video+author GR, bypass pre-rank; DAU +0.181%); YouTube Music LLM rationales (+22.43% discovery-shelf engagement, offline LLM); RankGR (Taobao Guess You Like listwise DPO inside GR; IPV +1.08%, older Feb paper).
-- assumptions: Same as before, plus: flat single-layer codes can beat hierarchical SID when early-fusion closes retrieval↔ranking information loss; push heterogeneous (item+author) generation is a distinct surface contract from feed/search.
-- competing hypotheses: Prior (A)–(O) plus (P) Early-fusion flat-code unify (UNIQUE) beats separated retrieval+ranking under feed latency without needing cascade wipe; (Q) Push heterogeneous GR (HGenPush) needs joint video+author decoding beyond single-type SID GR; (R) Hierarchical text intent-abstract IDs (ANGLE) beat SID memorization for sponsored search under catalog churn.
-- supporting evidence: Prior + UNIQUE 2609.23718; (watch) HGenPush 2607.03362; YouTube Music 2609.23877; RankGR 2602.08575; ANGLE 2609.18296; OneTrans-V2 2609.28589
-- conflicting evidence: Hybrid-channel positives remain. UNIQUE still uses code retrieval (not open-vocab slate like HiGR/OGR). HGenPush DAU modest vs VARG GMV. YouTube +22% is discovery-shelf scoped.
-- related papers: prior + 2609.23718 UNIQUE; (watch) 2607.03362 HGenPush; 2609.23877 YT Music; 2602.08575 RankGR; 2609.23677 MuSeR; 2609.18296 ANGLE; 2609.28589 OneTrans-V2
-- unresolved points: UNIQUE vs OGR/GenPage under matched slate K; HGenPush vs PushDualGen matched push; flat vs hierarchical under identical early-fusion backbone; compose Pinterest early-retrieval CG gating with UNIQUE/VARG channel admission.
-- what evidence would discriminate hypotheses: Matched UNIQUE↔OGR↔VARG under fixed catalog/latency; HGenPush vs PushDualGen ablation of author branch; flat vs RQ-VAE with shared early-fusion; Pinterest-style uplift gating on GR channels.
-- last updated: 2026-09-28
-- note (2026-09-24): No new GR cascade-replacement Must. Radar SAM-D2Q (2609.04961) is Doc2Query expansion (GMV +3.38%), not SID GR. Pinterest 2607.14161 complements by causal *admission* of shopping CGs rather than replacing retrieval.
-- note (2026-09-25): **ANGLE (2609.18296, Tencent)** — sponsored-search *anti-SID* one-step retrieval via hierarchical intent-abstract text + GDR-LLM; online WTS +1.81% consumption / +2.16% GMV / +1.5% clicks. New map cell for ads GR vs SID memorization; not organic feed cascade wipe.
-- note (2026-09-28): **OneTrans-V2 (2609.28589, Worth)** — cascade-*preserving* One Transformer + DCGR multi-objective retrieval; online GMV +9.74%, active days +0.25%, 3.2× QPS; HR@1 0.0545→0.0923 vs OneTrans-GR. New map cell vs Sona/OneRec wipe, UNIQUE early-fusion, VARG pre-rank bypass. UNIQUE↔OGR / PushDualGen↔HGenPush still open (rec light day).
+<a id="thread-generative-rec-vs-retrieval"></a>
 
-## Thread: when-complex-ranking-is-worth-it
-- question: Under what conditions do complex deep / listwise / slate ranking models beat simple GBDT or shallow rankers enough to justify complexity?
-- current understanding: UNIQUE and Netflix observability. **2026-09-24:** Spotify dual-threshold + Pinterest CG gating. **2026-09-25:** LinkedIn From Prediction to Incrementality (2608.10182) adds a fourth layer — *global constrained allocation* of marketing sends (Transformer-DragonNet + Bayesian neural-bandit + dual LP; withhold negative CATE; Feed marketing A/B +7.20% LTV, p=0.041). Four layers now: scoreboard (Netflix) → impression spend (Spotify) → CG admission (Pinterest) → constrained global allocation / withhold (LinkedIn). Radar: DSI 2609.28383 (distributional watch-time serving interface; offline only).
-- assumptions: observability metrics can reverse apparent wins from raw engagement; attribution-window mismatch can invalidate naïve CATE on holdback; predictive propensity stacks systematically over-target always-converters when incrementality is the goal.
-- competing hypotheses: Prior (A)–(K) plus (L) Constrained LP allocation on CATE with withhold-negative beats two-tier propensity BAU under budget/frequency caps for marketing outreach.
-- supporting evidence: Prior + UNIQUE 2609.23718; Beyond Raw Engagement 2609.22747; Spotify Incremental 2608.26804; Pinterest Causal Retrieval 2607.14161; LinkedIn 2608.10182; OneTrans-V2 2609.28589
-- conflicting evidence: UVR/LIGE caveats unchanged; Spotify workshop-length / Home landscape; Pinterest shopping-scoped; LinkedIn wide CI [0.31%, 14.09%] and end-to-end (not factorial) online; marketing-send surface may not transfer to dense organic feed.
-- related papers: prior + 2609.23718; 2609.22747; 2608.26804; 2607.14161; 2608.10182; 2609.28589 OneTrans-V2; (watch) 2609.28383 DSI
-- unresolved points: matched UNIQUE vs separated cascade; apply Spotify dual-threshold / Netflix / LinkedIn withhold to GR online reads (VARG/UNIQUE); compose Pinterest CG gating with UNIQUE/VARG channel admission; LinkedIn LP on organic feed ranking.
-- what evidence would discriminate hypotheses: Controlled comparisons that hold features/labels fixed and vary only ranking architecture / objective, with online or counterfactual evaluation; UVR planned transfer ablations; dual-threshold on dense feed catalogs; factorial online of DragonNet vs bandit vs LP components.
-- last updated: 2026-09-28
-- note (2026-09-28): **OneTrans-V2** joint training + in-model KD improves all three cascade stages and consistency; production GMV +9.74% justifies cascade-level unify cost. Cross-link with ml-pipeline-modularity (shared user-context serving cache across stages).
+## 生成型推薦は、従来の候補検索や段階的な順位付けを置き換えるか
 
-## Thread: user-history-context-design
-- question: How much user history should be kept as context, and how should long-term preference be separated from temporary intent?
-- current understanding: Longer sequences help when the sequence branch is actually supervised and temporally aware (ReST). GLIDE soft-prompt long/short split unchanged. **Sona History Compression** unchanged. Watch: **MuSeR (Baidu)** hierarchical temporal compression + multi-interest + multimodal text SID on MGS; DAU +0.26% / session +0.89% with lower latency — authors frame as system integration not a new primitive; overlaps Sona information gain.
-- assumptions: uneven depth across long/short history can substitute for discarding long history.
-- competing hypotheses: Prior (A)–(E) plus (F) Hierarchical pooling of older segments (MuSeR) ≈ Sona uneven-depth under multimodal feeds.
-- supporting evidence: Prior + Sona 2608.11015; (watch) MuSeR 2609.23677
-- conflicting evidence: Experiment 4 (2k) vs Experiment 5 (8k) not a controlled single-factor online A/B; MuSeR not matched to Sona.
-- related papers: 2609.01240; 2603.17540; 2608.24034; 2608.11015 Sona; 2609.23677 MuSeR
-- unresolved points: soft-prompt vs History Compression vs MuSeR pooling head-to-head; causal online isolation of 2k→8k; intent-shift metrics.
-- what evidence would discriminate hypotheses: Ablations on history length and long/short separation with metrics sensitive to intent shift, not only next-item / CVR accuracy; matched Sona 2k vs 8k online.
-- last updated: 2026-10-05
+**2026年9月28日時点の見立て。** 生成型推薦は一つの形に収れんしておらず、当時は実サービスで13通りの方式を整理していました。9月22日までの記録には、VARGが検索で粗い順位付けを省く方式を含め、12通りがありました。13番目のBaidu MobileのUNIQUE（2609.23718）は、生成したコードで候補を探す処理と、対象候補を考慮して順位を付ける処理を早い段階でつなぎます。利用者の反応を反映した一層の量子化でコードを作り、階層型のRQ-VAEで前段の誤りが後段に伝わる構成と対比しています。ホーム、発見面、短尺動画で、著者は視聴時間 +0.96%、配信量 +1.08%、応答時間の99パーセンタイル（P99）89 msを報告しました。
 
-- note (2026-10-05): Watch 2609.38999 (production streaming): aggregate profiles beat LLM-generated profiles for habitual users (~4/5); LLM profiles win only for exploratory users; popularity attractor cuts coverage — supports conditional context selection.
+同じ「生成」でも、次の事例は使い方が違います。
 
-## Thread: tabular-vs-neural-forecasting
-- question: Why are GBDT / tabular models often strong for demand forecasting, and when do neural or foundation models justify themselves?
-- current understanding: Tabular models excel with heterogeneous covariates, moderate data, and strong feature engineering; neural models need clear cross-series or representation advantages. New evidence: on fev-bench, covariate support drives large TSFM gains while native multivariate gains are modest — most TSFMs still ignore covariates. TabPFN-TS remains competitive when covariates are available (higher latency). ApolloPFN (2603.15802) advances PFN line with temporal inductive bias + native exogenous on M5 price/promo, beating TabPFN-TS; Chronos-2 comparison still missing. VN2 (2601.18919) shows carefully engineered global CatBoost + cost-aware policy can win inventory cost without TSFMs.; **Accuracy Is Not Service (2609.13840)** adds intermittent-demand evidence: across 38 methods and 20330 real multi-item orders, accuracy rank and complete-order fill can invert (Spearman ρ=−0.555); Chronos-2 non-zero-conditional re-centering lifts COFR 54%→63% while MASE worsens.
-- assumptions: Leaderboard wins without conditionals (series count, horizon, shift, sparsity, cold start) are weak evidence.
-- competing hypotheses: (A) Tabular wins mainly via covariates + leakage-safe features; (B) Neural wins when sharing across many related series; (C) Foundation models win mainly on cold-start / zero-shot transfer.
-- supporting evidence: fev-bench (2509.26468): 100 tasks / 46 with covariates; Chronos-2 leads overall; covariates lift Chronos-2 and TabPFN-TS skill scores substantially; multivariate modeling gains small; Accuracy Is Not Service 2609.13840 (ρ=−0.555; COFR 54%→63% with MASE worsening)
-- conflicting evidence: CatBoost/LightGBM still mid-pack on fev-bench vs top TSFMs on average — conditionals for retail promotions/stockouts still under-tested.
-- related papers: 2509.26468 (radar); 2603.15802 ApolloPFN (Worth Reading); 2601.18919 VN2 CatBoost (Worth Reading); 2607.25664 CD (Worth Reading, decision metrics); 2609.13840 Accuracy Is Not Service; 2608.15291 ReasonCast (Must); 2609.27867 Evaluation Choices (Radar); (watch) 2607.16354 PtC
-- unresolved points: decision-aware value versus error metrics; intermittent / censored demand; retail-specific TSFM vs GBDT with promotions under matched covariates (ApolloPFN still lacks Chronos-2 and GBDT head-to-head). Watch **t0 (2609.24559)** confirms covariate lift (+6.3 skill on fev-bench) but is still not a promo+stockout retail bake-off. **2026-09-28:** ReasonCast advances *event-text routing* over Chronos-2 but still **no** matched promo+stockout TSFM↔GBDT with inventory-cost metrics.
-- what evidence would discriminate hypotheses: Conditioned benchmarks and ablations that isolate cross-series sharing, covariates, and cold-start separately; inventory-cost evaluation not only RMSSE/WAPE; bake-offs that fix aggregation unit (see Evaluation Choices).
-- last updated: 2026-10-08
-- note (2026-09-28): **ReasonCast (2608.15291, Must)** — selective Skip/Basic/Tool semantic intervention on frozen Chronos-2; WMAPE −3.29/−1.25/−0.47 pp on holiday/mega-sale/M5 event slices; always-on semantics +1.68 pp WMAPE. Routing of text covariates beats uniform fusion. Radar **Evaluation Choices (2609.27867)**: unit of analysis flips production baseline 2/19→23/25; selection rule 54.6% floor–ceiling (M5 replay 64.7%); interval vs point rank corr 0.02 intermittent — bake-off design must fix aggregation. Watch: PtC 2607.16354.
-- note (2026-09-29): No matched promo+stockout TSFM↔GBDT this run. Switch-Hurdle is intermittent MoE/hurdle accuracy (Radar). Secondary reports of Alibaba “Bitter Lesson” Chronos-2 FT vs production N-BEATS parked pending primary arXiv/SSRN PDF.
-- note (2026-09-30): No matched promo+stockout TSFM↔GBDT. Bitter Lesson SSRN 6788658 identity confirmed (Xin homepage) but primary PDF/arXiv still unavailable — remain Park. ISOMORPH (2605.12768, Radar) adds logistics fill-rate/backlog/utilization TSF targets under fixed (s,S), not a retail bake-off.
-- note (2026-10-01): No matched promo+stockout TSFM↔GBDT. Bitter Lesson SSRN 6788658 rechecked — PDF still 403; remain Park. Radar **Bridging Forecast Accuracy (2601.21844)**: open-source intermittent spare-parts simulator; Croston beats XGBoost on total cost despite worse MAE — reinforces accuracy≠inventory KPIs (synthetic). RA-DFL still Park (Exa only). DeepStock is control not forecast bake-off.
+| 検討対象 | 何をしたか | 当時確認した範囲 |
+| --- | --- | --- |
+| HGenPush（2607.03362、Kuaishou、注視） | 通知候補として、動画と投稿者という種類の異なる対象を生成し、粗い順位付けを省く。 | 日次アクティブユーザー（DAU）+0.181%。この値の大小をVARGの流通取引総額（GMV）の伸びと直接比べられない。 |
+| YouTube Music（2609.23877） | 大規模言語モデル（LLM）を事前に使い、推薦の理由を作る。 | 発見棚の利用反応 +22.43%。サービス全体の改善ではない。 |
+| RankGR（2602.08575、TaobaoのGuess You Like） | 順位リスト全体に対する直接選好最適化（listwise DPO）を生成型推薦の中で行う。 | IPV +1.08%。このメモより前の2月の論文。 |
 
-- note (2026-10-02): **RA-DFL** upgraded Park→Radar (MSIED 2026 journal PDF): LightGBM-QR vs neural under promo/censor proxies with inventory cost (−3.7% M5 vs best PTO; CVaR-on-PTO +9.7% harmful). Still **no Chronos/TSFM↔GBDT** matched bake-off with service metrics — gap open on TSFM side. Bitter Lesson SSRN 6788658 primary text not available in this historical review. censored-demand-tsfm Exa package Park (no arXiv).
+従来の候補経路と生成型の経路を併用して効果が出た例も残っています。UNIQUEもコードを使って候補を探しており、HiGRやOGRのように、固定の候補コードに閉じず表示リストを生成する方式とは異なります。
 
-- note (2026-10-05): **Zalando pricing (2606.13741, Must)** — production daily sales-event forecaster: LightGBM chosen over TSMixer/MLP; GBT best on business-weighted Demand Error 0.574 / GMV Error 0.142 but MLP best on uniform RMSE 3.02 / MAPE 0.040 (winner flips with metric weighting, cf. Evaluation Choices); MSE vs Tweedie near-equal accuracy but MSE over-promises decision value (115% forecast vs 93% realized PCII). **EXAONE Demand (2609.30880, Worth)** — demand-specific TSFM with Syntetos–Boylan-routed LoRA branches beats TiRex/Chronos-2 (MASE 1.0667 vs 1.0818/1.0885) but has **no GBDT baseline and no covariates**. **When-Not-How-Much (2609.39386, Radar)** — TSFM point forecasts ≈ seasonal reference for sparse-event ranking; frozen-TSFM probes ≈ raw LightGBM on Favorita/M5. Watch: global GBDT collapse at hierarchy total 2609.27912; SimpleTimeBench covariate blind spots 2610.02058; FreshRetailNet v3 Chronos-2 < TFT under censoring. Matched promo+stockout TSFM↔GBDT with service metrics **still open**.
+### 何を仮説として残したか
 
-- note (2026-10-08): No matched promo+stockout TSFM↔GBDT. **Sim2Real policy-conditioned forecasting (2610.03662, Worth, Amazon)** — forecast targets that depend on the firm's own policy (aggregate inbound under capacity cost λ) cold-start at policy change; CNN forecaster trained on Exo-IDP rollouts of the target policy beats same architecture on off-policy history (S2 MAPE 9.4–15.3 vs 25.2–28.1; S1 within CIs). Radar **traffic forecast-to-decision (2610.06992)**: layered gate — check oracle value and effective-action count before crediting forecasts (2/9 intersections have >1 effective action; real-day closed loop no gain). Watch 2610.07232 (Chronos-2 degrades with noisy future covariates), 2610.08337 (quantile LightGBM ≥ zero-censored Transformer, energy), 2610.04385 (Rashomon-robust tree newsvendor).
+既存の仮説（A）〜（O）は以前のメモを指します。この版で追加したのは次の3点です。
 
+- **（P）フィードの応答時間に制約がある場合。** 検索と順位付けを早い段階でつなぎ、そこで失われる情報を減らせるなら、一層のコードが階層型の意味ID（SID）を上回る可能性があります。UNIQUEの方式なら、段階構成を全部なくさなくても、検索と順位付けを分離した方式を上回る、という仮説です。
+- **（Q）通知で動画と投稿者を同時に扱う場合。** 同じ種類の対象だけを一つのSID方式で生成するだけでは足りず、動画と投稿者を一緒に生成する処理が必要になる、という仮説です。フィードや検索とは、生成して渡す候補の種類が異なります。
+- **（R）広告の品ぞろえが頻繁に変わる場合。** 検索意図から具体的な対象へと段階化したテキストID（ANGLE）が、SIDを覚える方式よりも検索広告に適している、という仮説です。
 
-## Thread: observed-sales-vs-latent-demand
-- question: How should forecasting and retail models account for the gap between observed sales and latent demand (stockouts, censorship, substitution, cannibalization)?
-- current understanding: **2026-09-25 watch:** SGC (2609.27606) is adjacent (live inventory as conditioning slice for direction drift) but gaming-coach surface, not retail latent-demand recovery.  Treating sales as demand biases many retail decisions; methods that model the observation process are underused relative to their importance. A usable open benchmark with hourly stockout annotations now exists (FreshRetailNet-50K); two-stage recover-then-forecast reduces underestimation bias in reported experiments. VN2 winner uses stockout masking + features (not structural Tobit/latent recovery) but couples to cost-aware ordering with measured inventory-cost win; CD shows accuracy≠inventory cost via h/p crossover. New: ChronosFlow-ICGPS (2605.14840) closes offline imputation ↔ online inventory by generative latent-demand completion + critical-fractile actions under decision-dependent censoring (regret theory + SuperStore). Walmart Restricted Logit DT (2608.12680) scales substitution coefficients for SAO but validates only via WMAPE proxy.; **Accuracy Is Not Service (2609.13840)** links intermittent observed-order demand to service outcomes with COFR and the Bias-Direction Diagnostic (BDD), reinforcing that error metrics can mis-rank operational decisions.
-- assumptions: Stockouts and assortment/promotion changes are common confounders in retail observational data.
-- competing hypotheses: (A) Censoring-aware likelihoods suffice; (B) Need structural choice / substitution models; (C) Causal identification of interventions matters more than denser demand models.
-- supporting evidence: FreshRetailNet-50K (2505.16319): 50K store-product series, hourly stockout labels; recover-then-forecast claimed ~2.73% accuracy gain and bias from −7.37% toward ~0 (author pipeline; recovery eval uses simulated MNAR on non-stockout periods — interpret carefully); Accuracy Is Not Service 2609.13840 (COFR; BDD; ρ=−0.555 accuracy/service inversion)
-- conflicting evidence:
-- related papers: 2505.16319 (radar / dataset watch); Tobit ETS line (earlier); 2601.18919 VN2 stockout-aware CatBoost + cost-aware policy (Worth Reading); 2607.25664 CD inventory-cost honesty (Worth Reading); 2605.14840 ChronosFlow-ICGPS (Worth Reading); 2608.12680 Restricted Logit DT (Watch); 2609.13840 Accuracy Is Not Service; (watch) 2609.27606 SGC direction-drift/inventory wrappers
-- unresolved points: practical estimators under partial stockout observability; substitution/cannibalization not solved by censoring labels alone; VN2 uses masking not structural latent-demand recovery; decision-aware metrics improving but still sparse outside competitions.
-- what evidence would discriminate hypotheses: Studies with known stockout/assortment interventions and downstream inventory or assortment decision metrics.
-- last updated: 2026-10-08
-- note (2026-09-28): No structural censorship/latent-demand Must this run. ReasonCast addresses *future event* semantics, not stockout censoring. SCOPE couples assortment–inventory ops but does not recover latent demand. Watch: PtC 2607.16354 / AIPS 2609.08071 (exploratory). Unresolved unchanged: latent demand + inventory/service metrics beyond Accuracy-Is-Not-Service / ChronosFlow / VN2.
-- note (2026-09-29): SabreAgent is lost-sales *control* on InventoryBench with *observed* demand (not censored). OR-Transformer uses backlog simulation. Switch-Hurdle is intermittent accuracy-only. Gap unchanged: latent demand + inventory/service metrics beyond Accuracy-Is-Not-Service / ChronosFlow / VN2.
-- note (2026-09-30): InvEvolve CJ uses censored-sales → latent-demand reconstruction for *policy* eval (not structural recover-then-forecast+service). Constrained FBSDE pathwise budgets are control constraints, not censorship recovery. Gap unchanged beyond Accuracy-Is-Not-Service / ChronosFlow / VN2.
-- note (2026-10-01): **DeepStock (2603.19621, Must)** trains on inferred demands at stockout (extrapolate by time-of-stockout) then deploys with real SR/TT; not structural recover-then-forecast+service like ChronosFlow/Accuracy-Is-Not-Service. Diff Projection is backorder multi-echelon (not retail censoring). Gap unchanged: latent demand + inventory/service metrics beyond Accuracy-Is-Not-Service / ChronosFlow / VN2. Watch theory 2609.06083/2608.30944/2609.37380.
+### 同じ条件にそろえて確かめるには
 
-- note (2026-10-02): **ORPR (2512.19001, Must)** JD lost-sales field control with ISR/TT/holding — not structural recover+service. **RA-DFL** corrects decision loss under censoring proxies (not ChronosFlow-style latent completion). Gap unchanged beyond Accuracy-Is-Not-Service / ChronosFlow / VN2.
+UNIQUEとOGR／GenPageは、表示候補数 `K` をそろえて比べます。UNIQUE・OGR・VARGを比べるなら、候補カタログと応答時間の制約も固定します。通知では、HGenPushとPushDualGenを同じ配信条件に置き、投稿者を生成する枝を外したときに何が変わるかを見ます。一層の量子化と階層型RQ-VAEは、検索と順位付けをつなぐモデルを同じにして比較します。Pinterestが行った「表示したことで上乗せ効果が見込める候補生成経路だけを採用する」手法を、UNIQUEやVARGの生成経路の採用判断に使えるかは未確認です。
 
-- note (2026-10-05): No structural latent-demand + service paper. EXAONE Demand models (s,S) censoring only in synthetic pretraining (recovery listed as future work). FreshRetailNet v3 (2505.16319v3, "LT") shows recovery fixes Chronos-2 bias (WPE −7.15%→+0.88%) but accuracy-only, no GBDT. Biased SAA 2609.39397 = theory (coverage condition under censoring). Zalando clips forecasts by stock (min(M,ΣS)) but does not de-censor. Gap unchanged beyond Accuracy-Is-Not-Service / ChronosFlow / VN2.
+### 日付別の補足
 
-- note (2026-10-08): Sim2Real (2610.03662) replays availability-corrected unconstrained demand as exogenous (recovery method not the subject). Park: Azar 2026 FreshRetailNet leakage-free IMR/Tobit recovery + LightGBM + newsvendor under fill-rate floor (Exa/Synapse only, no arXiv). Gap unchanged beyond Accuracy-Is-Not-Service / ChronosFlow / VN2.
+- **2026年9月24日。** 段階構成を置き換える生成型推薦で、新たに優先して読むべきと判断した資料はありませんでした。注目枠のSAM-D2Q（2609.04961）は、文書から検索クエリを作って検索を補うDoc2Query方式です（GMV +3.38%）。SIDを使う生成型推薦ではありません。Pinterest（2607.14161）は、購買向けの候補生成経路を採用するかを因果効果で判断するもので、検索自体を置き換えていません。
+- **2026年9月25日。** TencentのANGLE（2609.18296）は、広い検索意図と対象を表す短いテキストを階層化し、GDR-LLMで検索広告の候補を一段で取得します。WTSのオンライン報告値は広告消費額 +1.81%、GMV +2.16%、クリック数 +1.5%。広告でSIDを覚える方式との比較には使えますが、通常のフィードの段階構成を置き換えた例ではありません。
+- **2026年9月28日。** OneTrans-V2（2609.28589、読む価値あり）は、検索・粗い順位付け・精密な順位付けを残したまま、一つのTransformerを共有し、多目的の候補取得にDCGRを使います。オンラインGMV +9.74%、利用日数 +0.25%、1秒あたりの処理件数（QPS）3.2倍を報告。OneTrans-GRとの比較では、1位の候補が正解に当たる割合（HR@1）が0.0545から0.0923になりました。SonaやOneRecの段階をなくす方式、UNIQUEの早期統合、VARGの粗い順位付けの省略とは区別しています。この日は推薦分野の追加材料が少なく、UNIQUEとOGR、PushDualGenとHGenPushを同じ条件で比較する問いは残りました。
 
+この版で追加・参照した資料：UNIQUE（2609.23718）、HGenPush（2607.03362）、YouTube Music（2609.23877）、RankGR（2602.08575）、MuSeR（2609.23677）、ANGLE（2609.18296）、OneTrans-V2（2609.28589）。それ以前の資料は以前の調査メモを指します。
 
-## Thread: causal-placement-and-assortment
-- question: How can assortment and shelf-placement effects be identified from observational retail data despite selection bias?
-- current understanding: Placement and assortment are rarely random; naive correlations confound popularity, seasonality, and store policy. Best new industrial lead is ACM 2025 Whole Foods shelf framework (geospatial elasticity + causal lift), but evidence is simulation case studies—not staggered planogram rollouts. Still no field staggered planogram/assortment RCT clearing bar (**2026-09-25 scout: still open**); Walmart DT (2608.12680) is observational substitution scaling, not causal placement ID. New Watch: PATRO (2603.10511) gives a post-RCT dual-adjustment rule for rollout + downstream inventory/pricing that nearly matches Bayes risk in theory/numerics — useful decision layer once an RCT exists, but not itself field planogram evidence.
-- assumptions: Baseline demand and exposure/placement effects are entangled in historical planogram data.
-- competing hypotheses: (A) Quasi-experiments / panel methods can recover effects; (B) Need explicit experimentation or engineered rollouts; (C) Structural choice models beat pure causal ML here.
-- supporting evidence: ACM GeoIndustry 2025 Whole Foods shelf framework (Amazon Science): geospatial space elasticity + causal lift (IPW/DR) + constrained optimization; simulation +7.5% remodeling / +6.7% new store — not field staggered rollouts.
-- conflicting evidence: OPTIMUS 2605.14430 (Lowe’s) is optimization with empirical elasticity, weak causal identification (parked).
-- related papers: acm-geindustry-2025-shelf (Worth Reading); 2605.14430 (parked); 2603.10511 PATRO (Watch); 2607.28488 SCOPE (Worth Reading); 2609.01933 OR-Transformer (Worth); (watch) 2608.14275 Joint Placement
-- unresolved points: store heterogeneity; exposure → recognition → purchase mechanism; need planogram quasi-experiments / staggered rollouts with holdout stores; apply PATRO-style adjustments to assortment/planogram RCTs with inventory metrics; SCOPE is proxy U_ref not live field planogram RCT.
-- what evidence would discriminate hypotheses: Designs that separate policy-driven placement from demand, with holdout stores or staggered rollouts.
-- last updated: 2026-10-08
-- note (2026-09-28): **SCOPE (2607.28488, Worth)** — learned coupled assortment–cycle–routing on Dingdong + JD; Dingdong U_ref 206329.79; JD U_ref 293547.12 vs best decomposed +4573.96 (~1.58%). Complements OR integrated models with learned coupling; **still not** field staggered planogram RCT (scouted again; none found).
-- note (2026-09-29): **OR-Transformer (2609.01933, Worth)** — scales stochastic joint replenishment with shared fixed cost to 1,024 items via permutation-equivariant Transformer + pathwise gradients; synthetic, not field planogram RCT. Watch **Joint Placement 2608.14275** (theory approx for placement+assortment+fulfillment). Field staggered planogram RCT still open.
-- note (2026-09-30): RetailBench exposes shelf-assortment actions in a Dominick's-grounded sim but is **not** field staggered planogram RCT. Constrained Deep Inventory FBSDE (2609.11817, Radar) adds pathwise warehouse/emission aggregate budgets (Amazon). Field staggered planogram RCT still open.
-- note (2026-10-01): **Hard Constraints Diff Projection (2608.02343, Worth)** — capacitated multi-echelon production–inventory with hard shared resources (ASML −3.22%); still **not** field staggered planogram RCT. DeepStock is single-echelon e-comm replenishment. Shelf-reset/category-reset RCT searches empty again.
+<a id="thread-when-complex-ranking-is-worth-it"></a>
 
-- note (2026-10-02): **Proximal Residual (2609.23242, Worth)** Amazon SCOT inventory *placement* value learning (−5% OOS vs production proxy) — advances placement axis, **still not** field staggered planogram/assortment RCT. Facings/holdout-store search empty again. Watch ACT/WAIT 2609.10615 (synthetic causal pricing abstention only).
+## 複雑な順位付けは、どんな条件で追加コストに見合うか
 
-- note (2026-10-05): **Zalando (2606.13741)** supplies a template for causal retail-intervention evaluation (clustered article-level randomization balancing pre-period profit/NMV; 23 tests; Bayesian hierarchical meta-analysis) — but for pricing, not planogram; interference risk among substitutable articles noted. Planogram: only "Beyond the Shelf" (J. Applied Marketing Theory; 6 treated vs 10 control stores, one category, +21.2%/+27.6%) — Park, below bar. Field staggered planogram/assortment RCT still open.
+**2026年9月28日時点の問い。** 深いモデル、候補リスト全体を学ぶモデル、表示する組み合わせ全体を選ぶモデルは、勾配ブースティング木（GBDT）や浅い順位付けモデルと比べ、どの条件なら追加の実装・運用コストに見合うか。候補を並べるモデルだけでなく、どの指標で評価し、何を何回届けるかまで分けないと、どこが改善を生んだかが分かりません。
 
-- note (2026-10-08): Planogram/shelf field-RCT search empty again (only Beyond the Shelf / STARS classics). Sim2Real Study 1 used a year-long randomized RL-policy deployment for an exogeneity check (demand/lead-time small significant shifts) — useful design note, not placement.
+### 当時の事例を、何を決めるかで分ける
 
+| 判断 | 当時の事例 |
+| --- | --- |
+| 何を成功と数えるか | NetflixのBeyond Raw Engagement（2609.22747）。利用反応の量だけで見ると勝っていた方式が、評価指標を変えると逆転し得ます。候補検索と順位付けを統合する方式として、別にUNIQUE（2609.23718）も検討しました。 |
+| 表示の機会をどこに使うか | 9月24日に確認したSpotify Incremental（2608.26804）。二つのしきい値を用いる方式です。 |
+| どの候補生成経路から候補を採用するか | 同日に確認したPinterest Causal Retrieval（2607.14161）。購買向けの候補生成経路を、候補取得の早い段階で採用するか判断します。 |
+| 配信枠を全体でどう配り、誰には送らないか | 9月25日に追加したLinkedInのFrom Prediction to Incrementality（2608.10182）。Transformer-DragonNetで受け手の属性に応じた介入効果（CATE）を推定し、ベイズ型ニューラルバンディットと双対の線形計画（LP）を組み合わせます。推定効果が負なら配信を控えます。フィード上のマーケティング配信のA/Bテストでは、顧客生涯価値（LTV）+7.20%、p=0.041を報告しました。 |
 
-## Thread: ml-pipeline-modularity
-- question: How should training, features, and inference be modularized so ML systems stay changeable, testable, and consistent offline/online?
-- current understanding: AURA + EvoPilot + FlashVector + Netflix observability. **2026-09-24:** **SWE-Serve (2609.26777)** adds a production-correctness eval axis for inference-serving agents: 53 SGLang tasks; on 19 E2E tasks pass rate 45.9% full verifier vs 69.4% without E2E (+23.4pp). Spotify/Pinterest add experiment-holdout → causal model → online policy reuse patterns (Shopping Holdout + offline replay with close online trigger-rate match). **2026-09-25:** LinkedIn 2608.10182 adds production lessons on *agentic experiment scaffolding* (freeze audiences, audit segment lineage) and delivery/cost feedback controllers so causal policies are measurable under matched delivery — an experiment-harness layer beside SWE-Serve/FlashVector.
-- assumptions: serving-stack agents need SLO-gated acceptance AND live E2E gates, not local unit/kernel benches alone.
-- competing hypotheses: Prior (A)–(M) plus (N) Live model-serving E2E tests are necessary to avoid false local passes for serving agents; (O) Offline replay calibrated on holdout can select CG-trigger thresholds that match online.
-- supporting evidence: Prior + FlashVector 2609.17391; Beyond Raw Engagement 2609.22747; SWE-Serve 2609.26777; Pinterest 2607.14161; Spotify 2608.26804
-- conflicting evidence: AgentX/DREAM/PILOT matched A/B gaps unchanged; SWE-Serve is SGLang-scoped benchmark not a rec product A/B.
-- related papers: prior + 2609.17391 FlashVector; 2609.22747; 2609.26777 SWE-Serve; 2607.14161; 2608.26804; 2609.16625 AURA; 2609.21257 EvoPilot
-- unresolved points: compose AgentX KEEP + DREAM + PILOT + FlashVector under SWE-Serve-style E2E; apply Netflix/Spotify incrementality to GR online reads.
-- what evidence would discriminate hypotheses: Matched budgets across harness types; FlashVector vs human expert under same SLO + SWE-Serve E2E; PILOT 2×2.
-- last updated: 2026-10-08
-- note (2026-09-28): **OneTrans-V2** shared user-context cache across cascade stages (serving modularity). Radar **Evaluation Choices** as forecast-pipeline evaluation modularity (unit-of-analysis dial). Radar **Harness-Zero (2609.24974)** as harness↔weights boundary (distill evolved harness into student weights).
-- note (2026-09-29): **SabreAgent** design-time freeze of LLM artifacts vs runtime OR/forecast loop — another modularity boundary (propose-then-verify, not per-step LLM).
-- note (2026-09-30): **InvEvolve** propose→replay→CI-certify→deploy boundary; complementary to SabreAgent design-time freeze. Constrained FBSDE safety QP layer as serving-time modularity for aggregate budgets.
-- note (2026-10-01): **DeepStock** Base/Coeff regularizations as action remapping inductive bias (does not restrict policy class expressiveness) + unified meta-learning across 1M+ SKU-warehouse — modularity for DRL inventory. **Diff Projection** QP+integer-map as serving-time feasibility layer complementary to Constrained FBSDE safety QP.
+ほかに注目したDSI（2609.28383）は、視聴時間を一点ではなく分布として扱う配信の仕組みです。確認できた評価はオフラインに限ります。
 
-- note (2026-10-02): **ORPR** OR-label pretrain → RLOO align boundary (OR as guidance generator). **Proximal Residual** planning value ↔ real-time optimizer shared convex objective + PCSP consistency — complementary to Diff Projection QP feasibility layer.
+### 効果の解釈で外せない条件
 
-- note (2026-10-05): Zalando decouples forecaster and optimizer via a persisted discount×day grid (plug-and-play forecasters; monotone constraint shrinks optimizer search) — forecast/decision modularity with "do no harm" A/B gate. Watch: agent serving production trace 2609.34432 (cross-task context reuse); AgentX-Model 2609.30001 (complex research scheduling no consistent gain).
+施策後の成果を数える期間が配信群と配信を控えた群でそろっていなければ、単純に比較しても介入効果（CATE）を正しく推定できない場合があります。また、施策の**上乗せ効果**が知りたいのに、購入や登録の起きやすさだけを予測すると、配信しなくても購入・登録する人へ送りすぎます。
 
-- note (2026-10-08): **Sim2Real (2610.03662)** — policy / dual λ coordinator / response forecaster as separate parts; on policy change, retrain the forecaster on simulated target-policy rollouts, then α+βĴ online calibration. **HEAR (2610.06597, Radar)** — harness↔engine control-plane protocol (intent/requirements ↔ state/capabilities/outcomes); efficiency-only (SCBench 1.61×, TTFT 2.23×). Watch Coda 2610.03088 (coding-agent KV admission).
+UVRとLIGEに関する留保は、以前のメモから変更していません。Spotifyはワークショップ向けの短い報告で、対象はホーム面です。Pinterestは購買に限ります。LinkedInの信頼区間は [0.31%, 14.09%] と広く、オンラインで比べたのは仕組み全体です。各部品の効果を分けた試験ではなく、利用者に自然に並ぶ候補が多い通常のフィードに同じ効果が出るかは分かりません。
 
+### 残した仮説と、判断に必要な比較
 
-## Thread: agent-architecture-and-harness
-- question: When do multi-agent architectures and harness/runtime design beat a strong single agent, and what should be remembered, forgotten, or re-fetched?
-- current understanding: Prior layers + AURA + EvoPilot + FlashVector. **2026-09-24:** **SWE-Serve**. **2026-09-25:** Radar **SGC (2609.27606)** formalises *direction drift* and wraps Perception/Grounding/Interaction over live state (incl. inventory) — IGPO-adjacent; coach benchmark latency 1.5s vs 6.1s PE-Agent; no product A/B deltas. shows model-specific harnesses (Codex/Claude Code) do not beat mini-SWE-agent mean pass@1 on top configs, and multi-runtime-domain tasks pass 21.3pp lower than single-domain — harness/eval design matters as much as the agent loop. Radar: IGPO (2609.04813) training-free inventory-grounded Policy Guidelines for AI search (CTR +3.17% / bad-case −38.9%). **2026-09-29:** **SabreAgent (2609.19760)** — design-time LLM for inventory priors/policy family; zero runtime LLM; InventoryBench 0.6311.
-- assumptions: serving agents need production-traffic replay + SLO gates + live E2E; inventory portraits may need runtime re-fetch not baked prompts.
-- competing hypotheses: Prior (A)–(K) plus (L) Live E2E + multi-domain tasks are required to claim serving-agent competence; (M) Training-free inventory-conditioned policy guidelines can beat static prompts under catalog churn; (N) Design-time LLM artifacts + frozen OR beat per-period LLM order loops on inventory benchmarks.
-- supporting evidence: Prior + FlashVector 2609.17391; SWE-Serve 2609.26777; (watch) IGPO 2609.04813; Harness-Zero 2609.24974; SabreAgent 2609.19760
-- conflicting evidence: Same observational limits on research harnesses; SWE-Serve SGLang-scoped; IGPO smart-assistant surface; Harness-Zero is bench success not production serving A/B; SabreAgent is InventoryBench (uncensored demand, zero purchase/setup) not live store A/B.
-- related papers: prior + 2609.17391 FlashVector; 2609.26777 SWE-Serve; 2609.16625 AURA; 2609.21257 EvoPilot; 2609.04813 IGPO; 2609.24974 Harness-Zero (Radar); 2609.19760 SabreAgent; (watch) 2609.19759 SAIGE; 2602.12631 InventoryBench
-- unresolved points: authority split across five harness types including serving; compose FlashVector with AURA under SWE-Serve E2E when serving bugs look like model bugs; inventory-grounded agents beyond IGPO/SGC still open; Harness-Zero under SWE-Serve E2E; SabreAgent under censored retail demand + inventory-cost metrics.
-- what evidence would discriminate hypotheses: Pilot-gated vs always-on; FlashVector vs human expert under same SLO + SWE-Serve E2E; IGPO on retail assortment with inventory-cost metrics; Harness-Zero∘FlashVector / SWE-Serve; SabreAgent design-time artifacts transferred to FreshRetailNet-style censored panels.
-- last updated: 2026-10-08
-- note (2026-09-28): **Harness-Zero (2609.24974, Radar)** — distill evolved harness into weights; macro success 23.3%→44.3% under mini-SWE-agent alone (exceeds 41.7% with harness attached); 82.3% recovery of 28 harness-exclusive patterns. Watch **SAIGE (2609.19759)**: multi-agent helps sparse deps; single-agent better on dense chains.
-- note (2026-09-29): **SabreAgent (2609.19760, Must)** — JD design-time LLM for seasonal prior + capped base-stock family; zero runtime LLM; InventoryBench NR 0.6311 vs best public 0.5380; frozen OR core 0.6180. New map cell: LLM at design time vs order loop (AIPS/runtime LLM) and vs IGPO/SGC live-state wrappers. Harness-Zero∘SWE-Serve E2E and inventory-grounded beyond IGPO/SGC still open.
-- note (2026-09-30): **InvEvolve (2605.00369, Must)** — AlphaEvolve-style certified white-box inventory policy evolution (Tilted-CBS/PIC); synthetic 83% / Dunnhumby 67% win rates. New map cell next to SabreAgent (artifact freeze) and AIPS (runtime/exploratory LLM). **RetailBench (2603.16453, Worth)** — 180-day Dominick's-grounded store-ops agent bench; oracle NW 131k vs best LLM ~24k; failure taxonomy advances inventory-grounded agents beyond IGPO/SGC as *eval surface*. Harness-Zero∘SWE-Serve E2E still open.
-- note (2026-10-01): DeepStock is structure×DRL (not LLM agent) but sharpens design-time vs runtime map next to SabreAgent/InvEvolve: classical inventory structure as regularization enabling full-scale DRL. Flowr 2604.05987 Skip (thin MCP PoC). Harness-Zero∘SWE-Serve E2E and inventory-grounded agents beyond IGPO/SGC/RetailBench still open.
+既存の仮説（A）〜（K）に、（L）を追加しました。マーケティング配信で予算と頻度に上限がある場合、CATEに基づく線形計画で全体の配信先を決め、推定効果が負の人には送らない方が、反応の起きやすさを二段階で予測する現行方式よりもよい、という仮説です。
 
-- note (2026-10-02): ORPR is OR+DL+RL (not LLM agent) but sharpens JD inventory map next to SabreAgent: runtime learned policy vs design-time LLM freeze. Harness-Zero∘SWE-Serve E2E and inventory-grounded agents beyond IGPO/SGC/RetailBench still open.
+- UNIQUEと従来の段階型モデルを、入力特徴量・正解ラベルを固定し、モデル構成や学習目的だけを変えて比較します。オンライン実験か、実施しなかった場合の結果を推定する反実仮想評価を使います。UVRは、別の条件へ転用するとき、どの部品が効くかを切り分ける比較が予定されていました。
+- VARGやUNIQUEのオンライン評価に、Spotifyの二つのしきい値、Netflixの評価指標、LinkedInの「送らない」判断を適用できるかは未確認です。候補が豊富なフィードでの二つのしきい値や、通常のフィード順位付けでのLinkedIn型の配分も未確認です。
+- Pinterestの候補生成経路を選ぶ手続をUNIQUE／VARGに組み合わせる比較と、LinkedInのDragonNet・バンディット・線形計画の有無を組み合わせ、各部品の寄与を切り分けるオンライン実験が必要です。
 
-- note (2026-10-05): **Radar 2609.29875 (agent reasoning forgetting)** — historical reasoning becomes replaceable once derived state is externalized to code/files/tool outputs (future risk 67.3% vs 36.2%; within-task +19.8pp); trajectory amplification makes local deletion ≠ total compute. Evidence noisy (no seeds; Delete-All-Thinking near-equal). Adds a remember/forget criterion: keep reasoning only while it is the sole carrier of derived state. Watch AgentX-Model 2609.30001. Harness-Zero∘SWE-Serve E2E and inventory-grounded agents beyond IGPO/SGC/RetailBench still open.
+**2026年9月28日の補足。** OneTrans-V2（2609.28589）は、段階をまたいだ同時学習とモデル内の知識蒸留（KD）で、3段階すべての指標と段階間の一貫性が改善したと報告しました。本番のGMV +9.74%は、この事例で段階をまたいで統合するコストに見合うとみる根拠です。ユーザー文脈の配信用キャッシュを各段階で共有する設計は、後掲の `ml-pipeline-modularity` とも関係します。
 
-- note (2026-10-08): **What Does a Harness Buy? (2610.04433, Worth)** — under fixed model with reruns, Claude Code vs mini-SWE-agent equivalent within 5pp on SWE-bench Verified pool447; harness swap flips 13% = rerun flip 13% on hard45; only significant effect is a loss (OpenCode −9pp, output cap); cost up to 3× via per-step preamble (16.6k/7.0k/0.8k tokens) × steps. Challenges large spreads in Scaffold GAIA / Harness-Bench for coding; harness value shifts to failure-surface reduction + bill. Watch SHarP 2610.04178 (harness redundancy), ServeLearnBench 2610.07792 (continual-learning harnesses can degrade correct behavior), compaction-harm 2610.08722. HEAR adds harness↔serving efficiency, still no Harness-Zero∘SWE-Serve correctness E2E.
+この版で見た資料は、UNIQUE（2609.23718）、Netflix（2609.22747）、Spotify（2608.26804）、Pinterest（2607.14161）、LinkedIn（2608.10182）、OneTrans-V2（2609.28589）、注視中のDSI（2609.28383）です。それ以前の根拠は以前の調査メモを指します。
+
+<a id="thread-user-history-context-design"></a>
+
+## 推薦にどこまで過去の履歴を使い、長期の好みと直近の意図をどう分けるか
+
+**2026年10月5日時点の見立て。** ReSTのように、履歴系列を扱う部分に学習目標を与え、行動の時間的な関係も捉えられる場合は、長い履歴が役立ちます。学習した入力表現（ソフトプロンプト）で長期・短期の履歴を分けるGLIDEや、SonaのHistory Compression（履歴圧縮）に関する見立ては、この版では変えていません。
+
+注目したBaiduのMuSeR（2609.23677）は、MGS上で、履歴を時間のまとまりごとに階層的に圧縮し、利用者の複数の関心と、複数種類の情報をテキストで表す意味ID（SID）を組み合わせます。日次アクティブ利用者（DAU）は+0.26%、セッション指標は+0.89%で、応答時間も短縮したと著者は報告しました。著者は新しい基本手法ではなく、既存の手法を組み合わせたシステムとして位置づけています。どの履歴情報を残すと役に立つかという点では、Sonaと重なります。
+
+### 仮説と、確かめるための比較
+
+長期履歴を捨てる代わりに、古い履歴と最近の履歴で処理の深さを変えられると考えました。既存の仮説（A）〜（E）に、**（F）複数種類のコンテンツを扱うフィードでは、MuSeRのように古い履歴を段階的にまとめる方式でも、Sonaのように処理の深さを変える方式と同程度の効果が得られる**、という仮説を追加しました。Sona（2608.11015）の実験4（2k）と実験5（8k）は、履歴長だけを変えたオンラインA/Bテストではありません。MuSeRもSonaと同じ条件では比較されていません。
+
+GLIDEのソフトプロンプト、Sonaの履歴圧縮、MuSeRの履歴集約を同じ条件で比べる必要があります。Sonaで履歴を2k件から8k件へ増やした効果を確かめるなら、ほかの条件をそろえたオンライン比較を行います。履歴長と長期・短期の分離を一つずつ変え、次に選ぶ項目やコンバージョン率（CVR）の予測精度だけでなく、意図が変わったときに推薦がどれだけ追随するかも測ります。この変化を測る指標は未確定です。
+
+関連資料：2609.01240、2603.17540、2608.24034、Sona（2608.11015）、MuSeR（2609.23677）。
+
+**2026年10月5日の補足。** 注目資料2609.38999は、実運用のストリーミング配信で、習慣的に利用する人（約4/5）には、行動を集計したプロフィールの方が、大規模言語モデル（LLM）が生成するプロフィールよりもよかったと報告しました。LLMの方がよかったのは、新しいものを探す利用者に限られます。人気のある項目に推薦が寄ると対象の広がりが狭まります。どのプロフィールを使うかは、利用行動に応じて選ぶ方がよいという判断を支える材料です。
+
+<a id="thread-tabular-vs-neural-forecasting"></a>
+
+## 需要予測で、表形式モデルよりニューラルモデルや基盤モデルを使う価値が出るのはいつか
+
+**2026年10月8日時点の見立て。** 勾配ブースティング木（GBDT）などの表形式モデルは、価格や販促など種類の異なる説明変数を使えて、データ量が中程度で、特徴量をうまく設計できると強いと考えました。ニューラルモデルを選ぶなら、複数の時系列から共通の傾向を学べる、あるいは入力をより有用な表現に変換できる、といった利点を同じ条件の比較で示す必要があります。系列数、予測期間、分布の変化、需要がまばらかどうか、履歴がない場合を区別しないランキングは、特定の現場に合うかを判断する根拠としては弱いです。
+
+### 比較から分かったこと
+
+| 資料 | 当時確認した結果と限界 |
+| --- | --- |
+| fev-bench（2509.26468、動向把握） | 100タスクのうち46件で説明変数を利用できます。全体ではChronos-2が首位でした。説明変数を使うとChronos-2とTabPFN-TSの基準に対するスキルスコアは大きく改善しましたが、複数系列を多変量モデルとして直接扱うことによる上積みは小さめでした。当時は説明変数を使えない時系列基盤モデル（TSFM）が多い一方、説明変数を使える条件でTabPFN-TSは競争力がありました。応答時間は長めです。CatBoostとLightGBMは上位のTSFMに対し平均では中位でしたが、小売の販促・欠品に絞った比較は十分ではありません。 |
+| ApolloPFN（2603.15802、読む価値あり） | 時間の構造をあらかじめ取り入れ、外部の説明変数を直接扱えるようにしたPFN系のモデルです。M5の価格・販促データを使う評価でTabPFN-TSを上回りました。Chronos-2やGBDTとの同条件の直接比較は残っています。 |
+| VN2（2601.18919、読む価値あり） | 複数系列で学習するCatBoostに特徴量を作り込み、費用を考慮した発注方策と組み合わせることで、TSFMを使わずに在庫費用で勝てた例です。 |
+| Accuracy Is Not Service（2609.13840） | 間欠需要を、38手法と実際の複数商品注文20,330件で比較しました。予測精度と、すべての商品をそろえて出せた注文の割合（COFR）では、順位が逆になることがありました（スピアマン順位相関 ρ=−0.555）。Chronos-2では、需要がゼロでない場合に条件づけて予測の中心を取り直すと、COFRが54%から63%に上がる一方、尺度調整済み絶対誤差（MASE）は悪化しました。 |
+| t0（2609.24559、注視） | 説明変数を使うとfev-benchのスキルスコアが+6.3でした。販促と欠品を同時に扱う小売の比較ではありません。 |
+
+判断指標を扱うCD（2607.25664、読む価値あり）と、後述するReasonCast、Evaluation Choices、PtCも関連資料です。
+
+### 何を切り分ければモデルを選べるか
+
+仮説は、**（A）表形式モデルは説明変数と、未来の情報が混ざらない特徴量で主に勝つ、（B）ニューラルモデルは関連する多数の系列で情報を共有できるときに勝つ、（C）基盤モデルは履歴がない場合や追加学習なしで別の対象へ移す場合に主に勝つ**、の3つです。
+
+条件別のベンチマークを作り、系列間の学習共有、説明変数、履歴がない条件の効果を一つずつ切り分けます。評価単位はあらかじめ固定し、尺度調整済み二乗誤差平方根（RMSSE）や加重絶対パーセント誤差（WAPE）だけでなく、在庫費用と供給実績も比べます。需要が間欠的な場合や、欠品で需要の一部が売上に表れない場合は、とくに誤差と意思決定上の価値を分けて見る必要があります。販促と欠品を含む小売データで、同じ説明変数を使ったTSFMとGBDTを、在庫費用・供給指標まで直接比較できる資料は、2026年10月8日時点のこの記録では見つかっていません。
+
+### 日付別の補足
+
+- **2026年9月28日。** ReasonCast（2608.15291、優先資料）は、学習済みのChronos-2を固定し、イベントの文章を使う処理をSkip／Basic／Toolから選びます。祝日、大型セール、M5のイベントに絞った評価で、加重平均絶対パーセント誤差（WMAPE）の変化量は順に−3.29／−1.25／−0.47ポイントでした。常に文章情報を使うと逆に+1.68ポイントで、使う場面を選ぶ方が一律に組み込むよりよかったと報告しています。これはイベント文章の扱いを改善した例で、販促と欠品を同時に扱う在庫費用比較ではありません。Evaluation Choices（2609.27867、動向把握）では、集計単位を変えると本番の基準方式に関する比較結果が2/19から23/25へ逆転。選択ルールの下限と上限の比較では54.6%（M5のリプレイでは64.7%）、間欠需要での区間予測と点予測の順位相関は0.02でした。モデルを比べる前に、集計単位を固定する理由です。PtC（2607.16354）も注視しました。
+- **2026年9月29日。** Switch-Hurdle（動向把握）は、間欠需要の予測精度を専門モデルの混合（MoE）と、ゼロかどうかを分けるハードルモデルで扱います。Alibabaの「Bitter Lesson」について、追加学習したChronos-2と本番のN-BEATSを比較したという二次情報がありましたが、arXivまたはSSRNの原典PDFの確認まで保留しました。同条件の小売比較は見つかっていません。
+- **2026年9月30日。** Xinのウェブサイトから「Bitter Lesson」がSSRN 6788658の資料だと確認しましたが、原典PDF・arXiv版は取得できず、保留しました。ISOMORPH（2605.12768、動向把握）は、発注点と補充後の目標在庫を固定する (s,S) 方策の下で、物流の充足率・未処理需要・稼働率を予測する例です。小売で両モデルを同条件で比較した例ではありません。
+- **2026年10月1日。** SSRN 6788658のPDFは再確認時もHTTP 403で、保留を継続。Bridging Forecast Accuracy（2601.21844、動向把握）の公開された間欠需要の補修部品シミュレーターでは、CrostonはXGBoostより平均絶対誤差（MAE）が大きいのに総費用は低くなりました。合成実験であり、予測誤差と在庫指標は別だと分かる例です。RA-DFLは当時Exaの情報しかなく保留、DeepStockは制御方策の評価で、予測モデルの直接比較ではありません。
+- **2026年10月2日。** MSIED 2026の論文PDFを得たため、RA-DFLを保留から動向把握へ変更。販促と、需要が売上に表れない状態を代理指標で表し、LightGBMによる分位点回帰（LightGBM-QR）とニューラルモデルを在庫費用で比較しました。M5では、最善の「予測してから最適化する方式」（PTO）より費用が−3.7%。同じ基準予測に条件付きバリュー・アット・リスク（CVaR）を使う最適化だけを加えると、費用が+9.7%と悪化しました。ChronosなどのTSFMとGBDTを同条件・供給指標つきで比べた例ではありません。この日の記録では「Bitter Lesson」の原典本文は未取得で、Exaの censored-demand-tsfm もarXiv版を確認できず保留しました。
+- **2026年10月5日。** Zalandoの価格設定（2606.13741、優先資料）では、本番の日次販売イベント予測にTSMixerやMLPではなくLightGBMを採用しました。業務上の重みを付けたDemand Error 0.574／GMV Error 0.142では勾配ブースティング木が最良でしたが、均等に評価するRMSE 3.02／MAPE 0.040ではMLPが最良で、重みで結論が変わります。二乗誤差（MSE）とTweedieの予測精度は近い一方、MSEは意思決定効果を大きく見積もりました（PCIIは予測115%に対し実現93%）。EXAONE Demand（2609.30880、読む価値あり）は、Syntetos–Boylanに従ってLoRAの分岐を選ぶ需要向けTSFMで、MASEは1.0667、TiRexとChronos-2はそれぞれ1.0818／1.0885でした。ただしGBDTの比較対象と説明変数はありません。When-Not-How-Much（2609.39386、動向把握）では、まれな事象を順位づけるTSFMの点予測は季節性の基準方式と同程度。TSFMを固定した特徴を使う評価でも、Favorita／M5では生データを使うLightGBMとおおむね同程度でした。ほかに、階層の最上位の合計で性能が落ちる全系列共通GBDT（2609.27912）、SimpleTimeBenchの説明変数に関する弱点（2610.02058）、需要が欠品で隠れるFreshRetailNet v3でChronos-2がTFTを下回った例を注視しました。
+- **2026年10月8日。** AmazonのSim2Real policy-conditioned forecasting（2610.03662、読む価値あり）は、企業自身の方策によって予測対象が変わる例です。容量費用 λ の下で総入荷量を予測する場合、方策変更直後には新しい条件の履歴がありません。採用予定の方策でExo-IDPをシミュレーションし、そのデータで学習したCNN予測器は、過去の別の方策のデータを使う同じ構成の予測器を上回りました（S2のMAPE 9.4–15.3対25.2–28.1、S1は信頼区間内）。交通の予測から意思決定への接続（2610.06992、動向把握）は、完全な予測があった場合の価値と、結果を変えられる選択肢の数を先に確認する例です。有効な選択肢が1つを超えたのは交差点9か所中2か所で、実際の日のデータを使った閉ループ評価では改善がありませんでした。将来の説明変数にノイズがあるとChronos-2の性能が下がる例（2610.07232）、エネルギーでは分位点LightGBMがゼロ打ち切りを扱うTransformerと同等以上だった例（2610.08337）、同程度の性能を持つ複数の木に対して頑健な単期間在庫モデル（2610.04385）も注視しました。
+
+<a id="thread-observed-sales-vs-latent-demand"></a>
+
+## 売上から、欠品がなければ売れたはずの数量をどう推定するか
+
+**2026年10月8日時点の問い。** 欠品すると、買いたい人がいても売上には表れません。別の商品に買い替えた場合は、売上がその商品に移ります。似た商品を加えて既存商品の売上を奪ったり、販促で売上が移ったりすることもあります。こうした事情を無視して売上をそのまま需要とみなすと、発注や品ぞろえの判断が偏ります。当時の見立てでは、需要がどのような条件で売上として観測されるかを扱う手法は、その重要性に比べて利用が少ないと考えていました。
+
+### 当時の研究で確かめられたこと
+
+- **FreshRetailNet-50K（2505.16319、データセットとして注視）。** 店舗×商品の時系列5万本に、時間単位の欠品ラベルが付いた公開ベンチマークです。著者は、欠品で見えなくなった需要を補ってから予測する二段階の方法で、予測精度が約2.73%改善し、−7.37%の過小予測の偏りが約0%に近づいたと報告しました。ただし、補完の評価は欠品していなかった期間のデータを意図的に欠測させたものです。欠測する確率が値などに依存する状況（MNAR）を模擬した評価であり、実際の欠品日に需要を観測して照合したわけではありません。
+- **VN2（2601.18919、読む価値あり）。** 優勝手法は、CatBoostで欠品した観測を除外するマスクと特徴量を使い、費用を考慮する発注方法と組み合わせて、評価上の在庫費用を改善しました。Tobitのように観測の打ち切りを明示して潜在需要を復元したわけではありません。Tobitを使うETSは、これ以前から追っていた別の系統です。
+- **CD（2607.25664、読む価値あり）。** 在庫費用の条件を表す `h/p` が変わると手法間の優劣が入れ替わり、予測精度の改善がそのまま在庫費用の改善にはならないことを示しました。
+- **ChronosFlow-ICGPS（2605.14840、読む価値あり）。** 発注判断が、その後にどの需要まで観測できるかに影響する状況を扱います。生成モデルで見えなかった需要を補い、費用の比から定まる需要の分位点（critical fractile）に基づいて発注することで、過去データの補完を運用時の在庫判断につなげています。根拠は後悔量（regret）の理論とSuperStoreでの評価です。
+- **WalmartのRestricted Logit DT（2608.12680、注視）。** 品ぞろえ最適化（SAO）向けに代替購買の係数を推定する方法ですが、検証には重み付き平均絶対パーセント誤差（WMAPE）を代理指標として使っています。
+- **Accuracy Is Not Service（2609.13840）。** 注文が断続的に入る状況で、観測した注文需要とサービス水準の関係を調べています。注文全体を充足した割合（COFR）と、予測の偏りの方向を調べる指標（BDD）を用いました。精度とサービス水準で手法を並べると順位が逆の方向に動く例があり、順位相関は `ρ=−0.555` でした。予測誤差だけでは、運用上よい判断を選べない場合があります。
+
+### 残した仮説と、見分けるための証拠
+
+比較したい仮説は3つです。（A）欠品で売上が途中までしか観測されないことを尤度に組み込めば十分、（B）買い手が別の商品へ移る仕組みまで明示する選択・代替モデルが必要、（C）需要モデルを詳しくする以上に、施策が結果を変えたか識別することが重要、です。
+
+欠品の一部しか記録されない場合に使える推定方法は未確定です。欠品ラベルだけでは、代替購買や既存商品との食い合いも見分けられません。発注などの判断結果を測る指標は増えつつありますが、コンペ以外では当時まだ限られていました。仮説を比べるには、どの店舗・商品で欠品や品ぞろえに介入したかが分かり、その後の在庫や品ぞろえの指標まで追える研究が必要です。
+
+### 日付別の補足
+
+- **2026年9月25日。** SGC（2609.27606、注視）は、現在の在庫によって方向のずれを調べる条件を分けています。隣接する考え方ですが、ゲームのコーチングが対象で、小売の潜在需要を復元した研究ではありません。
+- **2026年9月28日。** 欠品による観測の打ち切りを明示して潜在需要を推定する研究で、この回に優先して読むべきと判断した新資料はありませんでした。ReasonCastは将来のイベントの意味を扱い、欠品による打ち切りは対象外です。SCOPEは品ぞろえと在庫運用を連動させますが、潜在需要は復元しません。PtC（2607.16354）とAIPS（2609.08071）は探索候補に残しました。
+- **2026年9月29日。** SabreAgentは、需要を観測できるInventoryBenchで、販売機会の損失を抑える制御を扱います。OR-Transformerは、未充足注文を繰り越すシミュレーションです。Switch-Hurdleは、需要が断続的に発生する商品の予測精度を扱いますが、運用指標は扱いません。
+- **2026年9月30日。** InvEvolve CJは、欠品の影響を受けた売上から潜在需要を作り直しますが、その目的は発注などの方策の評価です。需要を構造的に復元して予測・サービス水準まで検証する例とは別です。制約付きFBSDEの経路ごとの予算は制御に対する制約であり、欠品で見えない需要を補うものではありません。
+- **2026年10月1日。** DeepStock（2603.19621、優先して読む資料）は、欠品した時刻から需要を外挿して学習し、実運用でSR・TTを確認しました。ChronosFlowやAccuracy Is Not Serviceと同じ形で、需要の復元・予測とサービス水準を検証した研究ではありません。Diff Projectionは、複数の在庫段階で未充足注文を繰り越す設定で、小売の欠品による打ち切りとは異なります。理論の関連資料として2609.06083、2608.30944、2609.37380を注視しました。
+- **2026年10月2日。** ORPR（2512.19001、優先して読む資料）は、JDの現場で、欠品時に販売機会を失う場合の発注制御をISR・TT・在庫保有の指標で評価しました。需要を構造的に復元してサービス水準を評価した研究ではありません。RA-DFLは、打ち切りを表す代理情報を使って意思決定の損失を補正しますが、ChronosFlowのように潜在需要を埋める方法ではありません。
+- **2026年10月5日。** 潜在需要を構造的に推定し、サービス水準まで評価した新資料は、この回には見つかりませんでした。EXAONE Demandが `(s,S)` 発注ルールによる観測の打ち切りを扱うのは、人工データの事前学習だけです。需要の復元は今後の課題としています。FreshRetailNet v3（2505.16319v3、「LT」）は、需要の復元後にChronos-2のWPEが−7.15%から+0.88%に変わったと報告しましたが、予測精度だけの評価で、GBDTとの比較はありません。Biased SAA（2609.39397）は、打ち切りがあるときのカバレッジの条件を扱う理論研究です。Zalandoは在庫を上限として予測を切り詰めます（`min(M,ΣS)`）が、欠品で見えない需要は復元しません。
+- **2026年10月8日。** Sim2Real（2610.03662）は、在庫の有無を補正した制約のない需要を、モデルの外から与える入力として再生します。需要の補正方法自体は研究対象ではありません。Azar（2026年）はFreshRetailNetを使い、評価データが学習側に漏れない形でのIMR／Tobitによる需要推定、LightGBM、充足率の下限を設けた一期間の発注（newsvendor）を組み合わせています。当時確認できた掲載先はExa／Synapseのみで、arXivでは確認できなかったため保留しました。
+
+その後の各回でも、潜在需要と在庫・サービス指標を結びつける証拠は、Accuracy Is Not Service、ChronosFlow、VN2で確認した範囲を越えていませんでした。これは当時の探索範囲に限った記録です。
+
+<a id="thread-causal-placement-and-assortment"></a>
+
+## 売場の品ぞろえや配置を変えた効果を、観察データからどう見分けるか
+
+**2026年10月8日時点の問い。** よく売れる商品ほど目立つ位置に置かれるなら、その位置の商品がよく売れても、配置のおかげとは限りません。過去の棚割りデータには、もともとの需要、季節性、店舗の方針、置き場所によって目に留まる効果が重なっています。配置や品ぞろえが無作為に決まることは少ないため、因果効果を測るにはこの重なりを切り分ける必要があります。
+
+### 当時見つかった研究と、そこから言えること
+
+- **Whole Foodsの棚配分の枠組み（ACM GeoIndustry 2025、Amazon Science、`acm-geindustry-2025-shelf`、読む価値あり）。** 地域によって棚の面積を変えたときの反応を推定し、逆確率重み付け（IPW）や二重に頑健な推定（DR）で効果を見積もって、制約付き最適化につなげます。著者はシミュレーションで、改装店 +7.5%、新店 +6.7%を報告しました。当時の有力な企業事例ですが、実店舗の棚割りを時期をずらして変更した実測ではありません。
+- **OPTIMUS（2605.14430、Lowe’s、保留）。** 観測データから推定した弾力性を最適化に使いますが、棚の変更そのものの因果効果を識別する根拠は弱いと判断しました。
+- **WalmartのRestricted Logit DT（2608.12680）。** 観察データを使って、代替購買の係数推定を大きな規模で行う研究です。配置の因果効果を識別したものではありません。
+- **PATRO（2603.10511、注視）。** 無作為化比較試験（RCT）の結果を導入の判断につなげ、その後の在庫・価格も考慮して双対変数で調整する手法です。理論と数値実験では、ベイズリスクに近い結果を示しました。試験結果から運用に移す場面には参考になりますが、棚割りを実店舗で検証した証拠ではありません。
+
+### 何を比べれば効果が分かるか
+
+仮説は3つです。（A）準実験や店舗・商品を継続して追うパネルデータで効果を推定できる、（B）店舗を対象にした実験か、比較できるように設計した段階導入が必要、（C）商品の選択や代替を明示した構造モデルの方が、因果機械学習だけを使うよりこの問題に適している、です。
+
+判断には、置き場所を決めた店舗の方針と、もともとの需要を分離できる設計が必要です。例えば、一部の店舗では棚割りを変えずに比較対象として残すか、店舗ごとに導入時期をずらして変化を追います。店舗ごとの効果の違い、商品が視界に入ってから認知され、購入されるまでの経路も未確認です。品ぞろえや棚割りのRCTを実施できれば、在庫指標も測り、PATROのように試験結果をその後の運用判断へ取り込めるかを検討できます。2026年9月25日の探索では、基準を満たす段階導入や実店舗RCTは見つかっていません。
+
+### 日付別の補足
+
+- **2026年9月28日。** SCOPE（2607.28488、読む価値あり）は、DingdongとJDを対象に、品ぞろえ・補充サイクル・配送経路をまとめて学習しました。代理指標 `U_ref` はDingdongで206329.79、JDで293547.12。JDでは、各判断を分ける方式のうち最良のものより4573.96（約1.58%）高い値です。数理最適化で判断をまとめる従来の研究を、判断同士の関係も学習する方法で補っています。ただし、改善したのは代理指標で、実店舗の棚割りを段階導入したRCTではありません。この回の探索でも該当する試験は見つかりませんでした。
+- **2026年9月29日。** OR-Transformer（2609.01933、読む価値あり）は、商品を並べ替えても対応する出力が同じ順で入れ替わるTransformerと、経路ごとの勾配を使い、共通の固定発注費がある確率的な一括補充を1,024品目まで扱いました。人工データでの検証で、実店舗の棚割り試験ではありません。Joint Placement（2608.14275、注視）は、配置・品ぞろえ・注文対応を同時に決める問題の理論的な近似手法です。
+- **2026年9月30日。** RetailBenchでは、Dominick’sのデータに基づくシミュレーションで、棚の品ぞろえを変えられます。実店舗の段階導入RCTではありません。AmazonのConstrained Deep Inventory FBSDE（2609.11817、注目枠）は、倉庫と排出量の全体予算を、各経路で守る制約として加えました。
+- **2026年10月1日。** Hard Constraints Diff Projection（2608.02343、読む価値あり）は、複数の段階で設備などの資源を共有する生産・在庫計画を扱いました（ASMLで−3.22%と報告）。実店舗の棚割り試験ではありません。DeepStockは在庫段階が一つのEC補充が対象です。この回も棚替え・カテゴリー単位の売場変更に関する該当RCTは見つかりませんでした。
+- **2026年10月2日。** Proximal Residual（2609.23242、読む価値あり）は、Amazon SCOTで、どこに在庫を置くと価値が高いかを学習しました。本番運用の代理指標との比較では、学習などに使った標本の外（OOS、out-of-sample）で−5%と報告されています。ここでのOOSは欠品ではありません。在庫の配置には関係しますが、店頭の棚割りや品ぞろえのRCTではありません。フェイス数や、変更しない比較対象店を設けた試験は、この回も見つかりませんでした。ACT/WAIT（2609.10615、注視）は、価格施策で因果効果に確信がないときに介入を見送る、人工データ上の研究に限ります。
+- **2026年10月5日。** Zalando（2606.13741）は、施策前の利益とNMVをそろえたうえで、商品をまとめた単位で無作為に割り付け、23件の試験を階層ベイズのメタ分析でまとめました。代替できる商品同士では施策の影響が他の商品に及ぶ恐れがあると指摘しています。小売施策を因果的に評価する設計の参考ですが、対象は価格で棚割りではありません。棚割りでは「Beyond the Shelf」（J. Applied Marketing Theory、施策6店・対照10店、1カテゴリー、+21.2%／+27.6%）を確認しましたが、当時の採用基準に届かず保留しました。
+- **2026年10月8日。** 棚割りの現場試験を探し直しましたが、見つかったのは「Beyond the Shelf」と従来のSTARSの研究で、基準を満たす新しい試験は見つかりませんでした。Sim2RealのStudy 1は、強化学習で決めた方策を1年間無作為に割り付け、需要や納期を方策の外から与えてよいかを点検しました。需要・納期には小さいながら統計的に有意な変化があり、実験設計には参考になりますが、棚の配置効果を測った試験ではありません。
+
+<a id="thread-ml-pipeline-modularity"></a>
+
+## 学習・特徴量・推論をどう分けると、変更と検証がしやすくなるか
+
+学習、特徴量の作成、推論を切り分ける目的は、どれかを替えたときに影響範囲を絞り、オフライン評価と本番で同じ前提を保つことです。2026年10月8日時点では、AURA、EvoPilot、FlashVector、Netflixの評価指標に関する報告を手がかりに、実装だけでなく、検査や実験も独立に替えられる構成を検討していました。
+
+### 本番と同じ条件で、どこまで動作を確かめるか
+
+9月24日に加えたSWE-Serve（2609.26777）は、推論配信システムを扱うエージェントの検査です。対象はSGLangの53課題です。実際の処理を先頭から末尾まで通す検査（E2E）の対象19課題では、完全な検査で45.9%が合格し、E2Eを省くと69.4%でした。報告された差は23.4パーセントポイントです。これは推薦サービスのA/Bテストではありませんが、個々の関数や計算カーネルが通っても、システム全体では動かない場合があると分かります。
+
+SpotifyとPinterestは、実験で介入しない群を残し、そのデータで因果効果を推定して本番の判断に使う事例です。PinterestのShopping Holdoutでは、過去ログを使ったオフライン再現で、候補生成を起動する割合が本番の値に近くなりました。9月25日に加えたLinkedIn（2608.10182）は、実験対象者を固定し、対象グループを作った経緯を点検しています。さらに配信量と費用をフィードバックで調整し、配信条件をそろえて因果効果に基づく施策を測りました。SWE-ServeやFlashVectorが本番での動作を検証しやすくする一方、LinkedInの設計は、施策の効果を比較しやすくするための仕組みです。
+
+### 当時の仮説と、まだ必要な比較
+
+推論配信を扱うエージェントの変更を採用するには、稼働時のサービス水準目標（SLO）とE2Eの両方を満たす必要がある、と考えていました。以前の仮説（A）〜（M）に、次を追加しました。
+
+- **（N）** 局所的には通る変更を誤って合格にしないために、本番の配信処理を通すE2E検査が必要です。
+- **（O）** 介入しない群のデータでオフライン再現を校正すれば、候補生成（CG）の起動しきい値を、本番に近い起動率になるように選べます。
+
+AgentX、DREAM、PILOTを同じ条件で比べたA/Bテストは、当時の根拠にはありません。残した問いは、AgentX KEEP・DREAM・PILOT・FlashVectorを組み合わせてSWE-Serve型のE2Eで検証できるか、NetflixやSpotifyの上乗せ効果の測り方を生成型推薦のオンライン評価にも使えるか、です。比べるときは実行基盤（ハーネス）の種類間で予算をそろえ、FlashVectorと人間の専門家には同じSLOとE2E検査を課します。PILOTでは2要因をそれぞれ2条件に分けた比較も候補です。
+
+この版の根拠・関連資料：FlashVector（2609.17391）、Beyond Raw Engagement（2609.22747）、SWE-Serve（2609.26777）、Pinterest（2607.14161）、Spotify（2608.26804）、AURA（2609.16625）、EvoPilot（2609.21257）。それ以前の資料は以前の調査メモを指します。
+
+### 日付別の補足
+
+- **2026年9月28日。** OneTrans-V2は、段階ごとに処理する推論で、ユーザー文脈のキャッシュを段階間で共有します。予測パイプラインの評価では、集計の単位を切り替えるEvaluation Choicesに注目しました。Harness-Zero（2609.24974、注目枠）は、改良した実行基盤の働きを別のモデルの重みに移す方法で、どこまでを基盤に持たせるかという問いに関係します。
+- **2026年9月29日。** SabreAgentは、設計時に作ったLLMの成果物を固定し、実行時は数理的な意思決定（OR）と予測で処理を回します。各ステップでLLMを呼ぶのではなく、先に案を作って検証する切り分けです。
+- **2026年9月30日。** InvEvolveでは、方策を提案し、過去の状況を再現して試し、継続的インテグレーション（CI）で適格性を確認してから配備します。設計時の成果物を固定するSabreAgentを補う事例です。制約付きFBSDEの安全層は、実行時に二次計画（QP）で全体の予算制約を守る例です。
+- **2026年10月1日。** DeepStockのBase/Coeff正則化は、行動の表現を組み替えて学習を誘導し、方策が表現できる範囲は狭めません。100万件を超える商品単位（SKU）と倉庫の組み合わせで、共通のメタ学習を使います。Diff Projectionは、QPと整数値への写像で、実行時に制約を満たす判断に整えます。制約付きFBSDEの安全層とは異なる実装です。
+- **2026年10月2日。** ORPRは、ORで作ったラベルを使う事前学習と、RLOOによる調整を分けます。Proximal Residualは、計画時の価値評価とリアルタイム最適化で同じ凸目的関数を使い、PCSPによる整合性を保ちます。Diff Projectionが実行可能性を担うのとは別の役割です。
+- **2026年10月5日。** Zalandoは、割引率と日付の組み合わせごとの予測を保存し、予測器と最適化器を切り分けました。予測器を差し替えられ、単調性の制約で最適化の探索範囲を狭められます。採用前には悪影響を確認するA/Bテストを置いています。エージェント配信の本番ログ（2609.34432）ではタスクをまたぐ文脈再利用、AgentX-Model（2609.30001）では複雑な調査のスケジューリングに一貫した改善がない点に注目しました。
+- **2026年10月8日。** Sim2Real（2610.03662）は、方策、双対変数λを調整する部分、応答予測器を分離します。方策を変えたときは、変更後の方策をシミュレーションして予測器を再学習し、その後にオンラインで α+βĴ による校正を行います。HEAR（2610.06597、注目枠）は、実行基盤が意図と要求を送り、実行エンジンが状態、処理できること、結果を返す制御用の通信仕様です。報告は効率に限られ、SCBenchで1.61倍、最初のトークンまでの時間（TTFT）で2.23倍です。Coda（2610.03088）では、コーディングエージェントのKVキャッシュに何を入れるかに注目しました。
+
+<a id="thread-agent-architecture-and-harness"></a>
+
+## 複数のエージェントや実行基盤は、強い単独エージェントよりいつ有利か
+
+複数のエージェントに分担させることと、実行基盤（ハーネス）で入力、ツール、検査を設計することは別の判断です。2026年10月8日時点の記録では、両者をそれぞれ単独エージェントと比べるほか、何を記憶に残し、何を消し、何を実行時に取り直すべきかを検討していました。
+
+### 当時の主な根拠と、適用範囲
+
+| 検討対象 | 観測されたことと限界 |
+| --- | --- |
+| SWE-Serve（2609.26777、9月24日） | 上位の構成を比べると、CodexやClaude Codeのモデル専用の基盤でも、mini-SWE-agentの平均初回合格率（pass@1）を上回りませんでした。複数の実行領域にまたがる課題の合格率は、単一領域の課題より21.3パーセントポイント低く、エージェントの処理手順だけでなく、実行基盤と検査の設計も重要です。対象はSGLangで、製品間のA/Bテストではありません。 |
+| SGC（2609.27606、9月25日、注目枠） | 判断や案内が当初の方向からずれていく現象（direction drift）を定式化します。現在の状態（在庫を含む）に対し、認識・根拠付け・対話の処理を重ねます。IGPOに近い設計ですが、コーチのベンチマークで応答時間が1.5秒、比較対象のPE-Agentは6.1秒という報告で、製品のA/Bテストによる改善幅はありません。 |
+| IGPO（2609.04813、注目） | AI検索で、現在の在庫に基づく判断指針を追加学習なしで使います。報告はクリック率（CTR）+3.17%、問題のある例 −38.9%。対象はスマートアシスタントです。 |
+| SabreAgent（2609.19760、9月29日） | 在庫の事前知識と発注方策の候補を設計するときだけLLMを使い、実行中は呼び出しません。InventoryBenchで0.6311を報告しました。この評価は需要が欠品で隠れず、購入費・段取り費がゼロの条件であり、実店舗でのA/Bテストではありません。 |
+
+このほか、以前の検討にAURA（2609.16625）、EvoPilot（2609.21257）、FlashVector（2609.17391）を加えています。関連資料にはHarness-Zero（2609.24974、注目枠）、SAIGE（2609.19759、注視）、InventoryBench（2602.12631）も含みます。研究用ハーネスの比較は観察上の制約が残り、Harness-Zeroもベンチマークの結果で、本番配信のA/Bテストではありません。
+
+### どこを切り分けて検証するか
+
+推論配信を扱うエージェントには、本番トラフィックの再現、SLOによる採用判定、実環境のE2E検査が要ると考えていました。在庫のように変動する情報は、プロンプトに固定するのではなく、実行時に取り直す必要があるかもしれません。既存の仮説（A）〜（K）に、次を加えています。
+
+- **（L）** 配信システムを扱えると判断するには、実環境を通すE2Eと、複数の領域にまたがる課題が必要です。
+- **（M）** 品ぞろえが変わるときには、在庫を条件にした判断指針を追加学習なしで使う方が、固定プロンプトより有効かもしれません。
+- **（N）** 在庫のベンチマークでは、設計時にLLMで作った成果物と固定したOR処理を組み合わせる方が、発注のたびにLLMを呼ぶよりよいかもしれません。
+
+未解決だったのは、配信を含む5種類の実行基盤で判断権限をどう分けるか、モデルに原因があるように見える配信障害をFlashVectorとAURAの組み合わせで切り分けられるか、IGPOやSGC以外でも在庫情報を生かせるか、Harness-ZeroをSWE-Serve型のE2Eで検証するとどうなるか、SabreAgentが欠品で需要を観測できない小売データでも在庫費用を抑えられるか、です。
+
+具体的な比較としては、PILOTで実行の可否を判定する方式と常時実行する方式、同一のSLOとSWE-Serve型のE2EでのFlashVectorと人間の専門家、在庫費用で評価する小売の品ぞろえへのIGPO適用、Harness-ZeroとFlashVectorを組み合わせたSWE-Serve型検査、設計時に作ったSabreAgentの成果物を欠品で需要が隠れるFreshRetailNet型のデータに移す検証を挙げました。
+
+### 日付別の補足
+
+- **2026年9月28日。** Harness-Zero（2609.24974）は、改良した実行基盤の働きをモデルの重みに移します。mini-SWE-agent単体で平均成功率（macro）が23.3%から44.3%になり、基盤を付けたときの41.7%を上回りました。元は基盤がないと現れなかった28種類のパターンの82.3%を回復しました。SAIGE（2609.19759）では、依存関係が少ない課題で複数エージェントが有利な一方、依存が密な連鎖では単独の方が有利でした。
+- **2026年9月29日。** 読む優先度が高いとしたSabreAgent（2609.19760）は、JDの在庫を題材に、季節性の事前知識と上限付き基準在庫方策をLLMで設計します。稼働中のLLM呼び出しはゼロです。InventoryBenchのNRは0.6311で、公開済みの最良値は0.5380、固定のOR部分だけでは0.6180でした。発注時にLLMを呼ぶAIPSや、IGPO・SGCのように現時点の状態を取り込む仕組みとは役割が異なります。Harness-ZeroとSWE-Serveを組み合わせた検査、およびIGPO・SGC以外の在庫を使うエージェントは未解決でした。
+- **2026年9月30日。** 読む優先度が高いとしたInvEvolve（2605.00369）は、AlphaEvolve型の探索で、内部の判断を読めて適格性を確認できる在庫方策（Tilted-CBS/PIC）を改良します。報告された勝率は人工データで83%、Dunnhumbyで67%。設計成果を固定するSabreAgentや、実行時にLLMを使う探索的なAIPSとの比較に位置づけました。RetailBench（2603.16453、読む価値あり）はDominick’sのデータを基に180日間の店舗運営を試す評価環境です。理想条件の方式でNWは131k、最良のLLMで約24kでした。失敗の分類は在庫を使うエージェントの評価に役立ちますが、製品での効果を示すものではありません。Harness-ZeroとSWE-Serveの組み合わせは未検証でした。
+- **2026年10月1日。** DeepStockは従来の在庫理論を正則化に使い、大規模な深層強化学習（DRL）を可能にする設計で、LLMエージェントではありません。SabreAgentやInvEvolveと並べると、設計時に決めることと実行時に学習済み方策に任せることの違いが分かります。Flowr（2604.05987）は、MCPの小規模な概念実証にとどまるため、当時は見送りました。Harness-ZeroとSWE-Serveの組み合わせと、IGPO・SGC・RetailBench以外で在庫を使うエージェントの問いは残りました。
+- **2026年10月2日。** ORPRは数理手法、深層学習、強化学習の組み合わせで、LLMエージェントではありません。JDの事例で、実行時に学習済み方策を使うORPRと、設計時だけLLMを使って成果を固定するSabreAgentを区別しました。前日の未解決事項は残りました。
+- **2026年10月5日。** エージェントが過去の推論を忘れる研究（2609.29875、注目枠）では、推論から得た状態がコード、ファイル、ツールの出力に残っていれば、推論そのものを保持する必要は薄れると報告しました。記録された比較値は将来リスク67.3%対36.2%、タスク内の差は+19.8パーセントポイントです。途中で履歴を消すと以後の進み方も変わるため、一箇所の削除量は全体の計算量削減と一致しません。乱数シードを変えた再試行がなく、全推論を消す条件でも結果が近いため、根拠にはばらつきがあります。保存の目安として、そこにしか残っていない状態を運ぶ間だけ推論を残す、と整理しました。AgentX-Model（2609.30001）を注視し、前日までの未解決事項も残りました。
+- **2026年10月8日。** What Does a Harness Buy?（2610.04433、読む価値あり）は、モデルを固定して実行を繰り返し、Claude Codeとmini-SWE-agentがSWE-bench Verifiedの447課題で5パーセントポイント以内だったと報告しました。難しい45課題では、基盤を替えて成否が変わった割合は13%で、同じ基盤で再実行したときの13%と同じでした。有意だった差は、出力上限のあるOpenCodeでの低下（−9パーセントポイント）だけです。各ステップに加える前置きの長さ（16.6k、7.0k、0.8kトークン）とステップ数の積で、費用は最大3倍になりました。コーディングではScaffold GAIAやHarness-Benchで見られた大きな差をそのまま期待できず、基盤の価値を、どの種類の失敗を防げるかと費用でも測る必要があります。SHarP（2610.04178、基盤の役割の重複）、ServeLearnBench（2610.07792、継続学習を支える基盤でも正しかった動作を損なう場合がある）、文脈圧縮の悪影響（2610.08722）を注視対象としました。HEARが示したのは基盤と配信間の効率で、Harness-ZeroとSWE-Serveの組み合わせで全体が正しく動くかは未確認です。
