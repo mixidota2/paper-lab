@@ -1,12 +1,24 @@
-# Interactive Research Library
+# 論文の仕組みと根拠を読む Lab（Interactive Research Library）
 
-一次資料を読み、仕組み・根拠・限界を日本語で説明する114件のLabと、3件のテーマガイドを収録しています。Labは個別論文を読み解く教材、テーマガイドは複数の研究を業務上の問いに沿って比べる入口です。モデル・数式と論文に合った図を中心に、必要な箇所には条件を動かす合成実験を添えます。
+個別の論文を読み解く114件のLabと、3件のテーマガイドがあります。ガイドでは、業務上の問いから複数の研究を比べます。Labでは、一次資料をもとに、モデルが何を入力し、どう処理するかを数式や図で説明します。どこまで確かめたかも記し、条件を変えたときの違いが理解に役立つ場合は、人工データを使った小実験を添えます。
 
 公開先：https://mixidota2.github.io/paper-lab/
 
-## 生成と検証
+## 読みたい内容から探す
 
-Python 3.10以上とuvを使います。コンテンツは `papers/<id>/lab.yaml`、実験値は `results.json` が原本です。`site/` は生成物なので直接編集しません。
+最新の研究とLabの一覧は公開サイトの `index.html`、テーマから探す場合は `guides/index.html` を開きます。ガイドは114件のLabとは別に数えています。ガイドを追加した日と、論文が発表・公開された時期も分けて表示します。
+
+| テーマ | 読めること | 生成に必要なもの |
+| --- | --- | --- |
+| 棚割り | 棚の本数や配分、置き方を考えるための3件のLabへ進めます。 | 原稿 `guides/shelf-decisions.md` と参照先の3件のLab |
+| 需要予測と補充 | 企業の事例、理論上保証されること、小規模な検証の提案を分けて比較します。 | 棚割りガイドの生成条件に加え、共通閾値・ORPR・予測精度と在庫指標のLab、原稿と事例カードが必要です。 |
+| 棚本数を固定した店舗レイアウト | カテゴリーごとの本数を固定し、棚をどの位置に割り当てるか、同じカテゴリーを続けて置くか、配置の組み合わせで何が変わるかを比べます。5・4・3本の図は模式図で、人工データを使った最適化実験は行っていません。 | 原稿 `guides/store-layout-fixed-counts.md`、棚割りガイドの生成条件、Whole FoodsのLab |
+
+全件をビルドするとガイドも生成します。一部のLabだけをビルドし、参照先が足りない場合は、対応するガイドを生成しません。限定ビルドの出力先は本番サイトと分けてください。
+
+## 手元でサイトを作る
+
+Python 3.10以上とuvが必要です。下の手順は検証用にPython 3.12を使います。論文の解説や図を直す場合は、`papers/<id>/lab.yaml` とそこから参照する資料を編集します。実験の計算結果は `results.json` に保存します。`site/` は出力先なので直接編集しません。
 
 ```bash
 uv sync --locked --extra dev --python 3.12
@@ -15,120 +27,131 @@ uv run paper-lab build
 uv run python -m http.server --directory site 8000
 ```
 
-Pages公開前には、上記のpytestに加えて全サイトのビルドと静的preflightを行います。pytestでは欠けた依存やskipも失敗にします。全114件のLabの読み込み、生成の決定性、配布ファイルと原本の一致、内部リンク、SIM2REALの在庫保存・未来情報非参照、APの有限列挙を検査します。NumPyはdev依存として固定しています。AP検査ではSciPyの学習処理を呼びません。
+サーバーの起動後は http://localhost:8000 を開きます。生成したHTMLを直接開いても、操作できる図が動きます。図、フォント、スクリプトは外部の配信サービスやAPIに依存しません。原論文へのリンクを開くにはネット接続が必要です。
 
-各論文の `run.py` をすべて実行することや、著者モデルを学習することは必須の検査に含めません。依存・計算量を確認したうえで必要な実験だけを任意に実行してください。公開前に必須の検査は、自動テスト・全サイトビルド・静的preflightです。実ブラウザー確認は任意であり、自動テストの成功を画面の目視・実操作の確認済みとは扱いません。公開後の内容一致は別に確認します。sandboxを有効にしたChromeが起動できない環境では、画面・操作・読み上げをNOT TESTEDとして記録します。保護設定を変更して回避しません。
+## 何を検査し、どこまで確かめたと言えるか
 
-サーバー起動後に http://localhost:8000 を開きます。生成済みHTMLを直接開いても図は動きます。図・フォント・スクリプトに外部CDNやAPIは使っていません。原論文へのリンクを開く際はネットワーク接続が必要です。
+### 自動検査と公開
 
-## 図の定義
+全114件のLabの読み込み、同じ入力から同じファイルができること、配布ファイルが原本と一致すること、内部リンクが開けることを検査します。SIM2REALでは在庫の収支が合うことと未来の情報を参照しないこと、APでは有限個の候補をすべて列挙した結果を確認します。検証用のNumPyはバージョンを固定しており、APの検査でSciPyの学習処理は実行しません。依存が欠けたりテストをスキップしたりすると、必須のpytestは不合格になります。
 
-`lab.yaml` の `question` は日本語の研究上の問い、`source_review` は確認日・一次資料URL・確認範囲です。著者の主張は `core_idea.author_claim`、解釈は `core_idea.research_bot_interpretation` に分けます。
+プルリクエストの公式検査では、pytestに加えて全サイトのビルドと静的preflight（ブラウザーを起動しない事前検査）を行います。生成したHTMLの操作と、保護を有効にしたmacOS Chromeでの店舗レイアウトの表示・操作も検査します。メインブランチの更新後は、GitHub Actionsがサイトを再生成してGitHub Pagesへ公開し、検証した生成物と公開ファイルが一致するかを別の手順で確かめます。公開後には、補充ガイドを保護付きChromeで検査する手順もあります。
 
-`sections.method` は「モデル / 手法」の本文で、各Labの `method.md` を読み込みます。`teaching_figures` は図の計画とデータです。共通項目は `id`、`kind`、`title`、`caption`、`source`、`locator`（節・式・表）、`rationale`（その図を選ぶ理由）、`after`（挿入先の節）。以下から必要な種類を選びます。
+全Labの `run.py` の実行や著者モデルの再学習は、必須の検査に含めません。追加で試す場合は、必要な依存と計算量を確認し、試したい実験を選びます。
 
-| kind | 用途 | データ |
-| --- | --- | --- |
-| architecture | モデルの分岐と共有部分 | rows → label, nodes → title, text |
-| equations | 数式を項別に説明 | steps → name, formula, explanation |
-| matrix | attention mask・実験設計・比較表 | columns, rows → label, cells |
-| logic | 主張・情報境界・方式の選択肢 | rows → label, nodes → title, text |
-| timeline | 時間帯を分けた処理 | rows → label, nodes → title, text |
-| chart | 一次資料の報告値 | unit, maximum, bars → label, value |
+### 手元で画面を確認する
 
-図と数式はHTMLで生成し、JSや数式CDNがなくても読めます。数式はUnicodeの添字・演算子と説明を使い、狭い画面では折り返します。棚割り3Labの数式図は添字・指数・分数をブラウザー標準のMathMLで組版します（`formula_mathml`）。読み上げ用の文字式 `formula` も保持し、長い数式は図内で横にスクロールできます。行列だけは必要に応じて図の内部を横スクロールします。チャートは0起点の共通尺度と正確な数値を併記します。
-
-`figures` には各Labの `figures/` に置いたSVGなどを指定できます。`path`、`title`、`caption` と任意の `after` を持ち、`after: method` なら手法の節の直後に図を表示します。挿入位置を指定しない参考図は末尾にまとめます。SVGには説明文とviewBoxを付け、拡大リンクも表示します。文字の多い図は `layout: scroll` で最小表示幅を保ち、電話の画面では図内を横にスクロールできます。
-
-`interactives` は任意の配列です。既存の `flow` と `explorer` を必要な個数・順序で選べます。処理図を一律には使わず、条件の比較が理解を助けるLabにだけ `explorer` を置きます。`explorer` は `title` と `caption` を持ち、`results.json` の計算済み全条件を表示します。JavaScriptは計算式を再実装せず、棒・系列・注記を更新します。キーボードで操作でき、JavaScript無効時にも初期値が残ります。
-
-`run.py` は各Labの入口、`papers/_toy_common.py` は11個の独立した小実験です。固定の勝敗表は使いません。ただし人工データ・仮定した費用・簡略な規則による説明であり、原論文のモデルを訓練したり性能を再現したりする実験ではありません。検証範囲は全LabでMechanism PARTIAL、Performance / Scaling / Production applicability NOT TESTEDです。
-
-2026-09-08追加分の `glide-spotify-sid`、`understanding-sids-isd`、`execution-state-unlearning` は、それぞれの `run.py` 単体で動きます。候補経路の比率と増分、SIDの枝刈りと順位融合、実行状態の再構成を扱います。結果はコードと同じフォルダーの `results.json` へ書き出します。
-
-2026-09-09追加分の6本も `run.py` 単体で動きます。OTTOの損失重み、Multi-Harness RLの比較群、AutoLRのKEEP、SID-OPEの粒度、Walmartの需要転移、Harness-R1の実行hookを扱います。一次PDFの版とSHA-256を各 `lab.yaml` に記録し、非公開の本番性能は再現したと扱いません。
-
-## ブラウザーと日本語の確認
-
-PlaywrightとChromeがある環境では、生成後に実ブラウザーの確認を実行できます。Playwrightは配信するサイトには含めません。
+生成したサイトを実ブラウザーで追加確認する場合は、PlaywrightとChromeが使える環境で次を実行します。Playwrightを公開サイトに同梱するわけではありません。
 
 ```bash
 uv run --with playwright tests/browser.py
 # 必要に応じて CHROME_PATH にChrome実行ファイルを指定します。
 ```
 
-360・768・1440pxで全Labの図、スライダーのキー操作、表示値、検索・絞込み、ページ幅を確認し、JavaScript無効の表示も検査します。
+360・768・1440pxで、Labの図、スライダーのキー操作と表示値、検索・絞り込み、ページに横はみ出しがないことを確認します。一部のLabはJavaScriptを無効にした状態でも表示を検査します。
 
-日本語はExplain Before Shortenに従い、読み手に必要な前提・意味・条件を説明してから、意味を保って簡潔にします。数値・式・出典・比較対象・未検証の範囲は省きません。本文、図の説明、実験注記をテキストへ抽出し、数値だけが違う注記は同じ文型として1回ずつ検査します。
+ブラウザー起動前に行う `uv run --locked --extra dev pytest -q tests/test_review_103_preparation.py` では、忘却教材で小数を3桁表示する処理を実際のJavaScriptと照合し、ガイドから共通のLabへ進めることを検査します。一方、保護付きmacOSブラウザーで使う `tests/review_103.py` は、360pxと1440pxでガイドの一覧・本文・3件のLabを行き来し、原寸の画像を保存します。
+
+準備検査や自動テストの合格は、実際の画面を開いたり、操作したりしたことを意味しません。手元で保護を有効にしたChromeを起動できない場合は、画面・操作・読み上げを「未検証（NOT TESTED）」と記録します。手元での実ブラウザー確認は任意です。起動できなくても、保護設定を変更して回避しません。
+
+### 論文と小実験の区別
+
+各Labの `run.py` が実験の入口です。`papers/_toy_common.py` には独立した小実験が11件あり、勝敗を固定した表ではなく、人工データ、仮定した費用、単純化したルールから結果を計算します。原論文のモデルを訓練したり、本番の性能を再現したりするものではありません。仕組みは一部を検証（Mechanism: PARTIAL）、性能・規模を拡大したときの挙動・本番適用性は未検証（Performance / Scaling / Production applicability: NOT TESTED）です。「確認済み（CONFIRMED）」は実際に計算で確かめた限定的な命題にだけ使います。
+
+例として、2026-09-07の改修では、Amazon Scienceが公開するWhole Foods論文の全4ページを確認しました。本文には因果効果を検証した詳しい結果がなく、図の売上値も実額を公開せず正規化してあります。このため、結果の独立再現や実店舗の増収は確認できていません。
+
+## Labの解説・図・実験を直す
+
+### 原典とこちらの説明を分けて書く
+
+`lab.yaml` の `question` に日本語の問いを書き、`source_review` に確認日、一次資料URL、どこまで確認したかを記録します。著者が述べたことは `core_idea.author_claim` に、このLabでの解釈は `core_idea.research_bot_interpretation` に分けて書きます。「モデル / 手法」の本文は、`sections.method` が各Labの `method.md` を読み込みます。
+
+### 説明したいことに合った図を選ぶ
+
+`teaching_figures` には図の種類と中身を書きます。共通の項目は、識別子 `id`、種類 `kind`、題名 `title`、説明 `caption`、出典 `source`、出典内の節・式・表 `locator`、この図を選んだ理由 `rationale`、挿入先の節 `after` です。
+
+| `kind` | 何を示すか | 指定するデータ |
+| --- | --- | --- |
+| `architecture` | モデルのどこで処理が分かれ、どこで同じ処理を使うか | `rows` の `label`、`nodes` の `title` と `text` |
+| `equations` | 一つの式をいくつかの項に分け、それぞれの役割を示す | `steps` の `name`、`formula`、`explanation` |
+| `matrix` | 注意機構で参照できる範囲（attention mask）、実験設計、比較表 | `columns`、`rows` の `label` と `cells` |
+| `logic` | 主張、どこまで情報を参照できるか、方式の選択肢 | `rows` の `label`、`nodes` の `title` と `text` |
+| `timeline` | 時間帯ごとの処理 | `rows` の `label`、`nodes` の `title` と `text` |
+| `chart` | 一次資料に載っている数値 | `unit`、`maximum`、`bars` の `label` と `value` |
+
+図と式はHTMLに出力するため、JavaScriptなしでも読めます。数式はUnicodeの添字・演算子と文章を組み合わせ、狭い画面では折り返します。棚割りの3件の数式図はブラウザー標準のMathML（`formula_mathml`）で、添字・指数・分数を組版します。読み上げ用の文字式 `formula` を残し、長い数式や行列は必要に応じて図の内部だけを横にスクロールできるようにします。グラフは目盛りを0から始め、比較する値は同じ尺度で示し、正確な数値を添えます。
+
+各Labの `figures/` にSVGなどを置く場合は、`figures` の `path`、`title`、`caption` で指定します。任意の `after` が `after: method` なら手法の節の直後に表示し、挿入先がなければ末尾に参考図としてまとめます。SVGに説明文と `viewBox` を付けると、拡大リンクも表示します。文字が多い図は `layout: scroll` で最低限の幅を保ち、スマートフォンでは図の中だけを横に動かせるようにします。
+
+### 条件を動かす図は、必要なときだけ添える
+
+`interactives` は任意です。処理を示す `flow` と条件を変えて結果を比べる `explorer` を、必要な数だけ、読ませたい順に指定します。条件を見比べて初めて分かることがある場合に `explorer` を使います。`title` と `caption` を付け、`results.json` から計算済みの全条件を表示します。JavaScriptは棒、系列、注記を切り替えるだけで、計算式を別に実装しません。キーボードで操作でき、JavaScriptを無効にしても初期条件の値は読めます。
+
+### 日本語を確認する
+
+Explain Before Shortenに従い、前提、何を比べているか、その結果が成り立つ条件を先に説明します。短くするときも、数値・式・出典・比較対象・未検証の範囲は省きません。本文、図の説明、実験の注記を抜き出して点検し、数値だけが違う注記は同じ文型として1回点検します。
 
 ```bash
 uv run skills/natural-japanese/scripts/lint.py --genre tech --json /tmp/lab-prose.md
 ```
 
-## 公開と資料の限界
+## 2026年9月の追加記録
 
-`origin/main` へのpushでGitHub Actionsが再生成し、GitHub Pagesへ公開します。2026-09-07の改修では、Amazon Scienceが公開するWhole Foods論文の全4ページPDFを確認できました。因果効果の詳細な実証結果は本文で省略され、図の売上値も非公開・正規化されているため、独立再現や実店舗での増収確認はできていません。
+以下は各日に追加した内容と、当時確認できた範囲です。現在の全件一覧は公開サイトを参照してください。
 
-## 2026-09-15追加分
+### 2026-09-08〜09
 
-OxygenREC-v2 / IDGR、RecEvolve、QuaSIDの3件を追加。各 `papers/<slug>/` にREADME・lab.yaml・method.md・mapping.md・run.py・results.jsonを置き、図も同じディレクトリで管理する。行動指示と蒸留損失、固定scoreの候補集合監査、CVPMと幾何マージンをそれぞれ検証する。産業モデルの学習とオンライン性能はNOT TESTED。
+- **2026-09-08:** `glide-spotify-sid`、`understanding-sids-isd`、`execution-state-unlearning` を追加。候補を取得する経路の比率と増分、意味ID（SID）の枝刈りと順位の統合、実行状態の再構成を扱います。それぞれの `run.py` は単体で動き、同じフォルダーに `results.json` を書き出します。
+- **2026-09-09:** 6件を追加。OTTOの損失の重み、Multi-Harness RLの比較群、AutoLRのKEEP判定、SID-OPEで推定を分ける粒度、Walmartでの需要転移、Harness-R1が実行中に処理を差し込む箇所を扱います。それぞれの `run.py` は単体で動きます。一次PDFの版とSHA-256は各 `lab.yaml` に記録し、非公開の本番性能は再現したと扱いません。
 
+### 2026-09-15〜16
 
-2026-09-16：UniVA / CQ-SID・EG-GRPO / Intervention Paradoxを追加。商用SIDとGARの枝選び、クラスタ展開とexpert注入、介入の損益分岐点を、それぞれ異なる操作図で確認する。3本とも一次PDFを通読し、UniVAのv1/v2トラフィック比率の違い、チャネル構成比とA/B liftの区別、介入論文内の数値不整合を明記した。各run.pyは独立実行できる。
+- **2026-09-15:** OxygenREC-v2 / IDGR、RecEvolve、QuaSIDの3件を追加。行動の指示と蒸留の損失、スコアを固定したときの候補集合の監査、CVPMと幾何学的なマージンをそれぞれ扱います。各 `papers/<slug>/` にREADME、`lab.yaml`、`method.md`、`mapping.md`、`run.py`、`results.json` を置き、図も同じLabのディレクトリで管理します。産業用モデルの学習とオンライン性能は未検証です。
+- **2026-09-16:** UniVA / CQ-SID、EG-GRPO、Intervention Paradoxの3件を追加。商用のSIDとGARが選ぶ枝、クラスタの展開と専門処理（expert）の追加、介入で利益が出る境目を、各Labの操作図で確認できます。3件の一次PDFを通読しました。UniVAのv1とv2でトラフィック比率が異なること、チャネルの構成比とA/Bテストの改善幅は別であること、介入の論文では数値に不整合があることを記録しました。各 `run.py` は独立して実行できます。
 
+### 2026-09-17
 
-## 2026-09-17追加分
+GenPage、UniRec、AgentX、STATIC、FlashTrie、GateSID、CORALの7件を追加しました。候補集合の境界、表示面ごとの改善率、観察データで見た生産性、制約処理の計測範囲、順位付けでのSID利用、費用削減額の分母を区別して説明します。一次PDFの版とSHA-256、節・表との対応は各 `mapping.md` に記録し、`run.py` は標準ライブラリだけで動きます。
 
-GenPage、UniRec、AgentX、STATIC、FlashTrie、GateSID、CORALの7本を追加。一次PDFの版・SHA-256・節と表の対応を各mapping.mdへ記録した。候補集合の境界、面別の改善率、観察的な生産性比較、制約処理の計測範囲、rankingでのSID利用、費用削減額の分母を分けて説明する。
+UniRecでは、ベイズ式や容量制約を満たせず実行できない場合の反例も残しました。FlashTrieのサービスレベル目標（SLO）を変える図は原論文の表1・6に載る実測点を使い、レイテンシーを新しく計測したわけではありません。仕組みは一部を確認し、本番での性能、規模を拡大したときの挙動、本番適用性は未検証です。
 
-各run.pyは標準ライブラリだけで動く。人工実験のCONFIRMEDは限定した計算命題に適用し、MechanismはPARTIAL、本番性能・スケーリング・本番適用性はNOT TESTED。UniRecのBayes式と実行不能なcapacity条件には反例も残した。FlashTrieのSLO操作は表1・6の実測点を使い、新しい遅延測定とは扱わない。
+### 2026-09-18
 
+OGR、DREAM、PILOTの3件を追加しました。一次PDFの版、SHA-256、節との対応は `mapping.md` に記録し、各 `run.py` は標準ライブラリだけで独立して動きます。
 
-## 2026-09-18追加分
+- **OGR:** SIDの統合、処理間の依存関係、報酬の調整。理論上の依存の深さと、実測の処理量を分けています。
+- **DREAM:** 既存の多段処理を制御し、一部の判断を上書きする方法。改善が積み重なったときの効果を区別します。
+- **PILOT:** 実験の開始から終了までの流れと、別の課題で過去の結果を使う仕組み。無作為に割り付けていない前後比較であり、二つの要因を組み合わせた2×2の実験は未実施です。
 
-OGR、DREAM、PILOTの3本を追加。OGRはSID融合・依存経路・報酬校正、DREAMは既存cascadeへの制御と局所override、PILOTは実験lifecycleとcross-task memoryを図と小実験で確認する。各run.pyは標準ライブラリだけで独立実行できる。一次PDFの版・SHA-256と節の対応はmapping.mdに記録した。
+ここでも仕組みの確認は一部に限り、本番性能、規模拡大、本番適用性は未検証です。
 
-OGRの理論的な依存深さと実測throughput、DREAMの累積lift、PILOTの非ランダムな前後比較と未実施の2×2を分けて記載。MechanismはPARTIAL、本番性能・スケーリング・本番適用性はNOT TESTED。
+### 2026-09-21：生成型推薦に置き換える範囲を比べる
 
-## 2026-09-21追加分
+6件を追加しました。各Labに一次論文の版とハッシュ、実行コード、結果、原典対応表があります。
 
-生成推薦の移行範囲を比べる6本。各Labは一次論文の版とhash、実行コード、結果、原典対応表を含みます。
+- 優先（Must）：[LIGE-GR](papers/lige-gr-meta-listwise/README.md)。既存の順位付けモデルに、候補の並び全体の情報、価値、探索を加えます。
+- 優先（Must）：[Sona](papers/sona-yandex-music/README.md)。8,000件の履歴と知識蒸留を使い、多段処理を置き換えます。
+- 読む価値あり（Worth）：[Wolt UVR](papers/uvr-wolt-trial-reorder/README.md)。Transformerが確率に変換する前の値（logit）とCatBoostを使い、初回注文と再注文を調整します。
+- 注目（Radar）：[PushDualGen](papers/pushdualgen-kuaishou/README.md)。先にSIDを生成し、必要なら後から通知文を生成します。
+- 注目（Radar）：[SnapLGR](papers/snaplgr-snapchat/README.md)。Qwen3-0.6Bを使い、複数のリクエストをまとめて処理します。
+- 注目（Radar）：[SIDScope](papers/sidscope-diagnostics/README.md)。SIDの対応表と生成経路の記録を診断します。公式のクイックスタートも実行しました。
 
-- Must: [LIGE-GR](papers/lige-gr-meta-listwise/README.md) — 既存rankerに列の文脈・価値・探索を追加。
-- Must: [Sona](papers/sona-yandex-music/README.md) — 8k履歴と蒸留でcascadeを置換。
-- Worth: [Wolt UVR](papers/uvr-wolt-trial-reorder/README.md) — TransformerのlogitとCatBoostでtrial/reorderを調整。
-- Radar: [PushDualGen](papers/pushdualgen-kuaishou/README.md) — SIDを先に、任意のcopyを後に生成。
-- Radar: [SnapLGR](papers/snaplgr-snapchat/README.md) — Qwen3-0.6Bとbatch serving。
-- Radar: [SIDScope](papers/sidscope-diagnostics/README.md) — 対応表と生成traceの診断。公式quickstartも実行。
+追加検査は `uv run pytest tests/test_september21_labs.py` と `uv run --with playwright tests/browser_september21.py` です。後者は `/opt/google/chrome/chrome` を使います。本番性能と規模拡大は未検証です。
 
-追加検査: `uv run pytest tests/test_september21_labs.py`、`uv run --with playwright tests/browser_september21.py`。後者は `/opt/google/chrome/chrome` を使用します。実験の本番性能・scalingはNOT TESTEDです。
+### 2026-09-22：検索の価値、注文の完納、修正前の診断
 
-## 2026-09-22：検索の価値・注文の完納・修正前の診断
+[VARG](https://mixidota2.github.io/paper-lab/papers/varg-tmall-value-generative-retrieval.html) は検索に使うID（住所）の安定性、[Accuracy Is Not Service](https://mixidota2.github.io/paper-lab/papers/accuracy-not-service-intermittent-demand.html) は予測精度と注文をすべてそろえて出せた割合の順位、[AURA](https://mixidota2.github.io/paper-lab/papers/aura-disney-agentic-rec-diagnosis.html) は原因を診断して修正を保留する判断を扱います。各PDFの版とハッシュ、実行した範囲は `mapping.md` にあります。
 
-[VARG](https://mixidota2.github.io/paper-lab/papers/varg-tmall-value-generative-retrieval.html)、[Accuracy Is Not Service](https://mixidota2.github.io/paper-lab/papers/accuracy-not-service-intermittent-demand.html)、[AURA](https://mixidota2.github.io/paper-lab/papers/aura-disney-agentic-rec-diagnosis.html)を追加。住所の安定性、精度と完納の順位散布図、診断から修正を保留する判断を扱います。各PDFの版・ハッシュと実行範囲はmappingに記録しています。
+注目枠では、[GRACE](https://mixidota2.github.io/paper-lab/papers/grace-meta-ads-gtm-serving.html) でリクエストごとに候補を制限するマスク、[ICEGR](https://mixidota2.github.io/paper-lab/papers/icegr-baidu-intent-generative-retrieval.html) でマージンの係数、[EvoPilot](https://mixidota2.github.io/paper-lab/papers/evopilot-verify-dont-trust-autoresearch.html) で評価器の不具合の時系列、[SIDInspector](https://mixidota2.github.io/paper-lab/papers/sidinspector-mapping-diagnostics.html) でIDの対応表の診断を図で追えます。7件の画面幅ごとの表示を確認するコマンドは `uv run --with playwright tests/browser_september22.py` です。
 
-Radarとして[GRACE](https://mixidota2.github.io/paper-lab/papers/grace-meta-ads-gtm-serving.html)、[ICEGR](https://mixidota2.github.io/paper-lab/papers/icegr-baidu-intent-generative-retrieval.html)、[EvoPilot](https://mixidota2.github.io/paper-lab/papers/evopilot-verify-dont-trust-autoresearch.html)、[SIDInspector](https://mixidota2.github.io/paper-lab/papers/sidinspector-mapping-diagnostics.html)も追加。request別mask、margin係数、評価器不具合の時系列、住所表の診断を図で追えます。`uv run --with playwright tests/browser_september22.py` で7本のresponsive表示を確認できます。
+### 2026-09-23：何を測るか、どこを統合するか、何を配信するか
 
-## 2026-09-23：観測・統合・配信を分けて読む
+優先3件を先に公開し、注目4件を追加しました。一次資料と検証記録は [BATCH-2026-09-23.md](BATCH-2026-09-23.md) にまとめています。
 
-優先3本を先行公開し、Radarの4本を追加。Netflixは反実仮想の測定、UNIQUEはretrieval内の表現共有、FlashVectorは全体性能による採択を扱う。一次資料と検証記録は [BATCH-2026-09-23.md](BATCH-2026-09-23.md)。
-
-- [netflix-counterfactual-observability](https://mixidota2.github.io/paper-lab/papers/netflix-counterfactual-observability.html)
-- [unique-baidu-unified-retrieval-ranking](https://mixidota2.github.io/paper-lab/papers/unique-baidu-unified-retrieval-ranking.html)
-- [flashvector-unity-serving-stack-agent](https://mixidota2.github.io/paper-lab/papers/flashvector-unity-serving-stack-agent.html)
-
-- [youtube-music-llm-rationales-discovery](https://mixidota2.github.io/paper-lab/papers/youtube-music-llm-rationales-discovery.html)
-- [muser-baidu-long-sequence-multi-interest](https://mixidota2.github.io/paper-lab/papers/muser-baidu-long-sequence-multi-interest.html)
-- [hgenpush-kuaishou-heterogeneous-push-gr](https://mixidota2.github.io/paper-lab/papers/hgenpush-kuaishou-heterogeneous-push-gr.html)
-- [t0-tsfm-forecasting-with-context](https://mixidota2.github.io/paper-lab/papers/t0-tsfm-forecasting-with-context.html)
-
-
-### テーマガイド
-
-最新研究・Lab一覧は `index.html`、テーマから選ぶ入口は `guides/index.html` です。棚割りガイドの原稿は `guides/shelf-decisions.md` にあり、共通の3Labへリンクします。需要予測と補充のガイドは、企業の事例、理論の保証、小規模検証の提案を分けて比較します。ガイドをLabの件数に加えません。論文の発表・公開時期とガイド追加日を別に表示します。
-
-通常の全件ビルドでガイドも生成します。棚割りガイドは、原稿と参照先の3Labがそろう場合に生成します。需要予測と補充のガイドには、その棚割りガイドに加え、共通閾値・ORPR・予測精度と在庫指標のLab、原稿と事例カードが必要です。参照Labが不足する限定ビルドでは該当ガイドを生成しません。限定ビルドは本番サイトとは別の出力先へ作成してください。
-
-棚本数を固定した店舗レイアウトのガイドは `guides/store-layout-fixed-counts.md` から生成します。棚割りガイドの条件に加え、Whole FoodsのLabが必要です。カテゴリ別の本数を変えず、位置への割当、連続配置、相互作用を比較します。5・4・3本の図は模式図で、合成最適化実験は未実施です。
-
-ブラウザー準備検査は `uv run --locked --extra dev pytest -q tests/test_review_103_preparation.py`。忘却教材の小数3桁表示を実際のJavaScriptと照合し、ガイドから共通Labへのリンクを検査します。保護付きmacOSブラウザーで検査を実行する `tests/review_103.py` は、360px／1440pxでガイド一覧・本文・3Labの往復を検査し、原寸画像を保存する対象に含めています。準備検査の成功は実画面の確認完了を意味しません。
+- [Netflix：反実仮想の測定](https://mixidota2.github.io/paper-lab/papers/netflix-counterfactual-observability.html)
+- [UNIQUE：候補検索の処理内で表現を共有](https://mixidota2.github.io/paper-lab/papers/unique-baidu-unified-retrieval-ranking.html)
+- [FlashVector：システム全体の性能から採用を判断](https://mixidota2.github.io/paper-lab/papers/flashvector-unity-serving-stack-agent.html)
+- [YouTube Music](https://mixidota2.github.io/paper-lab/papers/youtube-music-llm-rationales-discovery.html)
+- [MuSeR](https://mixidota2.github.io/paper-lab/papers/muser-baidu-long-sequence-multi-interest.html)
+- [HGenPush](https://mixidota2.github.io/paper-lab/papers/hgenpush-kuaishou-heterogeneous-push-gr.html)
+- [t0：外部の説明変数を使う時系列基盤モデル](https://mixidota2.github.io/paper-lab/papers/t0-tsfm-forecasting-with-context.html)
