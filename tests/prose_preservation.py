@@ -40,8 +40,18 @@ def before_yomiyasu_replenishment(root, path, content):
 def issue21_hash(root, path, expected, algorithm='sha256'):
     """Permit only the separately recorded Issue 21 update from exact prior bytes."""
     revisions = json.loads((root / 'tests/issue21_revision_hashes.json').read_text())['files']
-    if path not in revisions:
+    if path in revisions:
+        row = revisions[path]
+        assert expected == row['before_' + algorithm], path
+        expected = row['after_' + algorithm]
+    return reading_prose_hash(root, path, expected, algorithm)
+
+
+def reading_prose_hash(root, path, expected, algorithm='sha256'):
+    """Permit the reviewed PR 61 text only from the exact preceding identity."""
+    rows = json.loads((root / 'tests/reading_prose_revision_hashes.json').read_text())['files']
+    if path not in rows:
         return expected
-    row = revisions[path]
+    row = rows[path]
     assert expected == row['before_' + algorithm], path
     return row['after_' + algorithm]

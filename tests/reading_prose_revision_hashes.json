@@ -1,0 +1,59 @@
+{
+  "base": "3895619b4ac7d89d9a7c31c5bf721ef6773e48b1",
+  "files": {
+    "paper_lab/templates/index.html": {
+      "before_sha256": "846f2c7e3421e06aaac48fa7aed61fd7ef5c601db2f1f2e7dd0f49de7923c42f",
+      "before_blob": "5f2efb5bedf9b2994ce534badc9e0cf28035cb75",
+      "after_sha256": "1cf269b6f6f17e4b580ee1a93b8f25fcade079319509693dfa5f4da3055196d9",
+      "after_blob": "f67f0dab7cba4c4ed0e670e55654484909ae8d7f"
+    },
+    "paper_lab/templates/library.js": {
+      "before_sha256": "09b25a080c692b790200375e20f94bcf0d6afac1db6adc1be0fd64d6e8c7aaa0",
+      "before_blob": "d104401a0b71a03d64def3a54a37de75711d9a0d",
+      "after_sha256": "86bd46bad360fcd59db9c0904294c821d2b6a60844d8a6524a54ad23b4ba5ff3",
+      "after_blob": "0101bcfbcfd3fdb98f5537c59f05c8ee14e08c71"
+    },
+    "papers/retail-forecast-decision-grain/README.md": {
+      "before_sha256": "e6a4479be00f30503320ecfddda8190ddf352e3c7e138536fe48fd7a77c5206c",
+      "before_blob": "a2678a2589f4bb73969073d5b2e204c82a23a6b9",
+      "after_sha256": "98557b5a8f40565e6435e7518613d5472a72eb11de48f8068b10887c9218673f",
+      "after_blob": "a1f43c6fbd093ff0d82c5644cfddef78c49d5eb3"
+    },
+    "papers/retail-forecast-decision-grain/evidence.md": {
+      "before_sha256": "cb7460dd631db1c122ffee02da43cbb7888f0523d91ba4a62abe86221ac4ba64",
+      "before_blob": "444c4a07c025c9b7d9d9d782bf4593f0023b6dc0",
+      "after_sha256": "9cbfab76388b1cab7086958517d9a654632e96d6a15c392896050ea3cc3e93e3",
+      "after_blob": "f9a6a16706ebc34c8f38b0a6c8c402e68bc538b8"
+    },
+    "papers/retail-forecast-decision-grain/experiment.md": {
+      "before_sha256": "589d0f34feffe442d4fee2039de7b5c10f70820d338bcfcd0092604f83207261",
+      "before_blob": "140661c5e78220f12ee79cf18e53f7e659f0cfd6",
+      "after_sha256": "7bbe111dfba85755a78bb22ddb07403819f045a61ef1aef39071ccc73183fb85",
+      "after_blob": "c8f5f1bbadbc44c77751ec7dc86c2b6bf444248c"
+    },
+    "papers/retail-forecast-decision-grain/interactive.html": {
+      "before_sha256": "985a98ebcb9c56d2a741fc269b9cfa9a1e83850971ebd209224dd5cbb7b314f4",
+      "before_blob": "1afa8ab27595ad372bffa59d3afaa4c3e103a59e",
+      "after_sha256": "0a10ddd6e334e10bd6d755e7deaecf5b949ef93743555dbd2aeb24eaa8a1b5a1",
+      "after_blob": "269e50720abf2bf605ed9ffcd508ac3e82498b43"
+    },
+    "papers/retail-forecast-decision-grain/lab.yaml": {
+      "before_sha256": "de1665b5db06eb9750d138b3b9bc70335f7ba889fdfe65b80914b77fc935c07f",
+      "before_blob": "e0c8a838fb4a99606285427ae32dcdaeef304b34",
+      "after_sha256": "85b588a8f178a95ede503b122ec58fd36654f3ed4786b1ebc6c8201cee5c60d0",
+      "after_blob": "eab620439e43545dade045257266224a7e7d4a5e"
+    },
+    "papers/retail-forecast-decision-grain/mapping.md": {
+      "before_sha256": "1e9a3c5f40bb2281ab0791c49a4ea1db645c20b218a7181bf947361030f0df3f",
+      "before_blob": "e9c5155f01491723d791a0bedf224b8e9c502f04",
+      "after_sha256": "33f6d89dc6141a6e4429cbc0f6c4b938f2779a6b40fa7f752c434c878209f176",
+      "after_blob": "c7835c632e5352b25998939a4436c823fd000790"
+    },
+    "papers/retail-forecast-decision-grain/method.md": {
+      "before_sha256": "465728c663e8aff975d6f597eb14a38401e1c3c800be6fb17ff06a1d183d3fe0",
+      "before_blob": "87c9c97616d418af30278ad6ce7909eee98306b5",
+      "after_sha256": "8586c8b4d5b3c0a2a84cbda7d207ce21c3fcfc6524cec9983f931d059a1e31f8",
+      "after_blob": "2b383cc2a109bc6112dda71bedb6ead52e956efc"
+    }
+  }
+}
