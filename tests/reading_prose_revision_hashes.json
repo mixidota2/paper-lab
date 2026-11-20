@@ -162,6 +162,36 @@
       "before_sha256": "a410859846ec0a21c246264a117c893ffb304de78de167380c5479bc49aef645",
       "after_blob": "25b82924538047c0fa07659afd2ff0110b07f89e",
       "after_sha256": "6dce5d8f3dc64a3205a42137c15ce1c682ec36bb958958d96236cc96f4d43c26"
+    },
+    "paper_lab/forecast01.py": {
+      "before_sha256": "43f4ea9f5a6d2d780a4c7b756cc43a079ced92c08f09089d7d81d6ab9090a977",
+      "before_blob": "da18de1b350c34c060a0875394e4d3d986be2134",
+      "after_sha256": "12bd8239dbb1404118dd917c477beda7f46efd930f01ab392b86d9a97899eda4",
+      "after_blob": "32725593717a521c52b1d59832fd6e836760b165"
+    },
+    "papers/bridging-forecast-accuracy-inventory-kpis/README.md": {
+      "before_sha256": "8c86a7aa2baee80194748a77ea6120d15e738ceebed8a9cb975c72774eaf42fe",
+      "before_blob": "faa69e4e76616987646d75d8733d2723f3b4834a",
+      "after_sha256": "785eedfc991ed55f67cbe68e01a31487c59e68c94f21b1da41ea53182c25e6c5",
+      "after_blob": "381870eabf15e4ba0a376d6bc0d632a03a3dc043"
+    },
+    "papers/bridging-forecast-accuracy-inventory-kpis/lab.yaml": {
+      "before_sha256": "0b7872340cd85275f5e0ac368bf89b6a0ba1a50192f02fbd2156f5bc7b6f72a0",
+      "before_blob": "3103096e0971a2b16dfe062e20d88b2d96f608f6",
+      "after_sha256": "ebeaec9df569358bd161963c8d15e15ed56a5aa81a48cb61c47d77ec0f027a7a",
+      "after_blob": "4238dee32eac8102a36a6d3a941a2bc1c1a27113"
+    },
+    "papers/bridging-forecast-accuracy-inventory-kpis/mapping.md": {
+      "before_sha256": "6f62c9d27fa59ef75fe111181a49c242f261412cc6e922f8e9b2a94189f2f674",
+      "before_blob": "d8786f889b0fd6b5349213625ebe6c2c2d2c509d",
+      "after_sha256": "87fffa2c7b8e09332e716e4858fa4710750a7c50aabcdac175ce5b572d7d10a6",
+      "after_blob": "73ad02e542f51fbf602767d424799e1c260ff80a"
+    },
+    "papers/bridging-forecast-accuracy-inventory-kpis/method.md": {
+      "before_sha256": "13b73dbe5fded26d357315ddbc6a5dc38c44bf971f07e1afb2661aebef610ebd",
+      "before_blob": "de479c5445ba87db3cc2a2bd00ebf7f9cdf0bcb1",
+      "after_sha256": "26e75a8027769d26b6fed4cc03be085ea77085d1275876b81668136a014b5298",
+      "after_blob": "11fc91d61431a338e0eff14c473edf4a0da2910c"
     }
   }
 }
