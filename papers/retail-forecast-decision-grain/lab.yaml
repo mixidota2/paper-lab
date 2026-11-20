@@ -16,8 +16,8 @@ urls:
   official_code: https://github.com/karthik-iyer-au/retail-world-models
 verdict: Worth Reading
 status: draft
-question: 予測誤差が小さいモデルは、カテゴリ計画や発注でも良いのか
-summary: 販促計画の条件をそろえた比較でも、商品からカテゴリへの合計や、窓の平均順序、超過・不足費用によって順位は変わります。訂正されたカテゴリ費用と単期発注損失を、操作できる合成例で確かめます。
+question: 商品別の予測がよく当たるモデルは、カテゴリの売上計画や発注でも有利か
+summary: 販促計画を同じ条件で使っても、商品をカテゴリにまとめる順番、評価期間の平均の取り方、余りと不足の費用によって、モデルの順位は変わります。カテゴリの費用を測る訂正式と、1期分の発注損失を、自作の例で確かめます。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -26,21 +26,21 @@ verification:
 source_review:
   checked: '2026-11-09'
   url: https://arxiv.org/pdf/2610.25170v1
-  scope: 指定本文と公式CSV・訂正式コードを読解。全補足・全図画素・原モデル実行は未検証。
+  scope: 指定した論文本文、著者のCSVと訂正式のコードを読みました。補足資料全体や全ての図の画素は確認せず、著者モデルも実行していません。
 core_idea:
-  author_claim: 同じ公開データでも、意思決定の粒度と費用の定義によって最良モデルが変わる。
-  research_bot_interpretation: 予測精度の単一順位だけで採用を決めず、販促入力・集約順序・費用を固定して再評価するための資料。
+  author_claim: 同じ公開データでも、商品別かカテゴリ別か、どんな費用を測るかによって、最も成績がよいモデルは変わりうる。
+  research_bot_interpretation: 予測精度だけで採用を決めず、入力する販促計画、売上を合計する順番、費用の定義をそろえて比較し直すための教材です。
 sections:
-  overview: 4公開データ源・9パネルを比較したv1を扱います。本文の原著報告と自作合成例を分けて表示します。
-  problem: 商品別の誤差を減らしても、カテゴリの合計や非対称な発注費用が同じように改善するとは限りません。
+  overview: 4つの公開データ源を9つの評価単位に分けて比較した論文の第1版を扱います。論文の報告とLabの自作例を分けて紹介します。
+  problem: 商品別の予測誤差が減っても、カテゴリ全体の予測が同じように改善するとは限りません。商品が余る場合と足りない場合で費用が違うと、発注で選ぶモデルも変わりえます。
   method: method.md
-  why_it_might_work: カテゴリ内で反対方向の誤差が相殺されることと、ゼロ売上を小さな定数で割ることを分けると、評価式の変更で順位が変わる理由が見えます。これはLabの解釈です。
+  why_it_might_work: 同じカテゴリ内で商品をまとめると、過大予測と過小予測が打ち消し合う場合があります。一方、旧式では売上が0でも誤差が残ると、小さな定数で割るため値が大きくなります。この2つを分けて考えると、順位が変わる理由が分かります。これはLabの解釈です。
   evidence: evidence.md
   executable_understanding: experiment.md
-  results: 保存値は初期合成例と9つの単期損失です。公表CSVの勝数は証拠節に分離しています。
-  what_we_verified: CONFIRMED：自作式・境界・再生成一致と、条件を限定した公式CSVの最小値集計。Mechanism全体はPARTIAL。
-  what_we_did_not_verify: 原モデル学習・推論、実店舗利益、運用性能、全補足と全図の画素監査はNOT TESTED。実ブラウザーも未検証。
-  implementation: READMEのuv手順で再生成します。外部APIや学習済みモデルを呼びません。
+  results: 保存した値は、教材の初期条件での計算結果と、1期の発注損失9例です。著者のCSVで費用が最小だった回数は、検証・根拠の節に分けて載せています。
+  what_we_verified: 確認済み（CONFIRMED）は、自作の式の計算、境界値、再生成と保存値の一致、著者のCSVの一部を使った最小値の集計です。手法全体の確認は一部（PARTIAL）です。
+  what_we_did_not_verify: 著者モデルの学習・推論、実店舗の利益、運用時の性能、補足資料全体と全ての図の画素は未検証（NOT TESTED）です。実ブラウザーでも確認していません。
+  implementation: READMEのコマンドをuvで実行すると、教材の計算結果を再生成できます。外部APIや学習済みモデルは使いません。
 figures: []
 interactives: []
 teaching_figures:
@@ -81,7 +81,7 @@ teaching_figures:
     explanation: まず商品をまとめ、同じ期の予測と比較する。
   - name: 窓内の費用
     formula: C_k = Σ_n p_n Σ_t |y_nt − ŷ_nt| / Σ_n p_n Σ_t y_nt
-    explanation: 各期の絶対誤差を足し、単価で重み付けする。
+    explanation: 各期の絶対誤差を足し、単価を掛けて、実績の売上金額の合計で割る。
   - name: 窓間の報告値
     formula: C̄ = (1/K) Σ_k C_k
-    explanation: 窓ごとの比率を同じ重みで平均。poolとは異なる。
+    explanation: 評価期間ごとの比率を同じ重みで平均する。全期間の分子・分母をまとめて割る方法（pool）とは異なる。
