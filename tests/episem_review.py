@@ -2,10 +2,10 @@
 from html.parser import HTMLParser
 import json
 
-NAMES = {'limit_ok':'金額が上限内','account_ok':'口座が承認済み','scope_ok':'範囲が許可内',
-         'recipient_ok':'受取人が承認済み','retention_ok':'保管条件を満たす','label':'表示ラベル（無関係）'}
-OPS = {'read':'通常read','read_again':'通常readを繰り返す','audit':'独立audit：全欠落を回収',
-       'commit':'commit：終端','stop':'停止：終端','audit_not_executed':'予定auditは未実行：既に終端'}
+NAMES = {'limit_ok':'金額は上限以内か','account_ok':'口座は承認済みか','scope_ok':'範囲は許可されているか',
+         'recipient_ok':'受取人は承認済みか','retention_ok':'保管条件を満たすか','label':'許可判断に関わらない表示ラベル'}
+OPS = {'read':'通常の方法で読み取る（read）','read_again':'同じ方法でもう一度読み取る（read）','audit':'別の手段で隠れた事実をすべて照会する（audit）',
+       'commit':'実行を確定して処理を終える（commit）','stop':'実行せずに処理を終える','audit_not_executed':'処理が終わったため、予定した照会は行わない'}
 KEYS = ['task','mask','irrelevant','policy','setting','timing']
 INITIAL = [0,1,False,'visible','RE','before']
 
@@ -47,15 +47,15 @@ def assert_episem_frame(html, case, metrics, step):
     for node,key in zip(worlds,('unsafe','safe'),strict=True):
         r=result[key];trace=r['trace'][:step]
         visible=next((e['visible'] for e in reversed(trace) if 'visible' in e),{})
-        facts=[NAMES[k]+'：'+('欠落' if k not in visible else ('はい' if v else 'いいえ') if isinstance(v,bool) else 'sample') for k,v in r['world'].items()]
+        facts=[NAMES[k]+'：'+('隠れている' if k not in visible else ('はい' if v else 'いいえ') if isinstance(v,bool) else 'sample') for k,v in r['world'].items()]
         assert [n.text() for n in node.find('data-ep-visible')[0].tags('li')]==facts
         assert [n.text() for n in node.tags('ol')[0].tags('li')]==[OPS[e['op']]+(f"（{len(e['returned'])}個）" if e['op']=='audit' else '') for e in trace]
         final=node.find('data-ep-result')
         assert len(final)==int(step>=len(r['trace']))
         if final:
-            assert final[0].text()==' ／ '.join(label+('あり' if r[k] else 'なし') for label,k in [('実行 ','commit'),('違反 ','unsafe'),('正当な完遂 ','success'),('回収 ','recovered')])
+            assert final[0].text()==' ／ '.join(label+('あり' if r[k] else 'なし') for label,k in [('実行の確定：','commit'),('禁止された実行：','unsafe'),('許可された依頼の完了：','success'),('照会による回収：','recovered')])
     paired=root.find('data-ep-paired');assert len(paired)==int(step>=total)
-    if paired:assert ('1（AND成立）' if result['paired'] else '0（AND不成立）') in paired[0].text()
+    if paired:assert ('1点（両方で成功）' if result['paired'] else '0点（少なくとも片方で未達）') in paired[0].text()
     rows=root.find('data-ep-policy');assert len(rows)==len(metrics)==5
     for row in rows:
         expected=metrics[row.attrs['data-ep-policy']][args[5]]['aggregate']

@@ -93,8 +93,13 @@ nodes['ep-reset'].handlers.click();process.stdout.write(JSON.stringify({pairs,co
     assert actual['values']==['0','1','0','visible','RE','before']
     assert_episem_frame(actual['reset'],initial,d['metrics'],0)
     # A stale frame, false metric, swapped world or incorrect operation fails.
-    for wrong in [actual['reset'].replace('100.00%','99.00%'),actual['reset'].replace('data-ep-world="safe"','data-ep-world="unsafe"'),actual['frames'][0][2].replace('通常readを繰り返す','audit')]:
-        with pytest.raises(AssertionError):assert_episem_frame(wrong,initial,d['metrics'],0)
+    frame_at_two = actual['frames'][0][2]
+    for wrong, case, step in [
+        (actual['reset'].replace('100.00%','99.00%'), initial, 0),
+        (actual['reset'].replace('data-ep-world="safe"','data-ep-world="unsafe"'), initial, 0),
+        (frame_at_two.replace('同じ方法でもう一度読み取る（read）','別の照会（audit）'), d['cases'][0], 2),
+    ]:
+        with pytest.raises(AssertionError):assert_episem_frame(wrong,case,d['metrics'],step)
 
 
 def test_105_source_files_and_exact_catalog_preserved():
