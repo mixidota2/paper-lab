@@ -14,8 +14,8 @@ urls:
   arxiv: https://arxiv.org/abs/2610.32285
 verdict: Worth Reading
 status: draft
-question: 成果が正しければ、実行基盤も正しいか
-summary: 成果と情報伝達の判定を分け、未実行状態の解決と候補関係の限界を合成例で確認します。
+question: 完成物が正しくても、途中の処理は正しく伝わったか
+summary: 完成物と実行基盤を別々に採点します。基盤の仕組みを使わなかった場合の扱いと、二つの不合格が因果関係を示すとは限らない理由を、合成例で確認します。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -26,18 +26,18 @@ source_review:
   url: https://arxiv.org/html/2610.32285v1
   scope: Web本文§2–4、§5.1–5.2。§5.3表本文はHTMLで未表示。作者コード・原記録未取得。
 core_idea:
-  author_claim: 成果の判定と実行基盤の判定を分け、出所の異なる証拠を対応付ける評価を提案します。
-  research_bot_interpretation: 合格と因果説明を別々に検討するための教材として読みます。
+  author_claim: 著者は、完成物で成果を調べ、実行記録や独立した観測で基盤の動作を調べる評価方法を提案しています。
+  research_bot_interpretation: このLabでは、何が不合格だったかと、なぜ不合格になったかを区別するために読み解きます。
 sections:
   overview: 論文の評価規則を説明する自作教材です。企業効果や作者実験を再現したものではありません。 [一次資料の書誌情報](https://arxiv.org/abs/2610.32285)。
-  problem: 完成物だけの検査では、途中の情報伝達が正しかったか分かりません。
+  problem: 処理の失敗を成功と伝えていても、別の手順で完成物が正しくなる場合があります。完成物だけでは、その途中の誤りを見つけられません。
   method: method.md
-  why_it_might_work: 外部の実状態とモデルに渡った情報を別に確かめると、異なる失敗を区別できます。
-  evidence: 一次資料：原典§3.4表4・式3、§3.5式4/6との対応を確認しています。候補関係は因果証明ではありません。
-  executable_understanding: 操作する数値は合成例です。実記録の整合性を検査する機能ではありません。
-  results: 64条件は自作入力の組合せです。ダウンロードしたresults.jsonで各条件の数値を確認できます。
-  what_we_verified: 限定例の数値と原典規則の対応を確認。判定器自体の信頼性は検証していません。
-  what_we_did_not_verify: 実trace、測定整合性、因果伝播、原著実験、実ブラウザは未検証です。
+  why_it_might_work: 処理が実際にどう終わったかと、モデルに何が伝わったかを比べれば、処理自体の失敗と、その結果の伝え方の誤りを切り分ける手掛かりになります。
+  evidence: 一次資料の§3.4の表4と式3は、基盤の判定と得点の決め方を示します。§3.5の式4と式6は、基盤側の不合格を絞り込む規則と、失敗が伝わった可能性を調べる候補の規則です。
+  executable_understanding: 基盤を状態2にしたまま成果の合否を変え、基盤の得点が変わることを確かめます。画面のチェック欄は仮定の入力で、実行記録は検査しません。
+  results: 配布するresults.jsonには、成果2状態と基盤4状態、チェック欄3つのオン・オフを組み合わせた64条件の結果を収録しています。
+  what_we_verified: この合成例の得点と、原論文で示された規則との対応を確認しました。論文で使われた判定器の信頼性は検証していません。
+  what_we_did_not_verify: 実際の実行記録の照合、記録の整合性の確認、失敗の伝播の検証は行っていません。著者の実験の再現と実ブラウザーでの動作確認も行っていません。
   implementation: 標準Node.jsで計算し、uv経由のrun.pyから再生成します。外部APIは使いません。
 figures: []
 interactives: []
@@ -54,13 +54,13 @@ teaching_figures:
   - label: 検証の順序
     nodes:
     - title: 測定整合性
-      text: 採点に使える記録か
+      text: 実行結果と記録が対応しているか確かめる
     - title: 二層判定
       text: 成果と基盤を別に採点
     - title: 候補関係
-      text: 事前条件と失敗端点が一致
+      text: 事前に定めた基盤項目と成果項目がともに不合格か確かめる
     - title: 追加の検証
-      text: 途中の変化・順序・競合説明を照合
+      text: 途中で何が変わったか、出来事の順番や他に考えられる原因を調べる
 - id: layer-score
   kind: equations
   title: 同じ完成物でも二層の得点は異なる
