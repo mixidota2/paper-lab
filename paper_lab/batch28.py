@@ -27,13 +27,13 @@ def widget(result):
             content='<ol class="b21-search">'+''.join(f'<li>候補 {c["item"]}：log({c["prefix"]}) + {f["beta"]} × {c["offset"]} + log({c["conditional"]}) = <strong>{number(c["score"])}</strong></li>' for c in f['ranking'])+'</ol>'
             content+='<p>上ほど得点が高い。log(prefix)は目的の確率の自然対数、offsetは業務上の加点、log(conditional)は目的を選んだ後の商品確率の自然対数。βだけを動かし、学習済み確率を模した値は固定する。</p>'
         elif kind=='evaluation':
-            content='<div class="b21-cards">'+''.join('<div>買い手 '+', '.join(str(i+1) for i in g)+'<br>予測A−実績の合計 <strong>'+str(sum(result['predictions']['A'][i]-result['actual'][i] for i in g))+'</strong></div>' for g in f['groups'])+'</div>'
-            content+=table(['予測','WAPE（%）'],[[k,number(v)] for k,v in f['scores'].items()])+f'<p>この条件でWAPEが最小の予測：{f["winner"]}。同じ予測を異なる組にまとめた結果。</p>'
+            content='<div class="b21-cards">'+''.join('<div>買い手 '+', '.join(str(i+1) for i in g)+'<br>Aの予測値 − 実績（組の合計） <strong>'+str(sum(result['predictions']['A'][i]-result['actual'][i] for i in g))+'</strong></div>' for g in f['groups'])+'</div>'
+            content+=table(['予測','実績総額に対する絶対誤差（WAPE、%）'],[[k,number(v)] for k,v in f['scores'].items()])+f'<p>この組分けで誤差が小さい予測：{f["winner"]}。変えたのは組分けだけ。各買い手の実績と予測は同じ。</p>'
         elif kind=='harness':
             content='<div class="b21-serving"><section><h4>実行前の点検</h4><p>提案：'+escape(f['proposal'])+'</p><strong>'+f['decision']+'</strong></section><section><h4>学習対象モデルへ渡し、学習用履歴へ残す応答</h4><p>'+escape(f['executed'])+'</p><p>点検役だけが参照する履歴は含めない。</p></section></div>'
         else: raise ValueError(kind)
         frames.append(content)
-    titles={'reasoncast':'保存済みの3日例：補正なしと誤情報による補正','scope':'配送数量と周期から配送費用の段差を読む','onetrans':'生成の先頭に置く目的の記号を、業務上の加点で選ぶ','evaluation':'同じ予測の誤差を、どこで相殺するか','harness':'点検役を通った応答だけを履歴へ残す'}
+    titles={'reasoncast':'保存済みの3日例：補正なしと誤情報による補正','scope':'配送数量と周期から配送費用の段差を読む','onetrans':'生成の先頭に置く目的の記号を、業務上の加点で選ぶ','evaluation':'予測はそのまま、買い手の組分けを変える','harness':'点検役を通った応答だけを履歴へ残す'}
     options=''.join(f'<option value="{i}">{escape(f["label"])}</option>' for i,f in enumerate(result['frames']))
     data=json.dumps(frames,ensure_ascii=False).replace('</','<\\/')
     return '<figure class="teaching" data-b21><h3>'+titles[kind]+'</h3><label>人工例の条件 <select>'+options+'</select></label><script type="application/json" data-frames>'+data+'</script><div data-output aria-live="polite">'+frames[0]+'</div><figcaption>run.pyが計算したresults.jsonから生成。著者の測定値ではない。</figcaption></figure>'

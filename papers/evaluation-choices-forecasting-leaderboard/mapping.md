@@ -1,17 +1,13 @@
-# 原論文・公式コード対応
+# どの表を参考にし、どこまで計算したか
 
-[一次資料PDF](https://arxiv.org/pdf/2609.27867)。確認箇所：Tables 1, 3, 5–7; Figure 1; §4。保存済みPDFのSHA-256：`5b7b2ed0a545840f48ee7a06cf1a9fc9103bc49e28888195c5f22057c0450a11`。
+[一次資料PDF](https://arxiv.org/pdf/2609.27867)の確認箇所：Tables 1, 3, 5–7; Figure 1; §4。保存済みPDFのSHA-256：`5b7b2ed0a545840f48ee7a06cf1a9fc9103bc49e28888195c5f22057c0450a11`。
 
-## 紙面と最小実験の対応
+| 原論文の箇所 | Labで扱うこと | 再現していないこと |
+| --- | --- | --- |
+| Tables 1, 3 / Figure 1 | 表1と表3の比較条件を区別。人工例の `score()` では、予測を固定して組分けだけを変える。 | Field Nationの非公開データや著者の順位は再計算していない。 |
+| Tables 6–7 | `gap_closed_from_rounded_table6` で表6の表示値から回収率を再計算。M5の数値は著者の報告として掲示する。 | 本番で使える手法選択の性能や、M5全手法の再評価は未検証。 |
+| Table 5 | 点予測と区間予測の順位相関を、対象と比較手法数とともに示す。 | 区間予測の生成、評価、統計検定は行っていない。 |
 
-score() → Table 3 / Figure 1の評価粒度を説明する人工例。gap_closed_from_rounded_table6 → Table 6の丸め済み値による算術確認。
+確認したPDF内では公式実装のURLを特定できなかった。公開実装が存在しないとの断定はしない。公式コードの実行、本番での性能・利用、大規模化はいずれも未検証（NOT TESTED）。店舗の補充費用を最小にする手法も決めていない。
 
-Performance / Scaling / Production applicabilityはNOT TESTED。Field Nationの非公開パネル、M5の全手法再評価、区間予測、統計検定は実行していない。店舗の補充費用を最小化する手法も決めていない。
-
-## 公式コードの確認範囲
-
-確認したPDF内で本手法の公式実装URLを特定できなかった。公開実装が存在しないとの断定はしない。公式コードの実行はNOT TESTED。
-
-## 原本と生成物
-
-lab.yamlは本文と図の定義、method.mdは手法説明、run.pyは人工実験、results.jsonは実行結果、mapping.mdは対応表。HTMLはこれらから生成する。PDFの報告値と人工実験値は別に表示する。
+`lab.yaml` は本文と図の定義、`method.md` は手法、`run.py` は人工実験、`results.json` は保存済みの結果。HTMLはこれらの原本から生成し、論文の値と人工例を別に表示する。
