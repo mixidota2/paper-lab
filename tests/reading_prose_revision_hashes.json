@@ -336,6 +336,42 @@
       "after_blob": "ad56ca3daccd89305f55c2fc9292ea3942b74698",
       "before_sha256": "a5af0715ec21b011111eb30522042b023d41e5dbcbc21cde64f619f7d9035130",
       "after_sha256": "7bb8d8f75bd116d6a8c2349b7504beae588c126d0eb8702999a33cc0a8059e67"
+    },
+    "papers/forecast-critic/lab.yaml": {
+      "before_blob": "55da8b3888840db26a29ad3716083fd5f6c3b040",
+      "after_blob": "28f43cf34dccc2b7957f51d8a65a9c7a7498863e",
+      "before_sha256": "b8bc497501d7d45f833c46ae2705d3e89664fab9184cc3b01d6569d485ccf77b",
+      "after_sha256": "5665d9a0ef130a2424b0d18ad165b711c27931fb5b37daeca13dfb8a5a284d18"
+    },
+    "papers/forecast-critic/mapping.md": {
+      "before_blob": "d6f37bc69c99aa44c8f394d27787632658de4779",
+      "after_blob": "c870577f5316f8cfc31cb9f63fe9c09752ac2df1",
+      "before_sha256": "c054cdfc92d4deedb16f61000b7517ce4deb7b6f5e3a2c0f6b4a57fd7de505aa",
+      "after_sha256": "4bf1462a10c84839a1485cdb7b5c76d04d11fc0307f6ab563716eead92d43d98"
+    },
+    "papers/forecast-critic/method.md": {
+      "before_blob": "3e76de6a5f5f3a77a8a7fbb0000961f27e98c40f",
+      "after_blob": "881eca5eb9f9c792c31fa8ee2ec71bca915e8f9f",
+      "before_sha256": "fbbba8bfde0d63102db682efd7b7c9a3905ea3cba63b9a0b4fde517fb989fbcb",
+      "after_sha256": "b193815ed9db86e74c8f24c3da1f226a3aa411bca90d8749db1356194ae3a001"
+    },
+    "papers/forecast-critic/figures/failures.svg": {
+      "before_blob": "cfc371ebccd86fa5c7f886e93b28725db63d642d",
+      "after_blob": "69d195c6ee7cff9352603ce3092bbd7a5c308534",
+      "before_sha256": "a2cf1797ada9d7037ff4c4d21e241a078c2f897fdbca525bf6213656addbfc98",
+      "after_sha256": "e587b7d9e85e29861ae7a2d24c6ee3ba4f4543cb23e66b974537d523b94e9382"
+    },
+    "papers/forecast-critic/figures/loop.svg": {
+      "before_blob": "59c0e89cbe0f02673a2301a347f2fc542f2996b8",
+      "after_blob": "c9b8f728dc48c7a886ce3158dc1753a63e2efb91",
+      "before_sha256": "a98f766a4797deb997e9f667fc9bc2ec20b8eeb77ff095b51dca336850ec69a1",
+      "after_sha256": "25634157a0ce90236bc691262e7c8a3c7318ae53134ef6c1a606983a135dd25c"
+    },
+    "papers/forecast-critic/figures/visibility.svg": {
+      "before_blob": "0428c34f8c702c71a9cbb0f90092594c9933ab0f",
+      "after_blob": "f639590c285055514b0fae0f4478918f67b6a508",
+      "before_sha256": "9212784c785f0dd8b5a06dc7b9e124e1ad608019df10e219953242fa1ddb5599",
+      "after_sha256": "ea8af90df054cde93f0069aafcc9fdda1ecb5515eaee0b27bc0f1655b850095a"
     }
   }
 }
