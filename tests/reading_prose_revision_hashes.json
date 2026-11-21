@@ -276,6 +276,36 @@
       "after_blob": "09f8734191808c79265f179700b240e33399ea07",
       "before_sha256": "71cba2d0a516b136ac2b8d4e65f8e630b98882aabaac9c0a9320646df87c6cf5",
       "after_sha256": "c6686f6511ab71f62074e6f228b5cfd76f350656a01f120b34c8ce8710288ae7"
+    },
+    "papers/diff-projection-feasible-multi-echelon-inventory/README.md": {
+      "before_blob": "f28169cedd028475d9bb3f97fa89064b0cbcea22",
+      "after_blob": "73a64112b98cf32087fa3d83310b9863cf5de46a",
+      "before_sha256": "1ac13234ac278a7883d651de45f6c29ddc50ae57abffcfb566b969720c062b7f",
+      "after_sha256": "81a7d5a5fa8b594ec5bcdd7044b7b57339c5d7824f2cf9981fa31190768a9b99"
+    },
+    "papers/diff-projection-feasible-multi-echelon-inventory/lab.yaml": {
+      "before_blob": "c94a0d44e7a8b1d91742f3728571f3efce0dea7f",
+      "after_blob": "c82388f4a26623a8015e9c943cb0ae63b7147d91",
+      "before_sha256": "00dc71e41c886f21b82e9d34e802a1e176ab76b1570b7b4faf4b21a56f8439bd",
+      "after_sha256": "5169af8c8c0f6e9f2449ee7df4d705a91c05a0fe633d67a1e33db3e9bdc50e97"
+    },
+    "papers/diff-projection-feasible-multi-echelon-inventory/method.md": {
+      "before_blob": "add248fe2ab86a7f33df164802fd61c38c4eca5f",
+      "after_blob": "e02e1198e975cdc74f999ad93c9987c75b834322",
+      "before_sha256": "a5f2ce425f67e6566e84282a22ac47d92ecc721378a39ae098163177bda6b17a",
+      "after_sha256": "d309c799a467311f7183b22755a7e5ae24c2a21c8f5e6e1c5cfdd635c84e33db"
+    },
+    "papers/diff-projection-feasible-multi-echelon-inventory/mapping.md": {
+      "before_blob": "074de7e476d80712561fd02c02e5d8113eef53cd",
+      "after_blob": "18b29125411ea34318e73a61fcf83b3fa14db0d2",
+      "before_sha256": "89e8f694ca0e1b44dc1ed7f812824a3debb56f9fd1b42867e0e5f05abf8a41c0",
+      "after_sha256": "eb13d18834516c482e67b65c90c78df30a0e82716ab3dc8119b023dcbaecdfd1"
+    },
+    "paper_lab/projection01.py": {
+      "before_blob": "7a38a2a0088b7f6ad4e99915a17b04efa157b080",
+      "after_blob": "94bf003c57e1fbff34a428381556067f614f28c5",
+      "before_sha256": "761061a7998541fbf0ea6e9882f63d43a566ec5735bc6a43a0982e49a2e30090",
+      "after_sha256": "7f73e5186691dcbf6e2b25fdd19d760057698ad4f394843de56c10ea1555a2a3"
     }
   }
 }
