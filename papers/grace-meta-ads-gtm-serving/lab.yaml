@@ -48,8 +48,8 @@ core_idea:
   research_bot_interpretation: '[STATIC](static-constrained-gr.html)がカタログ内で成立するSID
     pathを高速に判定し、[FlashTrie](flashtrie-gpu-beam.html)がTrie制約とbeam処理のGPU効率を問うのに対し、GRACEは「そのrequestで配信可能か」を追加する。合法性・適格性・計算効率を別々の検証項目にできる。'
 sections:
-  overview: 生成した広告が存在していても、地域や年齢など広告主の条件を満たすとは限らない。後から大半を捨てるとbeam枠を浪費する。GRACEは広告の条件をSIDの途中prefixへ集約し、配信できそうな枝にbeamを使う。集約は保守的な近似なので、最終広告単位の検査を残す。
-  problem: カタログのvalidityは「SIDが広告へ戻るか」、eligibilityは「今回のuser/requestが広告の条件を満たすか」。後者は要求ごとに変わる。prefixに複数広告を集約すると属性間の相関が失われ、各属性の条件を満たす広告が別々に存在するだけでもprefixが通る。この偽陽性を管理しつつ、広いbeamを低遅延で処理するのが問題となる。
+  overview: 生成したIDが実在する広告を指していても、その広告を今回のリクエストで配信できるとは限らない。地域や年齢など、広告主の条件を満たさない候補が大半を占め、それらを最後に捨てると、探索の枠を使ってしまう。GRACEはIDの先頭部分（プレフィックス）を共有する広告の条件をまとめ、配信の可能性がない枝を早めに除く。配信できる広告を含む枝を誤って除かないように近似するため、残した枝から広告を選ぶときは、広告ごとに配信条件を確認する。
+  problem: カタログ上の有効性は「広告ID（SID）が実在する広告を指すか」、配信の適格性は「今回のリクエストが広告の条件を満たすか」を指す。配信の可否はリクエストごとに変わる。複数の広告の条件をプレフィックスごとにまとめると、どの条件を同じ広告が満たすかは分からなくなる。条件ごとに当てはまる広告があっても、すべてを満たす広告があるとは限らない。こうした枝も近似検査を通る。枝を誤って残す場合に対処しながら、候補を多く残す探索でも遅延を抑えることが課題となる。
   why_it_might_work: '解釈: 完全に不適格な枝を早く落とせば、同じbeam数でも最終検査を通る候補へ探索資源を使える。bitmaskとBloomはpacked演算に向く。一方、集約ORが飽和すると枝刈りは効かず、細かく分割するとmatcher参照が増える。低いmask
     fill率だけを最適化しても、全体のpass率やlatencyがよくなるとは限らない。'
   evidence: '一次資料 [PDF §6、Tables 2–6](https://arxiv.org/pdf/2608.00938v1) の著者報告。CD
@@ -67,7 +67,7 @@ sections:
     static k-wayはmaskの飽和を減らしても、未分割CD+GTMを最終pass率で上回らなかった。細分化の追加照会費用もあり、著者は未分割を運用点として選ぶ。'
   executable_understanding: '`uv run papers/grace-meta-ads-gtm-serving/run.py`。4広告の国×年齢条件をprefixでORし、属性相関による偽陽性と最終広告検査の必要性を確かめる。同じscore・beam
     2でCD onlyとGTMを比較。8-bitに縮小したBloomではhash偽陽性も観測する。'
-  results: 人工例でCD onlyは上位2prefixを取り、exact検査後の適格広告は0。GTMは明らかに不適格な枝を除き、適格広告cを含むprefixへ枠を使って1広告が残る。US若年とCA成人のORはUS成人requestを通すが、その混合prefixのexact結果は空。GTMが最終判定を置換しないことが分かる。
+  results: 人工例でCD onlyはスコア上位2つのプレフィックスを残すが、広告ごとの検査に通る広告は0件だった。GTMは配信の可能性がない枝を先に除くため、配信できる広告cの枝を探索でき、最終検査に通る広告が1件残った。米国の若年層向け広告とカナダの成人向け広告の条件をまとめた枝は、米国の成人向けのリクエストを近似検査で通す。しかし、広告ごとに調べると、条件を満たすものはない。GTMだけでは最終判定の代わりにならない。
   what_we_verified: Mechanism PARTIAL。人工4要求で、適格広告を持つprefixがOR検査を通ることはCONFIRMED。属性相関の偽陽性、Bloomの偽陽性、同一beamの枠再配分を実行した。
   what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。GH200
     kernel、KV cache、production targeting全条件、実pass率、広告A/Bは未実行。CPUの4広告を23.55→40.42%の再現とは呼ばない。
@@ -123,10 +123,10 @@ teaching_figures:
     explanation: 配下の条件を一つのmatcherへまとめる。
   - name: 要求別の候補token
     formula: pass(p,u) = 1[(mask(p) AND mask(u)) = mask(u)]
-    explanation: この近似とcatalog-valid CDを同時に満たす枝を残す。
+    explanation: 近似検査と、IDがカタログ上で有効かを調べるCDの両方を通る枝を残す。
   - name: k-way
     formula: passₖ(p,u) = ORⱼ pass(partitionⱼ(p),u)
-    explanation: partition内の相関損失は残り、matcher参照は増える。
+    explanation: 分割した先でも、どの条件を同じ広告が満たすかは分からない。分割すると条件の照会回数も増える。
 - kind: matrix
   id: latency
   title: 同じdecoder高速化でも測定範囲が違う
