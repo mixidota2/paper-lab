@@ -1,10 +1,10 @@
 | 一次箇所 | 教材 | 確認範囲と省略 |
 |---|---|---|
-| §3 Eq.3、§4 Fig.2 | method.md、処理図 | query共有と履歴依存を説明。Tₜの実測・深さからのms推定はしない |
-| §4.2–4.4 | run.py/model.jsのtoy | 手作りprefixと整数score。ReuseCut/CellPlan/PathKDの学習は未実装 |
-| §4.5、Appendix C | l4_scored/branches/admitted | 採点後の採用だけを模す。OPD/GRPOとset-dependent policyは未実装。原著d=3は枝を削らない |
-| Table 1、Eq.21 | 指標切替 | query-macroの掲載3手法。SID単位でありitem回収ではない |
-| Table 5、Appendix D | projectionとプリセット | Pの端点補間。Static Q品質は別のpartition実測。P95/P99は補間しない |
-| §5.7、Appendix D | 処理図と根拠 | coldは即時E2E、positive-depth missのみ非同期準備。A/B効果の投影はしない |
+| §3 Eq.3、§4 Fig.2 | method.md、処理図 | 検索語が同じなら事前計算を共有し、残りは現在の履歴で補うことを説明します。Tₜは実測せず、深さから遅延（ms）も推定しません |
+| §4.2–4.4 | run.py/model.jsのtoy | 手で決めた先頭コードと整数の点数で動きます。ReuseCut、CellPlan、PathKDの学習は実装していません |
+| §4.5、Appendix C | l4_scored/branches/admitted | 採点後に枝を選ぶ順序だけを再現します。OPD/GRPOと、枝の集合に応じて採用を決める方策は実装していません。原著ではd=3で枝を減らしません |
+| Table 1、Eq.21 | 指標切替 | 掲載された3手法の指標を比べます。検索語を等しく重み付けする平均で、正解の取得は商品単位ではなくSID単位で数えます |
+| Table 5、Appendix D | projectionとプリセット | 準備済みのログ行の割合Pで両端の値を補間します。Static Qの品質は補間ではなく、検索語を分けて測った値です。P95/P99は補間しません |
+| §5.7、Appendix D | 処理図と根拠 | 未準備ならE2Eモデルがすぐに応答を作ります。そのうち予測深度が0より大きいものだけを非同期で準備します。A/Bテストの効果は投影しません |
 
-出典：[arXiv 2611.04259v1](https://arxiv.org/html/2611.04259v1)。ローカルの自作コードを原公式snapshotとして表示しません。原著モデル・ログ・公式コードの実行物はありません。
+出典：[arXiv 2611.04259v1](https://arxiv.org/html/2611.04259v1)。この教材用に書いたコードは原著の公式コードではありません。原著のモデル・ログ・公式コードを実行した結果も含みません。
