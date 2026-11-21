@@ -1,30 +1,34 @@
-# Dated primary-source notes, 2026-10-26
+# 2026年10月26日の一次資料確認メモ
 
-Historical authored findings. Source-read scope and uncertainty are preserved; no new primary review or experiment was performed for the migration.
+調査担当者が当時確認した内容をまとめた記録。資料を移す際は、確認した範囲と残った不確かさを保ち、新たに一次資料を読んだり実験したりはしていない。
 
-1. **Proximal Residual (2609.23242): expand OOS, do not interpret it as out-of-stock.** Primary Section 6/Table 1 specifies shipping-plus-transfer cost per fulfilled unit: normalized State-prox 0.950 ± 0.028 versus deterministic historical proxy 1.000. All offline; capacity-price penalties excluded. Thus do not call the 5% a stockout-rate improvement. Existing v1 remains September 19. Read abstract, Sections 1–4, and targeted Sections 6–7; no proof audit or replication. Primary: https://arxiv.org/html/2609.23242v1#S6 ; history: https://arxiv.org/abs/2609.23242 . 
-2. **SCQ (2610.17465): version-scope flag only.** Primary history now explicitly lists v2 October 19, 16:35:10 UTC (v1 October 12, 22:27:59 UTC). The October 20 assumption review cites v1. This pass inspected metadata/abstract only; it does **not** establish a material v2 change and does not redo the completed assumption review. Not October 23–25 evidence. https://arxiv.org/abs/2610.17465 .
+1. **Proximal Residual（2609.23242）のOOSはout-of-sample。欠品（out-of-stock）ではない。** 原論文の第6節・表1が比べているのは、需要を満たした商品1個あたりの出荷費と移送費の合計である。正規化した費用はState-proxで0.950 ± 0.028、過去の実績に基づく決定論的な比較条件で1.000だった。評価はすべてオフラインで、容量価格のペナルティは費用に含まれない。この5%の差を欠品率の改善とは呼ばない。v1の日付は9月19日。要旨、第1〜4節、第6〜7節の該当箇所を読んだが、証明の検証や実験の追試はしていない。一次資料：https://arxiv.org/html/2609.23242v1#S6 ／版履歴：https://arxiv.org/abs/2609.23242 。
+2. **SCQ（2610.17465）は版の違いだけを確認。** 版履歴によると、v2は10月19日16:35:10 UTC、v1は10月12日22:27:59 UTC。10月20日に前提を確認した記録が参照しているのはv1である。今回は書誌情報と要旨だけを確認したため、v2に実質的な変更があったかは分からない。前提の確認はやり直していない。10月23〜25日の根拠には含めない。https://arxiv.org/abs/2610.17465 。
 
-## Surfaced sources and exclusion/read scope
+## 候補に挙がった資料と確認範囲
 
-### Springer pricing/censoring paper — out-of-window, not featured
+### Springerの価格設定・欠品による需要の見えにくさに関する論文
 
 **Causally informed multimodal offline reinforcement learning for constrained promotional pricing in omnichannel convenience retail**, Qi Liu, DOI 10.1007/s10791-026-10645-5.
 https://link.springer.com/article/10.1007/s10791-026-10645-5
 
-Publisher explicitly dates publication **October 21, 2026**. Read title/date, abstract/introduction, targeted data/predecision-timing text, Sections 5.1–5.5 and limitations/data-availability excerpts; not the complete methods, image-rendered tables, code, or underlying data. Authors combine multimodal demand, cross-fitted doubly robust adjustment, conservative offline RL, and constraints. They report estimated +8.7% contribution profit and 8.9%→8.1% stockout rate, but explicitly only observational/model-based evaluation, not field deployment. XGBoost is a pricing baseline, not a matched TSFM comparison. Severely censored observations are excluded from main causal estimation; this is not validated natural-stockout latent recovery. Private data available on request. No new-window update was identified.
+出版社の掲載日は**2026年10月21日**。対象期間外のため、取り上げていない。読んだのは題名と掲載日、要旨と序論、データと価格判断前に使える情報の時点に関する箇所、第5.1〜5.5節、限界とデータ提供に関する抜粋である。手法の全文、画像で表示された表、コード、元データは確認していない。
 
-### Other discovery only — no paper evaluation
+著者は複数の種類の情報を使う需要モデル、クロスフィッティングを用いた二重に頑健な調整、保守的なオフライン強化学習、制約を組み合わせた。報告値は貢献利益の推定値が+8.7%、欠品率が8.9%→8.1%。観察データとモデルによる評価に限り、実店舗への導入結果ではない。XGBoostは価格設定の比較基準であり、条件をそろえた時系列基盤モデル（TSFM）との比較ではない。
 
-- CADRE: **Demand Hidden by Stockouts: Censored Demand Recovery and Green Waste-Reduction Forecasting for Sustainable Fresh-Food Consumption Under Emerging-Market Urbanization**, https://doi.org/10.3390/su18157642 . Search result labeled publication three months ago and exposed methodological excerpts (joint censored likelihood/newsvendor training, artificial recensoring). DOI open returned **429 Too Many Requests**. Full text not acquired/read; no assessment from snippets. Not new-window evidence.
-- **Stockout-Aware Relational Demand Forecasting and Cross-Dataset Error Trade-offs**, https://jtie.stekom.ac.id/index.php/jtie/article/view/594 , DOI 10.51903/jtie.v4i1.594. Primary search-result abstract only; result date labeled 1.5 years ago, unverified. Abstract itself distinguishes artificial masking recovery from natural-stockout truth and reports accuracy rather than inventory service. No full-text judgment or registry addition.
-- **Diffusion-aware Censored Gaussian Processes for Demand Modelling**, https://ijcai.org/proceedings/2025/857 , DOI 10.24963/ijcai.2025/857. Primary proceedings abstract only, clearly 2025. Not a new result; no full read or recommendation.
-- 2610.31153 **Balanced Posted Prices in Stationary Two-Sided Markets**, arXiv primary listing abstract only, submitted October 22. Theory for limited-storage intermediaries; not retail TSFM/recovery/service evidence.
+欠品で需要が大きく隠れた観測は、主な因果推定から除いている。実際の欠品で見えなかった需要を復元できると検証したものではない。非公開データは申請に応じて入手できる。今回の対象期間に入る更新は見つからなかった。
 
-## Addendum — independent Hayashida appendix review
+### 見つけたが、論文の評価まではしていない資料
 
-Source: https://www.kohei-hayashida.com/files/papers/demand_estimation_pricing_perishable_food_appendix.pdf . Title **Demand estimation and pricing of perishable food**, Kohei Hayashida, June 4, 2026. Author-hosted 20-page PDF. All Section C/D extracted text and endnotes read (printed pages 11–20), with earlier sample-construction context. Numerical reading is from parsed primary text, not independent visual verification. No code/data/replication package inspected or run.
+- CADRE：**Demand Hidden by Stockouts: Censored Demand Recovery and Green Waste-Reduction Forecasting for Sustainable Fresh-Food Consumption Under Emerging-Market Urbanization**, https://doi.org/10.3390/su18157642 。検索結果には掲載時期が3か月前と表示され、手法の抜粋には、欠品で需要が見えない場合の尤度とnewsvendorを組み合わせた学習、および観測を人工的に欠けさせる検証が記載されていた。DOIを開くと**429 Too Many Requests**が返り、全文は取得も通読もしていない。抜粋だけで評価せず、今回の対象期間の根拠にも含めない。
+- **Stockout-Aware Relational Demand Forecasting and Cross-Dataset Error Trade-offs**, https://jtie.stekom.ac.id/index.php/jtie/article/view/594 、DOI 10.51903/jtie.v4i1.594。一次資料の検索結果に表示された要旨だけを読んだ。掲載時期は検索結果に1.5年前と表示されたが未確認。要旨では観測を人工的に隠した検証と、実際の欠品時の真の需要を区別している。報告しているのは予測精度で、在庫のサービス水準ではない。全文に基づく判断はせず、論文一覧にも追加していない。
+- **Diffusion-aware Censored Gaussian Processes for Demand Modelling**, https://ijcai.org/proceedings/2025/857 、DOI 10.24963/ijcai.2025/857。会議録の要旨だけを確認した。2025年の論文で、今回の新しい結果ではない。全文は読んでおらず、推奨もしていない。
+- 2610.31153 **Balanced Posted Prices in Stationary Two-Sided Markets**。arXivの掲載ページで要旨のみを確認した。投稿は10月22日。在庫容量に限りのある仲介事業者の理論で、小売のTSFM、欠品で見えない需要の復元、在庫のサービス水準を裏付ける根拠ではない。
 
-- The +6.32% field estimate is a single-store before/after profit ratio adjusted by same-store non-fried-food revenue, **not** randomized stores. Fried-product DiD controls are contaminated by shared-labor reallocation.
-- Production changed alongside markdown removal. Hence the field gain is not the isolated causal effect of removing discounts; +2.24pp is a fixed-supply structural prediction, and +4.08pp residual has a qualitative freshness/production interpretation rather than independent causal decomposition.
-- C's timing and conditional-purchase diagnostics support, but do not prove, exogenous arrivals or the inside-only choice specification. D's endnote explicitly leaves some context-specific signaling unidentified without exogenous exposure/control-store variation.
+## 追記：Hayashidaの付録を独立に確認
+
+出典：https://www.kohei-hayashida.com/files/papers/demand_estimation_pricing_perishable_food_appendix.pdf 。Kohei Hayashida, **Demand estimation and pricing of perishable food**, 2026年6月4日。著者が公開した20ページのPDF。C節・D節の抽出テキストと巻末注記をすべて読み、印刷ページ11〜20のほか、前のページにあるサンプルの作り方も確認した。数値は一次資料から抽出したテキストで読み、元の誌面と見比べて独立に確認したわけではない。コード、データ、追試用の一式は確認も実行もしていない。
+
+- 現場で推定した利益の+6.32%は、単一店舗の施策前後の利益比を、同じ店舗の揚げ物以外の売上で調整した値である。店舗を無作為に割り付けた結果ではない。揚げ物の差の差（DiD）で使う比較対象にも、共通の作業人員の配分変更が影響している。
+- 値引きをやめるのと同時に生産も変えた。そのため、実店舗での改善幅は値引き廃止だけの因果効果ではない。+2.24ppは供給量を固定した構造モデルによる予測で、残る+4.08ppには鮮度や生産による定性的な説明が付く。両者の因果効果を独立に推定して分けたわけではない。
+- C節は、来店のタイミングと来店後の購入を調べた結果から、来店が外生的であるという仮定と、選択モデルの inside-only という仕様を支持しているが、証明はしていない。D節の巻末注記は、値引き情報への接触の外生的な違いも、比較店舗の違いも使えなければ、状況に応じた情報伝達の一部は特定できないと明記している。
