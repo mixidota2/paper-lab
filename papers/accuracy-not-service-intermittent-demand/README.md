@@ -1,19 +1,23 @@
-# Accuracy Is Not Service: A Decision-Aware Benchmark for Intermittent-Demand Forecasting
+# 予測の誤差が小さくても、注文を完納できるとは限らない
 
-著者が38手法を20,330件の注文で比較したところ、予測精度と注文を完納できた割合の順位相関はρ=−0.555だった。Chronos-2の入力の正規化を変更すると、論文で定義した誤差指標（MASE）は悪化したが、全明細をそろえて納められた注文の割合（COFR）は54%から63%へ上がった。実験ごとに対象品目が異なるため、在庫費用と合わせて比較条件を確認する必要がある。
+論文：[Accuracy Is Not Service: A Decision-Aware Benchmark for Intermittent-Demand Forecasting](https://arxiv.org/abs/2609.13840)
 
-公開ページ: https://mixidota2.github.io/paper-lab/papers/accuracy-not-service-intermittent-demand.html
+需要がない月の多い部品について、著者は同じ補充規則で38の予測手法を比べた。20,330件の実注文では、予測精度が高い手法ほど、注文の全明細をそろえられる割合は低い傾向があった（順位相関ρ=−0.555）。別の実験では、Chronos-2の入力を整える方法を変えると、論文独自の誤差指標（MASE）は悪化したが、注文の完納率（COFR）は54%から63%に上がった。実験ごとに対象品目が違うため、在庫費用を含めて比較するには条件をそろえる必要がある。
 
-## 実行
+[Labの解説ページ](https://mixidota2.github.io/paper-lab/papers/accuracy-not-service-intermittent-demand.html)
+
+## 人工注文の実験を再実行する
 
 ```bash
 uv run papers/accuracy-not-service-intermittent-demand/run.py
 ```
 
-Python標準ライブラリだけを使う。`lab.yaml` と `method.md` が解説の原本、`run.py` が最小実験、`results.json` が出力、`mapping.md` が原典との対応。HTMLは `uv run paper-lab build` で生成する。
+Pythonの標準ライブラリだけで動く。`run.py` が人工注文と正規化を実行し、`results.json` に結果が入る。解説は `lab.yaml` と `method.md`、原論文・公式コードとの対応は `mapping.md` にある。HTMLはリポジトリ直下で `uv run paper-lab build` を実行して生成する。
 
-## 検証範囲
+## Labで確認したこと
 
-仕組みの確認は一部に限られる（PARTIAL）。このLabでは、正規化した値を元に戻せること、入力がすべてゼロでも計算値が有限になること、同じ補充規則の下で在庫の増減と注文の完納を判定する処理を確認した。また、目標在庫を増やしても、完納できる注文の割合が必ず上がるわけではない例を確認した。これらの限定した条件は確認済み（CONFIRMED）だが、人工データの再計算では、論文が報告した予測精度と完納率の順位逆転は見られなかった（NOT OBSERVED）。
+仕組みの一部を確認した（PARTIAL）。人工データでは、正規化した値を元に戻せること、すべてゼロの入力でも計算が有限になること、補充規則に従って在庫と完納を計算できることを確認した。また、初期在庫を増やすと完納率が下がる具体例も確認した（これらの条件ではCONFIRMED）。一方、144件の人工注文では、論文が報告した予測精度と完納率の順位の逆転は見られなかった（NOT OBSERVED）。
 
-Performance / Scaling / Production applicability NOT TESTED。Chronos-2の重みをロードせず、内部表現の変化による改善は検証していない。実注文・RUF生成・38手法の学習、bootstrap CI、在庫金額の最適化も未実行。CSVの順位再計算は凍結集計の算術監査であり、機密panelの追試ではない。
+## Labで確認していないこと
+
+予測性能、大規模データでの動作、実際の業務に使えるかは未検証（Performance / Scaling / Production applicability: NOT TESTED）。Chronos-2の学習済み重みを読み込んでいないため、正規化でモデルの予測がどう変わるかは確認していない。実注文の処理、RUFの生成、38手法の学習、再標本化による信頼区間の推定、在庫金額の最適化も行っていない。公開CSVでの計算は、著者が出した順位から相関を求め直したもので、非公開の実注文を使った追試ではない。
