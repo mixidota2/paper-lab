@@ -12,7 +12,7 @@ urls:
 verdict: Worth Reading
 status: draft
 question: 学習していない系列にも予測するなら、どの系列と時点でモデルを選ぶか
-summary: 系列と時間の分割を動かし、選択に使うラベル、予測時の過去context、最終testの役割を区別します。公表Table3の平均も分解します。
+summary: データを系列と時点で分け、モデル選択に使う正解値、予測時に入力する過去の観測値、最後の評価に使う正解値を区別します。論文の表3では、データセットごとの結果が平均にどう影響するかを確かめます。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -21,7 +21,7 @@ verification:
 source_review:
   checked: '2026-11-09'
   url: https://arxiv.org/html/2611.08252v1
-  scope: HTML本文§1–7、Tables1–11、Appendix A、図1–5キャプション。公式configを読取。全PDF画素と公式全実装は未監査、公式コードは未実行。
+  scope: HTML版の本文§1–7、表1–11、付録A、図1–5のキャプションと、公式実装の設定を読みました。PDFの全画素と公式実装全体は確認しておらず、公式コードも実行していません。
 core_idea:
   author_claim: 未学習系列も運用対象に含む場合、系列で分けた検証がモデル選択と誤差推定に役立つかを比較しています。
   research_bot_interpretation: 分割方式の優劣を一律に決めず、運用対象の系列と、選択時点で利用できる情報を先に定める教材として読みます。
@@ -29,11 +29,11 @@ sections:
   overview: 同じ系列の過去で学習し未来を評価すること自体はリークではありません。未学習系列を含む運用かどうかで評価対象が変わります。この教材は独自の合成例であり、10ニューラル構造の学習を再現しません。[一次資料の書誌情報](https://arxiv.org/abs/2611.08252)。
   problem: 検証誤差の推定が良いことと、最終的に良いモデルを選べることは同じではありません。系列を分けても前処理や未来情報の漏洩が自動的になくなるわけではありません。
   method: method.md
-  why_it_might_work: 【解釈】学習に含めない系列で選択すれば、未知の系列へ移す場面に近い評価になります。ただし、新しい系列にも予測時の過去contextを与えます。履歴ゼロのcold startを評価しているわけではありません。
+  why_it_might_work: 【解釈】学習に含めない系列で選択すれば、未知の系列へ移す場面に近い評価になります。ただし、学習に使わない系列でも、予測時に過去の観測値を入力します。過去の観測値が一つもない系列の予測は評価していません。
   evidence: evidence.md
   executable_understanding: experiment.md
-  results: 自作例は10系列、5 origin、各4 stepの200誤差です。同じ対象時点の重複があるため、8時点等重みの誤差とは異なります。公表Table3のHoldoutは7/11勝、改善合計0.271のうちWeatherが0.195です。これは有意差や除外の妥当性を証明しません。
-  what_we_verified: CONFIRMEDは自作の境界、選択とtestの分離、共通Q、集計、保存JSONの検算範囲です。原著の一般的な優位性を確認した意味ではありません。
+  results: 自作例では、10系列それぞれで予測の起点を5つ設け、各起点から先の4時点を予測して、計200件の誤差を集計します。同じ時点を複数の起点から予測するため、8時点を同じ重みで集計した誤差とは異なります。論文の表3に掲載された丸め値を比べると、Holdoutは11データセットのうち7つでTime-CVよりMASEが小さく、改善幅の合計0.271のうちWeatherが0.195を占めます。この内訳だけでは、統計的に有意な差があるとも、Weatherを除くべきだとも言えません。
+  what_we_verified: CONFIRMEDは、自作例での分割の境界、モデル選択と最終評価の分離、共通の尺度Q、誤差の集計、保存したJSONの検算に限ります。原著の手法が一般に優れると確認したわけではありません。
   what_we_did_not_verify: 原モデルの学習・推論、全公式実装、PDF全画素、実店舗、在庫費用、TSFM zero-shot、実ブラウザー表示はNOT TESTED。著者実験の再現物はNOT OBSERVEDです。
   implementation: run.pyをuv経由で実行しresults.jsonを再生成します。model.jsは同じ自作計算をブラウザー用に実装。table3.jsonは原著の公開表示値です。公式コードやAPIは実行しません。
 figures: []
@@ -46,18 +46,18 @@ teaching_figures:
   source: https://arxiv.org/html/2611.08252v1
   locator: §3–4を説明する独自の10系列例
   rationale: 原著の実験設定と混同せず、ラベル上限と予測時contextを別々に確認する。
-  caption: H〜Jは選択・fitから除外しますが、予測時の過去8点は入力できます。
+  caption: 系列H〜Jはモデル選択にも学習にも使いません。ただし、各系列を予測するときは直近の8点を入力できます。
   rows:
   - label: 自作例の選択と最終評価
     nodes:
     - title: 内側の選択
-      text: A〜Eのラベル≤84でfit、t85〜88でscale選択
+      text: 系列A〜Eの時点84までの正解値で学習し、時点85〜88の誤差で傾きに掛ける係数を選ぶ
     - title: 外側の選択
-      text: A〜Eのラベル≤88でrefit、F〜Gのt89〜92でモデル選択
+      text: 系列A〜Eの時点88までの正解値で学習し直し、系列F〜Gの時点89〜92の誤差でモデルを選ぶ
     - title: 最終fit
-      text: A〜Gのラベル≤92。testを選択へ戻さない
+      text: 系列A〜Gの時点92までの正解値で学習する。最終評価の結果はモデル選択に使わない
     - title: 固定重みの予測
-      text: 全系列でorigin92〜96、各4点。過去contextだけを更新
+      text: 全系列で時点92〜96を起点に、それぞれ先の4点を予測する。更新するのは入力となる過去の観測値だけ
 - id: labels-and-weights
   kind: equations
   title: ラベルの終点と、誤差平均の分母を確認する
@@ -69,10 +69,10 @@ teaching_figures:
   steps:
   - name: 学習ラベルを上限までに収める
     formula: origin + h ≤ cutoff → origin ≤ cutoff − 4
-    explanation: 内側84、外側88、最終92に対し、最後の学習originは80、84、88。
+    explanation: 学習に使う正解値の上限が内側で84、外側で88、最終学習で92なら、学習に使える最後の予測起点は順に80、84、88となる。
   - name: 共通尺度で割る
     formula: MASE = mean(|actual − prediction|) / Q
-    explanation: Qは全in-setの季節ナイーブ誤差の平均。教材の季節長は4。Q=0では未定義とし、欠損値は拒否。
+    explanation: Qは学習対象の全系列で求めた季節ナイーブ予測の平均誤差。教材では季節の長さを4とする。Q=0の場合は尺度を定義せず、欠損値は受け付けない。
   - name: 重なる窓を平均する
     formula: 5 × 4 = 20 errors per series; weights = (1,2,3,4,4,3,2,1)
     explanation: 8時点を等重みにする評価とは分母と重みが違う。どちらも自作例として併記。
