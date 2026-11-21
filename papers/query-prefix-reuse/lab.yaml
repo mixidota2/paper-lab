@@ -10,8 +10,8 @@ urls:
   arxiv: https://arxiv.org/abs/2611.04259
 verdict: Worth Reading
 status: draft
-question: 検索語に共通の計算をどこまで準備し、現在の履歴をどこから使うか
-summary: 合成SID木でprefixの深さと履歴を変え、候補外になる境界を調べます。準備済みquery率とログ行率、実測品質と平均投影を分けます。
+question: 検索語ごとにどこまで事前計算し、検索時の履歴をどこから使うか
+summary: 商品を表すコード（SID）の木を人工データで作り、事前に固定する先頭部分の深さと検索時の履歴を変えます。目標の商品が候補に残る条件を確かめ、準備済みの検索語とログ行の割合、実測した品質と混合平均の推計を区別します。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -22,19 +22,19 @@ source_review:
   url: https://arxiv.org/html/2611.04259v1
   scope: HTML §3–5、Eq.3、Figure2、Tables1/5、Appendix Aの履歴条件とC/Dの対応箇所。PDF全画素・公式実装・生ログは未監査。
 core_idea:
-  author_claim: queryだけの7B計画と現在の履歴を使う0.5B補完を分離し、準備済みprefixを共有します。
-  research_bot_interpretation: 共有による速度と、候補集合を早く固定することによる到達可能性の制限を、一緒に読む教材として扱います。
+  author_claim: 7Bモデルは検索語だけを使ってコードの先頭部分を用意し、同じ検索語の要求で使い回します。0.5Bモデルは検索時の履歴を使って残りを補います。
+  research_bot_interpretation: 教材では、事前計算で減らせる処理と、先頭部分を先に固定するために候補から外れる商品を一緒に考えます。
 sections:
-  overview: 検索語に共通のprefixを用意しても、現在の履歴による補完は残ります。自作例では共有の深さが候補を外す境界を操作します。原著モデルの再現ではありません。[一次資料](https://arxiv.org/abs/2611.04259)。
-  problem: 深く共有すれば常に良いとは限りません。prefixの外にあるSIDはsuffixの順位付けでは取り戻せず、深さだけから遅延も決まりません。
+  overview: 検索語だけで商品コードの先頭部分（prefix）を用意しても、残りは検索時の履歴を使って補います。教材では、先頭部分をどこまで固定すると目標の商品が候補から外れるかを試せます。原著モデルの再現ではありません。[一次資料](https://arxiv.org/abs/2611.04259)。
+  problem: 商品コードの先頭部分を長く固定すればよいとは限りません。その範囲から外れた商品は、残りの部分を順位付けしても候補には戻りません。処理時間も、固定する深さだけでは決まりません。
   method: method.md
-  why_it_might_work: 【解釈】検索語に共通する先頭部分を事前計算すると要求ごとの計算を減らせます。ただし、その集合に現在の履歴に合う候補が残ることが必要です。自作例はこの条件を説明し、性能改善は証明しません。
-  evidence: '一次資料のTable 1は44,225 test queries、canonical histories、3 seed平均、A100 1枚・batch 1。0.5B E2E／7B E2E／prepared ReuseGRのHR@100は81.99／85.71／85.82%、SID Recall@100は45.53／50.96／46.05%、平均遅延は117.00／168.88／71.45 msです。高いHRと全正解の回収率は同じではありません。Table 5の混合平均遅延は全て投影です。14日user-level A/Bは各armに10%traffic、約12.8M users。RPM相対+1.05% [+.58,+1.52]、CTR+.93% [+.62,+1.24]。注文/requestは+.78%ですがp=.2104です。準備率からオンライン効果を比例推定しません。'
+  why_it_might_work: 【解釈】コードの先頭部分を検索語ごとに用意すれば、検索のたびに同じ計算をしなくて済みます。ただし、固定した先頭部分の下に、検索時の履歴に合う候補が残っている必要があります。教材はこの条件を確かめるもので、性能の改善を示すものではありません。
+  evidence: '一次資料（原論文）のTable 1は、44,225件のテスト検索語と基準の履歴（canonical histories）を使った3シードの平均です。A100 1枚で一度に1件を処理しました。0.5B E2E、7B E2E、事前準備済みのReuseGRの順に、上位候補に正解が1つでも入った割合（HR@100）は81.99／85.71／85.82%、正解のSIDをどれだけ拾えたか（SID Recall@100）は45.53／50.96／46.05%、平均遅延は117.00／168.88／71.45 msです。HRが高くても、すべての正解を拾えるとは限りません。Table 5の平均遅延は、事前準備の有無を混ぜた場合の推計です。実測ではありません。14日間のユーザー単位のA/Bテストでは、各群にトラフィックの10%を割り当て、対象は約12.8Mユーザーでした。RPMの相対差は+1.05% [+.58,+1.52]、CTRは+.93% [+.62,+1.24]。1リクエスト当たりの注文は+.78%で、p=.2104です。この結果から、準備率に比例してオンラインの効果が上がるとは推定しません。'
   executable_understanding: experiment.md
-  results: 'Appendix Dの4段階は0.18+67.01+3.84+0.42=71.45 ms。planning 88 ms/query、1M entriesの10%日次更新は約2.44 A100 GPUh。1 hitで45.55 ms節約する単純計算では2 hitsで計画時間を覆います。これはbatch 1の計算時間の帳尻であり、費用・queue・stalenessを含む損益分岐ではありません。warm/cold P95 86.40/132.50 msから混合P95は計算しません。'
-  what_we_verified: CONFIRMEDは合成の境界・経路・採点後の採用・保存JSONと、公表値の算術検算です。MechanismはPARTIALです。
-  what_we_did_not_verify: 原学習・推論・商用ログ再現・実店舗・実遅延・P99・実ブラウザーはNOT TESTED。モデル成果物とログはNOT OBSERVED。preparedの履歴filterは7B top1 coarse code、baseline/coldはlogged query-match maskで異なり、他componentも一括変更されています。商用ログ非公開、現代LLM二塔対照なし、無query feedへの一般化は未検証です。
-  implementation: run.pyをuvで実行してresults.jsonを再生成します。model.jsは同じ定義域のスカラーAPIです。interactive.jsは実入力と保存Blobを代用DOMで検査します。実ブラウザー表示・日本語lintは未実施です。
+  results: 'Appendix Dの4段階の処理時間は、合計で0.18+67.01+3.84+0.42=71.45 msです。検索語ごとの計画は88 msかかり、1M件のうち10%を毎日更新すると、A100のGPU時間で約2.44時間です。準備済みデータを1回使うたびに45.55 ms短縮できるとすると、2回で計画にかかった時間を上回ります。これは一度に1件を処理したときの計算時間だけの比較で、費用、処理待ち、準備済みデータが古くなる影響を含む損益分岐ではありません。準備済みと未準備のP95（86.40/132.50 ms）から、混合した場合のP95は計算しません。'
+  what_we_verified: 人工データで候補が外れる境界、準備の状態で分かれる処理経路、採点後に枝を採用する順序、保存したJSONを確認しました。公表値の算術も検算しました（CONFIRMED）。仕組みの確認は一部に限ります（MechanismはPARTIAL）。
+  what_we_did_not_verify: 原論文の学習・推論・商用ログの再現、実店舗、実際の遅延、P99、実ブラウザーは検証していません（NOT TESTED）。モデル成果物とログは確認できていません（NOT OBSERVED）。準備済み経路では、7Bモデルが最上位とした粗いコードで履歴を絞ります。一方、比較対象と未準備経路はログ上の検索語との一致で絞り込みます。ほかの部品も一緒に変更されています。商用ログは非公開で、現在のLLMを使う二塔モデルとの比較はありません。検索語のないフィードにも使えるかは未検証です。
+  implementation: uvでrun.pyを実行するとresults.jsonを再生成できます。model.jsは同じ入力範囲の値を一つずつ受け取るAPIです。interactive.jsでは、画面に与える入力と保存するBlobを、ブラウザーのDOMを模した環境で検査します。教材の元の検証では、実ブラウザー表示と日本語lintは未実施です。
 figures: []
 interactives: []
 teaching_figures:
@@ -44,38 +44,38 @@ teaching_figures:
   after: method
   source: https://arxiv.org/html/2611.04259v1
   locator: Figure 2、§4、§5.7
-  rationale: preparedのrootとprefix、coldの別モデルを同一視しない。
-  caption: 正の深度のmissだけ非同期準備へ送ります。現在の要求は7B計画を待ちません。
+  rationale: 準備済みデータの空の先頭部分と固定済みの先頭部分、未準備の場合に使う別モデルを区別します。
+  caption: 深さが正で、準備済みデータを見つけられなかった場合だけ、非同期での準備を依頼します。現在の検索は7Bモデルの計画を待ちません。
   rows:
   - label: 非同期
     nodes:
     - title: queryのみ → 7B CellPlan
-      text: ReuseCutで深度を選び、生成prefixとscoreを保存
+      text: ReuseCutで固定する深さを選び、生成した先頭部分と得点を保存
   - label: prepared
     nodes:
     - title: d=0の空root または d>0のprefix
-      text: 現在の履歴 → PathKD済みLeafFill → 全L4採点
+      text: 検索時の履歴 → PathKD済みのLeafFill → 第4層のすべての枝を採点
     - title: BudgetCut → 併合順位
-      text: 採点後に枝を採用。L4推論の省略ではない
+      text: 採点した後に残す枝を選択。第4層の推論は省略しない
   - label: cold
     nodes:
     - title: 別の0.5B E2E → 応答
-      text: 現在の履歴で全層生成。positive-depth missを別途準備キューへ
+      text: 検索時の履歴で全層を生成。深さが正で準備済みデータがない場合は、別途準備を依頼
 - id: units-and-mixture
   kind: equations
   title: 枝数と混合の重みを分ける
   after: evidence
   source: https://arxiv.org/html/2611.04259v1
   locator: Eq.3、Eq.21、Table5、Appendix D
-  rationale: 深さ・query数・ログ行数・正解回収の分母を区別する。
-  caption: 遅延の投影は平均だけ。品質端点をPで補間する仮定も明示します。
+  rationale: 固定する深さ、検索語の種類数、ログの行数、正解の回収率で使う分母を区別します。
+  caption: 遅延の推計は平均に限ります。品質も、準備済みと未準備の値をPで重み付けして推計する仮定を示します。
   steps:
   - name: オンライン計算
     formula: T(d) = t₀ + Σ[t=d+1..4] Tₜ(Mₜ; θ) + tᵣ
-    explanation: Mₜは採点する枝数。深度だけでmsは決まらない。
+    explanation: Mₜは採点する枝の数です。所要時間は深さだけでは決まりません。
   - name: 混合平均の投影
     formula: M̂(P) = P M₁ + (1−P) M₀
-    explanation: Pは準備済みlogged rowsの割合。Qというquery割合ではない。
-  - name: query等重みの指標
+    explanation: Pは準備済みのログ行が占める割合です。検索語の種類を数えた割合Qとは異なります。
+  - name: 検索語を同じ重みで数える指標
     formula: HR = mean(正解を1つ以上取得); Recall = mean(取得した正解数 / 全正解数)
-    explanation: SID単位で評価。正解が複数あるためHRとRecallは別の値になる。
+    explanation: SIDを単位に評価します。正解が複数ある場合、正解が1つ入ったかと、正解を何割拾えたかは別の問いです。
