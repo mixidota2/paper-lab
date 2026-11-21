@@ -77,7 +77,8 @@ urls:
 verdict: Worth Reading
 status: published
 question: AgentX：発案数と採用率を分けて、推薦開発の自動化を読む
-summary: AgentXは発案、実装、オンライン評価、harness更新を閉じた開発ループにする。3 workers・3週間で374案から10件のlaunchable results。8倍の同時実験と3.7倍のworker-weekあたり価値は運用観察であり、同じ案を人とagentへ割り付けた比較ではない。
+summary: >-
+  AgentXは、推薦の改善案を出し、実装して本番で評価し、その結果を次の改善に使う。論文では、3ワーカーが3週間で出した374案のうち10件が本番導入の候補になった。同時に進めた実験数は8倍、稼働したワーカーの週数で割った成果は約3.7倍だった。どちらも運用中に観察された差で、同じ案を人とエージェントに割り付けた実験の結果ではない。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -93,94 +94,110 @@ core_idea:
   author_claim: 著者は、Brainstorm、Developing、Evaluation、Harness Evolutionの四段階により、経験を再利用しながら推薦開発の処理量を増やせると主張する。負のA/Bも次の探索の制約へ変換する（§3–7）。
   research_bot_interpretation: 価値は「毎案が優秀」であることより、productionの条件を守って多数の案を試し、失敗を記憶する仕組みにある。著者もsenior engineerの1案あたりhit rateが約1.9倍高いと認めている。開発ループ内のA/Bと、開発者としての人間対agentの因果比較を区別する。
 sections:
-  problem: '推薦の改善案があっても、実装、dry-run、trafficの確保、A/Bの観測、採用判断が詰まれば実験数は増えない。AgentXはこの実行待ちを並列化する。変更対象はproductionのcodeやDSL、戦略parameterで、会話で推薦結果を返すagentではない。
+  problem: |-
+    推薦の改善案を出しても、実装、事前の試運転（dry-run）、実験対象となる利用者の確保、A/Bテストの結果が出るまでの観測、採用判断に時間がかかると、実験数は増えない。AgentXはこれらの工程を複数の案で並行して進める。変更するのは本番コード、推薦のルールを書くための言語（DSL）、推薦戦略の設定値であり、会話で推薦結果を返すエージェントではない。
 
+    案の質と、案を試す速さは別の評価軸だ。人が選び抜いた案と、エージェントが大量に出した案の採用率だけを比べても、誰が推薦改善に優れているかは判断できない。
+  evidence: |-
+    ### 運用で観察された実験数と採用率
 
-    発案の良さと実行速度は別の軸だ。人間が選び抜いた案の採用率を、agentが大量生成した案の採用率と直接比較して、能力全般の優劣は決められない。'
-  evidence: '### 観察された処理量と1案の質
+    §8・表5–8。3ワーカーで3週間、メインフィード（Main Feed）は361案から8件、生活サービス（Life Service）は13案から2件が本番導入の候補（LR）になった。ワーカーの稼働週数でそろえた比較では、同時実験数はエージェント12対人1.5（8倍）、本番導入の候補は1.1件対0.08件、アプリ利用時間の累積増加率は0.0623%対0.0167%（約3.7倍）だった。一方、提案した案が本番に展開された割合はエージェント2.7%、人5.1%で、人のほうが高かった。
 
+    同じ案を、実験に使える利用者の規模や経験年数をそろえて、人とエージェントにランダムに割り付けた比較ではない。この期間のスキルの蓄積や運用改善の影響も含む。SGPOは同じ課題ごとに新旧の得点を比べるが、この生産性比較は稼働したワーカーの週数で比べている。
 
-    §8・表5–8。3 workersで3週間、Main Feed 361案→8 LR、Life Service 13案→2 LR。worker-week単位の比較では同時実験12対1.5（8倍）、LR 1.1対0.08、累積app-time
-    gain 0.0623%対0.0167%（約3.7倍）。1案あたりrollout率は2.7%対5.1%で人間が高い。
+    ### 論文が報告した事業成果とLabで検証できる範囲
 
+    §8によると、メインフィードでは利用者のアプリ利用時間が累積で+0.561%、生活サービスでは売上の年率換算額が1億元を超えた。別々の運用で得られた累積の結果なので、共通のA/Bテストで得た効果として合算しない。年率換算額は実際に1年間で得た売上ではない。元データ、信頼区間、個別施策の本番展開の重なりは公開されておらず、Labでは独立に検証できない。
 
-    これは同じ案集合、同じtraffic予算、同じ経験年数を揃えたrandomized human-agent比較ではない。期間中のskill蓄積や運用改善も含む。SGPOのpaired replayと、この生産性比較は評価単位が異なる。
+    [AutoLR](autolr-dashen.html)のKEEPと比べると、AgentXは発案から本番導入までを扱う。[RecEvolve](recevolve-autonomous-rec.html)との共通点は、オフラインの得点だけで採用を決めず、実行できるかと本番の評価を採用判断に含めること。
 
+    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2606.26859v2)。図表の箇所とSHA-256は末尾の対応表を参照。
+  overview: |-
+    AgentXは、推薦の改善案を出し、実装して本番で評価し、その結果を次の改善に使う。論文では、3ワーカーが3週間で出した374案のうち10件が本番導入の候補になった。同時に進めた実験数は8倍、稼働したワーカーの週数で割った成果は約3.7倍だった。どちらも運用中に観察された差で、同じ案を人とエージェントに割り付けた実験の結果ではない。
 
-    ### business impactと再現の境界
+    <figure class="teaching batch17"><h3>374案のうち各段階に進んだ件数</h3><div class="b17-funnel"><div style="--stage:100%"><strong>374</strong> 発案</div><div style="--stage:75%"><strong>106</strong> 審査通過</div><div style="--stage:65%"><strong>100</strong> 実装・実験開始</div><div style="--stage:35%"><strong>10</strong> 本番導入の候補</div></div><p>374→106：28.34% ／ 106→100：94.3% ／ 100→10：表の報告9.9%</p><figcaption>出典は§8・表5・式10。棒の幅は段階を区別するためのもので、件数に比例しない。最後の段階の割合は整数の件数で計算すると10%になるが、論文の表は9.9%と報告している。本文からは、丸めと集計方法のどちらで差が生じたか分からない。</figcaption></figure>
+  why_it_might_work: |-
+    【解釈】検証済みのリポジトリ知識を共有し、実験ごとに設定を確保するルール、事前の試運転、結果を観測する期間を明記すれば、実装のやり直しや同じ失敗を減らせる。互いに独立した工程は先に進められるため、一本ずつ案の完了を待つより、同時に実験を進めやすい。
 
-
-    Main Feedの累積user app consumption time +0.561%、Life Serviceの年率換算revenueはRMB 100 million超（§8）。一つの共通A/B treatmentの効果量として合算し直さず、累積運用成果として扱う。年率換算は実現済みの1年分売上ではない。元データ、CI、個々のrollout間の重なりは公開されず、このLabでは独立検証できない。
-
-
-    [AutoLR](autolr-dashen.html)のKEEPと比較すると、AgentXは発案からproduction投入までを広く扱う。[RecEvolve](recevolve-autonomous-rec.html)と共通するのは、offline
-    scoreだけで採用を決めず、実行可能性と本番評価を閉ループに入れる点だ。
-
-
-    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2606.26859v2)。図表の箇所とSHA-256は末尾の対応表を参照。'
-  overview: 'AgentXは発案、実装、オンライン評価、harness更新を閉じた開発ループにする。3 workers・3週間で374案から10件のlaunchable results。8倍の同時実験と3.7倍のworker-weekあたり価値は運用観察であり、同じ案を人とagentへ割り付けた比較ではない。
-
-
-    <figure class="teaching batch17"><h3>374案のどこで止まったか</h3><div class="b17-funnel"><div style="--stage:100%"><strong>374</strong>
-    発案</div><div style="--stage:75%"><strong>106</strong> review通過</div><div style="--stage:65%"><strong>100</strong>
-    code・launch</div><div style="--stage:35%"><strong>10</strong> launchable result</div></div><p>374→106：28.34%
-    ／ 106→100：94.3% ／ 100→10：表の報告9.9%</p><figcaption>§8・表5・式10。棒幅は段階を見分ける模式表現で、件数に比例しない。整数からの最終比率は10%。丸め・集計差は本文で解消されていない。</figcaption></figure>'
-  why_it_might_work: '【解釈】検証済みのrepository知識、実験lock、dry-run、観測窓を明示すると、実装のやり直しと同じ失敗の再発を減らせる。独立した工程へ案を流すため、一本ずつ完了を待つ手順より同時実験を持ちやすい。
-
-
-    ただしworkerを増やしてもtraffic、parameter lock、レビュー帯域は有限だ。表6では却下268案の64.7%がparameter-resource conflict。著者の「platform側の問題」という分類は、agentの事前確認能力を改善する余地がないことを意味しない。'
+    ワーカーを増やしても、実験に使える利用者の規模、同時に変更できる設定、担当者が審査できる件数には限りがある。表6では、却下された268案のうち64.7%で、案どうしで設定や実験資源が競合した。著者はこれを実験基盤側の問題と分類したが、エージェントによる実行前の確認には改善の余地がある。
   method: method.md
-  executable_understanding: "同じ主効果とCIに対し、guardrailがclear、moderate、severeの場合、観測が短い場合、有意でない場合を比較する。別に同一3-taskの新旧score差でSGPOの採否を計算する。効果閾値0.2、最小14日は説明用の仮定で、AgentXの固定規定ではない。\n\
-    \n<figure class=\"teaching batch17\"><h3>判定recordを開く</h3><details><summary>利益あり：KEEP</summary><pre>{\n  &quot;verdict&quot;:\
-    \ &quot;KEEP&quot;,\n  &quot;reason&quot;: &quot;効果・有意性・guardrailを通過&quot;,\n  &quot;effect&quot;: 0.3,\n  &quot;ci_low&quot;:\
-    \ 0.1,\n  &quot;guardrail&quot;: &quot;clear&quot;,\n  &quot;window_days&quot;: 14,\n  &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;\n\
-    }</pre></details><details><summary>重大な副作用：DISCARD</summary><pre>{\n  &quot;verdict&quot;: &quot;DISCARD&quot;,\n\
-    \  &quot;reason&quot;: &quot;重大な悪化&quot;,\n  &quot;effect&quot;: 0.3,\n  &quot;ci_low&quot;: 0.1,\n  &quot;guardrail&quot;:\
-    \ &quot;severe&quot;,\n  &quot;window_days&quot;: 14,\n  &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;\n\
-    }</pre></details><details><summary>中程度の副作用：EXTEND</summary><pre>{\n  &quot;verdict&quot;: &quot;EXTEND&quot;,\n\
-    \  &quot;reason&quot;: &quot;人の例外審査が必要&quot;,\n  &quot;effect&quot;: 0.3,\n  &quot;ci_low&quot;: 0.1,\n  &quot;guardrail&quot;:\
-    \ &quot;moderate&quot;,\n  &quot;window_days&quot;: 14,\n  &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;\n\
-    }</pre></details><details><summary>短期：EXTEND</summary><pre>{\n  &quot;verdict&quot;: &quot;EXTEND&quot;,\n \
-    \ &quot;reason&quot;: &quot;観測窓が不足&quot;,\n  &quot;effect&quot;: 0.3,\n  &quot;ci_low&quot;: 0.1,\n  &quot;guardrail&quot;:\
-    \ &quot;clear&quot;,\n  &quot;window_days&quot;: 3,\n  &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;\n\
-    }</pre></details><details><summary>不確実：EXTEND</summary><pre>{\n  &quot;verdict&quot;: &quot;EXTEND&quot;,\n\
-    \  &quot;reason&quot;: &quot;改善を確定できない&quot;,\n  &quot;effect&quot;: 0.3,\n  &quot;ci_low&quot;: -0.1,\n  &quot;guardrail&quot;:\
-    \ &quot;clear&quot;,\n  &quot;window_days&quot;: 14,\n  &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;\n\
-    }</pre></details><figcaption>人工値。moderateは人の審査待ちとしてEXTEND。実際の統計検定は実行しない。</figcaption></figure>"
-  results: 人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。
-  what_we_verified: '**Mechanism: PARTIAL**。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。
+  executable_understanding: |-
+    主指標の効果と信頼区間（CI）をそろえ、副作用を監視する指標（guardrail）の悪化がない場合、中程度の場合、重大な場合の判定を比べる。観測期間が短い場合と、改善が統計的に有意でない場合も確かめる。別の計算では、同じ3課題での新旧の得点差から、SGPOで実験の実行基盤を更新するか決める。効果の閾値0.2と観測期間の下限14日は教材の仮定で、AgentXの固定規定ではない。
 
+    <figure class="teaching batch17"><h3>条件ごとの判定記録を開く</h3><details><summary>改善を採用：KEEP</summary><pre>{
+      &quot;verdict&quot;: &quot;KEEP&quot;,
+      &quot;reason&quot;: &quot;効果・有意性・guardrailを通過&quot;,
+      &quot;effect&quot;: 0.3,
+      &quot;ci_low&quot;: 0.1,
+      &quot;guardrail&quot;: &quot;clear&quot;,
+      &quot;window_days&quot;: 14,
+      &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;
+    }</pre></details><details><summary>重大な副作用：DISCARD</summary><pre>{
+      &quot;verdict&quot;: &quot;DISCARD&quot;,
+      &quot;reason&quot;: &quot;重大な悪化&quot;,
+      &quot;effect&quot;: 0.3,
+      &quot;ci_low&quot;: 0.1,
+      &quot;guardrail&quot;: &quot;severe&quot;,
+      &quot;window_days&quot;: 14,
+      &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;
+    }</pre></details><details><summary>中程度の副作用：EXTEND</summary><pre>{
+      &quot;verdict&quot;: &quot;EXTEND&quot;,
+      &quot;reason&quot;: &quot;人の例外審査が必要&quot;,
+      &quot;effect&quot;: 0.3,
+      &quot;ci_low&quot;: 0.1,
+      &quot;guardrail&quot;: &quot;moderate&quot;,
+      &quot;window_days&quot;: 14,
+      &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;
+    }</pre></details><details><summary>観測期間が短い：EXTEND</summary><pre>{
+      &quot;verdict&quot;: &quot;EXTEND&quot;,
+      &quot;reason&quot;: &quot;観測窓が不足&quot;,
+      &quot;effect&quot;: 0.3,
+      &quot;ci_low&quot;: 0.1,
+      &quot;guardrail&quot;: &quot;clear&quot;,
+      &quot;window_days&quot;: 3,
+      &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;
+    }</pre></details><details><summary>改善を確定できない：EXTEND</summary><pre>{
+      &quot;verdict&quot;: &quot;EXTEND&quot;,
+      &quot;reason&quot;: &quot;改善を確定できない&quot;,
+      &quot;effect&quot;: 0.3,
+      &quot;ci_low&quot;: -0.1,
+      &quot;guardrail&quot;: &quot;clear&quot;,
+      &quot;window_days&quot;: 14,
+      &quot;method&quot;: &quot;入力CIを判定する模型。統計推定は未実装&quot;
+    }</pre></details><figcaption>いずれも教材用に作った値。副作用が中程度の場合は人が審査するまで保留（EXTEND）にする。実際の統計検定は行わない。</figcaption></figure>
+  results: |-
+    以下の数字は、教材用に作った入力から計算したもの。著者が報告した本番の結果とは別のデータである。
+  what_we_verified: |-
+    **仕組みの検証：部分的（Mechanism: PARTIAL）**。教材用の入力を使い、計算の手順と判定が変わる境界を確認した。results.jsonのchecks欄のCONFIRMEDは、欄に記載した個別の確認事項だけを指す。
 
-    実験の入力と全出力はrun.pyとresults.jsonから確認できる。'
-  what_we_did_not_verify: 'LLMによる発案・coding、統計推定器、production rollout、SGPOの改善率、workerのスケーリング、人間との同条件比較はNOT TESTED。guardrail
-    recordの計算は機構の一部だけである。
+    実験の入力とすべての出力はrun.pyとresults.jsonで確認できる。
+  what_we_did_not_verify: |-
+    エージェントによる発案・実装、統計量の推定、本番での展開、SGPOによる改善率、ワーカーを増やしたときの効果、人と同条件での比較は未検証（NOT TESTED）。副作用を監視する指標などから採用を判定する手順のうち、一部だけを扱う。
 
-
-    **Performance / Scaling / Production applicability: NOT TESTED**。一次資料の報告値との照合は、報告された本番効果の独立再現を意味しない。'
-  implementation: '標準ライブラリだけの独立実験。repository rootで `uv run papers/agentx-kuaishou/run.py` を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。
-
+    **性能・規模拡大・本番への適用：未検証（Performance / Scaling / Production applicability: NOT TESTED）**。一次資料で報告値を照合したが、報告された本番効果を独立に再現したわけではない。
+  implementation: |-
+    実験はPythonの標準ライブラリだけで動く。リポジトリの一番上のフォルダーで `uv run papers/agentx-kuaishou/run.py` を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。
 
     [実行コード](../downloads/agentx-kuaishou/run.py)・[全結果](../downloads/agentx-kuaishou/results.json)・[README](../downloads/agentx-kuaishou/README.md)・[方法](../downloads/agentx-kuaishou/method.md)・[対応表](../downloads/agentx-kuaishou/mapping.md)を保存できる。
 
-
-    確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。'
+    論文本文とarXivの書誌では、入手可能な公式実装への案内を確認できなかった。公式実装が非公開とは断定できず、公式コードを独立に実行する検証はしていない（NOT TESTED）。
   mapping: mapping.md
 teaching_figures:
 - kind: equations
   id: method-equations
   title: 式と操作の対応
   after: method
-  caption: 各記号が担う役割を分けて読む。
-  rationale: 演算と制約の対象を明確にする。
+  caption: 改善案の採用と、実験の実行基盤の更新を別々に判定する。
+  rationale: 効果や安全性をどの段階で確認するか、式で示す。
   source: https://arxiv.org/pdf/2606.26859v2
   locator: §6.3、式7–9
   steps:
   - name: 採用
     formula: KEEP ⇒ effect≥δ ∧ significant ∧ acceptable_guardrails
-    explanation: 観測窓と例外審査の情報も判定に残す。
+    explanation: 観測した日数と、例外として人が審査する必要があるかも記録する。
   - name: paired replay
     formula: ΔJ=mean_j[J(h′,task_j)−J(h,task_j)]
-    explanation: 同じtaskで新旧のharnessを比較する。課題ごとに新旧の評価値の差を求め、その差を合計して課題数で割る。
+    explanation: 実験の実行基盤を変える前後で、同じ課題を使って比べる。課題ごとに新旧の評価値の差を求め、その差を合計して課題数で割る。
   - name: 更新
     formula: accept ⇔ ΔJ>ε ∧ Safe(Δh)
-    explanation: 自然言語の診断を利用する。数値gradientでLLM重みを更新しない。
+    explanation: 文章で書いた診断を見て、実験の実行基盤を変える。数値勾配を使って言語モデルの重みを変える方法ではない。
