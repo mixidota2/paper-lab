@@ -1,6 +1,6 @@
 # AgentX：発案数と採用率を分けて、推薦開発の自動化を読む
 
-AgentXは発案、実装、オンライン評価、harness更新を閉じた開発ループにする。3 workers・3週間で374案から10件のlaunchable results。8倍の同時実験と3.7倍のworker-weekあたり価値は運用観察であり、同じ案を人とagentへ割り付けた比較ではない。
+AgentXは、推薦の改善案を出し、実装して本番で評価し、その結果を次の改善に使う。論文では、3ワーカーが3週間で出した374案のうち10件が本番導入の候補になった。同時に進めた実験数は8倍、稼働したワーカーの週数で割った成果は約3.7倍だった。どちらも運用中に観察された差で、同じ案を人とエージェントに割り付けた実験の結果ではない。
 
 一次資料：[2606.26859v2.pdf](https://arxiv.org/pdf/2606.26859v2)。SHA-256と節・表の対応は[mapping.md](mapping.md)。詳しい方法は[method.md](method.md)、サイト本文の原本は[lab.yaml](lab.yaml)。
 
@@ -10,14 +10,14 @@ AgentXは発案、実装、オンライン評価、harness更新を閉じた開�
 uv run papers/agentx-kuaishou/run.py
 ```
 
-同じ主効果とCIに対し、guardrailがclear、moderate、severeの場合、観測が短い場合、有意でない場合を比較する。別に同一3-taskの新旧score差でSGPOの採否を計算する。効果閾値0.2、最小14日は説明用の仮定で、AgentXの固定規定ではない。
+主指標の効果と信頼区間（CI）をそろえ、副作用を監視する指標（guardrail）の悪化がない場合、中程度の場合、重大な場合の判定を比べる。観測期間が短い場合と、改善が統計的に有意でない場合も確かめる。別の計算では、同じ3課題での新旧の得点差から、SGPOで実験の実行基盤を更新するか決める。効果の閾値0.2と観測期間の下限14日は教材の仮定で、AgentXの固定規定ではない。
 
 ## 検証範囲
 
-Mechanism PARTIAL。個別のCONFIRMED / NOT OBSERVEDは[results.json](results.json)のchecksに記録。Performance / Scaling / Production applicability NOT TESTED。
+仕組みは一部だけ検証しました（Mechanism: PARTIAL）。確認できた事項と観測できなかった事項（CONFIRMED / NOT OBSERVED）は、[results.json](results.json)のchecks欄に記録しています。性能、規模拡大、本番への適用は未検証です（Performance / Scaling / Production applicability: NOT TESTED）。
 
-LLMによる発案・coding、統計推定器、production rollout、SGPOの改善率、workerのスケーリング、人間との同条件比較はNOT TESTED。guardrail recordの計算は機構の一部だけである。
+エージェントによる発案・実装、統計量の推定、本番での展開、SGPOによる改善率、ワーカーを増やしたときの効果、人と同条件での比較は未検証（NOT TESTED）。副作用を監視する指標などから採用を判定する手順のうち、一部だけを扱う。
 
 ## 実装の位置付け
 
-確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。
+論文本文とarXivの書誌では、入手可能な公式実装への案内を確認できませんでした。公式実装が非公開とは断定できず、公式コードを独立に実行する検証はしていません（NOT TESTED）。
