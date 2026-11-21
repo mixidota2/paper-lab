@@ -1,11 +1,11 @@
-| 原典の箇所 | このLabでの対応 | 確認範囲 |
+| 原典の箇所 | Labで対応する箇所 | Labで扱う範囲 |
 | --- | --- | --- |
-| §1.1、Theorem 1.1 | method.md、evidence.md | 外生需要・信号、固定納期、完全backlog、同じ情報を使うOPT。全証明は未検証 |
-| §2.1〜2.2 | run.py Tree.probability_below / charges / simulate | 単位別条件付き費用と期待値分解。有限木に限定 |
-| §3.1〜3.2 | clocks / simulate / cdf | 過去の比率保持、共有ρ、等号停止。recomputedは自作の誤実装比較で原典方策ではない |
-| §4.1〜4.2 | 全ラベルの小規模列挙 | 論文の二分探索・oracle呼出し計算量の実装再現ではない |
-| §4.3 | tight / 1期間カード | 閉形式を数値評価。小さなεでの極限の例示であり証明ではない |
-| 自作の比較基準 | optimum | 有限木の実在庫費用を最小化するDP。未来需要を見ず、履歴ごとに同一行動 |
-| 自作表示 | interactive.html / interactive.js、paper_lab/inventory_ct.py | Pythonの出力を選択・描画。no-JS初期表と操作の自動検査、実画面は未確認 |
+| §1.1、Theorem 1.1 | `method.md`、`evidence.md` | 外生的に与えられる需要と信号、固定納期、未納をすべて繰り越す条件、同じ情報を使う最適方策（OPT）を説明する。証明全体は検証していない |
+| §2.1〜2.2 | `run.py` の `Tree.probability_below` / `charges` / `simulate` | 単位ごとの条件付き費用を求め、期待値を分けて計算する。有限の需要木に限る |
+| §3.1〜3.2 | `clocks` / `simulate` / `cdf` | 過去に計算した比率を保持し、共通のρを使い、比率の累計が閾値と等しくなった場合にも停止する。`recomputed` は誤った実装との比較用で、原典の方策ではない |
+| §4.1〜4.2 | 小規模な問題の全ラベルの列挙 | 論文の二分探索や、oracleを何回呼ぶかという計算量は再現していない |
+| §4.3 | `tight` / 1期間のカード | 閉形式に数値を入れ、小さなεで極限を例示する。極限を証明するものではない |
+| 自作の比較基準 | `optimum` | 有限の需要木で、実際にかかる在庫費用を最小にする動的計画法（DP）。将来需要は使わず、同じ履歴なら同じ行動を取る |
+| 自作の表示 | `interactive.html` / `interactive.js`、`paper_lab/inventory_ct.py` | 選んだ条件のPython出力を描画する。JavaScriptなしの初期表と操作は自動検査済み。実画面は未確認 |
 
-出典：[Danny Segev, arXiv 2610.41475v1](https://arxiv.org/html/2610.41475v1)。Web本文を独立読解。ローカル原本bytes/hashは未取得。原典表示はCC BY-NC-ND 4.0。著者の図をコピーしていない。
+出典：[Danny Segev, arXiv 2610.41475v1](https://arxiv.org/html/2610.41475v1)。Webで読める本文を独立に確認した。原本をローカルに取得してバイト列やハッシュを確認してはいない。原典の表示はCC BY-NC-ND 4.0で、著者の図はコピーしていない。
