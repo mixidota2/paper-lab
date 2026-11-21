@@ -1,25 +1,27 @@
-# Dated research notes: 2026-10-27-harness-findings
+# ハーネスの調査記録（2026-10-27）
 
-These are historical authored summaries and source-reading limitations. Publication and retrieval dates are those recorded at the time. No new primary verification or experimental reproduction is claimed.
+当時の調査で分かったことと、資料を確認した範囲を記録した。公開日と取得日は当時の記録に従う。一次資料を新たに確認したり、実験を再現したりした結果ではない。
 
-## Actual new primary delta: Harness-Zero checkpoint defaults
+## Harness-Zeroのチェックポイントの既定値
 
-**Author-maintainer description:** “Fix default checkpoints for short training runs.”
+作成者・保守担当者の説明：“Fix default checkpoints for short training runs.”
 
-Primary URLs, retrieved **October26 ~18:09 UTC**:
+一次資料は10月26日の18:09 UTCごろに取得した。
 
-- https://github.com/metaevo-ai/harness-zero/pull/1 — created2026-10-26 08:31:24 UTC; merged08:31:44 UTC; no PR body.
-- https://github.com/metaevo-ai/harness-zero/commit/0c991a4b2ee9e5ceac546f7cdd209d860e3aeeb5 — author timestamp08:24:24, committer08:28:59 UTC, October26.
-- https://github.com/metaevo-ai/harness-zero/commit/8697d54462e45caaa239b0a999acacd36399435b — merge commit08:31:43 UTC, October26.
+- https://github.com/metaevo-ai/harness-zero/pull/1 ：2026-10-26 08:31:24 UTCに作成、08:31:44 UTCにマージ。PRの本文はない。
+- https://github.com/metaevo-ai/harness-zero/commit/0c991a4b2ee9e5ceac546f7cdd209d860e3aeeb5 ：10月26日、著者の記録時刻は08:24:24 UTC、コミット実行者の記録時刻は08:28:59 UTC。
+- https://github.com/metaevo-ai/harness-zero/commit/8697d54462e45caaa239b0a999acacd36399435b ：10月26日 08:31:43 UTCのマージコミット。
 
-**Read scope:** complete commit patch (two files, six additions / four deletions) and PR metadata; not full repository, tests or benchmark execution. API reads: `https://api.github.com/repos/metaevo-ai/harness-zero/commits/0c991a4b2ee9e5ceac546f7cdd209d860e3aeeb5` and `https://api.github.com/repos/metaevo-ai/harness-zero/pulls/1`.
+確認したのはコミットの差分全体（2ファイル、6行追加、4行削除）とPRのメタデータ。リポジトリ全体は読んでおらず、テストやベンチマークも実行していない。APIで確認した先は `https://api.github.com/repos/metaevo-ai/harness-zero/commits/0c991a4b2ee9e5ceac546f7cdd209d860e3aeeb5` と `https://api.github.com/repos/metaevo-ai/harness-zero/pulls/1`。
 
-**Static reviewer interpretation:** CLI and `train_positive_sft` now pass/use `None` for unspecified checkpoint epochs. The training function filters the old default `(0.5, 1.0, 2.0, 3.0)` to points `<= epochs`; explicit user checkpoints still undergo the existing range validation. This prevents the old default list from triggering its out-of-range check when the training duration is shorter than three epochs. The patch adds neither evaluation results nor a SWE-Serve integration. It is useful implementation maintenance, not evidence closing the E2E research gap. No runtime correctness claim is made.
+差分を読んだ限りでは、チェックポイントのエポックを指定しないと、CLIが `None` を渡し、`train_positive_sft` はそれを受け取る。学習関数は従来の既定値 `(0.5, 1.0, 2.0, 3.0)` から `<= epochs` の点だけを使う。利用者がチェックポイントを明示した場合は、従来どおり範囲を検査する。これにより、学習が3エポック未満でも、既定のチェックポイントだけを理由に範囲外のエラーにはならない。評価結果の追加も、SWE-Serveとの統合もない。実装の保守としては有用だが、E2E評価の不足を埋める根拠にはならない。実行時に正しく動くかは確認していない。
 
-These queries cover commits reachable from the default branch within the stated timestamps, not all branches, separate releases, unpublished work or publication outside these repositories.
+検索の対象は、記載した期間に既定のブランチからたどれるコミットに限る。他のブランチ、別のリリース、未公開の作業、リポジトリ外の公開情報までは対象にしていない。
 
-- Primary metadata: https://arxiv.org/abs/2610.31650 , retrievedOctober26 ~18:08–18:09 UTC. Submission history still lists only **v1, October22 17:57:04 UTC**. October23 announcement remains the prior discovery date. Read scope today: abstract-page version history and visible links only; **not** a new full-text read.
-- A bounded release search located aggregators and existing paper listings, not a verified author implementation or substantive revision. Generic alphaXiv “replicate” tooling and arXiv code-finder toggles are **not** an author implementation. This is bounded non-discovery, not proof that no code exists.
-- task-level UCR denominator; observed minimum unsafe omission cardinality and exhaustive-only no-failure sentinel for SBM; task-weighted PUR over matched nonempty masks, both twins recovering all omitted facts and subsequently acting appropriately without invalid actions; persistent true-but-incomplete observations; audit-before-terminal-commit. Single-rollout, adaptive-coverage and perfect-audit limitations apply; explanatory toys are not author replication or production-safety demonstrations.
+## EpiSEM-Benchの投稿履歴と公開実装
 
-No fresh author-linked SabreAgent/ORPR implementation, major Watch-paper correction, or validated new industrial recommendation / incrementality result was verified from this limited search. The known AMV anonymous repositories and HERD repository were not reopened without a new update signal. No new primary full text was selected from search. This finding does **not** certify that all tracked papers or repositories are unchanged.
+- 投稿履歴は https://arxiv.org/abs/2610.31650 で確認した（取得は10月26日の18:08–18:09 UTCごろ）。記載はv1（10月22日 17:57:04 UTC）だけだった。前回見つけたのは10月23日の告知時。今回は要旨ページの投稿履歴と表示されたリンクだけを確認し、本文は読み直していない。
+- 範囲を限ってリリースを探したところ、集約サイトや既存の論文一覧は見つかったが、著者によることを確認できる実装や、内容が変わる改訂は見つからなかった。alphaXivの汎用機能 “replicate” やarXivのコード検索機能は、著者の実装ではない。この検索で見つからなかっただけで、コードが存在しないとは言えない。
+- 評価を読む際は、UCRの分母はタスク単位であること、SBMでは危険な結果に至った欠落事実の最小個数と、全探索時に限って使う失敗なしの特別値を区別することに注意する。PURは空でない対応する欠落条件を適用した対のタスクを対象に、タスクで重み付けする。対の両方で欠けた事実をすべて回収し、その後、不適切な操作をせずに状況に合う行動を取る必要がある。提示された事実は正しいが、一部が継続して欠ける条件であり、結果を確定する前に監査を行う。条件ごとの試行は1回で、探索範囲は適応的に決まり、監査は事実を完全に回収できるという制約がある。説明用の小例は、著者の実験の再現でも、本番での安全性の実証でもない。
+
+今回の限られた検索では、SabreAgentやORPRの著者につながる新たな実装、継続確認（Watch）としていた論文の大きな修正、実務での推薦や増分効果を新たに検証した結果は確認できなかった。既知のAMVの匿名リポジトリとHERDのリポジトリは、更新の手がかりがなかったため開き直していない。検索結果から新たに選んで本文を読んだ一次資料もない。追跡しているすべての論文やリポジトリに変更がなかったという意味ではない。
