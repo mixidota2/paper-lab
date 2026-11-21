@@ -1,7 +1,6 @@
 id: evaluation-choices-forecasting-leaderboard
 arxiv_id: '2609.27867'
-title: 'Evaluation Choices Decide the Forecasting Leaderboard: Evidence from a Production
-  Marketplace Panel'
+title: 'Evaluation Choices Decide the Forecasting Leaderboard: Evidence from a Production Marketplace Panel'
 authors:
 - Md Rezwanul Islam
 - Wael Mohammed
@@ -16,8 +15,8 @@ urls:
   arxiv: https://arxiv.org/abs/2609.27867
 verdict: Radar
 status: published
-question: 予測を変えず、集計のしかたを変えたら勝者は入れ替わるか
-summary: 本番の基準手法は、市場全体の評価では19手法中2位、買い手別の評価では25手法中23位だった。ただし、この二つは指標や評価時点、比較手法数も異なるため、順位差のすべてを集計方法だけに帰することはできない。対象はサービス市場の取引額GTVで、店舗小売の売上ではない。M5での再評価もあり、手法比較の設計に関わる論文。
+question: 同じ予測でも、買い手の組分けによって最も誤差が小さい手法は変わるか
+summary: 市場全体では、買い手ごとの過大予測と過小予測が打ち消し合う。サービス市場の取引額を用いた論文では、共通の19手法を比べると、買い手を1組から625組に分けると、基準手法のWAPE順位の中央値が2位から16位に下がった。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -31,74 +30,69 @@ source_review:
   url: https://arxiv.org/pdf/2609.27867
   scope: Tables 1, 3, 5–7; Figure 1; §4
 core_idea:
-  author_claim: データや予測値に加え、評価単位・誤差の集約・指標の選択が順位を決める。同じ手法集合と評価起点に絞った比較でも順位の逆転が残る。
-  research_bot_interpretation: TSFMとGBDTの比較を始める前に、誰の誤差を一単位として数えるかを固定したい。全体の売上計画に適した評価と、店舗・商品ごとの補充判断に適した評価は一致するとは限らない。
+  author_claim: 著者は、予測そのものに加え、どの単位で誤差を数えるか、どうまとめるか、何を指標にするかによって順位が決まると報告した。比べる手法と予測を始める時点をそろえても、順位の逆転は残った。
+  research_bot_interpretation: Labの解釈：時系列基盤モデル（TSFM）と勾配ブースティングで作る決定木モデル（GBDT）を比べる前に、予測を何の判断に使うかを決める。全体の売上計画と、店舗・商品ごとの補充では、誤差を数える単位が違う。
 sections:
-  overview: 本番の基準手法は、市場全体の評価では19手法中2位、買い手別の評価では25手法中23位だった。ただし、この二つは指標や評価時点、比較手法数も異なるため、順位差のすべてを集計方法だけに帰することはできない。対象はサービス市場の取引額GTVで、店舗小売の売上ではない。M5での再評価もあり、手法比較の設計に関わる論文。
-  problem: 大きな集計では正負の予測誤差が相殺する。個別系列ではその誤差が残り、間欠的な需要も増える。本番の基準は前年同月を直近の勢いで調整するseasonal
-    naive with driftで、比較にはN-HiTSやChronos T5-Largeなどを含む。
-  why_it_might_work: 解釈：絶対値を取る前に誤差を足すと相殺が起きるため、集計後の誤差が小さくても個別の予測は良いとは限らない。|Σeᵢ| ≤
-    Σ|eᵢ|という性質を最小実験で確認する。区間予測には区間の幅と、実績がその区間に入る割合（被覆率）が関わるため、点予測の順位から一意には決まらない。
-  evidence: '一次資料[Tables 1・3・5–7](https://arxiv.org/pdf/2609.27867) の著者報告。
+  overview: ある買い手の取引額を多く、別の買い手を同じだけ少なく予測すれば、合計だけは合う。論文の本番基準手法は市場全体で19手法中2位、買い手別で25手法中23位だった（表1）。この比較では指標、予測を始める時点、手法数も違う。集計の影響を読むには、共通条件の表3も見る。主な対象はサービス市場の取引総額（GTV）で、店舗小売の売上ではない。小売の公開データM5でも再評価している。
+  problem: 市場全体の合計は滑らかでも、買い手別では取引がない月が挟まり、予測の過不足が目立つ。本番の基準は前年同月の値を直近の伸びに合わせて調整する手法（seasonal naive with drift）。著者はN-HiTS、Chronos T5-Largeなどとも比較した。
+  why_it_might_work: Labの解釈：絶対値を取る前に正負の誤差を足すと、誤差どうしが打ち消し合う。人工例で |Σeᵢ| ≤ Σ|eᵢ| を確認する。一方、区間を予測するときは幅と、実績がその区間に入る割合（被覆率）も見るため、1つの値を出す点予測の順位からは決まらない。
+  evidence: '一次資料である[原論文の表1・3・5〜7](https://arxiv.org/pdf/2609.27867)で著者が報告した値。
 
 
-    | 比較 | 値 | 注意 |
+    | 何を比べたか | 結果 | 読むときの注意 |
 
     | --- | --- | --- |
 
-    | 市場集計 → 買い手別 | 2/19位 → 23/25位 | Table 1は指標・起点・手法数も異なる |
+    | 市場全体と買い手別の基準手法の順位 | 2/19位 → 23/25位 | 表1では指標・評価起点・手法数も変わる |
 
-    | 選択ルールの改善余地回収 | 54.6% | 過去の起点だけで選ぶ、RMSSE基準 |
+    | 過去の結果を使う手法選択で、改善できる幅をどれだけ埋めたか | 54.6% | RMSSEで評価 |
 
-    | M5の同様の回収率 | 64.7% | 店舗×商品で再評価 |
+    | 同じ考え方を小売データM5で評価した回収率 | 64.7% | 店舗×商品で再評価 |
 
-    | 点予測と区間予測の順位相関 | 0.02 | 間欠需要、25手法間の相関 |
+    | 点予測と区間予測の順位相関 | 0.02 | 間欠需要、25手法の比較 |
 
 
-    主要な買い手別評価は1,887系列・67か月、8起点・11,516ブロック。Table 3では共通の19手法を使い、事前データに基づいて5,779買い手をサイズ順にグループ分けする。1組から625組への分割で基準手法の中央値WAPE順位は2→16位になる。Table
-    1だけから集計単独の効果と断定せず、共通条件の再評価も読む。'
+    主な買い手別の評価は1,887系列・67か月、8起点・11,516ブロック。表3では共通の19手法を使い、事前データに基づいて5,779買い手を規模順に組み分けた。全体を1組として数えると基準手法は2位、625組に分けると16位（WAPE順位の中央値）。表1だけを読んで集計だけが原因だとは判断しない。'
   method: method.md
-  executable_understanding: '`uv run papers/evaluation-choices-forecasting-leaderboard/run.py`。標準ライブラリだけで実行でき、同じフォルダーのresults.jsonを更新する。
+  executable_understanding: '`uv run papers/evaluation-choices-forecasting-leaderboard/run.py`。Pythonの標準ライブラリだけで実行でき、同じ場所の `results.json` を更新する。
 
 
-    同一の実績と予測配列を固定し、score()へ渡す買い手のグループだけを変える。各組の予測誤差を符号付きで合計してから絶対値を取り、その合計を全買い手の実績合計で割る。モデルの再学習や候補選択は行わない。ここで使う指標はWAPEで、原論文のRMSSE順位そのものは再現しない。'
-  results: 全体1系列ではA 0% / B 10%、個別4系列ではA 40% / B 10%となり、勝者が逆転する。同じ2組でも構成によって逆転するため、集計数だけでは評価条件を記述しきれない。
-  what_we_verified: CONFIRMED：固定した予測の集計だけで人工例の勝者が入れ替わる。MechanismはPARTIAL。論文表の順位や選択ルールの性能は追試していない。
-  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Field
-    Nationの非公開パネル、M5の全手法再評価、区間予測、統計検定は実行していない。店舗の補充費用を最小化する手法も決めていない。
-  implementation: score() → Table 3 / Figure 1の評価粒度を説明する人工例。gap_closed_from_rounded_table6
-    → Table 6の丸め済み値による算術確認。
+    実績と予測値を固定し、`score()` に渡す組分けだけを変える。組ごとの誤差を符号付きで合計してから絶対値を取り、全組の絶対値を足し、全買い手の実績合計で割る。この割合をWAPEと呼ぶ。学習やモデル選択は行わない。論文のRMSSE順位を再現する計算でもない。'
+  results: 全体を1組にするとAが0%、Bが10%。買い手4人を個別に測るとAが40%、Bが10%になり、誤差の小さい予測が入れ替わった。2組の場合も、過大予測と過小予測を同じ組に入れたときはA、同じ向きの誤差をまとめたときはBが勝つ。何組かに加えて、誰を同じ組にしたかも記録する必要がある。
+  what_we_verified: 確認済み（CONFIRMED）：4人の人工例で、同じ値を予測したまま組分けだけを変えるとWAPEの順位が逆転する。仕組みの確認はこの範囲に限る（PARTIAL）。著者の順位や選択方法の性能は追試していない。
+  what_we_did_not_verify: 性能、規模拡大、本番への適用は未検証（NOT TESTED）。Field Nationの非公開データ、M5での全手法の再評価、区間予測、統計検定は実行していない。店舗の補充費用を最も下げる手法も決めていない。
+  implementation: '`score()` は、表3・図1の評価単位を説明する人工例に使う。`gap_closed_from_rounded_table6` は、表6の丸め済みの値から改善幅の回収率だけを再計算する。'
   mapping: mapping.md
 teaching_figures:
 - kind: matrix
   id: aggregation
-  title: 集計を分割すると基準手法の順位が落ちる
+  title: 同じ19手法でも、組を細かくすると基準手法は2位から16位へ
   columns:
-  - 組数k
-  - 中央値WAPE順位 / 19
+  - 買い手を分けた組数 k
+  - WAPE順位の中央値（19手法）
   - 平滑な需要の割合
   rows:
-  - label: 全体
+  - label: 市場全体
     cells:
     - '1'
     - '2'
     - 100%
-  - label: 分割1
+  - label: 5組
     cells:
     - '5'
     - '14'
     - 57%
-  - label: 分割2
+  - label: 25組
     cells:
     - '25'
     - '14'
     - 51%
-  - label: 分割3
+  - label: 125組
     cells:
     - '125'
     - '16'
     - 50%
-  - label: 分割4
+  - label: 625組
     cells:
     - '625'
     - '16'
@@ -106,23 +100,23 @@ teaching_figures:
   locator: Table 3
   after: evidence
   source: https://arxiv.org/pdf/2609.27867
-  rationale: 集計を分割すると基準手法の順位が落ちる
-  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。
+  rationale: 比較する手法数をそろえたうえで、組分けと順位の関係を読む。
+  caption: 原論文の表3から再構成。値は著者の報告で、Labの再計算ではない。
 - kind: equations
   id: pooling
-  title: 絶対値を取る前なら誤差が相殺する
+  title: 誤差を足す順番と、改善できる幅の測り方
   steps:
-  - name: 集計後
+  - name: 市場全体での誤差
     formula: '|Σ eᵢ|'
-    explanation: 市場全体の誤差は買い手間で打ち消し合う。
-  - name: 個別評価
+    explanation: 買い手ごとの誤差を足してから、合計の絶対値を取る。
+  - name: 買い手ごとの誤差
     formula: Σ |eᵢ|
-    explanation: 買い手ごとの誤差を残してから足す。
-  - name: 選択の回収率
+    explanation: 先に一人ずつ絶対値を取るので、過大予測と過小予測は打ち消し合わない。
+  - name: 改善幅の回収率
     formula: G = (E_base − E_served) / (E_base − E_oracle)
-    explanation: oracleは事後の上限。実装可能な選択ルールと区別する。
+    explanation: 過去の結果で選ぶ手順の改善幅を、評価後に最良と分かる手法（oracle）までの改善幅で割る。
   locator: Figure 1; Table 6
   after: method
   source: https://arxiv.org/pdf/2609.27867
-  rationale: 絶対値を取る前なら誤差が相殺する
-  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。
+  rationale: 買い手をまとめる評価と、まとめない評価では、絶対値を取る順番が違う。
+  caption: 原論文の図1と表6に沿った説明。式を使って、打ち消しと手法選択の回収率を分けて読む。
