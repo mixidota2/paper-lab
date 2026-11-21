@@ -1,12 +1,12 @@
 # 原典と実装の対応
 
-| 原典 | 自作コード | 範囲 |
+| 原典 | 自作コード | Labで確認できる範囲 |
 | --- | --- | --- |
-| §2 MNL・最終品揃え後悔 | probabilities / revenue / oracle | 非購入1、既知収益、独立観測。oracleは降順のprefix最大 |
-| §3 Theorem 3.1 / Corollary 3.2 | component_a | 全cutと同値を返す。有限subsetテストはsupremumの証明ではない |
-| §5 Theorem 5.1 式(2)(3) | b_choice / component_b | (3a,2a,a)の最小分割(k,l)=(1,2)。二項分布の厳密和 |
-| §6 Theorem 6.1 式(5)–(7) | c_choice / component_c | d=2、4単点群、丸め不要。2群を同数観測。余りの判断不使用 |
-| Lab独自比較 | integrated_case / generate | 4選好・96条件。有限グリッドは一般minimaxを求めない |
-| 画面 | interactive.js / paper_lab.assortment_observation | 保存平均値の表示と例示経路の規則。選好を方策へ渡さない |
+| §2 MNL・最終品揃え後悔 | probabilities / revenue / oracle | 非購入の重みを1とし、収益は既知、観測は独立とします。oracleは収益上位k商品の集合をkごとに調べ、期待収益が最大になるものを求めます。 |
+| §3 Theorem 3.1 / Corollary 3.2 | component_a | 全区切り（cut）の値と、最良値で並ぶ区切りを返します。有限の部分集合を使うテストは、上限（supremum、上界のうち最小のもの）の証明ではありません。 |
+| §5 Theorem 5.1 式(2)(3) | b_choice / component_b | 収益が `(3a,2a,a)` のときに最大直径を最小にする分割は `(k,l)=(1,2)` です。購入回数の二項分布を厳密に足し合わせます。 |
+| §6 Theorem 6.1 式(5)–(7) | c_choice / component_c | d=2で4群に1点ずつ入るため、丸めは不要です。2種類の品揃えを同じ回数ずつ観測し、余りの観測は判断に使いません。 |
+| Lab独自比較 | integrated_case / generate | 4通りの選好を含む96条件を比べます。有限の条件だけを計算しており、一般のminimax問題は解きません。 |
+| 画面 | interactive.js / paper_lab.assortment_observation | 保存済みの平均値を表示し、例として選んだ観測経路で方策の判断を示します。選好は方策に渡しません。 |
 
-§2–3、§5–6のモデル・方策・定理を正規Webで読解。§4は比較の文脈のみ。原文ファイルの取得失敗は未解消で、別経路で転送していません。著者表の再制作や本文の配布は行いません。
+公式Web版で§2–3と§5–6のモデル・方策・定理を読み、§4は比較の背景として参照しました。原文ファイルは取得に失敗したままで、別の経路で転送していません。著者の表を作り直したり、原論文の本文を配布したりはしません。
