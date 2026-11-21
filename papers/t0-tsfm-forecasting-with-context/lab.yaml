@@ -22,8 +22,8 @@ urls:
   official_code: https://github.com/theforecastingcompany/tfc-t0
 verdict: Radar
 status: published
-question: 同じ予測モデルに、未来の予定を渡す価値はあるか
-summary: t0-alphaの学習済みモデルを固定し、予測を助ける変数（covariate）を入力する場合としない場合を比べた。fev-benchのうち、予測時点で将来の値が分かる変数を使う30課題では、評価指標skillが36.7から43.0へ、6.3ポイント上がった。19課題は改善し11課題は悪化。販促・欠品条件でTSFMとGBDTを比較した結論ではない。
+question: 同じモデルに、予測時点で分かっている予定を渡すと精度は上がるか
+summary: 著者は学習済みのt0-alphaを変えず、予測対象以外の変数（covariate）を入力する場合としない場合を比べた。fev-benchで予測時点に将来の値が分かる変数を使った30課題では、評価指標skillが36.7から43.0へ6.3ポイント上がった。改善したのは19課題で、残り11課題では悪化した。この比較からは、販促や欠品がある場合に時系列基盤モデル（TSFM）とGBDTのどちらが優れるかは分からない。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -43,8 +43,8 @@ core_idea:
   research_bot_interpretation: '[ApolloPFN](apollopfn.html)と同じく外生変数を扱えるTSFMの証拠が増えた。ただし[Accuracy Is Not Service](accuracy-not-service-intermittent-demand.html)が問う在庫・注文充足への変換は残る。Chronos-2は変数軸attentionやcovariate
     ablationの近い比較対象。小売の販促有無、欠品による売上打切り、GBDTと同じ情報集合での比較を揃えて初めて導入判断へ進める。'
 sections:
-  overview: 主な読みどころはモデル間の順位より、同一checkpointに情報を追加する比較である。+6.3はskillのpercentage pointで、MAEが6.3%改善したという意味ではない。モデルの詳しい説明は主にt0-alphaを扱うため、t0-betaの256Mや21分位点の仕様と混同しない。
-  problem: 単変量モデルは販促日や休業日を知らない。情報を渡せるモデルでも、無関係な変数を無視できなければ逆効果になる。また「既知未来」として評価時に渡した情報が、発注時点でも本当に分かっていたかを確認する必要がある。将来の実天気や実売上を予定として渡せば漏洩になる。
+  overview: モデル同士の順位より、同じ学習済みモデルに情報を足したときの差に注目する。+6.3はskillのパーセントポイントであり、平均絶対誤差（MAE）が6.3%改善したという意味ではない。詳しく扱うのは主にt0-alpha。t0-betaの256Mパラメータや21分位点は別の仕様である。
+  problem: 売上の履歴だけを使う単変量モデルには、販促日や休業日を別途伝えられない。一方、変数を追加できるモデルでも、無関係な変数を無視できなければ予測が悪化する。評価で「既知未来」として渡した情報が、実際の発注時点にも分かっていたかを確かめる必要がある。後から判明した天気や売上の実績を予定として渡すと、未来情報が混ざる。
   why_it_might_work: covariateがtargetを動かす人工系列を事前学習へ加え、変数間attentionでその関係を読めるようにする。未来の予定を読む経路には価値があるが、ノイズを無視できる保証はない。11/30課題の悪化やM5の小さい差は、covariate対応という機能名だけでは選定できないことを示す。
   evidence: '[一次資料PDF §5.1.2 / Tables 4–5 / §6](https://arxiv.org/pdf/2609.24559v1) の著者報告。
 

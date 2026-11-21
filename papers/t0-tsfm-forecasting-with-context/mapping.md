@@ -17,8 +17,8 @@ SHA-256: `e23720637cc9e2409620d5ecc7658fe57d0c897dd53814a75f933a7a6dff5757`
 
 公式コード：[著者が案内する公開先](https://github.com/theforecastingcompany/tfc-t0)。本Labは公式モデルを実行していない。
 
-## 論文と確認したコードの差
+## 論文の参照制限は、確認したコード経路では見つからなかった
 
-固定commitの `MaskBuilder.build_group_mask()` はgroup ID一致とpaddingの条件を作り、`Transformer.forward()` はそれをそのままvariate attentionへ渡す。確認した経路では、論文§4.1の「既知未来zはtargetを逆参照しない」というrole別制限を見つけられなかった。時間方向のfuture双方向maskとcausal scalerは確認できる。これは静的な不一致の記録であり、学習済みcheckpointでの未来情報漏洩を実証したものではない。モデル版・学習時コード・入力構築を含む追加監査が必要。
+固定commitでは、`MaskBuilder.build_group_mask()` がグループIDの一致とpaddingの条件を作り、`Transformer.forward()` がそのまま変数方向のattentionに渡す。論文§4.1では、将来の値が分かる変数zから予測対象を参照させない。この制限は確認したコード経路では見つからなかった。一方、将来の値が分かる変数を時間方向に双方向で読めるマスクと、各時点までの値を使う標準化処理は確認できた。コードを読んで見つけた違いであり、学習済みモデルで未来情報が漏れると実証したわけではない。モデルの版、学習時のコード、入力の作り方も含めて確認する必要がある。
 
 [maskの固定版](https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/mask.py#L31) / [呼出側](https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/model/layers/transformer.py#L169)。
