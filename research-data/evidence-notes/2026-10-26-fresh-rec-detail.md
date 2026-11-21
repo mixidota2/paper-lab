@@ -1,30 +1,30 @@
-# Dated primary-source notes, 2026-10-26
+# 一次資料の読書記録（2026-10-26）
 
-Historical authored findings. Source-read scope and uncertainty are preserved; no new primary review or experiment was performed for the migration.
+当時の調査で分かったことと、資料をどこまで読んだかを記録した。資料の移管にあたり、一次資料の再確認や実験は行っていない。
 
-## PAIR — Watch, qualified review
+## PAIR：継続確認（Watch）
 
-- ID/title: 2610.30941, *PAIR: Preference-Aligned Intent Retrieval for Premium People Recommendation at LinkedIn*.
-- Submitted: 2026-10-22 08:57:58 UTC; announced October23.
-- Sources: https://arxiv.org/abs/2610.30941 and https://arxiv.org/html/2610.30941v1 ; https://arxiv.org/pdf/2610.30941v1 .
-- Read scope: abstract/history; main methods, tables 1–4, evaluation and limitations. PDF page 7 (zero-based page 6) text confirms metric wording and table; not merely an HTML-conversion anomaly. No code/replication.
-- Author report: retrieval-embedding replacement within a fixed ranker; CTR +7.5%, Premium retention +2.1%. Dominant gain is task-specific supervision, not history architecture.
-- Review: §5.1 calls evaluation a fixed 100-candidate pool, yet MAR@100<1; definition needs clarification, not an accusation of invalid data. Online sample size, dates, confidence intervals are absent. Exposure bias acknowledged; not causal-uplift optimization. Preserve as Watch rather than map-changing evidence.
+- 論文：2610.30941、*PAIR: Preference-Aligned Intent Retrieval for Premium People Recommendation at LinkedIn*。
+- 2026-10-22 08:57:58 UTC に投稿され、10月23日に公表された。
+- 出典：https://arxiv.org/abs/2610.30941 、https://arxiv.org/html/2610.30941v1 、https://arxiv.org/pdf/2610.30941v1 。
+- 読んだ範囲：要旨、投稿履歴、本文の手法、表1–4、評価、限界。指標の表記と表はPDFの7ページ目（0から数えると6ページ）で確認した。HTMLへの変換だけで生じた違いではない。コードの確認や再現実験は行っていない。
+- 著者の報告：順位付けモデルは固定し、候補を検索する際の埋め込みを入れ替えた。CTRは+7.5%、Premiumの継続率は+2.1%。改善の主因はタスク固有の教師信号で、履歴を扱うモデルの構造ではない。
+- 当時の評価：§5.1 は100件に固定した候補集合で評価したと説明する一方、MAR@100<1となっている。データが無効だと判断したわけではなく、指標の定義を確認する必要がある。オンライン評価の標本数、実施日、信頼区間は報告されていない。露出の偏りには言及しているが、施策による増分効果を最適化する手法ではない。地図を更新する根拠にはせず、継続確認とした。
 
-## OneLatent — Watch, qualified review
+## OneLatent：継続確認（Watch）
 
-- ID/title: 2610.30675, *OneLatent: Latent Reasoning for Efficient Foundation Recommendation Models*.
-- Submitted: 2026-10-22 03:39:38 UTC; announced October23.
-- Sources: https://arxiv.org/abs/2610.30675 and https://arxiv.org/html/2610.30675v1 .
-- Read scope: main methods/results and Appendix A implementation/data construction; not all prompts or figure pixels. No code/replication.
-- Author report: latent-token training plus asynchronous, behavior-triggered cached retrieval channel; incumbent cascade retained.
-- Review: 17.49× throughput compares against explicit CoT, not No-Think (essentially equal). Industrial strongest-baseline gains are 1.58% SID@64 / 0.45% ID@64. Seven-day 5%-per-arm online test reports impressions +2.566%, ad spend +5.157%; revenue +9.6% is a posterior estimate. Model and serving changes are bundled. No strict latent bottleneck; one seed. Useful qualification, insufficient new map cell.
+- 論文：2610.30675、*OneLatent: Latent Reasoning for Efficient Foundation Recommendation Models*。
+- 2026-10-22 03:39:38 UTC に投稿され、10月23日に公表された。
+- 出典：https://arxiv.org/abs/2610.30675 、https://arxiv.org/html/2610.30675v1 。
+- 読んだ範囲：本文の手法と結果、付録Aの実装とデータ作成手順。プロンプト全件や図の画像そのものまでは見ていない。コードの確認や再現実験は行っていない。
+- 著者の報告：潜在トークンを使って学習し、行動をきっかけに非同期で候補を検索・保存する経路を加えた。従来の多段処理は残した。
+- 当時の評価：処理量が17.49倍という値は、推論過程を明示するCoTとの比較。No-Thinkとの比較ではほぼ同等だった。実務環境での最も強いベースラインに対する改善は、SID@64で1.58%、ID@64で0.45%。7日間、各群5%のオンライン試験では、表示回数が+2.566%、広告費が+5.157%。売上+9.6%は事後推定である。モデルと配信方式を同時に変えていた。潜在表現だけを通る厳密な制約はなく、乱数シードは1つ。比較条件を知るうえでは有用だが、地図に新たな項目を加えるには根拠が足りないと判断した。
 
-## LARA — Watch, not validated incrementality
+## LARA：継続確認（Watch）。増分効果は未確認
 
-- ID/title: 2610.30423, *When Agentic Retrieval Fails Silently: Framework and Production Evidence from a Creative AI Assistant*.
-- Submitted: 2026-10-21 20:32:56 UTC; announced October23.
-- Sources: https://arxiv.org/abs/2610.30423 and https://arxiv.org/html/2610.30423v1 .
-- Read scope: entire main HTML, including framework, production evidence, limitations; no raw telemetry.
-- Author proposal: separate retrieval, consumption/use, and downstream outcome measurements with lineage; distinguish absent retrieval from poor ranking.
-- Review: useful instrumentation boundary, but none of four lineage fields implemented; proposed relevance/attribution metrics not computed; telemetry schema validation absent. Observational Adobe Express proxies motivate the proposal rather than validate it. No causal incremental-value finding or measured repair.
+- 論文：2610.30423、*When Agentic Retrieval Fails Silently: Framework and Production Evidence from a Creative AI Assistant*。
+- 2026-10-21 20:32:56 UTC に投稿され、10月23日に公表された。
+- 出典：https://arxiv.org/abs/2610.30423 、https://arxiv.org/html/2610.30423v1 。
+- 読んだ範囲：枠組み、本番での観測、限界を含む本文HTMLの全体。元の計測ログは見ていない。
+- 著者の提案：検索で候補が得られたか、その候補を使ったか、その後にどんな結果が出たかを分け、対応関係を追えるようにする。検索結果がない場合と、結果はあるが順位付けに問題がある場合を区別する。
+- 当時の評価：どの段階で測るかの切り分けは有用。ただし、対応関係を追うために挙げた4項目はいずれも実装されておらず、提案した関連性・寄与の指標も算出していない。計測ログの項目定義が妥当かどうかの検証もない。Adobe Expressで観測した代理指標は提案の動機にはなるが、妥当性の検証にはならない。因果的な増分効果や、修正の効果を測った結果は示されていない。
