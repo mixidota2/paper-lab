@@ -1,6 +1,5 @@
 id: diff-projection-feasible-multi-echelon-inventory
-title: 'Hard Constraints, Smooth Gradients: Learning Feasible Inventory Policies via
-  Differentiable Projection'
+title: 'Hard Constraints, Smooth Gradients: Learning Feasible Inventory Policies via Differentiable Projection'
 authors:
 - Patrick P. Helm
 - Jan-Niklas Doerr
@@ -18,26 +17,26 @@ urls:
   pdf: https://arxiv.org/pdf/2608.02343
 verdict: Worth
 status: published
-summary: 資材と生産能力の上限に収まるように生産目標を調整し、整数の生産量へ変換する。このLabでは2変数の例を使い、制約のかかり方によって学習用の勾配がどう変わるかを確かめる。
-question: 整数の生産制約を守りながら、学習信号をどう返すか。
+summary: 資材や設備を製品間で分け合いながら、実際に作れる整数の生産量を決める。2製品の例で、どの上限に達しているかによって、目標の変化が決定にどう伝わるかを確かめる。
+question: 設備や資材の上限を越えない整数の生産量を選びながら、モデルの学習に必要な勾配をどう返すか。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
   scaling: NOT TESTED
   production_applicability: NOT TESTED
 core_idea:
-  author_claim: 【著者の主張】NNの連続目標を強凸QPで実行可能領域へ射影し、双対価格を使う整数写像で離散行動に変える。解析JacobianとSTEを組み合わせ、微分可能なシミュレーター上で端から端まで学習する。
-  research_bot_interpretation: 【Labの解釈】DeepStockが方策の探索を在庫構造で整えるのに対し、本手法は品目間の結合制約と整数実行可能性を学習経路へ組み込む。Constrained
-    FBSDEの経路上の状態制約とは守る対象が異なる。直接の優劣比較ではない。
+  author_claim: 【著者の主張】ニューラルネット（NN）が出した連続値の生産目標を、強凸二次計画（QP）で制約内の近い点に移す。次に、その制約の厳しさを表す双対価格を使って整数にする。学習時は射影の解析Jacobianと、整数化を通る勾配を近似するSTEを組み合わせ、微分可能なシミュレーターの費用からNNを更新する。
+  research_bot_interpretation: 【Labの解釈】DeepStockが在庫の構造を手がかりに方策を探すのに対し、この研究は複数製品で共有する資材や設備の上限を、各期の整数の生産判断に直接反映する。Constrained
+    FBSDEが在庫などの時間変化を制約するのとは、守る対象が異なる。性能の優劣を比べたわけではない。
 sections:
-  overview: 連続値の生産目標を、資材・共有設備の制約を守る整数行動に変換する研究。著者は小規模24条件で平均最適性ギャップ0.91%、ASML Research
-    Challengeの14品目で最良のechelon DBS比3.22%／2.54%の費用削減を報告した。本Labでは、射影の勾配と整数化だけを2変数で検算する。
-  problem: 対象は生産計画だ。複数段階の在庫を扱う。複数の製品が資材や生産能力を共有するため、品目ごとの上限処理では実行可能性を保てない。需要未充足はバックオーダーとして繰り越す。売り逃しを扱う小売モデルや、食品売場の棚割りRCTへの実証ではない。
-  why_it_might_work: '【Labの解釈】共有制約に当たった目標の勾配を、他品目との配分変更へ変換できる点が効きそうだ。制約に当たらないFreeでは目標の変化がそのまま伝わる。個別上限に固定されたPinnedでは対象座標が動かず、共有上限を分け合うCompetingでは一方の増加が他方の減少になる。
+  overview: 例えば2製品に同じ設備を使うとき、一方を増産すれば他方に使える時間が減る。この研究は、モデルが出した生産目標を共有制約の範囲に収め、整数の生産量に変える。著者は小規模24条件で平均最適性ギャップ0.91%、ASML
+    Research Challengeの14品目では最良のechelon DBS比で2設定それぞれ3.22%／2.54%の費用削減を報告した。Labでは、この費用を再現せず、射影の勾配と整数化を2製品で検算する。
+  problem: 多段階の生産計画では、製品ごとの上限を守っても、全製品で同じ資材や設備を使い過ぎることがある。すべての製品の生産量をまとめて決める必要がある。満たせなかった需要は、次期以降に届ける注文（バックオーダー）として残す。欠品でその場の売上を失う小売モデルや、食品売場の棚割りを無作為化して効果を測る試験（RCT）とは別の設定だ。
+  why_it_might_work: '【Labの解釈】勾配には、目標を少し変えたとき、実際に選んだ量がどの方向に動くかが表れる。上下限から離れているFreeでは目標どおりに動く。製品1が個別上限に達したPinnedでは、その量をこれ以上増やせない。2製品で共有上限に達したCompetingでは、製品1を増やすには製品2を減らす。
 
 
-    著者の補題1では、状態に依存する制約で失われた目標側の方向が、制約右辺bへの勾配に現れる。資材を不足させた過去の意思決定へ学習信号を返せる。一方、固定容量の制約にはこの補償がない。等号になっている制約の組（活性集合）が切り替わる点で、通常の微分が常に存在するという主張でもない。'
-  evidence: '一次資料は[著者PDF](https://arxiv.org/pdf/2608.02343)の§4–6、図3–6、表1–5。いずれも著者によるシミュレーション評価で、本Labの再現値ではない。
+    著者の補題1では、資材残量などで上限が変わる場合、目標側では失われた方向の情報が、制約式の右辺bへの勾配に現れる。残量を変えた過去の判断にも学習信号を返せる。固定容量にはこの補償がない。等号になっている制約の組（活性集合）が切り替わる点で、通常の微分が常に存在するという主張でもない。'
+  evidence: '以下は著者のシミュレーション結果。Labで再現した値ではない。一次資料の[著者PDF](https://arxiv.org/pdf/2608.02343)で、§4–6、図3–6、表1–5を確認した。
 
 
     |条件|著者報告|出典|
@@ -53,70 +52,70 @@ sections:
     |整数化をfloorに替える−IM|費用が11.83%／15.79%増加|表5|
 
 
-    ASML設定1の平均総費用はechelon DBS 286.99、MSP 289.25、提案法277.74。提案法はDBSより保有費用が低く、MSPよりバックオーダー費用が低い。単純なDBS列と最良のechelon
-    DBS列を混同しない。'
-  executable_understanding: '2変数の目標zを、x₁≥0、x₂≥0、x₁≤3、x₁+x₂≤6の多角形へ射影する。W=diag(1/2,1/2)。全辺への最近点から厳密解を選ぶため、外部QPソルバーは不要。3つの活性集合を選び、目標の小さな変化が連続出力へ伝わる割合を表す行列（解析Jacobian）を、目標を両方向へ少しずつ変える中心差分と照合する。
+    ASMLの設定1では、複数段階の在庫を見て補充するechelon DBS、複数段階の確率的計画（MSP）、提案法を比較した。平均総費用はechelon DBS 286.99、MSP 289.25、提案法277.74。提案法はDBSより保有費用が低く、MSPよりバックオーダー費用が低い。表4には通常のDBS列もある。削減率の比較先は最良のechelon
+    DBSの列。'
+  executable_understanding: '2製品の目標をz、生産量をxとする。x₁≥0、x₂≥0、x₁≤3、x₁+x₂≤6を満たす多角形の中から、zに一番近い点を選ぶ（射影）。重みはW=diag(1/2,1/2)。すべての辺の最近点を調べて厳密解を選ぶので、外部QPソルバーは不要。制約のかかり方を3通り選び、連続出力をどれだけ動かすかを表す解析Jacobianを、目標を両側にわずかに動かす中心差分と照合する。
 
 
-    次に§4.1.2どおり、floorを初期値にして双対価格を使う優先順位で各座標を1回ずつ増やす。実行可能で射影目的を悪化させない増分だけを採用する。6,561個の目標を同条件でfloorと比較し、整数点の全探索とも照合する。図5に対応するx₁+x₂≤2の別実験では、境界の整数点(1,1)に到達する目標領域を調べる。'
-  results: '6,561目標で整数行動の制約違反は0件。3,915件でfloorより射影目的が改善し、この2変数設定では整数全探索との差も0だった。一般には近似解だ。この一致を一般の整数QPの最適性保証へ広げられない。
+    次に§4.1.2に沿って、小数点以下を切り捨てた量（floor）から始める。双対価格を使った優先順位で、各製品の量を1単位だけ増やせるか調べる。制約を守り、目標からのずれを評価する目的関数を悪化させない増分だけを採用する。6,561個の目標を同条件でfloorと比べ、すべての整数点を調べた解とも照合する。図5に対応する別実験では、x₁+x₂≤2の下で(1,1)を選ぶ目標の範囲を調べる。'
+  results: '6,561個の目標のうち、整数化した後の制約違反は0件。3,915件で単なる切り捨てより目的関数の値が改善した。この2製品の設定では、すべての整数点を列挙した最適解との差も0だった。整数写像は一般には近似であり、この一致は一般の整数QPでは保証されない。
 
 
-    図5の縮約では1,600目標のうち、floorが(1,1)を選んだのは0件、整数写像では1,600件だった。これは正の面積を持つ到達領域の数値例であり、論文の完全性定理の証明ではない。完全性は単に点へ到達できることではなく、各整数行動へ写る目標の集合について、Lebesgue測度が正となる条件を指す。'
-  what_we_verified: '**CONFIRMED — 局所計算**：Free／Pinned／CompetingのJacobianと中心差分の一致、全サンプルでの整数実行可能性、floorからの非悪化をassertで確認した。
+    図5の縮約では、1,600個の目標のうち、切り捨てで(1,1)になったのは0件、提案の整数化では1,600件だった。(1,1)に写る目標が面積を持ちうる例で、論文の完全性定理の証明ではない。完全性は、各整数行動に写る目標の集合が、単に空でないだけでなく、Lebesgue測度で正の大きさを持つ条件を指す。'
+  what_we_verified: '**CONFIRMED — 局所計算**：Free／Pinned／Competingの各例で、Jacobianが中心差分と一致した。全サンプルの整数行動が制約を守り、切り捨てよりも目的関数を悪化させないことをassertで確かめた。
 
 
-    **PARTIAL — メカニズム全体**：QPと整数写像の縮約だけを実装した。NN、経路微分による方策学習（HDPO）、整数写像の逆伝播を恒等写像とみなすSTEは学習実験に含めていない。'
-  what_we_did_not_verify: '**NOT TESTED**：多段階在庫の長期費用、最適性ギャップ0.91%、ASML費用削減、スケーリング、現場導入。STEには偏りがある。学習効果も未検証。一般制約での完全性・誤差境界は論文の主張として紹介した。'
-  implementation: '`UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/diff-projection-feasible-multi-echelon-inventory/run.py`でresults.jsonを再生成する。Python標準ライブラリだけを使用。乱数、GPU、外部データは使わない。
+    **PARTIAL — 一部だけ実装**：QPによる射影と整数化を2製品に縮約した。NN、経路微分による方策学習（HDPO）、整数化を逆伝播するときに恒等写像とみなすSTEは、学習実験に含めていない。'
+  what_we_did_not_verify: '**NOT TESTED**：多段階在庫の長期費用、小規模の最適性ギャップ0.91%、ASMLの費用削減、規模を大きくしたときの挙動、現場導入。STEは真の微分を計算しないため偏りがあり、学習にどれだけ有効かは未検証。一般制約での完全性や誤差の上限は論文の主張として紹介する。'
+  implementation: '`UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/diff-projection-feasible-multi-echelon-inventory/run.py`を実行すると、results.jsonを作り直せる。Python標準ライブラリを使い、乱数、GPU、外部データは使わない。
 
 
-    HTMLはlab.yaml、README.md、method.md、mapping.md、run.py、results.jsonから生成する。図の表示はpaper_lab/projection01.py。提供PDF内で公式コードへのリンクを確認できず、公式実装は未実行。'
+    HTMLはlab.yaml、README.md、method.md、mapping.md、run.py、results.jsonから生成し、図はpaper_lab/projection01.pyで表示する。提供PDFでは公式コードへのリンクを確認できず、公式実装は実行していない。'
   method: method.md
   mapping: mapping.md
 teaching_figures:
 - id: projection-equations
   kind: equations
   after: method
-  title: 射影から整数行動へ、順方向と逆方向を分ける
+  title: 実際に選ぶ生産量と、学習で返す勾配は別に計算する
   caption: 式(2)、補題1、§4.1.2。図3の学習経路に対応する。
   source: https://arxiv.org/abs/2608.02343
   locator: Equation (2), Lemma 1, Figure 3
-  rationale: 実行可能性を守る順方向と、近似勾配の境界を明示する。
+  rationale: 生産量を制約内に収める計算と、学習用の勾配を近似する計算を区別する。
   steps:
-  - name: 強凸QP
+  - name: 強凸二次計画（QP）で制約内の点を選ぶ
     formula: 'x* = argmin { ½(x−z)ᵀW(x−z) : Mx ≤ r }'
     explanation: Wは正定値。非空な実行可能集合では解が一意に定まる。
-  - name: 目標へのJacobian
+  - name: 目標を少し動かしたときの出力の変化
     formula: Jz = I − W⁻¹ M̃ᵀ(M̃W⁻¹M̃ᵀ)⁻¹M̃
-    explanation: 等号になっている独立な制約の組が、近傍で変わらない条件で使う。
+    explanation: 線形独立で等号になっている制約の組が、目標を少し動かしても同じ場合に使える。
   - name: 整数写像の近似微分
     formula: ∂̂x/∂x* = I; ∂̂x/∂z = 0; ∂̂x/∂λ* = 0
-    explanation: 順方向は整数行動。逆方向のSTEは真の微分ではない。
+    explanation: 実際に採用するのは整数の生産量。逆伝播のSTEは、整数化による変化を真に微分した値ではない。
 - id: constraint-map
   kind: matrix
   after: why_it_might_work
-  title: 何を制約し、どこへ勾配を返すか
+  title: 手法ごとに、何を守るかは異なる
   caption: 本Labの整理。手法間の直接比較結果ではない。
   source: https://arxiv.org/abs/2608.02343
   locator: Sections 2, 4; comparison is Lab interpretation
-  rationale: 異なる制約を同じ安全性として扱わない。
+  rationale: 毎期の行動を制約する場合と、在庫などの状態の推移を制約する場合を分ける。
   columns:
   - 制約の対象
   - このLabとの関係
   rows:
   - label: Diff Projection
     cells:
-    - 離散生産行動と共有資材・設備
-    - QPと整数写像で毎期の実行可能性を守る
+    - 各製品の整数の生産量と、共有する資材・設備の上限
+    - QPで制約内に移し、整数にした後も毎期の制約を守る
   - label: Constrained FBSDE
     cells:
-    - 連続時間の在庫・排出予算
-    - 状態の経路制約。遅延と離散化も課題
+    - 連続時間での在庫と排出予算
+    - 状態の推移を制約する。発注遅延と時間の離散化も扱う
   - label: OR-Transformer
     cells:
-    - 費用を考慮した在庫意思決定
-    - 結合した整数行動の保証とは別軸
+    - 在庫の運用にかかる費用
+    - 費用を減らす判断と、共有制約を満たす整数の判断は別の課題
 source_review:
   primary: arXiv:2608.02343v1 supplied PDF
   reviewed: §4–6, Equation 2, Lemma 1, Corollary 1, Figures 3–6, Tables 1–5
