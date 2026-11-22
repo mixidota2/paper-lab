@@ -378,7 +378,7 @@ def test_batch19_experiment_state_and_aggregation_contracts():
         'coral-meta-config-harness': ('lab.yaml', '各設定値と提案値の差を二乗して合計し'),
         'dream-taobao-agentic-control': ('lab.yaml', '等号も呼び出し条件に含む'),
         'pilot-experiment-lifecycle': ('method.md', '施策によって変わった行動で事後的に群を分けない'),
-        'auto-recsys-harness': ('lab.yaml', '実行中の別jobが後で得る知識は先取りしない'),
+        'auto-recsys-harness': ('lab.yaml', '実行中の別ジョブが後で得る知識は先取りしない'),
         'autolr-dashen': ('lab.yaml', '同じrunで何度採択しても、この件数には一度だけ数える'),
         'recevolve-autonomous-rec': ('lab.yaml', '同点の負例も正例より前に数える'),
     }
@@ -389,7 +389,7 @@ def test_batch19_experiment_state_and_aggregation_contracts():
     assert 'IPVの重みとscatter幅を補正し' in (ROOT/'papers/dream-taobao-agentic-control/lab.yaml').read_text()
     assert '全条件を満たしたbucketの割合ではない' in (ROOT/'papers/pilot-experiment-lifecycle/lab.yaml').read_text()
     assert '上位に正例が入らないqueryもゼロとして含める' in (ROOT/'papers/recevolve-autonomous-rec/lab.yaml').read_text()
-    assert '並行jobの所要時間を足した値とは異なる' in (ROOT/'papers/auto-recsys-harness/method.md').read_text()
+    assert '並行ジョブの所要時間を足した値とは異なる' in (ROOT/'papers/auto-recsys-harness/method.md').read_text()
     assert "下表は200seedの集計。" in (ROOT/"papers/autolr-dashen/lab.yaml").read_text()
 
 
