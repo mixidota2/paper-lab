@@ -2,11 +2,11 @@
 
 一次資料：[arXiv 2610.03662v1](https://arxiv.org/pdf/2610.03662v1)。2026-10-08照合。PDF SHA-256: `cc614acd8402ade5d0931dff42c855f1ece0b03cd098fab50dcff81c559e4a6d`。
 
-| 原典 | Lab | 境界 |
+| 原典 | Lab | 確認した範囲 |
 | --- | --- | --- |
-| §3.1 Eq.1–2 | rollout() | 商品別の未着注文と在庫保存則。需要・納期を同じ乱数初期値（seed）で再生。 |
-| §3.2 Eq.3 / Appendix B | fit(), experiment() | CNNを7特徴の線形回帰に置換。Haar samplerとdual coordinatorは省略。 |
-| §3.3 Eq.4 | experiment()の校正ループ | 1週予測の過去観測だけでα,βを更新。多期間共有は省略。 |
-| Table 1–3,5,8–9 | lab.yaml / results.jsonのpaper | 著者数値の転記。toyの尺度0.7はTable 1の傾きを再現しない。 |
+| §3.1 Eq.1–2 | rollout() | 商品ごとに未着注文を管理し、在庫の出入りがつり合うかを確認。需要と納期は同じ乱数初期値（seed）から再生。 |
+| §3.2 Eq.3 / Appendix B | fit(), experiment() | 原論文のCNNを7特徴の線形回帰で置き換えた。容量目標を作るHaar samplerと、共通単価を決めるdual coordinatorは省略。 |
+| §3.3 Eq.4 | experiment()の補正ループ | 1週先の予測に結果が分かった過去の観測だけを使い、α,βを更新する。複数の予測期間で係数を共有する部分は省略。 |
+| Table 1–3,5,8–9 | lab.yaml / results.jsonのpaper | 著者の数値を転記。人工例で注文量を0.7倍する設定は、Table 1の傾きを再現したものではない。 |
 
-公式コード：PDFに公開先の案内なし。Labコードは独立した理解用実装である。
+PDFに公式コードの案内はありません。Labのコードは、仕組みを確かめるための独立した実装です。
