@@ -1,17 +1,17 @@
-### Commercial SIDは末尾を「属性の組×入札bin」に替える
+### Commercial SIDの末尾には、属性の組とその組での入札額の区分を入れる
 
-テキスト・画像・動画由来の意味をRQ-KMeans+で量子化し、上位2段を残す。最終段は最適化目標o、ROI目標r、業種cを圧縮した組k=(o′,r′,c′)と、その組の中でのbid分位点から作る。全体でbidだけを切る方式ではない。v2付録F.1では属性の区分数は25・8・10、3件未満の組はfallbackへ統合。各組に3〜25binを配り、語彙予算2048の下でtoken entropyを最大化する。付録CのClassify-then-Bin＋等頻度分割はH=7.487、実語彙1939だった。
+テキスト・画像・動画の意味をRQ-KMeans+で離散的なコードにし、上位2段を残す。最終段には最適化目標o、ROI目標r、業種cを圧縮した組k=(o′,r′,c′)と、その組の中で入札額（bid）の分位点から作った区分（bin）を使う。すべての広告を入札額だけでまとめて区切るわけではない。v2付録F.1では属性の区分数は25・8・10。3件未満の組を予備の区分（fallback）にまとめ、各組に3〜25binを割り当てる。語彙予算2048の下でトークンのエントロピーを最大化する。付録CのClassify-then-Binと等頻度分割ではH=7.487、実語彙1939だった。
 
-同じCSIDを複数の広告が共有する。配信時には適格な広告だけを葉に残し、その葉の最大bid広告を選ぶ。CSIDを一意の商品IDや、入札の絶対値をそのまま表す数値と見なさない。
+複数の広告で同じCSIDを共有する。配信時は、条件を満たす広告だけを探索木の末端（葉）に残し、その葉で入札額が最大の広告を選ぶ。CSIDでは個々の広告を一意に特定できず、入札の絶対額もそのまま表さない。
 
-### 生成ヘッドとaction-valueヘッドが同じdecoderを使う
+### 同じdecoderから、次のトークンのスコアと選択後の価値を出す
 
-HSTU encoderはUser・Organic・Environment・Item tokenを受け取る。decoderはencoderへのcross-attention、causal self-attention、sparse MoEを使い、MoRの中間層を反復共有する。Fullは埋め込み256、実効6層、64 routed expertsのTop-16、80M decoder parameters。encoderを含むモデル総数ではない。
+HSTU encoderはUser・Organic・Environment・Item tokenを受け取る。decoderはencoderへのcross-attention、causal self-attention、sparse MoEを使い、MoRでは中間層を繰り返し使う。Fullの構成は埋め込み256、実効6層、64 routed expertsのTop-16。80Mはdecoderのパラメーター数で、encoderを含むモデル全体の数ではない。
 
-生成ヘッドは次tokenのlogit o_gen、価値ヘッドはprefixでtoken aを選んだ後の商用return qφを出す。GARはo_gen+α_l qφを加算する。α_lはvalidationで選び、オンラインでは固定する。値の単位・較正が違うため、単にbidをlogitへ足す手法ではない。[v2 式15–16](https://arxiv.org/pdf/2605.05803v2)
+生成ヘッドは次のトークンのlogit o_genを出す。価値ヘッドは、途中までのトークン列（prefix）で候補aを選んだ後の商用return qφを出す。GARではo_gen+α_l qφを使う。α_lは検証データで選び、オンラインでは固定する。価値の単位と較正が異なるため、入札額をそのままlogitに足す方法ではない。[v2 式15–16](https://arxiv.org/pdf/2605.05803v2)
 
-### eCPMを終端報酬にし、価値ヘッドを配信にも残す
+### 学習ではeCPMを報酬にし、配信時は価値ヘッドを使う
 
-SLの次token交差エントロピーとRLのbatchを交互に使う。RLでは旧方策のbeamと価値誘導MCTSで軌跡を集め、production rankingのpCTR・pCVR部品を固定したoffline simulatorで終端eCPMを計算する。request内で平均を引き標準偏差で割る。PPOは生成方策を更新し、価値ヘッドはreturnへ回帰する。baseline V_oldは有効token上の旧方策確率でq_oldを平均する。MCTSとsimulatorはオンラインでは動かない。
+次のトークンの交差エントロピーで学習するバッチ（SL）と、強化学習（RL）のバッチを交互に使う。RLでは旧方策のbeam探索と、価値に基づくMCTSで選択の軌跡を集める。本番の順位付けに使うpCTR・pCVR部品を固定し、オフラインのシミュレーターで終端eCPMを計算する。同じリクエスト内で平均を引き、標準偏差で割る。PPOで生成方策を更新し、価値ヘッドはreturnを予測するよう回帰する。基準値V_oldは、有効なトークンに対する旧方策の確率でq_oldを加重平均したもの。MCTSとシミュレーターはオンラインでは動かさない。
 
-maskをGAR logitへ加えてからsoftmaxを取り、その対数をprefixに沿って累積する。日次で約500万creativeのライブラリを作り、targeting、広告の配信状態、creative制約でrequest別trieを得る。独立したオンラインrerankerを呼ばないという主張は、この生成経路内の設計についてのものだ。[v2 §3.3–3.4、付録B/F](https://arxiv.org/pdf/2605.05803v2)
+配信時は、条件を満たさないトークンを除外するmaskをGAR logitに加え、softmaxを取る。その対数をprefixに沿って足す。約500万creativeのライブラリを日次で作り、targeting・広告の配信状態・creativeの制約から、リクエストごとに探索木（trie）を作る。著者が独立したオンラインrerankerを呼ばないとしているのは、この生成経路に限られる。[v2 §3.3–3.4、付録B/F](https://arxiv.org/pdf/2605.05803v2)
