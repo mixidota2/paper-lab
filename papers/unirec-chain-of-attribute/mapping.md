@@ -1,22 +1,22 @@
 # Original Paper / Official Code Mapping
 
-確認日：2026-09-17。一次PDF：[2604.12234v4.pdf](https://arxiv.org/pdf/2604.12234v4)。arXiv初回日：2026/04/14、確認版の日付：2026/04/30。
+確認日：2026-09-17。一次PDF：[2604.12234v4.pdf](https://arxiv.org/pdf/2604.12234v4)。arXivの初回公開日：2026/04/14、確認した版の日付：2026/04/30。
 
 SHA-256：`338c6b948306f69053f4dd5b0fbff1c5f7440c2ec22d0ba4f1d9e4dbed19da78`
 
-参照PDF：`2604.12234v4.pdf`。既存HTMLを発見用に使い、上記の版を固定したPDF本文・関連する表と付録で照合した。図はこのLabで作った説明図で、元論文の画像コピーではない。
+参照PDF：`2604.12234v4.pdf`。既存のHTMLで参照箇所を探し、上記のPDFに版を固定して、本文、関連する表、付録を照合した。Labの図は説明用に作成したもので、原論文の画像を写したものではない。
 
 | 原論文の箇所 | 確認対象 | Labと省略範囲 |
 | --- | --- | --- |
-| §3.2、式1–2、Algorithm 1、図2 | 露出capacityとprefix集中 | run.py: capacity_repair。固定中心・1層へ簡略化 |
-| §3.3、式3–6、表2 | Bayes、CoA、entropy | run.py: entropy / compute。分母の反例はLab独自 |
-| §3.4–3.6、式7–28 | CDC、cross-attention、RFT+DPO | method.md。モデル・学習は省略 |
-| §4.1–4.2、表1・3・5 | offline比較と面別A/B | Evidence。online段削除の詳細は不明 |
+| §3.2、式1–2、Algorithm 1、図2 | clusterごとの露出上限と、露出が一部のprefixに集中する問題 | run.py: capacity_repair。clusterの中心を固定し、1層に絞った。 |
+| §3.3、式3–6、表2 | Bayesの式、CoA、属性あり・なしのentropy | run.py: entropy / compute。Bayesの分母を省くと順位が逆になる例はLabが用意した。 |
+| §3.4–3.6、式7–28 | CDC、cross-attention、RFT+DPO | method.md。モデルや学習処理は実装していない。 |
+| §4.1–4.2、表1・3・5 | オフライン比較と、推薦を出す面ごとのA/B | Evidenceに記載。オンラインで各段を外した比較の詳細は分からない。 |
 
 ## 公式コード
 
-確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。
+確認した論文本文とarXiv書誌には、取得できる公式実装への案内が見当たらなかった。非公開とは断定せず、公式コードの独立実行はNOT TESTEDとする。
 
 ## 独立再現の境界
 
-属性予測の誤り、full training、beam recall、RFT/DPOの学習、Shopee A/B、段ごとの削除効果はNOT TESTED。entropyの減少だけからCTR上昇や生成・判別の同値性を結論しない。
+属性予測の誤り、モデル全体の学習、beam recall、RFT/DPOの学習、ShopeeでのA/B、各段を外した場合の効果はNOT TESTED。entropyが下がるだけでは、CTRが上がるかどうかや、生成と判別で同じ順位になるかどうかは分からない。
