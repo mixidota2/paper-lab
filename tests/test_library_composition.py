@@ -30,7 +30,7 @@ a.form.dispatchEvent(new Event('change'));
 assert.deepEqual(a.visible(),initial);assert.equal(a.calls.length,0);
 a.form.dispatchEvent(new Event('compositionend'));a.check();
 assert.equal(a.visible().length,1);assert.equal(a.calls.length,1);
-a.edit({search:''});assert.equal(a.visible().length,114);
+a.edit({search:''});assert.equal(a.visible().length,115);
 """,
     'draft_waits_for_conversion_commit': r"""
 const a=app(), initial=a.visible();
@@ -81,7 +81,7 @@ for(const text of ['EXAONE','recommender','日本語 + & # 🧪']){
 const a=app(origin+'?search=EXAONE&keep=one#library');
 a.form.dispatchEvent(new Event('compositionstart'));a.e.search.value='draft';
 a.form.dispatchEvent(new Event('input'));a.clear.dispatchEvent(new Event('click'));a.check();
-assert.deepEqual(a.values(),f.defaults);assert.equal(a.visible().length,114);
+assert.deepEqual(a.values(),f.defaults);assert.equal(a.visible().length,115);
 assert.equal(a.doc.activeElement,a.e.search);
 assert.equal(new URL(a.win.location.href).searchParams.get('keep'),'one');
 const n=a.calls.length;a.form.dispatchEvent(new Event('compositionend'));a.check();
@@ -116,7 +116,7 @@ a.form.dispatchEvent(new Event('compositionstart'));a.e.search.value='nothing ma
 a.form.dispatchEvent(new Event('input'));assert.equal(a.visible().length,1);
 a.form.dispatchEvent(new Event('compositionend'));a.check();
 assert.equal(a.visible().length,0);
-a.clear.dispatchEvent(new Event('click'));a.check();assert.equal(a.visible().length,114);
+a.clear.dispatchEvent(new Event('click'));a.check();assert.equal(a.visible().length,115);
 """,
 }
 

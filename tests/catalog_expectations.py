@@ -6,6 +6,7 @@ WRAPPED = 'wrapped-produce-placement-controlled-trial'
 REUSEGR = 'query-prefix-reuse'
 RETAIL_GRAIN = 'retail-forecast-decision-grain'
 SERIES_CV = 'series-wise-validation'
+HASTERAD = 'hasterad-retail-substitution'
 TRIAL_TRACE = 'trial-by-trace-evidence-boundaries'
 ASSORTMENT = 'assortment-observation-budget'
 INVENTORY_CT = 'inventory-common-threshold-history'
@@ -26,6 +27,6 @@ assert TRACE not in EXISTING
 
 def assert_catalog(ids):
     actual = list(ids)
-    assert len(actual) == len(set(actual)) == 114
+    assert len(actual) == len(set(actual)) == 115
     assert set(CURRENT['ids']) == EXISTING | {TRACE}
-    assert set(actual) == set(CURRENT['ids']) | {EPISEM, DELETION, FEATUREARC, INVENTORY_CT, ASSORTMENT, TRIAL_TRACE, REUSEGR, RETAIL_GRAIN, SERIES_CV}, 'Existing main Labs must remain; EpiSEM and deletion-cost Labs coexist'
+    assert set(actual) == set(CURRENT['ids']) | {EPISEM, DELETION, FEATUREARC, INVENTORY_CT, ASSORTMENT, TRIAL_TRACE, REUSEGR, RETAIL_GRAIN, SERIES_CV, HASTERAD}, 'Existing main Labs must remain; EpiSEM and deletion-cost Labs coexist'

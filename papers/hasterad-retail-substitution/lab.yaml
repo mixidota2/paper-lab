@@ -1,0 +1,85 @@
+id: hasterad-retail-substitution
+title: Estimating Hierarchical Demand in Retail Operations
+authors:
+- Blair Flicker
+- Olga Perdikaki
+- Mark Ferguson
+- Su-Ming Wu
+year: 2026
+submitted: '2026-08-19'
+doi: 10.1002/joom.70058
+topics:
+- retail-supply
+- demand-forecasting
+urls:
+  paper: https://onlinelibrary.wiley.com/doi/full/10.1002/joom.70058
+  doi: https://doi.org/10.1002/joom.70058
+verdict: Worth Reading
+status: draft
+question: 全商品がそろうときの売れ方が同じでも、商品を外すと予測が分かれるのはなぜか
+summary: >-
+  Flickerらは店舗ごとの週次売上、価格、販促から、どの商品が互いの代わりになるかを推定します。
+  Labでは、全商品がそろう状態では同じ売れ方を予測する2つのモデルを用意し、商品を外したときに、購入先と最適な品ぞろえがどう変わるかを比べます。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-11-23'
+  url: https://onlinelibrary.wiley.com/doi/full/10.1002/joom.70058
+  scope: 出版社HTMLの§3・式1/2、§4・図2a、§5.1.4、§5.3・表4、§7を確認。補足資料、原本のハッシュ、著者コードは未確認。
+core_idea:
+  author_claim: 著者は、商品の属性を使って代替関係を表す木を週次売上から推定し、人工データでその木を使った品ぞろえを評価しました。
+  research_bot_interpretation: 観測した売上に合うかだけでモデルを選ぶと、未実施の品ぞろえで利益が高い組み合わせを選べるとは限りません。
+sections:
+  overview: 2026年8月19日に初公開されたJournal of Operations Managementの論文です。実データの分析と人工データでの利益評価は別の検証です。
+  problem: 商品を棚から外したとき、顧客は同じブランドの商品を買うか、別のブランドを買うか、何も買わないか。全商品がそろう状態の売上だけでは、この違いは分かりません。
+  method: method.md
+  why_it_might_work: 同じ特徴を持つ商品の価格や販促が動いたときに、どの商品の売上が動くかには、代替関係を見分ける手がかりがあります。ただし、価格・販促や棚の構成を店舗が需要に合わせて決めている場合、その関係をそのまま施策の因果効果とはみなせません。
+  evidence: evidence.md
+  executable_understanding: 例1から例2へ動かすと、A1を外した後に、同じブランドのA2と、購入しない割合がどう変わるかを見比べられます。例4と例5では、同じ2品枠で期待粗利の順位を比べられます。
+  results: >-
+    A1を外すと、A2が選ばれる確率は階層なしで25.0%、ブランド別で約32.0%になります。
+    4品から2品を残す全6案のうち、階層なしではA1とA2、ブランド別ではA1とB1が期待粗利で最も高くなりました。いずれも人工例の結果です。
+  what_we_verified: 合成例では確率の合計が1になること、全商品があると予測が一致すること、1品を外すと予測が分かれること、2品を残す全6案で最良の組み合わせが異なることを確認しました（CONFIRMED）。論文との対応は考え方の一部です（PARTIAL）。
+  what_we_did_not_verify: 代替の木をデータから推定する処理、著者のモデルの再学習、論文の利益評価の再現、より大規模な実行、実店舗の粗利や欠品への効果は未検証です（NOT TESTED）。
+  implementation: run.pyは追加ライブラリや乱数を使わず、全条件を計算してresults.jsonに保存します。Web画面は保存済みの値を切り替えます。
+  mapping: mapping.md
+interactives:
+- kind: explorer
+  title: 棚から商品を外したときの購入先を比べる
+  caption: 例1は全4品、例2はA1なし、例3はブランドAなしです。例4はA1・A2、例5はA1・B1だけを並べます。「なし」は何も買わない選択です。
+teaching_figures:
+- id: recover-then-choose
+  kind: timeline
+  title: 商品を分ける特徴を探してから、品ぞろえを選ぶ
+  after: method
+  source: https://onlinelibrary.wiley.com/doi/full/10.1002/joom.70058
+  locator: §3、§5.1
+  rationale: 構造の推定、需要の推定、棚に置く商品の選択を分けて示す。
+  caption: 論文が行う3段階。下の小実験はこの全工程を回さず、ブランドで分ける構造をあらかじめ与えます。
+  rows:
+  - label: 著者の方法
+    nodes:
+    - title: 属性を選ぶ
+      text: ブランドや容量などを1つずつ候補にし、売上をよく説明する属性で商品を分けます。枝ごとに同じ手順を繰り返します。
+    - title: 需要を推定する
+      text: 分け方が決まった木に沿って、各商品が選ばれる確率を推定します。
+    - title: 品ぞろえを選ぶ
+      text: 商品を置く費用と、売れる確率に応じた利益を比較します。
+- id: retained-a2-probability
+  kind: equations
+  title: A1を外すと、A2が選ばれる確率はなぜ変わるか
+  after: evidence
+  source: https://onlinelibrary.wiley.com/doi/full/10.1002/joom.70058
+  locator: §5.1.4の品ぞろえ評価から着想を得たLab独自の計算
+  rationale: 代替先の違いを、1商品の除外と2本の計算式で確かめます。
+  caption: 全4品と非購入が20%ずつになるように重みをそろえた人工例です。論文のビール売上から計算した値ではありません。
+  steps:
+  - name: 階層なし
+    formula: P(A2) = 0.2 / (0.2 + 0.4 + 0.2) = 25%
+    explanation: A2、ブランドBの2品、非購入の順に重みを足します。A2、B1、B2、非購入の確率はいずれも25%です。
+  - name: ブランド別
+    formula: P(A2) = (0.4 × √0.5) / (0.4 × √0.5 + 0.4 + 0.2) ≈ 32.0%
+    explanation: ブランドAは半分の品を失いますが、選ばれやすさを表す重みは半分より大きく残ります。A2はブランドAの全確率を受け持ちます。

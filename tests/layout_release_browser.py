@@ -13,6 +13,7 @@ from review_103_evidence import console_diagnostic
 from review_capture import capture_segments
 from shelf_survey_browser import inspect_survey
 from replenishment_release_browser import inspect_replenishment
+from hasterad_release_browser import inspect_hasterad
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "browser-review" / "layout-release"
@@ -26,7 +27,7 @@ def main():
         "status": "STARTED", "manual_visual_review": "NOT TESTED",
         "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
         "source_sha256": hashlib.sha256((ROOT / "guides/store-layout-fixed-counts.md").read_bytes()).hexdigest(),
-        "widths": [], "errors": [],
+        "widths": [], "hasterad_widths": [], "errors": [],
     }
 
     def snapshot(page, out, name, locator=None):
@@ -52,13 +53,13 @@ def main():
                 assert page.goto(base + "/index.html").ok
                 verify_seatbelt(browser)
                 fit(page)
-                assert page.locator("[data-paper]:visible").count() == 114
+                assert page.locator("[data-paper]:visible").count() == 115
                 page.get_by_role("searchbox").fill("2609.04518")
                 assert page.locator("[data-paper]:visible").count() == 1
                 snapshot(page, OUT, f"search-{width}")
                 snapshot(page, OUT, f"search-result-{width}", page.locator("[data-paper]:visible").first)
                 page.get_by_role("button", name="条件を消去").click()
-                assert page.locator("[data-paper]:visible").count() == 114
+                assert page.locator("[data-paper]:visible").count() == 115
                 page.locator('a[href="guides/index.html"]').first.click()
                 assert page.url.endswith("/guides/index.html")
                 page.locator("[data-layout-guide-link]").click()
@@ -123,6 +124,16 @@ def main():
                 snapshot(page, OUT, f"sid-ope-{width}-reset", panel)
                 record["widths"].append({"width": width, "tables": tables, "navigation": "PASS", "search": "PASS", "slider": "PASS", "sandbox": "CONFIRMED"})
                 page.close()
+            for width in (360, 768, 1440):
+                page = browser.new_page(viewport={"width": width, "height": 900}, reduced_motion="reduce")
+                page.on("pageerror", lambda error: record["errors"].append(str(error)))
+                try:
+                    verify_seatbelt(browser)
+                    result = inspect_hasterad(page, base, OUT, width, snapshot)
+                    verify_seatbelt(browser)
+                    record["hasterad_widths"].append({**result, "sandbox": "CONFIRMED"})
+                finally:
+                    page.close()
             assert not record["errors"], record["errors"]
             browser.close()
         record["status"] = "AUTOMATED PASS"
