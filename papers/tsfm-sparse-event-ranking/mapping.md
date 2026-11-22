@@ -1,19 +1,19 @@
 # 原論文とLabの対応
 
-一次資料：[When, Not How Much, arXiv:2609.39386v1](https://arxiv.org/pdf/2609.39386v1)、2026-09-30。供給PDFをpdftotextで抽出し、本文・付録を確認した。
+一次資料は [When, Not How Much, arXiv:2609.39386v1](https://arxiv.org/pdf/2609.39386v1)（2026-09-30）。保存済みのPDFから `pdftotext` で文字を取り出し、本文と付録を確認した。
 
-| 原典の場所 | 論点 | Labの実装・表示 | 省略・変更 |
-| --- | --- | --- | --- |
-| §1 pp.1–2、Figure 1 p.2 | 平均の因数分解、中央値が0になる条件 | run.py quantiles()、確率分布slider | 真の人工分布を使用。TSFM予測ではない |
-| §3.1、Table 2 pp.4–5 | 64時点、混合ラベル窓 | experiment()、horizon=64 | 履歴364/336時点や実データを使用しない |
-| §3.3、Appendix B.1 pp.16–17 | 閾値AP、同点を条件にしたAP₀ | metric()、validate() | AUCは未実装。AP₀を発生率で代用しない |
-| Appendix B.3 p.17 | 窓のプーリングによる偽の順位能力 | validate()のskill=1/15照合 | 窓単位の評価を維持 |
-| Tables 3–4 pp.6–7 | 点予測とprobeの比較 | README Evidence | 著者報告の丸め値。独立再現ではない |
-| Tables 14–18 pp.20–24 | データ別の絶対AP skill | results.json reported、dataset dot plot | Chronos-2を代表例として固定。他の最高モデルに切り替えない |
-| Appendix F.1–F.2 pp.33–36、Table 27 | 近ゼロと厳密な0の区別、9分位点平均 | quantiles()、README Evidence | 人工分布では厳密な0。原論文では厳密な全0予測は観測されていない |
-| Appendix C.3 p.19 | 64出力の線形probe | experiment()のロジスティックhead | 1変数xの発生分類に縮約。凍結表現・64出力学習・正則化選択は省略 |
-| Appendix A.2、E.1、E.4 | 欠測、集計単位、感度分析 | README Evidence | 実データの再集計なし |
+| 原論文 | Labで確かめられること | 原論文との違い・対象外 |
+| --- | --- | --- |
+| §1 pp.1–2、Figure 1 p.2：平均と中央値 | `run.py` の `quantiles()` と確率分布のスライダーで、平均に発生確率と発生時の数量が効くこと、発生確率が50%未満だと中央値が0になることを示す | 真値が分かる人工分布で比較する。時系列基盤モデル（TSFM）の予測ではない |
+| §3.1、Table 2 pp.4–5：64時点の順位付け | `experiment()` で次の64時点を一つの窓として扱い、正の観測値と0の両方がある窓を採点する | 原論文は、正の観測値が2つ以上で0が40%以上の系列を使う。各窓は履歴（364日分または336時間分）に正の観測値が2つ以上ある場合に選び、次の64時点がすべて0またはすべて正値なら採点しない。Labはこの履歴や実データを使わない |
+| §3.3、Appendix B.1 pp.16–17：同点を考慮する指標 | `metric()` で同点をまとめた閾値でのAPと、その同点構成のもとで偶然に得られる基準 AP₀ を計算する。`validate()` で照合する | AUCは実装していない。AP₀を発生率で置き換えない |
+| Appendix B.3 p.17：窓を混ぜたときの見かけの順位性能 | `validate()` で、窓をまとめると AP skill が `1/15` になる例を照合する | 本評価では窓ごとに計算する |
+| Tables 3–4 pp.6–7：点予測と発生を学ぶ出力部（probe）の比較 | READMEの「Evidence」で著者報告の丸め値を読む | 凍結したモデルの表現に発生ラベルを使って学んだ線形probeと、生の履歴から学んだLightGBMは別の比較対象。Labは実データでの値を独立に再現していない |
+| Tables 14–18 pp.20–24：データごとのAP skillの絶対値 | `results.json` の `reported` とデータ別の点の図で、Chronos-2を代表例として示す | データごとに成績が最高のモデルへ切り替えない |
+| Appendix F.1–F.2 pp.33–36、Table 27：ゼロに近い値と厳密な0、9分位点の平均 | `quantiles()` とREADMEの「Evidence」で、人工分布の中央値が厳密な0になる場合を示す | 原論文で採点した窓には、64時点すべての点予測が厳密に0だった窓はなかった |
+| Appendix C.3 p.19：64出力の線形probe | `experiment()` では、入力 `x` 1変数から発生を分類するロジスティック回帰で考え方を示す | 凍結表現を使わず、64出力の学習や正則化の選択は再現しない |
+| Appendix A.2、E.1、E.4：欠測、集計単位、感度分析 | READMEの「Evidence」で、元データでのゼロと欠測の扱い、集計単位を変えたときの結果を説明する | Web trafficでは欠測を0に置いた記録を使ったため、実際の非発生とは区別できない。Labは実データを再集計していない |
 
-公式コード：供給PDF中では本研究全体のコード公開先を確認できなかった。Table 11のAmazon / Salesforce / Google / Datadog等のcheckpointは比較対象のモデルであり、本Labのコードや本研究の公式実装ではない。外部リポジトリを推測して補わない。
+保存済みのPDFでは、研究全体の公式コードを公開した場所は確認できなかった。Table 11に載るAmazon / Salesforce / Google / Datadog等のcheckpointは比較対象モデルのもので、この研究全体やLabの実装ではない。
 
-図の生成元はpaper_lab/sparse05.py。数値はresults.json、文章はREADMEとlab.yaml、再実行はrun.pyから行う。HTMLの直接編集は不要。
+図は `paper_lab/sparse05.py` が生成する。数値は `results.json`、説明はREADMEと `lab.yaml` にある。実験を再実行するには `run.py` を使う。公開用HTMLを直接編集する必要はない。
