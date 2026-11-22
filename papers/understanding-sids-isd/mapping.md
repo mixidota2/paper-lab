@@ -1,11 +1,15 @@
-| 論点 | 一次資料 | Labの対応 | 意図した差 |
+# 原論文とLabの対応
+
+どの候補がIDの先頭から生成される途中で消え、どの候補が最後の並べ替えで埋もれるかを分けます。Labは人工例で候補の残り方をたどります。Amazonでの精度は検証しません。
+
+| 原論文で扱うこと | 一次資料 | Labで確認できること | 原論文と異なる条件 |
 | --- | --- | --- | --- |
-| SIDの3役・近傍の変化 | [§2–3・表1–2](https://arxiv.org/html/2607.24995) | method.md・geometry.svg | 図は概念、実embeddingでない |
-| prefix支援・最終ordering | [式(15)–(17)](https://arxiv.org/html/2607.24995) | run.pyのdecode・数式図 | 8アイテムの固定確率 |
-| 支援ranker | [§5.1](https://arxiv.org/html/2607.24995) | ranker | toyは遷移頻度だけ。式(14)の再現ではない |
-| 残存率 | [式(10)](https://arxiv.org/html/2607.24995) | evaluate・beam.svg | toyは全9例。top-k条件付きではない |
-| 段階別効果 | [表5](https://arxiv.org/html/2607.24995) | 4つの介入と逆順位の比較 | データ・cutoffが異なる |
+| SIDが担う3つの役割と近傍の変化 | [§2–3・表1–2](https://arxiv.org/html/2607.24995) | method.mdとgeometry.svgで、アイテム同士の近さの考え方を読む。 | 図は概念を示す。実際の埋め込みではない。 |
+| IDの先頭を使う生成の補助と、候補の最終順位 | [式(15)–(17)](https://arxiv.org/html/2607.24995) | run.pyのdecodeと数式図で、補助を入れる段階ごとの違いを追う。 | 8アイテムの固定確率を使う。 |
+| 生成を補助する順位付け器 | [§5.1](https://arxiv.org/html/2607.24995) | rankerが履歴に続く候補を頻度順に選ぶ例を見る。 | 人工例では遷移頻度だけを使う。式(14)を再現したものではない。 |
+| 候補の残存率 | [式(10)](https://arxiv.org/html/2607.24995) | evaluateとbeam.svgで、候補が生成のどの段階で消えたかを見る。 | 人工例では全9例を集計する。上位k件に入る条件などで絞った値ではない。 |
+| 変更を入れる段階による効果の差 | [表5](https://arxiv.org/html/2607.24995) | 4つの介入と、順序を逆にした場合を比べる。 | 原論文とはデータと、集計対象を区切る位置が異なる。 |
 
-2026-09-07 UTCにarXiv v1のabs・HTMLを確認。公式実装との行単位照合は未実施。AbstractのIdentity@1=99.57と表1のSentence-T5=99.51の集計対応は確認できないため、精度を1値へ丸めて統合しない。
+2026-09-07 UTCにarXiv v1の要旨ページとHTMLを確認した。公式実装との行単位の照合は行っていない。AbstractのIdentity@1=99.57と表1のSentence-T5=99.51について、両者がどの集計で対応するかは確認できない。そこで精度を1つの値にまとめない。
 
-関連：[GLIDE](glide-spotify-sid.html)は本番R-KMeansと衝突解決、[TGR](tgr.html)は生成候補経路。SID診断のAmazon条件とは区別する。
+関連：[GLIDE](glide-spotify-sid.html)は本番のR-KMeansとID衝突への対処、[TGR](tgr.html)は候補を生成する経路を扱う。このLabで読むAmazonのSID診断と同じ条件ではない。
