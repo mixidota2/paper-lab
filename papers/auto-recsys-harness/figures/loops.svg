@@ -8,12 +8,12 @@
 <text x="38" y="205" class="">実行手順の改善</text>
 <text x="38" y="232" class="">失敗の原因と修正</text>
 <text x="38" y="259" class="">成功した投入手順</text>
-<text x="38" y="286" class="">→ model playbook</text>
+<text x="38" y="286" class="">→ モデル別の手順書</text>
 <rect x="290" y="178" width="246" height="145" rx="10" fill="#fff0da" stroke="#a6bdb5"/>
 <text x="304" y="205" class="">仮説の改善</text>
-<text x="304" y="232" class="">baselineとの差</text>
+<text x="304" y="232" class="">基準モデルとの差</text>
 <text x="304" y="259" class="">仮説の成否と条件</text>
-<text x="304" y="286" class="">→ experiment history</text>
+<text x="304" y="286" class="">→ 実験履歴</text>
 <path d="M145 323 L145 358" fill="none" stroke="#586c78" stroke-width="2" marker-end="url(#arrow)"/>
 <path d="M413 323 L413 358" fill="none" stroke="#586c78" stroke-width="2" marker-end="url(#arrow)"/>
 <rect x="24" y="368" width="246" height="88" rx="10" fill="#e2efea" stroke="#a6bdb5"/>
@@ -22,4 +22,4 @@
 <rect x="290" y="368" width="246" height="88" rx="10" fill="#fff0da" stroke="#a6bdb5"/>
 <text x="304" y="395" class="">次の提案へ戻す</text>
 <text x="304" y="422" class="">重複回避・新仮説へ</text>
-<text x="24" y="504" class="">jobが通ることと、案が効くことは別。</text><text x="24" y="538" class="small">research_bot · 一次資料を基に説明用に再構成</text></svg>
+<text x="24" y="504" class="">ジョブが動くことと、案が役立つことは別。</text><text x="24" y="538" class="small">research_bot · 一次資料を基に説明用に再構成</text></svg>

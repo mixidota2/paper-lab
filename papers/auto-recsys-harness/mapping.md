@@ -1,9 +1,9 @@
-| 原典 | Labの対応 | 省略・確認範囲 |
+| 原論文の箇所 | Labで読めるところ | Labでは確かめていないこと |
 | --- | --- | --- |
-| §2–3、Figure 1 | loops.svg / boundary.svg | LLMと実際のstate machineの実装なし |
-| §4、§6 | method.md、simulate() | 自然言語理解をカテゴリ集合で代用 |
-| §7.2、Figure 4 | reliability.svg、evidence | phase集計のみ。反復別の値は捏造しない |
-| §7.1 | toyのhuman_minutes / wall_clock_minutes | 時間は仮定。著者の人時の再現ではない |
-| baseline shift | baseline別memoryの感度分析 | 本Lab独自の版管理規則 |
+| §2–3、Figure 1 | loops.svg / boundary.svg：二つの記録先、判断と更新の分担 | LLMや原論文と同じ状態遷移の実装はない |
+| §4、§6 | method.md、simulate()：手順書の更新と、教訓を読める時点 | 教訓を失敗の種類の集合で表した。自然言語を解釈する能力は測っていない |
+| §7.2、Figure 4 | reliability.svg、evidence：一つのモデルで著者が報告した段階別の集計 | 反復ごとの値は復元していない |
+| §7.1 | 合成例のhuman_minutes / wall_clock_minutes：人の作業時間と経過時間 | 時間はLabの仮定。著者の現場でかかった時間を再現していない |
+| baseline shift | 基準モデルの版ごとに教訓を分ける場合と分けない場合の比較 | 版管理の規則はLab独自。原論文の実装が同じとは確認していない |
 
-公式コード：提供論文とarXiv書誌内で実行可能な公式実装URLを確認できなかった。公式コードとの同等性は未検証。
+公式コード：原論文とarXivの書誌情報では、実行できる公式実装のURLを確認できませんでした。Labの例と公式実装が同じ動作をするかは検証していません。
