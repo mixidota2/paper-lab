@@ -1,12 +1,16 @@
-| 原論文の場所 | Labの対応 | 範囲 |
+# 原論文とLabの対応
+
+QuaSIDがアイテムのIDを学ぶ工程と、Labが学習済みモデルなしで確かめる計算を分けます。Labで動かすのは、比較に入れるアイテムの組を決め、その組の距離から損失を計算する部分です。
+
+| 原論文の場所 | Labで確認できること | 確認の範囲 |
 | --- | --- | --- |
-| 式1–7、Figure 2 | tokenizer＋協調学習の説明 | full modelの学習は未実装 |
-| 式8、§4.2.1 | `qualified()` | 正例の位置と同一itemの除外 |
-| 式9–13 | `pair_loss()` / `hamr()` | Hamming、cosine、群別平均を計算 |
-| 式14 | 4損失の結合図 | 再構成・RQ・contrastiveはtoyに含めない |
-| Table 4 | online cardsとcold-start表 | 著者報告。介入ごとに分離 |
-| Appendix A.2 | 半径とmargin | 産業R=2、mfull=.8、mpartial=.5をtoyへ使用 |
+| 式1–7、Figure 2 | IDを作るtokenizerと協調学習の関係を説明する。 | モデル全体は学習しない。 |
+| 式8、§4.2.1 | `qualified()`で、正例を置く位置と、同一アイテムを組から外す条件を見る。 | 組を選ぶ処理の確認に限る。 |
+| 式9–13 | `pair_loss()`と`hamr()`で、異なるIDの桁数（Hamming距離）、コサイン距離、群ごとの損失の平均を計算する。 | 小さな例で計算する。 |
+| 式14 | 4つの損失をどう合わせるかを図で確認する。 | 再構成、残差量子化（RQ）、対照学習は実行しない。 |
+| Table 4 | オンライン指標のカードと、新しいアイテムを対象にした表を読む。 | 数値は著者報告。どの介入で得た結果かを分ける。 |
+| Appendix A.2 | 比較する半径と、群ごとに求める距離の下限を確認する。 | 原論文の産業設定の値 R=2、mfull=.8、mpartial=.5 を小さな例に使う。 |
 
-[全文v1](https://arxiv.org/html/2603.00632v1)を本文からAppendix A.2まで通読。QuaSID自身の公式コードは本文・書誌で未確認。Appendix A.2が挙げる[基盤実装 RQ-VAE-Recommender](https://github.com/EdoardoBotta/RQ-VAE-Recommender)は別プロジェクトであり、QuaSIDの公式公開実装として登録していない。Labのコードは独自作成。
+[全文v1](https://arxiv.org/html/2603.00632v1)を本文からAppendix A.2まで通読した。QuaSID自身の公式コードは本文と書誌から確認できていない。付録が挙げる[基盤実装 RQ-VAE-Recommender](https://github.com/EdoardoBotta/RQ-VAE-Recommender)は別プロジェクトなので、QuaSIDの公式実装とは扱わない。Labのコードは独自に作成した。
 
-[CRID一次資料](https://arxiv.org/html/2607.11392#S2.SS1)の§2.1を確認し、cluster内の順位による一意性と日次更新を手法の位置付けに参照した。ISD・GR4AD・TAGRは既存Labの原典対応を参照し、結果を転用しない。原論文HTMLの仮置きDOI・会議テンプレート情報は正式書誌として採用しない。
+手法の位置付けには、[CRID一次資料](https://arxiv.org/html/2607.11392#S2.SS1)の§2.1にある、クラスタ内の順位によるIDの一意性と日次更新を参照した。ISD・GR4AD・TAGRについても既存Labの原典対応を参照するが、結果は転用しない。原論文HTMLの仮置きDOIや会議テンプレートの情報は正式書誌として採用しない。

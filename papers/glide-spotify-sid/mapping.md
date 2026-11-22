@@ -1,10 +1,14 @@
-| 論点 | 一次資料 | Labでの対応 | 省略 |
+# 原論文とLabの対応
+
+GLIDEでは、ポッドキャストの候補を生成するときに、長期の好みを表すベクトルと、直近に利用したエピソードのID列を渡します。Labで動かすのは候補経路と入力枠の小さな例で、Spotifyのモデル全体ではありません。
+
+| 原論文で扱うこと | 一次資料 | Labで確認できること | Labで確認していないこと |
 | --- | --- | --- | --- |
-| 残差量子化・long/short | [§4.1–4.3](https://arxiv.org/html/2603.17540) | method.md・数式図・conditioning.svg | モデル学習全体 |
-| 経路の追加と衝突 | [§4.4・§5.3](https://arxiv.org/html/2603.17540) | cascade.svg・run.pyのchannel_case | 実ranker・衝突の測定 |
-| 入力枠 | [§4.1.1–4.1.2](https://arxiv.org/html/2603.17540) | token_budget | 情報保持・時間測定 |
-| 量子化比較とA/B | [表2・§5.3](https://arxiv.org/html/2603.17540) | quantizers.svg・ab-design.svg | 独立再現 |
+| 残差量子化と長期・短期の入力 | [§4.1–4.3](https://arxiv.org/html/2603.17540) | method.md、数式図、conditioning.svgでIDと履歴の使い分けを追う。 | モデル全体の学習。 |
+| 候補を集める経路の追加とIDの衝突 | [§4.4・§5.3](https://arxiv.org/html/2603.17540) | cascade.svgとrun.pyのchannel_caseで候補が増える流れを見る。 | 実際の順位付け器や衝突の測定。 |
+| 入力枠 | [§4.1.1–4.1.2](https://arxiv.org/html/2603.17540) | token_budgetで履歴の表し方ごとに、入力に使うトークンの数を計算する。 | 入力にどれだけ情報が残るか、処理にかかる時間。 |
+| 量子化方式の比較とA/Bテスト | [表2・§5.3](https://arxiv.org/html/2603.17540) | quantizers.svgとab-design.svgで著者の比較条件を読む。 | 比較や実験の独立した再現。 |
 
-一次資料は2026-09-07 UTCにabsとHTMLのv1を確認した。正式タイトルと著者名はabsのAuthors欄を採用。公式コードの実体は未確認で、コードの行単位対応はない。非公開ログ、CF重み、encoderの重み、運用費用の詳細は検証不能。図はresearch_botによる教育用の再構成。
+2026-09-07 UTCにarXiv v1の要旨ページとHTMLを確認した。正式タイトルと著者名は要旨ページのAuthors欄に従う。公式コードは確認できていないため、コードの行単位の対応は示さない。非公開ログ、協調フィルタリングとエンコーダーの重み、運用費用の詳細も検証できない。図はresearch_botが教材として描き直したもの。
 
-関連：[TGR](tgr.html)の追加候補経路、[Metaの検索設計](case-against-generation-retrieval.html)、[SIDのフィルタ診断](understanding-sids-isd.html)。これらの本番条件を同一とみなした比較は行っていない。
+関連：[TGR](tgr.html)は候補経路の追加、[Metaの検索設計](case-against-generation-retrieval.html)は検索の設計、[SIDのフィルタ診断](understanding-sids-isd.html)は候補がどこで消えるかを扱う。本番条件を同じとみなして性能は比較していない。
