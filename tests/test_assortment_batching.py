@@ -93,11 +93,11 @@ def test_only_assortment_block_changed_and_all_capture_calls_preserved():
     # Only the exact catalog and guide registration deltas differ beyond batching.
     old_text=ast.unparse(old)
     assert old_text.count('108')==9
-    old_text=old_text.replace('108','114')
+    old_text=old_text.replace('108','115')
     for before,after in [
         ("{'index.html', 'shelf-decisions.html'}", "{'index.html', 'shelf-decisions.html', 'forecast-to-replenishment.html', 'store-layout-fixed-counts.html'}"),
         ("'theme_guides': 1, 'guide_pages': 2", "'theme_guides': 3, 'guide_pages': 4"),
-        ('114件のLab ／ 1件のテーマガイド', '114件のLab ／ 3件のテーマガイド'),
+        ('115件のLab ／ 1件のテーマガイド', '115件のLab ／ 3件のテーマガイド'),
     ]:
         assert old_text.count(before)==1
         old_text=old_text.replace(before,after)

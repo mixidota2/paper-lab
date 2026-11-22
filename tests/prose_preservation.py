@@ -50,8 +50,17 @@ def issue21_hash(root, path, expected, algorithm='sha256'):
 def reading_prose_hash(root, path, expected, algorithm='sha256'):
     """Permit the reviewed PR 61 text only from the exact preceding identity."""
     rows = json.loads((root / 'tests/reading_prose_revision_hashes.json').read_text())['files']
-    if path not in rows:
+    if path in rows:
+        row = rows[path]
+        assert expected == row['before_' + algorithm], path
+        expected = row['after_' + algorithm]
+    return hasterad_registration_hash(root, path, expected, algorithm)
+
+
+def hasterad_registration_hash(root, path, expected, algorithm='sha256'):
+    """Accept the three exact README count corrections, not arbitrary changes."""
+    row = json.loads((root / 'tests/hasterad_registration_hashes.json').read_text())['files'].get(path)
+    if row is None:
         return expected
-    row = rows[path]
     assert expected == row['before_' + algorithm], path
     return row['after_' + algorithm]
