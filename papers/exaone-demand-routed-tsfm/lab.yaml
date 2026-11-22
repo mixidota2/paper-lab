@@ -44,17 +44,17 @@ core_idea:
   author_claim: 需要専用コーパスと、古典的需要分類を教師信号に使うLoRA混合で予測誤差を下げる。
   research_bot_interpretation: 分類境界を連続に扱う設計が読みどころ。小さな精度差から在庫改善までは主張できない。
 sections:
-  overview: EXAONE Demand 1.0は、需要向けの学習データと、需要の出方で配分を変える低ランク補正を組み合わせた時系列基盤モデル（TSFM）である。22データセットのMASE幾何平均は1.0667。TiRex-1.1の1.0818との差は約1.4%にとどまる。Worth
+  overview: 需要が起きる間隔と、起きたときの数量のばらつきは別の性質だ。EXAONE Demand 1.0は、需要向けのデータを学び、系列の特徴に合わせて補正の配分を変える時系列基盤モデル（TSFM）だ。22データセットのMASE幾何平均は1.0667。TiRex-1.1の1.0818との差は約1.4%にとどまる。Worth
     Readingとした理由は、この差の大きさより、古典的な需要分類を学習の手掛かりにした設計にある。
   problem: 売れる間隔と、一度に売れる量のばらつきは別の性質だ。欠品で販売数がゼロになる場合もある。一般的な時系列データだけで学習すると、こうした短く疎な需要系列の割合が小さくなる。ただし需要専用と呼ぶ本論文のコーパスも、系列数の39.87%、観測点数の67.51%がエネルギーで、小売はそれぞれ17.18%、1.33%である（Table
     11）。
   method: method.md
-  why_it_might_work: '推測：共有枝が需要全般の補正を受け持てば、専門枝はクラス間の差へ容量を使える。生の系列から計算した統計量は、正規化後の表現で見失う需要の特徴をrouterへ渡す。ただしbackbone比の改善には学習コーパスとadapterの両方が含まれる。1.1050→1.0667をrouterだけの効果とは読めない。
+  why_it_might_work: '推測：共有枝が需要全般の補正を受け持てば、専門枝はクラス間の差へ容量を使える。生の系列から計算した統計量は、正規化後の表現で見失う需要の特徴をrouterへ渡す。ただしbackbone比の改善には学習コーパスとadapterの両方が含まれる。MASEの1.1050から1.0667への差には両方の変更が含まれるため、配分器だけの効果は分からない。
 
 
     古典的なSyntetos–Boylan–Croston分類（2005）を教師信号へ転用した点が、容量拡張を狙うMoirai-MoEとの違いになる。Chronos-2、TiRex-1.1は直接の比較対象であり、Table
     8にLightGBMなどの木モデルはない。'
-  evidence: '一次資料は[原論文v1](https://arxiv.org/pdf/2609.30880v1)のTables 8–9。以下は著者報告で、独立再現値ではない。
+  evidence: '一次資料の[原論文v1](https://arxiv.org/pdf/2609.30880v1)のTables 8–9で著者は、22データセットで需要の点予測の誤差（MASE）と、分位点予測の誤差（WQL）を比較した。下表はその著者報告で、Labは数値を再現していない。
 
 
     | モデル | MASE幾何平均 | WQL |
@@ -86,8 +86,8 @@ sections:
 
 
     ページの平面ではADIとCV²を動かし、πとπ̃を比較する。在庫図では潜在需要を固定し、販売数だけが在庫量で制限される様子を見る。両者を分けて記録できることが、合成需要の利点である。'
-  results: 混合方式は5seed中4seedで、検証用データから選んだ共通手法よりMASEが悪化した。seed=19のみ0.8848→0.8702へ改善した。**安定した精度向上はNOT
-    OBSERVED**。分類の重みが連続に変わることと、混ぜれば精度が上がることは別の命題である。数値はresults.jsonに保存する。
+  results: 乱数の初期値を変えた5回のうち4回で、混合方式のMASEは検証用データで選んだ共通手法より悪かった。seed=19のみ0.8848→0.8702へ改善した。**安定した精度向上はNOT
+    OBSERVED**。分類の重みが滑らかに変わっても、混合で予測が良くなるとは限らない。数値はresults.jsonに保存する。
   what_we_verified: MechanismはPARTIAL。式5–6の確率和、両境界での均等比率、数量を10倍してもADIとCV²が変わらない性質はCONFIRMED。古典予測器の混合を実行したが、学習routerやLoRAは実装していない。
   what_we_did_not_verify: Performance、Scaling、Production applicabilityはNOT TESTED。公開重みの推論、22データセットの成績、8GPU学習、在庫や利益への効果は未検証である。原論文も潜在需要の復元を将来課題とし、合成データで欠品を入れたことだけで実店舗の欠品補正を達成したとは言えない。
   implementation: 'Python標準ライブラリだけを使う。リポジトリのルートで実行する。
@@ -105,9 +105,9 @@ sections:
 teaching_figures:
 - kind: matrix
   id: exaone-eight-statistics
-  title: 8統計量が表す需要の別々の性質
+  title: どの8統計量から補正の配分を決めるか
   after: method
-  caption: 式4のrouter入力。需要量の単位を変えても値は変わらない。Lengthは観測数で、数量の単位には依存しない。
+  caption: 式4は、学習済みの配分器に渡す8つの値を定義する。需要量の単位を変えても各値は同じ。Lengthは数量とは別に、観測した期間の数を表す。
   source: https://arxiv.org/pdf/2609.30880v1
   locator: §4.1 equations 1–4, Table 6 / pp.8–9
   rationale: ADIとCV²だけで教師分布を作る一方、学習routerには8統計量を渡す違いを示す。
@@ -149,9 +149,9 @@ teaching_figures:
     - 統計量を支える観測数
 - kind: matrix
   id: exaone-corpus-scope
-  title: 学習コーパスの大きさと、検証できた範囲を分ける
+  title: 学習に使ったデータと、評価で分かったこと
   after: evidence
-  caption: 著者報告のコーパス構成と評価範囲。大量の需要データを集めたことと、小売の在庫効果を確認したことは別の証拠になる。
+  caption: 著者が集めた学習データの構成と、評価で調べたこと。小売データは含むが、予測を使って在庫が改善したかは評価していない。
   source: https://arxiv.org/pdf/2609.30880v1
   locator: Tables 4, 8, 11; §6 limitations / pp.5,14,17,23
   rationale: 観測数に占める小売の比率を示し、需要専用という名称から実店舗の効果を過大に読まないようにする。
