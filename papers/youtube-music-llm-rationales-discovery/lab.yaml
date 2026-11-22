@@ -24,8 +24,8 @@ urls:
   official_code: null
 verdict: Radar
 status: published
-question: 未知のartistを増やす効果と、理由を添える効果を分けられるか
-summary: YouTube MusicのYDD棚で、LLMの候補推薦と理由文をoffline生成。2週間A/Bで棚engagement +22.43%［95% CI 16.93–27.93%］。理由文を外すholdbackが主因を示すが、発見には候補追加も寄与する。
+question: まだ聴いていないアーティストを候補に加える効果と、候補に理由を添える効果は、どの比較で見分けられるか。
+summary: YouTube Musicの発見用の推薦欄（YDD）で、画面の応答とは別にLLMが候補と理由文を生成する。2週間のA/Bテストでは、この欄のエンゲージメントが22.43%増えた（95%信頼区間：16.93–27.93%）。理由文を外した比較では、候補を追加する機能よりも、理由の表示のほうがエンゲージメントへの寄与は大きかった。発見を測る指標には候補の追加も寄与した。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -38,100 +38,93 @@ source_review:
   version: v1
   pdf_sha256: 8bd6fc1384ffc394bbd28a9c2d25c8323b5332163d70c520a90c5c78fb5d34db
   url: https://arxiv.org/pdf/2609.23877v1
-  scope: 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。
+  scope: 保存済みの一次PDFで、本文、式と表を確認した。著者の報告と人工実験の結果を分けて示す。
 core_idea:
-  author_claim: 非同期でDiscovery Profileを生成し、KG照合と既聴artistの除外後にcacheへ保存する。オンラインでは候補の追加と理由の付与を軽い取得処理として行い、未知artistを選ぶ心理的障壁を下げる。
-  research_bot_interpretation: 読むべき点はLLMを置いたこと以上に、候補追加と説明付与を分けたholdbackである。[Netflixの反実仮想観測](netflix-counterfactual-observability.html)とも、目立つ出力の採用数と全体の増分を区別する点でつながる。YDDは理由文を付けられる候補だけを並べる面なので、この設計を一般feedの説明効果へそのまま広げない。
+  author_claim: 推薦用プロフィール（Discovery Profile）を画面の応答とは別に作る。候補の名前を知識グラフ（KG）と照合し、すでに聴いたアーティストを除いてから保存する。画面に候補を返すときは保存済みの候補を加え、理由文を取り出して添える。重い生成処理をその場で待たずに、利用者がまだ聴いていないアーティストを選びやすくする。
+  research_bot_interpretation: 注目したいのは、候補の追加と理由の表示を一つずつ外して比較した点だ。[Netflixの反実仮想観測](netflix-counterfactual-observability.html)も、一部の出力が選ばれた回数と、全体でどれだけ結果が増えたかを分けて見る。YDDは理由文を添えられる候補だけを並べる。ほかの推薦欄でも同じ効果が出るとは限らない。
 sections:
-  overview: 対象はYouTube Music homepageの発見用YDD棚。従来は「好きなartistのfan向け」などの定型理由を、co-watchやaudio embeddingの類似度閾値から付ける。LLMはtaste
-    groupに基づくartist候補と自然言語の理由をofflineで作り、候補追加と既存候補への理由付与の両方に使う。
-  problem: 未知のartistが候補にいても、利用者が選ぶ根拠を持たなければ聴かれない。一方、requestごとのLLM生成は費用とlatencyが重い。さらに架空artistや既聴artistが混じると、発見という目的を満たせない。候補の実在性と理由の妥当性は別々に確認する必要がある。
-  why_it_might_work: 利用者の好みとの接点を理由文で示せば、未知の曲を選ぶ負担が下がると考えられる。offlineで生成すると、長い履歴を読み、品質検査をrequest外へ移せる。ただし心理的信頼そのものを直接測定した実験ではない。知識グラフ（KG）でartistの実在を確認できても、理由文が述べる音楽的な特徴や好みとの接点まで正しいとは限らない。
-  evidence: '[一次資料PDF §3–4 / Table 1](https://arxiv.org/pdf/2609.23877v1) の著者報告。
+  overview: YouTube Musicのホームには、新しいアーティストを見つけるための推薦欄（YDD）がある。従来は、一緒に視聴される傾向や音の特徴を表した埋め込みの類似度をしきい値で判定し、「好きなアーティストのファン向け」のような定型文を付けていた。論文の方式は、好みのまとまりごとに候補のアーティストと理由文を作る。生成は画面の応答とは別に行う。生成結果は、新しい候補を増やすときにも、従来の候補に理由を添えるときにも使う。
+  problem: まだ聴いたことのないアーティストが候補にいても、利用者には選ぶ手がかりがない。一方、ホームを開くたびにLLMで生成すると、計算費用がかかり、応答が遅くなる。存在しないアーティストや、すでに聴いたアーティストが混ざれば、新しいアーティストの発見にはつながらない。候補が実在するかと、理由が妥当かは分けて確認する必要がある。
+  why_it_might_work: 好みに合う点が理由文から分かれば、知らない曲を試しやすくなると考えられる。画面の応答とは別に生成すれば、長い履歴を読んだり出力を点検したりする時間を、画面が待つ必要はない。ただし、この実験は利用者の心理的な信頼を直接測っていない。知識グラフ（KG）でアーティストの実在を確認できても、理由文が説明する音楽的な特徴や好みとの接点まで正しいとは限らない。
+  evidence: |-
+    [一次資料PDF §3–4 / Table 1](https://arxiv.org/pdf/2609.23877v1)で著者が報告した値。
 
-
-    | 測定 | 著者値 | 境界 |
-
+    | 何を測ったか | 著者の報告値 | 読むときの注意 |
     | --- | --- | --- |
+    | YDD欄のエンゲージメント | +22.43%、95%信頼区間 [16.93,27.93]% | 2週間の実験。この欄に限る |
+    | YDD欄の発見・利用継続に関する指標 | +8.07%、信頼区間 [0.90,15.24]% | サービス全体の継続率とは区別する |
+    | 新しい候補追加機能（nominator） | 視聴（views）4.1%、独自性（uniqueness）74.00% | 表のviewsの分母は十分には明らかでない |
+    | オンラインでの平均応答時間 | +0.3% | ミリ秒での応答時間とp99は示されていない |
+    | 採点モデルの合格率 | 64.8→74.4% | プロンプト改訂。本文の合格条件はscore >3 |
 
-    | YDD shelf engagement | +22.43%、95% CI [16.93,27.93]% | 2週間、棚に限定 |
+    機能を外して比べる実験（holdback）では、候補と画面の見た目を変えずにLLMの理由文だけを外すと、両機能を外した場合に近いエンゲージメントの低下が出た。候補の追加機能だけを外しても、エンゲージメントに明確な変化は報告されなかった。一方、発見の指標はどちらか片方だけを外しても低下した。比較ごとの効果量と信頼区間は本文にない。このLabでは、結果を推測で数値化したりグラフにしたりしない。
 
-    | YDD discovery / retention metric | +8.07%、CI [0.90,15.24]% | サービス全体のretentionとは同一視しない |
-
-    | new nominator | views 4.1%、uniqueness 74.00% | Tableのviewsの分母は十分明確でない |
-
-    | mean online latency | +0.3% | 絶対msとp99は未提示 |
-
-    | judgeのpassing rate | 64.8→74.4% | prompt改善、本文のpass条件はscore >3 |
-
-
-    multi-arm holdbackで、候補poolとvisual interfaceを維持してLLM理由だけを外すと、full holdbackに近いengagement低下が起きた。新nominatorだけを外すとengagementはneutral。一方、discovery指標はどちらを外しても部分的に低下する。各holdbackの数値・CIは本文にないため、架空の棒の高さは付けない。judgeはscore
-    <3で修正を促し、score=3の扱いはpass率の記述から確定できない。'
-  executable_understanding: '`uv run papers/youtube-music-llm-rationales-discovery/run.py`。架空のartist辞書と既聴履歴で、未知文字列の除外、既聴artistの除外、cache未生成時のfallbackを実行する。holdbackは本文の定性的な実験設計を表で追う。架空clickを発生させて+22.43%を再現する実験は行わない。'
-  results: 人工の3候補から、KG相当の辞書に存在し、まだ聴いていない1候補だけが残る。初回はfallback、profile準備後は保存済み候補を返す。理由を隠しても候補IDの集合は変わらない。この機構上の分離と、実利用者が理由に反応するかは別の検証である。
-  what_we_verified: Mechanism PARTIAL。canonical IDの存在、novelty filter、理由holdback時の候補不変性、cold cacheのfallbackは人工fixtureでCONFIRMED。LLM生成の正しさは未検証。
-  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。Gemini、judge、人間の信頼、engagement、TPU費用、本番cacheは実行・測定していない。理由文の全誤りを防げるとの保証もしない。
-  implementation: '`canonicalize()`は小さい辞書で実在確認を代理し、`serve()`はprofile有無と理由表示を分ける。これらは論文の境界を説明する独自コードで、GoogleのKGやproduction実装ではない。'
+    採点モデルはscore <3のときに修正を促す。score=3の場合の扱いは、合格率の記述からは判断できない。
+  executable_understanding: '`uv run papers/youtube-music-llm-rationales-discovery/run.py` を実行する。人工のアーティスト辞書と既聴履歴を使い、辞書にない名前の除外、すでに聴いた候補の除外、生成前に従来処理に切り替わる動作を確かめる。機能を外した比較は、論文で報告された傾向を表で読む。+22.43%を得るために架空のクリックを発生させる実験ではない。'
+  results: 人工の3候補から、知識グラフの代わりに使った辞書に載っていて、まだ聴いていない1候補だけが残った。初回は従来処理に切り替わり、プロフィール生成後は保存してあった候補を返す。理由文を隠しても、返す候補のIDは同じだった。この動作を確認しても、利用者が理由文を読んで実際に行動を変えるかは分からない。
+  what_we_verified: 仕組みは一部確認済み（Mechanism PARTIAL）。人工例で確認したのは、辞書に共通IDがあるかの判定、すでに聴いた候補の除外、理由を隠しても候補が変わらないこと、保存前は従来処理に切り替わること（CONFIRMED）。LLMの出力の正しさは未検証。
+  what_we_did_not_verify: 性能、規模を拡大した場合の動作、本番への適用は未検証（NOT TESTED）。Geminiと採点モデルは実行していない。利用者の信頼、エンゲージメント、TPUの費用、本番のキャッシュの動作も測っていない。理由文の誤りをすべて防げると確認したわけでもない。
+  implementation: '`canonicalize()` は、小さな辞書を使って候補の実在確認を代用する。`serve()` は、保存済みプロフィールを使うかどうかと、理由文を表示するかどうかを別々に扱う。どちらも論文の処理の境目を説明するための独自コードで、Googleの知識グラフや本番の実装ではない。'
   method: method.md
   mapping: mapping.md
 teaching_figures:
 - kind: timeline
   id: offline-online
-  title: 生成を待つ時間を、最初の応答から外す
+  title: 初回は生成を待たず、生成後の訪問で保存済みの結果を使う
   after: method
   locator: Fig. 2 / §3.1–3.6
-  rationale: 生成を待つ時間を、最初の応答から外す
-  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  rationale: 画面への応答とプロフィールの生成を分ける。
+  caption: 一次資料をもとに処理の流れを描いた。数値は著者の報告で、Labで再現したものではない。
   rows:
-  - label: 初回online
+  - label: 初回の訪問
     nodes:
-    - title: profileなし
-      text: 従来候補を返す
-    - title: 非同期trigger
-      text: active userだけ生成対象
-  - label: offline
+    - title: プロフィールなし
+      text: 従来の規則で選んだ候補を返す
+    - title: 生成を開始
+      text: 条件を満たす利用者の分だけ作る
+  - label: 画面の応答とは別の処理
     nodes:
-    - title: Gemini
-      text: taste group・artist・理由
-    - title: 検査と保存
-      text: KG / 既聴除外 / safety → cache
-  - label: 次のonline
+    - title: Geminiで生成
+      text: 好みのまとまり、候補と理由文を作る
+    - title: 点検して保存
+      text: 知識グラフと照合し、既聴候補を除き、安全性を確認する
+  - label: 生成後の訪問
     nodes:
-    - title: cache取得
-      text: 候補の追加と、既存候補への理由付与
-    - title: 既存ranker
-      text: reward・多様性で棚へ
+    - title: 保存済みの結果を取得
+      text: 候補を加え、従来の候補にも理由を添える
+    - title: 既存の順位付け
+      text: 評価値と多様性の条件で表示を決める
   source: https://arxiv.org/pdf/2609.23877v1
 - kind: matrix
   id: holdback-evidence
-  title: 理由を外すと、候補を残してもengagementが落ちる
+  title: 候補が同じでも、理由を外すとエンゲージメントが下がった
   after: evidence
   locator: §4.3 holdback
-  rationale: 理由を外すと、候補を残してもengagementが落ちる
-  caption: 定性的なholdback結果。未公開の効果量を数値や棒の長さへ変換しない。
+  rationale: 何を外したかで、エンゲージメントと発見の指標の変化を見分ける。
+  caption: 著者の報告した傾向。公開されていない効果量は、数値や棒の長さで示さない。
   columns:
-  - 新nominator
-  - LLM理由
-  - 本文が報告する傾向
+  - 新しい候補を加える機能
+  - LLMによる理由文
+  - 本文で報告された結果
   rows:
-  - label: Full treatment
+  - label: 両方あり
     cells:
     - 有効
     - 有効
-    - +22.43%は主A/Bの棚engagement
-  - label: 理由だけholdback
+    - 主A/Bテストでは、YDD欄のエンゲージメントが+22.43%
+  - label: 理由文だけなし
     cells:
     - 維持
     - 無効
-    - engagement低下はfull holdbackに近い
-  - label: nominatorだけholdback
+    - エンゲージメントの低下は、両方外す場合に近い
+  - label: 候補の追加だけなし
     cells:
     - 無効
     - 維持
-    - engagement neutral、discovery一部低下
-  - label: Full holdback
+    - エンゲージメントに明確な変化は報告されず、発見の指標は一部低下
+  - label: 両方なし
     cells:
     - 無効
     - 無効
-    - discoveryが有意に低下
+    - 発見の指標が有意に低下
   source: https://arxiv.org/pdf/2609.23877v1
