@@ -18,9 +18,10 @@ urls:
   official_code: null
 verdict: Watch
 status: published
-question: GateSID：新商品ほど意味を借り、成熟商品では行動を残す
-summary: GateSIDは商品を表す識別子（SID）を順位付けの特徴として使う。商品内容と行動履歴から別々に求めたattention分布を、商品の成熟度に応じて学習した重みで組み合わせる。生成decodeの手法ではない。Alibaba Internationalの2週間・総traffic
-  20%のA/BでGMV +2.6%、新商品（20日未満）+5.6%、追加遅延5ms未満を報告する。
+question: |-
+  GateSID：商品情報と行動履歴を候補の順位付けに使う
+summary: |-
+  GateSIDは、すでにある候補商品のクリックや注文を予測する。商品内容を表す識別子（SID）と行動履歴から、履歴を参照する重みを別々に求める。2組の重みは、商品の掲載期間や露出・クリックなどから学習した比率で混ぜる。候補を生成する手法ではない。Alibaba Internationalの著者は、総トラフィックの20%を使った2週間のA/Bテストで、取引総額（GMV）が全体で+2.6%、掲載20日未満の新商品群で+5.6%、追加遅延は5ms未満だったと報告している。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -28,85 +29,79 @@ verification:
   production_applicability: NOT TESTED
 source_review:
   checked: '2026-09-17'
-  scope: 版を固定した一次PDF本文と関連表・付録を照合。著者報告と人工実験を分離。
+  scope: |-
+    版を固定した一次PDFの本文、関連する表、付録を照合した。著者の報告値とLabの人工実験は別に扱う。
   url: https://arxiv.org/pdf/2603.22916v2
   pdf_sha256: 7b0100bbcba779768f491bfd2ee809c224a7ba3e8db5bb640dca057fdaa9f208
   version: 2603.22916v2
 core_idea:
-  author_claim: 著者はGFSAで意味側と行動側のattention分布を共有し、同じgateでGRCAの対照整列強度を調整すれば、cold-startを補いつつ成熟商品の協調表現を保てると主張する（§3）。
-  research_bot_interpretation: SIDの利点を生成推薦の利点と同一視しない例だ。gateは日数だけの決め打ち関数ではなく、ID embeddingと統計特徴から学習する。新商品に大きいgateが望ましいという設計意図と、全商品で単調なgate曲線が測れたという主張を分ける。
+  author_claim: |-
+    著者は、意味と行動から求めた履歴の重みをGFSAで混ぜ、同じ混合比でGRCAの対照損失も調整すると、新商品に足りない行動情報を補いながら、成熟商品の行動に基づく表現を保てると主張する（§3）。
+  research_bot_interpretation: |-
+    SIDは候補の順位付けにも使える。混合比wは、掲載日数だけで決めず、商品のIDベクトルと統計特徴から学習する。新商品では商品内容の比率を上げたいという設計意図と、全商品で日数に応じた単調な変化を実測したという主張は別だ。
 sections:
-  problem: '新商品はクリックや購入履歴が少なく、ID embeddingが十分に学習されない。一方、人気商品には豊かな協調信号があり、意味表現を強く混ぜると細かな嗜好差を消す場合がある。全商品で固定の融合比を使うことが問題になる。
+  problem: |-
+    新商品はクリックや購入の履歴が少なく、商品のIDベクトルを十分には学習できない。一方、人気商品は行動の記録が多い。商品内容を強く混ぜると、行動から読み取れる細かな嗜好の違いを弱める場合がある。全商品に同じ混合比を使うと、この違いを反映できない。
 
+    GateSIDが受け取るのは、すでに選ばれた候補商品とユーザー履歴だ。候補商品と履歴のSIDを使ってattentionを計算する。SIDを1トークンずつ生成して候補を探す生成推薦（GR）とは、入出力も遅延の要因も異なる。
+  evidence: |-
+    ### オフライン評価：何を測り、どの商品を比べたか
 
-    GateSIDは候補商品を既に持つranking段で動く。target商品と履歴のSIDを使ってattentionを計算するため、SIDをtokenごとに生成して候補を探すGRとは入出力も遅延要因も異なる。'
-  evidence: '### rankingの指標とcohort
+    §4.1–4.2・表1。10億件を超える本番ログを時系列で分け、最新日を検証・テストに使う。クリック率（CTR）と、表示からクリックを経て支払いに至る率（CTCVR）の予測を、AUC・GAUCで評価する。掲載20日未満を新商品（cold-start）、300日超を人気商品（popular）とする。AUCの表には0–1で示す値もあるため、百分率のポイント差と相対改善率を分けて読む。
 
+    表2は固定平均、連結してMLPに渡す方式（Concat+MLP）、学習した混合比を使う方式、および混合比の入力を変えた比較。表3–4では画像やテキストから得た表現とSID、attentionの構成、コードブック設定を比べる。表5は全商品に同じ対照整列を掛ける方式と、商品ごとに強さを変えるGRCAの比較だ。これらは順位付けモデルの比較であり、SIDを使えば生成推薦へ移行すべきだという証拠ではない。
 
-    §4.1–4.2・表1。10億超のproduction logsを時間で分割し、最新日をvalidation/testに使う。CTR、CTCVRのAUC/GAUCを評価。cold-startは掲載20日未満、popularは300日超。AUCの表には0–1表記もあり、差のpercentage
-    pointと相対liftを混ぜない。
+    ### オンライン評価：2週間、総トラフィックの20%
 
+    §4.8。著者報告はGMV +2.6%、CTR +1.1%、注文 +1.6%、追加遅延5ms未満。掲載20日未満の新商品群ではGMV +5.6%。この5.6%の分母は新商品群であり、全体のGMVを5.6ポイント押し上げたという意味ではない。原文で確認できるのは総トラフィックの20%を使ったことまでで、それぞれの群に20%ずつ割り当てたとは書かれていない。信頼区間、p値、追加遅延のパーセンタイルは未報告。
 
-    表2は固定平均、Concat+MLP、gate融合とgate入力のablation。表3–4はmultimodal表現とSID、attention構成、codebook設定の比較。表5は一律の対照整列とGRCAを比較する。これらは「SIDを使えば必ずGRへ移行すべき」という証拠ではない。
+    [QuaSID](quasid-collision-qualified-sid.html)は表現の品質、[GLIDE](glide-spotify-sid.html)は新規対象の候補生成を扱う。GateSIDと比べると、商品内容の表現を候補取得に使う場合と、取得済みの候補を採点する場合を比べられる。
 
+    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2603.22916v2)。参照箇所とSHA-256は末尾の対応表に記載した。
+  overview: |-
+    GateSIDは、すでにある候補商品のクリックや注文を予測する。商品内容を表す識別子（SID）と行動履歴から、履歴を参照する重みを別々に求める。2組の重みは、商品の掲載期間や露出・クリックなどから学習した比率で混ぜる。候補を生成する手法ではない。Alibaba Internationalの著者は、総トラフィックの20%を使った2週間のA/Bテストで、取引総額（GMV）が全体で+2.6%、掲載20日未満の新商品群で+5.6%、追加遅延は5ms未満だったと報告している。
 
-    ### オンラインは2週間・総traffic 20%
+    <figure class="teaching batch17"><h3>SIDを使う場所：GateSIDは候補の順位付け</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>設計</th><th>入力</th><th>出力</th><th>SIDの役割</th></tr></thead><tbody><tr><td>GateSID</td><td>ユーザー履歴＋候補商品</td><td>CTR・CTCVRの予測スコア</td><td>候補と履歴の意味特徴</td></tr><tr><td>生成推薦</td><td>ユーザー文脈＋prefix</td><td>次のSIDトークン</td><td>候補を探すために出力する列</td></tr></tbody></table></div><figcaption>§3・図2に基づく役割の比較。SIDを使うだけでは、候補を生成していることにはならない。</figcaption></figure>
+  why_it_might_work: |-
+    【Labの解釈】内容が近い商品でSIDを共有すると、行動が少ない商品も共有コードブックを更新する勾配を利用できる。GFSAで同じ履歴位置の重みを2種類の履歴に使えば、商品内容側と行動側が別々の位置を参照して生じるずれを減らせる。
 
-
-    §4.8。GMV +2.6%、CTR +1.1%、Order +1.6%、追加遅延5ms未満。掲載20日未満の新商品でGMV +5.6%。新商品効果の分母はそのcohortであり、全体GMVへの5.6ポイント寄与ではない。本文は総trafficの20%と記すが、各armへ20%ずつとまでは記していない。CI、p値、latency
-    percentileは未報告。
-
-
-    [QuaSID](quasid-collision-qualified-sid.html)の表現品質、[GLIDE](glide-spotify-sid.html)のcold-start候補生成と併せて読むと、意味表現をどこで使うかを比較できる。GateSIDの役割は候補にscoreを付ける側である。
-
-
-    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2603.22916v2)。図表の箇所とSHA-256は末尾の対応表を参照。'
-  overview: 'GateSIDは商品を表す識別子（SID）を順位付けの特徴として使う。商品内容と行動履歴から別々に求めたattention分布を、商品の成熟度に応じて学習した重みで組み合わせる。生成decodeの手法ではない。Alibaba Internationalの2週間・総traffic
-    20%のA/BでGMV +2.6%、新商品（20日未満）+5.6%、追加遅延5ms未満を報告する。
-
-
-    <figure class="teaching batch17"><h3>SIDを使う場所：GateSIDはranking側</h3><div class="matrix-scroll" tabindex="0" role="region"
-    aria-label="比較表"><table><thead><tr><th>設計</th><th>入力</th><th>出力</th><th>SIDの役割</th></tr></thead><tbody><tr><td>GateSID</td><td>ユーザー履歴＋候補商品</td><td>CTR
-    / CTCVR score</td><td>候補と履歴の意味特徴</td></tr><tr><td>生成推薦</td><td>ユーザー文脈＋prefix</td><td>次SID token</td><td>候補を辿る出力列</td></tr></tbody></table></div><figcaption>§3・図2に基づく役割の比較。SID利用そのものが生成decodeを意味するわけではない。</figcaption></figure>'
-  why_it_might_work: '【解釈】意味の近い商品でSIDを共有すると、希少商品も共有codebookへのgradientを使える。GFSAで同じ履歴位置の重みを両表現へ適用すれば、意味と行動が別々の履歴だけを参照するずれを減らせる。
-
-
-    GRCAをgateで弱めれば、成熟商品の表現を過度に同じ意味clusterへ引き寄せにくい。ただしどの信号がcold-startで有効かは商品領域に依存する。gateの解釈には日数だけでなく露出・クリックの偏りも関わる。'
+    成熟商品では、GRCAの損失に小さいwを掛けると、同じ商品の行動表現を商品内容側の表現に過度に近づけず、行動から得た違いを残しやすい。ただし、行動が少ないときにどの信号が役立つかは商品領域に依存する。wの解釈には、掲載日数だけでなく露出・クリックの偏りも関わる。
   method: method.md
-  executable_understanding: 固定した2種類のattention logitsと履歴embeddingを使い、wを0から1まで動かす。共有attentionを両履歴へ適用した結果と、同じwで重み付けしたInfoNCEを計算する。成熟度からwを学習した曲線は作らない。
-  results: 人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。
-  what_we_verified: '**Mechanism: PARTIAL**。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。
+  executable_understanding: |-
+    2組のattentionを求める前のスコア（logits）と、両方の履歴のベクトルは固定する。wを0から1まで動かし、混ぜた重みを両方の履歴に適用した結果と、同じwを掛けた対照損失（InfoNCE）を計算する。商品の掲載日数などからwを学習する実験ではない。
+  results: |-
+    以下はLabの人工実験で計算した値だ。著者がオンラインで報告した数値とは別である。
+  what_we_verified: |-
+    **Mechanism: PARTIAL**。人工条件で計算手順と境界条件を確認した。results.jsonのchecksでCONFIRMEDとしたのは、各項目に書いた範囲だけだ。
 
+    run.pyで入力を、results.jsonで全出力を確認できる。
+  what_we_did_not_verify: |-
+    RQ-VAEの学習、wを決めるモデルの学習、CTR・CTCVRの順位付け学習、AUC、本番のGMV、追加遅延の5ms制約は検証していない（NOT TESTED）。この人工実験で確認したのは、固定したwで2組の重みを混ぜる計算であり、本番で新商品の成績が改善するかは確認していない。
 
-    実験の入力と全出力はrun.pyとresults.jsonから確認できる。'
-  what_we_did_not_verify: 'RQ-VAE学習、maturity gate学習、CTR/CTCVRのranking学習、AUC、online GMV、5ms制約はNOT TESTED。固定gateでの凸結合を確認しただけで、本番のcold-start改善を検証したわけではない。
-
-
-    **Performance / Scaling / Production applicability: NOT TESTED**。一次資料の報告値との照合は、報告された本番効果の独立再現を意味しない。'
-  implementation: '標準ライブラリだけの独立実験。repository rootで `uv run papers/gatesid-coldstart-ranking/run.py` を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。
-
+    **Performance / Scaling / Production applicability: NOT TESTED**。一次資料の報告値を照合しただけでは、本番の効果を独立して再現したことにはならない。
+  implementation: |-
+    標準ライブラリだけで動く独立実験だ。リポジトリのルートから `uv run papers/gatesid-coldstart-ranking/run.py` を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。
 
     [実行コード](../downloads/gatesid-coldstart-ranking/run.py)・[全結果](../downloads/gatesid-coldstart-ranking/results.json)・[README](../downloads/gatesid-coldstart-ranking/README.md)・[方法](../downloads/gatesid-coldstart-ranking/method.md)・[対応表](../downloads/gatesid-coldstart-ranking/mapping.md)を保存できる。
 
-
-    確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。'
+    確認した論文とarXivの書誌には、取得できる公式実装への案内を確認できなかった。公式コードを独立して実行していない（NOT TESTED）。非公開だと確認したわけではない。
   mapping: mapping.md
 teaching_figures:
 - kind: equations
   id: method-equations
-  title: 式と操作の対応
+  title: 重みを決め、混ぜ、学習に使う式
   after: method
-  caption: 各記号が担う役割を分けて読む。
-  rationale: 演算と制約の対象を明確にする。
+  caption: wを決める式、履歴の重みを混ぜる式、対照損失にwを掛ける式を分けて読む。
+  rationale: 同じwでも、履歴の重みを混ぜる役割と、損失に掛ける役割は異なる。
   source: https://arxiv.org/pdf/2603.22916v2
   locator: 式4–11
   steps:
   - name: gate
     formula: w=σ(MLP([e_item ⊕ F_stat]))
-    explanation: ID表現と掲載期間・露出・クリックなどから学習。
+    explanation: 候補商品のIDベクトルと、掲載期間・露出・クリックなどの統計特徴からwを学習する。
   - name: GFSA
     formula: S_fused=w S_sid+(1−w)S_item
-    explanation: 履歴の各位置をどれだけ参照するかという重みの分布を混ぜ、その同じ分布を意味側・行動側の両方の履歴表現へ適用する。
+    explanation: 商品内容と行動から別々に求めた履歴位置の重みを混ぜる。同じ重みを2種類の履歴に掛けて別々に集約する。
   - name: GRCA
     formula: L=L_rank+λ·mean_i[w_i ℓ_cl(i)]
-    explanation: 意味側の比率を決めるgateを、同じ商品の意味表現と行動表現を近付ける対照損失にも掛ける。商品ごとの重み付き損失を平均して順位付けの損失へ加える。
+    explanation: 同じ商品の内容と行動の表現を近づける対照損失にも、混合比wを掛ける。商品ごとの重み付き損失を平均して順位付けの損失へ加える。
