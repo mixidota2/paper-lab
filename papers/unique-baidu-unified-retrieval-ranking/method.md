@@ -1,15 +1,19 @@
-### EQNは意味だけでcodeを作らない
+### 商品の内容と利用者の反応を使ってコードを割り当てる
 
-End-to-End Quantization Networkはitem ID、category、publisher、titleなどと行動feedbackを使う。DSSM形式のtask別user towerと共有item towerを内積で学習し、正規化したitem vectorをflat codeへ割り当てる。codeはEMAで更新し、未使用codeは維持する。Eq. 11の使用率補正はcode利用の偏りを抑える追加策である。
+EQN（End-to-End Quantization Network）は、商品ID、カテゴリ、配信元、タイトルなどと、利用者の行動を学習に使います。DSSMでは、行動の種類ごとに利用者をベクトルにし、共通のモデルで作った商品ベクトルとの内積を使って学習します。正規化した商品ベクトルは、階層を持たないコードのどれか一つに割り当てます。
 
-### UIGNとTDNはtargetを早い段階で交差させる
+コードのベクトルは指数移動平均（EMA）で更新し、使われなかったコードはそのまま残します。式11は、よく使われるコードに割り当てが集中しすぎないよう、使用率に応じて距離を補正します。
 
-User Interest Generation Networkのprefixはprofile、短期・中期・interest履歴を連結する。Target-Code-Aware Discriminative Networkではcode targetとitem targetがprefixを参照する。各codeの選択スコア（logit）は、候補codeに応じてユーザー情報を参照した交差表現をMLPへ入れて得る。単独user embeddingとcode embeddingの類似度だけではない。
+### 候補ごとに、利用者の履歴から参照する情報を変える
 
-公開benchmarkのTransformerは3層、4 head、hidden 512、dropoutなし。item/user embedding 256、code embedding 64、codebook 1,024。最大501 tokenはprofile 1、短期100、中期200、interest 200。productionの16,384 codeと混同しない。lossはbinary feedbackの重み付きBCE、durationのMSE、codeのcross entropy、DSSM教師、量子化正則化を合わせる。
+UIGN（User Interest Generation Network）は、プロフィール、短期・中期の履歴、関心の履歴をつなぎ、共通の入力列（prefix）を作ります。TDN（Target-Code-Aware Discriminative Network）は、候補コードと候補商品のそれぞれから、この入力列を参照します。コードの選択スコア（logit）は、コードと履歴を組み合わせた表現をMLPに渡して計算します。一つの利用者ベクトルを作り、すべての候補コードとの類似度を比べるだけではありません。
 
-### 共有forwardと実際の配信順序は別に読む
+公開ベンチマークで使ったTransformerは3層、4ヘッド、隠れ層の幅は512で、ドロップアウトは使いません。商品と利用者の埋め込みは各256次元、コードは64次元、コードの総数は1,024です。共通の入力列は最大501トークンで、プロフィール1、短期100、中期200、関心200です。実運用の16,384コードとは条件が異なります。
 
-学習の共有計算graphはcodeとitemの教師をつなぐ。配信はcode予測→index展開→内積による粗ranking→TDNによる精rankingという順序を持つ。N=100 codeから数十万候補を取り、粗rankingでtop 10k、codeごとの精rankingでM=30を後続処理へ返す。N=200は約2倍の費用に対して多様性の追加利得が小さく、M=10はrecallを損なうという記述がある。
+学習では、反応の有無を予測する重み付き二値交差エントロピー（BCE）、視聴時間の平均二乗誤差（MSE）、コード予測の交差エントロピー、DSSMの教師信号、量子化の正則化を組み合わせます。
 
-item embeddingは毎時同期する。新規itemは初回impressionから5分以内にtraining streamへ入り、1時間以内に量子化される。昼15秒・夜30秒のcacheでhit率37%・60%。codeの鮮度、モデルversion、cache条件まで含めて89 msを読む。
+### 学習の計算は共有しても、配信は順に候補を絞る
+
+学習時はコード選択と商品採点の教師信号を共通の計算に戻します。配信時は、コードを予測し、索引から商品を取り出し、内積で粗く順位を付け、TDNで詳しく採点します。コード100個（N=100）から数十万件を取り出し、粗い順位付けの上位1万件を残します。最後はコードごとに上位30件（M=30）を後続処理に渡します。著者によると、N=200では費用が約2倍になる一方、多様性は大きくは増えません。M=10では、必要な候補を取り逃しやすくなります。
+
+商品埋め込みは毎時同期します。新規商品は初めて表示されてから5分以内に学習用データに入り、1時間以内にコードが付くと著者は報告しています。結果を使い回す時間は昼15秒、夜30秒で、キャッシュのヒット率はそれぞれ37%、60%でした。99パーセンタイルの89 msを読むときは、コードの更新頻度、モデルの版、キャッシュ条件も確認します。
