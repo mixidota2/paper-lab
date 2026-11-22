@@ -1,21 +1,21 @@
 # MuSeR: Scalable Long-sequence Recommendation with Multi-interest Modeling
 
-MuSeRはBaiduのretrievalに、時間別の履歴圧縮・6つのinterest query・意味表現・非同期cacheを統合する。homepageの同一A/BでDAU +0.26%、session duration +0.89%。圧縮は非圧縮のrecallを完全には保たない。
+BaiduのMuSeRは古い履歴を期間ごとに異なる粒度でまとめ、6つのinterest queryで利用者の異なる関心を取り出す推薦候補検索の方式だ。意味表現と非同期キャッシュも組み合わせる。ホームページでの同じA/Bテストで、DAUは0.26%、セッション時間は0.89%増えた。一方、履歴を圧縮すると、圧縮しない場合と同じ候補回収率（recall）を完全には保てない。
 
-## 問い
+## 昔の履歴をどこまで残せるか
 
-昔の履歴を粗く残し、複数の関心を配信時間内に使えるか
+古い履歴を粗く残し、配信に使える時間内に、利用者が持つ複数の関心を利用できるかを考える。
 
-## 再実行
+## 教材の計算を実行する
 
 ```bash
 uv run papers/muser-baidu-long-sequence-multi-interest/run.py
 ```
 
-Python標準ライブラリだけを使う。単体で取得した場合は `uv run run.py`。結果はスクリプトと同じ場所の `results.json` に保存する。
+Python標準ライブラリだけを使う。教材を単体で取得した場合は `uv run run.py` を実行する。結果はスクリプトと同じ場所の `results.json` に保存する。
 
-## 読む順序
+## 各ファイルで確認できること
 
-`lab.yaml` の問題設定・根拠、`method.md` の仕組みと図、`run.py` と `results.json`、`mapping.md` の省略点。HTMLは `uv run paper-lab build` で生成する。
+最初に `lab.yaml` で問題設定と根拠を確認し、`method.md` の説明と図を読む。次に `run.py` と `results.json` を照らし合わせ、最後に `mapping.md` で原論文との対応と省略した箇所を確認する。HTMLは `uv run paper-lab build` で生成する。
 
-Mechanism PARTIAL。Performance / Scaling / Production applicability NOT TESTED。小実験で確認した局所条件のみCONFIRMEDとし、論文の本番数値を再現したとは扱わない。
+仕組みの確認は一部に限る（Mechanism: PARTIAL）。性能、規模を拡大したときの挙動、実運用への適用は検証していない（Performance / Scaling / Production applicability: NOT TESTED）。確認済み（CONFIRMED）とするのは小実験で確かめた局所的な条件に限り、論文の本番数値を再現したわけではない。

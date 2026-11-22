@@ -1,7 +1,9 @@
-TGRは、Tencentが推薦システムを改めるための枠組みである。順位付けの改善、候補や一覧の生成、推論情報の事前計算という3方向を扱い、それぞれに異なるモデルを用いる。**CCFormer**は既存の順位付けを置き換え、feature-field別cross attention、長い系列のsubspace token mixing、階層圧縮を使う。出力は商品別の複数タスクのスコアだ。
+TGRはTencentが推薦システムを改めるための枠組みだ。順位付けの改善、候補や表示一覧の生成、推論に使う情報の事前計算という3方向で、それぞれ異なるモデルを使う。
 
-候補生成には2つの方式がある。**BARGE**は階層的semantic IDの次トークン生成を改良し、商品境界を意識したattentionと経路の再順位付けを使う。**HiGR**はPCRQ-VAEで構造化したIDを用い、Hierarchical Slate Decoderで一覧全体の粗い計画から個別商品へ進む。ORPOによるlistwise alignmentで一覧の品質を調整する。
+CCFormerは既存の順位付けを置き換える。特徴量のフィールド別にcross-attentionを行い、長い系列のトークンをsubspace token mixingで混ぜ、階層的に圧縮する。商品ごとに複数のタスクのスコアを出す。
 
-**TGR-Reason / LatentRec**は別の時間帯で動く。Thinkモデルが作ったreason tokenを保存し、オンラインのGenモデルに渡す。ユーザーのリクエストごとに長い思考文を生成する構成とは区別する。導入面・比較条件が異なるため、各モジュールの改善率を足し合わせない。
+候補を生成する方式は2つある。BARGEは階層的なsemantic IDの次のトークンを生成する手法を改良したものだ。商品の境界を考慮したattentionを使い、生成経路の順位を付け直す。HiGRはPCRQ-VAEで構造化したIDを使う。Hierarchical Slate Decoderで一覧全体の粗い計画を立ててから、個別の商品を決める。ORPOによる一覧単位の調整（listwise alignment）で、一覧の品質を整える。
+
+TGR-Reason / LatentRecはリクエストの処理とは別にThinkモデルでreason tokenを作って保存する。リクエストが来たときは、そのトークンをオンラインのGenモデルに渡す。リクエストごとに長い思考文を生成する方式ではない。導入した面と比較条件はモジュールごとに異なるため、改善率は足し合わせない。
 
 [一次資料：方法と実験条件](https://arxiv.org/html/2609.00986)
