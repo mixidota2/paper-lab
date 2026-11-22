@@ -864,6 +864,30 @@
       "after_blob": "812ac5b7178715634c5bf9e5b1401bd5f51bde9d",
       "before_sha256": "b53bd7f9045b808e16fafc15b5df8a2e1f90eafc5616ca7c01357d1d4047347e",
       "after_sha256": "4311aea8c28a69de885294d430acc815537ac4a880b5a567acd564d07de509ac"
+    },
+    "papers/walmart-demand-transfer/lab.yaml": {
+      "before_blob": "101918241c2321eff98813969017a004df4166e3",
+      "after_blob": "c6b974b3f2a68c458c05eb76b423864c10141ac2",
+      "before_sha256": "c2ac21f693d877fd33ada024243bf8227aade9d15288a563da8d787172c877f2",
+      "after_sha256": "3c64cb5ff31a3735c9ffc0f1ec5331e362736eeac2231ed994fb6ef6f0df4f3d"
+    },
+    "papers/walmart-demand-transfer/method.md": {
+      "before_blob": "c17dc145e12a9c8bbed2fce28635d736848bea5f",
+      "after_blob": "2b8297ef7677bae181fa370ccc8ec25a4fc7752a",
+      "before_sha256": "681113a78794678b97fed417284a0760a04bb07d34ebbfe85374bfdbebc01dda",
+      "after_sha256": "d6c40c8b4e89c8535e98f219d3575b1b18bd3c2f38069ca8468b09a328824808"
+    },
+    "papers/walmart-demand-transfer/figures/restriction.svg": {
+      "before_blob": "9d25c8ff94f42e8ab6fd66aec1d1087a26e737f6",
+      "after_blob": "55f4a6cb389495f627a621e5b82e3c439b5ee9d7",
+      "before_sha256": "46e403db090eee6711347ef1687a089993b21f1f5d31b65fe321bfcc20b00214",
+      "after_sha256": "4342c039e353dd6f88e95a6f64c71dfb1375cfe1fd94add66a97645ed36629d6"
+    },
+    "papers/walmart-demand-transfer/figures/transfer.svg": {
+      "before_blob": "f6c99f872e8ed3bc14cb733755bd61b86d7d6991",
+      "after_blob": "85ba117727c1d34db3e15736f390b477889085e8",
+      "before_sha256": "9fb7fbee04835bdb3a33a6c5376fae09b81c249c1f09f4370f77a5843ec6a222",
+      "after_sha256": "696b76135e1b3df68fb2cfd4ff56cdcd1047e1a5bbfa06aff3f62f41dc878175"
     }
   }
 }
