@@ -1,23 +1,23 @@
-### 意味の2 tokenと、価値順の1 tokenを分ける
+### 先頭の2トークンは商品の意味、最後の1トークンは同じ組での順位
 
-商品embedding（category・brandを含む）をRQ-VAEのitem encoderへ入れる。残差量子化の第1 codeを引いた残差から第2 codeを選び、(s₁,s₂)を意味prefixにする。query encoderはtokenizer学習時だけ使う。再構成・commitmentに双方向InfoNCEを足し、同じminibatchのquery–item対応を揃える。各codebookと第3語彙は8,192。
+カテゴリやブランドを含む商品embeddingを、RQ-VAEの商品エンコーダーに渡す。第1コードが説明しきれなかった差（残差）から第2コードを選ぶ。(s₁,s₂) が商品の意味を表す先頭部分（prefix）。検索語を処理するquery encoderは、トークン化の学習時だけ使う。再構成・commitmentの損失に双方向InfoNCEを加え、同じminibatch内で検索語と商品を対応づける。各コード表と第3トークンの語彙数は8,192。
 
-第3 token rはprefix内でEB-CVR、行動funnel値、GMV、item IDの順にtie-breakして付ける（Eqs. 3–5）。初期は1商品1住所。分子は購入数bと加重cart数ηₐaの和、分母はclick数c。priorはΣ(b+ηₐa)/Σcとする。
+第3トークンrには、そのprefix内の順位を割り当てる。EB-CVRを先に比べ、同値なら行動funnel値、GMV、item IDの順に比べる（Eqs. 3–5）。初期は1商品1識別子とする。EB-CVRで使う比率の分子は、購入数bと、重みを掛けたカート追加数ηₐaの和。分母はクリック数cとする。事前値（prior）はΣ(b+ηₐa)/Σc。
 
-### Qwen2.5-0.5B-Instructへ段階的に住所を教える
+### 商品情報から始め、検索する人と履歴も使って識別子を学ぶ
 
-Stage 1は商品内容→SID、Stage 2はquery→SID、Stage 3はuser・query・history→SID。Stage 3には直近3検索と長期関心要約、query–itemのEB-CVR重み、level別lossを入れる。level 2が主な予測障害なのでα₂>α₁>α₃。LO-SFTは正解tokenへの通常lossを残し、半径3・温度1・係数0.02で近いrankにも滑らかな教師分布を与える。学習が進んでも全順位を作り直す操作とは違う。
+Qwen2.5-0.5B-Instructに識別子（SID）を段階的に学ばせる。Stage 1は商品内容、Stage 2は検索語を入力する。Stage 3はユーザー・検索語・履歴を使い、履歴には直近3検索と長期の関心の要約を含める。この段階では検索語と商品の組のEB-CVRを重みとし、SIDの段ごとにも損失の重みを付ける。第2段が予測しにくいため、α₂>α₁>α₃とする。LO-SFTでは正解への通常の損失を残し、半径3・温度1・係数0.02で、正解に近い順位にも教師分布の確率を配る。学習のたびに全商品の順位を付け直す操作ではない。
 
-### Prefix-GRPOはまず報酬を受け取れる住所か調べる
+### Prefix-GRPOは、識別子の形式と商品が入っているかを先に確かめる
 
-1 promptから8応答を生成。書式外は−2、未占有slotは−1で打ち切る。合法・占有済みなら購入3、click 1、露出0.1の最高行動だけを採用する。要求内のranker scoreの正の標準化偏差にtanhをかけて最大0.2の報酬を足す。行動一致がないSIDだけ関連性grade 3/2/1に+0.08/+0.03/−0.10を与える。行動と関連性を二重加点しない。
+1つのpromptから8応答を生成する。書式が不正なら−2、どの商品も割り当てられていないslotなら−1とし、それ以上は加点しない。形式が正しく商品があるときは、購入3、クリック1、露出0.1のうち、該当する行動で最も高い点だけを使う。同じリクエスト内でranker scoreを標準化する。平均より高い場合にだけ、標準化した偏差をtanh関数に通し、算出した報酬を最大0.2まで足す。行動が一致しないSIDに限り、関連性grade 3/2/1に+0.08/+0.03/−0.10を与える。行動と関連性を両方加点するわけではない。
 
-同prompt群で報酬を標準化し、whitening・clip後のadvantageをtokenへ配る。第1 tokenは重み1、第2・第3は合法な子の数の対数で0.1〜1に重み付け。PPO型clip、負advantageのdual clip、SFT参照policyへのKL係数0.8を使う。ここでの重みは推論logitの補正ではなくpolicy lossの係数である。
+同じpromptからの応答群で報酬を標準化し、whiteningとclipの後のadvantageを各トークンに配る。第1トークンの重みは1。第2・第3トークンは、次に選べる子の数の対数で0.1〜1に重み付けする。PPO型clip、負のadvantageへのdual clip、SFT参照policyとのKLの係数0.8を使う。重みを掛けるのは方策を学習する損失で、推論時のlogitではない。
 
-### 日次の互換性はmodel・Trie・mapの組で守る
+### 日次は既存の識別子を維持し、月次は履歴も作り直す
 
-既存SIDを固定し、新商品は同prefixの順位に近い歴史slotへ割り当てる。上限を超えれば末尾slotを共有する。共有SIDを商品集合へ展開し、最終rankerへ渡す。モデルは行動時点のSIDラベルとhistorical replayで日次学習。検証後にmodel・Trie・mapを原子的に公開する。月次rebuildは別primary versionとして履歴もre-encodeし、再学習する。
+日次更新では、既存のSIDを変えない。新商品には、同じprefixにある過去の割り当てから順位が近いslotを選ぶ。上限を超えた場合は末尾のslotを共有する。共有SIDは対応する商品すべてに展開し、最終順位付けに渡す。日次学習には、行動時点のSIDラベルと過去のデータの再利用（historical replay）を使う。検証後、モデル・探索木（Trie）・商品との対応表（map）を一組として同時に切り替える。月次の再構築は別の主要バージョンとして扱い、そのバージョンで履歴を符号化し直して再学習する。
 
-オンラインbeam幅は(20,50,500)。Trieはカタログ内の占有pathだけに制約し、生成商品を通常経路の候補と重複排除してfinal rankerへ渡す。
+オンラインのbeam幅は(20,50,500)。カタログに商品が割り当てられている経路だけをTrieで探索する。生成した商品と通常経路の候補が重複していれば除き、最終順位付けに渡す。
 
-<figure class="teaching" data-b21><h3>新商品Dの到着を追う</h3><label>住所方策 <select><option value="0">初日</option><option value="1">全並べ替え</option><option value="2">固定更新</option></select></label><div data-output aria-live="polite"><p>初日：A/B/Cに一意な住所</p><div class="matrix-scroll" tabindex="0"><table><tr><th>商品</th><th>第3 token</th></tr><tr><td>A</td><td>0</td></tr><tr><td>B</td><td>1</td></tr><tr><td>C</td><td>2</td></tr></table></div></div><script type="application/json" data-frames>["<p>初日：A/B/Cに一意な住所<\/p><div class=\"matrix-scroll\" tabindex=\"0\"><table><tr><th>商品<\/th><th>第3 token<\/th><\/tr><tr><td>A<\/td><td>0<\/td><\/tr><tr><td>B<\/td><td>1<\/td><\/tr><tr><td>C<\/td><td>2<\/td><\/tr><\/table><\/div>", "<p>全並べ替え：旧B/Cの住所が変わる<\/p><div class=\"matrix-scroll\" tabindex=\"0\"><table><tr><th>商品<\/th><th>第3 token<\/th><\/tr><tr><td>A<\/td><td>0<\/td><\/tr><tr><td>D<\/td><td>1<\/td><\/tr><tr><td>B<\/td><td>2<\/td><\/tr><tr><td>C<\/td><td>3<\/td><\/tr><\/table><\/div>", "<p>固定更新：B/Dが共有し、旧住所を守る<\/p><div class=\"matrix-scroll\" tabindex=\"0\"><table><tr><th>商品<\/th><th>第3 token<\/th><\/tr><tr><td>A<\/td><td>0<\/td><\/tr><tr><td>D<\/td><td>1<\/td><\/tr><tr><td>B<\/td><td>1<\/td><\/tr><tr><td>C<\/td><td>2<\/td><\/tr><\/table><\/div>"]</script><figcaption>run.pyの人工4商品。変わるのはmap。モデルの学習効果は含まない。</figcaption></figure>
+<figure class="teaching" data-b21><h3>新商品Dの到着を追う</h3><label>住所方策 <select><option value="0">初日</option><option value="1">全並べ替え</option><option value="2">固定更新</option></select></label><div data-output aria-live="polite"><p>初日：A/B/Cに一意な住所</p><div class="matrix-scroll" tabindex="0"><table><tr><th>商品</th><th>第3 token</th></tr><tr><td>A</td><td>0</td></tr><tr><td>B</td><td>1</td></tr><tr><td>C</td><td>2</td></tr></table></div></div><script type="application/json" data-frames>["<p>初日：A/B/Cに一意な住所<\/p><div class=\"matrix-scroll\" tabindex=\"0\"><table><tr><th>商品<\/th><th>第3 token<\/th><\/tr><tr><td>A<\/td><td>0<\/td><\/tr><tr><td>B<\/td><td>1<\/td><\/tr><tr><td>C<\/td><td>2<\/td><\/tr><\/table><\/div>", "<p>全並べ替え：旧B/Cの住所が変わる<\/p><div class=\"matrix-scroll\" tabindex=\"0\"><table><tr><th>商品<\/th><th>第3 token<\/th><\/tr><tr><td>A<\/td><td>0<\/td><\/tr><tr><td>D<\/td><td>1<\/td><\/tr><tr><td>B<\/td><td>2<\/td><\/tr><tr><td>C<\/td><td>3<\/td><\/tr><\/table><\/div>", "<p>固定更新：B/Dが共有し、旧住所を守る<\/p><div class=\"matrix-scroll\" tabindex=\"0\"><table><tr><th>商品<\/th><th>第3 token<\/th><\/tr><tr><td>A<\/td><td>0<\/td><\/tr><tr><td>D<\/td><td>1<\/td><\/tr><tr><td>B<\/td><td>1<\/td><\/tr><tr><td>C<\/td><td>2<\/td><\/tr><\/table><\/div>"]</script><figcaption>run.pyの人工4商品で、商品と第3トークンの対応だけを変えた。モデルを学習させた結果ではない。</figcaption></figure>
