@@ -60,6 +60,15 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
 def hasterad_registration_hash(root, path, expected, algorithm='sha256'):
     """Accept the three exact README count corrections, not arbitrary changes."""
     row = json.loads((root / 'tests/hasterad_registration_hashes.json').read_text())['files'].get(path)
+    if row is not None:
+        assert expected == row['before_' + algorithm], path
+        expected = row['after_' + algorithm]
+    return reference_guess_markup_hash(root, path, expected, algorithm)
+
+
+def reference_guess_markup_hash(root, path, expected, algorithm='sha256'):
+    """Accept only the exact option markup repair, independently of prose review."""
+    row = json.loads((root / 'tests/reference_guess_markup_hashes.json').read_text())['files'].get(path)
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path
