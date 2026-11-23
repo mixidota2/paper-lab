@@ -32,23 +32,24 @@ def test_reviewed_source_contract_dates_scopes_and_units():
         ('waste-markdown','2026-07-03','observational','current')]
     expected={
         'zalando':{'result':['GMV +22.11%','+21.95%','全提案採用の仮想結果','本番A/Bではない'],
-                   'forecast':['分位点','検閲補正式は未確認'],'scope':['200万article','800販売者'],
+                   'forecast':['分位点','品切れで売上に表れなかった需要をモデルがどの式で補ったかは、Labでは確認できていない'],'scope':['200万article','800販売者'],
                    'limitation':['2025-12-19','2026-01-30','本文は未取得']},
         'jd-orpr':{'result':['−5.27日','+2.29%（単位は原文表記）','−29.95%','−4.07日','+0.47%','−18.35パーセントポイント'],
-                   'scope':['331 SKU','3,899 SKU–DC','無作為化ではない'],'limitation':['反実仮想欠品損失は評価外']},
+                   'scope':['331 SKU','3,899 SKU–DC','無作為化ではない'],'limitation':['反実仮想欠品損失）は評価外']},
         'amazon-rme':{'task':['保全','店舗販売商品の補充とは対象が異なる'],
                       'result':['モデル上の節約額が30.5%改善','実際の総費用30.5%削減ではない','週の割合','99.8%'],
                       'limitation':['10.1080/00207543.2026.2655026','別研究','読了・同一性を主張しない']},
         'alibaba':{'result':['−37.45%','1.3% reduction','相対%かパーセントポイントか断定しない'],
                    'scope':['40,000 SKU×倉庫','低回転','販促祭前に停止'],'operation':['無作為化A/Bではない']},
-        'jd-e2e':{'task':['教師ありE2E','RLではない'],'result':['−40.4%','−637.24評価費用単位','会計利益ではない'],
+        'jd-e2e':{'task':['教師ありE2E','強化学習（RL）ではない'],'result':['−40.4%','−637.24評価費用単位','会計利益ではない'],
                   'scope':['9,308 SKU','12 DC','自主参加','無作為化ではない'],'limitation':['最終版との全文照合は未完']}}
     for key,fields in expected.items():
         for field,phrases in fields.items():
             assert all(p in cards[key][field] for p in phrases),(key,field)
     assert cards['amazon-rme']['domain']=='maintenance'
     for card in cards.values():
-        assert '未確認' in card['forecast']
+        if card['id'] != 'zalando':
+            assert '未確認' in card['forecast']
         assert all(card[field] for field in FIELDS)
     text=(GUIDES/'forecast-to-replenishment.md').read_text()
     # Financial quantities live only in the evidence cards, not duplicate comparison tables.
@@ -160,7 +161,7 @@ def test_fengyi_randomized_units_and_limits():
     assert 221+223+109==553
     for value in ['553人','221人','223人','109人','46日間','増量','例外']:
         assert value in c['scope']
-    for value in ['1.28%','1.95%','1.19%','有意差なし','log(数量+1)']:
+    for value in ['1.28%','1.95%','1.19%','統計的な有意差が出なかった','log(数量+1)']:
         assert value in c['result']
     for value in ['同等性証明ではない','利益改善は未検証','制限群比','シミュレーション']:
         assert value in c['limitation']
@@ -172,12 +173,12 @@ def test_markdown_evidence_keeps_units_design_and_adjacent_scope():
     assert c['evaluation']=='observational' and c['checked']=='2026-11-17'
     assert 18+3*5+100==133
     for field, phrases in {
-        'task':['補充量ではなく','隣接判断'],
+        'task':['補充量ではなく','陳列場所と価格'],
         'scope':['133店舗','39週','18店','各5店','100店','7週','8〜18週'],
         'policy':['30%','価格変更とは別'],
-        'result':['+3.81ポイント','p=.008','−0.13ポイント','p=.098','5%水準の有意差なし','−0.21ポイント','p=.032','他2方式は有意ではない'],
+        'result':['+3.81ポイント','p=.008','−0.13ポイント','p=.098','5%水準では統計的に有意ではなかった','−0.21ポイント','p=.032','他2方式は有意ではない'],
         'operation':['完全無作為ではない','平行トレンド','wild cluster bootstrap'],
-        'limitation':['値引販売数÷値引シール貼付件数','生鮮7部門の売上高','通常売価換算額','営業利益ではない','売上仮定','単一企業・短期','独立追試は未実施'],
+        'limitation':['値引販売数÷値引シール貼付件数','生鮮7部門の売上高','廃棄品を通常価格で数えた金額','営業利益ではない','売上仮定','単一企業・短期','独立追試は未実施'],
     }.items():
         assert all(x in c[field] for x in phrases),field
     assert any('7048139' in s['url'] for s in c['sources'])
