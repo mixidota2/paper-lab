@@ -52,6 +52,13 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     rows = json.loads((root / 'tests/reading_prose_revision_hashes.json').read_text())['files']
     if path in rows:
         row = rows[path]
+        if row.get('after_reference_guess_markup'):
+            # Historical source guards still start at the exact pre-repair
+            # bytes. New prose checks can start at the already repaired hash.
+            if expected != row['before_' + algorithm]:
+                expected = reference_guess_markup_hash(root, path, expected, algorithm)
+            assert expected == row['before_' + algorithm], path
+            return row['after_' + algorithm]
         assert expected == row['before_' + algorithm], path
         expected = row['after_' + algorithm]
     return hasterad_registration_hash(root, path, expected, algorithm)

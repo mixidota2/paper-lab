@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from prose_preservation import reference_guess_markup_hash
+from prose_preservation import reading_prose_hash, reference_guess_markup_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 PAPERS = ROOT / 'papers'
@@ -68,6 +68,15 @@ def test_reference_guess_markup_translation_is_exact():
             'blob': hashlib.sha1(b'blob ' + str(len(content)).encode() + b'\0' + content).hexdigest(),
         }.items():
             old = row['before_' + algorithm]
-            assert reference_guess_markup_hash(ROOT, path, old, algorithm) == actual
+            repaired = reference_guess_markup_hash(ROOT, path, old, algorithm)
+            assert repaired == row['after_' + algorithm]
             with pytest.raises(AssertionError):
-                reference_guess_markup_hash(ROOT, path, actual, algorithm)
+                reference_guess_markup_hash(ROOT, path, repaired, algorithm)
+            if path == 'papers/retailbench-long-horizon-store-agents/interactive.html':
+                assert reading_prose_hash(ROOT, path, repaired, algorithm) == actual
+                assert reading_prose_hash(ROOT, path, old, algorithm) == actual
+                for unreviewed in (actual, '0' * len(old)):
+                    with pytest.raises(AssertionError):
+                        reading_prose_hash(ROOT, path, unreviewed, algorithm)
+            else:
+                assert repaired == actual
