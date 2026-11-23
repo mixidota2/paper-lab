@@ -24,8 +24,8 @@ urls:
   official_code: null
 verdict: Watch
 status: published
-question: CORAL：推薦の設定を、予算内で継続的に見直す
-summary: CORALは、推薦候補を集める経路に割り当てる計算予算や、利用者群ごとの配信処理を数日ごとに見直すMetaの仕組みである。videoのR3でsessions +0.16%、watch time +0.15%、追加serving費用なし。別surfaceの44%は初回の削減額の増加率であり、総費用−44%ではない。
+question: CORALが推薦の設定を予算内で見直す仕組み
+summary: Metaは、候補を集める経路や利用者ごとの配信方法を数日ごとに見直した。動画サービスの3回目の比較では、動画を見た訪問の回数が全体で0.16%、視聴時間が0.15%増え、推薦の配信費用は増えなかった。別サービスで報告された44%は、初回の削減額に対する増加率である。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -33,92 +33,84 @@ verification:
   production_applicability: NOT TESTED
 source_review:
   checked: '2026-09-17'
-  scope: 版を固定した一次PDF本文と関連表・付録を照合。著者報告と人工実験を分離。
+  scope: 版を固定したPDFで、本文と関係する表・付録を照合した。著者の報告と、自作の小実験の結果は別に示す。
   url: https://arxiv.org/pdf/2609.02730v1
   pdf_sha256: e5a796ede0b8653df5c58f7e8ab6a5cfa7e165afb60c34df2d216a952b65aae2
   version: 2609.02730v1
 core_idea:
-  author_claim: 著者は、観測・記憶・LLM提案・数値optimizer・配信・効果測定を固定周期で回せば、追加のモデル学習なしに設定を継続改善できると主張する（§3–5）。
-  research_bot_interpretation: 中心はLLMだけの最適化能力より、何を変えられるか、誰が予算を保証するか、測定結果をどう戻すかという取り決めにある。AgentXより変更範囲が狭く、その分、数値的な実行可能性を保証しやすい。
+  author_claim: 著者は、大規模言語モデル（LLM）の提案と別の数値計算を組み合わせ、モデルを再学習せずに推薦設定を繰り返し見直せると報告した（§3–5）。
+  research_bot_interpretation: 設定の提案はLLMに任せ、予算を守るかどうかは数値計算で判定する。次の提案には前回の測定を使う。AgentXより変更できる範囲が狭いので、どの設定が予算内に収まるかを判定しやすい。
 sections:
-  problem: '候補源の質やユーザー構成は変わるが、候補数の配分やserving treatmentは手作業で決めたまま残りやすい。モデル自体を再学習しても、この設定が古ければ計算予算を使う場所がずれる。
+  overview: 推薦に使える計算量が決まっているとき、どの経路に多く割り当てればよいか。どの利用者に、どの配信方法を使えばよいか。MetaのCORALは、この2つの設定を数日ごとに見直す。LLMが案を出し、別の処理が予算内に収める。
+  problem: '利用者や推薦候補の質が変わると、以前はよかった候補数の配分や利用者別の配信方法が合わなくなることがある。推薦モデルを再学習しても、こうした設定を変えない限り、計算量の配分は変わらない。
 
 
-    CORALは個々のrequestで推薦を生成しない。既存の推薦器を囲むcontrol planeとして、連続値の予算multiplierや離散的なtreatmentを変更する。online学習器の重み更新や自律的なproductionコード書換えとも区別する。'
-  evidence: '### videoのR1→R3は単調な改善ではない
-
-
-    §5.1・表1。R1はzero-shotでwatch time +0.13%、sessionsはneutral。R2は配分を動かしすぎて両指標neutral。複数decision cyclesをまとめたR3はwatch
-    time +0.15%、全ユーザーのvideo-viewing sessions +0.16%、largest marketのsessions +0.77%。neutralは有意差を検出しなかった意味で、効果が厳密に0だった証明ではない。
-
-
-    sessionsは少なくとも1回video viewを含むapp visit。A/Bは数百万人規模と記されるが、各roundのCI、割付比率、試験期間、共通controlの細部は非公開。new low-signal
-    cohortのsessions +0.23%は後続のsegment別配分であり、global R3と分母が違う。
-
-
-    ### 別surfaceの44%は削減額の増加
-
-
-    §5.2。初回は一部segmentへのtreatment配分で、年率換算数百万USDのserving費用を削減。2回目に対象segmentを広げ、初回の節約額を44%増やした。engagementは統計的に変わらなかった。したがって
-    `saving₂=1.44×saving₁` であり、`cost₂=0.56×cost₀` とは読めない。総費用に対する削減率は算出できない。
-
-
-    これは別serviceへ同じharnessの構成を適用した事例で、同じ学習済み配分をそのまま移した実験ではない。RecSys 2026 OARSの位置付けを持つ報告だが、ここで照合した資料はarXiv v1。[AgentX](agentx-kuaishou.html)のcode/DSL開発、[RecEvolve](recevolve-autonomous-rec.html)のarchitecture探索と比べ、CORALは既存の設定menuの内側で変更する。
-
-
-    <figure class="teaching batch17"><h3>R2のneutralも残して、roundを読む</h3><div class="matrix-scroll" tabindex="0" role="region"
-    aria-label="比較表"><table><thead><tr><th>指標</th><th>R1</th><th>R2</th><th>R3</th></tr></thead><tbody><tr><td>watch
-    time</td><td>+0.13%</td><td>neutral</td><td>+0.15%</td></tr><tr><td>sessions / 全体</td><td>neutral</td><td>neutral</td><td>+0.16%</td></tr><tr><td>sessions
-    / 最大市場</td><td>neutral</td><td>neutral</td><td>+0.77%</td></tr></tbody></table></div><div class="b17-cards"><div><strong>別surfaceの初回節約額をSとすると</strong><p>次回は1.44S。元費用Cに対する削減率は、S/Cがないと分からない。</p></div><div><strong>人工例：C=100、S=10</strong><p>次回節約14.4、残る費用85.6。論文の実金額ではない。</p></div></div><figcaption>§5.1・表1、§5.2。neutralを0%の棒として描かない。44%の分母は初回節約額。</figcaption></figure>
-
-
-    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2609.02730v1)。図表の箇所とSHA-256は末尾の対応表を参照。'
-  overview: CORALは、推薦候補を集める経路に割り当てる計算予算や、利用者群ごとの配信処理を数日ごとに見直すMetaの仕組みである。videoのR3でsessions +0.16%、watch time +0.15%、追加serving費用なし。別surfaceの44%は初回の削減額の増加率であり、総費用−44%ではない。
-  why_it_might_work: '【解釈】言語モデルは定性的な運用情報を解釈し、数値ツールは予算を保証する、という分業に意味がある。過去の提案と結果を記憶すれば、前回のやりすぎを戻す判断もできる。
-
-
-    ただし予算内であることはengagement改善の保証ではない。before/afterだけのattributionは季節性や上流変更と混ざる。A/Bが利用可能な場合のtreatment effectと、記憶に残るagent自身の解釈を同じ確度で扱わない。'
+    CORALは、利用者がアクセスするたびに推薦を作る仕組みではない。既存の推薦システムに対し、候補を集める経路ごとの倍率や、利用者のグループごとに使う配信方法を変更する。稼働中にモデルの重みを更新したり、本番コードを書き換えたりはしない。'
   method: method.md
-  executable_understanding: '3つの手作り予算提案を、非負・合計10以下の集合へEuclidean projectionする。各設定値と提案値の差を二乗して合計し、それが最小になる予算内の設定を選ぶ。既に実行可能な提案は保存する。離散menuも全列挙で最も近い実行可能な構成を選ぶ。初回節約10・元費用100という人工値で「節約額44%増」の分母を示す。
+  why_it_might_work: 'LLMは文章の形で残った運用情報と過去の判断を読み、次の設定を提案する。数値計算は、提案した設定が予算内に収まるかを判断する。前回の変更と結果を残しておけば、配分を動かしすぎた場合に、次の提案で見直せる。
 
 
-    <figure class="teaching batch17"><h3>提案を変えると、予算超過分だけ射影される</h3><div class="matrix-scroll" tabindex="0" role="region"
-    aria-label="比較表"><table><thead><tr><th>提案</th><th>適用した設定</th><th>合計費用</th></tr></thead><tbody><tr><td>[4, 3,
-    2]</td><td>[4, 3, 2]</td><td>9</td></tr><tr><td>[8, 7, 5]</td><td>[4.667, 3.667, 1.667]</td><td>10.0</td></tr><tr><td>[1,
-    1, 1]</td><td>[1, 1, 1]</td><td>3</td></tr></tbody></table></div><figcaption>run.pyの人工計算。予算10、非負、単価一定。実行可能な提案は同じまま。</figcaption></figure>'
-  results: 人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。
-  what_we_verified: '**Mechanism: PARTIAL**。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。
+    予算を守っても、視聴が増えるとは限らない。変更の前後だけを比べると、季節性や上流の変更の影響も混ざる。A/Bテストで比較した効果と、エージェントが観測から推定して記録した効果は、根拠の強さが違う。'
+  evidence: '### 動画サービスで候補収集の予算を配り直した結果
 
 
-    実験の入力と全出力はrun.pyとresults.jsonから確認できる。'
-  what_we_did_not_verify: 'LLM推論、attribution、人の監督の削減、時系列のpolicy改善、online A/B、実際のserving costはNOT TESTED。予算射影が成功しても、目的関数Jの改善は確認していない。
+    著者は動画サービスで候補を集める経路への予算配分を変え、3回のA/Bテストを報告した（§5.1、表1）。R1では過去の判断を使わず、1期間の統計から設定を提案した。視聴時間は0.13%増え、訪問回数に有意差は出なかった。R2では配分を大きく動かし、視聴時間と訪問回数に有意差が出なかった。複数の更新周期をまとめたR3では、視聴時間は0.15%、動画を見た訪問の回数は全体で0.16%、最大市場では0.77%増えた。著者によると、推薦の配信費用は増えなかった。
 
 
-    **Performance / Scaling / Production applicability: NOT TESTED**。一次資料の報告値との照合は、報告された本番効果の独立再現を意味しない。'
-  implementation: '標準ライブラリだけの独立実験。repository rootで `uv run papers/coral-meta-config-harness/run.py` を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。
+    訪問回数（sessions）は、訪問中に動画を1回以上見た場合を数える。表のneutralは、統計的な差を検出しなかったという意味であり、差が厳密に0だったという意味ではない。著者は試験が数百万人規模だったと述べるが、各回の信頼区間、割付比率、試験期間、共通の対照群の詳細は示していない。情報が少ない新規利用者を対象とする後続の配分では訪問が0.23%増えたが、全体を対象とするR3と同じ分母ではない。
+
+
+    <figure class="teaching batch17"><h3>動画サービスでの3回の比較</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>指標</th><th>R1</th><th>R2</th><th>R3</th></tr></thead><tbody><tr><td>視聴時間</td><td>+0.13%</td><td>有意差なし（neutral）</td><td>+0.15%</td></tr><tr><td>動画を見た訪問の回数（全体）</td><td>有意差なし（neutral）</td><td>有意差なし（neutral）</td><td>+0.16%</td></tr><tr><td>動画を見た訪問の回数（最大市場）</td><td>有意差なし（neutral）</td><td>有意差なし（neutral）</td><td>+0.77%</td></tr></tbody></table></div><figcaption>出典は§5.1の表1。有意差なしは効果が0%だったという意味ではない。</figcaption></figure>
+
+
+    ### 別サービスで配信方法を変えたときの費用
+
+
+    著者は別のサービスで、一部の利用者グループに配信方法を割り当て、年率換算で数百万USDの推薦配信費用を減らした（§5.2）。次に対象グループを広げたところ、初回の削減額より44%多く減らせた。利用者の反応には統計的な変化がなかった。初回の削減額をSとすると次回は1.44S（`saving₂=1.44×saving₁`）である。総費用が44%減った（`cost₂=0.56×cost₀`）とは読めない。元の総費用が分からないため、総費用に対する削減率は計算できない。
+
+
+    <figure class="teaching batch17"><h3>44%の分母を確認する</h3><div class="b17-cards"><div><strong>原論文で増えたのは削減額</strong><p>初回にSを減らせたとすると、次回の削減額は1.44Sになる。</p></div><div><strong>人工例：元費用100、初回の削減額10</strong><p>次回の削減額は14.4になり、費用は85.6残る。この金額は論文の実測値ではない。</p></div></div><figcaption>§5.2の44%は初回削減額に対する割合。右の金額は、分母の違いを示すための例である。</figcaption></figure>
+
+
+    著者は同じ仕組みを別サービスでも使ったが、同じ学習済み配分を移したわけではない。[AgentX](agentx-kuaishou.html)がコードや専用言語（DSL）を書き、[RecEvolve](recevolve-autonomous-rec.html)がモデル構造を探すのに対し、CORALは既存の選択肢や設定値の範囲で変更する。この報告はRecSys
+    2026 OARSに位置付けられている。照合に使った一次資料は[arXiv v1のPDF](https://arxiv.org/pdf/2609.02730v1)である。照合した節と表、PDFのSHA-256は末尾の対応表に示す。'
+  executable_understanding: 'この小実験では、人が用意した3つの設定案を使う。各設定値を0以上、合計を10以下にする。提案が条件を満たせば、そのまま採用する。条件を外れた場合は、各設定値と提案値の差を二乗して合計し、その値が最も小さくなる組み合わせを選ぶ。この距離で予算内の点を求める計算をユークリッド射影と呼ぶ。候補が離散的な場合は、実行できる候補をすべて比べて最も近いものを選ぶ。
+
+
+    <figure class="teaching batch17"><h3>予算に収まる場合と収まらない場合の違い</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>提案</th><th>適用した設定</th><th>合計費用</th></tr></thead><tbody><tr><td>[4,
+    3, 2]</td><td>[4, 3, 2]</td><td>9</td></tr><tr><td>[8, 7, 5]</td><td>[4.667, 3.667, 1.667]</td><td>10.0</td></tr><tr><td>[1,
+    1, 1]</td><td>[1, 1, 1]</td><td>3</td></tr></tbody></table></div><figcaption>run.pyで求めた人工例。予算は10、各設定値は0以上、単価は一定とする。もとから予算に収まる2案は変えない。</figcaption></figure>
+
+
+    別の人工例では、元費用100と初回の削減額10を使って、削減額が44%増える場合と総費用が44%減る場合の違いを確認する。'
+  results: 以下は人工データを使った小実験の計算値である。著者が実際のサービスで測った値は「根拠」の節に示した。
+  what_we_verified: 'このLabでは、人が用意した条件で予算に収まる設定を選ぶ計算と境界条件を確かめた。仕組み全体を確認したわけではない（Mechanism: PARTIAL）。results.jsonのchecksでCONFIRMEDとしているのは、小実験で確認できた個別の命題に限る。入力と出力はrun.pyとresults.jsonで確認できる。'
+  what_we_did_not_verify: 'このLabでは、LLMの提案、前回の変更の効果の推定、人の監督を減らせるかどうか、更新を繰り返すと設定が改善するか、オンラインA/B、実際の配信費用は検証していない。設定を予算に収めたあと、目的関数Jが改善するかも確かめていない。原論文の報告値を照合することと、その効果を独立に再現することは別である。性能、規模を広げたときの挙動、本番への適用は未検証である（Performance
+    / Scaling / Production applicability: NOT TESTED）。'
+  implementation: '小実験は標準ライブラリだけで動く。リポジトリの最上位で `uv run papers/coral-meta-config-harness/run.py` を実行すると、同じフォルダーのresults.jsonを作り直す。乱数や外部APIは使わない。
 
 
     [実行コード](../downloads/coral-meta-config-harness/run.py)・[全結果](../downloads/coral-meta-config-harness/results.json)・[README](../downloads/coral-meta-config-harness/README.md)・[方法](../downloads/coral-meta-config-harness/method.md)・[対応表](../downloads/coral-meta-config-harness/mapping.md)を保存できる。
 
 
-    確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。'
+    確認した論文本文とarXivの書誌情報では、取得できる公式コードへの案内を見つけられなかった。非公開と断定するものではない。公式コードを使った独立検証は未実施である（NOT TESTED）。'
   mapping: mapping.md
 teaching_figures:
 - kind: equations
   id: method-equations
-  title: 式と操作の対応
+  title: 推薦の設定・予算・費用を表す式
   after: method
-  caption: 各記号が担う役割を分けて読む。
-  rationale: 演算と制約の対象を明確にする。
+  caption: 何をよくしたいか、何を制約にするか、どの費用を見積もるかを式ごとに読む。
+  rationale: 目的の値を上げることと、提案を予算内に収めることを区別する。
   source: https://arxiv.org/pdf/2609.02730v1
   locator: 式1–3、§4.2
   steps:
-  - name: 目的
+  - name: 予算内で選びたい設定
     formula: s*_t=argmax J_t(s), c_t(s)≤B
-    explanation: 時点ごとに最適設定は変わる。最適性保証は未提示。
-  - name: Labの射影
+    explanation: 各時点で、費用がB以下の設定から目的の値が最も高いものを考える。論文は最適にできると証明していない。
+  - name: Labで予算に収める計算
     formula: s=argmin_{x≥0,Σx≤B} ||x−proposal||²
-    explanation: この距離と単価はLabの仮定。原論文のoptimizer詳細は非公開。
-  - name: 費用
+    explanation: Labでは、この距離と単価を仮定する。論文は最適化の詳細を示していない。
+  - name: LLMの呼び出し費用
     formula: Cost=(T/k)C(τ_in p_in+τ_out p_out)
-    explanation: request数には比例しないLLM費用。token数は著者推定。
+    explanation: 著者は、利用者からのリクエスト数ではなく、設定を更新する周期ごとに見積もった。トークン数は推定値である。

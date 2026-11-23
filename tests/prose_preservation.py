@@ -61,7 +61,38 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
             return row['after_' + algorithm]
         assert expected == row['before_' + algorithm], path
         expected = row['after_' + algorithm]
-    return hasterad_registration_hash(root, path, expected, algorithm)
+    expected = replenishment_guide_rewrite_hash(root, path, expected, algorithm)
+    expected = replenishment_cards_rewrite_hash(root, path, expected, algorithm)
+    expected = replenishment_cards_followup_hash(root, path, expected, algorithm)
+    result = hasterad_registration_hash(root, path, expected, algorithm)
+    return coral_full_rewrite_hash(root, path, result, algorithm)
+
+
+def replenishment_guide_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Apply the complete guide rewrite only to the exact preceding guide."""
+    row = json.loads((root / 'tests/replenishment_guide_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def replenishment_cards_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Apply the seven evidence-card rewrites only from the exact prior bytes."""
+    row = json.loads((root / 'tests/replenishment_cards_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def replenishment_cards_followup_hash(root, path, expected, algorithm='sha256'):
+    """Explain five terms only from the frozen rewrite bytes."""
+    row = json.loads((root / 'tests/replenishment_cards_followup_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
 
 
 def hasterad_registration_hash(root, path, expected, algorithm='sha256'):
@@ -76,6 +107,15 @@ def hasterad_registration_hash(root, path, expected, algorithm='sha256'):
 def reference_guess_markup_hash(root, path, expected, algorithm='sha256'):
     """Accept only the exact option markup repair, independently of prose review."""
     row = json.loads((root / 'tests/reference_guess_markup_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def coral_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Recognize four exact source and authored CORAL identities; reject any other input."""
+    row = json.loads((root / 'tests/coral_full_rewrite_hashes.json').read_text())['files'].get(path)
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path
