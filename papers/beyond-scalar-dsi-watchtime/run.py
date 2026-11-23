@@ -55,18 +55,18 @@ def main():
               'checks': {k: 'CONFIRMED' if v else 'NOT OBSERVED' for k,v in checks.items()},
               'limitations': ['No provider or readout training', 'Hand-designed oracle distributions', 'No public dataset benchmark or production A/B']}
     (ROOT/'results.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
-    method = '''## 同じ平均の背後にある四つの状態を残す
+    method = '''## 平均が同じでも、完了や overplay の確率は違う
 
-著者の提案は、推定器から下流の判断へ渡す情報を増やすことだ。Fig. 2では、状態と時刻の同時分布276値を27次元へ要約し、固定した推定器の出力を複数の読み出し層へ渡す。下流は共通の生特徴も受け取る。
+平均視聴時間だけでなく、分布の要約を後段のモデルに渡すのが著者の提案である。Fig. 2 では、視聴の状態と時刻の組合せごとの確率276個を27次元に要約する。分布を推定するモデルは学習した後に固定する。視聴秒数を予測する層と順位付けのスコアを出す層は、要約と元の特徴の一部を共通の入力として学習する。
 
-状態は視聴時間 y と動画長 d の比で定義する。early は y/d < 0.3、mid は 0.3 ≤ y/d < 0.9、completion は 0.9 ≤ y/d ≤ 1.1、overplay は y/d > 1.1。overplay は意図的な再視聴を観測したラベルではない。
+視聴時間を y、動画の長さを d とすると、四つの状態を分ける基準は y/d である。early は y/d < 0.3、mid は 0.3 ≤ y/d < 0.9、completion は 0.9 ≤ y/d ≤ 1.1、overplay は y/d > 1.1。overplay は動画の長さに対する視聴時間の比であり、意図して見直したかどうかを記録したラベルではない。
 
-次の操作は学習済みモデルの予測ではない。同じ動画長と平均を持つ人工分布を切り替え、平均から消える情報を確認する。
+次の図は学習済みモデルの予測ではない。動画の長さと平均視聴時間が同じ二つの人工分布を比べる。全員が10秒見る群に、0秒見る人と20秒見る人が半数ずつの群を混ぜる。「分岐」は後者を混ぜる割合を表す。
 
 '''
     options = ''.join(f'<option value="{i}">{i*25}% 分岐</option>' for i in range(5))
-    method += f'<figure class="teaching" data-b21><h3>平均10秒でも、完了確率は変わる</h3><label>分布を混ぜる <select>{options}</select></label><div data-output aria-live="polite">{frames[0]}</div><script type="application/json" data-frames>{json.dumps(frames,ensure_ascii=False)}</script><figcaption>run.py の合成分布。棒は各状態の確率。0秒と20秒の分岐を増やしても平均10秒は変わらない。</figcaption></figure>\n\n'
-    method += '解釈: 平均と動画長だけを受け取る層は、この二群を区別できない。状態確率を渡せば完了や長時間視聴を別々に判断できる。ただし、真の分布を正しく推定できるかは別の問題であり、この例では検証しない。\n'
+    method += f'<figure class="teaching" data-b21><h3>平均10秒でも、完了確率は変わる</h3><label>分布を混ぜる <select>{options}</select></label><div data-output aria-live="polite">{frames[0]}</div><script type="application/json" data-frames>{json.dumps(frames,ensure_ascii=False)}</script><figcaption>run.py が作る分布。棒は各状態の確率を示す。0秒か20秒を見る群の割合を変えても、平均は10秒のままである。</figcaption></figure>\n\n'
+    method += '平均視聴時間と動画の長さだけを入力にすると、二群はどちらも同じ値になる。各状態の確率を入力にすれば、完了と長時間視聴を別々に判断できる。この図の long は completion と overplay の確率を足した値である。この例では、実際の視聴データから分布を正しく推定できるかは検証していない。\n'
     (ROOT/'method.md').write_text(method)
     print(json.dumps(result['checks'],ensure_ascii=False))
 
