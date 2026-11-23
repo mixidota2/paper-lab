@@ -69,7 +69,14 @@ def test_exact_revision_manifest_and_mutation_rejection():
             def digest(raw):
                 return hashlib.sha256(raw).hexdigest() if algorithm == 'sha256' else hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
             assert digest(old) == row['before_'+algorithm]
-            assert digest(new) == issue21_hash(ROOT,path,digest(old),algorithm)
-            assert digest(new+b'\n') != row['after_'+algorithm]
+            exact_after_issue21 = row['after_'+algorithm]
+            if path == 'guides/forecast-to-replenishment.md':
+                reading = json.loads((ROOT/'tests/reading_prose_revision_hashes.json').read_text())['files'][path]
+                assert reading['before_'+algorithm] == exact_after_issue21
+                expected_live = reading['after_'+algorithm]
+            else:
+                expected_live = exact_after_issue21
+            assert digest(new) == issue21_hash(ROOT,path,digest(old),algorithm) == expected_live
+            assert digest(new+b'\n') != expected_live
             with pytest.raises(AssertionError):
                 issue21_hash(ROOT,path,'unreviewed',algorithm)
