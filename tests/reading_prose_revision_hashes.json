@@ -1393,6 +1393,36 @@
       "after_sha256": "dd08a53035ee050b405c0cd16eefb5da4ab7cf9bae420af8b712456d8782a1a3",
       "after_blob": "822c2f5b921eefc80cd179844e25c911fbda001f",
       "after_reference_guess_markup": true
+    },
+    "papers/aura-disney-agentic-rec-diagnosis/README.md": {
+      "before_sha256": "cf9f8eb7a89c8578447fac31020792a20e5771878b7c93b22a8de34b819215aa",
+      "before_blob": "22d274106423ee9c27679e1d943267cd992de4a1",
+      "after_sha256": "d13452af07d33df4f14bc2aeca48dcc7a4a927ed5f82a96adb5baf19f110e9a0",
+      "after_blob": "6983d7bd66cf9d48efc5ed105993cb742a0c86fa"
+    },
+    "papers/aura-disney-agentic-rec-diagnosis/mapping.md": {
+      "before_sha256": "ac043c57af14458f435789e706288d0040e5caee7bed744959d12661f8d9bfc9",
+      "before_blob": "4fd75fa5b502fc320de690d9b36f9ea43dd50e2c",
+      "after_sha256": "af0c82b7f759888e51bd0e1cd6b55a58c061c098ef396e5488d6a6d66bfad793",
+      "after_blob": "e6b17e9e4e041769bedd7c5c4a95f680edece2b4"
+    },
+    "papers/agent-reasoning-forgetting-externalized-state/method.md": {
+      "before_sha256": "34efbd610fd15f64d09107c1cae716e185b0e87d1cb3b1c6568a571bd52bc301",
+      "before_blob": "98ba694ba40286d8b3b73960440d11b182fcf536",
+      "after_sha256": "3f5cff8537a6c3ba2ff4b1c9c70dd25fac6286651602860c6646f00a463e6aac",
+      "after_blob": "c84abe07a5c8a7b62fd99d6b79be2e5cd0d61329"
+    },
+    "papers/agent-reasoning-forgetting-externalized-state/mapping.md": {
+      "before_sha256": "b536381e2fb804d4f07a645aacd9c5668cda29d8ca00a07abdb0e0bd0d726644",
+      "before_blob": "422035e103054b5e62444758711ece0b9f5ee893",
+      "after_sha256": "d88a014ca319de3a1ad21147144822d1f56bc77daa0c30284af3ff9aeb22927b",
+      "after_blob": "3c33d2827bf43eec6ecf312c2f7ed85f86c0485d"
+    },
+    "research-data/shelf/shelf-allocation-evidence-2026-10-29.md": {
+      "before_sha256": "1f5f7e7d1b137da78281c5ea13a3bbf88add538087ed30f03ad6de6694256992",
+      "before_blob": "741095217512780c3ef64c4fb8ee557517b39e2c",
+      "after_sha256": "fffe7758c9f68086d72821ed5fd6f21cc2ad1c3d5ffdf0c06301fc03a4dbf2a1",
+      "after_blob": "371c3b5525ebe791acba9ffbf6f9aac950295a10"
     }
   }
 }
