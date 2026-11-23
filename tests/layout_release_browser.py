@@ -18,6 +18,32 @@ from hasterad_release_browser import inspect_hasterad
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "browser-review" / "layout-release"
 SITE = ROOT / "site"
+GUESS_PAGES = (
+    "reasoncast-agentic-demand-forecasting",
+    "retailbench-long-horizon-store-agents",
+)
+GUESS_OPTIONS = ("まだ決めていない", "改善する", "同じになる", "悪化する")
+
+
+def inspect_guess(page, base, slug):
+    assert page.goto(f"{base}/papers/{slug}.html").ok
+    panel = page.locator("[data-reference-lab]")
+    assert panel.count() == 1
+    panel.locator("[data-output] table").first.wait_for()
+    guess = panel.locator("[data-guess]")
+    assert tuple(guess.locator("option").all_text_contents()) == GUESS_OPTIONS
+    assert guess.input_value() == GUESS_OPTIONS[0]
+    result = panel.locator("[data-output]")
+    initial = result.inner_text()
+    assert initial.strip()
+    for label in GUESS_OPTIONS[1:]:
+        guess.select_option(label=label)
+        assert guess.input_value() == label
+        assert result.inner_text() == initial
+    panel.locator("[data-reset]").click()
+    assert guess.input_value() == GUESS_OPTIONS[0]
+    assert result.inner_text() == initial
+    return {"slug": slug, "choices": list(GUESS_OPTIONS), "selection": "PASS", "reset": "PASS", "output_unchanged": "PASS"}
 
 
 def main():
@@ -27,7 +53,7 @@ def main():
         "status": "STARTED", "manual_visual_review": "NOT TESTED",
         "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
         "source_sha256": hashlib.sha256((ROOT / "guides/store-layout-fixed-counts.md").read_bytes()).hexdigest(),
-        "widths": [], "hasterad_widths": [], "errors": [],
+        "widths": [], "hasterad_widths": [], "reference_guess": [], "errors": [],
     }
 
     def snapshot(page, out, name, locator=None):
@@ -123,6 +149,11 @@ def main():
                 assert int(slider.input_value()) == data["default"]
                 snapshot(page, OUT, f"sid-ope-{width}-reset", panel)
                 record["widths"].append({"width": width, "tables": tables, "navigation": "PASS", "search": "PASS", "slider": "PASS", "sandbox": "CONFIRMED"})
+                for slug in GUESS_PAGES:
+                    verify_seatbelt(browser)
+                    result = inspect_guess(page, base, slug)
+                    verify_seatbelt(browser)
+                    record["reference_guess"].append({**result, "width": width, "sandbox": "CONFIRMED"})
                 page.close()
             for width in (360, 768, 1440):
                 page = browser.new_page(viewport={"width": width, "height": 900}, reduced_motion="reduce")
