@@ -1188,6 +1188,48 @@
       "before_blob": "f3e6c15dc8801761946d47e577ec6849b07e82d9",
       "after_sha256": "1c02242c5d986f4b03c263d91c0c32f1c87c51e9a945ddae5a6833662e03d802",
       "after_blob": "76f575e2c5818f4ce502009b1ee5429574de86aa"
+    },
+    "papers/netflix-counterfactual-observability/README.md": {
+      "before_blob": "7bfe4845b1e60e536309e10aca7e5f2924863a76",
+      "after_blob": "238925de42f0c2775344a126fe74af7e164c64b4",
+      "before_sha256": "540b21f84237eee8157970a07ba0b53b63b54f928ca8680f088126d78158d867",
+      "after_sha256": "4cf0382d868c4292f5e72754cb7dc0774ff9cf11ccf7d7bce16be3dde29a6d75"
+    },
+    "papers/netflix-counterfactual-observability/mapping.md": {
+      "before_blob": "513db41c1fc1f94b793e66a31666fe2c2afc4049",
+      "after_blob": "f58b4ded9c0ff71863b3e6de4e82f728adb8263e",
+      "before_sha256": "f39234fc8c1e8c19bdd8b10575fdb24f2d70ca18c41f4073e90a69bef5e5cdbf",
+      "after_sha256": "f7d0cd7e598fef4e46964c440696f1f0d2f5ec586a29edd3b1471c3d9e6be84d"
+    },
+    "papers/netflix-counterfactual-observability/method.md": {
+      "before_blob": "a20ca79b2544d080c7d25f6ad5204e09bb6f63e1",
+      "after_blob": "c3ea61ce76faf52ca6b0727edff45c157cc09864",
+      "before_sha256": "4f533327f6bdb33aa223db50213d26a39f32c6fcca363d81fcbe093979561ac6",
+      "after_sha256": "7bf3a2bd52dddae3b5a729b6ed780dec1d75f7907fd9350c1bd9a859f2d2a3fa"
+    },
+    "papers/pinterest-causal-retrieval-shopping/README.md": {
+      "before_blob": "66a03a1d36d93ef233515c23104ddab1ae24dbec",
+      "after_blob": "5939fea3740e3964e41a3323e6b9b21bdd514206",
+      "before_sha256": "c3073e04579d4539c183ad4847b373b2a477f0a24cc9d54bd1166e5d2ebc91c8",
+      "after_sha256": "1a500fd19e06834e34517e3dd16ce96c9f9aefecc3842fb336daeda97c19d98c"
+    },
+    "papers/pinterest-causal-retrieval-shopping/mapping.md": {
+      "before_blob": "9f66bd7ac96c7b175e77eea5bf2771751134c7e2",
+      "after_blob": "5fc12c3e818cb66ef0c32cd67ee3200a71a0031d",
+      "before_sha256": "4cf2d9653d26e40f2b26bed81624b5ffa6f885434e1413ab768192447779dd15",
+      "after_sha256": "13ba83bd7ba9dd4cedfb63a03c19c707aa1e4971febc327222c2ca0a80c09208"
+    },
+    "papers/spotify-incremental-recommendation-causal/README.md": {
+      "before_blob": "b8faf64a0454af5f15f768f2106eb881e7a85d4a",
+      "after_blob": "ed44a996a950fe8d4f8a5036f0b8e0a6d0e4185c",
+      "before_sha256": "2149682118ba719d208fa022cc0681a9b0a0229a0328f312ca87226c5a1831fa",
+      "after_sha256": "63e005bf39723e838dcd8a6b22dadc0c4fcef8e229cce374a22cc72c379c94a1"
+    },
+    "papers/spotify-incremental-recommendation-causal/mapping.md": {
+      "before_blob": "99cbd6061dea5ceb75474a8bc0f1d1255fe90eff",
+      "after_blob": "238321664612aabd5b33fdcff16bfc8a5183a627",
+      "before_sha256": "e539ac4530f4384019166ca4886045389f08b001fc954c5f6944b9e6b3908c6f",
+      "after_sha256": "29e83f6511527397836b27873eab9434762d111659b6b584a8bad91cfa9058b0"
     }
   }
 }
