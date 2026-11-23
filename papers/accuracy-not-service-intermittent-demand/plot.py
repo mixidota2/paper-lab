@@ -30,7 +30,7 @@ def render(result):
  for j,v in enumerate(xs):
   xx=65+j*58;body+=f'<rect x="{xx}" y="{350-v*40}" width="28" height="{max(v*40,2)}" fill="#348cac"/><text x="{xx+12}" y="376">{j+1}</text>'
  for c,color,label in [(.8,'#995526','全期間の平均 0.8'),(4,'#9550a0','需要があった期間の平均 4.0')]:
-  yy=350-c*40;body+=f'<path d="M45 {yy} H650" stroke="{color}" stroke-dasharray="7 4"/><text x="400" y="{yy-10}" fill="{color}">{label}</text>'
+  yy=350-c*40;body+=f'<path d="M45 {yy} H650" stroke="{color}" stroke-dasharray="7 4"/><text x="{300 if c==4 else 400}" y="{yy-10}" fill="{color}">{label}</text>'
  body+='<text x="35" y="423">学習用データの標準偏差：全期間は1.833、需要があった期間は2.0</text><text x="35" y="450">変換して元の単位に戻ることを確認。Chronosの推論は実行していない。</text>'
  (D/'recentering.svg').write_text(svg('学習用の人工データで、需要がゼロの期間を平均に含める場合と除く場合を比べる図',body))
  result['author_aggregate_audit']={'n':len(rows),'rank_pearson_from_published_ranks':rho,'csv_sha256':hashlib.sha256((D/'author-orderbook.csv').read_bytes()).hexdigest(),'scope':'凍結集計の算術監査。モデル・注文replayの独立再現ではない。'}
