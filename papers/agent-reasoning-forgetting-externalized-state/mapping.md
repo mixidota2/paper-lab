@@ -1,16 +1,16 @@
 # 原論文との対応
 
-一次資料：[When Can Agents Forget Their Reasoning? v1](https://arxiv.org/pdf/2609.29875v1)、2026-09-24、全30ページ。本文・付録を照合した。
+一次資料：[When Can Agents Forget Their Reasoning? v1](https://arxiv.org/pdf/2609.29875v1)、2026-09-24、全30ページ。本文と付録を照合した記録に基づく。
 
-| 原論文 | Labの対応 | 省いた内容 |
+| 原論文 | Labで説明する内容 | Labで再現していないこと・比較上の注意 |
 | --- | --- | --- |
-| Fig. 2 / Eq. 1–9 / Appendix C | READMEの手順と式 | DeepSeek実行、Qwen採点、block剪定は未実装 |
-| Eq. 15 / Table 14–15 | 保存先の比較、results.paper.risk | 状態群の観察比較を因果効果へ変換しない |
-| Table 16–17 | replay()の読出しと再導出 | Office課題・実tool・stderrの9介入は未再現 |
-| Fig. 3 / Table 10 | Random 5/10/20/40%の散布図 | block削除のICLRをtoken削除と同じ横軸に置かない |
-| Table 2・7 | Full260の報酬・費用 | 非公開軌跡の再評価なし |
-| Table 3・9 | Ablation80でICLR 0.7376、全削除0.7178 | 260課題の0.717775との混同を訂正 |
-| Theorem B.3 / Corollary B.4 | 行動分布差の累積上界と外部化の十分条件 | εの推定、適応的削除の安全性保証なし |
-| Table 12–13 | probe・patchingの評価範囲を解説 | 実行役に対するpatchingはない |
+| Fig. 2 / Eq. 1–9 / Appendix C | READMEで推論を削る手順と式を説明 | DeepSeekの実行、Qwenによる採点、ブロック単位の削除は未実装 |
+| Eq. 15 / Table 14–15 | 保存先ごとの比較。対応する値は `results.paper.risk` | 状態の保存先で分けた群の観察結果から、保存先の因果効果は求めていない |
+| Table 16–17 | `replay()` で保存した状態の読み出しと再導出を試す | Office課題、実際のツール、stderrを使った9介入は未再現 |
+| Fig. 3 / Table 10 | Random 5/10/20/40%を散布図に表示 | ICLRはブロック単位、Randomはトークン単位で削るため、同じ横軸に載せない |
+| Table 2・7 | Full260（全260課題）の報酬と費用 | 非公開の実行履歴は再評価していない |
+| Table 3・9 | Ablation80（80課題の比較）で、ICLRの平均報酬は0.7376、推論をすべて削った場合は0.7178 | 別集計である260課題の0.717775と混同しない |
+| Theorem B.3 / Corollary B.4 | 次の行動の確率分布の差から、やり取り全体の差の上界を求める式と、保存した状態だけで同じ分布を得られる条件 | εは推定していない。採点結果に応じて削る方法の安全性を保証するものではない |
+| Table 12–13 | モデル内部の表現から情報を読み取る試験（probe）と、内部の値を差し替える試験（patching）の評価範囲 | 実際に行動を選ぶモデルに対しては、著者もpatchingを行っていない |
 
-run.pyは独立に書いた教育用の状態機械。公式コードの移植ではない。PDF本文・再現性記述には公式コードURLを確認できず、lab.yamlのofficial_codeはnullとした。原論文の公開状況全体を調査した主張ではない。
+`run.py` は状態の読み出しと再導出を説明するために独自に書いた。公式コードの移植ではない。確認したPDFの本文と再現性に関する記述からは公式コードのURLが見つからなかったため、`lab.yaml` の `official_code` は `null` とした。論文の外まで探して、実装が公開されていないことを確かめたわけではない。
