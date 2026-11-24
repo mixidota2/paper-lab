@@ -46,7 +46,7 @@ def library(tmp_path_factory):
     site = tmp_path_factory.mktemp('library-navigation') / 'site'
     build(root=ROOT, site_dir=site)
     parsed = LibraryHTML((site / 'index.html').read_text())
-    assert len(parsed.cards) == 118
+    assert len(parsed.cards) == 119
     assert parsed.defaults == dict(search='', topic='', verdict='', sort='date')
     return dict(cards=parsed.cards, defaults=parsed.defaults, options=parsed.options,
                 has_status=parsed.has_status, source=(site / 'assets/library.js').read_text())
@@ -108,8 +108,8 @@ function app(href = origin, mode = {}) {
     assert.deepEqual(visible(),expected);
     assert.equal(count.textContent,expected.length+'件');
     assert.equal(empty.hidden,expected.length!==0);
-    assert.equal(parent.children.length,118);
-    assert.equal(new Set(parent.children).size,118);
+    assert.equal(parent.children.length,119);
+    assert.equal(new Set(parent.children).size,119);
   }
   function edit(values,type='input'){
     Object.entries(values).forEach(([k,v])=>e[k].value=v);
@@ -135,7 +135,7 @@ assert.ok(f.has_status,'generated page exposes status for URL save failure');
 const url=origin+'?search=recommend&topic=recommender-systems&verdict=Worth+Reading&sort=title#library';
 const a=app(url);
 assert.deepEqual(a.values(),{search:'recommend',topic:'recommender-systems',verdict:'Worth Reading',sort:'title'});
-assert.ok(a.visible().length>1 && a.visible().length<118);
+assert.ok(a.visible().length>1 && a.visible().length<119);
 assert.equal(a.calls.length,0);
 assert.equal(a.win.location.href,url);
 """,
@@ -167,7 +167,7 @@ assert.equal(b.e.search.value,'EXAONE');assert.equal(b.visible().length,1);
     'clear_preserves_unrelated_context': r"""
 const a=app(origin+'?keep=one&keep=two&search=EXAONE&topic=recommender-systems&verdict=Must+Read&sort=title#library');
 a.clear.dispatchEvent(new Event('click'));a.check();
-assert.deepEqual(a.values(),f.defaults);assert.equal(a.visible().length,118);
+assert.deepEqual(a.values(),f.defaults);assert.equal(a.visible().length,119);
 assert.equal(a.doc.activeElement,a.e.search);
 const url=new URL(a.win.location.href);
 for(const key of Object.keys(f.defaults))assert.equal(url.searchParams.has(key),false);
@@ -194,7 +194,7 @@ a.travel(second);assert.equal(a.e.search.value,'');assert.equal(a.e.topic.value,
 // Browsers may revive stale input fields separately from the document.
 a.e.search.value='stale';a.e.topic.value='ai-agents';
 a.travel(second,'pageshow');assert.equal(a.e.search.value,'');assert.equal(a.e.topic.value,'retail-supply');
-a.travel(origin);assert.deepEqual(a.values(),f.defaults);assert.equal(a.visible().length,118);
+a.travel(origin);assert.deepEqual(a.values(),f.defaults);assert.equal(a.visible().length,119);
 """,
     'history_failure_keeps_search_usable': r"""
 const a=app(origin,{throwWrite:true});
@@ -203,7 +203,7 @@ assert.equal(a.win.location.href,origin);assert.equal(a.status.hidden,false);
 assert.match(a.status.textContent,/URLに残せません/);
 a.travel(origin,'pageshow');assert.equal(a.e.search.value,'EXAONE');assert.equal(a.visible().length,1);
 a.edit({search:'no-such-paper'});assert.equal(a.visible().length,0);
-a.clear.dispatchEvent(new Event('click'));a.check();assert.equal(a.visible().length,118);
+a.clear.dispatchEvent(new Event('click'));a.check();assert.equal(a.visible().length,119);
 assert.equal(a.doc.activeElement,a.e.search);
 """,
     'restricted_url_and_no_browser': r"""
@@ -212,7 +212,7 @@ a.edit({search:'EXAONE'});assert.equal(a.visible().length,1);
 assert.equal(a.status.hidden,false);assert.match(a.status.textContent,/URLに残せません/);
 const b=app(origin,{noWindow:true});b.edit({search:'EXAONE'},'submit');
 assert.equal(b.visible().length,1);assert.equal(b.calls.length,0);
-b.clear.dispatchEvent(new Event('click'));b.check();assert.equal(b.visible().length,118);
+b.clear.dispatchEvent(new Event('click'));b.check();assert.equal(b.visible().length,119);
 const c=app('file:///tmp/lab%20copy/index.html?search=EXAONE#library');
 assert.equal(c.visible().length,1);c.edit({search:'recommend',sort:'priority'});
 assert.deepEqual(app(c.win.location.href).values(),c.values());

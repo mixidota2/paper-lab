@@ -109,7 +109,7 @@ def test_only_assortment_block_changed_and_all_capture_calls_preserved():
     ]:
         assert old_text.count(before)==1
         old_text=old_text.replace(before,after)
-    old=ast.parse(old_text.replace("117", "118"))
+    old=ast.parse(old_text.replace("117", "119"))
     new=ast.parse((ROOT/'tests/review_103.py').read_text())
     def normalize(tree,new=False):
         tree=copy.deepcopy(tree)
