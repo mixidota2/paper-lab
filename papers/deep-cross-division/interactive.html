@@ -1,0 +1,241 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231e4035'/%3E%3Cpath d='M8 8h7v16H8zm9 0h7v16h-7z' fill='%23fff'/%3E%3C/svg%3E"><title>積と比を比べる</title><main><section id="dcdn-demo" aria-labelledby="dcdn-demo-title">
+<style>
+#dcdn-demo .dcdn-controls{display:flex;flex-wrap:wrap;gap:1rem}
+#dcdn-demo .dcdn-controls label{display:block}
+#dcdn-demo input,#dcdn-demo select{font:inherit;max-width:100%}
+#dcdn-demo input[type=number]{width:8rem}
+#dcdn-demo .dcdn-pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr));gap:.6rem}
+#dcdn-demo .dcdn-pair div{border:1px solid currentColor;border-radius:.5rem;padding:.6rem}
+#dcdn-demo .dcdn-pair dd{margin:0;font-weight:bold;font-variant-numeric:tabular-nums}
+</style>
+<h3 id="dcdn-demo-title">分母を小さくすると、積と比はどう変わるか</h3>
+<p>クリック数と表示数のように、両方の値をモデルに渡すとします。ここでは計算の違いを見るため、負の分母も入力できます。モデル全体の予測を求める画面ではありません。</p>
+<div class="dcdn-controls">
+<label>分子 n <input id="dcdn-n" type="number" min="-1000" max="1000" step="any" value="5" disabled></label>
+<label>分母 d <input id="dcdn-d" type="number" min="-1000" max="1000" step="any" value="0.005" disabled></label>
+<label><input id="dcdn-mask" type="checkbox" checked disabled> d を逆数に使う</label>
+</div>
+<dl class="dcdn-pair" aria-live="polite">
+<div><dt>積 n × d</dt><dd id="dcdn-product">0.025</dd></div>
+<div><dt>そのままの比 n ÷ d</dt><dd id="dcdn-raw">1000</dd></div>
+<div><dt>上限を設けた逆数 ρ(d)</dt><dd id="dcdn-rho">100</dd></div>
+<div><dt>逆数を使う項 n × ρ(d)</dt><dd id="dcdn-term">500</dd></div>
+</dl>
+<p id="dcdn-note" role="status">分母の絶対値が 0.01 より小さいため、逆数の計算にはその下限を使います。</p>
+<h3>著者の本番データで、どの条件を比べたか</h3>
+<p>ここからは自作例ではなく、<a href="https://arxiv.org/html/2611.27514v1#S6.T5">論文の表5</a>です。XAUC は同じセッションで正解の値が異なる候補の組のうち、モデルが正しく並べた割合です。</p>
+<div class="dcdn-controls">
+<label>評価対象 <select id="dcdn-task" disabled><option value="fullscreen">全画面表示</option><option value="like">いいね</option><option value="share">シェア</option><option value="view_time" selected>視聴時間</option></select></label>
+<label>比べる条件 <select id="dcdn-view" disabled><option value="full">両方に手作りの比率を渡す</option><option value="reduced" selected>両方から手作りの比率を除く</option><option value="deployed">本番と同じモデル・入力の組み合わせ</option></select></label>
+</div>
+<dl class="dcdn-pair" aria-live="polite">
+<div><dt id="dcdn-control-label">DCNv2（比率なし）</dt><dd id="dcdn-control">0.5152</dd></div>
+<div><dt id="dcdn-treatment-label">DCDN（比率なし）</dt><dd id="dcdn-treatment">0.5629</dd></div>
+<div><dt>XAUC の差</dt><dd id="dcdn-delta">+0.0477</dd></div>
+</dl>
+<p id="dcdn-view-note" role="status">入力をそろえたオフライン比較です。</p>
+<noscript><p>操作には JavaScript が必要です。上の初期例と論文の表5はそのまま読めます。</p></noscript>
+</section>
+<script type="application/json" id="dcdn-data">{
+  "experiment": "local_single_term_least_squares",
+  "source": "https://arxiv.org/html/2611.27514v1",
+  "epsilon": 0.01,
+  "toy": {
+    "train": [
+      {
+        "n": 2,
+        "d": 1,
+        "product": 2,
+        "reciprocal": 1.0,
+        "term": 2.0,
+        "raw_ratio": 2.0
+      },
+      {
+        "n": 2,
+        "d": 2,
+        "product": 4,
+        "reciprocal": 0.5,
+        "term": 1.0,
+        "raw_ratio": 1.0
+      },
+      {
+        "n": 2,
+        "d": 4,
+        "product": 8,
+        "reciprocal": 0.25,
+        "term": 0.5,
+        "raw_ratio": 0.5
+      },
+      {
+        "n": 5,
+        "d": 1,
+        "product": 5,
+        "reciprocal": 1.0,
+        "term": 5.0,
+        "raw_ratio": 5.0
+      },
+      {
+        "n": 5,
+        "d": 2,
+        "product": 10,
+        "reciprocal": 0.5,
+        "term": 2.5,
+        "raw_ratio": 2.5
+      },
+      {
+        "n": 5,
+        "d": 4,
+        "product": 20,
+        "reciprocal": 0.25,
+        "term": 1.25,
+        "raw_ratio": 1.25
+      }
+    ],
+    "heldout": [
+      {
+        "n": 2,
+        "d": 0.125,
+        "product": 0.25,
+        "reciprocal": 8.0,
+        "term": 16.0,
+        "raw_ratio": 16.0
+      },
+      {
+        "n": 2,
+        "d": 0.25,
+        "product": 0.5,
+        "reciprocal": 4.0,
+        "term": 8.0,
+        "raw_ratio": 8.0
+      },
+      {
+        "n": 2,
+        "d": 0.5,
+        "product": 1.0,
+        "reciprocal": 2.0,
+        "term": 4.0,
+        "raw_ratio": 4.0
+      },
+      {
+        "n": 5,
+        "d": 0.125,
+        "product": 0.625,
+        "reciprocal": 8.0,
+        "term": 40.0,
+        "raw_ratio": 40.0
+      },
+      {
+        "n": 5,
+        "d": 0.25,
+        "product": 1.25,
+        "reciprocal": 4.0,
+        "term": 20.0,
+        "raw_ratio": 20.0
+      },
+      {
+        "n": 5,
+        "d": 0.5,
+        "product": 2.5,
+        "reciprocal": 2.0,
+        "term": 10.0,
+        "raw_ratio": 10.0
+      }
+    ],
+    "fits": {
+      "product": {
+        "weight": 0.14285714285714285,
+        "train_rmse": 2.0669594646657754,
+        "heldout_rmse": 20.047182069522176
+      },
+      "term": {
+        "weight": 1.0,
+        "train_rmse": 0.0,
+        "heldout_rmse": 0.0
+      }
+    }
+  },
+  "table5": {
+    "unit": "XAUC × 10000",
+    "columns": [
+      "dcn_full",
+      "dcdn_full",
+      "dcn_reduced",
+      "dcdn_reduced"
+    ],
+    "rows": {
+      "fullscreen": [
+        6238,
+        6307,
+        6077,
+        6289
+      ],
+      "like": [
+        7325,
+        7377,
+        7200,
+        7391
+      ],
+      "share": [
+        5805,
+        5926,
+        5632,
+        5934
+      ],
+      "view_time": [
+        5589,
+        5681,
+        5152,
+        5629
+      ]
+    }
+  }
+}
+</script><script>(() => {
+  "use strict";
+  const get = (name) => document.getElementById("dcdn-" + name);
+  const data = JSON.parse(get("data").textContent);
+  const put = (name, value) => { get(name).textContent = value; };
+  const show = (value) => value === null ? "未定義（0 で割れません）" : String(Number(value.toPrecision(8)));
+  const update = () => {
+    const n = get("n").valueAsNumber, d = get("d").valueAsNumber;
+    if (![n, d].every(value => Number.isFinite(value) && Math.abs(value) <= 1000)) {
+      for (const key of ["product", "raw", "rho", "term"]) put(key, "—");
+      put("note", "分子と分母には −1000 から 1000 までの数を入力してください。");
+      return;
+    }
+    const eligible = get("mask").checked;
+    const rho = eligible ? Math.sign(d) / Math.max(Math.abs(d), data.epsilon) : 0;
+    put("product", show(n*d));
+    put("raw", d === 0 ? show(null) : Number.isFinite(n/d) ? show(n/d) : "表示範囲外");
+    put("rho", show(rho));
+    put("term", show(n*rho));
+    put("note", !eligible ? "この分母は逆数に使わないため、逆数の項は 0 です。"
+      : d === 0 ? "この式では 0 の符号を 0 とするため、逆数の項も 0 です。元の比が 0 になるわけではありません。"
+      : Math.abs(d) < data.epsilon ? "分母の絶対値が 0.01 より小さいため、逆数の計算にはその下限を使います。"
+      : "この範囲では、逆数を使う項が元の比と一致します。");
+  };
+  const compare = () => {
+    const row = data.table5.rows[get("task").value];
+    const mode = get("view").value;
+    const [a, b] = {full:[0,1], reduced:[2,3], deployed:[0,3]}[mode];
+    const val = (x) => (x/10000).toFixed(4);
+    const delta = row[b] - row[a];
+    put("control", val(row[a]));
+    put("treatment", val(row[b]));
+    put("delta", (delta > 0 ? "+" : "") + val(delta));
+    put("control-label", a === 0 ? "DCNv2（比率あり）" : "DCNv2（比率なし）");
+    put("treatment-label", b === 1 ? "DCDN（比率あり）" : "DCDN（比率なし）");
+    put("view-note", mode === "deployed"
+      ? "モデルと入力を同時に変えた組み合わせです。数値はオフライン評価で、A/B テストの結果ではありません。"
+      : "入力をそろえたオフライン比較です。");
+  };
+  for (const key of ["n","d","mask","task","view"]) {
+    const control = get(key);
+    control.addEventListener(key === "n" || key === "d" ? "input" : "change",
+      ["task","view"].includes(key) ? compare : update);
+    control.disabled = false;
+  }
+  update();
+  compare();
+})();
+</script></main></html>

@@ -67,7 +67,7 @@ const b=app();b.edit({search:'モデル',topic:'recommender-systems',verdict:'Mu
 assert.ok(a.visible().length>0);assert.deepEqual(a.visible(),b.visible());
 const saved=a.win.location.href;a.edit({search:'no such paper'});assert.equal(a.visible().length,0);
 a.travel(saved);assert.deepEqual(a.visible(),b.visible());assert.equal(a.e.search.value,'ﾓﾃﾞﾙ');
-a.clear.dispatchEvent(new Event('click'));a.check();assert.equal(a.visible().length,115);
+a.clear.dispatchEvent(new Event('click'));a.check();assert.equal(a.visible().length,117);
 """,
     'unavailable_history_and_window_do_not_block_search': r"""
 for(const mode of [{throwWrite:true},{noWindow:true}]){

@@ -1,0 +1,73 @@
+id: deep-cross-division
+title: 'Deep Cross-Division Network for Product-and-Ratio Feature Interactions in Industrial Ranking'
+authors: [Mikhail Trapeznikov, Sofia Gulevskaia, Maksim Utushkin, Aleksandr Poslavsky, Alexander D’yakonov]
+year: 2026
+arxiv_id: '2611.27514'
+submitted: '2026-11-20'
+topics: [recommender-systems, ml-systems]
+urls:
+  paper: https://arxiv.org/abs/2611.27514
+  arxiv: https://arxiv.org/abs/2611.27514
+  official_code: https://github.com/rw404/DCDN
+verdict: Worth Reading
+status: draft
+question: クリック数と表示数があれば、手作りのクリック率をモデルの入力から外せるか
+summary: DCDN は、元の入力を掛ける仕組みに、分母として選んだ入力の逆数を掛ける仕組みを足します。自作例で分母を変え、比を表せる範囲を確かめます。論文の本番評価では、入力をそろえた比較と、モデルと入力を同時に変えた比較を分けて読みます。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-11-24'
+  url: https://arxiv.org/html/2611.27514v1
+  scope: HTML 版の式2–3、§5.1–5.2、§6.1–6.4、表1–3・5–7を確認しました。公式コードは実行していません。
+core_idea:
+  author_claim: 元のカウンターを残して、手作りの比率を入力から外せると著者らは報告しています。
+  research_bot_interpretation: 分母の候補がわかっていて、比率の作成や配信に手間がかかる場合に試す価値があります。分母がゼロになる場合や、比が予測に効くとは限らない場合も別に評価します。
+sections:
+  overview: クリック率のような特徴量は、クリック数を表示数で割って作れます。DCDN はこの処理をモデルの中に持たせる方法です。著者らは短尺動画のランキングに導入しました。
+  problem: 比率を個別に作ると、学習と本番の両方で計算や配信が必要になります。一方、基の値まで外すとモデルはその比を計算できません。
+  method: method.md
+  why_it_might_work: 分子に分母の逆数を掛ければ比になります。DCDN はこの形を層の中で直接作れます。ほかのモデルで比を近似できないという意味ではありません。
+  evidence: evidence.md
+  executable_understanding: experiment.md
+  results: 自作例では、学習に使わなかった 6 件で、逆数を使う項の RMSE は 0 でした。積だけを使った式では分母が小さくなるほど予測が小さくなり、この 6 件では RMSE が約 20.0 になりました。
+  what_we_verified: 論文の式から取り出した項を使い、正の分母、負の分母、ゼロ、対象外の分母を区別する計算を確かめました。
+  what_we_did_not_verify: 著者のモデルの学習、公開データや本番データでの性能、本番の処理時間は検証していません。
+  implementation: Python 標準ライブラリだけで自作例と表5の値をまとめた JSON を再生成できます。ダウンロードした interactive.html はネット接続なしで開けます。
+figures: []
+interactives: []
+teaching_figures:
+- id: original-input-ratio-branch
+  kind: logic
+  title: 元のカウンターを二つの交差項で使う
+  after: method
+  source: https://arxiv.org/html/2611.27514v1
+  locator: §3.2、式2・3と図1をもとに整理
+  rationale: 層に入る値と、掛け合わせに使う元の値を分ける。
+  caption: 逆数を取るのは分母として指定した元の入力だけ。
+  rows:
+  - label: 交差層
+    nodes:
+    - title: 元の入力
+      text: クリック数や表示数など、比を作る前の値を渡す。
+    - title: 二つの交差項
+      text: 行列で変換した値に元の入力を掛ける項と、別の変換結果に指定した元の入力の逆数を掛ける項を計算する。
+    - title: 出力
+      text: 層への入力に二つの項を足し、次の層へ渡す。
+- id: ranking-evidence-distinction
+  kind: logic
+  title: 同じ入力での比較と、本番の変更を分ける
+  after: evidence
+  source: https://arxiv.org/html/2611.27514v1
+  locator: §6.2–6.4、表5–7
+  rationale: 本番で報告された改善に、何の変更が含まれるかを明確にする。
+  caption: ランキング処理時間は、逆数の計算だけにかかる時間ではない。
+  rows:
+  - label: 論文の比較
+    nodes:
+    - title: 本番データによるオフライン比較
+      text: 手作りの比率を入れる場合と外す場合のそれぞれで、同じ入力を使って二つのモデルを比べた。
+    - title: 実サービスでのA/Bテスト
+      text: 交差層を替え、計算済みの比率も外した。観測された差はこの組み合わせでの結果。
