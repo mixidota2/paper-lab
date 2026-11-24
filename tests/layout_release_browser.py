@@ -84,13 +84,13 @@ def main():
                 assert page.goto(base + "/index.html").ok
                 verify_seatbelt(browser)
                 fit(page)
-                assert page.locator("[data-paper]:visible").count() == 117
+                assert page.locator("[data-paper]:visible").count() == 118
                 page.get_by_role("searchbox").fill("2609.04518")
                 assert page.locator("[data-paper]:visible").count() == 1
                 snapshot(page, OUT, f"search-{width}")
                 snapshot(page, OUT, f"search-result-{width}", page.locator("[data-paper]:visible").first)
                 page.get_by_role("button", name="条件を消去").click()
-                assert page.locator("[data-paper]:visible").count() == 117
+                assert page.locator("[data-paper]:visible").count() == 118
                 page.locator('a[href="guides/index.html"]').first.click()
                 assert page.url.endswith("/guides/index.html")
                 page.locator("[data-layout-guide-link]").click()

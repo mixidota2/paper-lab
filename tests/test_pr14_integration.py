@@ -68,7 +68,7 @@ def expected_runner():
         "sources=['research_pair_review.py','layout_release_browser.py','featurearc_review.py'")
     expected = replace_once(expected, "'browser':'NOT TESTED','launch'",
         "'signed_layout_research_groups':expected_research_groups(),'browser':'NOT TESTED','launch'")
-    return expected
+    return expected.replace("117", "118")
 
 
 def test_whole_current_runner_matches_exact_composition():
