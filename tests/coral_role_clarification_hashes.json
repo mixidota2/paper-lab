@@ -1,0 +1,23 @@
+{
+  "base": "e5b91de8ab74004c065b9063f4380affc7318fbf",
+  "files": {
+    "papers/coral-meta-config-harness/README.md": {
+      "before_sha256": "0b9c62e35f9e2b38b31ba23717f454b466e44051526e455a5886e5f935ec3f49",
+      "before_blob": "09042d9712e61b18de159ad826c217030878cfea",
+      "after_sha256": "633726e0b22fcfd45b636c64916b79b7ca7886fdc1493ebc128477bfcbd4e553",
+      "after_blob": "131eaac699765989658bbd81ebfe223772e5f695"
+    },
+    "papers/coral-meta-config-harness/lab.yaml": {
+      "before_sha256": "084df16b8928e7e40c1fc76c3e57c9b09e1705792d6b36e6f5052e87bf0e5425",
+      "before_blob": "ee502d3bf0631e4344b15a9b8d8d93b3d3a56e25",
+      "after_sha256": "0bd5d300836111c3d4010cbf8fbafb66f9676c73dd29e247fa74f4da0cae4a93",
+      "after_blob": "9b662de34113109dc31b09d2a2a4004eef8950d1"
+    },
+    "papers/coral-meta-config-harness/method.md": {
+      "before_sha256": "0af9d2840b1fd6eb6eb76d6adf3ddd22b2cae61f6985c855634fc0646b0b7d70",
+      "before_blob": "6840d412465cdc8b51719b0333baca12cd3664a8",
+      "after_sha256": "74177f5b1ea0cefeff8e25c3cf73b7f077b5ae037ed5dca90503f6d688d2f774",
+      "after_blob": "a3ac47f8e09ade8752df579051c0b99a1f9ce5a1"
+    }
+  }
+}
