@@ -68,8 +68,33 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = shelf_full_rewrite_hash(root, path, expected, algorithm)
     expected = generation_retrieval_full_rewrite_hash(root, path, expected, algorithm)
     expected = unipinrec_full_rewrite_hash(root, path, expected, algorithm)
+    expected = walmart_full_rewrite_hash(root, path, expected, algorithm)
+    expected = placement_options_full_rewrite_hash(root, path, expected, algorithm)
+    expected = storewide_full_rewrite_hash(root, path, expected, algorithm)
+    expected = assortment_observation_full_rewrite_hash(root, path, expected, algorithm)
+    expected = linkedin_full_rewrite_hash(root, path, expected, algorithm)
+    expected = accuracy_full_rewrite_hash(root, path, expected, algorithm)
+    expected = wholefoods_full_rewrite_hash(root, path, expected, algorithm)
+    expected = contextual_full_rewrite_hash(root, path, expected, algorithm)
+    expected = zalando_full_rewrite_hash(root, path, expected, algorithm)
+    expected = bridging_full_rewrite_hash(root, path, expected, algorithm)
     result = hasterad_registration_hash(root, path, expected, algorithm)
-    return prepared_catalog_registration_hash(root, path, coral_full_rewrite_hash(root, path, result, algorithm), algorithm)
+    result = coral_full_rewrite_hash(root, path, result, algorithm)
+    expected = prepared_catalog_registration_hash(root, path, result, algorithm)
+    if path == 'README.md':
+        expected = root_readme_catalog_119_hash(root, path, expected, algorithm)
+    expected = tsfm_sparse_rewrite_hash(root, path, expected, algorithm)
+    expected = sim2real_full_rewrite_hash(root, path, expected, algorithm)
+    return index_copy_rewrite_hash(root, path, expected, algorithm)
+
+
+def root_readme_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Recognize the exact rewritten root README without rewriting prior approvals."""
+    if path != 'README.md':
+        return expected
+    row = json.loads((root / 'tests/root_readme_rewrite_hashes.json').read_text())['files'][path]
+    assert expected == row['before_' + algorithm], path
+    return root_readme_catalog_119_hash(root, path, row['after_' + algorithm], algorithm, historical=True)
 
 
 def replenishment_guide_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -150,11 +175,30 @@ def store_layout_full_rewrite_hash(root, path, expected, algorithm='sha256'):
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path
+    return store_layout_normandy_hash(root, path, row['after_' + algorithm], algorithm)
+
+
+def store_layout_normandy_hash(root, path, expected, algorithm='sha256'):
+    """Add the verified Normandy abstract only to the exact reviewed prior guide."""
+    row = json.loads((root / 'tests/store_layout_normandy_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
     return row['after_' + algorithm]
+
 
 def shelf_full_rewrite_hash(root, path, expected, algorithm='sha256'):
     """Accept the reviewed shelf guide only from its exact prior identity."""
     row = json.loads((root / 'tests/shelf_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return shelf_streicher_hash(root, path, row['after_' + algorithm], algorithm)
+
+
+def shelf_streicher_hash(root, path, expected, algorithm='sha256'):
+    """Approve only the exact published guide plus the reviewed aisle case."""
+    row = json.loads((root / 'tests/shelf_streicher_hashes.json').read_text())['files'].get(path)
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path
@@ -178,6 +222,124 @@ def unipinrec_full_rewrite_hash(root, path, expected, algorithm='sha256'):
     assert expected == row['before_' + algorithm], path
     return row['after_' + algorithm]
 
+
+def wholefoods_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Translate only the exact reviewed Whole Foods article originals."""
+    row = json.loads((root / 'tests/wholefoods_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def contextual_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Translate only the reviewed contextual deconvolution article sources."""
+    row = json.loads((root / 'tests/contextual_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def zalando_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Translate only the exact reviewed Zalando article and figure prose."""
+    row = json.loads((root / 'tests/zalando_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def bridging_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Translate only the exact reviewed TruckParts article and display prose."""
+    row = json.loads((root / 'tests/bridging_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def tsfm_sparse_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Accept only the four reviewed sparse-event Lab prose revisions."""
+    row = json.loads((root / 'tests/tsfm_sparse_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def sim2real_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Permit only exact before/after identities for the SIM2REAL prose."""
+    row = json.loads((root / 'tests/sim2real_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def index_copy_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Recognize only the reviewed homepage copy from its exact prior identity."""
+    if path != 'paper_lab/templates/index.html':
+        return expected
+    row = json.loads((root / 'tests/index_copy_rewrite_hashes.json').read_text())['files'][path]
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def linkedin_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Permit only the exact reviewed LinkedIn reader-facing source transition."""
+    row = json.loads((root / 'tests/linkedin_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def accuracy_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Allow only the exact reviewed Accuracy Is Not Service copy changes."""
+    row = json.loads((root / 'tests/accuracy_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def walmart_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Permit only the seven reviewed Walmart changes from exact prior inputs."""
+    row = json.loads((root / 'tests/walmart_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def placement_options_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Accept only the eleven exact draft placement copy updates from known bytes."""
+    row = json.loads((root / 'tests/placement_options_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def storewide_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Match only the exact known source and rewritten content for this Lab."""
+    row = json.loads((root / 'tests/storewide_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def assortment_observation_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Require exact prior and rewritten bytes for the nine reviewed prose files."""
+    row = json.loads((root / 'tests/assortment_observation_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
 def prepared_catalog_registration_hash(root, path, expected, algorithm='sha256'):
     """Apply exactly the catalog count update after all older reviewed edits."""
     row = json.loads((root / 'tests/prepared_catalog_registration_hashes.json').read_text())['files'].get(path)
@@ -193,4 +355,12 @@ def receipt_catalog_registration_hash(root, path, expected, algorithm='sha256'):
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def root_readme_catalog_119_hash(root, path, expected, algorithm='sha256', *, historical=False):
+    """Port previously reviewed prose onto the current exact catalog size."""
+    row = json.loads((root / 'tests/root_readme_catalog_119_hashes.json').read_text())['files'][path]
+    key = 'reviewed_' if historical else 'before_'
+    assert expected == row[key + algorithm], path
     return row['after_' + algorithm]

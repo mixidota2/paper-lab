@@ -60,10 +60,10 @@ def main():
     trap=[[[3],[1],[1]]]
     small=replay(trap,[2])[0];large=replay(trap,[3])[0]
     assert small>large
-    out={'note':'固定seedの人工注文。論文38手法・RUF・Chronos-2の再現ではない。MAEを使い、論文で使われたMASEと区別している。',
+    out={'note':'Labが乱数の初期値を固定して作った注文。論文の38手法、RUF、Chronos-2を再現したものではない。誤差は論文のMASEではなく、平均絶対誤差（MAE）で測る。',
       'scope':{'normalization_roundtrip':'CONFIRMED','mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},
       'seed':22,'sweep':rows,'normalization':norms,'counterexample':{'stock2_COFR':small,'stock3_COFR':large},
-      'experiments':[{'name':'同一144注文・補充方策で予測倍率を変更','metrics':{str(r['alpha']):{'MAE':r['MAE'],'COFR':r['COFR'],'inventory':r['inventory_units']} for r in rows}}]}
+      'experiments':[{'name':'同じ144件の注文を使い、予測に掛ける倍率を変える','metrics':{str(r['alpha']):{'MAE':r['MAE'],'COFR':r['COFR'],'inventory':r['inventory_units']} for r in rows}}]}
     from plot import render
     render(out)
     Path(__file__).with_name('results.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n');return out

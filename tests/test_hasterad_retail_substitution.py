@@ -69,5 +69,5 @@ def test_generated_explorer_registers_all_scenarios(tmp_path):
     assert rendered == saved
     assert [frame["value"] for frame in rendered["frames"]] == list(range(1, 6))
     downloads = site / "downloads" / SLUG
-    for name in ("lab.yaml", "run.py", "results.json"):
+    for name in ("lab.yaml", "run.py", "results.json", "evidence.md"):
         assert (downloads / name).read_bytes() == (PAPER / name).read_bytes()

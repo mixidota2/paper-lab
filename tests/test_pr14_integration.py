@@ -68,6 +68,13 @@ def expected_runner():
         "sources=['research_pair_review.py','layout_release_browser.py','featurearc_review.py'")
     expected = replace_once(expected, "'browser':'NOT TESTED','launch'",
         "'signed_layout_research_groups':expected_research_groups(),'browser':'NOT TESTED','launch'")
+    # The homepage rewrite changes just these two accessible selectors.
+    expected = replace_once(expected,
+        "get_by_role('navigation',name='読む入口').get_by_role('link',name='テーマガイド',exact=True)",
+        "get_by_role('navigation',name='論文とガイドを探す',exact=True).get_by_role('link',name='テーマガイド',exact=True)")
+    expected = replace_once(expected,
+        "get_by_role('navigation',name='読む入口').get_by_role('link',name='最新研究・Lab一覧',exact=True)",
+        "get_by_role('navigation',name='論文とガイドを探す',exact=True).get_by_role('link',name='論文・Lab一覧',exact=True)")
     return expected.replace("117", "119")
 
 
@@ -80,6 +87,6 @@ def test_whole_current_runner_matches_exact_composition():
 def test_composition_detects_guard_or_capture_removal():
     expected = ast.dump(ast.parse(expected_runner()))
     current = (ROOT/'tests/review_103.py').read_text()
-    for original, mutation in [('                        guard(browser)','                        pass'),('snapshot(dp,out,', 'print(dp,out,')]:
+    for original, mutation in [('                        guard(browser)','                        pass'),('snapshot(dp,out,', 'print(dp,out,'), ("name='論文・Lab一覧',exact=True", "name='論文・Lab一覧'")]:
         assert original in current
         assert ast.dump(ast.parse(current.replace(original,mutation))) != expected

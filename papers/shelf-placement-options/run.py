@@ -104,7 +104,7 @@ def pack(rectangles,W,H):
     return search([])
 
 def main():
-    result=dict(model_version='placement-toy-2',note='独自の全幅商品toy。原論文のベンチマーク・多始点探索・実売上の再現ではない。',
+    result=dict(model_version='placement-toy-2',note='棚の全幅を使う商品で試した教材です。原論文の性能比較や複数の初期案から始める探索、実店舗の売上は再現していません。',
        a=[toy_a(n) for n in [0,1,1.1,5,5.1,6]],b_fixed=toy_b(4),b_free=toy_b(),
        exact_expressions=dict(a_hang='12*sqrt(2)',a_shelf='16',b_fixed='18*sqrt(2)',b_free='10*sqrt(2)+8*sqrt(3)'),
        geometry='rational boundary checks in Python; full-width structure makes minimal support height sufficient',objective_tolerance=1e-10,

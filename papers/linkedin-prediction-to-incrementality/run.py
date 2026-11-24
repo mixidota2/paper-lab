@@ -27,7 +27,7 @@ def compute():
     assert cases['3']['incremental']['selected'] == ['C', 'D']
     assert all('A' not in c['incremental']['selected'] for c in cases.values())
     assert cases['5']['incremental']['cost'] == 4  # budget need not be exhausted
-    return {"note": "既知の反実仮想平均を与えた人工例。学習・探索・LP緩和の再現ではない。",
+    return {"note": "Labが配信あり・なしの期待成果をあらかじめ決めた架空の例。学習、探索、配分問題を連続値で解く手法は再現していない。",
             "verification": {"mechanism": "PARTIAL", "performance": "NOT TESTED", "scaling": "NOT TESTED", "production_applicability": "NOT TESTED"},
             "rows": ROWS, "budgets": cases,
             "checks": {"negative_effect_withheld": "CONFIRMED", "capacity_changes_allocation": "CONFIRMED", "dual_solver": "NOT TESTED", "last_layer_LLA": "NOT TESTED"}}

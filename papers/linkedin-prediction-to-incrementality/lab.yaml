@@ -25,79 +25,69 @@ verification:
   scaling: NOT TESTED
   production_applicability: NOT TESTED
 status: published
-question: 送らなくても行動する人から、送ることで変わる人へ予算を移せるか
-summary: LinkedInは、送った場合と送らなかった場合の成果の差を推定し、探索と全体制約を含む配分へつなぐ。Feedのマーケティング流量で実施した8週間のA/Bでは、長期価値（LTV）が+7.20%だった。p=0.041、95%信頼区間は[0.31%,
-  14.09%]。これは配信方策全体の著者報告で、Transformer単体の効果ではない。
+question: 配信してもしなくても行動する会員より、届けることで行動が変わる会員を選べるか
+summary: LinkedInは、施策を届けると成果がどれだけ増えるかを予測し、予算と配信回数の上限のもとで届け先を決めた。著者は、Feedの8週間のA/Bで長期価値の指標（LTV）が対照群より7.20%高かったと報告した。比較したのは配信方法の全体である。
 source_review:
   checked: '2026-09-25'
-  scope: 提供PDF全文テキスト、Fig. 1画像、Eq. 1–4、§5.1–5.5を照合。
+  scope: 保存したv1 PDFでは本文、図1、式1–4と§5.1–5.5を確認した。2026-11-24に、著者が公開した同じ版のHTMLでも関連箇所を確認した。
   url: https://arxiv.org/abs/2608.10182
   version: v1
   pdf_sha256: 9dec368311033e10b8b4ab1a8d298917fb3284edcc93ae12d3519c9196489be8
 core_idea:
-  author_claim: Transformerで接触履歴を読むDragonNet、最終層の線形化Laplace近似によるBayesian neural-bandit、双対分解による大規模配分を一つの増分目的へそろえる。負の増分や実行可能な正の選択肢がない場合は送信を保留する。
-  research_bot_interpretation: '[Netflixの反実仮想観測](netflix-counterfactual-observability.html)、[Spotifyの二閾値](spotify-incremental-recommendation-causal.html)、[PinterestのCG
-    gating](pinterest-causal-retrieval-shopping.html)に続く読み筋として、全体資源を配る第4の層と捉える。この比較は本Labの整理で、四社を同じ実験で評価した結果ではない。'
+  author_claim: 著者はまず、Transformerで会員と施策の接触履歴を読み取る。DragonNetはその表現を使って、施策あり・なしの成果を別々に予測する。次に、ベイズの考え方を使ったバンディットが、モデルの不確実性をもとに、普段は選ばない配信先も試す。最後に配分器がすべての施策をまとめて見ながら、予算と頻度の上限を守る組み合わせを選ぶ。届けると成果が下がると予測した場合や、制約内で成果を増やせる選択肢がない場合、配分器は配信を見送れる。
+  research_bot_interpretation: Labでは[Netflixが欠けた比較対象を観測する試み](netflix-counterfactual-observability.html)、[Spotifyが二つのしきい値で推薦を絞る方法](spotify-incremental-recommendation-causal.html)、[Pinterestが買い物の推薦候補を絞る方法](pinterest-causal-retrieval-shopping.html)と読み比べる。LinkedInの論文ではその先で複数の施策に共通の予算をどう配るかが主題になる。これはLabで四つの論文を読み比べた整理であり、四社を同じ実験で比較した結果ではない。
 sections:
-  overview: LinkedInは、送った場合と送らなかった場合の成果の差を推定し、探索と全体制約を含む配分へつなぐ。Feedのマーケティング流量で実施した8週間のA/Bでは、長期価値（LTV）が+7.20%だった。p=0.041、95%信頼区間は[0.31%,
-    14.09%]。これは配信方策全体の著者報告で、Transformer単体の効果ではない。
-  problem: 反応確率の高い会員は、送信しなくても行動するかもしれない。限られた予算をそこへ使うと、送信によって行動が変わる会員へ届かない。さらに、各キャンペーンが個別に最適化すると、全体予算や会員ごとの送信上限を超えうる。
-  why_it_might_work: 本Labの解釈。反実仮想との差で採点すれば、自然に起こる成果へ予算を使う問題を抑えられる。探索は実行可能な行動の観測機会を残し、配分は共通の制約を守る。ただし、未観測交絡がないこと、似た特徴の会員について送信あり・なしの両方を観測できること（処置の重なり）などの識別条件は、DragonNetを使うだけでは満たせない。
-  evidence: '[一次資料 §5.4–5.5](https://arxiv.org/pdf/2608.10182v1)。著者報告：§5.4–5.5では会員を50/50に無作為割付し、8週間比較した。対照は反応確率に基づく候補抽出と順位付けの二段構成。処置はマーケターの対象条件を残し、二つのスコア層を因果スコアと制約付き配分へ置換した。LTV
-    +7.20%、p=0.041、95% CI [0.31%, 14.09%]。同じ本番方策の構成要素を個別に外したオンライン効果は報告していない。
+  overview: LinkedInは施策を届けた場合と届けなかった場合の成果をそれぞれ予測し、その差を使って、どの会員に何を届けるかを決める仕組みを作った。著者はLinkedIn Feedのマーケティング枠で従来の配信方法と8週間比較し、会員の長期価値を表す指標（LTV）が対照群より7.20%高かったと報告している（p=0.041、95%信頼区間は[0.31%,
+    14.09%]）。比較したのは配信方法全体で、Transformerだけの効果は分からない。
+  problem: 施策を届けた場合の反応確率が高い会員でも、何も届けなければ同じ行動を取るかもしれない。その会員に予算を使うと、施策があれば行動を変える別の会員へ届ける余地が減る。また、担当者がキャンペーンごとに配信先を決めると、合計で予算を超えたり、一人に施策を届ける回数が多くなったりする。
+  why_it_might_work: 配信ありと配信なしの差を正しく推定できれば、施策を届けなくても起きる分を、配信の成果から除ける。ただし、過去のログから差を推定するには、記録した特徴を考慮した後に、配信と成果の両方に影響する未観測の要因がないと仮定する。また、似た会員について、配信あり・なしの両方を観測できることが必要になる。この条件を満たすかどうかは、DragonNetを使うだけでは決まらない。
+  evidence: |-
+    [一次資料：論文の§5.4–5.5](https://arxiv.org/html/2608.10182v1#S5.SS4)では、LinkedInが会員を両群に50/50で無作為に割り付けている。従来群では二段階の反応予測を使って候補を選び、順位を付けた。新方式の群では、マーケティング担当者が指定する対象条件は残したまま、成果の差を予測して、全体の制約のもとで配信先を決めた。最初の実験では新方式の配信量が足りなかったため、配分時に配信量と費用をそれぞれ制約し、実際に使った金額から次回の費用目標を調整する仕組みを加えた。最終比較は従来群の配信量と費用の範囲を目安にした。会員ごとに両群で同じ回数だけ届いた、という意味ではない。
 
+    著者は公開バンディットデータを使った模擬実験でも選択方法を比較した。また、固定した学習・検証データで入力や構成の一部を変え、8構成を各5回試した。これらの結果は本番A/Bとは別で、時系列入力とTransformer自体の寄与も切り分けていない。
+  executable_understanding: |-
+    `UV_CACHE_DIR=/tmp/uv-cache uv run papers/linkedin-prediction-to-incrementality/run.py` を実行すると、同じ予算で二つの配信方法を比較できる。架空の4人に対して施策は1種類で、配信あり・なしそれぞれの期待成果と配信費用をあらかじめ設定した。プログラムは送るか送らないかの16通りを調べ、予算内で評価値が最大になる組み合わせを選ぶ。学習も外部の最適化ソフトも使わない。
 
-    初期実験では処置群の配信量が不足したため、実配信と費用のフィードバックを加えた。最終比較はBAUの配信量・費用の範囲に合わせる設計である。公開banditデータによるオフラインsimulationとFig. 3の5回反復ablationは、LinkedInのA/Bとは別の証拠である。'
-  executable_understanding: '`UV_CACHE_DIR=/tmp/uv-cache uv run papers/linkedin-prediction-to-incrementality/run.py`。4人・1施策の人工例で、送信時成果の最大化と増分成果の最大化を、同じ予算制約で比較する。各人の未送信・送信時の期待値は既知として与える。16通りを列挙するため、解の確認に学習や外部solverは不要である。
-
-
-    <figure class="teaching" data-b21><h3>予算を増やしても、負の増分には送らない</h3><label>人工予算 <select><option value="0">2</option><option
-    value="1">3</option><option value="2">5</option></select></label><script type="application/json" data-frames>["<div
-    class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>目的</th><th>送る相手</th><th>費用</th><th>増分合計</th></tr></thead><tbody><tr><th>反応最大化</th><td>A・B</td><td>2</td><td>0.00</td></tr><tr><th>増分最大化</th><td>C</td><td>2</td><td>0.30</td></tr></tbody></table></div><p>予算2。Aは送信時の反応が0.85でも、未送信時の0.90を下回る。</p>",
-    "<div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>目的</th><th>送る相手</th><th>費用</th><th>増分合計</th></tr></thead><tbody><tr><th>反応最大化</th><td>A・B・D</td><td>3</td><td>0.20</td></tr><tr><th>増分最大化</th><td>C・D</td><td>3</td><td>0.50</td></tr></tbody></table></div><p>予算3。Aは送信時の反応が0.85でも、未送信時の0.90を下回る。</p>",
-    "<div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>目的</th><th>送る相手</th><th>費用</th><th>増分合計</th></tr></thead><tbody><tr><th>反応最大化</th><td>A・B・C・D</td><td>5</td><td>0.50</td></tr><tr><th>増分最大化</th><td>B・C・D</td><td>4</td><td>0.55</td></tr></tbody></table></div><p>予算5。Aは送信時の反応が0.85でも、未送信時の0.90を下回る。</p>"]</script><div
-    data-output><div class="matrix-scroll" tabindex="0"><table><thead><tr><th>目的</th><th>送る相手</th><th>費用</th><th>増分合計</th></tr></thead><tbody><tr><th>反応最大化</th><td>A・B</td><td>2</td><td>0.00</td></tr><tr><th>増分最大化</th><td>C</td><td>2</td><td>0.30</td></tr></tbody></table></div><p>予算2。Aは送信時の反応が0.85でも、未送信時の0.90を下回る。</p></div><figcaption>Eq.
-    1・3と§5.4を説明する人工例。results.jsonと同じ値。双対法の実装ではない。</figcaption></figure>'
-  results: 予算3では、反応最大化はA・B・Dへ送り、増分の合計は0.20。増分最大化はC・Dを選び、0.50となる。予算5でも、増分が負のAには送らず、費用は4で止まる。この例は、反応率の高さと送信の価値が違うことを確かめるために設計した。論文の改善率を再現した値ではない。
-  what_we_verified: Mechanism PARTIAL。人工例の全実行可能解を列挙し、負の増分を持つAを保留すること、容量によって配分が変わることを確認した。この二つの局所条件はCONFIRMED。PDFのFig.
-    1を目視し、数式と本番実験の記述を本文と照合した。
-  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。Transformer-DragonNetの学習、last-layer
-    LLAの曲率推定、Thompson sampling、双対solver、実配信フィードバック、LinkedInのログとA/Bは実行していない。大規模時の99%以上の最適値回復や新商品への汎化も独立検証していない。
-  implementation: '`ROWS`が人工的な潜在結果の平均、`allocate()`が全探索、`compute()`が同じ予算での比較とassertionを担当する。Python標準ライブラリだけで動く。乱数を使わず、実行するたびに`results.json`を書き直す。HTMLは`lab.yaml`と文書・結果から生成する。'
+    <figure class="teaching" data-b21><h3>増分を最大にする方法では、予算を増やしてもAに配信しない</h3><label>架空の予算上限 <select><option value="0">2</option><option value="1">3</option><option value="2">5</option></select></label><script type="application/json" data-frames>["<div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>最大にするもの</th><th>配信先</th><th>費用</th><th>配信で増える成果の合計</th></tr></thead><tbody><tr><th>配信したときの成果を最大にする</th><td>A・B</td><td>2</td><td>0.00</td></tr><tr><th>配信で増える成果を最大にする</th><td>C</td><td>2</td><td>0.30</td></tr></tbody></table></div><p>予算2。Aの期待成果は配信すると0.85で、配信しないときの0.90を下回る。</p>", "<div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>最大にするもの</th><th>配信先</th><th>費用</th><th>配信で増える成果の合計</th></tr></thead><tbody><tr><th>配信したときの成果を最大にする</th><td>A・B・D</td><td>3</td><td>0.20</td></tr><tr><th>配信で増える成果を最大にする</th><td>C・D</td><td>3</td><td>0.50</td></tr></tbody></table></div><p>予算3。Aの期待成果は配信すると0.85で、配信しないときの0.90を下回る。</p>", "<div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>最大にするもの</th><th>配信先</th><th>費用</th><th>配信で増える成果の合計</th></tr></thead><tbody><tr><th>配信したときの成果を最大にする</th><td>A・B・C・D</td><td>5</td><td>0.50</td></tr><tr><th>配信で増える成果を最大にする</th><td>B・C・D</td><td>4</td><td>0.55</td></tr></tbody></table></div><p>予算5。Aの期待成果は配信すると0.85で、配信しないときの0.90を下回る。</p>"]</script><div data-output><div class="matrix-scroll" tabindex="0"><table><thead><tr><th>最大にするもの</th><th>配信先</th><th>費用</th><th>配信で増える成果の合計</th></tr></thead><tbody><tr><th>配信したときの成果を最大にする</th><td>A・B</td><td>2</td><td>0.00</td></tr><tr><th>配信で増える成果を最大にする</th><td>C</td><td>2</td><td>0.30</td></tr></tbody></table></div><p>予算2。Aの期待成果は配信すると0.85で、配信しないときの0.90を下回る。</p></div><figcaption>式1と式3、§5.4を説明する架空の例。表示値はresults.jsonと同じで、Labは双対法でなく全列挙で解いている。</figcaption></figure>
+  results: 配信したときの期待成果を合計する方法では、A・B・Dに届ける。配信で増える分を合計すると0.20になる。配信で増える分を最初から最大にする方法はC・Dを選ぶ。増える分は0.50、配信しない人も含めた4人の期待成果は1.90から2.20になる。さらに予算を5に増やしても、後者は成果が下がるAに送らず、費用4で配信を止める。設定した期待値から得た結果で、論文の7.20%を再現したものではない。
+  what_we_verified: Labは配分の仕組みを一部検証した（Mechanism PARTIAL）。全列挙で予算を変えると配信先が変わること、増分最大化では増分が負のAを選ばないことを確認した（CONFIRMED）。原論文の図1、関連する式と本番実験の条件を本文と突き合わせた。
+  what_we_did_not_verify: 一方、LabはTransformerを組み込んだDragonNetを学習していない。最終層に対するラプラス近似、トンプソンサンプリング、双対法による配分、配信量と費用の調整も実行していない。大規模時の最適値や新商品への適用を含め、予測性能、規模を広げたときの挙動、本番への適用はいずれも未検証（NOT
+    TESTED）。LinkedInの会員ログは使っておらず、著者のA/Bも再実施していない。
+  implementation: Python標準ライブラリだけで動く。`ROWS`は4人分の入力、`allocate()`は配分の全列挙、`compute()`は予算ごとの比較と検査を担当する。乱数を使わず、実行するたびに`results.json`を書き直す。HTMLは`lab.yaml`、文書、保存結果から作る。
   method: method.md
   mapping: mapping.md
 teaching_figures:
 - kind: equations
   id: causal-allocation
-  title: Figure 1の二つの成果headから、Eq. 3の配分へ
+  title: 配信あり・なしの予測を、配信先を決める計算に渡す
   after: method
-  caption: 原典Fig. 1、§2.2–2.3、Eq. 1・3を学習用に再構成。
+  caption: 論文の図1と式1・3、§2.2–2.3をもとにLabが作成した。
   source: https://arxiv.org/abs/2608.10182
   locator: Fig. 1; Eq. 1, 3; §2.2.1
-  rationale: 予測、探索、制約が扱う量を分ける。
+  rationale: モデルが予測する値、探索で抽選する値、配分器が決める値を分けて示す。
   steps:
-  - name: 反実仮想の差
+  - name: 配信で増える成果を予測する
     formula: τ(X) = μ₁(X) − μ₀(X)
-    explanation: 共有表現から処置あり・なしの成果とpropensity e(X)を推定する。
-  - name: 不確実性から探索
+    explanation: モデルは同じ会員の特徴から、配信あり・なしの成果と、過去のログで配信ありと記録される確率を予測する。
+  - name: 予測の不確実性をもとに試す
     formula: f̃(x) ∼ Normal(f_MAP(x), σ₀² + g(x)ᵀΩ⁻¹g(x))
-    explanation: 本番ではlast-layer LLAを使う。logitをsampleしてsigmoidへ通し、増分scoreを作る。
-  - name: 全体配分
+    explanation: 本番では最終層に線形化ラプラス近似を使う。予測分布からロジットを抽選し、確率に直してから配信あり・なしの差を出す。
+  - name: 制約内で配信先を決める
     formula: maxₓ Σᵤᵢ τ̃ᵤᵢ xᵤᵢ ;  Ax ≤ b, Σᵢ xᵤᵢ ≤ C_fcap
-    explanation: 共有guardrailと会員の頻度上限を守る。実装では連続緩和と平滑化を行い、双対変数を更新する。
+    explanation: 配分器は全体予算と一人に届ける回数の上限を守る。割り付け確率と二乗の罰則を使い、共通の上限に付く双対変数を更新する。
 - kind: matrix
   id: counterfactual-ledger
-  title: 高い反応率でも、送らない方がよい相手がいる
+  title: 配信後の成果が高くても、配信すると成果が下がることがある
   after: problem
-  caption: run.pyで固定した人工期待値。原論文の会員データではない。
+  caption: Labがrun.pyに設定した期待成果。論文の会員データではない。
   source: https://arxiv.org/abs/2608.10182
   locator: Eq. 1の人工例
-  rationale: 四人の潜在結果を並べ、増分の符号を見えるようにする。
+  rationale: 配信あり・なしの値を比べ、配信で期待成果が増えるか減るかを見る。
   columns:
-  - 未送信 μ₀
-  - 送信 μ₁
-  - 増分 τ
-  - 費用
+  - 配信なしの期待成果 μ₀
+  - 配信ありの期待成果 μ₁
+  - 配信で増える成果 τ
+  - 配信費用
   rows:
   - label: A
     cells:

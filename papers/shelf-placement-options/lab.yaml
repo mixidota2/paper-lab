@@ -25,62 +25,65 @@ verification:
   performance: NOT TESTED
   scaling: NOT TESTED
   production_applicability: NOT TESTED
-question: 吊るすか置くか、棚板をどこに入れるか
-summary: 置き方による需要と、取り出す隙間による配置条件を分けて比べる。同じ商品の面数を増やせるかどうかは、棚板の高さにも左右される。
+question: 商品を吊るすか棚に置くか。棚板の高さも変えると、何面入るか
+summary: 商品を吊るすと1面当たりの需要が高くても、取り出す隙間で面数が減れば棚置きの利益が上回る。どの案が棚に収まり、利益が最も高くなるかを、棚板の高さも変えて教材で比べる。
 source_review:
   checked: '2026-10-16'
   url: https://journals.sagepub.com/doi/10.1177/10591478251359808
-  scope: 提供された原典照合仕様を基に実装。担当自身の全文・図・補足の独立再読は未完。
+  scope: 実装時は原典を照合したレビュー仕様を使った。今回、大学公開PDFの関連箇所を再確認したが、全式・全図と補足資料は未照合。
 core_idea:
-  author_claim: 置き方、水平・垂直の面数、区画と棚板高さを同時に扱う。全商品を最低1面配置する。
-  research_bot_interpretation: 基礎需要が高い向きでも、余白で置ける面数が減ると不利になる。面積合計が足りるだけでは、配置可能とはいえない。
+  author_claim: 著者のモデルは、商品ごとに吊りか棚置きか、横と縦に何面並べるか、どの区画に置くかを、棚板の高さと一緒に決める。すべての商品を最低1面ずつ置く。
+  research_bot_interpretation: 吊ったときに1面でよく売れる商品でも、隙間が多く必要なら、棚に置いて面数を増やした方が利益は高くなりうる。面積が足りるだけでは、商品の幅と高さが収まるとは限らない。
 sections:
-  overview: オンライン2025年、巻号2026年の既刊論文。独自の小規模な説明用実験を扱う。
-  problem: この例では、1面当たりの需要は吊るした方が高い一方、棚に置くと商品を多く積み重ねられます。同じ棚に収まる案の中で、どちらの置き方の利益が高いかを比べます。
+  overview: Labは、2025年にオンライン公開され2026年の巻号に載った論文をもとに、置き方と棚板を小さな合成例で比べる。著者の大規模探索や実店舗の試験結果を再現する教材ではない。
+  problem: 吊った商品は1面だけでよく売れると仮定する。一方、棚置きでは同じ商品を隙間なく積める。Labでは、必ず全商品を置く条件で、どちらがより多くの正面を見せられ、利益が高いかを調べる。
   method: method.md
-  why_it_might_work: 商品の寸法と余白を別に数えると、需要を生む面数と実際に配置できる面数を結び付けられる。
+  why_it_might_work: モデルは商品の寸法と取り出す隙間を別々に数える。棚に入る面数を先に確かめ、その面数に応じた需要を求めるので、1面の売れ方がよくても物理的に置けない案を外せる。
   evidence: '一次資料：[原論文](https://journals.sagepub.com/doi/10.1177/10591478251359808)。
 
 
-    原論文は混合整数線形計画と、複数の初期案から始める近似探索を比較しています。合成実験に加え、欧州食品小売の237商品・6カテゴリの事例を扱いますが、現場の売上試験ではありません。2026年10月17日の追加調査で要旨・本文§5〜8の関連箇所を確認した記録に基づきます。全式・全表・補足の独立照合は未完です。16.970563や27.998542は教材の合成例の計算結果です。'
+    著者は混合整数線形計画を立て、複数の初期案から解を探す手法を合成データで評価した。欧州の食品小売から非食品237商品・6カテゴリの寸法や既存の棚割りも受け取ったが、利益率は仮定した分布から引き、5店舗分の販売はシミュレーションした。表12では、既存の棚割りに対して新しい案のモデル上の利益が平均4.0%高かった。別の§7.2では、店舗ごとの案が共通の案を平均0.6%上回った。比較相手が違うので、この二つの割合は足せない。店舗で棚を変えて売上や利益を測った結果ではない。
+
+
+    2026年10月17日の調査は要旨と§5〜8の関連箇所を対象とし、今回も大学公開PDFの関連箇所を照合した。全式・全表・補足資料の独立検証はしていない。16.970563と27.998542はこのLabの合成例の値で、著者の事例とは別である。'
   executable_understanding: experiment.md
-  results: ν=1の等号では吊り2面が入る。2商品の棚板可変案は利益27.998542、固定案は25.455844。
+  results: 実験1では余白νが1のときにも吊り2面がちょうど入る。実験2では棚板の高さを選んだ案の利益が27.998542、固定案は25.455844になる。二つとも教材の数値である。
   what_we_verified: validation.md
-  what_we_did_not_verify: 実ブラウザー、原著の大規模探索、実店舗の売上・補充効率・安全性、補足資料の詳細設定は未検証。
+  what_we_did_not_verify: 著者の大規模探索の性能と補足資料の細かい設定、実店舗の売上・補充の効率・作業の安全性は検証していない。今回の改訂は実ブラウザーで確認していない。
   implementation: implementation.md
   mapping: mapping.md
 teaching_figures:
 - kind: equations
   id: placement-demand
-  title: 置き方と面数から需要を計算する
+  title: モデルは置き方と面数から需要を求める
   after: method
   locator: 式(1)〜(4)
-  rationale: 需要に入る変数と幾何条件を区別する。
-  caption: mは単位粗利、αは1面需要、aとbは横・縦の面数。
+  rationale: 需要を計算する入力と、棚に収まるかを確かめる入力を分けて示す。
+  caption: mは1個当たりの粗利、αは1面だけ見せたときの需要。aは横、bは縦の面数を指す。
   source: https://journals.sagepub.com/doi/10.1177/10591478251359808
   steps:
-  - name: 需要と利益
+  - name: 面数から需要を求め、粗利を掛ける
     formula: Dᵢ = αᵢₚ (ab)^βᵢ,  Π = Σᵢ mᵢDᵢ
-    explanation: 左右や高さの座標は需要式に入れず、商品が棚に収まり、互いに重ならないかを判定するために使う。
+    explanation: モデルは座標から、商品が棚の内側にあり互いに重ならないかを確かめる。上下左右の座標は需要の計算には使わない。
     formula_mathml: <math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mrow><msub><mi>D</mi><mi>i</mi></msub><mo>=</mo><mrow><msub><mi>α</mi><mi>ip</mi></msub><msup><mrow><mo>(</mo><mi>a</mi><mi>b</mi><mo>)</mo></mrow><msub><mi>β</mi><mi>i</mi></msub></msup></mrow></mrow><mo>,</mo><mrow><mi>Π</mi><mo>=</mo><mrow><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>m</mi><mi>i</mi></msub><msub><mi>D</mi><mi>i</mi></msub></mrow></mrow></mrow></math>
-  - name: 高さ比
+  - name: 棚置きと吊りの商品高を比べる
     formula: αᵢ₁ = αᵢ₀ hᵢ₁ / hᵢ₀
-    explanation: 高さ比は商品本体の高さで求める。取り出し余白は置ける面数の判定に使い、基礎需要を変える高さ比には入れない。
+    explanation: 比べるのは置き方ごとの商品本体の高さである。取り出し余白は置ける面数の判定に使い、基礎需要を計算する高さの比には含めない。
     formula_mathml: <math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>α</mi><mi>i1</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>α</mi><mi>i0</mi></msub><msub><mi>h</mi><mi>i1</mi></msub></mrow><msub><mi>h</mi><mi>i0</mi></msub></mfrac></mrow></math>
 - kind: logic
   id: height-components
-  title: 商品・余白・棚板を別々に数える
+  title: 商品、取り出す隙間、板が使う高さ
   after: method
   locator: 図3、式(19)〜(24)
-  rationale: 図と独立した配置検査で支持面を一致させる。
-  caption: 棚板の上面の高さはy。厚さtの棚板はy−tからyの範囲を占める。
+  rationale: 商品を支える面と、棚板が占める範囲の違いを図と配置検査の両方で示す。
+  caption: yは棚板の上面を指す。厚さtの板はy−tからyまでを占める。
   source: https://journals.sagepub.com/doi/10.1177/10591478251359808
   rows:
   - label: 吊り
     nodes:
-    - title: 各段に余白
-      text: 占有高はb(h+ν)。
+    - title: 吊った商品は各段に隙間を取る
+      text: 1段は商品高hと余白νを使う。b段なら高さb(h+ν)が必要になる。
   - label: 棚置き
     nodes:
-    - title: 積み重ね
-      text: 同じ商品を積むときは、商品どうしの間に隙間を設けません。商品の上に棚板を置く場合は、取り出し余白νと板厚tを合わせた高さを確保します。
+    - title: 同じ商品は余白なしで積む
+      text: 棚置きでは同じ商品同士の間に隙間を入れない。上に棚板を入れるときは、商品上端から余白νと板厚tの分を空ける。

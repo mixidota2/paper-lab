@@ -28,61 +28,61 @@ verification:
   performance: NOT TESTED
   scaling: NOT TESTED
   production_applicability: NOT TESTED
-question: 棚を配る前に、各幅で何を売れるかを計算できるか
-summary: カテゴリごとに棚幅と利益の関係を計算し、その表から店全体の配分を選ぶ。6商品の合成実験で、代替需要と補充費が採用商品をどう変えるかを見る。
+question: 同じ店の棚幅を、どのカテゴリにどれだけ配るか
+summary: カテゴリごとに商品と面数を選び、割当幅ごとの最大利益を求める。店全体ではその表を組み合わせる。Labは6商品の合成例で、代替需要と補充費が商品選びにどう関わるかを確かめる。
 source_review:
   checked: '2026-10-16'
   url: https://dergipark.org.tr/tr/download/article-file/4435791
-  scope: 公開PDFの書誌情報と§3.1の需要・費用・制約を本文抽出で照合。詳細仕様に基づく独自教材。原論文の実験表・著者コードの再現は未実施。
+  scope: 公開PDFの書誌と§3.1の需要・費用・制約を照合した。§4の表2と表3は、カテゴリの計算と全店の計算を区別して参照する。原論文の表や著者コードは再現していない。
 core_idea:
-  author_claim: カテゴリごとに複数の棚容量で品揃えを最適化し、その結果を店全体の容量配分に使う。代替需要、フェイスによる需要変化、補充費をモデルに含める。
-  research_bot_interpretation: 容量を先に粗利比で配ると、その幅で選べる商品を考慮できない。独立なカテゴリと有限の共通候補という条件では、価値表を使った分解でも一括列挙と同じ最適利益を得られる。
+  author_claim: 著者はカテゴリごとに幅の候補を試し、その幅の中で採用品とフェイス数を決める。各候補の利益を店全体へ渡し、棚幅を配る。利益には、需要の移転、面数で変わる需要、補充費を織り込む。
+  research_bot_interpretation: 粗利の比だけで棚幅を配ると、幅によって置ける商品が変わることを考慮できない。カテゴリが互いに影響せず、同じ有限の幅候補を使うなら、カテゴリごとに解いても一括列挙と同じ最大利益を得られる。
 sections:
-  overview: 2025年の既刊論文を扱う。棚幅の配分と品揃えをつなぐ小実験であり、店舗での売上改善を測った実験ではない。
-  problem: 売場を広げる価値は、今の粗利だけでは決まらない。幅が1増えて別の商品を採用できる場合もあれば、同じ商品の在庫を増やして補充費を減らせる場合もある。
+  overview: 2025年の論文をもとに、店全体の棚幅を配る判断と、各カテゴリでどの商品を置くかを6商品の例でつなぐ。店舗で棚を変えて売上を測った実験ではない。
+  problem: 幅を1単位広げても、置ける商品が変わらないことがある。逆に別の商品を置けたり、同じ商品を多く置いて補充費を下げられたりする場合もある。今の粗利だけでは幅を増やす価値は分からない。
   method: method.md
-  why_it_might_work: カテゴリ内で可能な商品選択を先に比較すると、容量による利益の段差を店全体の判断に使える。カテゴリ間の需要移転や共有の作業時間がある場合は、この分解の前提から外れる。
-  evidence: 一次資料の原典は2段階の最適化モデルを提案する。本Labの数値はすべて独自の合成値であり、著者の計算表や実企業の売上効果とは別である。原式の印字には不整合があり、直接需要式に整合する解釈を対応表に明記した。
+  why_it_might_work: 幅ごとに置ける商品構成を比べておくと、どこで利益が変わるかを店全体の判断に使える。カテゴリ間で需要が移ったり、補充人員や作業時間を共有したりする場合は、ここで使う分解の前提から外れる。
+  evidence: 一次資料では、表2でカテゴリ内の採用品と面数を選ぶ計算を18条件、表3で全店の幅を配る計算を16条件で試している。表3のCPU時間は0.10〜0.29秒だが、入力となるカテゴリ別の候補を求める時間は含まない。著者は開発したソフトを小売関係者に紹介したと記すが、実店舗での棚変更による売上や利益は報告していない。Labの数値は独自の合成例である。原式の印字と教材での解釈の違いは対応表に示した。
   executable_understanding: experiment.md
-  results: 初期値の最適利益は150.780593。Aに幅3、Bに幅2を割り当てる。基礎粗利比例もこの初期条件では同じ配分になる。結果が同じ条件と異なる条件を区別して読む。
+  results: 初期値では、Aに幅3、Bに幅2を配る案の利益150.780593が最大になる。基礎粗利に比例して幅を決める案も、この初期値では同じ配分になる。どの条件でも一致するわけではない。
   what_we_verified: validation.md
-  what_we_did_not_verify: 著者が用いた最適化ソルバーSCIPの実装、原論文規模の計算、実店舗の増収、継続中の商用運用は未確認。店内位置、異種棚、価格最適化、確率欠品、補充時間、賞味期限も対象外。
+  what_we_did_not_verify: 著者が使ったSCIPの実装、原論文と同じ規模での計算、実店舗の増収、継続的な商用運用は確認していない。店内の位置、異なる種類の棚、価格の最適化、確率的な欠品、補充にかかる時間、賞味期限も扱わない。
   implementation: implementation.md
   mapping: mapping.md
 teaching_figures:
 - kind: logic
   id: capacity-values
-  title: 各幅の最良解を、店全体の配分へ渡す
+  title: 幅ごとの最良案を求めてから、店全体で選ぶ
   after: method
   locator: 原典 §3、Figure 1
-  rationale: 分解の入力と出力をつなぐ。
-  caption: 図は合成実験の構造。カテゴリ間の独立性と同じ容量候補が前提。
+  rationale: カテゴリ内の結果が、店全体の選択にどう渡るかを示す。
+  caption: 図は2カテゴリの合成例。カテゴリが独立し、一括計算と同じ幅の候補を使うことが前提。
   source: https://dergipark.org.tr/tr/download/article-file/4435791
   rows:
   - label: カテゴリ内
     nodes:
-    - title: 商品と候補幅
-      text: 基礎需要・粗利・幅・奥行き・ブランドから、各幅で商品とフェイスを選ぶ。
-    - title: 価値表 V(S)
-      text: 割当幅1〜4の各々について最大利益と採用商品を保存。
+    - title: 入力する商品と幅
+      text: 基礎需要、粗利、商品幅、奥行き、ブランドを使い、各候補幅で商品と面数を決める。
+    - title: 幅ごとの最大利益 V(S)
+      text: 割当幅1〜4を順に試し、最大利益と、そのときに置く商品を残す。
   - label: 店全体
     nodes:
-    - title: AとBの容量を選ぶ
-      text: 割当幅の合計が店全体の棚幅の上限以下となる組合せのうち、Vの合計が最大のものを選ぶ。
+    - title: AとBに棚幅を配る
+      text: AとBの割当幅を足して店全体の上限以下に収める。その条件でVの合計が最大になる幅を選ぶ。
 - kind: equations
   id: demand-cost
-  title: フェイスと代替は別の経路で利益を変える
+  title: 面数は商品自身の需要を、代替は移る需要を変える
   after: method
   locator: 原典 §3.1、式(1)/(4)
-  rationale: 需要変化と補充費の分母を分ける。
-  caption: Aは採用品の集合。i∈Aは採用品iだけを合計する意味です。qᵢは基礎需要（個／期間）、fᵢは横の面数、dᵢは1面の奥行き個数、UとBは未採用品と採用品の基礎需要合計です。
+  rationale: 需要の二つの内訳と、補充費を決める棚在庫を分けて示す。
+  caption: Aは採用品の集合、i∈Aは採用品だけを集計するという意味です。qᵢは基礎需要（個／期間）、fᵢは横の面数、dᵢは1面の奥行き個数です。Uは未採用品、Bは採用品の基礎需要を足した値です。
   source: https://dergipark.org.tr/tr/download/article-file/4435791
   steps:
-  - name: 需要の2成分
+  - name: 商品自身の需要と移ってきた需要
     formula: Dᵢ = qᵢ fᵢ^β + s qᵢ U / B
-    explanation: 前半は面数に応じた商品自身の需要。後半は未採用品の基礎需要の一部を、採用品の基礎需要比で配った流入。
+    explanation: 第1項は面数に応じた商品自身の需要。第2項は、棚に置かない商品から採用品の基礎需要比で配った流入。
     formula_mathml: <math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>D</mi><mi>i</mi></msub><mo>=</mo><mrow><msub><mi>q</mi><mi>i</mi></msub><msup><msub><mi>f</mi><mi>i</mi></msub><msub><mi>β</mi><mi>i</mi></msub></msup><mo>+</mo><mfrac><mrow><mi>s</mi><msub><mi>q</mi><mi>i</mi></msub><mi>U</mi></mrow><mi>B</mi></mfrac></mrow></mrow></math>
-  - name: 費用を引く
+  - name: 粗利から補充費と採用費を引く
     formula: Z = Σ(i∈A) [pᵢDᵢ − rDᵢ/(fᵢdᵢ) − c]
-    explanation: 補充費は需要を棚在庫で割った値に係数を掛ける近似。β=0でも、フェイスを増やして棚在庫が増えると補充費が下がり、選択が変わりうる。
+    explanation: 補充費は需要を棚在庫で割り、その値に係数を掛けた近似。β=0でも、面数を増やせば棚在庫が増えて補充費が下がるので、選ぶ商品が変わることがある。
     formula_mathml: <math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>Z</mi><mo>=</mo><mrow><munder><mo>∑</mo><mrow><mi>i</mi><mo>∈</mo><mi>A</mi></mrow></munder><mo>[</mo><msub><mi>p</mi><mi>i</mi></msub><msub><mi>D</mi><mi>i</mi></msub><mo>−</mo><mfrac><mrow><mi>r</mi><msub><mi>D</mi><mi>i</mi></msub></mrow><mrow><msub><mi>f</mi><mi>i</mi></msub><msub><mi>d</mi><mi>i</mi></msub></mrow></mfrac><mo>−</mo><mi>c</mi><mo>]</mo></mrow></mrow></math>

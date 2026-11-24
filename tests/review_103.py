@@ -592,7 +592,7 @@ def _runtime(site,out,plan,evidence):
                     def guide_navigation():
                         assert page.goto(base+'/index.html').ok;settled(page)
                         assert page.locator('[data-paper]').count()==119
-                        page.get_by_role('navigation',name='読む入口').get_by_role('link',name='テーマガイド',exact=True).click();settled(page)
+                        page.get_by_role('navigation',name='論文とガイドを探す',exact=True).get_by_role('link',name='テーマガイド',exact=True).click();settled(page)
                         assert page.url.endswith('/guides/index.html')
                         snapshot(page,out,f'guide-index-{width}')
                         page.locator('[data-guide-link]').click();settled(page)
@@ -604,7 +604,7 @@ def _runtime(site,out,plan,evidence):
                             assert page.url.endswith(f'/papers/{slug}.html')
                             page.get_by_role('link',name='棚割りのテーマガイドへ',exact=True).click();settled(page)
                             assert page.url.endswith('/guides/shelf-decisions.html')
-                        page.get_by_role('navigation',name='読む入口').get_by_role('link',name='最新研究・Lab一覧',exact=True).click();settled(page)
+                        page.get_by_role('navigation',name='論文とガイドを探す',exact=True).get_by_role('link',name='論文・Lab一覧',exact=True).click();settled(page)
                         assert page.locator('[data-paper]').count()==119
                     if width!=768:task(f'guide-navigation-{width}',guide_navigation)
                     def library_search():

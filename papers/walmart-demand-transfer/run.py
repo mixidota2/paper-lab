@@ -31,7 +31,7 @@ def experiment():
     counterexample = [0, 80, 100, 30]
     wmape = lambda pred, actual: sum(abs(a-b) for a, b in zip(pred, actual))/sum(actual)
     metrics = {"assumption_matched": {"independent_WMAPE": round(wmape(independent, adjusted), 6), "DT_WMAPE": wmape(adjusted, adjusted)}, "within_set_preference_shift": {"independent_WMAPE": round(wmape(independent, counterexample), 6), "DT_WMAPE": round(wmape(adjusted, counterexample), 6)}}
-    return {"note": "4商品の手計算可能な設定。効用は既知で推定しない。仮定一致時の誤差ゼロは構成上の結果であり、観測データへの精度保証ではない。", "demand": demand, "coefficients": dt, "removed_item": 0, "independent": independent, "adjusted": adjusted, "lost_demand": lost, "counterexample_actual": counterexample, "experiments": [{"name": "商品A撤去後の需要補正", "metrics": metrics}]}
+    return {"note": "Labは四つの商品の効用をあらかじめ決め、手で追える計算を示す。正解を予測と同じ規則で作ると誤差がゼロになるが、実データでの精度を示す結果ではない。", "demand": demand, "coefficients": dt, "removed_item": 0, "independent": independent, "adjusted": adjusted, "lost_demand": lost, "counterexample_actual": counterexample, "experiments": [{"name": "商品Aを棚から外したときの販売予測", "metrics": metrics}]}
 
 
 def compute():

@@ -90,7 +90,7 @@ def baseline(path):return ast.parse(subprocess.check_output(['git','show',f'{BAS
 
 def test_only_assortment_block_changed_and_all_capture_calls_preserved():
     old=baseline('tests/review_103.py')
-    # Only the exact catalog, guide and research preflight deltas differ beyond batching.
+    # Only the exact catalog, guide, research preflight and homepage selectors differ beyond batching.
     old_text=ast.unparse(old)
     assert old_text.count('108')==9
     old_text=old_text.replace('108','117')
@@ -106,6 +106,10 @@ def test_only_assortment_block_changed_and_all_capture_calls_preserved():
          "sources = ['research_pair_review.py', 'layout_release_browser.py', 'featurearc_review.py'"),
         ("'browser': 'NOT TESTED', 'launch'",
          "'signed_layout_research_groups': expected_research_groups(), 'browser': 'NOT TESTED', 'launch'"),
+        ("get_by_role('navigation', name='読む入口').get_by_role('link', name='テーマガイド', exact=True)",
+         "get_by_role('navigation', name='論文とガイドを探す', exact=True).get_by_role('link', name='テーマガイド', exact=True)"),
+        ("get_by_role('navigation', name='読む入口').get_by_role('link', name='最新研究・Lab一覧', exact=True)",
+         "get_by_role('navigation', name='論文とガイドを探す', exact=True).get_by_role('link', name='論文・Lab一覧', exact=True)"),
     ]:
         assert old_text.count(before)==1
         old_text=old_text.replace(before,after)

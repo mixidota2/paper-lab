@@ -38,5 +38,5 @@ def test_restore_control_explains_current_results(tmp_path):
     assert any(tag == 'label' and a.get('for') == attrs['id'] for tag, a in fields.nodes)
     assert any(a.get('id') == attrs['aria-describedby'] for tag, a in fields.nodes)
     assert any(a.get('role') == 'status' for tag, a in fields.nodes if 'data-reading-import-status' in a)
-    assert '現在のLabから選び直すため' in html
-    assert 'サーバーへ送信しません' in html
+    assert '検索対象は現在のLabなので、保存したときと件数や内容が異なる場合があります。' in html
+    assert 'ファイルはブラウザー内で読み込み、サーバーには送りません。' in html
