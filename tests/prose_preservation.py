@@ -64,6 +64,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = replenishment_guide_rewrite_hash(root, path, expected, algorithm)
     expected = replenishment_cards_rewrite_hash(root, path, expected, algorithm)
     expected = replenishment_cards_followup_hash(root, path, expected, algorithm)
+    expected = store_layout_full_rewrite_hash(root, path, expected, algorithm)
     result = hasterad_registration_hash(root, path, expected, algorithm)
     return coral_full_rewrite_hash(root, path, result, algorithm)
 
@@ -116,6 +117,24 @@ def reference_guess_markup_hash(root, path, expected, algorithm='sha256'):
 def coral_full_rewrite_hash(root, path, expected, algorithm='sha256'):
     """Recognize four exact source and authored CORAL identities; reject any other input."""
     row = json.loads((root / 'tests/coral_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return coral_role_clarification_hash(root, path, row['after_' + algorithm], algorithm)
+
+
+def coral_role_clarification_hash(root, path, expected, algorithm='sha256'):
+    """Recognize only the exact published-to-clarified CORAL source transition."""
+    row = json.loads((root / 'tests/coral_role_clarification_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def store_layout_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Permit only the separately recorded full fixed-count layout guide rewrite."""
+    row = json.loads((root / 'tests/store_layout_full_rewrite_hashes.json').read_text())['files'].get(path)
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path
