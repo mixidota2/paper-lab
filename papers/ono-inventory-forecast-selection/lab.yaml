@@ -1,0 +1,81 @@
+id: ono-inventory-forecast-selection
+title: 'Forecasting model selection for inventory cost reduction: insights on time-series features and model selection'
+authors: [Yurika Ono, Takeru Moriyama, Takafumi Ueda, Yusuke Itani, Aya Ishigaki]
+year: 2026
+submitted: '2026-11-02'
+doi: 10.1080/21681015.2026.2750831
+topics: [demand-forecasting, retail-supply]
+urls:
+  paper: https://www.tandfonline.com/doi/pdf/10.1080/21681015.2026.2750831
+  doi: https://doi.org/10.1080/21681015.2026.2750831
+verdict: Worth Reading
+status: draft
+question: 商品ごとに予測手法を選ぶと、全商品で同じ手法を使うより在庫費用は下がるか
+summary: >
+  Walmartの公開売上データを使った在庫シミュレーションでは、商品ごとに予測手法を選ぶ方法と、全商品に単純指数平滑法を使う方法の総費用に、統計的にはっきりした差はありませんでした。
+  欠品費用を変えた4条件でも、この2つの手法の費用差はどの条件でも2%未満でした。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+source_review:
+  checked: '2026-11-24'
+  url: https://www.tandfonline.com/doi/pdf/10.1080/21681015.2026.2750831
+  scope: 出版社が公開した論文の手法と表2・4・5・7。著者コードとPDF原本のハッシュは未確認。
+core_idea:
+  author_claim: 著者は商品と州の組み合わせごとに在庫費用が低くなりそうな予測手法を選ぶ方法（CFMS）を提案しました。単純指数平滑法（SES）など、比較した中で最も成績のよい手法と同程度の費用とサイクルサービス水準を報告しています。
+  research_bot_interpretation: この論文から、複雑な仕組みに替えれば費用が下がるとは言えません。導入を検討するなら、まず単純指数平滑法などの比較で成績のよかった手法を基準にし、同じ補充ルールで費用と欠品を比べます。
+sections:
+  overview: '主な比較では、費用はCFMSが85,056、SESが85,093でした。差は約0.04%で、統計的にはっきりした差はありませんでした（表2）。'
+  problem: '予測手法が変わると、同じ補充ルールでも発注量と欠品が変わります。著者が調べたのは、単純な手法を一律に使う代わりに、商品の売れ方に合わせて予測手法を選ぶと費用を減らせるかです。'
+  method: method.md
+  why_it_might_work: '毎日売れる商品と、たまにまとまって売れる商品では、同じ予測手法が最も低い費用になるとは限りません。候補ごとに補充後の費用を求め、その違いを学習すれば、商品の売れ方に合う手法を選べる可能性があります。'
+  evidence: |
+    ### 主な比較では、発注費用が下がり、欠品費用が上がった
+
+    著者のシミュレーションでは、CFMSの総費用は85,056、SESは85,093でした。論文の総費用欄を引くとCFMSが37少なく、SES比で約0.04%の差です。内訳を比べると、CFMSは発注費用が424、保管費用が13少ない一方、欠品費用は401多くかかりました（§5.1・表2）。いずれも実店舗で払った金額ではありません。
+
+    ### 欠品費用を変えた条件は、主な比較とは別に読む
+
+    一次資料の表7では、補充サイクル中に一度も欠品しない割合の目標を95%、保管費用の率を商品価格の年1%に固定しました。評価は120系列に納品までの日数2通りと、発注量を決め直す間隔3通りを掛け合わせた720ケースです。
+    欠品費用の率が1%のとき、SESに対するCFMSの費用差は1.74%でした。欠品費用の率が25%のときは0.54%でした。
+  executable_understanding: '欠品費用の率を選ぶと、論文が報告した費用と、SESを基準に計算した差を確認できます。下の例では、欠品する回数と欠品する数量が別の指標になる理由を確かめます。'
+  results: '表4では、目標を90%にしたときに50.3%のケースでCFMSが目標を下回りました。目標を95%にしたときは56.0%です。どちらも目標を下回った評価ケースの割合で、欠品したサイクルの割合ではありません。別の指標として、表5ではCFMSが在庫で満たせた需要数量の割合を平均96.0%と報告しています。'
+  what_we_verified: '論文が報告した費用をもとに、SESを基準にした差の計算を確かめました。人工例では、欠品した総数が同じでも、欠品が起きた回数が違えば、サイクルサービス水準が変わることを確かめました。'
+  what_we_did_not_verify: '論文の学習、在庫シミュレーション、統計検定は再実行していません。規模を大きくした場合の処理時間や、実店舗の発注を変えたときの効果も未検証です。'
+  implementation: 'run.pyはPythonの標準ライブラリだけで動きます。保存した報告値から費用差を計算し、別に用意した人工例から2つのサービス指標を計算します。画面の操作でモデルの再学習や未掲載の条件の計算は行いません。'
+  mapping: mapping.md
+teaching_figures:
+- id: selector-and-inventory-policy
+  kind: logic
+  title: 予測手法を選ぶ前に補充後の費用を計算する
+  after: method
+  source: https://www.tandfonline.com/doi/pdf/10.1080/21681015.2026.2750831
+  locator: §3–4をもとに整理
+  rationale: 商品に合う予測手法の選択と、予測を使った発注を分ける。
+  caption: 州と商品の組み合わせを仮想倉庫の系列として扱う。実店舗への導入ではない。
+  rows:
+  - label: 著者の比較
+    nodes:
+    - title: 予測と発注
+      text: 候補となる予測手法を売上系列に当て、同じ補充ルールで在庫をシミュレーションする。
+    - title: 費用を比較
+      text: 発注、保管、欠品の費用を候補ごとに集計する。
+    - title: 選択器を評価
+      text: 系列の特徴から、費用の小さくなりそうな予測手法を選び、学習に使わなかった商品で比較する。
+- id: two-service-metrics
+  kind: equations
+  title: 欠品を回数で数えるか、数量で数えるか
+  after: evidence
+  source: https://www.tandfonline.com/doi/pdf/10.1080/21681015.2026.2750831
+  locator: 表4・5とLab独自の人工例
+  rationale: 目標とする周期サービス水準と、数量充足率を同じ指標と見なさない。
+  caption: 需要数量の合計を同じにしても、不足が集中するか分散するかで結果が変わる。
+  steps:
+  - name: 周期サービス水準
+    formula: 欠品しなかった周期数 ÷ 全周期数
+    explanation: その周期に一度でも欠品があったかを数える。
+  - name: 数量充足率
+    formula: 満たした数量の合計 ÷ 需要数量の合計
+    explanation: 同じ数だけ売り逃していれば、欠品した周期の数が違っても、この指標は同じになる。

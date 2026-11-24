@@ -9,11 +9,13 @@ CLI:
 from __future__ import annotations
 
 from .retail_grain import widget as retail_grain_widget
+from .deep_cross_division import widget as dcdn_widget
 from .series_cv import widget as series_cv_widget
 from .reusegr import widget as reusegr_widget
 from .trial_trace import widget as trial_trace_widget
 from .assortment_observation import widget as assortment_observation_widget
 from .inventory_ct import widget as inventory_ct_widget
+from .ono_inventory import widget as ono_inventory_widget
 from .replenishment_guide import SLUG as REPLENISHMENT_GUIDE, load_cards, render_cards, survey_dates
 
 import argparse
@@ -187,8 +189,12 @@ def paper_sections(lab: Lab) -> list[dict[str, Any]]:
             html = markdown_to_html(lab.sections.get(key, ""))
 
         if key == "executable_understanding":
+            if lab.id == "ono-inventory-forecast-selection":
+                html += ono_inventory_widget(lab.results)
             if lab.id == "retail-forecast-decision-grain":
                 html += retail_grain_widget(lab.source_dir)
+            if lab.id == "deep-cross-division":
+                html += dcdn_widget(lab.source_dir)
             if lab.id == "series-wise-validation":
                 html += series_cv_widget(lab.source_dir)
             if lab.id == "query-prefix-reuse":
@@ -453,6 +459,9 @@ def _render_site(root: Path, papers: Path, site: Path, labs: list[Lab]) -> None:
                 shutil.copy2(source, download_dir / name)
         if lab.id == "retail-forecast-decision-grain":
             shutil.copy2(lab.source_dir / "evidence.md", download_dir / "evidence.md")
+        if lab.id == "deep-cross-division":
+            shutil.copy2(lab.source_dir / "evidence.md", download_dir / "evidence.md")
+            shutil.copy2(lab.source_dir / "interactive.html", download_dir / "interactive.html")
         if lab.id == "series-wise-validation":
             for name in ("table3.json", "evidence.md"):
                 shutil.copy2(lab.source_dir / name, download_dir / name)
@@ -479,6 +488,8 @@ def _render_site(root: Path, papers: Path, site: Path, labs: list[Lab]) -> None:
             rendered_figures.append({**figure, "url": f"../figures/{lab.id}/{figure['path']}"})
         local_experiment_files = [name for name in ("plot.py", "author-orderbook.csv", "table3.json")
                                   if (lab.source_dir / name).is_file()]
+        if lab.id == "deep-cross-division":
+            local_experiment_files += ["interactive.html", "test.cjs", "evidence.md"]
         if lab.id == "featurearc-inherited-defects-chain-gates":
             local_experiment_files += ["render.py", "interactive.js"]
         html = paper_template.render(

@@ -16,7 +16,7 @@ SOURCE = ROOT/'papers'/WRAPPED
 
 
 def test_catalog_rejects_replacement_of_an_existing_lab():
-    assert_catalog(EXISTING | {TRACE, EPISEM, DELETION, FEATUREARC, INVENTORY_CT, ASSORTMENT, TRIAL_TRACE, REUSEGR, RETAIL_GRAIN, SERIES_CV, HASTERAD})
+    assert_catalog(EXISTING | {TRACE, EPISEM, DELETION, FEATUREARC, INVENTORY_CT, ASSORTMENT, TRIAL_TRACE, REUSEGR, RETAIL_GRAIN, SERIES_CV, HASTERAD,'deep-cross-division','ono-inventory-forecast-selection'})
     with pytest.raises(AssertionError):
         assert_catalog((EXISTING - {sorted(EXISTING)[0]}) | {TRACE,EPISEM,'invented-replacement'})
 

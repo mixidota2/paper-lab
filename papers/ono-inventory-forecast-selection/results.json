@@ -1,0 +1,77 @@
+{
+  "reported_table7": [
+    {
+      "shortage_pct": 1,
+      "cfms": 21657,
+      "ses": 22041,
+      "difference": 384,
+      "reduction_pct": 1.74
+    },
+    {
+      "shortage_pct": 5,
+      "cfms": 27830,
+      "ses": 28104,
+      "difference": 274,
+      "reduction_pct": 0.97
+    },
+    {
+      "shortage_pct": 12.5,
+      "cfms": 39193,
+      "ses": 39471,
+      "difference": 278,
+      "reduction_pct": 0.7
+    },
+    {
+      "shortage_pct": 25,
+      "cfms": 58098,
+      "ses": 58415,
+      "difference": 317,
+      "reduction_pct": 0.54
+    }
+  ],
+  "reported_table2": {
+    "shortage_pct": null,
+    "cfms": 85056,
+    "ses": 85093,
+    "difference": 37,
+    "reduction_pct": 0.04
+  },
+  "toy_service": [
+    {
+      "label": "欠品を1回にまとめる",
+      "demand_per_cycle": 10,
+      "served": [
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        6
+      ],
+      "csl_pct": 90.0,
+      "fill_pct": 96.0
+    },
+    {
+      "label": "欠品を4回に分ける",
+      "demand_per_cycle": 10,
+      "served": [
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        9,
+        9,
+        9,
+        9
+      ],
+      "csl_pct": 60.0,
+      "fill_pct": 96.0
+    }
+  ]
+}

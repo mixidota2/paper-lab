@@ -14,6 +14,10 @@ from review_capture import capture_segments
 from shelf_survey_browser import inspect_survey
 from replenishment_release_browser import inspect_replenishment
 from hasterad_release_browser import inspect_hasterad
+from research_pair_review import (
+    RESEARCH_SLUGS, RESEARCH_WIDTHS, assert_research_plan, assert_research_record, protected_research,
+)
+from review_103 import assert_paper_heading, settled
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "browser-review" / "layout-release"
@@ -53,7 +57,7 @@ def main():
         "status": "STARTED", "manual_visual_review": "NOT TESTED",
         "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
         "source_sha256": hashlib.sha256((ROOT / "guides/store-layout-fixed-counts.md").read_bytes()).hexdigest(),
-        "widths": [], "hasterad_widths": [], "reference_guess": [], "errors": [],
+        "widths": [], "hasterad_widths": [], "reference_guess": [], "research_checks": [], "errors": [],
     }
 
     def snapshot(page, out, name, locator=None):
@@ -65,6 +69,7 @@ def main():
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), page.url
 
     try:
+        assert_research_plan(json.loads((OUT.parent / "preflight" / "preflight.json").read_text()))
         record["runner_image"] = {key: os.environ.get(key) for key in ("ImageOS", "ImageVersion", "RUNNER_OS", "RUNNER_ARCH")}
         info = plistlib.loads(Path("/Applications/Google Chrome.app/Contents/Info.plist").read_bytes())
         record["chrome_bundle"] = {key: info.get(key) for key in ("CFBundleIdentifier", "CFBundleShortVersionString", "CFBundleVersion")}
@@ -79,13 +84,13 @@ def main():
                 assert page.goto(base + "/index.html").ok
                 verify_seatbelt(browser)
                 fit(page)
-                assert page.locator("[data-paper]:visible").count() == 115
+                assert page.locator("[data-paper]:visible").count() == 117
                 page.get_by_role("searchbox").fill("2609.04518")
                 assert page.locator("[data-paper]:visible").count() == 1
                 snapshot(page, OUT, f"search-{width}")
                 snapshot(page, OUT, f"search-result-{width}", page.locator("[data-paper]:visible").first)
                 page.get_by_role("button", name="条件を消去").click()
-                assert page.locator("[data-paper]:visible").count() == 115
+                assert page.locator("[data-paper]:visible").count() == 117
                 page.locator('a[href="guides/index.html"]').first.click()
                 assert page.url.endswith("/guides/index.html")
                 page.locator("[data-layout-guide-link]").click()
@@ -165,6 +170,20 @@ def main():
                     record["hasterad_widths"].append({**result, "sandbox": "CONFIRMED"})
                 finally:
                     page.close()
+            for width in RESEARCH_WIDTHS:
+                page = browser.new_page(viewport={"width": width, "height": 900}, reduced_motion="reduce")
+                page.on("pageerror", lambda error: record["errors"].append(str(error)))
+                page.on("console", lambda message: record["errors"].append(message.text) if message.type == "error" else None)
+                page.on("requestfailed", lambda request: record["errors"].append(f"Request failed: {request.url}"))
+                page.on("response", lambda response: record["errors"].append(f"HTTP {response.status}: {response.url}")
+                        if response.status >= 400 and response.url.startswith(base + "/") else None)
+                try:
+                    for slug in RESEARCH_SLUGS:
+                        result = protected_research(page, browser, base, slug, width, verify_seatbelt, settled, assert_paper_heading)
+                        record["research_checks"].append(result)
+                finally:
+                    page.close()
+            assert_research_record(record["research_checks"])
             assert not record["errors"], record["errors"]
             browser.close()
         record["status"] = "AUTOMATED PASS"

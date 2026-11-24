@@ -90,14 +90,22 @@ def baseline(path):return ast.parse(subprocess.check_output(['git','show',f'{BAS
 
 def test_only_assortment_block_changed_and_all_capture_calls_preserved():
     old=baseline('tests/review_103.py')
-    # Only the exact catalog and guide registration deltas differ beyond batching.
+    # Only the exact catalog, guide and research preflight deltas differ beyond batching.
     old_text=ast.unparse(old)
     assert old_text.count('108')==9
-    old_text=old_text.replace('108','115')
+    old_text=old_text.replace('108','117')
     for before,after in [
         ("{'index.html', 'shelf-decisions.html'}", "{'index.html', 'shelf-decisions.html', 'forecast-to-replenishment.html', 'store-layout-fixed-counts.html'}"),
         ("'theme_guides': 1, 'guide_pages': 2", "'theme_guides': 3, 'guide_pages': 4"),
-        ('115件のLab ／ 1件のテーマガイド', '115件のLab ／ 3件のテーマガイド'),
+        ('117件のLab ／ 1件のテーマガイド', '117件のLab ／ 3件のテーマガイド'),
+        ('from review_measurements import assert_percent_width',
+         'from review_measurements import assert_percent_width\nfrom research_pair_review import DCDN, ONO, expected_research_groups, static_contract'),
+        ("    required = [f'trace-",
+         "    static_contract(docs[site / 'papers' / f'{DCDN}.html'], docs[site / 'papers' / f'{ONO}.html'])\n    required = [f'trace-"),
+        ("sources = ['featurearc_review.py'",
+         "sources = ['research_pair_review.py', 'layout_release_browser.py', 'featurearc_review.py'"),
+        ("'browser': 'NOT TESTED', 'launch'",
+         "'signed_layout_research_groups': expected_research_groups(), 'browser': 'NOT TESTED', 'launch'"),
     ]:
         assert old_text.count(before)==1
         old_text=old_text.replace(before,after)

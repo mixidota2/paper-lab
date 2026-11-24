@@ -102,6 +102,15 @@ def hasterad_registration_hash(root, path, expected, algorithm='sha256'):
     if row is not None:
         assert expected == row['before_' + algorithm], path
         expected = row['after_' + algorithm]
+    return dcdn_ono_registration_hash(root, path, expected, algorithm)
+
+
+def dcdn_ono_registration_hash(root, path, expected, algorithm='sha256'):
+    """Accept only the three README count corrections tied to these two papers."""
+    row = json.loads((root / 'tests/dcdn_ono_registration_hashes.json').read_text())['files'].get(path)
+    if row is not None:
+        assert expected == row['before_' + algorithm], path
+        expected = row['after_' + algorithm]
     return reference_guess_markup_hash(root, path, expected, algorithm)
 
 

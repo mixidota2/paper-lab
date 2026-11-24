@@ -40,10 +40,10 @@ def expected_runner():
     end = deletion.index('                    for slug in NOJS:',start)
     anchor = '                    def episem_fallback():\n'
     expected = replace_once(expected,anchor,deletion[start:end]+anchor)
-    expected = expected.replace('107','115')
+    expected = expected.replace('107','117')
     expected = replace_once(expected, "{'index.html','shelf-decisions.html'}", "{'index.html','shelf-decisions.html','forecast-to-replenishment.html'}")
     expected = replace_once(expected, "'theme_guides':1,'guide_pages':2", "'theme_guides':2,'guide_pages':3")
-    expected = replace_once(expected, '115件のLab ／ 1件のテーマガイド', '115件のLab ／ 2件のテーマガイド')
+    expected = replace_once(expected, '117件のLab ／ 1件のテーマガイド', '117件のLab ／ 2件のテーマガイド')
     expected = expected.replace('from deletion_review import inspect_deletion','from featurearc_review import inspect_featurearc\nfrom deletion_review import inspect_deletion')
     expected = expected.replace('TRACE, EPISEM, DELETION','TRACE, EPISEM, DELETION, FEATUREARC')
     expected = expected.replace("    required += [f'deletion-{w}'","    required += [f'featurearc-{w}' for w in (360,768,1440)]+['nojs-'+FEATUREARC]\n    required += [f'deletion-{w}'")
@@ -58,7 +58,16 @@ def expected_runner():
     expected = replace_once(expected, 'def shelf_checks(', 'ASSORTMENT_DOM = """(expectedWidths) => {\n    const serialize = value => {\n        const probe = document.createElement(\'div\');\n        probe.style.width = `${value}%`;\n        return probe.style.width;\n    };\n    return {\n        rows: [...document.querySelectorAll(\'#rows tr\')].map(r => [...r.querySelectorAll(\'td\')].map(c => c.textContent)),\n        stocks: [...document.querySelectorAll(\'#bars > p\')].filter(p => p.textContent.includes(\'棚在庫\')).map(p => ({\n            text: p.innerText,\n            stock: [...p.querySelectorAll(\'.bar:not(.required)\')].map(b => b.style.width),\n            required: [...p.querySelectorAll(\'.bar.required\')].map(b => b.style.width)\n        })),\n        summary: document.querySelector(\'#summary\').innerText,\n        expectedWidths: expectedWidths.map(pair => pair.map(serialize))\n    };\n}"""\n\n\ndef assert_assortment_dom(page, selected):\n    # One fresh DOM read after every state change; expectations remain Python.\n    active = [r for r in selected[\'rows\'] if r[\'k\']] if selected else []\n    scale = max(1, *[v for r in selected[\'rows\'] for v in [r[\'stock\'], r[\'required\']]]) if selected else 1\n    widths = [[60*r[\'stock\']/scale, 60*r[\'required\']/scale] for r in active]\n    assert all(math.isfinite(v) and v >= 0 for pair in widths for v in pair)\n    measured = page.evaluate(ASSORTMENT_DOM, widths)\n    if not selected:\n        assert \'ありません\' in measured[\'summary\']\n        return\n    assert len(measured[\'rows\']) == len(selected[\'rows\'])\n    for cells, r in zip(measured[\'rows\'], selected[\'rows\']):\n        assert cells == [r[\'id\'], str(r[\'k\'])] + [f\'{v:.3f}\' for v in [r[\'direct\'], r[\'transfer\'], r[\'stock\'], r[\'required\'], max(0, -r[\'slack\'])]]\n    assert len(measured[\'stocks\']) == len(active)\n    assert len(measured[\'expectedWidths\']) == len(active)\n    for stock, r, expected in zip(measured[\'stocks\'], active, measured[\'expectedWidths\']):\n        assert stock[\'text\'].startswith(f\'{r["id"]} 棚在庫\')\n        assert len(stock[\'stock\']) == len(stock[\'required\']) == 1\n        assert len(expected) == 2\n        for actual, value in zip([stock[\'stock\'][0], stock[\'required\'][0]], expected):\n            assert value.endswith(\'%\')\n            assert actual == value\n    assert f\'{selected["profit"]:.3f}\' in measured[\'summary\']\n\n\ndef shelf_checks(')
     expected = replace_once(expected, "{'index.html','shelf-decisions.html','forecast-to-replenishment.html'}", "{'index.html','shelf-decisions.html','forecast-to-replenishment.html','store-layout-fixed-counts.html'}")
     expected = replace_once(expected, "'theme_guides':2,'guide_pages':3", "'theme_guides':3,'guide_pages':4")
-    expected = replace_once(expected, '115件のLab ／ 2件のテーマガイド', '115件のLab ／ 3件のテーマガイド')
+    expected = replace_once(expected, '117件のLab ／ 2件のテーマガイド', '117件のLab ／ 3件のテーマガイド')
+    # Add only the static declaration consumed by the signed layout runner.
+    expected = replace_once(expected, 'from review_measurements import assert_percent_width',
+        'from review_measurements import assert_percent_width\nfrom research_pair_review import DCDN, ONO, expected_research_groups, static_contract')
+    expected = replace_once(expected, "    required=[f'trace-",
+        "    static_contract(docs[site/'papers'/f'{DCDN}.html'], docs[site/'papers'/f'{ONO}.html'])\n    required=[f'trace-")
+    expected = replace_once(expected, "sources=['featurearc_review.py'",
+        "sources=['research_pair_review.py','layout_release_browser.py','featurearc_review.py'")
+    expected = replace_once(expected, "'browser':'NOT TESTED','launch'",
+        "'signed_layout_research_groups':expected_research_groups(),'browser':'NOT TESTED','launch'")
     return expected
 
 
