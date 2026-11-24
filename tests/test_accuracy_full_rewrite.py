@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from prose_preservation import accuracy_full_rewrite_hash
+from prose_preservation import accuracy_full_rewrite_hash, restored_before_paper_overview
 
 ROOT = Path(__file__).resolve().parents[1]
 NAME = 'accuracy-not-service-intermittent-demand'
@@ -18,7 +18,7 @@ FILES = json.loads((ROOT / 'tests/accuracy_full_rewrite_hashes.json').read_text(
 def test_accuracy_source_guards_match_exact_reviewed_bytes(path, algorithm):
     row = FILES[path]
     expected = accuracy_full_rewrite_hash(ROOT, path, row['before_' + algorithm], algorithm)
-    b = (ROOT / path).read_bytes()
+    b = restored_before_paper_overview(ROOT, path, (ROOT / path).read_bytes())
     actual = (hashlib.sha1(f'blob {len(b)}\0'.encode() + b).hexdigest()
               if algorithm == 'blob' else hashlib.sha256(b).hexdigest())
     assert expected == actual == row['after_' + algorithm]

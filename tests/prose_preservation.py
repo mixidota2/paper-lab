@@ -93,7 +93,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
 
 def paper_overview_rewrite_hash(root, path, expected, algorithm='sha256'):
     """Permit the reviewed overview only on its exact previously reviewed file."""
-    row = json.loads((root / 'tests/paper_overview_hashes.json').read_text())['files'].get(path)
+    receipt = json.loads((root / 'tests/paper_overview_hashes.json').read_text())
+    row = receipt['files'].get(path) or receipt.get('generated_from', {}).get(path)
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path
@@ -106,7 +107,7 @@ def restored_before_paper_overview(root, path, raw):
     if row is None:
         return raw
     assert hashlib.sha256(raw).hexdigest() == row['after_sha256'], path
-    pattern = rb'^  overview: \|-\n(?:    [^\n]+\n|\n(?=    [^\n]+\n))+'
+    pattern = rb'^  overview: [^\n]+\n(?:    [^\n]+\n|\n(?=    [^\n]+\n))*'
     matches = list(re.finditer(pattern, raw, re.M))
     assert len(matches) == 1, path
     field = matches[0]
