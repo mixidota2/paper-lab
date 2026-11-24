@@ -65,6 +65,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = replenishment_cards_rewrite_hash(root, path, expected, algorithm)
     expected = replenishment_cards_followup_hash(root, path, expected, algorithm)
     expected = store_layout_full_rewrite_hash(root, path, expected, algorithm)
+    expected = shelf_full_rewrite_hash(root, path, expected, algorithm)
     result = hasterad_registration_hash(root, path, expected, algorithm)
     return coral_full_rewrite_hash(root, path, result, algorithm)
 
@@ -144,6 +145,14 @@ def coral_role_clarification_hash(root, path, expected, algorithm='sha256'):
 def store_layout_full_rewrite_hash(root, path, expected, algorithm='sha256'):
     """Permit only the separately recorded full fixed-count layout guide rewrite."""
     row = json.loads((root / 'tests/store_layout_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+def shelf_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Accept the reviewed shelf guide only from its exact prior identity."""
+    row = json.loads((root / 'tests/shelf_full_rewrite_hashes.json').read_text())['files'].get(path)
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path

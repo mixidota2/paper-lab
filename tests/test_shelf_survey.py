@@ -47,7 +47,7 @@ def test_survey_links_to_all_four_shared_labs_and_distinguishes_evidence():
     html = markdown_to_html(text)
     assert 'survey-decisions' in html
     assert 'Prisma Peremarket' in html
-    assert '因果的改善・解法の独立検証' in html
+    assert '効果や解法を独立に確かめたか' in html
     assert '7.5%' in html and '6.7%' in html and 'シミュレーション' in html
 
 

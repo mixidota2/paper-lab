@@ -1,4 +1,5 @@
 """Permit hash-pinned guide revisions, preserving the old catalog."""
+import gzip
 import hashlib
 from pathlib import Path
 import subprocess
@@ -12,6 +13,8 @@ LAYOUT = '2657bd4b13da54ebbd1539a700d2b291be5e8db3976ee4d3b833271c11098184'
 WORDING = '3fe2874e280af9b28c8ab19b45cb783eb6c9b2ff3aead902ebbbcd3380cf0e9d'
 NOVEMBER = '721e1ec459a12bd8028d203fac055c7e34c0d07a29bbbc08b88d69f760b577ea'
 NOVEMBER_PATCH_SHA = '5be9c51055a82e92bb4b2fac4d9fdfaf88a1d799d8bd7713a36610fdcfd49f20'
+FULL_REWRITE = '32cbe0d4331f3b1b275565d3e77e7e35348710cf4126053b2fc1da258307d861'
+FULL_REWRITE_PATCH_SHA = '6abb2b98f251fe1f3f2b8c1015391b4c22c2758a48492b94c15c15fca9eabd5b'
 WORDING_OLD = 'Düsterhöftほかは対照群との比較を報告。Fisher・Vaidyanathanのタイヤは一部導入をモデル調整後の売上高で評価。無作為比較ではない'
 WORDING_NEW = 'Düsterhöftほかは対照群との比較を報告していますが、割付方法・店舗数・評価期間は未確認です。Fisher・Vaidyanathanのタイヤは一部導入をモデル調整後の売上高で評価しており、こちらは無作為比較ではありません。'
 LAYOUT_PATCH_SHA = '652c97a1b34596cfa02e435549c7cfba0cf93aa3277f96fdedfeb252d7385c55'
@@ -42,7 +45,15 @@ def reverse_exact(data, patch, patch_sha, expected):
         return restored
 
 
+def before_full_rewrite(data):
+    if sha(data) != FULL_REWRITE:
+        return data
+    patch = gzip.decompress((Path(__file__).parent / 'fixtures/shelf-guide-full-rewrite.patch.gz').read_bytes())
+    return reverse_exact(data, patch, FULL_REWRITE_PATCH_SHA, NOVEMBER)
+
+
 def before_november(data):
+    data = before_full_rewrite(data)
     if sha(data) != NOVEMBER:
         return data
     patch = (Path(__file__).parent / 'fixtures/shelf-guide-yomiyasu-20261118.patch').read_bytes()
