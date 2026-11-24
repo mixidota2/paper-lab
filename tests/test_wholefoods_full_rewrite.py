@@ -9,7 +9,7 @@ import subprocess
 import pytest
 import yaml
 
-from prose_preservation import wholefoods_full_rewrite_hash
+from prose_preservation import restored_before_paper_overview, wholefoods_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = 'papers/whole-foods-shelf'
@@ -54,7 +54,7 @@ def test_archive_and_current_text_identities_are_exact(algo):
             return hashlib.sha256(raw).hexdigest()
         return hashlib.sha1(f'blob {len(raw)}\0'.encode()+raw).hexdigest()
     for path in manifest['files']:
-        current = (ROOT / path).read_bytes()
+        current = restored_before_paper_overview(ROOT, path, (ROOT / path).read_bytes())
         assert wholefoods_full_rewrite_hash(ROOT,path,digest(historical(path)),algo) == digest(current)
         with pytest.raises(AssertionError):
             wholefoods_full_rewrite_hash(ROOT,path,digest(current+b'\n'),algo)

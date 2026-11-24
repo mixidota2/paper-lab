@@ -1,0 +1,205 @@
+{
+  "base": "0b1d7963e1d865f6dd5ea84f8631233957e46d6f",
+  "files": {
+    "papers/ahe-beta-receipt/lab.yaml": {
+      "before_sha256": "a29cb8e2f4727c46a81f8492a663c8176f7f07f73b98c6a545234531a8d8fecb",
+      "before_blob": "f129e4070c2efded77a33250e1394253f98a50ea",
+      "after_sha256": "e484fa0b3b5db8cfd35b241e0464c785d735b0d4eeea8842db28bdd8f8ae0f20",
+      "after_blob": "2760aa47049e38346dc579e84c01d0a2b426b7ac",
+      "prior_field": "  overview: 著者は同じモデルを使ったまま、モデルが仕事を進め、利用者とやり取りする仕組みを改良した。モデルの周囲にあるこの仕組みをハーネスと呼ぶ。著者が比べたのは、課題に合格したか、模擬ユーザーがどう評価したか、課題の実行に何トークン使ったかだ。\n",
+      "new_field_sha256": "185cf3d22bf138720c882261b7ce1734557467b6a94d534e4b3f21a3e31bcc86"
+    },
+    "papers/assortment-observation-budget/lab.yaml": {
+      "before_sha256": "463f6e47d2335586e9a448e8294f56d26ebf9f8ca940ce3c58fca2da2c304d48",
+      "before_blob": "7a9d6cb2c01a94dc702342fa5c753a37e95b3019",
+      "after_sha256": "638b253009af4dd077fbbc4bad2c3e7b81155eb29dd9fe11528521587d5b3ad8",
+      "after_blob": "57e07ce864356a511e99e5ea9d3ec2286a75c412",
+      "prior_field": "  overview: Labで扱うのは2026年10月29日提出のv1です。Labは数式を確かめ、限られた条件を計算しました。著者コードや店舗実験は再現していません。[論文の書誌情報](https://arxiv.org/abs/2610.40557)。\n",
+      "new_field_sha256": "79e9449c2a6995c5630d0468e7a5463effb6a1e719e1bb34a508e5c20fabe9cd"
+    },
+    "papers/discounted-perishables-forecast/lab.yaml": {
+      "before_sha256": "47b65155adeb315db23dd053eee13670529a537ce0c1fe432d2f24aaadbee46d",
+      "before_blob": "1453ecc354562c1f09d762967af983c40a18a266",
+      "after_sha256": "3f7cde778d055fbd2de13c205fda96c86e7bfa19e3cbfcd030f5e501ae81a9e9",
+      "after_blob": "5200f066cf799a781467076e670b9844acecb375",
+      "prior_field": "  overview: 著者は期限間近の値引きを扱った。値引き品が売れた日を抽出し、別の日の記録から推定した基準と比べた。値引きした店としなかった店を無作為に割り付けた実験ではない。\n",
+      "new_field_sha256": "d3c605e1c38816abd18c3dbc9f1a8154e2bdf1f0fef7125b14ba05479ff46b5b"
+    },
+    "papers/hasterad-retail-substitution/lab.yaml": {
+      "before_sha256": "15469bbdb35adfcbcd9b60f123afa967ba482248a75370dae02dc1d046fedd7f",
+      "before_blob": "312976e83cce604ded4a98906da0c267eed4dd27",
+      "after_sha256": "90e0e76065859d2f4ac273c30204baa79ef358d9b7d35219978a34f9c535cd32",
+      "after_blob": "0768d8377c859bb2f51add63167da700c9894918",
+      "prior_field": "  overview: この論文はJournal of Operations Managementで2026年8月19日に初めて公開されました。著者は、実店舗のデータからどのように商品を分けるかを調べ、品ぞろえの利益は別の人工データで評価しました。\n",
+      "new_field_sha256": "9155e554e56bce2438dcc22016321f8e869aa0332a332f53bff7699912630437"
+    },
+    "papers/shelf-placement-options/lab.yaml": {
+      "before_sha256": "a0e23643d811e22dea6deb5ef2146fc0daa245bebcfdec5191de496b654a9ee7",
+      "before_blob": "75bb534b29b4e693ea4da04e29ede89f4f82e180",
+      "after_sha256": "04ad2c3554fd02b10334a1cfda68bb20a9d03e51281ee7a3891f0370616f7aac",
+      "after_blob": "aca08e98827e8452f060e9049110ee5a23664558",
+      "prior_field": "  overview: Labは、2025年にオンライン公開され2026年の巻号に載った論文をもとに、置き方と棚板を小さな合成例で比べる。著者の大規模探索や実店舗の試験結果を再現する教材ではない。\n",
+      "new_field_sha256": "aa9f523ed64930e251d3ca9d581bf68e0253dbb0fbc0794d9a8faf0e8480a566"
+    },
+    "papers/storewide-shelf-decomposition/lab.yaml": {
+      "before_sha256": "834f89fd5795a13a0b8dca47a20be6915bc93b2f1db7cd9dc9c1b8fea5bf09fc",
+      "before_blob": "5b3bf89448bdad70b1dd5b2948765d758cfd2254",
+      "after_sha256": "d8ff6e0e37381493154360a3986c593d61b6378c8005421a6df454c89e3aabb5",
+      "after_blob": "f1153a477e30f32ffb330f2897174f84ee9452e0",
+      "prior_field": "  overview: 2025年の論文をもとに、店全体の棚幅を配る判断と、各カテゴリでどの商品を置くかを6商品の例でつなぐ。店舗で棚を変えて売上を測った実験ではない。\n",
+      "new_field_sha256": "7bb9013a6c0247d5ff655cf0f514adfb28aea897ef93528c91ce760e1ff57274"
+    },
+    "papers/unipinrec/lab.yaml": {
+      "before_sha256": "778e7bced77b009864ab8822eafbe7b46906e1dd349335f23fcbe4a281f68ebf",
+      "before_blob": "1f8c20d8eb60acd9eefd0ffe639fa6ec55d9968d",
+      "after_sha256": "201f9300012e2b69d2c7ccf4a00f731679b40a8588391985a8fc6ff92f62c64d",
+      "after_blob": "cee4f85acf4344f510d43637282a6d90d70de0bc",
+      "prior_field": "  overview: 候補を探すモデルと候補を並べ替えるモデルが、同じ利用者の履歴をそれぞれ読むと、履歴の計算が重複する。PinterestのUniPinRecでは、候補生成が履歴を読んだ結果を、順位付けも使う。候補生成は大きな索引から候補を集め、順位付けは各候補と履歴を照合する。二つの仕事は、統合しても残る。\n",
+      "new_field_sha256": "8062e8a89869331b39dceb236967204f1c2366a0d4e7960aa1b3925a8879d7c4"
+    },
+    "papers/wrapped-produce-placement-controlled-trial/lab.yaml": {
+      "before_sha256": "b11de799fbe09b192454b5a79e0e43a61ca8200d1bd3a12e2aec374c673b7501",
+      "before_blob": "2575bf7b728d84f0f21e08a8401e4f3d8dd7ebe0",
+      "after_sha256": "3ea2ffbe658d2475ee787f2b574bbfa29bceea4113533cf9ab1df9019fd181db",
+      "after_blob": "fec8f3c91db7639b57d9d77106bb2c242ecde9dd",
+      "prior_field": "  overview: '2026年3月31日公開の既刊論文を今回初めて扱う。今週の新刊ではない。店全体の販売数量と、家庭が実際に買う確率を分けると、WRAPPEDが示したことと、まだ確かでないことが見えてくる。小実験では、対照店舗のトレンドと改装直後のショックを変えて、推定値に何が反映されるかを確かめる。'\n",
+      "new_field_sha256": "f83ff6102ee0cafbc6a4949f6b47b6dbb09f3eb723c1c6db55c688bcbfcbd0f9"
+    },
+    "papers/deep-cross-division/lab.yaml": {
+      "before_sha256": "82f05f925d37bb9ea2d0fedeef8af0da7c8620a7827dc799e08295a64a5ef056",
+      "before_blob": "e2852f5887098c9e6aaa271e2adbdb53d2e9b3e9",
+      "after_sha256": "719a83376bde713b1c9daa0e8c62a0d69e2c12574ab81ed84393d618d29c5adc",
+      "after_blob": "d0bce4ac0cad20f40a0d763be3b2cfa45208ca61",
+      "prior_field": "  overview: クリック率のような特徴量は、クリック数を表示数で割って作れます。DCDN はこの処理をモデルの中に持たせる方法です。著者らは短尺動画のランキングに導入しました。\n",
+      "new_field_sha256": "dc1d1c6a0cd4dd7abbdb813be860bbd94b2d5d0d3af436e03912dbc46ab1be4e"
+    },
+    "papers/featurearc-inherited-defects-chain-gates/lab.yaml": {
+      "before_sha256": "ab56ea5b972d1dfea9ae8044db1dfbda86a227e5617dbd85168a21b5169bc36b",
+      "before_blob": "816d83df841f870cbcbaaa0b047f14cfd70d482b",
+      "after_sha256": "bbc654a56b605042565eccf5c4215742c4925cd33089fdbd2a9abf1572a5ad42",
+      "after_blob": "93de0a81c2566801d7650ce5b891afbd2657a3d5",
+      "prior_field": "  overview: 2026年10月27日公開のv1。独立した受入期待値を持ち、最終コードで全機能を確かめるという設計を読む。\n",
+      "new_field_sha256": "4861e17fe408dda8434a70521c129ab271b0e8a5a55ba6c49e8256406e328ab1"
+    },
+    "papers/inventory-common-threshold-history/lab.yaml": {
+      "before_sha256": "aa29fb5be8b85c7866e31fb1d74f192f5cadaa0d6f3829f598a6a3202aa44dc3",
+      "before_blob": "b7ca22c5dd786b3837b83d1c239c2c38941c759c",
+      "after_sha256": "1579f290fb3889faef17d07f36594beeec1f392d710e79f869477e0811ed9aa6",
+      "after_blob": "aa8de1cf6c5df3181f41c6c44af2a246dfb5a298",
+      "prior_field": "  overview: 2026年10月30日付のarXiv v1を扱う。以下の計算と図は自作であり、著者コードの再現ではない。\n",
+      "new_field_sha256": "eb3ea4bdcff07606b8cfd22cb37ded41e55159c0775ae9a8de857f2e5e0590e5"
+    },
+    "papers/ono-inventory-forecast-selection/lab.yaml": {
+      "before_sha256": "b6ae7760b8aeb5bed76ad9d7710a3d28be80653bced4566a2136cce5cf6bcbab",
+      "before_blob": "4384ef51ffcf5ab500cb2e6a4522106f59064583",
+      "after_sha256": "fddca61242591122115c49de3bf0f7949128e52420be1b9b1041e384ec4cd995",
+      "after_blob": "8d1294d03dccf4ca344caaa36cb4b421bb5559c3",
+      "prior_field": "  overview: '主な比較では、費用はCFMSが85,056、SESが85,093でした。差は約0.04%で、統計的にはっきりした差はありませんでした（表2）。'\n",
+      "new_field_sha256": "99e483135e67392c397eac0f2990690d254bbbc980d11a1ef29a1b6bcca0f8a4"
+    },
+    "papers/query-prefix-reuse/lab.yaml": {
+      "before_sha256": "0a89bcb0fd78dba8569bd774ee73c96fce7f325d4ad40e6370ae46d1abfc6acc",
+      "before_blob": "170b8996790b059f5f48083f60aca4515d6a5dca",
+      "after_sha256": "c8d676c26a698de1ac4f1eda4b1d1b462c6a70a8124daf63e71e853222590c64",
+      "after_blob": "f8f8234ad194c7e1dd308e32bb12c03a41912d1b",
+      "prior_field": "  overview: 検索語だけで商品コードの先頭部分（prefix）を用意しても、残りは検索時の履歴を使って補います。教材では、先頭部分をどこまで固定すると目標の商品が候補から外れるかを試せます。原著モデルの再現ではありません。[一次資料](https://arxiv.org/abs/2611.04259)。\n",
+      "new_field_sha256": "3fc1d2e690cfd04de1b35544c0c9af617eca24b5503fb0803023f3108bd63705"
+    },
+    "papers/retail-forecast-decision-grain/lab.yaml": {
+      "before_sha256": "85b588a8f178a95ede503b122ec58fd36654f3ed4786b1ebc6c8201cee5c60d0",
+      "before_blob": "eab620439e43545dade045257266224a7e7d4a5e",
+      "after_sha256": "ac6f413ee0398e9a0b91245c2495517b896e2463c1e6ea9d5ae6bc04a76b5129",
+      "after_blob": "7f488465b2c92a3fc38db2e71e959e1073a838d1",
+      "prior_field": "  overview: 4つの公開データ源を9つの評価単位に分けて比較した論文の第1版を扱います。論文の報告とLabの自作例を分けて紹介します。\n",
+      "new_field_sha256": "a4a600c9688a50b234706d6055517161ff4b080613caec97025821179443a7ad"
+    },
+    "papers/series-wise-validation/lab.yaml": {
+      "before_sha256": "5ae15d66725432ff1ad080d911385a84e10ce150b42cb4857cf0614ae0b2f6e1",
+      "before_blob": "095fbf6a6c576dfbfd603c372315437fecede42c",
+      "after_sha256": "f4e9ec265d044908f37139c611d82d3a5062e6aad2ee4cc3c467996402f98420",
+      "after_blob": "2ec580e6c75bfc671f3041fdc6d0be14874715c7",
+      "prior_field": "  overview: 同じ系列の過去で学習し未来を評価すること自体はリークではありません。未学習系列を含む運用かどうかで評価対象が変わります。この教材は独自の合成例であり、10ニューラル構造の学習を再現しません。[一次資料の書誌情報](https://arxiv.org/abs/2611.08252)。\n",
+      "new_field_sha256": "68e654fe6c0f13fb14bb03c66eb05fdc1609edad942dfcb7e4ec9f808301fdca"
+    },
+    "papers/whole-foods-shelf/lab.yaml": {
+      "before_sha256": "bd80db6db50dfa82ea651917040ecf81f520070c47566bad2394cdd4fef1e67c",
+      "before_blob": "69b32e55d4fd5ea503d6af5e6240e1bdd3a6df47",
+      "after_sha256": "00bc1b06d4898ea25252dfb18b137c171fbdfb3b601611361df625435fc86ca6",
+      "after_blob": "a00599b7f163b3acb43a992ab968feb25c22e551",
+      "prior_field": "  overview: 店舗の売場面積には限りがある。Liほかは、部門の面積を変えると各部門の販売数量がどう動くかを商圏ごとに見積もり、費用と規則を守る配分を選ぶ。Whole Foodsの報告はシミュレーションで見積もった売上改善であり、実店舗の増収を測ったものではない。\n",
+      "new_field_sha256": "c258a194d18f3ec50a04608c1e5703709bf5b38d2db02da5d699d971a45c788a"
+    },
+    "papers/episem-missing-evidence-recovery/lab.yaml": {
+      "before_sha256": "9a02b6b01c0cb7acb7fbc3abf8a9c851f7c713e0dc1ff0aa3bdc5f8a2d168b47",
+      "before_blob": "f13ae2deb27a27b19e2c79056bcf4ee427c50e9d",
+      "after_sha256": "d9fcb421353121696076ca3d2898494b8478f9c106b6ca660f2bba59a5bcf5ad",
+      "after_blob": "bf194e45b81aa96bb016e5cc4fd2caac0d7310e7",
+      "prior_field": "  overview: 'EpiSEM-Bench（arXiv 2610.31650v1、2026年10月22日）の評価方法を確かめるLabです。著者は6領域・60タスク群の計300対を使いました。ここで動かすのは、あらかじめ決めた規則に従う自作の教材です。「読む価値あり」は評価方法への判断であり、モデル順位や本番での安全を保証するものではありません。'\n",
+      "new_field_sha256": "0aaa6e18891aaab51304cb03f148ae00ef00880d6bf529deb651423817c1000e"
+    },
+    "papers/trace-verifier-brittleness/lab.yaml": {
+      "before_sha256": "5f502068500269cc3a59341dd280eebd25edb207c3a80fe3f6938e89793baf29",
+      "before_blob": "157874756babeb74eb97d6e2c03d2ed125f54def",
+      "after_sha256": "34a3ec6c2fe3026c03c6e7aa72df303a4afecbce811cba838772a0a09c4749c4",
+      "after_blob": "0f882328e1a82fc4bf1256ae1bdf36c0c49432b5",
+      "prior_field": "  overview: 'TRACE（arXiv 2610.11678v1、2026年10月8日公開）を読むためのLab。点数を戻すことと、エージェントの失敗を直すことを分ける。論文の数値はreportedとして紹介し、自作の決定的な実験はsyntheticとして別に保存する。'\n",
+      "new_field_sha256": "30c5820bfcb5d58cd33bb21251d3b01812693ab032b24cbdfe2f3035e2efd438"
+    },
+    "papers/trajectory-deletion-prefix-cost/lab.yaml": {
+      "before_sha256": "e2325337236fea30407733bff984d152ad3faab661fc1adf2c30263f3f013a71",
+      "before_blob": "3bf60c01a361661132e6bd2525cb53177cb52b8a",
+      "after_sha256": "68373b7c1c5663e3dbe27f30c25b77a5ec134943405a7b51468fbf39a52ee734",
+      "after_blob": "335815f13e5fcb4ac961bbeadb44100a8f641e91",
+      "prior_field": "  overview: 2026年10月26日公開のv1を扱う。著者の測定と、自作の決定論的な記号列の計算を分けて読む。\n",
+      "new_field_sha256": "3b699ded4736d8d133df3807b770737e9a2b1c103e921876690b04c41ea75e24"
+    },
+    "papers/trial-by-trace-evidence-boundaries/lab.yaml": {
+      "before_sha256": "7a1c9466940c4cda64e70ca05111a92356986239866ad373f8350f4e2964b921",
+      "before_blob": "64f60aede081841317c6d44c7ed4d1c7eb000e6e",
+      "after_sha256": "6f7e9a4abca52dac0ac4e67fe7c43027152f728218c60defb87c71cee4f59d97",
+      "after_blob": "795cc5073470749f932b7ebe7e59a583f6f315df",
+      "prior_field": "  overview: 論文の評価規則を説明する自作教材です。企業効果や作者実験を再現したものではありません。 [一次資料の書誌情報](https://arxiv.org/abs/2610.32285)。\n",
+      "new_field_sha256": "47f6443916daf3df7c5623502829c4274fab17e55380353ff769b1965203abb6"
+    },
+    "papers/accuracy-not-service-intermittent-demand/lab.yaml": {
+      "before_sha256": "a1ed7d80c0ae5bf3617e3dcb9bef778eb69be9ca3ad07ac5283b6ceff5827fa8",
+      "before_blob": "b265b119ea63bd1a6555776bcf5daca2fd554a4c",
+      "after_sha256": "3ff20bd10d2fb29674dabcc4efbd080252b10dd9e98ddfb92099f1bfa1ec849b",
+      "after_blob": "e612413b51e63d652b4cb25e66dd61f1ec614e72",
+      "prior_field": "  overview: 部品の注文を完納するには、同じ注文に含まれる品目を全部そろえなければならない。需要がない月の多い物流部品を対象に、著者は同じ補充規則で38手法を比較した。20,330件の実注文を処理する再現では、予測誤差が小さい手法ほど、注文を完納できた割合は低い傾向があった。在庫を多く持てば費用もかかる。予測誤差、完納率、在庫費用を分けて見ると、発注に使う手法を選びやすい。\n",
+      "new_field_sha256": "6cd1c79647a1eee95160869af1a6b26b419fb78ec97cded34fb91cfd51345d57"
+    },
+    "papers/sabreagent-design-time-inventory/lab.yaml": {
+      "before_sha256": "2b53e79e0475021a6fd2a9d4c7a3b30235068e98a193cfe3bc561faf9d003c8c",
+      "before_blob": "5a9ec2225db05c7c8e0093a3ccd3206ba06a5a3b",
+      "after_sha256": "f753115d8305d91232151bfa8a6261af000e5c98c487519bb24d9e1690ded751",
+      "after_blob": "25a35ef27633f70e3211c9ea5c675ccdb163bc20",
+      "prior_field": "  overview: SabreAgentは設計時にLLMが作った季節性の事前情報と発注ルールを固定し、運用時は予測と在庫最適化で発注する。InventoryBenchのNRは0.6311。改善の大部分はORの基本部分から来る。\n",
+      "new_field_sha256": "76bfececd9aa93b4460c8ea7cdfb3da8b9423f8bbb0f3cdcf50a96fcc7e19621"
+    },
+    "papers/switch-hurdle-intermittent-demand/lab.yaml": {
+      "before_sha256": "af350077e478d2911493380dc6e92b31cd16b90221d2afc512ec0e77f74d0056",
+      "before_blob": "e97c3998f87423fa441b9339c81937ea6d935a20",
+      "after_sha256": "232b7e8542f36117c1a5298ee41d767343cefccc7e8525c4c68269bb7085676c",
+      "after_blob": "20ccc70182aa871ba11f031b5f5639932e139d04",
+      "prior_field": "  overview: Switch-HurdleはTop-1 MoE encoderと自己回帰hurdle decoderを組み合わせる。M5のWRMSSEは0.6307。予測精度の結果であり、在庫費用やサービス水準の改善は示していない。\n",
+      "new_field_sha256": "c2aa508df0ec42fdc6d09c3d2a0e78f846462e39c0a88d92487a24178e6967cb"
+    },
+    "papers/tsfm-sparse-event-ranking/lab.yaml": {
+      "before_sha256": "0d5f15d002842785f06c32ceb2de2630b9eb493a451679e381d9271267fb94a5",
+      "before_blob": "369c9f0f3523333de78098d91674aa5c256298ee",
+      "after_sha256": "d1de496e799168b0c5bbebcdace178676905929884abf20c58865843a3013765",
+      "after_blob": "6239c807f06d071d840b55701d533c665bb1b353",
+      "prior_field": "  overview: |-\n    **Radar。数量を当てるモデルで、発生する時点を選べるか。** 著者は時系列基盤モデル（TSFM）12件の点予測を、観測値が正になる時点の順位付けに使った。学習を必要としない参照との得点差は、偶然の得点を補正した平均適合率（AP skill）で最大+0.031だった。\n\n    別の実験では、モデル本体を更新せず、その内部表現から発生を予測する線形分類器（probe）を学習した。モデルとデータセットの29/30組で、probeと同じモデルの点予測との差の95%区間が正だった。一方、Favoritaではprobeを試した6モデルすべてが、元の時系列から発生を学ぶLightGBMを下回った。Labでは、この研究を特定モデルの採用の根拠ではなく、発生順位の比較設計として読む。\n",
+      "new_field_sha256": "f26d59a95e13b54d6234f2f5c48612092590473cfadc0956a79e3083fa9927b4"
+    }
+  },
+  "generated_from": {
+    "papers/trajectory-deletion-prefix-cost/render.py": {
+      "before_sha256": "44466254e17e33dcbdc0866227f1280403d29632c46e9cca2035c1541ac80a6c",
+      "before_blob": "49363d51e6cd9c3f67b83753fde672ca23a0cbb0",
+      "after_sha256": "9810d9a4d960f54e4103a6fb0be5a6ca461cd53e1c33bb61e6f0390717852240",
+      "after_blob": "f2bab187caae57ad70b3e6553822db838d6d4c77"
+    }
+  }
+}

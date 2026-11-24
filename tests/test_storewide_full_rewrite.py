@@ -63,12 +63,13 @@ def test_existing_links_and_html_operational_structure_unchanged():
         assert literal.encode() in current('interactive.js')
 
 def test_exact_rewrite_manifest_matches_public_base_input():
-    from prose_preservation import storewide_full_rewrite_hash
+    from prose_preservation import restored_before_paper_overview, storewide_full_rewrite_hash
     manifest=json.loads((ROOT/'tests/storewide_full_rewrite_hashes.json').read_text())['files']
     assert len(manifest)==11
     for path, rec in manifest.items():
         f=Path(path).name
         for alg,h in [('sha256',lambda x:hashlib.sha256(x).hexdigest()),('blob',lambda x:hashlib.sha1(b'blob '+str(len(x)).encode()+bytes([0])+x).hexdigest())]:
             assert h(old(f))==rec['before_'+alg]
-            assert h(current(f))==rec['after_'+alg]
-            assert storewide_full_rewrite_hash(ROOT,path,h(old(f)),alg)==h(current(f))
+            after = restored_before_paper_overview(ROOT, path, current(f))
+            assert h(after)==rec['after_'+alg]
+            assert storewide_full_rewrite_hash(ROOT,path,h(old(f)),alg)==h(after)
