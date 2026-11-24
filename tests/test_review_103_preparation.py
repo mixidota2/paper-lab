@@ -176,8 +176,8 @@ def test_guide_navigation_counts_and_canonical_lab_links(site):
     guide=(site/'guides/shelf-decisions.html').read_text()
     links=m.Document(guide).links
     assert '117件のLab ／ 3件のテーマガイド' in guide
-    assert 'オンライン公開2023年' in guide and 'オンライン公開2025年' in guide
-    assert '追加日は2026年10月16日' in guide
+    assert 'オンライン公開は2023年' in guide and 'オンライン公開は2025年' in guide
+    assert 'このガイドを追加したのは2026年10月16日' in guide
     for slug in m.SHELF:
         assert f'../papers/{slug}.html' in links
         assert '../guides/shelf-decisions.html' in m.Document((site/'papers'/f'{slug}.html').read_text()).links
