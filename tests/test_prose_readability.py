@@ -236,14 +236,18 @@ def test_batch11_recommendation_conditions_and_metric_meaning():
         'otto-gbdt-vs-dnn-ltr': ('method.md', '学習時に重みを動かす勾配の大きさまで等しくなるとは限らない'),
         'static-constrained-gr': ('lab.yaml', '許可集合Cのどれかの先頭部分であるときだけ'),
         'tgr': ('lab.yaml', '全階層で正しい枝を選んだ場合だけ到達成功'),
-        'unipinrec': ('method.md', '同じ履歴とモデルを使う限り'),
+        'unipinrec': ('method.md', 'このマスクと同じ履歴・モデルという条件が、履歴KVを再利用できる理由である'),
         'beyond-scalar-dsi-watchtime': ('lab.yaml', '人工分布の確率で重み付けして平均する'),
         'netflix-counterfactual-observability': ('lab.yaml', '重みの合計で割る'),
     }
     for slug, (name, excerpt) in expected.items():
         assert excerpt in (ROOT/'papers'/slug/name).read_text()
-    for name in ['lab.yaml', 'README.md']:
-        assert '実際のattention演算数や応答時間ではない' in (ROOT/'papers/unipinrec'/name).read_text()
+    limits = {
+        'lab.yaml': '実際のattention演算数や応答時間を測る実験ではない',
+        'README.md': 'Transformerの実際の演算数や応答時間ではない',
+    }
+    for name, excerpt in limits.items():
+        assert excerpt in (ROOT/'papers/unipinrec'/name).read_text()
         assert '人工分布の確率で重み付けして平均する' in (ROOT/'papers/beyond-scalar-dsi-watchtime'/name).read_text()
 
 

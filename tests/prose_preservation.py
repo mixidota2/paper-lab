@@ -67,6 +67,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = store_layout_full_rewrite_hash(root, path, expected, algorithm)
     expected = shelf_full_rewrite_hash(root, path, expected, algorithm)
     expected = generation_retrieval_full_rewrite_hash(root, path, expected, algorithm)
+    expected = unipinrec_full_rewrite_hash(root, path, expected, algorithm)
     result = hasterad_registration_hash(root, path, expected, algorithm)
     return coral_full_rewrite_hash(root, path, result, algorithm)
 
@@ -163,6 +164,15 @@ def shelf_full_rewrite_hash(root, path, expected, algorithm='sha256'):
 def generation_retrieval_full_rewrite_hash(root, path, expected, algorithm='sha256'):
     """Permit only the recorded full rewrite of the generation-retrieval article."""
     row = json.loads((root / 'tests/generation_retrieval_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def unipinrec_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Accept the revised Pinterest article only from exact historical inputs."""
+    row = json.loads((root / 'tests/unipinrec_full_rewrite_hashes.json').read_text())['files'].get(path)
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path
