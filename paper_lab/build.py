@@ -459,7 +459,7 @@ def _render_site(root: Path, papers: Path, site: Path, labs: list[Lab]) -> None:
                 shutil.copy2(source, download_dir / name)
         if lab.id == "retail-forecast-decision-grain":
             shutil.copy2(lab.source_dir / "evidence.md", download_dir / "evidence.md")
-        if lab.id == "deep-cross-division":
+        if lab.id in {"deep-cross-division", "discounted-perishables-forecast"}:
             shutil.copy2(lab.source_dir / "evidence.md", download_dir / "evidence.md")
             shutil.copy2(lab.source_dir / "interactive.html", download_dir / "interactive.html")
         if lab.id == "series-wise-validation":
@@ -488,6 +488,8 @@ def _render_site(root: Path, papers: Path, site: Path, labs: list[Lab]) -> None:
             rendered_figures.append({**figure, "url": f"../figures/{lab.id}/{figure['path']}"})
         local_experiment_files = [name for name in ("plot.py", "author-orderbook.csv", "table3.json")
                                   if (lab.source_dir / name).is_file()]
+        if lab.id == "discounted-perishables-forecast":
+            local_experiment_files += ["interactive.html", "evidence.md"]
         if lab.id == "deep-cross-division":
             local_experiment_files += ["interactive.html", "test.cjs", "evidence.md"]
         if lab.id == "featurearc-inherited-defects-chain-gates":

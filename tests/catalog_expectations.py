@@ -27,6 +27,6 @@ assert TRACE not in EXISTING
 
 def assert_catalog(ids):
     actual = list(ids)
-    assert len(actual) == len(set(actual)) == 117
+    assert len(actual) == len(set(actual)) == 118
     assert set(CURRENT['ids']) == EXISTING | {TRACE}
-    assert set(actual) == set(CURRENT['ids']) | {EPISEM, DELETION, FEATUREARC, INVENTORY_CT, ASSORTMENT, TRIAL_TRACE, REUSEGR, RETAIL_GRAIN, SERIES_CV, HASTERAD, 'deep-cross-division', 'ono-inventory-forecast-selection'}, 'Existing main Labs must remain; EpiSEM and deletion-cost Labs coexist'
+    assert set(actual) == set(CURRENT['ids']) | {EPISEM, DELETION, FEATUREARC, INVENTORY_CT, ASSORTMENT, TRIAL_TRACE, REUSEGR, RETAIL_GRAIN, SERIES_CV, HASTERAD, 'deep-cross-division', 'ono-inventory-forecast-selection', 'discounted-perishables-forecast'}, 'Existing main Labs must remain; EpiSEM and deletion-cost Labs coexist'

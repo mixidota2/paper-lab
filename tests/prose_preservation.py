@@ -69,7 +69,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = generation_retrieval_full_rewrite_hash(root, path, expected, algorithm)
     expected = unipinrec_full_rewrite_hash(root, path, expected, algorithm)
     result = hasterad_registration_hash(root, path, expected, algorithm)
-    return coral_full_rewrite_hash(root, path, result, algorithm)
+    return prepared_catalog_registration_hash(root, path, coral_full_rewrite_hash(root, path, result, algorithm), algorithm)
 
 
 def replenishment_guide_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -173,6 +173,14 @@ def generation_retrieval_full_rewrite_hash(root, path, expected, algorithm='sha2
 def unipinrec_full_rewrite_hash(root, path, expected, algorithm='sha256'):
     """Accept the revised Pinterest article only from exact historical inputs."""
     row = json.loads((root / 'tests/unipinrec_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+def prepared_catalog_registration_hash(root, path, expected, algorithm='sha256'):
+    """Apply exactly the catalog count update after all older reviewed edits."""
+    row = json.loads((root / 'tests/prepared_catalog_registration_hashes.json').read_text())['files'].get(path)
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path

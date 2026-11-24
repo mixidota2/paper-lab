@@ -1,0 +1,35 @@
+{
+  "synthetic": true,
+  "modes": {
+    "increment": {
+      "base_rows": 112,
+      "positive_ds_rows": 56,
+      "sticker_only_rows": 28,
+      "slope": 1.0,
+      "total_slope": 1.0,
+      "regular_slope": 0.0,
+      "mean_residual": 2.0,
+      "true_increment": 2.0
+    },
+    "selection": {
+      "base_rows": 112,
+      "positive_ds_rows": 56,
+      "sticker_only_rows": 28,
+      "slope": 1.0,
+      "total_slope": 1.0,
+      "regular_slope": 0.0,
+      "mean_residual": 2.0,
+      "true_increment": 0.0
+    },
+    "substitution": {
+      "base_rows": 112,
+      "positive_ds_rows": 56,
+      "sticker_only_rows": 28,
+      "slope": 0.0,
+      "total_slope": 0.0,
+      "regular_slope": -1.0,
+      "mean_residual": 0.0,
+      "true_increment": 0.0
+    }
+  }
+}

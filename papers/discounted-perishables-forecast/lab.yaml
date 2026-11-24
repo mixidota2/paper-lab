@@ -1,0 +1,81 @@
+id: discounted-perishables-forecast
+title: 'Discounted Sales of Expiring Perishables: Challenges for Demand Forecasting in Grocery Retail Practice'
+authors:
+- David Winkelmann
+- Theresa Elbracht
+- Jonas Brenker
+- Arnold Gerzen
+year: 2026
+arxiv_id: '2602.04464'
+submitted: '2026-02-04'
+topics:
+- demand-forecasting
+- retail-supply
+urls:
+  paper: https://arxiv.org/html/2602.04464v1
+  arxiv: https://arxiv.org/abs/2602.04464
+verdict: Worth Reading
+status: draft
+question: 期限間近の値引き品が売れたとき、値引きが本当に増やした販売数は分かるか
+summary: 著者が集計した商品では、値引き品が売れた日の販売が基準の予測を上回る商品が多かった。だが、値引き品が売れた数は総販売数の一部だ。同じ正の傾きでも、値引きで販売が増えた場合と、売れ行きのよい日に値引き品も売れただけの場合がある。Labでは同じ観測値が生まれる二例を比べる。
+source_review:
+  checked: '2026-11-25'
+  url: https://arxiv.org/html/2602.04464v1
+  scope: 一次資料の§2〜5、式1〜3、図2、版の日付を照合した。元データと著者コードは未確認。
+verification:
+  mechanism: PARTIAL
+  performance: NOT TESTED
+  scaling: NOT TESTED
+  production_applicability: NOT TESTED
+core_idea:
+  author_claim: 欧州の食品小売の観測データでは、値引き品が売れた日の総販売数が基準の予測を上回る商品が多かった。著者は、値引き販売を通常需要に戻す割合を全商品で一律にする考え方を見直すよう提案する。
+  research_bot_interpretation: 値引き品が何個売れたかは、店が何個を値引きの対象にしたかとは違う。総販売数に含まれる値引き販売数との関係だけでは、通常需要として何個を残すべきかは決められない。
+sections:
+  overview: 著者は期限間近の値引きを扱った。値引き品が売れた日を抽出し、別の日の記録から推定した基準と比べた。値引きした店としなかった店を無作為に割り付けた実験ではない。
+  problem: 店が翌日の発注を決めるとき、値引きがなければ買わなかった分まで通常需要に足すと、在庫を多く持つ可能性がある。反対に、値引きがなくても買う人の分まで除けば、通常需要を低く見積もりうる。
+  method: method.md
+  why_it_might_work: 曜日、店の予測、朝の在庫を使うと、その条件で普段どれだけ売れるかを記録から見積もれる。ただし、値引き品が売れなかった行と売れた行で、売れ行きに影響する条件をすべてそろえたわけではない。
+  evidence: evidence.md
+  executable_understanding: experiment.md
+  results: 最初の二つの人工例では残差を使った回帰の傾きは同じ1だが、値引きが増やした販売数は平均2個と0個に分かれる。通常価格から値引きへ同じ個数が移るだけで、総販売数が変わらない場合、傾きは0になる。
+  what_we_verified: 'CONFIRMED：人工例で二段階の回帰を実行し、同じ説明変数なら総販売数を使っても値引き販売の傾きが変わらないことを確認した。論文の方法との対応はPARTIAL。'
+  what_we_did_not_verify: 著者の非公開データや個別のt検定、値引きの因果効果、廃棄や利益の変化、実店舗の予測・発注での性能は検証していない。値引き幅を変えた場合の比較も含めない。
+  implementation: Python標準ライブラリで人工例の最小二乗法を計算する。画面は同じデータの作り方と回帰をJavaScriptで実行する。実行手順はREADMEを参照。
+  mapping: mapping.md
+figures: []
+interactives: []
+teaching_figures:
+- id: residual-and-markdown-count
+  kind: timeline
+  title: 二つの回帰は、値引き品が売れたかどうかで行を分ける
+  after: method
+  source: https://arxiv.org/html/2602.04464v1
+  locator: §3・式1〜3
+  rationale: 値引きの有無を記録した実験ではなく、販売結果で二つの集合を作ることを示す。
+  caption: 1行は、商品の種類、店舗、営業日の組み合わせ。二つの回帰で使う曜日、予測と朝の在庫は同じ。
+  rows:
+  - label: 値引き販売が0個
+    nodes:
+    - title: 基準を学習する
+      text: 実際の総販売数を曜日・予測・朝の在庫から推定する。
+  - label: 値引き販売が1個以上
+    nodes:
+    - title: 総販売数から基準を引く
+      text: 実際の総販売数から1本目の回帰の予測を引く。
+    - title: 残差を回帰する
+      text: 曜日・予測・朝の在庫と値引き販売数を並べ、残差との傾きを求める。
+- id: total-is-regular-plus-discounted
+  kind: equations
+  title: 総販売数と通常価格の販売数では、傾きが1だけ違う
+  after: results
+  source: https://arxiv.org/html/2602.04464v1
+  locator: §3・式1〜3からのLabの算術
+  rationale: 値引き販売数が結果の内訳でもあることを明示する。
+  caption: 同じ行と同じ説明変数で回帰した場合の関係。値引きの因果効果を表す式ではない。
+  steps:
+  - name: 総販売の内訳
+    formula: Y = R + D
+    explanation: 総販売数Yは、通常価格での販売数Rと値引き販売数Dの合計。
+  - name: Dの係数の関係
+    formula: slope(Y ~ X + D) = 1 + slope(R ~ X + D)
+    explanation: Xは曜日、予測、朝の在庫。左右とも同じ観測行を使い、説明変数XとDは変えない。
