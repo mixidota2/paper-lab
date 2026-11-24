@@ -11,7 +11,7 @@ import subprocess
 import pytest
 import yaml
 
-from prose_preservation import placement_options_full_rewrite_hash
+from prose_preservation import placement_options_full_rewrite_hash, restored_before_paper_overview
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = 'f7793bc88ab49a347b43e74a9ff45e77bb6fe5ad'
@@ -89,6 +89,7 @@ def test_exact_rewrite_identities(algorithm):
     for n in NAMES:
         path = f'{DIR}/{n}'
         a,b = inputs(n)
+        b = restored_before_paper_overview(ROOT, path, b)
         assert placement_options_full_rewrite_hash(ROOT,path,digest(a),algorithm)==digest(b)
         with pytest.raises(AssertionError):
             placement_options_full_rewrite_hash(ROOT,path,digest(b+b'\n'),algorithm)

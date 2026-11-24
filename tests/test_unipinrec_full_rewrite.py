@@ -9,7 +9,7 @@ import subprocess
 import pytest
 import yaml
 
-from prose_preservation import unipinrec_full_rewrite_hash
+from prose_preservation import restored_before_paper_overview, unipinrec_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = 'papers/unipinrec'
@@ -60,7 +60,7 @@ def test_exact_three_inputs_and_outputs_only(algorithm):
             return hashlib.sha256(raw).hexdigest()
         return hashlib.sha1(f'blob {len(raw)}\0'.encode()+raw).hexdigest()
     for path in manifest['files']:
-        after = (ROOT / path).read_bytes()
+        after = restored_before_paper_overview(ROOT, path, (ROOT / path).read_bytes())
         assert unipinrec_full_rewrite_hash(ROOT,path,digest(old(path)),algorithm) == digest(after)
         with pytest.raises(AssertionError):
             unipinrec_full_rewrite_hash(ROOT,path,digest(after+b'\n'),algorithm)

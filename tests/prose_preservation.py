@@ -1,5 +1,7 @@
 """Translate only exact old identities of the listed prose revisions."""
+import hashlib
 import json
+import re
 
 
 def revised_hash(root, path, expected, algorithm='sha256'):
@@ -85,7 +87,33 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
         expected = root_readme_catalog_119_hash(root, path, expected, algorithm)
     expected = tsfm_sparse_rewrite_hash(root, path, expected, algorithm)
     expected = sim2real_full_rewrite_hash(root, path, expected, algorithm)
-    return index_copy_rewrite_hash(root, path, expected, algorithm)
+    expected = index_copy_rewrite_hash(root, path, expected, algorithm)
+    return paper_overview_rewrite_hash(root, path, expected, algorithm)
+
+
+def paper_overview_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Permit the reviewed overview only on its exact previously reviewed file."""
+    row = json.loads((root / 'tests/paper_overview_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def restored_before_paper_overview(root, path, raw):
+    """Recover and verify the historical file for phase-specific byte checks."""
+    row = json.loads((root / 'tests/paper_overview_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return raw
+    assert hashlib.sha256(raw).hexdigest() == row['after_sha256'], path
+    pattern = rb'^  overview: \|-\n(?:    [^\n]+\n|\n(?=    [^\n]+\n))+'
+    matches = list(re.finditer(pattern, raw, re.M))
+    assert len(matches) == 1, path
+    field = matches[0]
+    assert hashlib.sha256(field.group()).hexdigest() == row['new_field_sha256'], path
+    predecessor = raw[:field.start()] + row['prior_field'].encode() + raw[field.end():]
+    assert hashlib.sha256(predecessor).hexdigest() == row['before_sha256'], path
+    return predecessor
 
 
 def root_readme_rewrite_hash(root, path, expected, algorithm='sha256'):
