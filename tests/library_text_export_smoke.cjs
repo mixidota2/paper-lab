@@ -2,7 +2,7 @@
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const f=JSON.parse(fs.readFileSync(process.argv[2],'utf8')), mode=process.argv[3];
-assert.equal(f.cards.length,118);
+assert.equal(f.cards.length,119);
 const expectedPriorityLabels={
  '':'すべて',Must:'必読','Must Read':'優先して読む','Park / Exploration':'探索段階・いったん保留',
  Radar:'動向を追う',Watch:'続報を待つ',Worth:'関連があれば読む','Worth Reading':'読む価値あり',
@@ -77,7 +77,7 @@ function snapshot(){
  return result;
 }
 if(mode==='filters'){
- for(const sort of ['title','priority','date']){edit({topic:'retail-supply',sort});const r=snapshot();assert.ok(r.paper_count>1&&r.paper_count<118)}
+ for(const sort of ['title','priority','date']){edit({topic:'retail-supply',sort});const r=snapshot();assert.ok(r.paper_count>1&&r.paper_count<119)}
  edit({search:'ＥＸＡＯＮＥ',topic:'',verdict:'',sort:'title'});assert.equal(snapshot().paper_count,1);
 }else if(mode==='empty'){
  edit({search:'DOES_NOT_EXIST_123'});assert.equal(save.disabled,true);assert.equal(saveText.disabled,true);saveText.dispatchEvent(new Event('click'));save.dispatchEvent(new Event('click'));assert.equal(text.value,'');assert.equal(created.length,0);
@@ -92,8 +92,8 @@ if(mode==='filters'){
  form.elements.search.value='stale';const e=new Event('pageshow');e.persisted=true;win.dispatchEvent(e);snapshot();
 }else if(mode==='repeat'){
  const a=snapshot();snapshot();edit({search:'EXAONE'});assert.equal(text.value,'');assert.equal(preview.open,false);
- const b=snapshot();const latest=text.value;timers.splice(0).forEach(f=>f());assert.equal(text.value,latest);assert.equal(a.paper_count,118);assert.equal(b.paper_count,1);
- clear.dispatchEvent(new Event('click'));assert.equal(text.value,'');assert.equal(snapshot().paper_count,118);
+ const b=snapshot();const latest=text.value;timers.splice(0).forEach(f=>f());assert.equal(text.value,latest);assert.equal(a.paper_count,119);assert.equal(b.paper_count,1);
+ clear.dispatchEvent(new Event('click'));assert.equal(text.value,'');assert.equal(snapshot().paper_count,119);
 }else if(mode==='multiline'){edit({search:'line one\nline two \"quote\"'});assert.equal(snapshot().paper_count,1);
 }else{if(mode==='history-failure')edit({search:'EXAONE'});snapshot()}
 timers.splice(0).forEach(f=>f());assert.deepEqual(revoked,created.map(x=>x.url));

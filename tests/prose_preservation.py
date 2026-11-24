@@ -184,4 +184,13 @@ def prepared_catalog_registration_hash(root, path, expected, algorithm='sha256')
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path
+    return receipt_catalog_registration_hash(root, path, row['after_' + algorithm], algorithm)
+
+
+def receipt_catalog_registration_hash(root, path, expected, algorithm='sha256'):
+    """Preserve the first catalog review and accept only the next exact count."""
+    row = json.loads((root / 'tests/receipt_catalog_registration_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
     return row['after_' + algorithm]

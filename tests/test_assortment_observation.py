@@ -311,8 +311,8 @@ def test_preexisting_sources_and_case_ids_preserved(tmp_path):
     from review_103 import preflight
     site=tmp_path/'site';build(root=ROOT,site_dir=site)
     p=preflight(site)
-    assert p['pages']==118 and len(p['required_cases'])==450
-    new={f'load-{slug}-{w}' for slug in ('assortment-observation-budget','trial-by-trace-evidence-boundaries','query-prefix-reuse','retail-forecast-decision-grain','series-wise-validation','hasterad-retail-substitution','deep-cross-division','ono-inventory-forecast-selection','discounted-perishables-forecast') for w in (360,768,1440)}
+    assert p['pages']==119 and len(p['required_cases'])==453
+    new={f'load-{slug}-{w}' for slug in ('assortment-observation-budget','trial-by-trace-evidence-boundaries','query-prefix-reuse','retail-forecast-decision-grain','series-wise-validation','hasterad-retail-substitution','deep-cross-division','ono-inventory-forecast-selection','discounted-perishables-forecast', 'ahe-beta-receipt') for w in (360,768,1440)}
     assert new<=set(p['required_cases'])
     # The pinned baseline plan is captured before the addition and checked below.
     baseline=json.loads((ROOT/'tests/assortment_baseline_cases.json').read_text())
