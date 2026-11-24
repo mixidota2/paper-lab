@@ -15,26 +15,26 @@ function forest(el,rows,min,max,band=false){const x=v=>175+(v-min)/(max-min)*360
 '''
 
 SIM = r'''
-<h3>発注規則を変えると入荷量も変わる</h3>
-<p>Gは容量目標、λは各商品へ共通に伝える入荷コスト、πは発注規則、Xはその判断に使う状態です。ψは、候補のλに対して入荷量がどう変わるかを予測します。</p>
-<div class="flow"><div><b>容量計画 G → λ</b><p>容量の調整役が共通コストを通知</p></div><div><b>π(X,λ) → 注文 a → 入荷 J</b><p>納期を経た入荷が容量を消費</p></div><div><b>Ĵ=ψ(X,λ) → 容量計画へ</b><p>候補λの応答を先読みして調整</p></div></div>
-<p class="band">旧履歴にはπ₀の応答だけが残る。需要と納期の系列を固定して新しい発注規則π₁を再実行し、教師データを作る。</p>
-<h3>同じ需要を再生し、内生状態だけを計算し直す</h3>
-<p>内生状態とは、発注によって変わる在庫・未着注文・入荷です。コストと表示週を選ぶと、需要を変えずに発注と在庫の動きを比較できます。ここからの在庫図は自作の人工例で、下の転移評価は著者報告です。</p>
-<div class="cols"><label>共通入荷コスト λ<select data-cost><option value="0">0</option><option value="2">2</option><option value="4">4</option></select></label><label>表示週 <output data-week-label></output><input data-week type="range" min="1" max="23" value="8"></label></div>
-<div class="plot"><svg viewBox="0 0 600 265" role="img" aria-label="固定需要とλ別の入荷・在庫の時系列" data-replay></svg></div>
-<div class="legend"><span style="color:#7d8990">● 需要：全λで同じ</span><span style="color:#176d79">● 入荷</span><span style="color:#b86d34">● 期末在庫</span></div>
+<h3>候補の費用から、届く数量を予測する</h3>
+<p>Gは容量目標で、倉庫が処理する総入荷量の目安です。各商品の発注ルールπは、在庫などの状態Xと共通費用λから注文を決めます。予測器ψは候補の費用を受け取り、そのときに見込まれる総入荷量を返します。</p>
+<div class="flow"><div><b>容量計画 G → λ</b><p>調整モデルが容量目標を共通費用に変えます</p></div><div><b>π(X,λ) → 注文 a → 入荷 J</b><p>注文が納期に達すると、倉庫に商品が届きます</p></div><div><b>Ĵ=ψ(X,λ) → 容量計画へ</b><p>容量を計画する際に、予測した入荷量を参照します</p></div></div>
+<p class="band">旧ルールπ₀の記録には、新ルールの注文はありません。著者らは同じ需要と納期で新ルールπ₁を動かし、入荷を予測するための学習データを作りました。</p>
+<h3>需要と納期をそろえ、費用を替えて比べる</h3>
+<p>費用と週を選ぶと、発注、入荷、在庫を比較できます。需要と納期は共通です。この在庫図はLabの人工例です。下の予測誤差の比較は、著者らが実際の導入事例から計算した結果です。</p>
+<div class="cols"><label>全商品に共通の入荷費用 λ<select data-cost><option value="0">0</option><option value="2">2</option><option value="4">4</option></select></label><label>表示週 <output data-week-label></output><input data-week type="range" min="1" max="23" value="8"></label></div>
+<div class="plot"><svg viewBox="0 0 600 265" role="img" aria-label="費用の候補ごとの需要・入荷・期末在庫" data-replay></svg></div>
+<div class="legend"><span style="color:#7d8990">● 需要：どの費用でも同じ</span><span style="color:#176d79">● 入荷</span><span style="color:#b86d34">● 期末在庫</span></div>
 <div class="cards" data-stock></div><p class="eq" data-equation aria-live="polite"></p>
-<p class="muted">人工24商品。納期は1〜2週。図は需要・入荷・在庫の総量、Eq.2は商品別に計算してから合算する。総量にminを適用したものではない。</p>
-<h3>再現性の傾きと、転移後のMAPEを分けて読む</h3>
-<div class="cols"><div class="card"><h4>Table 1：模擬値から実績を説明する回帰</h4><div data-fidelity></div><p class="muted">横軸：模擬、縦軸：実績。傾き1が尺度の一致。R²は別の診断。</p></div><div><label>実運用での評価<select data-study><option>S1</option><option>S2</option></select></label><p>S1：約2万商品・1年<br>S2：約10万商品・3カ月</p><p>● 旧方策履歴　● 模擬学習<br>橙色の線：模擬→逐次補正の点推定値</p></div></div>
+<p class="muted">人工の24商品を使っています。納期は1〜2週です。Labは商品ごとに式2で販売と在庫を計算し、足し合わせます。商品を合わせた後に、小さいほうの数量を選ぶ計算ではありません。</p>
+<h3>模擬値と実績のずれ、予測器の誤差を分けて比べる</h3>
+<div class="cols"><div class="card"><h4>Table 1：商品・週ごとの模擬値と実績</h4><div data-fidelity></div><p class="muted">横軸に模擬値、縦軸に実績を置いた回帰です。傾き1は尺度の一致を表します。Labは表の95%信頼区間の中点を棒の長さに使っています。著者が表に示した区間と区別してください。R²は別の指標です。</p></div><div><label>論文の評価事例<select data-study><option>S1</option><option>S2</option></select></label><p>S1：約2万商品・1年<br>S2：約10万商品・3カ月</p><p>灰：旧ルールの実績で学習　青緑：新ルールの模擬で学習<br>橙：新ルールの模擬で学び、導入後に補正</p></div></div>
 <div class="plot"><svg class="wide" viewBox="0 0 600 300" role="img" aria-label="予測期間別MAPEと95%信頼区間" data-transfer></svg></div>
-<p class="muted">MAPEは、集計した入荷量の予測について、実績に対する絶対誤差の割合を週ごとの予測起点で平均した値。予測期間ごとに評価する。公表値で実績が0の場合の処理は、確認された本文では明示されていない。教材の分母max(J,1)とは区別する。<a href="https://arxiv.org/html/2610.03662v1">原典§4・Tables 2–3</a>。著者報告 Table 2–3。青緑：模擬、灰：旧履歴、橙：補正後。線は各群の95%信頼区間であり、対応する差の信頼区間ではない。補正後の信頼区間は図では省略し、本文の値と原表を参照する。</p>
+<p class="muted">著者らは総入荷量の予測と実績の差の絶対値を実績で割り、週ごとの予測起点で平均しました（MAPE）。予測期間ごとに比べています。実績がゼロの場合の処理は、確認した本文では明示されていません。Labの人工例はmax(J,1)で割ります。<a href="https://arxiv.org/html/2610.03662v1">原典§4・Tables 2–3</a>。灰と青緑の縦線は、それぞれのMAPEの95%信頼区間です。二つの予測の差の区間ではありません。橙は補正後の点推定値です。補正後の区間は図に載せていないので、原論文のTable 3を参照してください。</p>
 '''
 SIM_JS = r'''
-function replay(){const rows=d.traces[$('[data-cost]').value],t=+$('[data-week]').value,r=rows[t];$('[data-week-label]').textContent=t;let s='';const max=Math.max(...Object.values(d.traces).flat().map(r=>Math.max(r.demand,r.inbound,r.inventory))),x=i=>45+i*23,y=v=>225-v/max*190;[0,.5,1].forEach(a=>{s+=line(45,y(max*a),580,y(max*a))+txt(3,y(max*a)+4,f(max*a,0));});for(const [k,c] of [['demand','#7d8990'],['inbound','#176d79'],['inventory','#b86d34']]){s+=`<polyline points="${rows.map((v,i)=>`${x(i)},${y(v[k])}`).join(' ')}" fill="none" stroke="${c}" stroke-width="2.5"/>`;}s+=line(x(t),20,x(t),228,'#172f3b',2)+txt(45,255,'0週')+txt(550,255,'23週');$('[data-replay]').innerHTML=s;$('[data-stock]').innerHTML=[['前週末在庫',r.before],['今週入荷 J',r.inbound],['販売 s',r.sales],['今週発注 a',r.orders]].map(([k,v])=>`<div class="card">${k}<span class="big">${f(v)}</span></div>`).join('');$('[data-equation]').textContent=`Eq.1：過去の発注から納期到来分 ${f(r.inbound)} が入荷。Eq.2：${f(r.before)} + ${f(r.inbound)} − ${f(r.sales)} = 期末在庫 ${f(r.inventory)}`;}
+function replay(){const rows=d.traces[$('[data-cost]').value],t=+$('[data-week]').value,r=rows[t];$('[data-week-label]').textContent=t;let s='';const max=Math.max(...Object.values(d.traces).flat().map(r=>Math.max(r.demand,r.inbound,r.inventory))),x=i=>45+i*23,y=v=>225-v/max*190;[0,.5,1].forEach(a=>{s+=line(45,y(max*a),580,y(max*a))+txt(3,y(max*a)+4,f(max*a,0));});for(const [k,c] of [['demand','#7d8990'],['inbound','#176d79'],['inventory','#b86d34']]){s+=`<polyline points="${rows.map((v,i)=>`${x(i)},${y(v[k])}`).join(' ')}" fill="none" stroke="${c}" stroke-width="2.5"/>`;}s+=line(x(t),20,x(t),228,'#172f3b',2)+txt(45,255,'0週')+txt(550,255,'23週');$('[data-replay]').innerHTML=s;$('[data-stock]').innerHTML=[['前週末在庫',r.before],['今週入荷 J',r.inbound],['販売 s',r.sales],['今週発注 a',r.orders]].map(([k,v])=>`<div class="card">${k}<span class="big">${f(v)}</span></div>`).join('');$('[data-equation]').textContent=`Eq.1：過去の注文のうち納期を迎えた ${f(r.inbound)} が届きました。Eq.2：${f(r.before)} + ${f(r.inbound)} − ${f(r.sales)} = 期末在庫 ${f(r.inventory)}`;}
 function transfer(){let a=d.paper.studies[$('[data-study]').value],s='',x=i=>105+i*135,y=v=>255-v*6;[0,10,20,30].forEach(v=>s+=line(55,y(v),580,y(v))+txt(15,y(v)+4,v));s+=txt(15,20,'MAPE %');for(let i=0;i<4;i++){for(const [key,ci,dx,col] of [['history','history_ci',-15,'#7d8990'],['sim','sim_ci',10,'#176d79']]){let xx=x(i)+dx;s+=line(xx,y(a[key][i]-a[ci][i]),xx,y(a[key][i]+a[ci][i]),col,2)+dot(xx,y(a[key][i]),col)+txt(xx,y(a[key][i])-8,a[key][i],'middle',col);}s+=line(x(i)+10,y(a.sim[i]),x(i)+30,y(a.cal[i]),'#c27831',3)+dot(x(i)+30,y(a.cal[i]),'#c27831')+txt(x(i),282,d.paper.horizons[i],'middle');}$('[data-transfer]').innerHTML=s;}
-$('[data-fidelity]').innerHTML=d.paper.fidelity.map(([name,b,r])=>`<p>${name}　傾き ${f(b,3)} ／ R² ${r}<span class="bar" style="display:block;width:${b*100}%"></span></p>`).join('');$('[data-cost]').addEventListener('change',replay);$('[data-week]').addEventListener('input',replay);$('[data-study]').addEventListener('change',transfer);replay();transfer();
+$('[data-fidelity]').innerHTML=d.paper.fidelity.map(([name,b,r])=>`<p>${name}　傾きの区間の中点 ${f(b,3)} ／ R² ${r}<span class="bar" style="display:block;width:${b*100}%"></span></p>`).join('');$('[data-cost]').addEventListener('change',replay);$('[data-week]').addEventListener('input',replay);$('[data-study]').addEventListener('change',transfer);replay();transfer();
 '''
 
 HARNESS = r'''

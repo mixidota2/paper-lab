@@ -1,5 +1,5 @@
 {
-  "note": "固定seedの人工注文。論文38手法・RUF・Chronos-2の再現ではない。MAEを使い、論文で使われたMASEと区別している。",
+  "note": "Labが乱数の初期値を固定して作った注文。論文の38手法、RUF、Chronos-2を再現したものではない。誤差は論文のMASEではなく、平均絶対誤差（MAE）で測る。",
   "scope": {
     "normalization_roundtrip": "CONFIRMED",
     "mechanism": "PARTIAL",
@@ -108,7 +108,7 @@
   },
   "experiments": [
     {
-      "name": "同一144注文・補充方策で予測倍率を変更",
+      "name": "同じ144件の注文を使い、予測に掛ける倍率を変える",
       "metrics": {
         "0.5": {
           "MAE": 3.983565,
@@ -157,6 +157,6 @@
     "n": 38,
     "rank_pearson_from_published_ranks": -0.5552637371834238,
     "csv_sha256": "36cec2e7a4bdaa718ecbd05989ebbc661b1020d0044dfeb8ca4349a05f7b3ff9",
-    "scope": "凍結集計の算術監査。モデル・注文replayの独立再現ではない。"
+    "scope": "著者が公開した順位表から相関を計算し直した。モデルや注文処理は再実行していない。"
   }
 }

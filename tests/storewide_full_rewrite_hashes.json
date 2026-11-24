@@ -1,0 +1,70 @@
+{
+  "files": {
+    "papers/storewide-shelf-decomposition/README.md": {
+      "before_sha256": "789ef79d8c6140ac7d9fccad20146a12abd312ae78b41a2d9ddf0ced4fd4d604",
+      "before_blob": "6025d36de1ab5d0c356e8047cc55b69daf52d127",
+      "after_sha256": "45855c3a525407ee0fc7833df7ef543ee5112e96cf8021d4cfd7b362ab7a0e96",
+      "after_blob": "c83749a01c74016a75f069ff7920e6196cbd59d1"
+    },
+    "papers/storewide-shelf-decomposition/experiment.md": {
+      "before_sha256": "26cd26012e98e1da9e856f45b83720cfe1391e9dcfa2bc05affbbbdc1cf4ce98",
+      "before_blob": "f292ecfdc99ef9cb4022d8ed2ed3b7b00a6f5112",
+      "after_sha256": "130d844793bf987035fe231317279ff352144cd31d77837f993a6c8f10c8800f",
+      "after_blob": "5523c4696319d4e55f65a18ca1e99aab13d58787"
+    },
+    "papers/storewide-shelf-decomposition/implementation.md": {
+      "before_sha256": "5e718ee9ccb8d06dd3d6864036a99f43e9385b2cdeb665ab6368837c6d545d73",
+      "before_blob": "5536d5f2dcd8a69da4994507ff94ccdd7dbd35de",
+      "after_sha256": "29b0f5c29bb5a9480af1c018b50627c0c7a8fb292f19fda58335814da0ee3890",
+      "after_blob": "c06dcd3b9adb56073530b76a084d68e71a836a83"
+    },
+    "papers/storewide-shelf-decomposition/interactive.html": {
+      "before_sha256": "e69973bbb42a573fd6512b20acf64631b1317997e464aaa2513932f7186be17f",
+      "before_blob": "bc0e491a4f864baf04166b7b456d12b76ecdd849",
+      "after_sha256": "0010e5d6f675bb4f5f9731f1dbe17d0da0ca7ed415977fa8839ea36f60db825f",
+      "after_blob": "fb26df2cc028b4412fcd4c207c56fd2230a00665"
+    },
+    "papers/storewide-shelf-decomposition/interactive.js": {
+      "before_sha256": "6e2f921fa9ad3b8dfd302a9f2afcb12a3067416833177ec499b2483254e93018",
+      "before_blob": "5f29ac44bfbb751058d4cbc9d1114a7d870c232d",
+      "after_sha256": "fde1c713eba1d0f7f8deae4366c08053b72ed0abe76c4ca7b9879353f5f5c322",
+      "after_blob": "f903db5e9bcd70ab625834bf7078f9b3528c33f7"
+    },
+    "papers/storewide-shelf-decomposition/lab.yaml": {
+      "before_sha256": "f45ab0a59f12ba7413bf86888f8e76d9de113e163be5e0e826608cd6fdf027b3",
+      "before_blob": "e2907340ec6c850d234317ef28caac55ead8cc2e",
+      "after_sha256": "834f89fd5795a13a0b8dca47a20be6915bc93b2f1db7cd9dc9c1b8fea5bf09fc",
+      "after_blob": "5b3bf89448bdad70b1dd5b2948765d758cfd2254"
+    },
+    "papers/storewide-shelf-decomposition/mapping.md": {
+      "before_sha256": "ac6f9c0eaf16aefeb5581c1ac1be0606345be40c4e1ca3a50304afa8787f675c",
+      "before_blob": "4d607b63557ceb8cbfea5461da2b71410353865f",
+      "after_sha256": "bfa46c001434ac1c0bc9b920385b3eb1b8d0dc8bb0a32319b7a9ba0ed37e1f6e",
+      "after_blob": "1274e63a45fbf0e06029518c16199cdd73cfb7dc"
+    },
+    "papers/storewide-shelf-decomposition/method.md": {
+      "before_sha256": "6026484a05020dc6d1e2658858941e0327caf8ffab6830d1c50947c22be1a695",
+      "before_blob": "a4d7a93e3b9344a75446954e2ded6df6af6c45e3",
+      "after_sha256": "402d0fd0280eb2c86d18ab1ed1df173ff3f37f420568acbbdd0654c833234ffa",
+      "after_blob": "0dc06db8b5cf5a36136b81930f4b299337929b59"
+    },
+    "papers/storewide-shelf-decomposition/results.json": {
+      "before_sha256": "a7b71d4302387c9e95d6d55cb14a76571f9e95706b864e1f69e5a491d52a5be1",
+      "before_blob": "c3e153a19510d6dc03c02ac796c1597485f1932a",
+      "after_sha256": "0acfbe265c2e93f1dfb593f6804c236c8aa943348fdef1e8d5ca2a6b013c44d7",
+      "after_blob": "c709814a8bb0a0a89929f912e18fb1485f77cba4"
+    },
+    "papers/storewide-shelf-decomposition/run.py": {
+      "before_sha256": "684ba248b2b293e2fa079bfcfe8f93d02fe03d8e127d5be0dceabf81a9d08dfe",
+      "before_blob": "ff1554cdb7b313de3f79e8911df22b7bc328f177",
+      "after_sha256": "e02550d74bab9d7d513e06d02aa78da50b11ef701de7eeb296ae38fbb92729e2",
+      "after_blob": "0441960b7d2b8dc358ea71b25e91409f7d9149b0"
+    },
+    "papers/storewide-shelf-decomposition/validation.md": {
+      "before_sha256": "c8828d354e42e4f20ee1bea53c9563499c9fbc76ac573f2dac94ece8755cea10",
+      "before_blob": "11c3244b4819e50cb48a51a099aff6aced80a28e",
+      "after_sha256": "36ce53d5e4f7c301ed0e9e6c53808dc5be6383e9a8e41c00bf5fcdfcb54ba3a9",
+      "after_blob": "a76aef4dd379c82c9e3773ece4d71ba24eb7c540"
+    }
+  }
+}

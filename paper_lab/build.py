@@ -457,7 +457,7 @@ def _render_site(root: Path, papers: Path, site: Path, labs: list[Lab]) -> None:
             source = lab.source_dir / name
             if source.is_file():
                 shutil.copy2(source, download_dir / name)
-        if lab.id == "retail-forecast-decision-grain":
+        if lab.id in {"retail-forecast-decision-grain", "hasterad-retail-substitution"}:
             shutil.copy2(lab.source_dir / "evidence.md", download_dir / "evidence.md")
         if lab.id in {"deep-cross-division", "discounted-perishables-forecast"}:
             shutil.copy2(lab.source_dir / "evidence.md", download_dir / "evidence.md")

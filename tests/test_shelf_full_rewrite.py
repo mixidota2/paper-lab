@@ -8,7 +8,7 @@ import subprocess
 
 import pytest
 from prose_preservation import shelf_full_rewrite_hash
-from shelf_guide_preservation import before_full_rewrite, GUIDE
+from shelf_guide_preservation import before_full_rewrite, before_streicher, GUIDE
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = 'df58ceae17143d38d03499090c8bbd449a0c738d'
@@ -18,7 +18,7 @@ def test_all_source_links_anchors_and_numeric_occurrences_survive():
     current = (ROOT / GUIDE).read_bytes()
     previous = subprocess.check_output(['git', 'show', f'{BASE}:{GUIDE}'], cwd=ROOT)
     assert before_full_rewrite(current) == previous
-    a, b = previous.decode(), current.decode()
+    a, b = previous.decode(), before_streicher(current).decode()
     for regex in (r'href="([^"]+)"|\]\(([^)]+)\)', r'\bid="([^"]+)"',
                   r'[+−]?\d+(?:[.,]\d+)*(?:%)?'):
         assert Counter(re.findall(regex, a)) == Counter(re.findall(regex, b)), regex

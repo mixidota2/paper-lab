@@ -76,7 +76,7 @@ def test_whole_foods_explains_response_and_distinguishes_toy_from_evidence():
     assert '正則化の偏りへの対処とは異なる' in lab['core_idea']['research_bot_interpretation']
     explanation = lab['sections']['executable_understanding']
     assert 'A部門を広げると、その分だけB部門が狭くなる' in explanation
-    assert '棒グラフは等分と選んだ配分の目的値、折れ線は候補ごとの目的値' in explanation
+    assert '棒グラフは等分と選んだ配分の目的値を比べ、折れ線は候補ごとの目的値' in explanation
     assert '実売上ではない' in explanation
     assert '構成上の性質' in lab['sections']['evidence']
     assert '信頼区間（CI）' in (source / 'mapping.md').read_text()
@@ -89,8 +89,8 @@ def test_forecast_prose_defines_denominators_and_information_boundaries():
     assert '分母は残った期間数' in vn['sections']['executable_understanding']
     assert '残る期間がなければ平均は未定義' in vn['interactives'][0]['caption']
     cd = lab('contextual-deconvolution')
-    assert '保管単価を欠品単価で割った費用比' in cd['sections']['executable_understanding']
-    assert '各期は独立で在庫を持ち越さず' in cd['interactives'][0]['caption']
+    assert '費用比は保管単価を欠品単価で割った値' in cd['sections']['executable_understanding']
+    assert '次の期への持ち越しはない' in cd['interactives'][0]['caption']
     fc = lab('forecast-critic')
     assert not fc['interactives']
     assert '再現率は不適切な予測の総数のうち検出できた割合' in fc['sections']['executable_understanding']
@@ -99,7 +99,10 @@ def test_forecast_prose_defines_denominators_and_information_boundaries():
     assert not ap['interactives']
     assert '予測誤差の絶対値を全期間で平均' in ap['sections']['executable_understanding']
     assert '販促効果の大きさは既知と仮定' in ap['sections']['executable_understanding']
-    for obj in [vn, cd, fc, ap]:
+    cd_verified = cd['sections']['what_we_verified']
+    for phrase in ('8期の需要と二つの在庫系列','総費用の大小が入れ替わる','各期は独立で在庫を持ち越さない','論文の手法を再現したわけではない'):
+        assert phrase in cd_verified
+    for obj in [vn, fc, ap]:
         assert obj['sections']['executable_understanding'].split('\n')[0] in obj['sections']['what_we_verified']
     method = (ROOT/'papers/vn2-stockout-catboost/method.md').read_text()
     assert '予測誤差を二乗して平均し、平方根を取る' in method
@@ -111,9 +114,9 @@ def test_order_completion_and_quantity_fill_are_distinct():
     b = ROOT/'papers/bridging-forecast-accuracy-inventory-kpis'
     first = yaml.safe_load((a/'lab.yaml').read_text())
     second = yaml.safe_load((b/'lab.yaml').read_text())
-    assert '全明細が揃った注文数を全注文数で割るCOFR' in first['sections']['problem']
+    assert '注文完納率（COFR）は全明細を満たした注文数を全注文数で割る' in first['sections']['problem']
     assert '需要数量のうち即時に満たせた数量の割合' in second['sections']['results']
-    assert '品目別の比を単純平均した値ではない' in (a/'method.md').read_text()
+    assert '品目ごとの比を平均した値ではない' in (a/'method.md').read_text()
     assert '評価期間中の需要で更新しない' in (b/'method.md').read_text()
     assert '未納分を翌日へ繰り越さない' in (b/'method.md').read_text()
     # This older download mirrors only its summary and verification scope.
@@ -309,7 +312,7 @@ def test_batch14_training_denominators_and_candidate_boundaries():
 def test_batch15_causal_comparisons_and_group_denominators():
     expected = {
         'spotify-incremental-recommendation-causal': ('method.md', 'その群の件数で割り、得られた平均を足す'),
-        'linkedin-prediction-to-incrementality': ('lab.yaml', '送信あり・なしの両方を観測できること'),
+        'linkedin-prediction-to-incrementality': ('lab.yaml', '配信あり・なしの両方を観測できること'),
         'pinterest-causal-retrieval-shopping': ('lab.yaml', '均等割当のこの例で'),
         'sona-yandex-music': ('lab.yaml', '同じ向きに厳密な順位を付けた割合'),
         'uvr-wolt-trial-reorder': ('method.md', '正解を含む各クラスへε/|domain|を配り'),
@@ -320,7 +323,7 @@ def test_batch15_causal_comparisons_and_group_denominators():
     for name in ['lab.yaml', 'README.md']:
         assert '同じ向きに厳密な順位を付けた割合' in (ROOT/'papers/sona-yandex-music'/name).read_text()
         assert 'trialとreorderそれぞれのsession数で割って平均する' in (ROOT/'papers/uvr-wolt-trial-reorder'/name).read_text()
-        assert '送信あり・なしの両方を観測できること' in (ROOT/'papers/linkedin-prediction-to-incrementality'/name).read_text()
+        assert '配信あり・なしの両方を観測できること' in (ROOT/'papers/linkedin-prediction-to-incrementality'/name).read_text()
     assert '有限個のログで必ず真値に一致するという意味ではない' in (ROOT/'papers/pinterest-causal-retrieval-shopping/method.md').read_text()
 
 

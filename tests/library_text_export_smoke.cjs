@@ -4,8 +4,8 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
 const f=JSON.parse(fs.readFileSync(process.argv[2],'utf8')), mode=process.argv[3];
 assert.equal(f.cards.length,119);
 const expectedPriorityLabels={
- '':'すべて',Must:'必読','Must Read':'優先して読む','Park / Exploration':'探索段階・いったん保留',
- Radar:'動向を追う',Watch:'続報を待つ',Worth:'関連があれば読む','Worth Reading':'読む価値あり',
+ '':'すべて',Must:'必読','Must Read':'優先して読む','Park / Exploration':'調査中・いったん保留',
+ Radar:'関連研究の動向を追う',Watch:'この研究の続報を待つ',Worth:'関心があれば読む','Worth Reading':'読んでおきたい',
 };
 for(const value of f.options.verdict) assert.equal(f.labels.verdict[value],expectedPriorityLabels[value],`表示ラベル: ${value}`);
 for (const name of ['data-reading-save-text','data-reading-label','data-reading-list','data-reading-save','data-reading-preview','data-reading-json','data-reading-status']) assert.ok(f.fields.includes(name),name+' in generated page');

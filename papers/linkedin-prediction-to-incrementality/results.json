@@ -1,5 +1,5 @@
 {
-  "note": "既知の反実仮想平均を与えた人工例。学習・探索・LP緩和の再現ではない。",
+  "note": "Labが配信あり・なしの期待成果をあらかじめ決めた架空の例。学習、探索、配分問題を連続値で解く手法は再現していない。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",

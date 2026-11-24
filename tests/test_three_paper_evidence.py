@@ -60,7 +60,7 @@ def test_mapping_files_reach_rendered_sections_and_promotion_conditions(tmp_path
         html=(pages/f'{slug}.html').read_text()
         return re.search(r'<section[^>]*id="'+key+r'"[^>]*>(.*?)</section>',html,re.S).group(1)
     w=section('whole-foods-shelf','mapping')
-    for text in ['改装の部門面積変化に上限下限','新店に過去の面積分布・費用条件','構成上の性質','継承した値']:
+    for text in ['改装で部門面積をどこまで増減できるかに上下限','新店では過去の面積分布と費用条件','これは教材の計算から必ず言える','継承した値']:
         assert text in w
     c=section('contextual-deconvolution','mapping')
     for text in ['SKU別平均日次費用の中央値','100 paired SKU、28日累積費用','日次費用の中央値と混ぜない','再計算をしていない']:

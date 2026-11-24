@@ -1,0 +1,70 @@
+{
+  "files": {
+    "papers/shelf-placement-options/README.md": {
+      "before_sha256": "a265655400d86779fdb8b75a3443c3ec7f15c9f48788db4765a57b73d9d7aff6",
+      "before_blob": "8012bac184474111634b3d5eec09d31de6279933",
+      "after_sha256": "6ead82b7cdf618b5e0ba79542e4d73c94c3e7e78540dfb28fd2d03a73a21e2b3",
+      "after_blob": "c38cc2c5b8f79a37eb95de7dfb7881572fd1b75a"
+    },
+    "papers/shelf-placement-options/experiment.md": {
+      "before_sha256": "35244da3834c0ca29fbaf91e6368e6c2f9c789f5cc1178a673a6245ef93995ae",
+      "before_blob": "3a911555ac2f8fcef087430c3e38f78c3ffe2dcd",
+      "after_sha256": "eeab5c7b066e9ca8f82d2613d55ef305ab90863e62c493ba63eefa472e9e0078",
+      "after_blob": "c7943adad1eb58b9a7e21dcb4744b6b3ae2b653f"
+    },
+    "papers/shelf-placement-options/implementation.md": {
+      "before_sha256": "fd7845e394576d683ac0d67af24d62a3f65f47a9080190d7b11f26eafd8654ba",
+      "before_blob": "b672846af10c9294f493e910064b578334192ceb",
+      "after_sha256": "58feba7fb66dceac5e9cee2494e42fb48e9e5b6960ecef54b68aeb09fcef3671",
+      "after_blob": "b3093ef8975428dc0a14e319d61d0efb94ce0ed7"
+    },
+    "papers/shelf-placement-options/interactive.html": {
+      "before_sha256": "4a56c838ad3bd1b6d6c81d5806abe1654938299a23de614828e0ccfa485100db",
+      "before_blob": "40ac03b398f7c4625ce502bb74bca13ea2d938ef",
+      "after_sha256": "d16efef45adaec1a6731588b2ebc1bb2a7ca72b51e20630679807d74153ce183",
+      "after_blob": "172bfad3b7f4ad07f97a2a6b0c40b6b3bf703761"
+    },
+    "papers/shelf-placement-options/interactive.js": {
+      "before_sha256": "733c791998fb8133dca87533a2afaec31d631f51f0b68c8ef693576e2418d59a",
+      "before_blob": "f3aef10ce8ec03d9026a135f0fd196cbb0472085",
+      "after_sha256": "d6acc51f5f5a1df1ae2b1566869f45e170c326dd11e2cc8476822f23f435347c",
+      "after_blob": "be5b6486a1cb353876c079e8acda94de33618613"
+    },
+    "papers/shelf-placement-options/lab.yaml": {
+      "before_sha256": "849bbf3818786f4b505e8a405c216283280029dccf0d9d002b6b5e7fb18cca91",
+      "before_blob": "5348b6505d4f105a4606e434eee8a8b5e1e3747d",
+      "after_sha256": "a0e23643d811e22dea6deb5ef2146fc0daa245bebcfdec5191de496b654a9ee7",
+      "after_blob": "75bb534b29b4e693ea4da04e29ede89f4f82e180"
+    },
+    "papers/shelf-placement-options/mapping.md": {
+      "before_sha256": "ba3fc1789952eda6bd4ab5136c1dfc48c250e7045e6295b55cab4124ce1e38fd",
+      "before_blob": "7dd040a8deaf3e21fc2781bbcf92cd649da943dc",
+      "after_sha256": "1a418d432b27dbc804a58fe412b4f50b705a9a11786b9d0a0538f3b6c2373bad",
+      "after_blob": "6ce1e8299313bf0cf494e40c5125ccc6ab0df810"
+    },
+    "papers/shelf-placement-options/method.md": {
+      "before_sha256": "2bbf77ca7e262d15421bcc567e2b47f98d46b6842596ceb9d87ae2b8aa7b2254",
+      "before_blob": "037ffd729585326ca975e9214d5a24de4958c2a8",
+      "after_sha256": "b3e5c94ab2397dc51dae0808c0c49f75726e72ce7f04ec8279284eaa1ea8c0c9",
+      "after_blob": "fd6a9411450a232512252540396171f455c1a5d3"
+    },
+    "papers/shelf-placement-options/results.json": {
+      "before_sha256": "6e73b5394363fefd104afe5ca92f7231d03dd73bd782b2ba77f9d636acd93ba1",
+      "before_blob": "304350d75167fd766bb65e255e88b6b95744c251",
+      "after_sha256": "8dd79f24fdb3611f7c22d20cbfd141a6d77a5df14fee0a7449aae8c9a40bd7e7",
+      "after_blob": "c5992b4a296c1731ccbce9c2fe4670900b766961"
+    },
+    "papers/shelf-placement-options/run.py": {
+      "before_sha256": "a7e15a71f8356faa6482a763c7a97a0a9865f2540d8653dc49ca4870dccac7b0",
+      "before_blob": "dbfe9a16aa4d0c8482b1f775718c0ca05dc575b6",
+      "after_sha256": "fc0ef7f03ae98de6d6d1e2657854f5ea3b750e9dd4c81d7914a8bad219629020",
+      "after_blob": "7dcb182128f2ea19f19662d31caa6fe2da8c58e9"
+    },
+    "papers/shelf-placement-options/validation.md": {
+      "before_sha256": "ba73b4fc12a89cd250c76b266a774745a83755af7d8363137ce4052f771ef430",
+      "before_blob": "60238340cc08eaa07ca2be922764e6b367da7d1d",
+      "after_sha256": "7835d32dbc2aa29d1ab8bb2f0ca044d8fceb17df0d38138f81820eed58592379",
+      "after_blob": "b1a656a3fac470fae50ec2d3e1b88d0bbf8c279b"
+    }
+  }
+}

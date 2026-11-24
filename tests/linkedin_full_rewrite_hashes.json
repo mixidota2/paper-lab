@@ -1,0 +1,40 @@
+{
+  "files": {
+    "papers/linkedin-prediction-to-incrementality/README.md": {
+      "before_sha256": "790f9070c7f4b55bdbf69797917478df46a20b3ebd308aed91be146218b58278",
+      "before_blob": "11a519f91aa06d1dbb1cb88e1e16c255741fa6de",
+      "after_sha256": "23a3c445b50671f3ff74e2a60821e26aba674e23726302d10f761beb22734990",
+      "after_blob": "d1b4c186c917bf8b022cad98e683deebef514ad7"
+    },
+    "papers/linkedin-prediction-to-incrementality/lab.yaml": {
+      "before_sha256": "53e0a345ab93ceb667fc10ac4822d22e8063dcaba9d20f76d374c5167b741236",
+      "before_blob": "315abb3528381b4d556a83a0434ddf0d8ee98fa7",
+      "after_sha256": "aeae908d8249a3c0b2a53d8f30373edadb227bd9576837d122638fc75d5e2b33",
+      "after_blob": "7023fff3422892cc201b60855b60e2d9ede978da"
+    },
+    "papers/linkedin-prediction-to-incrementality/mapping.md": {
+      "before_sha256": "e8f375d4b0b5461f1ec75ec126365527a94837f4f058c4b958e0e4fc606c8a6b",
+      "before_blob": "682145fc9ee2ddbb1db5757afbcee605a441a87f",
+      "after_sha256": "ca0b9c68f0b3d6617df2248a8d6e88c508fa97beffe8ee6e386a3d9a462a2d51",
+      "after_blob": "590af161e1a0771c176659157ba9aeb10e949a98"
+    },
+    "papers/linkedin-prediction-to-incrementality/method.md": {
+      "before_sha256": "ffa6ed77c118fb8821a5dc0f85fefbcc492d11c109e643af036151afb8ec232d",
+      "before_blob": "0482742e09f927b445b8fd8498eb15ff90cb8519",
+      "after_sha256": "0fd342bb1557abb7c094f0fc9f721c179e13e6c121dcb15ded147797a579ca2c",
+      "after_blob": "d875b48c495b15e28cb809e2376d072f0b794888"
+    },
+    "papers/linkedin-prediction-to-incrementality/results.json": {
+      "before_sha256": "ae049d8aac8079cdaf67804b8009bafdc66c484e53c4b06baf618670d1cceb8d",
+      "before_blob": "340ef2d8bb570f01d1750749d06ee4d7c76a3e76",
+      "after_sha256": "a856f16b39950f2d422a7d73bff2520c5f1183e27a58428b238419210d674308",
+      "after_blob": "9d543f6b21587ca65e1756478f3ad2817a3dd5af"
+    },
+    "papers/linkedin-prediction-to-incrementality/run.py": {
+      "before_sha256": "8348922a7b9080eee4dfd237d9a5c3fcaef4bb05dedb49df535f021cdf803702",
+      "before_blob": "b963610691e122f13685542b2e5203e4b860b340",
+      "after_sha256": "f39d924559a4915546bd273cedf70d1f6e8d7277a7eb6407b406b27b804d0441",
+      "after_blob": "4b8fc35017c9af4d7ab0be94c37560821ef3d8ef"
+    }
+  }
+}

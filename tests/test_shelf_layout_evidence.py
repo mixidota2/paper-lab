@@ -31,12 +31,12 @@ def test_evidence_units_uncertainty_scope_and_sources():
 
 
 def test_exact_prior_bytes_and_all_existing_anchors_preserved():
-    from shelf_guide_preservation import before_november
+    from shelf_guide_preservation import before_november, before_streicher
     layout_text = before_november(TEXT.encode()).decode().replace(WORDING_NEW, WORDING_OLD)
     assert sha(layout_text.encode()) == LAYOUT
     previous = reverse_exact(layout_text.encode(), PATCH, LAYOUT_PATCH_SHA, AFTER).decode()
     old_anchors = re.findall(r'id="([^"]+)"', previous)
-    new_anchors = re.findall(r'id="([^"]+)"', TEXT)
+    new_anchors = re.findall(r'id="([^"]+)"', before_streicher(TEXT.encode()).decode())
     assert [a for a in new_anchors if a != 'iceland-layout-evaluation'] == old_anchors
     assert new_anchors.count('iceland-layout-evaluation') == 1
     # This candidate is additions only: all prior lines stay in the same order.
