@@ -336,7 +336,7 @@ def test_batch16_candidate_units_and_conditional_comparisons():
         'igpo-huawei-inventory-grounded-search': ('lab.yaml', '対応商品がある要求のうち、商品を返さず棄権した要求の割合'),
         'sam-d2q-aliexpress-doc2query': ('lab.yaml', 'その商品のタイトルまたは追加した検索語の集合に含まれる場合だけ'),
         'case-against-generation-retrieval': ('method.md', '同じ候補集合内で確率分布へ正規化'),
-        'ogr-once-generated-ranked': ('method.md', 'そのユーザーの候補集合の平均より高いか低いか'),
+        'ogr-once-generated-ranked': ('method.md', 'その利用者の平均より高く、負なら低い'),
         'lige-gr-meta-listwise': ('method.md', 'それまでに選んだ動画の継続確率を順に掛けた値'),
     }
     for slug, (name, excerpt) in expected.items():

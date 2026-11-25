@@ -1,0 +1,341 @@
+{
+  "files": {
+    "papers/ogr-once-generated-ranked/README.md": {
+      "before": {
+        "sha256": "4a842b11de6b1f069819494cf6e152af4d57a51e193df6fa3bf69c965bfe23c0",
+        "blob": "aa52cf09a7d638c6e859ca3b0d33c91dad308fad"
+      },
+      "after": {
+        "sha256": "14fda01c45c748ab119649d9ef4939bd8b4d2b08bf9ca8fdcf7fcbea1b142dba",
+        "blob": "1d7a5f1108f5725095322e078a648279fe6d30f5"
+      },
+      "prior_spans": [
+        [
+          6,
+          7,
+          "## 読み方\n"
+        ],
+        [
+          8,
+          9,
+          "OGR：生成した時点で、表示順も決まっている。まず問題設定と手法を読み、図で操作の単位を追う。Evidenceでは比較の分母と観察範囲を確認し、小実験と原論文の性能を分けて評価する。\n"
+        ],
+        [
+          10,
+          11,
+          "著者は、推薦に適したSID、listwise planner、slate preference alignmentを組み合わせ、候補生成とrankingを分けずに順序付きslateを作れると主張する。\n\n【Labの解釈】設計上の要点は、位置間依存をSID tokenの直列鎖から潜在的な好みの計画へ移すことにある。意味・共起の表現改善、依存経路の短縮、報酬の整列は別の効能なので、各々の根拠で判断したい。\n"
+        ],
+        [
+          19,
+          20,
+          "lab.yaml、method.md、mapping.md、run.py、results.jsonが原本。site/は生成物であり直接編集しない。実験は標準ライブラリのみ。\n"
+        ],
+        [
+          23,
+          24,
+          "**Mechanism: PARTIAL**。人工条件の計算と境界条件を確認した。results.jsonのCONFIRMEDは小さな計算命題にだけ適用する。原論文の学習済みモデルや産業環境を再現した意味ではない。\n"
+        ],
+        [
+          25,
+          26,
+          "融合部・SASRec・Transformer・RQ-KMeansの学習、SPA更新、実ログの露出bias、無効SID処理、online A/B、GPU throughputは検証していない。sketchの衝突が1回のhashで必ず相殺するとも主張しない。\n"
+        ],
+        [
+          27,
+          28,
+          "Performance / Scaling / Production applicability: NOT TESTED。モデル学習とオンラインA/Bは実行していない。\n\n[一次PDF](https://arxiv.org/pdf/2608.17613v1)。版・ハッシュ・節とコードの対応はmapping.md。公式コードは確認範囲で案内を見つけられず、実行していない。\n"
+        ]
+      ]
+    },
+    "papers/ogr-once-generated-ranked/lab.yaml": {
+      "before": {
+        "sha256": "68cb9611ea8ea966abc573c5730504598780aff631bc558fe3bac5cff12c7137",
+        "blob": "aebd1d7c1632ef9f5696d1168ead40ae99968799"
+      },
+      "after": {
+        "sha256": "f193df8f85bbfb64eec00411886e855771b9f77c3e9042518bd6d5932aa9af7f",
+        "blob": "785e872990c5c9a01d276db132c26fe3e416bd79"
+      },
+      "prior_spans": [
+        [
+          25,
+          29,
+          "question: OGR：生成した時点で、表示順も決まっている\nsummary: OGRは表示するslate全体を順序付きで生成する。TUSIDは、動画の意味的な特徴と、ユーザーの履歴上で他の動画と一緒に現れる傾向を統合してIDを作る。GL2Pは、表示位置どうしの関係を考慮して並びを計画する。SPAは、表示する動画の組全体（slate）への反応に合わせて生成モデルを調整する。Kuaishouの3%トラフィックで有効視聴+1.120%。ただし約2.2倍は依存経路の理論比であり、本番遅延の測定値ではない。\n"
+        ],
+        [
+          41,
+          45,
+          "  author_claim: 著者は、推薦に適したSID、listwise planner、slate preference alignmentを組み合わせ、候補生成とrankingを分けずに順序付きslateを作れると主張する。\n  research_bot_interpretation: 設計上の要点は、位置間依存をSID tokenの直列鎖から潜在的な好みの計画へ移すことにある。意味・共起の表現改善、依存経路の短縮、報酬の整列は別の効能なので、各々の根拠で判断したい。\n"
+        ],
+        [
+          50,
+          58,
+          "  problem: '従来の候補生成→ranking→rerankingでは、後段がどれほど優秀でも候補にないitemは表示できない。次itemのSID生成だけに置き換えても、上位K候補を並べればslateの相互作用まで学べるわけではない。OGRは「どのitemか」と「何番目に置くか」を同じ生成器の責務にする。\n"
+        ],
+        [
+          60,
+          61,
+          "    [GenPage](genpage-netflix-homepage.html)はhomepageの行と配置、[UniRec](unirec-chain-of-attribute.html)はECの生成型cascade統合を扱う。OGRの単位はshort-videoの表示slateであり、同じページ生成と一括りにしない。[Gryphon](gryphon-v2-cascade.html)のsole\n    candidate generatorという役割とも異なる。これらを同じcatalog・K・遅延制約で比較した実験はない。'\n  method: method.md\n  why_it_might_work: 【解釈】意味枝を残して共起だけを信頼度で弱めれば、履歴の少ないitemを不安定な行動信号で壊しにくい。潜在表現で次位置を計画できればdecode待ちを減らせる。SPAは補助目的が主目的を逆転させるのを抑える。ただしplannerの連続表現が正確か、観測されたslate以外にも報酬が一般化するかは別問題である。\n  evidence: '### オフラインの改善は、比較先とdatasetを分ける\n"
+        ],
+        [
+          63,
+          64,
+          "    表1のIndustrial NDCG@5はOGR 0.0633、最良baselineのSeq2Slate 0.0427で約48.2%増。KuaiRecはOGR 0.1303、PRM 0.1024で約27.2%増。OneRecとの差ではない。時系列leave-five-out、K=5、seed\n    2025–2029の5回平均。offlineの順位改善は露出policyや評価集合に依存し、オンラインの有効視聴増と同じ量ではない。\n"
+        ],
+        [
+          66,
+          67,
+          "    表3では属性の単純加算がbase SIDより悪化する。情報を増やせばよいわけではない。表4ではplannerを外した分のparameterをencoder/decoderへ再配分しても低下する。ただし各部品の相互作用を全組合せで調べた設計ではない。\n"
+        ],
+        [
+          69,
+          70,
+          "    ### 3%トラフィック・1週間のA/B\n"
+        ],
+        [
+          72,
+          73,
+          "    既存システム比でEffective Views +1.120%、Comments +2.954%、Likes +0.505%、Forwards +1.255%。本文のOnline A/B Testingと表10に期間を記載。信頼区間、検定、指標の絶対値やinvalid\n    SID率、end-to-end serving latencyの表は確認できない。3%は全ユーザーへの全面展開を意味しない。\n"
+        ],
+        [
+          75,
+          77,
+          "    Fig.3の実測throughputはTIGER-Beam比2.43倍、OneRec-Beam比2.49倍。K×DからK+Dへの20/9≈2.22倍は理想化したcritical pathの比で、実測throughputでも総演算量削減率でもない。Top-5は深さDだが、代替next-itemの上位候補を返すため、slateの位置間依存を直接モデル化するOGRとは仕事が違う。\n\n\n    <figure class=\"teaching batch18\"><h3>除去実験：効いた部品と、悪化した融合を残す</h3><div class=\"matrix-scroll\" tabindex=\"0\"\n    role=\"region\" aria-label=\"比較表\"><table><thead><tr><th>条件</th><th>dataset</th><th>NDCG@5</th></tr></thead><tbody><tr><td>base\n"
+        ],
+        [
+          79,
+          80,
+          "    full</td><td>KuaiRec</td><td>0.1303</td></tr><tr><td>GL2P + SPA full</td><td>Industrial</td><td>0.0633</td></tr><tr><td>plannerなし</td><td>Industrial</td><td>0.0359</td></tr><tr><td>SPAなし</td><td>Industrial</td><td>0.0419</td></tr><tr><td>主報酬なし</td><td>Industrial</td><td>0.0467</td></tr><tr><td>補助報酬なし</td><td>Industrial</td><td>0.0554</td></tr><tr><td>保守的正則化なし</td><td>Industrial</td><td>0.0312</td></tr></tbody></table></div><figcaption>表3・4。datasetをまたぐ値を同じablation系列として比較しない。</figcaption></figure>\n"
+        ],
+        [
+          83,
+          84,
+          "  executable_understanding: '同じK・Dを持つ逐次decodeと、各位置に独立laneを与えたpipelineを比較する。時間単位は仮定であり、GPUの測定ではない。K=1ではplannerの追加分だけ遅くなる反例も残す。CountSketchは3人の手作り履歴でdistinct\n    usersを数え、CAWのcold-start端点を検査する。報酬は同じ標準化値に単純和と式15を適用して、符号の逆転を比べる。\n"
+        ],
+        [
+          86,
+          90,
+          "    <figure class=\"teaching batch18\"><h3>復号の時刻表：短くなるのは依存経路</h3><div data-b18=\"schedule\"><label>条件 <select><option\n"
+        ],
+        [
+          108,
+          116,
+          "  results: 下の数値はLabの人工計算。著者報告のオンライン指標とは分けて読む。\n  what_we_verified: '**Mechanism: PARTIAL**。人工条件の計算と境界条件を確認した。results.jsonのCONFIRMEDは小さな計算命題にだけ適用する。原論文の学習済みモデルや産業環境を再現した意味ではない。'\n  what_we_did_not_verify: '融合部・SASRec・Transformer・RQ-KMeansの学習、SPA更新、実ログの露出bias、無効SID処理、online A/B、GPU\n    throughputは検証していない。sketchの衝突が1回のhashで必ず相殺するとも主張しない。\n\n\n    **Performance / Scaling / Production applicability: NOT TESTED**。'\n  implementation: '標準ライブラリだけの独立した小実験。リポジトリのルートで `uv run papers/ogr-once-generated-ranked/run.py` を実行すると、同じフォルダーの\n    `results.json` を更新する。外部APIやモデル取得は不要。UIはその計算済み結果を表示し、別の推定器をJavaScriptで動かさない。\n\n"
+        ],
+        [
+          119,
+          120,
+          "\n    照合した一次PDFとarXiv書誌に、取得可能な公式実装への案内は確認できなかった。公式コードの独立実行はNOT TESTED。ここにあるコードは公式実装の移植ではない。'\n"
+        ],
+        [
+          124,
+          125,
+          "  title: TUSIDとSPAの式を分解する\n"
+        ],
+        [
+          126,
+          128,
+          "  caption: 式の対象と仮定を分けて読む。\n  rationale: 演算と制御の境界を具体化する。\n"
+        ],
+        [
+          132,
+          133,
+          "    explanation: shared hashで共通近傍を保存。無関係な衝突項が0になるのは符号乱数に関する期待値。\n"
+        ],
+        [
+          135,
+          136,
+          "    explanation: distinct usersが0ならα=0。\n"
+        ],
+        [
+          138,
+          139,
+          "    explanation: 意味枝と協調枝をそれぞれ長さで正規化してから重みを掛け、足し合わせずに連結する。各枝が単位normなら連結後も単位norm。\n"
+        ],
+        [
+          141,
+          142,
+          "    explanation: 同符号ならκ=min(|δpri|,|δaux|)/max(|δpri|,|δaux|,ε)、それ以外0。\n"
+        ],
+        [
+          144,
+          145,
+          "    explanation: 候補slate集合上のKL。全catalog分布の厳密なKLではない。\n"
+        ],
+        [
+          148,
+          149,
+          "  title: オンライン：既存システム比の相対lift\n"
+        ],
+        [
+          151,
+          152,
+          "  rationale: 共通尺度で差と分母を読む。\n"
+        ]
+      ]
+    },
+    "papers/ogr-once-generated-ranked/mapping.md": {
+      "before": {
+        "sha256": "be8a5e46563d7822069adecb971ceaecdad9b96d1564a5bc5f3e510bef1d738f",
+        "blob": "1fca2494fdeaca85048fce471978b72cddc97984"
+      },
+      "after": {
+        "sha256": "c56f6e59d935ca65d1bd58040ea7548fc7e5fce644d8157f8f2a8f8b81a3f628",
+        "blob": "72245fcd5e16ae92726140f82052bb7867b6d76f"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文・公式コード対応\n"
+        ],
+        [
+          4,
+          5,
+          "| 論文の箇所 | このLab | 最小コード / 省略 |\n"
+        ],
+        [
+          6,
+          11,
+          "| 図2、式2–7、付録4、表9 | TUSID融合図・CAW式 | sketch / confidence / fuse。SASRec、射影、量子化の学習は省略 |\n| 図1、式8–13、表10 | GL2P・時刻表 | schedule。単位時間・無制限laneというLab仮定 |\n| 式15–18、付録5、表8 | 校正切替図 | calibrate / standardize。policy更新なし |\n| 表1・3・4、Fig.3 | offline・ablation・throughput | 著者報告値の転記。独立再現なし |\n| Online A/B、表10 | 3%・1週間のオンライン結果 | 本番接続なし |\n"
+        ],
+        [
+          12,
+          13,
+          "本文のrollout説明と付録5の運用範囲を併記した。実験の報酬はexposure-onlyで、未露出slateの反応を推定したとは読まない。K+Dは同コストstageを仮定した依存深さ。学習・beam幅・GPU資源・通信を含む実測遅延を計算していない。\n"
+        ],
+        [
+          14,
+          17,
+          "公式コード：一次PDFと書誌で案内を確認できず、取得・実行はNOT TESTED。run.pyは説明のための独立実装。PDFは指定cacheに1回取得し、本文抽出を再利用した。\n"
+        ]
+      ]
+    },
+    "papers/ogr-once-generated-ranked/method.md": {
+      "before": {
+        "sha256": "f97271beeca18ff65da50cd176d78c21435bd9d480804aca2bcb0b79354dd0ae",
+        "blob": "e5b3e23f8a13f6c5046e7d58ab2fd881ab520f2b"
+      },
+      "after": {
+        "sha256": "718f075f97b72a8affbf50b817347e8b17555c27cd74efe252ef01ebd958f9ad",
+        "blob": "f3afdf52e75175a73fa552ee233175fc955a0257"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### TUSID：意味と共起を、量子化する前にまとめる\n"
+        ],
+        [
+          2,
+          3,
+          "動画の画像・音声・文章をMLLMで符号化し、Brand、Category、供給側のB-tags、需要側のC-tagsを共有text encoderで符号化する。MLLM側をqueryとするcross-attentionで属性を集約し、sigmoid gate付き残差として足す。単純な平均ではなく、動画ごとに属性の寄与を調節する。これをSASRecのitem embeddingとして使い、次item予測損失と残差のL2正則化で融合部を学習する（式2–4）。MLLMとtext encoderの具体的な製品名・checkpointは確認範囲では示されていない。\n"
+        ],
+        [
+          4,
+          5,
+          "次に、正の反応を含む学習prefixだけから近傍共起を集める。中心item iの周囲ω=5以内にあるjを、距離の逆数1/|p−q|で重み付けする。CountSketch-based Collaborative Encoding（CCE）は、共通hash hと符号hash σを使ってこの疎なitem間関係を256 bucketへ圧縮する。符号付きlog変換、正規化、固定random projectionで128次元へ移す。検証・testの履歴を混ぜないことが前提になる。\n"
+        ],
+        [
+          6,
+          7,
+          "同じitemに寄与した異なるユーザー数Uを数え、Confidence-Aware Weighting（CAW）で協調枝の重みαを抑える。同じユーザーの反復はsketch量を増やし得るが、Uは1人として数える。意味枝と協調枝を各々正規化し、√(1−α)と√αで重み付けして連結する。α上限は0.35、τ=0.5。最後にRQ-KMeansで4段・各1,024 codeのSIDに量子化する。U=0では意味枝だけが残る。共起の強さと信頼度を別々に扱う設計である。\n"
+        ],
+        [
+          8,
+          9,
+          "### GL2P：表示順を計画してから、各位置のSIDを並行して伸ばす\n"
+        ],
+        [
+          10,
+          11,
+          "履歴encoderは4層・8 head・hidden 512、FFN 2,048。最大履歴128件のSID embeddingを深さ方向に足し、時間embeddingを加える。List-Wise Preference PlannerとPosition-Wise SID Decoderはそれぞれ2層・8 head・hidden 512、FFN 2,048。plannerはcausal attentionで先行位置を参照し、履歴にはcross-attentionする。decoderのbeam幅は20（表10）。\n"
+        ],
+        [
+          12,
+          13,
+          "学習時は正解SID embeddingの合計を右へずらしてplannerへ入れるteacher forcing。推論時は前の位置の潜在表現pを次へ渡すため、itemの全SID確定を待たずに次の位置を計画できる。位置mのpが出たら、その位置のD tokenを自己回帰で復号する。異なる位置のSID鎖はpがあれば並行処理できるが、同じSID内の深さ方向は直列のまま。\n"
+        ],
+        [
+          14,
+          15,
+          "露出順と反応順の2種類の教師slateを使い、Lsup=Lsid,exposure+0.3 Lsid,feedbackで学ぶ。出力はすでに順序を持つslateなので、候補を別rankerへ渡して初めて表示順を得る「generate then rank」と責務が違う。生成先の全itemを無条件に利用できる保証や、無効SID処理の詳細までは示されていない。\n"
+        ],
+        [
+          16,
+          17,
+          "### SPA：補助報酬が主目的を逆転させないようにする\n"
+        ],
+        [
+          18,
+          19,
+          "主報酬は位置ごとの有効視聴+0.10、完視聴+0.15、like+0.20、share+0.15、即skip−0.15、dislike−0.25のslate平均。補助報酬は意味的多様性0.90と新規性0.10。同じユーザーの候補slate集合で、主報酬と補助報酬をそれぞれ平均0・分散1に標準化し、主と補助の符号が一致する場合だけ補助を加える（式15）。ここでの正負は、そのユーザーの候補集合の平均より高いか低いかを表す。補助の値が大きいという理由だけで主報酬の向きを反転させない。\n"
+        ],
+        [
+          20,
+          21,
+          "学習は参照policyとの尤度比をclipし、候補分布のKLと教師データのreplayも加える。clip幅0.1、KL重み0.05、replay重み0.1。更新するのはplannerとSID decoderで、他は固定する。これは報酬への過剰適合を抑える設計だが、報酬そのものの妥当性までは保証しない。\n"
+        ],
+        [
+          22,
+          28,
+          "**付録5の限定が重要。** 本文のCandidate Rolloutsはbeamでslateを組み立てる説明だが、実験で報酬を校正する集合Aは露出log内の完全なslateだけと付録が明記する。未露出・反実仮想のslateに観測反応を割り当てない。ユーザーに2つ以上のlogged slateがない場合は除外し、一定値の報酬成分は標準化後0にする。このLabも、未露出slateの報酬を作らない。\n<figure class=\"teaching batch18\"><h3>融合する場所を追う</h3><div class=\"b18-cards\"><div><strong>意味枝：学習する</strong><p>MLLM → 属性cross-attention → gate残差。SASRec損失で推薦向けに調整。</p></div><div><strong>協調枝：学習prefixから集計</strong><p>近傍共起 → signed CountSketch → signed log → 正規化 → 固定射影。</p></div><div><strong>CAW → RQ-KMeans</strong><p>distinct usersでαを決め、重み付き連結後に4段SIDへ。</p></div></div><figcaption>図2、式2–7、付録4・表9を説明用に再構成。MLLMの名称は補っていない。</figcaption></figure>\n"
+        ]
+      ]
+    },
+    "papers/ogr-once-generated-ranked/results.json": {
+      "before": {
+        "sha256": "c6fe0edc56ff98d5711bd64d23599fd2469e483f7b27d7bff17cf7bf21ade0f8",
+        "blob": "9b562fd1422e73ebaea20d510e777c62f2a8f167"
+      },
+      "after": {
+        "sha256": "6361b4e3e518c140a6299904084b9cc924c5f5115a3a5f7dce7fe9679e6c1930",
+        "blob": "3f9aa8018b8f07f52a679aa014ad349a2269384b"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"人工入力と単位時間の依存グラフ。推薦精度・実測速度・学習を再現していない。CountSketch後の学習と量子化は省略。\",\n"
+        ]
+      ]
+    },
+    "papers/ogr-once-generated-ranked/run.py": {
+      "before": {
+        "sha256": "079b698cf6306161cf33402b61654c1dddcf2b074e62f4c6065e41be5239bf49",
+        "blob": "883214069477261db1130c4326c4b8a3d3bc134b"
+      },
+      "after": {
+        "sha256": "caccb011f87536d88b5c00ce3d38b5f606ca0b21e840074fe29726df4d049dfe",
+        "blob": "bf15366ef68308d828edd1e2c68ddce15d016526"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"OGR teaching calculations; no trained recommender or production timing.\"\"\"\n"
+        ],
+        [
+          10,
+          11,
+          "    # Unit-cost, unlimited parallel SID lanes; planner finishes slot m at t=m.\n"
+        ],
+        [
+          17,
+          18,
+          "    \"\"\"Shared signed hashing of positive TRAINING prefixes, distance weighting.\"\"\"\n"
+        ],
+        [
+          52,
+          53,
+          "    \"\"\"Eq.15 accepts already standardized within-user rewards.\"\"\"\n"
+        ],
+        [
+          70,
+          71,
+          "    return {'note': '人工入力と単位時間の依存グラフ。推薦精度・実測速度・学習を再現していない。CountSketch後の学習と量子化は省略。',\n"
+        ]
+      ]
+    }
+  }
+}
