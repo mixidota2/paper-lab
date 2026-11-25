@@ -3,7 +3,7 @@
   const get = (name) => document.getElementById("dcdn-" + name);
   const data = JSON.parse(get("data").textContent);
   const put = (name, value) => { get(name).textContent = value; };
-  const show = (value) => value === null ? "未定義（0では割れません）" : String(Number(value.toPrecision(8)));
+  const show = (value) => value === null ? "未定義（0 で割れません）" : String(Number(value.toPrecision(8)));
   const update = () => {
     const n = get("n").valueAsNumber, d = get("d").valueAsNumber;
     if (![n, d].every(value => Number.isFinite(value) && Math.abs(value) <= 1000)) {
@@ -34,8 +34,8 @@
     put("control-label", a === 0 ? "DCNv2（比率あり）" : "DCNv2（比率なし）");
     put("treatment-label", b === 1 ? "DCDN（比率あり）" : "DCDN（比率なし）");
     put("view-note", mode === "deployed"
-      ? "本番と同じ組み合わせでは、モデルを替え、入力から手作りの比率も外します。数値は保存したデータ上での評価で、A/Bテストの結果ではありません。"
-      : "著者は両方のモデルに同じ入力を渡し、保存したデータで比べました。");
+      ? "本番と同じ組み合わせでは、モデルを替え、入力から手作りの比率も外します。数値は保存したデータ上での評価で、A/B テストの結果ではありません。"
+      : "著者は保存したデータを使い、入力をそろえたオフライン比較を行いました。");
   };
   for (const key of ["n","d","mask","task","view"]) {
     const control = get(key);

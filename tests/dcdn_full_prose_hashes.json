@@ -221,8 +221,8 @@
     "papers/deep-cross-division/widget.html": {
       "before_sha256": "f16f186bbe642daf03f81c97bb3bf66e19e01e762def0f0357ed3f34ae0fd298",
       "before_blob": "cc88726430035c94503fb2ef011ed9c3d2d65b26",
-      "after_sha256": "ac46912d7857dfd6a3eeb61c916070e06465c0e48fe4ad69d8f8567175a21dd7",
-      "after_blob": "d1027fcee9aff989fe0d0ee03bf0e05c5ecd6cd4",
+      "after_sha256": "74edb97416cf330bb97a198e89b938292baaad2a125e4f4ad6e0ae3d2cced510",
+      "after_blob": "614b896f42ddc4722f783c5670ad2d9fb1b48f54",
       "prior_spans": [
         [
           10,
@@ -249,8 +249,8 @@
     "papers/deep-cross-division/interactive.html": {
       "before_sha256": "b76a010df1d745777c653c06242a6f4451401377e1d8c5d91141f5f46e095b73",
       "before_blob": "ff0ab6c86ff2e58e09724706731e1bf2659e8a29",
-      "after_sha256": "bdb157de1d3ee5eb74153345dc3e29620e0c95c1ced0cfb46acd12ed14011b1d",
-      "after_blob": "cca50db74c8895cd2dae892a4cc6932b73a7aca4",
+      "after_sha256": "840bd8bbace56f9447542afc76bf26501d4e2111699c6c309beedea19162cfbf",
+      "after_blob": "38307767d863a5648bcc86039b1eefae8bc02860",
       "prior_spans": [
         [
           10,
@@ -273,11 +273,6 @@
           "<p id=\"dcdn-view-note\" role=\"status\">入力をそろえたオフライン比較です。</p>\n<noscript><p>操作には JavaScript が必要です。上の初期例と論文の表5はそのまま読めます。</p></noscript>\n"
         ],
         [
-          197,
-          198,
-          "  const show = (value) => value === null ? \"未定義（0 で割れません）\" : String(Number(value.toPrecision(8)));\n"
-        ],
-        [
           202,
           203,
           "      put(\"note\", \"分子と分母には −1000 から 1000 までの数を入力してください。\");\n"
@@ -297,14 +292,9 @@
     "papers/deep-cross-division/interactive.js": {
       "before_sha256": "2e793ca31ba9c53741366fed74edb96a943ef6b30d4dd71e7b19a09322462764",
       "before_blob": "f148fc1279cc7d9263065a639145e4f5224cd029",
-      "after_sha256": "410a276de588f36624b66fde29000af4beb2d7376ed81f137f7b331c99312c32",
-      "after_blob": "94c1048a37cf8fa8c9399cf052d673d2793153ab",
+      "after_sha256": "a4fa5e64e7618cd07f1c077bd44bd358d968877d61e447d2641f3439a3117558",
+      "after_blob": "9653038803ab3778fd483e2ccbaadbfbbf26fa16",
       "prior_spans": [
-        [
-          5,
-          6,
-          "  const show = (value) => value === null ? \"未定義（0 で割れません）\" : String(Number(value.toPrecision(8)));\n"
-        ],
         [
           10,
           11,
