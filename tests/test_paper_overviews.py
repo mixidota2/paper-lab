@@ -35,7 +35,7 @@ class OverviewText(HTMLParser):
 
 def test_scoped_source_transition_and_rendered_overviews(tmp_path):
     rows = json.loads((ROOT / 'tests/paper_overview_hashes.json').read_text())['files']
-    assert len(rows) == 49
+    assert len(rows) == 52
     site = tmp_path / 'site'
     build(root=ROOT, site_dir=site)
     anchors = {
@@ -85,6 +85,9 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'invevolve-whitebox-inventory-evolution': ('25件', '13件', '30件中20件', 'シミュレーション'),
         'netflix-counterfactual-observability': ('11件', '0.8212', '新しい枠'),
         'rest-sequence-ranking': ('1.31%', '11.93%', '50 ms', '実収益の増加率ではありません'),
+        'angle-tencent-one-step-retrieval': ('2.16%', '5.01%', '精密ランキング'),
+        'gr4ad-ads-generative': ('4.28%', '117%', 'DLRM', 'OneRec-V2', '4億人'),
+        'gryphon-v2-cascade': ('7分以上', '1.41%', '1.62%', '応答時間は同程度'),
         'autolr-dashen': ('1,586件', '公開判断', '9件', '何割が本番で改善したかは分かりません'),
         'beyond-scalar-dsi-watchtime': ('視聴時間の分布', '1.9〜8.5%', '公開データ3種類'),
         'onetrans-v2-cascade-unification': ('3段階', '利用者を無作為', '9.74%', '共有だけ'),
@@ -123,6 +126,8 @@ def test_download_mirror_replaces_only_the_overview():
         'invevolve-whitebox-inventory-evolution',
         'beyond-scalar-dsi-watchtime',
         'onetrans-v2-cascade-unification',
+        'angle-tencent-one-step-retrieval',
+        'gr4ad-ads-generative',
     )}
     for path, row in receipt['mirrored'].items():
         source = (ROOT / row['source']).read_bytes()
