@@ -1,0 +1,291 @@
+{
+  "files": {
+    "papers/switch-hurdle-intermittent-demand/README.md": {
+      "before_sha256": "161534a0e906fc514af85e819778e12e193cc95a0334cd9796beb19dd145f9cc",
+      "before_blob": "31b0390efcb22c5946007f0097bb236d9726c5c1",
+      "after_sha256": "579b9c654eb98a963bdd38b48752c4d9c4146f612d82e2f35924265d768f6a29",
+      "after_blob": "80d8e37a9510fef4b229c44cb4a7582e71e33493",
+      "prior_spans": [
+        [
+          2,
+          3,
+          "ゼロが続く需要で、発生確率と発生時の量を分けられるか\n"
+        ],
+        [
+          4,
+          5,
+          "## Overview — 要点\n"
+        ],
+        [
+          6,
+          7,
+          "Switch-HurdleはTop-1 MoE encoderと自己回帰hurdle decoderを組み合わせる。M5のWRMSSEは0.6307。予測精度の結果であり、在庫費用やサービス水準の改善は示していない。\n"
+        ],
+        [
+          8,
+          9,
+          "## Problem — 問題設定\n"
+        ],
+        [
+          10,
+          11,
+          "ゼロが続き、ときに大口の需要が入る。M5の30,490系列と社内の約40,000系列を使い、56日の文脈から28日先を予測する。平均へ平滑化するだけでは、需要が発生する頻度と発生時の数量を捉えにくい。\n"
+        ],
+        [
+          12,
+          13,
+          "## Core Idea — 著者の主張と解釈\n"
+        ],
+        [
+          14,
+          15,
+          "著者の主張：学習した振り分け器（router）が各tokenを1つの処理ネットワーク（expert）へ送り、予測を出すdecoderは需要の発生確率と正の需要量を別々に予測する。正の量にはゼロで切り詰めた負の二項分布を使う。\n"
+        ],
+        [
+          16,
+          17,
+          "Labの解釈：ゼロの頻度と発生時の大きさを分ける設計は、間欠需要を読む助けになる。ただしAccuracy Is Not Serviceが問う、精度と在庫サービスのずれを解消した研究とはいえない。\n"
+        ],
+        [
+          18,
+          19,
+          "## Why It Might Work — 効くと考えられる理由\n"
+        ],
+        [
+          20,
+          21,
+          "解釈：発生の確率p⁺を動かしても、発生時の分布は固定できる。逆に正の需要量を変えてもゼロ確率は変えずに済む。MoEの役割は学習する表現を分けることだが、Zero・Low・Normal・Spikeを手でexpertへ割り当てる仕組みではない。\n"
+        ],
+        [
+          22,
+          23,
+          "## Evidence — 著者の報告\n"
+        ],
+        [
+          24,
+          25,
+          "一次資料[Table 4・Figures 4–5](https://arxiv.org/pdf/2602.22685v1)の著者報告。M5のWRMSSEはSwitch-Hurdle 0.6307、TSMixer 0.6403、TFT 0.6932、DeepAR 0.7895。すべての指標で最良ではなく、RMSEはPatchTST 2.4562に対して2.4744、MASEはTFT 0.8983に対して0.8992。社内全量のWAPEは53.99%。\n"
+        ],
+        [
+          26,
+          27,
+          "Zeroなどの区分は、検証データで学習後のroutingを集計したもの。第0層ではZeroの67.5%がexpert 3、Lowの90.8%とSpikeの94.0%がexpert 1へ入る。これは専門化の観察であり、在庫の意思決定評価ではない。\n"
+        ],
+        [
+          28,
+          29,
+          "## Executable Understanding — 手元で確かめる\n"
+        ],
+        [
+          30,
+          31,
+          "`uv run papers/switch-hurdle-intermittent-demand/run.py` で同じフォルダーのresults.jsonを更新する。Python標準ライブラリだけで動く。\n"
+        ],
+        [
+          32,
+          33,
+          "μと分散パラメータαを固定し、発生確率p⁺を0.1・0.5・0.9へ変える。通常の負の二項分布とhurdle分布を同じμ、αで比較し、全確率と期待値を数値和で確認する。\n"
+        ],
+        [
+          34,
+          35,
+          "## Results — 人工例の結果\n"
+        ],
+        [
+          36,
+          37,
+          "ゼロを除くと平均が変わる。μ=2、α=0.5の通常の負の二項分布ではゼロ確率が0.25で、正の値に条件付けた平均は2.6667となる。p⁺=0.5のhurdle分布の平均は約1.3333。p⁺を変えても、正の量の条件付き平均は保たれる。\n"
+        ],
+        [
+          38,
+          39,
+          "## What We Verified — 確認した範囲\n"
+        ],
+        [
+          40,
+          41,
+          "CONFIRMED：分布の正規化、ゼロ確率の独立した操作、切詰め後の条件付き平均の補正。headの計算だけを確認したため、MechanismはPARTIAL。\n"
+        ],
+        [
+          42,
+          43,
+          "## What We Did NOT Verify — 未検証の範囲\n\nPerformance / Scaling / Production applicabilityはNOT TESTED。Top-1 STEの学習、MoEの専門化、AR decoder、M5の精度は追試していない。欠品、fill rate、在庫費用は測っていない。\n\n## Implementation — 実装\n\nnb()は平均・分散でパラメータ化した負の二項分布の確率を計算し、hurdle()は正の領域を1−P_NB(0)で正規化する。0から999までの和で確率と平均を照合する。図は0から20までを表示し、残りの尾確率も示す。\n\n## Original Paper / Official Code Mapping — 原典との対応\n\n[式と図の説明](method.md)、[原典・実装対応表](mapping.md)、[実行結果](results.json)を参照。ページはlab.yamlとこれらのファイルから生成する。\n"
+        ]
+      ]
+    },
+    "papers/switch-hurdle-intermittent-demand/mapping.md": {
+      "before_sha256": "e2b330308f087ca6ce388bb889cbcbcaeafc1a4a66c54b428fb1d6a050fa286c",
+      "before_blob": "1159d7410a738402f526047fc3396a85cc7317c5",
+      "after_sha256": "9ac3c13b27aa6ce7ba63dfb660f8bbdcfc5e8615cc2c868e018d0e8a20814caf",
+      "after_blob": "e8dc6ac816a057a5fdd4e88bb776473ab0d85ea4",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 一次資料と最小実装の対応\n"
+        ],
+        [
+          2,
+          3,
+          "[原論文 v1](https://arxiv.org/pdf/2602.22685v1)について、2026-09-29に保存済みのPDFとarXivの版情報を確認した。\n"
+        ],
+        [
+          6,
+          7,
+          "| 原典 | Labで読めるもの | Labで試していないこと |\n"
+        ],
+        [
+          8,
+          12,
+          "| Figure 1, Eqs. (2)–(3) | 振り分け器の勾配をどう計算するかを示すSTEの演算図 | encoderの学習 |\n| Eqs. (8)–(14) | `nb()` と `hurdle()` による需要量の確率計算 | decoderの実装と学習損失の計算 |\n| Figures 4–5 | 需要の区分ごとにどのexpertへ振り分けたかを示す表 | 学習後の振り分けの追試 |\n| Table 4 | M5で著者が報告した予測精度の棒グラフ | M5でのモデルの訓練と精度評価 |\n"
+        ],
+        [
+          13,
+          14,
+          "関連Lab：[Accuracy Is Not Service](https://mixidota2.github.io/paper-lab/papers/accuracy-not-service-intermittent-demand.html)。予測精度だけから在庫サービス水準を判断できない理由を扱う。\n"
+        ],
+        [
+          15,
+          16,
+          "確認したPDFとarXivの概要ページでは、著者提供のリポジトリへの案内を見つけられなかった。公開コードが存在しないとは断定できない。`run.py` はLabが説明用に作った実装である。\n"
+        ]
+      ]
+    },
+    "papers/switch-hurdle-intermittent-demand/method.md": {
+      "before_sha256": "41dd3e30da54f52f942a35697b097f6f3b7b58780cbcbaadec12785a1972efb4",
+      "before_blob": "7b953bc020a3424916179523ce6408258259cc6a",
+      "after_sha256": "c11223af1289b9b5363cf2e46c0d0644a03f4829bc2755d7885c0b2105659756",
+      "after_blob": "f8e9224c80bd73138036cb7da04cb49d3d4ba1f6",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "## 正の需要だけを見ると平均が変わる\n"
+        ],
+        [
+          2,
+          3,
+          "負の二項分布（NB）には需要ゼロも含まれる。正の需要量だけの条件付き分布にするには、ゼロの確率を除き、残った各確率を正の需要が起きる確率の合計で割り直す。\n"
+        ],
+        [
+          4,
+          5,
+          "μ=2、α=0.5ならp₀=0.25。したがって正の需要の条件付き平均は、もとの平均2をゼロ以外の確率0.75で割った2.6667となり、μとは異なる。\n"
+        ],
+        [
+          6,
+          19,
+          "次に、需要が発生する確率p⁺を変える。発生した場合の数量分布を固定したまま、需要が生じる日の割合を増減できる。需要区分に応じたexpertの学習までは試していない。\n"
+        ]
+      ]
+    },
+    "papers/switch-hurdle-intermittent-demand/lab.yaml": {
+      "before_sha256": "232b7e8542f36117c1a5298ee41d767343cefccc7e8525c4c68269bb7085676c",
+      "before_blob": "20ccc70182aa871ba11f031b5f5639932e139d04",
+      "after_sha256": "be099d55147d902c079a7f7254533b723990e03e37e6233967364a01eb9f2c05",
+      "after_blob": "a4677e4ef2b127f8029b957ae86b14f34b83b31d",
+      "prior_spans": [
+        [
+          18,
+          22,
+          "question: ゼロが続く需要で、発生確率と発生時の量を分けられるか\nsummary: Switch-HurdleはTop-1 MoE encoderと自己回帰hurdle decoderを組み合わせる。M5のWRMSSEは0.6307。予測精度の結果であり、在庫費用やサービス水準の改善は示していない。\n"
+        ],
+        [
+          35,
+          39,
+          "  author_claim: 学習した振り分け器（router）が各tokenを1つの処理ネットワーク（expert）へ送り、予測を出すdecoderは需要の発生確率と正の需要量を別々に予測する。正の量にはゼロで切り詰めた負の二項分布を使う。\n  research_bot_interpretation: ゼロの頻度と発生時の大きさを分ける設計は、間欠需要を読む助けになる。ただしAccuracy Is Not\n    Serviceが問う、精度と在庫サービスのずれを解消した研究とはいえない。\n"
+        ],
+        [
+          42,
+          50,
+          "  problem: ゼロが続き、ときに大口の需要が入る。M5の30,490系列と社内の約40,000系列を使い、56日の文脈から28日先を予測する。平均へ平滑化するだけでは、需要が発生する頻度と発生時の数量を捉えにくい。\n  why_it_might_work: 解釈：発生の確率p⁺を動かしても、発生時の分布は固定できる。逆に正の需要量を変えてもゼロ確率は変えずに済む。MoEの役割は学習する表現を分けることだが、Zero・Low・Normal・Spikeを手でexpertへ割り当てる仕組みではない。\n  evidence: '一次資料[Table 4・Figures 4–5](https://arxiv.org/pdf/2602.22685v1)の著者報告。M5のWRMSSEはSwitch-Hurdle\n    0.6307、TSMixer 0.6403、TFT 0.6932、DeepAR 0.7895。すべての指標で最良ではなく、RMSEはPatchTST 2.4562に対して2.4744、MASEはTFT\n    0.8983に対して0.8992。社内全量のWAPEは53.99%。\n"
+        ],
+        [
+          54,
+          58,
+          "  executable_understanding: '`uv run papers/switch-hurdle-intermittent-demand/run.py`\n    で同じフォルダーのresults.jsonを更新する。Python標準ライブラリだけで動く。\n"
+        ],
+        [
+          61,
+          69,
+          "  results: ゼロを除くと平均が変わる。μ=2、α=0.5の通常の負の二項分布ではゼロ確率が0.25で、正の値に条件付けた平均は2.6667となる。p⁺=0.5のhurdle分布の平均は約1.3333。p⁺を変えても、正の量の条件付き平均は保たれる。\n  what_we_verified: CONFIRMED：分布の正規化、ゼロ確率の独立した操作、切詰め後の条件付き平均の補正。headの計算だけを確認したため、MechanismはPARTIAL。\n  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Top-1\n    STEの学習、MoEの専門化、AR decoder、M5の精度は追試していない。欠品、fill rate、在庫費用は測っていない。\n  implementation: nb()は平均・分散でパラメータ化した負の二項分布の確率を計算し、hurdle()は正の領域を1−P_NB(0)で正規化する。0から999までの和で確率と平均を照合する。図は0から20までを表示し、残りの尾確率も示す。\n"
+        ],
+        [
+          74,
+          75,
+          "  title: p⁺と正の量を分離し、ゼロ除外の分だけ補正する\n"
+        ],
+        [
+          77,
+          79,
+          "  rationale: p⁺と正の量を分離し、ゼロ除外の分だけ補正する\n  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。\n"
+        ],
+        [
+          82,
+          83,
+          "    explanation: 発生headの出力がゼロの頻度を決める。\n"
+        ],
+        [
+          85,
+          86,
+          "    explanation: p₀=(1+αμ)^(−1/α)。通常のNBからゼロを除き、残りを正規化する。\n"
+        ],
+        [
+          88,
+          89,
+          "    explanation: μは切り詰める前のNB平均。正の需要の平均と同一視しない。\n"
+        ],
+        [
+          92,
+          93,
+          "  title: 順伝播は1 expert、逆伝播はsoft確率を使う\n"
+        ],
+        [
+          95,
+          97,
+          "  rationale: 順伝播は1 expert、逆伝播はsoft確率を使う\n  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。\n"
+        ],
+        [
+          105,
+          106,
+          "      text: 推論では選ばれたexpertだけを実行\n"
+        ],
+        [
+          109,
+          110,
+          "      text: 過去の出力と、入力履歴を符号化したencoder memoryを参照\n"
+        ],
+        [
+          111,
+          112,
+          "      text: p⁺、μ、αを出す\n"
+        ],
+        [
+          115,
+          116,
+          "  title: M5のWRMSSEは低下するが、在庫評価ではない\n"
+        ],
+        [
+          118,
+          120,
+          "  rationale: M5のWRMSSEは低下するが、在庫評価ではない\n  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。\n"
+        ],
+        [
+          134,
+          135,
+          "  title: 同じ需要区分でも層によって主なexpertが変わる\n"
+        ],
+        [
+          137,
+          139,
+          "  rationale: 同じ需要区分でも層によって主なexpertが変わる\n  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。\n"
+        ],
+        [
+          140,
+          142,
+          "  - 第0層：主なexpert / 比率\n  - 第1層：主なexpert / 比率\n"
+        ]
+      ]
+    }
+  }
+}
