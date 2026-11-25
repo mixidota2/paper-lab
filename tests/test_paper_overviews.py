@@ -8,13 +8,14 @@ import pytest
 import yaml
 
 from paper_lab.build import build
-from prose_preservation import before_pinterest_full_rewrite, before_sona_full_rewrite, before_genpage_full_rewrite, before_unir2_full_rewrite, paper_overview_rewrite_hash, restored_before_paper_overview
+from prose_preservation import before_pinterest_full_rewrite, before_tgr_full_rewrite, before_sona_full_rewrite, before_genpage_full_rewrite, before_unir2_full_rewrite, paper_overview_rewrite_hash, restored_before_paper_overview
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def before_full_article_rewrites(root, path, current):
-    old = before_sona_full_rewrite(root, path, current)
+    old = before_tgr_full_rewrite(root, path, current)
+    old = before_sona_full_rewrite(root, path, old)
     old = before_genpage_full_rewrite(root, path, old)
     old = before_unir2_full_rewrite(root, path, old)
     return before_pinterest_full_rewrite(root, path, old)
