@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 from paper_lab.models import load_lab
-from prose_preservation import coral_role_clarification_hash
+from prose_preservation import coral_role_clarification_hash, paper_overview_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 PAPER = ROOT / 'papers/coral-meta-config-harness'
@@ -20,8 +20,9 @@ def test_exact_published_roles_followup():
     }
     for path, row in manifest['files'].items():
         final = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
-        assert coral_role_clarification_hash(ROOT, path, row['before_sha256']) == final
-        for wrong in ('0' * 64, final):
+        historical = coral_role_clarification_hash(ROOT, path, row['before_sha256'])
+        assert paper_overview_rewrite_hash(ROOT, path, historical) == final
+        for wrong in ('0' * 64, historical, final):
             with pytest.raises(AssertionError):
                 coral_role_clarification_hash(ROOT, path, wrong)
 

@@ -1,6 +1,8 @@
 # LIGE-GR: A Smooth Leap from Ranking to Generative Recommendation in the LLM Era
 
-LIGE-GRは既存システムが集めた候補から動画の並びを生成する。探索中に各段階で残す並びを一つに絞る構成（beam 1）について、著者は7日間のA/Bテストを報告した。視聴時間はReelsで+1.14%、Facebook Videoで+0.72%だった。一方、Facebook Videoの視聴回数は−0.52%だった。
+MetaのLIGE-GRはすでに集めた動画候補から、おすすめに載せる順番を一つずつ決めます。既存のモデルが各動画に対する視聴や反応を個別に予測し、追加したモデルが先に選んだ動画を見て後続の候補の予測を更新する仕組みです。一覧全体を評価する際も、多様性などの既存のルールを使います。
+
+著者が両サービスの従来方式と7日間比べたのは、各段階で最も評価の高い並びを一つだけ残す基本構成です。視聴面での滞在時間はInstagram Reelsで1.14%、Facebook Videoで0.72%増えましたが、Facebook Videoの再生数は0.52%減りました。Instagram Reelsで複数の並びを残す構成を試したのは別の比較です。
 
 優先度: Must Read。確認日: 2026-09-21。
 

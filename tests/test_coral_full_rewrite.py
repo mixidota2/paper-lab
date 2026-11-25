@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from paper_lab.models import load_all_labs
-from prose_preservation import coral_full_rewrite_hash
+from prose_preservation import coral_full_rewrite_hash, paper_overview_rewrite_hash
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,8 +21,9 @@ def test_coral_revision_rejects_unknown_or_already_updated_source():
                   'blob': hashlib.sha1(b'blob '+str(len(content)).encode()+b'\0'+content).hexdigest()}
         for algo, digest in actual.items():
             before = row['before_'+algo]
-            assert coral_full_rewrite_hash(ROOT, path, before, algo) == digest
-            for unknown in ('0'*len(before), digest):
+            historical = coral_full_rewrite_hash(ROOT, path, before, algo)
+            assert paper_overview_rewrite_hash(ROOT, path, historical, algo) == digest
+            for unknown in ('0'*len(before), historical, digest):
                 with pytest.raises(AssertionError):
                     coral_full_rewrite_hash(ROOT, path, unknown, algo)
     assert coral_full_rewrite_hash(ROOT, f'papers/{SLUG}/run.py', 'other') == 'other'
