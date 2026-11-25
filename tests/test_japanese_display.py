@@ -177,7 +177,11 @@ def test_explorer_axes_match_saved_series():
         axes = explorer_axes(slug)
         assert axes['start'] == first
         assert all(len(f['lines'][0]['values']) + first - 1 == last for f in data['explorer']['frames'])
-        assert ('面積' if first == 10 else '数量（個）') in axes['caption']
+        if slug == 'vn2-stockout-catboost':
+            assert axes['label'] == '週'
+            assert '需要と販売数（個）' in axes['caption']
+        else:
+            assert '面積' in axes['caption']
 
 
 def test_parse_errors_identify_field_without_coercing_missing_values():

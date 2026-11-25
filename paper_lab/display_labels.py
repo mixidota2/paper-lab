@@ -58,7 +58,7 @@ def explorer_view(slug, explorer):
 
 
 LINE_AXES = {
-    'vn2-stockout-catboost': ('期間', 1, '人工例の期間1〜8', '需要と販売の数量（個）'),
+    'vn2-stockout-catboost': ('週', 1, '架空の1週目から8週目', '需要と販売数（個）'),
     'whole-foods-shelf': ('A部門の面積', 10, 'A部門の面積10〜90（教材内の面積単位）', '人工例の目的値'),
     'case-against-generation-retrieval': ('枝', 1, '候補を分けた枝1〜4', '人工例の関連度スコア'),
     'tgr': ('深さ', 1, '探索の深さ（1段目から）', '目標への到達率（%）'),

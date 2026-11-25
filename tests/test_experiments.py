@@ -15,9 +15,18 @@ spec.loader.exec_module(toy)
 
 
 @pytest.mark.parametrize('lab_id', toy.IDS)
-def test_checked_in_results_are_computed_and_reproducible(lab_id):
-    actual = json.loads((ROOT / 'papers' / lab_id / 'results.json').read_text())
-    assert actual == toy.compute(lab_id)
+def test_checked_in_results_are_computed_and_reproducible(lab_id, monkeypatch):
+    paper = ROOT / 'papers' / lab_id
+    actual = json.loads((paper / 'results.json').read_text())
+    if lab_id == 'vn2-stockout-catboost':
+        # VN2 keeps the shared calculation and applies reader labels in its public download.
+        monkeypatch.syspath_prepend(str(paper.parent))
+        vn2_spec = importlib.util.spec_from_file_location('vn2_entry', paper / 'run.py')
+        vn2 = importlib.util.module_from_spec(vn2_spec)
+        vn2_spec.loader.exec_module(vn2)
+        assert actual == vn2.compute()
+    else:
+        assert actual == toy.compute(lab_id)
     assert actual['verification']['performance'] == 'NOT TESTED'
 
 
