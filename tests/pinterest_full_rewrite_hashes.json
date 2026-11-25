@@ -1,0 +1,304 @@
+{
+  "files": {
+    "papers/pinterest-causal-retrieval-shopping/lab.yaml": {
+      "before_sha256": "a7d435596c32381d64c752a3d014a978779882a1634bca84bbc6404f636d8aa8",
+      "before_blob": "bdd0eb9aedd989639a783e16ae5dea8e1ff24efc",
+      "after_sha256": "ec2ed046e70b4b839f3a5929bc38a059eedda4ca4fbbe0794856dc482db533b4",
+      "after_blob": "e364dc822df073a67fbb8101303693671fd88309",
+      "prior_spans": [
+        [
+          33,
+          35,
+          "question: shopping 候補生成を、いつ呼ぶべきか\nsummary: Pinterestは、買物向けの推薦候補を探す処理を呼び出すかどうかを、リクエストごとに決める。無作為 Shopping Holdout とオフライン replay で閾値を決める。本番の主方策は single-value（SV）であり、uplift\n  の差をそのまま配信する方策とは区別する。\n"
+        ],
+        [
+          37,
+          38,
+          "  scope: 提供された原論文 PDF と抽出テキストを確認。独立再現ではない。\n"
+        ],
+        [
+          42,
+          44,
+          "  author_claim: 結果予測と doubly robust（DR）な uplift の補助学習を組み合わせる。Shopping Holdout で候補生成の有無を無作為化し、閾値の効果を事前評価する。候補生成の発火を最大85%減らしても、shopping\n    lower funnel は有意に変わらないと報告する。\n  research_bot_interpretation: 判断するのは候補源を呼ぶ価値である。後段で商品の順位を決める前に、ユーザー・文脈・query ごとに shopping の候補生成を呼ぶか選ぶため、学習した因果信号の質と、本番で採用したスコア・閾値の効果を分けて読む必要がある。\n"
+        ],
+        [
+          49,
+          51,
+          "  problem: '目的が競合する。shopping 候補を毎回呼ぶと、買物行動が増える一方で Pin 保存などが減り、後段の ranker が表示する商品をうまく選べたとしても、既に払った候補生成の呼出し費用は取り戻せない。\n"
+        ],
+        [
+          52,
+          56,
+          ""
+        ],
+        [
+          57,
+          60,
+          "    対象範囲にも制約がある。Shopping Holdout は shopping の配信対象となるリクエスト内で作られ、全トラフィックを無条件に無作為化したデータではない。'\n  method: method.md\n  why_it_might_work: '本 Lab の解釈: 何を見たかが変わる。小さな無作為ログでも、同じ特徴領域で発火と非発火の両方を観測できれば、従来の表示ログだけでは見えなかった「候補を呼ばなかった場合」の結果を、方策を選ぶための根拠に加えられる。\n"
+        ],
+        [
+          61,
+          62,
+          ""
+        ],
+        [
+          63,
+          64,
+          "    SV の利点は安定性。二つの予測誤差の差を取らずに済む一方、自然に起きる行動も高く評価しうるため、因果学習を使うだけで最終方策が最適になるわけではない。'\n  evidence: '一次資料の著者報告を示す。\n"
+        ],
+        [
+          65,
+          66,
+          ""
+        ],
+        [
+          67,
+          70,
+          "    Table 4 は baseline model による SV 方策の検証であり、DR 学習の改善量を測る表ではない。δ=0.0102 の発火率変化はオンライン−64.4%、オフライン−64.6%。順序を取り違えない。TP\n    impressions は同じ行で−11.3%と−10.1%となる。\n"
+        ],
+        [
+          71,
+          72,
+          ""
+        ],
+        [
+          73,
+          76,
+          "    Table 5 の Success Curation の量はサイト全体で+0.26%、Repins は Closeup surface で+1.10%。要旨の sessions / Pin saves という要約より、表の母集団と指標名を優先する。shopping\n    lower funnel は有意差なし。本文はこの群の発火削減を約40%、別の積極的な群を最大85%と記す。85%削減と Table 5 の改善値を同じ実験条件として結合しない。\n"
+        ],
+        [
+          77,
+          78,
+          "\n    §4 の配信は remote retrieval と並列に実行し、end-to-end latency の悪化なしと報告する。負荷別の遅延分布を独立に確認できるログはない。'\n  executable_understanding: '`uv run papers/pinterest-causal-retrieval-shopping/run.py`\n\n\n    入力は600件。3種類のリクエストを各群100件ずつ列挙し、各種類の結果率を固定した上で、誤った μ₁=0.3、μ₀=0.2から計算する DR 信号が、正しい割当確率0.5と誤った確率0.8でどう変わるかを比べる。\n\n\n    方策は SV。方策が選ぶ発火・非発火と実際の割当が一致したログだけを残し、その件数で観測結果の合計を割る replay を計算する。均等割当のこの例で、全潜在結果から直接求める真の平均と照合する。'\n  results: '補正は期待通りに働いた。\n\n\n    | リクエストの種類 | 真の uplift | 正しい割当確率での DR | 誤った割当確率での DR |\n\n"
+        ],
+        [
+          79,
+          79,
+          "\n"
+        ],
+        [
+          80,
+          80,
+          "\n"
+        ],
+        [
+          81,
+          81,
+          "\n"
+        ],
+        [
+          83,
+          87,
+          "\n    δ=0.3の SV は3分の2を発火し、replay と真の報酬率はいずれも0.426667となるが、ここでは結果率を厳密に列挙して有限標本誤差を除いているため、現実の小さな Holdout でも同じ精度が得られるとの実証にはならない。'\n  what_we_verified: Mechanism PARTIAL。切り詰め前の DR 補正と、均等割当下の action-matching replay を確認した。3個の数値検査は CONFIRMED。深層モデルの学習や\n    Switch-DR の安定化効果は含めない。\n  what_we_did_not_verify: Performance / Scaling / Production applicability は NOT TESTED。Pinterest のログ、DR 付き学習、SV\n    と DP の実データ比較、最大85%削減、Table 5 のオンライン差を再現していない。合成例の期待値一致は将来の分布変化やユーザー間干渉を保証しない。\n  implementation: dr() が Eq. 7 の切り詰め前の形を実装する。evaluate() は単純な一致抽出で、Algorithm 1 の高速な累積更新は省略した。閾値ごとに全件を読むため O(nk) となる。論文の\n    sort 後の線形 sweep のスケーリングを検証したコードではない。\n"
+        ],
+        [
+          91,
+          93,
+          "  title: shopping 候補源を呼ぶ前に判断する\n  caption: 役割を簡略化した概念図。Fig. 1 の配信・無作為ログ・学習の関係を示し、remote retrieval と並列に動く本番サービスの時系列や個別の接続までを再現した図ではない。\n"
+        ],
+        [
+          95,
+          96,
+          "  rationale: 判断が cascade のどこへ入るかを示す。\n"
+        ],
+        [
+          100,
+          106,
+          "    - title: ユーザー・文脈・query\n      text: リクエスト特徴を入力する\n    - title: SV gate\n      text: μ₁ > δ なら shopping CG を発火\n    - title: 後段のランキング\n      text: 他の候補源と合わせて順位を決める\n"
+        ],
+        [
+          108,
+          114,
+          "    - title: Shopping Holdout\n      text: 対象トラフィック内で50:50の無作為割当\n    - title: 多目的学習\n      text: outcome と uplift の head を更新\n    - title: replay\n      text: 閾値別の費用と結果を事前に比べる\n"
+        ],
+        [
+          116,
+          118,
+          "  title: 予測を残差で補正し、方策は別に選ぶ\n  caption: 式は切り詰め前。e は発火確率、y は実際の割当、m は観測結果であり、推薦しなかったリクエストでは μ₀の誤差、推薦したリクエストでは μ₁の誤差だけを補正に使う。\n"
+        ],
+        [
+          120,
+          121,
+          "  rationale: DR 学習と SV 配信の違いを明示する。\n"
+        ],
+        [
+          123,
+          124,
+          "  - name: DR 信号\n"
+        ],
+        [
+          125,
+          127,
+          "    explanation: 観測できた群の予測誤差を、割当確率で補正する。\n  - name: uplift の補助学習\n"
+        ],
+        [
+          128,
+          130,
+          "    explanation: 論文は大きい補正項を切り詰める。toy では切り詰めを省く。\n  - name: 本番の主方策\n"
+        ],
+        [
+          131,
+          132,
+          "    explanation: SV は結果確率を閾値にかける。DP は追加効果の診断に使う。\n"
+        ],
+        [
+          134,
+          136,
+          "  title: Table 4：閾値を厳しくすると両環境で発火が減る\n  caption: 著者報告の相対変化。baseline model の SV 方策。\n"
+        ],
+        [
+          138,
+          139,
+          "  rationale: offline と online を同じ閾値で対応づける。\n"
+        ],
+        [
+          141,
+          143,
+          "  - オンライン発火率\n  - オフライン発火率\n"
+        ],
+        [
+          162,
+          164,
+          "  title: 合成データで閾値を動かす\n  caption: run.py が計算した結果。原論文の数値とは分離する。\n"
+        ]
+      ]
+    },
+    "papers/pinterest-causal-retrieval-shopping/README.md": {
+      "before_sha256": "0de336e6bdfedef0432d39339d9b414aea07b0f49c0abadfdadd789473d35300",
+      "before_blob": "0dfff2715d7884d30dc403d52dce6a44b9c6b52c",
+      "after_sha256": "2cb164ef9dff80bc74ce62810b468434b2986b0619bc39f0cfd4a2fde33fcccc",
+      "after_blob": "5d81919370701a3d29e8c4ca38ed9558f4d9bef3",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# Pinterest：shopping 候補生成を呼ぶ価値を測る\n"
+        ],
+        [
+          2,
+          3,
+          "## Overview — 呼び出すリクエストを選ぶ\n"
+        ],
+        [
+          8,
+          9,
+          "## Problem — 買物と保存の目的が競合する\n"
+        ],
+        [
+          10,
+          11,
+          "リクエストごとに区別せず候補生成器を呼び出すと、買物行動は増える一方、Pin保存などは減ります。買物と保存の両方を増やせるとは限りません。\n"
+        ],
+        [
+          12,
+          13,
+          "## Core Idea — 学習と配信を分ける\n"
+        ],
+        [
+          14,
+          15,
+          "著者は結果の予測と、二重に頑健な補正（DR）で行動による結果の差（uplift）を見積もる学習を同時に行います。本番の主方策は、呼び出した場合の結果確率 μ₁を使うsingle-value（SV）です。呼び出さなかった場合との差を使うdelta policy（DP）は診断に使います。\n"
+        ],
+        [
+          16,
+          17,
+          "## Why It Might Work — 呼び出さなかった結果もログに残る\n"
+        ],
+        [
+          18,
+          19,
+          "対象リクエストを50:50で無作為に割り当てているため、呼び出した群と呼び出さなかった群の結果を比べられると考えられます。これはLabでの解釈です。\n"
+        ],
+        [
+          20,
+          21,
+          "## Evidence — 数字の実験条件を分ける\n"
+        ],
+        [
+          22,
+          23,
+          "Table 4では、baseline modelのSV方策を比較しています。δ=0.0102で候補生成器の呼び出しはオンライン−64.4%、オフライン−64.6%です。\n"
+        ],
+        [
+          24,
+          25,
+          "Table 5ではSuccess Curationの量が+0.26%、CloseupのRepinsが+1.10%でした。この実験群では呼び出しが約40%減りました。最大85%の削減は別の実験群です。\n"
+        ],
+        [
+          26,
+          39,
+          "## Executable Understanding — DR と replay を計算する\n"
+        ],
+        [
+          44,
+          45,
+          "3種類・600件の合成Holdoutで、結果予測が誤っていても、正しい割当確率を使ってEq. 7の補正が働くかを確かめます。\n"
+        ],
+        [
+          46,
+          47,
+          "## Results — 補正と閾値の結果\n"
+        ],
+        [
+          48,
+          49,
+          "補正値を切り詰める前のDR平均は、真のuplift 0.02、0.20、0.05と一致しました。δ=0.3でのreplayの報酬率も真値と同じ0.426667です。\n"
+        ],
+        [
+          50,
+          51,
+          "## What We Verified — 限定した機構\n"
+        ],
+        [
+          52,
+          57,
+          "仕組みは一部確認済み（Mechanism PARTIAL）です。割当確率が分かっているときの補正と、均等割当のログから配信ルールと行動が一致した行を選ぶ手順を確認しました。\n"
+        ],
+        [
+          58,
+          59,
+          "## What We Did NOT Verify — オンライン性能は未検証\n"
+        ],
+        [
+          60,
+          61,
+          "性能、規模を広げたときの挙動、本番適用（Performance / Scaling / Production applicability）は未検証（NOT TESTED）です。ニューラルモデルの学習、補正値の切り詰め、本番A/B、遅延は再現していません。\n"
+        ],
+        [
+          62,
+          63,
+          "## Implementation — 最小の直接計算\n"
+        ],
+        [
+          64,
+          65,
+          "dr()はEq. 7を計算し、evaluate()は配信ルールと記録された行動が一致する行の平均を求めます。Algorithm 1の高速な閾値探索は省き、O(nk)で直接計算します。\n"
+        ],
+        [
+          66,
+          67,
+          "## Original Paper / Official Code Mapping\n"
+        ],
+        [
+          68,
+          75,
+          "一次資料の所在と SHA-256 は [mapping.md](mapping.md)、解説と図の定義は [lab.yaml](lab.yaml)、実行結果は [results.json](results.json) にあります。\n"
+        ]
+      ]
+    },
+    "papers/pinterest-causal-retrieval-shopping/method.md": {
+      "before_sha256": "acfb4802f1429d8b4cd74f34035593cd686f87298e2331d764d2e98c2d294047",
+      "before_blob": "e3fb93fd8a1f12bd512abe9e98ca7473f83f4ec2",
+      "after_sha256": "49aa5759fbef97437156b627bee009453476ed7271aae8e7d0c8be3cc2ed86fa",
+      "after_blob": "f7e32fce7d75607d7e8be76ca16eb85a35b88b0e",
+      "prior_spans": []
+    },
+    "papers/pinterest-causal-retrieval-shopping/mapping.md": {
+      "before_sha256": "13ba83bd7ba9dd4cedfb63a03c19c707aa1e4971febc327222c2ca0a80c09208",
+      "before_blob": "5fc12c3e818cb66ef0c32cd67ee3200a71a0031d",
+      "after_sha256": "6654731e185a5557d17d46ad3762e9f89a0907bf1ca7097eea42c864f2e50bff",
+      "after_blob": "a2dbe9fafd5abadb5f305364a19638451c6678d8",
+      "prior_spans": []
+    }
+  }
+}
