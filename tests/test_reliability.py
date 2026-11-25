@@ -148,8 +148,8 @@ def test_missing_value_fallback(tmp_path):
     path.write_text(json.dumps(data))
     build(root=tmp_path / 'root', site_dir=tmp_path / 'site')
     html = (tmp_path / 'site/papers/vn2-stockout-catboost.html').read_text()
-    assert '在庫上限に達しなかった期間だけの平均：推定不能' in html
-    assert '在庫上限に達しなかった期間だけの平均：None' not in html
+    assert '在庫を使い切らなかった週だけの販売数の平均：推定不能' in html
+    assert '在庫を使い切らなかった週だけの販売数の平均：None' not in html
 
 
 def test_required_gate_rejects_skip(tmp_path):

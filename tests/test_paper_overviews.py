@@ -8,13 +8,14 @@ import pytest
 import yaml
 
 from paper_lab.build import build
-from prose_preservation import before_intervention_full_prose, before_ogr_full_prose, before_unique_full_prose, before_flashtrie_full_prose, before_pinterest_full_rewrite, before_ahe_full_prose, before_dcdn_full_prose, before_ono_full_rewrite, before_wrapped_produce_full_rewrite, before_static_constrained_full_rewrite, before_forecast_critic_full_rewrite, before_retail_grain_full_rewrite, before_switch_hurdle_full_rewrite, before_perishable_full_rewrite, before_sid_ope_full_rewrite, before_quasid_full_rewrite, before_semantic_id_pair_full_rewrite, before_forecast_pair_full_rewrite, before_harness_icegr_full_rewrite, before_tgr_full_rewrite, before_sona_full_rewrite, before_genpage_full_rewrite, before_unir2_full_rewrite, paper_overview_rewrite_hash, restored_before_paper_overview
+from prose_preservation import before_vn2_full_prose, before_intervention_full_prose, before_ogr_full_prose, before_unique_full_prose, before_flashtrie_full_prose, before_pinterest_full_rewrite, before_ahe_full_prose, before_dcdn_full_prose, before_ono_full_rewrite, before_wrapped_produce_full_rewrite, before_static_constrained_full_rewrite, before_forecast_critic_full_rewrite, before_retail_grain_full_rewrite, before_switch_hurdle_full_rewrite, before_perishable_full_rewrite, before_sid_ope_full_rewrite, before_quasid_full_rewrite, before_semantic_id_pair_full_rewrite, before_forecast_pair_full_rewrite, before_harness_icegr_full_rewrite, before_tgr_full_rewrite, before_sona_full_rewrite, before_genpage_full_rewrite, before_unir2_full_rewrite, paper_overview_rewrite_hash, restored_before_paper_overview
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def before_full_article_rewrites(root, path, current):
-    old = before_intervention_full_prose(root, path, current)
+    old = before_vn2_full_prose(root, path, current)
+    old = before_intervention_full_prose(root, path, old)
     old = before_ogr_full_prose(root, path, old)
     old = before_unique_full_prose(root, path, old)
     old = before_flashtrie_full_prose(root, path, old)
@@ -124,7 +125,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'onetrans-v2-cascade-unification': ('3段階', '利用者を無作為', '9.74%', '共有だけ'),
         'retailbench-long-horizon-store-agents': ('7つのモデル', '180日', '24,350.98', '131,510.42', '平均や実店舗の成績ではありません'),
         'traffic-forecast-to-decision-value': ('29日分', '4.03%', '3.92%', '9交差点のうち2地点', '6.09%', '3.39%', '3.78%', 'すべて0をまたぎました'),
-        'vn2-stockout-catboost': ('CatBoost', '全6回の総合で1位', '4.334ユーロ', '3.763ユーロ', '13.2%'),
+        'vn2-stockout-catboost': ('計3つ学習', '全6回の総合で1位', '4.334ユーロ', '3.763ユーロ', '13.2%'),
         'zalando-sales-event-pricing-forecast-optimize': ('12市場', '23件', '無作為に割り付け', '6.00%', '0.79〜11.03%', '対照と同等だったとまでは言えない'),
         'sim2real-policy-conditioned-inbound-forecast': ('同じ構造', '新ルール導入後の入荷実績', '1.2〜3.1ポイント', '12.5〜18.7ポイント'),
         'linkedin-prediction-to-incrementality': ('8週間', '無作為', '7.20%', '0.31〜14.09%', 'Transformer単体'),
@@ -197,7 +198,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         text = ''.join(parsed.parts)
         assert '概要' in text
         live_overview = (yaml.safe_load((ROOT / path).read_bytes())['sections']['overview']
-                         if slug == 'unique-baidu-unified-retrieval-ranking' else overview)
+                         if slug in {'unique-baidu-unified-retrieval-ranking', 'vn2-stockout-catboost'} else overview)
         assert live_overview.split('\n')[0] in text
         assert all(value in text for value in anchors[slug])
         with pytest.raises(AssertionError):

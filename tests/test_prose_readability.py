@@ -86,8 +86,9 @@ def test_forecast_prose_defines_denominators_and_information_boundaries():
     def lab(slug):
         return yaml.safe_load((ROOT/'papers'/slug/'lab.yaml').read_text())
     vn = lab('vn2-stockout-catboost')
-    assert '分母は残った期間数' in vn['sections']['executable_understanding']
-    assert '残る期間がなければ平均は未定義' in vn['interactives'][0]['caption']
+    assert '8週すべての販売数の平均と、在庫を使い切った週を除いた販売数の平均を比べます。' in vn['sections']['executable_understanding']
+    assert '残った週の平均は8週全体の需要の平均を表しません' in vn['sections']['what_we_verified']
+    assert '1週も残らなければ、平均は出せません' in vn['interactives'][0]['caption']
     cd = lab('contextual-deconvolution')
     assert '費用比は保管単価を欠品単価で割った値' in cd['sections']['executable_understanding']
     assert '次の期への持ち越しはない' in cd['interactives'][0]['caption']
@@ -102,11 +103,11 @@ def test_forecast_prose_defines_denominators_and_information_boundaries():
     cd_verified = cd['sections']['what_we_verified']
     for phrase in ('8期の需要と二つの在庫系列','総費用の大小が入れ替わる','各期は独立で在庫を持ち越さない','論文の手法を再現したわけではない'):
         assert phrase in cd_verified
-    for obj in [vn, fc, ap]:
+    for obj in [fc, ap]:
         assert obj['sections']['executable_understanding'].split('\n')[0] in obj['sections']['what_we_verified']
     method = (ROOT/'papers/vn2-stockout-catboost/method.md').read_text()
-    assert '予測誤差を二乗して平均し、平方根を取る' in method
-    assert '予測誤差の絶対値を平均した平均絶対誤差' in method
+    assert '誤差を二乗して平均し、平方根を取った値（RMSE）' in method
+    assert '予測値を元の個数へ戻し、誤差の絶対値の平均（MAE）' in method
 
 
 def test_order_completion_and_quantity_fill_are_distinct():

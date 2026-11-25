@@ -118,7 +118,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = flashtrie_full_prose_hash(root, path, expected, algorithm)
     expected = unique_full_prose_hash(root, path, expected, algorithm)
     expected = ogr_full_prose_hash(root, path, expected, algorithm)
-    return intervention_full_prose_hash(root, path, expected, algorithm)
+    expected = intervention_full_prose_hash(root, path, expected, algorithm)
+    return vn2_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -1217,6 +1218,31 @@ def before_intervention_full_prose(root, path, current):
     if not path.startswith('papers/intervention-paradox/'):
         return current
     row = json.loads((root / 'tests/intervention_full_prose_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before']['sha256'], path
+    return prior
+
+
+def vn2_full_prose_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/vn2-stockout-catboost/'):
+        return expected
+    row = json.loads((root / 'tests/vn2_full_prose_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_vn2_full_prose(root, path, current):
+    if not path.startswith('papers/vn2-stockout-catboost/'):
+        return current
+    row = json.loads((root / 'tests/vn2_full_prose_hashes.json').read_text())['files'].get(path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
