@@ -1,6 +1,6 @@
 (function(){'use strict';const get=k=>document.getElementById('grain-'+k),ids=['y2','a2','group','window','q','y','r'],M=GrainModel,defaults=M.defaults;let current=null,baseline=null;
 const fmt=x=>x===null?'未定義（分母0）':Number(x.toPrecision(8)).toString();
-const inputLabels={y2:'第2商品の実際の売上',a2:'Aが予測した第2商品の売上',group:'集計する単位',window:'第2期間の実際の売上',q:'発注量 q',y:'観測売上 y',r:'余りと不足の費用を決める r'};
+const inputLabels={y2:'第2商品の実際の売上',a2:'Aが予測した第2商品の売上',group:'集計する単位',window:'第2窓売上',q:'発注量 q',y:'観測売上 y',r:'余りと不足の費用を決める r'};
 const rows=[['旧式 A','metrics','A','old'],['旧式 B','metrics','B','old'],['訂正式 A','metrics','A','corrected'],['訂正式 B','metrics','B','corrected'],['窓平均 A','windows','A','mean'],['窓平均 B','windows','B','mean'],['pool A','windows','A','pooled'],['pool B','windows','B','pooled'],['単期発注損失','order','loss'],['不足単価','order','shortage_cost']];
 function renderComparison(){
   get('pin').disabled=!current;get('clear-baseline').disabled=!baseline;get('comparison-download').disabled=!baseline||!current;
@@ -42,7 +42,7 @@ get('import').addEventListener('click',()=>{
     const restored=isComparison?M.unpackComparison(data):{current:M.unpack(data)},inputs=restored.current;
     for(const k of ids)get(k).value=String(inputs[k]);
     if(isComparison)baseline=restored.baseline;
-    if(render())get('transfer-status').textContent=(isComparison?'画面は基準と現在の条件を読み込み、結果と差を計算し直しました。':'画面は保存した条件を読み込み、結果を計算し直しました。すでに決めた基準はそのままです。')+'JSON内の結果値は使用していません。';
+    if(render())get('transfer-status').textContent=(isComparison?'画面は基準と現在の条件を読み込み、結果と差を再計算しました。':'画面は保存した条件を読み込み、結果を再計算しました。すでに決めた基準はそのままです。')+'JSON内の結果値は使用していません。';
   }catch(e){get('transfer-status').textContent='条件を読み込めません。現在の入力は変更していません。'+e.message;}
 });
 get('json').addEventListener('input',clearTransferStatus);
