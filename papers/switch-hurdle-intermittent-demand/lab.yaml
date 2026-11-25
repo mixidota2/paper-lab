@@ -16,8 +16,10 @@ urls:
   official_code: null
 verdict: Radar
 status: published
-question: ゼロが続く需要で、発生確率と発生時の量を分けられるか
-summary: Switch-HurdleはTop-1 MoE encoderと自己回帰hurdle decoderを組み合わせる。M5のWRMSSEは0.6307。予測精度の結果であり、在庫費用やサービス水準の改善は示していない。
+question: |-
+  売れない日が多い商品で、売れる確率と売れた日の数量をどう予測するか
+summary: |-
+  Switch-Hurdleは、1個以上売れる確率と、売れた場合の数量分布を別々に予測する。M5では、複数の集計単位の予測誤差をまとめたWRMSSEが0.6307だった。ほかの指標では最良ではないものもあり、在庫費用や欠品への効果は調べていない。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -31,59 +33,68 @@ source_review:
   url: https://arxiv.org/pdf/2602.22685v1
   scope: Figure 1; Eqs. (8)–(14); Figure 1; Eqs. (2)–(3); Table 4; Figures 4–5
 core_idea:
-  author_claim: 学習した振り分け器（router）が各tokenを1つの処理ネットワーク（expert）へ送り、予測を出すdecoderは需要の発生確率と正の需要量を別々に予測する。正の量にはゼロで切り詰めた負の二項分布を使う。
-  research_bot_interpretation: ゼロの頻度と発生時の大きさを分ける設計は、間欠需要を読む助けになる。ただしAccuracy Is Not
-    Serviceが問う、精度と在庫サービスのずれを解消した研究とはいえない。
+  author_claim: |-
+    著者のモデルは、過去の各時点の入力を処理するとき、学習した振り分け器（router）が複数の処理ネットワーク（expert）から一つを選ぶ。デコーダーは、1個以上売れる確率と、売れた場合の数量を別々に求める。数量には、0個を除いた負の二項分布を使う。
+  research_bot_interpretation: |-
+    Labは、売れる頻度と売れた日の数量を分けると、売れない日が多い商品の予測を読み取りやすくなると考える。一方、欠品や在庫費用を含めて比較した研究ではない。Accuracy Is Not Serviceで取り上げた予測精度と在庫サービスのずれは、この論文の数字だけでは解決したとは言えない。
 sections:
   overview: |-
     著者は、売れない日が多い商品で、いつ売れるかと、売れた場合に何個売れるかを分けて予測しました。Switch-Hurdleは入力ごとに複数の処理の候補から一つを選び、その出力を使って、販売が起きる確率と起きたときの数量を別々に求めます。M5データの比較では、複数の集計単位の予測誤差を重み付きでまとめた指標（WRMSSE）は0.6307で、TSMixerの0.6403より小さくなりました。ほかの指標では最良ではないものもあり、在庫費用や欠品が改善したかは調べていません。
-  problem: ゼロが続き、ときに大口の需要が入る。M5の30,490系列と社内の約40,000系列を使い、56日の文脈から28日先を予測する。平均へ平滑化するだけでは、需要が発生する頻度と発生時の数量を捉えにくい。
-  why_it_might_work: 解釈：発生の確率p⁺を動かしても、発生時の分布は固定できる。逆に正の需要量を変えてもゼロ確率は変えずに済む。MoEの役割は学習する表現を分けることだが、Zero・Low・Normal・Spikeを手でexpertへ割り当てる仕組みではない。
-  evidence: '一次資料[Table 4・Figures 4–5](https://arxiv.org/pdf/2602.22685v1)の著者報告。M5のWRMSSEはSwitch-Hurdle
-    0.6307、TSMixer 0.6403、TFT 0.6932、DeepAR 0.7895。すべての指標で最良ではなく、RMSEはPatchTST 2.4562に対して2.4744、MASEはTFT
-    0.8983に対して0.8992。社内全量のWAPEは53.99%。
+  problem: |-
+    売れない日が続いても、ある日だけ注文がまとまる商品がある。著者は、M5の30,490系列と社内データの約40,000系列を使い、過去56日から次の28日の日別販売数を予測した。一つの平均にまとめると、売れる日がどれほど少ないか、売れた日には何個売れるかを区別しにくい。
+  why_it_might_work: |-
+    売れる確率p⁺を変えても、売れた場合の数量分布をそのままにできる。反対に、売れた日の数量を変えても、売れない日の確率はそのままにできる。エンコーダーのMoEは複数の処理を学習し、各入力に使う処理を選ぶ。著者が需要ゼロ・少量・通常・急増を人手でどれか一つに割り当てたわけではない。
+  evidence: |-
+    [論文の表4・表5・図4〜5](https://arxiv.org/pdf/2602.22685v1)は著者の報告である。M5で、複数の集計単位の誤差を重み付きでまとめるWRMSSEは、Switch-Hurdleが0.6307、TSMixerが0.6403、TFTが0.6932、DeepARが0.7895だった。RMSEではSwitch-Hurdleの2.4744よりPatchTSTの2.4562が小さく、MASEではSwitch-Hurdleの0.8992よりTFTの0.8983が小さかった。社内データ全体ではSwitch-HurdleのWAPEが53.99%、TFTが55.60%だったが、MASEはSwitch-Hurdleの0.5865よりTFTの0.5803が小さかった。論文は予測誤差を比べており、欠品や発注の結果は測っていない。
+
+    著者は学習を終えたモデルについて、検証データで需要区分ごとに振り分け先を集計した。第0層では需要ゼロの入力の67.5%がネットワーク3に、少量の90.8%と急増の94.0%がネットワーク1に送られた。この割合の分母は各需要区分の入力である。どのネットワークがどの入力を処理したかを示す結果で、在庫の効果を測ったものではない。
 
 
     Zeroなどの区分は、検証データで学習後のroutingを集計したもの。第0層ではZeroの67.5%がexpert 3、Lowの90.8%とSpikeの94.0%がexpert
     1へ入る。これは専門化の観察であり、在庫の意思決定評価ではない。'
-  executable_understanding: '`uv run papers/switch-hurdle-intermittent-demand/run.py`
-    で同じフォルダーのresults.jsonを更新する。Python標準ライブラリだけで動く。
+  executable_understanding: |-
+    リポジトリのルートで `uv run papers/switch-hurdle-intermittent-demand/run.py` を実行すると、スクリプトは同じフォルダーの `results.json` を更新する。計算にはPython標準ライブラリだけを使う。
+
+    Labは平均μとばらつきを調整するパラメータαを固定して、1個以上売れる確率p⁺を0.1、0.5、0.9に変える。同じμとαで通常の負の二項分布と比べ、各数量の確率を足して合計と平均を確かめる。
 
 
     μと分散パラメータαを固定し、発生確率p⁺を0.1・0.5・0.9へ変える。通常の負の二項分布とhurdle分布を同じμ、αで比較し、全確率と期待値を数値和で確認する。'
-  results: ゼロを除くと平均が変わる。μ=2、α=0.5の通常の負の二項分布ではゼロ確率が0.25で、正の値に条件付けた平均は2.6667となる。p⁺=0.5のhurdle分布の平均は約1.3333。p⁺を変えても、正の量の条件付き平均は保たれる。
-  what_we_verified: CONFIRMED：分布の正規化、ゼロ確率の独立した操作、切詰め後の条件付き平均の補正。headの計算だけを確認したため、MechanismはPARTIAL。
-  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Top-1
-    STEの学習、MoEの専門化、AR decoder、M5の精度は追試していない。欠品、fill rate、在庫費用は測っていない。
-  implementation: nb()は平均・分散でパラメータ化した負の二項分布の確率を計算し、hurdle()は正の領域を1−P_NB(0)で正規化する。0から999までの和で確率と平均を照合する。図は0から20までを表示し、残りの尾確率も示す。
+  results: |-
+    μ=2、α=0.5の負の二項分布では、0個の確率は0.25である。0個を除いた場合の平均は約2.6667個になる。1個以上売れる確率p⁺を0.5にすると、0個の日も含む平均は約1.3333個である。p⁺を変えても、1個以上売れた日の平均は変わらない。
+  what_we_verified: |-
+    CONFIRMED：Labは人工例で、確率の合計が1になること、売れる頻度だけを変えられること、0個を除くと平均が変わることを確認した。モデルの予測を確率分布に変える計算だけを確かめたため、仕組み全体の再現は一部（PARTIAL）である。
+  what_we_did_not_verify: |-
+    Labは、振り分け器の勾配を近似して学習させる部分、各処理ネットワークの役割、1日ずつ予測するデコーダー、M5での精度を追試していない。予測性能、処理規模を増やした場合、本番での利用は未検証（NOT TESTED）である。欠品、需要数量の充足率（fill rate）、在庫費用も測っていない。
+  implementation: |-
+    `nb()` は負の二項分布の確率を計算する。`hurdle()` は0個を除き、残った各確率を1−P_NB(0)で割ったうえで、1個以上売れる確率を掛ける。スクリプトは0〜999個について確率の合計と平均を照合する。図は0〜20個と、その外側に残る確率を示す。
   method: method.md
   mapping: mapping.md
 teaching_figures:
 - kind: equations
   id: hurdle
-  title: p⁺と正の量を分離し、ゼロ除外の分だけ補正する
+  title: 売れる確率と売れた日の数量を分け、0個を除いた分だけ確率を調整する
   locator: Figure 1; Eqs. (8)–(14)
   after: method
-  rationale: p⁺と正の量を分離し、ゼロ除外の分だけ補正する
-  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。
+  rationale: 売れる確率と売れた日の数量を分け、0個を除いた分だけ確率を調整する
+  caption: Labは、論文の図や式を説明用に組み直した。数値がある場合は著者の報告であり、Labの追試結果ではない。
   steps:
   - name: ゼロ確率
     formula: P(Y=0) = 1 − p⁺
-    explanation: 発生headの出力がゼロの頻度を決める。
+    explanation: 1個以上売れる確率p⁺を1から引くと、売れない日の確率になる。
   - name: 正の需要
     formula: P(Y=y>0) = p⁺ NB(y; μ,α) / (1−p₀)
-    explanation: p₀=(1+αμ)^(−1/α)。通常のNBからゼロを除き、残りを正規化する。
+    explanation: 元の負の二項分布で0個になる確率はp₀=(1+αμ)^(−1/α)。残りの確率を1−p₀で割り、売れる確率p⁺を掛ける。
   - name: 平均
     formula: E[Y|Y>0] = μ/(1−p₀), E[Y] = p⁺μ/(1−p₀)
-    explanation: μは切り詰める前のNB平均。正の需要の平均と同一視しない。
+    explanation: μは0個を含む元の負の二項分布の平均である。1個以上売れた日の平均を求めるには1−p₀で割る。
   source: https://arxiv.org/pdf/2602.22685v1
 - kind: logic
   id: routing
-  title: 順伝播は1 expert、逆伝播はsoft確率を使う
+  title: 順伝播では一つの出力を採用し、学習には選ぶ前の確率も使う
   locator: Figure 1; Eqs. (2)–(3)
   after: method
-  rationale: 順伝播は1 expert、逆伝播はsoft確率を使う
-  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。
+  rationale: 順伝播では一つの出力を採用し、学習には選ぶ前の確率も使う
+  caption: Labは、論文の図や式を説明用に組み直した。数値がある場合は著者の報告であり、Labの追試結果ではない。
   rows:
   - label: encoder
     nodes:
@@ -92,21 +103,21 @@ teaching_figures:
     - title: Top-1 STE
       text: g = one_hot(argmax p) + p − stopgrad(p)
     - title: SwiGLU expert
-      text: 推論では選ばれたexpertだけを実行
+      text: 推論時には、モデルは選んだネットワークだけを実行する。
   - label: decoder
     nodes:
     - title: 自己回帰
-      text: 過去の出力と、入力履歴を符号化したencoder memoryを参照
+      text: デコーダーは前日の予測と当日の特徴を受け取り、エンコーダーがまとめた履歴を参照する。
     - title: hurdle head
-      text: p⁺、μ、αを出す
+      text: モデルは売れる確率p⁺と、数量に使うμ、αを出す。
   source: https://arxiv.org/pdf/2602.22685v1
 - kind: chart
   id: accuracy
-  title: M5のWRMSSEは低下するが、在庫評価ではない
+  title: M5ではWRMSSEが小さかった。在庫や欠品は測っていない
   locator: Table 4
   after: evidence
-  rationale: M5のWRMSSEは低下するが、在庫評価ではない
-  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。
+  rationale: M5ではWRMSSEが小さかった。在庫や欠品は測っていない
+  caption: Labは、論文の図や式を説明用に組み直した。数値がある場合は著者の報告であり、Labの追試結果ではない。
   bars:
   - label: DeepAR
     value: 0.7895
@@ -121,14 +132,14 @@ teaching_figures:
   source: https://arxiv.org/pdf/2602.22685v1
 - kind: matrix
   id: experts
-  title: 同じ需要区分でも層によって主なexpertが変わる
+  title: 需要ゼロの入力は、第0層と第1層で主な振り分け先が違う
   locator: Figures 4–5
   after: evidence
-  rationale: 同じ需要区分でも層によって主なexpertが変わる
-  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。
+  rationale: 需要ゼロの入力は、第0層と第1層で主な振り分け先が違う
+  caption: Labは、論文の図や式を説明用に組み直した。数値がある場合は著者の報告であり、Labの追試結果ではない。
   columns:
-  - 第0層：主なexpert / 比率
-  - 第1層：主なexpert / 比率
+  - 第0層：主な処理ネットワーク / 比率
+  - 第1層：主な処理ネットワーク / 比率
   rows:
   - label: Zero
     cells:

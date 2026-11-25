@@ -103,7 +103,9 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = semantic_id_pair_full_rewrite_hash(root, path, expected, algorithm)
     expected = quasid_full_rewrite_hash(root, path, expected, algorithm)
     expected = weather_cutoff_rewrite_hash(root, path, expected, algorithm)
-    return sid_ope_full_rewrite_hash(root, path, expected, algorithm)
+    expected = sid_ope_full_rewrite_hash(root, path, expected, algorithm)
+    expected = perishable_full_rewrite_hash(root, path, expected, algorithm)
+    return switch_hurdle_full_rewrite_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -345,6 +347,64 @@ def before_sid_ope_full_rewrite(root, path, current):
     if not path.startswith(('papers/sid-ope-hierarchy/',)):
         return current
     row = sid_ope_body_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior
+
+
+def perishable_body_rows(root):
+    return json.loads((root / 'tests/perishable_full_rewrite_hashes.json').read_text())['files']
+
+
+def perishable_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith(('papers/discounted-perishables-forecast/',)):
+        return expected
+    row = perishable_body_rows(root).get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_perishable_full_rewrite(root, path, current):
+    if not path.startswith(('papers/discounted-perishables-forecast/',)):
+        return current
+    row = perishable_body_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior
+
+
+def switch_hurdle_body_rows(root):
+    return json.loads((root / 'tests/switch_hurdle_full_rewrite_hashes.json').read_text())['files']
+
+
+def switch_hurdle_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith(('papers/switch-hurdle-intermittent-demand/',)):
+        return expected
+    row = switch_hurdle_body_rows(root).get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_switch_hurdle_full_rewrite(root, path, current):
+    if not path.startswith(('papers/switch-hurdle-intermittent-demand/',)):
+        return current
+    row = switch_hurdle_body_rows(root).get(path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path

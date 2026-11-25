@@ -2,34 +2,34 @@
 <html lang="ja">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>値引き販売と売上の上振れを比べる</title>
+<title>値引き品が売れた数と、値引きで増えた数を比べる</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231e4035'/%3E%3Cpath d='M6 10h13l7 6-7 6H6z' fill='%23fff'/%3E%3Ccircle cx='21' cy='16' r='2' fill='%231e4035'/%3E%3C/svg%3E">
 <style>
 *{box-sizing:border-box}body{margin:auto;padding:16px;max-width:760px;color:#173433;background:#fafbf8;font:16px/1.6 system-ui,sans-serif}h1{font-size:1.4rem}select,button{min-height:44px;max-width:100%;font:inherit;padding:5px;margin:6px 4px 6px 0}table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;border-bottom:1px solid #ccd;padding:8px;vertical-align:top}td{font-variant-numeric:tabular-nums;width:6em}p{overflow-wrap:anywhere}.tabs{display:flex;flex-wrap:wrap;gap:8px}#out{border-inline-start:4px solid #297965;padding:10px;background:#f0f6f0}
 </style>
-<h1>値引きで売れた数と、値引きで増えた数は同じか</h1>
-<p>三つの人工例を切り替えます。回帰で求める傾きと、人工例の設定から分かる追加販売数を比べてください。</p>
+<h1>値引き品が2個売れると、総販売数も2個増えるか</h1>
+<p>三つの人工例を切り替えてください。「回帰の傾き」と「値引きで増えた数」を見比べると、傾きが同じでも、値引きで増えた数が違う例が見つかります。</p>
 <label for="mode">人工例</label>
 <select id="mode">
-<option value="increment">値引きが販売を増やした</option>
-<option value="selection">元々よく売れる日に値引き品も売れた</option>
-<option value="substitution">通常価格で売れる分が値引きに移った</option>
+<option value="increment">値引きのおかげで追加で売れた</option>
+<option value="selection">もともとよく売れる日に値引き品も売れた</option>
+<option value="substitution">通常価格で売れるはずの商品が値引き価格で売れた</option>
 </select>
-<button type="button" id="reset">最初の例に戻す</button>
+<button type="button" id="reset">最初の例を表示する</button>
 <div id="out" aria-live="polite"></div>
 <table>
-<caption>回帰の結果と、人工例で設定した値</caption>
+<caption>回帰で求めた傾きと、人工例で設定した販売数</caption>
 <tbody>
-<tr><th scope="row">残差を説明する回帰の傾き</th><td id="slope"></td></tr>
-<tr><th scope="row">残差ではなく総販売数を使ったときの傾き</th><td id="total_slope"></td></tr>
+<tr><th scope="row">実績と予測の差（残差）を使ったときの傾き</th><td id="slope"></td></tr>
+<tr><th scope="row">総販売数を使ったときの傾き</th><td id="total_slope"></td></tr>
 <tr><th scope="row">通常価格での販売数を使ったときの傾き</th><td id="regular_slope"></td></tr>
-<tr><th scope="row">値引き品が売れた行の平均残差（個）</th><td id="mean_residual"></td></tr>
-<tr><th scope="row">値引きで実際に増えるよう設定した数（1行当たりの平均、個）</th><td id="true_increment"></td></tr>
+<tr><th scope="row">値引き品が売れた日：実際の総販売数から予測を引いた差（平均、個）</th><td id="mean_residual"></td></tr>
+<tr><th scope="row">値引きによって増えた販売数（値引き品が売れた行の平均、個）</th><td id="true_increment"></td></tr>
 </tbody>
 </table>
 <p id="counts"></p>
-<p>傾きは曜日、予測値、朝の在庫をそろえたとき、値引き販売が1個多い行で目的変数が何個違うかを表します。同じ条件で値引きした場合と、しなかった場合の差ではありません。</p>
-<noscript><p>JavaScriptを無効にしている場合は、記事にある三例の表で結果を比較できます。</p></noscript>
+<p>傾きは、曜日、予測値、朝の在庫数が同じ記録を比べたとき、値引き品が1個多く売れた記録で、回帰の対象にした数が何個違うかを表します。同じ日に値引きした場合と、しなかった場合を比べた数字ではありません。</p>
+<noscript><p>JavaScriptを使えない場合も、記事の表で三つの例の結果を比べられます。</p></noscript>
 <script src="model.js" defer></script>
 <script src="interactive.js" defer></script>
 </html>
