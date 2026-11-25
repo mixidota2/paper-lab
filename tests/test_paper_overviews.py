@@ -35,7 +35,7 @@ class OverviewText(HTMLParser):
 
 def test_scoped_source_transition_and_rendered_overviews(tmp_path):
     rows = json.loads((ROOT / 'tests/paper_overview_hashes.json').read_text())['files']
-    assert len(rows) == 52
+    assert len(rows) == 57
     site = tmp_path / 'site'
     build(root=ROOT, site_dir=site)
     anchors = {
@@ -88,6 +88,11 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'angle-tencent-one-step-retrieval': ('2.16%', '5.01%', '精密ランキング'),
         'gr4ad-ads-generative': ('4.28%', '117%', 'DLRM', 'OneRec-V2', '4億人'),
         'gryphon-v2-cascade': ('7分以上', '1.41%', '1.62%', '応答時間は同程度'),
+        'proximal-residual-value-inventory-placement': ('5.0%', '0.950', '配送・移送費用'),
+        'intervention-paradox': ('0.94', '64%から38%', '5.8%から8.6%'),
+        'igpo-huawei-inventory-grounded-search': ('14日間', '3.17%', '1,000件', '38.9%'),
+        'isomorph-supply-chain-digital-twin': ('13拠点', '16本', '0.828', '0.721'),
+        'agent-reasoning-forgetting-externalized-state': ('67.31%', '36.15%', '0.7376', '0.7178'),
         'autolr-dashen': ('1,586件', '公開判断', '9件', '何割が本番で改善したかは分かりません'),
         'beyond-scalar-dsi-watchtime': ('視聴時間の分布', '1.9〜8.5%', '公開データ3種類'),
         'onetrans-v2-cascade-unification': ('3段階', '利用者を無作為', '9.74%', '共有だけ'),
@@ -128,11 +133,20 @@ def test_download_mirror_replaces_only_the_overview():
         'onetrans-v2-cascade-unification',
         'angle-tencent-one-step-retrieval',
         'gr4ad-ads-generative',
+        'proximal-residual-value-inventory-placement',
+        'intervention-paradox',
+        'igpo-huawei-inventory-grounded-search',
+        'isomorph-supply-chain-digital-twin',
+        'agent-reasoning-forgetting-externalized-state',
     )}
     for path, row in receipt['mirrored'].items():
         source = (ROOT / row['source']).read_bytes()
         previous = restored_before_paper_overview(ROOT, row['source'], source)
         old, new = (yaml.safe_load(raw)['sections']['overview'].encode() for raw in (previous, source))
+        if 'prior_mirror' in row:
+            assert Path(path).parent.name == 'proximal-residual-value-inventory-placement'
+            old = row['prior_mirror'].encode()
+            assert len(old.decode().split('\n\n')) == 2
         download = (ROOT / path).read_bytes()
         assert download.count(new) == 1
         assert download.count(old) == int(Path(path).parent.name in {
