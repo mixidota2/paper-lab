@@ -59,7 +59,9 @@ sections:
 
     [一次資料：版を固定したPDF](https://arxiv.org/pdf/2603.22916v2)。参照箇所とSHA-256は末尾の対応表に記載した。
   overview: |-
-    GateSIDは、すでにある候補商品のクリックや注文を予測する。商品内容を表す識別子（SID）と行動履歴から、履歴を参照する重みを別々に求める。2組の重みは、商品の掲載期間や露出・クリックなどから学習した比率で混ぜる。候補を生成する手法ではない。Alibaba Internationalの著者は、総トラフィックの20%を使った2週間のA/Bテストで、取引総額（GMV）が全体で+2.6%、掲載20日未満の新商品群で+5.6%、追加遅延は5ms未満だったと報告している。
+    Alibaba Internationalの研究チームは、クリックや購入の記録が少ない新商品を推薦候補の中でどう順位付けするかを調べました。GateSIDは、商品の画像や説明をもとにした識別子（SID）と、実際の行動から学んだ商品表現を使います。二つの表現で過去の行動を別々に参照し、掲載日数や表示回数などに応じて結果を混ぜます。GateSIDが変えたのは候補の順位付けで、候補を探す方法ではありません。
+
+    総トラフィックの20%を使った2週間のA/Bテストで、著者は従来方式より取引総額（GMV）が全体で2.6%、掲載20日未満の商品に限ると5.6%増えたと報告しています。追加の遅延は5ミリ秒未満でした。ただし、実験したのは一つのECサービスです。商品内容を表す特徴だけを加えた効果ではなく、GateSID全体を導入した結果です。
 
     <figure class="teaching batch17"><h3>SIDを使う場所：GateSIDは候補の順位付け</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>設計</th><th>入力</th><th>出力</th><th>SIDの役割</th></tr></thead><tbody><tr><td>GateSID</td><td>ユーザー履歴＋候補商品</td><td>CTR・CTCVRの予測スコア</td><td>候補と履歴の意味特徴</td></tr><tr><td>生成推薦</td><td>ユーザー文脈＋prefix</td><td>次のSIDトークン</td><td>候補を探すために出力する列</td></tr></tbody></table></div><figcaption>§3・図2に基づく役割の比較。SIDを使うだけでは、候補を生成していることにはならない。</figcaption></figure>
   why_it_might_work: |-
