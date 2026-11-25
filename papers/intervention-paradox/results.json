@@ -1,8 +1,8 @@
 {
-  "note": "既知のBernoulli確率による合成pilot。論文の軌跡、AUROC、p値の再現ではない。",
+  "note": "仮定した確率から50課題の試験を作った。論文の実行記録、AUROC、p値を再現した結果ではない。",
   "experiments": [
     {
-      "name": "50タスクpilotの判断のばらつき",
+      "name": "50課題の事前試験で生じる判断のばらつき",
       "dataset": "synthetic paired outcomes",
       "n": 2000,
       "seed": "0..1999",

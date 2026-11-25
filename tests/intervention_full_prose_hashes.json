@@ -1,0 +1,311 @@
+{
+  "files": {
+    "papers/intervention-paradox/README.md": {
+      "before": {
+        "sha256": "2dad159e12f386e99a853b19506e9530d8b369cf7a99afaadda7cb4219a11973",
+        "blob": "b6eaba6eb3764da51a89456dc187dd1437462e32"
+      },
+      "after": {
+        "sha256": "1d0c122778294e8c7f4aaf21983dfc03b129c7ab3b9cf2094de576f4bc3e8cf1",
+        "blob": "8e8136cb63ecd5df3ee7bdebbd93f59ce5171538"
+      },
+      "prior_spans": [
+        [
+          10,
+          11,
+          "## 読み方\n"
+        ],
+        [
+          12,
+          15,
+          "lab.yamlが本文と図の定義、method.mdがモデル・数式の補足、mapping.mdが一次資料との対応表。run.pyが最小実験、results.jsonが実行結果。siteは生成物である。\n"
+        ],
+        [
+          23,
+          24,
+          "## 検証の境界\n"
+        ],
+        [
+          25,
+          26,
+          "対応した最終結果の数え方と閾値を計算し、全成功・全失敗・変化ゼロの境界を分けた。合成pilotで、正の期待効果があっても50タスクでは導入判断を誤り得ることを確かめた。\n"
+        ],
+        [
+          27,
+          30,
+          "criticの学習、AUROC、LoRA、温度較正、ROLLBACKの環境復元、APPENDの実際のLLM反応、論文p値は未再現。50タスクで安全を保証する手法ではない。domain移行時にr/dを持ち越せるか、AgentTether等の複雑な修復でも同じ率になるかは未検証。\n"
+        ]
+      ]
+    },
+    "papers/intervention-paradox/lab.yaml": {
+      "before": {
+        "sha256": "205b065129e43fcd9dbddd6d061c364ad10b2099e40c4ebba0ad1015102c40d0",
+        "blob": "28e1053ff29b368f7371f898c73ee4d04ee3a5e3"
+      },
+      "after": {
+        "sha256": "e37d76108897578a72339404b7e0d7445112bd8847f60156663e44e4510d39fa",
+        "blob": "cc41715f6d1b764e53c128ea416694ac0e7d6b22"
+      },
+      "prior_spans": [
+        [
+          25,
+          29,
+          "question: 介入の逆説：失敗を当てても、止めるほど成功が減ることがある\nsummary: Writerの研究は、失敗予測のAUROCが約0.94でも実行途中の介入が有害になり得ると示す。介入なし・ありの結果を対応させ、失敗から成功へ変わった件数と、成功から失敗へ変わった件数を比べる必要がある。MiniMax-M2.1のHotPotQAでは64%→38%（−26ポイント）、Qwen-3-8BのALFWorldでは5.8%→8.6%（+2.8ポイント）。いずれもベンチマーク実験で、稼働中の製品全体の成功率ではない。\n"
+        ],
+        [
+          35,
+          39,
+          "  author_claim: 著者は失敗率p、失敗から回復する率r、成功を壊す率dをpilotで推定し、p > d/(r+d)を介入導入の判断に使う。50タスクのALFWorld\n    pilotで改善方向を予測し、202タスクの評価で小幅な改善を報告した。\n  research_bot_interpretation: AUROCは失敗の順序づけを評価するが、警告や巻き戻しを受けたモデルがどう振る舞うかは測らない。小規模な事前試験（pilot）で「介入しない方がよい条件」を探す点が有用だ。ただし、同じ実行結果から二通りの式で計算した値が一致するのは、数式上の関係による。別の条件でも介入効果を予測できる証拠にはならない。\n"
+        ],
+        [
+          44,
+          65,
+          "  problem: '予測器が「この行動は失敗につながる」と正しく警告しても、agentが修正に成功するとは限らない。正解へ進んでいた実行が警告で迷い、検索や再試行を繰り返す場合もある。したがって、失敗を見抜く能力と介入後の成功率を別々に測る必要がある。\n"
+        ],
+        [
+          67,
+          68,
+          "    同じ初期条件のtaskで、介入なし・ありの二つを実行する。途中の警告数ではなく、最終成功の組を数える。比較対象はsmolagents上のHotPotQA、GAIA、ALFWorldで、業務fleetへの無作為割付ではない。'\n  why_it_might_work: 失敗が多い環境では救える軌跡の母数が大きく、成功が多い環境では壊し得る軌跡の母数が大きい。rとdだけを比べず、それぞれに失敗率pと成功率1−pを掛けると、どちらが最終件数を支配するかが分かる。高精度なcriticでも、この母数とagentの反応を飛ばして導入可否は決められない。\n  evidence: '### 0.94は1,372個のheld-out sample上の識別性能\n"
+        ],
+        [
+          70,
+          71,
+          "    Qwen3-0.6B＋LoRA rank 16のcriticを、HotPotQA/GAIAの7,636 trajectory stepsで学習する。最終taskの成功・失敗を各軌跡の教師に使い、task単位で158/19/21にtrain/validation/testを分ける。表1の総合AUROCは0.936、F1は0.963（held-out\n    1,372 samples）。0.94は丸めた値であり、50タスクpilotの成績ではない。\n\n\n    ### −26ポイントはMiniMax、+2.8ポイントはQwenの別条件\n\n\n    表4のHotPotQA 100タスクではMiniMax-M2.1が64.0%から非較正ROLLBACKの38.0%へ下がる。GLM-4.7の同条件は70.3%→70.3%。GAIAは30タスクで、MiniMaxの最良介入でも46.7%→16.7%（−30ポイント）。モデルにより反応は大きく違う。\n\n\n    ALFWorldは202タスク×3 seeds。Qwen-3-8Bの非較正APPENDが5.8%→8.6%、+2.8ポイント、本文報告p=0.014。paired\n    task bootstrapを10,000回行い、介入条件間の多重比較にはHolm–Bonferroniを使うと付録Cに記す。ただしこのp値の補正状態は明確でなく、検出可能幅約±4ポイントに近い改善として著者も方向性の証拠に留める。\n\n\n    ### 50タスクpilotの率を、本評価の率へ置き換えない\n\n\n    pilotはQwenで成功10.7%±1.9%、p≈89%、r≈12%、d≈56%、p*≈82%と報告。202タスク評価のbaseline 5.8%とは別の集計である。単一の50タスクから10.7%が出る集計の詳細も十分でない。criticはALFWorld軌跡で学習していないが、温度較正には同domainのvalidationを使う。[一次資料\n    §3–4、付録A/C](https://arxiv.org/pdf/2602.03338v1)'\n  executable_understanding: 'A/B/C/Dの小さい整数組を列挙し、直接の成功率差(C−B)/Nとp r−(1−p)dが一致するか検証する。操作図ではr=0.12、d=0.56を固定し、baseline失敗率pだけを動かす。表示する回復・破壊の件数は、固定した率から計算した期待値であり、実際に観測した整数の件数ではない。さらに、この既知の確率から50タスクのpilotを2,000回生成し、有限標本で判断が揺れる程度を見る。AUROCやLLMの振る舞いは生成しない。\n\n\n    <div class=\"paper-probe teaching\" data-paper-probe=\"intervention-paradox\"><h3>失敗率pと、介入の損益分岐点</h3><p>r=12%、d=56%を固定した感度分析。p*は82.35%。criticのaction閾値τを調節する操作ではない。</p><label>介入なしの失敗率p：<output\n"
+        ],
+        [
+          75,
+          78,
+          "    data-p-marker style=\"left:89%\"></i></div><div data-probe-output aria-live=\"polite\"><p>初期値：100タスク当たり回復10.68、破壊6.16、差分+4.52ポイント。有限標本での安全保証ではない。</p></div><script\n    type=\"application/json\" data-probe-data>{\"note\": \"既知のBernoulli確率による合成pilot。論文の軌跡、AUROC、p値の再現ではない。\",\n    \"experiments\": [{\"name\": \"50タスクpilotの判断のばらつき\", \"dataset\": \"synthetic paired outcomes\",\n"
+        ],
+        [
+          265,
+          271,
+          "  results: 恒等式の最大誤差は2.23×10⁻¹⁶未満。仮定したp=0.89、r=0.12、d=0.56では真の成功率差は+4.52ポイントだが、50タスクpilotで観測差が正だったのは73.0%。観測差の経験的2.5〜97.5\n    percentileは−6〜+16ポイント。0.35%では条件付き率または閾値を推定できなかった。この範囲は論文の信頼区間ではない。\n  what_we_verified: 対応した最終結果の数え方と閾値を計算し、全成功・全失敗・変化ゼロの境界を分けた。合成pilotで、正の期待効果があっても50タスクでは導入判断を誤り得ることを確かめた。\n  what_we_did_not_verify: criticの学習、AUROC、LoRA、温度較正、ROLLBACKの環境復元、APPENDの実際のLLM反応、論文p値は未再現。50タスクで安全を保証する手法ではない。domain移行時にr/dを持ち越せるか、AgentTether等の複雑な修復でも同じ率になるかは未検証。\n"
+        ],
+        [
+          273,
+          275,
+          "  implementation: '`uv run papers/intervention-paradox/run.py` をリポジトリのルートで実行する。Python標準ライブラリのみを使い、CPUで完了する。結果はコードと同じ場所の\n    `results.json` に保存する。乱数を使う箇所はseedを固定した。ダウンロードしたrun.pyも単体で動く。'\n"
+        ],
+        [
+          278,
+          279,
+          "  title: 回復の利益から、壊した成功を引く\n"
+        ],
+        [
+          281,
+          283,
+          "  caption: 記号を分けて、どの量を学習・計算するかを追う。\n  rationale: 記号を分けて、どの量を学習・計算するかを追う。\n"
+        ],
+        [
+          286,
+          287,
+          "    explanation: 介入なしで失敗したtaskのうち何割を救ったか。\n"
+        ],
+        [
+          289,
+          290,
+          "    explanation: 介入なしなら成功したtaskのうち何割を壊したか。\n"
+        ],
+        [
+          292,
+          293,
+          "    explanation: 両方成功・両方失敗は差分から消える。\n"
+        ],
+        [
+          295,
+          296,
+          "    explanation: r+d=0なら差分0で閾値未定義。F=0またはS=0なら対応する条件付き率は推定不能。\n"
+        ],
+        [
+          299,
+          300,
+          "  title: 同じtaskを介入なし・ありで比べる\n"
+        ],
+        [
+          302,
+          304,
+          "  caption: 表の1件は最終task結果の対応組。途中の介入回数を入れない。\n  rationale: 表の1件は最終task結果の対応組。途中の介入回数を入れない。\n"
+        ],
+        [
+          314,
+          315,
+          "    - B：破壊\n"
+        ],
+        [
+          322,
+          324,
+          "  caption: 著者のpilot手順を再構成。不確かなら追加検証する分岐はLabの運用上の解釈。\n  rationale: 著者のpilot手順を再構成。不確かなら追加検証する分岐はLabの運用上の解釈。\n"
+        ],
+        [
+          327,
+          329,
+          "    - title: 同じdomain・モデル・介入\n      text: 50〜100 taskを介入あり/なしで実行し、A/B/C/Dを数える。\n"
+        ],
+        [
+          331,
+          333,
+          "    - title: 成功側か失敗側が空\n      text: rかdを推定できない。効果差は数えられるが閾値には外挿しない。\n"
+        ],
+        [
+          334,
+          335,
+          "      text: p、r、d、p*と不確かさを計算する。\n"
+        ],
+        [
+          338,
+          341,
+          "      text: 常時介入を見送り、追加pilotや完了後の選択を検討する。\n    - title: p > p* + 安全余裕\n      text: 限定した条件で検証を進める。余裕の普遍的な値は論文にない。\n"
+        ]
+      ]
+    },
+    "papers/intervention-paradox/mapping.md": {
+      "before": {
+        "sha256": "09148d146ee389aa1c2c9ba0a3094041af16086e4302e36fc2bd0a05f6b35ec2",
+        "blob": "4933c25167d3225bf2fe23389197fdc2bf916bd7"
+      },
+      "after": {
+        "sha256": "5fdf0e8b0b60914a5d44d8b1d2efa4440627656076d3a7fb63f7658fb9375182",
+        "blob": "31127af7fe26a6f60944fce521e0682fe1602d4e"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文と実装の対応\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料：[PDF v1](https://arxiv.org/pdf/2602.03338v1)。公式実装へのリンクは確認した一次論文内に見つからなかった。下記はこのLab独自の説明用実装であり、公式コードではない。\n"
+        ],
+        [
+          4,
+          5,
+          "| 原論文の箇所 | Labの対応 | 確認の範囲 |\n"
+        ],
+        [
+          6,
+          13,
+          "| §1 式1–4、付録D | accounting、数式と2×2表 | 最終taskの対応結果。イベント回数ではない |\n| §3 表1–2 | critic説明 | AUROC 0.936は著者報告。再学習なし |\n| §4 表4、付録A 表17 | Evidenceの−26 / +2.8ポイント | 別モデル・別benchmark・別介入条件 |\n| 図1、§4/7 | simulate_pilot、判断図 | p=.89/r=.12/d=.56を仮定。原軌跡は未入手 |\n| §4と付録D/Gの不整合 | methodの注記 | C/Bとr/dを区別し、式1–4を採用 |\n| §5.5 表10 | oracle説明 | 完全な失敗予測/選択という上限。実用性能ではない |\n| §8、付録C | 限界、合成pilot分布 | 論文のbootstrap p値や区間推定を再現していない |\n"
+        ]
+      ]
+    },
+    "papers/intervention-paradox/method.md": {
+      "before": {
+        "sha256": "2ca7a5e78390ed6ce9def6485e55639954ee0dd5ded0328e945c3810e14465e4",
+        "blob": "75d8ea4a17c5fc164a4acd044528d66ee836cb6e"
+      },
+      "after": {
+        "sha256": "3ef7287713ff52d220143dd614c3a4612911c74f0f9527bdb2927c121df50fc0",
+        "blob": "47e798afbb076eb44102fa81ec681f88144ffa58"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 2×2の結果表から、母数の異なる率を作る\n"
+        ],
+        [
+          2,
+          3,
+          "Aは両方失敗、Bは介入なしで成功・ありで失敗、Cは介入なしで失敗・ありで成功、Dは両方成功。F=A+C、S=B+D、N=F+Sと置く。回復率r=C/Fと破壊率d=B/Sは分母が違う。回復件数Cと破壊件数Bの比とは一致しない。\n"
+        ],
+        [
+          4,
+          5,
+          "成功率差は(C+D)/N−(B+D)/N=(C−B)/N。これにC=Fr、B=Sdを代入するとp r−(1−p)dになる。r+d>0なら、改善の境界はp*=d/(r+d)。境界と等しい場合は期待成功率の差がゼロになり、改善とは数えない。これはtask群のbaseline失敗率の境界であり、個々のactionに介入するcriticの閾値τ=0.6とは別の量だ。[式1–4](https://arxiv.org/pdf/2602.03338v1)\n"
+        ],
+        [
+          6,
+          7,
+          "### ROLLBACKとAPPENDで、訂正の受け方が変わる\n"
+        ],
+        [
+          8,
+          9,
+          "実験のagent backboneはQwen-3-8B、GLM-4.7、MiniMax-M2.1。ROLLBACKは直前actionを取り消し環境状態を復元して再試行、APPENDはactionを実行したまま警告を追加する。各taskのaction予算は15、介入予算は3。criticはQwen3-0.6B、温度Tをモデル別validationの負の対数尤度で合わせる。\n"
+        ],
+        [
+          10,
+          11,
+          "Qwen3-14B criticの4設定も試すが、最良AUROC 0.927は0.6Bの0.936を超えない。これは同データ条件の識別性能比較で、大きいcriticは一般に役立たないという結論ではない。HotPotQAのτ sweepでも最良τ=0.7はbaseline 57%に対して54%。閾値だけで取り戻せなかった条件がある。[§3、§5](https://arxiv.org/pdf/2602.03338v1)\n"
+        ],
+        [
+          12,
+          13,
+          "### 原論文内の不整合は、定義と表を優先して読む\n"
+        ],
+        [
+          14,
+          15,
+          "§4の「回復件数が破壊件数より多い」をd/r<1と結ぶ記述は、分母の違う率では成立しない。正しい条件はp r>(1−p)dである。付録GのMiniMaxの7.3:1という比も、付録D表21のr≈0.12・d≈0.35（約2.9）とは整合しないため、このLabの計算には使わない。\n"
+        ],
+        [
+          16,
+          17,
+          "ALFWorld本文にはfull評価のROLLBACKも+4.7ポイントという記載があるが、表4・17は非較正ROLLBACK 7.9−5.8=+2.1ポイントを示す。+4.7はpilotの記載と分離し、本評価の代表値には表のAPPEND +2.8を採る。また「ALFWorldで悪化なし」は表4のGLM Cal+App −1.3ポイント等と一致しない。oracleの本文の範囲も表10と違うため、表10のHotPotQAでは介入+4.0〜7.7、Best-of-2 +6.7〜11.0ポイントと限定して読む。oracleは実装済みの達成性能ではない。\n"
+        ],
+        [
+          18,
+          19,
+          "### 修復技法の優劣より先に、導入前後の成功を対応させる\n"
+        ],
+        [
+          20,
+          21,
+          "[AgentTether Lab](agenttether-repair.html)は診断に基づく修復、[REVISE Lab](revise-recovery.html)は実行中の指示変更に伴う妥当性と再利用を扱う。本論文は特定の修復技法を置き換えるのでなく、その技法を入れた結果のBとCを測る判断枠として読める。直接の比較実験はない。\n"
+        ],
+        [
+          22,
+          29,
+          "[MAP（Measuring Agents in Production）](https://arxiv.org/abs/2512.04123)は開発者の調査・事例を通じて本番の運用を調べる研究だ。MAPの運用実態と、この論文のベンチマーク成功率は母集団が違う。人間への引き継ぎを含む製品の安全性へ、ここでのr/dや−26ポイントを直接当てはめない。\n"
+        ]
+      ]
+    },
+    "papers/intervention-paradox/results.json": {
+      "before": {
+        "sha256": "333c146cb48b0b637f12a179583c3febc06cf7a859de302cabd3076511c9a7df",
+        "blob": "a1c3f40eb1fca867471fb8a1c0444cdb0395820d"
+      },
+      "after": {
+        "sha256": "1e365097fe82dc87e0b96a031201d6af857275660745ccd2422d44ff6b80f58a",
+        "blob": "de6cdc8c26990fac66d04820d9a936634ee3e365"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"既知のBernoulli確率による合成pilot。論文の軌跡、AUROC、p値の再現ではない。\",\n"
+        ],
+        [
+          4,
+          5,
+          "      \"name\": \"50タスクpilotの判断のばらつき\",\n"
+        ]
+      ]
+    },
+    "papers/intervention-paradox/run.py": {
+      "before": {
+        "sha256": "cc2b4093f9285f832448078936acf60a8c741ef61787b4433c8795ea5fc0d11c",
+        "blob": "4eb14a40f0a891f1f3728bd061fa3367112263ae"
+      },
+      "after": {
+        "sha256": "a104db3ee77cddcb99767050834465c32e8a4d0da47d63fb78a316d98098ffa8",
+        "blob": "7adeaacd6778fe3e6f2b79cc8d25ae0196af48e4"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Paired-outcome accounting, threshold sweep and 50-task sampling uncertainty.\"\"\"\n"
+        ],
+        [
+          41,
+          43,
+          "    return {'note':'既知のBernoulli確率による合成pilot。論文の軌跡、AUROC、p値の再現ではない。',\n            'experiments':[{'name':'50タスクpilotの判断のばらつき','dataset':'synthetic paired outcomes','n':2000,'seed':'0..1999',\n"
+        ]
+      ]
+    }
+  }
+}

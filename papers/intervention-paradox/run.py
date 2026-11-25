@@ -1,4 +1,4 @@
-"""Paired-outcome accounting, threshold sweep and 50-task sampling uncertainty."""
+"""介入の有無で結果を対応させ、改善の境界と50課題の試験で観測される差を計算する。"""
 import json
 import random
 from pathlib import Path
@@ -39,8 +39,8 @@ def compute():
                     x=accounting(a,b,c,d)
                     if x['r'] is not None and x['d'] is not None:
                         exact.append(abs(x['delta']-(x['p']*x['r']-(1-x['p'])*x['d'])))
-    return {'note':'既知のBernoulli確率による合成pilot。論文の軌跡、AUROC、p値の再現ではない。',
-            'experiments':[{'name':'50タスクpilotの判断のばらつき','dataset':'synthetic paired outcomes','n':2000,'seed':'0..1999',
+    return {'note':'仮定した確率から50課題の試験を作った。論文の実行記録、AUROC、p値を再現した結果ではない。',
+            'experiments':[{'name':'50課題の事前試験で生じる判断のばらつき','dataset':'synthetic paired outcomes','n':2000,'seed':'0..1999',
                            'metrics':{'true_delta_pp':round(100*(.89*.12-(1-.89)*.56),6),'positive_observed_fraction':sum(p['delta']>0 for p in pilots)/len(pilots),
                                       'undefined_rate_fraction':sum(p['threshold'] is None for p in pilots)/len(pilots),
                                       'pilot_delta_pp_2.5_percentile':100*rates[49],'pilot_delta_pp_97.5_percentile':100*rates[1949],

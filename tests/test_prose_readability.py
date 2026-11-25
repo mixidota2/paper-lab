@@ -422,7 +422,7 @@ def test_batch20_harness_denominators_and_intervention_boundaries():
     for name in ('lab.yaml', 'README.md'):
         assert '成功したタスクはそこで止める' in (ROOT/'papers/scaffold-effects-gaia'/name).read_text()
     method = (ROOT/'papers/intervention-paradox/method.md').read_text()
-    assert 'r+d>0' in method and '境界と等しい場合は期待成功率の差がゼロ' in method
+    assert 'rとdがどちらも定義でき、合計が正' in method and '境界ちょうどでは増減はない' in method
     assert '同じbatchの全課題で修正前後の報酬差を平均' in (ROOT/'papers/harness-r1/lab.yaml').read_text()
 
 

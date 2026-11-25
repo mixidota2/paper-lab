@@ -276,9 +276,9 @@ document.querySelectorAll('[data-paper-probe]').forEach(root => {
       const f = data.frames[p];
       root.querySelector('[data-p-value]').textContent = `${p}%`;
       root.querySelector('[data-p-marker]').style.left = `${p}%`;
-      output.append(paragraph(`100課題当たり、失敗から成功へ変わる期待件数 ${f.recovered_per_100.toFixed(2)} − 成功から失敗へ変わる期待件数 ${f.disrupted_per_100.toFixed(2)} = ${f.delta_pp > 0 ? '+' : ''}${f.delta_pp.toFixed(2)}ポイント`));
-      output.append(paragraph(f.delta_pp > 0 ? '仮定した率では改善側。ただし事前試験の不確かさと安全余裕を別に調べる。' : f.delta_pp < 0 ? '仮定した率では悪化側。常時介入を見送る条件。' : '期待差はゼロ。'));
-      if (p === 0 || p === 100) output.append(paragraph('端点：この課題群だけでは回復率rまたは悪化率dの片方を推定できない。表示は外部から率を固定した感度分析。'));
+      output.append(paragraph(`100課題あたり、介入で失敗から成功に変わる課題は${f.recovered_per_100.toFixed(2)}件、成功から失敗に変わる課題は${f.disrupted_per_100.toFixed(2)}件と見込む。成功率の差は${f.delta_pp > 0 ? '+' : ''}${f.delta_pp.toFixed(2)}ポイントになる。`));
+      output.append(paragraph(f.delta_pp > 0 ? 'この仮定では、介入で成功率が改善する。実際に導入する前に、少数の課題で得た割合がどれだけ不確かか、改善の境界を十分に上回るかを確かめる。' : f.delta_pp < 0 ? 'この仮定では、介入で成功率が悪化する。どの課題にも介入する運用は見送る。' : 'この仮定では、介入しても成功率は変わらない。'));
+      if (p === 0 || p === 100) output.append(paragraph('失敗率が0%なら、介入なしで失敗した課題がないため回復率を推定できない。失敗率が100%なら、介入なしで成功した課題がないため成功を崩す割合を推定できない。ここでは、両方の割合をあらかじめ決めて計算した。'));
     }
   };
   root.querySelectorAll('select,input').forEach(el => el.addEventListener('input',update));
