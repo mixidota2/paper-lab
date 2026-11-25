@@ -88,7 +88,18 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = tsfm_sparse_rewrite_hash(root, path, expected, algorithm)
     expected = sim2real_full_rewrite_hash(root, path, expected, algorithm)
     expected = index_copy_rewrite_hash(root, path, expected, algorithm)
+    expected = or_transformer_full_rewrite_hash(root, path, expected, algorithm)
     return paper_overview_rewrite_hash(root, path, expected, algorithm)
+
+
+
+def or_transformer_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Accept only the exact reviewed OR-Transformer document bundle."""
+    row = json.loads((root / 'tests/or_transformer_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
 
 
 def paper_overview_rewrite_hash(root, path, expected, algorithm='sha256'):
