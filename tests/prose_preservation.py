@@ -416,7 +416,7 @@ def shelf_hermans_hash(root, path, expected, algorithm='sha256'):
         return expected
     row = json.loads((root / 'tests/shelf_hermans_hashes.json').read_text())
     assert expected == row['before_' + algorithm], path
-    return row['after_' + algorithm]
+    return shelf_asda_hash(root, path, row['after_' + algorithm], algorithm)
 
 
 def generation_retrieval_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -577,4 +577,12 @@ def root_readme_catalog_119_hash(root, path, expected, algorithm='sha256', *, hi
     row = json.loads((root / 'tests/root_readme_catalog_119_hashes.json').read_text())['files'][path]
     key = 'reviewed_' if historical else 'before_'
     assert expected == row[key + algorithm], path
+    return shelf_asda_hash(root, path, row['after_' + algorithm], algorithm)
+
+
+def shelf_asda_hash(root, path, expected, algorithm='sha256'):
+    row = json.loads((root / 'tests/shelf_asda_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
     return row['after_' + algorithm]
