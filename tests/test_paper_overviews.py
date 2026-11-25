@@ -35,7 +35,7 @@ class OverviewText(HTMLParser):
 
 def test_scoped_source_transition_and_rendered_overviews(tmp_path):
     rows = json.loads((ROOT / 'tests/paper_overview_hashes.json').read_text())['files']
-    assert len(rows) == 36
+    assert len(rows) == 46
     site = tmp_path / 'site'
     build(root=ROOT, site_dir=site)
     anchors = {
@@ -75,6 +75,16 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'deepstock-policy-regularized-inventory-drl': ('2025年4月', '海外商品で1日', '国内商品で2日', 'シミュレーション'),
         'exaone-demand-routed-tsfm': ('22のデータセット', '1.0667', '1.0742', '1.0818'),
         'reasoncast-agentic-demand-forecasting': ('33.10%', '32.63%', '7.91%', '9.59%'),
+        'apollopfn': ('モデルの重みは更新しません', '平均5.7%', 'TabPFN-TS'),
+        'evaluation-choices-forecasting-leaderboard': ('19手法中2位', '25手法中23位', '買い手別で17位'),
+        'forecast-critic': ('0.88', '0.97', '少なくとも10%'),
+        'quasid-collision-qualified-sid': ('TIGER', '0.0211', '0.0230'),
+        'scope-coupled-supply-chain-policies': ('18のシナリオ', '1.58%', '実現利益'),
+        'sidinspector-mapping-diagnostics': ('23,742商品', '97.7%', 'ReSID/GAOQ'),
+        'flashtrie-gpu-beam': ('8億件', '46.3 ms', '1.9 ms', '3.3 ms', '0.71%'),
+        'invevolve-whitebox-inventory-evolution': ('25件', '13件', '30件中20件', 'シミュレーション'),
+        'netflix-counterfactual-observability': ('11件', '0.8212', '新しい枠'),
+        'rest-sequence-ranking': ('1.31%', '11.93%', '50 ms', '実収益の増加率ではありません'),
     }
     for path, row in rows.items():
         raw = (ROOT / path).read_bytes()
@@ -105,6 +115,9 @@ def test_download_mirror_replaces_only_the_overview():
         'constrained-deep-inventory-fbsde',
         'deepstock-policy-regularized-inventory-drl',
         'reasoncast-agentic-demand-forecasting',
+        'scope-coupled-supply-chain-policies',
+        'flashtrie-gpu-beam',
+        'invevolve-whitebox-inventory-evolution',
     )}
     for path, row in receipt['mirrored'].items():
         source = (ROOT / row['source']).read_bytes()
@@ -112,7 +125,9 @@ def test_download_mirror_replaces_only_the_overview():
         old, new = (yaml.safe_load(raw)['sections']['overview'].encode() for raw in (previous, source))
         download = (ROOT / path).read_bytes()
         assert download.count(new) == 1
-        assert download.count(old) == int('reasoncast-agentic-demand-forecasting' in path)
+        assert download.count(old) == int(Path(path).parent.name in {
+            'reasoncast-agentic-demand-forecasting', 'scope-coupled-supply-chain-policies',
+        })
         restored = download.replace(new, old)
         for alg, before, after in (
             ('sha256', hashlib.sha256(restored).hexdigest(), hashlib.sha256(download).hexdigest()),

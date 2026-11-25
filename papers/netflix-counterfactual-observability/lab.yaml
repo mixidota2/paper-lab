@@ -38,8 +38,10 @@ core_idea:
   author_claim: 探索時の選択確率を記録し、SNIPSで表示の偏りを補正する。同じ位置の代替候補との比較と、対象を除いたLeave-One-Outを使い分ける。cascade全体の貢献はIrreplaceabilityとUniversalityへ分解する。
   research_bot_interpretation: '[Accuracy Is Not Service](accuracy-not-service-intermittent-demand.html)が予測誤差と発注成果を分けたように、ここでは観測engagementと代替後に失う価値を分ける。[VARG](varg-tmall-value-generative-retrieval.html)や[UNIQUE](unique-baidu-unified-retrieval-ranking.html)のオンライン改善を読む際も、候補経路の採用率だけで増分貢献を判断しない。ただし他社のliftをこの論文の推定量へ換算はできない。'
 sections:
-  overview: 高CTRの作品でも、ほぼ同じ満足を与える代替があれば除去損失は小さい。逆に、限られた視聴者にだけ届く作品は全体CTRで埋もれても、その視聴者には代えがたい。この論文は制作者に向けた価値評価と、モデル開発者に向けた診断を同じ探索ログから作る。RecSys
-    CONSEQUENCES 2026の6ページ論文で、Netflix全体の売上やretentionを新たに改善したA/Bを報告するものではない。
+  overview: |-
+    Netflixの著者は、ホーム画面の推薦枠を外したら利用者の反応がどれだけ減るかを、毎回A/Bテストをしなくても見積もりたいと考えました。そこで、どの候補をどんな確率で見せたかが分かる探索ログを使い、枠を残す場合と、外して別の候補を出す場合の反応を推定しました。
+
+    実際にホーム画面の推薦枠を外した11件のA/Bテストと比べると、ログから見積もった反応の減少と実測値の一致を表す決定係数R²は0.8212でした。これはその11件での一致です。新しい枠でも同じ精度で見積もれるとは限りません。
   problem: 観測clickには、内容の質、表示位置、対象者の選び方、候補に入る頻度が混ざる。順位が落ちたためのCTR低下を内容の劣化と受け取ると、制作者も開発者も誤った修正へ向かう。必要なのは「誰に、何が候補として入り、どの確率で選ばれ、何が起きたか」のログである。選択確率がゼロの候補については逆確率重みだけでは反実仮想を回復できない。
   why_it_might_work: 探索が比較対象を観測可能にし、自己正規化が極端な重みの分散を抑える。代替込みの差を取れば、単なる露出の多さと、失うと困る価値を区別しやすい。ただしSNIPSは有限標本で一般に不偏ではない。確率のclipやJaccardによる近似matchにもbias–varianceの交換がある。正しいpropensity、比較可能な報酬、十分なsupportがなければ、「因果」と呼ぶだけでは妥当な推定にならない。
   evidence: '[一次資料PDF §4.1–4.3 / Figs. 1–3](https://arxiv.org/pdf/2609.22747v1) の著者報告。

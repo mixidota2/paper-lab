@@ -288,6 +288,86 @@
       "after_blob": "32be3916f19e282786805eeff20c8075600d5e87",
       "prior_field": "  overview: ReasonCastはChronos-2の重みを変えず、イベント情報で予測を補正するかを選ぶ。元の予測をそのまま使うSkip、手元の情報で補正するBasic、検索や時系列統計のツールも使うToolの3経路がある。著者の比較ではイベント期間に誤差が下がり、Skipでは元の予測値が変わらない。欠品を含む需要予測でどの手法が優れるかは、この比較では分からない。\n",
       "new_field_sha256": "5945ecd136c8e622db560fab375eb715e9a45e6e64337856459df637078f2361"
+    },
+    "papers/apollopfn/lab.yaml": {
+      "before_sha256": "60416d5c46cc14ff9dcbf744f66fae74f1b013aebd587446eaca1587802647ff",
+      "before_blob": "ae115901908c69d4b38d4f4b882baa4eb35261f8",
+      "after_sha256": "d2a71c04afe686c66932615e2004c0082f93b17a1e5bd22c8d9047a4ee7200ab",
+      "after_blob": "bee04a4c2b6a04d84f6f6a0bec7c2a7e61283095",
+      "prior_field": "  overview: ApolloPFNは、過去の時系列に加え、価格や販促などの外部情報を使う予測モデルである。著者は人工データで事前に学習させ、新しい予測対象で再学習せずに使う方法を調べた。予測の差を読むには、将来情報がいつ利用可能だったかを押さえる必要がある。\n",
+      "new_field_sha256": "806fe07c9788a58602b48f0c672fe595ae7a034b30406729702dbcf3b39666b7"
+    },
+    "papers/evaluation-choices-forecasting-leaderboard/lab.yaml": {
+      "before_sha256": "9545c0834a4109a9d64e68844e7a7d264b3ff19d22d2169e8e8385d0f3500c5b",
+      "before_blob": "e704c56ff88d053c413e47ba011d7ec8109536fc",
+      "after_sha256": "8635ed3cbef78bed4a18ad296b61f8283f0d5316e9fdf2c8b0bd13d421d73686",
+      "after_blob": "f83a85738b8e69adffd8e1c7f5239c02bedef454",
+      "prior_field": "  overview: ある買い手の取引額を多く、別の買い手を同じだけ少なく予測すれば、合計だけは合う。論文の本番基準手法は市場全体で19手法中2位、買い手別で25手法中23位だった（表1）。この比較では指標、予測を始める時点、手法数も違う。集計の影響を読むには、共通条件の表3も見る。主な対象はサービス市場の取引総額（GTV）で、店舗小売の売上ではない。小売の公開データM5でも再評価している。\n",
+      "new_field_sha256": "9076603951f95b686018a15205b9266d48cebd2b3705d3db07eb28f57ac2e74f"
+    },
+    "papers/forecast-critic/lab.yaml": {
+      "before_sha256": "5665d9a0ef130a2424b0d18ad165b711c27931fb5b37daeca13dfb8a5a284d18",
+      "before_blob": "28f43cf34dccc2b7957f51d8a65a9c7a7498863e",
+      "after_sha256": "8bf37adeafd114a572085fd4ad4f3293bcf3cfe028947d3835bdd01b4982f6ec",
+      "after_blob": "1ce62049f78904e675fc0f6b5672d7ecd5c0fb77",
+      "prior_field": "  overview: 未来の実績が届く前に、予測線と過去の売上、販促予定を見比べます。著者は画像と文章を読める大規模言語モデルを使い、人が点検する予測を選びます。予測値を自動修正する仕組みではありません。\n",
+      "new_field_sha256": "df61744a4ba2b8581e419f6d4a719abc4fd0faf2860306cd0e9f0928a20f4214"
+    },
+    "papers/quasid-collision-qualified-sid/lab.yaml": {
+      "before_sha256": "021ef7c6b7dae73dde6d3c3f6e92a3df377f0ec2937b7d989edbdab79a752a48",
+      "before_blob": "4f5a17a994e307ef1a5606b1f0080c0823b9d8a5",
+      "after_sha256": "0e0f4949ab202cb91b808ffc86716006f2f86ebb0a248bdfd37d80306db92dd8",
+      "after_blob": "28a94a5da620093182ffbbc66909c4c9278f607e",
+      "prior_field": "  overview: QuaSIDは、SIDの重なりから反発対象を選ぶ学習法である。同じ商品の組と、行動履歴から近付けるべきだと判定した組を、引き離す対象から除く。残った組では、IDが完全に一致する場合と一部だけ一致する場合を分け、表現ベクトルをどこまで離すかの基準を変える。KuaishouはrankingのGMV-S2 +2.38%、cold-start\n    retrievalの注文数+6.42%を報告する。衝突ゼロの保証と、害のある衝突を減らす学習を区別する。\n",
+      "new_field_sha256": "cab4d852031b510d501670fd690521934d343d3bc78af4e97dd826754cd926fa"
+    },
+    "papers/scope-coupled-supply-chain-policies/lab.yaml": {
+      "before_sha256": "dbd250ba817fab100ea5956a23e40e2885d12581198e42b96c5201012c7a16e1",
+      "before_blob": "4a515fedbf8ffbbbec430748326972133be7a197",
+      "after_sha256": "c0a8dcec418ccee260afd76edc3ba359ff334b234f93d5e5d3ccbd8f18574b6a",
+      "after_blob": "220e0cec12e07749b8809c0e99804fac978f5a3f",
+      "prior_field": "  overview: SCOPEは品揃え・供給元・補充周期・配送経路を条件付きの方策としてつなぐ。JDのデータを使った評価では、品揃えの価値から配送や在庫などの費用を差し引く評価値が、各段階を別々に決める最良の比較手法より約1.58%高かった。ただし実店舗の売上A/Bや棚割りRCTではない。\n",
+      "new_field_sha256": "79a0690fc1ac33f27956fb82a14ff985bc16b297c343c6c0723dc2ae19b5ded1"
+    },
+    "papers/sidinspector-mapping-diagnostics/lab.yaml": {
+      "before_sha256": "444aa1999ff9bd593e77355001738446334a8f03de45493e19294ebf41db6fde",
+      "before_blob": "70fefe5773c4a9dff7959aa97a365fd71038816f",
+      "after_sha256": "671afc5b3d037e46a51059fd596835d5476f33b1cd870d3eda94a3a203117664",
+      "after_blob": "d258a897d37932ac818add9f22e36a1cfbdd7b39",
+      "prior_field": "  overview: SIDが全商品に割り当てられていても、同じIDへ多数の商品が集まる場合も、IDが一意でもprefixに意味がない場合もある。SIDInspectorはgeneratorを動かす前に、この住所表を点検するtooling研究。online\n    liftを示した論文ではなく、入力artifactを検査できる共通interfaceと診断の分離が成果である。\n",
+      "new_field_sha256": "917feba6a7576b8c0976be6fee3ce8081055263a386fb762d80d7eaf2ed0ddf7"
+    },
+    "papers/flashtrie-gpu-beam/lab.yaml": {
+      "before_sha256": "a9bc6fdaccf080977b9313243607157307bddde1a01bb54126ed204320fbe602",
+      "before_blob": "6678d83939514c2000919ed65edc3f923725178d",
+      "after_sha256": "4f68cc785a6b82307fa55f582094810315df7f05dfa3344cd4024449c0470804",
+      "after_blob": "2e613bcc526f9310f0c118a59bd6ccfc60e666e6",
+      "prior_field": "  overview: FlashTrieは圧縮trieとbeam展開・検査・選別をGPU内へまとめる。800M keyword列の測定では平均0.6–1.9ms、p99は最大3.3ms。オンラインEnglish revenue\n    +0.71%、遅延−32%は、backendと実行可能なbeam構成を同時に変えた比較である。\n",
+      "new_field_sha256": "570648806f206e45127adbcd5bc0ba56eaa44c96125a54cad83f2da719b310bf"
+    },
+    "papers/invevolve-whitebox-inventory-evolution/lab.yaml": {
+      "before_sha256": "4f4799e4340411027b14e2daf222ca78804fa19472a347f7805a7f999a2b5d95",
+      "before_blob": "c166a463344fca0ff723673ed06f4d4594d09dff",
+      "after_sha256": "6f1c459df36dfe8d57b7aa60bf244ea95751cf85b964b2d0e29ce9a5430b7410",
+      "after_blob": "a9594de48b30b8df6fa3599adfdd3846fe0c1b61",
+      "prior_field": "  overview: 'InvEvolveは、LLMが読める発注コードを生成し、同じ需要履歴で比較してから配備する仕組みである。著者報告では合成OODの25/30件、Dunnhumby\n    Complete Journey（CJ）の20/30件で最良の古典方策を上回る。CJの費用削減9.2%は**勝った20件に限る平均**で、全30件の平均ではない。\n\n\n    採用と配備を分ける。候補を残す判定は慎重に、通過候補の選択は楽観的に行う。ただし将来の安全性は、需要変化を覆う予算や信頼区間の前提に依存する。本Labは発注式と認証の保守性を確かめ、性能を追試しない。'\n",
+      "new_field_sha256": "a25ae1b8c20536f6bb8bded47ea097b1d393514a1bacb852a7eade53e95bc3b0"
+    },
+    "papers/netflix-counterfactual-observability/lab.yaml": {
+      "before_sha256": "5227e34745f7dda97c17532779689883556d9210261001467957ecfe908795fd",
+      "before_blob": "1636f4e80aae27ef1d0707682d65173f770f59c2",
+      "after_sha256": "bc2c2e5e1ff12f49223c8fe51761ddf45f3186ce70f2bd4f913d7972fce6d0c7",
+      "after_blob": "969f311d5cac061929c640f4b67e0ce8af10d143",
+      "prior_field": "  overview: 高CTRの作品でも、ほぼ同じ満足を与える代替があれば除去損失は小さい。逆に、限られた視聴者にだけ届く作品は全体CTRで埋もれても、その視聴者には代えがたい。この論文は制作者に向けた価値評価と、モデル開発者に向けた診断を同じ探索ログから作る。RecSys\n    CONSEQUENCES 2026の6ページ論文で、Netflix全体の売上やretentionを新たに改善したA/Bを報告するものではない。\n",
+      "new_field_sha256": "b319d126201f367a3ddddf8795ad1902bdab3c55f83b8b9580e37dbcc480d778"
+    },
+    "papers/rest-sequence-ranking/lab.yaml": {
+      "before_sha256": "2318e05e909217e2223abff29c54b4c2cd45be4760096d5d43704fab465f5314",
+      "before_blob": "d1176bc7f616e704b598a7976200fda03642f435",
+      "after_sha256": "07cc6c71b25b7090a79539dbdf6cd02b82363b4ef20eab4e0837c8dfe858803c",
+      "after_blob": "5b3a90eaa88af88befe4d086e85e652781709c34",
+      "prior_field": "  overview: ReSTは推薦モデルの行動履歴を処理する部分に直接勾配が届くよう、補助損失を加える。配信時はリクエスト内でユーザーの履歴を1回だけ処理し、その結果を同じリクエストの推薦候補で共有する。\n",
+      "new_field_sha256": "f944fdd7eb25bfc1c92490a1cbc663098b2d935ee3d4b0c2582c03451d513478"
     }
   },
   "generated_from": {
@@ -326,6 +406,27 @@
       "after_sha256": "8310c541f44957638731e283693809c36acb142736494d9cb72e92e4d00924d6",
       "after_blob": "1bbd532cfce2224751b9be9c1022d3d132066a80",
       "source": "papers/reasoncast-agentic-demand-forecasting/lab.yaml"
+    },
+    "papers/scope-coupled-supply-chain-policies/README.md": {
+      "before_sha256": "8fee5a5ce1277f913a3b8a36afcf0a05e341a1099d6937f44aa8e6c2e30362ea",
+      "before_blob": "4967c4ffce5e565ae34df139b84124b3725f2179",
+      "after_sha256": "82413ba12337976262139ad8006a1f1897cf607ed17242e8586c44297d33f129",
+      "after_blob": "a7cb1f0ad6f8d97713b6f5899746d124b08fefc3",
+      "source": "papers/scope-coupled-supply-chain-policies/lab.yaml"
+    },
+    "papers/flashtrie-gpu-beam/README.md": {
+      "before_sha256": "5b2a4bda02e204499e940c9cfcc3cb3641fc6d529ba0c0799e3591b32e0f49ab",
+      "before_blob": "4f2e18886e3fea6273893197026c0afbad4fa740",
+      "after_sha256": "e24269ef5303ce47ce2ca6799dbaf209b8be12e43cabe6a3a32a1fe7a705c601",
+      "after_blob": "5ff0e2dc9563ea3a267a70709034d8da0ba60f1f",
+      "source": "papers/flashtrie-gpu-beam/lab.yaml"
+    },
+    "papers/invevolve-whitebox-inventory-evolution/README.md": {
+      "before_sha256": "faa43b6ad0b3cfe022eba2cf6b5d9a428871952df779d07256a34ea832fde09b",
+      "before_blob": "31ce1ec58fb2cc82fad3e10defc8da2c5a629f29",
+      "after_sha256": "b792001cd8fbb7f2001350eb35121428badb2818a266815af9e6e3fe3fc86642",
+      "after_blob": "d7ce1d4b967e010ce623527352f1867cecbbc4eb",
+      "source": "papers/invevolve-whitebox-inventory-evolution/lab.yaml"
     }
   }
 }
