@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from prose_preservation import (
+    before_store_layout_calculation,
     store_layout_field_example_hash,
     store_layout_full_rewrite_hash,
     store_layout_normandy_hash,
@@ -36,7 +37,7 @@ def test_normandy_chain_rejects_unreviewed_state():
 
 def test_store_timing_example_leaves_previously_reviewed_guide_byte_identical():
     receipt = json.loads((ROOT / 'tests/store_layout_field_example_hashes.json').read_text())['files'][GUIDE]
-    raw = (ROOT / GUIDE).read_bytes()
+    raw = before_store_layout_calculation(ROOT, (ROOT / GUIDE).read_bytes())
     opening = '### 棚を動かした日時と、売上を集計する日をそろえる\n'.encode()
     closing = '5・4・3本の図は'.encode()
     assert raw.count(opening) == raw.count(closing) == 1

@@ -27,7 +27,7 @@ def test_fixed_count_diagram_and_evidence_boundaries():
     for constraint in ('Σ_c x[c,p] = 1', 'Σ_p x[c,p] = n_c',
                        'Σ_(b∈B_c) y[c,b] = 1', 'Σ_(c,b:p∈b) y[c,b] = 1'):
         assert constraint in text
-    for limit in ('合成最適化実験は未実施', '最適性ギャップは未確認',
+    for limit in ('実店舗での計算時間や売上効果を比べた結果ではない', '最適性ギャップは未確認',
                   '本文全体は未取得', '業界の採用率は分からない',
                   '店全体の増分粗利', '本数は変更せず'):
         assert limit in text
@@ -48,5 +48,7 @@ def test_generated_theme_and_reciprocal_links(tmp_path):
         '水曜を、配置が変わった日として扱わない',
         '配置が分からなかった営業日として記録する',
         '事前の割付のまま主分析に含める',
+        '本数を守る27,720通り',
+        '実店舗での計算時間や売上効果を比べた結果ではない',
     ):
         assert text in target.read_text()
