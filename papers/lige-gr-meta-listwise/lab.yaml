@@ -38,8 +38,10 @@ core_idea:
   author_claim: 既存の予測器（CF）が作った表現を、選択済みの動画の並びを読む予測器（CA）で更新する。その予測を使い、動画の並び全体の評価値（ListVM）が高くなるようにPaletteで候補を探索する。既存CLとCFを保持するため、追加部分を停止して元の順位付けへ戻せる。
   research_bot_interpretation: '[Sona](sona-yandex-music.html)・[Gryphon-v2](gryphon-v2-cascade.html)のcascade置換とは移行単位が違う。[OGR](ogr-once-generated-ranked.html)・[GenPage](genpage-netflix-homepage.html)のslate統合とも、候補空間と生成責任を分けて比較したい。'
 sections:
-  overview: 成熟したpointwise rankerを保ったまま、選んだ動画同士の関係を順位に反映する。LIGE-GRの価値は、既存の予測・業務制約・運用責任を使い続けられる移行経路にある。Instagram ReelsとFacebook
-    Videoで7日間のA/Bを実施し、Time spentは+1.14%と+0.72%。ただし、これはCAを使うbeam 1の基本構成である。
+  overview: |-
+    MetaのLIGE-GRはすでに集めた動画候補から、おすすめに載せる順番を一つずつ決めます。既存のモデルが各動画に対する視聴や反応を個別に予測し、追加したモデルが先に選んだ動画を見て後続の候補の予測を更新する仕組みです。一覧全体を評価する際も、多様性などの既存のルールを使います。
+
+    著者が両サービスの従来方式と7日間比べたのは、各段階で最も評価の高い並びを一つだけ残す基本構成です。視聴面での滞在時間はInstagram Reelsで1.14%、Facebook Videoで0.72%増えましたが、Facebook Videoの再生数は0.52%減りました。Instagram Reelsで複数の並びを残す構成を試したのは別の比較です。
   problem: 高得点の動画を独立に並べても、似た話題が連続すれば後続動画の価値は変わる。従来のcontrol layer（CL）は多様性や禁止条件を補うが、予測自体は選択済みの列を見ていない。そこで、数百件の既存候補poolから約10件の列を作る部分を更新する。全カタログからSIDを生成する問題までは解いていない。
   method: method.md
   why_it_might_work: 重いCFを各位置で再計算せず、小さいCAに列内の飽和や補完関係だけを担わせるので、既存rankerの精度を捨てずに探索を追加しやすい。継続確率の重み付けは、到達されない後半の価値を過大評価しにくくする。一方、候補poolの外に正解がある場合は回復できず、継続確率の誤差は後半へ累積する。

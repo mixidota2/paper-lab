@@ -1,6 +1,8 @@
 # VARG: Value-Aware and Ranking-Aligned Generative Retrieval for Dynamic E-commerce Search
 
-Tmall Appでは、生成モデルが選ぶ候補に専用の枠を用意した。この候補は予備の順位付け（pre-rank）を省き、既存の最終順位付けモデル（final ranker）に直接渡す。検索トラフィックの20%を使った14日のA/Bテストで、著者はGMV +1.45%を報告した。初期に商品同士で識別子が重ならないことと、日次更新で既存商品の識別子を変えないことは、別の条件。
+Taobao・Tmallの研究チームは、検索の意図に合い、購入にもつながる商品を、生成モデルで早い段階から探す方法を提案しました。VARGは、検索文との関連性、過去のクリックや購入、既存の順位付けモデルの評価を学習に使います。生成した商品は、通常の予備順位付けを通さず、確保した枠から既存の最終順位付けへ渡します。最終順位付けまで置き換える方法ではありません。
+
+Tmallアプリの検索トラフィックの20%を使った14日間のA/Bテストで、著者は従来方式より取引総額（GMV）が1.45%、利用者あたりの閲覧指標（IPV/user）が0.22%増えたと報告しています。この比較では学習方法と候補を渡す経路をまとめて変えており、商品IDの学び方だけの効果は分かりません。
 
 公開ページ: https://mixidota2.github.io/paper-lab/papers/varg-tmall-value-generative-retrieval.html
 

@@ -41,7 +41,7 @@ class OverviewText(HTMLParser):
 
 def test_scoped_source_transition_and_rendered_overviews(tmp_path):
     rows = json.loads((ROOT / 'tests/paper_overview_hashes.json').read_text())['files']
-    assert len(rows) == 82
+    assert len(rows) == 114
     site = tmp_path / 'site'
     build(root=ROOT, site_dir=site)
     anchors = {
@@ -127,6 +127,38 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'ra-dfl-risk-aware-decision-focused-inventory': ('4.903', '4.721', '5.380', '観測した売上', '実店舗での費用削減を測った結果ではありません'),
         't0-tsfm-forecasting-with-context': ('36.7', '43.0', '6.3ポイント', '19課題', '11課題', '43%減りました'),
         'youtube-music-llm-rationales-discovery': ('22.43%', '16.93〜27.93%', '8.07%', '理由文だけ', 'YouTube Music全体の利用継続率ではありません'),
+        'cq-sid-eg-grpo-tmall': ('2週間','1.15%','0.40%','72.63%','既存の順位付け'),
+        'sidscope-diagnostics': ('0.976','0.900','0.083','−0.564から0.205','本番でのA/Bテストはありません'),
+        'understanding-sids-isd': ('32.2%','0.0295','0.0387','31.2%','IDを作り直す方法ではありません'),
+        'varg-tmall-value-generative-retrieval': ('予備順位付けを通さず','20%','14日間','1.45%','0.22%'),
+        'hgenpush-kuaishou-heterogeneous-push-gr': ('投稿者の動画を探す','予備の順位付けを経ず','0.181%','統計的に有意ではありませんでした'),
+        'lige-gr-meta-listwise': ('7日間','1.14%','0.72%','0.52%減','別の比較です'),
+        'oxygenrec-v2-idgr': ('将来の行動を入力しません','6つの配信面','1.61〜4.44%','4.25%','他の推薦処理を取り除いたという意味ではありません'),
+        'pushdualgen-kuaishou': ('14日間','15%を二群に等分','64.46%から69.94%','0.053%から0.033%','文面生成だけの効果ではありません'),
+        'agenttether-repair': ('最初に失敗した83件','39件','49件','失敗した課題も3件','全課題に対する成功率ではありません'),
+        'scaffold-effects-gaia': ('5つのモデル','3回の試行','最大28ポイント','全モデルの平均ではありません'),
+        'harness-bench': ('初版の表2','106課題と8モデル','76.2点','52.4点','23.8ポイント'),
+        'harness-buys-tokens-not-pass-rate': ('難しい45課題','13%','22%','444〜445組','±5ポイント','最大約3倍'),
+        'gryphon-ilsm': ('0.8209から0.8552','7日間','3,000件から1,000件','0.25%増','従来と同等だったとも'),
+        'sam-d2q-aliexpress-doc2query': ('4%','21日間','2.27%','0.53%','3.38%増','この時系列を確定できません'),
+        'static-constrained-gr': ('0.033ミリ秒','0.25%','5.1%','実験期間ではありません'),
+        'univa-commercial-sid-gar': ('1.50%','初版に5%','第2版に20%','どちらか片方の効果ではありません'),
+        'agentx-kuaishou': ('3週間','374案','10件','8倍','約3.7倍','無作為に割り付けた比較でもありません'),
+        'aura-disney-agentic-rec-diagnosis': ('それぞれ約10万件','1,911件','±0.1%','本番に出した事例ではありません'),
+        'auto-recsys-harness': ('31回','4.0回から1.3回','平均0.5回','対照群のない運用記録'),
+        'coral-meta-config-harness': ('0.15%','0.16%','費用を減らせた額','44%','総費用が44%下がったという意味ではありません'),
+        'harness-r1': ('44.3%から53.6%','9.3ポイント','同じ重み','全体の改善になるわけではありません'),
+        'harness-zero-distillation': ('23.3%から44.3%','41.7%','30.0%','38.0%','全課題を合算した成功率ではありません'),
+        'multi-harness-rl': ('1課題を8回ずつ','0.25ポイント','−0.48から+1.02','2.14%から9.27%'),
+        'sgc-state-grounded-conditioning': ('200セッション','1,000回答','96.7%','83.5%','26.5%','勝率'),
+        'execution-state-unlearning': ('80%','32%','モデルの重みを変更する方法ではありません','選択に影響'),
+        'flashvector-unity-serving-stack-agent': ('2.00倍','30倍','1.10倍','広告のクリック率'),
+        'hear-harness-engine-serving-protocol': ('481秒から299秒','63.1秒から28.3秒','74.2秒から51.1秒','負荷によって'),
+        'swe-serve-inference-serving-agents': ('53課題','19課題','627件','45.9%','69.4%','同じ変更のまま'),
+        'dream-taobao-agentic-control': ('2.06%','2.71%','同じ従来方式','足し合わせられません'),
+        'evopilot-verify-dont-trust-autoresearch': ('22ポイント','評価に使った候補数は異なって','人の確認','3.20ポイント'),
+        'pilot-experiment-lifecycle': ('五つの実験グループ','1.00%','1.40%','53.3%から93.3%','別々の時期'),
+        'recevolve-autonomous-rec': ('41件','0.4796から0.5751','3.77%','試行は元に戻し'),
     }
     for path, row in rows.items():
         raw = before_full_article_rewrites(ROOT, path, (ROOT / path).read_bytes())
@@ -189,13 +221,36 @@ def test_download_mirror_replaces_only_the_overview():
         'ra-dfl-risk-aware-decision-focused-inventory',
         't0-tsfm-forecasting-with-context',
         'youtube-music-llm-rationales-discovery',
+        'cq-sid-eg-grpo-tmall',
+        'sidscope-diagnostics',
+        'varg-tmall-value-generative-retrieval',
+        'hgenpush-kuaishou-heterogeneous-push-gr',
+        'lige-gr-meta-listwise',
+        'oxygenrec-v2-idgr',
+        'pushdualgen-kuaishou',
+        'harness-buys-tokens-not-pass-rate',
+        'sam-d2q-aliexpress-doc2query',
+        'static-constrained-gr',
+        'univa-commercial-sid-gar',
+        'agentx-kuaishou',
+        'auto-recsys-harness',
+        'coral-meta-config-harness',
+        'harness-zero-distillation',
+        'sgc-state-grounded-conditioning',
+        'flashvector-unity-serving-stack-agent',
+        'hear-harness-engine-serving-protocol',
+        'swe-serve-inference-serving-agents',
+        'dream-taobao-agentic-control',
+        'evopilot-verify-dont-trust-autoresearch',
+        'pilot-experiment-lifecycle',
+        'recevolve-autonomous-rec',
     )}
     for path, row in receipt['mirrored'].items():
         source = before_full_article_rewrites(ROOT, row['source'], (ROOT / row['source']).read_bytes())
         previous = restored_before_paper_overview(ROOT, row['source'], source)
         old, new = (yaml.safe_load(raw)['sections']['overview'].encode() for raw in (previous, source))
         if row.get('mirror_excludes_unchanged_figure'):
-            assert Path(path).parent.name in {'genpage-netflix-homepage', 'gatesid-coldstart-ranking'}
+            assert Path(path).parent.name in {'genpage-netflix-homepage', 'gatesid-coldstart-ranking', 'agentx-kuaishou'}
             old, old_figure = old.split(b'\n\n<figure', 1)
             new, new_figure = new.split(b'\n\n<figure', 1)
             assert new_figure == old_figure
@@ -213,12 +268,23 @@ def test_download_mirror_replaces_only_the_overview():
                 'ra-dfl-risk-aware-decision-focused-inventory': 2,
                 't0-tsfm-forecasting-with-context': 1,
                 'youtube-music-llm-rationales-discovery': 2,
+                'cq-sid-eg-grpo-tmall': 2,
+                'varg-tmall-value-generative-retrieval': 1,
+                'hgenpush-kuaishou-heterogeneous-push-gr': 1,
+                'lige-gr-meta-listwise': 1,
+                'univa-commercial-sid-gar': 1,
+                'auto-recsys-harness': 2,
+                'coral-meta-config-harness': 2,
+                'flashvector-unity-serving-stack-agent': 1,
+                'evopilot-verify-dont-trust-autoresearch': 1,
             }
             assert slug in prior_paragraphs
             old = row['prior_mirror'].encode()
             assert len(old.decode().split('\n\n')) == prior_paragraphs[slug]
         download = before_full_article_rewrites(ROOT, path, (ROOT / path).read_bytes())
-        assert download.count(new) == 1
+        count = row.get('mirror_count',1)
+        assert count == (2 if Path(path).parent.name in {'sam-d2q-aliexpress-doc2query', 'harness-zero-distillation', 'swe-serve-inference-serving-agents'} else 1)
+        assert download.count(new) == count
         assert download.count(old) == int(Path(path).parent.name in {
             'reasoncast-agentic-demand-forecasting', 'scope-coupled-supply-chain-policies', 'onetrans-v2-cascade-unification',
         })

@@ -32,7 +32,10 @@ core_idea:
   author_claim: 著者は、知覚・strategyの編成・監査を可能にするpolicy層を既存cascadeへ重ね、モデルの置換なしにユーザー価値とbusiness指標を改善できると主張する。
   research_bot_interpretation: 学ぶべき境界は、LLMが意図と意味的なactionを提案し、決定的なTool Processが実行可能な設定へ変換する点にある。モデルを変えずに制御可能性を増やせるが、変更可能なmenuが狭ければ効果もその範囲に限られる。
 sections:
-  overview: DREAMはTaobaoの既存cascadeにintent認識とstrategy制御を重ねる。rerank制御でIPV +2.06%、fine rankまで広げて+2.71%。中心はL0/L1/L2のintent、M1/M2/M3の変換契約、defaultへ戻せる局所overrideである。agent対人の探索能力を揃えた比較ではない。
+  overview: |-
+    TaobaoのDREAMは、利用者がいま何を探しているかを推定し、既存の推薦システムの設定に反映します。長く続く好み、その時に探している商品、価格やブランドなどの細かな条件を分けて扱う設計です。その情報を、推薦の各段階で使える設定に変えます。一部の設定を変える方式なので、従来の設定に戻せます。
+
+    著者がTaobaoのホーム画面で行ったA/Bテストでは、最終段階の並べ替えだけを調整した構成で、商品詳細ページへの訪問数が従来方式より2.06%増えました。その手前の詳しい順位付けも調整した構成では、同じ従来方式より2.71%増えています。二つの数値は足し合わせられません。また、人とエージェントに同じ条件で改善案を探させた比較ではありません。
   problem: 'click最適化の履歴表現だけでは、閲覧から比較、購入へ移るsession内の変化を捉えにくい。しかもretrieval・ranking・rerankingは別の目的や規則を持つ。DREAMはintentを共有し、その解釈を各stageの設定へ配る制御層を足す。
 
 

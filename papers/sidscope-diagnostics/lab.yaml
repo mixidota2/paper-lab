@@ -38,8 +38,10 @@ core_idea:
   author_claim: source-traced mappingを共通contractへ正規化し、D1–D7でaddressability、prefix exposure、refresh、traceを診断する。D3の予測力はprefixを使う機構に条件付けられる。
   research_bot_interpretation: '[QuaSID](quasid-collision-qualified-sid.html)と合わせ、衝突を減らす設計と、衝突や更新の影響を受け入れ時に点検する手順を分けて蓄積したい。[SnapLGR](snaplgr-snapchat.html)のSID→動画展開にも直結する。'
 sections:
-  overview: SIDScopeは、item→SID対応表を受け取ったときに使う診断資源である。利用率、衝突、prefixの行動整合、人気別の解像度、trie構造、更新差、生成traceを分ける。オンラインA/Bはない。公式v1.0.1にはadapter、固定結果、CPU
-    verifierがある。
+  overview: |-
+    著者は、商品と識別子（SID）の対応表から、生成推薦が候補を探す前の段階で何が起きているかを調べるSIDScopeを作りました。たとえば、異なる商品に同じIDが付くと一つに特定できません。一方、同じ人の履歴に一緒に現れやすい商品に共通の先頭記号が付いていれば、その記号を使って候補をまとめて探せます。SIDScopeは、この二つを別々に測り、IDの更新前後の変化や、生成時に残った候補も調べます。
+
+    8つの対応表では、履歴が近い商品が先頭記号を共有する度合いと、その記号で正解候補を拾える度合いの順位相関は0.976でした。同じカタログを使う対応表をまとめた5群では0.900で、p値は0.083でした。学習済みの生成モデルの並び順を測った比較では相関が−0.564から0.205までばらつきました。この診断だけでは、本番の推薦の質は分かりません。論文には本番でのA/Bテストはありません。
   problem: trieで有効なSIDを生成しても、そのSIDが複数itemを指していれば正解itemを一意に取れない。逆に衝突ゼロでも、prefixに行動上の近さがなければ探索の手掛かりになりにくい。対応表を更新して欠損を埋めても、旧checkpointが新しいコードに対応した出力を返せるとは限らない。
   method: method.md
   why_it_might_work: '[QuaSID](quasid-collision-qualified-sid.html)の衝突を条件付きで評価する発想を、tokenizerを受け入れ、更新し、generatorへ渡す作業へ広げられる。D3がよい理由を「prefixを実際に候補探索に使うから」と限定すれば、診断から次の実験を選びやすい。全generatorのNDCGを予測する万能scoreにすると、原典が示す適用範囲を超える。'

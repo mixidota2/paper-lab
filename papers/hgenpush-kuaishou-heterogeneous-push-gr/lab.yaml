@@ -47,8 +47,10 @@ core_idea:
   author_claim: feedの長短履歴とpushのclick/send履歴を共有decoderで読み、video branchとauthor branchへ分ける。Chained-MTPで前のSIDの意味を残して軽く生成し、UCPA/GSISPOでclick後の消費行動へ整合させる。
   research_bot_interpretation: '[PushDualGen](pushdualgen-kuaishou.html)がSIDと通知文を結ぶのに対し、HGenPushはvideoとauthorという候補の粒度を結ぶ。[VARG](varg-tmall-value-generative-retrieval.html)と同様にpre-rankを飛ばしてもrankerへの責任は残る。違いはauthorの信頼を行動から学び、そこからvideoへ戻す経路にある。'
 sections:
-  overview: 作者branchの最終目的も、その作者の動画を推薦すること。作者IDだけを通知する仕組みではない。video側は3層SID、作者側は2層author SIDにvideoの第1層SIDを足したmixed
-    SIDを生成する。両方の候補がrankerへ直接入るため、生成器が候補の品質をある程度引き受ける。
+  overview: |-
+    KuaishouのHGenPushは通知で届ける動画の候補を二つの経路で探します。動画から探す経路は、動画の特徴を3段階で表したコード（SID）を生成します。投稿者から探す経路が生成するのは、利用者が好みそうな投稿者を表す2段階のコードと、動画の特徴を表す最初のコードの組み合わせです。この経路の目的も、投稿者を通知することではなく、その投稿者の動画を探すことです。
+
+    両方の経路から得た候補は、予備の順位付けを経ずに、最終的な順位を決めるモデルへ渡ります。著者が従来の通知システムと比較したA/Bテストでは、両経路を使う構成で1日あたりのアクティブ利用者数が0.181%増えました。同じ構成では、通知のクリック率とアプリ利用時間の差は5%水準で統計的に有意ではありませんでした。
   problem: 同じジャンルでも、利用者は特定の作者にだけ継続的に反応することがある。内容類似度だけではこの差を捉えにくい。また、全SIDを独立に予測すると階層間の整合が崩れ、各tokenで重いdecoderを回すと配信費用が増える。
   why_it_might_work: author表現をclick行動でuser表現へ合わせれば、内容だけでは見えない支持関係を取り込める。Chained-MTPは固定のinterest anchorへ前tokenのembeddingを足すため、token間の依存を残しつつTransformerの反復を減らす。ただし生成時のtoken依存そのものは残る。論文の「非自己回帰」を「全tokenが条件なしで独立に生成される」と読まない。
   evidence: '[一次資料PDF §4 / Tables 1, 3–6](https://arxiv.org/pdf/2607.03362v1) の著者報告。
