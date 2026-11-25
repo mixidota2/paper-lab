@@ -7,7 +7,7 @@ import re
 import pytest
 import yaml
 
-from prose_preservation import arxiv_versioned_overview_hash
+from prose_preservation import arxiv_versioned_overview_hash, before_revise_full_rewrite, revise_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 VERSIONS = {'oneranker-ads': ('2603.02999', 'v3'), 'revise-recovery': ('2609.00643', 'v1'),
@@ -24,7 +24,7 @@ def test_only_labeled_overviews_and_reference_links_changed():
     assert files.keys() == {f'papers/{s}/{n}' for s in VERSIONS for n in ('lab.yaml', 'method.md')}
     for path, row in files.items():
         current = (ROOT / path).read_bytes()
-        restored = current
+        restored = before_revise_full_rewrite(ROOT, path, current)
         if path.endswith('lab.yaml'):
             field, = re.findall(rb'^  overview: \|-\n(?:    [^\n]+\n|\n(?=    ))+', restored, re.M)
             assert sha(field) == row['overwritten_overview_sha256']
@@ -34,10 +34,11 @@ def test_only_labeled_overviews_and_reference_links_changed():
             restored = restored.replace(new.encode(), old.encode())
         for form, hash_ in (('sha256', sha), ('blob', blob)):
             assert hash_(restored) == row['before_' + form]
-            assert hash_(current) == row['after_' + form]
-            assert arxiv_versioned_overview_hash(ROOT, path, hash_(restored), form) == hash_(current)
+            pinned = arxiv_versioned_overview_hash(ROOT, path, hash_(restored), form)
+            assert pinned == row['after_' + form]
+            assert revise_full_rewrite_hash(ROOT, path, pinned, form) == hash_(current)
             with pytest.raises(AssertionError):
-                arxiv_versioned_overview_hash(ROOT, path, hash_(current + b'\n'), form)
+                arxiv_versioned_overview_hash(ROOT, path, hash_(restored + b'\n'), form)
 
 @pytest.mark.parametrize('slug,fragments', [
     ('oneranker-ads', ('後段の精密ランキングは変えていません', '1.3427%', '0.7190%', '2%増',

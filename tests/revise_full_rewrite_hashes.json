@@ -1,0 +1,147 @@
+{
+  "files": {
+    "papers/revise-recovery/lab.yaml": {
+      "before_sha256": "0d778cb0697a1a19a67e44dac42ae32114d35a6c7f6c7bbc4b4159acb75c5f11",
+      "before_blob": "494739ea83c89cd90184fc2470af1c1f74c16e3f",
+      "after_sha256": "91107b4f9d0f69c3825a176ff370a080abd51cd088468ac1157d3574e991a717",
+      "after_blob": "18340d1cd2b1bdcba1fdb86db3f756318e629bb6",
+      "prior_spans": [
+        [
+          28,
+          30,
+          "question: 実行途中の指示変更で、どの作業なら残せるか\nsummary: REVISE は変更した値と実際の依存関係を照合し、無効になった枝だけを再計算する。再利用には妥当性の証拠が必要で、依存情報が足りなければ suffix や全体再実行へ戻る。\n"
+        ],
+        [
+          32,
+          33,
+          "  scope: 提供PDFと arXiv HTML を照合。2609.00643。独立再現ではない。\n"
+        ],
+        [
+          37,
+          39,
+          "  author_claim: 著者は進行中の agent workflow を対象に、変更の影響を data/control 依存へ伝播し、完了済み・実行中・未着手の作業を処理し分ける。評価した実行は最新版の oracle\n    と一致し、局所変更では restart や suffix より呼び出しを減らした。\n  research_bot_interpretation: 「変更に関係なさそう」という会話上の判断では再利用を許せない。ある枝が読んだフィールドをすべて記録できても、その枝を選んだ分岐条件や外部ツールへ渡した値を取りこぼしていれば、変更後もそのまま結果を公開してよいという証拠にはならない。省ける仕事が減っても、証拠が弱いときに広くやり直す性質が必要だ。\n"
+        ],
+        [
+          44,
+          46,
+          "  problem: '### 変更より後の仕事を全部捨てると、独立な枝まで失う\n"
+        ],
+        [
+          47,
+          48,
+          "    たとえば旅行案で予算だけが変わったとき、ホテルの選択と総額はやり直す必要がある。一方、予算を読んでいない街の説明は残せるかもしれない。実行順で最初の衝突から後ろを捨てる suffix 方式は、その説明も巻き込む。\n"
+        ],
+        [
+          49,
+          54,
+          ""
+        ],
+        [
+          55,
+          56,
+          "    ただし、街の説明を出す経路自体が予算で切り替わっていれば依存がある。値の読み取りだけでなく、どの分岐を通ったかという control 依存も追う必要がある。これは推論精度を上げる手法ではなく、指示変更後の状態を正しくそろえる\n    runtime の研究である。'\n  method: method.md\n  why_it_might_work: 同じ依存情報を使う suffix と比べれば、selective は影響を受けない途中の枝を残せる。変更が局所的で、分岐が独立し、依存記録が細かいほど差が出る。直列の処理や全体に影響する変更では、正しく動いても節約できない。\n  evidence: '### oracle 一致は、最新版への回復を測る\n"
+        ],
+        [
+          57,
+          58,
+          "    Table 1 の15939実行は最新版／全体再実行の oracle と一致し、古い output・effect は0と報告する。内訳には15000の GPU serving 実行と300の敵対的な順序の実行が含まれる。これは\n    in-process の validity と effect safety の評価で、分散合意や crash recovery の保証ではない。\n"
+        ],
+        [
+          59,
+          60,
+          ""
+        ],
+        [
+          61,
+          66,
+          "    ### 呼び出し削減とレイテンシーは別に読む\n"
+        ],
+        [
+          67,
+          68,
+          "    Qwen3-14B と SGLang を用いた10ノードの LangGraph アプリでは次の結果になる。数値は Table 5 の著者報告であり、本 Lab の toy とは無関係。\n"
+        ],
+        [
+          69,
+          72,
+          ""
+        ],
+        [
+          73,
+          74,
+          "    | 回復方法 | model calls | completion tokens | E2E p50 |\n"
+        ],
+        [
+          75,
+          82,
+          "    | --- | ---: | ---: | ---: |\n\n    | full restart | 10.0 | 80.0 | 719 ms |\n\n    | earliest-conflict suffix | 7.8 | 62.4 | 711 ms |\n\n    | REVISE | 4.4 | 35.2 | 669 ms |\n\n\n    共有 cache を消していないため、著者は calls と生成 token を主指標、model-wall を副次指標にする。LLMCompiler の local 条件では calls が6.00→5.19→3.56。global/untracked\n    条件では全方式6.00に戻る（Table 7）。情報が欠けたら全体をやり直す。安全な再利用を証明できない場合の動作である。\n\n\n    SWE-chat の観察は実行中に修正できる時間窓を示すが、完全な依存記録がなく安全な再利用量までは示せない。手動監査30件も出現率を推定する標本ではない。負荷実験の goodput 改善は逼迫時に現れ、通常負荷へ一律に外挿できない。[一次資料：§2、§4、Appendix\n    A](https://arxiv.org/html/2609.00643v1)。'\n  executable_understanding: '`uv run papers/revise-recovery/run.py`\n\n\n    6ノードの DAG を A,B,C,D,E,F の順に並べる。A→C は予算、B→D は都市、E は文体を読む独立な枝で、F が結合する。予算を変更すると A,C,F が無効になる。全体再実行、最初の衝突以降の suffix、依存に沿う\n    selective で再計算集合と最新版の値を比較する。\n\n\n    全フィールドの変更と依存情報 unknown も走らせる。別の certificate 検査で late read、古い親、情報欠落、安全でない effect を拒否し、変更された枝とは別で、検査条件を満たす枝（sibling）を通す。変更と無関係な読み取りであっても、親の状態や副作用の検査は省かない。ライフサイクル操作は計画を出すだけで、実際の並行\n    cancel は行わない。'\n  results: 予算だけの変更では restart/suffix が6ノード、selective が3ノードを再計算し、出力はすべて最新版の全体再計算と一致する。全体変更または unknown では selective\n    も6ノードになる。呼び出し単価は同じと仮定し、時間や token の削減率へは換算しない。\n  what_we_verified: Mechanism PARTIAL。固定 DAG での影響伝播、非連続な枝の保持、unknown 時の全体再計算、5種類の commit 条件を確認した。確認はこの合成例に限る。\n  what_we_did_not_verify: LLM の非決定性、動的な分岐、proxy による依存取得、membership の更新、実 cancel、revision/commit の race、外部サービスの副作用、crash\n    recovery は NOT TESTED。toy の snapshot は純粋な値であり、実運用の証明書や lock を代替しない。原典の匿名 artifact package の公開先は確認できず、実験の独立再実行はしていない。\n  implementation: '`affected()` が data 依存と子孫をたどり、`execute()` がキャッシュを使って選択的に再計算する。`commit_valid()` は検査条件を純粋関数で表す。一般の\n    REVISE runtime の実装ではなく、原典 §3 の境界を説明するための標準ライブラリだけのモデルである。'\n  mapping: '| 原論文 | この Lab | 省略・公式実装 |\n\n"
+        ],
+        [
+          83,
+          86,
+          "\n    | [原典 HTML](https://arxiv.org/html/2609.00643v1)・提供 PDF | method の式と図は原典から描き直し | 原典の数値と toy の数値を分離 |\n\n    | 手法の最小機構 | `run.py` と `results.json` | ニューラルモデル・本番データを省略 |\n\n    | 公式コード | 原典で実行可能な公開URLを確認できず | 公式実装との一致は未検証 |'\n"
+        ],
+        [
+          88,
+          90,
+          "  title: 実行順の後半より、依存の枝をたどる\n  caption: Lab の6ノード DAG。赤は budget 変更の影響範囲。青緑の枝は有効性を確認できるときだけ保持する。\n"
+        ],
+        [
+          92,
+          94,
+          "  title: 再利用の許可は commit まで暫定\n  caption: 原典 Eq. (1)–(2)・§3.3 を基に再構成。実行開始後の変更と最終 read set を照合する。\n"
+        ]
+      ]
+    },
+    "papers/revise-recovery/method.md": {
+      "before_sha256": "0b37eb6c7057b6228e490378cbfd25dd2923185593f4f04ddf0e2a152487f2cc",
+      "before_blob": "57d6e45783df258173c420e9c09c563780b4f505",
+      "after_sha256": "c49feb729baa7bccbfd92a54f4e33f168107ea00e0e2c988de82f9ecfdaac126",
+      "after_blob": "e494953dfe5bf725a1501a6e1f5e34c14a231d2d",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 変更したパスと、実際に読んだパスを照合する\nworkflow を DAG G=(V,E) とし、artifact ごとに版番号を持つ。読み取り selector (a,p,c) は artifact、内部のパス、data/control の区別を記録する。revision e=(a,v,v+1,op,Δ) は変更されたパス集合 Δ を運ぶ。古い版への revision は受け入れない。\n"
+        ],
+        [
+          2,
+          5,
+          "構造化された状態を read-only proxy で包み、フィールド参照では leaf path、列挙では集合の `#members` を記録する。親子のパスは重なりとして扱い、要素の追加・削除はその集合の membership 読み取りと照合する。直接の読者から現在有効な子孫へ影響を伝播する。\n"
+        ],
+        [
+          12,
+          13,
+          "最初の2式は Lab の整理である。原典 §3.2 の記述を集合で表した。どの値に依存したか分からない処理も、変更の影響を受けたものとして扱い、再計算の対象を広げる。\n"
+        ],
+        [
+          14,
+          15,
+          "### 完了・実行中・未着手では、取り消す操作が違う\n無効な実行中の呼び出しは cancel、未着手なら avoid、必要な処理を新しい版で recompute する。有効性を示せる実行中の枝は continue、完了済みは reuse。許可は暫定である。\n"
+        ],
+        [
+          16,
+          21,
+          "### 公開する直前に、最終的な読み取り履歴を検査する\n変更が来た時点ではまだ読んでいなかった値を、後から読む場合がある。revision 時点だけの判定ではこの late read を見落とす。実行は immutable snapshot を使い、次の証明書を蓄積する。\n"
+        ],
+        [
+          26,
+          27,
+          "P は親 attempt の識別子、mode は complete/coarse/unknown。commit では開始後の全変更と最終的な read set を照合し、親が現在の committed attempt か確かめる。revision と commit は同じ lock で直列化する。外部への作用は検査が通るまで staged のまま保持する。不可逆な作用や証拠の欠落は明示的な処理または停止を必要とする。[一次資料：§3](https://arxiv.org/html/2609.00643v1)。\n"
+        ]
+      ]
+    },
+    "papers/revise-recovery/figures/impact.svg": {
+      "before_sha256": "9d4eca785e0ab24db0a55a013d2bb1f25088106a097e9f39e46fbfdb99dffbd6",
+      "before_blob": "012eb6e809154378ab74edac6241e87db7007d5e",
+      "after_sha256": "1855a33e9541b5930eb2eee15d4bb7827e0ade5b28deae424d36ebc40bfd7e65",
+      "after_blob": "5fe1a6fb0443c090e5c954496a0b609054f5a782"
+    },
+    "papers/revise-recovery/figures/certificate.svg": {
+      "before_sha256": "3563c2b4b14c36e3e2fe0102e4567eacb396af6dda465bb9e74264cca4cb033c",
+      "before_blob": "0b8578524acc1e7b4fc8bcfeac54064f926edb16",
+      "after_sha256": "833943e30af8d19c660a3d800b82395a17bf9417e5ce76d1323dba622231e3c1",
+      "after_blob": "daa11aaf3bc4adc8a6a876747b09aa746fd5b0b3"
+    }
+  }
+}

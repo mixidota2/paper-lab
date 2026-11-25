@@ -91,7 +91,37 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = or_transformer_full_rewrite_hash(root, path, expected, algorithm)
     expected = diff_projection_source_version_hash(root, path, expected, algorithm)
     expected = arxiv_versioned_overview_hash(root, path, expected, algorithm)
-    return paper_overview_rewrite_hash(root, path, expected, algorithm)
+    expected = paper_overview_rewrite_hash(root, path, expected, algorithm)
+    return revise_full_rewrite_hash(root, path, expected, algorithm)
+
+
+def revise_rewrite_receipt(root):
+    return json.loads((root / 'tests/revise_full_rewrite_hashes.json').read_text())['files']
+
+
+def revise_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    """Accept only the reviewed full REVISE text from the pinned overview version."""
+    if not path.startswith('papers/revise-recovery/'):
+        return expected
+    row = revise_rewrite_receipt(root).get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_revise_full_rewrite(root, path, current):
+    """Replay the earlier overview-only checks on their exact input."""
+    if not path.startswith('papers/revise-recovery/'):
+        return current
+    row = revise_rewrite_receipt(root)[path]
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    original = ''.join(lines).encode()
+    assert hashlib.sha256(original).hexdigest() == row['before_sha256'], path
+    return original
 
 
 
