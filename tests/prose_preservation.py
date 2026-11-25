@@ -332,6 +332,15 @@ def shelf_tsukuba_hash(root, path, expected, algorithm='sha256'):
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path
+    return shelf_hermans_hash(root, path, row['after_' + algorithm], algorithm)
+
+
+def shelf_hermans_hash(root, path, expected, algorithm='sha256'):
+    """Append the exact verified category sales case to its guide predecessor."""
+    if path != 'guides/shelf-decisions.md':
+        return expected
+    row = json.loads((root / 'tests/shelf_hermans_hashes.json').read_text())
+    assert expected == row['before_' + algorithm], path
     return row['after_' + algorithm]
 
 
