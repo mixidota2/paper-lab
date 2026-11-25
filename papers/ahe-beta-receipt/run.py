@@ -26,12 +26,12 @@ def evaluate(case: Case, revision: str = "rev-B", *, requirement_verified: bool 
 
 
 def frame_note(case: Case, result: dict):
-    artifact = "成果物の検査は合格" if case.artifact_pass else "成果物の検査は不合格"
-    receipt = {None: "受け取ったかは不明", "accepted": "送信側で受理済みだが、受け取ったかは不明", "rev-A": "受け取り記録は旧版", "rev-B": "受け取り記録は現行版"}[case.receipt]
-    review = {None: "レビュー記録なし", "rev-A": "レビュー記録は旧版", "rev-B": "レビュー記録は現行版"}[case.reviewed_revision]
+    artifact = "成果物は検査に合格した" if case.artifact_pass else "成果物は検査に通らなかった"
+    receipt = {None: "利用者が受け取ったかは不明だ", "accepted": "送信側は受理したが、利用者が受け取ったかは不明だ", "rev-A": "利用者が旧版Aを受け取った記録がある", "rev-B": "利用者が現行版Bを受け取った記録がある"}[case.receipt]
+    review = {None: "レビューの記録はない", "rev-A": "レビューの記録は旧版Aを対象にしている", "rev-B": "レビューの記録は現行版Bを対象にしている"}[case.reviewed_revision]
     done = "作業の完了条件を満たす" if result["work_complete"] else "作業の完了条件を満たさない"
     change = "変更を採用できる" if result["toy_change_eligible"] else "変更を採用できない"
-    return f"{artifact}。{receipt}。{review}。この条件では{done}。変更に必要な根拠は確認済みで、レビューした版が現行版かによって、{change}と判定する。"
+    return f"{artifact}。{receipt}。{review}。この例では{done}。変更案の要件には根拠があるとし、現在の版がレビューされているかを確かめる。その結果、{change}と判定する。"
 
 
 def generate():
@@ -56,7 +56,7 @@ def generate():
                                            for label, key in columns],
                        "note": frame_note(case, result), "lines": []})
     return {
-        "note": "架空の作業記録から判定を計算する。0は条件を満たさない、1は満たす。論文の得点や人の行動を再現した結果ではない。",
+        "note": "架空の作業記録を使って判定する。1は条件が成立した例で、0は成立しなかった例を示す。論文の得点や利用者の行動を再現したものではない。",
         "verification": {"mechanism": "PARTIAL", "performance": "NOT TESTED",
                          "scaling": "NOT TESTED", "production_applicability": "NOT TESTED"},
         "experiments": [
