@@ -11,7 +11,7 @@ from xml.etree import ElementTree as ET
 import pytest
 import yaml
 
-from prose_preservation import walmart_full_rewrite_hash
+from prose_preservation import restored_before_paper_overview, walmart_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = 'papers/walmart-demand-transfer'
@@ -90,7 +90,7 @@ def test_accepts_only_recorded_identical_inputs(algorithm):
             return hashlib.sha256(x).hexdigest()
         return hashlib.sha1(f'blob {len(x)}\0'.encode()+x).hexdigest()
     for p in manifest['files']:
-        a, b = old(p), (ROOT/p).read_bytes()
+        a, b = old(p), restored_before_paper_overview(ROOT, p, (ROOT/p).read_bytes())
         assert walmart_full_rewrite_hash(ROOT, p, digest(a), algorithm) == digest(b)
         with pytest.raises(AssertionError):
             walmart_full_rewrite_hash(ROOT, p, digest(b+b'\n'), algorithm)

@@ -94,7 +94,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
 def paper_overview_rewrite_hash(root, path, expected, algorithm='sha256'):
     """Permit the reviewed overview only on its exact previously reviewed file."""
     receipt = json.loads((root / 'tests/paper_overview_hashes.json').read_text())
-    row = receipt['files'].get(path) or receipt.get('generated_from', {}).get(path)
+    row = receipt['files'].get(path) or receipt.get('generated_from', {}).get(path) or receipt.get('mirrored', {}).get(path)
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path

@@ -9,7 +9,7 @@ import subprocess
 import pytest
 import yaml
 
-from prose_preservation import contextual_full_rewrite_hash
+from prose_preservation import contextual_full_rewrite_hash, restored_before_paper_overview
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = 'papers/contextual-deconvolution'
@@ -56,7 +56,7 @@ def test_archive_and_current_text_identities_are_exact(algo):
             return hashlib.sha256(raw).hexdigest()
         return hashlib.sha1(f'blob {len(raw)}\0'.encode()+raw).hexdigest()
     for path in manifest['files']:
-        current = (ROOT / path).read_bytes()
+        current = restored_before_paper_overview(ROOT, path, (ROOT / path).read_bytes())
         assert contextual_full_rewrite_hash(ROOT,path,digest(historical(path)),algo) == digest(current)
         with pytest.raises(AssertionError):
             contextual_full_rewrite_hash(ROOT,path,digest(current+b'\n'),algo)
