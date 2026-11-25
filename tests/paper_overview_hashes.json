@@ -368,6 +368,30 @@
       "after_blob": "5b3a90eaa88af88befe4d086e85e652781709c34",
       "prior_field": "  overview: ReSTは推薦モデルの行動履歴を処理する部分に直接勾配が届くよう、補助損失を加える。配信時はリクエスト内でユーザーの履歴を1回だけ処理し、その結果を同じリクエストの推薦候補で共有する。\n",
       "new_field_sha256": "f944fdd7eb25bfc1c92490a1cbc663098b2d935ee3d4b0c2582c03451d513478"
+    },
+    "papers/autolr-dashen/lab.yaml": {
+      "before_sha256": "873bbfc75ebb571b5e4e42585f8fdac50236cefd9f9f1116453744a362c28bcf",
+      "before_blob": "55fb5672087577d6021c48fde24899b2822ddf13",
+      "after_sha256": "f1113256c1eea9da79877661cc2df0ad1c05b73e1bc1c95483127005bd862b08",
+      "after_blob": "f61bfc8bfc96e2aaef0aef05f5a086c754d0529e",
+      "prior_field": "  overview: AutoLRは推薦改善の調査からオフライン候補の提出までを自動化する。オンラインA/Bへの投入とLaunch Reviewは人が判断する。採択した測定値とコードを次の基準にするKEEPには、ノイズを進歩として固定する危険がある。\n",
+      "new_field_sha256": "cdd696e671837a744e99e1174f6998846da889e63b0fae1b08404e8c302596f2"
+    },
+    "papers/beyond-scalar-dsi-watchtime/lab.yaml": {
+      "before_sha256": "a306b634e9a57e656ad5e0bbe479e476471b87f1232b9517e1df81149c220ef8",
+      "before_blob": "3c67cf28e3127f84eee868166133d28344ffd0b9",
+      "after_sha256": "3a913b535e5db585a1892277e6cf46bbeef37e3842ef600daf3870e68d737eb4",
+      "after_blob": "96667f04b40b4accca7eca0b12e278683f97bcfa",
+      "prior_field": "  overview: DSI は視聴時間の平均に加え、完了や overplay の確率を下流へ渡す設計である。公開3データセットで最良の比較手法に対し MAE を1.9%〜8.5%削減したと著者は報告する。本番 A/B はない。\n",
+      "new_field_sha256": "707f7fadcb73af066cb1a93a6aa65f9074d075b93658a8d3cd947a64326fcfd8"
+    },
+    "papers/onetrans-v2-cascade-unification/lab.yaml": {
+      "before_sha256": "10d07e7d3c15446e565acb6095e7f24391d43ba41b0243ead63d5e11d5bbc778",
+      "before_blob": "9b6c7710050dbafc1fd4ca168eae87eee6deea87",
+      "after_sha256": "f3efa8fc1103e11b9d15b7b1417359d0fb785257a149811f3bd9e99fddd38d43",
+      "after_blob": "c64dec235d74526ae5a029774cddc7ce0aea6a68",
+      "prior_field": "  overview: OneTrans-V2は検索・粗い順位付け・精密な順位付けを残し、ユーザー文脈とTransformerを共有する。著者はオンラインGMV/user\n    +9.74%、同じハードウェア予算で3.2倍のQPSを報告する。\n",
+      "new_field_sha256": "6a93e748b8745b78dbdacdc097eef67aab4261c1d1542dbd55441c53689fb27c"
     }
   },
   "generated_from": {
@@ -427,6 +451,20 @@
       "after_sha256": "b792001cd8fbb7f2001350eb35121428badb2818a266815af9e6e3fe3fc86642",
       "after_blob": "d7ce1d4b967e010ce623527352f1867cecbbc4eb",
       "source": "papers/invevolve-whitebox-inventory-evolution/lab.yaml"
+    },
+    "papers/beyond-scalar-dsi-watchtime/README.md": {
+      "before_sha256": "4d63466ed6284710f957a70020004a519fdcb5c85f4c9ff2e0e3c1eccd19c5e4",
+      "before_blob": "e7f803179d55487da23f3fcc11a1f68eae0fb633",
+      "after_sha256": "5a17ef497e3ea8189c9f1c9e3872314ccb4e7cb20dc5c01ef6cf4a1ba824cc82",
+      "after_blob": "6be7d740660267cddc2d7a45be5d6ea29ab60136",
+      "source": "papers/beyond-scalar-dsi-watchtime/lab.yaml"
+    },
+    "papers/onetrans-v2-cascade-unification/README.md": {
+      "before_sha256": "0d9f22102c73910a6cf7e3ef18fad0b096f159dbcd3795fd720f0fe0ee8a9294",
+      "before_blob": "ba1b63cf22e250c23abfa61b25dbecadd4ca0559",
+      "after_sha256": "4e3224764475f4fc94d1e324b37f8939ca07a7fb045c934f448bd159002f499b",
+      "after_blob": "5773d81d37a107259fbb3e54966811b628e745a5",
+      "source": "papers/onetrans-v2-cascade-unification/lab.yaml"
     }
   }
 }

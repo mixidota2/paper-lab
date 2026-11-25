@@ -35,7 +35,7 @@ class OverviewText(HTMLParser):
 
 def test_scoped_source_transition_and_rendered_overviews(tmp_path):
     rows = json.loads((ROOT / 'tests/paper_overview_hashes.json').read_text())['files']
-    assert len(rows) == 46
+    assert len(rows) == 49
     site = tmp_path / 'site'
     build(root=ROOT, site_dir=site)
     anchors = {
@@ -85,6 +85,9 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'invevolve-whitebox-inventory-evolution': ('25件', '13件', '30件中20件', 'シミュレーション'),
         'netflix-counterfactual-observability': ('11件', '0.8212', '新しい枠'),
         'rest-sequence-ranking': ('1.31%', '11.93%', '50 ms', '実収益の増加率ではありません'),
+        'autolr-dashen': ('1,586件', '公開判断', '9件', '何割が本番で改善したかは分かりません'),
+        'beyond-scalar-dsi-watchtime': ('視聴時間の分布', '1.9〜8.5%', '公開データ3種類'),
+        'onetrans-v2-cascade-unification': ('3段階', '利用者を無作為', '9.74%', '共有だけ'),
     }
     for path, row in rows.items():
         raw = (ROOT / path).read_bytes()
@@ -118,6 +121,8 @@ def test_download_mirror_replaces_only_the_overview():
         'scope-coupled-supply-chain-policies',
         'flashtrie-gpu-beam',
         'invevolve-whitebox-inventory-evolution',
+        'beyond-scalar-dsi-watchtime',
+        'onetrans-v2-cascade-unification',
     )}
     for path, row in receipt['mirrored'].items():
         source = (ROOT / row['source']).read_bytes()
@@ -126,7 +131,7 @@ def test_download_mirror_replaces_only_the_overview():
         download = (ROOT / path).read_bytes()
         assert download.count(new) == 1
         assert download.count(old) == int(Path(path).parent.name in {
-            'reasoncast-agentic-demand-forecasting', 'scope-coupled-supply-chain-policies',
+            'reasoncast-agentic-demand-forecasting', 'scope-coupled-supply-chain-policies', 'onetrans-v2-cascade-unification',
         })
         restored = download.replace(new, old)
         for alg, before, after in (
