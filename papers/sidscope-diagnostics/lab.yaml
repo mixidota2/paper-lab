@@ -27,7 +27,7 @@ related_threads:
 - when-complex-ranking-is-worth-it
 status: published
 question: SIDの対応表を受け取ったら、学習を始める前に何を確かめるか
-summary: SIDScopeは利用率・衝突・prefix整合・更新・生成traceを診断する資源。trie内の有効pathと一意item取得を区別し、mapping修復後のcheckpoint再利用を別途検証する。
+summary: SIDScopeは、商品と識別子（SID）の対応表を点検する道具です。候補に正解のSIDが残っても、同じSIDを持つ別の商品と区別できるとは限りません。対応表を直したあとに旧モデルを使えるかも、別の検査で確かめます。
 source_review:
   checked: '2026-09-21'
   scope: arXiv v1の全文HTML・数式・表・付録を確認。著者報告と合成実験を区別。
@@ -35,57 +35,54 @@ source_review:
   version: v1
   html_sha256: 8043cc1a9924d9a3fd53d1d786c74d17dc91844fbd59550df933fb87c5c16fa8
 core_idea:
-  author_claim: source-traced mappingを共通contractへ正規化し、D1–D7でaddressability、prefix exposure、refresh、traceを診断する。D3の予測力はprefixを使う機構に条件付けられる。
-  research_bot_interpretation: '[QuaSID](quasid-collision-qualified-sid.html)と合わせ、衝突を減らす設計と、衝突や更新の影響を受け入れ時に点検する手順を分けて蓄積したい。[SnapLGR](snaplgr-snapchat.html)のSID→動画展開にも直結する。'
+  author_claim: |-
+    著者は、出典をたどれる商品とSIDの対応表を共通の形式にそろえ、D1〜D7で検査する。対応表から分かるのは、商品を区別できるか、先頭の符号で関連する商品をまとめられるか、更新で何が変わったかなどである。生成ログがあれば、候補から商品へ戻る段階も調べられる。
+  research_bot_interpretation: |-
+    [SIDInspector](sidinspector-mapping-diagnostics.html)は、主に書き出した対応表の検査に使う。SIDScopeは、その対応表を使う生成モデルのログや、更新後に旧モデルを使えるかを確かめる手順まで扱う。[QuaSID](quasid-collision-qualified-sid.html)のように重複を設計に含める場合も、共有されたSIDからどの商品を返すかは別に検査できる。[SnapLGR](snaplgr-snapchat.html)のように一つのSIDから複数の動画を展開する設計にも、この区別が当てはまる。
 sections:
   overview: |-
     著者は、商品と識別子（SID）の対応表から、生成推薦が候補を探す前の段階で何が起きているかを調べるSIDScopeを作りました。たとえば、異なる商品に同じIDが付くと一つに特定できません。一方、同じ人の履歴に一緒に現れやすい商品に共通の先頭記号が付いていれば、その記号を使って候補をまとめて探せます。SIDScopeは、この二つを別々に測り、IDの更新前後の変化や、生成時に残った候補も調べます。
 
     8つの対応表では、履歴が近い商品が先頭記号を共有する度合いと、その記号で正解候補を拾える度合いの順位相関は0.976でした。同じカタログを使う対応表をまとめた5群では0.900で、p値は0.083でした。学習済みの生成モデルの並び順を測った比較では相関が−0.564から0.205までばらつきました。この診断だけでは、本番の推薦の質は分かりません。論文には本番でのA/Bテストはありません。
-  problem: trieで有効なSIDを生成しても、そのSIDが複数itemを指していれば正解itemを一意に取れない。逆に衝突ゼロでも、prefixに行動上の近さがなければ探索の手掛かりになりにくい。対応表を更新して欠損を埋めても、旧checkpointが新しいコードに対応した出力を返せるとは限らない。
+  problem: |-
+    生成モデルが出したSIDが索引にあっても、同じSIDを持つ商品が複数あれば、そのSIDだけでは正解の商品を一つに絞れない。一方、全商品に異なるSIDを付けても、一緒に選ばれやすい商品が先頭の符号を共有していなければ、その符号は候補をまとめて探す手掛かりになりにくい。
+
+    対応表にない商品を足すと、以前からあった商品のSIDまで変わることがある。更新前に学習したモデルが、更新後の符号を正しく出せるとは限らない。
   method: method.md
-  why_it_might_work: '[QuaSID](quasid-collision-qualified-sid.html)の衝突を条件付きで評価する発想を、tokenizerを受け入れ、更新し、generatorへ渡す作業へ広げられる。D3がよい理由を「prefixを実際に候補探索に使うから」と限定すれば、診断から次の実験を選びやすい。全generatorのNDCGを予測する万能scoreにすると、原典が示す適用範囲を超える。'
-  evidence: '一次資料の著者報告。
+  why_it_might_work: |-
+    SIDの先頭の符号で候補を探す方式では、一緒に現れる商品対が同じ先頭の符号を持つ割合（D3）を見ると、正解が候補に入りやすいかを調べられる。先頭の符号を使わない採点器や、別の信号も学習する生成モデルの順位まで、D3だけで予測できるわけではない。
 
+    一つのSIDから複数の商品を返せる場合も、重複率だけで良し悪しは決まらない。候補に残った符号、その符号から取得できる商品、最後に選ばれた商品を分けて測ると、どの段階を調べ直すべきかを判断しやすい。
+  evidence: |-
+    [一次資料：論文初版 表4〜7・§8](https://arxiv.org/html/2608.18779v1)は、実行条件を満たした8通りの取り込みと、確認できる記録を別途残した例を区別している。商品集合や符号列の長さが異なるため、表の行を符号化方式の順位としては読まない。
 
-    [原典 Tables 4–7・§8](https://arxiv.org/html/2608.18779v1)。8つの実行可能なrouteと追加のauditable snapshotを区別する。異なるcatalog・depthの行をtokenizer順位表として扱わない。
+    **先頭の符号で候補を探した結果。** 対応表を8つ個別に数えると、D3と正解が候補に入る割合の順位相関は0.976だった。同じ商品集合を共有する対応表を5群にまとめると0.900、正確検定のp値は0.083だった。学習済みのSID生成モデルで順位の質を表すNDCG@20との相関は−0.564〜0.205だった。この範囲は、試した設定ごとの値であり、信頼区間ではない。
 
+    **生成ログで数えた結果。** 索引で許された符号列だけを探索したとき、GRID/P5の分割0では正解の符号が候補に残った割合は6.4%、そこから正解の商品を一つに特定できた割合は3.4%だった。差は3.0ポイントだった。分割1では5.0%対3.0%、別の分割法を使ったDIGERでは6.6%対5.4%だった。どちらの率も正解を指定した探索記録で割る。差の1.2〜3.0はパーセントポイントで、相対変化率ではない。方式と評価データが違うため、差が出た原因をこの比較だけで分けることはできない。
 
-    D3とprefix candidate recallの相関は8 exportsでρ=0.976。ただしcatalog単位の5群で集計するとρ=0.900、exact p=0.083。学習済みSID generatorのNDCGとの相関は−0.564〜0.205で安定せず、prefix診断から本番品質への一般化は確認されていない。
+    **対応表の更新後に旧モデルを使った結果。** DACT 0.6から0.7への更新で、SIDがなかった275商品に符号が付いた。一方、前後に共通する9,610商品の23.6%は符号が変わった。対応表だけを更新し、旧モデルを使った場合、新商品のRecall@20は0のままだった。乱数の初期値を3通り変えて追加学習したモデルは、著者が事前に定めた引き継ぎの条件を満たした。既存商品では、対応表だけを変えたときの順位指標の差の区間が0をまたいだため、更新によって順位の質が下がったとは断定できない。
 
-
-    constrained beamではGRID/P5のpath survival 6.4%に対してunique-item hitは3.4%（差3.0pp）。別foldは5.0%対3.0%、DIGERは6.6%対5.4%。1.2–3.0は相対%ではなくpercentage
-    pointsである。
-
-
-    DACT 0.6→0.7では275 itemのSID欠損を埋めたが、共通9,610 itemの23.6%のコードが変わった。旧modelのnew-item Recall@20は0のまま。適応学習3 seedは宣言したhandoff
-    gateを通った。旧itemのmapping-only差の区間は0をまたぐため、「mapping更新が品質を悪化させることを証明」とはしない。'
-  executable_understanding: '`run.py`はJSONの実対応表を読み、prefix使用数・entropy・衝突item率・重複SID率・任意の重み付きpair整合・旧mappingとのchurnを計算する。既定は説明用6
-    itemで、公式benchmarkとは別。CLIでは任意の実mapをそのまま診断できる。
-
+    以上は著者が公開データや生成ログで測った結果である。本番の応答時間、クリックや購入の変化、A/Bテストはここでは評価していない。
+  executable_understanding: |-
+    Labの `run.py` は、商品とSIDの対応表をJSONで渡すと点検できる。段ごとの符号列の数や割り当ての偏り、同じSIDを共有する商品の割合、重複分の割合を求める。商品対とその重みを渡せば、先頭の符号が一致する度合いも計算する。更新前の表を渡した場合は、両方の表にある商品のうち符号が変わった割合を求める。
 
     ```sh
-
     uv run papers/sidscope-diagnostics/run.py --mapping map.json --previous old.json --pairs pairs.json --out /tmp/my-diagnostics.json
-
     ```
 
+    `map.json` の例は `{"item-a":[0,1],"item-b":[0,2]}`。 `pairs.json` の例は `[["item-a","item-b",3]]`。Labは渡された商品対でD3を計算する。元の利用履歴から商品対を探す処理は含まない。人気の入力がないためD4は計算せず、対応表だけで生成モデルの品質も判定しない。
 
-    mapは `{"item-a":[0,1],"item-b":[0,2]}`、pairsは `[["item-a","item-b",3]]`。D3の近傍抽出は外で済ませる。popularityがないのでD4はNOT
-    TESTED、traceがなければgenerator品質も出さない。
+    入力を指定しなければ、説明用の6商品と、公式パッケージがMITライセンスで公開した12商品の対応表を診断する。後者については、以前に公式の動作例も別に実行した。確認値とハッシュは `official-check.json`、利用条件は `NOTICE.txt` にある。
+  what_we_verified: |-
+    Labは符号列の長さがそろっているか、各符号が非負の整数かを点検する。実際のJSONを渡す使い方では、入力のハッシュを記録する。人工例では、有効なSIDが生成されても、複数の商品に対応すれば正解の商品を一つに絞れないことを確かめた。
 
-
-    既定実行は公式MIT公開の12 item mapにも独立診断を適用する。公式quickstartは別途実行済みで、確認値とhashを`official-check.json`、利用条件を`NOTICE.txt`に保存した。'
-  what_we_verified: Mechanism PARTIAL。6 item中2 itemが同じleafに入るとD2=2/6、D5=1/6になること、pathが有効でも曖昧な場合はunique-item hitにならないことを確認した。固定depthと非負整数codeを検査し、input
-    hashを保存する。公式v1.0.1のreviewer quickstartを実行し、preflight passedとD1–D5出力を確認。公開12 item入力のleaf数11、D2=2/12、D5=1/12、prefix数3/6/11は独立実装と一致した。これは本番mappingではない。
-  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。公式の全route、125,000 trace、4,999
-    bootstrap、学習済みgeneratorのhandoff、online A/Bは再現しない。独立実装の範囲は一部の診断に限る。D4や公式の近傍抽出・provenance admissionは省略する。
-  implementation: '`validate()`はmapの形式、`diagnose()`はprefix/leafの集計、`trace()`はSID→itemの曖昧性を扱う。公式packageのimport名は互換性のため`sidinspector`のまま。公式の関数対応とrelease
-    hashはmapping.mdに記録する。
-
-
-    Python標準ライブラリだけで実行する。乱数を使う実験はseedを固定し、結果をコードと同じ場所に保存する。'
-  results: 以下は、このLabで診断を実行した結果である。上の「根拠」に載せた著者の診断・評価とは、データも評価対象も異なる。
+    過去の公式v1.0.1の動作例では、入力検査の通過とD1〜D5の出力を確認した。公開12商品では、異なる完全SIDの数11、D2の2/12、D5の重複率1/12、先頭から各段までの符号列の数3/6/11がLabの独立実装と一致した。これは本番の対応表ではなく、論文の仕組みは一部のみ確認した（PARTIAL）。
+  what_we_did_not_verify: |-
+    公式の全条件、公開された125,000行の生成ログ、4,999回の再標本化、学習済みの生成モデルの引き継ぎは再現していない。D4、公式の手順で近い商品を選ぶ処理、出典を含めた全入力検査もLabでは実装していない。性能、規模を広げた場合の動作、本番での有用性は未検証（NOT TESTED）。本番のA/Bテストも実施していない。
+  implementation: |-
+    `validate()` は入力の形式を点検し、`diagnose()` は符号列の数や重複を集計する。`trace()` は生成されたSIDが商品に戻るか、複数の商品に戻って曖昧になるかを調べる。LabはPython標準ライブラリだけで動く。公式パッケージの読み込み名は、互換性のため `sidinspector` のままである。実装の対応と公開版のハッシュは `mapping.md` に記録した。
+  results: |-
+    Labの人工例では、6商品のうち2商品が同じSIDを共有する。共有する商品を両方数えるD2は2/6だが、SIDの種類が1つ足りないことを数えるD5の重複率は1/6になる。重複を解消すると両方とも0になるが、この例で最初の符号が一致する度合い（D3）は変わらない。対応表の診断値が改善したことと、生成モデルを引き続き使えることは別である。
   mapping: mapping.md
 teaching_figures:
 - kind: matrix
@@ -102,35 +99,35 @@ teaching_figures:
   rows:
   - label: D1 / D5
     cells:
-    - 使用数・entropy・fan-out
-    - 容量配分と構造。ただしlatencyは別
+    - 符号の数、偏り、分岐数
+    - 割り当ての偏りと索引の構造。応答時間は別に測る
   - label: D2
     cells:
-    - 同じleafのitem数
-    - resolver・人気偏り・衝突group
+    - 同じ完全SIDを共有する商品数
+    - 共有されたSIDから商品をどう選ぶか。人気に偏らないか
   - label: D3 / D4
     cells:
-    - 行動近傍・tail解像度
-    - prefix exposureと人気別の評価
+    - 関連する商品が同じ先頭の符号を持つか。人気が低い商品を区別できるか
+    - 正解が候補に入るか。商品の人気によって違うか
   - label: D6
     cells:
-    - コード更新のchurn
-    - checkpointの再評価と適応
+    - 更新で符号が変わった商品の割合
+    - 旧モデルで正しく商品を取得できるか
   - label: D7
     cells:
-    - path→itemのtrace
-    - 曖昧性・重複・target survival
+    - 生成した符号と、その符号から取得できた商品
+    - 商品を一つに特定できるか。重複はないか。正解の符号が残ったか
 - kind: matrix
   id: trace-gap
-  title: 有効なコードを当てても、一意itemには届かない
+  title: 正解の符号が残っても、商品を一つに絞れるとは限らない
   after: evidence
   caption: 原典の説明・報告値を学習用に再構成。独立再現ではない。
   source: https://arxiv.org/html/2608.18779v1
   locator: Table 6
-  rationale: 有効なコードを当てても、一意itemには届かない
+  rationale: 正解の符号が残っても、商品を一つに絞れるとは限らない
   columns:
-  - path survives
-  - unique-item hit
+  - 正解の符号が残った割合
+  - 正解の商品だけを取得できた割合
   - 差
   rows:
   - label: GRID/P5 fold 0
@@ -143,7 +140,7 @@ teaching_figures:
     - 5.0%
     - 3.0%
     - 2.0pp
-  - label: DIGER sensitivity
+  - label: DIGER（別の分割法）
     cells:
     - 6.6%
     - 5.4%

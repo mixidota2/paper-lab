@@ -1,19 +1,19 @@
 # SIDInspector: A Mapping-First Diagnostic Resource for Semantic-ID Tokenizers
 
-商品と識別子の対応表を共通の形式にそろえ、識別子の使われ方、複数商品への重複割当、行動が似た商品のまとまり、人気別の割当、索引の構造を別々に調べる。collision-freeでも意味のあるprefixとは限らない。
+このLabでは、各商品が異なるSemantic ID（SID）を持つことと、一緒に選ばれやすい商品がSIDの先頭を共有することを分けて調べます。同じ6商品の架空の対応表を比べると、全商品を区別できても、関連する商品が同じグループに残るとは限らないことが分かります。
 
 公開ページ: https://mixidota2.github.io/paper-lab/papers/sidinspector-mapping-diagnostics.html
 
-## 実行
+## 人工例を動かす
 
 ```bash
 uv run papers/sidinspector-mapping-diagnostics/run.py
 ```
 
-Python標準ライブラリだけを使う。`lab.yaml` と `method.md` が解説の原本、`run.py` が最小実験、`results.json` が出力、`mapping.md` が原典との対応。HTMLは `uv run paper-lab build` で生成する。
+Python標準ライブラリだけで動きます。実行コードは `run.py`、計算結果は `results.json` にあります。手法を読むなら `method.md`、論文初版との対応を確かめるなら `mapping.md` を開いてください。公開ページは `lab.yaml` と手法の説明 `method.md` を使って生成します。サイト全体は `uv run paper-lab build` で生成できます。
 
-## 検証範囲
+## 何を確かめたか
 
-Mechanism PARTIAL。入力条件に違反する人工入力の拒否、非singleton bucketに属するitem比率、重み付き近傍回収、tailの一意SID比率、prefix数とfan-outを確認。局所計算はCONFIRMED。
+人工データから、SIDを共有する商品の割合、先頭の符号が一致する商品対の重み付き割合、不人気側の商品に割り当てられた異なるSIDの比率、符号列の数と分岐数を計算しました。商品IDの重複や商品登録の漏れも検出します。確かめたのは局所計算で、論文の仕組み全体ではありません（PARTIAL）。
 
-Performance / Scaling / Production applicability NOT TESTED。公式packageの全gate、GRID/ReSID/LETTER/LC-Rec export、co-occurrence構築のsampling、generatorのRecall/NDCG、latencyとonline A/Bは未実行。D2の衝突率だけから衝突の害を判断しない。
+[論文初版](https://arxiv.org/pdf/2606.10375v1)にある公式パッケージの検証や、各方式の対応表の再出力は行っていません。利用履歴からの商品対の選び直し、生成モデルのRecallやNDCG、応答時間、A/Bテストも未実施です。重複が多いという結果だけで、推薦が悪化したとは判断できません。
