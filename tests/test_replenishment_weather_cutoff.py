@@ -6,7 +6,7 @@ import re
 
 import pytest
 
-from prose_preservation import before_axial_ingredient_order, before_weather_cutoff, weather_cutoff_rewrite_hash
+from prose_preservation import before_axial_ingredient_order, before_stockout_example, before_weather_cutoff, weather_cutoff_rewrite_hash
 
 ROOT=Path(__file__).resolve().parents[1]
 P='guides/forecast-to-replenishment.md'
@@ -20,7 +20,7 @@ def identity(b):
 def test_weather_section_and_existing_guide_are_exact():
     current=(ROOT/P).read_bytes()
     prior=before_weather_cutoff(ROOT,P,current)
-    weather=before_axial_ingredient_order(ROOT,P,current)
+    weather=before_axial_ingredient_order(ROOT,P,before_stockout_example(ROOT,P,current))
     receipt=json.loads((ROOT/'tests/replenishment_weather_cutoff_hashes.json').read_text())
     b,a=identity(prior),identity(weather)
     assert b==receipt['before'] and a==receipt['after']
