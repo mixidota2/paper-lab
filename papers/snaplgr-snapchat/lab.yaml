@@ -38,8 +38,10 @@ core_idea:
   author_claim: multimodal・PPR協調SID、CPTによる語彙grounding、CUDA beam searchと分散batch推論を組み合わせ、本番retrievalを改善した。
   research_bot_interpretation: '[SIDScope](sidscope-diagnostics.html)が扱う「有効SIDと一意itemの違い」を実配信で考える例になる。候補生成源の置換であり、[Sona](sona-yandex-music.html)の最終rankまでの統合とは責任範囲が違う。'
 sections:
-  overview: SnapLGRはQwen3-0.6Bを生成retrievalへ使うSnapchatの本番事例。既存の13M T5型GRに対し、7日間のオンラインA/BでView Time +0.37%。オフラインSID
-    Recall@32の2.40倍という大きな差と、利用者体験の小さな相対改善を分けて読む。
+  overview: |-
+    Snapchatの研究チームは、動画の推薦候補を探す処理で、既存の1,300万パラメータのT5モデルに代えて、6億パラメータのQwen3を使いました。SnapLGRは動画を表す識別子（SID）を追加し、まずIDと動画の内容の関係を学び、次に利用者の行動履歴から候補のIDを予測するように学習します。著者は本番での計算を間に合わせるため、GPUで候補IDを絞る処理や、処理の振り分け方も変えました。
+
+    著者は7日間のA/Bテストで、従来方式より視聴時間（View Time）が0.37%増えたと報告しています。これとは別に、両方式で同じSIDを使ったログ評価では、上位32件でのID一致を測るRecall@32が4.624%から11.11%に上がりました。視聴時間が2.40倍になったわけではありません。本番ではIDの作り方、モデル、配信処理を一緒に変えており、Qwen3の事前学習だけの効果は切り分けていません。
   problem: 事前学習LLMは社内のSID語彙を知らない。SIDの衝突、語彙の意味付け、短い出力を広いbeamで生成する配信費用を同時に扱う必要がある。retrievalの改善だけでは、後段rankerを通した後に利用者体験がどれだけ改善するかは分からない。
   method: method.md
   why_it_might_work: decoder-onlyの容量を増やすと履歴からSIDへ写す関数が豊かになる。PPRの協調信号は、見た目が近いだけでなく一緒に見られる動画をコード空間へ近付ける。CPTは初期の意味付けに役立つが、SFT後は行動信号で空間が変わる。語彙の意味が最後まで保存されるという単純な説明は、原典のRSA結果と合わない。

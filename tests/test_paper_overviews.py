@@ -40,7 +40,7 @@ class OverviewText(HTMLParser):
 
 def test_scoped_source_transition_and_rendered_overviews(tmp_path):
     rows = json.loads((ROOT / 'tests/paper_overview_hashes.json').read_text())['files']
-    assert len(rows) == 74
+    assert len(rows) == 78
     site = tmp_path / 'site'
     build(root=ROOT, site_dir=site)
     anchors = {
@@ -118,6 +118,10 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'icegr-baidu-intent-generative-retrieval': ('5億パラメータ', '最終結果に直接', '3.52%', '15.96%', '7.53%'),
         'ogr-once-generated-ranked': ('3%', '1週間', '1.120%', '本番の応答時間が約2.2倍速くなったという測定結果ではありません'),
         'sid-ope-hierarchy': ('KuaiRand', 'SNIPS', '0.155', '0.087', '同じ数のグループ'),
+        'muser-baidu-long-sequence-multi-interest': ('最大10万件', '6通り', '0.26%', '0.89%', '0.2351', '0.2232'),
+        'unique-baidu-unified-retrieval-ranking': ('1週間', '0.96%', '1.08%', '99パーセンタイルで89ミリ秒', '推薦画面全体の応答時間ではありません'),
+        'unirec-chain-of-attribute': ('ランディングページ', '20%', '5.37%', '4.76%', '5.60%', '商品ごとに違えば'),
+        'snaplgr-snapchat': ('7日間', '0.37%', '4.624%', '11.11%', '視聴時間が2.40倍になったわけではありません'),
     }
     for path, row in rows.items():
         raw = before_full_article_rewrites(ROOT, path, (ROOT / path).read_bytes())
@@ -173,6 +177,10 @@ def test_download_mirror_replaces_only_the_overview():
         'gatesid-coldstart-ranking',
         'icegr-baidu-intent-generative-retrieval',
         'ogr-once-generated-ranked',
+        'muser-baidu-long-sequence-multi-interest',
+        'unique-baidu-unified-retrieval-ranking',
+        'unirec-chain-of-attribute',
+        'snaplgr-snapchat',
     )}
     for path, row in receipt['mirrored'].items():
         source = before_full_article_rewrites(ROOT, row['source'], (ROOT / row['source']).read_bytes())
@@ -191,6 +199,9 @@ def test_download_mirror_replaces_only_the_overview():
                 'pinterest-causal-retrieval-shopping': 1,
                 'gatesid-coldstart-ranking': 2,
                 'icegr-baidu-intent-generative-retrieval': 1,
+                'muser-baidu-long-sequence-multi-interest': 1,
+                'unique-baidu-unified-retrieval-ranking': 1,
+                'unirec-chain-of-attribute': 1,
             }
             assert slug in prior_paragraphs
             old = row['prior_mirror'].encode()

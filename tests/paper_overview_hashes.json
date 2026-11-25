@@ -592,6 +592,38 @@
       "after_blob": "e6b993d070c757270b4b3449ddb7bf1ffe0157f1",
       "prior_field": "  overview: 商品ごとの記録が少なく評価値が不安定なとき、識別子の先頭部分が同じ商品をまとめて評価すると、同じログをより安定して使える場合がある。ただし、同じ商品群の中で好みが変わった違いは見落としやすくなる。精度改善の中心は粗粒度化で、木の固有の利点はdecoderから群の確率を少ない計算で求められることにある。\n",
       "new_field_sha256": "18701f580a67e8e81128e33c17340ae2582ff5908d2079da6ca2f43ae113bc4f"
+    },
+    "papers/muser-baidu-long-sequence-multi-interest/lab.yaml": {
+      "before_sha256": "7519ac69c6cffb781358bfca2cca09ea9ca331205b3ef71aafec14ecd38dfe92",
+      "before_blob": "5dd3b37d5b564b751b182ada6c4a15a1d915f010",
+      "after_sha256": "fe45c5c62d919b883836dd43925dd1bfc99b78722fd96015deffd6a3f4cf5169",
+      "after_blob": "137823726e71cae10b5f8f66ad007abb71078322",
+      "prior_field": "  overview: 10⁴–10⁵件の履歴をrequestのたびに全処理することを避ける。長期表現を非同期に計算し、onlineの短期表現と合わせる。単一user vectorへ平均化せず、複数queryで異なる関心を抽出する。ただし直交正則化が、それぞれのheadに人が解釈できる別の意味を保証するわけではない。\n",
+      "new_field_sha256": "c3a87215461f85fd1ee34cca8ea8eac7d47907efbd2f71d65b372bb12a77f064"
+    },
+    "papers/snaplgr-snapchat/lab.yaml": {
+      "before_sha256": "72a6aef57d78a8cca0f7129adfdcd5e2ed71ca2307b1b25ed8f97b1171cce568",
+      "before_blob": "ae455e51fc1e68fcd7019babc2c7679e2e32001d",
+      "after_sha256": "f03c0e20bf721dda3f4761fee032a0cf12341ee602ded3fe79426e4b65f901a9",
+      "after_blob": "d55f5e6947322dde8a6f4e83b7d8ec9303f12723",
+      "prior_field": "  overview: SnapLGRはQwen3-0.6Bを生成retrievalへ使うSnapchatの本番事例。既存の13M T5型GRに対し、7日間のオンラインA/BでView Time +0.37%。オフラインSID\n    Recall@32の2.40倍という大きな差と、利用者体験の小さな相対改善を分けて読む。\n",
+      "new_field_sha256": "7d6609f2ca10a0e248fee59eb060ec270e5b160f65320126a0a1d00928e92307"
+    },
+    "papers/unique-baidu-unified-retrieval-ranking/lab.yaml": {
+      "before_sha256": "c2c61a4a1ade30033605b389f0d89288ef673c9b130dbea38a5fa22b2987ab6a",
+      "before_blob": "b8b7f068760510a0754c2dc87e32203160caea66",
+      "after_sha256": "526bc866b950c2abd087b838124458bbdc58b2fdcf72ec3d1883c7c7832f6d25",
+      "after_blob": "1c2f1f4a49f4a41070fe6d2b48805b628cb3e689",
+      "prior_field": "  overview: Mobile Baiduのホーム、発見ページ、短い動画が対象。利用者に合うコードを予測し、そこに属する商品を取り出す。利用者と商品のベクトルの内積で候補を絞り、商品ごとに利用者の履歴を参照して詳しく採点する。表現や学習・配信の部品を共有しても、カタログ全件を一度に採点するわけではなく、後段の推薦処理も残る。\n",
+      "new_field_sha256": "d73db7cfb8dfff9ea9c2e86bd86febce0f8834c73f17d3f4f1d861a8fcbbe933"
+    },
+    "papers/unirec-chain-of-attribute/lab.yaml": {
+      "before_sha256": "39434aaa380848bf3a02949d41a0ed38f1c2eaa388a4714de9c4aa0bd82a65e6",
+      "before_blob": "38ed4dfcde0a3f757662d81858628e0b956f00f2",
+      "after_sha256": "971e0ceaa7c32241a0728c9e5ed7bcaa21e4477715c58f15bb32bd1019ae9704",
+      "after_blob": "4c73a473462a727ed19554b5e79e3cd649fae68d",
+      "prior_field": "  overview: UniRecは属性→SIDの順に生成し、候補生成とrankingの統合を狙う。Shopeeの各bucket 20%のA/BでOverall PVCTR +5.37%、orders +4.76%、GMV\n    +5.60%。属性条件付きの不確実性低下は理解しやすい一方、本文のBayesによるランキング同値性には追加条件が要る。\n",
+      "new_field_sha256": "76f1d780cfe0e8e504567a8bf1bf2e3ff69138c1110e0051e2e87dfad734677f"
     }
   },
   "generated_from": {
@@ -812,6 +844,37 @@
       "after_sha256": "4a842b11de6b1f069819494cf6e152af4d57a51e193df6fa3bf69c965bfe23c0",
       "after_blob": "aa52cf09a7d638c6e859ca3b0d33c91dad308fad",
       "source": "papers/ogr-once-generated-ranked/lab.yaml"
+    },
+    "papers/muser-baidu-long-sequence-multi-interest/README.md": {
+      "before_sha256": "897760bd81bf21eb6c9759f3009fc18c68573d932c5c3cdad048ffb1c744487d",
+      "before_blob": "9c440cb44c5616afab022bb8b6e9d91446e23066",
+      "after_sha256": "8686c0c6c7fe3cb2f965f4fba5fb1f760a5cb1a1b3d2fe7747a9215541eff708",
+      "after_blob": "7dfbd7d267136c7fa68190f8a52a8e663362139e",
+      "source": "papers/muser-baidu-long-sequence-multi-interest/lab.yaml",
+      "prior_mirror": "BaiduのMuSeRは古い履歴を期間ごとに異なる粒度でまとめ、6つのinterest queryで利用者の異なる関心を取り出す推薦候補検索の方式だ。意味表現と非同期キャッシュも組み合わせる。ホームページでの同じA/Bテストで、DAUは0.26%、セッション時間は0.89%増えた。一方、履歴を圧縮すると、圧縮しない場合と同じ候補回収率（recall）を完全には保てない。"
+    },
+    "papers/snaplgr-snapchat/README.md": {
+      "before_sha256": "db0a89d59aa21f420eb5b31adbab5bf14895f1091498a6a80fa2cafc9bb3c9f4",
+      "before_blob": "fd4523a7d6fcb8e85817ce260742b85cc8c98509",
+      "after_sha256": "c1a5c979dbb23f6823b111d4af96a0885a38cbe0845ea50a8ba1569337b09ef1",
+      "after_blob": "57f7522df1deca3d88e5db5176106ce9e7720985",
+      "source": "papers/snaplgr-snapchat/lab.yaml"
+    },
+    "papers/unique-baidu-unified-retrieval-ranking/README.md": {
+      "before_sha256": "281f809838c6ae2fa9a6a845a3d8232cafb8798a9830dcd09abd3a34adef26a7",
+      "before_blob": "62542210c73d3ccd42df0f6d5006ec4a8d98e93e",
+      "after_sha256": "4dd59c84ed8f9233db1dbc4d97d730a043c6782cea195868b1ead72a08e2eaf8",
+      "after_blob": "7d2078534b33a3e6079e0ddc959995dbcec2555a",
+      "source": "papers/unique-baidu-unified-retrieval-ranking/lab.yaml",
+      "prior_mirror": "UNIQUEは、推薦候補を集めるモデルと、その候補を詳しく採点するモデルに、同じ利用者情報と学習結果を使わせます。Baiduと北京航空航天大学の著者は、Mobile Baiduで1週間のA/Bテストを行い、旧方式に比べ、視聴時間が0.96%、配信量が1.08%増えたと報告しました。99パーセンタイルの89 msは、所定の条件で測った候補取得サービスの応答時間です。推薦画面全体の応答時間ではありません。"
+    },
+    "papers/unirec-chain-of-attribute/README.md": {
+      "before_sha256": "9d8e8fa366b7b9a81e11f394c21ce6f71a6c761f91cd24e17feb7e9a491dab1e",
+      "before_blob": "ad8ccc168f041c465ae2606ec4f40dfa783c0503",
+      "after_sha256": "c44dd852d648ca45652ef4e3ff9e173235091f7777de2158879f315319eb6a1c",
+      "after_blob": "7862935f753a41fa6eb2992f179f4653652cef45",
+      "source": "papers/unirec-chain-of-attribute/lab.yaml",
+      "prior_mirror": "UniRecはカテゴリなどの商品属性を予測してからSIDを生成する。属性を手がかりに商品を絞り、候補生成と順位付けを一つのモデルで扱うことを目指す。Shopeeが各bucketに20%を割り当てたA/Bでは、Overall PVCTR +5.37%、orders +4.76%、GMV +5.60%を報告した。属性を手がかりにした場合としない場合で、次のSIDを予測する不確実性を比べる説明は追いやすい。属性を条件に加えても不確実性は平均では増えないが、生成と判別で商品の順位が同じになるかどうかは別の話だ。本文のBayesの式から同じ順位になると説明するには、分母を省ける条件を確かめる必要がある。"
     }
   }
 }
