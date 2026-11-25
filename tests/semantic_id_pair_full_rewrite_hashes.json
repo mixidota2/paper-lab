@@ -1,0 +1,674 @@
+{
+  "files": {
+    "papers/sidinspector-mapping-diagnostics/lab.yaml": {
+      "before_sha256": "671afc5b3d037e46a51059fd596835d5476f33b1cd870d3eda94a3a203117664",
+      "before_blob": "d258a897d37932ac818add9f22e36a1cfbdd7b39",
+      "after_sha256": "e33024976ffa399b623d482f669091abcba2ebce40f072bedca2be56a38474d7",
+      "after_blob": "bc48c0159c43971aebad0beff1637be0ad65a9c9",
+      "prior_spans": [
+        [
+          19,
+          21,
+          "question: generatorを学習する前に、SID住所表の何を検査できるか\nsummary: 商品と識別子の対応表を共通の形式にそろえ、識別子の使われ方、複数商品への重複割当、行動が似た商品のまとまり、人気別の割当、索引の構造を別々に調べる。collision-freeでも意味のあるprefixとは限らない。\n"
+        ],
+        [
+          33,
+          35,
+          "  scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。\n"
+        ],
+        [
+          36,
+          40,
+          "  author_claim: export済みSID mappingとjoin可能なmetadata・interactionを検証し、D1–D5の診断を学習loopから独立して実行する。D6はrefresh間の変化、D7はgenerator\n    traceの入力拡張。\n  research_bot_interpretation: '[SIDScope](sidscope-diagnostics.html)と共通する診断軸が多く、新しいtokenizerの性能改善と読むべきではない。本Labでは小さいadapter契約と、同じitem集合で「住所の一意性」と「行動近傍の保存」を分ける実用上の入口を重視する。'\n"
+        ],
+        [
+          45,
+          47,
+          "  problem: tokenizerの公開物はcheckpoint、codebook、item indexなど形が揃わない。IDの重複やjoin欠落を残したまま下流Recallだけを見ると、どこで問題が起きたか分からない。まずstable\n    item key、離散token、同じ診断対象集合、metadata/interactionとのjoinを揃える必要がある。可変長codeはpadding/maskと実長を記録できるが、実serving挙動にはtraceが必要となる。\n  why_it_might_work: '解釈: modelの学習前に失敗を発見できれば、大きいgeneratorを回してからmapping欠落に気付く手戻りを減らせる。D2とD3を別々に測ると、単にleafを増やす対策とprefixの構造を変える対策を分けられる。ただしco-occurrenceも履歴の露出やtaxonomyに依存し、高いD3が因果的に推薦を改善する保証はない。'\n  evidence: '一次資料 [PDF §4、Tables 1–3](https://arxiv.org/pdf/2606.10375v1) の著者報告。同じMusical\n    23,742 itemでGRID-style feature-textはunique full SID 3,749、D2 alias item率0.977、D3-L1\n    0.055。capacityを増やすとunique 9,874、D2 0.779、D3 0.080。ReSID/GAOQはunique 23,742、D2\n    0、D3 0.154。\n"
+        ],
+        [
+          48,
+          51,
+          ""
+        ],
+        [
+          52,
+          55,
+          "    決定的なcategory-prefix controlはD2 0、D3 0.447。一意性では同じでも近傍保持が異なる。ただしcategory controlは学習済みtokenizerではなく、ReSIDより優れた推薦モデルと結論できない。GRIDもcontrolled\n    exportで、全pipelineの公式追試ではない。\n"
+        ],
+        [
+          56,
+          62,
+          ""
+        ],
+        [
+          63,
+          64,
+          "    LETTER/LC-Recは別のInstruments 9,922 item、双方unique 9,897。D3は0.109/0.052。同じ商品集合ではないのでMusical表に混ぜない。fixed-rerankerの補助実験はD3とcandidate\n    recoveryの関連を示すが、trained generatorやA/Bの証拠ではない。\n"
+        ],
+        [
+          65,
+          66,
+          ""
+        ],
+        [
+          67,
+          82,
+          "    版の差: 今回読んだPDF v1 §5の公開tagは`sidinspector-cikm2026-resource-v0.6`。取得した公式main READMEはv1.0を案内していた。PDFの報告値を現在版で再実行したとは扱わず、両者を区別して記録する。'\n  executable_understanding: '`uv run papers/sidinspector-mapping-diagnostics/run.py`。同じ6\n    item・同じco-occurrence edgeに、衝突あり、衝突なし/近傍不一致、衝突なし/近傍一致の3 mappingを与える。先に欠落・duplicate\n    key・深さ不一致を拒否し、D1–D5を計算する。'\n  results: 人工mappingの衝突item率は2/3→0へ減らせるが、prefixを交差させた一意mappingのD3は0。行動pairを同prefixに置く一意mappingはD3=1。両者ともfull\n    SIDは一意であり、addressabilityとbehavioral alignmentが別であることを確認した。\n  what_we_verified: Mechanism PARTIAL。入力条件に違反する人工入力の拒否、非singleton bucketに属するitem比率、重み付き近傍回収、tailの一意SID比率、prefix数とfan-outを確認。局所計算はCONFIRMED。\n  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。公式packageの全gate、GRID/ReSID/LETTER/LC-Rec\n    export、co-occurrence構築のsampling、generatorのRecall/NDCG、latencyとonline A/Bは未実行。D2の衝突率だけから衝突の害を判断しない。\n  implementation: '`validate()`がadapter契約の小部分、`probe()`がD1–D5の人工診断。D1のused数は語彙budgetがないため絶対利用率に変換せず、D5のfan-outをmsへ換算しない。D3は固定edge集合のweighted\n    scoreで、per-item平均とは異なる。'\n"
+        ],
+        [
+          100,
+          103,
+          "    - item→SID\n    - 利用・alias・構造\n    - 下流品質とmsは未測定\n"
+        ],
+        [
+          105,
+          108,
+          "    - interaction + popularity\n    - 近傍・tail配分\n    - 露出偏りを含む\n"
+        ],
+        [
+          110,
+          113,
+          "    - 同itemのrefresh pair\n    - 住所変化\n    - 今回の主表とは別\n"
+        ],
+        [
+          115,
+          118,
+          "    - generator trace\n    - 生成path診断\n    - 本文では入力hook\n"
+        ],
+        [
+          120,
+          121,
+          "  title: 一意SIDの数だけでは衝突item率は分からない\n"
+        ],
+        [
+          123,
+          124,
+          "  rationale: 一意SIDの数だけでは衝突item率は分からない\n"
+        ],
+        [
+          127,
+          128,
+          "  - name: alias集合\n"
+        ],
+        [
+          129,
+          131,
+          "    explanation: 同じfull SIDを共有するitemを集める。\n  - name: item単位の衝突率\n"
+        ],
+        [
+          132,
+          134,
+          "    explanation: 3 itemが1 codeを共有すれば、3 itemすべてを数える。\n  - name: weighted prefix recovery\n"
+        ],
+        [
+          135,
+          136,
+          "    explanation: 同じprefixに残る近傍edgeの重みを足し、全近傍edgeの重み合計で割る。近傍edgeとdepthを揃えて比較する。\n"
+        ],
+        [
+          138,
+          139,
+          "  title: Musicalでは住所の一意性と近傍保持が分かれた\n"
+        ],
+        [
+          141,
+          142,
+          "  rationale: Musicalでは住所の一意性と近傍保持が分かれた\n"
+        ],
+        [
+          145,
+          148,
+          "  - unique full SID\n  - D2 alias item率\n  - D3-L1\n"
+        ],
+        [
+          149,
+          150,
+          "  - label: GRID-style ft\n"
+        ],
+        [
+          154,
+          155,
+          "  - label: capacity増\n"
+        ],
+        [
+          164,
+          165,
+          "  - label: category control\n"
+        ],
+        [
+          173,
+          175,
+          "  title: 同じ6商品で、住所の一意性と近傍を分離する\n  caption: \"run.pyの3つの人工mapping。色はprefix、D3は固定行動pairの回収。 D2は同じ完全SIDを他商品と共有する商品の割合。D3は固定した行動上の商品対が同じ第1接頭辞に残る割合。\"\n"
+        ]
+      ]
+    },
+    "papers/sidinspector-mapping-diagnostics/README.md": {
+      "before_sha256": "0bf960bb75a2a273501aaa2d9b6791aaf5f23d9ee55aa9de1e55b48561ae78c1",
+      "before_blob": "bd3b8e7e8c8f5be39469758759f47a4e051d84eb",
+      "after_sha256": "3dfb196ba5cd5c3e9ca50d61d0a0a1474343330764f9e65120055de9ccc83f7d",
+      "after_blob": "aaa603dddd215db63c9a41647c68e1d2face2d5e",
+      "prior_spans": [
+        [
+          2,
+          3,
+          "商品と識別子の対応表を共通の形式にそろえ、識別子の使われ方、複数商品への重複割当、行動が似た商品のまとまり、人気別の割当、索引の構造を別々に調べる。collision-freeでも意味のあるprefixとは限らない。\n"
+        ],
+        [
+          6,
+          7,
+          "## 実行\n"
+        ],
+        [
+          12,
+          13,
+          "Python標準ライブラリだけを使う。`lab.yaml` と `method.md` が解説の原本、`run.py` が最小実験、`results.json` が出力、`mapping.md` が原典との対応。HTMLは `uv run paper-lab build` で生成する。\n"
+        ],
+        [
+          14,
+          15,
+          "## 検証範囲\n"
+        ],
+        [
+          16,
+          17,
+          "Mechanism PARTIAL。入力条件に違反する人工入力の拒否、非singleton bucketに属するitem比率、重み付き近傍回収、tailの一意SID比率、prefix数とfan-outを確認。局所計算はCONFIRMED。\n"
+        ],
+        [
+          18,
+          19,
+          "Performance / Scaling / Production applicability NOT TESTED。公式packageの全gate、GRID/ReSID/LETTER/LC-Rec export、co-occurrence構築のsampling、generatorのRecall/NDCG、latencyとonline A/Bは未実行。D2の衝突率だけから衝突の害を判断しない。\n"
+        ]
+      ]
+    },
+    "papers/sidinspector-mapping-diagnostics/mapping.md": {
+      "before_sha256": "bb6bd7d444b787fc15f7acb9ac6f02ad553274e01c9b7ae6d2529a7a63d36ac9",
+      "before_blob": "31f108c0531c850c264944d501cbe5dde9eed363",
+      "after_sha256": "1b753f1bd067cc6bbb683618ee69968a17efbcde028cbfdfac40d093036f6a04",
+      "after_blob": "152c44421d54aa8c0b3e9430b447237d3c4a302b",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# Original Paper / Official Code Mapping\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料: [SIDInspector: A Mapping-First Diagnostic Resource for Semantic-ID Tokenizers](https://arxiv.org/pdf/2606.10375v1)、arXiv v1。2026-09-22確認。PDF SHA-256: `4fc33c243ac3dae6dcd04666b3ab85a677fcdc089531c5e8edd77aff78300cb5`。取得済みPDFは `/tmp/research-2026-09-22/2606.10375v1.pdf` を再利用した。\n"
+        ],
+        [
+          4,
+          5,
+          "| 原典 / 公式入口 | Lab | 省略 |\n"
+        ],
+        [
+          6,
+          11,
+          "| §2 / sidinspector.preflight | validate | 全schema・provenance検証 |\n| §3 / sidinspector.metrics | probe | train userからのbounded top-k構築 |\n| Table 2 | Evidence | 各tokenizerの生成 |\n| §5 / examples/minimal_adapter.py | READMEの実行入口確認 | 公式package gateは未実行 |\n| tools/verify_package.py | 次段階の公式検証先 | clean-check追試は未実施 |\n"
+        ],
+        [
+          12,
+          13,
+          "PDF記載v0.6と、2026-09-22取得main READMEのv1.0は別版。公式READMEのSHA-256は取得記録として下記に記す。\n\n公式公開先: [https://github.com/jdding/sidinspector](https://github.com/jdding/sidinspector)。READMEを確認したが、全実験の再実行はしていない。\n\n公式main README SHA-256: `ab9e9927ddf8d74725746714634c727f5255ec4b5f897272f2ad8a88a7f5fed0`。\n"
+        ]
+      ]
+    },
+    "papers/sidinspector-mapping-diagnostics/method.md": {
+      "before_sha256": "622c3ad102de502f2b15b1a6b1f2160962c85998f2d29a3cdb5cc24bcebf930b",
+      "before_blob": "c371c3e36ed8a4f55dac127a54b90cff551218e0",
+      "after_sha256": "3484042cad33eba52d49971590dc870026c3de42755ddaf51ff129a508c72a59",
+      "after_blob": "cffde742d1c9e4d68d2667033afb42ba24a40992",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### adapterは学習recipeではない\n"
+        ],
+        [
+          2,
+          3,
+          "必須はsid_assignments(item_id, sid_0, …, sid_L)。method/datasetラベルとprovenanceを添え、metadata、interaction、refresh pair、generator traceを同じitem keyへjoinする。key重複、missing code、深さ不一致、item countの不一致を先に拒否する。検査前の不備があるtableをそのまま平均して診断値にまとめ、不備を見えなくしない。\n"
+        ],
+        [
+          4,
+          5,
+          "### D1–D5が測る対象\n"
+        ],
+        [
+          6,
+          7,
+          "D1はlevelごとの利用code数、entropy、不均衡、prefix数。D2はfull SIDを共有するbucketに入ったitemの割合で、重複したcode値の個数とは違う。D3はtrain interactionから作ったco-occurrence top-k近傍のうち、同prefixを保つ割合。edgeの重みを合計して求める割合と、itemごとに求めた割合の平均は、各itemの寄与が異なるため区別する。metadata purityは補助的な文脈であり、行動的一致の代用ではない。\n"
+        ],
+        [
+          8,
+          15,
+          "D4はpopularityでhead/mid/tailを分け、unique SID配分やprefix構造を点検する。D5は深さ・active prefix・fan-out等の構造費用を記録する。生成model・GPU・beamを測らずに、D5からserving latencyを主張しない。\n"
+        ],
+        [
+          16,
+          17,
+          "### 一意住所と近傍を、同じitem集合で比べる\n"
+        ],
+        [
+          18,
+          19,
+          "主比較はGRID/RQ-KMeans-styleとReSID/GAOQの23,742 Musical item。RQ-minは小さい参照adapter、category-prefixやhash-collideは診断を動かすcontrolである。LETTERとLC-Recはreleased item-indexを読み込めることの確認で、同じitem集合の性能順位へ加えない。\n"
+        ],
+        [
+          20,
+          21,
+          "D6はpaired refresh mappingのchurnを計算する実装済み拡張。D7はgenerator traceが渡されたときのinterface hookで、本文の実証対象ではない。[VARG](varg-tmall-value-generative-retrieval.html)のように日次住所固定を採る場合、D6で旧item churnと新itemのalias増加を別に追うという接続が考えられる。これはLab側の運用解釈である。\n"
+        ],
+        [
+          22,
+          25,
+          "[SIDScope](sidscope-diagnostics.html)もmapping・alias・prefix・handoffを扱うため、診断名の数を新規性と数えない。SIDInspectorを選ぶ具体的な理由は、手元のexportを必要な入力形式へ変換し、D1–D5を実行できるかで判断したい。\n"
+        ]
+      ]
+    },
+    "papers/sidinspector-mapping-diagnostics/plot.py": {
+      "before_sha256": "6034d0152a1ede00ebb9afa4cff5fe8b54ee0cc17bc8089fa467cc815f5fa697",
+      "before_blob": "a23181b66bd072975101afaa53d023c4ae2f2f8c",
+      "after_sha256": "c3c0b1e63174f74b861a63428f070e1836e0daec4c86e4ff7e76be1e6e5bdb4e",
+      "after_blob": "4f318b6afb32c7a16addcd45ea38e7004b4cad23",
+      "prior_spans": [
+        [
+          4,
+          5,
+          " body='<text x=\"24\" y=\"30\" font-size=\"20\">SIDが一意でも、行動上近い商品対が分かれる</text><text x=\"24\" y=\"60\">同じ6商品／行動上の商品対は a–b, c–d, e–f</text>'\n"
+        ],
+        [
+          7,
+          8,
+          "  label={'aliased':'共有あり / D2=0.667, D3=1','unique_unaligned':'一意・近傍不一致 / D2=0, D3=0','unique_aligned':'一意・近傍一致 / D2=0, D3=1'}[name]\n"
+        ],
+        [
+          12,
+          14,
+          " body+='<text x=\"24\" y=\"465\">色は第1接頭辞。数値はrun.pyの人工例。</text>'\n svg=f'<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 670 490\" role=\"img\" aria-label=\"3種類のSID住所表\"><title>同じitem集合の住所と行動近傍</title><rect width=\"670\" height=\"490\" fill=\"#f8fafc\"/><g font-family=\"sans-serif\" font-size=\"15\" fill=\"#17324d\">{body}</g></svg>'\n"
+        ]
+      ]
+    },
+    "papers/sidinspector-mapping-diagnostics/mapping-grid.svg": {
+      "before_sha256": "0af2383038d202eff88df281b7e7df89d4f4fbb7132814cc8993e040e353f4e6",
+      "before_blob": "76a4700d4e4a9062d972830cb9befb48ef8d980c",
+      "after_sha256": "2654f0d034cdc3fdf9f0d7cba9c528d53168a6649bf35228f9db2c517282981c",
+      "after_blob": "72865360180ccc4a8e0c7a83fc6df3dcff8ec181",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 670 490\" role=\"img\" aria-label=\"3種類のSID住所表\"><title>同じitem集合の住所と行動近傍</title><rect width=\"670\" height=\"490\" fill=\"#f8fafc\"/><g font-family=\"sans-serif\" font-size=\"15\" fill=\"#17324d\"><text x=\"24\" y=\"30\" font-size=\"20\">SIDが一意でも、行動上近い商品対が分かれる</text><text x=\"24\" y=\"60\">同じ6商品／行動上の商品対は a–b, c–d, e–f</text><text x=\"24\" y=\"95\">共有あり / D2=0.667, D3=1</text><rect x=\"24\" y=\"107\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#dbedf6\" stroke=\"#789\"/><text x=\"70\" y=\"131\" text-anchor=\"middle\">a</text><text x=\"70\" y=\"158\" text-anchor=\"middle\">0 : 0</text><rect x=\"128\" y=\"107\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#dbedf6\" stroke=\"#789\"/><text x=\"174\" y=\"131\" text-anchor=\"middle\">b</text><text x=\"174\" y=\"158\" text-anchor=\"middle\">0 : 0</text><rect x=\"232\" y=\"107\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#f8e3cb\" stroke=\"#789\"/><text x=\"278\" y=\"131\" text-anchor=\"middle\">c</text><text x=\"278\" y=\"158\" text-anchor=\"middle\">1 : 0</text><rect x=\"336\" y=\"107\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#f8e3cb\" stroke=\"#789\"/><text x=\"382\" y=\"131\" text-anchor=\"middle\">d</text><text x=\"382\" y=\"158\" text-anchor=\"middle\">1 : 1</text><rect x=\"440\" y=\"107\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#e4dff7\" stroke=\"#789\"/><text x=\"486\" y=\"131\" text-anchor=\"middle\">e</text><text x=\"486\" y=\"158\" text-anchor=\"middle\">2 : 0</text><rect x=\"544\" y=\"107\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#e4dff7\" stroke=\"#789\"/><text x=\"590\" y=\"131\" text-anchor=\"middle\">f</text><text x=\"590\" y=\"158\" text-anchor=\"middle\">2 : 0</text><text x=\"24\" y=\"215\">一意・近傍不一致 / D2=0, D3=0</text><rect x=\"24\" y=\"227\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#dbedf6\" stroke=\"#789\"/><text x=\"70\" y=\"251\" text-anchor=\"middle\">a</text><text x=\"70\" y=\"278\" text-anchor=\"middle\">0 : 0</text><rect x=\"128\" y=\"227\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#f8e3cb\" stroke=\"#789\"/><text x=\"174\" y=\"251\" text-anchor=\"middle\">b</text><text x=\"174\" y=\"278\" text-anchor=\"middle\">1 : 0</text><rect x=\"232\" y=\"227\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#e4dff7\" stroke=\"#789\"/><text x=\"278\" y=\"251\" text-anchor=\"middle\">c</text><text x=\"278\" y=\"278\" text-anchor=\"middle\">2 : 0</text><rect x=\"336\" y=\"227\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#dbedf6\" stroke=\"#789\"/><text x=\"382\" y=\"251\" text-anchor=\"middle\">d</text><text x=\"382\" y=\"278\" text-anchor=\"middle\">0 : 1</text><rect x=\"440\" y=\"227\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#f8e3cb\" stroke=\"#789\"/><text x=\"486\" y=\"251\" text-anchor=\"middle\">e</text><text x=\"486\" y=\"278\" text-anchor=\"middle\">1 : 1</text><rect x=\"544\" y=\"227\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#e4dff7\" stroke=\"#789\"/><text x=\"590\" y=\"251\" text-anchor=\"middle\">f</text><text x=\"590\" y=\"278\" text-anchor=\"middle\">2 : 1</text><text x=\"24\" y=\"335\">一意・近傍一致 / D2=0, D3=1</text><rect x=\"24\" y=\"347\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#dbedf6\" stroke=\"#789\"/><text x=\"70\" y=\"371\" text-anchor=\"middle\">a</text><text x=\"70\" y=\"398\" text-anchor=\"middle\">0 : 0</text><rect x=\"128\" y=\"347\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#dbedf6\" stroke=\"#789\"/><text x=\"174\" y=\"371\" text-anchor=\"middle\">b</text><text x=\"174\" y=\"398\" text-anchor=\"middle\">0 : 1</text><rect x=\"232\" y=\"347\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#f8e3cb\" stroke=\"#789\"/><text x=\"278\" y=\"371\" text-anchor=\"middle\">c</text><text x=\"278\" y=\"398\" text-anchor=\"middle\">1 : 0</text><rect x=\"336\" y=\"347\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#f8e3cb\" stroke=\"#789\"/><text x=\"382\" y=\"371\" text-anchor=\"middle\">d</text><text x=\"382\" y=\"398\" text-anchor=\"middle\">1 : 1</text><rect x=\"440\" y=\"347\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#e4dff7\" stroke=\"#789\"/><text x=\"486\" y=\"371\" text-anchor=\"middle\">e</text><text x=\"486\" y=\"398\" text-anchor=\"middle\">2 : 0</text><rect x=\"544\" y=\"347\" width=\"92\" height=\"65\" rx=\"6\" fill=\"#e4dff7\" stroke=\"#789\"/><text x=\"590\" y=\"371\" text-anchor=\"middle\">f</text><text x=\"590\" y=\"398\" text-anchor=\"middle\">2 : 1</text><text x=\"24\" y=\"465\">色は第1接頭辞。数値はrun.pyの人工例。</text></g></svg>"
+        ]
+      ]
+    },
+    "papers/sidscope-diagnostics/lab.yaml": {
+      "before_sha256": "c7527330243029478e4372523c258f5d8baa9645abe068b5b902b725a006883d",
+      "before_blob": "09be386540e6cdd757746422c2131141554bd06d",
+      "after_sha256": "35008a3b55c07e94d30db31691adbdee79ef9f9fd65664f1b840a1c0534601fa",
+      "after_blob": "30b31afffaad469c2dace37813044a626a01cdec",
+      "prior_spans": [
+        [
+          29,
+          30,
+          "summary: SIDScopeは利用率・衝突・prefix整合・更新・生成traceを診断する資源。trie内の有効pathと一意item取得を区別し、mapping修復後のcheckpoint再利用を別途検証する。\n"
+        ],
+        [
+          37,
+          41,
+          "  author_claim: source-traced mappingを共通contractへ正規化し、D1–D7でaddressability、prefix exposure、refresh、traceを診断する。D3の予測力はprefixを使う機構に条件付けられる。\n  research_bot_interpretation: '[QuaSID](quasid-collision-qualified-sid.html)と合わせ、衝突を減らす設計と、衝突や更新の影響を受け入れ時に点検する手順を分けて蓄積したい。[SnapLGR](snaplgr-snapchat.html)のSID→動画展開にも直結する。'\n"
+        ],
+        [
+          46,
+          50,
+          "  problem: trieで有効なSIDを生成しても、そのSIDが複数itemを指していれば正解itemを一意に取れない。逆に衝突ゼロでも、prefixに行動上の近さがなければ探索の手掛かりになりにくい。対応表を更新して欠損を埋めても、旧checkpointが新しいコードに対応した出力を返せるとは限らない。\n"
+        ],
+        [
+          51,
+          53,
+          "  why_it_might_work: '[QuaSID](quasid-collision-qualified-sid.html)の衝突を条件付きで評価する発想を、tokenizerを受け入れ、更新し、generatorへ渡す作業へ広げられる。D3がよい理由を「prefixを実際に候補探索に使うから」と限定すれば、診断から次の実験を選びやすい。全generatorのNDCGを予測する万能scoreにすると、原典が示す適用範囲を超える。'\n  evidence: '一次資料の著者報告。\n"
+        ],
+        [
+          54,
+          57,
+          ""
+        ],
+        [
+          58,
+          59,
+          "    [原典 Tables 4–7・§8](https://arxiv.org/html/2608.18779v1)。8つの実行可能なrouteと追加のauditable snapshotを区別する。異なるcatalog・depthの行をtokenizer順位表として扱わない。\n"
+        ],
+        [
+          60,
+          61,
+          ""
+        ],
+        [
+          62,
+          63,
+          "    D3とprefix candidate recallの相関は8 exportsでρ=0.976。ただしcatalog単位の5群で集計するとρ=0.900、exact p=0.083。学習済みSID generatorのNDCGとの相関は−0.564〜0.205で安定せず、prefix診断から本番品質への一般化は確認されていない。\n"
+        ],
+        [
+          64,
+          67,
+          "\n    constrained beamではGRID/P5のpath survival 6.4%に対してunique-item hitは3.4%（差3.0pp）。別foldは5.0%対3.0%、DIGERは6.6%対5.4%。1.2–3.0は相対%ではなくpercentage\n    pointsである。\n\n\n    DACT 0.6→0.7では275 itemのSID欠損を埋めたが、共通9,610 itemの23.6%のコードが変わった。旧modelのnew-item Recall@20は0のまま。適応学習3 seedは宣言したhandoff\n    gateを通った。旧itemのmapping-only差の区間は0をまたぐため、「mapping更新が品質を悪化させることを証明」とはしない。'\n  executable_understanding: '`run.py`はJSONの実対応表を読み、prefix使用数・entropy・衝突item率・重複SID率・任意の重み付きpair整合・旧mappingとのchurnを計算する。既定は説明用6\n    itemで、公式benchmarkとは別。CLIでは任意の実mapをそのまま診断できる。\n\n"
+        ],
+        [
+          69,
+          69,
+          "\n"
+        ],
+        [
+          70,
+          70,
+          "\n"
+        ],
+        [
+          72,
+          73,
+          ""
+        ],
+        [
+          74,
+          77,
+          "    mapは `{\"item-a\":[0,1],\"item-b\":[0,2]}`、pairsは `[[\"item-a\",\"item-b\",3]]`。D3の近傍抽出は外で済ませる。popularityがないのでD4はNOT\n    TESTED、traceがなければgenerator品質も出さない。\n"
+        ],
+        [
+          78,
+          85,
+          "\n    既定実行は公式MIT公開の12 item mapにも独立診断を適用する。公式quickstartは別途実行済みで、確認値とhashを`official-check.json`、利用条件を`NOTICE.txt`に保存した。'\n  what_we_verified: Mechanism PARTIAL。6 item中2 itemが同じleafに入るとD2=2/6、D5=1/6になること、pathが有効でも曖昧な場合はunique-item hitにならないことを確認した。固定depthと非負整数codeを検査し、input\n    hashを保存する。公式v1.0.1のreviewer quickstartを実行し、preflight passedとD1–D5出力を確認。公開12 item入力のleaf数11、D2=2/12、D5=1/12、prefix数3/6/11は独立実装と一致した。これは本番mappingではない。\n  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。公式の全route、125,000 trace、4,999\n    bootstrap、学習済みgeneratorのhandoff、online A/Bは再現しない。独立実装の範囲は一部の診断に限る。D4や公式の近傍抽出・provenance admissionは省略する。\n  implementation: '`validate()`はmapの形式、`diagnose()`はprefix/leafの集計、`trace()`はSID→itemの曖昧性を扱う。公式packageのimport名は互換性のため`sidinspector`のまま。公式の関数対応とrelease\n    hashはmapping.mdに記録する。\n\n\n    Python標準ライブラリだけで実行する。乱数を使う実験はseedを固定し、結果をコードと同じ場所に保存する。'\n  results: 以下は、このLabで診断を実行した結果である。上の「根拠」に載せた著者の診断・評価とは、データも評価対象も異なる。\n"
+        ],
+        [
+          101,
+          103,
+          "    - 使用数・entropy・fan-out\n    - 容量配分と構造。ただしlatencyは別\n"
+        ],
+        [
+          105,
+          107,
+          "    - 同じleafのitem数\n    - resolver・人気偏り・衝突group\n"
+        ],
+        [
+          109,
+          111,
+          "    - 行動近傍・tail解像度\n    - prefix exposureと人気別の評価\n"
+        ],
+        [
+          113,
+          115,
+          "    - コード更新のchurn\n    - checkpointの再評価と適応\n"
+        ],
+        [
+          117,
+          119,
+          "    - path→itemのtrace\n    - 曖昧性・重複・target survival\n"
+        ],
+        [
+          121,
+          122,
+          "  title: 有効なコードを当てても、一意itemには届かない\n"
+        ],
+        [
+          126,
+          127,
+          "  rationale: 有効なコードを当てても、一意itemには届かない\n"
+        ],
+        [
+          128,
+          130,
+          "  - path survives\n  - unique-item hit\n"
+        ],
+        [
+          142,
+          143,
+          "  - label: DIGER sensitivity\n"
+        ]
+      ]
+    },
+    "papers/sidscope-diagnostics/README.md": {
+      "before_sha256": "62c472c7b47901d1813e02fa85a9586561514615f634adbab1046ea39585764b",
+      "before_blob": "04ef9cee1d094822869c6e8d3dc763491a894a49",
+      "after_sha256": "852ee361b2e26fd6b918cbc8c82cf5884989cc3a3e79da61284afef51dc3b683",
+      "after_blob": "f82e2d4b5fd96191d2b992cd1f6bdfc0781a6563",
+      "prior_spans": [
+        [
+          2,
+          3,
+          "SIDScopeは利用率・衝突・prefix整合・更新・生成traceを診断する資源。trie内の有効pathと一意item取得を区別し、mapping修復後のcheckpoint再利用を別途検証する。\n"
+        ],
+        [
+          13,
+          14,
+          "## Overview\n"
+        ],
+        [
+          19,
+          20,
+          "## Problem\n"
+        ],
+        [
+          21,
+          22,
+          "trieで有効なSIDを生成しても、そのSIDが複数itemを指していれば正解itemを一意に取れない。逆に衝突ゼロでも、prefixに行動上の近さがなければ探索の手掛かりになりにくい。対応表を更新して欠損を埋めても、旧checkpointが新しいコードに対応した出力を返せるとは限らない。\n"
+        ],
+        [
+          23,
+          24,
+          "## Core Idea\n"
+        ],
+        [
+          25,
+          26,
+          "source-traced mappingを共通contractへ正規化し、D1–D7でaddressability、prefix exposure、refresh、traceを診断する。D3の予測力はprefixを使う機構に条件付けられる。\n"
+        ],
+        [
+          27,
+          28,
+          "解釈: [QuaSID](quasid-collision-qualified-sid.html)と合わせ、衝突を減らす設計と、衝突や更新の影響を受け入れ時に点検する手順を分けて蓄積したい。[SnapLGR](snaplgr-snapchat.html)のSID→動画展開にも直結する。\n"
+        ],
+        [
+          29,
+          30,
+          "## モデル / 手法\n"
+        ],
+        [
+          31,
+          32,
+          "[method.md](method.md) の図と数式を読む。\n"
+        ],
+        [
+          33,
+          34,
+          "## Why It Might Work\n"
+        ],
+        [
+          35,
+          36,
+          "[QuaSID](quasid-collision-qualified-sid.html)の衝突を条件付きで評価する発想を、tokenizerを受け入れ、更新し、generatorへ渡す作業へ広げられる。D3がよい理由を「prefixを実際に候補探索に使うから」と限定すれば、診断から次の実験を選びやすい。全generatorのNDCGを予測する万能scoreにすると、原典が示す適用範囲を超える。\n"
+        ],
+        [
+          37,
+          38,
+          "## Evidence\n"
+        ],
+        [
+          39,
+          40,
+          "一次資料の著者報告。\n"
+        ],
+        [
+          41,
+          42,
+          "[原典 Tables 4–7・§8](https://arxiv.org/html/2608.18779v1)。8つの実行可能なrouteと追加のauditable snapshotを区別する。異なるcatalog・depthの行をtokenizer順位表として扱わない。\n"
+        ],
+        [
+          43,
+          44,
+          "D3とprefix candidate recallの相関は8 exportsでρ=0.976。ただしcatalog単位の5群で集計するとρ=0.900、exact p=0.083。学習済みSID generatorのNDCGとの相関は−0.564〜0.205で安定せず、prefix診断から本番品質への一般化は確認されていない。\n"
+        ],
+        [
+          45,
+          46,
+          "constrained beamではGRID/P5のpath survival 6.4%に対してunique-item hitは3.4%（差3.0pp）。別foldは5.0%対3.0%、DIGERは6.6%対5.4%。1.2–3.0は相対%ではなくpercentage pointsである。\n"
+        ],
+        [
+          47,
+          48,
+          "DACT 0.6→0.7では275 itemのSID欠損を埋めたが、共通9,610 itemの23.6%のコードが変わった。旧modelのnew-item Recall@20は0のまま。適応学習3 seedは宣言したhandoff gateを通った。旧itemのmapping-only差の区間は0をまたぐため、「mapping更新が品質を悪化させることを証明」とはしない。\n"
+        ],
+        [
+          49,
+          50,
+          "## Executable Understanding\n"
+        ],
+        [
+          51,
+          54,
+          "`run.py`はJSONの実対応表を読み、prefix使用数・entropy・衝突item率・重複SID率・任意の重み付きpair整合・旧mappingとのchurnを計算する。既定は説明用6 itemで、公式benchmarkとは別。CLIでは任意の実mapをそのまま診断できる。\n"
+        ],
+        [
+          59,
+          60,
+          "mapは `{\"item-a\":[0,1],\"item-b\":[0,2]}`、pairsは `[[\"item-a\",\"item-b\",3]]`。D3の近傍抽出は外で済ませる。popularityがないのでD4はNOT TESTED、traceがなければgenerator品質も出さない。\n"
+        ],
+        [
+          61,
+          62,
+          "既定実行は公式MIT公開の12 item mapにも独立診断を適用する。公式quickstartは別途実行済みで、確認値とhashを`official-check.json`、利用条件を`NOTICE.txt`に保存した。\n"
+        ],
+        [
+          63,
+          64,
+          "## Results\n"
+        ],
+        [
+          65,
+          66,
+          "以下は、このLabで診断を実行した結果である。上の「根拠」に載せた著者の診断・評価とは、データも評価対象も異なる。\n"
+        ],
+        [
+          67,
+          68,
+          "## What We Verified\n"
+        ],
+        [
+          69,
+          70,
+          "Mechanism PARTIAL。6 item中2 itemが同じleafに入るとD2=2/6、D5=1/6になること、pathが有効でも曖昧な場合はunique-item hitにならないことを確認した。固定depthと非負整数codeを検査し、input hashを保存する。公式v1.0.1のreviewer quickstartを実行し、preflight passedとD1–D5出力を確認。公開12 item入力のleaf数11、D2=2/12、D5=1/12、prefix数3/6/11は独立実装と一致した。これは本番mappingではない。\n"
+        ],
+        [
+          71,
+          72,
+          "## What We Did NOT Verify\n"
+        ],
+        [
+          73,
+          74,
+          "Performance / Scaling / Production applicabilityはNOT TESTED。公式の全route、125,000 trace、4,999 bootstrap、学習済みgeneratorのhandoff、online A/Bは再現しない。独立実装の範囲は一部の診断に限る。D4や公式の近傍抽出・provenance admissionは省略する。\n"
+        ],
+        [
+          75,
+          76,
+          "## Implementation\n"
+        ],
+        [
+          77,
+          78,
+          "`validate()`はmapの形式、`diagnose()`はprefix/leafの集計、`trace()`はSID→itemの曖昧性を扱う。公式packageのimport名は互換性のため`sidinspector`のまま。公式の関数対応とrelease hashはmapping.mdに記録する。\n"
+        ],
+        [
+          79,
+          80,
+          "Python標準ライブラリだけで実行する。乱数を使う実験はseedを固定し、結果をコードと同じ場所に保存する。\n\n## Original Paper / Official Code Mapping\n\n[mapping.md](mapping.md)\n"
+        ]
+      ]
+    },
+    "papers/sidscope-diagnostics/mapping.md": {
+      "before_sha256": "dc47543813254e148169b7eb2d2598a317be129cacb864ad84956ea3452f2e1c",
+      "before_blob": "0e6def6e7d4826d375700ccb360a2d1c7f5730e1",
+      "after_sha256": "f53756de86cede84332662772dd949a3c68e9bbb59b222174800b4f493c02378",
+      "after_blob": "ee977e2468e56a5a3b1c5084d51a5cd404427abb",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# Original Paper / Official Code Mapping\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料: [SIDScope: A Diagnostic Resource for Semantic-ID Interfaces in Generative Recommendation](https://arxiv.org/html/2608.18779v1)。本文・実験・限界・付録を確認（2026-09-21）。キャッシュは `/tmp/research-2026-09-21/2608.18779.html`。HTML SHA-256: `8043cc1a9924d9a3fd53d1d786c74d17dc91844fbd59550df933fb87c5c16fa8`。\n"
+        ],
+        [
+          4,
+          5,
+          "| 原典 | Labの対応 | 意図した省略・境界 |\n"
+        ],
+        [
+          6,
+          10,
+          "| §3.2 / D1,D2,D5 | diagnose | Gini・popularity D4は省略 |\n| §3.2 / D3 | weighted_prefix_alignment | 入力pairを使用。公式近傍抽出は省略 |\n| §6.3 / D6 | previous / code_churn | checkpoint適応は未検証 |\n| §5 / D7 | trace | valid/ambiguous/targetの最小限の集計のみ |\n"
+        ],
+        [
+          11,
+          12,
+          "公式コード: [https://github.com/jdding/sidscope/tree/v1.0.1](https://github.com/jdding/sidscope/tree/v1.0.1)。v1.0.1を取得して確認。\n"
+        ],
+        [
+          13,
+          14,
+          "## 公式コードの実行確認\n"
+        ],
+        [
+          15,
+          16,
+          "`uv run --project /tmp/research-2026-09-21/SIDscope-1.0.1 /tmp/research-2026-09-21/SIDscope-1.0.1/examples/run_reviewer_quickstart.py` を実行しpreflight passed、D1–D5出力を確認。12 itemの公開quickstart入力であり、本番catalogではない。\n"
+        ],
+        [
+          17,
+          23,
+          "独立実装のleaf数11、D2=2/12、D5=1/12、prefix数3/6/11が公式と一致。公式D1 entropyは各level単独、Labはprefix entropyなので、depth 2以降のentropyを同値比較しない。D3の公式近傍抽出は再実装していない。\n"
+        ],
+        [
+          24,
+          25,
+          "| 公式 v1.0.1 | Lab |\n| --- | --- |\n| `src/sidinspector/metrics.py::collision` | `diagnose` のcollision_item_rate |\n| `metrics.py::deployment_cost` | unique_leaves / duplicate_SID_rate / active_prefixes |\n| `metrics.py::alignment` | 入力済みpairに対する部分実装 |\n| `src/sidinspector/d7_trace.py` | `trace` のvalid/ambiguous/unique判定だけ |\n\nrelease archive SHA-256: `852f79c01075708fa0b9161bd686e31a7dc3a37ff7ef3d1b0625c5ed5b39a525`。入力CSV SHA-256: `5ada9e4f9782dc12cb931fd54af86ac59fc78b65101d789d99b0fc984321dcaf`。公式実行の記録は `official-check.json`、入力例のMIT licenseは `NOTICE.txt`。\n"
+        ]
+      ]
+    },
+    "papers/sidscope-diagnostics/method.md": {
+      "before_sha256": "e123b5e9df612d3d859c9c4950bfa4cb44f417b8859c75316bbd3c536bee10fe",
+      "before_blob": "86b6686eaafcb0d092b58bf3f5d6b8fa8a209247",
+      "after_sha256": "97c8f5b4257d6d908ab10c93bf12009a35c5b2a117cf1832d30ab26dd3a16220",
+      "after_blob": "6b8dd4ed6dfb4cc79a5935dcead8e31357fd80e5",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### mappingを、出典と評価条件ごと受け取る\nartifactはitem集合I、対応c、provenance Pに、任意のmetadata・interaction・refresh・traceを添える。C0出典、C1 schema、C2 join、C3診断の実行、C4 hashと再実行、C5比較上の役割という6段階を通す。欠けた証拠があれば、計算できる診断の範囲を狭める。\n"
+        ],
+        [
+          2,
+          3,
+          "D1はcode/prefixの使用数・entropy・偏り、D2は同じ完全SIDやprefixを共有するitem率、D3は行動上の近傍pairが同じprefixへ入る率。D4は人気head/mid/tailの一意SID比、D5はdepth・fan-out・active prefix・重複SID率。D6は更新前後に共通するitemのうちコードが変わった割合（churn）、D7は生成pathからitemへ戻したときの状態を記録する。\n"
+        ],
+        [
+          4,
+          5,
+          "<figure class=\"teaching batch21\" data-b21=\"diagnostics\"><h3>衝突率とprefix alignmentは、違う問題を見る</h3><label>条件を選ぶ <select><option value=\"0\">衝突のあるmapping</option><option value=\"1\">bだけを新しいleafへ移す</option></select></label><div data-output aria-live=\"polite\"><div class=\"b21-cards \"><div><strong>items</strong><p>6</p></div><div><strong>一意のleaf数</strong><p>5</p></div><div><strong>D2 衝突item率</strong><p>33.3%</p></div><div><strong>D5 重複SID率</strong><p>16.7%</p></div></div><div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>depth</th><th>prefix数</th><th>entropy bits</th><th>D3</th></tr></thead><tbody><tr><th>1</th><td>3</td><td>1.459148</td><td>0.833</td></tr><tr><th>2</th><td>5</td><td>2.251629</td><td>0.0</td></tr></tbody></table></div><p>generator handoff: NOT TESTED。コードが整っても、checkpointの出力先が正しくなる保証はない。</p></div><script type=\"application/json\" data-frames>[\"<div class=\\\"b21-cards \\\"><div><strong>items<\\/strong><p>6<\\/p><\\/div><div><strong>一意のleaf数<\\/strong><p>5<\\/p><\\/div><div><strong>D2 衝突item率<\\/strong><p>33.3%<\\/p><\\/div><div><strong>D5 重複SID率<\\/strong><p>16.7%<\\/p><\\/div><\\/div><div class=\\\"matrix-scroll\\\" tabindex=\\\"0\\\"><table><thead><tr><th>depth<\\/th><th>prefix数<\\/th><th>entropy bits<\\/th><th>D3<\\/th><\\/tr><\\/thead><tbody><tr><th>1<\\/th><td>3<\\/td><td>1.459148<\\/td><td>0.833<\\/td><\\/tr><tr><th>2<\\/th><td>5<\\/td><td>2.251629<\\/td><td>0.0<\\/td><\\/tr><\\/tbody><\\/table><\\/div><p>generator handoff: NOT TESTED。コードが整っても、checkpointの出力先が正しくなる保証はない。<\\/p>\", \"<div class=\\\"b21-cards \\\"><div><strong>items<\\/strong><p>6<\\/p><\\/div><div><strong>一意のleaf数<\\/strong><p>6<\\/p><\\/div><div><strong>D2 衝突item率<\\/strong><p>0.0%<\\/p><\\/div><div><strong>D5 重複SID率<\\/strong><p>0.0%<\\/p><\\/div><\\/div><div class=\\\"matrix-scroll\\\" tabindex=\\\"0\\\"><table><thead><tr><th>depth<\\/th><th>prefix数<\\/th><th>entropy bits<\\/th><th>D3<\\/th><\\/tr><\\/thead><tbody><tr><th>1<\\/th><td>3<\\/td><td>1.459148<\\/td><td>0.833<\\/td><\\/tr><tr><th>2<\\/th><td>6<\\/td><td>2.584963<\\/td><td>0.0<\\/td><\\/tr><\\/tbody><\\/table><\\/div><p>generator handoff: NOT TESTED。コードが整っても、checkpointの出力先が正しくなる保証はない。<\\/p>\"]</script><figcaption>run.pyの6 item fixture。D2は衝突した全itemの数、D5はitem数から一意のleaf数を引いた差を、それぞれ全item数で割る。公式benchmarkではない。</figcaption></figure>\n"
+        ],
+        [
+          6,
+          14,
+          "D3(k)=Σᵢⱼ wᵢⱼ 1[prefixₖ(cᵢ)=prefixₖ(cⱼ)] / Σᵢⱼ wᵢⱼ。近傍を作るuser数・item数・pair budgetとdepthを固定する。原典の公開CLI既定はm=20、user当たりU=200、pair budget B=2,000,000。Table 4はm=5、U=50、B=10,000の別protocolであり、そのまま数値を混ぜない。\n"
+        ],
+        [
+          15,
+          26,
+          "D7では有効path、曖昧path、stale、重複item/path、uncertaintyなどを分ける。targetのコードがbeamに残るpath survivalと、そのコードがtargetだけへ戻るunique-item hitには別の分母・条件がある。\n"
+        ]
+      ]
+    }
+  }
+}

@@ -17,8 +17,8 @@ urls:
   official_code: https://github.com/jdding/sidinspector
 verdict: Watch
 status: published
-question: generatorを学習する前に、SID住所表の何を検査できるか
-summary: 商品と識別子の対応表を共通の形式にそろえ、識別子の使われ方、複数商品への重複割当、行動が似た商品のまとまり、人気別の割当、索引の構造を別々に調べる。collision-freeでも意味のあるprefixとは限らない。
+question: 推薦モデルを学習させる前に、商品と識別子の対応表から何が分かるか
+summary: SIDInspectorは推薦モデルの学習前に、商品に割り当てた符号を調べます。符号が重複していないか、利用履歴で一緒に現れる商品が同じグループに入るかを別々に測ります。符号の使われ方や、人気別の割り当て、索引の枝分かれも確認できます。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -31,44 +31,55 @@ source_review:
   version: v1
   pdf_sha256: 4fc33c243ac3dae6dcd04666b3ab85a677fcdc089531c5e8edd77aff78300cb5
   url: https://arxiv.org/pdf/2606.10375v1
-  scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。
+  scope: |-
+    初版（v1）の本文・式・表を確認。書き出した対応表の比較を、モデルの学習や本番評価と区別する。
 core_idea:
-  author_claim: export済みSID mappingとjoin可能なmetadata・interactionを検証し、D1–D5の診断を学習loopから独立して実行する。D6はrefresh間の変化、D7はgenerator
-    traceの入力拡張。
-  research_bot_interpretation: '[SIDScope](sidscope-diagnostics.html)と共通する診断軸が多く、新しいtokenizerの性能改善と読むべきではない。本Labでは小さいadapter契約と、同じitem集合で「住所の一意性」と「行動近傍の保存」を分ける実用上の入口を重視する。'
+  author_claim: |-
+    著者らは、商品とSIDの対応表を、同じ商品IDで結び付く利用履歴や商品情報とともに検証し、推薦モデルの学習とは別にD1〜D5を計算する。更新前後の対応表があればD6を計算できる。D7には生成モデルの出力や探索ログが必要で、論文の主な比較には含まれない。
+  research_bot_interpretation: |-
+    [SIDScope](sidscope-diagnostics.html)とは、SIDの重複や先頭の符号のまとまりを調べる点が共通する。この論文は新しい符号化方式を提案していない。Labでは、各商品を完全なSIDで区別できるかと、一緒に選ばれやすい商品が先頭の符号を共有するかを、同じ商品集合で別々に調べる。
 sections:
   overview: |-
     商品ごとに符号列（Semantic ID）を割り当てると、異なる商品が完全に同じ符号を持つことがあります。SIDInspectorは推薦モデルを学習させる前に、その割り当てを調べる道具です。符号を共有する商品の割合と、履歴でよく一緒に現れる商品どうしが符号の先頭が一致するかを別々に測ります。
 
     著者が同じ23,742商品を使って比べると、GRIDを模した出力では97.7%の商品が別の商品と同じ符号を共有しました。ReSID/GAOQの出力では共有がありませんでした。これは書き出した符号の比較です。推薦したときの順位や、本番での利用者の反応を比べた結果ではありません。
-  problem: tokenizerの公開物はcheckpoint、codebook、item indexなど形が揃わない。IDの重複やjoin欠落を残したまま下流Recallだけを見ると、どこで問題が起きたか分からない。まずstable
-    item key、離散token、同じ診断対象集合、metadata/interactionとのjoinを揃える必要がある。可変長codeはpadding/maskと実長を記録できるが、実serving挙動にはtraceが必要となる。
-  why_it_might_work: '解釈: modelの学習前に失敗を発見できれば、大きいgeneratorを回してからmapping欠落に気付く手戻りを減らせる。D2とD3を別々に測ると、単にleafを増やす対策とprefixの構造を変える対策を分けられる。ただしco-occurrenceも履歴の露出やtaxonomyに依存し、高いD3が因果的に推薦を改善する保証はない。'
-  evidence: '一次資料 [PDF §4、Tables 1–3](https://arxiv.org/pdf/2606.10375v1) の著者報告。同じMusical
-    23,742 itemでGRID-style feature-textはunique full SID 3,749、D2 alias item率0.977、D3-L1
-    0.055。capacityを増やすとunique 9,874、D2 0.779、D3 0.080。ReSID/GAOQはunique 23,742、D2
-    0、D3 0.154。
+  problem: |-
+    推薦モデルは、商品を直接選ぶ代わりに、いくつかの符号を並べたSemantic ID（SID）を生成できる。SIDと商品を対応させる表に登録漏れや重複があると、学習後のRecallだけを見ても、問題が対応表にあるかは分からない。
 
+    先に、全商品を同じ商品IDで突き合わせ、どの商品にも離散的な符号が割り当てられているかを確認する。商品によって符号列の長さが違う場合は、表の列をそろえるために補った位置と実際の長さを記録する。この表で索引の構造は調べられるが、生成モデルが本番でどう探索するかを知るには、実際の探索ログが要る。
+  why_it_might_work: |-
+    SIDの完全な符号列を共有する商品が多い場合と、一緒に選ばれやすい商品が符号列の先頭を共有しない場合では、直す箇所が違う。前者はD2、後者はD3で見分けられる。商品を区別するために末尾の符号を増やしても、先頭のまとまりが良くなるとは限らない。モデルの学習前に確かめれば、対応表の不備による手戻りを減らせる。
 
-    決定的なcategory-prefix controlはD2 0、D3 0.447。一意性では同じでも近傍保持が異なる。ただしcategory controlは学習済みtokenizerではなく、ReSIDより優れた推薦モデルと結論できない。GRIDもcontrolled
-    exportで、全pipelineの公式追試ではない。
+    一緒に現れた回数は、過去に何が表示されたかにも影響される。商品分類と一致しているだけでも、D3が高くなる場合がある。D3の差だけで、推薦の改善を引き起こしたとは言えない。
+  evidence: |-
+    [論文初版の§4・表2](https://arxiv.org/pdf/2606.10375v1)では、同じMusicalの23,742商品に対し、書き出した対応表を比べた。D2は完全なSIDをほかの商品と共有する商品の割合、D3は一緒に現れた商品対の重みのうち、最初の符号が一致する対の重みの割合だ。
 
+    | Musicalの対応表 | 異なる完全SIDの数 | D2 | D3（第1段） |
+    | --- | ---: | ---: | ---: |
+    | GRID型の処理で商品説明を符号化 | 3,749 | 0.977 | 0.055 |
+    | GRID型で使える符号を増やした場合 | 9,874 | 0.779 | 0.080 |
+    | ReSID/GAOQ | 23,742 | 0 | 0.154 |
+    | 商品分類を先頭の符号に使う対照 | 23,742 | 0 | 0.447 |
 
-    LETTER/LC-Recは別のInstruments 9,922 item、双方unique 9,897。D3は0.109/0.052。同じ商品集合ではないのでMusical表に混ぜない。fixed-rerankerの補助実験はD3とcandidate
-    recoveryの関連を示すが、trained generatorやA/Bの証拠ではない。
+    GRID型の例では、使える符号を増やすと共有する商品は減ったが、D3は0.055から0.080になった。ReSID/GAOQと商品分類を使う対照は、どちらも商品を完全なSIDで区別できたが、D3は異なった。商品分類を使う対照は学習した符号化器ではない。この結果は、対照が推薦モデルとして優れていたという意味ではない。GRID型も、商品説明の表現を残差k-meansに渡した条件付きの比較であり、公式の学習手順全体を再現したものではない。
 
+    LETTERとLC-Recは、別のInstrumentsの9,922商品で配布済みの索引を読み込んだ例だ。異なる完全SIDはどちらも9,897、D3は順に0.109と0.052だった。Musicalとは商品集合が違うため、上の表には入れない。
 
-    版の差: 今回読んだPDF v1 §5の公開tagは`sidinspector-cikm2026-resource-v0.6`。取得した公式main READMEはv1.0を案内していた。PDFの報告値を現在版で再実行したとは扱わず、両者を区別して記録する。'
-  executable_understanding: '`uv run papers/sidinspector-mapping-diagnostics/run.py`。同じ6
-    item・同じco-occurrence edgeに、衝突あり、衝突なし/近傍不一致、衝突なし/近傍一致の3 mappingを与える。先に欠落・duplicate
-    key・深さ不一致を拒否し、D1–D5を計算する。'
-  results: 人工mappingの衝突item率は2/3→0へ減らせるが、prefixを交差させた一意mappingのD3は0。行動pairを同prefixに置く一意mappingはD3=1。両者ともfull
-    SIDは一意であり、addressabilityとbehavioral alignmentが別であることを確認した。
-  what_we_verified: Mechanism PARTIAL。入力条件に違反する人工入力の拒否、非singleton bucketに属するitem比率、重み付き近傍回収、tailの一意SID比率、prefix数とfan-outを確認。局所計算はCONFIRMED。
-  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。公式packageの全gate、GRID/ReSID/LETTER/LC-Rec
-    export、co-occurrence構築のsampling、generatorのRecall/NDCG、latencyとonline A/Bは未実行。D2の衝突率だけから衝突の害を判断しない。
-  implementation: '`validate()`がadapter契約の小部分、`probe()`がD1–D5の人工診断。D1のused数は語彙budgetがないため絶対利用率に変換せず、D5のfan-outをmsへ換算しない。D3は固定edge集合のweighted
-    scoreで、per-item平均とは異なる。'
+    並べ替えの条件を固定した補助実験では、D3と正解商品が候補に入る度合いに関連があった。ただし、候補に入ることと上位に並ぶことは別である。生成モデルの学習結果や、利用者を対象にしたA/Bテストの結果ではない。
+
+    論文初版の§5は公開版を `sidinspector-cikm2026-resource-v0.6` と記している。以前確認した公式リポジトリのREADMEにはv1.0とあった。上の報告値は論文初版のもので、v1.0で計算し直してはいない。
+  executable_understanding: |-
+    `uv run papers/sidinspector-mapping-diagnostics/run.py` を実行すると、同じ6商品と同じ商品対を使った3通りの対応表を比べられる。完全なSIDを共有する表と、各商品が異なるSIDを持つ表を用意する。一意の2表では、一緒に現れる商品対を先頭の符号でまとめた場合と、別々に分けた場合を比べる。
+
+    診断を始める前に、登録漏れ、商品IDの重複、符号列の長さの不一致を検出し、不備があれば入力を拒否する。通過した表からD1〜D5を計算する。
+  results: |-
+    架空の6商品では、完全なSIDを共有する商品の割合（D2）が2/3だった表に対し、一意の2表はいずれも0だった。ただし、商品対が異なる先頭の符号に分かれた表のD3は0、全対を同じ先頭の符号にまとめた表は1だった。完全なSIDで商品を区別できることと、一緒に現れる商品対が同じグループに残ることは別である。
+  what_we_verified: |-
+    Labの人工例で、商品IDや符号列の長さが条件に合わない入力を拒否できることを確かめた。完全なSIDを共有する商品の割合、同じ先頭の符号に残った商品対の重みの割合、不人気側の商品数に対する、異なる完全SIDの数の割合、先頭から各段までの符号列の数と分岐数も確認した。局所計算は確認済み（CONFIRMED）。論文の仕組み全体は一部のみ確認した（PARTIAL）。
+  what_we_did_not_verify: |-
+    公式パッケージの検証項目をすべて回してはいない。GRID、ReSID、LETTER、LC-Recの対応表を再出力したり、利用履歴から商品対を選び直したりもしていない。生成モデルのRecallやNDCG、応答時間、本番のA/Bテストも測っていない。性能、規模を広げた場合の動作、本番での有用性は未検証（NOT TESTED）。D2だけでは、重複によってどれだけ推薦が悪化するかは分からない。
+  implementation: |-
+    `validate()` は入力条件の一部を検査し、`probe()` は人工の対応表からD1〜D5を計算する。D1では使われた符号を数えるが、使える符号の総数を設定していないので利用率には換算しない。D5の分岐数も応答時間に換算しない。D3は固定した商品対を重み付きで合計した値で、商品ごとに求めた割合の平均とは異なる。
   method: method.md
   mapping: mapping.md
 teaching_figures:
@@ -87,61 +98,61 @@ teaching_figures:
   rows:
   - label: D1/D2/D5
     cells:
-    - item→SID
-    - 利用・alias・構造
-    - 下流品質とmsは未測定
+    - 商品とSIDの対応表
+    - 符号の利用・共有・索引の構造
+    - 推薦の品質と応答時間は測らない
   - label: D3/D4
     cells:
-    - interaction + popularity
-    - 近傍・tail配分
-    - 露出偏りを含む
+    - 利用履歴と商品の人気
+    - 商品対のまとまりと人気別の配分
+    - 過去の表示の偏りに影響される
   - label: D6
     cells:
-    - 同itemのrefresh pair
-    - 住所変化
-    - 今回の主表とは別
+    - 同じ商品の更新前後の対応表
+    - 商品ごとのSIDの変更
+    - 論文の主な比較とは別
   - label: D7
     cells:
-    - generator trace
-    - 生成path診断
-    - 本文では入力hook
+    - 生成モデルの探索ログ
+    - 生成した符号列の診断
+    - 論文ではログの入力形式を提示
 - kind: equations
   id: alias-math
-  title: 一意SIDの数だけでは衝突item率は分からない
+  title: 異なるSIDの数だけでは、共有する商品の割合は分からない
   after: method
   locator: §3
-  rationale: 一意SIDの数だけでは衝突item率は分からない
+  rationale: 異なるSIDの数だけでは、共有する商品の割合は分からない
   caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
   source: https://arxiv.org/pdf/2606.10375v1
   steps:
-  - name: alias集合
+  - name: 完全SIDを共有する商品の集合
     formula: 'A(c) = {i : z(i)=c}'
-    explanation: 同じfull SIDを共有するitemを集める。
-  - name: item単位の衝突率
+    explanation: 符号列全体が同じ商品を、符号列ごとにまとめる。
+  - name: 完全SIDを共有する商品の割合
     formula: D2 = |I|⁻¹ Σᵢ 1[|A(z(i))|>1]
-    explanation: 3 itemが1 codeを共有すれば、3 itemすべてを数える。
-  - name: weighted prefix recovery
+    explanation: 3商品が同じ完全SIDを共有していれば、3商品すべてを数える。
+  - name: 先頭が一致する商品対の重み付き割合
     formula: D3ℓ = Σᵢⱼ wᵢⱼ 1[pℓ(i)=pℓ(j)] / Σᵢⱼ wᵢⱼ
-    explanation: 同じprefixに残る近傍edgeの重みを足し、全近傍edgeの重み合計で割る。近傍edgeとdepthを揃えて比較する。
+    explanation: 先頭の符号が一致した商品対の重みを足す。それを、全近傍edgeの重み合計で割る。ここでのedgeは商品対。同じ商品対を使い、先頭から何段見るかもそろえる。
 - kind: matrix
   id: address-vs-neighbor
-  title: Musicalでは住所の一意性と近傍保持が分かれた
+  title: Musicalでは、商品の区別と関連商品のまとまりに差が出た
   after: evidence
   locator: Table 2
-  rationale: Musicalでは住所の一意性と近傍保持が分かれた
+  rationale: Musicalでは、商品の区別と関連商品のまとまりに差が出た
   caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
   source: https://arxiv.org/pdf/2606.10375v1
   columns:
-  - unique full SID
-  - D2 alias item率
-  - D3-L1
+  - 異なる完全SIDの数
+  - D2：共有する商品の割合
+  - D3：第1段の一致
   rows:
-  - label: GRID-style ft
+  - label: GRID型：商品説明
     cells:
     - 3,749
     - '0.977'
     - '0.055'
-  - label: capacity増
+  - label: GRID型：使える符号を増やす
     cells:
     - 9,874
     - '0.779'
@@ -151,7 +162,7 @@ teaching_figures:
     - 23,742
     - '0'
     - '0.154'
-  - label: category control
+  - label: 商品分類による対照
     cells:
     - 23,742
     - '0'
@@ -160,7 +171,7 @@ results: results.json
 submitted: '2026-06-09'
 figures:
 - path: mapping-grid.svg
-  title: 同じ6商品で、住所の一意性と近傍を分離する
-  caption: "run.pyの3つの人工mapping。色はprefix、D3は固定行動pairの回収。 D2は同じ完全SIDを他商品と共有する商品の割合。D3は固定した行動上の商品対が同じ第1接頭辞に残る割合。"
+  title: 同じ6商品を区別することと、関連商品をまとめることは別
+  caption: "run.pyで計算した3通りの架空の対応表。色は最初の符号を表す。D2は完全なSIDをほかの商品と共有する商品の割合。D3は、固定した商品対のうち最初の符号が一致した対の重み付き割合。"
   after: method
   layout: scroll

@@ -1,17 +1,25 @@
-### adapterは学習recipeではない
+## 学習し直す前に、商品と符号の対応表をそろえる
 
-必須はsid_assignments(item_id, sid_0, …, sid_L)。method/datasetラベルとprovenanceを添え、metadata、interaction、refresh pair、generator traceを同じitem keyへjoinする。key重複、missing code、深さ不一致、item countの不一致を先に拒否する。検査前の不備があるtableをそのまま平均して診断値にまとめ、不備を見えなくしない。
+方式ごとに、書き出した符号を `sid_assignments(item_id, sid_0, …, sid_L)` にそろえる。方式名、データセット名、元データの出どころも記録する。分類や利用履歴、更新前後の対応表、生成ログがある場合は、同じ商品IDで結び付ける。これは既存の出力を検査できる形にそろえる処理で、符号化器を学習し直す手順ではない。
 
-### D1–D5が測る対象
+検査では、商品数が合っているか、商品IDや符号が欠けていないか、商品IDの重複や符号列の長さの不一致がないかを確認する。入力に不備があれば、平均値を出す前に止める。
 
-D1はlevelごとの利用code数、entropy、不均衡、prefix数。D2はfull SIDを共有するbucketに入ったitemの割合で、重複したcode値の個数とは違う。D3はtrain interactionから作ったco-occurrence top-k近傍のうち、同prefixを保つ割合。edgeの重みを合計して求める割合と、itemごとに求めた割合の平均は、各itemの寄与が異なるため区別する。metadata purityは補助的な文脈であり、行動的一致の代用ではない。
+## D1〜D5は、それぞれ何を測るか
 
-D4はpopularityでhead/mid/tailを分け、unique SID配分やprefix構造を点検する。D5は深さ・active prefix・fan-out等の構造費用を記録する。生成model・GPU・beamを測らずに、D5からserving latencyを主張しない。
+| 診断 | 測るもの | 測っていないもの |
+| --- | --- | --- |
+| D1：符号の使われ方 | 段ごとに使われた符号の数や、割り当ての偏り | 推薦の順位 |
+| D2：完全SIDの共有 | 同じ完全SIDを持つほかの商品がある商品の割合 | 重複した符号の種類数や、重複が招いた損失 |
+| D3：関連する商品のまとまり | 一緒に現れた商品が、同じ先頭の符号を持つか | 分類の一致だけで利用行動を説明できるか |
+| D4：人気別の割り当て | 人気が高い群、中間の群、低い群に、どのように符号が割り当てられたか | 各群への推薦が改善したか |
+| D5：索引の構造 | 符号列の長さ、先頭からの符号列の数、分岐数 | 生成モデルやGPUを含む実測の応答時間 |
 
-### 一意住所と近傍を、同じitem集合で比べる
+D3では、学習用の利用履歴で一緒に現れた回数をもとに、商品ごとに上位k件の近傍を選ぶ。商品対を重み付きで集計する方法と、itemごとに求めた割合の平均を取る方法では、履歴の多い商品の寄与が異なる。商品分類の一致は補足情報であり、行動上の近さとは区別する。
 
-主比較はGRID/RQ-KMeans-styleとReSID/GAOQの23,742 Musical item。RQ-minは小さい参照adapter、category-prefixやhash-collideは診断を動かすcontrolである。LETTERとLC-Recはreleased item-indexを読み込めることの確認で、同じitem集合の性能順位へ加えない。
+## 同じ商品を比べた表と、読み込みだけを確かめた例を分ける
 
-D6はpaired refresh mappingのchurnを計算する実装済み拡張。D7はgenerator traceが渡されたときのinterface hookで、本文の実証対象ではない。[VARG](varg-tmall-value-generative-retrieval.html)のように日次住所固定を採る場合、D6で旧item churnと新itemのalias増加を別に追うという接続が考えられる。これはLab側の運用解釈である。
+[論文初版](https://arxiv.org/pdf/2606.10375v1)の主な比較は、Musicalの同じ23,742商品に対するGRID型の残差k-meansとReSID/GAOQ。そのほか、RQ-minは小さい参照実装で、商品分類やハッシュで符号を決めた行は測定の反応を見る対照である。LETTERとLC-Recは、別の商品集合に対する公開索引を読み込めるかを確かめた例なので、主な比較の順位に入れない。
 
-[SIDScope](sidscope-diagnostics.html)もmapping・alias・prefix・handoffを扱うため、診断名の数を新規性と数えない。SIDInspectorを選ぶ具体的な理由は、手元のexportを必要な入力形式へ変換し、D1–D5を実行できるかで判断したい。
+D6は、更新前後の対応表で商品と符号の組み合わせがどれだけ変わったかを測る。D7は、生成ログを渡すための入力形式で、論文の主な比較では使っていない。[VARG](varg-tmall-value-generative-retrieval.html)のように日ごとに符号を固定する方式なら、既存商品の符号の変化と、新商品が既存商品と符号を共有する状況を別々に追える。これは論文の評価結果ではなく、Labが考える使い方である。
+
+[SIDScope](sidscope-diagnostics.html)も重複や先頭の符号のまとまりを調べる。診断の名前の数ではなく、手元の対応表を入力形式にそろえ、比較したいD1〜D5の指標を算出できるかで道具を選ぶ。

@@ -1,17 +1,13 @@
-# Original Paper / Official Code Mapping
+# 論文初版とLabの対応
 
-一次資料: [SIDInspector: A Mapping-First Diagnostic Resource for Semantic-ID Tokenizers](https://arxiv.org/pdf/2606.10375v1)、arXiv v1。2026-09-22確認。PDF SHA-256: `4fc33c243ac3dae6dcd04666b3ab85a677fcdc089531c5e8edd77aff78300cb5`。取得済みPDFは `/tmp/research-2026-09-22/2606.10375v1.pdf` を再利用した。
+[論文初版（arXiv v1）](https://arxiv.org/pdf/2606.10375v1)の確認記録は2026-09-22。保存したPDFのSHA-256は `4fc33c243ac3dae6dcd04666b3ab85a677fcdc089531c5e8edd77aff78300cb5` です。
 
-| 原典 / 公式入口 | Lab | 省略 |
+| 論文・公式コードの箇所 | Labで確かめたこと | Labで扱わなかったこと |
 | --- | --- | --- |
-| §2 / sidinspector.preflight | validate | 全schema・provenance検証 |
-| §3 / sidinspector.metrics | probe | train userからのbounded top-k構築 |
-| Table 2 | Evidence | 各tokenizerの生成 |
-| §5 / examples/minimal_adapter.py | READMEの実行入口確認 | 公式package gateは未実行 |
-| tools/verify_package.py | 次段階の公式検証先 | clean-check追試は未実施 |
+| §2 / `sidinspector.preflight` | `validate()` が人工の入力を点検 | 公式の項目やデータ来歴をすべて検査する処理 |
+| §3 / `sidinspector.metrics` | `probe()` が固定した商品対でD1〜D5を計算 | 学習用の利用履歴から、商品ごとに上位k件の近傍を作る処理 |
+| 表2 | ある条件で書き出した対応表の測定値を掲載 | 各方式で対応表を作り直すこと |
+| §5 / `examples/minimal_adapter.py` | 実行の手順はREADMEに案内 | 公式パッケージの全検査 |
+| `tools/verify_package.py` | 公式の検証入口として参照 | 新規に取得した環境での独立追試 |
 
-PDF記載v0.6と、2026-09-22取得main READMEのv1.0は別版。公式READMEのSHA-256は取得記録として下記に記す。
-
-公式公開先: [https://github.com/jdding/sidinspector](https://github.com/jdding/sidinspector)。READMEを確認したが、全実験の再実行はしていない。
-
-公式main README SHA-256: `ab9e9927ddf8d74725746714634c727f5255ec4b5f897272f2ad8a88a7f5fed0`。
+論文初版の公開タグは `sidinspector-cikm2026-resource-v0.6` です。2026-09-22に確認した[公式リポジトリ](https://github.com/jdding/sidinspector)のmainにあるREADMEはv1.0を案内していました。確認したREADMEのSHA-256は `ab9e9927ddf8d74725746714634c727f5255ec4b5f897272f2ad8a88a7f5fed0` です。論文の報告値をv1.0で再計算したわけではありません。
