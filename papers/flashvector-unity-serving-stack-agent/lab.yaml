@@ -46,8 +46,10 @@ core_idea:
     baseへ戻して継続的に最適化する。
   research_bot_interpretation: 研究コードのKEEP、設定探索、runtime制御、実験運用に加え、配信費用を扱う第5の役割として読める。この番号は本ライブラリの整理。[AURA](aura-disney-agentic-rec-diagnosis.html)が診断する推薦品質と、FlashVectorが変えるserving性能の責任を分けたい。[AgentX](agentx-kuaishou.html)、[CORAL](coral-meta-config-harness.html)、[DREAM](dream-taobao-agentic-control.html)、[PILOT](pilot-experiment-lifecycle.html)と比べる軸は、モデル能力だけでなく何を変更でき、何を証拠に採択するかである。
 sections:
-  overview: 同じモデルでも、GPU以外の文字列変換やfeature組立が詰まればGPU kernelの高速化は全体費用に届かない。FlashVectorは各層の専門的な計測とコード・設定変更を一つの検証loopへ接続する。固定latency
-    SLOの下で処理できる本番要求数が主な成果であり、広告CTRやagentの一般的なcoding能力を評価した研究ではない。
+  overview: |-
+    著者は、モデルの配信が遅いときに、GPUの計算だけでなく、入力の変換や特徴量の組み立ても調べるエージェントを開発しました。FlashVectorは時間がかかっている箇所を測り、コードや設定の変更を提案します。変更後も同じ出力になるか、応答時間やシステム全体の処理件数がどう変わるかを調べ、その結果を採用の判断に使います。
+
+    同じ環境で比べた事例では、著者はある順位付けモデルの処理件数が同じ時間で2.00倍になったと報告しました。一方、候補検索モデルで30倍になったのは入力変換の処理であり、配信システム全体の処理件数は1.10倍でした。これらは個別のモデルで測った値で、全モデルの平均や、広告のクリック率の改善を示すものではありません。
   problem: Python/PyTorch、CUDA、Triton serverのC++、feature処理のPython/Cythonでは計測手段も最適化対象も違う。再学習やhardware更新で前回の最適設定も古くなる。単発のコード生成だけでは、誤ったボトルネック診断、精度劣化、他層への負荷転移を見逃す。
   why_it_might_work: 入力tensorのshape、request単位とcandidate単位のfeatureの違い、実際のprofileがあれば、汎用compilerからは見えにくい重複処理をagentが取り除ける。履歴を次回の探索へ返す点にも合理性がある。ただし熟練者との同一予算比較、agent
     backbone別のablation、全試行の成功率は示されない。性能事例だけでは自律性や人手節約の因果効果を確定できない。

@@ -41,7 +41,7 @@ class OverviewText(HTMLParser):
 
 def test_scoped_source_transition_and_rendered_overviews(tmp_path):
     rows = json.loads((ROOT / 'tests/paper_overview_hashes.json').read_text())['files']
-    assert len(rows) == 102
+    assert len(rows) == 114
     site = tmp_path / 'site'
     build(root=ROOT, site_dir=site)
     anchors = {
@@ -147,6 +147,18 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'aura-disney-agentic-rec-diagnosis': ('それぞれ約10万件','1,911件','±0.1%','本番に出した事例ではありません'),
         'auto-recsys-harness': ('31回','4.0回から1.3回','平均0.5回','対照群のない運用記録'),
         'coral-meta-config-harness': ('0.15%','0.16%','費用を減らせた額','44%','総費用が44%下がったという意味ではありません'),
+        'harness-r1': ('44.3%から53.6%','9.3ポイント','同じ重み','全体の改善になるわけではありません'),
+        'harness-zero-distillation': ('23.3%から44.3%','41.7%','30.0%','38.0%','全課題を合算した成功率ではありません'),
+        'multi-harness-rl': ('1課題を8回ずつ','0.25ポイント','−0.48から+1.02','2.14%から9.27%'),
+        'sgc-state-grounded-conditioning': ('200セッション','1,000回答','96.7%','83.5%','26.5%','勝率'),
+        'execution-state-unlearning': ('80%','32%','モデルの重みを変更する方法ではありません','選択に影響'),
+        'flashvector-unity-serving-stack-agent': ('2.00倍','30倍','1.10倍','広告のクリック率'),
+        'hear-harness-engine-serving-protocol': ('481秒から299秒','63.1秒から28.3秒','74.2秒から51.1秒','負荷によって'),
+        'swe-serve-inference-serving-agents': ('53課題','19課題','627件','45.9%','69.4%','同じ変更のまま'),
+        'dream-taobao-agentic-control': ('2.06%','2.71%','同じ従来方式','足し合わせられません'),
+        'evopilot-verify-dont-trust-autoresearch': ('22ポイント','評価に使った候補数は異なって','人の確認','3.20ポイント'),
+        'pilot-experiment-lifecycle': ('五つの実験グループ','1.00%','1.40%','53.3%から93.3%','別々の時期'),
+        'recevolve-autonomous-rec': ('41件','0.4796から0.5751','3.77%','試行は元に戻し'),
     }
     for path, row in rows.items():
         raw = before_full_article_rewrites(ROOT, path, (ROOT / path).read_bytes())
@@ -223,6 +235,15 @@ def test_download_mirror_replaces_only_the_overview():
         'agentx-kuaishou',
         'auto-recsys-harness',
         'coral-meta-config-harness',
+        'harness-zero-distillation',
+        'sgc-state-grounded-conditioning',
+        'flashvector-unity-serving-stack-agent',
+        'hear-harness-engine-serving-protocol',
+        'swe-serve-inference-serving-agents',
+        'dream-taobao-agentic-control',
+        'evopilot-verify-dont-trust-autoresearch',
+        'pilot-experiment-lifecycle',
+        'recevolve-autonomous-rec',
     )}
     for path, row in receipt['mirrored'].items():
         source = before_full_article_rewrites(ROOT, row['source'], (ROOT / row['source']).read_bytes())
@@ -254,13 +275,15 @@ def test_download_mirror_replaces_only_the_overview():
                 'univa-commercial-sid-gar': 1,
                 'auto-recsys-harness': 2,
                 'coral-meta-config-harness': 2,
+                'flashvector-unity-serving-stack-agent': 1,
+                'evopilot-verify-dont-trust-autoresearch': 1,
             }
             assert slug in prior_paragraphs
             old = row['prior_mirror'].encode()
             assert len(old.decode().split('\n\n')) == prior_paragraphs[slug]
         download = before_full_article_rewrites(ROOT, path, (ROOT / path).read_bytes())
         count = row.get('mirror_count',1)
-        assert count == (2 if Path(path).parent.name == 'sam-d2q-aliexpress-doc2query' else 1)
+        assert count == (2 if Path(path).parent.name in {'sam-d2q-aliexpress-doc2query', 'harness-zero-distillation', 'swe-serve-inference-serving-agents'} else 1)
         assert download.count(new) == count
         assert download.count(old) == int(Path(path).parent.name in {
             'reasoncast-agentic-demand-forecasting', 'scope-coupled-supply-chain-policies', 'onetrans-v2-cascade-unification',

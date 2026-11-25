@@ -1,6 +1,8 @@
 # Verify, Don’t Trust: Agentic Model Development for Video Discovery Retrieval at Scale
 
-37日間のVDD研究で、−22 ppという誤った比較をhuman gateが棄却。評価器修正後、matched-lineageで+3.20 pp、別の7日A/BでGSRR +0.66%相対差。
+EvoPilotは、ある動画の後に見る動画を探す検索モデルの開発で、実験結果を公平に比べるための仕組みです。担当者が実験計画を承認し、実行後には計画どおりの出力が得られたかを確かめます。実行が最後まで終わっても、指標の測り方が両群でそろっていなければ、モデルの良し悪しは判断できません。
+
+候補を再採点する部分を追加した初期実験では、当たり率が22ポイント下がったという結論が出ました。しかし、両群が同じ候補数を指定したにもかかわらず、実際に評価に使った候補数は異なっていました。最初に問題を見つけたのは人の確認で、自動検査を強化したのはその後です。評価条件をそろえた後の別のオフライン比較では、著者は当たり率が3.20ポイント上がったと報告しています。
 
 公開ページ: https://mixidota2.github.io/paper-lab/papers/evopilot-verify-dont-trust-autoresearch.html
 

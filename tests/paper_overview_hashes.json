@@ -816,6 +816,102 @@
       "after_blob": "d28df811a6aceedc8dd8a6982430f652afb64c48",
       "prior_field": "  overview: 広告の生成確率が高くても、配信できて収益につながるとは限らない。TencentのUniVAは、広告の識別子の末尾に、入札額や広告主の目標に関する情報を入れる。生成のしやすさと見込まれる価値を組み合わせて候補を選び、その配信要求で表示できる広告だけを探索する。WeChat\n    ChannelsでGMV +1.50%を報告。実験比率はv1の5%からv2の20%へ記述が変わっており、版を区別して読む。\n",
       "new_field_sha256": "57d905c56c39e63f9f48692bd1ec33e2bfc93b0a638c2ead832aa9d91c198637"
+    },
+    "papers/dream-taobao-agentic-control/lab.yaml": {
+      "before_sha256": "d4bf5fd7df0d8a7a7611f5da3583940f9cc29b19e259f316cd6009e059a9f470",
+      "before_blob": "bc4d39395103fd5c63266e93592a141bbc13e7f9",
+      "after_sha256": "59368a70fc5716faa29fba1cfbc122a2d05c0ca7f155238365de7ffe44620ed4",
+      "after_blob": "b1a54377dadc7c57c5e9ac3ac9ba634c4aac70a6",
+      "prior_field": "  overview: DREAMはTaobaoの既存cascadeにintent認識とstrategy制御を重ねる。rerank制御でIPV +2.06%、fine rankまで広げて+2.71%。中心はL0/L1/L2のintent、M1/M2/M3の変換契約、defaultへ戻せる局所overrideである。agent対人の探索能力を揃えた比較ではない。\n",
+      "new_field_sha256": "2de93403dae314d380fd170b2f1b3f8cdbd05601b91d14269340629a5d418cc9"
+    },
+    "papers/evopilot-verify-dont-trust-autoresearch/lab.yaml": {
+      "before_sha256": "627e20911ba3902713a8ee333bbcc5cfa3c89da790b53ecbc0a3ad342b7c32c4",
+      "before_blob": "d0189ff33da5dc20033932db0529df62057a91c3",
+      "after_sha256": "c45ffbd17d618a2fee22feb31d60e2a7d6c86dfacd50c647b63f1fa30f642593",
+      "after_blob": "92a6dbf2917c1e3f6c1b689248de0a63c3906c99",
+      "prior_field": "  overview: interaction headで精度が22 pp落ちたという結論は、controlだけ3,000件を評価していたため無効だった。宣言は両群K=600でも、実現した出力数が違った。EvoPilotの中心はagentを増やすことより、承認した差分とartifactの実現値を比較して記録することにある。最初に問題を検出したのはhuman\n    gateで、自動identity guardは事後強化だった。\n",
+      "new_field_sha256": "57033ae463ebaa5b89dc3a202f9eaa09e724a7aac8ee665cf29e2b5ec6c35fdf"
+    },
+    "papers/execution-state-unlearning/lab.yaml": {
+      "before_sha256": "aadb6211b78260a81c98310f10435bbe8bb29b6586ea400f1a29ad87bc789e25",
+      "before_blob": "49c38e090a5f7dbff6b23938b759f617f361f61a",
+      "after_sha256": "369bb57c668106d6f88cd7f63cb1cdc221cf1f23d33567ac99ef30d464ecedcf",
+      "after_blob": "cf3606e85cf951b79850f53778e25fc73af89f16",
+      "prior_field": "  overview: >-\n    元の記録を消しても、それを使って作った要約や判断に影響が残ることがある。論文は、対象を受け取る直前までの状態を使い、そこから対象なしでやり直す。Labの人工例では、秘密の文字列と選択に影響するフラグを別々に持たせる。文字列が出たかだけでは忘却を判断できない理由を確かめる。\n",
+      "new_field_sha256": "0b436b3194c46bc4e0edd55bc0c844b2d6f91ee189fa5784e21bccee43aaeba9"
+    },
+    "papers/flashvector-unity-serving-stack-agent/lab.yaml": {
+      "before_sha256": "51bf54b0abaa93df3a94dea9402ebc14c432f0f123258eaa8063ff2bbbc105fc",
+      "before_blob": "5c996d35269d14593eba1ab7b75289493dc73284",
+      "after_sha256": "c80b7824b115e4280fc412134bffc76decda35989802248ac196e44aa07adba4",
+      "after_blob": "2e2c92c1e612302f4080de22e0d0f53906f89328",
+      "prior_field": "  overview: 同じモデルでも、GPU以外の文字列変換やfeature組立が詰まればGPU kernelの高速化は全体費用に届かない。FlashVectorは各層の専門的な計測とコード・設定変更を一つの検証loopへ接続する。固定latency\n    SLOの下で処理できる本番要求数が主な成果であり、広告CTRやagentの一般的なcoding能力を評価した研究ではない。\n",
+      "new_field_sha256": "2d8033b5aeaeedec83d917039f3be901db8ff63147d9eb7a6f9a8fa771281005"
+    },
+    "papers/harness-r1/lab.yaml": {
+      "before_sha256": "5f3a7ff9e8d05c719a9b8d66a2e42ab31cb53f2980f537e88a60ca080b7d7297",
+      "before_blob": "8463e21724830e196b81ade40c4ba71bcd8a56f6",
+      "after_sha256": "ff78692bf315724180d21d5b05f0847b2e589a7da7d277277127f65fe32b9f9a",
+      "after_blob": "51afdbc634e8b3ebd631c92cb6fde354bfba3011",
+      "prior_field": "  overview: Harness-R1は課題を解くtargetを固定し、その周囲の実行コードを直す9B engineerをSFT＋GRPOで学習する。3ベンチマークの平均成功率は44.3%から53.6%へ上昇。行動直前とfeedback後の介入が除去実験で大きく効いた。\n",
+      "new_field_sha256": "8c20a419d488ee0e0c195722f4986d2164ec5e0a2121230e2eb882e4028a231d"
+    },
+    "papers/harness-zero-distillation/lab.yaml": {
+      "before_sha256": "e70c569955edadd670ca3cfc933ac5200362d87dd0cdcb4cb8bb15273b5e4fc1",
+      "before_blob": "12e7c01d540fbf5d82db70199a1677b356237c35",
+      "after_sha256": "2912f7cf707114c57942ab0a760a967031fa29bc15016532a4a270befafa25cf",
+      "after_blob": "db6ab226c3545c2989074d71fd5fa19afc623229",
+      "prior_field": "  overview: Harness-Zeroは実行前の応答を別エージェントが点検し、採用された履歴でQwen3.5-9Bを学習する。最小harness下の平均成功率は23.3%から44.3%へ上がるが、すべての領域で外付けharnessを超えるわけではない。\n",
+      "new_field_sha256": "b805ff5bfb5bc6ed4df09720a9f935225464e0328e543b16339b2f19480d6e33"
+    },
+    "papers/hear-harness-engine-serving-protocol/lab.yaml": {
+      "before_sha256": "bcb1f779976d573e51df416b5cee67ef64e3f49cc6a9435076149fa157acf89c",
+      "before_blob": "2a8224957c8307d70252af815c5034c8452a739e",
+      "after_sha256": "ec0e566df2dcfbd1127bca9f17006ffa65ffac86eb2f6fedcac22b3e364aedbc",
+      "after_blob": "4a5ef7530c3515a0d674b2cb3329344e7fb7feb6",
+      "prior_field": "  overview: '**Radar：エージェントの実行を管理するharnessと、モデルの推論を処理するengineが情報を交換する。harnessは文脈の再利用予定を、engineは推論の中間計算を保存するKVキャッシュの現在の状態を伝える。** HEARは両者が交換する内容と、各メッセージの効力を定めるプロトコルである。SCBenchでは待機保護付きの方策が全要求の処理を1.61倍速め、要求到着から最初のtokenまでの時間（TTFT）の中央値を2.23倍、P95を1.45倍改善した。P95は、時間の短い順に並べたときの95パーセンタイルを指す。\n\n\n    効率の結果であり、エージェントの正しさを端から端まで保証するものではない。2つの調査タスク群で品質低下を観測しなかったことも、一般的な同等性証明とは分ける。'\n",
+      "new_field_sha256": "1dfe19e01850309724f9b51011e3d8c73c5341fa7bf76261242997b5a28e4750"
+    },
+    "papers/multi-harness-rl/lab.yaml": {
+      "before_sha256": "0c92651cf37e9fc0b970b04cabb892a3d731cf7023005d1fa12e4655a2a1a76d",
+      "before_blob": "5377e36a719edc8794f5e70803cbaf6114a5129b",
+      "after_sha256": "1ea955fd7c67132c710786bafcba231493e19700c983ab6547593dc5ba0923ba",
+      "after_blob": "602a20ca1e4bc8272d27b4956f0dc341ff16c5d1",
+      "prior_field": "  overview: 同じ多様な軌跡を学んでも、ハーネスをまたぐGRPOの報酬比較に移植性の上積みは観測されなかった。評価ハーネスによる平均solve rateの幅は約4.3倍で、学習レシピによる幅の約1.16倍より大きい。\n",
+      "new_field_sha256": "9643c6fbaaf49cf229b5630ab757ae7fb2d51a35dc6af0ca29c80e010839ddc5"
+    },
+    "papers/pilot-experiment-lifecycle/lab.yaml": {
+      "before_sha256": "f1b1aa9327afc28350c832057c7c9aa5c8a28d4fa6161382a539624517e550ea",
+      "before_blob": "2c44ade30e539f0f4db7ca561e62db149064ead4",
+      "after_sha256": "25dc2af13cb6e3ed878d34ff1a78b1fedc9633389b73c809e6c1ffe88d914b39",
+      "after_blob": "3f1de3a157e8eef4934eafc027150ed023046387",
+      "prior_field": "  overview: PILOTでは、実験を進める役、候補を提案する役、過去の結果を整理する役の三つにAIエージェントを分ける。安全上の制約、統計的な判定基準、操作権限は、あらかじめ定めたプログラムで管理する。Taobaoの前後比較でbest-bucket\n    IPVはROAM +1.00%に対し+1.40%、探索条件の達成率は53.3%から93.3%。設計は具体的だが、Manager×Plannerの2×2比較は未実施なのでWatchとする。\n",
+      "new_field_sha256": "b9f1e7fa7c7e5763957a7c896f3112e7a48b8391db86be90446e3f4096276377"
+    },
+    "papers/recevolve-autonomous-rec/lab.yaml": {
+      "before_sha256": "050f957f4a21812fe1438d151c813a5f02a83642f662b409c7f15e3f7b56abc9",
+      "before_blob": "74d58e5a060604f327cdd8c5905d7d29a22d2971",
+      "after_sha256": "07a19b49b133b923d4e5f3890c6f9f641d95c5899f94a0b755d4ff52c94720c9",
+      "after_blob": "8cfd825cf1beaa7a99b525a1075d92aa2ad0dd9b",
+      "prior_field": "  overview: GoogleのRecEvolveは、本番Two-Tower検索モデルの仮説・批評・実装・学習・評価をOrchestratorでつなぐ。著者報告は41実験、最終NDCG@50が0.4796から0.5751、オンライン満足度+3.77%。同時に、batchを8kから1kへ減らすと評価だけが易しくなる問題も発見された。KEEPとVCS\n    rollbackの条件、評価候補の固定を中心に読む。\n",
+      "new_field_sha256": "67e0d5a38aadc850398eceb2abbce38d2dcb2a3b28505fffd70a147434877e03"
+    },
+    "papers/sgc-state-grounded-conditioning/lab.yaml": {
+      "before_sha256": "391f179e9bb4b8a4bebf7f4398db9a7926bc002ddb786ffa4aefeb408d391201",
+      "before_blob": "a4faa7ed93bad6b4a2a50ce1d7f4d3113e90147c",
+      "after_sha256": "d5a74db9243af9ade779922f5e64d1f23f18803c16f843f18682d32127f01e7d",
+      "after_blob": "c1304c401e9d42f92a440e002a8d7fb290a90b0a",
+      "prior_field": "  overview: SGCは、利用者の今の状態に応じて、何を調べ、どの制約を説明し、いつ提案するかを生成前に決める設計である。Tencentのゲームコーチを対象に、200セッション・約1,000回答の人手評価を報告する。Full\n    SGCのTGAは96.7%、SGAは83.5%。製品の利用継続率や勝率を改善したA/Bの数値は開示されていない。\n",
+      "new_field_sha256": "4ccbee2358464badcbb1d4a4a76efb5e8c3e0d363cd8bf22014efee568c49b0f"
+    },
+    "papers/swe-serve-inference-serving-agents/lab.yaml": {
+      "before_sha256": "d39673a894b126681946c62ff3cf8d1f5eca44d5bd704f6df52c89ed3bd6605e",
+      "before_blob": "ae2edfad949f02dde62cbcb028a72ee3c02558c9",
+      "after_sha256": "ad123b52f9e7d28c7fc364bf62b97293345e7cd94096eeff4f4bfa24d326729f",
+      "after_blob": "9aec067013ab9f449735a663c42cff99a8a0bfda",
+      "prior_field": "  overview: SGLangの53課題で、局所的に動く変更がサーバー全体でも動くかを測る。公開APIから実モデルを動かす一連の経路を検査するE2Eテストは、19課題が対象だった。同じパッチを、この検査だけ外して採点し直すと、成功率は45.9%から69.4%へ上がった。\n",
+      "new_field_sha256": "a87e67a310fd35707d895e348c6c267376cf60c58521e96c82d929c098e5d718"
     }
   },
   "generated_from": {
@@ -1198,6 +1294,73 @@
       "after_blob": "2b246381bf7248507c38dcbcb6b42c22c45a33a7",
       "source": "papers/univa-commercial-sid-gar/lab.yaml",
       "prior_mirror": "生成する確率が高い広告でも、そのリクエストで配信できるとは限らず、収益につながるとも限らない。TencentのUniVAは、広告の識別子の末尾に入札額や広告主の目標に関する情報を入れる。候補の選択には生成のしやすさと見込まれる価値を使い、そのリクエストで表示できる広告だけを探索する。著者はWeChat ChannelsでGMV +1.50%を報告した。実験に使ったトラフィックの割合はv1では5%、v2では20%と記載されている。結果を参照するときは版を確認する。"
+    },
+    "papers/dream-taobao-agentic-control/README.md": {
+      "before_sha256": "f41472ec3e4299c1d55de6a7914aa199a98319efc48686f9cbb443b1a2a4acef",
+      "before_blob": "72f5ec9a5cc22b634c0d113009dc947e13979bad",
+      "after_sha256": "957baf74bf8a21d2c4088d25ddddc337b735926a8eb593d45364caa7f7180e85",
+      "after_blob": "598de51969635aa51e42d9880d64f753bcafdd47",
+      "source": "papers/dream-taobao-agentic-control/lab.yaml"
+    },
+    "papers/evopilot-verify-dont-trust-autoresearch/README.md": {
+      "before_sha256": "777ee5ffacab89d818e5095b9f2b7c39682b289d262353fb894949cbb4d4379e",
+      "before_blob": "62ed7098456d8c4d3bae96961ec9fd3357b214dd",
+      "after_sha256": "2fd919f674ef186b8da0746a9517bb80130a547b896b2c43219472ed348ae355",
+      "after_blob": "84396319ca5cd8bb51a5ac448c917fdb3666018a",
+      "source": "papers/evopilot-verify-dont-trust-autoresearch/lab.yaml",
+      "prior_mirror": "37日間のVDD研究で、−22 ppという誤った比較をhuman gateが棄却。評価器修正後、matched-lineageで+3.20 pp、別の7日A/BでGSRR +0.66%相対差。"
+    },
+    "papers/flashvector-unity-serving-stack-agent/README.md": {
+      "before_sha256": "dba4e792785d9c267e747ae2016190f619f581ac3d4eeaf0b4e3f30dfe1e5811",
+      "before_blob": "37682465dccc21ec7e6b6b7b18e2cfae3f905476",
+      "after_sha256": "91e9153afc402bfae092ce3ebe945891e662b2ce8f0c0c08f7cc8d3cb17ca59f",
+      "after_blob": "b52d22981086ca5d53101e64847439f21ed57e44",
+      "source": "papers/flashvector-unity-serving-stack-agent/lab.yaml",
+      "prior_mirror": "UnityのFlashVectorは、計測結果を基にシステムの各部分の変更案を作る。実際の配信要求を再現して、システム全体で処理できる要求数と応答時間を確かめる。model serverは最大2× throughput・1.98× latency speedup、feature処理は約1.6×。局所速度と採択条件を分けて読む。"
+    },
+    "papers/harness-zero-distillation/README.md": {
+      "before_sha256": "ada64c1fa8c2752796c2247e22de17a9c75287610a31d265328f9f250b659103",
+      "before_blob": "6ccaea6f7c0317c769427640c41803ba376e7a31",
+      "after_sha256": "21df7353b5decfdd37aac8eb10005305839d9d23d7f038ba68bdc195f84de16f",
+      "after_blob": "938497e9bf15863269eeff6a84e2f8310d002c8a",
+      "source": "papers/harness-zero-distillation/lab.yaml",
+      "mirror_count": 2
+    },
+    "papers/hear-harness-engine-serving-protocol/README.md": {
+      "before_sha256": "406e15325b91ab04bdf4dfb32a370487460f32f38cb568a50cb07b656a25bff2",
+      "before_blob": "02f98fa8744f2f891bf08830ca3c3b1af038ca5b",
+      "after_sha256": "7c16f38c1d2408515614459e0c67ad21dd8c63bb0a8038a0ab5af09f236c0bdc",
+      "after_blob": "d364a28f56dad1f17b4bb82d0ccf3b61d3c0de08",
+      "source": "papers/hear-harness-engine-serving-protocol/lab.yaml"
+    },
+    "papers/pilot-experiment-lifecycle/README.md": {
+      "before_sha256": "93326f605df122858447e3a237ba8ece6826c5bb28751d8013122859fcd5311e",
+      "before_blob": "875e93fb5c66e8055cff328e516b0cd201a5c59f",
+      "after_sha256": "ad2abdda10f3262dbe57e1cc5ff516131a9446d74d659c4d3a45eb456bb5d9fe",
+      "after_blob": "cd62a59b54402fdfae95ebfcec0343f74d6f29c8",
+      "source": "papers/pilot-experiment-lifecycle/lab.yaml"
+    },
+    "papers/recevolve-autonomous-rec/README.md": {
+      "before_sha256": "6df60a7fa80140ae8f15b699656dea453f6c1e9bda8239ebffc3e3cc407faec9",
+      "before_blob": "d23cd7b84f4a9255d85bc00528a382baf9eef691",
+      "after_sha256": "327b8c1923a5460ed6bcf95996d9b51fb7a22433015fde68eb6bd87e7089f521",
+      "after_blob": "bcc31e536541b506a954239337ef2e243afd712e",
+      "source": "papers/recevolve-autonomous-rec/lab.yaml"
+    },
+    "papers/sgc-state-grounded-conditioning/README.md": {
+      "before_sha256": "c22ef2e26088e4a1bf30294a7fad7dd544417c508963e6f0953eac0ac2c6a6db",
+      "before_blob": "32887063343596696ec15d0b22887293ec18ccd3",
+      "after_sha256": "ffc245f35a08a49e0b094bfdc74432559140a5cd2bb324e14a47235ffb27bc28",
+      "after_blob": "68cc5e1f6c853190877026e412169d2a390bb953",
+      "source": "papers/sgc-state-grounded-conditioning/lab.yaml"
+    },
+    "papers/swe-serve-inference-serving-agents/README.md": {
+      "before_sha256": "15be718444f4bd196162f314b57fbaa2d85fc58e56a0592238a5e0ffebfd103f",
+      "before_blob": "9ffb0215cba792d2a0b732c10f9faef2ac32faa6",
+      "after_sha256": "c8ba7bb2b9453fb8598bfaee84c33436bc2d7c3aecc292edd4ebc7dcc30b202a",
+      "after_blob": "6077c35f6650ba250f94897b3aa352165f1edfbb",
+      "source": "papers/swe-serve-inference-serving-agents/lab.yaml",
+      "mirror_count": 2
     }
   }
 }
