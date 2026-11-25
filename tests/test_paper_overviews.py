@@ -35,7 +35,7 @@ class OverviewText(HTMLParser):
 
 def test_scoped_source_transition_and_rendered_overviews(tmp_path):
     rows = json.loads((ROOT / 'tests/paper_overview_hashes.json').read_text())['files']
-    assert len(rows) == 62
+    assert len(rows) == 66
     site = tmp_path / 'site'
     build(root=ROOT, site_dir=site)
     anchors = {
@@ -101,6 +101,10 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'vn2-stockout-catboost': ('CatBoost', '全6回の総合で1位', '4.334ユーロ', '3.763ユーロ', '13.2%'),
         'zalando-sales-event-pricing-forecast-optimize': ('12市場', '23件', '無作為に割り付け', '6.00%', '0.79〜11.03%', '対照と同等だったとまでは言えない'),
         'sim2real-policy-conditioned-inbound-forecast': ('同じ構造', '新ルール導入後の入荷実績', '1.2〜3.1ポイント', '12.5〜18.7ポイント'),
+        'linkedin-prediction-to-incrementality': ('8週間', '無作為', '7.20%', '0.31〜14.09%', 'Transformer単体'),
+        'pinterest-causal-retrieval-shopping': ('しきい値', '約40%', '0.26%', '1.10%', '85%減らしたのは別の群'),
+        'otto-gbdt-vs-dnn-ltr': ('8週間', '1.86%', '0.56%', '1.48%', 'A/Bテストには含まれていません'),
+        'uvr-wolt-trial-reorder': ('10カ国', '2週間', '5.5%', '0.16%', '6カ国中5カ国'),
     }
     for path, row in rows.items():
         raw = (ROOT / path).read_bytes()
@@ -147,6 +151,9 @@ def test_download_mirror_replaces_only_the_overview():
         'traffic-forecast-to-decision-value',
         'zalando-sales-event-pricing-forecast-optimize',
         'sim2real-policy-conditioned-inbound-forecast',
+        'linkedin-prediction-to-incrementality',
+        'pinterest-causal-retrieval-shopping',
+        'uvr-wolt-trial-reorder',
     )}
     for path, row in receipt['mirrored'].items():
         source = (ROOT / row['source']).read_bytes()
@@ -154,9 +161,14 @@ def test_download_mirror_replaces_only_the_overview():
         old, new = (yaml.safe_load(raw)['sections']['overview'].encode() for raw in (previous, source))
         if 'prior_mirror' in row:
             slug = Path(path).parent.name
-            assert slug in {'proximal-residual-value-inventory-placement', 'retailbench-long-horizon-store-agents'}
+            prior_paragraphs = {
+                'proximal-residual-value-inventory-placement': 2,
+                'retailbench-long-horizon-store-agents': 1,
+                'pinterest-causal-retrieval-shopping': 1,
+            }
+            assert slug in prior_paragraphs
             old = row['prior_mirror'].encode()
-            assert len(old.decode().split('\n\n')) == (1 if slug == 'retailbench-long-horizon-store-agents' else 2)
+            assert len(old.decode().split('\n\n')) == prior_paragraphs[slug]
         download = (ROOT / path).read_bytes()
         assert download.count(new) == 1
         assert download.count(old) == int(Path(path).parent.name in {

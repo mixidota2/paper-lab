@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from prose_preservation import linkedin_full_rewrite_hash
+from prose_preservation import linkedin_full_rewrite_hash, paper_overview_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = 'linkedin-prediction-to-incrementality'
@@ -24,7 +24,8 @@ def test_linkedin_source_guards_match_exact_reviewed_bytes(path, algorithm):
     raw = (ROOT / path).read_bytes()
     actual = (hashlib.sha1(f'blob {len(raw)}\0'.encode() + raw).hexdigest()
               if algorithm == 'blob' else hashlib.sha256(raw).hexdigest())
-    assert actual == digest == row['after_' + algorithm]
+    assert digest == row['after_' + algorithm]
+    assert actual == paper_overview_rewrite_hash(ROOT, path, digest, algorithm)
     with pytest.raises(AssertionError):
         linkedin_full_rewrite_hash(ROOT, path, row['after_' + algorithm], algorithm)
     with pytest.raises(AssertionError):

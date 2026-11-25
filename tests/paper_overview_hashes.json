@@ -496,6 +496,38 @@
       "after_blob": "13a833a3537a2ff514c6de405c5f41d728917d10",
       "prior_field": "  overview: |-\n    Zalandoの研究チームは、割引率ごとに販売数を予測し、その予測から商品ごとのセール価格を選んだ。2023〜2024年に12市場で行った無作為化A/Bテスト23件を統合した結果、著者は利益貢献（PCII）が+6.00%（95%区間0.79〜11.03%）と報告している。純売上（NMV）と返品後販売数（SIAR）の区間は0をまたいだ。売上が対照と同等だったとまでは言えない。\n\n    この研究をMust Readとしたのは、モデルの新しさよりも、価格を変えた実地試験の結果を予測モデルの選び方と合わせて読めるからだ。Table 2では、同じモデルでも誤差の測り方で順位が変わる。Table 3では、選んだ価格で見込んだ利益と、その価格を試算し直した利益が一致しない。モデルの誤差だけでは、値付けの結果まで判断できない。\n",
       "new_field_sha256": "b00f6635e9387e09b9a3093cff2f57def0444bbbd1796286c422b5fa3e4d775c"
+    },
+    "papers/linkedin-prediction-to-incrementality/lab.yaml": {
+      "before_sha256": "aeae908d8249a3c0b2a53d8f30373edadb227bd9576837d122638fc75d5e2b33",
+      "before_blob": "7023fff3422892cc201b60855b60e2d9ede978da",
+      "after_sha256": "3a1d8513a7ab0c76eb809ecba7fde0a4ea58dc6fe42b5e94ee65ec150ee1bcb1",
+      "after_blob": "d0fa79d338717f0abd87978e9e6634cbd4fd30eb",
+      "prior_field": "  overview: LinkedInは施策を届けた場合と届けなかった場合の成果をそれぞれ予測し、その差を使って、どの会員に何を届けるかを決める仕組みを作った。著者はLinkedIn Feedのマーケティング枠で従来の配信方法と8週間比較し、会員の長期価値を表す指標（LTV）が対照群より7.20%高かったと報告している（p=0.041、95%信頼区間は[0.31%,\n    14.09%]）。比較したのは配信方法全体で、Transformerだけの効果は分からない。\n",
+      "new_field_sha256": "c79cd7a6917bfb4c9d109b3f2e9e4eff9f1872ab682cee30a8187363fe2c5b2b"
+    },
+    "papers/otto-gbdt-vs-dnn-ltr/lab.yaml": {
+      "before_sha256": "c4384a6105fa69d18b07b8a236f1b41bf6b58050ff05b04131aeeecb3d538ee2",
+      "before_blob": "a1e8196b50781f5a3564c7c66d0d690ba9b56471",
+      "after_sha256": "e0c693eb38176b3fece8243de657d217202e7cd07055265d5c3ecd061e04be91",
+      "after_blob": "3ad339fc80bfc14a21afab8e6d309670add68389",
+      "prior_field": "  overview: OTTOの検索結果の並べ替えでは、Softmax交差エントロピー（CE）で学習したTwo-Towerを本番のLambdaMARTと8週間比べた。Two-Towerはクリック総数が1.86%、売上が0.56%多く、販売点数は同水準だった。候補同士の関係も使うTransformerは、検索ログを使った評価で注文された商品を上位に置く指標が本番の木モデルより低かった。\n",
+      "new_field_sha256": "e31dbba28c02c35ec908bd79dfb108019501d3c2bec2e2627e8230975ec52930"
+    },
+    "papers/pinterest-causal-retrieval-shopping/lab.yaml": {
+      "before_sha256": "cf2ccee62dc1f4542f51078e5f62f2877e6069cd68a03e0a1764027da1afa93a",
+      "before_blob": "1bc0bf6eb51844faf26c46f55e8d17a20f0abd89",
+      "after_sha256": "a7d435596c32381d64c752a3d014a978779882a1634bca84bbc6404f636d8aa8",
+      "after_blob": "bdd0eb9aedd989639a783e16ae5dea8e1ff24efc",
+      "prior_field": "  overview: Pinterestは、買物向けの推薦候補を探す処理を呼び出すかどうかを、リクエストごとに決める。無作為 Shopping Holdout とオフライン replay で閾値を決める。本番の主方策は single-value（SV）であり、uplift\n    の差をそのまま配信する方策とは区別する。\n",
+      "new_field_sha256": "a9a0fbd474656456a3800d40a59c41b4cef7097326932ec9053a1be00ecdc7fa"
+    },
+    "papers/uvr-wolt-trial-reorder/lab.yaml": {
+      "before_sha256": "809dab25bfaa9fb8e94de6e387c7b4d7e30d8d06d29f94a8fd45dcc87e0585e7",
+      "before_blob": "fc51886fbd3a62790516dc8edd5f367f5db341e7",
+      "after_sha256": "06f36d316e0b5104c7011fe435909dc0ba96d628d52cdbc548c74ee731026191",
+      "after_blob": "5ea3e3bb5205df9688586bdcfc742484799b1395",
+      "prior_field": "  overview: WoltのUniversal Venue Ranker（UVR）は、購入履歴を読む双方向Transformerのlogitを、CatBoostの特徴量に加える。V1の2週間・50:50 A/BではMerchant\n    Trial Rate +5.5%、Global CVR +0.16%（p=0.017）。V2でtrialをさらに重視すると、再注文のオフラインMRRは6カ国中5カ国で旧productionを下回った。\n",
+      "new_field_sha256": "2d59e7567dd03a7e5298aefad9f9297217e1c9d4cebfbd21f62434b58e82715c"
     }
   },
   "generated_from": {
@@ -648,6 +680,28 @@
       "after_sha256": "af71c3204e388088ce0dcf812f057361bb6004a735e4230e96576b3466aa459f",
       "after_blob": "831088f1f69a7362bb2444830c42c7bea9ee3d9f",
       "source": "papers/zalando-sales-event-pricing-forecast-optimize/lab.yaml"
+    },
+    "papers/linkedin-prediction-to-incrementality/README.md": {
+      "before_sha256": "23a3c445b50671f3ff74e2a60821e26aba674e23726302d10f761beb22734990",
+      "before_blob": "d1b4c186c917bf8b022cad98e683deebef514ad7",
+      "after_sha256": "dcdb440cd020e827e39390ab69a3f75991e1fea7b07e1c0722a92cf989069990",
+      "after_blob": "98df8a9e97e8c68a76ce14b7286ed88d6de8785a",
+      "source": "papers/linkedin-prediction-to-incrementality/lab.yaml"
+    },
+    "papers/pinterest-causal-retrieval-shopping/README.md": {
+      "before_sha256": "1a500fd19e06834e34517e3dd16ce96c9f9aefecc3842fb336daeda97c19d98c",
+      "before_blob": "5939fea3740e3964e41a3323e6b9b21bdd514206",
+      "after_sha256": "0de336e6bdfedef0432d39339d9b414aea07b0f49c0abadfdadd789473d35300",
+      "after_blob": "0dfff2715d7884d30dc403d52dce6a44b9c6b52c",
+      "source": "papers/pinterest-causal-retrieval-shopping/lab.yaml",
+      "prior_mirror": "Pinterestは、対象リクエストを無作為に振り分けたShopping Holdoutと、そのログで配信ルールを試すoffline replayを使い、shopping候補生成器（CG）を呼び出す閾値を決めます。"
+    },
+    "papers/uvr-wolt-trial-reorder/README.md": {
+      "before_sha256": "4213882cbd238ff9bab7adb59918eb5cf66566f4fe78c6998b2ce461dab8d445",
+      "before_blob": "7c07dc321ab2e732e03c9f5f7f2b358bb8070327",
+      "after_sha256": "1de46bd96019bfbcc8f782c335884caa0969811e7f8cdc525058722e90d1db51",
+      "after_blob": "e32bc1a54b451a1fae27edb4d3a01c02e5532e2f",
+      "source": "papers/uvr-wolt-trial-reorder/lab.yaml"
     }
   }
 }
