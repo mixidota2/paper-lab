@@ -36,8 +36,10 @@ core_idea:
     reviewを行う。
   research_bot_interpretation: '[AgentX](agentx-kuaishou.html)のcode探索、[DREAM](dream-taobao-agentic-control.html)の実行時制御、[PILOT](pilot-experiment-lifecycle.html)の実験運用、[CORAL](coral-meta-config-harness.html)の設定探索に、診断対象を決める前段を足す研究と読める。失敗の説明がもっともらしくても修正効果は別途確かめる必要がある。'
 sections:
-  overview: AURAの成果は「genreの問題を発見したから改善を出荷した」ことではない。約10万sessionをplatformごとに整理し、根拠となるsessionとcodeを辿れる修正案へ変換したことにある。genre
-    mismatchの2修正は診断cohortで改善せず、全体の差も±0.1%のnoise内だった。論文は未実証の候補として扱う。
+  overview: |-
+    AURAは動画配信サービスで、推薦が合わなかった場面を調べ、技術者が修正を検討できる形にまとめます。上流の判定モデルは2サービスでそれぞれ約10万件の利用セッションを評価します。AURAが詳しく調べるのは、そのうち判定モデルが問題ありとしたセッションです。似た失敗をまとめ、どの記録やコードを根拠に修正を提案したかを示します。
+
+    著者は一方のサービスで、好みのジャンルと推薦が合わない1,911件を対象に、二つの修正案をオフラインで評価しました。どちらも対象のセッションで順位付けを改善せず、全体の指標も反復実験のばらつきとされた±0.1%の範囲でした。原因候補を調べて修正案を作った事例であり、推薦の改善を確認して本番に出した事例ではありません。
   problem: 集計NDCGが同じでも、家族向けcontentのsubgenre不一致と年齢に合わない推薦では対処が違う。全sessionを一つのLLM contextへ入れることもできない。Platform
     Aは96,801中18,901 BAD、Bは101,594中4,154 BAD。階層集約はこのBAD集合を詳しく調べるので、上流judgeが見逃した失敗が診断から落ちる可能性がある。
   why_it_might_work: '解釈: session→category→検証済みfindingへ圧縮すると、深い分析に使う高価なmodelの呼出しを減らせる。codeを読む前にcohortと失敗を決めることで、平均指標だけの探索より修正の理由が明確になる。ただし分類名と集約時の抽出条件が盲点を作る。低頻度の安全上の失敗を割合閾値で消さず、上流judge自身の誤りも検査する必要がある。'

@@ -752,6 +752,70 @@
       "after_blob": "bb762fcc2ef474820b924dba9a4d1a50fa996230",
       "prior_field": "  overview: 価値の高い商品を生成しても、検索意図から外れれば最終rankerの限られた枠を浪費する。VARGは意味・価値・既存順位モデルとの整合を候補生成へ移す。Taobao\n    & Tmall Groupの研究だが、今回のオンライン評価面はTmall App検索である。14日・20%という条件のもと、GMV +1.45%、IPV/user\n    +0.22%、PCTR +0.31%を著者が報告した。\n",
       "new_field_sha256": "93160328a4cc4b31aad1eec8e62d459d40e7da8ed2b42fede33facdf4050137c"
+    },
+    "papers/agentx-kuaishou/lab.yaml": {
+      "before_sha256": "5deb50651a38e6c368944f05866c20e403c6edbef6da2b4260db3604a5b2b783",
+      "before_blob": "0fae8cffa9643b808df61ad676e82d43d396b7e4",
+      "after_sha256": "8dfd61109c1cd52b8eeed8748a6ebd8e499be3efab55d37843fdb4a65bfba26a",
+      "after_blob": "aed53469910cacdc19acb26f38b4e29b69a7d3fe",
+      "prior_field": "  overview: |-\n    AgentXは、推薦の改善案を出し、実装して本番で評価し、その結果を次の改善に使う。論文では、3ワーカーが3週間で出した374案のうち10件が本番導入の候補になった。同時に進めた実験数は8倍、稼働したワーカーの週数で割った成果は約3.7倍だった。どちらも運用中に観察された差で、同じ案を人とエージェントに割り付けた実験の結果ではない。\n\n    <figure class=\"teaching batch17\"><h3>374案のうち各段階に進んだ件数</h3><div class=\"b17-funnel\"><div style=\"--stage:100%\"><strong>374</strong> 発案</div><div style=\"--stage:75%\"><strong>106</strong> 審査通過</div><div style=\"--stage:65%\"><strong>100</strong> 実装・実験開始</div><div style=\"--stage:35%\"><strong>10</strong> 本番導入の候補</div></div><p>374→106：28.34% ／ 106→100：94.3% ／ 100→10：表の報告9.9%</p><figcaption>出典は§8・表5・式10。棒の幅は段階を区別するためのもので、件数に比例しない。最後の段階の割合は整数の件数で計算すると10%になるが、論文の表は9.9%と報告している。本文からは、丸めと集計方法のどちらで差が生じたか分からない。</figcaption></figure>\n",
+      "new_field_sha256": "9b9350d9686e792669e06fc4c9f9884e3486dcd6e02cf880148878ac68951eaf"
+    },
+    "papers/aura-disney-agentic-rec-diagnosis/lab.yaml": {
+      "before_sha256": "b5b6e6454139fd2be818b410dfc7511de0b6bcc58aa09e0d1d9f935d12240897",
+      "before_blob": "b4304060e1acaf59620ebe72e2d6b270fb27f083",
+      "after_sha256": "6db8396b847ef212505763e8744e65f3a8f6929159afc10130473955744c27a2",
+      "after_blob": "db9109a4f3b8a708cae7c5c257cab1899859c81c",
+      "prior_field": "  overview: AURAの成果は「genreの問題を発見したから改善を出荷した」ことではない。約10万sessionをplatformごとに整理し、根拠となるsessionとcodeを辿れる修正案へ変換したことにある。genre\n    mismatchの2修正は診断cohortで改善せず、全体の差も±0.1%のnoise内だった。論文は未実証の候補として扱う。\n",
+      "new_field_sha256": "d02f1b1b6dc39f6a7aac9353797dd2b33ea2043939b8fa09282f3fb540a567ac"
+    },
+    "papers/auto-recsys-harness/lab.yaml": {
+      "before_sha256": "29d87f99c425f92c4bcfa8f9acf6e85cf6148a329bbdb5aefffa24551ac3f9de",
+      "before_blob": "616f9d2b51574d1bb414052b21cb0ab3ec47e31e",
+      "after_sha256": "b0f8b858c41eefea6ed9f3f5d8ba86dc6f3593fd023554c1eb43b1c69561e6a7",
+      "after_blob": "5e5ed85d761cde9156b7dbc49bcbd07168a2218b",
+      "prior_field": "  overview: Auto-RecSysは、学習に数日かかる推薦実験を並行して進め、セッションが終わっても作業を引き継ぐ仕組みです。著者が1モデルで追った31回の実験では、運用上の修正が平均4.0回から1.3回に減り、基準モデルが変わった後は復旧を経て平均0.5回になりました。学習時間や推薦精度ではなく、運用ログで見た結果です。\n",
+      "new_field_sha256": "2d7084404770008d197850a8adce83b29862c5bf159486bbf92c1feca4ab0d52"
+    },
+    "papers/coral-meta-config-harness/lab.yaml": {
+      "before_sha256": "0bd5d300836111c3d4010cbf8fbafb66f9676c73dd29e247fa74f4da0cae4a93",
+      "before_blob": "9b662de34113109dc31b09d2a2a4004eef8950d1",
+      "after_sha256": "b4991e80863b767da242a596432eec1a5fc7e031f0bba3f110dd5be57c5f4ec4",
+      "after_blob": "87ff3352ffa060722c59d572d0502e3144ef2154",
+      "prior_field": "  overview: Metaは動画サービスで、候補を集める予算の倍率を経路ごとに見直した。別のサービスでは、利用者グループごとに使う配信方法を見直した。どちらもCORALが数日ごとに設定を更新する。分析ツールが運用統計を要約し、LLMが設定案を出す。数値最適化がその案を予算内に収める。\n",
+      "new_field_sha256": "630b15fba10c50bceac49f9a83ccb6f8660185a6cc81f0cade4f8312d5394979"
+    },
+    "papers/gryphon-ilsm/lab.yaml": {
+      "before_sha256": "343202e79ad2a545043797a8d47411bd9567ca17412ba149bc574177f6f1756c",
+      "before_blob": "4b65f0d46f4fc084f8c965bb20cddd7ece042a2d",
+      "after_sha256": "4eb1892ee37d03fdc88b5892bfd9f9313d221f82bb9bce033b083f6ecee5df41",
+      "after_blob": "0c5f95346194a3f5787e0737a6f3dd086a4630a2",
+      "prior_field": "  overview: Gryphonは、生成した識別子に対応する曲を候補として取り出し、曲ごとに点数を付け直して絞り込む。候補を作る処理と採点する処理は同じ履歴情報を使う。本番実験では、その後に最終的な順位を決める既存モデルも使っている。TLT の有意な改善を示した論文としては読めない。\n",
+      "new_field_sha256": "7b0dded981a344ba75d2ff21b93d49b162a07801013b1c698d698a44340002bf"
+    },
+    "papers/sam-d2q-aliexpress-doc2query/lab.yaml": {
+      "before_sha256": "bf36165efe9065d93b5c7290997eb5bb00834cd6057eb0474813bdafe3139fb7",
+      "before_blob": "b5a62e328ad970ca472799d1eba353c72126209c",
+      "after_sha256": "88c730c4698d053d6ec355d1194a033ebe171b3fa7e14e8368f70587f0118968",
+      "after_blob": "ada438b00cbe00b5b49f4ad18b001c67bc506f1b",
+      "prior_field": "  overview: SAM-D2Qは商品画像とタイトルから検索語を生成し、AliExpressの転置索引を拡張する。21日間・4%トラフィックのA/BでGMV\n    +3.38%、Pay Count +2.27%を報告した。GMVは方向を示す値で、有意差確認はPay CountとCVRに限られる。\n",
+      "new_field_sha256": "aedd354def681e15d51dd5f246d7c7f49e8dc710aa52189bbba3a2dc66c06988"
+    },
+    "papers/static-constrained-gr/lab.yaml": {
+      "before_sha256": "d231ca8d275855a8d5c61a6acd10aeeaa8792a13cf383846f3b0839a6121fec7",
+      "before_blob": "042f650ad03a4ef84888573dce8adec6039873e9",
+      "after_sha256": "dc2afbf4f3c2969ee292c4dc6b5f1ecac6482edbeef398692414147a3bf61009",
+      "after_blob": "9fac72392d8c99e639cfc3bf426dfe7bc411c866",
+      "prior_field": "  overview: STATICは、許可したID列（SID）を先頭部分ごとにまとめた木（trie）を、アクセラレータが読み取りやすい配列へ変換する。先頭側には密な表（dense table）を使い、その先はゼロ以外の要素を行ごとに保存する形式（CSR）で持つ。YouTubeのTPU v6e実験で制約処理0.033ms/step、3Bモデル推論の約0.25%。有効SIDを出すだけでなく「直近7日」の集合へ生成を限定できる点が主題だ。\n",
+      "new_field_sha256": "71aabba64e816401d5a63111f99a88e3fa5935ebe337df1547299af1ef3371f3"
+    },
+    "papers/univa-commercial-sid-gar/lab.yaml": {
+      "before_sha256": "2722d4a585b8ec3bda8e6d0c542e36c5b4e49ffc44e91a4b975f5629421d196e",
+      "before_blob": "e192282aa6bef7d18a776b64725405c5ad520db3",
+      "after_sha256": "34aff5871c4e449385bf54e327fc9b25c5d2cd4625e5f8d16a3a40789d7a6221",
+      "after_blob": "d28df811a6aceedc8dd8a6982430f652afb64c48",
+      "prior_field": "  overview: 広告の生成確率が高くても、配信できて収益につながるとは限らない。TencentのUniVAは、広告の識別子の末尾に、入札額や広告主の目標に関する情報を入れる。生成のしやすさと見込まれる価値を組み合わせて候補を選び、その配信要求で表示できる広告だけを探索する。WeChat\n    ChannelsでGMV +1.50%を報告。実験比率はv1の5%からv2の20%へ記述が変わっており、版を区別して読む。\n",
+      "new_field_sha256": "57d905c56c39e63f9f48692bd1ec33e2bfc93b0a638c2ead832aa9d91c198637"
     }
   },
   "generated_from": {
@@ -1087,6 +1151,53 @@
       "after_blob": "63f1b95c4fa89085be6d9062bb50a0f867e26086",
       "source": "papers/varg-tmall-value-generative-retrieval/lab.yaml",
       "prior_mirror": "Tmall Appでは、生成モデルが選ぶ候補に専用の枠を用意した。この候補は予備の順位付け（pre-rank）を省き、既存の最終順位付けモデル（final ranker）に直接渡す。検索トラフィックの20%を使った14日のA/Bテストで、著者はGMV +1.45%を報告した。初期に商品同士で識別子が重ならないことと、日次更新で既存商品の識別子を変えないことは、別の条件。"
+    },
+    "papers/agentx-kuaishou/README.md": {
+      "before_sha256": "9024e0cda07cc47379bb4c4aa568528851e0b04e5197b297282b6d904fbab5bb",
+      "before_blob": "f6aaa02ffb1f9d8e21a76f2df52c274ebe409f47",
+      "after_sha256": "af2dc1e660c3c2996ff70498ae0186308e84bb01e93b91832f7bc35e089db09d",
+      "after_blob": "db4977649e57e76f6159a2909ff703e720a8b845",
+      "source": "papers/agentx-kuaishou/lab.yaml",
+      "mirror_excludes_unchanged_figure": true
+    },
+    "papers/auto-recsys-harness/README.md": {
+      "before_sha256": "1342e3f16d0d023693ac842e5475370b5cd436ed224493f711778c4c7345cbd1",
+      "before_blob": "67ea1e8312fd184844b6eaee5fbc8e4785c8dbb1",
+      "after_sha256": "b0073cd8916516cd262d4ab98464dd86a032b93aed145bdc8d80a1a7e8d82bb6",
+      "after_blob": "08327ad55c934561f9d50347c97cc81bd2ec4bb9",
+      "source": "papers/auto-recsys-harness/lab.yaml",
+      "prior_mirror": "学習に数日かかる推薦実験を、担当のセッションが終わっても続ける仕組みです。案ごとにジョブと進み具合を記録し、別のサーバーでも作業を引き継げるようにします。実験が終わったら、次の実行に使う手順と、次の案を考えるための結果を別々に残します。\n\n著者が一つの推薦モデルでたどった31回の実験では、1回あたりの運用上の修正が平均4.0回から1.3回に減りました。基準モデルが変わった直後は復旧が必要になりましたが、その後は平均0.5回でした。学習が速くなった、推薦の精度が上がった、という比較ではありません。"
+    },
+    "papers/coral-meta-config-harness/README.md": {
+      "before_sha256": "633726e0b22fcfd45b636c64916b79b7ca7886fdc1493ebc128477bfcbd4e553",
+      "before_blob": "131eaac699765989658bbd81ebfe223772e5f695",
+      "after_sha256": "8fdb5da1a50f2c5fba8fa09e0136f1f004622839d317a927c934df2849960962",
+      "after_blob": "a75f21e928d56b97b4712c6629cf4d7ba2cbb995",
+      "source": "papers/coral-meta-config-harness/lab.yaml",
+      "prior_mirror": "MetaはCORALを使い、動画サービスでは推薦候補を集める予算を経路ごとに見直した。別のサービスでは利用者のグループごとに配信方法を見直した。どちらも数日ごとに更新した。分析ツールが運用統計を要約し、大規模言語モデル（LLM）が設定の変更を提案する。数値最適化は予算内で提案に最も近い設定を返す。\n\n著者の動画サービスの3回目の比較では、動画を1回以上見た訪問の回数が全体で0.16%、視聴時間が0.15%増えた。著者によると、推薦の配信費用は増えなかった。別のサービスで報告された44%は、初回に減らした金額に対する次回の削減額の増加率である。総費用が44%減ったわけではない。"
+    },
+    "papers/sam-d2q-aliexpress-doc2query/README.md": {
+      "before_sha256": "4d8ac4d80652ab6eb9b39b3fead5af7816482653d9a52707b96866dfed43b2ee",
+      "before_blob": "e35a1ef05cbf10be4a9fc73940f5fc0fa471fbc8",
+      "after_sha256": "73b32a9b76e75698e158a61cba415bd87a318cfc932212e6293e951c560a3af1",
+      "after_blob": "269714711eb3852f4b35cb9d56f20aeeea96efbf",
+      "source": "papers/sam-d2q-aliexpress-doc2query/lab.yaml",
+      "mirror_count": 2
+    },
+    "papers/static-constrained-gr/README.md": {
+      "before_sha256": "428eb9d1ebc84aac5924446b1c59b10ef91fcdca6ceebfef62c9074af313020c",
+      "before_blob": "9075dd4d44e4e469bb991593327e13dc723e692a",
+      "after_sha256": "79ecf8806a55619f9c5e1907a38c45ac9c4b05b5b73a354c758ccc40cc67bd8c",
+      "after_blob": "60abd4ec414127aa8d9ad777455db286c19cc52c",
+      "source": "papers/static-constrained-gr/lab.yaml"
+    },
+    "papers/univa-commercial-sid-gar/README.md": {
+      "before_sha256": "19d0c9878ba18f2a45a957ec6726860e6c07d4490af91f7272003d6a35fbfb66",
+      "before_blob": "8963498852364eeec52ad99cf85fbbedcaa8c883",
+      "after_sha256": "b4dd37a61fe047c0be4dcf6cf2c78edab26af950593449282c3f57f246cdc668",
+      "after_blob": "2b246381bf7248507c38dcbcb6b42c22c45a33a7",
+      "source": "papers/univa-commercial-sid-gar/lab.yaml",
+      "prior_mirror": "生成する確率が高い広告でも、そのリクエストで配信できるとは限らず、収益につながるとも限らない。TencentのUniVAは、広告の識別子の末尾に入札額や広告主の目標に関する情報を入れる。候補の選択には生成のしやすさと見込まれる価値を使い、そのリクエストで表示できる広告だけを探索する。著者はWeChat ChannelsでGMV +1.50%を報告した。実験に使ったトラフィックの割合はv1では5%、v2では20%と記載されている。結果を参照するときは版を確認する。"
     }
   }
 }

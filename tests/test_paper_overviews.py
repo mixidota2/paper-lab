@@ -41,7 +41,7 @@ class OverviewText(HTMLParser):
 
 def test_scoped_source_transition_and_rendered_overviews(tmp_path):
     rows = json.loads((ROOT / 'tests/paper_overview_hashes.json').read_text())['files']
-    assert len(rows) == 94
+    assert len(rows) == 102
     site = tmp_path / 'site'
     build(root=ROOT, site_dir=site)
     anchors = {
@@ -139,6 +139,14 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'scaffold-effects-gaia': ('5つのモデル','3回の試行','最大28ポイント','全モデルの平均ではありません'),
         'harness-bench': ('初版の表2','106課題と8モデル','76.2点','52.4点','23.8ポイント'),
         'harness-buys-tokens-not-pass-rate': ('難しい45課題','13%','22%','444〜445組','±5ポイント','最大約3倍'),
+        'gryphon-ilsm': ('0.8209から0.8552','7日間','3,000件から1,000件','0.25%増','従来と同等だったとも'),
+        'sam-d2q-aliexpress-doc2query': ('4%','21日間','2.27%','0.53%','3.38%増','この時系列を確定できません'),
+        'static-constrained-gr': ('0.033ミリ秒','0.25%','5.1%','実験期間ではありません'),
+        'univa-commercial-sid-gar': ('1.50%','初版に5%','第2版に20%','どちらか片方の効果ではありません'),
+        'agentx-kuaishou': ('3週間','374案','10件','8倍','約3.7倍','無作為に割り付けた比較でもありません'),
+        'aura-disney-agentic-rec-diagnosis': ('それぞれ約10万件','1,911件','±0.1%','本番に出した事例ではありません'),
+        'auto-recsys-harness': ('31回','4.0回から1.3回','平均0.5回','対照群のない運用記録'),
+        'coral-meta-config-harness': ('0.15%','0.16%','費用を減らせた額','44%','総費用が44%下がったという意味ではありません'),
     }
     for path, row in rows.items():
         raw = before_full_article_rewrites(ROOT, path, (ROOT / path).read_bytes())
@@ -209,13 +217,19 @@ def test_download_mirror_replaces_only_the_overview():
         'oxygenrec-v2-idgr',
         'pushdualgen-kuaishou',
         'harness-buys-tokens-not-pass-rate',
+        'sam-d2q-aliexpress-doc2query',
+        'static-constrained-gr',
+        'univa-commercial-sid-gar',
+        'agentx-kuaishou',
+        'auto-recsys-harness',
+        'coral-meta-config-harness',
     )}
     for path, row in receipt['mirrored'].items():
         source = before_full_article_rewrites(ROOT, row['source'], (ROOT / row['source']).read_bytes())
         previous = restored_before_paper_overview(ROOT, row['source'], source)
         old, new = (yaml.safe_load(raw)['sections']['overview'].encode() for raw in (previous, source))
         if row.get('mirror_excludes_unchanged_figure'):
-            assert Path(path).parent.name in {'genpage-netflix-homepage', 'gatesid-coldstart-ranking'}
+            assert Path(path).parent.name in {'genpage-netflix-homepage', 'gatesid-coldstart-ranking', 'agentx-kuaishou'}
             old, old_figure = old.split(b'\n\n<figure', 1)
             new, new_figure = new.split(b'\n\n<figure', 1)
             assert new_figure == old_figure
@@ -237,12 +251,17 @@ def test_download_mirror_replaces_only_the_overview():
                 'varg-tmall-value-generative-retrieval': 1,
                 'hgenpush-kuaishou-heterogeneous-push-gr': 1,
                 'lige-gr-meta-listwise': 1,
+                'univa-commercial-sid-gar': 1,
+                'auto-recsys-harness': 2,
+                'coral-meta-config-harness': 2,
             }
             assert slug in prior_paragraphs
             old = row['prior_mirror'].encode()
             assert len(old.decode().split('\n\n')) == prior_paragraphs[slug]
         download = before_full_article_rewrites(ROOT, path, (ROOT / path).read_bytes())
-        assert download.count(new) == 1
+        count = row.get('mirror_count',1)
+        assert count == (2 if Path(path).parent.name == 'sam-d2q-aliexpress-doc2query' else 1)
+        assert download.count(new) == count
         assert download.count(old) == int(Path(path).parent.name in {
             'reasoncast-agentic-demand-forecasting', 'scope-coupled-supply-chain-policies', 'onetrans-v2-cascade-unification',
         })
