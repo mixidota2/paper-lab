@@ -1,24 +1,20 @@
-# Original Paper / Official Code Mapping
+# 原論文・公式コードと、Labで確かめた範囲
 
-確認日：2026-09-17。一次PDF：[2602.22647v2.pdf](https://arxiv.org/pdf/2602.22647v2)。arXiv初回日：2026/02/26、確認版の日付：2026/07/20。
+確認日：2026-09-17。後から追記した実験結果はarXivの公開HTMLでも照合しました。一次資料は[2602.22647v2のPDF](https://arxiv.org/pdf/2602.22647v2)です。arXivへの初回投稿は2026-02-26、確認した版の日付は2026-07-20です。
 
-SHA-256：`1a50773da5416592e35b3dd62e35d81dac91c64e04cc179c3d28bae252ab0bad`
+PDFのSHA-256：`1a50773da5416592e35b3dd62e35d81dac91c64e04cc179c3d28bae252ab0bad`。Labに載せた図は、原論文の図を転載せずに作った説明図です。
 
-参照PDF：`2602.22647v2.pdf`。既存HTMLを発見用に使い、上記の版を固定したPDF本文・関連する表と付録で照合した。図はこのLabで作った説明図で、元論文の画像コピーではない。
-
-| 原論文の箇所 | 確認対象 | Labと省略範囲 |
-| --- | --- | --- |
-| §4.1–4.2、図1 | prefix制約とCSR変換 | run.py: build / walk。dense lookupは省略 |
-| §4.3–4.4、Algorithm 1–2、Appendix A | maskとVNTK、beam state更新 | method.md。accelerator kernelは未実装 |
-| §5.1–5.4、表1–2、Appendix D | latency条件とonline鮮度 | Evidence・時間の比較図 |
-| 公式static_decoding/csr_utils.py、decoding_jax.py、decoding_pt.py | index構築とJAX/PyTorch推論 | 公式コードを参照。Labは依存を持たないCPU模型 |
+| 原論文の箇所 | 著者の説明とLabでの扱い |
+| --- | --- |
+| §4.1–4.2、図1 | 著者はIDの先頭部分を木にまとめ、次に足せる記号をCSRの配列に移します。Labの `run.py` にある `build` と `walk` は、小さな架空のID集合でこの対応を確かめます。先頭段を読む密な表は実装していません。 |
+| §4.3–4.4、Algorithm 1–2、付録A | 著者は不許可の記号を除き、ビーム探索で残した候補と同じ順序で状態を更新します。手法欄で説明していますが、LabではTPUやGPUの処理は動かしていません。 |
+| §5.1–5.4、表1–2、付録D | 著者は候補制限の追加時間を測り、別のA/Bテストで鮮度を限定した候補源の効果を調べました。記事は報告値を紹介しており、Labによる独立再現ではありません。 |
+| §6、表3、付録F | 著者はAmazon Reviewsで正解が新しい商品である例を選び、上位1件の正答率を比べました。Labは論文の学習や評価を実行していません。 |
 
 ## 公式コード
 
-公式実装を取得し、READMEとindex/decodingの対応を確認した。commit `ac18fa1870ac45e0a3559090a0ea9ec005226cf5`。JAX/PyTorch実装自体の実行はNOT TESTED。
+[公式リポジトリ](https://github.com/youtube/static-constraint-decoding)のコミット `ac18fa1870ac45e0a3559090a0ea9ec005226cf5` を参照しました。`static_decoding/csr_utils.py` は候補を調べる配列を作り、`decoding_jax.py` と `decoding_pt.py` は推論時にその配列を使います。Labは、このJAX版やPyTorch版を実行していません。
 
-[公式repository](https://github.com/youtube/static-constraint-decoding)。`static_decoding/csr_utils.py` がindex構築、`decoding_jax.py` / `decoding_pt.py` が推論側。
+## 小実験で言えること
 
-## 独立再現の境界
-
-TPU/GPU kernel、dense前段、VNTK固定長slice、8-token・20M集合のメモリ、本番freshness更新、遅延、CTRはNOT TESTED。CPUの小さなCSR参照実装から948倍を再現したとは言わない。
+Labでは、許可した2件のIDをCSRに移しても、たどれる接頭辞が変わらないことを確認しました。生成後の絞り込みでは候補が残らない場合があることも、固定した点数の例で確かめました。TPUやGPUの処理時間、候補2,000万本のメモリ使用量、運用中の候補集合の更新、YouTubeでのクリック率は測っていません。

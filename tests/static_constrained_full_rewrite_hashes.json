@@ -1,0 +1,281 @@
+{
+  "files": {
+    "papers/static-constrained-gr/lab.yaml": {
+      "before_sha256": "dc2afbf4f3c2969ee292c4dc6b5f1ecac6482edbeef398692414147a3bf61009",
+      "before_blob": "9fac72392d8c99e639cfc3bf426dfe7bc411c866",
+      "after_sha256": "bf35e120bc7f581feb16b94e9e3b57d775da1df38a48c7bfe91cb00d6c931be2",
+      "after_blob": "2a5dbb077ea1b1386403e36fee3756bd79d1e13b",
+      "prior_spans": [
+        [
+          28,
+          33,
+          "question: STATIC：業務制約のtrieを、アクセラレータで読める配列へ変える\nsummary: STATICは、許可したID列（SID）を先頭部分ごとにまとめた木（trie）を、アクセラレータが読み取りやすい配列へ変換する。先頭側には密な表（dense table）を使い、その先はゼロ以外の要素を行ごとに保存する形式（CSR）で持つ。YouTubeのTPU v6e実験で制約処理0.033ms/step、3Bモデル推論の約0.25%。有効SIDを出すだけでなく「直近7日」の集合へ生成を限定できる点が主題だ。\n"
+        ],
+        [
+          45,
+          51,
+          "  author_claim: 著者は、trieを静的な疎遷移配列へ平坦化し、vectorized kernelで各beamの有効な次tokenを取得すれば、TPU/GPUで厳密な業務制約を小さな追加時間で実行できると主張する（§4）。\n  research_bot_interpretation: 高速化は制約を実用にする条件であり、CTRを直接増やすモデル変更ではない。online liftは鮮度制約を導入したチャネルの効果を含む。同じ有効集合に対してCPU\n    trieをCSRへ置換するだけなら、候補の意味は変わらないはずだ。\n"
+        ],
+        [
+          52,
+          56,
+          "  problem: 'SIDとして有効でも古い動画なら、鮮度チャネルの候補にはならない。生成後にfilterすると、少数のbeamをすべて失う場合がある。許可集合のprefixだけを辿ればこの問題を避けられるが、CPU trieのpointer追跡とdevice間同期が遅い。\n"
+        ],
+        [
+          57,
+          58,
+          ""
+        ],
+        [
+          59,
+          60,
+          "    STATICはモデルの精度を変える新しい損失ではなく、厳密な集合制約を小さな計算負担で実行する方式だ。推論前に対象集合を作る費用、集合を更新する費用、prefixが共有される度合いも運用上の条件になる。'\n  evidence: '### kernelの比較とonline効果を分ける\n"
+        ],
+        [
+          61,
+          62,
+          ""
+        ],
+        [
+          63,
+          64,
+          "    表1は100 trialsの平均で、CPU Trie +31.3ms、PPV Exact +34.1ms、Hash Bitmap +12.3ms、PPV Approximate +1.56ms、STATIC +0.033ms/step。948倍はCPU\n    Trie比の制約処理。全推薦の948倍高速化ではない。0.25%は3B推論時間に対する追加処理の割合である。\n"
+        ],
+        [
+          65,
+          66,
+          ""
+        ],
+        [
+          67,
+          68,
+          "    §5.4・表2のHome Feed実験は「Last 7 Days」制約。著者は100% complianceを報告する。7 Day Fresh Views +5.1%（95% CI [5.0,5.2]%）、3 Day\n    Fresh Views +2.9%（[2.8,3.0]%）、CTR +0.15%（[0.01,0.29]%）、strategic user segment satisfaction +0.15%（[0.03,0.27]%）。7日はコンテンツの鮮度閾値で、A/Bの実施日数ではない。\n"
+        ],
+        [
+          69,
+          70,
+          ""
+        ],
+        [
+          71,
+          72,
+          "    ### 制約技術の役割を混同しない\n"
+        ],
+        [
+          73,
+          74,
+          ""
+        ],
+        [
+          75,
+          76,
+          "    NEZHAのinvalid-SID filterは、無効なID列を排除する問題との比較になる。STATICは業務上の部分集合を事前に定め、そのprefix内を辿る。[UniVA](univa-commercial-sid-gar.html)のpersonalized\n    valid-path trieは広告適格性と価値を組み合わせる。[FlashTrie](flashtrie-gpu-beam.html)はGPU上でbeam処理全体をまとめる。対象集合、score、hardware、測定範囲が違うので0.033msと数msを直接競わせない。\n\n\n    <figure class=\"teaching batch17\"><h3>制約処理の追加時間だけを比較する</h3><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\"\n    aria-label=\"比較表\"><table><thead><tr><th>方式</th><th>追加ms/step</th><th>厳密性</th></tr></thead><tbody><tr><td>CPU\n    Trie</td><td>31.3</td><td>同じtrie制約</td></tr><tr><td>PPV Exact</td><td>34.1</td><td>全2048 logits検査</td></tr><tr><td>Hash\n    Bitmap</td><td>12.3</td><td>false positiveあり</td></tr><tr><td>PPV Approximate</td><td>1.56</td><td>top50だけ</td></tr><tr><td>STATIC</td><td>0.033</td><td>厳密な集合制約</td></tr></tbody></table></div><div\n    class=\"b17-budget\"><span style=\"flex:99.75\">モデル等の推論時間</span><b style=\"flex:.25\" title=\"約0.25%\">│</b></div><p>追加分は推論時間の約0.25%。棒は説明用の比率表示で、各工程の詳細計測を補ったものではない。</p><figcaption>§5.1–2・表1。3B\n    / TPU v6e / batch2 / beam70 / fresh約20M。baseline比のend-to-end時間ではない。</figcaption></figure>\n\n\n    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2602.22647v2)。図表の箇所とSHA-256は末尾の対応表を参照。'\n"
+        ],
+        [
+          80,
+          82,
+          "  why_it_might_work: '【解釈】prefixを整数stateにし、連続した配列から子をまとめて読むと、CPUへのcallbackと不規則なpointer移動を避けられる。初期の密な層はdense lookup、深い疎な層はCSRに分けるため、全SID空間の巨大なmaskを保持する必要もない。\n"
+        ],
+        [
+          83,
+          87,
+          ""
+        ],
+        [
+          88,
+          100,
+          "    一方、集合がrequestごとに大きく変わる場合にはindexの構築・保持が問題になる。kernel時間が短くても、すべての個別業務制約を追加の計算負担なしで扱えるとは言えない。'\n  method: method.md\n  executable_understanding: '5個の有効SIDのうち2個だけをfreshとする。2値・3段の全prefixを列挙してCSRと集合定義を照合する。同じ固定scoreでtop-1後filterとfresh集合内top-1を比べ、前者が空になる例を確かめる。\n\n\n    <figure class=\"teaching batch17\"><h3>人工fresh集合のCSRを読む</h3><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\"\n    aria-label=\"比較表\"><table><thead><tr><th>配列</th><th>値</th></tr></thead><tbody><tr><td>indptr</td><td>[0, 2, 3,\n    4, 4, 5, 6, 6]</td></tr><tr><td>tokens</td><td>[0, 1, 0, 1, 1, 1]</td></tr><tr><td>next_state</td><td>[1, 4,\n    2, 3, 5, 6]</td></tr></tbody></table></div><figcaption>rootのstate=0。indptrの隣り合う値で子の区間を切り出す。原論文のsink=0規約とは異なる。</figcaption></figure>'\n  results: 人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。\n  what_we_verified: '**Mechanism: PARTIAL**。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。\n\n\n    実験の入力と全出力はrun.pyとresults.jsonから確認できる。'\n  what_we_did_not_verify: 'TPU/GPU kernel、dense前段、VNTK固定長slice、8-token・20M集合のメモリ、本番freshness更新、遅延、CTRはNOT TESTED。CPUの小さなCSR参照実装から948倍を再現したとは言わない。\n\n\n    **Performance / Scaling / Production applicability: NOT TESTED**。一次資料の報告値との照合は、報告された本番効果の独立再現を意味しない。'\n  implementation: '標準ライブラリだけの独立実験。repository rootで `uv run papers/static-constrained-gr/run.py` を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。\n\n"
+        ],
+        [
+          103,
+          104,
+          "\n    公式実装を取得し、READMEとindex/decodingの対応を確認した。commit `ac18fa1870ac45e0a3559090a0ea9ec005226cf5`。JAX/PyTorch実装自体の実行はNOT\n    TESTED。'\n"
+        ],
+        [
+          108,
+          109,
+          "  title: 式と操作の対応\n"
+        ],
+        [
+          110,
+          112,
+          "  caption: 各記号が担う役割を分けて読む。\n  rationale: 演算と制約の対象を明確にする。\n"
+        ],
+        [
+          115,
+          116,
+          "  - name: prefix集合\n"
+        ],
+        [
+          117,
+          119,
+          "    explanation: 現在のIDの先頭部分に次のトークンを足しても、許可集合Cのどれかの先頭部分であるときだけ、その枝を残す。\n  - name: CSR\n"
+        ],
+        [
+          120,
+          122,
+          "    explanation: 各stateはIDの先頭部分を表す。indptrで子の格納区間を切り出し、次のトークンと遷移先stateを対応する配列から読む。\n  - name: mask\n"
+        ],
+        [
+          123,
+          124,
+          "    explanation: Algorithm 1はLogSoftmax後にmaskを適用する。\n"
+        ]
+      ]
+    },
+    "papers/static-constrained-gr/README.md": {
+      "before_sha256": "79ecf8806a55619f9c5e1907a38c45ac9c4b05b5b73a354c758ccc40cc67bd8c",
+      "before_blob": "60abd4ec414127aa8d9ad777455db286c19cc52c",
+      "after_sha256": "e47d4b4fe1a564576bebd3cb094a6a5d5fe2dfbc8f353a3f6f3fc88db33b1602",
+      "after_blob": "ecc628a09e39c74511eedfba72f23635e7c7b8ac",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# STATIC：業務制約のtrieを、アクセラレータで読める配列へ変える\n"
+        ],
+        [
+          2,
+          3,
+          "著者は、生成推薦が決められた候補集合の外を選ばないようにして、その確認をTPU上で素早く行う方法を提案しました。STATICは、作品識別子（SID）を先頭の記号で分けた木を、まとめて参照できる配列に変えます。モデルが次の記号を出すたび、その先に許可された作品がある記号だけを残します。たとえば直近7日以内の動画に限る、といった条件を強制できます。\n"
+        ],
+        [
+          4,
+          5,
+          "30億パラメータのモデルをTPU v6eで測ると、候補を制限する処理には1ステップあたり0.033ミリ秒かかりました。推論時間全体の約0.25%に当たります。別のYouTubeホーム画面のA/Bテストでは、公開から7日以内の動画の視聴が5.1%増えました。7日は対象動画の条件で、実験期間ではありません。0.033ミリ秒は候補制限だけの時間で、画面を届けるまでの時間ではありません。\n"
+        ],
+        [
+          6,
+          7,
+          "一次資料：[2602.22647v2.pdf](https://arxiv.org/pdf/2602.22647v2)。SHA-256と節・表の対応は[mapping.md](mapping.md)。詳しい方法は[method.md](method.md)、サイト本文の原本は[lab.yaml](lab.yaml)。\n"
+        ],
+        [
+          8,
+          9,
+          "## 実行\n"
+        ],
+        [
+          14,
+          15,
+          "5個の有効SIDのうち2個だけをfreshとする。2値・3段の全prefixを列挙してCSRと集合定義を照合する。同じ固定scoreでtop-1後filterとfresh集合内top-1を比べ、前者が空になる例を確かめる。\n"
+        ],
+        [
+          16,
+          17,
+          "## 検証範囲\n\nMechanism PARTIAL。個別のCONFIRMED / NOT OBSERVEDは[results.json](results.json)のchecksに記録。Performance / Scaling / Production applicability NOT TESTED。\n\nTPU/GPU kernel、dense前段、VNTK固定長slice、8-token・20M集合のメモリ、本番freshness更新、遅延、CTRはNOT TESTED。CPUの小さなCSR参照実装から948倍を再現したとは言わない。\n\n## 実装の位置付け\n\n公式実装を取得し、READMEとindex/decodingの対応を確認した。commit `ac18fa1870ac45e0a3559090a0ea9ec005226cf5`。JAX/PyTorch実装自体の実行はNOT TESTED。\n"
+        ]
+      ]
+    },
+    "papers/static-constrained-gr/method.md": {
+      "before_sha256": "7f221e538047e88682b92fedfc2081d9d2df23b23a8dfec9b637adc8a139a4a8",
+      "before_blob": "1cc4d9ebe051a97f192df7201c7003d85c24e6ec",
+      "after_sha256": "ea4e51684e59b6b5bdde40df6fd94a793c992031ef52b055ef20e8d9436abfa1",
+      "after_blob": "08b320a1c50ddbaa5a2ebb24b2fe443a3c832725",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 許可集合Cを先に定める\n"
+        ],
+        [
+          2,
+          3,
+          "§4.1。SID長L、語彙V、許可された系列集合Cに対し、`F_t(prefix,v)=1{∃c∈C: prefix+v は c のprefix}` とする。無効な次tokenのlog確率を−∞へ落とす。SID一般のvalidityと、鮮度・在庫・カテゴリなどで限定したCへの所属は別の判定だ。\n"
+        ],
+        [
+          4,
+          5,
+          "Algorithm 1はまずLogSoftmaxを計算し、その後にmaskを適用する。制約後に再正規化するとprefix間のbeam scoreが変わるため、この順序も対応表に残す。最小実験はscoreの再正規化を扱わず、許可経路そのものを全列挙する。\n"
+        ],
+        [
+          6,
+          7,
+          "### trieをCSRの三配列へ写す\n"
+        ],
+        [
+          8,
+          9,
+          "§4.2。各prefixへstate番号sを割り当て、`T[s,v]=next_state` を疎行列として持つ。`indptr[s]:indptr[s+1]` がそのstateの子の範囲、列番号がtoken、値が次stateになる。論文の0はsinkを表す。Labの簡略実装はroot=0とし、無効遷移をFalseで返すので、この番号規約だけは異なる。\n"
+        ],
+        [
+          10,
+          11,
+          "最初のd層はdense maskとstate table、残りをCSRにする。実験はd=2、V=2048なので最初のtableは2048²。VNTKは層ごとの最大分岐数で固定長sliceを読み、paddingの有効範囲をmaskする。beamを選び直した後は対応するstateも同じ順でgatherする。Appendix Aではtokenと遷移先をstackしたCSRによるread削減を説明している。\n"
+        ],
+        [
+          12,
+          13,
+          "### 遅延測定の条件\n"
+        ],
+        [
+          14,
+          15,
+          "§5.1–2。Gemini系、PLUMに近いdense 3Bモデル、SID長8、beam70、batch2/chip、TPU v6e。全候補は約100M–1B、制約集合は直近7日の高品質動画約20M。表1の時間は各decode stepの制約追加処理であり、モデルforward全体の時間ではない。\n"
+        ],
+        [
+          16,
+          17,
+          "CPU trie baselineにはTPU↔CPU同期を含む。PPV Exactは全2048 logitsを検査し、Approximateはtop50だけを検査する。後者やfalse positiveを許すhash bitmapとは厳密性が一致しない。\n"
+        ],
+        [
+          18,
+          19,
+          "出典：[2602.22647v2](https://arxiv.org/pdf/2602.22647v2)。上記で「Lab」とした式・条件は説明用の補助である。\n"
+        ],
+        [
+          20,
+          21,
+          ""
+        ],
+        [
+          22,
+          25,
+          "<figure class=\"teaching batch17\"><h3>同じSIDでも、有効集合と業務集合は違う</h3><div class=\"b17-cards\"><div><strong>全valid SID</strong><p>000 / 001 / 010 / 100 / 111</p></div><div><strong>fresh集合 C</strong><p>001 / 111 の2件だけ。古いvalid SIDは除外する。</p></div><div><strong>prefix 0 の次token</strong><p>0だけが可能。01はvalid catalogにあってもfreshにはない。</p></div></div><figcaption>人工2値・3段ID。§4の集合制約を教えるための例で、YouTubeの実SIDではない。</figcaption></figure>\n"
+        ]
+      ]
+    },
+    "papers/static-constrained-gr/mapping.md": {
+      "before_sha256": "e1ae9d60f96f5d220d3fb76ce6fc12eaf8e5c5300251687ad79657b904111be0",
+      "before_blob": "d38c8c6e8e4cb23f8b3e4af9bbc84fc0b2920575",
+      "after_sha256": "413f48a34255640e4b3431ab4eefbbd8f3fd302c0d54111a4f4ba56a7fb78df3",
+      "after_blob": "03f935d8b598e3dbb6ad43c37fb08df21eeb8667",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# Original Paper / Official Code Mapping\n"
+        ],
+        [
+          2,
+          3,
+          "確認日：2026-09-17。一次PDF：[2602.22647v2.pdf](https://arxiv.org/pdf/2602.22647v2)。arXiv初回日：2026/02/26、確認版の日付：2026/07/20。\n"
+        ],
+        [
+          4,
+          5,
+          "SHA-256：`1a50773da5416592e35b3dd62e35d81dac91c64e04cc179c3d28bae252ab0bad`\n"
+        ],
+        [
+          6,
+          12,
+          "参照PDF：`2602.22647v2.pdf`。既存HTMLを発見用に使い、上記の版を固定したPDF本文・関連する表と付録で照合した。図はこのLabで作った説明図で、元論文の画像コピーではない。\n\n| 原論文の箇所 | 確認対象 | Labと省略範囲 |\n| --- | --- | --- |\n| §4.1–4.2、図1 | prefix制約とCSR変換 | run.py: build / walk。dense lookupは省略 |\n| §4.3–4.4、Algorithm 1–2、Appendix A | maskとVNTK、beam state更新 | method.md。accelerator kernelは未実装 |\n| §5.1–5.4、表1–2、Appendix D | latency条件とonline鮮度 | Evidence・時間の比較図 |\n| 公式static_decoding/csr_utils.py、decoding_jax.py、decoding_pt.py | index構築とJAX/PyTorch推論 | 公式コードを参照。Labは依存を持たないCPU模型 |\n"
+        ],
+        [
+          15,
+          16,
+          "公式実装を取得し、READMEとindex/decodingの対応を確認した。commit `ac18fa1870ac45e0a3559090a0ea9ec005226cf5`。JAX/PyTorch実装自体の実行はNOT TESTED。\n"
+        ],
+        [
+          17,
+          18,
+          "[公式repository](https://github.com/youtube/static-constraint-decoding)。`static_decoding/csr_utils.py` がindex構築、`decoding_jax.py` / `decoding_pt.py` が推論側。\n"
+        ],
+        [
+          19,
+          20,
+          "## 独立再現の境界\n\nTPU/GPU kernel、dense前段、VNTK固定長slice、8-token・20M集合のメモリ、本番freshness更新、遅延、CTRはNOT TESTED。CPUの小さなCSR参照実装から948倍を再現したとは言わない。\n"
+        ]
+      ]
+    }
+  }
+}
