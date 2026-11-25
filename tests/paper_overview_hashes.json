@@ -656,6 +656,102 @@
       "after_blob": "45133437880fe8d3edfd51eafd7368b16c48f74a",
       "prior_field": "  overview: YouTube Musicのホームには、新しいアーティストを見つけるための推薦欄（YDD）がある。従来は、一緒に視聴される傾向や音の特徴を表した埋め込みの類似度をしきい値で判定し、「好きなアーティストのファン向け」のような定型文を付けていた。論文の方式は、好みのまとまりごとに候補のアーティストと理由文を作る。生成は画面の応答とは別に行う。生成結果は、新しい候補を増やすときにも、従来の候補に理由を添えるときにも使う。\n",
       "new_field_sha256": "ad6e5fad182c6c75d13e130abad4d1af58143491933ef786ad22f206de334140"
+    },
+    "papers/agenttether-repair/lab.yaml": {
+      "before_sha256": "e451838d3ba66141928ac311b1f6e136dbefdbace6f89280120caf0d07734dc2",
+      "before_blob": "f74a6a7e49d727729b0b6591ef1d50dd27b282b5",
+      "after_sha256": "07904687221edb2f136b6c2b9882c8870196f68292a5ad91ee50f652bc67eb5b",
+      "after_blob": "ad77324277f88e433baff05947c9b1ce418f2ee5",
+      "prior_field": "  overview: AgentTetherは凍結したエージェントの外側で、終了後の原因診断と再実行中の介入を分ける。τ-bench Bankingの初回失敗83件では、診断のみの39件から介入つき49件へ修復が増えた。一方で介入により失敗へ転じた例もある。\n",
+      "new_field_sha256": "a162059394220ff5db6017f7dc8e6e06925368269816a9e91619cbe5245efbe3"
+    },
+    "papers/cq-sid-eg-grpo-tmall/lab.yaml": {
+      "before_sha256": "9c562f7d18bd947366626d458aca78739c507f4560c2e971aa93992bf9575f15",
+      "before_blob": "f2d776bca62ff76d70acdc2b083f240440b886f7",
+      "after_sha256": "61de144e69eaa671d4837c9080c93666161788efcf03c7a6a657d0adc75d6649",
+      "after_blob": "00f9ccd45ffc071fa87db7ef85dea8796b918969",
+      "prior_field": "  overview: TmallAPPのCQ-SIDは、意味の近い商品をまとめた識別子（SID）を生成し、その識別子に対応する商品群を既存の順位付け処理へ渡す仕組みである。カテゴリ制約とquery-item対照学習で群を作り、EG-GRPOで既存の露出・クリックに合わせる。2週間のA/BでGMV\n    +1.15%、UCTCVR +0.40%。購入の72.63%という値はチャネル構成比で、改善率ではない。\n",
+      "new_field_sha256": "21d1ec8d5d4b430b5ed2220722960bf1c6877574203226eae9fb51b7dc60d108"
+    },
+    "papers/harness-bench/lab.yaml": {
+      "before_sha256": "a8151d36dd6139275ed3d04d9e528517d4b9b3be01b7e7cb5f864d3e92773876",
+      "before_blob": "59bae2f3764668163eed40c0c7bb39de784d0825",
+      "after_sha256": "f2f9a4eb59cf4c68cdc22bc9a3caad2fd3f5ba4131a15898989c425f68809b7e",
+      "after_blob": "b86c692f5f8382ceb5a0ddb9c9af15e515f6f96e",
+      "prior_field": "  overview: モデルの回答を外部の操作へつなぐ仕組みも評価対象にする。最終成果物、途中の行動、費用を分けて見るためのベンチマーク。\n",
+      "new_field_sha256": "601c8f1ac1f6c139fb614dacece8f3dbe11499e8ef8ac3811618e4fb9ebd8a2a"
+    },
+    "papers/harness-buys-tokens-not-pass-rate/lab.yaml": {
+      "before_sha256": "374dfb294a115d6044c835db204187a7ec5dffa2e0d942b9f80cd58fd2319c23",
+      "before_blob": "491ee8d97b6fc755607bf591c665b1956ada9a00",
+      "after_sha256": "cee728b82e865bd5b1c7e034898cce33f8e84549029e08a49e94ed6608167189",
+      "after_blob": "98d48e6e4c5b3fd6265597dbdc46a7976fdea004",
+      "prior_field": "  overview: '**Worth Reading：エージェントの実行を管理する仕組み（harness）の差を、同じ構成の再実行の差と並べる。** SWE-bench Verifiedのhard45では、成否が入れ替わる課題の割合は再実行もharness交換も中央値13%。モデル交換は約22%だった。残りの447課題から成る評価集合「pool447」では、2つのQwenモデルを使って比較した。Claude Codeとmini-SWE-agentの成功率の差は、事前に定めた±5ポイントの範囲内と判定された。\n\n\n    これは「どんなharnessでも同じ」という結果ではない。有意な差はOpenCodeの不利として現れ、費用は同一モデルでも最大約3倍違う。小さな成功率差を主張する前に、再実行と十分な課題数を確保したい。'\n",
+      "new_field_sha256": "ada5b0b19a05216b7293fa93a0f5c89caa48ad24943808988910206c66fe9d5e"
+    },
+    "papers/hgenpush-kuaishou-heterogeneous-push-gr/lab.yaml": {
+      "before_sha256": "1e39458c729b6433dadf624e459e2c332e82af4acd73a8bcd96a85938f36a20e",
+      "before_blob": "c4bf8d69e73831c2567d92a63d64eafd254237db",
+      "after_sha256": "365c1ff69fb5c2ce79b200e029b91c6afd610cc2aafbfb270bf184ff1add835a",
+      "after_blob": "605839af5fc3d09936eb5e02700329ec07f83e55",
+      "prior_field": "  overview: 作者branchの最終目的も、その作者の動画を推薦すること。作者IDだけを通知する仕組みではない。video側は3層SID、作者側は2層author SIDにvideoの第1層SIDを足したmixed\n    SIDを生成する。両方の候補がrankerへ直接入るため、生成器が候補の品質をある程度引き受ける。\n",
+      "new_field_sha256": "004f1725681838af8c392f4b2f5ade14c4ffbd9664a22bca31a9e51685a8665e"
+    },
+    "papers/lige-gr-meta-listwise/lab.yaml": {
+      "before_sha256": "b68931f2fbfc3b0d6b5715bafe6100be5d31c30158428d3f6d6747672d8d32b7",
+      "before_blob": "f47e297bc611f6232aed1e5b1ee558a7f6140d41",
+      "after_sha256": "83d35184eb9167aacdf865e6569c1bd87bbf8ef696b6ca1115f4ddffa696c81b",
+      "after_blob": "b73e13d39a9c31540060af36df025a36133236a8",
+      "prior_field": "  overview: 成熟したpointwise rankerを保ったまま、選んだ動画同士の関係を順位に反映する。LIGE-GRの価値は、既存の予測・業務制約・運用責任を使い続けられる移行経路にある。Instagram ReelsとFacebook\n    Videoで7日間のA/Bを実施し、Time spentは+1.14%と+0.72%。ただし、これはCAを使うbeam 1の基本構成である。\n",
+      "new_field_sha256": "4a107d10c240da049ebd9af28ba045a3678db9203e055236be0d770e64b2d0d1"
+    },
+    "papers/oxygenrec-v2-idgr/lab.yaml": {
+      "before_sha256": "37c65c0d64e6de360887f6862c911bddb820d353f0eabc946a768d40f6ce4c25",
+      "before_blob": "5610d6c9913556ce59453a04d6c39c22059a684b",
+      "after_sha256": "005e2c0fc9e4d0f1e99196a513dfcdd1eaf1b3843fcc074233db06803b0b03b0",
+      "after_blob": "a9ff59ed5c086cadb396067b4120e2084e158c5d",
+      "prior_field": "  overview: JD.comのOxygenREC-v2は、クリック、カートへの追加、注文のどれを目指すかを指定してから、商品の識別子を生成する。学習時には実ログとの一致と、未来行動を見た同一backboneの教師を使う。IDGRの焦点は行動信号を入れる位置にある。6つの配信面のA/Bを読み分け、外部報酬モデルの除去を、サービス全体のカスケード撤去と解釈しない。\n",
+      "new_field_sha256": "3c5efc36639f325678a8e6e5691ae13cb3a7f40fc21dae3d4d48c16ffe571d78"
+    },
+    "papers/pushdualgen-kuaishou/lab.yaml": {
+      "before_sha256": "632bc89d549b9416918f24e521dd9fddb2e6e7f1fef6dbb08de5c9096842b134",
+      "before_blob": "5e9acc6358154a6a19a2bf19ae5a1cab3562017e",
+      "after_sha256": "62b1d50ae17a9116e261f04ac921644a9c28e6fa1d57eec613c9ac99c5197484",
+      "after_blob": "49198870a5fea8292e28ee7f5fbcc0d19373df02",
+      "prior_field": "  overview: PushDualGenはKuaishouのpush通知向け推薦で、先にSID、その後に任意のcopyを生成する。14日間、platform trafficの計15%を均等に割り当てたA/Bで、Effective\n    Play Rateは+8.50%、Dislike Rateは−37.70%。feed全体を生成器へ置き換えた実験ではない。\n",
+      "new_field_sha256": "80e8562b7a0dd68bf17175cb60ab1b5746908de1f3a597e7937aa51d5b815dae"
+    },
+    "papers/scaffold-effects-gaia/lab.yaml": {
+      "before_sha256": "118e22ae8079050103849d6c105ae970c3a42158963389de3fd9c2cf0dbfb878",
+      "before_blob": "d021c7f5f4ff3df545d1edd8b43dd0632965b802",
+      "after_sha256": "2e0a956382b4bcee76f3c4e02b796fc81e49a0e1383a2b8c07fb72157b874219",
+      "after_blob": "bd9cfa33c14a40062d144bb3a2bc3bb4f7a487d8",
+      "prior_field": "  overview: GAIAの成績はモデルと実行手順の組合せで変わる。複数役割に分ける効果も、モデルの系列や問題の難しさに左右される。\n",
+      "new_field_sha256": "9ea25e3c14aa618d56a687cf01b0f4342207230117a7c3db68dd4c7bcdeb8b5d"
+    },
+    "papers/sidscope-diagnostics/lab.yaml": {
+      "before_sha256": "c531f5624e26f91b5f96879adfc83116e8921978bea894177281431fc79a8aa5",
+      "before_blob": "8161975d4207240c62a9c96962cbaf344faedaf2",
+      "after_sha256": "c7527330243029478e4372523c258f5d8baa9645abe068b5b902b725a006883d",
+      "after_blob": "09be386540e6cdd757746422c2131141554bd06d",
+      "prior_field": "  overview: SIDScopeは、item→SID対応表を受け取ったときに使う診断資源である。利用率、衝突、prefixの行動整合、人気別の解像度、trie構造、更新差、生成traceを分ける。オンラインA/Bはない。公式v1.0.1にはadapter、固定結果、CPU\n    verifierがある。\n",
+      "new_field_sha256": "a2c401a842b7bbde572632e387056c7d79c5d2d86e9c96e163f6e27d303630b0"
+    },
+    "papers/understanding-sids-isd/lab.yaml": {
+      "before_sha256": "68d1f3fb5e2687b44c4e5d985e00a566e11f7b2d0aa80372b8b6323e95167ec9",
+      "before_blob": "ab421297f8ff855cb7c929d3d9ef3bdc1c1203c9",
+      "after_sha256": "b74ed9f01cf7967f9736283d2c95f5155bb14d62d1f6123bd8fa5dad8ccaa819",
+      "after_blob": "e33f161b842259ca9950f33466c37d778ad52da6",
+      "prior_field": "  overview: SIDの粗い意味構造、個体識別、探索中の絞り込みを分けて考える。ISDは外部のアイテム順位をbeam削減の前と生成完了後に使うが、失われた識別子の学習まで直す手法ではない。\n",
+      "new_field_sha256": "acecc9e37038e0ff69b1fdc588e949576d46d6c2350cbc60e96be1b964d29811"
+    },
+    "papers/varg-tmall-value-generative-retrieval/lab.yaml": {
+      "before_sha256": "10db15efd559af964639c2ea0311875ba8d0499a3ed2b84469fdcf224d387619",
+      "before_blob": "9d55cece62a109f3104acc09812c062dc4a24e90",
+      "after_sha256": "102b6e2a8edd333e733932ca73f38a83e8b85354067476bfd5fc99791a127725",
+      "after_blob": "bb762fcc2ef474820b924dba9a4d1a50fa996230",
+      "prior_field": "  overview: 価値の高い商品を生成しても、検索意図から外れれば最終rankerの限られた枠を浪費する。VARGは意味・価値・既存順位モデルとの整合を候補生成へ移す。Taobao\n    & Tmall Groupの研究だが、今回のオンライン評価面はTmall App検索である。14日・20%という条件のもと、GMV +1.45%、IPV/user\n    +0.22%、PCTR +0.31%を著者が報告した。\n",
+      "new_field_sha256": "93160328a4cc4b31aad1eec8e62d459d40e7da8ed2b42fede33facdf4050137c"
     }
   },
   "generated_from": {
@@ -931,6 +1027,66 @@
       "after_blob": "e24555ab0abe7587ef833cafa037dae08e064eef",
       "source": "papers/youtube-music-llm-rationales-discovery/lab.yaml",
       "prior_mirror": "YouTube Musicのホームには、新しいアーティストを見つけるための推薦欄（YDD）がある。論文の方式は、候補となるアーティストと「なぜすすめるのか」を伝える理由文を、画面の応答とは別に大規模言語モデル（LLM）で生成する。\n\n2週間のA/Bテストでは、この推薦欄のエンゲージメントが22.43%増えた（95%信頼区間：16.93–27.93%）。理由文を外した比較では、候補を追加する機能よりも、理由を表示する機能のほうがエンゲージメントへの寄与は大きかった。アーティストの発見を測る指標では、候補の追加も寄与した。"
+    },
+    "papers/cq-sid-eg-grpo-tmall/README.md": {
+      "before_sha256": "dd7b5421db4d5b4e1328675d2ea32bb6a4a7e2ba113d6119701d229e10422368",
+      "before_blob": "76f96ad98fd2482cf9e3ea3b3a2292693f161f93",
+      "after_sha256": "08825f76429f219ddf94b353261f1148dd5a918a06543526e114b9d19f1bda30",
+      "after_blob": "ed4c1a23faeabdfafb59ccdd0d3bb34bbbb79913",
+      "source": "papers/cq-sid-eg-grpo-tmall/lab.yaml",
+      "prior_mirror": "TmallAPPのCQ-SIDが生成するのは、意味の近い商品をまとめた群の識別子（SID）である。個々の商品IDは生成しない。生成したSIDに対応する商品を候補として取り出し、既存の順位付け処理に渡す。商品群を作る段階では、カテゴリの制約と、検索語と商品の組み合わせを学ぶ対照学習を使う。候補を生成するモデルは、EG-GRPOで既存の露出とクリックの記録に合わせて調整する。\n\n著者は2週間のA/BテストでGMV +1.15%、UCTCVR +0.40%と報告した。一方、72.63%はすべての購入のうち生成による候補取得経路に帰属した割合であり、購入の改善率ではない。"
+    },
+    "papers/harness-buys-tokens-not-pass-rate/README.md": {
+      "before_sha256": "1ecb3fe5c7b9ebe5444b8454ed79c240a51cd7d5db339f356115bdc870be19f9",
+      "before_blob": "0d9d7abd978c0955a49fffe26d4a9ab36f8a9744",
+      "after_sha256": "1a7cffc98397c515fd2396ec3abcb89545dc5ca264cef57fc48e0517b63073da",
+      "after_blob": "de519f56e9c47355fb2a7d618d9760d025b0334c",
+      "source": "papers/harness-buys-tokens-not-pass-rate/lab.yaml"
+    },
+    "papers/hgenpush-kuaishou-heterogeneous-push-gr/README.md": {
+      "before_sha256": "c867f357d3f73f7c83905b8f17ec0919c5298ca172508d636a667fce7c0a8871",
+      "before_blob": "040414b204b0e37acb9f9028f49d7c7266ed1ae3",
+      "after_sha256": "42d3c3c356f3fdd9b33c8a5a9b0e583e6dd0b3225e52c68556532c9245a22fe0",
+      "after_blob": "ef074ac8fd872653038ade25db78bd2e4e453810",
+      "source": "papers/hgenpush-kuaishou-heterogeneous-push-gr/lab.yaml",
+      "prior_mirror": "KuaishouのHGenPushは、動画内容から作る識別子と、投稿者の情報を含む識別子の二つの経路で候補動画を集める。途中の粗い順位付けを省き、既存の最終順位付けモデルへ渡す。全構成のDAU +0.181%（p=0.04）、CTR +1.577%（p=0.11）。CTRの有意差は確認できない。"
+    },
+    "papers/lige-gr-meta-listwise/README.md": {
+      "before_sha256": "b650337622850018a3ac2286a613e739772516eed3fc8fb66b7d01f29652be2b",
+      "before_blob": "3094c9081c6d74f654171c9203b28acdb838b8a7",
+      "after_sha256": "4f10cc2c4dd2a143bab91f11ad7a40fb61692ffa73a7b658cf4c0051ea38163f",
+      "after_blob": "69d174dc2f90a86e5c02c205a3b6b8dc863545fe",
+      "source": "papers/lige-gr-meta-listwise/lab.yaml",
+      "prior_mirror": "LIGE-GRは既存システムが集めた候補から動画の並びを生成する。探索中に各段階で残す並びを一つに絞る構成（beam 1）について、著者は7日間のA/Bテストを報告した。視聴時間はReelsで+1.14%、Facebook Videoで+0.72%だった。一方、Facebook Videoの視聴回数は−0.52%だった。"
+    },
+    "papers/oxygenrec-v2-idgr/README.md": {
+      "before_sha256": "60402f2e9131d8d6626f885cac95ac927b91e74f604064cb70aee5a064574b2a",
+      "before_blob": "4a05346536af63b718c29528de11f459c127f75b",
+      "after_sha256": "22532415d33990c30315b8d1cd7603974d107932e35621342c5ded1bbdfdb7c6",
+      "after_blob": "f0caac66d78d885f5b9d8bc95b198af96070dff1",
+      "source": "papers/oxygenrec-v2-idgr/lab.yaml"
+    },
+    "papers/pushdualgen-kuaishou/README.md": {
+      "before_sha256": "383b208f6accb4ebadd8200c5947bfe30526eccb58833faec08c5bf67fe42e8d",
+      "before_blob": "13ae4e78b52be2d27f761a47c948890028e9c0d9",
+      "after_sha256": "c8f4f8e9dd6e2dcbcd14a1f3e8dccb23c9a89418a2b824da723192e1970d616b",
+      "after_blob": "1ae3920581b9177cb4c750427e47762d4da3fad9",
+      "source": "papers/pushdualgen-kuaishou/lab.yaml"
+    },
+    "papers/sidscope-diagnostics/README.md": {
+      "before_sha256": "379204ba57d8fd6bf49476199d1057d6ad131871ed6bf7dbc3ac19c4d22a8de6",
+      "before_blob": "0c8258221ede5b4d66e4f1afa7c5c3aa0612dc02",
+      "after_sha256": "62c472c7b47901d1813e02fa85a9586561514615f634adbab1046ea39585764b",
+      "after_blob": "04ef9cee1d094822869c6e8d3dc763491a894a49",
+      "source": "papers/sidscope-diagnostics/lab.yaml"
+    },
+    "papers/varg-tmall-value-generative-retrieval/README.md": {
+      "before_sha256": "b98423f8fbf37bff9108a9e2da759d0ce48969f0147283aefcb65844d7a8a7c2",
+      "before_blob": "7673884a6c697bd9aefa852a4ea3c3662ca6e621",
+      "after_sha256": "3b8542d026a05303c2fdc9ecaf7eaa5501a9be8e62b9e00349e9e42a7430d7db",
+      "after_blob": "63f1b95c4fa89085be6d9062bb50a0f867e26086",
+      "source": "papers/varg-tmall-value-generative-retrieval/lab.yaml",
+      "prior_mirror": "Tmall Appでは、生成モデルが選ぶ候補に専用の枠を用意した。この候補は予備の順位付け（pre-rank）を省き、既存の最終順位付けモデル（final ranker）に直接渡す。検索トラフィックの20%を使った14日のA/Bテストで、著者はGMV +1.45%を報告した。初期に商品同士で識別子が重ならないことと、日次更新で既存商品の識別子を変えないことは、別の条件。"
     }
   }
 }

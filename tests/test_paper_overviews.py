@@ -41,7 +41,7 @@ class OverviewText(HTMLParser):
 
 def test_scoped_source_transition_and_rendered_overviews(tmp_path):
     rows = json.loads((ROOT / 'tests/paper_overview_hashes.json').read_text())['files']
-    assert len(rows) == 82
+    assert len(rows) == 94
     site = tmp_path / 'site'
     build(root=ROOT, site_dir=site)
     anchors = {
@@ -127,6 +127,18 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'ra-dfl-risk-aware-decision-focused-inventory': ('4.903', '4.721', '5.380', '観測した売上', '実店舗での費用削減を測った結果ではありません'),
         't0-tsfm-forecasting-with-context': ('36.7', '43.0', '6.3ポイント', '19課題', '11課題', '43%減りました'),
         'youtube-music-llm-rationales-discovery': ('22.43%', '16.93〜27.93%', '8.07%', '理由文だけ', 'YouTube Music全体の利用継続率ではありません'),
+        'cq-sid-eg-grpo-tmall': ('2週間','1.15%','0.40%','72.63%','既存の順位付け'),
+        'sidscope-diagnostics': ('0.976','0.900','0.083','−0.564から0.205','本番でのA/Bテストはありません'),
+        'understanding-sids-isd': ('32.2%','0.0295','0.0387','31.2%','IDを作り直す方法ではありません'),
+        'varg-tmall-value-generative-retrieval': ('予備順位付けを通さず','20%','14日間','1.45%','0.22%'),
+        'hgenpush-kuaishou-heterogeneous-push-gr': ('投稿者の動画を探す','予備の順位付けを経ず','0.181%','統計的に有意ではありませんでした'),
+        'lige-gr-meta-listwise': ('7日間','1.14%','0.72%','0.52%減','別の比較です'),
+        'oxygenrec-v2-idgr': ('将来の行動を入力しません','6つの配信面','1.61〜4.44%','4.25%','他の推薦処理を取り除いたという意味ではありません'),
+        'pushdualgen-kuaishou': ('14日間','15%を二群に等分','64.46%から69.94%','0.053%から0.033%','文面生成だけの効果ではありません'),
+        'agenttether-repair': ('最初に失敗した83件','39件','49件','失敗した課題も3件','全課題に対する成功率ではありません'),
+        'scaffold-effects-gaia': ('5つのモデル','3回の試行','最大28ポイント','全モデルの平均ではありません'),
+        'harness-bench': ('初版の表2','106課題と8モデル','76.2点','52.4点','23.8ポイント'),
+        'harness-buys-tokens-not-pass-rate': ('難しい45課題','13%','22%','444〜445組','±5ポイント','最大約3倍'),
     }
     for path, row in rows.items():
         raw = before_full_article_rewrites(ROOT, path, (ROOT / path).read_bytes())
@@ -189,6 +201,14 @@ def test_download_mirror_replaces_only_the_overview():
         'ra-dfl-risk-aware-decision-focused-inventory',
         't0-tsfm-forecasting-with-context',
         'youtube-music-llm-rationales-discovery',
+        'cq-sid-eg-grpo-tmall',
+        'sidscope-diagnostics',
+        'varg-tmall-value-generative-retrieval',
+        'hgenpush-kuaishou-heterogeneous-push-gr',
+        'lige-gr-meta-listwise',
+        'oxygenrec-v2-idgr',
+        'pushdualgen-kuaishou',
+        'harness-buys-tokens-not-pass-rate',
     )}
     for path, row in receipt['mirrored'].items():
         source = before_full_article_rewrites(ROOT, row['source'], (ROOT / row['source']).read_bytes())
@@ -213,6 +233,10 @@ def test_download_mirror_replaces_only_the_overview():
                 'ra-dfl-risk-aware-decision-focused-inventory': 2,
                 't0-tsfm-forecasting-with-context': 1,
                 'youtube-music-llm-rationales-discovery': 2,
+                'cq-sid-eg-grpo-tmall': 2,
+                'varg-tmall-value-generative-retrieval': 1,
+                'hgenpush-kuaishou-heterogeneous-push-gr': 1,
+                'lige-gr-meta-listwise': 1,
             }
             assert slug in prior_paragraphs
             old = row['prior_mirror'].encode()
