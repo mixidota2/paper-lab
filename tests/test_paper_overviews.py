@@ -40,7 +40,7 @@ class OverviewText(HTMLParser):
 
 def test_scoped_source_transition_and_rendered_overviews(tmp_path):
     rows = json.loads((ROOT / 'tests/paper_overview_hashes.json').read_text())['files']
-    assert len(rows) == 78
+    assert len(rows) == 82
     site = tmp_path / 'site'
     build(root=ROOT, site_dir=site)
     anchors = {
@@ -122,6 +122,10 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'unique-baidu-unified-retrieval-ranking': ('1週間', '0.96%', '1.08%', '99パーセンタイルで89ミリ秒', '推薦画面全体の応答時間ではありません'),
         'unirec-chain-of-attribute': ('ランディングページ', '20%', '5.37%', '4.76%', '5.60%', '商品ごとに違えば'),
         'snaplgr-snapchat': ('7日間', '0.37%', '4.624%', '11.11%', '視聴時間が2.40倍になったわけではありません'),
+        'assortment-replenishment-hard-constraints': ('飲料データ', '最大14%', '補充', '店舗の利益が14%増えたわけではありません'),
+        'ra-dfl-risk-aware-decision-focused-inventory': ('4.903', '4.721', '5.380', '観測した売上', '実店舗での費用削減を測った結果ではありません'),
+        't0-tsfm-forecasting-with-context': ('36.7', '43.0', '6.3ポイント', '19課題', '11課題', '43%減りました'),
+        'youtube-music-llm-rationales-discovery': ('22.43%', '16.93〜27.93%', '8.07%', '理由文だけ', 'YouTube Music全体の利用継続率ではありません'),
     }
     for path, row in rows.items():
         raw = before_full_article_rewrites(ROOT, path, (ROOT / path).read_bytes())
@@ -181,6 +185,9 @@ def test_download_mirror_replaces_only_the_overview():
         'unique-baidu-unified-retrieval-ranking',
         'unirec-chain-of-attribute',
         'snaplgr-snapchat',
+        'ra-dfl-risk-aware-decision-focused-inventory',
+        't0-tsfm-forecasting-with-context',
+        'youtube-music-llm-rationales-discovery',
     )}
     for path, row in receipt['mirrored'].items():
         source = before_full_article_rewrites(ROOT, row['source'], (ROOT / row['source']).read_bytes())
@@ -202,6 +209,9 @@ def test_download_mirror_replaces_only_the_overview():
                 'muser-baidu-long-sequence-multi-interest': 1,
                 'unique-baidu-unified-retrieval-ranking': 1,
                 'unirec-chain-of-attribute': 1,
+                'ra-dfl-risk-aware-decision-focused-inventory': 2,
+                't0-tsfm-forecasting-with-context': 1,
+                'youtube-music-llm-rationales-discovery': 2,
             }
             assert slug in prior_paragraphs
             old = row['prior_mirror'].encode()

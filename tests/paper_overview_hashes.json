@@ -624,6 +624,38 @@
       "after_blob": "4c73a473462a727ed19554b5e79e3cd649fae68d",
       "prior_field": "  overview: UniRecは属性→SIDの順に生成し、候補生成とrankingの統合を狙う。Shopeeの各bucket 20%のA/BでOverall PVCTR +5.37%、orders +4.76%、GMV\n    +5.60%。属性条件付きの不確実性低下は理解しやすい一方、本文のBayesによるランキング同値性には追加条件が要る。\n",
       "new_field_sha256": "76f1d780cfe0e8e504567a8bf1bf2e3ff69138c1110e0051e2e87dfad734677f"
+    },
+    "papers/assortment-replenishment-hard-constraints/lab.yaml": {
+      "before_sha256": "196c8ce02e675c7d9ae0d17850b414edac6ed15e2f7e23cd5a8859f22fa486d1",
+      "before_blob": "bc32b69091f8818f9ac95ccd464d754155969eee",
+      "after_sha256": "9f63826506c3ddbc5e107f153c84c766e5bd4e1568219335bd10e5f500730738",
+      "after_blob": "08e112265e7acaf56522e8bd267b78d62c514b93",
+      "prior_field": "  overview: オンライン公開2023年、巻号2024年の既刊論文。独自の小規模な説明用実験として扱う。\n",
+      "new_field_sha256": "5d57fc7f7667c07ab263336734dda7e7ebaa4442cb0e9fc3f3779e61b69388ba"
+    },
+    "papers/ra-dfl-risk-aware-decision-focused-inventory/lab.yaml": {
+      "before_sha256": "3a8d65b72529fda1dd1529c34b20f615ff21cc461c7e35ee8e2d8af21abe333a",
+      "before_blob": "def08b3ada0c4c4849f51715446516352f3aca3f",
+      "after_sha256": "410e282b1f731d2196a78ae53e94e33bd7c3af6f52c5aa832f2caee221a234c2",
+      "after_blob": "ddff9239073d683a16542a5f5afe3abaa84da9ea",
+      "prior_field": "  overview: 'RA-DFLは、需要予測の正確さではなく、その予測で在庫を配った場合の費用を使って予測器を学習する。論文のM5実験では、LightGBMで需要の分位点を先に予測してから配分を決める基準手法（LightGBM-QR\n    PTO）の平均費用4.903に対し、RA-DFLは4.721だった（3.7%減）。同じ基準予測に高費用側のリスクを考慮する配分だけを組み合わせると、5.380だった（9.7%増）。\n\n\n    いずれも著者の報告値で、Labの再学習結果ではない。論文はHighlights in Business, Economics and Management（MSIED 2026、Vol.69）に掲載。販促・欠品は代理指標を使い、評価の需要は観測売上で代用している。本文の引用と表に確認が必要な点もあるため、読書判定はRadar（今後の検証を追う）とする。'\n",
+      "new_field_sha256": "3ebf6712e3760d7ffeac66495c77e77fa94c5b218e0c829181d7132802423d6f"
+    },
+    "papers/t0-tsfm-forecasting-with-context/lab.yaml": {
+      "before_sha256": "ac4976f74a9fddc2657695a2470257c8e5a6a0c6bff9849c0631d446c1ab018f",
+      "before_blob": "9761833c42fcdfd17ebec7e89cea35cd9e5c741a",
+      "after_sha256": "06c6a76fd589562b276654433f812a5ff127dd6349e87f666bff6e745c014a54",
+      "after_blob": "cf8bf91778d995611194c5a931b0a1f665ebfb5c",
+      "prior_field": "  overview: モデル同士の順位より、同じ学習済みモデルに情報を足したときの差に注目する。+6.3はskillのパーセントポイントであり、平均絶対誤差（MAE）が6.3%改善したという意味ではない。詳しく扱うのは主にt0-alpha。t0-betaの256Mパラメータや21分位点は別の仕様である。\n",
+      "new_field_sha256": "55368426311854cdeb1d2f3022a49bada77a30a9a46d0386d92961c8f20c0ce6"
+    },
+    "papers/youtube-music-llm-rationales-discovery/lab.yaml": {
+      "before_sha256": "55014c1b42439d32b5114dfd503aa0b4031d17d1e50c2186e82acdd65888044d",
+      "before_blob": "4982d128342a9ac85b620b47ac2f0de4e79cff01",
+      "after_sha256": "4c3f815089499cf681fd8dc7bcdae609d054fed90e56eb7a77f293b877112e71",
+      "after_blob": "45133437880fe8d3edfd51eafd7368b16c48f74a",
+      "prior_field": "  overview: YouTube Musicのホームには、新しいアーティストを見つけるための推薦欄（YDD）がある。従来は、一緒に視聴される傾向や音の特徴を表した埋め込みの類似度をしきい値で判定し、「好きなアーティストのファン向け」のような定型文を付けていた。論文の方式は、好みのまとまりごとに候補のアーティストと理由文を作る。生成は画面の応答とは別に行う。生成結果は、新しい候補を増やすときにも、従来の候補に理由を添えるときにも使う。\n",
+      "new_field_sha256": "ad6e5fad182c6c75d13e130abad4d1af58143491933ef786ad22f206de334140"
     }
   },
   "generated_from": {
@@ -875,6 +907,30 @@
       "after_blob": "7862935f753a41fa6eb2992f179f4653652cef45",
       "source": "papers/unirec-chain-of-attribute/lab.yaml",
       "prior_mirror": "UniRecはカテゴリなどの商品属性を予測してからSIDを生成する。属性を手がかりに商品を絞り、候補生成と順位付けを一つのモデルで扱うことを目指す。Shopeeが各bucketに20%を割り当てたA/Bでは、Overall PVCTR +5.37%、orders +4.76%、GMV +5.60%を報告した。属性を手がかりにした場合としない場合で、次のSIDを予測する不確実性を比べる説明は追いやすい。属性を条件に加えても不確実性は平均では増えないが、生成と判別で商品の順位が同じになるかどうかは別の話だ。本文のBayesの式から同じ順位になると説明するには、分母を省ける条件を確かめる必要がある。"
+    },
+    "papers/ra-dfl-risk-aware-decision-focused-inventory/README.md": {
+      "before_sha256": "62a9cf1516af605c7a018ef136156395f0125c924f9d21835bcf4503a605fcfc",
+      "before_blob": "fd50373cc960a78a799c2f22ee18a94891646e70",
+      "after_sha256": "9f52e4668812e2a46f249b975ccaf9b6ad7a918b83867551345f21bf58c60997",
+      "after_blob": "ebcf37f5aa22d94d00aad7a376f15ad0f7a73cba",
+      "source": "papers/ra-dfl-risk-aware-decision-focused-inventory/lab.yaml",
+      "prior_mirror": "売り場やECが同じ商品を扱っていても、在庫をどちらに置くかで、売れ残りと欠品の費用は変わります。RA-DFLは、予測の当たり外れだけでなく、その予測に従って在庫を配った場合の費用を学習に使う手法です。平均費用に加え、費用が特に高い場合の平均（CVaR）も考慮します。\n\n論文のM5実験では、需要を先に予測してから配分を決める基準手法の費用4.903に対し、RA-DFLは4.721でした（3.7%減）。一方、同じ基準予測にCVaRを考慮する配分だけを組み合わせると、費用は5.380に増えました（9.7%増）。いずれも著者報告です。販促や欠品は代理指標、需要の評価には観測売上を使っているため、実店舗の効果とは区別します。Labでは今後の検証を待つ「Radar」としています。"
+    },
+    "papers/t0-tsfm-forecasting-with-context/README.md": {
+      "before_sha256": "cbac33a2799a1b2fb8c7d4b0daff39cf63fd7a0ea65e7326aad923db3574697b",
+      "before_blob": "32f0aee2d2573f1ee057a1bd60d01c0a529db985",
+      "after_sha256": "8bc4d86822b15d866337bcf94f4118a1605db748cbb0de98b9e675e4d28f8c41",
+      "after_blob": "c11732d74351c1c4ed62829a0382ee5ff3f1ab0d",
+      "source": "papers/t0-tsfm-forecasting-with-context/lab.yaml",
+      "prior_mirror": "著者は学習済みのt0-alphaを変えず、予測対象以外の変数（covariate）を入力する場合としない場合を比べた。fev-benchで予測時点に将来の値が分かる変数を使った30課題では、評価指標skillが36.7から43.0へ6.3ポイント上がった。改善したのは19課題で、残り11課題では悪化した。この比較からは、販促や欠品がある場合に時系列基盤モデル（TSFM）とGBDTのどちらが優れるかは分からない。"
+    },
+    "papers/youtube-music-llm-rationales-discovery/README.md": {
+      "before_sha256": "84e4e807edee96f65582abdeb64b14d7414e2c04916a31efd7826442fec7964b",
+      "before_blob": "bbf07e67f526bd42dd4f2757859842f2f6a6bbe2",
+      "after_sha256": "a4bff53d13a1ddc23eb4441701570a340d10e1260e07961037a64d7a3cc62e77",
+      "after_blob": "e24555ab0abe7587ef833cafa037dae08e064eef",
+      "source": "papers/youtube-music-llm-rationales-discovery/lab.yaml",
+      "prior_mirror": "YouTube Musicのホームには、新しいアーティストを見つけるための推薦欄（YDD）がある。論文の方式は、候補となるアーティストと「なぜすすめるのか」を伝える理由文を、画面の応答とは別に大規模言語モデル（LLM）で生成する。\n\n2週間のA/Bテストでは、この推薦欄のエンゲージメントが22.43%増えた（95%信頼区間：16.93–27.93%）。理由文を外した比較では、候補を追加する機能よりも、理由を表示する機能のほうがエンゲージメントへの寄与は大きかった。アーティストの発見を測る指標では、候補の追加も寄与した。"
     }
   }
 }
