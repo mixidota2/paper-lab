@@ -35,7 +35,7 @@ class OverviewText(HTMLParser):
 
 def test_scoped_source_transition_and_rendered_overviews(tmp_path):
     rows = json.loads((ROOT / 'tests/paper_overview_hashes.json').read_text())['files']
-    assert len(rows) == 57
+    assert len(rows) == 62
     site = tmp_path / 'site'
     build(root=ROOT, site_dir=site)
     anchors = {
@@ -96,6 +96,11 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'autolr-dashen': ('1,586件', '公開判断', '9件', '何割が本番で改善したかは分かりません'),
         'beyond-scalar-dsi-watchtime': ('視聴時間の分布', '1.9〜8.5%', '公開データ3種類'),
         'onetrans-v2-cascade-unification': ('3段階', '利用者を無作為', '9.74%', '共有だけ'),
+        'retailbench-long-horizon-store-agents': ('7つのモデル', '180日', '24,350.98', '131,510.42', '平均や実店舗の成績ではありません'),
+        'traffic-forecast-to-decision-value': ('29日分', '4.03%', '3.92%', '9交差点のうち2地点', '6.09%', '3.39%', '3.78%', 'すべて0をまたぎました'),
+        'vn2-stockout-catboost': ('CatBoost', '全6回の総合で1位', '4.334ユーロ', '3.763ユーロ', '13.2%'),
+        'zalando-sales-event-pricing-forecast-optimize': ('12市場', '23件', '無作為に割り付け', '6.00%', '0.79〜11.03%', '対照と同等だったとまでは言えない'),
+        'sim2real-policy-conditioned-inbound-forecast': ('同じ構造', '新ルール導入後の入荷実績', '1.2〜3.1ポイント', '12.5〜18.7ポイント'),
     }
     for path, row in rows.items():
         raw = (ROOT / path).read_bytes()
@@ -138,15 +143,20 @@ def test_download_mirror_replaces_only_the_overview():
         'igpo-huawei-inventory-grounded-search',
         'isomorph-supply-chain-digital-twin',
         'agent-reasoning-forgetting-externalized-state',
+        'retailbench-long-horizon-store-agents',
+        'traffic-forecast-to-decision-value',
+        'zalando-sales-event-pricing-forecast-optimize',
+        'sim2real-policy-conditioned-inbound-forecast',
     )}
     for path, row in receipt['mirrored'].items():
         source = (ROOT / row['source']).read_bytes()
         previous = restored_before_paper_overview(ROOT, row['source'], source)
         old, new = (yaml.safe_load(raw)['sections']['overview'].encode() for raw in (previous, source))
         if 'prior_mirror' in row:
-            assert Path(path).parent.name == 'proximal-residual-value-inventory-placement'
+            slug = Path(path).parent.name
+            assert slug in {'proximal-residual-value-inventory-placement', 'retailbench-long-horizon-store-agents'}
             old = row['prior_mirror'].encode()
-            assert len(old.decode().split('\n\n')) == 2
+            assert len(old.decode().split('\n\n')) == (1 if slug == 'retailbench-long-horizon-store-agents' else 2)
         download = (ROOT / path).read_bytes()
         assert download.count(new) == 1
         assert download.count(old) == int(Path(path).parent.name in {

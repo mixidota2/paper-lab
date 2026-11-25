@@ -8,7 +8,7 @@ import subprocess
 import pytest
 import yaml
 
-from prose_preservation import zalando_full_rewrite_hash
+from prose_preservation import paper_overview_rewrite_hash, zalando_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 PAPER = 'papers/zalando-sales-event-pricing-forecast-optimize/'
@@ -65,6 +65,7 @@ def test_archive_and_current_hashes(algo):
     def digest(raw):
         return (hashlib.sha256(raw) if algo=='sha256' else hashlib.sha1(f'blob {len(raw)}\0'.encode()+raw)).hexdigest()
     for p in PATHS:
-        assert zalando_full_rewrite_hash(ROOT,p,digest(historical(p)),algo)==digest(local(p))
+        pinned = zalando_full_rewrite_hash(ROOT,p,digest(historical(p)),algo)
+        assert paper_overview_rewrite_hash(ROOT,p,pinned,algo)==digest(local(p))
         with pytest.raises(AssertionError):
             zalando_full_rewrite_hash(ROOT,p,digest(local(p)+b'\n'),algo)

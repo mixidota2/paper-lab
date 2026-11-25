@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from prose_preservation import sim2real_full_rewrite_hash
+from prose_preservation import paper_overview_rewrite_hash, sim2real_full_rewrite_hash
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,7 +28,7 @@ def test_sim2real_prose_guard_identity(path, algorithm):
     before = row['before_' + algorithm]
     after = sim2real_full_rewrite_hash(ROOT, path, before, algorithm)
     raw = (ROOT / path).read_bytes()
-    assert after == hash_content(raw, algorithm)
+    assert paper_overview_rewrite_hash(ROOT, path, after, algorithm) == hash_content(raw, algorithm)
     assert after != hash_content(raw + b'\n', algorithm)
     wrong = ('0' if before[0] != '0' else '1') + before[1:]
     for value in (wrong, after):
