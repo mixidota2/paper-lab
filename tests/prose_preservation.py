@@ -248,7 +248,28 @@ def store_layout_field_example_hash(root, path, expected, algorithm='sha256'):
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path
+    return store_layout_calculation_hash(root, path, row['after_' + algorithm], algorithm)
+
+
+def store_layout_calculation_hash(root, path, expected, algorithm='sha256'):
+    """Accept the exact synthetic calculation addition from its reviewed predecessor."""
+    if path != 'guides/store-layout-fixed-counts.md':
+        return expected
+    row = json.loads((root / 'tests/store_layout_calculation_hashes.json').read_text())
+    assert expected == row['before_' + algorithm], path
     return row['after_' + algorithm]
+
+
+def before_store_layout_calculation(root, raw):
+    """Leave the earlier field example covered by its original byte guard."""
+    row = json.loads((root / 'tests/store_layout_calculation_hashes.json').read_text())
+    assert hashlib.sha256(raw).hexdigest() == row['after_sha256']
+    section = row['section'].encode()
+    new = row['after_end'].encode()
+    assert raw.count(section) == raw.count(new) == 1
+    old = raw.replace(section, b'', 1).replace(new, row['before_end'].encode(), 1)
+    assert hashlib.sha256(old).hexdigest() == row['before_sha256']
+    return old
 
 
 def coral_full_rewrite_hash(root, path, expected, algorithm='sha256'):
