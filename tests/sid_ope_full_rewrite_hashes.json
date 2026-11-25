@@ -1,0 +1,247 @@
+{
+  "files": {
+    "papers/sid-ope-hierarchy/lab.yaml": {
+      "before_sha256": "f9e868d0f94c90c24090ddec6cfde1cc074ccd7f0b4a16db2fe28bc58898e229",
+      "before_blob": "e6b993d070c757270b4b3449ddb7bf1ffe0157f1",
+      "after_sha256": "d29e8f8438686657236bc06648d9c5ebf3d77a3baffd7c3e9ebed2e9830dd4b6",
+      "after_blob": "f7aeaf526bff618dc73bc8498ebf0a04f60c44b4",
+      "prior_spans": [
+        [
+          10,
+          11,
+          "  paper: https://arxiv.org/abs/2608.28905\n"
+        ],
+        [
+          22,
+          24,
+          "question: SIDの木は、ログで見えていない商品の評価をどこまで助けるか\nsummary: 商品ごとの記録が少なく評価値が不安定なとき、識別子の先頭部分が同じ商品をまとめて評価すると、同じログをより安定して使える場合がある。ただし、同じ商品群の中で好みが変わった違いは見落としやすくなる。精度改善の中心は粗粒度化で、木の固有の利点はdecoderから群の確率を少ない計算で求められることにある。\n"
+        ],
+        [
+          30,
+          32,
+          "  author_claim: '著者はSIDのprefixをOPEの行動抽象化に使い、supportの回復と誤差低下を示す。同じ群数のflat clusteringでも精度差は有意でなく、階層の利点を確率取得の実行可能性と解像度の選択に位置付ける。\n"
+        ],
+        [
+          33,
+          36,
+          "\n    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2608.28905v1)'\n  research_bot_interpretation: SIDを「商品を生成する符号」から「評価する粒度を選ぶ仕組み」へ読み替える点が有用だ。ただし群の中で何を出すかを変えた差は粗粒度の評価から消える。新tokenizerや新しい候補集合まで比較できる万能のOPEではない。\n"
+        ],
+        [
+          41,
+          43,
+          "  problem: '既存方策π₀のログで候補方策πₑの報酬を推定するのがOPE（Off-Policy Evaluation）だ。商品aへの報酬rを `πₑ(a|x)/π₀(a|x)` 倍するIPSは、候補が好む商品を既存方策がほとんど出さないと不安定になる。ログ件数が大きくても、少数の巨大な重みが推定を支配する。\n"
+        ],
+        [
+          44,
+          48,
+          ""
+        ],
+        [
+          49,
+          52,
+          "    対象は同じcatalogとSID tree上の方策変更。候補生成器の変更で新しい商品が行動集合に入る場合や、再tokenizeで木が変わる場合は対象外だ。'\n  method: method.md\n  why_it_might_work: 接頭辞を短くすると、同じ群に属する商品の観測を共有できる。重要度重みのばらつきが減る一方、群内の好みの違いを捨てる。この交換条件を深さで操作できると、観測の薄い段階では粗く、十分なsupportが得られた段階では細かく比較する設計につながる。\n  evidence: '### 本番のsupport診断と、制御実験の精度を区別する\n"
+        ],
+        [
+          53,
+          54,
+          "    本番ログでは商品ESSが生の件数のおよそ0.003倍まで落ちる。候補確率が記録されたsliceでは、greedy targetに対する粗粒度化でESSが約1.8倍になる（§4.2–4.3、付録表5）。本番ログにはランダム露出のoracleがなく、ここから推定精度は直接検証できない。\n"
+        ],
+        [
+          55,
+          56,
+          ""
+        ],
+        [
+          57,
+          58,
+          "    KuaiRandのランダム露出データを二分し、一方から方策、他方からreward生成とoracleを作る。7,339商品、M=5,000、200seedでSNIPSのRMSEは商品粒度0.155、階層粒度0.087だった。ただし主要表の深さはoracleを使う別validation\n    seedで選ばれ、実装可能な選択器の成績と分ける必要がある（表1）。\n"
+        ],
+        [
+          59,
+          60,
+          ""
+        ],
+        [
+          61,
+          62,
+          "    ログだけで深さを選ぶSLOPEをMIPSに適用した列は、M=5,000でRMSE 0.109。oracle選択SNIPSの0.086とは推定器も違う（表3）。flat k-meansとの同群数比較では木の精度優位は確認されない。候補選択の改善も主に群間の確率を動かす方策で見られ、群内だけを変える方策では利点が失われる（表2）。Amazonの追加実験は自己選択されたratingを使うため、独立な因果的検証とは扱わない。\n"
+        ],
+        [
+          63,
+          64,
+          ""
+        ],
+        [
+          65,
+          66,
+          "    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2608.28905v1)'\n  executable_understanding: '64商品を4分木へ並べ、各大群で先頭商品に97%の条件付きlogging確率を与える。targetは群の配分と群内の好みを変える。600件×250seedの同じログから、深さ0/1/2/3でIPSとSNIPSを計算する。深さ3は商品、深さ0は全商品を一つにまとめる対照だ。\n"
+        ],
+        [
+          67,
+          70,
+          ""
+        ],
+        [
+          71,
+          80,
+          "    真の期待報酬を既知にし、RMSE、IPS分散、厳密な期待バイアス、ESS、観測された群の割合を保存する。ESSは `(Σw)²/Σw²`。重みが一部の観測に集中するほど小さくなる指標で、実際にログが増えたことや、推定の偏りが消えたことを意味しない。RMSEはseedごとの推定値と真値の差を二乗して平均し、その平方根を取る。prefix確率の積と葉の和の一致も数値で確かめる。'\n  results: 商品粒度の平均ESSは5.519件、深さ1の4群では151.423件だった。SNIPSのRMSEは0.280から0.102へ下がる。一方、全体を1群にするとESSは600でもRMSEは0.340に悪化する。標本を共有し過ぎると、群内に埋もれた方策差を見落とす。これらはすべて合成実験の値。\n  what_we_verified: 粗粒度化で重みが安定する一方、浅すぎる群では方策の違いが消えてバイアスが残る。既知のtoy分布に対する期待バイアスと、有限ログからのRMSEを別々に計算した。decoder massの一致は、この正規化treeで確認した。\n  what_we_did_not_verify: SID学習、埋め込みのLipschitz性、SLOPE、OffCEM、本番loggerの確率復元は未検証。toyでは全商品の確率が正で既知だ。ゼロsupportを持つ商品を観測なしに識別できるわけではない。深さは一つ選ばず全列を示し、oracleを見て選んだ値を運用成績と呼ばない。\n  implementation: 'リポジトリのルートで `uv run papers/sid-ope-hierarchy/run.py` を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの\n    `results.json` に保存する。\n\n\n    乱数を使う実験はseedを固定した。数値は論文の測定値と別に集計している。'\n"
+        ],
+        [
+          83,
+          85,
+          "  title: 接頭辞の長さで評価の解像度を変える\n  caption: 原論文§2の再図。表示を簡潔にするため分岐を二つにした概念図で、論文のcodebook構成やtoyの64商品を描いたものではない。\n"
+        ],
+        [
+          87,
+          89,
+          "  title: 全商品を列挙せず、prefixの確率を読む\n  caption: 原論文§2。数値は説明用で論文の測定値ではない。run.pyは別の64商品分布で積と和の一致を検証する。\n"
+        ],
+        [
+          91,
+          93,
+          "  title: \"合成ログの有効サンプルサイズ（ESS）\"\n  caption: results.json。各seedの600ログに対する重み由来のESS。生の件数と、有効な標本数は違う。\n"
+        ],
+        [
+          97,
+          98,
+          "  title: 粗くすると消えるのは群内の方策差\n"
+        ],
+        [
+          99,
+          100,
+          "  caption: 上限の対象はraw cluster IPS。平均量子化誤差だけでは上限を決められない。\n"
+        ],
+        [
+          102,
+          103,
+          "  rationale: 上限の対象はraw cluster IPS。平均量子化誤差だけでは上限を決められない。\n"
+        ],
+        [
+          106,
+          107,
+          "    explanation: 群の出現率をtargetに合わせる。群内の商品選択はlogging側のまま。\n"
+        ],
+        [
+          109,
+          110,
+          "    explanation: 群内の報酬変動と群内方策差の両方が小さければ偏りも小さい。既知確率・positivity・埋め込み仮定が必要。\n"
+        ],
+        [
+          112,
+          114,
+          "  title: 観測を共有する粒度と誤差を比べる\n  caption: 全て同じ合成ログを使用。深さをoracleで選んだ運用成績とは扱わない。\n"
+        ]
+      ]
+    },
+    "papers/sid-ope-hierarchy/method.md": {
+      "before_sha256": "b932e19cafb8f11e520a4cd9e92a732abb31f912477477c37f79a24c348cfaaa",
+      "before_blob": "fbec1fa0af75a0eceb434b609874fb8141789c7c",
+      "after_sha256": "35e1f043d511ccf09b6e85f229cf1911e105ca6fb01d5a46f3b4e2a763092820",
+      "after_blob": "b568ab9d378e5e9b44d8c698af5382564ff0ccb8",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 同じ接頭辞に属する群の重み付け\n"
+        ],
+        [
+          2,
+          3,
+          "商品ごとではなく同じ接頭辞に属する群を重み付けする。\n商品のSIDを `c(a)=(c₁,…,c_L)` とし、先頭ℓ tokenが一致する商品群をCとする。群の確率は `π(C|x)=Σ_{a∈C}π(a|x)`。cluster IPSは `V̂_ℓ = (1/M) Σᵢ [πₑ(Cᵢ|xᵢ)/π₀(Cᵢ|xᵢ)] rᵢ` を計算する。SNIPSは重み付き報酬を足し、Mで割る代わりに重みの総和で割る（§2）。\n"
+        ],
+        [
+          4,
+          5,
+          "clusterの出現確率は補正されるが、群内の商品分布はlogging側のまま残る。したがって群内で報酬が同じ、またはtargetとloggingの条件付き分布が同じなら、粗粒度化による偏りは生まれない。群内で高報酬商品へ大きく移す変更は、浅いprefixでは見落としやすい。\n"
+        ],
+        [
+          6,
+          7,
+          "### decoderの確率積による群の確率の計算\n"
+        ],
+        [
+          8,
+          9,
+          "catalog全件の確率を加算する代わりに、decoderの条件付き確率の積を使う。\n自己回帰decoderでは `π(c₁:ℓ|x) = ∏_{t=1}^ℓ π(c_t|x,c_<t)`。正規化された同じtree方策なら、この積は下の葉の確率和と一致する。必要なのはℓ段の条件付き確率で、flat clusteringで群内の商品確率を足す処理と異なる。beam searchや後段rerankingを含む配信なら、その実際の選択方策と確率が一致しているかを別途確かめたい。\n"
+        ],
+        [
+          10,
+          11,
+          "### 小さい平均量子化誤差だけでは、バイアス上限は小さくならない\n命題3.1はraw cluster IPSについて、既知の確率、群のpositivity、埋め込みを通じた報酬、Lipschitz連続性を仮定する。上限は `|Bias(V̂_ℓ)| ≤ 2 L_q δ_max,ℓ E[TV_in,ℓ]`。L_qは埋め込み距離に対する報酬変化の上限、δ_maxは最も悪く再構成された商品の残差、TV_inはtargetで重み付けした群内分布のずれだ。\n"
+        ],
+        [
+          12,
+          13,
+          "平均二乗残差εを使うには `δ_max ≤ κ√ε` というcodebook依存の追加条件が必要。平均だけ良くしても外れた商品の残差は残りうる。この上限はSNIPS全般の誤差保証ではなく、論文も仮定が近似的なので機構の説明として用いる（§3）。\n"
+        ],
+        [
+          14,
+          21,
+          "[一次資料：arXiv v1 本文](https://arxiv.org/pdf/2608.28905v1)\n"
+        ]
+      ]
+    },
+    "papers/sid-ope-hierarchy/mapping.md": {
+      "before_sha256": "551da6863f452d2400c715501fcbe3af1358fb8ebc3fc28394a1fbe9a83f05d3",
+      "before_blob": "f3b6a1ae85fb9fa6038bc9321af804a5bb8b71c1",
+      "after_sha256": "214b35bace96e77c921fa07c2c2d8ee38bb82753dd678e0b6441ef094eb1905d",
+      "after_blob": "49e3e30a7da9d0a3da729fd21307167ed0b4d01f",
+      "prior_spans": [
+        [
+          0,
+          5,
+          "| 論文 | このLab | 省略・公式コード |\n"
+        ],
+        [
+          6,
+          10,
+          "| §2 cluster IPS/SNIPS | `cluster_masses`、`experiment` | contextなしのcatalog bandit |\n| prefix積の一致 | `decoder_prefix` | 本物のdecoderは学習せず、葉確率から条件付き確率を構成 |\n| 命題3.1 | 方法節、exact_IPS_bias | Lipschitz定数の推定や上限実証はしない |\n| §4 評価 | seed別RMSE/ESS | 論文データ・公式repo URLは未取得 |\n"
+        ],
+        [
+          11,
+          12,
+          "一次資料は [arXiv v1 PDF](https://arxiv.org/pdf/2608.28905v1)。公式実装の実行は行っていない。\n"
+        ]
+      ]
+    },
+    "papers/sid-ope-hierarchy/figures/sid-tree.svg": {
+      "before_sha256": "4dd76d62835d35a588f4ce1a638fa3c859a3abc3f3d9a2e1e0b01e019032051f",
+      "before_blob": "969e6534814b87bfe01a1bbbe84c3f13aa9cee4e",
+      "after_sha256": "f61a1a31bd2b3427ee8c91bae2afd7647a1b43eb239c02082eb207b99cf348f4",
+      "after_blob": "b677ae17807ab4ba8915539be3f0fd33ef2dba77",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 510\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">接頭辞で束ねるSID tree</title><desc id=\"desc\">接頭辞で束ねるSID tree。説明と出典はLab本文と図注を参照。</desc><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L6,3 L0,6\" fill=\"#217661\"/></marker></defs><rect width=\"440\" height=\"510\" rx=\"12\" fill=\"#fafcf7\"/><rect x=\"130\" y=\"15\" width=\"180\" height=\"78\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"144\" y=\"43\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">全catalog</text><text x=\"144\" y=\"72\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">深さ0：1群</text><path d=\"M220,94 L110,135\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"145\" width=\"180\" height=\"78\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"173\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">prefix 0</text><text x=\"34\" y=\"202\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">深さ1の群</text><path d=\"M220,94 L330,135\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"240\" y=\"145\" width=\"180\" height=\"78\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"254\" y=\"173\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">prefix 1</text><text x=\"254\" y=\"202\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">深さ1の群</text><path d=\"M110,224 L60,265\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"275\" width=\"80\" height=\"65\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"44\" y=\"315\" font-family=\"sans-serif\" font-size=\"20\" font-weight=\"normal\" fill=\"#193b36\">00</text><path d=\"M110,224 L160,265\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"120\" y=\"275\" width=\"80\" height=\"65\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"144\" y=\"315\" font-family=\"sans-serif\" font-size=\"20\" font-weight=\"normal\" fill=\"#193b36\">01</text><path d=\"M330,224 L280,265\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"240\" y=\"275\" width=\"80\" height=\"65\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"264\" y=\"315\" font-family=\"sans-serif\" font-size=\"20\" font-weight=\"normal\" fill=\"#193b36\">10</text><path d=\"M330,224 L380,265\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"340\" y=\"275\" width=\"80\" height=\"65\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"364\" y=\"315\" font-family=\"sans-serif\" font-size=\"20\" font-weight=\"normal\" fill=\"#193b36\">11</text><text x=\"20\" y=\"389\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">図は2分木の概念図（toyは4分木）。</text><text x=\"20\" y=\"414\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">短い接頭辞でまとめると群の観測を共有できる。</text><text x=\"20\" y=\"439\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">同じ群の商品の違いは見えなくなる。</text></svg>\n"
+        ]
+      ]
+    },
+    "papers/sid-ope-hierarchy/figures/decoder-mass.svg": {
+      "before_sha256": "6c089a4893fa702ef37ca12f10fee5bb3139c877a1920fe6fe07e0e1abb625c8",
+      "before_blob": "54d5c692fb24221d119fbf5cf54da388b98677bd",
+      "after_sha256": "0f94ec0e62266404628534a682e691acdccc08ce292a97dd21ff4315b1cf03a0",
+      "after_blob": "ce865dc75e96a73f70682ae1af2d312fc242b555",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 460\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">群の確率はtoken確率の積</title><desc id=\"desc\">群の確率はtoken確率の積。説明と出典はLab本文と図注を参照。</desc><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L6,3 L0,6\" fill=\"#217661\"/></marker></defs><rect width=\"440\" height=\"460\" rx=\"12\" fill=\"#fafcf7\"/><rect x=\"20\" y=\"20\" width=\"400\" height=\"103\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"48\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">decoderが出す条件付き確率</text><text x=\"34\" y=\"77\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">P(c₁=0)=0.4</text><text x=\"34\" y=\"102\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">P(c₂=1 | c₁=0)=0.25</text><path d=\"M220,124 L220,148\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"158\" width=\"400\" height=\"103\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"186\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">接頭辞01の確率</text><text x=\"34\" y=\"215\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">P(01)=0.4 × 0.25 = 0.10</text><text x=\"34\" y=\"240\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">01の下にある全商品の確率和と一致</text><text x=\"20\" y=\"323\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">数値は説明用。正規化treeを仮定。</text><text x=\"20\" y=\"348\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">flatな群では葉の確率和が必要になる。</text><text x=\"20\" y=\"373\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">木の利点：群の確率を少ない計算で求める。</text></svg>\n"
+        ]
+      ]
+    },
+    "papers/sid-ope-hierarchy/figures/ess.svg": {
+      "before_sha256": "a5e8f8a469112cd78ae344bd276bdad7a469433cf6ab83488b30c2d2402b9f31",
+      "before_blob": "44271566bbaba3829eb9ddb9a4ba30e2eace5f1b",
+      "after_sha256": "1d55cf51ddf94a988e477580e2dd3dcd4045c64eedb786ddfa78951f44efe207",
+      "after_blob": "b364695d04f717abc394260310f03ecfe7a3db69",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 403\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">合成ログのESS：250回の平均</title><desc id=\"desc\">合成ログのESS：250回の平均。説明と出典はLab本文と図注を参照。</desc><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L6,3 L0,6\" fill=\"#217661\"/></marker></defs><rect width=\"440\" height=\"403\" rx=\"12\" fill=\"#fafcf7\"/><text x=\"20\" y=\"28\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">合成ログのESS：250回の平均</text><text x=\"20\" y=\"54\" font-family=\"sans-serif\" font-size=\"16\" font-weight=\"normal\" fill=\"#193b36\">0〜600件相当（各回のログは600件）</text><text x=\"20\" y=\"87\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">深さ0 / 1群</text><rect x=\"20\" y=\"98\" width=\"350\" height=\"16\" rx=\"8\" fill=\"#e5e9e3\" stroke=\"none\"/><rect x=\"20\" y=\"98\" width=\"350.0\" height=\"16\" rx=\"8\" fill=\"#217661\" stroke=\"none\"/><text x=\"375\" y=\"113\" font-family=\"sans-serif\" font-size=\"16\" font-weight=\"normal\" fill=\"#193b36\">600</text><text x=\"20\" y=\"164\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">深さ1 / 4群</text><rect x=\"20\" y=\"175\" width=\"350\" height=\"16\" rx=\"8\" fill=\"#e5e9e3\" stroke=\"none\"/><rect x=\"20\" y=\"175\" width=\"88.33008333333333\" height=\"16\" rx=\"8\" fill=\"#217661\" stroke=\"none\"/><text x=\"375\" y=\"190\" font-family=\"sans-serif\" font-size=\"16\" font-weight=\"normal\" fill=\"#193b36\">151.423</text><text x=\"20\" y=\"241\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">深さ2 / 16群</text><rect x=\"20\" y=\"252\" width=\"350\" height=\"16\" rx=\"8\" fill=\"#e5e9e3\" stroke=\"none\"/><rect x=\"20\" y=\"252\" width=\"4.048333333333333\" height=\"16\" rx=\"8\" fill=\"#217661\" stroke=\"none\"/><text x=\"375\" y=\"267\" font-family=\"sans-serif\" font-size=\"16\" font-weight=\"normal\" fill=\"#193b36\">6.94</text><text x=\"20\" y=\"318\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">深さ3 / 64群</text><rect x=\"20\" y=\"329\" width=\"350\" height=\"16\" rx=\"8\" fill=\"#e5e9e3\" stroke=\"none\"/><rect x=\"20\" y=\"329\" width=\"3.219416666666667\" height=\"16\" rx=\"8\" fill=\"#217661\" stroke=\"none\"/><text x=\"375\" y=\"344\" font-family=\"sans-serif\" font-size=\"16\" font-weight=\"normal\" fill=\"#193b36\">5.519</text></svg>\n"
+        ]
+      ]
+    }
+  }
+}

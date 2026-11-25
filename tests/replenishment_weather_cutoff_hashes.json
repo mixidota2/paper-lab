@@ -1,0 +1,13 @@
+{
+  "file": "guides/forecast-to-replenishment.md",
+  "historical_release": "78df9feb0576bd4bc4c9230364c1cada2fc06aa0",
+  "before": {
+    "sha256": "c7c496f1686d7277935c99124ad0e7861545bc4537720a2b18d2497efd69be85",
+    "blob": "0156b0381e935b10a56ba4d335dd4c9723d810c1"
+  },
+  "after": {
+    "sha256": "3854d43badde5fbe89008a3bda7246a204b16cf097d6e29b42e33039357f5ab3",
+    "blob": "883b73dd2d254f3a08dc512f143b8fa6fff6c651"
+  },
+  "inserted": "### 10時の発注に、9時を初期時刻とする天気予報を使えるとは限らない\n\nたとえば、店が日本時間の10時に発注を締め切るとします。[気象業務支援センターの配信案内](https://www.jmbsc.or.jp/jp/online/file/f-online10200.html)では、気象庁のメソ数値予報モデル（MSM）のうち、9時を初期時刻とする回は11時30分ごろまでに配信されます。この配信予定だけを根拠に、10時に使えたとみなしてはいけません。[Open-MeteoのSingle Runs API](https://open-meteo.com/en/docs/single-runs-api)で指定する `run` もモデルの初期時刻で、公開時刻や店のシステムが受け取った時刻ではありません。\n\n過去の予測を比べるときは、予報の対象時刻と、自分たちのシステムでその予報を使えるようになった時刻を記録します。各日の締切までに届いた予報だけで「売上の履歴だけ」と「売上の履歴と天気予報」を比べます。後から観測した天気は、予測が外れた理由を調べるために別に使い、発注時に使える情報には含めません。\n\n"
+}
