@@ -23,99 +23,92 @@ related_threads:
 - generative-rec-vs-retrieval
 - when-complex-ranking-is-worth-it
 status: published
-question: 候補生成から最終順位まで、長い履歴を一度だけ読んで決められるか
-summary: Sonaは8,192件の履歴を共有し、深い処理を直近2,048件へ集中する。My Vibeの各群15%・7日A/BでAU +4.53%。全流量展開とcatalog coverageは未解決。
+question: Yandex Musicは、曲を探す処理と順位付けを一つのモデルでどう行ったか
+summary: Sonaは最大8,192件の履歴を候補検索と採点で共有し、計算を多くかけるのは直近2,048件に絞る。My Vibeの各群15%・7日間の本番比較で、著者は利用者数が4.53%、総再生時間が6.30%増えたと報告した。全利用者への展開や推薦に出る曲の範囲の改善は未解決である。
 source_review:
   checked: '2026-09-21'
-  scope: arXiv v2の全文HTML・数式・表・付録を確認。著者報告と合成実験を区別。
+  scope: LabはarXivの第2版の本文、式、表、付録を確認した。著者が報告した値とLabの合成例を分けて扱う。
   url: https://arxiv.org/html/2608.11015v2
   version: v2
   html_sha256: 023ab189b8f8f192cb2fcb2040cfc6d7e302ccb4efcbcd97b4148cc4cbc7376e
 core_idea:
-  author_claim: 生成と順位を共有encoderで共同学習し、重いteacherの採点をRanking Moduleへ蒸留する。最終実験では推薦cascade全体を置換した。
-  research_bot_interpretation: '[Gryphon-v2](gryphon-v2-cascade.html)で追った生成・順位の統合を、tokenizer、長期履歴、teacherの事前学習、オンライン更新の詳細まで示す報告。構成要素ごとのA/B寄与は限定して読む。'
+  author_claim: 著者は、履歴から次の曲を予測する処理と、候補を採点する処理を一緒に学習した。大きい教師モデルの採点は学習に使い、本番の最終構成には置かない。著者が置き換えたのは、候補検索、予備順位付け、順位付けである。
+  research_bot_interpretation: '[Gryphon-v2](gryphon-v2-cascade.html)で確認したように、候補検索と順位付けは一つのモデルにまとめられる。この論文はさらに、曲の識別子を作る方法、長い履歴の扱い、教師の学習、配信の更新方法を説明する。複数の本番実験は、比べた構成と時期を分けて読む。'
 sections:
   overview: |-
     Yandex Musicの研究チームは、自動で曲を流すMy Vibeで、候補を探す処理、候補を絞る処理、最後に並べ替える処理を一つのモデルにまとめました。Sonaは利用者が聴いた曲や曲への反応を読み、曲を表すIDを生成して候補を探し、点数を付けます。配信できる曲を制限する既存のルールは維持しました。
 
     スマートスピーカーの最終A/Bテストでは、利用者を各群15%ずつ無作為に選び、従来方式と7日間比べました。Sonaの群は利用した人の数が4.53%、総再生時間が6.30%増えました。論文時点では全利用者に展開しておらず、推薦に現れる曲の範囲は従来方式より狭いと報告しています。
-  problem: 音楽では同じ曲を繰り返し聴くこと自体に価値があり、動画feedと同じ重複抑制は当てはまらない。次の曲を当てる生成尤度だけでは、likeや聴き続ける価値に沿う順序を作れない。一方、重いteacherを各requestで実行すると配信コストが高い。長い履歴を保持しつつ、teacherの採点を軽いRanking
-    Moduleへ移す必要がある。
+  problem: 音楽では、同じ曲を繰り返し聴くことが利用者の望みである場合もある。動画と同じように重複を抑えればよいとは限らない。また、次に再生されそうな曲を当てるだけでは、好みの曲や長く聴いてもらえる曲を上に並べられるとは限らない。著者は、大きい教師モデルをリクエストのたびに動かさず、軽い採点部にその点数を学ばせた。
   method: method.md
-  why_it_might_work: 古い履歴もmemoryに残せば、直近だけでは分からない嗜好を生成と順位の双方で使える。計算をrecentへ集中するのは、その情報を全層で混ぜ直す費用を避けるためだ。蒸留の候補をrolloutと実表示の両方にすれば、生成分布への追従とログに残る行動の両方を扱える。ただし、教師と一致することは利用者の満足度と一致することを意味しない。
-  evidence: '一次資料の著者報告。
+  why_it_might_work: 利用者が少し前まで聴いた曲だけでは、一時的な好みと長く続く好みを見分けにくい。Sonaは古い履歴も残し、計算を多くかける層は直近の履歴に絞る。また、採点部は現在のモデルが生成した候補と、実際に表示された候補の両方から学ぶ。ただし、教師に近い順番を出すことと、利用者がその順番に満足することは別である。
+  evidence: |-
+    ### 音楽を流すスマートスピーカーの本番比較
 
+    最終の実験では、著者はMy Vibeの利用者を各群15%ずつ無作為に選び、従来方式とSonaを7日間比べた。利用者数が4.53%、総再生時間が6.30%、いいねが11.42%、リピートの指示が17.99%、論文でDeeply Engaged Usersと呼ぶ利用者の指標が7.37%増えた（表7.12、いずれもp<0.01）。リピートの指示は、利用者が繰り返し再生を指示した回数で、曲が一覧に重複する割合とは違う。
 
-    [原典 §7・Tables 7.6–7.12](https://arxiv.org/html/2608.11015v2) の著者報告。最終A/Bの相対差はAU +4.53%、聴取時間+6.30%、Likes +11.42%、Repeat
-    commands +17.99%、Deeply Engaged Users +7.37%。最終表はすべてp<0.01。Repeatは発話等のコマンド指標で、一般的な曲の重複率ではない。
+    <figure class="teaching batch21"><h3>実験ごとに、配信のどこを変えたか</h3><div class="matrix-scroll" tabindex="0"><table><thead><tr><th>実験</th><th>配信側の変更</th><th>各群の比率</th><th>各実験の対照群との差</th></tr></thead><tbody><tr><th>1</th><td>生成モデルと教師を使い、「いいね」の重みを変える</td><td>5%</td><td>重みα：利用者数 +1.83%</td></tr><tr><th>2</th><td>教師にSIDの特徴を渡す</td><td>4%</td><td>SIDあり：利用者数 +2.23%</td></tr><tr><th>3</th><td>教師が順位付けのみ担当 / 候補検索も変更</td><td>3%</td><td>利用者数 +1.22% / +2.72%</td></tr><tr><th>4</th><td>教師から学んだ採点部だけ / 教師でも採点</td><td>8%</td><td>利用者数 +1.41% / +2.81%</td></tr><tr><th>5</th><td>約8,000件の履歴を圧縮し、学習済みの採点部を使う</td><td>15%</td><td>利用者数 +4.53%、7日間</td></tr></tbody></table></div><figcaption>論文の表7.8〜7.12。各行は同じ実験の対照群との差。別々の実験の値を引いても、一つの変更だけの効果は分からない。</figcaption></figure>
 
+    [Gryphon-v2](gryphon-v2-cascade.html)で利用者数が1.41%増えたのは実験4であり、実験5のSonaとの直接比較ではない。実験4と5の利用者数の改善幅には3.12ポイントの差がある。ただし別の実験なので、この差を履歴の長さだけの効果とはみなせない。論文の2.35倍は、Sonaの4.53%と過去のArgusの1.93%という改善の幅を比べた値で、利用者数やモデル精度の比ではない。
 
-    <figure class="teaching batch21"><h3>5つのA/Bは、段階を外せるかを別々に確かめる</h3><div class="matrix-scroll" tabindex="0"><table><thead><tr><th>実験</th><th>配信側の変更</th><th>各群の比率</th><th>読むべき差</th></tr></thead><tbody><tr><th>1</th><td>enc–dec
-    + teacher、Likes重みを変更</td><td>5%</td><td>重みαのAU +1.83%</td></tr><tr><th>2</th><td>teacherへSID特徴を追加</td><td>4%</td><td>SIDありAU
-    +2.23%</td></tr><tr><th>3</th><td>teacherでrankのみ / 生成も置換</td><td>3%</td><td>AU +1.22% / +2.72%</td></tr><tr><th>4</th><td>蒸留RM
-    / さらにteacherでrerank</td><td>8%</td><td>AU +1.41% / +2.81%</td></tr><tr><th>5</th><td>8k + History Compression
-    + RM</td><td>15%</td><td>AU +4.53%、7日</td></tr></tbody></table></div><figcaption>原典 Tables 7.8–7.12。すべて各実験のproduction
-    control比。実験間の差を介入の因果効果とみなさない。</figcaption></figure>
+    ### 長い履歴と、履歴を圧縮する処理をログで比べる
 
+    同じ候補集合で、上位10曲が教師の上位10曲と重なる割合は、表示された候補だけで採点部を学んだ場合に0.2983、生成候補も使った場合に0.5654だった。別の比較では、約2,000件の履歴を使い、採点部なしの0.0381に対して、採点部を4層にすると0.6005だった。約8,000件をすべて同じように処理すると0.6586、古い履歴の計算を減らした構成では0.6474だった。重み付きのペア精度（WPA）は圧縮あり0.6033、なし0.6029で、全指標で同じ順になるわけではない。[一次資料：§7、表7.6〜7.12](https://arxiv.org/html/2608.11015v2)
+  executable_understanding: |-
+    Labは、人が決めた式で候補に点を付ける教師と、その点を学ぶ線形モデルを用意した。表示された候補だけを使う、生成した候補だけを使う、両方から別々に平均を求めて足す、の三つを比べる。学習に使っていない生成候補120件を採点する。
 
-    [Gryphon-v2](gryphon-v2-cascade.html)のAU +1.41%は、この報告の実験4に対応する値で、最終Sonaとの直接対決ではない。実験4と5の差から「履歴だけで+3.12ポイント」とは結論できない。Argusに対する2.35倍も、過去のAU改善+1.93%との改善幅の比で、利用者数やモデル精度が2.35倍になったわけではない。
+    MAEは教師と学習したモデルの点数の差を絶対値にして平均したものだ。ペア精度は、候補を二つずつ選び、教師と学習したモデルが同じ向きに厳密な順位を付けた割合である。同点は一致に含めない。履歴を読む計算については項の数だけを数えた。論文が報告した「約半分の推論費用」を測り直したものではない。
+  results: 生成候補と表示候補の両方を学ぶと、合成例のペア精度は1.0だった。表示候補だけで学ぶと約0.791だった。一方、点数の誤差（MAE）は、生成候補だけを使った場合より両方を使った場合のほうが大きい。Labでは、表示候補側の一つの特徴が常に0になり、その特徴の係数を学べないようにした。実際の配信ログにも同じ特徴があるという意味ではない。
+  what_we_verified: 'Labは、教師と学習するモデルを変えずに候補の集め方を変えると、未使用の候補で順位が一致する割合が変わることを確かめた（Mechanism: PARTIAL）。二種類の候補の誤差は、論文§4.2に合わせて別々に平均して足した。乱数の初期値と学習回数は同じにした。'
+  what_we_did_not_verify: LabはTransformer、Qwenでの内容表現、残差量子化、生成と採点で共有する学習、同じIDに割り当てられる実際の曲の数を検証していない。配信中のモデルが中央値45分で更新される処理も再現していない（NOT TESTED）。数カ月の効果、スマートスピーカー以外の推薦、推薦に出る曲の範囲を広げられるかは論文でも未解決である。
+  implementation: |-
+    `teacher()` は候補に固定の式で点を付ける。`train()` は点数の誤差を減らすように線形モデルを学習し、`compute()` は学習に使わなかった候補で比較する。教師モデルが一年分のログから学ぶ処理と、本番で使う二つの出力は実装していない。
 
-
-    オフラインではimpressions onlyのTeacher Recall@10は0.2983、rollouts + impressionsは0.5654。2k・RMなしの0.0381から、4層RMでは0.6005へ上がる。8k
-    full attentionは0.6586、History Compressionは0.6474で、完全に同じ精度ではない。WPAは圧縮版0.6033、full版0.6029。指標間で優劣が違う。'
-  executable_understanding: 解析的teacherを同じ線形studentへ蒸留し、impressions only、rollouts only、両source平均の和を比較する。学習で使わないrollout候補120件でMAEとpair accuracyを測る。MAEは候補ごとの採点差の絶対値の平均、pair accuracyは候補の全ての組のうちteacherとstudentが同じ向きに厳密な順位を付けた割合である。別に履歴attentionの項数を計算するが、これは計算構造の比較で、論文の「約半分の推論費用」を再測定した値ではない。
-  results: 合成条件では両sourceのpair accuracyは1.0、impressions onlyは約0.791。両sourceのMAEはrollouts onlyより大きく、全指標で勝ったとは言えない。impression側で一つの特徴が常に0という設計なので、その特徴の係数を学べない状況を意図的に作っている。
-  what_we_verified: Mechanism PARTIAL。候補分布を変えると、同じteacher・studentでも未使用候補との一致が変わることを確認した。2つのsourceで個別に平均を取り、Eq. §4.2どおり加算した。seedと訓練回数を固定した。
-  what_we_did_not_verify: Transformer、Qwen tokenizer、残差量子化、NTPとの共有勾配、実catalog collision、45分の更新loopは未検証。Performance
-    / Scaling / Production applicabilityはNOT TESTED。数カ月の長期効果、他の推薦面、catalog coverage回復も原典の未解決事項である。
-  implementation: '`train()`は線形studentのMAE subgradient、`teacher()`は固定の解析式、`compute()`は未使用候補での比較。teacherが一年のログを学習する部分と、本番の二つのheadは省略した。
-
-
-    Python標準ライブラリだけで実行する。乱数を使う実験はseedを固定し、結果をコードと同じ場所に保存する。'
+    実験はPythonの標準ライブラリだけで動く。乱数の初期値は固定し、結果はコードと同じ場所の `results.json` に保存する。
   mapping: mapping.md
 teaching_figures:
 - kind: equations
   id: two-losses
-  title: 生成尤度と教師の順位は、別の損失で学ぶ
+  title: 次の曲を予測する学習と、教師から点数を学ぶ処理
   after: method
-  caption: 原典の説明・報告値を学習用に再構成。独立再現ではない。
+  caption: 論文§4.2の説明を式で示す。Labは論文のモデルを再学習していない。
   source: https://arxiv.org/html/2608.11015v2
   locator: §4.2
-  rationale: 生成尤度と教師の順位は、別の損失で学ぶ
+  rationale: 曲の識別子を作る処理と、候補の順位を決める処理は、別々の誤差を学ぶ。
   steps:
-  - name: 正例SIDの生成
+  - name: 次に来る曲の記号を当てる
     formula: L = L_NTP + L_rollout + L_impression
-    explanation: NTPはpositive impressionsのみ。
-  - name: 候補源ごとの平均
+    explanation: 次の記号を予測する損失は、表示され、よい反応があった曲だけで計算する。
+  - name: 二種類の候補の誤差を別々に平均する
     formula: L_source = Σ_head mean_c |RM(c) − Teacher(c)|
-    explanation: 生成した候補（rollout）と実際に表示された候補（impression）を別々に平均する。件数の多い側が自動的に重くなる混合平均ではない。教師は凍結。
-  - name: 教師との順序一致
+    explanation: 生成した候補と実際に表示した候補の平均を足す。件数が多い側に自動で重みは付かない。教師の重みは固定する。
+  - name: 教師が選ぶ上位曲にどれだけ近いか
     formula: TeacherRecall@k = |Topk(RM) ∩ Topk(Teacher)| / k
-    explanation: 同じ生成候補pool内で測る。catalog全体の正解recallとは異なる。
+    explanation: 同じ生成候補から選んだ双方の上位k曲がどれだけ重なるかを測る。カタログ全体から正解を探す指標とは違う。
 - kind: matrix
   id: history-results
-  title: 履歴を延ばす利得と圧縮の小さな損失
+  title: 長い履歴を使い、古い履歴の計算を減らす
   after: evidence
-  caption: 原典の説明・報告値を学習用に再構成。独立再現ではない。
+  caption: 同じ4層の採点部で比べた論文の表7.7。どの指標でも圧縮版が優れるわけではない。
   source: https://arxiv.org/html/2608.11015v2
   locator: Table 7.7
-  rationale: 履歴を延ばす利得と圧縮の小さな損失
+  rationale: 履歴を長くした場合と、同じ長さで古い履歴の計算を減らした場合を区別する。
   columns:
   - Teacher R@10
   - Target R@1000
   - WPA
   rows:
-  - label: 2k / RM4
+  - label: 約2,000件 / 採点4層
     cells:
     - '0.6005'
     - '0.8656'
     - '0.5937'
-  - label: 8k full / RM4
+  - label: 約8,000件・全件を処理 / 採点4層
     cells:
     - '0.6586'
     - '0.8722'
     - '0.6029'
-  - label: 8k compression / RM4
+  - label: 約8,000件・古い履歴を圧縮 / 採点4層
     cells:
     - '0.6474'
     - '0.8709'

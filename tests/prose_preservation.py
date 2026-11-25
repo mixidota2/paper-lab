@@ -95,7 +95,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = revise_full_rewrite_hash(root, path, expected, algorithm)
     expected = pinterest_full_rewrite_hash(root, path, expected, algorithm)
     expected = unir2_full_rewrite_hash(root, path, expected, algorithm)
-    return genpage_full_rewrite_hash(root, path, expected, algorithm)
+    expected = genpage_full_rewrite_hash(root, path, expected, algorithm)
+    return sona_full_rewrite_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -146,6 +147,30 @@ def before_genpage_full_rewrite(root, path, current):
     if path not in ('papers/genpage-netflix-homepage/lab.yaml', 'papers/genpage-netflix-homepage/README.md'):
         return current
     row = json.loads((root / 'tests/genpage_full_rewrite_hashes.json').read_text())['files'][path]
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    assert row['prior_spans'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, end, old in reversed(row['prior_spans']):
+        lines[start:end] = [old]
+    data = ''.join(lines).encode()
+    assert hashlib.sha256(data).hexdigest() == row['before_sha256'], path
+    return data
+
+
+def sona_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/sona-yandex-music/'):
+        return expected
+    row = json.loads((root / 'tests/sona_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_sona_full_rewrite(root, path, current):
+    if path not in ('papers/sona-yandex-music/lab.yaml', 'papers/sona-yandex-music/README.md'):
+        return current
+    row = json.loads((root / 'tests/sona_full_rewrite_hashes.json').read_text())['files'][path]
     assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
     assert row['prior_spans'], path
     lines = current.decode().splitlines(keepends=True)
