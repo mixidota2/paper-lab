@@ -26,8 +26,11 @@ urls:
   official_code: https://github.com/youtube/static-constraint-decoding
 verdict: Watch
 status: published
-question: STATIC：業務制約のtrieを、アクセラレータで読める配列へ変える
-summary: STATICは、許可したID列（SID）を先頭部分ごとにまとめた木（trie）を、アクセラレータが読み取りやすい配列へ変換する。先頭側には密な表（dense table）を使い、その先はゼロ以外の要素を行ごとに保存する形式（CSR）で持つ。YouTubeのTPU v6e実験で制約処理0.033ms/step、3Bモデル推論の約0.25%。有効SIDを出すだけでなく「直近7日」の集合へ生成を限定できる点が主題だ。
+question: STATICは、生成推薦を許可された作品だけに絞る処理をどう速くしたか
+summary: >-
+  STATICは、許可された作品IDの木を、TPUやGPUがまとめて読める配列に変える。
+  YouTubeの測定では、候補を制限する追加処理は1ステップ当たり0.033ミリ秒だった。
+  別のA/Bテストでは、公開から7日以内の動画だけを出す候補源を加えると、対象となる動画の視聴が5.1%増えた。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -40,91 +43,82 @@ source_review:
   pdf_sha256: 1a50773da5416592e35b3dd62e35d81dac91c64e04cc179c3d28bae252ab0bad
   version: 2602.22647v2
 core_idea:
-  author_claim: 著者は、trieを静的な疎遷移配列へ平坦化し、vectorized kernelで各beamの有効な次tokenを取得すれば、TPU/GPUで厳密な業務制約を小さな追加時間で実行できると主張する（§4）。
-  research_bot_interpretation: 高速化は制約を実用にする条件であり、CTRを直接増やすモデル変更ではない。online liftは鮮度制約を導入したチャネルの効果を含む。同じ有効集合に対してCPU
-    trieをCSRへ置換するだけなら、候補の意味は変わらないはずだ。
+  author_claim: >-
+    著者は、許可されたIDの先頭部分ごとに、次に足せる記号と移動先を配列に保存した。
+    これにより、生成中の候補をTPUやGPU上でまとめて調べ、許可集合にないIDの生成を防ぐ（§4）。
+  research_bot_interpretation: >-
+    同じ許可集合を使うなら、木を配列に置き換えても選べる作品は変わらない。
+    高速化により、推論時に鮮度などの条件を厳密に守りながら、追加時間を抑えられる。視聴やクリックの改善は、候補源を加えたA/Bテストの結果として読む。
 sections:
-  problem: 'SIDとして有効でも古い動画なら、鮮度チャネルの候補にはならない。生成後にfilterすると、少数のbeamをすべて失う場合がある。許可集合のprefixだけを辿ればこの問題を避けられるが、CPU trieのpointer追跡とdevice間同期が遅い。
+  problem: |-
+    カタログにある正しいIDでも、古い動画なら「公開から7日以内」の候補にはできない。生成後に条件を掛けると、モデルが残した候補がすべて消える場合がある。生成の途中で条件を掛ける方式は、不許可の候補だけで枠が埋まるのを防ぐ。ただしCPUの木を毎回参照する方式では、TPUとのデータの受け渡しが増える。
+  evidence: |-
+    ### 候補制限の追加時間：TPUでは1ステップ当たり0.033ミリ秒
 
+    著者は30億パラメータのモデルをTPU v6eで動かし、候補を制限する時間を100回測った。表1では、CPUの木の31.3ミリ秒に対し、STATICは0.033ミリ秒だった。948倍は候補制限の追加時間だけを比べた値で、推薦全体が948倍速くなったわけではない。STATICの追加分は推論時間の約0.25%だった。
 
-    STATICはモデルの精度を変える新しい損失ではなく、厳密な集合制約を小さな計算負担で実行する方式だ。推論前に対象集合を作る費用、集合を更新する費用、prefixが共有される度合いも運用上の条件になる。'
-  evidence: '### kernelの比較とonline効果を分ける
+    近似PPVは上位50記号だけを調べ、Hash Bitmapは不許可の候補を通す場合がある。これらの方式と比べるときは、追加時間だけでなく、許可集合を厳密に守れるかも見る。
 
+    <figure class="teaching batch17"><h3>制約処理の追加時間だけを比較する</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>方式</th><th>追加時間（ミリ秒／ステップ）</th><th>候補の調べ方</th></tr></thead><tbody><tr><td>CPU Trie</td><td>31.3</td><td>CPU上で同じ木をたどる</td></tr><tr><td>PPV Exact</td><td>34.1</td><td>全2,048記号を検査する</td></tr><tr><td>Hash Bitmap</td><td>12.3</td><td>許可されない候補を通すことがある</td></tr><tr><td>PPV Approximate</td><td>1.56</td><td>上位50記号だけを調べる</td></tr><tr><td>STATIC</td><td>0.033</td><td>許可された候補だけを残す</td></tr></tbody></table></div><div class="b17-budget"><span style="flex:99.75">候補制限以外の推論時間</span><b style="flex:.25" title="約0.25%">│</b></div><p>棒は論文が報告した追加分の割合を示す。ほかの工程の内訳は示していない。</p><figcaption>§5.1–2・表1。30億パラメータ、TPU v6e、チップ当たりバッチ2、ビーム70、許可集合は約2,000万本。画面に推薦を届けるまでの計測ではない。</figcaption></figure>
 
-    表1は100 trialsの平均で、CPU Trie +31.3ms、PPV Exact +34.1ms、Hash Bitmap +12.3ms、PPV Approximate +1.56ms、STATIC +0.033ms/step。948倍はCPU
-    Trie比の制約処理。全推薦の948倍高速化ではない。0.25%は3B推論時間に対する追加処理の割合である。
+    ### YouTubeのA/Bテスト：公開から7日以内の動画の視聴が5.1%増えた
 
+    著者はYouTube短尺動画のホーム画面に、新しい動画だけを出す候補源を加えた。この候補源が出した動画はすべて公開から7日以内だった。7日以内の動画の視聴は5.1%増え（95%信頼区間：5.0〜5.2%）、3日以内の動画は2.9%増えた（2.8〜3.0%）。クリック率（CTR）は0.15%（0.01〜0.29%）、対象の利用者群の満足度も0.15%（0.03〜0.27%）高かった。7日は対象動画の条件で、実験期間ではない（§5.4・表2）。
 
-    §5.4・表2のHome Feed実験は「Last 7 Days」制約。著者は100% complianceを報告する。7 Day Fresh Views +5.1%（95% CI [5.0,5.2]%）、3 Day
-    Fresh Views +2.9%（[2.8,3.0]%）、CTR +0.15%（[0.01,0.29]%）、strategic user segment satisfaction +0.15%（[0.03,0.27]%）。7日はコンテンツの鮮度閾値で、A/Bの実施日数ではない。
+    ### Amazon Reviews：正解が新しい商品のとき、1位に出せた割合を比べた
 
+    著者は各カテゴリで最初のレビューが新しい側の2%を候補にした条件と、5%を候補にした条件を比べた。たとえば2%に限った美容用品では、正解の商品を1位に出した割合（Recall@1）は、制約なしの生成で0.00%、候補内のランダム選択で0.42%、候補内の二塔モデルで0.88%、STATICで4.29%だった。新しい商品が正解の例に限った評価で、著者は70エポック中の最高値を報告した。全商品に対する推薦や、Amazonでの運用効果を測ったものではない（§6・表3、付録F）。
 
-    ### 制約技術の役割を混同しない
+    ### 比較する仕組みごとに、絞り込む対象と測った時間が違う
 
+    NEZHAは無効なSIDを除く。STATICは、正しいSIDの中から業務上許可した集合に絞って生成する。[UniVA](univa-commercial-sid-gar.html)は利用者ごとに広告の適格性と価値を使って木を作り、[FlashTrie](flashtrie-gpu-beam.html)はGPU上でビーム探索の処理全体をまとめる。対象集合、点数、装置、測定した工程が違うため、処理時間だけで方式を順位付けできない。
 
-    NEZHAのinvalid-SID filterは、無効なID列を排除する問題との比較になる。STATICは業務上の部分集合を事前に定め、そのprefix内を辿る。[UniVA](univa-commercial-sid-gar.html)のpersonalized
-    valid-path trieは広告適格性と価値を組み合わせる。[FlashTrie](flashtrie-gpu-beam.html)はGPU上でbeam処理全体をまとめる。対象集合、score、hardware、測定範囲が違うので0.033msと数msを直接競わせない。
-
-
-    <figure class="teaching batch17"><h3>制約処理の追加時間だけを比較する</h3><div class="matrix-scroll" tabindex="0" role="region"
-    aria-label="比較表"><table><thead><tr><th>方式</th><th>追加ms/step</th><th>厳密性</th></tr></thead><tbody><tr><td>CPU
-    Trie</td><td>31.3</td><td>同じtrie制約</td></tr><tr><td>PPV Exact</td><td>34.1</td><td>全2048 logits検査</td></tr><tr><td>Hash
-    Bitmap</td><td>12.3</td><td>false positiveあり</td></tr><tr><td>PPV Approximate</td><td>1.56</td><td>top50だけ</td></tr><tr><td>STATIC</td><td>0.033</td><td>厳密な集合制約</td></tr></tbody></table></div><div
-    class="b17-budget"><span style="flex:99.75">モデル等の推論時間</span><b style="flex:.25" title="約0.25%">│</b></div><p>追加分は推論時間の約0.25%。棒は説明用の比率表示で、各工程の詳細計測を補ったものではない。</p><figcaption>§5.1–2・表1。3B
-    / TPU v6e / batch2 / beam70 / fresh約20M。baseline比のend-to-end時間ではない。</figcaption></figure>
-
-
-    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2602.22647v2)。図表の箇所とSHA-256は末尾の対応表を参照。'
+    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2602.22647v2)。節・表とPDFのSHA-256は対応表に記載した。
   overview: |-
     著者は、生成推薦が決められた候補集合の外を選ばないようにして、その確認をTPU上で素早く行う方法を提案しました。STATICは、作品識別子（SID）を先頭の記号で分けた木を、まとめて参照できる配列に変えます。モデルが次の記号を出すたび、その先に許可された作品がある記号だけを残します。たとえば直近7日以内の動画に限る、といった条件を強制できます。
 
     30億パラメータのモデルをTPU v6eで測ると、候補を制限する処理には1ステップあたり0.033ミリ秒かかりました。推論時間全体の約0.25%に当たります。別のYouTubeホーム画面のA/Bテストでは、公開から7日以内の動画の視聴が5.1%増えました。7日は対象動画の条件で、実験期間ではありません。0.033ミリ秒は候補制限だけの時間で、画面を届けるまでの時間ではありません。
-  why_it_might_work: '【解釈】prefixを整数stateにし、連続した配列から子をまとめて読むと、CPUへのcallbackと不規則なpointer移動を避けられる。初期の密な層はdense lookup、深い疎な層はCSRに分けるため、全SID空間の巨大なmaskを保持する必要もない。
+  why_it_might_work: |-
+    STATICは、IDの先頭部分に状態番号を付け、次に選べる記号を連続した配列からまとめて読む。TPUがCPUの木を見に行かなくてもよい。候補の多い先頭側には密な表を使い、候補の少ない後半には選べる記号だけを保存するCSRを使うため、すべてのIDの組み合わせを表に持つ必要もない。
 
-
-    一方、集合がrequestごとに大きく変わる場合にはindexの構築・保持が問題になる。kernel時間が短くても、すべての個別業務制約を追加の計算負担なしで扱えるとは言えない。'
+    一方、論文の方法は候補を調べる表を事前に作る。在庫などの理由で許可集合が頻繁に変わる場合は、表の再作成と読み込みにも時間がかかる。著者は動的な更新を今後の課題としている（§7）。
   method: method.md
-  executable_understanding: '5個の有効SIDのうち2個だけをfreshとする。2値・3段の全prefixを列挙してCSRと集合定義を照合する。同じ固定scoreでtop-1後filterとfresh集合内top-1を比べ、前者が空になる例を確かめる。
+  executable_understanding: |-
+    Labは架空のIDを5件用意し、001と111の2件だけを許可する。全体から上位1件を出してから絞る方法と、許可した2件の中から上位1件を選ぶ方法を、同じ点数で比べる。
 
-
-    <figure class="teaching batch17"><h3>人工fresh集合のCSRを読む</h3><div class="matrix-scroll" tabindex="0" role="region"
-    aria-label="比較表"><table><thead><tr><th>配列</th><th>値</th></tr></thead><tbody><tr><td>indptr</td><td>[0, 2, 3,
-    4, 4, 5, 6, 6]</td></tr><tr><td>tokens</td><td>[0, 1, 0, 1, 1, 1]</td></tr><tr><td>next_state</td><td>[1, 4,
-    2, 3, 5, 6]</td></tr></tbody></table></div><figcaption>rootのstate=0。indptrの隣り合う値で子の区間を切り出す。原論文のsink=0規約とは異なる。</figcaption></figure>'
-  results: 人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。
-  what_we_verified: '**Mechanism: PARTIAL**。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。
-
-
-    実験の入力と全出力はrun.pyとresults.jsonから確認できる。'
-  what_we_did_not_verify: 'TPU/GPU kernel、dense前段、VNTK固定長slice、8-token・20M集合のメモリ、本番freshness更新、遅延、CTRはNOT TESTED。CPUの小さなCSR参照実装から948倍を再現したとは言わない。
-
-
-    **Performance / Scaling / Production applicability: NOT TESTED**。一次資料の報告値との照合は、報告された本番効果の独立再現を意味しない。'
-  implementation: '標準ライブラリだけの独立実験。repository rootで `uv run papers/static-constrained-gr/run.py` を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。
-
+    <figure class="teaching batch17"><h3>許可した2件から、次に選べる記号を読む</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>配列</th><th>値</th></tr></thead><tbody><tr><td>indptr</td><td>[0, 2, 3, 4, 4, 5, 6, 6]</td></tr><tr><td>tokens</td><td>[0, 1, 0, 1, 1, 1]</td></tr><tr><td>next_state</td><td>[1, 4, 2, 3, 5, 6]</td></tr></tbody></table></div><figcaption>Labは根を状態0とする。indptrの隣り合う二つの値で、次に選べる記号の区間を指定する。原論文の状態0は無効な遷移先を示す。</figcaption></figure>
+  results: >-
+    全体の上位1件は000で、許可集合に入っていないため、あとから絞ると0件になった。
+    先に許可集合に限ると001が残った。いずれもLabの人工例であり、YouTubeのA/Bテストの値ではない。
+  what_we_verified: |-
+    Labは、空の先頭部分を含む15通りで、配列をたどった結果が許可集合そのものから調べた結果と一致することを確認した。
+    **Mechanism: PARTIAL**。小実験が確かめたのは、許可集合と配列の対応、および絞る順序による候補数の違いまでである。
+  what_we_did_not_verify: |-
+    LabはTPUやGPUを使っていない。先頭の密な表、VNTKによる固定長の読み込み、候補2,000万本のメモリ使用量、本番の候補更新、処理時間、クリック率、新商品の推薦成績は独立に検証していない。
+    **Performance / Scaling / Production applicability: NOT TESTED**。
+  implementation: |-
+    リポジトリの最上位で `uv run papers/static-constrained-gr/run.py` を実行すると、同じフォルダーに `results.json` を書く。Pythonの標準ライブラリだけを使い、乱数や外部APIは使わない。
 
     [実行コード](../downloads/static-constrained-gr/run.py)・[全結果](../downloads/static-constrained-gr/results.json)・[README](../downloads/static-constrained-gr/README.md)・[方法](../downloads/static-constrained-gr/method.md)・[対応表](../downloads/static-constrained-gr/mapping.md)を保存できる。
 
-
-    公式実装を取得し、READMEとindex/decodingの対応を確認した。commit `ac18fa1870ac45e0a3559090a0ea9ec005226cf5`。JAX/PyTorch実装自体の実行はNOT
-    TESTED。'
+    公式コードのコミット `ac18fa1870ac45e0a3559090a0ea9ec005226cf5` を参照し、表を作る処理と推論時に読む処理の位置を確認した。Labは公式のJAX版とPyTorch版を実行していない。
   mapping: mapping.md
 teaching_figures:
 - kind: equations
   id: method-equations
-  title: 式と操作の対応
+  title: 次の記号を残す判定と、配列の読み方
   after: method
-  caption: 各記号が担う役割を分けて読む。
-  rationale: 演算と制約の対象を明確にする。
+  caption: 許可された作品につながらない記号を、候補の点数を比べる前に除く。
+  rationale: どの記号を残すかと、残せる記号をどこから読むかを分ける。
   source: https://arxiv.org/pdf/2602.22647v2
   locator: §4、Algorithm 1
   steps:
-  - name: prefix集合
+  - name: 接頭辞の判定
     formula: 'F(prefix,v)=1{∃c∈C: prefix+v ⊑ c}'
-    explanation: 現在のIDの先頭部分に次のトークンを足しても、許可集合Cのどれかの先頭部分であるときだけ、その枝を残す。
-  - name: CSR
+    explanation: 今あるIDの先頭部分に記号を足した結果が、許可集合Cのどれかの先頭部分であるときだけ、その記号を残す。
+  - name: CSRの読み取り
     formula: children(s)=indices[indptr[s]:indptr[s+1]]
-    explanation: 各stateはIDの先頭部分を表す。indptrで子の格納区間を切り出し、次のトークンと遷移先stateを対応する配列から読む。
-  - name: mask
+    explanation: 状態番号sから、次に足せる記号が入った配列の区間を求める。
+  - name: 不許可の記号を除く
     formula: log p′(v)=log p(v) if F=1; −∞ otherwise
-    explanation: Algorithm 1はLogSoftmax後にmaskを適用する。
+    explanation: Algorithm 1では対数確率を計算してから、不許可の記号の値を−∞にする。
