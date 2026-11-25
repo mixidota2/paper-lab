@@ -40,7 +40,7 @@ class OverviewText(HTMLParser):
 
 def test_scoped_source_transition_and_rendered_overviews(tmp_path):
     rows = json.loads((ROOT / 'tests/paper_overview_hashes.json').read_text())['files']
-    assert len(rows) == 70
+    assert len(rows) == 82
     site = tmp_path / 'site'
     build(root=ROOT, site_dir=site)
     anchors = {
@@ -114,6 +114,18 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'tgr': ('CCFormer', '3.57%', 'BARGE', '0.60%', 'HiGR', '1.22%', 'TGR-Reason', '13.09%'),
         'sona-yandex-music': ('各群15%', '7日間', '4.53%', '6.30%', '全利用者に展開しておらず'),
         'unir2-sequence-unify': ('5%', '2週間', '1.177%', '2.569%', '推薦の全段階を置き換えた結果でもありません'),
+        'gatesid-coldstart-ranking': ('二つの表現', '2週間', '2.6%', '5.6%', '5ミリ秒未満'),
+        'icegr-baidu-intent-generative-retrieval': ('5億パラメータ', '最終結果に直接', '3.52%', '15.96%', '7.53%'),
+        'ogr-once-generated-ranked': ('3%', '1週間', '1.120%', '本番の応答時間が約2.2倍速くなったという測定結果ではありません'),
+        'sid-ope-hierarchy': ('KuaiRand', 'SNIPS', '0.155', '0.087', '同じ数のグループ'),
+        'muser-baidu-long-sequence-multi-interest': ('最大10万件', '6通り', '0.26%', '0.89%', '0.2351', '0.2232'),
+        'unique-baidu-unified-retrieval-ranking': ('1週間', '0.96%', '1.08%', '99パーセンタイルで89ミリ秒', '推薦画面全体の応答時間ではありません'),
+        'unirec-chain-of-attribute': ('ランディングページ', '20%', '5.37%', '4.76%', '5.60%', '商品ごとに違えば'),
+        'snaplgr-snapchat': ('7日間', '0.37%', '4.624%', '11.11%', '視聴時間が2.40倍になったわけではありません'),
+        'assortment-replenishment-hard-constraints': ('飲料データ', '最大14%', '補充', '店舗の利益が14%増えたわけではありません'),
+        'ra-dfl-risk-aware-decision-focused-inventory': ('4.903', '4.721', '5.380', '観測した売上', '実店舗での費用削減を測った結果ではありません'),
+        't0-tsfm-forecasting-with-context': ('36.7', '43.0', '6.3ポイント', '19課題', '11課題', '43%減りました'),
+        'youtube-music-llm-rationales-discovery': ('22.43%', '16.93〜27.93%', '8.07%', '理由文だけ', 'YouTube Music全体の利用継続率ではありません'),
     }
     for path, row in rows.items():
         raw = before_full_article_rewrites(ROOT, path, (ROOT / path).read_bytes())
@@ -166,13 +178,23 @@ def test_download_mirror_replaces_only_the_overview():
         'genpage-netflix-homepage',
         'sona-yandex-music',
         'unir2-sequence-unify',
+        'gatesid-coldstart-ranking',
+        'icegr-baidu-intent-generative-retrieval',
+        'ogr-once-generated-ranked',
+        'muser-baidu-long-sequence-multi-interest',
+        'unique-baidu-unified-retrieval-ranking',
+        'unirec-chain-of-attribute',
+        'snaplgr-snapchat',
+        'ra-dfl-risk-aware-decision-focused-inventory',
+        't0-tsfm-forecasting-with-context',
+        'youtube-music-llm-rationales-discovery',
     )}
     for path, row in receipt['mirrored'].items():
         source = before_full_article_rewrites(ROOT, row['source'], (ROOT / row['source']).read_bytes())
         previous = restored_before_paper_overview(ROOT, row['source'], source)
         old, new = (yaml.safe_load(raw)['sections']['overview'].encode() for raw in (previous, source))
         if row.get('mirror_excludes_unchanged_figure'):
-            assert Path(path).parent.name == 'genpage-netflix-homepage'
+            assert Path(path).parent.name in {'genpage-netflix-homepage', 'gatesid-coldstart-ranking'}
             old, old_figure = old.split(b'\n\n<figure', 1)
             new, new_figure = new.split(b'\n\n<figure', 1)
             assert new_figure == old_figure
@@ -182,6 +204,14 @@ def test_download_mirror_replaces_only_the_overview():
                 'proximal-residual-value-inventory-placement': 2,
                 'retailbench-long-horizon-store-agents': 1,
                 'pinterest-causal-retrieval-shopping': 1,
+                'gatesid-coldstart-ranking': 2,
+                'icegr-baidu-intent-generative-retrieval': 1,
+                'muser-baidu-long-sequence-multi-interest': 1,
+                'unique-baidu-unified-retrieval-ranking': 1,
+                'unirec-chain-of-attribute': 1,
+                'ra-dfl-risk-aware-decision-focused-inventory': 2,
+                't0-tsfm-forecasting-with-context': 1,
+                'youtube-music-llm-rationales-discovery': 2,
             }
             assert slug in prior_paragraphs
             old = row['prior_mirror'].encode()
