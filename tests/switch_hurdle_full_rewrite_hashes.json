@@ -3,8 +3,8 @@
     "papers/switch-hurdle-intermittent-demand/README.md": {
       "before_sha256": "161534a0e906fc514af85e819778e12e193cc95a0334cd9796beb19dd145f9cc",
       "before_blob": "31b0390efcb22c5946007f0097bb236d9726c5c1",
-      "after_sha256": "681d2b0bb99ab57186f21861f4b2290494970ef4631c8bff54ecda827e5d9637",
-      "after_blob": "ee295bfde801cffedc740c2806f3d229f63fdfe6",
+      "after_sha256": "579b9c654eb98a963bdd38b48752c4d9c4146f612d82e2f35924265d768f6a29",
+      "after_blob": "80d8e37a9510fef4b229c44cb4a7582e71e33493",
       "prior_spans": [
         [
           2,
@@ -104,7 +104,12 @@
         [
           40,
           41,
-          "CONFIRMED：分布の正規化、ゼロ確率の独立した操作、切詰め後の条件付き平均の補正。headの計算だけを確認したため、MechanismはPARTIAL。\n\n## What We Did NOT Verify — 未検証の範囲\n\nPerformance / Scaling / Production applicabilityはNOT TESTED。Top-1 STEの学習、MoEの専門化、AR decoder、M5の精度は追試していない。欠品、fill rate、在庫費用は測っていない。\n\n## Implementation — 実装\n\nnb()は平均・分散でパラメータ化した負の二項分布の確率を計算し、hurdle()は正の領域を1−P_NB(0)で正規化する。0から999までの和で確率と平均を照合する。図は0から20までを表示し、残りの尾確率も示す。\n\n## Original Paper / Official Code Mapping — 原典との対応\n\n[式と図の説明](method.md)、[原典・実装対応表](mapping.md)、[実行結果](results.json)を参照。ページはlab.yamlとこれらのファイルから生成する。\n"
+          "CONFIRMED：分布の正規化、ゼロ確率の独立した操作、切詰め後の条件付き平均の補正。headの計算だけを確認したため、MechanismはPARTIAL。\n"
+        ],
+        [
+          42,
+          43,
+          "## What We Did NOT Verify — 未検証の範囲\n\nPerformance / Scaling / Production applicabilityはNOT TESTED。Top-1 STEの学習、MoEの専門化、AR decoder、M5の精度は追試していない。欠品、fill rate、在庫費用は測っていない。\n\n## Implementation — 実装\n\nnb()は平均・分散でパラメータ化した負の二項分布の確率を計算し、hurdle()は正の領域を1−P_NB(0)で正規化する。0から999までの和で確率と平均を照合する。図は0から20までを表示し、残りの尾確率も示す。\n\n## Original Paper / Official Code Mapping — 原典との対応\n\n[式と図の説明](method.md)、[原典・実装対応表](mapping.md)、[実行結果](results.json)を参照。ページはlab.yamlとこれらのファイルから生成する。\n"
         ]
       ]
     },
@@ -149,8 +154,8 @@
     "papers/switch-hurdle-intermittent-demand/method.md": {
       "before_sha256": "41dd3e30da54f52f942a35697b097f6f3b7b58780cbcbaadec12785a1972efb4",
       "before_blob": "7b953bc020a3424916179523ce6408258259cc6a",
-      "after_sha256": "8d19d09debc344f089737e6d0c4d82fec474cbaa4ac5e577f9dfdcb43e8d9eeb",
-      "after_blob": "fbb3510ba70a198ef5d100761ebb9b4112102e09",
+      "after_sha256": "c11223af1289b9b5363cf2e46c0d0644a03f4829bc2755d7885c0b2105659756",
+      "after_blob": "f8e9224c80bd73138036cb7da04cb49d3d4ba1f6",
       "prior_spans": [
         [
           0,
@@ -177,8 +182,8 @@
     "papers/switch-hurdle-intermittent-demand/lab.yaml": {
       "before_sha256": "232b7e8542f36117c1a5298ee41d767343cefccc7e8525c4c68269bb7085676c",
       "before_blob": "20ccc70182aa871ba11f031b5f5639932e139d04",
-      "after_sha256": "798e18ffea9f09a91c9e98e1019a7877f9e8e304afc7ad7ac9b6560eb0f2a4f5",
-      "after_blob": "c7687e81194eeeb899f642f82dd2d649d4e162fb",
+      "after_sha256": "be099d55147d902c079a7f7254533b723990e03e37e6233967364a01eb9f2c05",
+      "after_blob": "a4677e4ef2b127f8029b957ae86b14f34b83b31d",
       "prior_spans": [
         [
           18,
