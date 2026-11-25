@@ -1,0 +1,67 @@
+{
+  "files": {
+    "papers/oneranker-ads/lab.yaml": {
+      "before_sha256": "437687d0dc1fbb6fb01ec2d518775bb1b21728f9f8bd02125cbfef55cbbce488",
+      "after_sha256": "3745a48562eca8fd7c7839ed28ec7fb28ff016e0a8fb75350725dc8754b57198",
+      "before_blob": "abe4b1d835b36aa65ad9cdfa41ed3cff5e943de8",
+      "after_blob": "b65d9bd25d2b61adc5482f36da5e7c0e5412e1d2",
+      "reverse_links": {
+        "https://arxiv.org/html/2603.02999v3": "https://arxiv.org/html/2603.02999",
+        "https://arxiv.org/pdf/2603.02999v3": "https://arxiv.org/pdf/2603.02999"
+      },
+      "prior_overview": "  overview: OneRankerは興味と広告価値の出力を分け、生成時の表現をランキングへ渡す。Weixin ChannelsのA/Bでは生成モデル＋別学習ランカーを基準に改善を報告した。広告の全カスケードを撤去した証拠とは区別して読む。\n",
+      "overwritten_overview_sha256": "256e1252cf9317cc6bfad168fb9dd603d5b88fa36fe926756742b95bf47df0ca"
+    },
+    "papers/oneranker-ads/method.md": {
+      "before_sha256": "24543211eeefc5caf453648ad3822ea928396c6f1c1f70e3a19bf27c6d8a7e08",
+      "after_sha256": "b042210f6de6dc772a57c9b9fc458acfeeebc6bdce52f184005d8595c221b69d",
+      "before_blob": "f600b3ccf31cd4f0ee1c155490442dcbf3fd6e5d",
+      "after_blob": "65e367b9f06fee7e7efbc36218457c2aa354c799",
+      "reverse_links": {
+        "https://arxiv.org/html/2603.02999v3": "https://arxiv.org/html/2603.02999"
+      }
+    },
+    "papers/revise-recovery/lab.yaml": {
+      "before_sha256": "babf979083dc1203fad69b34f963dfd0a4991204a8eb11c9481cda9bb29cbdb7",
+      "after_sha256": "0d778cb0697a1a19a67e44dac42ae32114d35a6c7f6c7bbc4b4159acb75c5f11",
+      "before_blob": "a96201042255d09eb6b4df42e2f7bc930dde3a18",
+      "after_blob": "494739ea83c89cd90184fc2470af1c1f74c16e3f",
+      "reverse_links": {
+        "https://arxiv.org/html/2609.00643v1": "https://arxiv.org/html/2609.00643",
+        "https://arxiv.org/pdf/2609.00643v1": "https://arxiv.org/pdf/2609.00643"
+      },
+      "prior_overview": "  overview: REVISE は変更した値と実際の依存関係を照合し、無効になった枝だけを再計算する。再利用には妥当性の証拠が必要で、依存情報が足りなければ suffix や全体再実行へ戻る。\n",
+      "overwritten_overview_sha256": "b57e2a76ba9db97710ca8d86984aed4f49cc20098c92abead93edc72bebc1c13"
+    },
+    "papers/revise-recovery/method.md": {
+      "before_sha256": "7565f80afa9ada9d5c18f865b7a16356d5b7be664b15663abf22ca6de25d6c6c",
+      "after_sha256": "0b37eb6c7057b6228e490378cbfd25dd2923185593f4f04ddf0e2a152487f2cc",
+      "before_blob": "d432441cc322f1820596eede286466efc41c2e59",
+      "after_blob": "57d6e45783df258173c420e9c09c563780b4f505",
+      "reverse_links": {
+        "https://arxiv.org/html/2609.00643v1": "https://arxiv.org/html/2609.00643"
+      }
+    },
+    "papers/tagr-live-sid/lab.yaml": {
+      "before_sha256": "4e50e8f42fd1b96e23fa7c685307398a18194bafce5b0a14ef7717228a0edb1b",
+      "after_sha256": "d110909c16d86a64260bd1254bc30424bf40c61b493779044d4abe6129579f15",
+      "before_blob": "6910c941e8a365db55a0c6d1afe1d9b4393024e5",
+      "after_blob": "e1435d7e2ff7a5ca23080b5c91e6a30898cd9e90",
+      "reverse_links": {
+        "https://arxiv.org/html/2608.24034v1": "https://arxiv.org/html/2608.24034",
+        "https://arxiv.org/pdf/2608.24034v1": "https://arxiv.org/pdf/2608.24034"
+      },
+      "prior_overview": "  overview: TAGRは語彙を固定したままライブ広告のSID割当を更新し、行動履歴と選好学習も別の周期で更新する。10%トラフィック、4000万人超のA/Bで売上+16.1%を報告する。役割は下流ランキングへ渡す候補検索である。\n",
+      "overwritten_overview_sha256": "9b377591413964add70f8c97fa908ab6c4ca569ed1a781bc8066ec17dec6398a"
+    },
+    "papers/tagr-live-sid/method.md": {
+      "before_sha256": "4a37ed17441585ad871c964635157d86136148eeef075c1bfa860c0341388f06",
+      "after_sha256": "b135816e72f53b1e0f482c0036f452acae59e98a2161922118432ee9a71d1a67",
+      "before_blob": "bf76320e2f540c8e359cbf0fa0c6a7a5a501cdfc",
+      "after_blob": "d8b071a62175311e7154c3a29a806c2aaeefa92e",
+      "reverse_links": {
+        "https://arxiv.org/html/2608.24034v1": "https://arxiv.org/html/2608.24034"
+      }
+    }
+  }
+}
