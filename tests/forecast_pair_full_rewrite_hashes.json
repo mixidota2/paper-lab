@@ -1,0 +1,723 @@
+{
+  "files": {
+    "papers/t0-tsfm-forecasting-with-context/lab.yaml": {
+      "before_sha256": "06c6a76fd589562b276654433f812a5ff127dd6349e87f666bff6e745c014a54",
+      "before_blob": "cf8bf91778d995611194c5a931b0a1f665ebfb5c",
+      "after_sha256": "1ac51de10687e8dee3f27a114e39aaac23e227e38e6649ef1cb28f164c7536db",
+      "after_blob": "1f4cf9552f74dacc66639af1eff021951f9abbe1",
+      "prior_spans": [
+        [
+          39,
+          40,
+          "  scope: 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。\n"
+        ],
+        [
+          41,
+          45,
+          "  author_claim: 時間軸と変数軸のattentionを交互に使い、target履歴・過去covariate・既知未来covariateから分位点を予測する。102Mのt0-alphaと256Mのt0-betaを公開し、事前学習にcovariateとtargetの依存を持つ人工系列を混ぜる。\n  research_bot_interpretation: '[ApolloPFN](apollopfn.html)と同じく外生変数を扱えるTSFMの証拠が増えた。ただし[Accuracy Is Not Service](accuracy-not-service-intermittent-demand.html)が問う在庫・注文充足への変換は残る。Chronos-2は変数軸attentionやcovariate\n    ablationの近い比較対象。小売の販促有無、欠品による売上打切り、GBDTと同じ情報集合での比較を揃えて初めて導入判断へ進める。'\n"
+        ],
+        [
+          50,
+          56,
+          "  problem: 売上の履歴だけを使う単変量モデルには、販促日や休業日を別途伝えられない。一方、変数を追加できるモデルでも、無関係な変数を無視できなければ予測が悪化する。評価で「既知未来」として渡した情報が、実際の発注時点にも分かっていたかを確かめる必要がある。後から判明した天気や売上の実績を予定として渡すと、未来情報が混ざる。\n  why_it_might_work: covariateがtargetを動かす人工系列を事前学習へ加え、変数間attentionでその関係を読めるようにする。未来の予定を読む経路には価値があるが、ノイズを無視できる保証はない。11/30課題の悪化やM5の小さい差は、covariate対応という機能名だけでは選定できないことを示す。\n  evidence: '[一次資料PDF §5.1.2 / Tables 4–5 / §6](https://arxiv.org/pdf/2609.24559v1) の著者報告。\n"
+        ],
+        [
+          57,
+          58,
+          ""
+        ],
+        [
+          59,
+          64,
+          "    | t0-alpha・同一checkpoint | covariateなし→あり | 95% bootstrap CI / task |\n"
+        ],
+        [
+          65,
+          66,
+          "    | --- | --- | --- |\n"
+        ],
+        [
+          67,
+          68,
+          "    | 既知未来30課題 | skill 36.7→43.0、+6.3 pp | [+2.2,+10.9]、19/30改善 |\n"
+        ],
+        [
+          69,
+          70,
+          "    | 過去のみ12課題 | 32.9→35.6、+2.7 pp | [+1.0,+4.2]、9/12改善 |\n"
+        ],
+        [
+          71,
+          72,
+          "    | covariateなし58課題 | 同一pass | 著者が完全一致を確認 |\n"
+        ],
+        [
+          73,
+          74,
+          ""
+        ],
+        [
+          75,
+          80,
+          "    skillは各taskのscaled quantile lossをseasonal naiveで割り、[0.01,100]へclipした比の幾何平均を1から引いて百分率にしたもの。CIはtaskを単位に復元抽出して計算するbootstrapの区間であり、全店舗の将来の改善幅を表す区間ではない。\n"
+        ],
+        [
+          81,
+          88,
+          "\n    German day-ahead価格ではquantile loss −51%、Rossmannの日次売上では販促・祝日・営業日の追加で−43%。一方、M5では価格・calendar等8変数を入れても週/月粒度で差は±2%未満。小売に無関係というわけではないが、欠品を制御したTSFM対GBDTのbakeoffではない。\n\n\n    t0-alphaの事前学習に重なる8課題はbenchmark規則に従いChronos-Bolt値で置換し、全100課題skillは生予測42.9に対し報告42.2。t0-betaはbenchmark datasetを除いた事前学習を申告し全100課題で46.7。alpha→beta差はパラメータ数だけのcontrolled\n    scaling実験ではない。\n\n\n    <figure class=\"teaching\" data-b21><h3>checkpointを固定し、入力情報だけを変える</h3><label>covariate <select><option value=\"0\">なし</option><option\n    value=\"1\">あり</option></select></label><script type=\"application/json\" data-frames>[\"<div class=\\\"b21-serving\\\"><section><h4>既知未来30課題</h4><p>skill\n    <strong>36.7</strong></p><p>同じt0-alphaからcovariateを落とす。</p></section><section><h4>過去のみ12課題</h4><p>skill\n    <strong>32.9</strong></p><p>履歴targetだけで予測。</p></section></div>\", \"<div class=\\\"b21-serving\\\"><section><h4>既知未来30課題</h4><p>skill\n    <strong>43.0</strong></p><p>予定を入力。19課題改善・11課題悪化。</p></section><section><h4>過去のみ12課題</h4><p>skill <strong>35.6</strong></p><p>9課題改善。</p></section></div>\"]</script><div\n    data-output><div class=\"b21-serving\"><section><h4>既知未来30課題</h4><p>skill <strong>36.7</strong></p><p>同じt0-alphaからcovariateを落とす。</p></section><section><h4>過去のみ12課題</h4><p>skill\n    <strong>32.9</strong></p><p>履歴targetだけで予測。</p></section></div></div><figcaption><a href=\"https://arxiv.org/pdf/2609.24559v1\">Table\n    5</a>の著者値。Labの予測値ではない。差の算術はresults.jsonへ保存。</figcaption></figure>'\n  executable_understanding: '`uv run papers/t0-tsfm-forecasting-with-context/run.py`。公式モデルは実行せず、二つの局所監査を行う。第一に論文の丸め済みskillからpoint差と暗黙のloss比を計算する。第二に情報の依存graphを伝播し、既知未来zがtargetを逆参照すると、後のtargetが過去へ漏れる経路が生じることを確認する。加えてsoftplus累積で分位点の単調性を確かめる。'\n  results: 丸め済み値の差は6.3 pp / 2.7 pp。推定した幾何平均loss比の変化は各約−9.95% / −4.02%で、再集計したbenchmark結果ではない。人工の依存graphでは双方向variate参照で未来targetが過去へ到達し、z→targetの読取り方向を制限すると到達しない。ここで矢印は情報の流れで、attentionが読む向きとは逆になる。\n  what_we_verified: Mechanism PARTIAL。報告値の算術、roleごとの情報境界、softplus累積分位点の順序は小計算でCONFIRMED。公式commitのCausalScalerとvariate\n    attention / maskを静的に読んだ。論文のrole別非対称制限は確認した呼出経路に見つからず、mappingへ差を記録した。重みを使った予測は未実行。\n  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。t0-alpha/beta、Chronos-2、ApolloPFN、GBDTの同条件再評価はしていない。販促×欠品、潜在需要、在庫費用、lead-time需要のjoint\n    distributionは未検証。marginal quantileを足して注文期間のquantileとはしない。\n  implementation: '`skill_audit()`は丸め値の監査、`propagate()`は時間・変数の読取り可能範囲をsetで表す教育用実装、`ordered_quantiles()`はsoftplusの累積。PyTorchやモデルdownloadを必要としない。公式モデルをrun.pyと誤認しないよう、結果JSONにも未実行を明記する。'\n"
+        ],
+        [
+          93,
+          94,
+          "  title: cutoffの先に渡してよい情報を区別する\n"
+        ],
+        [
+          96,
+          98,
+          "  rationale: cutoffの先に渡してよい情報を区別する\n  caption: 販促計画や営業日は既知未来の例。将来の実売上は含まない。\n"
+        ],
+        [
+          99,
+          101,
+          "  - 過去1:T\n  - 未来T+1:T+H\n"
+        ],
+        [
+          102,
+          103,
+          "  - label: target y\n"
+        ],
+        [
+          104,
+          107,
+          "    - 観測履歴\n    - 予測する。正解を入力しない\n  - label: 過去covariate x\n"
+        ],
+        [
+          108,
+          111,
+          "    - 観測履歴\n    - 実測未来は渡さない\n  - label: 既知未来covariate z\n"
+        ],
+        [
+          112,
+          114,
+          "    - 観測・予定\n    - 発行時点で既知の予定\n"
+        ],
+        [
+          117,
+          118,
+          "  title: covariateの有無だけを変えて同じcheckpointを読む\n"
+        ],
+        [
+          120,
+          122,
+          "  rationale: covariateの有無だけを変えて同じcheckpointを読む\n  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。\n"
+        ],
+        [
+          125,
+          127,
+          "    explanation: θを固定してx/zを落とした対照と比べる。\n  - name: causalな入力と固定教師\n"
+        ],
+        [
+          128,
+          129,
+          "    explanation: future targetの値で正規化統計を更新しない。\n"
+        ],
+        [
+          131,
+          132,
+          "    explanation: 正の差分を足して分位点の大小関係を保つ。実績が各分位点を下回る割合の適合（calibration）まで保証する式ではない。\n"
+        ],
+        [
+          134,
+          135,
+          "    explanation: Lはtaskのscaled quantile loss。seasonal naive比をtask間で幾何平均する。\n"
+        ],
+        [
+          138,
+          139,
+          "  title: 同一checkpointでも全課題は改善しない\n"
+        ],
+        [
+          141,
+          143,
+          "  rationale: 同一checkpointでも全課題は改善しない\n  caption: t0-alphaのskill。CIは本文の表に併記。個別task値を推測して散布図を作らない。\n"
+        ],
+        [
+          144,
+          147,
+          "  - なし\n  - あり\n  - 差 / 改善task\n"
+        ],
+        [
+          148,
+          149,
+          "  - label: 既知未来30課題\n"
+        ],
+        [
+          152,
+          154,
+          "    - +6.3 pp / 19 of 30\n  - label: 過去のみ12課題\n"
+        ],
+        [
+          157,
+          158,
+          "    - +2.7 pp / 9 of 12\n"
+        ]
+      ]
+    },
+    "papers/t0-tsfm-forecasting-with-context/README.md": {
+      "before_sha256": "8bc4d86822b15d866337bcf94f4118a1605db748cbb0de98b9e675e4d28f8c41",
+      "before_blob": "c11732d74351c1c4ed62829a0382ee5ff3f1ab0d",
+      "after_sha256": "49b3f24e24129381408b0f95f86a4091af2dcab0e1034fc3aed2cdd923e4af64",
+      "after_blob": "6a6f2cae900f7a134bef75b80aad8f1b059ef5c7",
+      "prior_spans": [
+        [
+          6,
+          7,
+          "## 問い\n"
+        ],
+        [
+          8,
+          9,
+          "同じモデルに、予測時点で分かっている予定を渡すと精度は上がるか\n"
+        ],
+        [
+          10,
+          13,
+          "## 再実行\n"
+        ],
+        [
+          18,
+          19,
+          "Python標準ライブラリだけを使う。単体で取得した場合は `uv run run.py`。結果はスクリプトと同じ場所の `results.json` に保存する。\n"
+        ],
+        [
+          20,
+          21,
+          "## 読む順序\n"
+        ],
+        [
+          22,
+          26,
+          "`lab.yaml` で問題と根拠を確認し、`method.md` の仕組みと図へ進む。`run.py` と `results.json` で計算を追い、`mapping.md` で原論文や公式コードとの対応と省略点を確認できる。HTMLは `uv run paper-lab build` で生成する。\n"
+        ],
+        [
+          27,
+          28,
+          "Mechanism PARTIAL。Performance / Scaling / Production applicability NOT TESTED。小実験で確認した局所条件のみCONFIRMEDとし、論文の本番数値を再現したとは扱わない。\n"
+        ]
+      ]
+    },
+    "papers/t0-tsfm-forecasting-with-context/mapping.md": {
+      "before_sha256": "9c77a4822ad4a776845c29486807f97ae57379f368e95681ed65c6f1e80f809c",
+      "before_blob": "eaf7c7db158b13d9d779319ca329d06e53e2f46c",
+      "after_sha256": "cb413aa0e9b601992a789c5631844fd774e6b6e998e88caefcd3ed2447584a7c",
+      "after_blob": "504cd2f5a90287f039884a6c26f7740751133d01",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文と最小実装の対応\n"
+        ],
+        [
+          2,
+          3,
+          "[一次PDF v1](https://arxiv.org/pdf/2609.24559v1)。確認日：2026-09-23。保存済みPDFを再利用した。\n"
+        ],
+        [
+          4,
+          10,
+          "SHA-256: `e23720637cc9e2409620d5ecc7658fe57d0c897dd53814a75f933a7a6dff5757`\n"
+        ],
+        [
+          11,
+          12,
+          "| 原論文 | Lab | 公式コード（固定commit） |\n| --- | --- | --- |\n| §4.1 causal scaling / Eq. 2 | cutoff図。scalerは再実装しない | `t0/scaler.py`: `CausalScaler`, `_compute_causal_stats`, `_compute_global_stats` |\n| Fig. 3 / asymmetric variate attention | `propagate()`で依存だけ計算 | `t0/model/layers/group_attention.py`: `VariateSelfAttention`、`t0/mask.py` |\n| §4.1 quantile decoder | `ordered_quantiles()` | `t0/model/layers/head.py`（対応先、実行せず） |\n| Table 5 | `skill_audit()`と入切表示 | 論文の丸め済み集計値を監査 |\n"
+        ],
+        [
+          13,
+          14,
+          "公式repo確認commit：`a2eca8d80892485c44679c638bcd883ae974f751`（2026-09-23）。[固定版scaler](https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/scaler.py)と[attention](https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/model/layers/group_attention.py)を静的に確認。公開APIは `T0Forecaster.from_pretrained()` / `predict(..., future_covariates=...)`。重みをdownloadせず、予測品質を検証したとはしない。\n"
+        ],
+        [
+          15,
+          16,
+          "保存済みtxtはPDFの10ページ目で途切れていたため、同じ39ページPDFから全文を再抽出し、§5.1.2、Table 5、§6まで確認した。\n"
+        ],
+        [
+          17,
+          18,
+          "公式コード：[著者が案内する公開先](https://github.com/theforecastingcompany/tfc-t0)。本Labは公式モデルを実行していない。\n\n## 論文の参照制限は、確認したコード経路では見つからなかった\n\n固定commitでは、`MaskBuilder.build_group_mask()` がグループIDの一致とpaddingの条件を作り、`Transformer.forward()` がそのまま変数方向のattentionに渡す。論文§4.1では、将来の値が分かる変数zから予測対象を参照させない。この制限は確認したコード経路では見つからなかった。一方、将来の値が分かる変数を時間方向に双方向で読めるマスクと、各時点までの値を使う標準化処理は確認できた。コードを読んで見つけた違いであり、学習済みモデルで未来情報が漏れると実証したわけではない。モデルの版、学習時のコード、入力の作り方も含めて確認する必要がある。\n\n[maskの固定版](https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/mask.py#L31) / [呼出側](https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/model/layers/transformer.py#L169)。\n"
+        ]
+      ]
+    },
+    "papers/t0-tsfm-forecasting-with-context/method.md": {
+      "before_sha256": "d86f083fd28c55dc3fc981f9dbb937f88ae17c67c3c96031401e3eac393c75af",
+      "before_blob": "79d8a5ab90f465f98f14895ecff152d69485919d",
+      "after_sha256": "90b8fa18b3066a75147d46d782cb50af74d20562a0bc7bd7a228349118423076",
+      "after_blob": "7067ecb84f649479861eae8cc77118452fde65b4",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### alphaの24層は、時間方向の2層と変数方向の1層を繰り返す\n"
+        ],
+        [
+          2,
+          3,
+          "入力は32時点ずつのまとまり（patch）に分ける。t0-alphaの隠れ表現は512次元、attentionは8ヘッド。時間方向に16層、変数方向に8層あり、RMSNorm・SwiGLU・QK normを使う。論文の設計では、予測対象yと過去の変数xは、時間方向でその時点までの値だけを参照する（causal）。予測時点で将来の値が分かる変数zは、1:T+Hの範囲を双方向に参照する。変数方向ではyとxがzを読めるが、zはyとxを読まない。逆方向の参照を許すと、zの時間attentionを経由して未来のyが過去の予測に入り込む。\n"
+        ],
+        [
+          4,
+          5,
+          "### 予測を始める時点を越えて、実績を正規化に使わない\n"
+        ],
+        [
+          6,
+          7,
+          "yとxは各時点までの平均・標準偏差で標準化し、arcsinhを適用する。未来のyを教師データとして変換するときは、予測を始める時点T（cutoff）までの統計を使う。zだけは予測時点で将来の値が分かるので、全1:T+Hから統計を取れる。欠測値はマスクし、統計量の計算と損失から除く。時間で変化しない変数（static covariate）やテキストの付帯情報（text metadata）を直接読む機能は、本報告の対象外。\n"
+        ],
+        [
+          8,
+          9,
+          "alphaのnative分位点は0.1/0.25/0.5/0.75/0.9。最小分位点を直接予測し、残りはsoftplusで正の差分を足す。weighted pinball lossの重みは0.175/0.2/0.25/0.2/0.175。betaは21分位点、0.01–0.99であり仕様が違う。\n"
+        ],
+        [
+          10,
+          11,
+          "### 予測誤差の改善と、補充に使えるかどうかを分ける\n"
+        ],
+        [
+          12,
+          13,
+          "同じcheckpointの入切比較はcovariate経路の寄与を捉えるが、その予定が正確か、欠品した売上が需要を表すかは別の問題。さらに出力は各時点を個別に見る分位点（marginal quantile）であり、時間・商品をまたいで需要がどう同時に変動するかを表す同時分布（joint distribution）は持たない。補充費用を計算するには追加の意思決定検証が要る。\n"
+        ],
+        [
+          14,
+          17,
+          "本文のalpha通常推論はnative範囲外のquantileを端点に留め、IQF tail外挿を別途評価する。確認時の公式READMEは外挿対応を説明しているので、論文v1と現行APIを同一仕様と決めつけない。\n"
+        ]
+      ]
+    },
+    "papers/reasoncast-agentic-demand-forecasting/lab.yaml": {
+      "before_sha256": "12cd021bc010ea78cff96a9d24c8726d077e82866d8ad614f7afd8333344c197",
+      "before_blob": "32be3916f19e282786805eeff20c8075600d5e87",
+      "after_sha256": "b61e4be43ee9d82cc9fcdeb27ecbb9e67b00728d019b4676aa9b5daf0e61f618",
+      "after_blob": "6df8663d7e1520c1839c2978c78599d02b913ad5",
+      "prior_spans": [
+        [
+          25,
+          26,
+          "summary: ReasonCastはChronos-2の重みを変えず、イベント情報で予測を補正するかを選ぶ。元の予測をそのまま使うSkip、手元の情報で補正するBasic、検索や時系列統計のツールも使うToolの3経路がある。著者の比較ではイベント期間に誤差が下がり、Skipでは元の予測値が変わらない。欠品を含む需要予測でどの手法が優れるかは、この比較では分からない。\n"
+        ],
+        [
+          39,
+          41,
+          "  author_claim: Qwen3-32Bは補正するかどうかを選び、イベントから需要に関係する情報を取り出す。Chronos-2 smallは数値予測を担う。予測モデルはイベントに関係する内部表現からテキストを参照し、加算と乗算で予測を補正する。\n  research_bot_interpretation: 注目点は文章を常に足すことより、介入しない経路を明示した点にある。販促・欠品を同条件で扱うTSFMとGBDTの比較には、需要の打切りと在庫費用を別途組み込む必要がある。\n"
+        ],
+        [
+          46,
+          48,
+          "  problem: 売上が安定しているとき、無関係なイベント情報で補正すると、時系列モデルが捉えた規則性を損なう。一方、祝日や大型セールで売上の水準が変わると、その差を過去の売上推移だけで捉えるのは難しい。論文の独自データは商品単位ではなく、最も細かい商品カテゴリごとの日次15,696系列。予測期間は7日である。\n  why_it_might_work: 解釈：Skipを明示的な分岐にすれば、学習したゲートが小さくなることに頼らず元の出力を守れる。直交分解は、モデル内部の表現を互いに直交する成分へ分ける制約であり、イベントが需要をどれだけ変えたかという因果効果を同定する保証ではない。注意出力を再射影しないため、補正全体がイベント部分空間に留まるとも限らない。\n  evidence: '一次資料[Table 2・3](https://arxiv.org/pdf/2608.15291) の著者報告。差はWMAPEのパーセントポイント（pp）で、相対改善率ではない。\n"
+        ],
+        [
+          49,
+          53,
+          ""
+        ],
+        [
+          54,
+          55,
+          "    | 区間 | 最良比較手法 | ReasonCast | 差 |\n"
+        ],
+        [
+          56,
+          57,
+          ""
+        ],
+        [
+          58,
+          62,
+          ""
+        ],
+        [
+          63,
+          64,
+          "    | 祝日・高感応 | Uni-FT 42.39% | 39.10% | −3.29 pp |\n\n    | 大型セール・高感応 | Multi-FT 22.14% | 20.89% | −1.25 pp |\n\n    | M5イベント窓 | Multi-FT 33.10% | 32.63% | −0.47 pp |\n\n    | 平常期 | Chronos-2 small 7.91% | Skip 7.91% | 0 pp |\n\n\n    平常期の常時介入は9.59%で、元の7.91%より1.68 pp悪化する。学習は2025年8月末まで、モデル選択は同年9–10月、評価は同年11月から2026年5月。M5は10店舗を合算した3,049商品系列の14個のイベント窓であり、店舗別の欠品対策を直接評価していない。'\n"
+        ],
+        [
+          65,
+          70,
+          "  executable_understanding: 基準予測・実績・信じた情報を別々に入力する7日間の比較です。元予測、常時補正g=1、選択した補正を、同じ実績とWMAPEで比べます。予想を選び、一つの数値を変えて誤差の理由を確かめてください。予測はその場で再計算します。\n  results: 人工の平常期ではSkipのWMAPEは0%、不要なBasicは20%。誤ったTool補正では100%まで悪化する。正しい情報を与えたイベント例の改善は、情報を正しく推論できる証拠にはならない。 新しい比較の初期条件は基準10・実績20・倍化情報・g=0.5。元予測50%、常時補正0%、選択した補正約29.289322%になる。旧固定例は下に残している。\n  what_we_verified: CONFIRMED：独立した手計算に対し、誤差・半強度・誤情報・日ずれ・ゼロ分母・負の生予測・入力拒否を検査する。Skipは補正演算を通さない。MechanismはPARTIAL。ブラウザ画面・キー操作・ダウンロードはNOT\n    TESTEDであり、数式検査とは区別する。\n  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Chronos-2、Qwen3-32B、検索道具、学習されたルータ、直交射影、GRPOは実行していない。欠品で観測売上が潜在需要を下回る条件、販促費用、在庫サービス水準も未評価。\n  implementation: evaluate()とmodel.jsが出力空間の代理教材 (b+g×a)×exp(g×l) を計算する。式(8)の潜在空間への加算を実装したものではない。式(11)の復号後の指数補正と式(12)の明示的なSkipを理解するために縮約した。実績yは採点だけに使用。Basic/Toolは旧固定例にのみ残し、同じ入力なら同じ値で、LLMや道具は動かない。\n"
+        ],
+        [
+          74,
+          75,
+          "  title: Skipを独立した出口として残す\n"
+        ],
+        [
+          79,
+          80,
+          "      text: 意味処理を終了\n"
+        ],
+        [
+          81,
+          82,
+          "      text: 加算も乗算も無効\n"
+        ],
+        [
+          83,
+          84,
+          "      text: Chronos-2の出力と一致\n"
+        ],
+        [
+          87,
+          88,
+          "      text: Skipは許可しない\n"
+        ],
+        [
+          89,
+          90,
+          "      text: 方向・振幅・ピークを推論\n"
+        ],
+        [
+          91,
+          92,
+          "      text: 形状と水準を調整\n"
+        ],
+        [
+          95,
+          96,
+          "      text: 外部証拠・時系列統計を取得\n"
+        ],
+        [
+          97,
+          98,
+          "      text: テキストを整合させる\n"
+        ],
+        [
+          101,
+          103,
+          "  rationale: Skipを独立した出口として残す\n  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。\n"
+        ],
+        [
+          105,
+          106,
+          "  title: m = 0で二つの補正が消える\n"
+        ],
+        [
+          107,
+          108,
+          "  - name: 表現を分ける\n"
+        ],
+        [
+          109,
+          111,
+          "    explanation: 直交射影の和は元の表現。因果的な分離の保証ではない。\n  - name: 形状を直す\n"
+        ],
+        [
+          112,
+          114,
+          "    explanation: イベント成分をqueryとして意味情報を参照する。\n  - name: 水準を直す\n"
+        ],
+        [
+          115,
+          116,
+          "    explanation: m = 0なら指数項は1。Skipで元の予測へ戻る。\n"
+        ],
+        [
+          119,
+          121,
+          "  rationale: m = 0で二つの補正が消える\n  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。\n"
+        ],
+        [
+          123,
+          124,
+          "  title: 平常期は常時介入で悪化する\n"
+        ],
+        [
+          136,
+          138,
+          "  rationale: 平常期は常時介入で悪化する\n  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。\n"
+        ]
+      ]
+    },
+    "papers/reasoncast-agentic-demand-forecasting/README.md": {
+      "before_sha256": "8310c541f44957638731e283693809c36acb142736494d9cb72e92e4d00924d6",
+      "before_blob": "1bbd532cfce2224751b9be9c1022d3d132066a80",
+      "after_sha256": "24d28abec7b4af5e92702c934878471c40a2ebc340c6eb4a7f5ca049cf373b4d",
+      "after_blob": "13d09a30d5dd7a80482905dcc86258d9d35d3d7c",
+      "prior_spans": [
+        [
+          2,
+          3,
+          "ReasonCastはChronos-2の重みを変えず、イベント情報で予測を補正するかを選ぶ。元の予測をそのまま使うSkip、手元の情報で補正するBasic、検索や時系列統計のツールも使うToolの3経路がある。著者の比較ではイベント期間に誤差が下がり、Skipでは元の予測値が変わらない。欠品を含む需要予測でどの手法が優れるかは、この比較では分からない。\n\n## Core Idea — 主張と解釈\n\n著者の主張：Qwen3-32Bは補正するかどうかを選び、イベントから需要に関係する情報を取り出す。Chronos-2 smallは数値予測を担う。予測モデルはイベントに関係する内部表現からテキストを参照し、加算と乗算で予測を補正する。\n\nLabの解釈：注目点は文章を常に足すことより、介入しない経路を明示した点にある。販促・欠品を同条件で扱うTSFMとGBDTの比較には、需要の打切りと在庫費用を別途組み込む必要がある。\n\n## Overview — 概要\n"
+        ],
+        [
+          8,
+          9,
+          "## Problem — 問題設定\n"
+        ],
+        [
+          10,
+          11,
+          "売上が安定しているとき、無関係なイベント情報で補正すると、時系列モデルが捉えた規則性を損なう。一方、祝日や大型セールで売上の水準が変わると、その差を過去の売上推移だけで捉えるのは難しい。論文の独自データは商品単位ではなく、最も細かい商品カテゴリごとの日次15,696系列。予測期間は7日である。\n"
+        ],
+        [
+          12,
+          13,
+          "## Why It Might Work — 解釈\n"
+        ],
+        [
+          14,
+          15,
+          "解釈：Skipを明示的な分岐にすれば、学習したゲートが小さくなることに頼らず元の出力を守れる。直交分解は、モデル内部の表現を互いに直交する成分へ分ける制約であり、イベントが需要をどれだけ変えたかという因果効果を同定する保証ではない。注意出力を再射影しないため、補正全体がイベント部分空間に留まるとも限らない。\n"
+        ],
+        [
+          16,
+          17,
+          "## Evidence — 著者報告\n"
+        ],
+        [
+          18,
+          19,
+          "一次資料[Table 2・3](https://arxiv.org/pdf/2608.15291) の著者報告。差はWMAPEのパーセントポイント（pp）で、相対改善率ではない。\n"
+        ],
+        [
+          20,
+          27,
+          "| 区間 | 最良比較手法 | ReasonCast | 差 |\n"
+        ],
+        [
+          28,
+          32,
+          "| 祝日・高感応 | Uni-FT 42.39% | 39.10% | −3.29 pp |\n| 大型セール・高感応 | Multi-FT 22.14% | 20.89% | −1.25 pp |\n| M5イベント窓 | Multi-FT 33.10% | 32.63% | −0.47 pp |\n| 平常期 | Chronos-2 small 7.91% | Skip 7.91% | 0 pp |\n"
+        ],
+        [
+          33,
+          34,
+          "平常期の常時介入は9.59%で、元の7.91%より1.68 pp悪化する。学習は2025年8月末まで、モデル選択は同年9–10月、評価は同年11月から2026年5月。M5は10店舗を合算した3,049商品系列の14個のイベント窓であり、店舗別の欠品対策を直接評価していない。\n"
+        ],
+        [
+          35,
+          36,
+          "## モデル / 手法\n"
+        ],
+        [
+          37,
+          38,
+          "## Qwen3-32Bが意味を決め、Chronos-2が数値を返す\n"
+        ],
+        [
+          39,
+          40,
+          "Figure 1と§4.2–4.7を読み替えた説明。Skipは意味処理を終了する。Basicは手元の情報を使い、Toolは曖昧な事例で検索や時系列統計の道具を使う。祝日・大型セールはSkipを許さず、最低でもBasicへ進む。\n"
+        ],
+        [
+          41,
+          42,
+          "Qwen3-32Bはイベントとの関連、種類、需要の方向、形状、振幅、ピーク、短い説明を出す。教師にはClaude Opus 4.6を使い、形式学習、意味フィールドの強化学習、融合層の学習、予測効用の強化学習へ進む。最後の段階では予測器を凍結する。\n"
+        ],
+        [
+          43,
+          44,
+          "式(6)のP = QQᵀはQR分解から得る直交射影。Hᴱ = HP、Hᴺ = H(I−P)なのでHᴱ + Hᴺ = Hとなる。式(8)の補正はH̃ = Hᴺ + Hᴱ + mαgΔH、式(11)はŷ = ŷ_lat ⊙ exp(mβgρ)。mがテキストの有無、gが事例別の強さである。\n"
+        ],
+        [
+          45,
+          46,
+          "式(12)ではm = 0なら両補正が消え、ŷ = ŷ_TSとなる。下の人工例は加算を出力空間へ移した簡略版であり、潜在表現へのcross-attentionを再現しない。Toolの正しい意味情報も外から与えるため、道具の利用判断の良さは検証対象に含めない。\n\n\n## Executable Understanding — 最小実験\n\n`uv run papers/reasoncast-agentic-demand-forecasting/run.py`。標準ライブラリだけで実行でき、同じフォルダーのresults.jsonを更新する。\n\ncorrect()で同じ基準値に補正を加え、Skip・不要な介入・正しいイベント情報・誤った情報を比較する。WMAPEは Σ|y−ŷ| / Σ|y| × 100。全ゼロ需要は未定義としてNoneを返す。\n\n## Results — 人工例の結果\n\n人工の平常期ではSkipのWMAPEは0%、不要なBasicは20%。誤ったTool補正では100%まで悪化する。正しい情報を与えたイベント例の改善は、情報を正しく推論できる証拠にはならない。\n\n## What We Verified — 確認範囲\n\nCONFIRMED：人工例のSkip分岐で出力の浮動小数点表現を保つ。PARTIAL：加算・乗算の役割と不要な介入による悪化を確認した。\n\n## What We Did NOT Verify — 未検証\n\nPerformance / Scaling / Production applicabilityはNOT TESTED。Chronos-2、Qwen3-32B、検索道具、学習されたルータ、直交射影、GRPOは実行していない。欠品で観測売上が潜在需要を下回る条件、販促費用、在庫サービス水準も未評価。\n\n## Implementation — 実装\n\ncorrect()は出力空間の代理教材であり、式(8)の実装ではない。wmape() → 式(16)。ルータと潜在表現、学習は省略。\n\n## Original Paper / Official Code Mapping\n\n[対応表](mapping.md)\n"
+        ],
+        [
+          49,
+          50,
+          "[§4.3・Eq.8](https://arxiv.org/html/2608.15291v1#S4.SS3)は潜在表現Hへの加算、[§4.5・Eq.11](https://arxiv.org/html/2608.15291v1#S4.SS5)は復号後の指数補正、§4.6・Eq.12はm=0で元予測を回復する式です。ここで計算する `(b + g*a) * exp(g*l)` は、加算を出力空間へ移した代理教材であり、Eq.8の実装ではありません。\n"
+        ],
+        [
+          51,
+          52,
+          "実績yは採点だけに使います。基準b、加算a、対数倍率l、強さg、Skip/補正は実績から独立です。Skipは補正演算を通さず元配列の値をコピーします。原論文では祝日等にSkipの制約があるため、この自由な切替は反実仮想の教材です。旧例のBasic/Toolも外から同じ入力を与えれば同じ値になり、道具やLLMは実行しません。\n"
+        ],
+        [
+          53,
+          54,
+          "WMAPE = 100 × 絶対誤差の総和 / 実績合計。日ごとの予測と実績の差を絶対値にしてから足すため、過大予測と過小予測は相殺しません。差は選択値−元予測のパーセントポイントで、負なら改善です。実績が全ゼロならWMAPEはnull（未定義）です。日ごとの絶対誤差を平均したMAEは、実績合計で割らないため表示します。負の予測は警告付きで保持し、0へ切り上げません。7要素でない配列、非有限値、負の実績、範囲外gは拒否します。\n"
+        ],
+        [
+          55,
+          56,
+          "基準10・実績20・倍化情報で、元予測50%、常時補正0%、g=0.5は約29.289322%。逆に実績10なら倍化は0%を100%へ悪化させます。イベント日が実績の3日目から補正の4日目へずれると12.5%から25%に悪化します。予測を変える情報の正しさを、改善する入力だけで判断しないでください。\n"
+        ],
+        [
+          57,
+          58,
+          "## 再実行と保存\n"
+        ],
+        [
+          59,
+          60,
+          "このディレクトリで `uv run run.py` を実行すると、保存済みresults.jsonを再生成します。画面では任意の数値を直接変更し、JSONを書き出せます。JSONのinputsを再読込するとoutputは再計算されます。`uv run run.py --input comparison.json` でも入力を再計算して標準出力へ返せます。\n"
+        ],
+        [
+          61,
+          62,
+          "Python標準ライブラリと小さなブラウザ計算だけを使います。数式・台帳の局所検証はCONFIRMED、論文全体の機構はPARTIAL。著者コード・学習・原論文性能・本番適用はNOT TESTED。実ブラウザの画面・キー操作・export/importもNOT TESTEDで、別環境での保護付き確認を残しています。\n"
+        ],
+        [
+          63,
+          64,
+          "局所検査：リポジトリrootで `uv run --extra dev pytest tests/test_reference_comparisons.py`。Node.js 18以上がある場合、`uv run --extra dev python tests/check_reference_js.py` でJavaScriptの独立期待値とPythonとの120条件照合を実行できます。これはDOMや実ブラウザの検証ではありません。保護付きChromeが利用できる別環境では `uv run --with playwright tests/reference_browser.py` を実行し、360/1440pxの画面、任意値、キー入力、保存と再読込を確認します。CHROME_PATHと必要に応じREFERENCE_SITEを指定してください。検査内で127.0.0.1の一時HTTPサーバーを起動し、成功・失敗にかかわらず終了します。file://での確認とは区別します。\n"
+        ],
+        [
+          65,
+          66,
+          "比較行は個別に計算します。有限の入力でも指数補正がoverflowした行は「計算不能」とし、その行の曲線を描きません。他の行は残します。Skipは非選択の常時補正が計算不能でも元予測を保持します。負値の警告は元予測を含む全比較行が対象です。カンマ・読点・空白で配列を区切れますが、連続区切りや末尾カンマによる空欄は拒否し、0には変換しません。\n"
+        ],
+        [
+          67,
+          68,
+          "保存形式schema 2には、教材仕様ID・版2.0.0、原典URL・版、指標や会計の規約を含めます。読込時はschema・教材ID・仕様版を照合し、inputsを再検証します。保存outputや説明メタデータは計算根拠にせず、現行の固定仕様で再計算・再出力します。旧schema 1や未知の仕様版を黙って読み替えません。署名付きの真正性証明ではありません。\n"
+        ],
+        [
+          69,
+          70,
+          "保存JSONの `implementation` は計算に使うソースの識別情報です。サイトのビルド時に、配布する `model.js`・`interactive.js`・`run.py` の実バイト列のSHA-256を `implementation.json` と `implementation.js` に生成し、ブラウザのexportへ記録します。これらの生成ファイル自身はハッシュ対象にしません。配布ファイルをダウンロードして `sha256sum model.js interactive.js run.py` とmanifest・保存JSONを照合できます。Pythonの `pack()` は実行時の `run.py` のハッシュを記録します。ビルドを経ずJSモデルを直接使用した場合は `status: unavailable` です。\n"
+        ],
+        [
+          71,
+          90,
+          "これはソース内容の識別であり、署名や公開commitの証明ではありません。未コミットの編集もその内容のハッシュになります。公開時は別途、対象commitのActions実行・配布manifest・実URLの内容を照合します。importは過去の実装を実行せず現在のコードで再計算し、再exportには現在の識別情報を記録します。原典版・入力値・教材仕様版も同じJSONに残ります。\n"
+        ]
+      ]
+    },
+    "papers/reasoncast-agentic-demand-forecasting/mapping.md": {
+      "before_sha256": "d989cf4a1a5bd4cb0ca714865b82d2b0fed9203a3090bba7fa394875d051224c",
+      "before_blob": "d95d36276c14a09b4ccfeadbb63ada862af51629",
+      "after_sha256": "dcc43175872f9cc19c75b98505c38756217287e1e88ceab39e6af18ece8135ba",
+      "after_blob": "6259776c676c7cef096a3d7c1ded7ac86a48c38e",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文・公式コード対応\n"
+        ],
+        [
+          2,
+          3,
+          "[一次資料PDF](https://arxiv.org/pdf/2608.15291)。確認箇所：Figure 1; §4.2–4.7; Eqs. (6), (8), (11), (12), (16); Tables 2–3。保存済みPDFのSHA-256：`df06b393e718d107e46d56a15547b5187b3fa8731b8a597c0f6aa57b9fd466e6`。\n"
+        ],
+        [
+          4,
+          11,
+          "## 紙面と最小実験の対応\n"
+        ],
+        [
+          12,
+          13,
+          "correct()は、補正が予測値に与える影響を出力だけで試す教材で、式(8)そのものは実装しない。wmape()は式(16)に対応する。補正経路を選ぶルータ、モデルの内部表現、学習は省いている。\n"
+        ],
+        [
+          14,
+          15,
+          "Performance / Scaling / Production applicabilityはNOT TESTED。Chronos-2、Qwen3-32B、検索道具、学習されたルータ、直交射影、GRPOは実行していない。欠品で観測売上が潜在需要を下回る条件、販促費用、在庫サービス水準も未評価。\n\n## 公式コードの確認範囲\n\n確認したPDFからは、本手法の公式実装のURLを特定できなかった。公開実装が存在しないとの断定はしない。公式コードの実行はNOT TESTED。\n\n## 原本と生成物\n\nlab.yamlは本文と図の定義、method.mdは手法説明、run.pyは人工実験、results.jsonは実行結果、mapping.mdは対応表。HTMLはこれらから生成する。PDFの報告値と人工実験値は別に表示する。\n"
+        ],
+        [
+          18,
+          19,
+          "[§4.3・Eq.8](https://arxiv.org/html/2608.15291v1#S4.SS3)は潜在表現Hへの加算、[§4.5・Eq.11](https://arxiv.org/html/2608.15291v1#S4.SS5)は復号後の指数補正、§4.6・Eq.12はm=0で元予測を回復する式です。ここで計算する `(b + g*a) * exp(g*l)` は、加算を出力空間へ移した代理教材であり、Eq.8の実装ではありません。\n"
+        ],
+        [
+          20,
+          21,
+          "実績yは採点だけに使います。基準b、加算a、対数倍率l、強さg、Skip/補正は実績から独立です。Skipは補正演算を通さず元配列の値をコピーします。原論文では祝日等にSkipの制約があるため、この自由な切替は反実仮想の教材です。旧例のBasic/Toolも外から同じ入力を与えれば同じ値になり、道具やLLMは実行しません。\n"
+        ],
+        [
+          22,
+          23,
+          "WMAPE = 100 × 絶対誤差の総和 / 実績合計。日ごとの予測と実績の差を絶対値にしてから足すため、過大予測と過小予測は相殺しません。差は選択値−元予測のパーセントポイントで、負なら改善です。実績が全ゼロならWMAPEはnull（未定義）です。日ごとの絶対誤差を平均したMAEは、実績合計で割らないため表示します。負の予測は警告付きで保持し、0へ切り上げません。7要素でない配列、非有限値、負の実績、範囲外gは拒否します。\n"
+        ],
+        [
+          24,
+          25,
+          "基準10・実績20・倍化情報で、元予測50%、常時補正0%、g=0.5は約29.289322%。逆に実績10なら倍化は0%を100%へ悪化させます。イベント日が実績の3日目から補正の4日目へずれると12.5%から25%に悪化します。予測を変える情報の正しさを、改善する入力だけで判断しないでください。\n"
+        ],
+        [
+          26,
+          27,
+          "2026-10-16追記：今回の変更で該当HTML本文を再読した。上記PDFハッシュは保存済み記録を保持したもので、今回PDFの再取得・図の視覚確認・著者コード実行・報告表の再計算はしていない。\n"
+        ],
+        [
+          28,
+          29,
+          "比較行は個別に計算します。有限の入力でも指数補正がoverflowした行は「計算不能」とし、その行の曲線を描きません。他の行は残します。Skipは非選択の常時補正が計算不能でも元予測を保持します。負値の警告は元予測を含む全比較行が対象です。カンマ・読点・空白で配列を区切れますが、連続区切りや末尾カンマによる空欄は拒否し、0には変換しません。\n"
+        ],
+        [
+          30,
+          37,
+          "保存形式schema 2には、教材仕様ID・版2.0.0、原典URL・版、指標や会計の規約を含めます。読込時はschema・教材ID・仕様版を照合し、inputsを再検証します。保存outputや説明メタデータは計算根拠にせず、現行の固定仕様で再計算・再出力します。旧schema 1や未知の仕様版を黙って読み替えません。署名付きの真正性証明ではありません。\n"
+        ]
+      ]
+    },
+    "papers/reasoncast-agentic-demand-forecasting/method.md": {
+      "before_sha256": "55018272ba62b7a755db82ea58bd417b16a5639d4bfe5030eafb0af4bf02104f",
+      "before_blob": "64692af79fd4745b66e1b54b2d6496ed77bd6588",
+      "after_sha256": "c7e192a4715f6358dd229ab3102c87b13434915234c04912f684b24ba7c71eb4",
+      "after_blob": "41502905f43566d65640ac2c59d40e15b9e0a775",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "## Qwen3-32Bがイベント情報を選び、Chronos-2が需要を予測する\n"
+        ],
+        [
+          2,
+          3,
+          "ここではFigure 1と§4.2–4.7の手順を説明する。Skipではイベント情報の処理を打ち切る。Basicでは手元の情報を使い、判断が難しい場合はToolで検索や時系列統計のツールを使う。祝日と大型セールにSkipは使わず、少なくともBasicに進む。\n"
+        ],
+        [
+          4,
+          5,
+          "Qwen3-32Bはイベントとの関連、種類、需要が増えるか減るか、変化の形・振幅・ピーク、短い説明を出す。Claude Opus 4.6を教師に使い、出力形式の学習、イベント情報を取り出す強化学習、情報を組み合わせる層の学習、予測への有用性を使った強化学習の順に進む。最後の段階では予測器の重みを固定する。\n"
+        ],
+        [
+          6,
+          7,
+          "式(6)のP = QQᵀはQR分解から得る直交射影。Hᴱ = HP、Hᴺ = H(I−P)なのでHᴱ + Hᴺ = Hとなる。式(8)の補正はH̃ = Hᴺ + Hᴱ + mαgΔH、式(11)はŷ = ŷ_lat ⊙ exp(mβgρ)。mがテキストの有無、gが事例別の強さである。\n"
+        ],
+        [
+          8,
+          11,
+          "式(12)ではm = 0なら両補正が消え、ŷ = ŷ_TSとなる。下の人工例は加算を出力空間へ移した簡略版であり、潜在表現へのcross-attentionを再現しない。Toolの正しい意味情報も外から与えるため、道具の利用判断の良さは検証対象に含めない。\n"
+        ],
+        [
+          14,
+          15,
+          "[§4.3・Eq.8](https://arxiv.org/html/2608.15291v1#S4.SS3)は潜在表現Hへの加算、[§4.5・Eq.11](https://arxiv.org/html/2608.15291v1#S4.SS5)は復号後の指数補正、§4.6・Eq.12はm=0で元予測を回復する式です。ここで計算する `(b + g*a) * exp(g*l)` は、加算を出力空間へ移した代理教材であり、Eq.8の実装ではありません。\n"
+        ],
+        [
+          16,
+          17,
+          "実績yは採点だけに使います。基準b、加算a、対数倍率l、強さg、Skip/補正は実績から独立です。Skipは補正演算を通さず元配列の値をコピーします。原論文では祝日等にSkipの制約があるため、この自由な切替は反実仮想の教材です。旧例のBasic/Toolも外から同じ入力を与えれば同じ値になり、道具やLLMは実行しません。\n"
+        ],
+        [
+          18,
+          19,
+          "WMAPE = 100 × 絶対誤差の総和 / 実績合計。日ごとの予測と実績の差を絶対値にしてから足すため、過大予測と過小予測は相殺しません。差は選択値−元予測のパーセントポイントで、負なら改善です。実績が全ゼロならWMAPEはnull（未定義）です。日ごとの絶対誤差を平均したMAEは、実績合計で割らないため表示します。負の予測は警告付きで保持し、0へ切り上げません。7要素でない配列、非有限値、負の実績、範囲外gは拒否します。\n"
+        ],
+        [
+          20,
+          21,
+          "基準10・実績20・倍化情報で、元予測50%、常時補正0%、g=0.5は約29.289322%。逆に実績10なら倍化は0%を100%へ悪化させます。イベント日が実績の3日目から補正の4日目へずれると12.5%から25%に悪化します。予測を変える情報の正しさを、改善する入力だけで判断しないでください。\n"
+        ],
+        [
+          22,
+          23,
+          "比較行は個別に計算します。有限の入力でも指数補正がoverflowした行は「計算不能」とし、その行の曲線を描きません。他の行は残します。Skipは非選択の常時補正が計算不能でも元予測を保持します。負値の警告は元予測を含む全比較行が対象です。カンマ・読点・空白で配列を区切れますが、連続区切りや末尾カンマによる空欄は拒否し、0には変換しません。\n"
+        ],
+        [
+          24,
+          33,
+          "保存形式schema 2には、教材仕様ID・版2.0.0、原典URL・版、指標や会計の規約を含めます。読込時はschema・教材ID・仕様版を照合し、inputsを再検証します。保存outputや説明メタデータは計算根拠にせず、現行の固定仕様で再計算・再出力します。旧schema 1や未知の仕様版を黙って読み替えません。署名付きの真正性証明ではありません。\n"
+        ]
+      ]
+    }
+  }
+}
