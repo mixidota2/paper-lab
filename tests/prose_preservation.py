@@ -110,7 +110,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = retail_grain_full_rewrite_hash(root, path, expected, algorithm)
     expected = forecast_critic_full_rewrite_hash(root, path, expected, algorithm)
     expected = static_constrained_full_rewrite_hash(root, path, expected, algorithm)
-    return wrapped_produce_full_rewrite_hash(root, path, expected, algorithm)
+    expected = wrapped_produce_full_rewrite_hash(root, path, expected, algorithm)
+    return ono_full_rewrite_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -1007,4 +1008,33 @@ def before_axial_ingredient_order(root, path, current):
     assert current.count(block) == 1
     prior = current.replace(block, b'', 1)
     assert hashlib.sha256(prior).hexdigest() == row['before']['sha256'], path
+    return prior
+
+
+def ono_body_rows(root):
+    return json.loads((root / 'tests/ono_full_rewrite_hashes.json').read_text())['files']
+
+
+def ono_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    if not (path.startswith('papers/ono-inventory-forecast-selection/') or path == 'paper_lab/ono_inventory.py'):
+        return expected
+    row = ono_body_rows(root).get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_ono_full_rewrite(root, path, current):
+    if not (path.startswith('papers/ono-inventory-forecast-selection/') or path == 'paper_lab/ono_inventory.py'):
+        return current
+    row = ono_body_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
     return prior
