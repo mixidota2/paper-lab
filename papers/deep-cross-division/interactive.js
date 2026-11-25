@@ -3,12 +3,12 @@
   const get = (name) => document.getElementById("dcdn-" + name);
   const data = JSON.parse(get("data").textContent);
   const put = (name, value) => { get(name).textContent = value; };
-  const show = (value) => value === null ? "未定義（0 で割れません）" : String(Number(value.toPrecision(8)));
+  const show = (value) => value === null ? "未定義（0では割れません）" : String(Number(value.toPrecision(8)));
   const update = () => {
     const n = get("n").valueAsNumber, d = get("d").valueAsNumber;
     if (![n, d].every(value => Number.isFinite(value) && Math.abs(value) <= 1000)) {
       for (const key of ["product", "raw", "rho", "term"]) put(key, "—");
-      put("note", "分子と分母には −1000 から 1000 までの数を入力してください。");
+      put("note", "分子と分母には−1000以上1000以下の数を入力してください。");
       return;
     }
     const eligible = get("mask").checked;
@@ -17,10 +17,10 @@
     put("raw", d === 0 ? show(null) : Number.isFinite(n/d) ? show(n/d) : "表示範囲外");
     put("rho", show(rho));
     put("term", show(n*rho));
-    put("note", !eligible ? "この分母は逆数に使わないため、逆数の項は 0 です。"
-      : d === 0 ? "この式では 0 の符号を 0 とするため、逆数の項も 0 です。元の比が 0 になるわけではありません。"
-      : Math.abs(d) < data.epsilon ? "分母の絶対値が 0.01 より小さいため、逆数の計算にはその下限を使います。"
-      : "この範囲では、逆数を使う項が元の比と一致します。");
+    put("note", !eligible ? "この分母は逆数の計算に使いません。逆数を使う項には0が入ります。"
+      : d === 0 ? "この式は分母が0のとき、符号を0として逆数の項を計算します。元の比は0では割れないため未定義です。"
+      : Math.abs(d) < data.epsilon ? "分母の絶対値が0.01より小さいため、逆数を求めるときは絶対値を0.01に置き換えます。"
+      : "分母の絶対値が0.01以上なので、逆数を使う項は元の比と一致します。");
   };
   const compare = () => {
     const row = data.table5.rows[get("task").value];
@@ -34,8 +34,8 @@
     put("control-label", a === 0 ? "DCNv2（比率あり）" : "DCNv2（比率なし）");
     put("treatment-label", b === 1 ? "DCDN（比率あり）" : "DCDN（比率なし）");
     put("view-note", mode === "deployed"
-      ? "モデルと入力を同時に変えた組み合わせです。数値はオフライン評価で、A/B テストの結果ではありません。"
-      : "入力をそろえたオフライン比較です。");
+      ? "本番と同じ組み合わせでは、モデルを替え、入力から手作りの比率も外します。数値は保存したデータ上での評価で、A/Bテストの結果ではありません。"
+      : "著者は両方のモデルに同じ入力を渡し、保存したデータで比べました。");
   };
   for (const key of ["n","d","mask","task","view"]) {
     const control = get(key);

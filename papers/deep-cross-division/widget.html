@@ -8,8 +8,8 @@
 #dcdn-demo .dcdn-pair div{border:1px solid currentColor;border-radius:.5rem;padding:.6rem}
 #dcdn-demo .dcdn-pair dd{margin:0;font-weight:bold;font-variant-numeric:tabular-nums}
 </style>
-<h3 id="dcdn-demo-title">分母を小さくすると、積と比はどう変わるか</h3>
-<p>クリック数と表示数のように、両方の値をモデルに渡すとします。ここでは計算の違いを見るため、負の分母も入力できます。モデル全体の予測を求める画面ではありません。</p>
+<h3 id="dcdn-demo-title">分母を変えたときの積と比</h3>
+<p>クリック数と表示数のように、比を作る前の二つの値を入力します。この画面では積と逆数の項だけを計算します。符号による違いを確かめるため、負の分母も入力できます。</p>
 <div class="dcdn-controls">
 <label>分子 n <input id="dcdn-n" type="number" min="-1000" max="1000" step="any" value="5" disabled></label>
 <label>分母 d <input id="dcdn-d" type="number" min="-1000" max="1000" step="any" value="0.005" disabled></label>
@@ -18,12 +18,12 @@
 <dl class="dcdn-pair" aria-live="polite">
 <div><dt>積 n × d</dt><dd id="dcdn-product">0.025</dd></div>
 <div><dt>そのままの比 n ÷ d</dt><dd id="dcdn-raw">1000</dd></div>
-<div><dt>上限を設けた逆数 ρ(d)</dt><dd id="dcdn-rho">100</dd></div>
+<div><dt>絶対値を100以下に抑えた逆数 ρ(d)</dt><dd id="dcdn-rho">100</dd></div>
 <div><dt>逆数を使う項 n × ρ(d)</dt><dd id="dcdn-term">500</dd></div>
 </dl>
-<p id="dcdn-note" role="status">分母の絶対値が 0.01 より小さいため、逆数の計算にはその下限を使います。</p>
-<h3>著者の本番データで、どの条件を比べたか</h3>
-<p>ここからは自作例ではなく、<a href="https://arxiv.org/html/2611.27514v1#S6.T5">論文の表5</a>です。XAUC は同じセッションで正解の値が異なる候補の組のうち、モデルが正しく並べた割合です。</p>
+<p id="dcdn-note" role="status">分母の絶対値が0.01より小さいため、逆数を求めるときは絶対値を0.01に置き換えます。</p>
+<h3>本番データを使ったオフライン比較</h3>
+<p>次の数値は、著者が保存した本番データで測った<a href="https://arxiv.org/html/2611.27514v1#S6.T5">論文の表5</a>の報告値です。XAUCは、同じセッションで観測した結果が異なる候補の組のうち、モデルが正しく並べた割合です。</p>
 <div class="dcdn-controls">
 <label>評価対象 <select id="dcdn-task" disabled><option value="fullscreen">全画面表示</option><option value="like">いいね</option><option value="share">シェア</option><option value="view_time" selected>視聴時間</option></select></label>
 <label>比べる条件 <select id="dcdn-view" disabled><option value="full">両方に手作りの比率を渡す</option><option value="reduced" selected>両方から手作りの比率を除く</option><option value="deployed">本番と同じモデル・入力の組み合わせ</option></select></label>
@@ -33,6 +33,6 @@
 <div><dt id="dcdn-treatment-label">DCDN（比率なし）</dt><dd id="dcdn-treatment">0.5629</dd></div>
 <div><dt>XAUC の差</dt><dd id="dcdn-delta">+0.0477</dd></div>
 </dl>
-<p id="dcdn-view-note" role="status">入力をそろえたオフライン比較です。</p>
-<noscript><p>操作には JavaScript が必要です。上の初期例と論文の表5はそのまま読めます。</p></noscript>
+<p id="dcdn-view-note" role="status">著者は両方のモデルに同じ入力を渡し、保存したデータで比べました。</p>
+<noscript><p>上の初期例と論文の表5はそのまま読めます。入力を変えて計算するにはJavaScriptが必要です。</p></noscript>
 </section>
