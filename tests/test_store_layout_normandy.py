@@ -4,7 +4,11 @@ from pathlib import Path
 
 import pytest
 
-from prose_preservation import store_layout_full_rewrite_hash, store_layout_normandy_hash
+from prose_preservation import (
+    store_layout_field_example_hash,
+    store_layout_full_rewrite_hash,
+    store_layout_normandy_hash,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,13 +20,30 @@ def test_normandy_chain_rejects_unreviewed_state():
     extra = json.loads((ROOT / 'tests/store_layout_normandy_hashes.json').read_text())['files'][GUIDE]
     assert extra['before_sha256'] == original['after_sha256']
     assert extra['before_blob'] == original['after_blob']
+    field = json.loads((ROOT / 'tests/store_layout_field_example_hashes.json').read_text())['files'][GUIDE]
     raw = (ROOT / GUIDE).read_bytes()
     git_blob = hashlib.sha1(f'blob {len(raw)}\0'.encode() + raw).hexdigest()
     for algo, value in [('sha256', hashlib.sha256(raw).hexdigest()), ('blob', git_blob)]:
         assert store_layout_full_rewrite_hash(ROOT, GUIDE, original['before_' + algo], algo) == value
         assert store_layout_normandy_hash(ROOT, GUIDE, extra['before_' + algo], algo) == value
+        assert field['before_' + algo] == extra['after_' + algo]
+        assert store_layout_field_example_hash(ROOT, GUIDE, field['before_' + algo], algo) == value
         with pytest.raises(AssertionError):
             store_layout_normandy_hash(ROOT, GUIDE, value, algo)
+        with pytest.raises(AssertionError):
+            store_layout_field_example_hash(ROOT, GUIDE, value, algo)
+
+
+def test_store_timing_example_leaves_previously_reviewed_guide_byte_identical():
+    receipt = json.loads((ROOT / 'tests/store_layout_field_example_hashes.json').read_text())['files'][GUIDE]
+    raw = (ROOT / GUIDE).read_bytes()
+    opening = '### 棚を動かした日時と、売上を集計する日をそろえる\n'.encode()
+    closing = '5・4・3本の図は'.encode()
+    assert raw.count(opening) == raw.count(closing) == 1
+    first, last = raw.index(opening), raw.index(closing)
+    assert first < last
+    assert hashlib.sha256(raw[first:last]).hexdigest() == receipt['section_sha256']
+    assert hashlib.sha256(raw[:first] + raw[last:]).hexdigest() == receipt['before_sha256']
 
 
 def test_normandy_in_context_is_an_estimate_for_one_layout():

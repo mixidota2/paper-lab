@@ -43,3 +43,10 @@ def test_generated_theme_and_reciprocal_links(tmp_path):
     assert 'shelf-decisions.html#store-location' in doc.links
     assert '../papers/whole-foods-shelf.html' in doc.links
     assert '119件のLab ／ 3件のテーマガイド' in target.read_text()
+    for text in (
+        '棚を動かした日時と、売上を集計する日をそろえる',
+        '水曜を、配置が変わった日として扱わない',
+        '配置が分からなかった営業日として記録する',
+        '事前の割付のまま主分析に含める',
+    ):
+        assert text in target.read_text()
