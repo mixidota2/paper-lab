@@ -1,0 +1,342 @@
+{
+  "base": "fbfed78f5fe9433d05a933777bb4b415bee59833",
+  "files": {
+    "papers/flashtrie-gpu-beam/README.md": {
+      "before": {
+        "sha256": "e24269ef5303ce47ce2ca6799dbaf209b8be12e43cabe6a3a32a1fe7a705c601",
+        "blob": "5ff0e2dc9563ea3a267a70709034d8da0ba60f1f"
+      },
+      "after": {
+        "sha256": "3543706f5f9faac9b0ab445b580d2f38ad3c37e13fab4d1012104a4b87e64189",
+        "blob": "5e6ad0a91c855362489c651680eacb96026e8045"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# FlashTrie：beam幅を広げる余裕を、GPUのtrie探索で作る\n"
+        ],
+        [
+          6,
+          7,
+          "一次資料：[2607.10044v1.pdf](https://arxiv.org/pdf/2607.10044v1)。SHA-256と節・表の対応は[mapping.md](mapping.md)。詳しい方法は[method.md](method.md)、サイト本文の原本は[lab.yaml](lab.yaml)。\n"
+        ],
+        [
+          8,
+          9,
+          "## 実行\n"
+        ],
+        [
+          14,
+          15,
+          "前のtokenによって確率表を変えない非自己回帰（NAR）の設定を置き、2段の固定確率表からprefix制約付きbeam searchをCPUで実行する。beam1で落ちる最適系列がbeam2で残る例と、depth-only filterが無効な組合せを返す例を比べる。GPUの時間を測った実験ではない。\n"
+        ],
+        [
+          16,
+          17,
+          "## 検証範囲\n"
+        ],
+        [
+          18,
+          19,
+          "Mechanism PARTIAL。個別のCONFIRMED / NOT OBSERVEDは[results.json](results.json)のchecksに記録。Performance / Scaling / Production applicability NOT TESTED。\n"
+        ],
+        [
+          20,
+          21,
+          "CUDA、Narrow-LOUDSのメモリ圧縮、800M index、teacher精度、30msのproduction SLO、収益はNOT TESTED。下のSLO操作は著者表の読み替えであり、新しい測定ではない。\n\n## 実装の位置付け\n\n原論文には、公式コードを査読後に公開する予定だと記されている。確認した一次資料から取得可能な公式実装は見つからなかった。MARISAは比較対象でありFlashTrie公式実装ではない。\n"
+        ]
+      ]
+    },
+    "papers/flashtrie-gpu-beam/lab.yaml": {
+      "before": {
+        "sha256": "4f68cc785a6b82307fa55f582094810315df7f05dfa3344cd4024449c0470804",
+        "blob": "2e613bcc526f9310f0c118a59bd6ccfc60e666e6"
+      },
+      "after": {
+        "sha256": "b189b79701e69a57c442bff08924ae46202b77da9bd6642112ca79fa38113aa7",
+        "blob": "6d8e134fcc9408bf78e10d4a44030f04a7f2d081"
+      },
+      "prior_spans": [
+        [
+          23,
+          25,
+          "question: FlashTrie：beam幅を広げる余裕を、GPUのtrie探索で作る\nsummary: FlashTrieは圧縮trieとbeam展開・検査・選別をGPU内へまとめる。800M keyword列の測定では平均0.6–1.9ms、p99は最大3.3ms。オンラインEnglish revenue\n  +0.71%、遅延−32%は、backendと実行可能なbeam構成を同時に変えた比較である。\n"
+        ],
+        [
+          32,
+          33,
+          "  scope: 版を固定した一次PDF本文と関連表・付録を照合。著者報告と人工実験を分離。\n"
+        ],
+        [
+          37,
+          41,
+          "  author_claim: 著者は整数token向けNarrow-LOUDSとpersistent cooperative CUDA kernelを組み合わせ、同じ探索品質を保ちながら遅延を削減し、より大きいbeamを使えると主張する（§2–4）。\n  research_bot_interpretation: ここではtrieだけを速くするのではなく、beamの展開・検査・pruneまでGPUで処理する点が重要だ。online改善は同じ探索結果を安く出した効果だけでなく、広い候補集合を後段rankingへ渡せた効果を含む。\n"
+        ],
+        [
+          42,
+          44,
+          "  problem: '生成したID列が登録集合に属するかを確かめるtrieは、beam幅が増えるほど多くの枝を読む。CPUの圧縮trieは省メモリでも、pointer追跡、子の探索、beam用heap、GPUとの往復がボトルネックになる。\n"
+        ],
+        [
+          45,
+          48,
+          ""
+        ],
+        [
+          49,
+          50,
+          "    検索広告では遅延上限を守ったまま候補を増やせるかが重要だ。同じbeamでGPUが正確に動くことと、広いbeamにより収益が伸びることは別の検証になる。'\n  evidence: '### 実測点だけでbeamとSLOを比較する\n"
+        ],
+        [
+          51,
+          52,
+          ""
+        ],
+        [
+          53,
+          54,
+          "    表6の800M workloadはBW100→1000でCPU平均9.0→46.3ms、GPU平均0.6→1.9ms、GPU p95 0.6→2.8ms、p99 0.7→3.3ms（丸め値）。「約3ms未満」は全percentileの上限ではない。図の点は表6と表1から取り、間のbeam幅や新hardwareの値を補間で捏造しない。\n"
+        ],
+        [
+          55,
+          56,
+          ""
+        ],
+        [
+          57,
+          58,
+          "    表1のP@100は0.53→0.78。teacher cross-encoderによる候補評価であり、利用者CTRではない。CPUとGPUは各BWで0.001以内の一致。P@200についてはcaptionにBW100でP@100と同じとある一方、表は0.52対0.53なので、このLabの比較図には整合するP@100系列だけを使う。\n"
+        ],
+        [
+          59,
+          60,
+          ""
+        ],
+        [
+          61,
+          62,
+          "    ### オンラインは探索設定も変わる\n"
+        ],
+        [
+          63,
+          64,
+          "\n    §4.8・表3。Englishはrevenue +0.71%、coverage +0.22%、impression +0.21%、clicks +0.17%、latency −32%。Non-ENは+0.68%、+0.25%、+0.37%、+0.20%、−32%。有意水準α=0.05、defect指標は±1%内で有意差なし。後段auction・pacing・rankingなどは共有し、retrieval\n    backendとその時間内で維持できるbeam構成が異なる。\n\n\n    [STATIC](static-constrained-gr.html)の0.033msは1 stepの制約追加分。本論文の数msはrequestのtrie-search、−32%はretrieval service入出力間の時間である。NEZHAのinvalid-SID処理とも、validity定義と計測範囲を揃えて比較する必要がある。\n\n\n    <figure class=\"teaching batch17\"><h3>実測点から、許容できるbeam幅を読む</h3><div data-b17=\"slo\"><label>trie-searchのp99上限（Labで選ぶ条件）<select\n    data-control><option value=\"1\">1 ms</option><option value=\"2\">2 ms</option><option value=\"3\" selected>3 ms</option><option\n    value=\"4\">4 ms</option></select></label><p data-output aria-live=\"polite\">上限3msなら、表のGPU p99が条件を満たす最大BWは700。P@100は0.77。</p><script\n    type=\"application/json\" data-values>[[100, 9, 0.6, 0.7, 0.53], [200, 14.9, 0.7, 0.9, 0.68], [300, 20.1, 0.9,\n    1.2, 0.72], [400, 25.3, 1.1, 1.6, 0.74], [500, 29.5, 1.4, 2, 0.75], [600, 33.4, 1.6, 2.6, 0.76], [700, 36.3,\n    1.6, 2.8, 0.77], [800, 40.5, 1.9, 3.2, 0.77], [900, 42.9, 1.9, 3.3, 0.78], [1000, 46.3, 1.9, 3.3, 0.78]]</script></div><div\n    class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"比較表\"><table><thead><tr><th>BW</th><th>CPU平均ms</th><th>GPU平均ms</th><th>GPU\n    p99 ms</th><th>P@100</th></tr></thead><tbody><tr><td>100</td><td>9</td><td>0.6</td><td>0.7</td><td>0.53</td></tr><tr><td>200</td><td>14.9</td><td>0.7</td><td>0.9</td><td>0.68</td></tr><tr><td>300</td><td>20.1</td><td>0.9</td><td>1.2</td><td>0.72</td></tr><tr><td>400</td><td>25.3</td><td>1.1</td><td>1.6</td><td>0.74</td></tr><tr><td>500</td><td>29.5</td><td>1.4</td><td>2</td><td>0.75</td></tr><tr><td>600</td><td>33.4</td><td>1.6</td><td>2.6</td><td>0.76</td></tr><tr><td>700</td><td>36.3</td><td>1.6</td><td>2.8</td><td>0.77</td></tr><tr><td>800</td><td>40.5</td><td>1.9</td><td>3.2</td><td>0.77</td></tr><tr><td>900</td><td>42.9</td><td>1.9</td><td>3.3</td><td>0.78</td></tr><tr><td>1000</td><td>46.3</td><td>1.9</td><td>3.3</td><td>0.78</td></tr></tbody></table></div><figcaption>P@100は上位100件の検索品質を同じ教師モデルで評価した論文の指標。13,000件の要求ごとに評価し、平均した値。関連性の判定しきい値と候補不足・空出力時の分母の詳細は、確認された本文では明示されていない。<a href=\"https://arxiv.org/html/2607.10044v1\">原典§4.5・Appendix E</a>。表1・表6の丸め済み実測値。SLO上限はLabの操作条件。productionの30ms\n    SLAとは測定境界が違う。点の間は補間せず、未測定のPareto曲線は描かない。</figcaption></figure>\n\n\n    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2607.10044v1)。図表の箇所とSHA-256は末尾の対応表を参照。'\n"
+        ],
+        [
+          68,
+          70,
+          "  why_it_might_work: '【解釈】上位のprefixはbeam間で共有されやすく、GPUにindexを常駐させると再利用しやすい。beam間と各beam内のtop-K候補の二方向に並列性を出せる。幅を増やすと、ボトルネックはtrie\n    traversalからcandidate validation側へ移る（図4）。\n"
+        ],
+        [
+          71,
+          83,
+          ""
+        ],
+        [
+          84,
+          85,
+          "    ただしbeamを広げれば必ず事業価値が増えるわけではない。候補品質、teacherとの整合、後段の上限に依存する。p99と平均を取り違えるとSLOの余裕も過大評価する。'\n  method: method.md\n  executable_understanding: 前のtokenによって確率表を変えない非自己回帰（NAR）の設定を置き、2段の固定確率表からprefix制約付きbeam searchをCPUで実行する。beam1で落ちる最適系列がbeam2で残る例と、depth-only filterが無効な組合せを返す例を比べる。GPUの時間を測った実験ではない。\n  results: 人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。\n  what_we_verified: '**Mechanism: PARTIAL**。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。\n"
+        ],
+        [
+          86,
+          87,
+          "\n    実験の入力と全出力はrun.pyとresults.jsonから確認できる。'\n  what_we_did_not_verify: 'CUDA、Narrow-LOUDSのメモリ圧縮、800M index、teacher精度、30msのproduction SLO、収益はNOT TESTED。下のSLO操作は著者表の読み替えであり、新しい測定ではない。\n\n\n    **Performance / Scaling / Production applicability: NOT TESTED**。一次資料の報告値との照合は、報告された本番効果の独立再現を意味しない。'\n  implementation: '標準ライブラリだけの独立実験。repository rootで `uv run papers/flashtrie-gpu-beam/run.py` を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。\n\n\n    [実行コード](../downloads/flashtrie-gpu-beam/run.py)・[全結果](../downloads/flashtrie-gpu-beam/results.json)・[README](../downloads/flashtrie-gpu-beam/README.md)・[方法](../downloads/flashtrie-gpu-beam/method.md)・[対応表](../downloads/flashtrie-gpu-beam/mapping.md)を保存できる。\n\n\n    原論文には、公式コードを査読後に公開する予定だと記されている。確認した一次資料から取得可能な公式実装は見つからなかった。MARISAは比較対象でありFlashTrie公式実装ではない。'\n"
+        ],
+        [
+          91,
+          92,
+          "  title: 式と操作の対応\n"
+        ],
+        [
+          93,
+          95,
+          "  caption: 各記号が担う役割を分けて読む。\n  rationale: 演算と制約の対象を明確にする。\n"
+        ],
+        [
+          98,
+          99,
+          "  - name: score\n"
+        ],
+        [
+          100,
+          101,
+          "    explanation: synthetic実験はprefix非依存のNAR確率表を使う。\n"
+        ],
+        [
+          103,
+          105,
+          "    explanation: その深さに出現できるtokenでも、現在のprefixから続く枝があるとは限らない。登録列の先頭部分として実際につながる組合せだけを残す。\n  - name: beam\n"
+        ],
+        [
+          106,
+          107,
+          "    explanation: GPUでは候補のmergeと選別までdevice内に保つ。\n"
+        ]
+      ]
+    },
+    "papers/flashtrie-gpu-beam/mapping.md": {
+      "before": {
+        "sha256": "648d263922ed741953ec38042e0359e13d40cbb83fb845121b7d5bcae510331a",
+        "blob": "09b5f712d72bac00c53799205aba4df03ec5786e"
+      },
+      "after": {
+        "sha256": "b3cf0169815f3be6c5e80998287158af1c0ade2a7f85d4e4377d752ab5114a34",
+        "blob": "b068077ab6e5eef20a0297af227c3067a4131700"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# Original Paper / Official Code Mapping\n"
+        ],
+        [
+          2,
+          3,
+          "確認日：2026-09-17。一次PDF：[2607.10044v1.pdf](https://arxiv.org/pdf/2607.10044v1)。arXiv初回日：2026/07/10、確認版の日付：2026/07/10。\n"
+        ],
+        [
+          4,
+          5,
+          "SHA-256：`7baccbd83b1733289df30310e9fa2e0b877b69eaf7464b2b40bc9bbaeb042d19`\n"
+        ],
+        [
+          6,
+          12,
+          "参照PDF：`2607.10044v1.pdf`。既存HTMLを発見用に使い、上記の版を固定したPDF本文・関連する表と付録で照合した。図はこのLabで作った説明図で、元論文の画像コピーではない。\n"
+        ],
+        [
+          13,
+          14,
+          "| 原論文の箇所 | 確認対象 | Labと省略範囲 |\n| --- | --- | --- |\n| §2、Algorithm 1、Appendix D | GPU native beamとchild lookup | run.py: beam。CPUの集合検査へ簡略化 |\n| §3・4.1–4.5、表1・6、Appendix E–F | 800M条件、品質とpercentile | 実測点のSLO図。値は論文表から転記 |\n| §4.8・表3、Appendix G | online backend/beam変更 | Evidence。backend単独の因果効果ではない |\n| Abstract | 公開予定のcode | 査読後公開予定と記載。取得できた公式実装なし |\n"
+        ],
+        [
+          15,
+          16,
+          "## 公式コード\n\n原論文には、公式コードを査読後に公開する予定だと記されている。確認した一次資料から取得可能な公式実装は見つからなかった。MARISAは比較対象でありFlashTrie公式実装ではない。\n\n## 独立再現の境界\n\nCUDA、Narrow-LOUDSのメモリ圧縮、800M index、teacher精度、30msのproduction SLO、収益はNOT TESTED。下のSLO操作は著者表の読み替えであり、新しい測定ではない。\n"
+        ]
+      ]
+    },
+    "papers/flashtrie-gpu-beam/method.md": {
+      "before": {
+        "sha256": "b6dec9254f7c8d6bb90fb92bb4c246c55534d39fe7945f50a4a22497cf67ad09",
+        "blob": "fba042ee9d7ca6745d3e2dfc7eef1ee17d698b25"
+      },
+      "after": {
+        "sha256": "feb6413d8c0db279fb750c86c91466b8abd525271ae7799a736768ff1cb13558",
+        "blob": "d44ae1d6aa65e079431f6c0949733a9a6cb0155c"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 圧縮表現とGPU実行は別の工夫\n"
+        ],
+        [
+          2,
+          3,
+          "§2.1–2.2。MARISA由来のLOUDS構造を整数tokenへ拡張する。labelとsuffix indexを2-byteのlow部と、必要なnodeだけのbit-packed high部へ分け、32-bit tokenを扱いつつ支配的な配列を縮める。800M keyword列のindexは約3.1GBでA100 80GBのHBMに収める（§4.1）。\n"
+        ],
+        [
+          4,
+          5,
+          "一つのpersistent cooperative kernelが全T stepを処理する。active beamをCTAへ割り当て、512 threadsでtop-K展開とchild lookupを分担。子のtokenはbinary searchで検査し、候補をlock-freeに追加して、grid同期後にparallel merge sortで上位B件へ絞る（Algorithm 1、Appendix D）。\n"
+        ],
+        [
+          6,
+          7,
+          "scoreは `σ′ = σ + log p(x_t | x_<t)`。存在しないprefixは展開しない。これは各深さで出現可能なtokenだけを許すPPT filterより強い条件だ。深さごとに有効でも、組み合わせた列が存在するとは限らない。\n"
+        ],
+        [
+          8,
+          9,
+          "### 実験はNARの提案表も使う\n"
+        ],
+        [
+          10,
+          11,
+          "§3、Appendix E。産業workloadは語彙2.2M、800M keyword列、13,000 requests。production NARモデルの位置別top-K proposal gridを使い、BW=Kを100–1000で動かす。モデルの提案生成とtrie-search時間を混同しない。単一A100 80GBとAMD EPYC 7V13を使い、CPU MARISA-Optは8 workersで比較する。\n"
+        ],
+        [
+          12,
+          13,
+          "公開workloadではNQ+GENREの3,600 queries、約6M title trie、T=16を使う（§4.7）。本番の全stackにこのCPU/GPU構成をそのまま当てはめたわけではない。Appendix Gのproduction controlはbeam200、top-k300、3-thread poolであり、30msのretrieval end-to-end SLAが基準になる。\n"
+        ],
+        [
+          14,
+          15,
+          "出典：[2607.10044v1](https://arxiv.org/pdf/2607.10044v1)。上記で「Lab」とした式・条件は説明用の補助である。\n"
+        ],
+        [
+          16,
+          17,
+          "\n<figure class=\"teaching batch17\"><h3>GPUに残す四つの処理</h3><div class=\"b17-cards\"><div><strong>展開</strong><p>beamごとにCTAを割り当て、top-Kの提案を並列に読む。</p></div><div><strong>検査</strong><p>圧縮trieの子をbinary searchし、有効prefixだけ残す。</p></div><div><strong>選別</strong><p>heapの逐次更新を避け、候補をmergeしてtop-Bへ。</p></div><div><strong>同期</strong><p>grid barrierを通り、次のdepthもdevice内で続ける。</p></div></div><figcaption>§2・Algorithm 1・図4。GPU kernelの模式分解。時間比率を推測して付けていない。</figcaption></figure>\n"
+        ]
+      ]
+    },
+    "papers/flashtrie-gpu-beam/results.json": {
+      "before": {
+        "sha256": "4c08d83ed3fc19c03d2b3b5d9f7669a3c5e5d3afa1911237a709db0c9ac4b2d7",
+        "blob": "e24982da12ab20042a14d696e5644eed42ace483"
+      },
+      "after": {
+        "sha256": "a7ed7cd03e97289a64d2680e1ff95e433eaca419bcf1abeda3167d2090e0485d",
+        "blob": "b33b6827d2df3f325b4b05600216760c9806f2f4"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"人工の2段NAR確率表。GPU測定ではなく、beamによる枝落ちとprefix検査の差を計算する。\",\n"
+        ],
+        [
+          4,
+          5,
+          "      \"name\": \"同じ確率表でbeam幅を変更\",\n"
+        ],
+        [
+          7,
+          9,
+          "          \"最良経路確率\": 0.06,\n          \"返却件数\": 1\n"
+        ],
+        [
+          11,
+          13,
+          "          \"最良経路確率\": 0.24,\n          \"返却件数\": 2\n"
+        ],
+        [
+          15,
+          17,
+          "          \"最良経路確率\": 0.24,\n          \"返却件数\": 3\n"
+        ],
+        [
+          19,
+          21,
+          "          \"最良経路確率\": 0.24,\n          \"返却件数\": 4\n"
+        ]
+      ]
+    },
+    "papers/flashtrie-gpu-beam/run.py": {
+      "before": {
+        "sha256": "ebb58e91e53382104bf5dbb0faab882ccbaf839fb934bf6b086d703f921c1f66",
+        "blob": "868903452f09d77ac9226513aea40c9636a16143"
+      },
+      "after": {
+        "sha256": "5836f7d3638b7f961de3a80a291f80ad426a6c2fd9695eef1ba8dc6536bd9429",
+        "blob": "048fea71aea61b21a61f0bb0aff9e9d50f98f61c"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Prefix-constrained beam search on a synthetic NAR proposal grid (CPU only).\"\"\"\n"
+        ],
+        [
+          23,
+          25,
+          "    return {\"note\":\"人工の2段NAR確率表。GPU測定ではなく、beamによる枝落ちとprefix検査の差を計算する。\",\n      \"experiments\":[{\"name\":\"同じ確率表でbeam幅を変更\", \"metrics\":{w:{\"最良経路確率\":v[0][\"probability\"],\"返却件数\":len(v)} for w,v in frames.items()}}],\n"
+        ]
+      ]
+    }
+  }
+}

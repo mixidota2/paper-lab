@@ -1,4 +1,4 @@
-"""Prefix-constrained beam search on a synthetic NAR proposal grid (CPU only)."""
+"""固定の確率表を使い、辞書で候補を制限する探索をCPUで確かめる。"""
 import json
 import math
 from pathlib import Path
@@ -21,8 +21,8 @@ def beam(width, prefix_valid=True):
 def compute():
     frames={str(w):beam(w) for w in [1,2,3,4]}
     exhaustive=sorted(PATHS,key=lambda p:-(PROBS[0][p[0]]*PROBS[1][p[1]]))
-    return {"note":"人工の2段NAR確率表。GPU測定ではなく、beamによる枝落ちとprefix検査の差を計算する。",
-      "experiments":[{"name":"同じ確率表でbeam幅を変更", "metrics":{w:{"最良経路確率":v[0]["probability"],"返却件数":len(v)} for w,v in frames.items()}}],
+    return {"note":"この人工例では、2段階の探索で候補を何件残すかと、辞書の検査方法を変えます。GPUの速度は測りません。",
+      "experiments":[{"name":"同じ確率表で、各段階に残す候補数を変える", "metrics":{w:{"最上位の列の確率":v[0]["probability"],"返した候補数":len(v)} for w,v in frames.items()}}],
       "beams":frames,"depth_only":beam(4,False),"exhaustive_best":exhaustive[0],
       "checks":{"prefix_compliance":"CONFIRMED","wide_beam_recovers_best_in_toy":"CONFIRMED","gpu_latency":"NOT TESTED"}}
 
