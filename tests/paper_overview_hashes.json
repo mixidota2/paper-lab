@@ -392,6 +392,30 @@
       "after_blob": "c64dec235d74526ae5a029774cddc7ce0aea6a68",
       "prior_field": "  overview: OneTrans-V2は検索・粗い順位付け・精密な順位付けを残し、ユーザー文脈とTransformerを共有する。著者はオンラインGMV/user\n    +9.74%、同じハードウェア予算で3.2倍のQPSを報告する。\n",
       "new_field_sha256": "6a93e748b8745b78dbdacdc097eef67aab4261c1d1542dbd55441c53689fb27c"
+    },
+    "papers/angle-tencent-one-step-retrieval/lab.yaml": {
+      "before_sha256": "d7f478ab188bb89eec66f9017a64a8e43a1fb24528daa4b39d83c5933015e2ca",
+      "before_blob": "170dfadb87f54ce2a906a71c9e608dcfc1ab0dad",
+      "after_sha256": "7a948fc902ab521eb5de5acd273cf87256ac2e9c8d1867deedb614f685f71e6c",
+      "after_blob": "ede714747bb80a76382a69e58fc00a8c88e903cb",
+      "prior_field": "  overview: TencentのANGLEは広告を「広い検索意図 × 商品を特定する短い語句」の組で索引化する。検索用のHunyuan-1Bは、組を生成し、検索語との関連性を判定し、商用価値の高い広告を優先するよう学習する。生成時には、配信できる広告がある組に候補を絞る。WTSの検索広告のA/Bテストで著者はGMV +2.16%を報告した。自然検索や通常の推薦全体を置き換えた研究ではない。\n",
+      "new_field_sha256": "66c6c2f35320dc80c5c7a03737eb82d96a87cc654a197355a9f894028cd806fc"
+    },
+    "papers/gr4ad-ads-generative/lab.yaml": {
+      "before_sha256": "ac06862b6a1bb3d0d7f8e985de470dbb319e8b50cf1ef3f5837da14a5dffbd0d",
+      "before_blob": "f0091826171994c3dd9d5f5508506d1d5731e7d3",
+      "after_sha256": "ce59fbcab1b38f1efb63cc4f0c7c7181371d423199c26c675e0f0f722ad5944e",
+      "after_blob": "6456989defb7c143d2ead7f6c4a87a9f57125fb8",
+      "prior_field": "  overview: GR4ADは広告SID、価値に沿う学習、短い系列の復号、負荷に応じたbeam幅を合わせて設計する。Table 1の最終構成は収益+4.28%（対DLRM）、QPS+117%（対OneRec-V2）。比較基準を分けて、400M超ユーザーへの展開という著者報告を読む。\n",
+      "new_field_sha256": "c6ec482cd217592fb5ad45a17f38c77c915d45139387937b158d81db37400d2b"
+    },
+    "papers/gryphon-v2-cascade/lab.yaml": {
+      "before_sha256": "13d1da41985e2c12a4e551749f8d76fb7bd05e7a9ccc01deb06d2ad53d5d23ca",
+      "before_blob": "ba1660e580007decacf8b71d12edd66fb3b473d2",
+      "after_sha256": "c2d4fb51ddf155ea69ca423eb5038db1dd881a1f21c333328389135a07e43176",
+      "after_blob": "ad439cd0641ffa99613d3c9420e2e5348cef7965",
+      "prior_field": "  overview: Gryphon-v2 は候補生成と最終順位付けを一つのモデルにまとめる。Yandex Music の A/B では active users +1.41%、総聴取時間 +1.62%を報告。改善はシステム全体の比較で、蒸留だけの因果効果ではない。\n",
+      "new_field_sha256": "2d80918c754c93ad36420b4e3211bcc381ea0138a4fa52df04a399b6d3e985fe"
     }
   },
   "generated_from": {
@@ -465,6 +489,20 @@
       "after_sha256": "4e3224764475f4fc94d1e324b37f8939ca07a7fb045c934f448bd159002f499b",
       "after_blob": "5773d81d37a107259fbb3e54966811b628e745a5",
       "source": "papers/onetrans-v2-cascade-unification/lab.yaml"
+    },
+    "papers/angle-tencent-one-step-retrieval/README.md": {
+      "source": "papers/angle-tencent-one-step-retrieval/lab.yaml",
+      "before_sha256": "14906b25207a65bca65e7024e72e0d309e813e13d312f2e026f548b01f8f8324",
+      "before_blob": "84d22b35ab6d3bcdfee1ea2bf44d4fd056befee3",
+      "after_sha256": "6cad748b7a4755438937f5146d91b6dadfd6185c2b598bb58623178acb5d79fd",
+      "after_blob": "c2836309a997135bd4862753a9df3677276832bf"
+    },
+    "papers/gr4ad-ads-generative/README.md": {
+      "source": "papers/gr4ad-ads-generative/lab.yaml",
+      "before_sha256": "4f25d6f458a070f51929e680fdca9df6f8d60398b5274176e1e80780da644ca9",
+      "before_blob": "4a8d0dbdf687f58c75f1929fe5daa666ca5b2f12",
+      "after_sha256": "1d48414e806ac95509f15d4671177d46efa4ca53c347f9006e5e4f0305fe8e57",
+      "after_blob": "5b5505cba46d926614f9359551fb776cf6a0a765"
     }
   }
 }
