@@ -63,7 +63,7 @@ def test_incomplete_or_misdated_followup_rejected(tmp_path, change):
 
 def test_exact_revision_manifest_and_mutation_rejection():
     import hashlib, json
-    from prose_preservation import issue21_hash, replenishment_cards_followup_hash, replenishment_cards_rewrite_hash, replenishment_guide_rewrite_hash
+    from prose_preservation import issue21_hash, replenishment_cards_followup_hash, replenishment_cards_rewrite_hash, replenishment_guide_rewrite_hash, weather_cutoff_rewrite_hash
     manifest = json.loads((ROOT/'tests/issue21_revision_hashes.json').read_text())
     assert manifest['base'] == BASE
     assert set(manifest['files']) == {'guides/forecast-to-replenishment.md', 'guides/replenishment-evidence.yaml', 'paper_lab/templates/guide.html'}
@@ -79,6 +79,7 @@ def test_exact_revision_manifest_and_mutation_rejection():
                 reading = json.loads((ROOT/'tests/reading_prose_revision_hashes.json').read_text())['files'][path]
                 assert reading['before_'+algorithm] == exact_after_issue21
                 expected_live = replenishment_guide_rewrite_hash(ROOT, path, reading['after_'+algorithm], algorithm)
+                expected_live = weather_cutoff_rewrite_hash(ROOT, path, expected_live, algorithm)
             elif path == 'guides/replenishment-evidence.yaml':
                 rewritten = replenishment_cards_rewrite_hash(ROOT, path, exact_after_issue21, algorithm)
                 expected_live = replenishment_cards_followup_hash(ROOT, path, rewritten, algorithm)
