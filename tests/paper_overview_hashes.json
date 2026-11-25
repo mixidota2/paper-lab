@@ -416,6 +416,46 @@
       "after_blob": "ad439cd0641ffa99613d3c9420e2e5348cef7965",
       "prior_field": "  overview: Gryphon-v2 は候補生成と最終順位付けを一つのモデルにまとめる。Yandex Music の A/B では active users +1.41%、総聴取時間 +1.62%を報告。改善はシステム全体の比較で、蒸留だけの因果効果ではない。\n",
       "new_field_sha256": "2d80918c754c93ad36420b4e3211bcc381ea0138a4fa52df04a399b6d3e985fe"
+    },
+    "papers/agent-reasoning-forgetting-externalized-state/lab.yaml": {
+      "before_sha256": "16e22dd4ee086e0eef6620c0c9c582d791e4d646bcb4914d75ab40c9ac431fa8",
+      "before_blob": "37c1cc048dd74dcf435bb9e8b02dafe56278f034",
+      "after_sha256": "c33b5c34e47db7164c421275ac1a28ad4160eb32aa9c355b9e7e66d485a1853a",
+      "after_blob": "942d20c5bf9778d090ccabfc1303b39b0eb4b66d",
+      "prior_field": "  overview: '**Radar：状態の外部化という設計原則に注目する。** 必要な制約や中間結論が推論にしか残っていない場合、後続で再導出・追加推論・再計画が起きる割合は67.31%。コードやファイルなどに移っている場合は36.15%だった。ただし、52状態と213状態を観察的に比べた値であり、差の31.16ポイントを外部化の因果効果とは読めない。\n\n\n    原論文のTable 3を優先して事前判断を訂正する。80課題ではICLRが0.7376、Delete All Thinkingが0.7178で、同点ではない。260課題でのICLRの0.717775と、別の課題集合の結果を混ぜない。手法の採用判断には、主評価のseed反復や信頼区間が足りない。'\n",
+      "new_field_sha256": "b16fc646690d47fdb55798970e05034b89eb136419927e4426b3924a3a9949bb"
+    },
+    "papers/igpo-huawei-inventory-grounded-search/lab.yaml": {
+      "before_sha256": "10b4c52268454d16041a3ba63c9196bbe318db78390b3a3a0c1bab9d30a8e1ae",
+      "before_blob": "bc333a6b127f5801ce371ca5e32212e446413edb",
+      "after_sha256": "47f30f1ba35ff509e606585bebb557f5b2b8ea6f155c89ba7f7f1f686632c4b7",
+      "after_blob": "159318e12566f30fc78bc22af3797b5b08f6e305",
+      "prior_field": "  overview: IGPOは、商品があるかどうかを固定の指示文へ覚え込ませず、検索時の在庫情報から判断する規則を蓄える。Huaweiの商用AI検索で14日間のA/Bを行い、CTRは相対+3.17%、監査したbad\n    caseは38.9%減と報告した。施策全体の効果である。在庫情報と規則の寄与は、このA/Bでは分離していない。\n",
+      "new_field_sha256": "e8e5d5ee7c568e5939c0fea07c4b3ba6e52e4bcaad1bb00b9555f7565b92de35"
+    },
+    "papers/intervention-paradox/lab.yaml": {
+      "before_sha256": "211bcb76ec4b44f15d665815a94661f211b8a6b063d12394d1ae71ab76648a1c",
+      "before_blob": "909f402ec22280ab24678edf5c7bc3903fc92244",
+      "after_sha256": "205b065129e43fcd9dbddd6d061c364ad10b2099e40c4ebba0ad1015102c40d0",
+      "after_blob": "28e1053ff29b368f7371f898c73ee4d04ee3a5e3",
+      "prior_field": "  overview: Writerの研究は、失敗予測のAUROCが約0.94でも実行途中の介入が有害になり得ると示す。介入なし・ありの結果を対応させ、失敗から成功へ変わった件数と、成功から失敗へ変わった件数を比べる必要がある。MiniMax-M2.1のHotPotQAでは64%→38%（−26ポイント）、Qwen-3-8BのALFWorldでは5.8%→8.6%（+2.8ポイント）。いずれもベンチマーク実験で、稼働中の製品全体の成功率ではない。\n",
+      "new_field_sha256": "e7b2833b05f59a480ef98b4a23d3f9f5958c539c190975f3dc42470bb24fab05"
+    },
+    "papers/isomorph-supply-chain-digital-twin/lab.yaml": {
+      "before_sha256": "16e1b27e0404b7d8c49a1ab0689cabdfe86756c29f0791837e0d771f8638f131",
+      "before_blob": "8c4b245cae6cd8a2c85867f707464f48d4a3c6ca",
+      "after_sha256": "f97ac6ab11ea1c9d54b7541b70d0747c2d1d15fef715eb3a64578050caf9695c",
+      "after_blob": "05e4ac91861a51d17576dd45794999ec769143b4",
+      "prior_field": "  overview: ISOMORPHは物流網の需要と内部状態を再生成できる予測ベンチマークである。公開例は米国13拠点・16辺。補充は固定した(s,S)ルールで行い、補充方策の優越性は主張していない。販促と欠品を含む実小売データでの予測モデル比較とも区別する。\n    学習方策は使わない。\n",
+      "new_field_sha256": "0b9898adbb2bb7e59c7536de9d11a2828c5fb269091aa0df5f46ac8f8b4a1890"
+    },
+    "papers/proximal-residual-value-inventory-placement/lab.yaml": {
+      "before_sha256": "33f6bd0cd1795d163d06579f610e3e5dbc2c64fc1e5e18a5737eb45b8f5c63e1",
+      "before_blob": "5ca21f5e717f73881d7238f138a6f1a8ca68c2f8",
+      "after_sha256": "906df5590df75f7524b5af19e6c6259f749fc3bb295585e181e88338c7e8b7a7",
+      "after_blob": "4f01751825a7dd01afb086c4a9319a2b73ff951e",
+      "prior_field": "  overview: Amazon SCOTの著者らは、拠点ごとの配置後の在庫を評価するState-proxを提案した。区分線形の残差と強凸な状態ポテンシャルを足し、計画と実行で同じ評価式を使う。未知の商品と別の期間を使うオフライン評価で、過去の運用を模した比較方策の費用を1とするとSCPUTは0.950、5.0%低かった。現場のA/Bテストではない。\n",
+      "new_field_sha256": "cf9b469d7ed33024ac22d600c1dc28a1d5b2969bf07859eae736829c92f10973"
     }
   },
   "generated_from": {
@@ -503,6 +543,42 @@
       "before_blob": "4a8d0dbdf687f58c75f1929fe5daa666ca5b2f12",
       "after_sha256": "1d48414e806ac95509f15d4671177d46efa4ca53c347f9006e5e4f0305fe8e57",
       "after_blob": "5b5505cba46d926614f9359551fb776cf6a0a765"
+    },
+    "papers/proximal-residual-value-inventory-placement/README.md": {
+      "source": "papers/proximal-residual-value-inventory-placement/lab.yaml",
+      "before_sha256": "faed6f4ab8df5774c451feaa54e6c473667ce75708bf961830e6a633c578bbff",
+      "before_blob": "5de2100ed5acae043e364d6a7bcaf1187b9b853b",
+      "after_sha256": "dd252016f91dfc6f6e6a0ae23075c40a7e0b6e7cf7fb25538eb03c3cc308b266",
+      "after_blob": "85e7fb5c4a730328381db627be6a772c7d3204f4",
+      "prior_mirror": "**Worth。** 届いた在庫を一度に配る場合と、到着のたびに配る場合で、最後に各拠点に残る在庫は同じになるか。Amazon SCOTの著者らは、一致する条件を示し、配置後の在庫を同じ式で評価するState-proxを提案した。\n\n未知の商品と別の期間を使ったオフライン評価では、過去の運用を模した比較方策の費用を1とすると、State-proxのSCPUTは0.950だった。需要を満たした数量当たりの配送・移送費用が5.0%低かったことを示す。現場のA/Bテストではない。"
+    },
+    "papers/intervention-paradox/README.md": {
+      "source": "papers/intervention-paradox/lab.yaml",
+      "before_sha256": "90a53b1eddcbacd9388c105ea768cf5b8e3cc09145c9f64bb6c53288e4eb9818",
+      "before_blob": "957cd172d34ac2b300c8952e4fe9ee156cd2c48f",
+      "after_sha256": "2dad159e12f386e99a853b19506e9530d8b369cf7a99afaadda7cb4219a11973",
+      "after_blob": "b6eaba6eb3764da51a89456dc187dd1437462e32"
+    },
+    "papers/igpo-huawei-inventory-grounded-search/README.md": {
+      "source": "papers/igpo-huawei-inventory-grounded-search/lab.yaml",
+      "before_sha256": "c8babc62e6be2b32dbecc0a1a072fcc860c9cd55567f8a0ca5ccd47376c604ad",
+      "before_blob": "53582afc78484c376900a208afbb76585e3dfedb",
+      "after_sha256": "15ac84adc46c5f328b7e1870e0003082b8b0465edb3a014f2ff9897b36a14d59",
+      "after_blob": "8801ab0bc39ae458178df9d7c020b93b05574039"
+    },
+    "papers/isomorph-supply-chain-digital-twin/README.md": {
+      "source": "papers/isomorph-supply-chain-digital-twin/lab.yaml",
+      "before_sha256": "fbc859e39e96b29ba4dcb9f1f71486a275a0dfb6166cd183e5820e04dc343514",
+      "before_blob": "13f3b5913629971626f278449b0c13d8e6f74353",
+      "after_sha256": "f08c35c40cace7e8ff34ed2636f00929df04d1757a7e2802130f3ab92ee86b1e",
+      "after_blob": "58e8731734fb5eb432d67401488561e629e2950d"
+    },
+    "papers/agent-reasoning-forgetting-externalized-state/README.md": {
+      "source": "papers/agent-reasoning-forgetting-externalized-state/lab.yaml",
+      "before_sha256": "29e71ccc923a27ee928c11d3a35e29330b81b901d50019dda514e2b3c909069e",
+      "before_blob": "84e1dc1e9f16ff0e5780455085696ec20b36df28",
+      "after_sha256": "538aa3282fea6e31ce3a3705c4836bd766657fb9d64a5c02d00b2e33dc5f2202",
+      "after_blob": "99de19a0ee9fc266b67e0f9765ed0f57df16b2de"
     }
   }
 }
