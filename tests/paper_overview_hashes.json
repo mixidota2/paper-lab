@@ -456,6 +456,46 @@
       "after_blob": "4f01751825a7dd01afb086c4a9319a2b73ff951e",
       "prior_field": "  overview: Amazon SCOTの著者らは、拠点ごとの配置後の在庫を評価するState-proxを提案した。区分線形の残差と強凸な状態ポテンシャルを足し、計画と実行で同じ評価式を使う。未知の商品と別の期間を使うオフライン評価で、過去の運用を模した比較方策の費用を1とするとSCPUTは0.950、5.0%低かった。現場のA/Bテストではない。\n",
       "new_field_sha256": "cf9b469d7ed33024ac22d600c1dc28a1d5b2969bf07859eae736829c92f10973"
+    },
+    "papers/retailbench-long-horizon-store-agents/lab.yaml": {
+      "before_sha256": "6c1e4956a89ea233ce8066d8d3fc0f3aa9feeab541e223d9077bec168eae620e",
+      "before_blob": "8294e181b4eedbd3221bf7764d6d33c42b00ec2f",
+      "after_sha256": "0a77f3142136eaaa47d56b3acc2ffed20b5e418e461830278dc49aada17d9701",
+      "after_blob": "ea97663683968a4bf45e588d16b94fa2ef2d8f53",
+      "prior_field": "  overview: RetailBenchは、値付け・補充・棚・仕入先の判断が資金繰りにどう影響するかを調べる店舗運営シミュレーターである。著者は1店舗を最大180日間運営させて評価した。論文で選んだLLMの試行のうち、最終純資産が最も高い試行でも、隠れた情報を使う比較用のOracle Policyの約19%だった。個々のツールを正しく使えても、店を運営し続けられるとは限らない。\n",
+      "new_field_sha256": "59ed97663eafc9c28c705287cf22f911c49e8f4b220a738d6b5045141aa88e42"
+    },
+    "papers/sim2real-policy-conditioned-inbound-forecast/lab.yaml": {
+      "before_sha256": "a0daa42574b61d766704245cd9af343ff706f2cdd8a778d6819222b6fff362e1",
+      "before_blob": "e9120bd845625afb35b98002cc922878e12bfee9",
+      "after_sha256": "02a335f6b030fc9cb13b78a29d187209f32f98a08c8eec424ab31812aa825942",
+      "after_blob": "04a20e9bd823123d41d02cddc725feba153df57c",
+      "prior_field": "  overview: |-\n    発注ルールを変えると、同じ需要でも注文数が変わります。その注文が仕入先から届く週には、倉庫が処理する入荷量も変わります。旧ルールで集めた実績には、新ルールが同じ条件で何を発注するかは記録されていません。\n\n    Amazonの著者らは、過去の需要や納期をシミュレーターに与え、新ルールで発注した場合の入荷を計算しました。その入荷を使って学んだ予測器を、旧ルールの実績を使って学んだ同じ構造の予測器と比べます。著者の所属はAmazonです。論文は導入先を大手小売業者とだけ記しています。どちらも新ルールを導入した後の実績で評価しました。総入荷量では、予測誤差を実績で割った割合の絶対値を平均した指標（MAPE）を使います。誤差の点推定では、模擬データで学んだほうが低くなりました。差はStudy 1で1.2〜3.1ポイント、Study 2で12.5〜18.7ポイントです。改善幅は同程度ではありません。容量を超えた回数、費用、欠品の改善は、この比較から分かりません。\n",
+      "new_field_sha256": "f373ce5355d48f2ff1f7c566b7477569d9d4b4f1eade305f7c67cf19bb6211e1"
+    },
+    "papers/traffic-forecast-to-decision-value/lab.yaml": {
+      "before_sha256": "b9f77103a0993beffa59edf0183348389413d6e0dcda4a9d3715630a82abad88",
+      "before_blob": "24d2508bf298548218de69396d233e3f630f3aa8",
+      "after_sha256": "f049a443678af4fc9983f796d969dc919c1ad03ec5ae6e594826c97069c8ca19",
+      "after_blob": "2580c5f2031f782837c22d86012f61d88d42e14f",
+      "prior_field": "  overview: |-\n    予測の誤差を小さくしても、信号の選び方が変わらなければ車の列は短くならない。中国・宣城の記録から交通需要を再構成したシミュレーションでは、交通量の平均絶対誤差（MAE）は約4%改善した。一方、最終7日間は、予測を使った条件でも、将来の流入を先に知る条件でも、待ち行列を安定して減らせなかった。\n\n    予測モデルを作り直す前に、情報が判断に間に合うか、選べる手があるか、将来を知った場合にも改善できるかを確認する。小売への直接の実証ではなく、検証の順番を参考にする。\n",
+      "new_field_sha256": "35c7ee76d76bdebe9a75efb254de0ac31684ec31d5ea4f9f216d24a38d0953f1"
+    },
+    "papers/vn2-stockout-catboost/lab.yaml": {
+      "before_sha256": "27f42c9fa1f6d7f5bf6081d1f39e9d04a53e59231fb595342f80a0a3dd09e301",
+      "before_blob": "48865a696e96109bf00f35c159de78c9778f9979",
+      "after_sha256": "133e7aa241c39241facdf0d93904280295fc2c161b69fc6a32cb9ef178aeed29",
+      "after_blob": "35bd8cc19e116eff02497c33fb596ac84415253e",
+      "prior_field": "  overview: 欠品週の販売数は需要の代わりに使わない。VN2の勝者は、週ごとの需要を予測し、届く時点の残在庫と欠品・保管費用をもとに注文量を決めた。\n",
+      "new_field_sha256": "9f43abe7b6919ac777d9b8b720e433baec1b936015e2b66095d3a70855d11cc3"
+    },
+    "papers/zalando-sales-event-pricing-forecast-optimize/lab.yaml": {
+      "before_sha256": "beac88621159533d475e93c7a84886ae0b338073b705990dde35de0b5e79a451",
+      "before_blob": "b0ab80e6011efec7dcb6708015056f94160928d8",
+      "after_sha256": "796212ba1be5e7ab4f3616ee3753a954d39638d04c9377bf4e0657fd72f81495",
+      "after_blob": "13a833a3537a2ff514c6de405c5f41d728917d10",
+      "prior_field": "  overview: |-\n    Zalandoの研究チームは、割引率ごとに販売数を予測し、その予測から商品ごとのセール価格を選んだ。2023〜2024年に12市場で行った無作為化A/Bテスト23件を統合した結果、著者は利益貢献（PCII）が+6.00%（95%区間0.79〜11.03%）と報告している。純売上（NMV）と返品後販売数（SIAR）の区間は0をまたいだ。売上が対照と同等だったとまでは言えない。\n\n    この研究をMust Readとしたのは、モデルの新しさよりも、価格を変えた実地試験の結果を予測モデルの選び方と合わせて読めるからだ。Table 2では、同じモデルでも誤差の測り方で順位が変わる。Table 3では、選んだ価格で見込んだ利益と、その価格を試算し直した利益が一致しない。モデルの誤差だけでは、値付けの結果まで判断できない。\n",
+      "new_field_sha256": "b00f6635e9387e09b9a3093cff2f57def0444bbbd1796286c422b5fa3e4d775c"
     }
   },
   "generated_from": {
@@ -579,6 +619,35 @@
       "before_blob": "84e1dc1e9f16ff0e5780455085696ec20b36df28",
       "after_sha256": "538aa3282fea6e31ce3a3705c4836bd766657fb9d64a5c02d00b2e33dc5f2202",
       "after_blob": "99de19a0ee9fc266b67e0f9765ed0f57df16b2de"
+    },
+    "papers/retailbench-long-horizon-store-agents/README.md": {
+      "before_sha256": "a26ae5a9c1cd6538c53179e3307d59deed9c28adbf9e06677d79dcb5e47a0e40",
+      "before_blob": "0c00f420a56ddeea1d565d5832a22d2de38cbf1b",
+      "after_sha256": "91acc84ad7da7c4d28a0e47c46caf05d51d06fea495d111ceff2c9a0a211a141",
+      "after_blob": "b69ff33f17e8b4a7001be0126603660ee17234e8",
+      "source": "papers/retailbench-long-horizon-store-agents/lab.yaml",
+      "prior_mirror": "RetailBenchは、価格・補充・棚・仕入先・資金繰りを180日間つなぐ店舗運営の評価環境である。"
+    },
+    "papers/sim2real-policy-conditioned-inbound-forecast/README.md": {
+      "before_sha256": "1581add6539407277d13354efd07fd45d4c628a3876b1202c581332c8fc28f16",
+      "before_blob": "ef72f455e39ec344fb6e11bb21e64ba3ea2664d7",
+      "after_sha256": "89c13732dc6d38d415800d36487c5903f3e14c3be170077e4d6d5fb578d584a0",
+      "after_blob": "09e82c8f79a73590ec63376adf861e74416f7850",
+      "source": "papers/sim2real-policy-conditioned-inbound-forecast/lab.yaml"
+    },
+    "papers/traffic-forecast-to-decision-value/README.md": {
+      "before_sha256": "100e71aa6c1e7b09984e5068ebfbfbf330fd78549af64d1a102021d111cee9b2",
+      "before_blob": "91b4070016404b7a6a58859f0bbc1b6b74ded1ca",
+      "after_sha256": "bfc4a26d5afa171ad2308bf223931ccd3bdc4cc67f30171cd32392222ee7ad23",
+      "after_blob": "b06e637ece9a103ae0c61e051436cb56a5a2d114",
+      "source": "papers/traffic-forecast-to-decision-value/lab.yaml"
+    },
+    "papers/zalando-sales-event-pricing-forecast-optimize/README.md": {
+      "before_sha256": "fbe731efcbd369a3f4cb426919ea3f6b8479e81ba0381ba3062ab9f3fe283ba2",
+      "before_blob": "084f5b19987f0208dc7d76be21ddab1528f51016",
+      "after_sha256": "af71c3204e388088ce0dcf812f057361bb6004a735e4230e96576b3466aa459f",
+      "after_blob": "831088f1f69a7362bb2444830c42c7bea9ee3d9f",
+      "source": "papers/zalando-sales-event-pricing-forecast-optimize/lab.yaml"
     }
   }
 }
