@@ -192,6 +192,70 @@
       "after_blob": "6239c807f06d071d840b55701d533c665bb1b353",
       "prior_field": "  overview: |-\n    **Radar。数量を当てるモデルで、発生する時点を選べるか。** 著者は時系列基盤モデル（TSFM）12件の点予測を、観測値が正になる時点の順位付けに使った。学習を必要としない参照との得点差は、偶然の得点を補正した平均適合率（AP skill）で最大+0.031だった。\n\n    別の実験では、モデル本体を更新せず、その内部表現から発生を予測する線形分類器（probe）を学習した。モデルとデータセットの29/30組で、probeと同じモデルの点予測との差の95%区間が正だった。一方、Favoritaではprobeを試した6モデルすべてが、元の時系列から発生を学ぶLightGBMを下回った。Labでは、この研究を特定モデルの採用の根拠ではなく、発生順位の比較設計として読む。\n",
       "new_field_sha256": "f26d59a95e13b54d6234f2f5c48612092590473cfadc0956a79e3083fa9927b4"
+    },
+    "papers/contextual-deconvolution/lab.yaml": {
+      "before_sha256": "40d4e12c9d25ebdc6ff9bbc4f65bb593ff50734af78d7a1c36153a4ac9911226",
+      "before_blob": "dfafb4f219624e5403da1fb47552d60ab308f507",
+      "after_sha256": "9f85872b6d47970182f61da4ba688dbfa7a0754e041e48d003b855a2b2411f07",
+      "after_blob": "f41bdc88afc80347c072fd0f84d6bb1178c7bb9e",
+      "prior_field": "  overview: 販促が終わったあとまで需要を高く見積もると、在庫が余ることがある。一方で、予測を滑らかにしすぎると、販促中に売れる量を見落とす。著者は平常時の需要と一時変化を分け、予測の変動だけでなく、保管と品切れの費用がどう変わるかを調べた。\n",
+      "new_field_sha256": "b04718ee0df3a818a9837bc0e2095551fca0faf79bd3c60fac40d2a77c62fc90"
+    },
+    "papers/glide-spotify-sid/lab.yaml": {
+      "before_sha256": "38bb4d8437d4f03c76d8d900e47827667b0e11c0107b61d9c245960fc4ba6013",
+      "before_blob": "95a5f11a1fd69c750d903519585aa382f3970990",
+      "after_sha256": "5fce601ecfd64d714dca3f3921318db1a2b04021b4d8adec2176069d7e8a514b",
+      "after_blob": "83e0a1a2c92562ddd502a57ec0e9c0a7d764b816",
+      "prior_field": "  overview: GLIDEは既存ランキングへ発見向けの候補を足す。長期嗜好を1つの連続ベクトル、直近行動をSID列で渡す設計と、追加経路の効果を測るA/Bを分けて読む。 本番事例として読む価値は高い。ただし、経路全体のA/B改善をsoft\n    promptや量子化だけの因果効果へ分解した実験ではない。\n",
+      "new_field_sha256": "fa79a821ad869ff7d3a88c902aca8802f2e7f6dc7b1c22fc893652c492045d32"
+    },
+    "papers/grace-meta-ads-gtm-serving/lab.yaml": {
+      "before_sha256": "31eef7562b8661b4cfe6053eea7efa839b9568471c0e7b357827618b1104c7de",
+      "before_blob": "22e877cbaeeda25e0ff13c8e6a12e20a6833b937",
+      "after_sha256": "9ad719e97f794ab28da99326915e2a771ced786e5a81862b97118d6f070c2fb1",
+      "after_blob": "28007ccfadba043059c649a6014e81b609a6df32",
+      "prior_field": "  overview: 生成したIDが実在する広告を指していても、その広告を今回のリクエストで配信できるとは限らない。地域や年齢など、広告主の条件を満たさない候補が大半を占め、それらを最後に捨てると、探索の枠を使ってしまう。GRACEはIDの先頭部分（プレフィックス）を共有する広告の条件をまとめ、配信の可能性がない枝を早めに除く。配信できる広告を含む枝を誤って除かないように近似するため、残した枝から広告を選ぶときは、広告ごとに配信条件を確認する。\n",
+      "new_field_sha256": "a9e2d13a1185b84d59552b5f1d384f7fe58b7ba7b9b253d1c738dc5eafd3cbfe"
+    },
+    "papers/walmart-demand-transfer/lab.yaml": {
+      "before_sha256": "5a723abdcaa17217b3ad2b933bd44f44d5bdbd01d2d75b8db2ac38de0a345af9",
+      "before_blob": "c0641d0c3fd3d8cc4f09bc81d6c32fba66e4c40d",
+      "after_sha256": "5317629ccf713dd7edd46323c47ed0c59a981c46102a98d5af5456ae58eb9615",
+      "after_blob": "66e5c770857e9273e5c8d1acd38cd43139e015cd",
+      "prior_field": "  overview: Walmartの著者は商品を棚から外すとき、代替品に移る分を商品別の予測に加える方法を提案した。著者は100万品超を扱う設計として、カテゴリごとに学んだ商品の選ばれやすさを使い、代替候補にだけ需要を配った。過去の販売数との誤差を比べた研究で、実際に棚を変えて売上を測った実験ではない。\n",
+      "new_field_sha256": "683a3a2682164c47398958461d91d7d2d372f92edaabff9c917fa192a6e474d3"
+    },
+    "papers/bridging-forecast-accuracy-inventory-kpis/lab.yaml": {
+      "before_sha256": "990c87b02aafd08989e4e30b2442eebadfb99da311880284eb33cbfcbf727567",
+      "before_blob": "5c4eabbf0cef1de3750a7b4ffb9d5e69e63a9d1a",
+      "after_sha256": "155c8bbfd09ca822130b6934c8f8e963cec34341c9560ef7949cfc5adfe03cbf",
+      "after_blob": "bd048386e584c361ccf774d20af7083d52202ee8",
+      "prior_field": "  overview: 在庫を持ちすぎたときと欠品したときでは、かかる費用が違います。著者はトラックの補修部品の人工需要を作り、同じ在庫ルールで7モデルを比較しました。平均絶対誤差を小さく抑えたのはXGBoostとRandom Forestで、総費用が最も低かったのはCrostonです。\n",
+      "new_field_sha256": "0b7a97456b884707c62ba08c3c2f6082f3c5bbe22218d015307d51da8cf5eaf5"
+    },
+    "papers/case-against-generation-retrieval/lab.yaml": {
+      "before_sha256": "565b7bf32018e421f2f6076a85ca66c20f3868a7dfdfc196382dfe49e0ce51ba",
+      "before_blob": "23a582d886d647295fbcc562c2344d4a62fe8ef4",
+      "after_sha256": "99413bb787d894bc4f4893438d3eb3b5d6fbefc9ff773776042ff547409948c9",
+      "after_blob": "db6ab500062635fa8c48f18049303f43a5883ef4",
+      "prior_field": "  overview: 利用者がページを開くたびに、言語モデルは商品IDを一つずつ作る必要があるのか。Metaの研究チームは、言語モデルで利用者と商品をベクトルに変え、すでに索引にある商品を探す方法を試した。ポイントは、検索時には利用者と商品を別々に処理しながら、学習時には両方を一緒に読んだ教師の評価を使うことである。\n",
+      "new_field_sha256": "b3cf81d13b73661b6324078d6e89b730f5d27cbab4c2b089954cb97eb7deba40"
+    },
+    "papers/orpr-or-guided-pretrain-reinforce-inventory/lab.yaml": {
+      "before_sha256": "9a4022b1541b6cafca107865e7316f683a9a5592f9e18944e46010bd64f41ffc",
+      "before_blob": "079d756153227ea7e15afe480c6b232d6c7057ac",
+      "after_sha256": "423242c83a2079eba7eb3f15146a5e197e66cbdfe3864f65c62911d9da686dc4",
+      "after_blob": "a24a3a364a7096fa0c3567489ca810c53986fab6",
+      "prior_field": "  overview: '売り逃しを増やさずに在庫を減らしたいとき、何日分を補充すればよいでしょうか。ORPRは、数理最適化でその候補を選び、発注を決めるモデルに教えます。その後、ルールやシミュレーションで評価しながら強化学習で調整します。\n\n\n    著者が報告したJDの現場比較では、菓子3カテゴリで保有費用が29.95%低く、在庫回転日数が5.27日短くなりました。対象は担当者が選んだ、自動化の度合いが高い商品です。全商品を無作為に割り付けた実験ではありません。Labで動かすのは、補充の教師データを選ぶ計算と、強化学習で使う報酬差の計算です。JDでの効果は再検証していません。'\n",
+      "new_field_sha256": "9d9f03726a3cc7041ec0be08783da0f1285f7905dfe573582984c011f3c95904"
+    },
+    "papers/spotify-incremental-recommendation-causal/lab.yaml": {
+      "before_sha256": "1139bdf5257806771d30ed866fbc5f18dd07f7a2af5a92d8b710ac23292001e6",
+      "before_blob": "4a7f4b7998888f7a6f897be7509f064c2a661f58",
+      "after_sha256": "9729723019282718e1729728acebdaf608dc42929e8e84bd3808d7c790157875",
+      "after_blob": "cdd2078ffbe49e0156dcbb4ce766d6962fbd7093",
+      "prior_field": "  overview: Spotifyは、推薦後の再生確率と、推薦しなくても再生される確率にそれぞれ閾値を設ける。推薦後の確率が高く、自然再生の確率が低いユーザーとコンテンツの組にだけ表示する。2週間の A/B で表示は7.1%減り、推薦コンテンツの消費は−0.37%で有意差なし。計測窓が異なる二つの予測値を引き算しない設計が要点になる。\n",
+      "new_field_sha256": "44e7e6679cd83957b8f484b323dcfd81deed7a78155486ab2d3427aa405f09d9"
     }
   },
   "generated_from": {
@@ -200,6 +264,15 @@
       "before_blob": "49363d51e6cd9c3f67b83753fde672ca23a0cbb0",
       "after_sha256": "9810d9a4d960f54e4103a6fb0be5a6ca461cd53e1c33bb61e6f0390717852240",
       "after_blob": "f2bab187caae57ad70b3e6553822db838d6d4c77"
+    }
+  },
+  "mirrored": {
+    "papers/bridging-forecast-accuracy-inventory-kpis/README.md": {
+      "before_sha256": "9a0b4a2faeeace67494710981386dcd11d0cb6f3f7aa8b9ff81527b7b8912eaa",
+      "before_blob": "6d3d70ad8d4abe2c691209200803f83dc49ff195",
+      "after_sha256": "8a2a3f5d0b048433395c0509f7ed37f909cce5712bf48978d2a9875feb8b0329",
+      "after_blob": "6f7d6d4ba313b096114b56d26dcbbc08d75c2c55",
+      "source": "papers/bridging-forecast-accuracy-inventory-kpis/lab.yaml"
     }
   }
 }
