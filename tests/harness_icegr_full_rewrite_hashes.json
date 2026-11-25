@@ -1,0 +1,483 @@
+{
+  "files": {
+    "papers/harness-bench/lab.yaml": {
+      "before_sha256": "f2f9a4eb59cf4c68cdc22bc9a3caad2fd3f5ba4131a15898989c425f68809b7e",
+      "before_blob": "b86c692f5f8382ceb5a0ddb9c9af15e515f6f96e",
+      "after_sha256": "340432bffe34d970da3a29850f32491591129295fffe0a1e9b1f2c1109876276",
+      "after_blob": "3db329ea4e60e9cc5b6d69ed5a0d37bc07446563",
+      "prior_spans": [
+        [
+          21,
+          24,
+          "  paper: https://arxiv.org/abs/2605.27922\n  arxiv: https://arxiv.org/abs/2605.27922\n  pdf: https://arxiv.org/pdf/2605.27922\n"
+        ],
+        [
+          37,
+          39,
+          "  author_claim: '著者は106件のオフライン作業を用意し、実行の記録と成果物を採点する。完了だけでなくツール利用の適切さ、一貫性、回復などを併せて評価し、モデルとハーネスの組合せを報告単位にするべきだと主張する。\n"
+        ],
+        [
+          40,
+          43,
+          "\n    [一次資料：§3.4 / §4.1 / 表2 / §4.4](https://arxiv.org/html/2605.27922)'\n  research_bot_interpretation: 調達や改善の判断には、総合点に加えて「何が壊れたか」が役立つ。ただし総合点が高い構成の部品をまねても、その部品が改善原因だったとは限らない。タスク別の失敗記録から、修正すべき箇所を絞り込む使い方がよい。\n"
+        ],
+        [
+          48,
+          50,
+          "  problem: '正しい手順を説明できても、ファイルを保存しなければ仕事は完了しない。ツールの形式に合わせる、状態を保つ、失敗から戻るといった実行の仕事を担うのがハーネスだ。\n"
+        ],
+        [
+          51,
+          56,
+          ""
+        ],
+        [
+          57,
+          58,
+          "    この研究は各ハーネスの内部を同じ構成にはそろえない。問題、初期環境、予算、採点をそろえ、固有のプロンプトや状態管理を残して比較する。測っているのは構成全体の差で、単一部品の因果効果ではない。'\n  why_it_might_work: 形式の検査や保存確認を外側へ持たせると、モデルが正しい内容を作った後の取りこぼしを防げると考えられる。根拠の不足は形式検査では修復できない。小実験では、この2種類の失敗を分ける。\n  evidence: '§4.1・表2の設定可能な6ハーネスは106タスクと8モデルで平均され、NanoBotの総合点76.2とOpenClawの52.4の間に23.8ポイント差がある。これは完了率の差ではない。Codexは固定モデルを伴う参考値として別枠。§3.4の過程評価にはLLM判定も含まれるため、その採点の癖も検討対象になる。\n"
+        ],
+        [
+          59,
+          60,
+          ""
+        ],
+        [
+          61,
+          62,
+          "    [一次資料：§3.4 / §4.1 / 表2 / §4.4](https://arxiv.org/html/2605.27922)'\n  executable_understanding: '60件の人工成果物に形式不備・根拠不足・未保存を割り当てる。形式と保存を順に修復し、全条件を満たした件数を再計算する。成果物ごとに形式・根拠・保存をすべて確認し、一つでも欠ければ不合格とする。条件ごとの合格数を足した値ではない。根拠不足は自動的に合格へ変えない。\n"
+        ],
+        [
+          63,
+          66,
+          ""
+        ],
+        [
+          67,
+          76,
+          "    実行：`uv run papers/harness-bench/run.py`。合成データの作り方と比較条件はコード内に記載し、図の全条件の結果を `results.json` へ保存する。'\n  results: 初期条件の計算値と全条件の結果を示す。合成データ上の小実験であり、論文モデルの性能を測った値ではない。\n  what_we_verified: '**メカニズム：PARTIAL（部分的）**。このLabで確認したのは、ここに示した仮定に基づく計算結果と、条件を変えたときの結果の変化です。原論文の仕組み全体は検証していません。\n"
+        ],
+        [
+          77,
+          80,
+          "\n    60件の人工成果物に形式不備・根拠不足・未保存を割り当てる。形式と保存を順に修復し、全条件を満たした件数を再計算する。成果物ごとに形式・根拠・保存をすべて確認し、一つでも欠ければ不合格とする。条件ごとの合格数を足した値ではない。根拠不足は自動的に合格へ変えない。'\n  what_we_did_not_verify: 総合点の重み、過程判定の一致率、タスク別の分散を見る必要がある。ネットワークを使わない模擬環境から、実サービスの認証・通信・状態変化へどこまで一般化するかは未確定。\n  implementation: '標準ライブラリだけで実行できる。入口は各Labの `run.py`、計算本体は `papers/_toy_common.py` にある。関数は論文IDごとに独立し、ブラウザー用の全条件と初期条件の表を同時に出力する。\n\n\n    意図して省いたもの：106タスク、実LLM、各ハーネス、過程のLLM採点。'\n  mapping: '| 対象 | 原典とLabの対応 |\n\n"
+        ],
+        [
+          81,
+          86,
+          "\n    | 原論文 | [§3.4 / §4.1 / 表2 / §4.4](https://arxiv.org/html/2605.27922) |\n\n    | 手法の図と数式 | 上記の仕組みを説明用に簡略化。公式実装ではない |\n\n    | 小実験 | `run.py` → `papers/_toy_common.py` → `results.json` |\n\n    | 公式コード | このLabでは公式コードとの行単位の照合はしていない。 |'\n"
+        ],
+        [
+          91,
+          94,
+          "  url: https://arxiv.org/html/2605.27922\n  scope: 一次資料の方法・数式・実験条件を再確認。図は説明用の再構成。著者の性能・運用結果は独立再現していない。\n"
+        ],
+        [
+          97,
+          98,
+          "  title: 完了度が同じでも過程の採点で差が出る\n"
+        ],
+        [
+          100,
+          102,
+          "  rationale: 合成スライダーより採点の積構造を直接示す。\n  caption: 論文の採点式。Security以外は0〜1へ正規化する。\n"
+        ],
+        [
+          103,
+          104,
+          "  - name: 過程の3軸を平均\n"
+        ],
+        [
+          105,
+          107,
+          "    explanation: 障害への対処、ツールの適切さ、状態と行動の整合性を評価する。PはLLM評価を含む。\n  - name: 許可違反をゲートにする\n"
+        ],
+        [
+          108,
+          110,
+          "    explanation: Securityは0または1。明示された許可・セキュリティ制約に違反すれば、完了度が高くても総合点は0になる。\n  - name: 集計は各タスクの積から\n"
+        ],
+        [
+          111,
+          113,
+          "    explanation: 平均完了度と平均過程点を後から掛けても、一般には同じ平均点にならない。\n  source: https://arxiv.org/html/2605.27922\n"
+        ],
+        [
+          115,
+          116,
+          "  title: 6構成の総合点：同じタスクとモデル群で比較\n"
+        ],
+        [
+          118,
+          120,
+          "  rationale: 評価設計に対応する実測値を共通尺度で比較する。\n  caption: 著者の報告値。106タスク・8モデルの平均。Codexの別枠評価は含めない。信頼区間はこの表に記載されていない。\n"
+        ],
+        [
+          135,
+          136,
+          "  source: https://arxiv.org/html/2605.27922\n"
+        ]
+      ]
+    },
+    "papers/harness-bench/method.md": {
+      "before_sha256": "e13e935f7df2b48a7c0a9f88e160fb55cac064b5c9f5d730eac941ced8f56580",
+      "before_blob": "b07a3e698dfaf7302dd31ba374ec646e93946be0",
+      "after_sha256": "eb29567c0c993a079f38052b74cffddcd121847bc8383e07a723684e7c6dc978",
+      "after_blob": "86c65b042868c28543be7b8df3c116ade967f19b",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "Harness-Benchは **106タスク × 6ハーネス × 8モデル** の比較設計。OpenClaw、NanoBot、Hermes、ZeroClaw、NullClaw、Moltisを、同じ初期ファイル・予算・時間制限・評価器で動かす。モデル群はClaude Opus 4.6、Sonnet 4.6、Gemini 3.1 Pro Preview、Qwen3.6 Plus、GLM-5.1、Kimi K2.5、GPT-5.4、DeepSeek V4 Flash（付録B）。各ハーネス固有のプロンプトや復旧方法は保持するため、個々の機能の因果効果を測る設計ではない。\n"
+        ],
+        [
+          2,
+          3,
+          "成果物はタスク固有の検査器またはrubricで採点し、実行履歴の評価には固定の **claude-sonnet-4.6** を使う。完了度、許可違反の有無、実行過程の品質を掛け合わせるのが特徴だ。Codex（本文ではGPT-5.4）は106件を別枠で評価し、8モデル平均のハーネスと混ぜない。\n"
+        ],
+        [
+          4,
+          5,
+          "最終点だけでは、未完了だったのか過程の評価が低かったのか分からない。下の式を分解してから報告値を見る。\n"
+        ],
+        [
+          6,
+          13,
+          "[一次資料：方法と実験条件](https://arxiv.org/html/2605.27922)\n"
+        ]
+      ]
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/lab.yaml": {
+      "before_sha256": "729bbab331769a389cf98e0e5f3139d5927576d95e8f58780df413e85796264c",
+      "before_blob": "824a1ae5e6c85a9620cabf1711b5cc0a09f5e3b3",
+      "after_sha256": "7d2516bc047370790f6e8ece783bdc940c7008e83796f14f29a83f83078add6d",
+      "after_blob": "5e201282db6c535f6d262f4e5e4c0090476b6cda",
+      "prior_spans": [
+        [
+          2,
+          3,
+          "title: 'ICEGR: An Intent-Coherent End-to-End Generative Retrieval Framework for E-commerce\n  Search'\n"
+        ],
+        [
+          22,
+          24,
+          "  arxiv: https://arxiv.org/abs/2608.29652\n  paper: https://arxiv.org/abs/2608.29652\n"
+        ],
+        [
+          29,
+          30,
+          "summary: Baiduの検索で使うICEGRは、検索意図を反映した識別子（SID）、人工的に作った検索文を使う学習、関連性を保つための追加学習を組み合わせる。2週・20% A/BでCTR +3.52%、注文\n  +15.96%、GMV +7.53%。最終表示への直接挿入枠を持つ。\n"
+        ],
+        [
+          42,
+          43,
+          "  scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。\n"
+        ],
+        [
+          44,
+          46,
+          "  author_claim: 商品contentだけのSID、低露出商品のquery不足、business preferenceによる意図の逸脱を、IA-SID・SQE-SFT・RCPOの3段階で抑える。\n  research_bot_interpretation: '[VARG](varg-tmall-value-generative-retrieval.html)は価値順の第3\n    tokenとranker報酬、ICEGRは全学習段階でquery意図を守る。どちらも関連性と価値を扱うが、ICEGRの一部結果は最終表示へ直接入り、VARGはfinal\n    rankerへ渡す。同じEC検索でも責任範囲とcontrolが異なり、GMVの倍率では優劣を決められない。'\n"
+        ],
+        [
+          51,
+          53,
+          "  problem: SID構築は商品説明、SFTはitem→SIDの暗記、選好最適化は人気や売上、と別々の信号を使うとquery意図が途中で薄れる。real query→SIDだけでは露出の少ない商品に教師が不足する。click\n    graphも露出の影響を含み、未露出商品の正しい需要を直接知っているわけではない。\n  why_it_might_work: '解釈: co-click graphはcontentが違う補完候補を近付け、synthetic queryは商品暗記を検索文からのretrievalへ近付ける。関連性が十分な候補同士でbusiness\n    preferenceを比較すれば、売上が高いだけの無関係商品へ流れにくい。一方、合成queryは実userの語彙分布とずれ、graphは人気偏りを増幅しうる。anchorとconfidence\n    gateはこの依存を抑えるために読む。'\n  evidence: '一次資料 [PDF §4、Tables 2–5](https://arxiv.org/pdf/2608.29652v1) の著者報告。約3カ月の検索log、12.8M\n    query・14.6M商品。最終日をtestとし、SID等もpre-testだけから構築。offlineは20,000 queryで比較する。\n"
+        ],
+        [
+          54,
+          57,
+          ""
+        ],
+        [
+          58,
+          61,
+          "    | 累積追加 | Recall@20 | NDCG@20 |\n"
+        ],
+        [
+          62,
+          65,
+          ""
+        ],
+        [
+          66,
+          70,
+          ""
+        ],
+        [
+          71,
+          72,
+          "    | ProdGR | 0.4247 | 0.2318 |\n"
+        ],
+        [
+          73,
+          74,
+          "    | +SQE-SFT | 0.4954 | 0.2784 |\n"
+        ],
+        [
+          75,
+          76,
+          "    | +IA-SID | 0.5006 | 0.2841 |\n"
+        ],
+        [
+          77,
+          78,
+          "    | +RCPO | 0.5169 | 0.2935 |\n"
+        ],
+        [
+          79,
+          87,
+          ""
+        ],
+        [
+          88,
+          89,
+          "    Recall@20 +21.7%、NDCG@20 +26.6%は相対差。累積追加順でSQE-SFTがRecall改善の76.7%を占める。これは順序に依存する分解で、各部品の独立寄与ではない。query–product\n    alignmentをbase encoderへ戻すとRecall@20 0.4179、RCPOのβを固定するとNDCG@20が7.36%低下する。\n"
+        ],
+        [
+          90,
+          93,
+          ""
+        ],
+        [
+          94,
+          103,
+          "    オンラインは0.5B、2週間、live traffic 20%。既存MCAへICEGRを追加し、一部top-kを最終impression listへ直接挿入。残りは既存の関連性filter・rankへ回す。CTR\n    +3.52%、Order Volume +15.96%、GMV +7.53%、Show PV +8.84%、Long-click Rate +5.27%、商品landing\n    PV +8.75%。絶対Kや信頼区間は公開されていない。VARGのreserved final-ranker quotaと同一条件ではない。'\n  executable_understanding: '`uv run papers/icegr-baidu-intent-generative-retrieval/run.py`。口紅・ネックレス・修理の人工embeddingで、query共通edgeの3-step伝播とanchorを計算する。businessだけの選択と簡易relevance\n    gateを比べ、Eq. 9のmarginごとの係数も計算する。'\n  results: 人工の贈り物pairの距離は√2から約0.486へ縮む。businessだけなら無関連のrepair、関連性0.8以上の簡易gateではnecklaceを選ぶ。margin\n    −1/0/+1でβ倍率は1.8/1/0.2となる。この選択gateはSRA/BPRを説明する代理で、公式pair構築そのものではない。\n  what_we_verified: Mechanism PARTIAL。Eq. 3のanchor付き伝播、anchor=1で元表現を保持する端点、Eq. 9の係数範囲とmarginに対する単調減少はCONFIRMED。\n  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。8B\n    embedding・0.5B retrieval・0.6B relevance modelの学習、合成queryの品質、RQ-KMeans、DPO収束、Baidu\n    A/Bは未実行。本文はmodelサイズを示すが、base checkpointの名前までは確認できないため推測しない。\n  implementation: '`propagate()`は正規化隣接行列とEq. 3、`beta_factor()`はEq. 9。候補gateの閾値0.8は人工例の設定で、公式hyperparameterではない。公式の量子化・pair\n    sampling・SFTを省略した境界を明示する。'\n"
+        ],
+        [
+          108,
+          109,
+          "  title: 意図を表現へ入れる場所と、選好を制御する場所\n"
+        ],
+        [
+          111,
+          113,
+          "  rationale: 意図を表現へ入れる場所と、選好を制御する場所\n  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。\n"
+        ],
+        [
+          115,
+          116,
+          "  - name: query共通edge\n"
+        ],
+        [
+          117,
+          119,
+          "    explanation: 同queryからのco-clickを使う。content類似度だけではない。\n  - name: 元表現へのanchor\n"
+        ],
+        [
+          120,
+          122,
+          "    explanation: αg=0.2、3 step。各回、近傍から伝わった表現に元の商品表現を混ぜ、商品の出発点の情報も残す。\n  - name: margin係数\n"
+        ],
+        [
+          123,
+          125,
+          "    explanation: Δrは正例・負例のcomposite score差。欠損時は倍率1。\n  - name: 選好loss\n"
+        ],
+        [
+          126,
+          127,
+          "    explanation: Δθはpolicy/referenceの正負log比差。\n"
+        ],
+        [
+          129,
+          130,
+          "  title: 大きい追加効果は合成queryの段階にある\n"
+        ],
+        [
+          132,
+          134,
+          "  rationale: 大きい追加効果は合成queryの段階にある\n  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。\n"
+        ],
+        [
+          137,
+          138,
+          "  - 前段からの差 pp\n"
+        ],
+        [
+          157,
+          158,
+          "  title: VARGとICEGRでは生成結果の受け渡し先が違う\n"
+        ],
+        [
+          160,
+          162,
+          "  rationale: VARGとICEGRでは生成結果の受け渡し先が違う\n  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。\n"
+        ],
+        [
+          164,
+          167,
+          "  - IDの軸\n  - 教師\n  - 本番の接続\n"
+        ],
+        [
+          170,
+          173,
+          "    - 意味prefix + 価値rank\n    - 3-stage SFT + Prefix-GRPO\n    - 既存final rankerへ予約枠\n"
+        ],
+        [
+          175,
+          178,
+          "    - query intent + RQ-KMeans\n    - synthetic/real SFT + RCPO\n    - 一部top-kを最終表示へ\n"
+        ],
+        [
+          182,
+          184,
+          "  title: RCPOのmargin係数を曲線で読む\n  caption: Eq. 9の計算曲線。online効果の曲線ではない。\n"
+        ]
+      ]
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/README.md": {
+      "before_sha256": "47d13ff553922ca521901f471ccc3b754a74aad19c5cd2526f1ae768f578b925",
+      "before_blob": "0aed035f8ad31cb323a5913c716308ed7ece610a",
+      "after_sha256": "fab71151d7f8d52d8cd26a9ab53670ccdd659de63bc30c602f95dcae8a069e3f",
+      "after_blob": "d784e8c1a6064ae6f133bc9ac169b1102ff31b8e",
+      "prior_spans": [
+        [
+          6,
+          7,
+          "公開ページ: https://mixidota2.github.io/paper-lab/papers/icegr-baidu-intent-generative-retrieval.html\n"
+        ],
+        [
+          8,
+          9,
+          "## 実行\n"
+        ],
+        [
+          14,
+          15,
+          "Python標準ライブラリだけを使う。`lab.yaml` と `method.md` が解説の原本、`run.py` が最小実験、`results.json` が出力、`mapping.md` が原典との対応。HTMLは `uv run paper-lab build` で生成する。\n"
+        ],
+        [
+          16,
+          17,
+          "## 検証範囲\n"
+        ],
+        [
+          18,
+          19,
+          "Mechanism PARTIAL。Eq. 3のanchor付き伝播、anchor=1で元表現を保持する端点、Eq. 9の係数範囲とmarginに対する単調減少はCONFIRMED。\n"
+        ],
+        [
+          20,
+          21,
+          "Performance / Scaling / Production applicability NOT TESTED。8B embedding・0.5B retrieval・0.6B relevance modelの学習、合成queryの品質、RQ-KMeans、DPO収束、Baidu A/Bは未実行。本文はmodelサイズを示すが、base checkpointの名前までは確認できないため推測しない。\n"
+        ]
+      ]
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/mapping.md": {
+      "before_sha256": "585a5b6a86a5a2435a09f40e0c1c6ca68afcbb9e6dfa61f2adecbf3d522546ad",
+      "before_blob": "32238a2ccf808bee446ebcd01daae5f46be6d7a5",
+      "after_sha256": "32ad38810d2a811cc2e8a0e12be200c2a630e68c0d6822e81ed7e51b13592f93",
+      "after_blob": "a329d42bb82c38d6817255adf02c9c4e70141008",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# Original Paper / Official Code Mapping\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料: [ICEGR: An Intent-Coherent End-to-End Generative Retrieval Framework for E-commerce Search](https://arxiv.org/pdf/2608.29652v1)、arXiv v1。2026-09-22確認。PDF SHA-256: `b58ae102b84c0215671d3b02b33c904aebb99fe270ff48c5fc5e48d35d95cdd3`。取得済みPDFは `/tmp/research-2026-09-22/2608.29652v1.pdf` を再利用した。\n"
+        ],
+        [
+          4,
+          5,
+          "| 原典 | Lab | 省略 |\n"
+        ],
+        [
+          6,
+          11,
+          "| Eqs. 2–3 | propagate | click log、8B encoder |\n| Eqs. 4–8 | method | fusion・量子化・合成query生成 |\n| Eq. 9 | beta_factor | DPO optimizer・reference policy |\n| §3.3 SRA/BPR | relevance gateの人工例 | 正式pair選定規則の全再現 |\n| Tables 2,5 | Evidence | neural学習・A/B再現なし |\n"
+        ],
+        [
+          12,
+          13,
+          "公式コード: 確認したPDFに本手法の公開実装へのリンクは見つからなかった。公開の有無を網羅的に保証するものではない。\n"
+        ]
+      ]
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/method.md": {
+      "before_sha256": "0df507ae62c78f4149f547c77318b412cd2de7e2fa66c099391daaafc8716ae5",
+      "before_blob": "ad3b3195a5863bd006a7c77f0e842d14465758d8",
+      "after_sha256": "554e107a8ac2c9e0e956eafc582bda553b432bf850d07f8e688a30749aae0f99",
+      "after_blob": "1aa6278316b22486028119f45f62855a27499a60",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 量子化前に検索で結ばれる商品を集める\n"
+        ],
+        [
+          2,
+          3,
+          "8BのEC適応embedding modelでquery–product InfoNCEを学び、co-click graphを作る。edgeは同じqueryからのclick数の幾何平均を合計する。対称正規化した隣接行列で3回伝播し、各回0.2の元embeddingを混ぜる。\n"
+        ],
+        [
+          4,
+          5,
+          "さらに、各商品について過去のqueryのembeddingをclick頻度で加重平均する。query数に基づくη=min(1,log(|Qᵢ|+1)/log(51))をかけてgraph表現へ加算し、L2正規化する。fusion λ=1、最終256次元。3層・各1,024 codeのRQ-KMeansでSIDを作る。VARGの第3 tokenの価値順とは異なり、3層とも残差量子化である。\n"
+        ],
+        [
+          6,
+          7,
+          "### 商品の暗記課題をqueryの教師へ変換する\n"
+        ],
+        [
+          8,
+          9,
+          "SQE-SFTはcatalogからSPU、brand、category、series、model、attributeを抽出する。商品名・category・variantを指定するqueryと、属性条件付きqueryを作り、正規化・dedup・validity filteringを行う。Stage 1 synthetic→SID、Stage 2 real→SIDの共通目的で学ぶ。低露出商品のquery教師を増やすことが狙いであり、実際にそのqueryでclickされた証拠を増やす操作ではない。\n"
+        ],
+        [
+          10,
+          11,
+          "### RCPOは関連性を守りながら比較の強さを変える\n"
+        ],
+        [
+          12,
+          13,
+          "0.6B relevance modelのSRSと、click・purchase・GMVからcategory平均へ平滑化したSBPを用いる。SRAは関連性で選好方向を決め、BPRは関連性の近い候補間でbusiness順を決める。SRS/SBPを[0,1]へ揃えた等重み平均rからΔr=r⁺−r⁻を計算する。\n"
+        ],
+        [
+          14,
+          15,
+          "βeffは大きい正marginほど小さくなる。既にoffline根拠が明白なpairへの重複した更新を弱め、僅差のpairを強くする設計である。ただしβはsigmoid内の係数なので、実際のgradientの大きさは現在のpolicy比にも依存する。正解SIDのlog確率をそのSIDの長さで割る教師あり項（length-normalized SFT）も残し、選好の比較に加えて正解SIDを出すよう学習する。\n"
+        ],
+        [
+          16,
+          21,
+          "backboneはoffline比較・onlineとも0.5B。1.5/3/7Bでも検討するが、本文で確認できるのはサイズであり、Qwenなどの固有model名を補わない。\n"
+        ]
+      ]
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/margin-curve.svg": {
+      "before_sha256": "7560602bc3a4c046fff2c270277542c77310e046ec7fc87f224a082cc5573d59",
+      "before_blob": "1a2b163e6336b242025b7900f5862766fde99aa9",
+      "after_sha256": "6dfda0e255f7c76dbd38288787162f63bee12204c0312f959ba3d4f807aa47de",
+      "after_blob": "6bc682c8a2369aaa7ae4b8ab34050e9110e74358",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 700 480\" role=\"img\" aria-label=\"RCPO margin係数曲線\"><title>RCPO Eq. 9のmargin係数</title><rect width=\"700\" height=\"480\" fill=\"#f8fafc\"/><g font-family=\"sans-serif\" font-size=\"15\" fill=\"#17324d\"><text x=\"35\" y=\"35\" font-size=\"21\">RCPO：候補対のスコア差が大きいほど係数を小さく</text><text x=\"35\" y=\"63\">Eq. 9の計算曲線（実験結果ではない）</text><path d=\"M80 80 V350 H630\" fill=\"none\" stroke=\"#526979\"/><text x=\"80\" y=\"380\" text-anchor=\"middle\">-1</text><text x=\"215.0\" y=\"380\" text-anchor=\"middle\">-0.5</text><text x=\"350\" y=\"380\" text-anchor=\"middle\">0</text><text x=\"485.0\" y=\"380\" text-anchor=\"middle\">0.5</text><text x=\"620\" y=\"380\" text-anchor=\"middle\">1</text><text x=\"60\" y=\"345.0\" text-anchor=\"end\">0.2</text><text x=\"60\" y=\"217.0\" text-anchor=\"end\">1</text><text x=\"60\" y=\"89.0\" text-anchor=\"end\">1.8</text><polyline points=\"80.0,84.0 85.4,84.0 90.80000000000001,84.0 96.20000000000002,84.0 101.6,84.0 107.0,84.0 112.4,84.0 117.80000000000001,84.0 123.20000000000002,84.0 128.59999999999997,84.0 134.0,84.0 139.39999999999998,84.0 144.8,84.0 150.2,87.7046080901452 155.60000000000002,91.3965116197792 161.0,95.0579986331532 166.40000000000003,98.6903907320823 171.8,102.29495858707398 177.2,105.8729252143577 182.6,109.42546902337722 188.0,112.9537266550042 193.39999999999998,116.45879562874288 198.79999999999998,119.94173681543006 204.2,123.40357675036796 209.6,126.84530980043067 215.0,130.26790019744146 220.4,133.67228394900707 225.8,137.05937063700262 231.20000000000002,140.43004511301362 236.6,143.78516909924485 242.0,147.12558270269372 247.4,150.45210584974552 252.8,153.76553964777415 258.20000000000005,157.0666676798147 263.6,160.35625723791185 269.0,163.63506050033064 274.4,166.90381565744192 279.8,170.16324799075892 285.2,173.4140709092979 290.6,176.65698694716892 296.0,179.89268872605578 301.4,183.121859886033 306.79999999999995,186.3451759879713 312.2,189.56330539061594 317.6,192.77691010526985 323.0,195.98664663088277 328.4,199.19316677223412 333.79999999999995,202.3971184437995 339.2,205.59914646180812 344.6,208.79989332693287 350.0,212.0 355.4,215.20010667306713 360.8,218.40085353819188 366.2,221.6028815562005 371.6,224.80683322776585 377.0,228.01335336911723 382.40000000000003,231.22308989473012 387.79999999999995,234.43669460938398 393.2,237.6548240120287 398.59999999999997,240.87814011396694 404.0,244.10731127394422 409.4,247.34301305283108 414.8,250.5859290907021 420.2,253.83675200924105 425.6,257.09618434255805 431.0,260.3649394996694 436.40000000000003,263.6437427620882 441.8,266.9333323201853 447.20000000000005,270.23446035222594 452.59999999999997,273.5478941502545 458.0,276.8744172973063 463.4,280.21483090075515 468.8,283.56995488698635 474.2,286.94062936299736 479.6,290.32771605099293 485.0,293.73209980255854 490.4,297.1546901995693 495.8,300.59642324963204 501.2,304.0582631845699 506.6,307.5412043712571 512.0,311.04627334499577 517.4000000000001,314.5745309766227 522.8,318.1270747856422 528.2,321.70504141292605 533.5999999999999,325.3096092679177 539.0,328.9420013668468 544.4,332.6034883802208 549.8,336.29539190985474 555.2,340.0 560.6,340.0 566.0,340.0 571.4000000000001,340.0 576.8,340.0 582.2,340.0 587.5999999999999,340.0 593.0,340.0 598.4,340.0 603.8,340.0 609.2,340.0 614.6,340.0 620.0,340.0\" fill=\"none\" stroke=\"#287a66\" stroke-width=\"4\"/><text x=\"320\" y=\"415\">複合スコアの差 Δr</text><text x=\"30\" y=\"230\" transform=\"rotate(-90 30 230)\">βeff / β</text><text x=\"35\" y=\"455\">係数は[0.2,1.8]。gradientは現在のpolicy比にも依存する。</text></g></svg>"
+        ]
+      ]
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/plot.py": {
+      "before_sha256": "cb4ea2a560138871e28636e4bf4fbbdb1313f3e15fc7ff77007249666b03f5fc",
+      "before_blob": "450187ecef43b09f65fbc77f4ccb46154803b815",
+      "after_sha256": "d63e1e942dc692aa9d3e3083ed909f4f41ebe54777a6527198913f6b4a5a15e3",
+      "after_blob": "b8e7904e73d0babc9965326f321793586886c102",
+      "prior_spans": [
+        [
+          9,
+          10,
+          " body='<text x=\"35\" y=\"35\" font-size=\"21\">RCPO：候補対のスコア差が大きいほど係数を小さく</text><text x=\"35\" y=\"63\">Eq. 9の計算曲線（実験結果ではない）</text>'\n"
+        ],
+        [
+          14,
+          16,
+          " body+='<text x=\"320\" y=\"415\">複合スコアの差 Δr</text><text x=\"30\" y=\"230\" transform=\"rotate(-90 30 230)\">βeff / β</text><text x=\"35\" y=\"455\">係数は[0.2,1.8]。gradientは現在のpolicy比にも依存する。</text>'\n svg=f'<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 700 480\" role=\"img\" aria-label=\"RCPO margin係数曲線\"><title>RCPO Eq. 9のmargin係数</title><rect width=\"700\" height=\"480\" fill=\"#f8fafc\"/><g font-family=\"sans-serif\" font-size=\"15\" fill=\"#17324d\">{body}</g></svg>'\n"
+        ]
+      ]
+    }
+  }
+}

@@ -97,7 +97,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = unir2_full_rewrite_hash(root, path, expected, algorithm)
     expected = genpage_full_rewrite_hash(root, path, expected, algorithm)
     expected = sona_full_rewrite_hash(root, path, expected, algorithm)
-    return tgr_full_rewrite_hash(root, path, expected, algorithm)
+    expected = tgr_full_rewrite_hash(root, path, expected, algorithm)
+    return harness_icegr_full_rewrite_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -201,6 +202,35 @@ def before_tgr_full_rewrite(root, path, current):
     for start, end, old in reversed(row['prior_spans']):
         data[start:end] = [old]
     prior = ''.join(data).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior
+
+
+def harness_icegr_body_rows(root):
+    return json.loads((root / 'tests/harness_icegr_full_rewrite_hashes.json').read_text())['files']
+
+
+def harness_icegr_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith(('papers/harness-bench/', 'papers/icegr-baidu-intent-generative-retrieval/')):
+        return expected
+    row = harness_icegr_body_rows(root).get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_harness_icegr_full_rewrite(root, path, current):
+    if not path.startswith(('papers/harness-bench/', 'papers/icegr-baidu-intent-generative-retrieval/')):
+        return current
+    row = harness_icegr_body_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
     assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
     return prior
 

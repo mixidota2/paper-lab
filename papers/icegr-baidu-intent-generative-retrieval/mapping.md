@@ -1,13 +1,13 @@
-# Original Paper / Official Code Mapping
+# 原論文とLabの対応
 
-一次資料: [ICEGR: An Intent-Coherent End-to-End Generative Retrieval Framework for E-commerce Search](https://arxiv.org/pdf/2608.29652v1)、arXiv v1。2026-09-22確認。PDF SHA-256: `b58ae102b84c0215671d3b02b33c904aebb99fe270ff48c5fc5e48d35d95cdd3`。取得済みPDFは `/tmp/research-2026-09-22/2608.29652v1.pdf` を再利用した。
+一次資料は [ICEGR初版](https://arxiv.org/pdf/2608.29652v1) です。2026年9月22日に確認したPDFのSHA-256は `b58ae102b84c0215671d3b02b33c904aebb99fe270ff48c5fc5e48d35d95cdd3` です。
 
-| 原典 | Lab | 省略 |
+| 原論文 | Labで対応する箇所 | Labでは行っていないこと |
 | --- | --- | --- |
-| Eqs. 2–3 | propagate | click log、8B encoder |
-| Eqs. 4–8 | method | fusion・量子化・合成query生成 |
-| Eq. 9 | beta_factor | DPO optimizer・reference policy |
-| §3.3 SRA/BPR | relevance gateの人工例 | 正式pair選定規則の全再現 |
-| Tables 2,5 | Evidence | neural学習・A/B再現なし |
+| 式2–3 | `propagate()` が、架空のつながりを使って商品表現を更新する。 | 実際の検索ログや8Bのモデルからつながりを作らない。 |
+| 式4–8 | 手法の節で、検索文の表現を加える方法とID付与・学習を説明する。 | 商品IDの量子化や検索文の生成、教師あり学習を実行しない。 |
+| 式9 | `beta_factor()` と図で、得点差ごとの係数の倍率を計算する。 | 固定の比較用モデルを使った選好学習を実行しない。 |
+| §3.3（SRA・BPR） | 架空の商品で、関連性を先に確認する場合としない場合を比べる。 | 論文の規則どおりに学習用の組を作る実験ではない。 |
+| 表2–5 | 根拠の節で、著者のログを使った比較と本番A/Bを分けて示す。 | モデルを学習して数値を再現したり、Baiduの本番で検証したりしていない。 |
 
-公式コード: 確認したPDFに本手法の公開実装へのリンクは見つからなかった。公開の有無を網羅的に保証するものではない。
+確認した初版には、本手法の実装への公開リンクを見つけられませんでした。実装が公開されていないと断定するものではありません。

@@ -1,7 +1,6 @@
 id: icegr-baidu-intent-generative-retrieval
 arxiv_id: '2608.29652'
-title: 'ICEGR: An Intent-Coherent End-to-End Generative Retrieval Framework for E-commerce
-  Search'
+title: 'ICEGR: An Intent-Coherent End-to-End Generative Retrieval Framework for E-commerce Search'
 authors:
 - Jiayi Tuo
 - Hehan Li
@@ -21,15 +20,14 @@ topics:
 - recommender-systems
 - ml-systems
 urls:
-  arxiv: https://arxiv.org/abs/2608.29652
-  paper: https://arxiv.org/abs/2608.29652
+  arxiv: https://arxiv.org/abs/2608.29652v1
+  paper: https://arxiv.org/abs/2608.29652v1
   pdf: https://arxiv.org/pdf/2608.29652v1
   official_code: null
 verdict: Watch
 status: published
 question: 価値を学ばせても、検索意図との一致を保てるか
-summary: Baiduの検索で使うICEGRは、検索意図を反映した識別子（SID）、人工的に作った検索文を使う学習、関連性を保つための追加学習を組み合わせる。2週・20% A/BでCTR +3.52%、注文
-  +15.96%、GMV +7.53%。最終表示への直接挿入枠を持つ。
+summary: Baiduの検索で使うICEGRは、検索意図を反映した識別子（SID）、人工的に作った検索文を使う学習、関連性を保つための追加学習を組み合わせる。2週・20% A/BでCTR +3.52%、注文 +15.96%、GMV +7.53%。最終表示への直接挿入枠を持つ。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -42,91 +40,102 @@ source_review:
   version: v1
   pdf_sha256: b58ae102b84c0215671d3b02b33c904aebb99fe270ff48c5fc5e48d35d95cdd3
   url: https://arxiv.org/pdf/2608.29652v1
-  scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。
+  scope: 初版PDFの本文、式、実験表を参照。著者のモデルの学習と本番比較はLabで再現していない。
 core_idea:
-  author_claim: 商品contentだけのSID、低露出商品のquery不足、business preferenceによる意図の逸脱を、IA-SID・SQE-SFT・RCPOの3段階で抑える。
-  research_bot_interpretation: '[VARG](varg-tmall-value-generative-retrieval.html)は価値順の第3
-    tokenとranker報酬、ICEGRは全学習段階でquery意図を守る。どちらも関連性と価値を扱うが、ICEGRの一部結果は最終表示へ直接入り、VARGはfinal
-    rankerへ渡す。同じEC検索でも責任範囲とcontrolが異なり、GMVの倍率では優劣を決められない。'
+  author_claim: 著者は、検索した人の目的と商品のつながりを三つの段階で使います。商品IDを作る段階では、商品説明に加えて、同じ検索でクリックされた商品や過去の検索語を使います。学習時には商品情報から検索文を作り、表示の少ない商品に学習例を補うためです。最後に、関連性を基準に候補を比べ、比較できる候補の中で購入などの実績も考慮します。
+  research_bot_interpretation: Labでは、[VARG](varg-tmall-value-generative-retrieval.html)との違いを、生成後の候補がどこに渡るかに注目します。VARGは商品IDの第3要素に取引上の価値の順位を入れ、候補を既存の最終順位付けに渡すための枠を設ける方式です。ICEGRは検索との一致をID作成から追加学習まで保ち、一部の候補を最終結果に直接入れます。A/Bテストの対象や既存システムが異なるため、取引総額の変化だけで両者の優劣は判断できません。
 sections:
   overview: |-
     Baiduの研究チームは、検索した人の目的に合う商品を生成モデルで探す方法を提案しました。たとえば口紅とネックレスは商品としては似ていませんが、「恋人への贈り物」という同じ検索で選ばれます。ICEGRは、同じ検索でクリックされた商品や、商品につながった過去の検索語も使って商品IDを作ります。表示が少ない商品には学習用の検索文を補い、検索に合う商品だけを比べ、クリックや注文などの実績を使って、どちらを優先するかを学びます。
 
     Baiduは本番トラフィックの20%を使い、2週間のA/Bテストを行いました。既存の検索システムに5億パラメータのICEGRを追加し、その上位候補の一部を最終結果に直接入れました。著者の報告では、既存方式に比べてクリック率が3.52%、注文数が15.96%、取引総額が7.53%増えました。比較では商品IDの作り方、学習方法、表示の仕方をまとめて変えています。この数字だけでは、どの変更が効いたかは分かりません。
-  problem: SID構築は商品説明、SFTはitem→SIDの暗記、選好最適化は人気や売上、と別々の信号を使うとquery意図が途中で薄れる。real query→SIDだけでは露出の少ない商品に教師が不足する。click
-    graphも露出の影響を含み、未露出商品の正しい需要を直接知っているわけではない。
-  why_it_might_work: '解釈: co-click graphはcontentが違う補完候補を近付け、synthetic queryは商品暗記を検索文からのretrievalへ近付ける。関連性が十分な候補同士でbusiness
-    preferenceを比較すれば、売上が高いだけの無関係商品へ流れにくい。一方、合成queryは実userの語彙分布とずれ、graphは人気偏りを増幅しうる。anchorとconfidence
-    gateはこの依存を抑えるために読む。'
-  evidence: '一次資料 [PDF §4、Tables 2–5](https://arxiv.org/pdf/2608.29652v1) の著者報告。約3カ月の検索log、12.8M
-    query・14.6M商品。最終日をtestとし、SID等もpre-testだけから構築。offlineは20,000 queryで比較する。
+  problem: |-
+    商品の説明文だけを見れば、口紅とネックレスは別の種類の商品です。それでも、贈り物を探す人にはどちらも候補になりえます。商品IDを商品説明だけから作り、学習時には商品とIDの対応だけを覚えさせると、検索文と商品のこうした関係を学びにくくなります。
 
+    検索ログだけで学習すると、もともと表示が少ない商品の例が足りません。さらに、検索との一致を確かめずに人気や売上を優先すると、目的から外れた商品が上位に来ることがあります。クリックの記録には、そもそもどの商品が表示されたかの影響も含まれます。
+  why_it_might_work: |-
+    Labの解釈です。同じ検索語で選ばれた商品を結び付けると、説明文は似ていなくても同じ用途で選ばれる商品を近付けられます。元の商品表現を毎回混ぜ、過去の検索語が少ない商品ではその検索語の重みを抑える設計です。ただし、こうした調整でクリックログの人気の偏りまで除けるとは限りません。
 
-    | 累積追加 | Recall@20 | NDCG@20 |
+    作った検索文を学習に使えば、表示が少ない商品にも検索文とIDの組を用意できます。その文が実際の利用者と同じ言葉遣いをするとは限りません。また、取引の実績を使う場合も、関連性が近い商品に対象を絞れば、検索に合わない商品を実績だけで優先しにくくなります。
+  evidence: |-
+    ### 検索ログを使った評価
 
+    著者は約3か月のBaiduの検索ログを時刻順に分け、最後の1日を評価に回しました。ログ全体には1,280万種類の検索文と1,460万種類の商品があります。商品IDや学習例は評価日の前のデータだけで作り、評価日から抽出した2万種類の検索文で、クリックされた商品をどれだけ上位に出せるかを比べました。対照のProdGRは既存の生成検索モデルです。
+
+    | 対照に順に加えたもの | Recall@20 | NDCG@20 |
     | --- | ---: | ---: |
+    | ProdGR（対照） | 0.4247 | 0.2318 |
+    | 学習用の検索文を作る（SQE-SFT） | 0.4954 | 0.2784 |
+    | 検索の目的を商品IDに反映する（IA-SID） | 0.5006 | 0.2841 |
+    | 関連性を考慮して選好を学習する（RCPO） | 0.5169 | 0.2935 |
 
-    | ProdGR | 0.4247 | 0.2318 |
+    上位20件に入った正解商品の割合（Recall@20）は相対で21.7%、正解の出る順番も考慮した指標（NDCG@20）は26.6%上がりました。この順序で加えたときは、Recall@20の改善幅の76.7%がSQE-SFTを加えた段階で生じています。順番を変えても同じ割合になる、あるいは各部品が単独でこの差を生む、という結果ではありません。
 
-    | +SQE-SFT | 0.4954 | 0.2784 |
+    別の比較では、検索文と商品を対応付けて学習したモデルの代わりに元のモデルを使うと、Recall@20は0.4179になりました。また、RCPOの比較対象や他の条件をそろえて係数βを固定すると、NDCG@20は相対で7.36%下がりました。
 
-    | +IA-SID | 0.5006 | 0.2841 |
+    ### 本番では既存の検索に経路を追加した
 
-    | +RCPO | 0.5169 | 0.2935 |
+    Baiduは5億パラメータのICEGRを既存の多段階検索に追加し、本番トラフィックの20%を使って2週間のA/Bテストを行いました。生成した上位候補の一部を最終表示に直接入れ、残りを既存の関連性検査と順位付けに回す構成です。対照群では既存の多段階検索だけを使いました。
 
+    | 指標 | 対照群からの相対変化 |
+    | --- | ---: |
+    | 商品の表示回数 | +8.84% |
+    | クリック率 | +3.52% |
+    | ロングクリック率（Long-click Rate） | +5.27% |
+    | 商品詳細ページの閲覧数 | +8.75% |
+    | 注文数 | +15.96% |
+    | 取引総額（GMV） | +7.53% |
 
-    Recall@20 +21.7%、NDCG@20 +26.6%は相対差。累積追加順でSQE-SFTがRecall改善の76.7%を占める。これは順序に依存する分解で、各部品の独立寄与ではない。query–product
-    alignmentをbase encoderへ戻すとRecall@20 0.4179、RCPOのβを固定するとNDCG@20が7.36%低下する。
+    この表は経路の追加と表示方法を合わせた結果です。直接表示する件数や、各指標の信頼区間は表5からは分かりません。ログでProdGRと比べた評価や、VARGが最終順位付けに枠を持つ本番比較とは、対照も設定も異なります。
 
+    [一次資料：初版 §4.1–4.5、表2–5](https://arxiv.org/pdf/2608.29652v1)
+  executable_understanding: |-
+    実行コマンドは `uv run papers/icegr-baidu-intent-generative-retrieval/run.py` です。Labは口紅・ネックレス・修理という架空の3候補を置き、同じ検索で選ばれたと仮定した口紅とネックレスだけをつなぎます。つながった相手の数値を3回取り入れ、毎回、自分の元の数値も混ぜます。
 
-    オンラインは0.5B、2週間、live traffic 20%。既存MCAへICEGRを追加し、一部top-kを最終impression listへ直接挿入。残りは既存の関連性filter・rankへ回す。CTR
-    +3.52%、Order Volume +15.96%、GMV +7.53%、Show PV +8.84%、Long-click Rate +5.27%、商品landing
-    PV +8.75%。絶対Kや信頼区間は公開されていない。VARGのreserved final-ranker quotaと同一条件ではない。'
-  executable_understanding: '`uv run papers/icegr-baidu-intent-generative-retrieval/run.py`。口紅・ネックレス・修理の人工embeddingで、query共通edgeの3-step伝播とanchorを計算する。businessだけの選択と簡易relevance
-    gateを比べ、Eq. 9のmarginごとの係数も計算する。'
-  results: 人工の贈り物pairの距離は√2から約0.486へ縮む。businessだけなら無関連のrepair、関連性0.8以上の簡易gateではnecklaceを選ぶ。margin
-    −1/0/+1でβ倍率は1.8/1/0.2となる。この選択gateはSRA/BPRを説明する代理で、公式pair構築そのものではない。
-  what_we_verified: Mechanism PARTIAL。Eq. 3のanchor付き伝播、anchor=1で元表現を保持する端点、Eq. 9の係数範囲とmarginに対する単調減少はCONFIRMED。
-  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。8B
-    embedding・0.5B retrieval・0.6B relevance modelの学習、合成queryの品質、RQ-KMeans、DPO収束、Baidu
-    A/Bは未実行。本文はmodelサイズを示すが、base checkpointの名前までは確認できないため推測しない。
-  implementation: '`propagate()`は正規化隣接行列とEq. 3、`beta_factor()`はEq. 9。候補gateの閾値0.8は人工例の設定で、公式hyperparameterではない。公式の量子化・pair
-    sampling・SFTを省略した境界を明示する。'
+    別の計算では、取引の得点だけで選んだ場合と、まず検索との関連性で絞った場合を比べます。論文の式9については、候補間の得点差を変えたときに係数がどう動くかを計算します。
+  results: |-
+    Labの架空例では、口紅とネックレスの距離が√2から約0.486に縮まりました。取引の得点だけで選ぶと贈り物と無関係な修理が残ります。関連性が0.8以上の候補に限ると、ネックレスが選ばれます。この足切りは考え方を説明するための簡略化で、論文の方法で比較用の組を作ったわけではありません。
+
+    式9で候補間の得点差を−1、0、+1とすると、もとの係数βに掛ける倍率はそれぞれ1.8、1、0.2です。この値は式から計算したもので、BaiduのA/Bテストの結果ではありません。
+  what_we_verified: '**仕組みの確認：一部のみ（PARTIAL）。** Labでは、つながった商品の数値を取り入れながら元の表現を残す式3を、小さな例で実行しました。元の表現の重みを1にすると表現が変わらないことも確認済みです。式9では倍率が0.2〜1.8の範囲に入り、試した得点差の範囲で、差が大きくなるほど倍率が上がらないことを確かめました（CONFIRMED）。'
+  what_we_did_not_verify: Labは8Bの商品表現モデル、0.5Bの検索モデル、0.6Bの関連性モデルを学習していません。作った検索文の質、商品IDを割り当てる量子化、選好学習が収束するか、BaiduのA/Bテストも独立に検証していません。原論文からモデルの規模は確認できますが、出発点になった学習済みモデルの固有名は確認できません。性能・規模を広げた場合の挙動・本番への適用はいずれも未検証（NOT
+    TESTED）です。
+  implementation: '`propagate()` はつながりの重みを、つながった双方の商品の重みの合計で調整してから、式3を計算します。`beta_factor()` は式9で元のβに掛ける倍率を返します。関連性の閾値0.8はLabがこの架空例に設定した値です。論文の量子化、比較に使う候補の組の抽出、教師あり学習は実装していません。'
   method: method.md
   mapping: mapping.md
 teaching_figures:
 - kind: equations
   id: intent-equations
-  title: 意図を表現へ入れる場所と、選好を制御する場所
+  title: 商品IDに検索の目的を残し、追加学習で選好を調整する
   after: method
   locator: Eqs. 2–5, 9–11
-  rationale: 意図を表現へ入れる場所と、選好を制御する場所
-  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  rationale: 商品表現を作る式と、候補の優先度を学ぶ式を分ける。
+  caption: 論文初版の式を読みやすい順に並べた図。Labで求めた性能値ではない。
   source: https://arxiv.org/pdf/2608.29652v1
   steps:
-  - name: query共通edge
+  - name: 同じ検索でクリックされた商品をつなぐ
     formula: wᵢⱼ = Σq √(nᵢq nⱼq)
-    explanation: 同queryからのco-clickを使う。content類似度だけではない。
-  - name: 元表現へのanchor
+    explanation: 検索文ごとに二商品のクリック数の幾何平均を求め、足し合わせる。商品説明の類似度だけでつなぐわけではない。
+  - name: 元の商品表現を残す
     formula: Hᵗ = (1−αg) ÂHᵗ⁻¹ + αgX
-    explanation: αg=0.2、3 step。各回、近傍から伝わった表現に元の商品表現を混ぜ、商品の出発点の情報も残す。
-  - name: margin係数
+    explanation: αgは0.2。更新を3回行い、毎回、つながった商品の表現と元の商品表現を混ぜる。
+  - name: 候補の得点差に応じて係数を決める
     formula: βeff = β · clip(1 + log((2−Δr)/(2+Δr)), 0.2, 1.8)
-    explanation: Δrは正例・負例のcomposite score差。欠損時は倍率1。
-  - name: 選好loss
+    explanation: Δrは優先する候補ともう一方の合成得点の差。得点差が取得できなければ倍率は1とする。
+  - name: 候補どうしの比較と正解の学習を合わせる
     formula: L = −E[log σ(βeff Δθ) + ηsft log πθ(s⁺|q)/|s⁺|]
-    explanation: Δθはpolicy/referenceの正負log比差。
+    explanation: Δθは、学習中のモデルと固定した比較用モデルの対数確率の差を、優先する候補ともう一方で比べた値。後半の項は優先するSIDの学習。
 - kind: matrix
   id: gain-ladder
-  title: 大きい追加効果は合成queryの段階にある
+  title: この追加順では、学習用の検索文を増やした段階で最も伸びた
   after: evidence
   locator: Table 2
-  rationale: 大きい追加効果は合成queryの段階にある
-  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  rationale: 前段との差は追加順に依存する。個々の部品の単独効果ではない。
+  caption: 初版表2の著者報告。前段との差の単位はパーセントポイント。
   source: https://arxiv.org/pdf/2608.29652v1
   columns:
   - Recall@20
-  - 前段からの差 pp
+  - 前段との差（ポイント）
   rows:
   - label: ProdGR
     cells:
@@ -146,32 +155,32 @@ teaching_figures:
     - '+1.63'
 - kind: matrix
   id: intent-value
-  title: VARGとICEGRでは生成結果の受け渡し先が違う
+  title: VARGとICEGRでは、生成した候補を渡す先が違う
   after: problem
   locator: §4.5 / VARG Fig. 1
-  rationale: VARGとICEGRでは生成結果の受け渡し先が違う
-  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  rationale: 候補を生成した後も既存の順位付けを通るかを比べる。
+  caption: ICEGR初版 §4.5とVARG初版 図1の整理。A/Bテストの結果を直接比べる図ではない。
   source: https://arxiv.org/pdf/2608.29652v1
   columns:
-  - IDの軸
-  - 教師
-  - 本番の接続
+  - 商品IDに入れる情報
+  - 学習方法
+  - 本番で渡す先
   rows:
   - label: VARG
     cells:
-    - 意味prefix + 価値rank
-    - 3-stage SFT + Prefix-GRPO
-    - 既存final rankerへ予約枠
+    - 意味を表す先頭部分と価値の順位
+    - 3段階の教師あり学習とPrefix-GRPO
+    - 予約枠を使い既存の最終順位付けへ
   - label: ICEGR
     cells:
-    - query intent + RQ-KMeans
-    - synthetic/real SFT + RCPO
-    - 一部top-kを最終表示へ
+    - 検索の目的を加えた表現を残差量子化
+    - 作った検索文と実際の検索文を使う学習、RCPO
+    - 上位候補の一部を最終表示へ
 results: results.json
 submitted: '2026-08-30'
 figures:
 - path: margin-curve.svg
-  title: RCPOのmargin係数を曲線で読む
-  caption: Eq. 9の計算曲線。online効果の曲線ではない。
+  title: 候補の得点差が大きいほど、係数の倍率は小さくなる
+  caption: 論文の式9を計算した曲線。Baiduの本番比較を示すものではない。
   after: method
   layout: scroll
