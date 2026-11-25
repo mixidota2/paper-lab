@@ -16,8 +16,8 @@ urls:
   official_code: null
 verdict: Worth Reading
 status: published
-question: GenPage：候補集合の内側で、Netflixのホームを一つの列として作る
-summary: GenPageは行と作品の並びをdecoder-only Transformerで生成する。オンラインで試した約200MのWBCモデルは、既存の行・作品候補集合を使う。14日A/Bの最良variantで主指標+0.24%、end-to-end遅延−20%。候補生成まで全面置換した証拠とは分けて読む。
+question: Netflixは、行と作品を一つのモデルでどう並べるか
+summary: GenPageは、Netflixのホーム画面に置く行と作品を一つのモデルで決める。既存の候補を使った14日間の本番実験では、最良の設定で主要な利用指標が0.24%増え、配信全体の時間が20%短くなった。強化学習版や候補生成を置き換える構成は試していない。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -25,94 +25,75 @@ verification:
   production_applicability: NOT TESTED
 source_review:
   checked: '2026-09-17'
-  scope: 版を固定した一次PDF本文と関連表・付録を照合。著者報告と人工実験を分離。
+  scope: Labは論文v2のPDF本文と関連する表・付録を照合した。著者が報告した本番の結果と、Labが行った合成実験は区別する。
   url: https://arxiv.org/pdf/2606.31031v2
   pdf_sha256: 98bd7a0c0b96943c794450e1883397c6318c6bdcf02b9fedc868516a1561847f
   version: 2606.31031v2
 core_idea:
-  author_claim: 著者は、文脈とホーム全体をtoken列へ変換すれば、個別のランキングモデル群を一つのTransformerへ集約できると主張する。WBCで即時の作品価値を学び、将来はRLでページ全体の価値を最適化する（§4–6）。
-  research_bot_interpretation: このオンライン結果の焦点は、候補集合内の選択とレイアウトの統合にある。学習目的がWBCなら、出力を逐次生成していても目的関数はtoken単位だ。ページ相互作用を直接最適化したRLの成果として+0.24%を扱わない。
+  author_claim: 著者は、利用者の行動履歴とホーム画面をIDの列で表すことで、行や作品を別々に並べていたモデルを一つのTransformerにまとめた。追加学習では、行や作品に対する反応を当てる方式と、画面全体の反応を予測して改善する強化学習を試している（§4–6）。
+  research_bot_interpretation: Labがこの本番実験から読み取れるのは、すでにある候補を一つのモデルで選び、画面に並べる効果である。作品を順に選ぶことと、画面全体の反応で学習することは違う。本番で試したモデルは行や作品ごとの反応を学習しており、0.24%の増加を強化学習の効果とは言えない。
 sections:
-  problem: 'Netflixのホームでは、作品単体の良さに加え、どの行を先に置くか、同じ作品が重複しないか、直前の行で視聴が始まるかが効く。行と作品を別々に評価する多段構成では、各段の目的が揃わず、特徴計算も重くなる。GenPageはこの組み立てを一つの系列予測にまとめる。
+  problem: |-
+    Netflixのホーム画面では、単に評価が高い作品を選ぶだけでは足りない。たとえば「視聴中の作品」を上に置くと、利用者は続きの再生を始めて、下の行を見ないことがある。同じ作品を別の行に置くと、違う作品を見つける機会も減る。行と作品の順位を別々に決める方式では、後からこうした関係を調整する必要がある。
 
+    GenPageは行と作品の並びを一つの出力として扱う。ただし、本番実験でモデルに渡したのは既存システムが用意した行と作品の候補である。どの候補を出せるかの判断まで全部置き換えたわけではない。Gryphonのように、商品や作品を表す記号から候補を探す仕組みとの違いはそこにある。
+  evidence: |-
+    ### Netflixは既存の候補を使って並べ方を比べた
 
-    ただし「end-to-end」の範囲が重要だ。§8のA/Bでは既存productionのrow/entity候補集合を引き継ぐ。候補の適格性判断には依然として外側の仕組みがある。Gryphon型のopen-catalog
-    SID生成を唯一のcandidate generatorにした試験、と読み替えられない。'
-  evidence: '### 14日A/B：最良variantとその区間
+    著者は、約2億パラメータの重み付き二値分類モデルを、従来のホーム画面の推薦処理と14日間比べた（§8、図6）。著者が試した5設定では、無作為に加える負例の量や、学習に採用する表示記録の条件が違う。主要な利用指標はいずれも改善した（p<0.001）。最良の設定では0.24%増え、95%信頼区間は0.17%から0.30%増だった。指標の詳しい定義、割り付けの割合、参加人数は公開されていない。下の図には14日目の値だけを載せた。
 
+    変わったのはホーム画面を届けるまでの応答時間で、従来より20%短くなった。著者は順位付けと特徴計算を減らしたこと、行と作品をIDで表したこと、行末をまとめて選んだことを理由に挙げている。どの変更が何%を占めたかはこの比較からは分からない。
 
-    §8・図6。約200MのWBCを成熟したproductionホーム推薦と比較した。5 variantsは負例量や学習impressionの選別が異なる。全variantでp<0.001、最良variantは相対+0.24%、95%
-    CI [0.17%, 0.30%]。図は14日間の推移だが、このLabでは日次点を推測して描かず、最終値だけを使う。主指標はlaunch判断に使うcore engagementで、詳細な定義、割付比率、ユーザー数は開示されない。
+    ### 事前学習と強化学習は、別のログ比較で評価した
 
+    表1では、同じ追加学習を事前学習ありとなしで比較した。あり・なしの順に、損失は0.321と0.333、行のAUCは0.884と0.879、作品のAUCは0.920と0.910だった。図3はモデルの大きさを変え、図4は入力に含める情報を段階的に増やした。学習設定やデータの時点が異なるため、同じ条件で試したようには比べられない。
 
-    遅延−20%はbaseline比のend-to-end serving latency。mask単体の高速化率やGPU kernelの時間ではない。著者はランキング段数と特徴計算の削減、tokenization、hybrid
-    decodeを理由に挙げるが、各要因の寄与を分離したオンライン試験ではない。
+    強化学習で多様性が上がったのは、配信前の評価である（図5）。学習時と評価時に同じ報酬予測モデルを使ったため、評価値が上がっただけで利用者の満足度が上がったとは言えない。本番の重み付き二値分類版でも、新作と既存作品、映画とシリーズの表示割合などに、意図しなかった変化が出た。著者はこの原因を調べる必要があるとしている。
 
+    <figure class="teaching batch17"><h3>14日目の利用指標は0.24%増えた</h3><div class="b17-ci" role="img" aria-label="最良の設定では利用指標が0.24%増加。95%信頼区間は0.17〜0.30%増。横軸は0〜0.35%。"><span class="b17-ci-range"></span><span class="b17-ci-point">●</span></div><div class="b17-ci-labels"><span>0%</span><strong>0.24% [0.17, 0.30]</strong><span>0.35%</span></div><p>最良の設定と従来のホーム画面を比較（p&lt;0.001）</p><figcaption>§8・図6の最終値。途中の日ごとの値は載せていない。横棒は95%信頼区間で、利用者ごとの効果の幅ではない。</figcaption></figure>
 
-    ### 事前学習と文脈の効果は比較条件を読む
-
-
-    表1では事前学習あり/なしのWBC lossが0.321/0.333、row AUC 0.884/0.879、entity AUC 0.920/0.910。図3–4の容量と文脈の比較は同一snapshotの一つの実験ではなく、文脈側は段階ごとの相対改善を累積している。RLの多様性上昇（図5）はオフライン。作品カテゴリの露出配分にも意図しない変化があり、著者自身が調査課題としている。
-
-
-    <figure class="teaching batch17"><h3>14日目の相対liftと95% CI</h3><div class="b17-ci" role="img" aria-label="最良variantの相対lift0.24%、95%信頼区間0.17から0.30%。0から0.35%の軸"><span
-    class="b17-ci-range"></span><span class="b17-ci-point">●</span></div><div class="b17-ci-labels"><span>0%</span><strong>0.24%
-    [0.17, 0.30]</strong><span>0.35%</span></div><p>最良variant / p&lt;0.001 / baseline＝productionホーム推薦</p><figcaption>§8・図6の最終値。5
-    variantsの日次点は復元していない。横棒は95% CIで、個々の利用者の効果分布ではない。</figcaption></figure>
-
-
-    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2606.31031v2)。図表の箇所とSHA-256は末尾の対応表を参照。'
+    [一次資料：論文v2の表1、§7–8と図3–6](https://arxiv.org/pdf/2606.31031v2)。PDFの確認記録は記事末尾の対応表に記載した。
   overview: |-
     Netflixの研究チームは、ホーム画面に並べる行と、それぞれの行に載せる作品を、一つのTransformerで順に決めるGenPageを提案しました。利用者の視聴履歴やすでに表示した行を入力し、既存の候補集合の中から次の行と作品を選びます。
 
     14日間のA/Bテストでは、約2億パラメータのモデルを従来の多段階の推薦と比べました。最も成績のよかった設定では、採用判断に用いる主要な利用指標が0.24%増えました（95%信頼区間は0.17〜0.30%増）。著者は、配信全体にかかる時間が20%短くなったとも報告しています。本番で試したのは、重み付きの二値分類で追加学習したモデルです。強化学習版や、既存の候補生成まで置き換える構成は、この本番比較の対象ではありません。
 
     <figure class="teaching batch17"><h3>既存pipelineをどこまで一つにまとめるか</h3><div class="b17-cards"><div><strong>既存の候補集合</strong><p>行・作品の適格性と候補生成を継承する。ここがonline試験の外側の境界。</p></div><div><strong>GenPage 約200M / WBC</strong><p>promptと既出ページを読む → 行を選ぶ → 先頭作品を逐次生成 → 行末をまとめて選ぶ。</p></div><div><strong>配信するホーム</strong><p>重複・位置固定・カテゴリ制約を適用した行の並び。次のpaginationは直近反応を含む。</p></div></div><details><summary>promptの中身を開く</summary><div class="b17-cards"><div><strong>履歴</strong><p>作品ID / 行動 / 時間bucket / 継続時間bucket</p></div><div><strong>profile・request</strong><p>言語 / kids・adult / device / 時間帯</p></div><div><strong>既出のページ</strong><p>直前の行と作品、最新の反応</p></div></div></details><figcaption>§2・図1、§6.3–4、§8をもとにした説明図。GryphonのSID候補生成を組み込んだ図ではない。</figcaption></figure>
-  why_it_might_work: '【解釈】先に選んだ行・作品が次の予測に入るため、独立したスコアの足し算より文脈を使いやすい。作品と行を各1 tokenにすれば、業務制約をlogit maskに直結できる。モデルを大きくする前に文脈を豊かにするという観察も、この情報不足の説明と整合する。
+  why_it_might_work: |-
+    モデルは、すでに上に置いた行や同じ行に置いた作品を読み、次に何を出すかを決める。行と作品をそれぞれ一つのIDで表すので、出してはいけない候補はそのIDを選択肢から外せばよい。
 
-
-    一方、WBCは露出ログと内部reward systemを受け継ぐ。ランダム負例は未露出作品の過大評価を抑えるが、人気への事前バイアスも入る。RLのオフライン報酬上昇は、学習に使ったreward modelで評価しているため独立した裏付けには弱い。'
+    一方、本番で使う重み付き二値分類は、過去に表示された行や作品への反応をもとに学ぶ。無作為に加えた負例は、ほとんど表示されなかった作品を、少ない記録から過大評価するのを抑える。著者は、これが表示機会の多い作品を相対的に有利にする面もあると説明している。
   method: method.md
-  executable_understanding: '2行×3作品の人工ホームに候補外の高score作品を置く。同じscore関数で無制約、全逐次、先頭1件のみ逐次、行全体一括を比較する。Aを選ぶとCのscoreが上がる設定により、行内条件付けが変わる場面を作る。一括で選ぶ部分では、その部分の途中で作品を追加してもスコアを計算し直さない。forward回数は計算手順の数で、20%の遅延再現ではない。
+  executable_understanding: |-
+    Labは2行に3作品ずつ並べる例を用意した。候補に含まれない作品OUTには、許可した作品より高い点を与えた。また、先にAを選んだ場合はCの点が上がるようにした。この二つの条件を固定し、候補を制限するか、行末をまとめて選ぶかだけを変えた。行末をまとめて選ぶときは、その部分の途中で作品を追加してもスコアを計算し直さない。
 
+    <figure class="teaching batch17"><h3>採点を繰り返す回数で、作品の並びは変わるか</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>設定</th><th>行ごとの作品</th><th>採点回数</th><th>候補外の作品数</th></tr></thead><tbody><tr><td>無制約</td><td>OUT,OUT,OUT / OUT,OUT,OUT</td><td>8</td><td>6</td></tr><tr><td>全逐次</td><td>A,C,B / D,E,F</td><td>8</td><td>0</td></tr><tr><td>先頭1件のみ逐次</td><td>A,C,B / D,E,F</td><td>6</td><td>0</td></tr><tr><td>行全体を一括</td><td>A,B,C / D,E,F</td><td>4</td><td>0</td></tr></tbody></table></div><figcaption>OUTは候補外の作品。表の回数は、合成例で採点した回数であり、本番での時間は測っていない。</figcaption></figure>
+  results: 候補を制限しないと、合計6か所すべてで候補外のOUTが選ばれた。候補を制限すると、候補外の作品は一つも選ばれなかった。全作品を一つずつ選ぶと採点は8回だった。先頭の作品だけを一つずつ選ぶ条件では6回で、並びはこの例では変わらなかった。行を丸ごと一度に採点する条件では4回だったが、1行目はA・C・BではなくA・B・Cになった。
+  what_we_verified: 'Labは、この合成例の範囲で、候補を除く規則と、行末で採点を繰り返さない場合の並びを確かめた（Mechanism: PARTIAL）。[結果](../downloads/genpage-netflix-homepage/results.json)のCONFIRMEDは、この例で確認したことを示す。'
+  what_we_did_not_verify: LabはNetflixのデータや実際に使う反応の集計方法、約2億パラメータのモデルを使っていない。強化学習の本番効果、Gryphonとの比較、配信時間は測っていない（NOT TESTED）。先頭だけ一つずつ選ぶ方法と全作品を一つずつ選ぶ方法が、この例で同じ順になることは確認できた。別の作品や採点方法でも一致するとは限らない。
+  implementation: |-
+    リポジトリの最上位で `uv run papers/genpage-netflix-homepage/run.py` を実行すると、コードと同じフォルダーの `results.json` が更新される。Pythonの標準ライブラリだけで動き、乱数も外部APIも使わない。
 
-    <figure class="teaching batch17"><h3>同じscoreで生成手順を変える</h3><div class="matrix-scroll" tabindex="0" role="region"
-    aria-label="比較表"><table><thead><tr><th>設定</th><th>行ごとの作品</th><th>forward回数</th><th>候補違反</th></tr></thead><tbody><tr><td>無制約</td><td>OUT,OUT,OUT
-    / OUT,OUT,OUT</td><td>8</td><td>6</td></tr><tr><td>全逐次</td><td>A,C,B / D,E,F</td><td>8</td><td>0</td></tr><tr><td>先頭1件のみ逐次</td><td>A,C,B
-    / D,E,F</td><td>6</td><td>0</td></tr><tr><td>行全体を一括</td><td>A,B,C / D,E,F</td><td>4</td><td>0</td></tr></tbody></table></div><figcaption>run.pyの実行結果。OUTは候補外の人工作品。回数の削減を実測遅延の削減率には換算しない。</figcaption></figure>'
-  results: 人工実験の計算値を下に示す。著者のオンライン報告とは別のデータである。
-  what_we_verified: '**Mechanism: PARTIAL**。上記の人工条件で計算手順と境界条件を確認した。results.jsonのchecksにあるCONFIRMEDはその小さな命題だけに適用する。
+    [実行コード](../downloads/genpage-netflix-homepage/run.py)・[全結果](../downloads/genpage-netflix-homepage/results.json)・[README](../downloads/genpage-netflix-homepage/README.md)・[手法](../downloads/genpage-netflix-homepage/method.md)・[対応表](../downloads/genpage-netflix-homepage/mapping.md)をダウンロードできる。
 
-
-    実験の入力と全出力はrun.pyとresults.jsonから確認できる。'
-  what_we_did_not_verify: 'Netflixデータ、reward system、200Mモデルの学習、ページ満足度、RLのオンライン効果、Gryphonとの実験比較はNOT TESTED。人工例でhybridと全逐次が一致しても、任意の相互作用で一致する保証はない。
-
-
-    **Performance / Scaling / Production applicability: NOT TESTED**。一次資料の報告値との照合は、報告された本番効果の独立再現を意味しない。'
-  implementation: '標準ライブラリだけの独立実験。repository rootで `uv run papers/genpage-netflix-homepage/run.py` を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。
-
-
-    [実行コード](../downloads/genpage-netflix-homepage/run.py)・[全結果](../downloads/genpage-netflix-homepage/results.json)・[README](../downloads/genpage-netflix-homepage/README.md)・[方法](../downloads/genpage-netflix-homepage/method.md)・[対応表](../downloads/genpage-netflix-homepage/mapping.md)を保存できる。
-
-
-    確認した論文本文・arXiv書誌には取得可能な公式実装の案内を確認できなかった。非公開であると断定せず、公式コードの独立実行はNOT TESTEDとする。'
+    Labが確認した範囲では、論文とarXivの書誌からは、公式コードの入手先を確認できなかった。この合成例は、公式の実装を再現したものではない。
   mapping: mapping.md
 teaching_figures:
 - kind: equations
   id: method-equations
-  title: 式と操作の対応
+  title: モデルが学ぶことと、配信時に守る規則
   after: method
-  caption: 各記号が担う役割を分けて読む。
-  rationale: 演算と制約の対象を明確にする。
+  caption: 画面を順に作る確率、追加学習の損失、出せない候補を除く計算を分けて示す。
+  rationale: どの式が学習に使われ、どの式が配信時に使われるかを区別する。
   source: https://arxiv.org/pdf/2606.31031v2
   locator: §5.2・§6.3（文章の記号化）
   steps:
-  - name: 系列化
+  - name: 行と作品を順に作る
     formula: p(page|context)=Π_t p(y_t|context,y_<t)
-    explanation: 生成時の条件付け。WBCの学習目的と同じ意味ではない。
-  - name: WBC
+    explanation: 直前までに選んだ行と作品を使って、次の候補を選ぶ。これは配信時の順序を表し、追加学習の損失を表す式ではない。
+  - name: 反応の良し悪しを学ぶ（WBC）
     formula: L=−Σ w[b log σ(z)+(1−b)log(1−σ(z))]
-    explanation: §5.2の文章をLabで記号化。報酬の符号を二値ラベル、大きさを学習時の重みにする。良い反応かどうかと、その例をどれほど強く学ぶかを分ける。
-  - name: mask
+    explanation: 著者は報酬の正負から反応のラベルを作り、報酬の大きさで各例の重みを決める。論文§5.2の説明をLabが式にした。
+  - name: 配信できない候補を除く
     formula: z′_v=z_v+m_v, m_v∈{0,−∞}
-    explanation: 候補集合と業務規則に反するtokenを出さない。
+    explanation: 配信できるIDの点数は変えず、候補集合や規則に反するIDは選ばれない点数に変える。
