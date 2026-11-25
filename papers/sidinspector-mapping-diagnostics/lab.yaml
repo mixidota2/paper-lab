@@ -37,8 +37,10 @@ core_idea:
     traceの入力拡張。
   research_bot_interpretation: '[SIDScope](sidscope-diagnostics.html)と共通する診断軸が多く、新しいtokenizerの性能改善と読むべきではない。本Labでは小さいadapter契約と、同じitem集合で「住所の一意性」と「行動近傍の保存」を分ける実用上の入口を重視する。'
 sections:
-  overview: SIDが全商品に割り当てられていても、同じIDへ多数の商品が集まる場合も、IDが一意でもprefixに意味がない場合もある。SIDInspectorはgeneratorを動かす前に、この住所表を点検するtooling研究。online
-    liftを示した論文ではなく、入力artifactを検査できる共通interfaceと診断の分離が成果である。
+  overview: |-
+    商品ごとに符号列（Semantic ID）を割り当てると、異なる商品が完全に同じ符号を持つことがあります。SIDInspectorは推薦モデルを学習させる前に、その割り当てを調べる道具です。符号を共有する商品の割合と、履歴でよく一緒に現れる商品どうしが符号の先頭が一致するかを別々に測ります。
+
+    著者が同じ23,742商品を使って比べると、GRIDを模した出力では97.7%の商品が別の商品と同じ符号を共有しました。ReSID/GAOQの出力では共有がありませんでした。これは書き出した符号の比較です。推薦したときの順位や、本番での利用者の反応を比べた結果ではありません。
   problem: tokenizerの公開物はcheckpoint、codebook、item indexなど形が揃わない。IDの重複やjoin欠落を残したまま下流Recallだけを見ると、どこで問題が起きたか分からない。まずstable
     item key、離散token、同じ診断対象集合、metadata/interactionとのjoinを揃える必要がある。可変長codeはpadding/maskと実長を記録できるが、実serving挙動にはtraceが必要となる。
   why_it_might_work: '解釈: modelの学習前に失敗を発見できれば、大きいgeneratorを回してからmapping欠落に気付く手戻りを減らせる。D2とD3を別々に測ると、単にleafを増やす対策とprefixの構造を変える対策を分けられる。ただしco-occurrenceも履歴の露出やtaxonomyに依存し、高いD3が因果的に推薦を改善する保証はない。'
