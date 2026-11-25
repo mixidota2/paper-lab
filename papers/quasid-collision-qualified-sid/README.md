@@ -1,8 +1,8 @@
-# Stop Treating Collisions Equally: Qualification-Aware Semantic ID Learning for Recommendation at Industrial Scale
+# QuaSID：似たSIDを持つ商品を、学習でいつ引き離すか
 
-QuaSIDは、商品を表す離散コード（Semantic ID、SID）が重なったとき、学習で表現ベクトルを引き離す組を選ぶ。同じ商品どうしの組と、行動履歴から近付けるべきだと判定した組（協調正例）は、引き離す対象から外す。そのうえで、IDの全桁が一致する組と、一部の桁が異なり、その数が半径 R 以下の組で、表現ベクトルのコサイン距離に求める下限を変える。害のある衝突を減らす方法であり、衝突がゼロになることは保証しない。
+QuaSIDの著者は、異なる商品のSemantic ID（SID）が重なる問題に取り組んだ。同じ商品や、行動履歴から近付ける対象にした組は引き離さない。それ以外では、全桁が一致する組を、一部の桁だけが一致する組より遠くに離すよう学習する。ベクトルが離れてもSIDの一意性は保証されない。
 
-Kuaishouのオンライン比較では、順位付け（ranking）にSIDの特徴を加えた場合にGMV-S2が+2.38%だったと著者が報告している。候補取得（retrieval）では、公開後48時間の再生が100回未満の動画（100vv群）で完了注文数が+6.42%だった。評価指標も対象も異なり、どちらもLabで再現した結果ではない。
+Kuaishouの著者は、順位付けにSID由来の特徴量を加えると、あるシナリオの取引総額（GMV-S2）が対照より2.38%増えたと報告した。一方、候補取得でSIDの作り方を変えた試験では、公開後48時間の再生が100回未満の動画で完了注文数が対照より6.42%増えた。指標、対象、変更した段階が違うので、二つの数値は直接比較できない。
 
 ## 実行
 
@@ -11,14 +11,10 @@ uv run papers/quasid-collision-qualified-sid/run.py
 uv run paper-lab build
 ```
 
-実験コードはPython標準ライブラリだけを使う。どのディレクトリから実行しても、`run.py` と同じフォルダーの `results.json` を更新する。
+`run.py`はPythonの標準ライブラリだけを使い、スクリプトと同じフォルダーに`results.json`を書き出す。Labリポジトリの外で配布ファイルを動かすなら、出力先を上書きしてよいフォルダーに置いてから`python3 run.py`を実行する。
 
-## 原本
+## ファイルと確認の範囲
 
-`lab.yaml` に本文と図の定義、`method.md` に手法、`mapping.md` に原論文との対応を記す。HTMLは生成ツールで作る。合成実験のコードと結果は `run.py` と `results.json` にある。
+`lab.yaml`が記事と図の定義、[method.md](method.md)が手法、[mapping.md](mapping.md)が論文と実験の対応を収める。Labは架空の例で除外条件と距離の計算を確かめた（Mechanism PARTIAL）。論文のモデルは学習していない。推薦の性能、規模を大きくした場合の挙動、本番への適用は未検証（NOT TESTED）。CONFIRMEDは`results.json`に記録した個別の計算に限る。
 
-## 検証範囲
-
-Labでは仕組みの一部を確認した（Mechanism PARTIAL）。性能、規模を大きくした場合の挙動、本番への適用は試していない（Performance / Scaling / Production applicability NOT TESTED）。CONFIRMEDは、JSONに記した個別の算術と比較条件だけを指す。原論文のモデルは学習していない。
-
-[一次資料・全文](https://arxiv.org/html/2603.00632v1)。確認日：2026-09-15。未検証の項目や出典を読む際の注意は、Labの本文と `mapping.md` を参照。
+[論文初版の全文](https://arxiv.org/html/2603.00632v1)。元記事の出典確認日：2026-09-15。

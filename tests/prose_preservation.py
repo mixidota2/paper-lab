@@ -100,7 +100,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = tgr_full_rewrite_hash(root, path, expected, algorithm)
     expected = harness_icegr_full_rewrite_hash(root, path, expected, algorithm)
     expected = forecast_pair_full_rewrite_hash(root, path, expected, algorithm)
-    return semantic_id_pair_full_rewrite_hash(root, path, expected, algorithm)
+    expected = semantic_id_pair_full_rewrite_hash(root, path, expected, algorithm)
+    return quasid_full_rewrite_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -284,6 +285,35 @@ def before_semantic_id_pair_full_rewrite(root, path, current):
     if not path.startswith(('papers/sidinspector-mapping-diagnostics/', 'papers/sidscope-diagnostics/')):
         return current
     row = semantic_id_pair_body_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior
+
+
+def quasid_body_rows(root):
+    return json.loads((root / 'tests/quasid_full_rewrite_hashes.json').read_text())['files']
+
+
+def quasid_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith(('papers/quasid-collision-qualified-sid/',)):
+        return expected
+    row = quasid_body_rows(root).get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_quasid_full_rewrite(root, path, current):
+    if not path.startswith(('papers/quasid-collision-qualified-sid/',)):
+        return current
+    row = quasid_body_rows(root).get(path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
