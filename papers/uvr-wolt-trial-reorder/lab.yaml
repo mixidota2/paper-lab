@@ -38,8 +38,10 @@ core_idea:
   author_claim: 履歴classifierとcontext・contentを扱うGBDTを組み合わせ、trial-aware weightingで運用点を選ぶ。V3で飲食店と小売の履歴を共有し、4つの旧rankerを統合した。
   research_bot_interpretation: 国別学習と領域間共有を分けて読む。sequenceモデル対GBDTという二者択一より、どの信号をどこで学習し、何をガードレールにするかが実務上の焦点になる。
 sections:
-  overview: WoltのUniversal Venue Ranker（UVR）は、購入履歴を読む双方向Transformerのlogitを、CatBoostの特徴量に加える。V1の2週間・50:50 A/BではMerchant
-    Trial Rate +5.5%、Global CVR +0.16%（p=0.017）。V2でtrialをさらに重視すると、再注文のオフラインMRRは6カ国中5カ国で旧productionを下回った。
+  overview: |-
+    Woltの研究チームは、利用者が新しい店を試す機会を増やしつつ、いつもの店も見つけやすくする順位付けを調べました。Transformerで利用者の購入履歴を読み、次に選びそうな店のスコアを作ります。CatBoostはそのスコアをほかの特徴量と合わせて、店の表示順を決めます。
+
+    著者は主要10カ国で利用者を半分ずつ無作為に分け、初期版（V1）を従来方式と2週間比較しました。飲食店で初めて注文する割合は5.5%、全体の注文転換率は0.16%増えました（後者はp=0.017）。新しい店をさらに重視したV2では、購入履歴を使った別の評価で、再注文した店を上位に置く指標が6カ国中5カ国で従来方式を下回りました。実際の再注文が同じ割合で減ったという意味ではありません。
   problem: 配達できない店舗は、好みに合っていても候補にできない。営業時間、距離、配達員、混雑で候補集合はrequestごとに変わる。また、いつもの店から買うreorderと、新しい店を試すtrialでは必要な順位が違う。平均MRRだけを最適化すると、利用頻度の高い再注文が学習を支配しやすい。
   method: method.md
   why_it_might_work: 履歴の長期パターンをTransformerで圧縮し、配送料や距離の非線形な条件を木で扱えば、役割を分けて運用できる。[OTTOのGBDT対DNN](otto-gbdt-vs-dnn-ltr.html)の「どちらを選ぶか」に対し、ここでは組み合わせ方が問いになる。[REST](rest-sequence-ranking.html)とも、sequence表現の計算場所と最終rankerの責任を比べたい。
