@@ -40,7 +40,7 @@ class OverviewText(HTMLParser):
 
 def test_scoped_source_transition_and_rendered_overviews(tmp_path):
     rows = json.loads((ROOT / 'tests/paper_overview_hashes.json').read_text())['files']
-    assert len(rows) == 70
+    assert len(rows) == 74
     site = tmp_path / 'site'
     build(root=ROOT, site_dir=site)
     anchors = {
@@ -114,6 +114,10 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'tgr': ('CCFormer', '3.57%', 'BARGE', '0.60%', 'HiGR', '1.22%', 'TGR-Reason', '13.09%'),
         'sona-yandex-music': ('各群15%', '7日間', '4.53%', '6.30%', '全利用者に展開しておらず'),
         'unir2-sequence-unify': ('5%', '2週間', '1.177%', '2.569%', '推薦の全段階を置き換えた結果でもありません'),
+        'gatesid-coldstart-ranking': ('二つの表現', '2週間', '2.6%', '5.6%', '5ミリ秒未満'),
+        'icegr-baidu-intent-generative-retrieval': ('5億パラメータ', '最終結果に直接', '3.52%', '15.96%', '7.53%'),
+        'ogr-once-generated-ranked': ('3%', '1週間', '1.120%', '本番の応答時間が約2.2倍速くなったという測定結果ではありません'),
+        'sid-ope-hierarchy': ('KuaiRand', 'SNIPS', '0.155', '0.087', '同じ数のグループ'),
     }
     for path, row in rows.items():
         raw = before_full_article_rewrites(ROOT, path, (ROOT / path).read_bytes())
@@ -166,13 +170,16 @@ def test_download_mirror_replaces_only_the_overview():
         'genpage-netflix-homepage',
         'sona-yandex-music',
         'unir2-sequence-unify',
+        'gatesid-coldstart-ranking',
+        'icegr-baidu-intent-generative-retrieval',
+        'ogr-once-generated-ranked',
     )}
     for path, row in receipt['mirrored'].items():
         source = before_full_article_rewrites(ROOT, row['source'], (ROOT / row['source']).read_bytes())
         previous = restored_before_paper_overview(ROOT, row['source'], source)
         old, new = (yaml.safe_load(raw)['sections']['overview'].encode() for raw in (previous, source))
         if row.get('mirror_excludes_unchanged_figure'):
-            assert Path(path).parent.name == 'genpage-netflix-homepage'
+            assert Path(path).parent.name in {'genpage-netflix-homepage', 'gatesid-coldstart-ranking'}
             old, old_figure = old.split(b'\n\n<figure', 1)
             new, new_figure = new.split(b'\n\n<figure', 1)
             assert new_figure == old_figure
@@ -182,6 +189,8 @@ def test_download_mirror_replaces_only_the_overview():
                 'proximal-residual-value-inventory-placement': 2,
                 'retailbench-long-horizon-store-agents': 1,
                 'pinterest-causal-retrieval-shopping': 1,
+                'gatesid-coldstart-ranking': 2,
+                'icegr-baidu-intent-generative-retrieval': 1,
             }
             assert slug in prior_paragraphs
             old = row['prior_mirror'].encode()

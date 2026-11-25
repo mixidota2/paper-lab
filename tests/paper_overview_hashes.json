@@ -560,6 +560,38 @@
       "after_blob": "0598ff97fa1e360ae92080f619b976436c74a051",
       "prior_field": "  overview: UniR²はユーザー文脈、SID軌跡、item featuresを一つのdecoder系列へ置く。Kuaishouの2週間・5% A/BではOneLive recallと本番pre-rankを同時に置換した。全カスケードの撤去とは区別し、可視範囲・勾配・KV再利用の境界を読む。\n",
       "new_field_sha256": "9f5e17182c894e878ee8ef9a37099e95500016f2092474e386db570ea1614f11"
+    },
+    "papers/gatesid-coldstart-ranking/lab.yaml": {
+      "before_sha256": "4d13f399f8ac3f5d344cf4253d65de31fc378460b28ecd7f41e16e240cd4ddbf",
+      "before_blob": "c145afd6ee4a0c36f450ec9da75b6ee296fd77f4",
+      "after_sha256": "1132f6d442f786294caa1033964a959b7dc3cdad17a9ae9f2d551a26822389e6",
+      "after_blob": "05d955b4965f739b76da12a66021e560b7f60b8c",
+      "prior_field": "  overview: |-\n    GateSIDは、すでにある候補商品のクリックや注文を予測する。商品内容を表す識別子（SID）と行動履歴から、履歴を参照する重みを別々に求める。2組の重みは、商品の掲載期間や露出・クリックなどから学習した比率で混ぜる。候補を生成する手法ではない。Alibaba Internationalの著者は、総トラフィックの20%を使った2週間のA/Bテストで、取引総額（GMV）が全体で+2.6%、掲載20日未満の新商品群で+5.6%、追加遅延は5ms未満だったと報告している。\n\n    <figure class=\"teaching batch17\"><h3>SIDを使う場所：GateSIDは候補の順位付け</h3><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"比較表\"><table><thead><tr><th>設計</th><th>入力</th><th>出力</th><th>SIDの役割</th></tr></thead><tbody><tr><td>GateSID</td><td>ユーザー履歴＋候補商品</td><td>CTR・CTCVRの予測スコア</td><td>候補と履歴の意味特徴</td></tr><tr><td>生成推薦</td><td>ユーザー文脈＋prefix</td><td>次のSIDトークン</td><td>候補を探すために出力する列</td></tr></tbody></table></div><figcaption>§3・図2に基づく役割の比較。SIDを使うだけでは、候補を生成していることにはならない。</figcaption></figure>\n",
+      "new_field_sha256": "a289f4dd6d4bdefce67c267e72819f75c7239573a3d19132b52d01b2f03a90ac"
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/lab.yaml": {
+      "before_sha256": "343e44730e517751895bd9724f076a370434466432cecccc3a1c8dad4a35bf69",
+      "before_blob": "67b067da192bb311667eabc0077e179a0fd34429",
+      "after_sha256": "729bbab331769a389cf98e0e5f3139d5927576d95e8f58780df413e85796264c",
+      "after_blob": "824a1ae5e6c85a9620cabf1711b5cc0a09f5e3b3",
+      "prior_field": "  overview: 「恋人への贈り物」には口紅とネックレスの両方が適する。商品contentの類似性だけでSIDを作ると、このquery共通性を失う。ICEGRはco-clickと過去queryをSIDへ入れ、少数露出商品にも合成queryを与え、選好学習でも関連性を守る。Baiduの0.5Bモデルのオンライン成績は有望だが、改善の主因をtokenizerだけに帰さない。\n",
+      "new_field_sha256": "2c75b08d74d3aa3a878511dfebc9c15abcbfc91edf0ebfcfa225888a33c0174d"
+    },
+    "papers/ogr-once-generated-ranked/lab.yaml": {
+      "before_sha256": "141399dec922d4286d84b45d231a07403ef169ad72b0773278d35084beeb9d66",
+      "before_blob": "8a89f013bf5a9ce86b0df440cbb57a2e01b5602c",
+      "after_sha256": "68cb9611ea8ea966abc573c5730504598780aff631bc558fe3bac5cff12c7137",
+      "after_blob": "aebd1d7c1632ef9f5696d1168ead40ae99968799",
+      "prior_field": "  overview: OGRは表示するslate全体を順序付きで生成する。TUSIDは、動画の意味的な特徴と、ユーザーの履歴上で他の動画と一緒に現れる傾向を統合してIDを作る。GL2Pは、表示位置どうしの関係を考慮して並びを計画する。SPAは、表示する動画の組全体（slate）への反応に合わせて生成モデルを調整する。Kuaishouの3%トラフィックで有効視聴+1.120%。ただし約2.2倍は依存経路の理論比であり、本番遅延の測定値ではない。\n",
+      "new_field_sha256": "8002961a0e7e7637e6b8b49c6c79fd605146268a617e90866535caab20278e88"
+    },
+    "papers/sid-ope-hierarchy/lab.yaml": {
+      "before_sha256": "31979b221d7d3b736f075663f47d7eba4796f4372bd8a596d5fedac010e8a269",
+      "before_blob": "f54cb7102eba1ce9582b7ad8623260e77cde67ea",
+      "after_sha256": "f9e868d0f94c90c24090ddec6cfde1cc074ccd7f0b4a16db2fe28bc58898e229",
+      "after_blob": "e6b993d070c757270b4b3449ddb7bf1ffe0157f1",
+      "prior_field": "  overview: 商品ごとの記録が少なく評価値が不安定なとき、識別子の先頭部分が同じ商品をまとめて評価すると、同じログをより安定して使える場合がある。ただし、同じ商品群の中で好みが変わった違いは見落としやすくなる。精度改善の中心は粗粒度化で、木の固有の利点はdecoderから群の確率を少ない計算で求められることにある。\n",
+      "new_field_sha256": "18701f580a67e8e81128e33c17340ae2582ff5908d2079da6ca2f43ae113bc4f"
     }
   },
   "generated_from": {
@@ -756,6 +788,30 @@
       "after_sha256": "0ca13ef0f4e5aba87c4bd63b0dd6158a9e81d63b817632080808947ce518aba2",
       "after_blob": "824ae8d1ad085df5ecf3d8b6368ab81cc7760397",
       "source": "papers/unir2-sequence-unify/lab.yaml"
+    },
+    "papers/gatesid-coldstart-ranking/README.md": {
+      "before_sha256": "39d8a5daec0b65815067b3e661d9f853b79cbd94996c94beee0c1e680dd26da1",
+      "before_blob": "b08e6e105ba3cb91f7ee3b572469a13cc2e49a61",
+      "after_sha256": "5b5e8551c33be5719603df410391671223e92070f18bf7b6b61a4107f2da8c77",
+      "after_blob": "ea655ad4b587b23f075ff875654a20a23d57ae30",
+      "source": "papers/gatesid-coldstart-ranking/lab.yaml",
+      "prior_mirror": "GateSIDは、すでにある候補商品のクリックや注文を予測する。候補を生成する手法ではない。商品内容を表す識別子（SID）とクリックなどの行動履歴から、履歴のどの位置を参照するかを別々に計算する。2組の重みは、商品の掲載期間や露出・クリックなどから学習した比率で混ぜる。\n\nAlibaba Internationalの著者は、総トラフィックの20%を使った2週間のA/Bテストで、取引総額（GMV）が全体で2.6%、掲載20日未満の新商品で5.6%増え、追加遅延は5ms未満だったと報告している。新商品の5.6%は、その商品群内の値だ。",
+      "mirror_excludes_unchanged_figure": true
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/README.md": {
+      "before_sha256": "b84cb488fe5bb8663ac8185a6e748141f5c325f6e8f8752ad1af209c6c5b019b",
+      "before_blob": "abad420b4bf412a9f749c8189f192594121fc736",
+      "after_sha256": "47d13ff553922ca521901f471ccc3b754a74aad19c5cd2526f1ae768f578b925",
+      "after_blob": "0aed035f8ad31cb323a5913c716308ed7ece610a",
+      "source": "papers/icegr-baidu-intent-generative-retrieval/lab.yaml",
+      "prior_mirror": "Baiduの検索で使うICEGRは、検索意図を反映した識別子（SID）、人工的に作った検索文を使う学習、関連性を保つための追加学習を組み合わせる。2週・20% A/BでCTR +3.52%、注文 +15.96%、GMV +7.53%。最終表示への直接挿入枠を持つ。"
+    },
+    "papers/ogr-once-generated-ranked/README.md": {
+      "before_sha256": "b38ef8a9433eddc6715e9e963af05d7a48a454e569fa6e47325629609bf9f57e",
+      "before_blob": "8a4f3ab8fc5e5877ab7b80cf6df69ab55357a2c2",
+      "after_sha256": "4a842b11de6b1f069819494cf6e152af4d57a51e193df6fa3bf69c965bfe23c0",
+      "after_blob": "aa52cf09a7d638c6e859ca3b0d33c91dad308fad",
+      "source": "papers/ogr-once-generated-ranked/lab.yaml"
     }
   }
 }
