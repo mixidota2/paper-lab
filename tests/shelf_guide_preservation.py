@@ -1,5 +1,6 @@
 """Permit hash-pinned guide revisions, preserving the old catalog."""
 import gzip
+import json
 import hashlib
 from pathlib import Path
 import subprocess
@@ -47,7 +48,27 @@ def reverse_exact(data, patch, patch_sha, expected):
         return restored
 
 
+def before_tsukuba(data):
+    receipt = json.loads((Path(__file__).parent / 'shelf_tsukuba_hashes.json').read_text())['files'][GUIDE]
+    if sha(data) != receipt['after_sha256']:
+        return data
+    assert receipt['before_sha256'] == STREICHER
+    start = b'<span id="tsukuba-sekisho-shelf-evaluation"></span>'
+    following = b'<span id="streicher-aisle-evaluation"></span>'
+    row = '| [筑波大学・関彰商事、2026]'.encode()
+    assert data.count(start) == data.count(following) == data.count(row) == 1
+    first, last = data.index(start), data.index(following)
+    assert first < last
+    data = data[:first] + data[last:]
+    first = data.index(row)
+    last = data.index(b'\n', first) + 1
+    restored = data[:first] + data[last:]
+    assert sha(restored) == STREICHER, 'The new case changed prior guide content'
+    return restored
+
+
 def before_streicher(data, patch_bytes=None):
+    data = before_tsukuba(data)
     if sha(data) != STREICHER:
         return data
     patch = patch_bytes if patch_bytes is not None else gzip.decompress((Path(__file__).parent / 'fixtures/shelf-guide-streicher-20261124.patch.gz').read_bytes())

@@ -19,8 +19,10 @@ def prepare(tmp_path, data=None):
 
 
 def test_reviewed_revision_and_previous_version_both_pass(tmp_path):
-    from shelf_guide_preservation import FULL_REWRITE, NOVEMBER, STREICHER, before_full_rewrite, before_november, before_streicher
+    from shelf_guide_preservation import FULL_REWRITE, NOVEMBER, STREICHER, before_full_rewrite, before_november, before_streicher, before_tsukuba
     target = prepare(tmp_path)
+    verify_preserved_source(tmp_path, GUIDE, BEFORE, patch_bytes=PATCH, dcmp_patch_bytes=DCMP_PATCH, layout_patch_bytes=LAYOUT_PATCH)
+    target.write_bytes(before_tsukuba(target.read_bytes()))
     assert sha(target.read_bytes()) == STREICHER
     verify_preserved_source(tmp_path, GUIDE, BEFORE, patch_bytes=PATCH, dcmp_patch_bytes=DCMP_PATCH, layout_patch_bytes=LAYOUT_PATCH)
     target.write_bytes(before_streicher(target.read_bytes()))
