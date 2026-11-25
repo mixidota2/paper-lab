@@ -1,22 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 520" role="img" aria-labelledby="title"><title id="title">順位付けの勾配は基盤の経路で止める</title><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#586c78"/></marker></defs><rect width="560" height="520" fill="#f7faf9"/><style>text{font-family:system-ui,sans-serif;fill:#183640;font-size:19px}.small{font-size:16px}.head{font-size:23px;font-weight:700}</style>
-<text x="24" y="35" class="head">順位付けの勾配は基盤の経路で止める</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 520" role="img" aria-labelledby="title"><title id="title">順位付けの誤差は共有する変換を更新しない</title><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#586c78"/></marker></defs><rect width="560" height="520" fill="#f7faf9"/><style>text{font-family:system-ui,sans-serif;fill:#183640;font-size:19px}.small{font-size:16px}.head{font-size:23px;font-weight:700}</style>
+<text x="24" y="35" class="head">順位付けの誤差は共有する変換を更新しない</text>
 <rect x="24" y="65" width="246" height="91" rx="10" fill="#e2efea" stroke="#a6bdb5"/>
-<text x="38" y="92" class="">生成query</text>
+<text x="38" y="92" class="">候補を作る側</text>
 <text x="38" y="119" class="">WQ / WK / WV</text>
 <rect x="290" y="65" width="246" height="91" rx="10" fill="#e2efea" stroke="#a6bdb5"/>
-<text x="304" y="92" class="">ranking query</text>
-<text x="304" y="119" class="">同じbase射影</text>
+<text x="304" y="92" class="">順位を付ける側</text>
+<text x="304" y="119" class="">同じ変換を参照</text>
 <path d="M144 156 L144 204" fill="none" stroke="#586c78" stroke-width="2" marker-end="url(#arrow)"/>
 <path d="M410 156 L410 204" fill="none" stroke="#586c78" stroke-width="2" marker-end="url(#arrow)"/>
 <rect x="24" y="210" width="246" height="91" rx="10" fill="#e2efea" stroke="#a6bdb5"/>
-<text x="38" y="237" class="">生成用FFN</text>
-<text x="38" y="264" class="">L_genでbaseを更新</text>
+<text x="38" y="237" class="">候補生成用のFFN</text>
+<text x="38" y="264" class="">L_genで共有部分を更新</text>
 <rect x="290" y="210" width="246" height="118" rx="10" fill="#fff0da" stroke="#a6bdb5"/>
 <text x="304" y="237" class="">sg(WX) ＋ BA X</text>
-<text x="304" y="264" class="">base側はdetach</text>
-<text x="304" y="291" class="">BAとrank FFNを学習</text>
+<text x="304" y="264" class="">共有部分は更新しない</text>
+<text x="304" y="291" class="">BAと順位付け側を学習</text>
 <text x="303" y="186" class="small">↑ 勾配を遮断</text>
 <path d="M410 328 L410 354" fill="none" stroke="#586c78" stroke-width="2" marker-end="url(#arrow)"/>
 <rect x="24" y="360" width="512" height="90" rx="10" fill="#e2efea" stroke="#a6bdb5"/>
-<text x="38" y="387" class="">前向き：生成軌跡をrankingへ共有</text>
-<text x="38" y="414" class="">注意：疎なembeddingは両タスクで共有</text><text x="24" y="504" class="small">research_bot · 一次資料を基に説明用に再構成</text></svg>
+<text x="38" y="387" class="">予測時は、候補を作った途中の情報を共有する</text>
+<text x="38" y="414" class="">疎な入力の埋め込みには共有経路が残る</text><text x="24" y="504" class="small">論文の式17–18をもとにLabが作成</text></svg>

@@ -93,7 +93,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = arxiv_versioned_overview_hash(root, path, expected, algorithm)
     expected = paper_overview_rewrite_hash(root, path, expected, algorithm)
     expected = revise_full_rewrite_hash(root, path, expected, algorithm)
-    return pinterest_full_rewrite_hash(root, path, expected, algorithm)
+    expected = pinterest_full_rewrite_hash(root, path, expected, algorithm)
+    return unir2_full_rewrite_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -104,6 +105,30 @@ def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
         return expected
     assert expected == row['before_' + algorithm], path
     return row['after_' + algorithm]
+
+
+def unir2_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/unir2-sequence-unify/'):
+        return expected
+    row = json.loads((root / 'tests/unir2_full_rewrite_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_unir2_full_rewrite(root, path, current):
+    if path not in ('papers/unir2-sequence-unify/lab.yaml', 'papers/unir2-sequence-unify/README.md'):
+        return current
+    row = json.loads((root / 'tests/unir2_full_rewrite_hashes.json').read_text())['files'][path]
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    assert row['prior_spans'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, end, old in reversed(row['prior_spans']):
+        lines[start:end] = [old]
+    data = ''.join(lines).encode()
+    assert hashlib.sha256(data).hexdigest() == row['before_sha256'], path
+    return data
 
 
 def before_pinterest_full_rewrite(root, path, current):
