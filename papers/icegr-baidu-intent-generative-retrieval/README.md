@@ -4,18 +4,18 @@ Baiduの研究チームは、検索した人の目的に合う商品を生成モ
 
 Baiduは本番トラフィックの20%を使い、2週間のA/Bテストを行いました。既存の検索システムに5億パラメータのICEGRを追加し、その上位候補の一部を最終結果に直接入れました。著者の報告では、既存方式に比べてクリック率が3.52%、注文数が15.96%、取引総額が7.53%増えました。比較では商品IDの作り方、学習方法、表示の仕方をまとめて変えています。この数字だけでは、どの変更が効いたかは分かりません。
 
-公開ページ: https://mixidota2.github.io/paper-lab/papers/icegr-baidu-intent-generative-retrieval.html
+[Labの解説ページ](https://mixidota2.github.io/paper-lab/papers/icegr-baidu-intent-generative-retrieval.html)
 
-## 実行
+## 架空の商品を使った計算を実行する
 
 ```bash
 uv run papers/icegr-baidu-intent-generative-retrieval/run.py
 ```
 
-Python標準ライブラリだけを使う。`lab.yaml` と `method.md` が解説の原本、`run.py` が最小実験、`results.json` が出力、`mapping.md` が原典との対応。HTMLは `uv run paper-lab build` で生成する。
+Pythonの標準ライブラリだけで実行できます。`run.py` は架空の3候補を使った計算を実行し、`results.json` に結果を書きます。`plot.py` は式9の倍率をSVGに描きます。説明の原本は `lab.yaml` と `method.md`、原論文との対応表は `mapping.md` です。リポジトリのルートで `uv run paper-lab build` を実行すると、解説ページを生成できます。
 
-## 検証範囲
+## Labで確認した範囲
 
-Mechanism PARTIAL。Eq. 3のanchor付き伝播、anchor=1で元表現を保持する端点、Eq. 9の係数範囲とmarginに対する単調減少はCONFIRMED。
+**仕組みの確認：一部のみ（PARTIAL）。** Labでは、つながった商品の数値を取り入れながら元の表現を残す式3を、小さな例で実行しました。元の表現の重みを1にすると表現が変わらないことも確認済みです。式9では倍率が0.2〜1.8の範囲に入り、試した得点差の範囲で、差が大きくなるほど倍率が上がらないことを確かめました（CONFIRMED）。
 
-Performance / Scaling / Production applicability NOT TESTED。8B embedding・0.5B retrieval・0.6B relevance modelの学習、合成queryの品質、RQ-KMeans、DPO収束、Baidu A/Bは未実行。本文はmodelサイズを示すが、base checkpointの名前までは確認できないため推測しない。
+Labは8Bの商品表現モデル、0.5Bの検索モデル、0.6Bの関連性モデルを学習していません。作った検索文の質、商品IDを割り当てる量子化、選好学習が収束するか、BaiduのA/Bテストも独立に検証していません。原論文からモデルの規模は確認できますが、出発点になった学習済みモデルの固有名は確認できません。性能・規模を広げた場合の挙動・本番への適用はいずれも未検証（NOT TESTED）です。
