@@ -262,6 +262,15 @@ def shelf_streicher_hash(root, path, expected, algorithm='sha256'):
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path
+    return shelf_tsukuba_hash(root, path, row['after_' + algorithm], algorithm)
+
+
+def shelf_tsukuba_hash(root, path, expected, algorithm='sha256'):
+    """Add the Tsukuba case only to the exact prior shelf guide."""
+    row = json.loads((root / 'tests/shelf_tsukuba_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
     return row['after_' + algorithm]
 
 
