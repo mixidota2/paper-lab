@@ -3,13 +3,18 @@
     "papers/harness-bench/lab.yaml": {
       "before_sha256": "f2f9a4eb59cf4c68cdc22bc9a3caad2fd3f5ba4131a15898989c425f68809b7e",
       "before_blob": "b86c692f5f8382ceb5a0ddb9c9af15e515f6f96e",
-      "after_sha256": "340432bffe34d970da3a29850f32491591129295fffe0a1e9b1f2c1109876276",
-      "after_blob": "3db329ea4e60e9cc5b6d69ed5a0d37bc07446563",
+      "after_sha256": "74c9b069182ba259f1ee22aa4cda3ad5ca3267ab2b97fa4b2b98a4e536abed15",
+      "after_blob": "2647a8698c2039489d5a4262b3ee3eae11a4bc20",
       "prior_spans": [
         [
           21,
+          22,
+          "  paper: https://arxiv.org/abs/2605.27922\n"
+        ],
+        [
+          23,
           24,
-          "  paper: https://arxiv.org/abs/2605.27922\n  arxiv: https://arxiv.org/abs/2605.27922\n  pdf: https://arxiv.org/pdf/2605.27922\n"
+          "  pdf: https://arxiv.org/pdf/2605.27922\n"
         ],
         [
           37,
@@ -149,8 +154,8 @@
     "papers/icegr-baidu-intent-generative-retrieval/lab.yaml": {
       "before_sha256": "729bbab331769a389cf98e0e5f3139d5927576d95e8f58780df413e85796264c",
       "before_blob": "824a1ae5e6c85a9620cabf1711b5cc0a09f5e3b3",
-      "after_sha256": "7d2516bc047370790f6e8ece783bdc940c7008e83796f14f29a83f83078add6d",
-      "after_blob": "5e201282db6c535f6d262f4e5e4c0090476b6cda",
+      "after_sha256": "9778f3c0e10760a4cda6e2b87ac421beedcd6802f79e724895eb950b7d4866e4",
+      "after_blob": "ef2c43eed37270085ceb989615a53ea8f5eb6abe",
       "prior_spans": [
         [
           2,
@@ -158,9 +163,9 @@
           "title: 'ICEGR: An Intent-Coherent End-to-End Generative Retrieval Framework for E-commerce\n  Search'\n"
         ],
         [
-          22,
+          23,
           24,
-          "  arxiv: https://arxiv.org/abs/2608.29652\n  paper: https://arxiv.org/abs/2608.29652\n"
+          "  paper: https://arxiv.org/abs/2608.29652\n"
         ],
         [
           29,
@@ -398,8 +403,8 @@
     "papers/icegr-baidu-intent-generative-retrieval/method.md": {
       "before_sha256": "0df507ae62c78f4149f547c77318b412cd2de7e2fa66c099391daaafc8716ae5",
       "before_blob": "ad3b3195a5863bd006a7c77f0e842d14465758d8",
-      "after_sha256": "554e107a8ac2c9e0e956eafc582bda553b432bf850d07f8e688a30749aae0f99",
-      "after_blob": "1aa6278316b22486028119f45f62855a27499a60",
+      "after_sha256": "9e88e7f39bdff00a7ba451717357217666e4ceb06e36d6c59730d9d946e51830",
+      "after_blob": "0d32e491ace63d28977ae9e01cbec5fa26ce945e",
       "prior_spans": [
         [
           0,

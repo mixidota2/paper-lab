@@ -20,7 +20,7 @@ topics:
 - ai-agents
 urls:
   paper: https://arxiv.org/abs/2605.27922v1
-  arxiv: https://arxiv.org/abs/2605.27922v1
+  arxiv: https://arxiv.org/abs/2605.27922
   pdf: https://arxiv.org/pdf/2605.27922v1
   official_code: null
 verdict: Worth Reading
@@ -63,7 +63,7 @@ sections:
 
     [一次資料：初版 §3.4、§4.1–4.3、表2](https://arxiv.org/html/2605.27922v1)
   executable_understanding: |-
-    Labは60件の架空の成果物を用意します。それぞれについて、形式が合うか、内容に根拠があるか、保存されているかを検査し、三つとも満たした成果物だけを1件と数えます。条件ごとに合格した件数を足すのではありません。
+    Labは60件の架空の成果物を用意します。それぞれについて、形式が合うか、内容に根拠があるか、保存されているかを検査し、一つでも欠ければ不合格です。三つとも満たした成果物だけを1件と数えます。条件ごとに合格した件数を足すのではありません。
 
     「何も直さない」「形式だけを直す」「形式と保存を直す」の三つを比べます。どの条件でも、根拠がない成果物を合格にはしません。`uv run papers/harness-bench/run.py` を実行すると、全条件の結果を `results.json` に保存します。
   results: |-
