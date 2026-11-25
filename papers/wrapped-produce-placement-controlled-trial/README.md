@@ -1,12 +1,14 @@
-# WRAPPED：店全体の販売と家庭の購入確率を分けて読む
+# WRAPPED：入口に青果を移した店で、何が変わったか
 
-2026年3月31日公開の既刊論文（DOI 10.1371/journal.pmed.1004575）を対象とする日本語Interactive Lab。36店舗のマッチド自然実験であり、ランダム化試験ではない。入口側への移動と品揃え拡大を同時に行っている。
+著者はイングランドのスーパー36店舗で、青果を入口近くに移し、品ぞろえを広げたときに何が変わるかを調べました。改装する18店に条件の似た18店を対応させています。店舗を無作為に割り付けた試験ではなく、青果の位置だけを変えた試験でもありません。
 
-主要な家庭指標の6か月差は+3.3ポイント、95% CI [−2.5, 9.2]。副次的な店舗の青果販売個数は直後+0.32 SD [0.11, 0.53]。両者を同じ成果として扱わない。公表された効果量・CIの切替図と、対照店のトレンド、一時的改装ショック、介入店だけの変化を操作する合成実験を収録する。
+導入直後、店舗の青果販売数量は「導入しなかった場合」の予測を0.32標準偏差上回りました（95%信頼区間：0.11〜0.53）。6か月時点では、家庭が青果を買う確率は介入店側で3.3ポイント高い推定でしたが、95%信頼区間は−2.5〜9.2ポイントでした。店全体で青果が多く売れても、青果を買う家庭が継続して増えたとは言えません。
 
-## 再実行
+Labの図では、著者の推定値を指標と時点で切り替えられます。別の小実験では、対照店と共通の変化、改装直後の一時的な上振れ、改装した店だけの変化を動かし、推定値がどう変わるかを確かめられます。
 
-リポジトリ直下で実行する。依存定義は既存のpyproject.tomlとuv.lockを使用する。run.py自体はPython標準ライブラリのみで、単体でも実行できる。
+## 小実験を再実行する
+
+リポジトリの最上位で次のコマンドを実行してください。小実験の `run.py` はPython標準ライブラリだけで動きます。サイトを生成するときは、既存の `pyproject.toml` と `uv.lock` の依存関係を使います。
 
 ```bash
 uv sync --extra dev --frozen
@@ -18,26 +20,25 @@ uv run python -m paper_lab.build --root . --out /tmp/paper-lab-wrapped-review
 uv run python -m http.server --directory /tmp/paper-lab-wrapped-review 8000
 ```
 
-ホームのキャッシュが書込不可なら `UV_CACHE_DIR=/tmp/uv-cache` を指定する。ビルドは全papers/を入力する。限定した数件の出力で本番サイトを上書きしない。
+ホームのキャッシュに書き込めない場合は `UV_CACHE_DIR=/tmp/uv-cache` を指定してください。ビルドには `papers/` 全体を使います。一部の記事だけを生成して本番サイトを上書きしないでください。
 
-ブラウザーで `/papers/wrapped-produce-placement-controlled-trial.html` を開く。指標2種類×時点3種類、合成条件3×3×3、初期化ボタンを確認する。360・390・768・1440pxの幅でページ全体の横はみ出し、図、キーボード操作、リンクとJavaScriptエラーを検査する。因果図だけは狭い画面で内部スクロールできる。JavaScript無効でも初期値と数値表は残る。
+ブラウザーで `/papers/wrapped-produce-placement-controlled-trial.html` を開くと、2種類の指標と3種類の時点を切り替えられます。小実験には3×3×3通りの条件があり、ボタンで初期値に戻せます。幅360・390・768・1440pxで、図、リンク、キーボード操作、JavaScriptエラーと、ページ全体の横はみ出しを確認します。狭い画面では因果図だけを横にスクロールできます。JavaScriptが動かなくても初期値と数値表は読めます。
 
-## 原本と生成物
+## どのファイルに何があるか
 
-- `lab.yaml`、`method.md`：自作の日本語説明と概念図。
-- `run.py`：公開報告値の転記と決定的な合成実験、検証テスト。
-- `results.json`：`reported` と `synthetic` を分離した結果。
-- `evidence.md`、`experiment.md`：run.pyから再生成する操作図。手で変更しない。
-- `mapping.md`：節・表との対応、省略、確認の範囲。
+- `lab.yaml` と `method.md` に、日本語の本文と図があります。
+- `run.py` は、論文の報告値を表示する図と、人工データの小実験を作ります。`results.json` では報告値を `reported`、小実験を `synthetic` に分けて保存します。
+- `evidence.md` と `experiment.md` は `run.py` から再生成します。図の説明も `run.py` 側で直してください。
+- `mapping.md` には、論文の節・表との対応とLabで再現していない処理があります。
 
-## 検証の境界
+## Labで確認できた範囲
 
-CONFIRMEDは、共通トレンドを除去する等の人工データ上の計算に限る。原論文の方法理解はPARTIAL。実店舗の効果の独立再現、健康改善、配置単独の効果、スケーリングはNOT TESTED。家庭の持続的な増加の断定はNOT OBSERVEDであり、効果ゼロを証明した意味ではない。
+人工データでは、両店に共通する変化だけなら、対照店を使うことで設定した効果を求められます。一方、実施店だけの変化や改装直後の一時的な上振れは、対照店を使っても除けません。店舗販売や家庭の購買を独立に再推定したわけではなく、配置単独の効果、健康への影響、規模を広げた場合の結果は検証していません。家庭が継続して多く買うとは確認できませんでしたが、効果がなかったと証明したわけでもありません。
 
-S2 Boxの全1ページを確認した。表示数式や新しい実験結果はない。店舗ITSの時間項・調整項・デルタ法と、家庭購買のロジスティック回帰（介入群・期間ダミー・群×期間の固定効果、女性のランダム効果）をmethod.mdで説明する。残差相関構造・推定設定・確率差への変換手順は未記載であり、ロジット係数を+3.3ポイントと同一視しない。1組OLSの合成実験は著者の推定器ではない。資料の版・ハッシュはmapping.mdに記録した。販売・購買の個票は原典のData Availabilityにより非公開。NIHR本文も今回取得できておらず、読んだとは扱わない。
+S2 Boxの全1ページには、店舗の時系列モデルと家庭購買のロジスティック回帰の構成が書かれています。残差の相関、推定時の設定、購入確率差への変換手順は記載されていません。したがって、回帰係数と報告された+3.3ポイントは同じ値として扱えません。販売・購買の個票は公開されておらず、Labは著者の推定を再実行していません。NIHR本文も未取得です。
 
 ## 出典と権利
 
-Vogel C, Crozier S, Dhuria P, et al. (2026). *Impact of supermarket fruit and vegetable placement on store sales, customer purchasing, diet and household waste: A prospective matched-controlled cluster trial*. PLOS Medicine 23(3): e1004575. [本文](https://doi.org/10.1371/journal.pmed.1004575)、[S2 Box](https://doi.org/10.1371/journal.pmed.1004575.s006)。原論文と補足はCC BY（補足のFigshare記載はCC BY 4.0）。数値を出典付きで再描画し、文章・図・実験はLab用に制作した。原論文の図版や個票を転載していない。
+Vogel C, Crozier S, Dhuria P, et al. (2026). *Impact of supermarket fruit and vegetable placement on store sales, customer purchasing, diet and household waste: A prospective matched-controlled cluster trial*. PLOS Medicine 23(3): e1004575. [本文](https://doi.org/10.1371/journal.pmed.1004575)、[S2 Box](https://doi.org/10.1371/journal.pmed.1004575.s006)。論文と補足はCC BY（補足のFigshare表記はCC BY 4.0）。数値を出典付きで描き直し、原論文の図版と個票は転載していません。
 
-Baird et al. (2024), [WRAPPEDプロセス評価](https://doi.org/10.1186/s12966-024-01679-3)。[NIHRレポート](https://www.ncbi.nlm.nih.gov/books/NBK623045/) は参照先のみで、今回の確認根拠には使わない。
+Baird et al. (2024), [WRAPPEDプロセス評価](https://doi.org/10.1186/s12966-024-01679-3)。[NIHRレポート](https://www.ncbi.nlm.nih.gov/books/NBK623045/) は参照先のみで、Labの確認根拠には使っていません。
