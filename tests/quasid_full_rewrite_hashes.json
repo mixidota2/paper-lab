@@ -1,0 +1,397 @@
+{
+  "files": {
+    "papers/quasid-collision-qualified-sid/lab.yaml": {
+      "before_sha256": "0e0f4949ab202cb91b808ffc86716006f2f86ebb0a248bdfd37d80306db92dd8",
+      "before_blob": "28a94a5da620093182ffbbc66909c4c9278f607e",
+      "after_sha256": "8f1a886837aeb2890363cc35ded1803eb05aec13d555d0e08164fa362f2ccea8",
+      "after_blob": "33568b5d88d39d1c7884c52a111798b4d0fb7195",
+      "prior_spans": [
+        [
+          26,
+          27,
+          "  paper: https://arxiv.org/abs/2603.00632\n"
+        ],
+        [
+          39,
+          41,
+          "question: SIDが重なったとき、本当に引き離すべき組はどれか\nsummary: QuaSIDは、SIDの重なりから反発対象を選ぶ学習法である。同じ商品の組と、行動履歴から近付けるべきだと判定した組を、引き離す対象から除く。残った組では、IDが完全に一致する場合と一部だけ一致する場合を分け、表現ベクトルをどこまで離すかの基準を変える。KuaishouはrankingのGMV-S2 +2.38%、cold-start\n  retrievalの注文数+6.42%を報告する。衝突ゼロの保証と、害のある衝突を減らす学習を区別する。\n"
+        ],
+        [
+          47,
+          51,
+          "  author_claim: 著者は、反発対象を限定するCVPM（Conflict-Aware Valid Pair Masking）と、Hamming距離に応じたHaMR（Hamming-guided Margin Repulsion）を提案する。再構成・残差量子化・協調contrastive\n    lossとともに学習し、推薦に必要な近さを保ちながら不適切な重なりを減らすと主張する（§4）。\n  research_bot_interpretation: 「qualified」は意味の正しさを保証する認証ではない。同一IDと構築済み正例を除外した残りを候補衝突と扱う、観測可能な規則である。未観測の良い関係は残り得る。コードの一意性だけを目標にすると、一般化に役立つ共有まで消すため、推薦指標と合わせて評価したい。\n"
+        ],
+        [
+          57,
+          59,
+          "  problem: 同じSIDが付いた2例でも、異なる商品を誤って一緒にした場合と、同一商品の重複サンプリングでは意味が違う。協調学習で近付けたいtrigger–targetの正例もある。低いHamming距離をすべて反発させると、contrastive\n    lossと逆向きの学習信号を作ってしまう。\n  why_it_might_work: Hamming距離はSIDの対応する桁で番号が異なる個数を数え、離散コードの重なりを捉える。cosine距離は正規化した表現ベクトルの向きの違いを測り、連続encoderへ勾配を渡す。両者をつなぐことで、単なる再構成誤差が見落とす混同へ圧力を掛けられる。CVPMは既知の良い重なりを保護する。もっとも、現在のコードが等しい理由を完全には分類できず、反発を強めすぎると意味の近さを壊す。\n  evidence: '### 同じTIGERでtokenizerを比べる\n"
+        ],
+        [
+          60,
+          63,
+          ""
+        ],
+        [
+          64,
+          67,
+          "    Amazon-BeautyとToys & Gamesの5-core、leave-one-out評価。文字属性はSentence-T5-XXLで埋め込み、全方式でTIGERを使う。5 seedsの平均で、offlineは3層×256コード、産業設定は4層×1024コード。Table\n    2のBeauty NDCG@10はRQ-Kmeans 0.0211、QuaSID 0.0230。Toysは0.0213対0.0225である。\n"
+        ],
+        [
+          68,
+          69,
+          ""
+        ],
+        [
+          70,
+          71,
+          "    Table 5でCVPMを外すとBeauty NDCG@5が0.0193→0.0181、HaMRを外すと0.0170になる。一方、Table 3のRQ-OPQ＋HaMRはToys HR@5が0.0228→0.0227へわずかに低下する。全方式・全指標の一律改善ではない。[Tables\n    2–5](https://arxiv.org/html/2603.00632v1#S5)\n"
+        ],
+        [
+          72,
+          73,
+          ""
+        ],
+        [
+          74,
+          75,
+          "    ### entropyを上げれば推薦が良くなるとは限らない\n"
+        ],
+        [
+          76,
+          77,
+          ""
+        ],
+        [
+          78,
+          79,
+          "    SID composition entropyはコード利用の多様性である。ToysのSimRQはentropy 9.3688でRQ-Kmeansの9.3460より高いが、NDCG@10は0.0190で0.0213より低い。HaMRだけを足した方式で、QuaSIDよりentropyが高くなる例もある。意味・協調信号と識別の両方が要るという解釈を支えるが、相関だけで因果機構は確定しない。\n"
+        ],
+        [
+          80,
+          83,
+          ""
+        ],
+        [
+          84,
+          93,
+          "    ### GMV-S2はシナリオ別の売上指標\n\n\n    5日間、約5%のtraffic、2000万人超を含むtreatmentをランダム割付したA/B。GMV-S1/S2はシナリオ別のGMVであり、第二段rankerの改善率という意味ではない。rankingへのSID特徴追加はGMV-S2\n    +2.38%、generative retrievalのtokenizer置換は+0.55%。介入位置が違うので足し合わせない。\n\n\n    cold-startの100vv / 600vvは、最初の48時間でviewが100未満 / 600未満の動画。互いに排他的な群とは読めない。retrieval 100vvの注文数+6.42%は新規ユーザー全体の効果ではない。著者は表4の全結果を有意とするが、信頼区間や正確なp値は示していない。[§5.4、Table\n    4](https://arxiv.org/html/2603.00632v1#S5.SS4)\n\n\n    上記は一次資料の著者報告であり、このLabの合成実験値とは分けている。'\n  executable_understanding: '`uv run papers/quasid-collision-qualified-sid/run.py`\n\n\n    trigger3件とtarget3件を連結した6例で、同一item・構築正例・完全衝突・部分衝突・半径外を区別する。全ordered pairについてmaskと群別平均を計算し、maskなしと比較する。別の2次元例では一方の方向を固定し、hinge\n    lossの勾配で他方の角度を80回更新する。'\n  results: CVPMを有効にすると同一itemと構築正例の反発が0になる。完全衝突は距離0.8、部分衝突は0.5に達するとhingeが消える。角度の更新では連続距離が増えるが、固定したSIDは変わらない。したがってこの教材での離散衝突減少はNOT\n    OBSERVEDである。これはQuaSID全体への反証ではなく、実装していない離散再割当の効果を計上しないための表示である。\n  what_we_verified: CONFIRMED：CVPMの同一ID・正例除外、Hamming半径の境界、群ごとの平均、空集合でも有限のloss、0.8/0.5のhinge条件。Mechanism PARTIAL：encoderの角度に掛かる力まで。固定SIDでの衝突減少はNOT\n    OBSERVED。\n  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Sentence-T5-XXL、Swingの正例構築、RQ\n    codebook・decoderの学習、STE、TIGER、KuaishouのGMVは未検証。CVPMが真の意味衝突を完全に判定するとは確認していない。任意のquantizerにHaMRを足せるとも断定しない。Table\n    3は同じend-to-end勾配学習に属さないRQ-Kmeansを除いている。\n  implementation: '`qualified()` は連結batchの位置とitem IDから式8のmaskを作る。`pair_loss()` は式11–12、`hamr()` は式13の完全・部分集合をそれぞれ平均する。両群を一括で平均しない。`angular_update()`\n    は片方を固定した2次元方向の更新で、全モデルのSGDではない。`results.json`にはpairごとの距離・判定・lossを残す。'\n"
+        ],
+        [
+          99,
+          101,
+          "  caption: 4 tokenの例を再構成。qualifiedは観測可能な除外規則を通ったという意味。\n  rationale: 4 tokenの例を再構成。qualifiedは観測可能な除外規則を通ったという意味。\n"
+        ],
+        [
+          106,
+          107,
+          "  - label: 同じitemの再出現\n"
+        ],
+        [
+          111,
+          112,
+          "  - label: 構築した協調正例\n"
+        ],
+        [
+          115,
+          117,
+          "    - contrastiveの近さを守る\n  - label: 別item・正例ではない\n"
+        ],
+        [
+          120,
+          122,
+          "    - 完全衝突：margin .8\n  - label: 別item・正例ではない\n"
+        ],
+        [
+          125,
+          127,
+          "    - H=2：産業R=2で部分衝突\n  - label: 半径の外\n"
+        ],
+        [
+          129,
+          131,
+          "    - 対象だがH>R\n    - HaMRは0\n"
+        ],
+        [
+          134,
+          135,
+          "  title: 離散の重なりを、連続空間の反発へ変える\n"
+        ],
+        [
+          137,
+          139,
+          "  caption: 原式の条件付けと正規化を保ち、記号をUnicodeで表記。\n  rationale: 原式の条件付けと正規化を保ち、記号をUnicodeで表記。\n"
+        ],
+        [
+          142,
+          143,
+          "    explanation: Mⁱ²ⁱは対応するtrigger–target正例で0、それ以外で1。\n"
+        ],
+        [
+          145,
+          146,
+          "    explanation: eはzをL2正規化したvector。\n"
+        ],
+        [
+          148,
+          149,
+          "    explanation: 同一itemと正例を除いてから群へ入れる。\n"
+        ],
+        [
+          151,
+          152,
+          "    explanation: mfull=.8 ≥ mpartial=.5。閾値以上へ離れたpairは0。\n"
+        ],
+        [
+          154,
+          155,
+          "    explanation: 群ごとのloss合計を、その群のpair数とεの和で割る。ε>0で空集合も扱う。toyの重みは.2 / .1。\n"
+        ],
+        [
+          157,
+          158,
+          "    explanation: 再構成とRQの忠実性、協調関係、反発を同時に最適化する。\n"
+        ],
+        [
+          164,
+          166,
+          "  caption: 本番比の相対変化。GMV-S1/S2は別scenarioのGMV。\n  rationale: 本番比の相対変化。GMV-S1/S2は別scenarioのGMV。\n"
+        ],
+        [
+          171,
+          172,
+          "  - label: Generative retrieval\n"
+        ],
+        [
+          176,
+          177,
+          "  - label: Ranking\n"
+        ],
+        [
+          184,
+          185,
+          "  title: 最初の48時間、低viewの動画への効果\n"
+        ],
+        [
+          187,
+          189,
+          "  caption: 100vvは100未満、600vvは600未満。GPMは1000露出当たりGMV。\n  rationale: 100vvは100未満、600vvは600未満。GPMは1000露出当たりGMV。\n"
+        ],
+        [
+          194,
+          195,
+          "  - label: 通常Retrieval\n"
+        ],
+        [
+          199,
+          200,
+          "  - label: Retrieval 100vv\n"
+        ],
+        [
+          204,
+          205,
+          "  - label: Retrieval 600vv\n"
+        ],
+        [
+          209,
+          210,
+          "  - label: Ranking 100vv\n"
+        ],
+        [
+          214,
+          215,
+          "  - label: Ranking 600vv\n"
+        ],
+        [
+          223,
+          224,
+          "  caption: 完全・部分衝突のhingeを同じ角度で比較する。同一item・協調正例はmaskにより0。式11–12の計算で、オンライン成果ではない。\n"
+        ],
+        [
+          226,
+          228,
+          "  title: 連続距離と離散衝突は別に測る\n  caption: 式10–12からθ=arccos(1−m)を計算。原論文の測定図ではない。\n"
+        ],
+        [
+          230,
+          232,
+          "  title: GMV-S2の2つのA/B\n  caption: Table 4。5日間、約5% trafficの著者報告。Labで独立検証した成果ではない。\n"
+        ]
+      ]
+    },
+    "papers/quasid-collision-qualified-sid/README.md": {
+      "before_sha256": "6994b3ea2bfadd51ac5bf29f1ddc8b5e028ce8be531a246ed31cec712f51d812",
+      "before_blob": "7ad3b404402063519b2b1cfd21e68f265e8d5860",
+      "after_sha256": "0fea280b7d3a8be1397cfce16ac8e02b1435a567796b10fd8253a663dd9fa3bf",
+      "after_blob": "17f9d7307e6295c3ba4e65c6c205f7a2887d0c65",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# Stop Treating Collisions Equally: Qualification-Aware Semantic ID Learning for Recommendation at Industrial Scale\n"
+        ],
+        [
+          2,
+          3,
+          "QuaSIDは、商品を表す離散コード（Semantic ID、SID）が重なったとき、学習で表現ベクトルを引き離す組を選ぶ。同じ商品どうしの組と、行動履歴から近付けるべきだと判定した組（協調正例）は、引き離す対象から外す。そのうえで、IDの全桁が一致する組と、一部の桁が異なり、その数が半径 R 以下の組で、表現ベクトルのコサイン距離に求める下限を変える。害のある衝突を減らす方法であり、衝突がゼロになることは保証しない。\n"
+        ],
+        [
+          4,
+          5,
+          "Kuaishouのオンライン比較では、順位付け（ranking）にSIDの特徴を加えた場合にGMV-S2が+2.38%だったと著者が報告している。候補取得（retrieval）では、公開後48時間の再生が100回未満の動画（100vv群）で完了注文数が+6.42%だった。評価指標も対象も異なり、どちらもLabで再現した結果ではない。\n"
+        ],
+        [
+          13,
+          14,
+          "実験コードはPython標準ライブラリだけを使う。どのディレクトリから実行しても、`run.py` と同じフォルダーの `results.json` を更新する。\n"
+        ],
+        [
+          15,
+          16,
+          "## 原本\n"
+        ],
+        [
+          17,
+          18,
+          "`lab.yaml` に本文と図の定義、`method.md` に手法、`mapping.md` に原論文との対応を記す。HTMLは生成ツールで作る。合成実験のコードと結果は `run.py` と `results.json` にある。\n"
+        ],
+        [
+          19,
+          20,
+          "## 検証範囲\n\nLabでは仕組みの一部を確認した（Mechanism PARTIAL）。性能、規模を大きくした場合の挙動、本番への適用は試していない（Performance / Scaling / Production applicability NOT TESTED）。CONFIRMEDは、JSONに記した個別の算術と比較条件だけを指す。原論文のモデルは学習していない。\n\n[一次資料・全文](https://arxiv.org/html/2603.00632v1)。確認日：2026-09-15。未検証の項目や出典を読む際の注意は、Labの本文と `mapping.md` を参照。\n"
+        ]
+      ]
+    },
+    "papers/quasid-collision-qualified-sid/mapping.md": {
+      "before_sha256": "ebe4ad3ca5ba9239cbd9cb719652f20d7fd8a7438d9027a745cf3bf1ee6d6c7f",
+      "before_blob": "e80d0521abce2ef248f2a6c1a76d3733c03f71eb",
+      "after_sha256": "088c216a2c0911551c161c04190ec06a0df9e11c039dd56fb2fb8c5a47cc9956",
+      "after_blob": "3b1b73bdfbcdb736d4ef39d893a6f9883174abfe",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文とLabの対応\n"
+        ],
+        [
+          2,
+          3,
+          "QuaSIDがアイテムのIDを学ぶ工程と、Labが学習済みモデルなしで確かめる計算を分けます。Labで動かすのは、比較に入れるアイテムの組を決め、その組の距離から損失を計算する部分です。\n"
+        ],
+        [
+          4,
+          5,
+          "| 原論文の場所 | Labで確認できること | 確認の範囲 |\n"
+        ],
+        [
+          6,
+          12,
+          "| 式1–7、Figure 2 | IDを作るtokenizerと協調学習の関係を説明する。 | モデル全体は学習しない。 |\n| 式8、§4.2.1 | `qualified()`で、正例を置く位置と、同一アイテムを組から外す条件を見る。 | 組を選ぶ処理の確認に限る。 |\n| 式9–13 | `pair_loss()`と`hamr()`で、異なるIDの桁数（Hamming距離）、コサイン距離、群ごとの損失の平均を計算する。 | 小さな例で計算する。 |\n| 式14 | 4つの損失をどう合わせるかを図で確認する。 | 再構成、残差量子化（RQ）、対照学習は実行しない。 |\n| Table 4 | オンライン指標のカードと、新しいアイテムを対象にした表を読む。 | 数値は著者報告。どの介入で得た結果かを分ける。 |\n| Appendix A.2 | 比較する半径と、群ごとに求める距離の下限を確認する。 | 原論文の産業設定の値 R=2、mfull=.8、mpartial=.5 を小さな例に使う。 |\n"
+        ],
+        [
+          13,
+          14,
+          "[全文v1](https://arxiv.org/html/2603.00632v1)を本文からAppendix A.2まで通読した。QuaSID自身の公式コードは本文と書誌から確認できていない。付録が挙げる[基盤実装 RQ-VAE-Recommender](https://github.com/EdoardoBotta/RQ-VAE-Recommender)は別プロジェクトなので、QuaSIDの公式実装とは扱わない。Labのコードは独自に作成した。\n"
+        ],
+        [
+          15,
+          16,
+          "手法の位置付けには、[CRID一次資料](https://arxiv.org/html/2607.11392#S2.SS1)の§2.1にある、クラスタ内の順位によるIDの一意性と日次更新を参照した。ISD・GR4AD・TAGRについても既存Labの原典対応を参照するが、結果は転用しない。原論文HTMLの仮置きDOIや会議テンプレートの情報は正式書誌として採用しない。\n"
+        ]
+      ]
+    },
+    "papers/quasid-collision-qualified-sid/method.md": {
+      "before_sha256": "3914f3cb2ae60d92a0253d10a809f655db5eb2cc757ce6ddd573e4921e826993",
+      "before_blob": "3f59c329ce9a11585a7482df5c8297254fb14886",
+      "after_sha256": "eaa0294ae5cd762a7591bb8016f9985ac410c192d717bba913344398cf4d0b9f",
+      "after_blob": "b718222a702e551bfe07d086a7ee8408429812d2",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 再構成だけでなく、協調関係と衝突を同時に学ぶ\n"
+        ],
+        [
+          2,
+          3,
+          "shared encoder fθがmultimodal特徴xᵢをzᵢへ写す。残差量子化器が各層のcodeを選び、量子化ベクトルの和からdecoder hφが元特徴を再構成する。離散選択にはstraight-through estimator（順伝播は離散、逆伝播は連続の近似）を使う。これにSwingで作ったtrigger–target正例のdual-tower contrastive学習を加える。[§4.1](https://arxiv.org/html/2603.00632v1#S4.SS1)\n"
+        ],
+        [
+          4,
+          5,
+          "産業側では、説明文、ASR transcript、key-frame画像をmultimodal LLMで埋め込んで特徴として使う。具体的な産業encoder名は本文では特定されない。offlineのSentence-T5-XXLと同一だとは仮定しない。\n"
+        ],
+        [
+          6,
+          7,
+          "### CVPMは2種類の良い重なりを除く\n"
+        ],
+        [
+          8,
+          9,
+          "B個のtriggerを先に、対応するB個のtargetを後に並べる。iとi+Bの構築正例を除外し、同一IDの全出現組も除く。後者は自己pairと重複サンプルを含む。ここで使うHaMR用maskと、InfoNCEで同じtrigger IDの偽負例を除くmaskは用途が異なる。どちらもMという記号が使われるが、同一配列として実装しない。\n"
+        ],
+        [
+          10,
+          11,
+          "残ったpairを完全衝突H=0と、0<H≤Rの部分衝突へ分ける。offlineはR=1、onlineはR=2。半径内でHが1から2へ変わるたびに連続的な係数を掛ける式ではなく、完全・部分の2群でmarginと重みを切り替える。[§4.2、Appendix A.2](https://arxiv.org/html/2603.00632v1#S4.SS2)\n"
+        ],
+        [
+          12,
+          13,
+          "### 幾何マージンは一意のSIDを直接割り当てない\n"
+        ],
+        [
+          14,
+          15,
+          "正規化embedding間のcosine距離D=1−eᵢᵀeⱼがmargin未満なら反発する。mfull=.8、mpartial=.5なので、完全衝突の方が大きく離す。HaMRは連続空間を変えて次の量子化を促す。lossが0でも、固定codebookの境界を必ず跨ぐとは限らない。有限のコード空間で一意性を保証する構成規則とは別の仕組みである。\n"
+        ],
+        [
+          16,
+          17,
+          "### 既存Labとの接点は、異なる介入位置にある\n"
+        ],
+        [
+          18,
+          19,
+          "| 手法 | 主に変える場所 | QuaSIDとの違い |\n"
+        ],
+        [
+          20,
+          24,
+          "| [ISD](understanding-sids-isd.html) | 固定SIDのbeam探索へ外部順位を注入 | tokenizerの衝突学習は変えない |\n| [GR4AD / UA-SID](gr4ad-ads-generative.html) | 意味コードに業務上のhash識別を加える | 有限hashには再衝突があり、mask付き反発とは異なる |\n| [TAGR](tagr-live-sid.html) | 固定語彙への割当を時間変化に合わせて更新 | 主眼はライブ内容の鮮度。QuaSIDは反発を掛ける組を選ぶ |\n| [CRID](https://arxiv.org/abs/2607.11392) | semantic clusterとbusiness-valueの順位でDocIDを構成 | cluster内の順位で区別する設計。一意IDの構成と幾何正則化を分ける |\n"
+        ],
+        [
+          25,
+          26,
+          "この比較は読書メモであり、QuaSID論文のhead-to-head比較ではない。Labの次の検証案は、同じ候補予算で有害pairの識別精度、残存衝突、推薦品質を一緒に測ること。SID entropyだけを採択指標にしない。\n"
+        ]
+      ]
+    },
+    "papers/quasid-collision-qualified-sid/figures/geometry.svg": {
+      "before_sha256": "377d749dd1b3b3b17a95ca828e9bebb4e8bc6840dcf4ccbdf03be33b5789cbe4",
+      "before_blob": "c86cf6f71110da62ab0836b9f62b379f340ff69c",
+      "after_sha256": "3f1575cbcd8d4ba10a90da25b039a1f571ebc3a6e4ad5caeb65d67f63440e8aa",
+      "after_blob": "d6134080b54bfa5e2d37496bb5ff4478eba1669e",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 520\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">SIDの一致度で変わる角度の下限</title><desc id=\"desc\">SIDの一致度に応じて、ベクトルを離す角度の下限が変わる。図は一方の向きを固定した説明例。</desc><rect width=\"440\" height=\"520\" rx=\"16\" fill=\"#f4f7f6\"/><g font-family=\"sans-serif\" fill=\"#163b40\"><text x=\"22\" y=\"33\" font-size=\"20\" fill=\"#163b40\">SIDの一致度で変わる角度の下限</text><text x=\"22\" y=\"62\" font-size=\"15\" fill=\"#163b40\">QuaSID：Hamming距離とコサイン距離</text><path d=\"M73 255 L265 255\" fill=\"none\" stroke=\"#628287\" stroke-width=\"2\"/><path d=\"M73 255 L73 78\" fill=\"none\" stroke=\"#628287\" stroke-width=\"2\"/><path d=\"M73 255 L232.37776133769628 212.29485755808406\" fill=\"none\" stroke=\"#be6238\" stroke-width=\"2\"/><circle cx=\"232.37776133769628\" cy=\"212.29485755808406\" r=\"5\" fill=\"#be6238\"/><path d=\"M73 255 L155.5 112.10580837556762\" fill=\"none\" stroke=\"#49749d\" stroke-width=\"2\"/><circle cx=\"155.5\" cy=\"112.10580837556762\" r=\"5\" fill=\"#49749d\"/><path d=\"M73 255 L105.99999999999994 93.33367697631024\" fill=\"none\" stroke=\"#087569\" stroke-width=\"2\"/><circle cx=\"105.99999999999994\" cy=\"93.33367697631024\" r=\"5\" fill=\"#087569\"/><text x=\"278\" y=\"243\" font-size=\"15\" fill=\"#163b40\">eᵢ（固定）</text><text x=\"22\" y=\"297\" font-size=\"22\" fill=\"#163b40\">D = 1 − cos θ</text><rect x=\"20\" y=\"318\" width=\"400\" height=\"74\" rx=\"9\" fill=\"#e5e9f0\"/><text x=\"32\" y=\"345\" font-size=\"18\" fill=\"#163b40\">一部が一致：m = 0.5 → θ ≥ 60°</text><text x=\"32\" y=\"374\" font-size=\"18\" fill=\"#163b40\">全桁が一致：m = 0.8 → θ ≥ 78.46°</text><text x=\"22\" y=\"420\" font-size=\"16\" fill=\"#163b40\">同じ商品と協調正例は引き離さない。</text><text x=\"22\" y=\"451\" font-size=\"15\" fill=\"#163b40\">角度を広げてもSIDの一意性は保証しない。</text><text x=\"22\" y=\"488\" font-size=\"14\" fill=\"#163b40\">角度の下限は距離の下限 m から計算した説明用の値。</text><text x=\"134\" y=\"108\" font-size=\"15\" fill=\"#087569\">全桁：78.46°</text><text x=\"181\" y=\"145\" font-size=\"15\" fill=\"#49749d\">一部：60°</text><text x=\"274\" y=\"207\" font-size=\"15\" fill=\"#be6238\">初期：15°</text></g></svg>\n"
+        ]
+      ]
+    },
+    "papers/quasid-collision-qualified-sid/figures/online.svg": {
+      "before_sha256": "86e977a1a8e4d31c6bf117c1c1771ded2e184dffc5502378d52da1df14f2e568",
+      "before_blob": "55774daab4f84a992bb82523e7312849e7074e1c",
+      "after_sha256": "86079bb9b5c07fc649fb615f456fe97ba15c071919e388e94f697643fa773246",
+      "after_blob": "e5914649314f7f3504a4da9ac3836b7ce7a9d847",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 363\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">GMV-S2を比べた二つの変更</title><desc id=\"desc\">生成型の候補取得ではトークナイザーを替え、順位付けではSID特徴を加えた。二つの介入は別々の比較であり、GMV-S2の増加率は足さない。</desc><rect width=\"440\" height=\"363\" rx=\"16\" fill=\"#f4f7f6\"/><g font-family=\"sans-serif\" fill=\"#163b40\"><text x=\"22\" y=\"33\" font-size=\"20\" fill=\"#163b40\">GMV-S2を比べた二つの変更</text><rect x=\"20\" y=\"84\" width=\"400\" height=\"106\" rx=\"9\" fill=\"#dfede8\"/><text x=\"33\" y=\"110\" font-size=\"17\" fill=\"#163b40\">生成型の候補取得</text><text x=\"33\" y=\"149\" font-size=\"30\" fill=\"#163b40\">+0.55%</text><text x=\"182\" y=\"148\" font-size=\"16\" fill=\"#163b40\">GMV-S2</text><text x=\"33\" y=\"175\" font-size=\"15\" fill=\"#163b40\">トークナイザーを替える</text><rect x=\"20\" y=\"208\" width=\"400\" height=\"106\" rx=\"9\" fill=\"#dfede8\"/><text x=\"33\" y=\"234\" font-size=\"17\" fill=\"#163b40\">順位付け</text><text x=\"33\" y=\"273\" font-size=\"30\" fill=\"#163b40\">+2.38%</text><text x=\"182\" y=\"272\" font-size=\"16\" fill=\"#163b40\">GMV-S2</text><text x=\"33\" y=\"299\" font-size=\"15\" fill=\"#163b40\">SIDの特徴を加える</text><text x=\"22\" y=\"343\" font-size=\"14\" fill=\"#163b40\">原論文 Table 4 の著者報告。2つの値は足さない。</text></g></svg>\n"
+        ]
+      ]
+    }
+  }
+}
