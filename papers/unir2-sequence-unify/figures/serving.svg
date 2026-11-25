@@ -1,21 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 524" role="img" aria-labelledby="title"><title id="title">KVを再利用し、条件確認と順位付けを並行する</title><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#586c78"/></marker></defs><rect width="560" height="524" fill="#f7faf9"/><style>text{font-family:system-ui,sans-serif;fill:#183640;font-size:19px}.small{font-size:16px}.head{font-size:23px;font-weight:700}</style>
-<text x="24" y="35" class="head">KVを再利用し、条件確認と順位付けを並行する</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 524" role="img" aria-labelledby="title"><title id="title">保存した値で採点し、除外条件は並行で確認する</title><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#586c78"/></marker></defs><rect width="560" height="524" fill="#f7faf9"/><style>text{font-family:system-ui,sans-serif;fill:#183640;font-size:19px}.small{font-size:16px}.head{font-size:23px;font-weight:700}</style>
+<text x="24" y="35" class="head">保存した値で採点し、除外条件は並行で確認する</text>
 <rect x="24" y="66" width="512" height="88" rx="10" fill="#e2efea" stroke="#a6bdb5"/>
-<text x="38" y="93" class="">GPU：ユーザーprefix → SID生成</text>
-<text x="38" y="120" class="">層別KVをcache：prefix ＋ 候補別軌跡</text>
+<text x="38" y="93" class="">GPU：利用者の情報からSIDを生成</text>
+<text x="38" y="120" class="">各層のKVを保存：利用者の情報と候補ごとのSID</text>
 <path d="M280 154 L280 182" fill="none" stroke="#586c78" stroke-width="2" marker-end="url(#arrow)"/>
-<text x="134" y="207" class="">候補集合を二つへ配る</text>
+<text x="134" y="207" class="">同じ候補を二つの処理に渡す</text>
 <path d="M260 218 L146 250" fill="none" stroke="#586c78" stroke-width="2" marker-end="url(#arrow)"/>
 <path d="M300 218 L410 250" fill="none" stroke="#586c78" stroke-width="2" marker-end="url(#arrow)"/>
 <rect x="24" y="258" width="246" height="114" rx="10" fill="#fff0da" stroke="#a6bdb5"/>
-<text x="38" y="285" class="">strategy branch</text>
-<text x="38" y="312" class="">資格・重複・内容filter</text>
-<text x="38" y="339" class="">→ 候補別flag</text>
+<text x="38" y="285" class="">除外条件を確認</text>
+<text x="38" y="312" class="">資格・重複・内容を確認</text>
+<text x="38" y="339" class="">候補ごとに残すか決める</text>
 <rect x="290" y="258" width="246" height="114" rx="10" fill="#e2efea" stroke="#a6bdb5"/>
-<text x="304" y="285" class="">ranking branch</text>
-<text x="304" y="312" class="">CPUで属性取得</text>
-<text x="304" y="339" class="">GPUでKV再利用</text>
+<text x="304" y="285" class="">候補を採点</text>
+<text x="304" y="312" class="">CPUで候補の特徴を取得</text>
+<text x="304" y="339" class="">GPUで保存したKVを使う</text>
 <path d="M148 372 L148 402" fill="none" stroke="#586c78" stroke-width="2" marker-end="url(#arrow)"/>
 <path d="M410 372 L410 402" fill="none" stroke="#586c78" stroke-width="2" marker-end="url(#arrow)"/>
 <rect x="24" y="410" width="512" height="60" rx="10" fill="#e2efea" stroke="#a6bdb5"/>
-<text x="38" y="437" class="">scoreとflagを合わせて下流へ渡す</text><text x="24" y="508" class="small">research_bot · 一次資料を基に説明用に再構成</text></svg>
+<text x="38" y="437" class="">点数と除外条件の結果を合わせて次の段へ渡す</text><text x="24" y="508" class="small">論文の図3をもとにLabが作成</text></svg>

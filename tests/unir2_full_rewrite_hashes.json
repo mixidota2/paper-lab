@@ -1,0 +1,162 @@
+{
+  "files": {
+    "papers/unir2-sequence-unify/lab.yaml": {
+      "before_sha256": "8ca9c84a7df6bd0a9b4e05edea72df8c28cf75256b20c4e9a87c283e401fe5a6",
+      "before_blob": "0598ff97fa1e360ae92080f619b976436c74a051",
+      "after_sha256": "b10a9378c025e0eb1c1dc3af5aff1c37a50ae100082c5c395b2bdaf82020b98c",
+      "after_blob": "87266a705a1e1cdc10d13078c4417c4b4800b71e",
+      "prior_spans": [
+        [
+          32,
+          34,
+          "question: 生成の途中表現をランキングへ渡し、勾配の干渉を抑えられるか\nsummary: UniR²はユーザー文脈、SID軌跡、item featuresを一つのdecoder系列へ置く。Kuaishouの2週間・5% A/BではOneLive recallと本番pre-rankを同時に置換した。全カスケードの撤去とは区別し、可視範囲・勾配・KV再利用の境界を読む。\n"
+        ],
+        [
+          36,
+          37,
+          "  scope: 提供PDFを通読し、arXiv書誌と照合。数値は著者報告であり、独立再現ではない。\n"
+        ],
+        [
+          41,
+          43,
+          "  author_claim: 著者は、SIDを生成した過程を層ごとの特徴融合へ渡すことで、候補IDだけを引き渡す際の情報損失を減らすと主張する。DQ-PCAがタスク別の参照範囲を作り、ranking側のLoRAが生成backboneを保護しながら特徴融合を調整する（§4–5）。\n  research_bot_interpretation: 注目したいのは更新の境界だ。共有する表現と更新するパラメータを別々に設計している。ただし疎なembeddingは両タスクで共有されるため、すべての干渉が消えるとは読めない。OneRankerのKV受け渡し＋DCと、同一系列内でSID軌跡を読む方式は異なる。Gryphon-v2の全カスケード置換とも適用範囲が違う。\n"
+        ],
+        [
+          49,
+          53,
+          "  problem: 生成recallはSIDの条件付き分布を学び、ランキングはクリック・長時間視聴・ギフトなどの識別を学ぶ。候補IDだけでは文脈が落ちる。別ランカーでは長い履歴を再計算する。一方、全特徴を生成側へ見せると、未生成のSIDや候補属性が正解を漏らす。単に系列を連結するだけでは解決しない。\n  why_it_might_work: 生成したSIDのhidden stateには、プロフィールと履歴を条件にその候補へ至った情報が残る。ranking側はそれを読み、候補属性と相互作用させる。履歴を省いても役立つという仮説はここにある。LoRAは共有射影からの小さなずれを許すが、低rankの更新で必要な相互作用を表せるかはデータに依存する。attentionの集中を示すFigure\n    4だけで因果的な説明が確定するわけではない。\n  evidence: '### オンラインで置換したのはrecallとpre-rank\n"
+        ],
+        [
+          54,
+          55,
+          "    以下は§6.4の著者報告。2026年6月に開始した2週間・5% trafficのA/Bで、OneLive-based recall＋production pre-rankingを基準とする。\n"
+        ],
+        [
+          56,
+          64,
+          ""
+        ],
+        [
+          65,
+          66,
+          "    | サービス | 指標 | 相対変化 |\n"
+        ],
+        [
+          67,
+          68,
+          "    | --- | --- | ---: |\n"
+        ],
+        [
+          69,
+          70,
+          "    | Kuaishou | play volume | +1.177% |\n"
+        ],
+        [
+          71,
+          72,
+          "    | Kuaishou | follow rate | +0.655% |\n"
+        ],
+        [
+          73,
+          76,
+          "    | Kuaishou | like rate | +2.560% |\n"
+        ],
+        [
+          77,
+          78,
+          "    | Kuaishou Lite | gifting users | +0.717% |\n"
+        ],
+        [
+          79,
+          84,
+          "    | Kuaishou Lite | gifting intention | +1.567% |\n\n    | Kuaishou Lite | total gifting amount | +2.569% |\n\n\n    この節には各指標の信頼区間や検定結果が示されていない。gifting intentionの厳密な計測定義も確認できない。2週間の正の差から長期定着や他ドメインの効果を推定しない。\n\n\n    ### 分離を外すと生成とランキングが逆方向へ動く\n\n    Table 1のClick HR@128はOneLive 0.8284、PROMISE 0.8416、UniR² 0.8741。Table 2のCTR AUCは本番HoME系baseline 0.8450から0.8513へ上がる。\n\n\n    Table 3でDQ-PCAとstop-gradientを同時に除くと、生成損失は+30.10%、HR@1は−44.39%、ranking損失は−3.83%。ただし除去は二要素同時だ。個別効果は分からない。LoRA除去ではranking損失が+7.05%。履歴をrankingにも読ませる構成は15.39G\n    FLOPs、標準構成は9.37Gで、精度と計算量の交換を選んでいる。\n\n\n    原典の注意点：Table 3のUniR²行のCTR/GTR AUC（0.8450/0.9541）はTable 2のbaselineと同じで、Table 2のUniR²値と一致しない。条件差の説明を確認できず、両表の絶対値を混ぜない。Figure\n    6の推論時間−54.29%は著者のパイプライン比較であり、絶対msやP99ではない。[一次資料：§6、Tables 1–3、Figure 6](https://arxiv.org/pdf/2607.24439v1)。'\n  executable_understanding: '`uv run papers/unir2-sequence-unify/run.py`\n\n\n    mask toyは2履歴token、1プロフィール、BOS＋3 SID、2 item tokensを使う。行をquery、列をkeyとして、遮断した値を大きく変えても生成側の集計が変わらないことを確認する。学習toyは次token確率の目標0.8、ranking目標0.2という人工的な競合を与え、どちらの条件にも同じ単一の調整値（scalar adapter）を置き、調整できる自由度をそろえる。200回、学習率0.1で更新する。'\n  results: 生成の事前学習点から始め、joint gradientではranking BCEが下がる一方、NTP交差エントロピーが増える。分離条件ではbaseを生成損失だけで更新し、ranking用adapterを動かすためNTPは初期値を保つ。これは固定した矛盾目標での結果で、常に共同学習が悪いという意味ではない。\n  what_we_verified: Mechanism PARTIAL。生成側の未来・item情報の遮断と、ranking側の履歴除外を規則として確認した。adapterの自由度は同じにした。その条件でranking\n    gradientをbaseから切り、生成側の損失を保てる合成例を実行した。\n  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Transformer、実際の低rank\n    Q/K/V、共有embedding、MMoE、sampling masksは実装していない。KV reuseのメモリ量、CPU/GPU並行処理、オンライン指標も未測定。次に調べたいのは、共有embeddingを通る干渉と、履歴の圧縮で失われる短期意図である。\n  implementation: '`visibility()` が許可行列、`seesaw()` が解析的なCE勾配p−yを実装する。両条件とも同じ初期base=log(4)、adapter=0で始める。scalar\n    adapterはLoRAの更新境界を説明する代用品であり、行列分解の検証には使わない。'\n"
+        ],
+        [
+          86,
+          88,
+          "  title: 候補IDに加え、生成の軌跡を同じ系列に残す\n  caption: \"§4.1・Figure 2を基に説明用に再構成。SIDの末尾状態もランキングへ渡す。 この図のPは履歴とプロフィールを含む入力接頭部全体を表す。参照範囲の図ではPをプロフィールだけに用いている。\"\n"
+        ],
+        [
+          90,
+          92,
+          "  title: rankingが直接読むのはプロフィール以降\n  caption: \"式7–10の許可行列。緑は参照可、灰は遮断。履歴tokenのquery計算を示す図ではない。 上4行は履歴H、プロフィールP、現在位置までのSID入力を参照する。下2行は履歴Hを除き、プロフィール・SID入力・候補特徴を相互に参照する。行は参照する側、列は参照される側。\"\n"
+        ],
+        [
+          94,
+          96,
+          "  title: 前向きの共有と逆伝播の分離\n  caption: 式17–18を再構成。疎なembeddingの共有は別経路として残る。\n"
+        ],
+        [
+          98,
+          100,
+          "  title: ランキングをstrategy filterの待ち時間へ重ねる\n  caption: §5.2・Figure 3を再構成。横幅は実測時間を表さない。\n"
+        ]
+      ]
+    },
+    "papers/unir2-sequence-unify/README.md": {
+      "before_sha256": "0ca13ef0f4e5aba87c4bd63b0dd6158a9e81d63b817632080808947ce518aba2",
+      "before_blob": "824ae8d1ad085df5ecf3d8b6368ab81cc7760397",
+      "after_sha256": "b65cda984f5c70f74ea3f65f22756ce0bca556e5a8d237c38f0764134ffdfd85",
+      "after_blob": "398838b88b2042e6dc17dc02517ed854b8653094",
+      "prior_spans": [
+        [
+          0,
+          3,
+          "# Unifying Generative Recall and Multi-Objective Ranking in a Single Decoder-Only Sequence\n"
+        ],
+        [
+          8,
+          49,
+          ""
+        ],
+        [
+          51,
+          76,
+          "本文の原データは lab.yaml と method.md、対応表は mapping.md。run.py は標準ライブラリのみを使い、results.json を同じディレクトリに生成する。数値は合成例で、論文の再現実験ではない。\n"
+        ]
+      ]
+    },
+    "papers/unir2-sequence-unify/method.md": {
+      "before_sha256": "93c0bee5ee62c2d7087cc2c15c840f7d675d0c1af13240b20fd8bdd33c744eea",
+      "before_blob": "f1d75d62400d40b32fff635a72c1e392b5357b2c",
+      "after_sha256": "4f2e5d8268b229270d0742531bd92d134ec122b6e720d95701ebd8c8e6e0a48d",
+      "after_blob": "55367fb2ea4243a0d86e552c475d0673f97cfe17",
+      "prior_spans": []
+    },
+    "papers/unir2-sequence-unify/mapping.md": {
+      "before_sha256": "01958fa032a91ab73247a90e700c17f05f0d3d699fbc2b7fa7a755604a0f6238",
+      "before_blob": "14c765888423f1a67d534ca022810e6a15d1244d",
+      "after_sha256": "9c0747f77c01290ba0ff91f127dc9170db65b1c36703a4ab861130f3e6bd46ee",
+      "after_blob": "b9211c15f33f7f765397540cb2420fa601794a0f",
+      "prior_spans": []
+    },
+    "papers/unir2-sequence-unify/figures/isolation.svg": {
+      "before_sha256": "9f58692121468b2436e2ef22cd38d79cdae1e81800962cfc3734e3a2d3f017cb",
+      "before_blob": "8b9a4a4d75fbe8b7191c072ab886312674b5b22f",
+      "after_sha256": "a6630c962c363889bc233d1ca0ab6832208e1b4204b34e136132782d2c777775",
+      "after_blob": "9ece7a640f2acceb6ab250a5c9b04a5d06daaef3",
+      "prior_spans": []
+    },
+    "papers/unir2-sequence-unify/figures/mask.svg": {
+      "before_sha256": "8018674b0404cfc6876a314f7b3afbdcdd791ccdc14f8869fee8f02357c179ab",
+      "before_blob": "1c9753973f35d9d2f4b96c5ffe2e3c8e7a5b076f",
+      "after_sha256": "a84f1e4183f0bd4c5cc445385ecfea2371e22cfcd8f22d28f5bd0e4c026efbda",
+      "after_blob": "21d8ca669622ef0d8152e1598d3d1f69e4dee869",
+      "prior_spans": []
+    },
+    "papers/unir2-sequence-unify/figures/sequence.svg": {
+      "before_sha256": "f4d697db4d1c8ca34ebf125de0aefc6b99903bf2042f200a4d022172016adbfe",
+      "before_blob": "6f28f4261e22b66e4fda9638d7cfeaaccd52cc10",
+      "after_sha256": "26268322c3cda208d8f055ab9c2359b05372895256f4e936f01ae19e062426fb",
+      "after_blob": "93c2be274fdbb046ad052613adaec5ecd1f0ba1f",
+      "prior_spans": []
+    },
+    "papers/unir2-sequence-unify/figures/serving.svg": {
+      "before_sha256": "21869ffe8335d7b7a771c527159afad8c141a1484b7debd27f7d5e573cc29335",
+      "before_blob": "b618b1067108182101e6a8fa28e7fbc589f6bf25",
+      "after_sha256": "b55ebf4c561210695f21a5c3ba6ec8e7f31779237765b9e97804e6451e566d6a",
+      "after_blob": "497649b708e796ad712f75ba5877f5851b3d9199",
+      "prior_spans": []
+    }
+  }
+}

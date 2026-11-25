@@ -8,9 +8,14 @@ import pytest
 import yaml
 
 from paper_lab.build import build
-from prose_preservation import before_pinterest_full_rewrite, paper_overview_rewrite_hash, restored_before_paper_overview
+from prose_preservation import before_pinterest_full_rewrite, before_unir2_full_rewrite, paper_overview_rewrite_hash, restored_before_paper_overview
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def before_full_article_rewrites(root, path, current):
+    old = before_unir2_full_rewrite(root, path, current)
+    return before_pinterest_full_rewrite(root, path, old)
 
 
 class OverviewText(HTMLParser):
@@ -111,7 +116,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'unir2-sequence-unify': ('5%', '2週間', '1.177%', '2.569%', '推薦の全段階を置き換えた結果でもありません'),
     }
     for path, row in rows.items():
-        raw = before_pinterest_full_rewrite(ROOT, path, (ROOT / path).read_bytes())
+        raw = before_full_article_rewrites(ROOT, path, (ROOT / path).read_bytes())
         previous = restored_before_paper_overview(ROOT, path, raw)
         old, new = map(yaml.safe_load, (previous, raw))
         overview = new['sections'].pop('overview')
@@ -163,7 +168,7 @@ def test_download_mirror_replaces_only_the_overview():
         'unir2-sequence-unify',
     )}
     for path, row in receipt['mirrored'].items():
-        source = before_pinterest_full_rewrite(ROOT, row['source'], (ROOT / row['source']).read_bytes())
+        source = before_full_article_rewrites(ROOT, row['source'], (ROOT / row['source']).read_bytes())
         previous = restored_before_paper_overview(ROOT, row['source'], source)
         old, new = (yaml.safe_load(raw)['sections']['overview'].encode() for raw in (previous, source))
         if row.get('mirror_excludes_unchanged_figure'):
@@ -181,7 +186,7 @@ def test_download_mirror_replaces_only_the_overview():
             assert slug in prior_paragraphs
             old = row['prior_mirror'].encode()
             assert len(old.decode().split('\n\n')) == prior_paragraphs[slug]
-        download = before_pinterest_full_rewrite(ROOT, path, (ROOT / path).read_bytes())
+        download = before_full_article_rewrites(ROOT, path, (ROOT / path).read_bytes())
         assert download.count(new) == 1
         assert download.count(old) == int(Path(path).parent.name in {
             'reasoncast-agentic-demand-forecasting', 'scope-coupled-supply-chain-policies', 'onetrans-v2-cascade-unification',
