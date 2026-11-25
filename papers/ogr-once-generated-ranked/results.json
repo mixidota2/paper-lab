@@ -1,5 +1,5 @@
 {
-  "note": "人工入力と単位時間の依存グラフ。推薦精度・実測速度・学習を再現していない。CountSketch後の学習と量子化は省略。",
+  "note": "人工入力で、各処理に1単位かかると仮定して段数を数えた。推薦精度や速度は測っていない。CountSketchの後に続く学習と量子化も行わない。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",

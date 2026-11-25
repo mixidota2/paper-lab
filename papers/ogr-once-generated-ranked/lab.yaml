@@ -23,8 +23,10 @@ urls:
   official_code: null
 verdict: Must Read
 status: published
-question: OGR：生成した時点で、表示順も決まっている
-summary: OGRは表示するslate全体を順序付きで生成する。TUSIDは、動画の意味的な特徴と、ユーザーの履歴上で他の動画と一緒に現れる傾向を統合してIDを作る。GL2Pは、表示位置どうしの関係を考慮して並びを計画する。SPAは、表示する動画の組全体（slate）への反応に合わせて生成モデルを調整する。Kuaishouの3%トラフィックで有効視聴+1.120%。ただし約2.2倍は依存経路の理論比であり、本番遅延の測定値ではない。
+question: |-
+  短い動画を推薦するとき、表示する動画と順番を一つのモデルで決められるか
+summary: |-
+  OGRは、動画の組と表示順を一緒に生成する。各動画を表すコードには、動画の内容と視聴履歴での共起を反映する。Kuaishouの本番トラフィックの3%を使った1週間の実験で、既存方式より有効視聴が1.120%増えたと著者は報告した。約2.2倍は理論上の依存経路の比で、本番の応答時間ではない。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -37,53 +39,55 @@ source_review:
   url: https://arxiv.org/pdf/2608.17613v1
   scope: 一次PDFの手法、実験、関連図表と付録を照合。著者報告と人工計算を区別し、未公開の設定を補わない。
 core_idea:
-  author_claim: 著者は、推薦に適したSID、listwise planner、slate preference alignmentを組み合わせ、候補生成とrankingを分けずに順序付きslateを作れると主張する。
-  research_bot_interpretation: 設計上の要点は、位置間依存をSID tokenの直列鎖から潜在的な好みの計画へ移すことにある。意味・共起の表現改善、依存経路の短縮、報酬の整列は別の効能なので、各々の根拠で判断したい。
+  author_claim: |-
+    著者は、動画を表すコードを作り、表示位置の関係を考えて並びを計画し、動画の組全体への反応をもとにモデルを調整する。この手順で、候補を集めてから別のモデルで並べ直さなくても、順序付きの動画の組を作れると述べている。
+  research_bot_interpretation: |-
+    ある位置のコードがすべて確定するまで待つ代わりに、その位置の計画を表す途中の値を次の位置に渡す。動画の内容と履歴を使う効果、待ち時間の短縮、報酬の調整は別々に確かめる必要がある。
 sections:
   overview: |-
     Kuaishouなどの研究チームは、短い動画を1本ずつ採点して並べる代わりに、画面に出す動画の組とその順番を一緒に作る方法を提案しました。OGRは動画の内容に加え、視聴履歴の近い位置にどんな動画が現れやすいかを使って動画IDを作ります。モデルは表示位置どうしの関係を考えてから各位置の動画IDを生成し、動画の組全体に対する反応をもとに学習します。
 
     Kuaishouの本番トラフィックの3%を使った1週間のA/Bテストでは、既存方式より有効視聴が1.120%増えたと著者は報告しています。また、論文の約2.2倍という値は、前の計算結果を待つ必要がある処理の長さを理論上で比べたものです。本番の応答時間が約2.2倍速くなったという測定結果ではありません。
-  problem: '従来の候補生成→ranking→rerankingでは、後段がどれほど優秀でも候補にないitemは表示できない。次itemのSID生成だけに置き換えても、上位K候補を並べればslateの相互作用まで学べるわけではない。OGRは「どのitemか」と「何番目に置くか」を同じ生成器の責務にする。
+  problem: |-
+    候補を先に集める方式では、後段の採点や並べ直しで候補にない動画を選ぶことはできない。次に見る動画のコードを生成し、上位候補を順に並べるだけでも、同じ画面で動画どうしが与える影響までは学べない。OGRは、どの動画をどこに表示するかを一つのモデルで決める。
 
-
-    [GenPage](genpage-netflix-homepage.html)はhomepageの行と配置、[UniRec](unirec-chain-of-attribute.html)はECの生成型cascade統合を扱う。OGRの単位はshort-videoの表示slateであり、同じページ生成と一括りにしない。[Gryphon](gryphon-v2-cascade.html)のsole
-    candidate generatorという役割とも異なる。これらを同じcatalog・K・遅延制約で比較した実験はない。'
+    [GenPage](genpage-netflix-homepage.html)はホーム画面に複数の行を並べ、[UniRec](unirec-chain-of-attribute.html)はECで候補の取得と採点を統合する。OGRが作るのは短い動画を並べた一組で、ページ全体を作る方式や、候補だけを生成する[Gryphon](gryphon-v2-cascade.html)とは対象が異なる。これらの手法をカタログ、表示数、応答時間の制約をそろえて比べた実験ではない。
   method: method.md
-  why_it_might_work: 【解釈】意味枝を残して共起だけを信頼度で弱めれば、履歴の少ないitemを不安定な行動信号で壊しにくい。潜在表現で次位置を計画できればdecode待ちを減らせる。SPAは補助目的が主目的を逆転させるのを抑える。ただしplannerの連続表現が正確か、観測されたslate以外にも報酬が一般化するかは別問題である。
-  evidence: '### オフラインの改善は、比較先とdatasetを分ける
+  why_it_might_work: |-
+    履歴が少ない動画は、少数の同時視聴だけで特徴が偏らないように、共起の情報の重みを下げる。位置の計画とコードの生成を重ねれば、先の位置を待つ時間を短くできる。報酬の調整では、多様性などの補助指標が視聴などの主指標の向きを逆転させない。ただし、計画がよい動画を選ぶことと、表示していない動画の組にも評価が通用することは、これらの設計だけでは分からない。
+  evidence: '### オフラインの推薦精度
 
 
-    表1のIndustrial NDCG@5はOGR 0.0633、最良baselineのSeq2Slate 0.0427で約48.2%増。KuaiRecはOGR 0.1303、PRM 0.1024で約27.2%増。OneRecとの差ではない。時系列leave-five-out、K=5、seed
-    2025–2029の5回平均。offlineの順位改善は露出policyや評価集合に依存し、オンラインの有効視聴増と同じ量ではない。
+    表1では、上位5件の順序を評価するNDCG@5をデータごとに比較した。商用データ（Industrial）ではOGRが0.0633、比較手法で最も高いSeq2Slateが0.0427で、約48.2%増えた。公開データ（KuaiRec）ではOGRが0.1303、PRMが0.1024で、約27.2%増えた。どちらもOneRecとの差ではない。著者は時系列の末尾5件を除いて学習し、表示数を5件とし、乱数の初期値2025〜2029で5回測った平均を報告した。観測できる表示は元の推薦方式に依存し、オフラインの順位指標と本番の有効視聴は別の指標である。
 
 
-    表3では属性の単純加算がbase SIDより悪化する。情報を増やせばよいわけではない。表4ではplannerを外した分のparameterをencoder/decoderへ再配分しても低下する。ただし各部品の相互作用を全組合せで調べた設計ではない。
+    表3では、動画の属性を単純に足した場合、属性を組み合わせないRQ-KMeansよりNDCG@5が下がった。表4では、位置を計画する部分を外して、その分のパラメーターをエンコーダーとデコーダーに振り分けても、指標が下がった。全ての構成の組み合わせを試した実験ではない。
 
 
-    ### 3%トラフィック・1週間のA/B
+    ### 本番の視聴とベンチマークの処理量
 
 
-    既存システム比でEffective Views +1.120%、Comments +2.954%、Likes +0.505%、Forwards +1.255%。本文のOnline A/B Testingと表10に期間を記載。信頼区間、検定、指標の絶対値やinvalid
-    SID率、end-to-end serving latencyの表は確認できない。3%は全ユーザーへの全面展開を意味しない。
+    著者はKuaishouの本番トラフィックの3%を使い、既存方式と1週間比較した。論文の報告では、有効視聴が1.120%、コメントが2.954%、いいねが0.505%、共有が1.255%増えた（Online A/B Testing、表10）。信頼区間、統計検定、指標の絶対値、無効なSIDの割合、本番の応答時間は確認できない。この3%は全利用者への展開を意味しない。
 
 
-    Fig.3の実測throughputはTIGER-Beam比2.43倍、OneRec-Beam比2.49倍。K×DからK+Dへの20/9≈2.22倍は理想化したcritical pathの比で、実測throughputでも総演算量削減率でもない。Top-5は深さDだが、代替next-itemの上位候補を返すため、slateの位置間依存を直接モデル化するOGRとは仕事が違う。
+    図3では、OGRが単位時間に処理した組数はTIGER-Beamの2.43倍、OneRec-Beamの2.49倍だった。これとは別に、5位置と4段のコードで、先行結果を待つ処理の段数を理論上20段と9段で比べると、比は約2.22になる。この比は、単位時間の処理量や全演算量の実測値ではない。比較したTop-5方式は、次に見る動画を一つ選ぶときの上位候補を返す。位置どうしの関係を考えて動画の組を作るOGRとは、出力の意味が異なる。
 
 
-    <figure class="teaching batch18"><h3>除去実験：効いた部品と、悪化した融合を残す</h3><div class="matrix-scroll" tabindex="0"
-    role="region" aria-label="比較表"><table><thead><tr><th>条件</th><th>dataset</th><th>NDCG@5</th></tr></thead><tbody><tr><td>base
+    <figure class="teaching batch18"><h3>構成要素を外したときの推薦精度</h3><div class="matrix-scroll" tabindex="0"
+    role="region" aria-label="比較表"><table><thead><tr><th>条件</th><th>評価データ</th><th>NDCG@5</th></tr></thead><tbody><tr><td>base
     RQ-KMeans</td><td>KuaiRec</td><td>0.1162</td></tr><tr><td>属性を単純加算</td><td>KuaiRec</td><td>0.1096</td></tr><tr><td>cross-attention
     + gate</td><td>KuaiRec</td><td>0.1198</td></tr><tr><td>CCE concat、CAWなし</td><td>KuaiRec</td><td>0.1298</td></tr><tr><td>TUSID
-    full</td><td>KuaiRec</td><td>0.1303</td></tr><tr><td>GL2P + SPA full</td><td>Industrial</td><td>0.0633</td></tr><tr><td>plannerなし</td><td>Industrial</td><td>0.0359</td></tr><tr><td>SPAなし</td><td>Industrial</td><td>0.0419</td></tr><tr><td>主報酬なし</td><td>Industrial</td><td>0.0467</td></tr><tr><td>補助報酬なし</td><td>Industrial</td><td>0.0554</td></tr><tr><td>保守的正則化なし</td><td>Industrial</td><td>0.0312</td></tr></tbody></table></div><figcaption>表3・4。datasetをまたぐ値を同じablation系列として比較しない。</figcaption></figure>
+    full</td><td>KuaiRec</td><td>0.1303</td></tr><tr><td>GL2P + SPA full</td><td>Industrial</td><td>0.0633</td></tr><tr><td>plannerなし</td><td>Industrial</td><td>0.0359</td></tr><tr><td>SPAなし</td><td>Industrial</td><td>0.0419</td></tr><tr><td>主報酬なし</td><td>Industrial</td><td>0.0467</td></tr><tr><td>補助報酬なし</td><td>Industrial</td><td>0.0554</td></tr><tr><td>保守的正則化なし</td><td>Industrial</td><td>0.0312</td></tr></tbody></table></div><figcaption>表3・4。評価データが異なる行どうしの差は比べない。</figcaption></figure>
 
 
     [一次資料：版を固定したPDF](https://arxiv.org/pdf/2608.17613v1)。図・表・式と実装の対応は末尾のmappingを参照。'
-  executable_understanding: '同じK・Dを持つ逐次decodeと、各位置に独立laneを与えたpipelineを比較する。時間単位は仮定であり、GPUの測定ではない。K=1ではplannerの追加分だけ遅くなる反例も残す。CountSketchは3人の手作り履歴でdistinct
-    usersを数え、CAWのcold-start端点を検査する。報酬は同じ標準化値に単純和と式15を適用して、符号の逆転を比べる。
+  executable_understanding: '最初の図では、表示する動画の数Kとコードの段数Dを変えられる。動画のコードを順番に作る場合と、位置を計画しながら別の位置のコードを並行して作る場合で、最後のコードがそろうまでに何段かかるかを比べる。各処理の時間が等しく、同時に処理できる数に上限がないと仮定している。たとえばD=4でも、K=1では計画が1段加わるため、むしろ終了が遅くなる。
 
 
-    <figure class="teaching batch18"><h3>復号の時刻表：短くなるのは依存経路</h3><div data-b18="schedule"><label>条件 <select><option
+    別の計算では、3人分の人工履歴から動画の共起を数え、近くに別の視聴記録がない動画では、共起情報の重みが0になることを確かめる。2つ目の図では、同じ標準化済みの主報酬と補助報酬に単純な足し算と式15を適用し、主報酬の符号が逆転するかどうかを比べる。
+
+
+    <figure class="teaching batch18"><h3>動画のコードがそろうまでの段数</h3><div data-b18="schedule"><label>条件 <select><option
     value="0">K=5, D=4</option><option value="1">K=1, D=4</option><option value="2">K=5, D=1</option><option
     value="3">K=10, D=4</option></select></label><div data-output aria-live="polite"><p>K=5、D=4：逐次20段
     → pipeline 9段。比2.222。OGRの総仕事は25単位。</p><div class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>lane</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr></thead><tbody><tr><td>planner</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>—</td><td>—</td><td>—</td><td>—</td></tr><tr><td>位置1</td><td>·</td><td>SID1</td><td>SID2</td><td>SID3</td><td>SID4</td><td>·</td><td>·</td><td>·</td><td>·</td></tr><tr><td>位置2</td><td>·</td><td>·</td><td>SID1</td><td>SID2</td><td>SID3</td><td>SID4</td><td>·</td><td>·</td><td>·</td></tr><tr><td>位置3</td><td>·</td><td>·</td><td>·</td><td>SID1</td><td>SID2</td><td>SID3</td><td>SID4</td><td>·</td><td>·</td></tr><tr><td>位置4</td><td>·</td><td>·</td><td>·</td><td>·</td><td>SID1</td><td>SID2</td><td>SID3</td><td>SID4</td><td>·</td></tr><tr><td>位置5</td><td>·</td><td>·</td><td>·</td><td>·</td><td>·</td><td>SID1</td><td>SID2</td><td>SID3</td><td>SID4</td></tr></tbody></table></div></div><script
@@ -102,53 +106,50 @@ sections:
     data-frames>["<p>主=1、補助=2。単純和=3。SPAのκ=0.5、校正後Δ=2.0。<\/p>", "<p>主=1、補助=-2。単純和=-1。SPAのκ=0.0、校正後Δ=1.0。<\/p>",
     "<p>主=-1、補助=2。単純和=1。SPAのκ=0.0、校正後Δ=-1.0。<\/p>", "<p>主=-1、補助=-2。単純和=-3。SPAのκ=0.5、校正後Δ=-2.0。<\/p>",
     "<p>主=0、補助=3。単純和=3。SPAのκ=0.0、校正後Δ=0.0。<\/p>", "<p>主=1、補助=0。単純和=1。SPAのκ=0.0、校正後Δ=1.0。<\/p>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure>'
-  results: 下の数値はLabの人工計算。著者報告のオンライン指標とは分けて読む。
-  what_we_verified: '**Mechanism: PARTIAL**。人工条件の計算と境界条件を確認した。results.jsonのCONFIRMEDは小さな計算命題にだけ適用する。原論文の学習済みモデルや産業環境を再現した意味ではない。'
-  what_we_did_not_verify: '融合部・SASRec・Transformer・RQ-KMeansの学習、SPA更新、実ログの露出bias、無効SID処理、online A/B、GPU
-    throughputは検証していない。sketchの衝突が1回のhashで必ず相殺するとも主張しない。
-
-
-    **Performance / Scaling / Production applicability: NOT TESTED**。'
-  implementation: '標準ライブラリだけの独立した小実験。リポジトリのルートで `uv run papers/ogr-once-generated-ranked/run.py` を実行すると、同じフォルダーの
-    `results.json` を更新する。外部APIやモデル取得は不要。UIはその計算済み結果を表示し、別の推定器をJavaScriptで動かさない。
-
+  results: |-
+    ここに載せた段数、共起、報酬は、Labが人工入力から計算した結果。論文の実測速度や本番の有効視聴とは別の数値である。
+  what_we_verified: |-
+    人工入力で、依存関係に沿った段数、主報酬の符号が保たれる条件、正規化した2つの表現を連結したときの長さを確かめた。仕組みの一部だけを確かめたため、MechanismはPARTIALとした。results.jsonのCONFIRMEDは個々の計算に限る。
+  what_we_did_not_verify: |-
+    論文のモデルや量子化器の学習、SPAによるモデル更新、表示ログの偏り、無効なSIDの処理、本番A/Bテスト、GPUでの処理量は検証していない。無関係な動画が同じ集計枠に入っても、その影響が固定したハッシュで必ず相殺することも示していない。性能、規模を増したときの挙動、本番に適用できるかは未検証（NOT TESTED）。
+  implementation: |-
+    リポジトリのルートで `uv run papers/ogr-once-generated-ranked/run.py` を実行すると、同じフォルダーの `results.json` を更新する。計算にはPythonの標準ライブラリだけを使う。ページにある選択欄は計算済みの結果を切り替える。操作するたびにモデルを動かしているわけではない。
 
     [実行コード](../downloads/ogr-once-generated-ranked/run.py)・[全結果](../downloads/ogr-once-generated-ranked/results.json)・[README](../downloads/ogr-once-generated-ranked/README.md)・[手法](../downloads/ogr-once-generated-ranked/method.md)・[lab.yaml](../downloads/ogr-once-generated-ranked/lab.yaml)・[対応表](../downloads/ogr-once-generated-ranked/mapping.md)を保存できる。
 
-
-    照合した一次PDFとarXiv書誌に、取得可能な公式実装への案内は確認できなかった。公式コードの独立実行はNOT TESTED。ここにあるコードは公式実装の移植ではない。'
+    一次PDFとarXivの書誌では、取得可能な公式コードの案内を確認できなかった。公式コードの取得と実行は未検証（NOT TESTED）で、Labのコードは説明のために別に実装したもの。
   mapping: mapping.md
 teaching_figures:
 - id: ogr-equations
   kind: equations
-  title: TUSIDとSPAの式を分解する
+  title: 動画の表現と報酬を計算する式
   after: method
-  caption: 式の対象と仮定を分けて読む。
-  rationale: 演算と制御の境界を具体化する。
+  caption: 動画の表現を作る式と、モデルを調整する式を示す。
+  rationale: 視聴履歴の情報と報酬が、どの条件で計算に入るかを示す。
   locator: 式5–7、15–18
   steps:
   - name: 局所共起
     formula: Cᵢ[h(j)] += σ(j)/|p−q|
-    explanation: shared hashで共通近傍を保存。無関係な衝突項が0になるのは符号乱数に関する期待値。
+    explanation: 同じハッシュで、近くに現れた同じ動画を同じ枠に入れる。無関係な動画が衝突しても平均で打ち消し合うのは、符号を変えた場合の期待値の話。
   - name: 協調の信頼度
     formula: αᵢ = 0.35 log(1+Uᵢ)/(log(1+Uᵢ)+0.5)
-    explanation: distinct usersが0ならα=0。
+    explanation: 集計に寄与した利用者が0人なら、共起の重みαは0。
   - name: 重み付き連結
     formula: eᵤₙᵢ = [√(1−α)eₛₑₘ ; √α e꜀ₒₗ]
-    explanation: 意味枝と協調枝をそれぞれ長さで正規化してから重みを掛け、足し合わせずに連結する。各枝が単位normなら連結後も単位norm。
+    explanation: 動画の内容と共起を表すベクトルを別々に正規化し、重みを掛けてつなぐ。元の長さがどちらも1なら、連結した後も長さは1。
   - name: 報酬の校正
     formula: Δ = δpri + κ δaux
-    explanation: 同符号ならκ=min(|δpri|,|δaux|)/max(|δpri|,|δaux|,ε)、それ以外0。
+    explanation: 主報酬と補助報酬の符号が同じときだけ、κ=min(|δpri|,|δaux|)/max(|δpri|,|δaux|,ε)を使う。それ以外はκ=0。
   - name: 保守的な更新
     formula: LSPA = Lclip + 0.05 KL(q₀ || qθ) + 0.1 Lsup
-    explanation: 候補slate集合上のKL。全catalog分布の厳密なKLではない。
+    explanation: KLは、同じ候補の組に対する現行モデルと参照モデルの分布を比べる。全動画を対象にした分布は比べていない。
   source: https://arxiv.org/pdf/2608.17613v1
 - id: ogr-online
   kind: chart
-  title: オンライン：既存システム比の相対lift
+  title: 本番A/Bテストでの既存方式からの増加率
   after: evidence
   caption: 一次資料の著者報告。Labで測定した値ではない。
-  rationale: 共通尺度で差と分母を読む。
+  rationale: 各指標が既存方式に比べて何%増えたかを示す。
   locator: Online A/B Testing、表10
   maximum: 3
   unit: '%'

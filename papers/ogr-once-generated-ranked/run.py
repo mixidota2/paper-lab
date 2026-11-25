@@ -1,4 +1,4 @@
-"""OGR teaching calculations; no trained recommender or production timing."""
+"""OGRの仕組みを人工入力で確かめる。モデルの学習や本番計測は行わない。"""
 import hashlib
 import json
 import math
@@ -8,14 +8,14 @@ from pathlib import Path
 def schedule(k, d):
     if k < 1 or d < 1:
         raise ValueError('positive slate size and SID depth required')
-    # Unit-cost, unlimited parallel SID lanes; planner finishes slot m at t=m.
+    # 各処理を1単位とし、位置ごとのSIDを並行生成できると仮定する。位置mの計画は時刻mに終わる。
     lanes = [[m + level for level in range(1, d + 1)] for m in range(1, k + 1)]
     return {'k': k, 'd': d, 'serial': k*d, 'pipeline': max(map(max, lanes)),
             'total_operations': k + k*d, 'ratio': k*d/(k+d), 'lanes': lanes}
 
 
 def sketch(histories, buckets=16, radius=2):
-    """Shared signed hashing of positive TRAINING prefixes, distance weighting."""
+    """学習用の正の反応だけを使い、近くに現れた動画を距離に応じて重く数える。"""
     if buckets < 1 or radius < 1:
         raise ValueError('positive sketch dimensions required')
     rows, supporters = {}, {}
@@ -50,7 +50,7 @@ def fuse(semantic, collaborative, alpha):
 
 
 def calibrate(primary, auxiliary):
-    """Eq.15 accepts already standardized within-user rewards."""
+    """式15に渡す報酬は、利用者ごとに標準化済みとする。"""
     kappa = min(abs(primary), abs(auxiliary))/max(abs(primary), abs(auxiliary), 1e-6) if primary*auxiliary > 0 else 0.
     return {'primary': primary, 'auxiliary': auxiliary, 'kappa': kappa,
             'naive_sum': primary+auxiliary, 'calibrated': primary+kappa*auxiliary}
@@ -68,7 +68,7 @@ def compute():
     cases = [calibrate(*x) for x in [(1,2),(1,-2),(-1,2),(-1,-2),(0,3),(1,0)]]
     fusion = [{'users': n, 'alpha': confidence(n), 'norm_squared': sum(x*x for x in fuse([3,4],[4,3],confidence(n)))} for n in [0,1,2,10,100]]
     schedules = [schedule(k,d) for k,d in [(5,4),(1,4),(5,1),(10,4)]]
-    return {'note': '人工入力と単位時間の依存グラフ。推薦精度・実測速度・学習を再現していない。CountSketch後の学習と量子化は省略。',
+    return {'note': '人工入力で、各処理に1単位かかると仮定して段数を数えた。推薦精度や速度は測っていない。CountSketchの後に続く学習と量子化も行わない。',
             'verification': {'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},
             'experiments': [
                 {'name':'依存経路と総仕事量を分ける', 'metrics': {f"K={x['k']},D={x['d']}": {'逐次':x['serial'],'pipeline':x['pipeline'],'比':round(x['ratio'],4),'OGR総演算':x['total_operations']} for x in schedules}},
