@@ -13,6 +13,6 @@ def attention(q,keys):
 def main():
     z=[.8,.6];codes=[[1,0],[0,1],[-1,0],[0,-1]];freq=[.7,.1,.1,.1]
     prefix=[[1,0],[0,1]];target=[1,0];extra=[5,0]
-    r=dict(note='人工vector・固定頻度。モデル学習、RQ-VAE比較、HR/AUCの追試ではない。',verification=dict(mechanism='PARTIAL',performance='NOT TESTED',scaling='NOT TESTED',production_applicability='NOT TESTED'),assignments=[dict(tau=t,**assign(z,codes,freq,t)) for t in [0,1]],attention=dict(split=attention(target,prefix),split_after_extra_target=attention(target,prefix),mixed=attention(target,prefix+[target]),mixed_after_extra_target=attention(target,prefix+[target,extra])))
+    r=dict(note='架空のベクトルと固定の使用率で計算した。モデルは学習していない。RQ-VAEとの比較やHR・AUCの追試もしていない。',verification=dict(mechanism='PARTIAL',performance='NOT TESTED',scaling='NOT TESTED',production_applicability='NOT TESTED'),assignments=[dict(tau=t,**assign(z,codes,freq,t)) for t in [0,1]],attention=dict(split=attention(target,prefix),split_after_extra_target=attention(target,prefix),mixed=attention(target,prefix+[target]),mixed_after_extra_target=attention(target,prefix+[target,extra])))
     Path(__file__).with_name('results.json').write_text(json.dumps(r,ensure_ascii=False,indent=2)+'\n')
 if __name__=='__main__':main()
