@@ -104,6 +104,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = quasid_full_rewrite_hash(root, path, expected, algorithm)
     expected = weather_cutoff_rewrite_hash(root, path, expected, algorithm)
     expected = axial_ingredient_order_hash(root, path, expected, algorithm)
+    expected = stockout_example_hash(root, path, expected, algorithm)
     expected = sid_ope_full_rewrite_hash(root, path, expected, algorithm)
     expected = perishable_full_rewrite_hash(root, path, expected, algorithm)
     expected = switch_hurdle_full_rewrite_hash(root, path, expected, algorithm)
@@ -983,7 +984,7 @@ def weather_cutoff_rewrite_hash(root, path, expected, algorithm='sha256'):
 def before_weather_cutoff(root, path, current):
     if path != 'guides/forecast-to-replenishment.md':
         return current
-    current = before_axial_ingredient_order(root, path, current)
+    current = before_axial_ingredient_order(root, path, before_stockout_example(root, path, current))
     row = json.loads((root / 'tests/replenishment_weather_cutoff_hashes.json').read_text())
     assert row['file'] == path and hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
     block = row['inserted'].encode()
@@ -1008,6 +1009,26 @@ def before_axial_ingredient_order(root, path, current):
     assert row['file'] == path and hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
     block = row['inserted'].encode()
     assert current.count(block) == 1
+    prior = current.replace(block, b'', 1)
+    assert hashlib.sha256(prior).hexdigest() == row['before']['sha256'], path
+    return prior
+
+
+def stockout_example_hash(root, path, expected, algorithm='sha256'):
+    if path != 'guides/forecast-to-replenishment.md':
+        return expected
+    row = json.loads((root / 'tests/replenishment_stockout_hashes.json').read_text())
+    assert row['file'] == path and expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_stockout_example(root, path, current):
+    if path != 'guides/forecast-to-replenishment.md':
+        return current
+    row = json.loads((root / 'tests/replenishment_stockout_hashes.json').read_text())
+    assert row['file'] == path and hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    block = row['inserted'].encode()
+    assert current.count(block) == 1, path
     prior = current.replace(block, b'', 1)
     assert hashlib.sha256(prior).hexdigest() == row['before']['sha256'], path
     return prior

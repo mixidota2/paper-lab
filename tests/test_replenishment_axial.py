@@ -6,7 +6,7 @@ import re
 
 import pytest
 
-from prose_preservation import axial_ingredient_order_hash, before_axial_ingredient_order, before_weather_cutoff
+from prose_preservation import axial_ingredient_order_hash, before_axial_ingredient_order, before_stockout_example, before_weather_cutoff
 
 ROOT = Path(__file__).resolve().parents[1]
 GUIDE = 'guides/forecast-to-replenishment.md'
@@ -20,14 +20,15 @@ def hashes(data):
 
 
 def test_axial_is_one_exact_insertion_after_the_prior_revision():
-    current = (ROOT/GUIDE).read_bytes()
+    live = (ROOT/GUIDE).read_bytes()
+    current = before_stockout_example(ROOT, GUIDE, live)
     receipt = json.loads((ROOT/'tests/replenishment_axial_hashes.json').read_text())
     weather = json.loads((ROOT/'tests/replenishment_weather_cutoff_hashes.json').read_text())
     block = receipt['inserted'].encode()
     prior = before_axial_ingredient_order(ROOT, GUIDE, current)
     assert hashes(current) == receipt['after']
     assert hashes(prior) == receipt['before'] == weather['after']
-    assert hashes(before_weather_cutoff(ROOT, GUIDE, current)) == weather['before']
+    assert hashes(before_weather_cutoff(ROOT, GUIDE, live)) == weather['before']
     assert current.count(block) == 1 and block not in prior
     assert current.replace(block, b'', 1) == prior
     assert current.count(b'<!-- EVIDENCE_CARDS -->') == prior.count(b'<!-- EVIDENCE_CARDS -->') == 1
