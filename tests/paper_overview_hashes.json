@@ -256,6 +256,38 @@
       "after_blob": "cdd2078ffbe49e0156dcbb4ce766d6962fbd7093",
       "prior_field": "  overview: Spotifyは、推薦後の再生確率と、推薦しなくても再生される確率にそれぞれ閾値を設ける。推薦後の確率が高く、自然再生の確率が低いユーザーとコンテンツの組にだけ表示する。2週間の A/B で表示は7.1%減り、推薦コンテンツの消費は−0.37%で有意差なし。計測窓が異なる二つの予測値を引き算しない設計が要点になる。\n",
       "new_field_sha256": "44e7e6679cd83957b8f484b323dcfd81deed7a78155486ab2d3427aa405f09d9"
+    },
+    "papers/constrained-deep-inventory-fbsde/lab.yaml": {
+      "before_sha256": "3637e67776d28b6244bc83281ca019247e479d045f952387ef2dfccdd80b0535",
+      "before_blob": "eaf13cebb9051543a85942a56b3219b90db75794",
+      "after_sha256": "8a29bceb377efef19df6e4ca73097660d0b9627014d4ccb3c80e9c0ca894a01f",
+      "after_blob": "6bb0dfad29d9724da081bbb2fe32e774645ff5be",
+      "prior_field": "  overview: |-\n    倉庫の空きが足りていても、輸送中の商品が届けば容量を超えることがあります。この研究は、発注から到着までの時間差を取り入れ、在庫の推移ごとに容量と排出枠を守る発注を考えます。平均だけを制約するのではなく、需要などの変動がどのように起きたかに応じて、上限を超えない条件を設けます。\n\n    ただし、著者が50商品で行った人工実験では、充足率は0.562 ± 0.031、手元在庫の容量違反率は0.815でした。上限を守れるという理論の前提と、数値実装で実際に起きたことを分けて読みます。著者はKeunwoo LimとAmazon所属のMichael Bloemです。Amazonの実店舗で評価したわけではありません。\n",
+      "new_field_sha256": "6496d2c49092a7e53d488eedcdb62f1f40c961c346678ad735de50ec9cfd03c2"
+    },
+    "papers/deepstock-policy-regularized-inventory-drl/lab.yaml": {
+      "before_sha256": "14086945d8d5e931516aabf19a9824e97d148a9d23d28930d5431dda40d55013",
+      "before_blob": "64902c1ab2a22ebd3a62d74171bedf1456b4133b",
+      "after_sha256": "6c4ccf6a830900759e40d6e01b6714a740d047742142db33fd1fda511d3e3447",
+      "after_blob": "023ef159e7ced659691c83446268696b8b80a5f6",
+      "prior_field": "  overview: |-\n    手元と輸送中に合わせて18個あり、24個を持ちたいなら、追加で発注するのは6個です。DeepStockはこの引き算を学習済みのネットワークに任せず、式で計算します。ネットワークには、目標在庫や、複数の需要情報を組み合わせる係数を決めさせます。これは深層強化学習（DRL）で発注ルールを学ぶ研究です。\n\n    著者によると、2025年10月にはTmallの対象商品100%、100万超の商品（SKU）と倉庫の組に導入されました。2025年4月時点の展開率は国際100%・国内87%です。導入規模は運用実績であり、発注方式の優劣を測った比較とは分けて読みます。\n",
+      "new_field_sha256": "9e56fa2997a0689431043349d9ae735ca0e10c177b7cebe0be26da299459b111"
+    },
+    "papers/exaone-demand-routed-tsfm/lab.yaml": {
+      "before_sha256": "3c5eb6231ccf4a3237aa70202205907c7cee8d70cddea448cefb4caac8c7035e",
+      "before_blob": "e9ed7748d2f5b4762857cb1a13711b1ca06cf536",
+      "after_sha256": "0db0cc87dd67c3a9a561ed9f6edb046d77029952c777de3c4acb99343acf9c7e",
+      "after_blob": "50f41cf4fafb4752024db05c33c8a8160c64feba",
+      "prior_field": "  overview: 需要が起きる間隔と、起きたときの数量のばらつきは別の性質だ。EXAONE Demand 1.0は、需要向けのデータを学び、系列の特徴に合わせて補正の配分を変える時系列基盤モデル（TSFM）だ。22データセットのMASE幾何平均は1.0667。TiRex-1.1の1.0818との差は約1.4%にとどまる。Worth\n    Readingとした理由は、この差の大きさより、古典的な需要分類を学習の手掛かりにした設計にある。\n",
+      "new_field_sha256": "3867b9be6b0caa33bcb8cbecc811f632208f21d1e7ba3a5f202447d965694e33"
+    },
+    "papers/reasoncast-agentic-demand-forecasting/lab.yaml": {
+      "before_sha256": "3eb890e014f4c8775e7f7ed18ff2efea7f2138ec0e034f1bbd89611325dd1a1e",
+      "before_blob": "c461862cdfd61fc84b75cc26cbb105b6b57c2e91",
+      "after_sha256": "12cd021bc010ea78cff96a9d24c8726d077e82866d8ad614f7afd8333344c197",
+      "after_blob": "32be3916f19e282786805eeff20c8075600d5e87",
+      "prior_field": "  overview: ReasonCastはChronos-2の重みを変えず、イベント情報で予測を補正するかを選ぶ。元の予測をそのまま使うSkip、手元の情報で補正するBasic、検索や時系列統計のツールも使うToolの3経路がある。著者の比較ではイベント期間に誤差が下がり、Skipでは元の予測値が変わらない。欠品を含む需要予測でどの手法が優れるかは、この比較では分からない。\n",
+      "new_field_sha256": "5945ecd136c8e622db560fab375eb715e9a45e6e64337856459df637078f2361"
     }
   },
   "generated_from": {
@@ -273,6 +305,27 @@
       "after_sha256": "8a2a3f5d0b048433395c0509f7ed37f909cce5712bf48978d2a9875feb8b0329",
       "after_blob": "6f7d6d4ba313b096114b56d26dcbbc08d75c2c55",
       "source": "papers/bridging-forecast-accuracy-inventory-kpis/lab.yaml"
+    },
+    "papers/constrained-deep-inventory-fbsde/README.md": {
+      "before_sha256": "b46fe184ee87b60eb13740c2df6a588c3b1f0ca7b63da8f1d8d0a6e63284d981",
+      "before_blob": "0ab4aa2954ff91f149438b06a83208345baee240",
+      "after_sha256": "2d97b99d6708307124a7b87b15b010713639bbd186af830e835952125c99a785",
+      "after_blob": "03258ecf00617e0f25895efb2ab0c1fbd27c1f63",
+      "source": "papers/constrained-deep-inventory-fbsde/lab.yaml"
+    },
+    "papers/deepstock-policy-regularized-inventory-drl/README.md": {
+      "before_sha256": "8f157092d6c0f7791ac343a3fcce5896b0bfb5377ce9268aabe3eaff4bd055be",
+      "before_blob": "364ba6bd86619a3c5230aeca2d927481679b7326",
+      "after_sha256": "4a95aefd78b31c6b1238887946bcba8c943617cc472e1a9fe2151f6fb71ab6cd",
+      "after_blob": "bb02c24e548e4b9bae8d01af74f8b6515e473647",
+      "source": "papers/deepstock-policy-regularized-inventory-drl/lab.yaml"
+    },
+    "papers/reasoncast-agentic-demand-forecasting/README.md": {
+      "before_sha256": "85c6fe24831eff16ce85de186255f7808e3da8f7dc7a824dc17e2c3c309c34f5",
+      "before_blob": "4443bd7d0991c3307ced9c35bdbdc22247781509",
+      "after_sha256": "8310c541f44957638731e283693809c36acb142736494d9cb72e92e4d00924d6",
+      "after_blob": "1bbd532cfce2224751b9be9c1022d3d132066a80",
+      "source": "papers/reasoncast-agentic-demand-forecasting/lab.yaml"
     }
   }
 }

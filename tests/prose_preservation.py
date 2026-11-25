@@ -180,6 +180,15 @@ def reference_guess_markup_hash(root, path, expected, algorithm='sha256'):
     return row['after_' + algorithm]
 
 
+def store_layout_field_example_hash(root, path, expected, algorithm='sha256'):
+    """Recognize the reviewed store timing example only on its exact guide base."""
+    row = json.loads((root / 'tests/store_layout_field_example_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
 def coral_full_rewrite_hash(root, path, expected, algorithm='sha256'):
     """Recognize four exact source and authored CORAL identities; reject any other input."""
     row = json.loads((root / 'tests/coral_full_rewrite_hashes.json').read_text())['files'].get(path)
@@ -213,7 +222,7 @@ def store_layout_normandy_hash(root, path, expected, algorithm='sha256'):
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path
-    return row['after_' + algorithm]
+    return store_layout_field_example_hash(root, path, row['after_' + algorithm], algorithm)
 
 
 def shelf_full_rewrite_hash(root, path, expected, algorithm='sha256'):
