@@ -780,10 +780,10 @@
     "papers/coral-meta-config-harness/lab.yaml": {
       "before_sha256": "0bd5d300836111c3d4010cbf8fbafb66f9676c73dd29e247fa74f4da0cae4a93",
       "before_blob": "9b662de34113109dc31b09d2a2a4004eef8950d1",
-      "after_sha256": "b4991e80863b767da242a596432eec1a5fc7e031f0bba3f110dd5be57c5f4ec4",
-      "after_blob": "87ff3352ffa060722c59d572d0502e3144ef2154",
+      "after_sha256": "d6567928b1011b169142a6a15c9884672410b50cb12750abe993dd881d533b48",
+      "after_blob": "6262b6224bda83f71b8f541af4697ec77d9bb95c",
       "prior_field": "  overview: Metaは動画サービスで、候補を集める予算の倍率を経路ごとに見直した。別のサービスでは、利用者グループごとに使う配信方法を見直した。どちらもCORALが数日ごとに設定を更新する。分析ツールが運用統計を要約し、LLMが設定案を出す。数値最適化がその案を予算内に収める。\n",
-      "new_field_sha256": "630b15fba10c50bceac49f9a83ccb6f8660185a6cc81f0cade4f8312d5394979"
+      "new_field_sha256": "c4862b6cda03315560acf4702b7b2d6046531f84920479a81c7f728942d1b596"
     },
     "papers/gryphon-ilsm/lab.yaml": {
       "before_sha256": "343202e79ad2a545043797a8d47411bd9567ca17412ba149bc574177f6f1756c",
@@ -1267,8 +1267,8 @@
     "papers/coral-meta-config-harness/README.md": {
       "before_sha256": "633726e0b22fcfd45b636c64916b79b7ca7886fdc1493ebc128477bfcbd4e553",
       "before_blob": "131eaac699765989658bbd81ebfe223772e5f695",
-      "after_sha256": "8fdb5da1a50f2c5fba8fa09e0136f1f004622839d317a927c934df2849960962",
-      "after_blob": "a75f21e928d56b97b4712c6629cf4d7ba2cbb995",
+      "after_sha256": "aa795b9807c3a460395ab2526431ae9023e60f2f2a930e4fdb519af9042059ea",
+      "after_blob": "1e2ba4b1346e64dcc47fd436cefba6a82fa51782",
       "source": "papers/coral-meta-config-harness/lab.yaml",
       "prior_mirror": "MetaはCORALを使い、動画サービスでは推薦候補を集める予算を経路ごとに見直した。別のサービスでは利用者のグループごとに配信方法を見直した。どちらも数日ごとに更新した。分析ツールが運用統計を要約し、大規模言語モデル（LLM）が設定の変更を提案する。数値最適化は予算内で提案に最も近い設定を返す。\n\n著者の動画サービスの3回目の比較では、動画を1回以上見た訪問の回数が全体で0.16%、視聴時間が0.15%増えた。著者によると、推薦の配信費用は増えなかった。別のサービスで報告された44%は、初回に減らした金額に対する次回の削減額の増加率である。総費用が44%減ったわけではない。"
     },
