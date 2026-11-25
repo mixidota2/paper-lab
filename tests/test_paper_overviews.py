@@ -35,7 +35,7 @@ class OverviewText(HTMLParser):
 
 def test_scoped_source_transition_and_rendered_overviews(tmp_path):
     rows = json.loads((ROOT / 'tests/paper_overview_hashes.json').read_text())['files']
-    assert len(rows) == 66
+    assert len(rows) == 70
     site = tmp_path / 'site'
     build(root=ROOT, site_dir=site)
     anchors = {
@@ -105,6 +105,10 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'pinterest-causal-retrieval-shopping': ('しきい値', '約40%', '0.26%', '1.10%', '85%減らしたのは別の群'),
         'otto-gbdt-vs-dnn-ltr': ('8週間', '1.86%', '0.56%', '1.48%', 'A/Bテストには含まれていません'),
         'uvr-wolt-trial-reorder': ('10カ国', '2週間', '5.5%', '0.16%', '6カ国中5カ国'),
+        'genpage-netflix-homepage': ('14日間', '約2億', '0.24%', '0.17〜0.30%', '20%', '既存の候補生成まで'),
+        'tgr': ('CCFormer', '3.57%', 'BARGE', '0.60%', 'HiGR', '1.22%', 'TGR-Reason', '13.09%'),
+        'sona-yandex-music': ('各群15%', '7日間', '4.53%', '6.30%', '全利用者に展開しておらず'),
+        'unir2-sequence-unify': ('5%', '2週間', '1.177%', '2.569%', '推薦の全段階を置き換えた結果でもありません'),
     }
     for path, row in rows.items():
         raw = before_pinterest_full_rewrite(ROOT, path, (ROOT / path).read_bytes())
@@ -154,11 +158,19 @@ def test_download_mirror_replaces_only_the_overview():
         'linkedin-prediction-to-incrementality',
         'pinterest-causal-retrieval-shopping',
         'uvr-wolt-trial-reorder',
+        'genpage-netflix-homepage',
+        'sona-yandex-music',
+        'unir2-sequence-unify',
     )}
     for path, row in receipt['mirrored'].items():
         source = before_pinterest_full_rewrite(ROOT, row['source'], (ROOT / row['source']).read_bytes())
         previous = restored_before_paper_overview(ROOT, row['source'], source)
         old, new = (yaml.safe_load(raw)['sections']['overview'].encode() for raw in (previous, source))
+        if row.get('mirror_excludes_unchanged_figure'):
+            assert Path(path).parent.name == 'genpage-netflix-homepage'
+            old, old_figure = old.split(b'\n\n<figure', 1)
+            new, new_figure = new.split(b'\n\n<figure', 1)
+            assert new_figure == old_figure
         if 'prior_mirror' in row:
             slug = Path(path).parent.name
             prior_paragraphs = {
