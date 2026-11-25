@@ -2,7 +2,7 @@
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const f=JSON.parse(fs.readFileSync(process.argv[2],'utf8')), mode=process.argv[3];
-assert.equal(f.cards.length,119);
+assert.equal(f.cards.length,120);
 for (const name of ['data-reading-list','data-reading-save','data-reading-preview','data-reading-json','data-reading-status','data-reading-import','data-reading-import-status']) assert.ok(f.fields.includes(name),name+' in generated page');
 const form=new EventTarget(),clear=new EventTarget(),win=new EventTarget(),save=new EventTarget();
 const importer=new EventTarget(),importStatus={textContent:''}; importer.value=''; importer.files=[];
