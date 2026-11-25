@@ -101,7 +101,9 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = harness_icegr_full_rewrite_hash(root, path, expected, algorithm)
     expected = forecast_pair_full_rewrite_hash(root, path, expected, algorithm)
     expected = semantic_id_pair_full_rewrite_hash(root, path, expected, algorithm)
-    return quasid_full_rewrite_hash(root, path, expected, algorithm)
+    expected = quasid_full_rewrite_hash(root, path, expected, algorithm)
+    expected = weather_cutoff_rewrite_hash(root, path, expected, algorithm)
+    return sid_ope_full_rewrite_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -314,6 +316,35 @@ def before_quasid_full_rewrite(root, path, current):
     if not path.startswith(('papers/quasid-collision-qualified-sid/',)):
         return current
     row = quasid_body_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior
+
+
+def sid_ope_body_rows(root):
+    return json.loads((root / 'tests/sid_ope_full_rewrite_hashes.json').read_text())['files']
+
+
+def sid_ope_full_rewrite_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith(('papers/sid-ope-hierarchy/',)):
+        return expected
+    row = sid_ope_body_rows(root).get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_sid_ope_full_rewrite(root, path, current):
+    if not path.startswith(('papers/sid-ope-hierarchy/',)):
+        return current
+    row = sid_ope_body_rows(root).get(path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
@@ -755,3 +786,23 @@ def shelf_asda_hash(root, path, expected, algorithm='sha256'):
         return expected
     assert expected == row['before_' + algorithm], path
     return row['after_' + algorithm]
+
+
+def weather_cutoff_rewrite_hash(root, path, expected, algorithm='sha256'):
+    if path != 'guides/forecast-to-replenishment.md':
+        return expected
+    row = json.loads((root / 'tests/replenishment_weather_cutoff_hashes.json').read_text())
+    assert row['file'] == path and expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_weather_cutoff(root, path, current):
+    if path != 'guides/forecast-to-replenishment.md':
+        return current
+    row = json.loads((root / 'tests/replenishment_weather_cutoff_hashes.json').read_text())
+    assert row['file'] == path and hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    block = row['inserted'].encode()
+    assert current.count(block) == 1
+    prior = current.replace(block, b'', 1)
+    assert hashlib.sha256(prior).hexdigest() == row['before']['sha256'], path
+    return prior
