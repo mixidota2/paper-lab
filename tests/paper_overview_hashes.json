@@ -528,6 +528,38 @@
       "after_blob": "5ea3e3bb5205df9688586bdcfc742484799b1395",
       "prior_field": "  overview: WoltのUniversal Venue Ranker（UVR）は、購入履歴を読む双方向Transformerのlogitを、CatBoostの特徴量に加える。V1の2週間・50:50 A/BではMerchant\n    Trial Rate +5.5%、Global CVR +0.16%（p=0.017）。V2でtrialをさらに重視すると、再注文のオフラインMRRは6カ国中5カ国で旧productionを下回った。\n",
       "new_field_sha256": "2d59e7567dd03a7e5298aefad9f9297217e1c9d4cebfbd21f62434b58e82715c"
+    },
+    "papers/genpage-netflix-homepage/lab.yaml": {
+      "before_sha256": "2eac70229dbcf655b75f6d3704fe0e9f529d4ac3138ee7ca7c6b4fad0a8f3969",
+      "before_blob": "b4db20090eb95c5ebad3da0767f19b1ac6554940",
+      "after_sha256": "9062ac4b8124ed1e860c1933342001dfeb44800d067ba229db92cf010f36b394",
+      "after_blob": "bdb2e3888704408987d05862d933c5104d17a7cd",
+      "prior_field": "  overview: 'GenPageは行と作品の並びをdecoder-only Transformerで生成する。オンラインで試した約200MのWBCモデルは、既存の行・作品候補集合を使う。14日A/Bの最良variantで主指標+0.24%、end-to-end遅延−20%。候補生成まで全面置換した証拠とは分けて読む。\n\n\n    <figure class=\"teaching batch17\"><h3>既存pipelineをどこまで一つにまとめるか</h3><div class=\"b17-cards\"><div><strong>既存の候補集合</strong><p>行・作品の適格性と候補生成を継承する。ここがonline試験の外側の境界。</p></div><div><strong>GenPage\n    約200M / WBC</strong><p>promptと既出ページを読む → 行を選ぶ → 先頭作品を逐次生成 → 行末をまとめて選ぶ。</p></div><div><strong>配信するホーム</strong><p>重複・位置固定・カテゴリ制約を適用した行の並び。次のpaginationは直近反応を含む。</p></div></div><details><summary>promptの中身を開く</summary><div\n    class=\"b17-cards\"><div><strong>履歴</strong><p>作品ID / 行動 / 時間bucket / 継続時間bucket</p></div><div><strong>profile・request</strong><p>言語\n    / kids・adult / device / 時間帯</p></div><div><strong>既出のページ</strong><p>直前の行と作品、最新の反応</p></div></div></details><figcaption>§2・図1、§6.3–4、§8をもとにした説明図。GryphonのSID候補生成を組み込んだ図ではない。</figcaption></figure>'\n",
+      "new_field_sha256": "5a7b15c85a1172a2bc2274ea211edd7407444e8e0462d6a0367883229ca48cab"
+    },
+    "papers/sona-yandex-music/lab.yaml": {
+      "before_sha256": "4f768afd652c7e4ae24fc00fb888d88aa9b034637d7e09ec7ffc4afde37c0d49",
+      "before_blob": "8dd154250e6e9b306b8a2f839ca3310290343b70",
+      "after_sha256": "9e6a0ba2e9c4202d8a8e65bfc1c9b4aaba25b30b1702375129054055fd86e1ff",
+      "after_blob": "042b5aa7cc0f1edc9201e10c1248587bd48d3bc6",
+      "prior_field": "  overview: Sonaは候補生成・prerank・最終rankを、共有履歴encoder、SID decoder、Ranking Moduleを持つ一つの配信モデルへまとめる。My Vibeのスマートスピーカー面で、各群15%・7日間の最終A/BはActive\n    Users +4.53%、Total Listening Time +6.30%。論文時点で全流量には展開しておらず、catalog coverage低下を課題としている。\n",
+      "new_field_sha256": "1d2eca686dbcc822d451a436cd202d7e34a82237562d3c64cc54247973be2a24"
+    },
+    "papers/tgr/lab.yaml": {
+      "before_sha256": "9acd8cfc6899dbdceebd42a5a636bfddbbcb73224b70019c047cb5e54b2e18ba",
+      "before_blob": "40319c0bc232f5261e2c426d6fcba491b50e4076",
+      "after_sha256": "9b7f1f46ed417596ca9825ad9c58842fa1dc82e65a4158a1e18eb0b38bac8a7a",
+      "after_blob": "5ea48d9109a7afc289d883bfdbea25c9f3080dc0",
+      "prior_field": "  overview: TGRは順位付け、商品候補の生成、一覧の生成、事前の推論を分けて設計する。導入箇所と出力形式を押さえると、報告された改善を読み違えにくい。\n",
+      "new_field_sha256": "eeba892d77463e68010a2b57b8555cd9ce20a38e170181b0b23deec0420965e2"
+    },
+    "papers/unir2-sequence-unify/lab.yaml": {
+      "before_sha256": "a94684ace24160e9c3c0ff99831f0a03f948752a3fc41276576a9145fd5d4124",
+      "before_blob": "29bae86b8c16de38b7061ea94c1f90f8e94c9aa3",
+      "after_sha256": "8ca9c84a7df6bd0a9b4e05edea72df8c28cf75256b20c4e9a87c283e401fe5a6",
+      "after_blob": "0598ff97fa1e360ae92080f619b976436c74a051",
+      "prior_field": "  overview: UniR²はユーザー文脈、SID軌跡、item featuresを一つのdecoder系列へ置く。Kuaishouの2週間・5% A/BではOneLive recallと本番pre-rankを同時に置換した。全カスケードの撤去とは区別し、可視範囲・勾配・KV再利用の境界を読む。\n",
+      "new_field_sha256": "9f5e17182c894e878ee8ef9a37099e95500016f2092474e386db570ea1614f11"
     }
   },
   "generated_from": {
@@ -702,6 +734,28 @@
       "after_sha256": "1de46bd96019bfbcc8f782c335884caa0969811e7f8cdc525058722e90d1db51",
       "after_blob": "e32bc1a54b451a1fae27edb4d3a01c02e5532e2f",
       "source": "papers/uvr-wolt-trial-reorder/lab.yaml"
+    },
+    "papers/genpage-netflix-homepage/README.md": {
+      "before_sha256": "5add7d6537736fb328363f68e82c572a917813a3f0227d56e9991a8ae6647b86",
+      "before_blob": "17fc2ad4c0964de6181e0b6d7af6b96d9f6c810c",
+      "after_sha256": "7e596115c64c173fa80a692c77f8cf2a0a845a4c581eb89f54c2a443caec3330",
+      "after_blob": "187597b4701e6be1cf3c0c6cef8b00924d51dc1a",
+      "source": "papers/genpage-netflix-homepage/lab.yaml",
+      "mirror_excludes_unchanged_figure": true
+    },
+    "papers/sona-yandex-music/README.md": {
+      "before_sha256": "a91b7dc0ccd37e752dcc4cdf5807ac0ebfe3ef80cd74033d29c6359fae55eef5",
+      "before_blob": "e6a952068e143a585dbae6b406ea0117a7e3e522",
+      "after_sha256": "c21dd08def3130a4421b6cb5b1ea6b611579ec62cad263210988899f2951321c",
+      "after_blob": "fb79cc2ac0826fe428dd81ca93a3ea9152100428",
+      "source": "papers/sona-yandex-music/lab.yaml"
+    },
+    "papers/unir2-sequence-unify/README.md": {
+      "before_sha256": "2982601e7aa9c2dae1df1403c04cafb50b38ba505a9916bc9c39fa84be1f9da6",
+      "before_blob": "9b2a75a8cc0ddbf4a9ab67dcc1f2cc60b59f1749",
+      "after_sha256": "0ca13ef0f4e5aba87c4bd63b0dd6158a9e81d63b817632080808947ce518aba2",
+      "after_blob": "824ae8d1ad085df5ecf3d8b6368ab81cc7760397",
+      "source": "papers/unir2-sequence-unify/lab.yaml"
     }
   }
 }

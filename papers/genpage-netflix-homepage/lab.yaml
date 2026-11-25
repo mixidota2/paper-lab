@@ -62,13 +62,12 @@ sections:
 
 
     [一次資料：版を固定したPDF](https://arxiv.org/pdf/2606.31031v2)。図表の箇所とSHA-256は末尾の対応表を参照。'
-  overview: 'GenPageは行と作品の並びをdecoder-only Transformerで生成する。オンラインで試した約200MのWBCモデルは、既存の行・作品候補集合を使う。14日A/Bの最良variantで主指標+0.24%、end-to-end遅延−20%。候補生成まで全面置換した証拠とは分けて読む。
+  overview: |-
+    Netflixの研究チームは、ホーム画面に並べる行と、それぞれの行に載せる作品を、一つのTransformerで順に決めるGenPageを提案しました。利用者の視聴履歴やすでに表示した行を入力し、既存の候補集合の中から次の行と作品を選びます。
 
+    14日間のA/Bテストでは、約2億パラメータのモデルを従来の多段階の推薦と比べました。最も成績のよかった設定では、採用判断に用いる主要な利用指標が0.24%増えました（95%信頼区間は0.17〜0.30%増）。著者は、配信全体にかかる時間が20%短くなったとも報告しています。本番で試したのは、重み付きの二値分類で追加学習したモデルです。強化学習版や、既存の候補生成まで置き換える構成は、この本番比較の対象ではありません。
 
-    <figure class="teaching batch17"><h3>既存pipelineをどこまで一つにまとめるか</h3><div class="b17-cards"><div><strong>既存の候補集合</strong><p>行・作品の適格性と候補生成を継承する。ここがonline試験の外側の境界。</p></div><div><strong>GenPage
-    約200M / WBC</strong><p>promptと既出ページを読む → 行を選ぶ → 先頭作品を逐次生成 → 行末をまとめて選ぶ。</p></div><div><strong>配信するホーム</strong><p>重複・位置固定・カテゴリ制約を適用した行の並び。次のpaginationは直近反応を含む。</p></div></div><details><summary>promptの中身を開く</summary><div
-    class="b17-cards"><div><strong>履歴</strong><p>作品ID / 行動 / 時間bucket / 継続時間bucket</p></div><div><strong>profile・request</strong><p>言語
-    / kids・adult / device / 時間帯</p></div><div><strong>既出のページ</strong><p>直前の行と作品、最新の反応</p></div></div></details><figcaption>§2・図1、§6.3–4、§8をもとにした説明図。GryphonのSID候補生成を組み込んだ図ではない。</figcaption></figure>'
+    <figure class="teaching batch17"><h3>既存pipelineをどこまで一つにまとめるか</h3><div class="b17-cards"><div><strong>既存の候補集合</strong><p>行・作品の適格性と候補生成を継承する。ここがonline試験の外側の境界。</p></div><div><strong>GenPage 約200M / WBC</strong><p>promptと既出ページを読む → 行を選ぶ → 先頭作品を逐次生成 → 行末をまとめて選ぶ。</p></div><div><strong>配信するホーム</strong><p>重複・位置固定・カテゴリ制約を適用した行の並び。次のpaginationは直近反応を含む。</p></div></div><details><summary>promptの中身を開く</summary><div class="b17-cards"><div><strong>履歴</strong><p>作品ID / 行動 / 時間bucket / 継続時間bucket</p></div><div><strong>profile・request</strong><p>言語 / kids・adult / device / 時間帯</p></div><div><strong>既出のページ</strong><p>直前の行と作品、最新の反応</p></div></div></details><figcaption>§2・図1、§6.3–4、§8をもとにした説明図。GryphonのSID候補生成を組み込んだ図ではない。</figcaption></figure>
   why_it_might_work: '【解釈】先に選んだ行・作品が次の予測に入るため、独立したスコアの足し算より文脈を使いやすい。作品と行を各1 tokenにすれば、業務制約をlogit maskに直結できる。モデルを大きくする前に文脈を豊かにするという観察も、この情報不足の説明と整合する。
 
 
