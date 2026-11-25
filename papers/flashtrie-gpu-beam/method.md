@@ -1,18 +1,17 @@
-### 圧縮表現とGPU実行は別の工夫
+### 辞書を圧縮し、探索をGPUの中で完結させる
 
-§2.1–2.2。MARISA由来のLOUDS構造を整数tokenへ拡張する。labelとsuffix indexを2-byteのlow部と、必要なnodeだけのbit-packed high部へ分け、32-bit tokenを扱いつつ支配的な配列を縮める。800M keyword列のindexは約3.1GBでA100 80GBのHBMに収める（§4.1）。
+FlashTrieの辞書は、登録したキーワード列に共通する先頭部分を木にまとめます。この木をトライと呼びます。著者はMARISA由来のLOUDS表現を32ビット整数のトークンに対応させ、枝のラベルと接尾辞の位置を低位2バイトと高位部分に分割しました。高位部分には、必要なノードの分だけビットを詰めて保存します。著者の測定では、8億件の辞書が約3.1 GBになり、A100 80 GBの高帯域メモリ（HBM）に収まりました（§2.1–2.2、§4.1）。
 
-一つのpersistent cooperative kernelが全T stepを処理する。active beamをCTAへ割り当て、512 threadsでtop-K展開とchild lookupを分担。子のtokenはbinary searchで検査し、候補をlock-freeに追加して、grid同期後にparallel merge sortで上位B件へ絞る（Algorithm 1、Appendix D）。
+著者は、探索の全 (T) 段階を一度のCUDAカーネル起動で処理します。GPUは探索中の候補列をスレッドブロック（CTA）に割り当て、512スレッドでモデルの上位 (K) 件の提案を検査します。各スレッドは、候補列の末端にある子のラベルを二分探索します。GPUは有効な提案をロックを使わずに追加し、グリッド全体の同期を挟んで並列マージソートで候補を上位 (B) 件に絞ります（Algorithm 1、Appendix D）。
 
-scoreは `σ′ = σ + log p(x_t | x_<t)`。存在しないprefixは展開しない。これは各深さで出現可能なtokenだけを許すPPT filterより強い条件だ。深さごとに有効でも、組み合わせた列が存在するとは限らない。
+候補を1トークン延ばすとき、探索は対数確率を `σ′ = σ + log p(x_t | x_<t)` で足し合わせます。論文では候補を順位付けするときに、累積した対数確率を列の長さで補正します（式2）。トライに続きの枝がなければ、探索はその候補を捨てます。一方、位置ごとに許可トークンを決めるPPTは、その位置に現れるトークンであれば通します。そのため、各位置では有効でも、列としては辞書にない組み合わせを通すことがあります。
 
-### 実験はNARの提案表も使う
+### 著者の測定条件
 
-§3、Appendix E。産業workloadは語彙2.2M、800M keyword列、13,000 requests。production NARモデルの位置別top-K proposal gridを使い、BW=Kを100–1000で動かす。モデルの提案生成とtrie-search時間を混同しない。単一A100 80GBとAMD EPYC 7V13を使い、CPU MARISA-Optは8 workersで比較する。
+著者は、製品の非自己回帰モデルが位置ごとに出した上位候補を使い、語彙220万、辞書8億件、検索要求13,000件で比較しました。各段階で残す候補の上限とモデルの提案数を等しくし（BW=K）、100〜1,000の範囲で変えました。比較にはA100 80 GBを1基とAMD EPYC 7V13を使い、CPU版のMARISA-Optは8ワーカーで動かしました。表6の時間は辞書探索の時間で、モデルが提案を生成する時間は含みません（§3、Appendix E）。
 
-公開workloadではNQ+GENREの3,600 queries、約6M title trie、T=16を使う（§4.7）。本番の全stackにこのCPU/GPU構成をそのまま当てはめたわけではない。Appendix Gのproduction controlはbeam200、top-k300、3-thread poolであり、30msのretrieval end-to-end SLAが基準になる。
+著者は公開データでも、NQとGENREを使って3,600件の検索要求を調べました。辞書は約600万件のタイトルから作り、探索は16段階です（§4.7）。一方、本番A/Bの対照群は、各段階で候補を200件まで残し、提案を300件まで受け取り、3スレッドで処理します。30 msのSLAは検索サービス全体に対する目標なので、表6の辞書探索時間とは測る範囲が異なります（Appendix G）。
 
-出典：[2607.10044v1](https://arxiv.org/pdf/2607.10044v1)。上記で「Lab」とした式・条件は説明用の補助である。
+出典：[2607.10044v1](https://arxiv.org/pdf/2607.10044v1)。Labが作った図は、論文中の処理の関係を説明するためのものです。
 
-
-<figure class="teaching batch17"><h3>GPUに残す四つの処理</h3><div class="b17-cards"><div><strong>展開</strong><p>beamごとにCTAを割り当て、top-Kの提案を並列に読む。</p></div><div><strong>検査</strong><p>圧縮trieの子をbinary searchし、有効prefixだけ残す。</p></div><div><strong>選別</strong><p>heapの逐次更新を避け、候補をmergeしてtop-Bへ。</p></div><div><strong>同期</strong><p>grid barrierを通り、次のdepthもdevice内で続ける。</p></div></div><figcaption>§2・Algorithm 1・図4。GPU kernelの模式分解。時間比率を推測して付けていない。</figcaption></figure>
+<figure class="teaching batch17"><h3>GPUが一段ごとに行う四つの処理</h3><div class="b17-cards"><div><strong>展開</strong><p>GPUは候補列をスレッドブロックに割り当て、上位の提案を並列に読みます。</p></div><div><strong>検査</strong><p>各スレッドは、トライを二分探索して、提案が現在の列に続くかを確かめます。</p></div><div><strong>選別</strong><p>GPUは候補をマージし、スコアが高い順に上位 B 件を残します。</p></div><div><strong>同期</strong><p>各ブロックは処理の区切りで足並みをそろえ、GPUの中で次の段階へ進みます。</p></div></div><figcaption>§2・Algorithm 1・図4に基づく模式図です。処理ごとの所要時間は示していません。</figcaption></figure>

@@ -1,25 +1,21 @@
-# FlashTrie：beam幅を広げる余裕を、GPUのtrie探索で作る
+# FlashTrie：辞書探索をGPUに移すと、より多くの候補を残せるか
 
 広告検索では、辞書にあるキーワードだけを候補に残しながら、検索結果を短時間で返す必要があります。FlashTrieは、途中まで作った候補を伸ばし、辞書に照らして確認し、有力な候補だけ残す処理をGPUにまとめます。
 
 8億件のキーワード辞書を使い、各段階で残す候補の上限を1,000にした測定では、1リクエストの辞書探索は従来のCPU方式で平均46.3 ms、FlashTrieで平均1.9 msでした。FlashTrieの遅い側の目安である99パーセンタイルは3.3 msです。英語の広告検索を対象とした別の本番A/Bでは収益が0.71%増えましたが、この試験では処理先だけでなく探索で残す候補数も変えています。
 
-一次資料：[2607.10044v1.pdf](https://arxiv.org/pdf/2607.10044v1)。SHA-256と節・表の対応は[mapping.md](mapping.md)。詳しい方法は[method.md](method.md)、サイト本文の原本は[lab.yaml](lab.yaml)。
+## 人工例を実行する
 
-## 実行
+リポジトリのルートから、次のコマンドを実行します。`run.py`はPythonの標準ライブラリだけを使い、隣にある`results.json`を書き直します。
 
 ```bash
 uv run papers/flashtrie-gpu-beam/run.py
 ```
 
-前のtokenによって確率表を変えない非自己回帰（NAR）の設定を置き、2段の固定確率表からprefix制約付きbeam searchをCPUで実行する。beam1で落ちる最適系列がbeam2で残る例と、depth-only filterが無効な組合せを返す例を比べる。GPUの時間を測った実験ではない。
+この実験では、2つの位置に固定の確率表を用意します。前のトークンが変わっても、次の位置の確率表は変わりません。各段階で候補を1件しか残さないと最後に最も確率が高くなる列を途中で捨てますが、2件残すとその列を拾えます。また、各位置で使えるトークンだけを検査すると、辞書にない列を返す場合があります。
 
-## 検証範囲
+## 確認できた範囲
 
-Mechanism PARTIAL。個別のCONFIRMED / NOT OBSERVEDは[results.json](results.json)のchecksに記録。Performance / Scaling / Production applicability NOT TESTED。
+`results.json`の`checks`にある`CONFIRMED`は、人工例で確認した命題だけに付きます。Labは仕組みの一部を確認しましたが、CUDA実装、辞書の圧縮と大規模動作、教師モデルでの検索品質、30 msの本番SLA、収益効果は検証していません。ページの遅延上限の操作は、著者が測った値を表から選ぶもので、新しい測定はしません。
 
-CUDA、Narrow-LOUDSのメモリ圧縮、800M index、teacher精度、30msのproduction SLO、収益はNOT TESTED。下のSLO操作は著者表の読み替えであり、新しい測定ではない。
-
-## 実装の位置付け
-
-原論文には、公式コードを査読後に公開する予定だと記されている。確認した一次資料から取得可能な公式実装は見つからなかった。MARISAは比較対象でありFlashTrie公式実装ではない。
+[一次資料](https://arxiv.org/pdf/2607.10044v1)には、査読後に公式実装を公開する予定だとあります。照合した資料からは公式実装を取得できませんでした。MARISAは論文の比較対象です。[方法](method.md)、[根拠と対応表](mapping.md)、[ページの原本](lab.yaml)、[計算結果](results.json)も参照できます。

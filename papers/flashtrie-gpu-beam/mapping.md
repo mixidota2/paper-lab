@@ -1,22 +1,16 @@
-# Original Paper / Official Code Mapping
+# 原論文とLabの対応
 
-確認日：2026-09-17。一次PDF：[2607.10044v1.pdf](https://arxiv.org/pdf/2607.10044v1)。arXiv初回日：2026/07/10、確認版の日付：2026/07/10。
+Labは2026年9月17日に、[原論文の初版（2026年7月10日）](https://arxiv.org/pdf/2607.10044v1)の本文・表・付録を照合しました。HTML版は資料を探すために使いました。ページに載せた図はLabが作成した説明図です。
 
-SHA-256：`7baccbd83b1733289df30310e9fa2e0b877b69eaf7464b2b40bc9bbaeb042d19`
+確認したPDFのSHA-256：`7baccbd83b1733289df30310e9fa2e0b877b69eaf7464b2b40bc9bbaeb042d19`
 
-参照PDF：`2607.10044v1.pdf`。既存HTMLを発見用に使い、上記の版を固定したPDF本文・関連する表と付録で照合した。図はこのLabで作った説明図で、元論文の画像コピーではない。
-
-| 原論文の箇所 | 確認対象 | Labと省略範囲 |
+| 原論文の箇所 | 著者が説明した内容 | Labで確かめた範囲 |
 | --- | --- | --- |
-| §2、Algorithm 1、Appendix D | GPU native beamとchild lookup | run.py: beam。CPUの集合検査へ簡略化 |
-| §3・4.1–4.5、表1・6、Appendix E–F | 800M条件、品質とpercentile | 実測点のSLO図。値は論文表から転記 |
-| §4.8・表3、Appendix G | online backend/beam変更 | Evidence。backend単独の因果効果ではない |
-| Abstract | 公開予定のcode | 査読後公開予定と記載。取得できた公式実装なし |
+| §2、Algorithm 1、Appendix D | GPUが候補を伸ばし、辞書に続く枝を調べ、上位の候補を残す | `run.py`では登録列の集合をCPUで調べる。著者の圧縮辞書とCUDA処理は実装していない |
+| §3・4.1–4.5、表1・6、Appendix E–F | 辞書8億件での探索時間と検索品質 | 図は表の公表値をそのまま示す。Labは再測定していない |
+| §4.8・表3、Appendix G | 本番A/Bで辞書の処理方式と探索設定を変更した結果 | 収益差は両方を変更したときの値。処理方式だけの効果は分からない |
+| 要旨 | 公式実装を査読後に公開する予定 | 照合した一次資料からは公式実装を取得できなかった。MARISAは比較対象 |
 
-## 公式コード
+## Labが再現していないこと
 
-原論文には、公式コードを査読後に公開する予定だと記されている。確認した一次資料から取得可能な公式実装は見つからなかった。MARISAは比較対象でありFlashTrie公式実装ではない。
-
-## 独立再現の境界
-
-CUDA、Narrow-LOUDSのメモリ圧縮、800M index、teacher精度、30msのproduction SLO、収益はNOT TESTED。下のSLO操作は著者表の読み替えであり、新しい測定ではない。
+LabはCUDAでの実行、Narrow-LOUDSの圧縮率、8億件の辞書の動作、教師モデルによる精度評価、30 msの本番SLA、収益効果を検証していません。ページの遅延上限を変える操作は、著者の表から条件を満たした行を選ぶものです。
