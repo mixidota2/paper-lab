@@ -48,7 +48,19 @@ def reverse_exact(data, patch, patch_sha, expected):
         return restored
 
 
+def before_asda(data):
+    row = json.loads((Path(__file__).parent / 'shelf_asda_hashes.json').read_text())['files'][GUIDE]
+    if sha(data) != row['after_sha256']:
+        return data
+    case, table_row = row['case'].encode(), row['row'].encode()
+    assert data.count(case) == data.count(table_row) == 1
+    restored = data.replace(case, b'', 1).replace(table_row, b'', 1)
+    assert sha(restored) == row['before_sha256']
+    return restored
+
+
 def before_hermans(data):
+    data = before_asda(data)
     row = json.loads((Path(__file__).parent / 'shelf_hermans_hashes.json').read_text())
     if sha(data) != row['after_sha256']:
         return data
