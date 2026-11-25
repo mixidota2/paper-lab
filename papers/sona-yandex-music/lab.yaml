@@ -35,8 +35,10 @@ core_idea:
   author_claim: 生成と順位を共有encoderで共同学習し、重いteacherの採点をRanking Moduleへ蒸留する。最終実験では推薦cascade全体を置換した。
   research_bot_interpretation: '[Gryphon-v2](gryphon-v2-cascade.html)で追った生成・順位の統合を、tokenizer、長期履歴、teacherの事前学習、オンライン更新の詳細まで示す報告。構成要素ごとのA/B寄与は限定して読む。'
 sections:
-  overview: Sonaは候補生成・prerank・最終rankを、共有履歴encoder、SID decoder、Ranking Moduleを持つ一つの配信モデルへまとめる。My Vibeのスマートスピーカー面で、各群15%・7日間の最終A/BはActive
-    Users +4.53%、Total Listening Time +6.30%。論文時点で全流量には展開しておらず、catalog coverage低下を課題としている。
+  overview: |-
+    Yandex Musicの研究チームは、自動で曲を流すMy Vibeで、候補を探す処理、候補を絞る処理、最後に並べ替える処理を一つのモデルにまとめました。Sonaは利用者が聴いた曲や曲への反応を読み、曲を表すIDを生成して候補を探し、点数を付けます。配信できる曲を制限する既存のルールは維持しました。
+
+    スマートスピーカーの最終A/Bテストでは、利用者を各群15%ずつ無作為に選び、従来方式と7日間比べました。Sonaの群は利用した人の数が4.53%、総再生時間が6.30%増えました。論文時点では全利用者に展開しておらず、推薦に現れる曲の範囲は従来方式より狭いと報告しています。
   problem: 音楽では同じ曲を繰り返し聴くこと自体に価値があり、動画feedと同じ重複抑制は当てはまらない。次の曲を当てる生成尤度だけでは、likeや聴き続ける価値に沿う順序を作れない。一方、重いteacherを各requestで実行すると配信コストが高い。長い履歴を保持しつつ、teacherの採点を軽いRanking
     Moduleへ移す必要がある。
   method: method.md
