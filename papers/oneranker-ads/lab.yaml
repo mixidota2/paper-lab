@@ -18,7 +18,7 @@ topics:
 urls:
   paper: https://arxiv.org/abs/2603.02999
   arxiv: https://arxiv.org/abs/2603.02999
-  pdf: https://arxiv.org/pdf/2603.02999
+  pdf: https://arxiv.org/pdf/2603.02999v3
   official_code: null
 verdict: Must Read
 verification:
@@ -34,14 +34,17 @@ summary: OneRankerは興味と広告価値の出力を分け、生成時の表�
 source_review:
   checked: '2026-09-11'
   scope: 提供PDFを主資料に、arXiv HTMLの対応箇所を照合。著者報告の独立再現ではない。
-  url: https://arxiv.org/html/2603.02999
+  url: https://arxiv.org/html/2603.02999v3
   pdf_version: v3
   pdf_sha256: a70aaa10f70e0ab568bcc5af083a4ac532dd7af0012cce17ade2cd747ecd9930
 core_idea:
   author_claim: 著者は、タスクトークンによる出力空間の分離、クラスタ中心による候補の大まかな特徴の表現、候補単位のランキングを一体化する。生成とランキングの入力を共有し、ランキングの軟らかい教師分布を生成へ戻す。A/B後の100%展開を報告する（§3、§4.4）。
   research_bot_interpretation: 価値の高い広告が候補生成で落ちれば、後段の優秀なランカーでも救えない。DCはこの境界を学習で動かす設計と読める。ただし教師が誤る場合や候補集合に偏りがある場合、整合性だけが高まっても利益は改善しない。Gryphon-v2との比較では、モデル数より実際に置換したサービング範囲を確認したい。
 sections:
-  overview: OneRankerは興味と広告価値の出力を分け、生成時の表現をランキングへ渡す。Weixin ChannelsのA/Bでは生成モデル＋別学習ランカーを基準に改善を報告した。広告の全カスケードを撤去した証拠とは区別して読む。
+  overview: |-
+    Tencentの著者は広告の候補検索と予備ランキングを1つのモデルにまとめました。OneRankerは利用者の興味を捉える出力と広告の価値を見積もる出力を分け、候補を生成したときの表現を使って広告ごとの順位を付けます。従来の配信システムから置き換えたのはこの2段階で、後段の精密ランキングは変えていません。
+
+    Weixin ChannelsのA/Bテストでは、配信の5%を対象にした段階で、クリックやコンバージョンを目的とする広告の流通総額（GMV-Normal）が従来方式より1.3427%増え、広告費も0.7190%増えました。[改訂版（v4）の評価](https://arxiv.org/html/2603.02999v4#S4.SS4)で著者が報告した2%増は、全面展開後に一部を従来方式に戻した別の比較でのGMV-Normalの変化です。いずれも広告全体の流通総額や利益がその割合で増えたことを示す数字ではありません。
   problem: クリックと価値はずれる。単一の出力へ両方の目的を押し込むと競合し、別モデルへ完全に分けると生成中に価値の情報が届かない。共有と分離の境界が問題になる。
   why_it_might_work: 興味タスクの出力を維持したまま価値用の経路を追加すれば、価値重視の学習が興味の表現を直接置き換える圧力を減らせる。Fake Item Tokensは全候補との詳細な相互作用を避けつつ、アイテム空間のどの領域を好むかを表せる。これは設計上の推論で、共有層の勾配競合が消える保証ではない。
   evidence: '### 大きな差はStep 3の追加にある
@@ -88,7 +91,7 @@ sections:
 
 
     5%と80%の全GMVのCIは0をまたぐ。著者は80%段階にtraffic coverageの現象があると記すが、補正方法は詳述しない。100%展開は採用の証拠であり、その段階で+1.34%を再測定したという意味ではない。会議名・DOIにテンプレート文字列が残るため、出版先は確定情報として扱わない。[一次資料：§4、Tables
-    2–4](https://arxiv.org/html/2603.02999)。'
+    2–4](https://arxiv.org/html/2603.02999v3)。'
   executable_understanding: '`uv run papers/oneranker-ads/run.py`
 
 
@@ -102,7 +105,7 @@ sections:
 
     | --- | --- | --- |
 
-    | [PDF・HTML](https://arxiv.org/html/2603.02999) の手法節 | method.md と出典つきSVG | 原図の複製ではなく説明用に再構成 |
+    | [PDF・HTML](https://arxiv.org/html/2603.02999v3) の手法節 | method.md と出典つきSVG | 原図の複製ではなく説明用に再構成 |
 
     | 部分機構の合成例 | run.py → results.json | 本番データ、ニューラルモデル、論文の性能再現 |
 

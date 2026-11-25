@@ -19,7 +19,7 @@ topics:
 urls:
   paper: https://arxiv.org/abs/2608.24034
   arxiv: https://arxiv.org/abs/2608.24034
-  pdf: https://arxiv.org/pdf/2608.24034
+  pdf: https://arxiv.org/pdf/2608.24034v1
   official_code: null
 verdict: Worth Reading
 verification:
@@ -35,14 +35,17 @@ summary: TAGRは語彙を固定したままライブ広告のSID割当を更新�
 source_review:
   checked: '2026-09-11'
   scope: 提供PDFを主資料に、arXiv HTMLの対応箇所を照合。著者報告の独立再現ではない。
-  url: https://arxiv.org/html/2608.24034
+  url: https://arxiv.org/html/2608.24034v1
   pdf_version: v1
   pdf_sha256: 83d64f9378e7d59f9e6c7752748c8b5f065cd03de61fd0a41d9be04280104539
 core_idea:
   author_claim: 著者は、LSIDによる対象更新、IAGによる意図表現と教師重み、IOPOによる間欠的な現方策更新を組み合わせる。Kuaishouのライブ広告でLRE率+8.5%、SCC率+7.4%、広告売上+16.1%をDLRM比で報告する（§4）。
   research_bot_interpretation: 更新周期は一つではない。対象、意図、方策を分けて考える。語彙固定でも割当が動けば履歴ラベルと索引の時間的一貫性は難しくなる。売上差をSID更新だけに帰属せず、表現学習、重みづけ、下流教師の組合せとして読む必要がある。
 sections:
-  overview: TAGRは語彙を固定したままライブ広告のSID割当を更新し、行動履歴と選好学習も別の周期で更新する。10%トラフィック、4000万人超のA/Bで売上+16.1%を報告する。役割は下流ランキングへ渡す候補検索である。
+  overview: |-
+    Kuaishouのライブ配信では、同じ配信でも紹介する商品や映像が変わります。TAGRは候補検索に使うIDの語彙を固定したまま、配信中の広告に割り当てるIDを1分ごとに計算し直します。候補を生成するモデルには、利用者の行動を複数の時間幅でまとめて渡します。著者は一定の間隔で、モデルがその時点で生成した候補を使って選好を学習させます。
+
+    下流の絞り込みとランキングをそろえた本番A/Bテストでは、著者は従来の候補検索（DLRM）に比べ、配信ルームへの入室率が8.5%、買い物かごのクリック率が7.4%、広告売上が16.1%増えたと報告しました。著者は本番トラフィックの10%を使って無作為比較を行い、4,000万人を超える利用者が試験に参加しました。売上の差は手法全体を入れ替えた結果で、IDの更新だけによる差ではありません。
   problem: 配信ルームIDが同じでも、紹介する商品や映像が変われば検索対象の意味は変わる。SIDを開始時のままにすると、新しい商品を求めるユーザーが古い意味のIDを生成する。ユーザー側でも入室と注文では行動の密度も意図も違う。
   why_it_might_work: 語彙を固定すればdecoderの出力空間を維持でき、割当だけを更新すれば現在の内容を索引へ反映できる。NTPを挟む選好更新は、報酬に偏る学習を実行動へ引き戻す可能性がある。ただし更新頻度を下げれば常に良くなるわけではなく、急な環境変化には追随が遅れる。
   evidence: '### 下流をそろえた候補検索の比較
@@ -79,7 +82,7 @@ sections:
 
 
     Table 4のNTP lossはoff-policy 1.79、continuous on-policy 1.68、IOPO 1.53。Stability列はloss spikeの有無で定義され、SID安定性とは異なる。原典はlow/moderate/highと表示し、割合の実数は示さない。[一次資料：§4、Tables
-    1–4](https://arxiv.org/html/2608.24034)。'
+    1–4](https://arxiv.org/html/2608.24034v1)。'
   executable_understanding: '`uv run papers/tagr-live-sid/run.py`
 
 
@@ -93,7 +96,7 @@ sections:
 
     | --- | --- | --- |
 
-    | [PDF・HTML](https://arxiv.org/html/2608.24034) の手法節 | method.md と出典つきSVG | 原図の複製ではなく説明用に再構成 |
+    | [PDF・HTML](https://arxiv.org/html/2608.24034v1) の手法節 | method.md と出典つきSVG | 原図の複製ではなく説明用に再構成 |
 
     | 部分機構の合成例 | run.py → results.json | 本番データ、ニューラルモデル、論文の性能再現 |
 

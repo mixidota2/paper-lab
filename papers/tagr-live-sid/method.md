@@ -33,4 +33,4 @@ Reward Modelは下層のLSID embeddingを共有する。post-exposure LREは実�
 
 サービングはbeam searchで256個のLSIDを生成し、稼働中LiveIDへ解決して下流filtering/rankingへ渡す。静的SIDを扱う[GLIDE](glide-spotify-sid.html)や[Gryphon](gryphon-ilsm.html)との比較点は対象の変化であり、[TGR](tgr.html)と同様に置換範囲を明示して読む。
 
-[一次資料：§2–3、Eq. (1)–(14)、Figure 4](https://arxiv.org/html/2608.24034)。
+[一次資料：§2–3、Eq. (1)–(14)、Figure 4](https://arxiv.org/html/2608.24034v1)。

@@ -90,6 +90,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = index_copy_rewrite_hash(root, path, expected, algorithm)
     expected = or_transformer_full_rewrite_hash(root, path, expected, algorithm)
     expected = diff_projection_source_version_hash(root, path, expected, algorithm)
+    expected = arxiv_versioned_overview_hash(root, path, expected, algorithm)
     return paper_overview_rewrite_hash(root, path, expected, algorithm)
 
 
@@ -107,6 +108,15 @@ def or_transformer_full_rewrite_hash(root, path, expected, algorithm='sha256'):
 def diff_projection_source_version_hash(root, path, expected, algorithm='sha256'):
     """Accept only the verified source pin and distinct versioned comparison."""
     row = json.loads((root / 'tests/diff_projection_source_version_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def arxiv_versioned_overview_hash(root, path, expected, algorithm='sha256'):
+    """Allow the exact summary and citations to the reviewed arXiv versions."""
+    row = json.loads((root / 'tests/arxiv_versioned_overview_hashes.json').read_text())['files'].get(path)
     if row is None:
         return expected
     assert expected == row['before_' + algorithm], path

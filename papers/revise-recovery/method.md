@@ -21,4 +21,4 @@ reuse(x) ⇒ valid(x) ∧ effectSafe(x)            原典 Eq. (1)
 Cx = (id, vstart, Rdata, Rcontrol, P, mode)      原典 Eq. (2)
 ```
 
-P は親 attempt の識別子、mode は complete/coarse/unknown。commit では開始後の全変更と最終的な read set を照合し、親が現在の committed attempt か確かめる。revision と commit は同じ lock で直列化する。外部への作用は検査が通るまで staged のまま保持する。不可逆な作用や証拠の欠落は明示的な処理または停止を必要とする。[一次資料：§3](https://arxiv.org/html/2609.00643)。
+P は親 attempt の識別子、mode は complete/coarse/unknown。commit では開始後の全変更と最終的な read set を照合し、親が現在の committed attempt か確かめる。revision と commit は同じ lock で直列化する。外部への作用は検査が通るまで staged のまま保持する。不可逆な作用や証拠の欠落は明示的な処理または停止を必要とする。[一次資料：§3](https://arxiv.org/html/2609.00643v1)。
