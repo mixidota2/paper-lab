@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EXPECTED = {
     "discounted-perishables-forecast": "2602.04464",
     "ahe-beta-receipt": "2611.24924",
+    "stockout-data-debt": "2611.19323",
     "deep-cross-division": "2611.27514",
     "inventory-common-threshold-history": "2610.41475",
     "featurearc-inherited-defects-chain-gates": "2610.37434",
@@ -132,7 +133,7 @@ def test_library_has_the_full_registry_catalog_and_a_doi_only_paper():
     labs = load_all_labs(ROOT / "papers")
     arxiv_labs = {lab.id: lab.arxiv_id for lab in labs if lab.arxiv_id}
     assert arxiv_labs == EXPECTED
-    assert len(labs) == 119
+    assert len(labs) == 120
     assert_catalog(lab.id for lab in labs)
     assert all(lab.urls.arxiv == f"https://arxiv.org/abs/{lab.arxiv_id}" for lab in labs if lab.arxiv_id)
     shelf = next(lab for lab in labs if lab.id == "whole-foods-shelf")

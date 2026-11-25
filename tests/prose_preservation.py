@@ -962,7 +962,10 @@ def root_readme_catalog_119_hash(root, path, expected, algorithm='sha256', *, hi
     row = json.loads((root / 'tests/root_readme_catalog_119_hashes.json').read_text())['files'][path]
     key = 'reviewed_' if historical else 'before_'
     assert expected == row[key + algorithm], path
-    return shelf_asda_hash(root, path, row['after_' + algorithm], algorithm)
+    previous = shelf_asda_hash(root, path, row['after_' + algorithm], algorithm)
+    next_count = json.loads((root / 'tests/root_readme_catalog_120_hashes.json').read_text())
+    assert previous == next_count['before'][algorithm], path
+    return next_count['after'][algorithm]
 
 
 def shelf_asda_hash(root, path, expected, algorithm='sha256'):

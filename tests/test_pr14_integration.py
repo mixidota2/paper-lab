@@ -75,7 +75,7 @@ def expected_runner():
     expected = replace_once(expected,
         "get_by_role('navigation',name='読む入口').get_by_role('link',name='最新研究・Lab一覧',exact=True)",
         "get_by_role('navigation',name='論文とガイドを探す',exact=True).get_by_role('link',name='論文・Lab一覧',exact=True)")
-    return expected.replace("117", "119")
+    return expected.replace("117", "120").replace("117件のLab", "120件のLab")
 
 
 def test_whole_current_runner_matches_exact_composition():
