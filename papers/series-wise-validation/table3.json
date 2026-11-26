@@ -1,6 +1,6 @@
 {
   "source": "https://arxiv.org/html/2611.08252v1#S5.T3",
-  "note": "Published rounded values, not synthetic observations or raw experiment outputs.",
+  "note": "原論文の表3に掲載された丸め済みの値です。合成例の観測や著者の実行ログではありません。",
   "methods": ["Bootstrap","Holdout","Kf-CV","K-MC-CV","K-Bootstrap","K-Holdout","Time-CV"],
   "rows": {
     "ECL": [0.596,0.592,0.591,0.595,0.600,0.604,0.577],

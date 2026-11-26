@@ -1,5 +1,5 @@
 (function(root){'use strict';
-// evaluate is the validated public entry; fit/select/predict/sensitivity/role are fixed-toy internal helpers.
+// 入力を検査する入口はevaluate。ほかの関数はこの合成例に限って使う。
 const limit=1000000,ids='ABCDEFGHIJ',mean=a=>a.reduce((s,x)=>s+x,0)/a.length;
 function dataset(){return Object.fromEntries([...ids].map((s,i)=>[s,Array.from({length:100},(_,k)=>{const t=k+1;return 10+2*i+(i<5?.1:i<7?.4:.7)*t+.4*((t+i)%4);})]));}
 function origins(c){if(!Number.isInteger(c)||c<12||c>92)throw Error('学習上限は12〜92の整数です。');return Array.from({length:c-11},(_,i)=>i+8);}
