@@ -129,7 +129,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = invevolve_full_prose_hash(root, path, expected, algorithm)
     expected = sabreagent_full_prose_hash(root, path, expected, algorithm)
     expected = igpo_full_prose_hash(root, path, expected, algorithm)
-    return proximal_full_prose_hash(root, path, expected, algorithm)
+    expected = proximal_full_prose_hash(root, path, expected, algorithm)
+    return radfl_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -1456,6 +1457,31 @@ def before_proximal_full_prose(root, path, current):
     if path != 'paper_lab/inventory02.py' and not path.startswith('papers/proximal-residual-value-inventory-placement/'):
         return current
     row = json.loads((root / 'tests/proximal_full_prose_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def radfl_full_prose_hash(root, path, expected, algorithm='sha256'):
+    if path != 'paper_lab/inventory02.py' and not path.startswith('papers/ra-dfl-risk-aware-decision-focused-inventory/'):
+        return expected
+    row = json.loads((root / 'tests/radfl_full_prose_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_radfl_full_prose(root, path, current):
+    if path != 'paper_lab/inventory02.py' and not path.startswith('papers/ra-dfl-risk-aware-decision-focused-inventory/'):
+        return current
+    row = json.loads((root / 'tests/radfl_full_prose_hashes.json').read_text())['files'].get(path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
