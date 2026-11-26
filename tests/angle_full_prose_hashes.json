@@ -1,0 +1,361 @@
+{
+  "files": {
+    "papers/angle-tencent-one-step-retrieval/README.md": {
+      "before": {
+        "sha256": "6cad748b7a4755438937f5146d91b6dadfd6185c2b598bb58623178acb5d79fd",
+        "blob": "c2836309a997135bd4862753a9df3677276832bf"
+      },
+      "after": {
+        "sha256": "fcceb0401c911d85d2f99cec4ca1cb7b9b614680621331ec58f4830a7d73f19a",
+        "blob": "c8cc6519e345ad9818f771c47e7443b6d8246080"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "## Overview：テキストの組から広告を取得する\n"
+        ],
+        [
+          8,
+          9,
+          "## Problem：先に候補を落とすと後から戻せない\n"
+        ],
+        [
+          10,
+          11,
+          "従来の多段カスケード（MCA）では、候補の取得、関連性の判定、事前順位付け、最終的な順位付けを別々に最適化する。最初に落とした広告は、後段で商用価値が高いと分かっても候補に戻らない。広告に離散的な意味ID（SID）を付けて生成する方式では、IDと広告の対応を学ぶ必要がある。ANGLEは広告を読める語句にし、新広告を索引に追加する手順を用意する。\n"
+        ],
+        [
+          12,
+          13,
+          "## Core Idea：著者の主張とLabの解釈\n"
+        ],
+        [
+          14,
+          15,
+          "著者の主張：階層的なテキスト索引、GDR-LLM、動的な制約付きビーム探索（DCBS）を組み合わせると、関連性と商用価値を考慮して広告を取得できる。\n"
+        ],
+        [
+          16,
+          17,
+          "Labの解釈：広告との対応をテキスト表現と索引の更新で扱い、生成が済む前に広告の配信可否を反映する設計と読める。SID全般より優れることや、多段カスケード全体を不要にできることは示していない。\n"
+        ],
+        [
+          18,
+          19,
+          "## Why It Might Work：検索意図と商品語の役割\n"
+        ],
+        [
+          20,
+          21,
+          "【解釈】広いintentだけでは商品を区別しにくく、商品名に近いabstractだけでは需要の広がりを拾いにくい。両者を組にすると、検索意図を保ちながら商品を絞れる。配信不可の枝を先に外すと、探索で保持できる候補数を有効な組に使える。検索語との意味の一致や商用価値はモデルが学ぶので、索引だけでは保証されない。\n"
+        ],
+        [
+          22,
+          23,
+          "## Evidence：数値と適用範囲\n"
+        ],
+        [
+          24,
+          25,
+          "### WTSの広告消費額：表では+1.81%、本文では+1.18%\n"
+        ],
+        [
+          26,
+          27,
+          "表3では広告消費額（consumption）+1.81%、GMV +2.16%、クリック +1.50%、コンバージョン +1.44%、露出 +2.49%。§4.2によると、5日間・traffic 20%のA/Bテストだった。同節の広告消費額は+1.18%で、要旨・導入・表3の+1.81%と一致しない。Labでは表3の値を載せ、この違いも残す。信頼区間とp値の記載はない。露出数も増えたので、クリック数の増加からクリック率（CTR）が増えたとは言えない。\n\n### 構成を変えたときのHR@100\n\n表4のHR@100はANGLE 0.5273、intentなし0.4645、abstractなし0.3519、DCBSなし0.2975、GDR-LLMなし0.4412。DCBSなしの構成は、自由に生成してから近似近傍探索（ANN）で近い組を探す。制約の有無だけを変えた比較ではない。表2で最も高かった比較方式はSimBert-v2-Gの0.3095。10,000クエリ、約220,000広告候補で評価し、実ログのクリックを使った。\n\n### 「One-Step」で置き換えた範囲\n\n§4.2ではWTS/QBSのranking queueを補う形で導入した。Limitationsによると、動的クリエイティブ選択と自動入札は引き続き順位付けに依存する。広告側はHunyuan-13B、検索側はHunyuan-1B、beam 64、intentは最大3 token、abstractは最大4 token。§4.1の90 ms以内は生成にかかった時間で、リクエスト全体のend-to-end p99ではない。\n\n[一次資料：ANGLE v1 表2〜4・§4・Limitations](https://arxiv.org/pdf/2609.18296v1)\n\n## Executable Understanding：配信できない広告を除く順序\n\n人工の5広告・4組を使い、固定スコアとビーム幅をそろえて比べる。一方はスコア順に組を選んでから配信不可の広告を外し、もう一方は配信できる広告がある組だけに絞ってから選ぶ。1組から複数広告を取得できることと、スコアを変えずに広告Fを索引へ追加できることも確かめる。token単位のDCBSは再現せず、組単位で上位k件を選ぶ。\n\n## Results：ビーム幅1で有効広告が0件から2件に増える\n\nビーム幅1で先に組を選ぶと、配信できないAの組が残るため、取得できる広告は0件になる。先に配信可否を確認するとForestの組からBとCの2件を取得できる。同じ組にFを追加すると3件。ビーム幅3では両方式ともB・C・Dを取得した。差は人工例で配信不可にした候補とビーム幅に左右され、事前に絞ればいつでも改善するとは言えない。\n\n## What We Verified：人工索引で確認した処理\n\nCONFIRMED：1組から複数広告を取得する処理、事前に配信可否を調べて組を絞る処理、広告を索引に加えると取得結果が変わること。assertは4件とも通過した。PARTIAL：ANGLE全体の仕組み。生成モデルの出力は固定スコアで置き換えた。\n\n## What We Did NOT Verify：著者モデルと本番の検証\n\nNOT TESTED：Hunyuanの学習、関連性判定、DPO、token単位の動的な木の組み直し、新しい広告への意味的な汎化、実際の遅延、WTS/QBSのA/B。広告Fの組は手で指定したため、LLMが正しい組を生成できることは確認していない。著者の性能報告とLabの結果は別に扱う。\n\n## Implementation：uvで結果を再生成する\n\nリポジトリのルートで `UV_CACHE_DIR=/tmp/paper-lab-uv uv run papers/angle-tencent-one-step-retrieval/run.py` を実行する。Python標準ライブラリを使い、同じディレクトリの `results.json` を更新する。外部データ、GPU、乱数は使わない。\n\n## 手法の詳細\n\n[method.md](method.md)\n\n## Original Paper / Official Code Mapping\n\n[mapping.md](mapping.md)\n\n[原論文 v1](https://arxiv.org/pdf/2609.18296v1)。図と操作画面の定義はlab.yaml、計算結果はresults.jsonを参照。\n"
+        ]
+      ]
+    },
+    "papers/angle-tencent-one-step-retrieval/lab.yaml": {
+      "before": {
+        "sha256": "7a948fc902ab521eb5de5acd273cf87256ac2e9c8d1867deedb614f685f71e6c",
+        "blob": "ede714747bb80a76382a69e58fc00a8c88e903cb"
+      },
+      "after": {
+        "sha256": "1737cd1f1890ef3bb67c231837e4c5a7d9c2a765e7f28bcfb2edff04b0d8b526",
+        "blob": "d58b9f6dce6598f47c8e895569b4c14db3d7ae05"
+      },
+      "prior_spans": [
+        [
+          28,
+          30,
+          "question: 広告IDの代わりに検索意図と商品語を生成すると、どう広告を取得できるか\nsummary: TencentのANGLEは広告を「広い検索意図 × 商品を特定する短い語句」の組で索引化する。検索用のHunyuan-1Bは、組を生成し、検索語との関連性を判定し、商用価値の高い広告を優先するよう学習する。生成時には、配信できる広告がある組に候補を絞る。WTSの検索広告のA/Bテストで著者はGMV +2.16%を報告した。自然検索や通常の推薦全体を置き換えた研究ではない。\n"
+        ],
+        [
+          31,
+          33,
+          "  author_claim: 階層的なテキスト索引、GDR-LLM、動的な制約付きビーム探索（DCBS）を組み合わせると、関連性と商用価値を考慮して広告を取得できる。\n  research_bot_interpretation: 広告との対応をテキスト表現と索引の更新で扱い、生成が済む前に広告の配信可否を反映する設計と読める。SID全般より優れることや、多段カスケード全体を不要にできることは示していない。\n"
+        ],
+        [
+          35,
+          36,
+          "  scope: 提供された一次PDF v1と抽出テキスト。式4〜6、図1・3、表1〜4、Limitations。公式コードURLは本文に見当たらず、公開の有無は未確認。\n"
+        ],
+        [
+          43,
+          45,
+          "  problem: 従来の多段カスケード（MCA）では、候補の取得、関連性の判定、事前順位付け、最終的な順位付けを別々に最適化する。最初に落とした広告は、後段で商用価値が高いと分かっても候補に戻らない。広告に離散的な意味ID（SID）を付けて生成する方式では、IDと広告の対応を学ぶ必要がある。ANGLEは広告を読める語句にし、新広告を索引に追加する手順を用意する。\n  why_it_might_work: 【解釈】広いintentだけでは商品を区別しにくく、商品名に近いabstractだけでは需要の広がりを拾いにくい。両者を組にすると、検索意図を保ちながら商品を絞れる。配信不可の枝を先に外すと、探索で保持できる候補数を有効な組に使える。検索語との意味の一致や商用価値はモデルが学ぶので、索引だけでは保証されない。\n  evidence: '### WTSの広告消費額：表では+1.81%、本文では+1.18%\n"
+        ],
+        [
+          46,
+          49,
+          ""
+        ],
+        [
+          50,
+          53,
+          "    表3では広告消費額（consumption）+1.81%、GMV +2.16%、クリック +1.50%、コンバージョン +1.44%、露出 +2.49%。§4.2によると、5日間・traffic 20%のA/Bテストだった。同節の広告消費額は+1.18%で、要旨・導入・表3の+1.81%と一致しない。Labでは表3の値を載せ、この違いも残す。信頼区間とp値の記載はない。露出数も増えたので、クリック数の増加からクリック率（CTR）が増えたとは言えない。\n"
+        ],
+        [
+          54,
+          55,
+          ""
+        ],
+        [
+          56,
+          57,
+          "    ### 構成を変えたときのHR@100\n"
+        ],
+        [
+          58,
+          59,
+          ""
+        ],
+        [
+          60,
+          61,
+          "    表4のHR@100はANGLE 0.5273、intentなし0.4645、abstractなし0.3519、DCBSなし0.2975、GDR-LLMなし0.4412。DCBSなしの構成は、自由に生成してから近似近傍探索（ANN）で近い組を探す。制約の有無だけを変えた比較ではない。表2で最も高かった比較方式はSimBert-v2-Gの0.3095。10,000クエリ、約220,000広告候補で評価し、実ログのクリックを使った。\n"
+        ],
+        [
+          62,
+          66,
+          ""
+        ],
+        [
+          67,
+          68,
+          "    ### 「One-Step」で置き換えた範囲\n"
+        ],
+        [
+          69,
+          70,
+          ""
+        ],
+        [
+          71,
+          72,
+          "    §4.2ではWTS/QBSのranking queueを補う形で導入した。Limitationsによると、動的クリエイティブ選択と自動入札は引き続き順位付けに依存する。広告側はHunyuan-13B、検索側はHunyuan-1B、beam 64、intentは最大3 token、abstractは最大4 token。§4.1の90 ms以内は生成にかかった時間で、リクエスト全体のend-to-end p99ではない。\n"
+        ],
+        [
+          73,
+          76,
+          ""
+        ],
+        [
+          77,
+          80,
+          "    [一次資料：ANGLE v1 表2〜4・§4・Limitations](https://arxiv.org/pdf/2609.18296v1)'\n  executable_understanding: '人工の5広告・4組を使い、固定スコアとビーム幅をそろえて比べる。一方はスコア順に組を選んでから配信不可の広告を外し、もう一方は配信できる広告がある組だけに絞ってから選ぶ。1組から複数広告を取得できることと、スコアを変えずに広告Fを索引へ追加できることも確かめる。token単位のDCBSは再現せず、組単位で上位k件を選ぶ。\n"
+        ],
+        [
+          81,
+          88,
+          "\n    <div class=\"teaching\" data-b21=\"angle\"><h3>組を選ぶ前と後で、配信可否を切り替える</h3><p>合成例：AとEは配信不可。Forestの同じ組にB・Cが属する。</p><label>探索条件 <select><option value=\"0\">beam 1 / 後段filter</option><option value=\"1\">beam 1 / 事前filter</option><option value=\"2\">beam 2 / 後段filter</option><option value=\"3\">beam 2 / 事前filter</option><option value=\"4\">beam 3 / 後段filter</option><option value=\"5\">beam 3 / 事前filter</option></select></label><div data-output aria-live=\"polite\"><div class=\"b21-cards\"><div><strong>生成する組</strong><p>survival game / Winter</p></div><div><strong>解決した有効広告</strong><p>なし（0件）</p></div></div></div><script type=\"application/json\" data-frames>[\"<div class=\\\"b21-cards\\\"><div><strong>生成する組</strong><p>survival game / Winter</p></div><div><strong>解決した有効広告</strong><p>なし（0件）</p></div></div>\", \"<div class=\\\"b21-cards\\\"><div><strong>生成する組</strong><p>survival game / Forest</p></div><div><strong>解決した有効広告</strong><p>B・C（2件）</p></div></div>\", \"<div class=\\\"b21-cards\\\"><div><strong>生成する組</strong><p>survival game / Winter → survival game / Forest</p></div><div><strong>解決した有効広告</strong><p>B・C（2件）</p></div></div>\", \"<div class=\\\"b21-cards\\\"><div><strong>生成する組</strong><p>survival game / Forest → mobile game / Winter</p></div><div><strong>解決した有効広告</strong><p>B・C・D（3件）</p></div></div>\", \"<div class=\\\"b21-cards\\\"><div><strong>生成する組</strong><p>survival game / Winter → survival game / Forest → mobile game / Winter</p></div><div><strong>解決した有効広告</strong><p>B・C・D（3件）</p></div></div>\", \"<div class=\\\"b21-cards\\\"><div><strong>生成する組</strong><p>survival game / Forest → mobile game / Winter</p></div><div><strong>解決した有効広告</strong><p>B・C・D（3件）</p></div></div>\"]</script><p class=\"source-note\">出所：run.pyの固定スコアとresults.json。JavaScript無効時はbeam 1・後段filterの結果を表示。</p></div>'\n  results: ビーム幅1で先に組を選ぶと、配信できないAの組が残るため、取得できる広告は0件になる。先に配信可否を確認するとForestの組からBとCの2件を取得できる。同じ組にFを追加すると3件。ビーム幅3では両方式ともB・C・Dを取得した。差は人工例で配信不可にした候補とビーム幅に左右され、事前に絞ればいつでも改善するとは言えない。\n  what_we_verified: CONFIRMED：1組から複数広告を取得する処理、事前に配信可否を調べて組を絞る処理、広告を索引に加えると取得結果が変わること。assertは4件とも通過した。PARTIAL：ANGLE全体の仕組み。生成モデルの出力は固定スコアで置き換えた。\n  what_we_did_not_verify: NOT TESTED：Hunyuanの学習、関連性判定、DPO、token単位の動的な木の組み直し、新しい広告への意味的な汎化、実際の遅延、WTS/QBSのA/B。広告Fの組は手で指定したため、LLMが正しい組を生成できることは確認していない。著者の性能報告とLabの結果は別に扱う。\n  implementation: リポジトリのルートで `UV_CACHE_DIR=/tmp/paper-lab-uv uv run papers/angle-tencent-one-step-retrieval/run.py` を実行する。Python標準ライブラリを使い、同じディレクトリの `results.json` を更新する。外部データ、GPU、乱数は使わない。\n"
+        ],
+        [
+          93,
+          94,
+          "  title: 検索意図と商品語の組で広告を探す\n"
+        ],
+        [
+          96,
+          99,
+          "  caption: 説明用の索引。行がintent、列がabstract。広告がない空欄の組は生成候補にしない。\n  rationale: 検索意図と具体的な語句の組が索引のキーになる。\n  corner: intent × abstract\n"
+        ],
+        [
+          122,
+          123,
+          "  title: 一つのモデルが生成・関連性・商用順位を学ぶ\n"
+        ],
+        [
+          125,
+          127,
+          "  caption: 原論文のβはDPOの温度と損失の重みを指す。この図では重みにλを使う。\n  rationale: 順位は独立した回帰ヘッドでは予測しない。DPOで生成確率を調整する。\n"
+        ],
+        [
+          130,
+          131,
+          "    explanation: 関連する広告のintentとabstractを正解として生成を学ぶ。非関連広告では生成損失を計算しない（mask）。非関連広告を学習全体から捨てるのではなく、関連性の判定には使う。\n"
+        ],
+        [
+          133,
+          134,
+          "    explanation: discriminatorは関連・非関連のラベルから判定を学ぶ（式4）。\n"
+        ],
+        [
+          136,
+          137,
+          "    explanation: 商用価値が高い広告ywをylより優先する。§4.1では実消費額で順序を決める（式5）。\n"
+        ],
+        [
+          139,
+          140,
+          "    explanation: 3つの損失を重み付きで足す（式6）。Labでは学習を実行しない。\n"
+        ],
+        [
+          143,
+          144,
+          "  title: WTSで変わった広告消費額・GMV・件数\n"
+        ],
+        [
+          146,
+          148,
+          "  caption: 著者報告。5日間・traffic 20%。広告消費額は本文と表で異なる。件数の変化はCTRやCVRの変化ではない。\n  rationale: 件数の増減と、広告消費額やGMVの増減を別に読む。\n"
+        ],
+        [
+          151,
+          152,
+          "  - label: 広告消費額\n"
+        ],
+        [
+          153,
+          154,
+          "  - label: GMV\n"
+        ]
+      ]
+    },
+    "papers/angle-tencent-one-step-retrieval/mapping.md": {
+      "before": {
+        "sha256": "94ad78d6638a2af5d3249ee78e34e6dbb6742af5e69ec7fe267c5900cc4397e3",
+        "blob": "0ff0138a8c165dc2d5a459ded96b6b0bc934713b"
+      },
+      "after": {
+        "sha256": "fd4ee4b54102e9648f06852115b0a37569963bfccd1932c63d4484b4d2969cb3",
+        "blob": "5feca1a9ba7c1e9ff9a1ce65ab8dc206cc2ea2a0"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# Original Paper / Official Code Mapping\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料は [ANGLE v1](https://arxiv.org/pdf/2609.18296v1) の提供PDFと抽出テキスト。対象はv1のみ。本文には著者のコード公開先が見当たらず、公開の有無は未確認。\n"
+        ],
+        [
+          4,
+          12,
+          "| 論文の要素 | 一次資料の位置 | Labで対応する箇所 | 確認の範囲 |\n|---|---|---|---|\n| intent × abstractから広告集合へ | §3.3、表1、図3 | `run.py:index_ads` と索引の表 | 語句は手で与える。Hunyuan-13Bは動かさない |\n| DCBSが配信できる候補を残す処理 | §3.4、図3 | `run.py:retrieve` で先に配信可否を確認 | token単位の木は作らず、組単位でtop-kを選ぶ |\n| 新広告を索引に加える処理 | §3.3、§4.1 | `run.py:main` でFを追加 | 組は手で指定する。新広告に合った語を生成できるかは調べない |\n| 生成・関連性判定・DPO | §3.2、図1、式4〜6 | `lab.yaml` の数式図と `method.md` | 損失の意味を説明する。学習は実行しない |\n| オフライン性能と構成別の比較 | 表2・4 | Evidence | 著者の報告。実データで再実行しない |\n| WTSのオンライン指標 | 表3、§4.2 | 棒グラフとEvidence | 表3の+1.81%を使い、本文の+1.18%との差も示す |\n| 順位付けを残した範囲 | §4.2、Limitations | Overview、Evidence | 自然検索や推薦全体には一般化しない |\n"
+        ],
+        [
+          13,
+          14,
+          "## 省いた実装\n\n広告とクエリのSFT、Hunyuanの推論、discriminator、DPO、token単位のビーム探索、実際の配信条件の取得、比較対象のANN、分散環境での索引更新は実装していない。比べるのは取得した広告の集合で、売上は計算せず、商用価値も評価しない。\n\n## 生成物の出所\n\n`lab.yaml` に本文と図を定義し、`README.md` に読解用の本文、`method.md` に手法の詳細を置く。操作画面の6条件は `run.py` の計算結果に対応する。`results.json` が実行結果で、HTMLはサイト共通の生成処理で作る。\n\n保存PDFのSHA-256：`f5c84a5a3b3ef9683b441f265e358c1f1fa446e4656265bb8dbaeb93ce29a7ef`。\n"
+        ]
+      ]
+    },
+    "papers/angle-tencent-one-step-retrieval/method.md": {
+      "before": {
+        "sha256": "d2fd4656991e707d7ef7de93c0ad4c21800d77f67318c41e6a7403e45e0d7ce9",
+        "blob": "867b9886b3caaf212eee2a0143e1787a68e27c60"
+      },
+      "after": {
+        "sha256": "835b566bc811be836a51f19ca4fb909363d808ed7b99ce36c817ce92d4243db5",
+        "blob": "206f5aeb937a4023b69af51aa2df9d3133b4d1fa"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "## 広告側の索引と検索側の学習\n"
+        ],
+        [
+          2,
+          3,
+          "広告側のHunyuan-13Bは商用intentを業種単位で整理し、約70万の粗いカテゴリへまとめる。その範囲でintentを生成し、広告から具体的な語句abstractを作る。索引は `(intent, abstract) → 広告集合` で、同じ組から複数の広告を取得できる（§3.3、図3）。新広告も同じ手順で組を作って追加する。§4.1に記載の更新頻度は毎時。\n"
+        ],
+        [
+          4,
+          5,
+          "検索側のHunyuan-1Bが使うGDR-LLMの損失は、関連広告の組を生成する損失、関連・非関連を判定する二値交差エントロピー、商用順位を学ぶDPOを足したものだ。DPOは、参照モデルに比べて商用価値の高い広告を生成しやすくする。独立した商用価値回帰ヘッドを加える説明は正確ではない。\n"
+        ],
+        [
+          6,
+          7,
+          "## 配信可否を探索に反映する順序\n"
+        ],
+        [
+          8,
+          9,
+          "図3のDCBSはまず検索意図（intent）を生成する。次に、配信できる広告がないabstractを探索用の木から外し、木を組み直してabstractを生成する。配下に有効なabstractが一つもないintentも外す。配信可否はユーザー条件で変わる。最後にdiscriminatorが検索語と組の関連性を評価する。\n"
+        ],
+        [
+          10,
+          11,
+          "Labの `retrieve` は、有効な広告がある組を先に残し、同じ固定スコアからtop-kを選ぶ。kは広告件数ではなく組の数であり、選んだ組から有効な広告を取得する。tokenごとの確率正規化や探索木の再構成を実装したものではない。\n"
+        ],
+        [
+          12,
+          13,
+          "## SIDとの違い：新広告を加える手順\n"
+        ],
+        [
+          14,
+          15,
+          "原論文は、RQ-VAEで作るSIDでは広告との対応を学ぶ必要があると指摘する。ANGLEは生成したテキストから索引を引くので、新広告を既存の組に追加できれば、生成側の出力先を増やさずに広告を取得できる。新商品に正しい語を生成できるか、索引で生じる衝突をどう解くかは別の課題だ。\n"
+        ],
+        [
+          16,
+          17,
+          "表2にはTIGER型SIDとの直接比較がない。表2のDSI-1Bが指すDifferentiable Search Indexは、別論文のDistributional Serving Interfaceとは異なる。広告の商用順位を学ぶDPOも、最終的な入札やクリエイティブ選択そのものではない。\n"
+        ],
+        [
+          18,
+          23,
+          "[一次資料：ANGLE v1 図1・3、§3〜4、Limitations](https://arxiv.org/pdf/2609.18296v1)\n"
+        ]
+      ]
+    },
+    "papers/angle-tencent-one-step-retrieval/results.json": {
+      "before": {
+        "sha256": "bc3bad461d10bd40d83bcf9d1f589eee26a198966e868ca65a7cc6c0e2c3660a",
+        "blob": "75dc3e469915a3e5129bed7c1c24bf7d465124be"
+      },
+      "after": {
+        "sha256": "ed884408a265adb6d3cd553b144b57ad8caa0b7ee01f20197ce20b7d52f6a124",
+        "blob": "b3724d406d3a5beea4d8e9a386d009602938d5dc"
+      },
+      "prior_spans": [
+        [
+          8,
+          9,
+          "  \"note\": \"Fixed scores; pair-level top-k only. No token trie, LLM, relevance head, DPO or production data.\",\n"
+        ]
+      ]
+    },
+    "papers/angle-tencent-one-step-retrieval/run.py": {
+      "before": {
+        "sha256": "b94f62a662eb4a9ad43f0ea1613a8c3f77c1521114338a6ae076fbf64c8a6c2a",
+        "blob": "26914922cf91dcd94abbf9614dbfa0c7c4f69df6"
+      },
+      "after": {
+        "sha256": "1b5a53672e0c58af0e891d42f2638cf7babf9283d1f9cf10ff9a243392ae1c53",
+        "blob": "7c2390a6b8b611290e3c8fcfb8bf17b4fb4c14f1"
+      },
+      "prior_spans": [
+        [
+          0,
+          2,
+          "\"\"\"Finite toy index: shared identifiers, validity pruning, and new-ad insertion.\nNo neural model is trained. Scores and labels are fixed synthetic inputs.\n"
+        ],
+        [
+          54,
+          55,
+          "               'note': 'Fixed scores; pair-level top-k only. No token trie, LLM, relevance head, DPO or production data.',\n"
+        ]
+      ]
+    }
+  }
+}
