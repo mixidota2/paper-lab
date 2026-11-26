@@ -1,0 +1,468 @@
+{
+  "files": {
+    "papers/invevolve-whitebox-inventory-evolution/README.md": {
+      "before": {
+        "sha256": "b792001cd8fbb7f2001350eb35121428badb2818a266815af9e6e3fe3fc86642",
+        "blob": "d7ce1d4b967e010ce623527352f1867cecbbc4eb"
+      },
+      "after": {
+        "sha256": "f91ca5215092b2a5abc7b7ee78806cbc7b5440c0a8f3a569be75051b5dc4f3cc",
+        "blob": "c7639e220c7d53b62131fc7e45c3e63c92863c24"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# InvEvolve：発注コードを進化させ、配備前に改善の下限を確認する\n"
+        ],
+        [
+          2,
+          3,
+          "## Overview — 白箱の発注規則と認証を組み合わせる\n"
+        ],
+        [
+          8,
+          9,
+          "## Problem — 履歴で良かったコードを将来へ移せるか\n"
+        ],
+        [
+          10,
+          11,
+          "対象は需要を満たせない分が逸失する在庫管理。古典方策は読みやすいが、販促や季節情報を使う形を人が設計する必要がある。LLMに自由なコード探索を任せても、履歴への過適合と需要シフトは残る。\n"
+        ],
+        [
+          12,
+          13,
+          "## Core Idea — 著者の主張とLabの解釈\n"
+        ],
+        [
+          14,
+          15,
+          "著者は、GRPOで学習したGLM-4.7-Flash（30B MoE）によるLGPS（LLM-guided policy search）を提案する。候補コードを生成し、共通の需要経路でreplay評価し、改善の信頼下限LCBで候補を絞る。通過候補から信頼上限UCBが最大の方策を配備し、候補がなければ参照方策へ戻る。探索中のchampion昇格には、参照に対する安全性に加え、現championへの改善条件も置く。\n"
+        ],
+        [
+          16,
+          17,
+          "Labの解釈では、これは「方策そのものをコード空間で改善する」研究に分類する。[SabreAgent](../sabreagent-design-time-inventory/README.md)は「設計時に季節事前分布を構成し、凍結したORルールを実行する」研究に分類する。InvEvolveは窓ごとに方策探索を更新するが、各発注でLLMへ数量を直接尋ねる設計とは区別する。InventoryBenchとの直接対決ではない。\n"
+        ],
+        [
+          18,
+          19,
+          "## Why It Might Work — 生成の自由度と採用の慎重さを分ける\n"
+        ],
+        [
+          20,
+          31,
+          "解釈：候補を実行可能な規則にすれば、既存方策と同じ経路で費用差を測れる。改善量を Z=C_ref−C_candidate と置くので、正なら改善である。Eq. 7の半径とEq. 8の信頼限界は次の形になる。\n"
+        ],
+        [
+          35,
+          35,
+          "安全候補: LCB ≥ ξ; 配備: 安全候補中の最大UCB\n"
+        ],
+        [
+          37,
+          38,
+          "Bは改善量の絶対値の上限、Nは比較数の上限、mはreplay経路数、δは期間ごとの失敗確率予算。ξはreplayと配備分布の最悪差を覆う予算である。多重比較も効く。候補が多ければ半径は大きくなる。付録Eの実用ξ校正と付録Fの小標本blockwise t半径は、理論式を無条件に満たす証明とは分けて読む。\n"
+        ],
+        [
+          39,
+          40,
+          "## Evidence — 30件の外挿と96条件の方策比較は別の実験\n"
+        ],
+        [
+          41,
+          46,
+          "| 著者報告 | 比較 | 成績 |\n"
+        ],
+        [
+          47,
+          50,
+          "| 合成30件、Table 2 | 最良古典方策に対する勝率 | base GLM 13/30、InvEvolve 25/30 |\n| CJ 30件、Table 3 | 最良古典方策に対する勝率 | A3C 11/30、E2E 16/30、InvEvolve 20/30 |\n| 定常96条件、Table 6 | CBSに対する勝／同等／負 | Tilted-CBS 18/74/4、Tilted-PIC 41/47/8 |\n"
+        ],
+        [
+          51,
+          52,
+          "合成は100日で設計、将来30日で評価。訓練に用いた10 workspaceと商品が重ならず、10業界中5業界は未学習。CJは365日から次の30日を評価し、販売を潜在需要へ復元したbenchmarkである。復元品質が主張の中心ではなく、実店舗の因果的な費用改善を示す試験でもない。\n"
+        ],
+        [
+          53,
+          54,
+          "96条件は6需要分布×4リードタイム×4欠品費用比。±2%以内を同等とするため、beat-or-tie 95.8%（Tilted-CBS）と91.7%（Tilted-PIC）は厳密な勝率ではない。平均費用変化は−0.60%と−1.52%、最悪は+5.4%と+4.2%。全条件の改善保証ではない。\n"
+        ],
+        [
+          55,
+          58,
+          "## Executable Understanding — 不足に応じて発注上限を傾ける\n"
+        ],
+        [
+          66,
+          67,
+          "IPは手元在庫と輸送中在庫を合わせた在庫ポジション。αは不足が大きいとき上限を緩め、Kpは不足への反応を調整する。α=0のTilted-CBSはCBSに戻る。整数不足でKp=1ならTilted-PICはTilted-CBSに一致する。対話図ではこれらの係数を変え、同じ不足に対する発注量を比較する。\n"
+        ],
+        [
+          68,
+          69,
+          "## Results — 人工需要では改善しても認証を通過しない\n"
+        ],
+        [
+          70,
+          71,
+          "seed=930、256経路×60日、需要は0〜10の離散一様分布。L=3、S=24、r=4、保管費1、逸失費9を固定した。平均費用はCBS 12.402、Tilted-CBS 9.501、Tilted-PIC 10.037。係数は固定した。探索は省いた。\n"
+        ],
+        [
+          72,
+          73,
+          "一方、費用上限114から得る半径は21.093。改善のLCBは−18.191と−18.728になり、ξ=0でも安全候補は空となる。観測した平均費用が下がっても、不確実性を差し引いた信頼下限で採用条件を満たすとは限らないことを確認できる。\n"
+        ],
+        [
+          74,
+          75,
+          "## What We Verified — 局所式と認証の保守性を確認した\n"
+        ],
+        [
+          76,
+          77,
+          "MechanismはPARTIAL。α=0でのCBSへの帰着、整数不足でのKp=1の一致、費用の有界性はCONFIRMED。共通需要経路での改善平均、LCB/UCBの計算を実行した。候補認証の成功はNOT OBSERVED。\n"
+        ],
+        [
+          78,
+          79,
+          "## What We Did NOT Verify — LLM探索と性能再現は未実行\n"
+        ],
+        [
+          80,
+          81,
+          "Performance / Scaling / Production applicabilityはNOT TESTED。GRPO学習、コード生成、champion更新、需要シフト予算の校正、公式の小標本半径、CJ復元、96条件の再最適化は実行していない。人工実験の費用差から、論文の勝率や将来配備の安全性は推論しない。\n"
+        ],
+        [
+          82,
+          83,
+          "## Implementation — 標準ライブラリだけで再実行する\n"
+        ],
+        [
+          84,
+          85,
+          "`UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/invevolve-whitebox-inventory-evolution/run.py`\n"
+        ],
+        [
+          86,
+          87,
+          "`run.py`は到着→発注判断→需要消化の順に在庫を進める。需要経路は全方策で共通。`results.json`に人工結果と著者集計を分けて保存し、図はその値から生成する。発注の丸めには非負数の四捨五入を使う。連続量での丸め境界は原論文の実装を確認していない。\n"
+        ],
+        [
+          88,
+          89,
+          "## Original Paper / Official Code Mapping — 本文と付録に戻れるようにする\n"
+        ],
+        [
+          90,
+          110,
+          "[原論文 v4](https://arxiv.org/pdf/2605.00369v4)の§2・Fig. 2が認証、§4が学習、§5.1–5.3が評価、§5.3.2・Fig. 5が発見方策。対応と省略範囲は[mapping.md](mapping.md)に記す。次の検証対象は、実需要でのξ校正がどれほど保守的か、そして採用できる候補が残るかである。\n"
+        ]
+      ]
+    },
+    "papers/invevolve-whitebox-inventory-evolution/lab.yaml": {
+      "before": {
+        "sha256": "6f1c459df36dfe8d57b7aa60bf244ea95751cf85b964b2d0e29ce9a5430b7410",
+        "blob": "a9594de48b30b8df6fa3599adfdd3846fe0c1b61"
+      },
+      "after": {
+        "sha256": "e06aad37e5a1e32ec9fdfb0ab4023ae685e4fa23b7faee6026c9068cc51f23c5",
+        "blob": "bcd5f1682a2e7b8114c0783c729ade433c87a31e"
+      },
+      "prior_spans": [
+        [
+          23,
+          25,
+          "question: LLMが書いた発注規則を、どんな条件で配備してよいか\nsummary: GLM-4.7-FlashをGRPOで学習し、白箱の発注コードを進化させる。合成25/30、CJ 20/30件で最良古典方策を上回る著者報告と、LCB認証の条件を分けて読む。\n"
+        ],
+        [
+          38,
+          40,
+          "  author_claim: GRPOで学習したGLM-4.7-Flashが実行可能な在庫方策を生成する。参照方策に対する改善量の信頼下限（LCB）で候補の採用条件を確認し、通過した候補の信頼上限（UCB）で配備する方策を選ぶ。将来性能の保証には有効な信頼半径と分布差予算が必要。\n  research_bot_interpretation: 方策コードを窓ごとに進化させる研究に分類する。SabreAgentの「設計時に季節事前分布を作り、凍結ORを実行」とは変更対象が異なる。InventoryBenchとの直接比較ではない。\n"
+        ],
+        [
+          45,
+          49,
+          "  problem: 対象は需要を満たせない分が逸失する在庫管理。古典方策は読みやすいが、販促や季節情報を使う形を人が設計する必要がある。LLMに自由なコード探索を任せても、履歴への過適合と需要シフトは残る。\n  core_idea: まず発注規則の候補を作り、すべての候補を同じ需要履歴で再実行して比べる。改善量の信頼区間の下限（LCB）で採用条件を確認し、通過した候補のうち上限（UCB）が最大のものを配備する。Fig. 2の流れを、下の発注式と認証表に分けて読む。\n  why_it_might_work: '解釈：候補を実行可能な規則にすれば、既存方策と同じ経路で費用差を測れる。改善量を Z=C_ref−C_candidate\n    と置くので、正なら改善である。Eq. 7の半径とEq. 8の信頼限界は次の形になる。\n"
+        ],
+        [
+          50,
+          53,
+          ""
+        ],
+        [
+          55,
+          55,
+          "\n"
+        ],
+        [
+          56,
+          56,
+          "\n"
+        ],
+        [
+          57,
+          57,
+          "\n    安全候補: LCB ≥ ξ; 配備: 安全候補中の最大UCB\n\n"
+        ],
+        [
+          59,
+          60,
+          ""
+        ],
+        [
+          61,
+          64,
+          "    Bは改善量の絶対値の上限、Nは比較数の上限、mはreplay経路数、δは期間ごとの失敗確率予算。ξはreplayと配備分布の最悪差を覆う予算である。多重比較も効く。候補が多ければ半径は大きくなる。付録Eの実用ξ校正と付録Fの小標本blockwise\n    t半径は、理論式を無条件に満たす証明とは分けて読む。'\n  evidence: '一次資料の著者報告。[v4 Tables 2・3・6](https://arxiv.org/pdf/2605.00369v4)を確認した。\n"
+        ],
+        [
+          65,
+          70,
+          ""
+        ],
+        [
+          71,
+          72,
+          "    | 著者報告 | 比較 | 成績 |\n"
+        ],
+        [
+          73,
+          76,
+          "    | --- | --- | --- |\n"
+        ],
+        [
+          77,
+          78,
+          "    | 合成30件、Table 2 | 最良古典方策に対する勝率 | base GLM 13/30、InvEvolve 25/30 |\n\n    | CJ 30件、Table 3 | 最良古典方策に対する勝率 | A3C 11/30、E2E 16/30、InvEvolve 20/30 |\n\n    | 定常96条件、Table 6 | CBSに対する勝／同等／負 | Tilted-CBS 18/74/4、Tilted-PIC 41/47/8 |\n\n\n    合成は100日で設計、将来30日で評価。訓練に用いた10 workspaceと商品が重ならず、10業界中5業界は未学習。CJは365日から次の30日を評価し、販売を潜在需要へ復元したbenchmarkである。復元品質が主張の中心ではなく、実店舗の因果的な費用改善を示す試験でもない。\n\n\n    96条件は6需要分布×4リードタイム×4欠品費用比。±2%以内を同等とするため、beat-or-tie 95.8%（Tilted-CBS）と91.7%（Tilted-PIC）は厳密な勝率ではない。平均費用変化は−0.60%と−1.52%、最悪は+5.4%と+4.2%。全条件の改善保証ではない。'\n  executable_understanding: '```text\n\n"
+        ],
+        [
+          79,
+          79,
+          "\n"
+        ],
+        [
+          80,
+          80,
+          "\n"
+        ],
+        [
+          81,
+          81,
+          "\n"
+        ],
+        [
+          82,
+          82,
+          "\n"
+        ],
+        [
+          84,
+          87,
+          ""
+        ],
+        [
+          88,
+          89,
+          "    IPは手元在庫と輸送中在庫を合わせた在庫ポジション。αは不足が大きいとき上限を緩め、Kpは不足への反応を調整する。α=0のTilted-CBSはCBSに戻る。整数不足でKp=1ならTilted-PICはTilted-CBSに一致する。対話図ではこれらの係数を変え、同じ不足に対する発注量を比較する。'\n  results: 'seed=930、256経路×60日、需要は0〜10の離散一様分布。L=3、S=24、r=4、保管費1、逸失費9を固定した。平均費用はCBS\n    12.402、Tilted-CBS 9.501、Tilted-PIC 10.037。係数は固定した。探索は省いた。\n"
+        ],
+        [
+          90,
+          93,
+          ""
+        ],
+        [
+          94,
+          99,
+          "    一方、費用上限114から得る半径は21.093。改善のLCBは−18.191と−18.728になり、ξ=0でも安全候補は空となる。観測した平均費用が下がっても、不確実性を差し引いた信頼下限で採用条件を満たすとは限らないことを確認できる。'\n  what_we_verified: MechanismはPARTIAL。α=0でのCBSへの帰着、整数不足でのKp=1の一致、費用の有界性はCONFIRMED。共通需要経路での改善平均、LCB/UCBの計算を実行した。候補認証の成功はNOT\n    OBSERVED。\n  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。GRPO学習、コード生成、champion更新、需要シフト予算の校正、公式の小標本半径、CJ復元、96条件の再最適化は実行していない。人工実験の費用差から、論文の勝率や将来配備の安全性は推論しない。\n  implementation: '`UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/invevolve-whitebox-inventory-evolution/run.py`\n"
+        ],
+        [
+          100,
+          103,
+          ""
+        ],
+        [
+          104,
+          105,
+          "    `run.py`は到着→発注判断→需要消化の順に在庫を進める。需要経路は全方策で共通。`results.json`に人工結果と著者集計を分けて保存し、図はその値から生成する。発注の丸めには非負数の四捨五入を使う。連続量での丸め境界は原論文の実装を確認していない。'\n"
+        ],
+        [
+          110,
+          111,
+          "  title: 不足への応答を二つの係数で変える\n"
+        ],
+        [
+          114,
+          116,
+          "  rationale: αの上限緩和とKpの比例応答を、CBSからの変更として読む。\n  caption: 一次資料の方策式を再構成。係数を固定した応答曲線を実行可能な理解で示す。\n"
+        ],
+        [
+          117,
+          118,
+          "  - name: CBS：固定上限\n"
+        ],
+        [
+          119,
+          121,
+          "    explanation: 不足が大きくても発注量はrを超えない。\n  - name: Tilted-CBS：不足で上限を緩める\n"
+        ],
+        [
+          122,
+          124,
+          "    explanation: α=0ならCBS。αが正なら大きな不足への補充を増やす。\n  - name: Tilted-PIC：不足への反応も調整する\n"
+        ],
+        [
+          125,
+          126,
+          "    explanation: Kp<1なら比例応答を抑える。整数不足とKp=1の条件ではTilted-CBSに一致する。\n"
+        ],
+        [
+          128,
+          129,
+          "  title: 最良古典方策を上回った件数を比べる\n"
+        ],
+        [
+          131,
+          134,
+          "  locator: Tables 2–3\n  rationale: 合成とCJを分けたラベルで、同じ30件の分母に対する成功数を示す。\n  caption: 著者報告の再描画。合成とCJは別の30件で、両者の差を性能低下の因果効果とは読めない。CJの費用削減9.2%は勝った20件だけの平均。\n"
+        ]
+      ]
+    },
+    "papers/invevolve-whitebox-inventory-evolution/mapping.md": {
+      "before": {
+        "sha256": "f8b2b84da510d85fa9a9f1395370fadf7b5fe578423d729b7d69e5651a66ab92",
+        "blob": "1fc22da390b66774c4866a052e40813865b99315"
+      },
+      "after": {
+        "sha256": "8656d1f5d0f9c7ec727ec9a0f9d8e7f248b9e4b3b5ad61a024332772012f5b87",
+        "blob": "eb82ae974cb4508da97d752150142750fbe2818c"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文とLabの対応\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料は [InvEvolve v4](https://arxiv.org/pdf/2605.00369v4)（2026年6月5日版）。提供PDFの本文と付録を読みました。本文から公式実装のURLは確認できません。このLabは、原論文の仕組みの一部を確かめるための独立実装です。\n"
+        ],
+        [
+          4,
+          5,
+          "| 原論文 | Labで確認できること | Labに含めていないこと |\n"
+        ],
+        [
+          6,
+          12,
+          "| §2、Fig. 2、Eqs. 5–9 | `run.py` は同じ需要経路で各方策を試し、費用改善の平均とHoeffdingの信頼区間の幅を計算します。 | 方策を新しく提案したり、運用中の最良方策を入れ替えたりする処理は省きます。判定の例では、需要分布の変化を見込む予算をξ=0とします。 |\n| §4、Appendix C | READMEでは、著者がGLM-4.7-FlashとGRPOをどこで使ったかを説明します。 | 学習やSlimeRLの実行、生成コードの実行は行いません。 |\n| §5.1、Table 2 | `results.json` の `paper_reported.synthetic` に著者の集計値を載せています。 | 著者が使った30 workspaceは再実行していません。 |\n| §5.2、Table 3、Appendix H | CJデータでの勝率と、販売できなかった需要を推定するときの注意点を説明します。 | CJデータの取得、需要の復元精度、比較手法のA3C/E2Eは検証していません。 |\n| §5.3.2、Fig. 5、Table 6 | `order()` と対話図で、在庫が不足したときに発注量がどう変わるかを見比べます。 | 係数は固定し、96条件のOptuna探索は行いません。 |\n| Appendices E–F | 理論上の保証と、実データに当てはめるときの調整を分けて説明します。 | 分布変化に備える予算や、データを区間に分けてt分布から求める区間幅（blockwise t半径）は実装しません。 |\n"
+        ],
+        [
+          13,
+          14,
+          "対話図は論文の式から発注量を計算します。不足量が整数でKp=1なら、Tilted-PICとTilted-CBSの発注量は同じです。不足量が連続値なら丸めが入るので、常に一致するとは言えません。点をつなぐ線は読み取りの補助です。\n"
+        ]
+      ]
+    },
+    "papers/invevolve-whitebox-inventory-evolution/method.md": {
+      "before": {
+        "sha256": "4219981b0d24ca334b55f57fb3802666a19d82ae5a9c16ef53a9968ad579cbe3",
+        "blob": "7f5968c806ab0c91f2542c3100a3cbdd82f07e02"
+      },
+      "after": {
+        "sha256": "6e0326a025fe7bf56dde25fbd4dc3d0e33253c50d2ec635e01964fc6422f58ac",
+        "blob": "c6037dd5f5ff5b89f54f1f83e6515d32eb9d5c3d"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "GLM-4.7-FlashをGRPOで学習する。報酬は、最良の古典方策より費用が低ければ1、それ以外は0。探索では発注コードを変え、保存した需要経路で各候補を再実行するreplayによって比べる。発見されたTilted-CBSは上限を不足に応じて増やす。Tilted-PICは比例ゲインも導入する。下の式を対話図へつなげて読む。\n"
+        ],
+        [
+          2,
+          9,
+          "学習と配備は別だ。理論の保証を読む際には、候補コードが動くかという確認に加えて、改善量の上限B、比較数N、失敗確率δ、需要シフトの予算ξが評価条件に対応しているかを確かめる。小実験では学習を省いた。\n"
+        ]
+      ]
+    },
+    "papers/invevolve-whitebox-inventory-evolution/results.json": {
+      "before": {
+        "sha256": "90a18263b1b42a009d8fbd1a89f11f0c6d8f57cee69c3fd58c9831da2aeaa5d6",
+        "blob": "df69e775dfd0b2f04c8508f000d28ee6079afe97"
+      },
+      "after": {
+        "sha256": "df62831adb3d7190ec9a63768702833ce461146aa7e4385472a9ecc0bc47ad76",
+        "blob": "7d4cdf4425184be4c4534b07851022fb87e7b6d5"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "  \"scope\": \"人工需要の方策応答と保守的な認証。論文の追試ではない。\",\n"
+        ]
+      ]
+    },
+    "papers/invevolve-whitebox-inventory-evolution/run.py": {
+      "before": {
+        "sha256": "c9e6087f38528d03ea7644655a204eab5c39d49422ca32db47ea5a556e2cf348",
+        "blob": "5470ae3d582c57c42dc954c1eb4c77762ec35a99"
+      },
+      "after": {
+        "sha256": "e4cf5000c16bc2f78157c33f282afac0b925e1258b50e4610cf564960b94a1b7",
+        "blob": "59386175ef7922e4c17667c8ecd9c82ff6dfb3f8"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Bounded toy replay and exact policy response; no LLM training or paper reproduction.\"\"\"\n"
+        ],
+        [
+          28,
+          33,
+          "    # q <= gap for these specific candidates, hence total on-hand+pipeline <= 24\n    # and daily cost <= 24 + 9*10 = 114. Both path costs in [0,114].\n"
+        ],
+        [
+          47,
+          48,
+          "    out=dict(lab30='invevolve',scope='人工需要の方策応答と保守的な認証。論文の追試ではない。',seed=930,paths=256,days=60,lead_time=3,base_stock=24,base_cap=4,holding=1,penalty=9,bound=bound,delta=delta,comparisons=comparisons,replay=rows,frames=frames,checks={'alpha_zero_recovers_cbs':True,'integer_gap_kp_one_recovers_tilted':True,'bounded_cost':True},paper_reported={'synthetic':{'base_glm':13,'invevolve':25,'n':30},'cj':{'invevolve':20,'a3c':11,'e2e':16,'n':30,'cost_reduction_on_wins_pct':9.2},'stationary':{'tilted_cbs':[18,74,4],'tilted_pic':[41,47,8],'n':96,'tie_threshold_pct':2}},verification={'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'})\n"
+        ]
+      ]
+    },
+    "paper_lab/invevolve30.py": {
+      "before": {
+        "sha256": "2621534b7637c09fc09ee2d72a1673b4a2d49df9528faf59b1585a28027b49c0",
+        "blob": "80a79ca6e4c5593505b383ab94a569be3f89de2a"
+      },
+      "after": {
+        "sha256": "e7d30c2bee8b2e4a0ab1f8b12b2c66626f0d290a492e0aed30606eea98102b0e",
+        "blob": "394642881ac338429c30c0297f678b421e94ee7f"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"InvEvolve order response and certification figures, generated from results.json.\"\"\"\n"
+        ],
+        [
+          10,
+          11,
+          "        svg='<svg viewBox=\"0 0 600 310\" role=\"img\" aria-label=\"在庫不足と発注量の関係\" style=\"width:100%;height:auto\"><path d=\"M45 20V255H575\" stroke=\"currentColor\" fill=\"none\"/>'\n"
+        ],
+        [
+          14,
+          17,
+          "        svg+='<text x=\"48\" y=\"278\">不足 Δ：0 → 30</text><text x=\"48\" y=\"18\">発注量 q（上端 23.5）</text><text x=\"50\" y=\"303\" fill=\"#697680\">CBS</text><text x=\"170\" y=\"303\" fill=\"#087f8c\">Tilted-CBS</text><text x=\"340\" y=\"303\" fill=\"#c65432\">Tilted-PIC</text></svg>'\n        svg+=f'<p>r_base=4、α={f[\"alpha\"]}、Kp={f[\"kp\"]}。横軸の不足は目標 S から在庫ポジション IP を引いた正の部分。曲線は整数の不足ごとに計算した点を結ぶ。</p>'\n        svg+=table(['Δ','CBS','Tilted-CBS','Tilted-PIC'],[[r['gap'],r['cbs'],r['tilted'],r['pic']] for r in f['curve'] if r['gap'] in (0,5,10,20,30)])\n"
+        ],
+        [
+          20,
+          24,
+          "    html='<figure class=\"teaching\" data-b21><h3>不足量に応じて上限を変え、比例係数で発注量を調整する</h3><label>係数 <select>'+options+'</select></label><script type=\"application/json\" data-frames>'+data+'</script><div data-output aria-live=\"polite\">'+frames[0]+'</div><figcaption>§5.3.2 の式を run.py で計算。性能曲線ではない。</figcaption></figure>'\n    html+='<figure class=\"teaching\"><h3>平均費用が下がっても、採用条件を満たすとは限らない</h3>'\n    html+=table(['人工需要の方策','平均費用','改善平均','改善量の信頼下限（LCB）','改善量の信頼上限（UCB）'],[[r['policy']]+[round(r[k],3) for k in ('cost','gain','lcb','ucb')] for r in result['replay']])\n    html+='<p>256経路、B=114、δ=0.05、比較数N=2。半径は21.093。ξ=0でも両候補のLCBが負なので、配備は参照CBSへ戻る。LCBで採用条件を確認し、通過した候補からUCBを使って選ぶ。この人工例では両方が不合格で、UCBが大きいだけでは選べない。</p><figcaption>人工需要の最小実験。論文の小標本t半径、需要シフト校正、LLM探索は未実装。</figcaption></figure>'\n"
+        ]
+      ]
+    }
+  }
+}
