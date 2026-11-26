@@ -1,0 +1,341 @@
+{
+  "files": {
+    "papers/aura-disney-agentic-rec-diagnosis/README.md": {
+      "before": {
+        "sha256": "d13452af07d33df4f14bc2aeca48dcc7a4a927ed5f82a96adb5baf19f110e9a0",
+        "blob": "6983d7bd66cf9d48efc5ed105993cb742a0c86fa"
+      },
+      "after": {
+        "sha256": "78539e5e11ed3cbccbb4a3fdb961c872f864e8533850a4ac8449cf719b1377c5",
+        "blob": "60ef593930cc6ee5b00e611c94ddb4572c7acf8e"
+      },
+      "prior_spans": [
+        [
+          4,
+          5,
+          "公開ページ: https://mixidota2.github.io/paper-lab/papers/aura-disney-agentic-rec-diagnosis.html\n"
+        ],
+        [
+          6,
+          7,
+          "## 実行\n"
+        ],
+        [
+          8,
+          9,
+          "```bash\nuv run papers/aura-disney-agentic-rec-diagnosis/run.py\n```\n"
+        ],
+        [
+          10,
+          11,
+          "Pythonの標準ライブラリだけで実行できる。解説は `lab.yaml` と `method.md`、原論文との対応は `mapping.md` にある。`run.py` が小実験を実行し、`results.json` に結果を保存する。公開ページは `uv run paper-lab build` で生成する。\n"
+        ],
+        [
+          12,
+          13,
+          "## 検証範囲\n"
+        ],
+        [
+          14,
+          15,
+          "仕組みの一部を確認した（Mechanism PARTIAL）。人工データでは、出現頻度が低くても残す分類を選び、参照先が存在するかを調べた。架空の参照を退けることは確認済み（CONFIRMED）。25項目の評価結果が上がったのは著者の報告で、Labでは確かめていない（NOT TESTED）。\n"
+        ],
+        [
+          16,
+          17,
+          "性能、規模を拡大した場合の挙動、本番適用性は未検証（Performance / Scaling / Production applicability NOT TESTED）。セッションごとの判定、因果推論、モデル間での判定の一致、実際のランキングモデルの学習、A/Bテストは行っていない。提示メモの「出荷を拒否」は、今回の結果からは言えない。論文にあるジャンルの修正案は、効果が確認されていない候補のままである。著者らが報告した自動化の範囲は、エンジニアが確認するプルリクエストの作成までである。\n"
+        ]
+      ]
+    },
+    "papers/aura-disney-agentic-rec-diagnosis/lab.yaml": {
+      "before": {
+        "sha256": "6db8396b847ef212505763e8744e65f3a8f6929159afc10130473955744c27a2",
+        "blob": "db9109a4f3b8a708cae7c5c257cab1899859c81c"
+      },
+      "after": {
+        "sha256": "0e3509adad7c6cc4d45298023ade8a4c307858dcb818f71c9f1861827c9ad8ff",
+        "blob": "ce80e67c14c9917e6fb3e9009d2061bb49bc550f"
+      },
+      "prior_spans": [
+        [
+          19,
+          21,
+          "question: コードを変える前に、誰のどんな失敗を直すのか説明できるか\nsummary: Disneyの2 platformで約10万sessionずつを診断。診断結果を25項目の評価基準で調べると、基準を満たした項目数はサービスAで15から23、Bで17から24へ増えた。ただし、ジャンル情報の修正によって推薦の順位が改善するかは、まだ確かめられていない。診断と出荷判断を切り離す。\n"
+        ],
+        [
+          32,
+          33,
+          "  scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。\n"
+        ],
+        [
+          34,
+          36,
+          "  author_claim: 大量のsessionを階層的にまとめ、証拠付きの失敗分類からrankerのcode・feature・trainingに接続した修正案を作る。各段階で参照検証とengineer\n    reviewを行う。\n  research_bot_interpretation: '[AgentX](agentx-kuaishou.html)のcode探索、[DREAM](dream-taobao-agentic-control.html)の実行時制御、[PILOT](pilot-experiment-lifecycle.html)の実験運用、[CORAL](coral-meta-config-harness.html)の設定探索に、診断対象を決める前段を足す研究と読める。失敗の説明がもっともらしくても修正効果は別途確かめる必要がある。'\n"
+        ],
+        [
+          41,
+          43,
+          "  problem: 集計NDCGが同じでも、家族向けcontentのsubgenre不一致と年齢に合わない推薦では対処が違う。全sessionを一つのLLM contextへ入れることもできない。Platform\n    Aは96,801中18,901 BAD、Bは101,594中4,154 BAD。階層集約はこのBAD集合を詳しく調べるので、上流judgeが見逃した失敗が診断から落ちる可能性がある。\n  why_it_might_work: '解釈: session→category→検証済みfindingへ圧縮すると、深い分析に使う高価なmodelの呼出しを減らせる。codeを読む前にcohortと失敗を決めることで、平均指標だけの探索より修正の理由が明確になる。ただし分類名と集約時の抽出条件が盲点を作る。低頻度の安全上の失敗を割合閾値で消さず、上流judge自身の誤りも検査する必要がある。'\n  evidence: '一次資料の著者報告。\n"
+        ],
+        [
+          44,
+          47,
+          ""
+        ],
+        [
+          48,
+          51,
+          "    [PDF §4、Tables 1–5](https://arxiv.org/pdf/2609.16625v1) の著者報告。25項目のGOOD数はA 15→23、B\n    17→24。診断出力へのrubricであり、推薦の精度や人間の満足度ではない。同じrubricを使う反復改善なので、未見課題への一般化は別問題となる。\n"
+        ],
+        [
+          52,
+          53,
+          ""
+        ],
+        [
+          54,
+          55,
+          "    上流judgeの検査にはClaude Opus 4.6、GPT-5.5、Gemini 3.1 Proの多数決を用い、rubric判定にはGemini 3.1\n    ProとGPT-5.5を使う。LLM間の一致を独立した人間正解と同一視できない。Gemini系が上下流に現れる自己選好と、GOOD多数によるκの低さも本文で開示する。\n"
+        ],
+        [
+          56,
+          57,
+          ""
+        ],
+        [
+          58,
+          59,
+          "    Genre Preference Mismatchは両面でBADの約46〜48%。Bの1,911 sessionでgenre cross featureとcandidate-aware\n    attentionを試したが、診断cohortのrankingは改善しなかった。Table 3は3独立学習日の全体差で、NDCG@10 −0.01/+0.05/+0.02%、Click\n    AUC +0.03/+0.06/+0.01%。\n"
+        ],
+        [
+          60,
+          61,
+          ""
+        ],
+        [
+          62,
+          82,
+          "    費用はA $349.26、B $252.85（end-to-end）。そのうち上流judgeは$320.98/$250.21、AURA部分は$28.28/$2.64。約$43〜50/findingには上流judgeを含む。上流費用は観測単価の全sessionへの外挿、code\n    suggestion費用はOpus 4.6の料金からの推定で、全項目が実測telemetryではない。'\n  executable_understanding: '`uv run papers/aura-disney-agentic-rec-diagnosis/run.py`。人工カテゴリを割合のみとtop-N/count/割合＋safety例外で選び、証拠session・code\n    pathが存在するかを検査する。noise内の差をholdにする例も示すが、この数値gateはLabの説明用で、AURAの公式出荷規則ではない。'\n  results: 5%のみでは5カテゴリ中3つを残し、件数・safety例外を加えると5つが残る。10件のage問題が消えなくなる。架空session、架空path、証拠なしの3変異を拒否し、有効なfindingだけを通した。ここで検査するのは、挙げられた参照が入力の集合に存在するかどうか。参照先の内容が診断を裏付けるかまでは判定しない。これは診断内容が正しいことや、genre問題の原因を推定できることの確認ではない。\n  what_we_verified: Mechanism PARTIAL。低頻度category保持と参照の存在確認を人工入力で実行した。架空参照の拒否はCONFIRMED。診断品質のrubric上昇は著者報告でありLabではNOT\n    TESTED。\n  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。session判定、因果推論、LLM間一致、実rankerの学習、A/Bを実行していない。提示メモの「出荷を拒否」は慎重に読む必要がある。原典は修正を未実証のopen\n    candidateとし、現行システムの自動化範囲はengineer-reviewed PRまでである。\n  implementation: '`select()`は§3.3の保持規則を単純化し、`validate()`は§3.6の参照検証を再現する。共通memoryは過去のcategory・仮説・修正・結果を蓄える設計だが、Labでは永続DBやagentを実装しない。診断と修正効果の検証が別契約であることを残す。'\n"
+        ],
+        [
+          87,
+          88,
+          "  title: 約10万sessionを、そのまま修正命令にしない\n"
+        ],
+        [
+          90,
+          92,
+          "  rationale: 約10万sessionを、そのまま修正命令にしない\n  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。\n"
+        ],
+        [
+          94,
+          95,
+          "  - label: 圧縮\n"
+        ],
+        [
+          96,
+          100,
+          "    - title: Classification → Consolidation\n      text: sessionを分類し重複categoryを統合\n    - title: Sampling\n      text: top-N / 件数 / 割合。安全上の例外を残す\n"
+        ],
+        [
+          102,
+          106,
+          "    - title: Analysis → Verification\n      text: 証拠・根本原因の仮説・severityを照合\n    - title: Synthesis\n      text: 優先順位をまとめる\n"
+        ],
+        [
+          108,
+          112,
+          "    - title: Hypothesis → code\n      text: 実在するfeature・pathへ接続\n    - title: engineer review\n      text: 現行はPRまで。training/A/B自動化は拡張中\n"
+        ],
+        [
+          114,
+          115,
+          "  title: 改善したのは25項目rubricの適合数\n"
+        ],
+        [
+          117,
+          119,
+          "  rationale: 改善したのは25項目rubricの適合数\n  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。\n"
+        ],
+        [
+          121,
+          123,
+          "  - A before→after\n  - B before→after\n"
+        ],
+        [
+          144,
+          145,
+          "  - label: code提案\n"
+        ],
+        [
+          150,
+          151,
+          "  title: もっともらしい診断と、改善する修正は別\n"
+        ],
+        [
+          153,
+          155,
+          "  rationale: もっともらしい診断と、改善する修正は別\n  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。\n"
+        ],
+        [
+          159,
+          161,
+          "    - title: genre mismatch\n      text: BADの約46〜48%\n"
+        ],
+        [
+          162,
+          163,
+          "      text: genre交差feature / candidate-aware attention\n"
+        ],
+        [
+          165,
+          169,
+          "    - title: cohort 1,911 session\n      text: 順位改善を観測できず\n    - title: 全体3学習日\n      text: 差は±0.1%以内。未実証候補として保持\n"
+        ]
+      ]
+    },
+    "papers/aura-disney-agentic-rec-diagnosis/mapping.md": {
+      "before": {
+        "sha256": "af0c82b7f759888e51bd0e1cd6b55a58c061c098ef396e5488d6a6d66bfad793",
+        "blob": "e6b17e9e4e041769bedd7c5c4a95f680edece2b4"
+      },
+      "after": {
+        "sha256": "0f0933ad4477c78893c057c5b76460fe1b9e1256ffb5783c2f66172550595c5c",
+        "blob": "618c6d32d7712d86e072ded7b446d71bb4ea9ff2"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "一次資料：[AURA: Agentic Diagnosis and Refinement for Production Recommender Systems at Scale](https://arxiv.org/pdf/2609.16625v1)、arXiv v1。確認日は2026-09-22。取得済みのPDFを使った。PDFのSHA-256は `069c7aa504d2881a293c4d083dc2603a11b55dba53f2fb6f40dae64cc8ae317e`。\n"
+        ],
+        [
+          4,
+          5,
+          "| 原論文 | Labで対応する箇所 | Labで再現していないこと |\n"
+        ],
+        [
+          6,
+          11,
+          "| §3.3 | `select` で報告に残す分類を選ぶ | LLMによる分類・集約と、抽出したセッションの分析 |\n| §3.6 | `validate` でセッションIDとファイルの参照先が存在するかを確認 | JSON schemaによる検証、インポートの検証、データベース |\n| Table 1 | 診断などの出力を評価する基準（rubric）の表 | LLMによる採点の再実行 |\n| §4.2 / Table 3 | 修正案を採用せず保留する場合（`hold`）を小実験で説明 | 本番のランキングモデルや、著者が用いた採用判断の再現 |\n| Table 5 | 費用の集計に含めた処理と推定の範囲を説明 | トークン使用量を測り直すこと |\n"
+        ],
+        [
+          12,
+          13,
+          "確認したPDFには、この手法の公開実装へのリンクが見つからなかった。別の場所に実装が公開されていないことまで確かめたわけではない。\n"
+        ]
+      ]
+    },
+    "papers/aura-disney-agentic-rec-diagnosis/method.md": {
+      "before": {
+        "sha256": "76b2669e7736830e80ac9863225228a046869fd0da221c4651dc5a05e24c26ec",
+        "blob": "1d2ea28fe896dc72084e0cea010d9d456afe1bb1"
+      },
+      "after": {
+        "sha256": "e810fb4b54b106444ff1f44b152626b9d2804f02fde4bcd307ef45045acf1c3a",
+        "blob": "d399c7155e5b88c93bac314b808a8186a136b0a9"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### まずsessionを選び、失敗の分類を作る\n"
+        ],
+        [
+          2,
+          3,
+          "Session selectionはrandom・stratified・engineer SQL・agent提案を組み合わせる。複数提案をdedupし、多数決でcohortを選ぶ。platformを必須parameterとして全段階へ渡し、data source、schema、promptの差を設定へ分ける。LLMが自由に本番DBを書き換える構成ではない。\n"
+        ],
+        [
+          4,
+          5,
+          "診断の実装は6段階。Classificationがsessionへ分類と短い説明を付け、Consolidationが似たcategoryを統合。Samplingで大きいcategory・十分な件数・一定割合を残し、safety-criticalは閾値を迂回する。Analysisがbounded sampleを読み、証拠とroot-cause hypothesisを作る。Verificationがsampleとの整合とseverityを見直し、Synthesisが横断的な優先順位をまとめる。\n"
+        ],
+        [
+          6,
+          12,
+          "原典のseverityは出現頻度の段階であり、一件当たりの危害の大きさではない。この区別をしないと、まれな年齢不適合が軽い問題に見える。割合のみの≥5%規則ではBの5分類のうち2つしか残らなかった。\n"
+        ],
+        [
+          13,
+          14,
+          "### 高価な推論は圧縮後へ回す\n"
+        ],
+        [
+          15,
+          16,
+          "Gemini 3 Flashが大量分類・統合、Gemini 3.1 Proが分析・検証・要約、Claude Opus 4.6がcode提案を担う（Table 5）。決定的なorchestratorがroutingする。rubricは診断出力を点検する評価基準であり、その適合数は利用者への推薦精度ではない。rubricを採点するmodelと実際の作業modelを区別する。\n"
+        ],
+        [
+          17,
+          18,
+          "Hypothesis stageはranker code、feature、label、training、schemaを参照し、変更箇所へ仮説を結び付ける。これは形式的な因果推論ではない。Code stageは生成→別model評価→修正を回し、最後にpath/importの実在をprogrammaticに検査する。session IDも入力に存在するか調べ、parse失敗をdata-quality flagとして残す。\n"
+        ],
+        [
+          19,
+          20,
+          "### 現行の到達点と将来の自動化を分ける\n"
+        ],
+        [
+          21,
+          26,
+          "現行はreviewed PRまで。mergeからtrainingを開始する部分と、offline評価からA/B-ready artifactを作る部分は拡張中。論文のgenre修正はoffline screeningの実例であり、全loopが無人運転している証拠ではない。engineerは最終段階だけでなく各段階で証拠を読み、仮説を却下できる。\n"
+        ]
+      ]
+    },
+    "papers/aura-disney-agentic-rec-diagnosis/results.json": {
+      "before": {
+        "sha256": "d802bdf73a27caddba4946666ad3f065dec1c419d9b4b8281435304c60bfe2b4",
+        "blob": "329961bcfb00132b9ac3ff4f0e271aa32c7f0817"
+      },
+      "after": {
+        "sha256": "c00a7ceebaf80d65d6b5577d68233a079ee2355f1e691c0f94ec37408c1c362e",
+        "blob": "4bf5ed72b20fbe161e2c817248e5a6a659e7e179"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"人工カテゴリと参照検証のみ。診断精度・因果的な原因推定・LLM rubric採点は未実行。\",\n"
+        ],
+        [
+          65,
+          66,
+          "      \"name\": \"低頻度でも残す規則と架空参照の排除\",\n"
+        ]
+      ]
+    },
+    "papers/aura-disney-agentic-rec-diagnosis/run.py": {
+      "before": {
+        "sha256": "98913288a8fef50adc9b094eea40739e5fe26ae71b0d2554c853fbf5c0c99dbb",
+        "blob": "961ff7e2ff6453612afa1197a1986b5c0a4e0963"
+      },
+      "after": {
+        "sha256": "be50fea416aacb2415ce9324aa1ef5e9387b416e81e46b6a5baf8a8da807c4b3",
+        "blob": "be7b5714bda676527459cc43ef95c95c11b8ec07"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"AURA-inspired deterministic retention and evidence checks, no LLM diagnosis.\"\"\"\n"
+        ],
+        [
+          29,
+          30,
+          "    # Illustrative gate, not an official AURA numerical promotion threshold.\n"
+        ],
+        [
+          33,
+          34,
+          "    out={'note':'人工カテゴリと参照検証のみ。診断精度・因果的な原因推定・LLM rubric採点は未実行。',\n"
+        ],
+        [
+          36,
+          37,
+          "      'experiments':[{'name':'低頻度でも残す規則と架空参照の排除','metrics':{'retained_categories':{'baseline':len(baseline),'combined':len(combined)},'invalid_findings_rejected':{'count':3},'noise_gate':{'decision':decision}}}]}\n"
+        ]
+      ]
+    }
+  }
+}

@@ -2,18 +2,16 @@
 
 著者らはDisneyのサービスAとBで、それぞれ約10万件の利用セッションを使って推薦の失敗を診断した。診断など各工程の出力を25項目の基準で評価したところ、基準を満たした項目はサービスAで15から23、サービスBで17から24に増えた。これは診断などの出力に対する評価で、推薦の順位が改善した件数ではない。実際にジャンル情報を使った修正案をオフラインで試しても、対象のセッションで順位の改善は確認できなかった。
 
-公開ページ: https://mixidota2.github.io/paper-lab/papers/aura-disney-agentic-rec-diagnosis.html
+公開ページ：https://mixidota2.github.io/paper-lab/papers/aura-disney-agentic-rec-diagnosis.html
 
-## 実行
+## 合成例を実行する
 
-```bash
-uv run papers/aura-disney-agentic-rec-diagnosis/run.py
-```
+配布した `run.py` を保存し、同じフォルダで `python run.py` を実行します。Pythonの標準ライブラリだけで動き、同じフォルダに `results.json` が出力されます。リポジトリでは `uv run papers/aura-disney-agentic-rec-diagnosis/run.py` でも実行できます。
 
-Pythonの標準ライブラリだけで実行できる。解説は `lab.yaml` と `method.md`、原論文との対応は `mapping.md` にある。`run.py` が小実験を実行し、`results.json` に結果を保存する。公開ページは `uv run paper-lab build` で生成する。
+論文の仕組みは `lab.yaml` と `method.md`、論文と合成例の対応は `mapping.md` にあります。リポジトリでは `uv run paper-lab build` でページを生成できます。
 
-## 検証範囲
+## Labで確かめた範囲
 
-仕組みの一部を確認した（Mechanism PARTIAL）。人工データでは、出現頻度が低くても残す分類を選び、参照先が存在するかを調べた。架空の参照を退けることは確認済み（CONFIRMED）。25項目の評価結果が上がったのは著者の報告で、Labでは確かめていない（NOT TESTED）。
+この例では、件数が少なくても安全上の問題として残す分類を選び、入力にないセッションIDやファイル名を含む診断を退けました。仕組みの一部を確認した結果です（Mechanism PARTIAL）。参照先の内容が診断の根拠になるかは調べていません。
 
-性能、規模を拡大した場合の挙動、本番適用性は未検証（Performance / Scaling / Production applicability NOT TESTED）。セッションごとの判定、因果推論、モデル間での判定の一致、実際のランキングモデルの学習、A/Bテストは行っていない。提示メモの「出荷を拒否」は、今回の結果からは言えない。論文にあるジャンルの修正案は、効果が確認されていない候補のままである。著者らが報告した自動化の範囲は、エンジニアが確認するプルリクエストの作成までである。
+Labは、実際の視聴セッションを判定したり、推薦モデルを学習させたりしていません。診断などの出力が満たした評価項目の増加も著者の報告です。ジャンルの修正案は、効果が確認されていない候補のままです。著者が報告した修正作業の自動化は、技術者が確認するプルリクエストを作るところまでです。

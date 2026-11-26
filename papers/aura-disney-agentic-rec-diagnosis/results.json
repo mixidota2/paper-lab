@@ -1,5 +1,5 @@
 {
-  "note": "人工カテゴリと参照検証のみ。診断精度・因果的な原因推定・LLM rubric採点は未実行。",
+  "note": "Labは人工の分類を選び、参照先を入力と照合しました。診断の精度、原因の推定、LLMによる採点は試していません。",
   "scope": {
     "reference_rejection": "CONFIRMED",
     "mechanism": "PARTIAL",
@@ -63,7 +63,7 @@
   "decision": "hold",
   "experiments": [
     {
-      "name": "低頻度でも残す規則と架空参照の排除",
+      "name": "件数が少ない分類を残し、入力にない参照を退ける",
       "metrics": {
         "retained_categories": {
           "baseline": 3,
