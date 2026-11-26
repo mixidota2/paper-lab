@@ -9,7 +9,7 @@ import pytest
 import yaml
 
 from paper_lab.build import build
-from prose_preservation import before_traffic_value_full_prose, before_igpo_full_prose, igpo_full_prose_hash
+from prose_preservation import before_autolr_full_prose, before_traffic_value_full_prose, before_igpo_full_prose, igpo_full_prose_hash
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,7 +22,7 @@ def test_exact_both_directions_and_shared_scope():
     assert set(rows) == {'paper_lab/display_labels.py', *(f'papers/{SLUG}/{n}' for n in
                          ('README.md', 'lab.yaml', 'method.md', 'mapping.md', 'results.json', 'run.py'))}
     for path, row in rows.items():
-        current = before_traffic_value_full_prose(ROOT, path, (ROOT / path).read_bytes())
+        current = before_traffic_value_full_prose(ROOT, path, before_autolr_full_prose(ROOT, path, (ROOT / path).read_bytes()))
         prior = before_igpo_full_prose(ROOT, path, current)
         assert hashlib.sha256(prior).hexdigest() == row['before']['sha256']
         for key, digest in (
@@ -35,7 +35,7 @@ def test_exact_both_directions_and_shared_scope():
         with pytest.raises(AssertionError):
             before_igpo_full_prose(ROOT, path, current + b'\n')
     path = 'paper_lab/display_labels.py'
-    now = before_traffic_value_full_prose(ROOT, path, (ROOT / path).read_bytes())
+    now = before_traffic_value_full_prose(ROOT, path, before_autolr_full_prose(ROOT, path, (ROOT / path).read_bytes()))
     prior = before_igpo_full_prose(ROOT, path, now)
     def map_except_target(raw):
         node = next(n for n in ast.parse(raw).body if isinstance(n, ast.Assign) and n.targets[0].id == 'LABELS')
