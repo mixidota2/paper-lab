@@ -105,7 +105,7 @@ def apollo(shift):
     history = [10+2*math.sin(t*math.pi/4) for t in range(16)]
     known = [v+(12 if 8+shift <= t <= 10+shift else 0) for t,v in enumerate(history)]
     return frame(shift, [bar('季節性だけ：MAE', mae(actual,history)), bar('販促予定を使う：MAE', mae(actual,known))],
-                 f'真の販促は9〜11期。予定を {shift} 期ずらす。効果量12は既知と仮定し、推定していない。予定が誤れば情報追加が悪化要因にもなる。',
+                 f'実際に販促があったとするのは第9〜11期です。予定のずれは {shift:+d} 期（負は前倒し、正は後ろ倒し）です。販促がある期は需要が12増えると仮定し、効果は推定しません。',
                  [line('合成需要',actual),line('季節性だけ',history),line('販促予定あり',known)])
 
 

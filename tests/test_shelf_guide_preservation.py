@@ -69,11 +69,13 @@ def test_previous_paragraph_deletion_is_rejected(tmp_path):
 
 
 def test_other_source_change_is_rejected(tmp_path):
+    from prose_preservation import before_apollopfn_full_prose
+
     manifest = json.loads((ROOT / 'tests/main_107_catalog.json').read_text())
     path, expected = next((p,h) for p,h in manifest['source_hashes'].items() if p != GUIDE)
     target = tmp_path / path
     target.parent.mkdir(parents=True, exist_ok=True)
-    original = (ROOT / path).read_bytes()
+    original = before_apollopfn_full_prose(ROOT, path, (ROOT / path).read_bytes())
     target.write_bytes(original)
     verify_preserved_source(tmp_path, path, expected, patch_bytes=PATCH, dcmp_patch_bytes=DCMP_PATCH, layout_patch_bytes=LAYOUT_PATCH)
     target.write_bytes(original + b'\nchanged')

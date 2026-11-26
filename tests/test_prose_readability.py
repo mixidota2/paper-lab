@@ -103,8 +103,10 @@ def test_forecast_prose_defines_denominators_and_information_boundaries():
     cd_verified = cd['sections']['what_we_verified']
     for phrase in ('8期の需要と二つの在庫系列','総費用の大小が入れ替わる','各期は独立で在庫を持ち越さない','論文の手法を再現したわけではない'):
         assert phrase in cd_verified
-    for obj in [fc, ap]:
-        assert obj['sections']['executable_understanding'].split('\n')[0] in obj['sections']['what_we_verified']
+    assert fc['sections']['executable_understanding'].split('\n')[0] in fc['sections']['what_we_verified']
+    ap_verified = ap['sections']['what_we_verified']
+    assert all(k in ap_verified for k in ('9条件', '2.25', '原論文のモデルは検証していません'))
+    assert ap['sections']['executable_understanding'].split('\n')[0] not in ap_verified
     method = (ROOT/'papers/vn2-stockout-catboost/method.md').read_text()
     assert '誤差を二乗して平均し、平方根を取った値（RMSE）' in method
     assert '予測値を元の個数へ戻し、誤差の絶対値の平均（MAE）' in method
