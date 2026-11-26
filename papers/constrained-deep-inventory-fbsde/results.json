@@ -1,10 +1,10 @@
 {
   "lab30_fbsde": true,
   "seed": null,
-  "scope": "決定論・単品・線形流量の局所計算。学習・確率安全性・性能は検証しない。",
+  "scope": "雑音がなく、入荷率を輸送中在庫に比例させた1商品の例。学習、確率的な経路で上限を守れるか、実験の性能は検証しない。",
   "frames": [
     {
-      "label": "Hˣ = 6",
+      "label": "6",
       "capacity": 6,
       "x": 7.0,
       "pipeline": 4.0,
@@ -19,7 +19,7 @@
       "feasible": false
     },
     {
-      "label": "Hˣ = 8",
+      "label": "8",
       "capacity": 8,
       "x": 7.0,
       "pipeline": 4.0,
@@ -34,7 +34,7 @@
       "feasible": true
     },
     {
-      "label": "Hˣ = 10",
+      "label": "10",
       "capacity": 10,
       "x": 7.0,
       "pipeline": 4.0,
@@ -49,7 +49,7 @@
       "feasible": true
     },
     {
-      "label": "Hˣ = 14",
+      "label": "14",
       "capacity": 14,
       "x": 7.0,
       "pipeline": 4.0,
@@ -70,7 +70,7 @@
     "d_dXddot_du": 0.5
   },
   "paper_reported": {
-    "source": "Tables II–IV; eight seeds; not reproduced",
+    "source": "表II・IIIの50商品・乱数の初期値8種類の結果。Labでは再現していない。",
     "M": 50,
     "fill_rate": 0.562,
     "fill_rate_sd": 0.031,
