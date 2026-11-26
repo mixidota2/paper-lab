@@ -168,7 +168,7 @@ for(const s of data.scenarios)for(const c of s.cases)for(let epsilon=0;epsilon<5
  const v=ui.view(data,{scenario:s.id,rho:c.rho,leaf:String(c.leaf),mode:c.mode,epsilon:String(epsilon)});
  assert.equal((v.rows.match(/<tr>/g)||[]).length,c.rows.length);
  for(const r of c.rows){assert(v.rows.includes(`<td>${r.t} / ${r.u}</td><td>${r.alpha}</td><td>${r.beta}</td><td>${r.increment}</td><td>${r.z}</td>`));}
- assert(v.summary.includes(`実費用 ${c.cost} ／ 条件付き費用分解 ${c.conditional_charge}`));
+ assert(v.summary.includes(`経路から計算した費用 ${c.cost} ／ 当時の情報で見積もった費用の合計 ${c.conditional_charge}`));
  assert(v.tight.includes(data.tight[epsilon].cost.toFixed(6)));checked++;
 }
 assert.equal(checked,480);

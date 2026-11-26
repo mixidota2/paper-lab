@@ -1,4 +1,4 @@
-/* Rendering only: values are produced by independently tested Python, no network. */
+/* Pythonで計算した保存値を表示する。ブラウザーでは再計算や通信をしない。 */
 (function () {
   'use strict';
   const number = x => x === '∞' ? Infinity : typeof x === 'string' && x.includes('/') ? x.split('/').map(Number).reduce((a,b)=>a/b) : Number(x);
@@ -6,16 +6,16 @@
   const names = {order:'発注', wait:'待つ', ordered:'発注済'};
   function view(data, state) {
     const s = data.scenarios.find(s=>s.id===state.scenario);
-    if (!s) throw Error('unknown scenario');
+    if (!s) throw Error('指定した信号と納期の組み合わせが見つかりません');
     const c = s.cases.find(c=>c.mode===state.mode && c.rho===state.rho && c.leaf===Number(state.leaf));
     const t = data.tight[Number(state.epsilon)];
-    if (!c || !t) throw Error('unknown condition');
+    if (!c || !t) throw Error('指定した実験条件が見つかりません');
     const rows = c.rows.map(r=>`<tr><td>${r.t} / ${r.u}</td><td>${r.alpha}</td><td>${r.beta}</td><td>${r.increment}</td><td>${r.z}</td><td><span class="clock" style="width:${Math.min(1,number(r.z))*100}%" aria-hidden="true"></span></td><td>${names[r.action]}</td><td>${r.charge}</td></tr>`).join('');
     const ledger = c.ledger.map(r=>`<tr>${['t','demand','order','arrived','inventory','cost'].map(k=>`<td>${r[k]}</td>`).join('')}</tr>`).join('');
     const chosen = state.mode==='historical' ? s.expected.cost : s.comparison.cost;
-    const expect = `<p>同じ情報で判断するOPT<br><b>${fixed(s.opt)}</b></p><p>ρと需要を平均したCT費用<br><b>${fixed(s.expected.cost)}</b></p><p>選択した方式の平均費用<br><b>${fixed(chosen)}</b></p>`;
-    const summary = `固定ρ=${c.rho}・経路${c.leaf+1}：実費用 ${c.cost} ／ 条件付き費用分解 ${c.conditional_charge}。この経路だけに近似保証はありません。`;
-    const tight = `発注確率 ${fixed(t.order_probability)} ／ OPT ${fixed(t.opt)} ／ CT期待費用 ${fixed(t.cost)} ／ 比 ${fixed(t.ratio)}`;
+    const expect = `<p>同じ情報を使った最小の平均費用（OPT）<br><b>${fixed(s.opt)}</b></p><p>閾値と需要を変えたときの論文方式の平均費用（CT）<br><b>${fixed(s.expected.cost)}</b></p><p>閾値と需要を変えたときの、選択中の方式の平均費用<br><b>${fixed(chosen)}</b></p>`;
+    const summary = `選んだ閾値ρ=${c.rho}・需要経路${c.leaf+1}：経路から計算した費用 ${c.cost} ／ 当時の情報で見積もった費用の合計 ${c.conditional_charge}。論文は需要経路1本ごとの費用倍率を保証していません。`;
+    const tight = `発注する確率 ${fixed(t.order_probability)} ／ 最小の平均費用（OPT） ${fixed(t.opt)} ／ 論文方式の平均費用（CT） ${fixed(t.cost)} ／ CTをOPTで割った倍率 ${fixed(t.ratio)}`;
     return {rows,ledger,expect,summary,tight};
   }
   const defaults = ()=>({scenario:'1-0',rho:'1/4',leaf:'0',mode:'historical',epsilon:'3'});

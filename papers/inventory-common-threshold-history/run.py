@@ -1,4 +1,4 @@
-"""Original bounded teaching model. Exact tree arithmetic; floating CDF integration."""
+"""Labの有限需要木を計算する。確率と費用は分数で扱い、閾値での平均には浮動小数点数を使う。"""
 from dataclasses import dataclass
 from fractions import Fraction as F
 from functools import lru_cache
@@ -78,14 +78,13 @@ def cdf(z):
         return 0.0
     if z >= 1:
         return 1.0
-    # Fixed correctly-rounded decimal exponential avoids platform libm last-bit differences.
+    # Decimalの計算設定を固定し、OSごとの数学ライブラリによる最下位桁の違いを避ける。
     with localcontext(Context(prec=50, rounding=ROUND_HALF_EVEN,
                               Emin=MIN_EMIN, Emax=MAX_EMAX, capitals=1, clamp=0,
                               traps=[InvalidOperation, DivisionByZero, Overflow])):
         value = Decimal(z.numerator) / Decimal(z.denominator) if isinstance(z, F) else Decimal(z)
         if 0 < value < Decimal('1e-8'):
-            # exp(value) - 1 loses all digits when value is smaller than
-            # the context precision. Sum expm1 directly instead.
+            # 小さい値では exp(value) - 1 が桁落ちするため、差を級数で直接求める。
             term = numerator = value
             n = 2
             while True:
@@ -153,7 +152,7 @@ def simulate(tree, leaf, rho, mode='historical'):
 
 
 def expected(tree, mode='historical'):
-    # Policy changes only at these finite clocks. Endpoints have zero CDF mass.
+    # 発注判断が切り替わる累計で閾値を区切る。区切り点だけを引く確率は0。
     cuts = sorted({F(0), F(1)} | {r['z'] for i in range(len(tree.leaves))
                   for r in clocks(tree, i, mode) if 0 < r['z'] < 1})
     total, decomposition, intervals = 0.0, 0.0, []
@@ -170,7 +169,7 @@ def expected(tree, mode='historical'):
 
 
 def optimum(tree):
-    """Independent inventory DP. Actions at a history are common to all its leaves."""
+    """保管と未納の期待費用を独立に最小化する。同じ履歴から分かれる経路には同じ発注量を使う。"""
     @lru_cache(None)
     def solve(t, group, orders):
         if t > tree.T:
@@ -202,10 +201,9 @@ def optimum(tree):
 
 
 def tight(epsilon):
-    """Float-cost example; epsilon must remain normal after float conversion.
+    """1期間の費用をfloatで計算する。変換後のepsilonは正規化数の範囲に限る。
 
-    Subnormal costs have insufficient relative precision for a useful ratio.
-    The CDF itself still returns the nearest representable float.
+    非正規化数では費用の丸めが倍率の相対精度を損なうため、計算前に拒否する。
     """
     e = float(epsilon)
     if not isfinite(e) or not 0 < e < .5:
@@ -243,7 +241,7 @@ def generate():
                                   leaves=[dict(probability=x.probability, demand=x.demand, signals=x.signals) for x in tree.leaves],
                                   opt=optimum(tree), expected=expected(tree), comparison=expected(tree, 'recomputed'), cases=cases))
     return encode(dict(lab_kind='inventory-common-threshold',
-                       scope='自作の有限需要木。理論の証明・著者コードの再現・店舗実証ではない。',
+                       scope='Labが作った有限の需要木で、費用と発注時期を計算しました。定理の証明、著者コードの再現、店舗での検証は行っていません。',
                        budget=dict(periods=3, leaves=4, scenarios=4, fixed_cases=96, random_seed=None, monte_carlo=False),
                        verification=dict(mechanism='PARTIAL', production='NOT TESTED', author_code='NOT OBSERVED'),
                        scenarios=scenarios, tight=[tight(e) for e in (.001, .01, .1, .25, .49)]))
