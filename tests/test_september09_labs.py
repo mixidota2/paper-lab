@@ -117,3 +117,18 @@ def test_figures_have_accessible_descriptions(slug):
         assert root.attrib['viewBox']
         assert root.find('{http://www.w3.org/2000/svg}title').text
         assert root.find('{http://www.w3.org/2000/svg}desc').text
+
+
+def test_autolr_results_explain_two_distinct_counts_without_changing_metrics():
+    from paper_lab.build import _metrics_table
+
+    source = ROOT / 'papers' / IDS[2] / 'results.json'
+    metrics = json.loads(source.read_text())['experiments'][0]['metrics']
+    table = _metrics_table(metrics, IDS[2])
+    assert (
+        '<th>1試行あたりの平均採択回数</th><th>採択した測定差の合計の平均</th>'
+        '<th>真の改善量</th><th>誤採択が1回以上あった試行数</th>'
+    ) in table
+    assert "scope='row'>初回の測定だけで判定</th><td>46.685</td><td>0.395542</td><td>0</td><td>200</td>" in table
+    assert "scope='row'>初回の測定に再評価を追加</th><td>0.04</td><td>0.000253</td><td>0</td><td>8</td>" in table
+    assert metrics == json.loads(source.read_text())['experiments'][0]['metrics']

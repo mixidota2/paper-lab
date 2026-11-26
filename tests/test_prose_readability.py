@@ -391,7 +391,7 @@ def test_batch19_experiment_state_and_aggregation_contracts():
         'dream-taobao-agentic-control': ('lab.yaml', '等号も呼び出し条件に含む'),
         'pilot-experiment-lifecycle': ('method.md', '施策によって変わった行動で事後的に群を分けない'),
         'auto-recsys-harness': ('lab.yaml', '実行中の別ジョブが後で得る知識は先取りしない'),
-        'autolr-dashen': ('lab.yaml', '同じrunで何度採択しても、この件数には一度だけ数える'),
+        'autolr-dashen': ('lab.yaml', '1試行の中で何度採択しても、この集計では1試行と数えます'),
         'recevolve-autonomous-rec': ('lab.yaml', '同点の負例も正例より前に数える'),
     }
     for slug, (name, excerpt) in expected.items():
@@ -402,7 +402,7 @@ def test_batch19_experiment_state_and_aggregation_contracts():
     assert '全条件を満たしたbucketの割合ではない' in (ROOT/'papers/pilot-experiment-lifecycle/lab.yaml').read_text()
     assert '上位に正例が入らないqueryもゼロとして含める' in (ROOT/'papers/recevolve-autonomous-rec/lab.yaml').read_text()
     assert '並行ジョブの所要時間を足した値とは異なる' in (ROOT/'papers/auto-recsys-harness/method.md').read_text()
-    assert "下表は200seedの集計。" in (ROOT/"papers/autolr-dashen/lab.yaml").read_text()
+    assert "下表は乱数シードを変えて行った200試行の集計です。" in (ROOT/"papers/autolr-dashen/lab.yaml").read_text()
 
 
 def test_batch20_harness_denominators_and_intervention_boundaries():

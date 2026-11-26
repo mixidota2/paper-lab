@@ -143,7 +143,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = pilot_full_prose_hash(root, path, expected, algorithm)
     expected = autorecsys_full_prose_hash(root, path, expected, algorithm)
     expected = evopilot_full_prose_hash(root, path, expected, algorithm)
-    return aura_full_prose_hash(root, path, expected, algorithm)
+    expected = aura_full_prose_hash(root, path, expected, algorithm)
+    return autolr_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -1842,6 +1843,34 @@ def aura_full_prose_hash(root, path, expected, algorithm='sha256'):
 
 def before_aura_full_prose(root, path, current):
     row = aura_full_prose_row(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def autolr_full_prose_row(root, path):
+    if path != 'paper_lab/display_labels.py' and not path.startswith('papers/autolr-dashen/'):
+        return None
+    rows = json.loads((root / 'tests/autolr_full_prose_hashes.json').read_text())['files']
+    return rows.get(path)
+
+
+def autolr_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = autolr_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_autolr_full_prose(root, path, current):
+    row = autolr_full_prose_row(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

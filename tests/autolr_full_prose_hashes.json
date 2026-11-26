@@ -1,0 +1,342 @@
+{
+  "files": {
+    "paper_lab/display_labels.py": {
+      "before": {
+        "sha256": "a2553574dc787ee6d294486568c30f336400e8d1dbc8b4a380ed5d852aec943d",
+        "blob": "e1fe6c180af6afa6d7d77c3d1520b4521d708db0"
+      },
+      "after": {
+        "sha256": "0e00ce2ae9cda35b20e0db263b0ea9293b1fe99a2fec8cbf65e8338fbfb890d0",
+        "blob": "e78a7d4473ab48893a3115ed83c4beba62ee8666"
+      },
+      "prior_spans": [
+        [
+          14,
+          20,
+          " 'autolr-dashen': {'mean_reported_gain': '報告に採用された改善量の平均'},\n"
+        ]
+      ]
+    },
+    "papers/autolr-dashen/figures/authority.svg": {
+      "before": {
+        "sha256": "3c22b1b63318fea674a0c3ffba5f97417f31cf3688e49b6ecb0c9e0a04b960ad",
+        "blob": "b465dac4b6bd9f82b2562a0db5221ed7983160e8"
+      },
+      "after": {
+        "sha256": "c1d7d05edd36b32e8a61961faa969aedba960876dbd18f4be971b16d6ae66172",
+        "blob": "d3e2d7e2c392583fc1a865b589dabd6905941060"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 730\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">自律処理と人の承認境界</title><desc id=\"desc\">自律処理と人の承認境界。説明と出典はLab本文と図注を参照。</desc><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L6,3 L0,6\" fill=\"#217661\"/></marker></defs><rect width=\"440\" height=\"730\" rx=\"12\" fill=\"#fafcf7\"/><rect x=\"20\" y=\"20\" width=\"400\" height=\"103\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"48\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">自律：調査 → Council → 選択</text><text x=\"34\" y=\"77\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">知識と実験memoryを参照</text><text x=\"34\" y=\"102\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">LLMは仮説・patch・診断を提案</text><path d=\"M220,124 L220,147\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"157\" width=\"400\" height=\"103\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"185\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">controller：実装検証 → 訓練 → 評価</text><text x=\"34\" y=\"214\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">指標抽出・guardrail・状態遷移</text><text x=\"34\" y=\"239\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">KEEP / PACK / DISCARD</text><path d=\"M220,261 L220,284\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"294\" width=\"400\" height=\"78\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"322\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">自律処理の終点：候補の提出</text><text x=\"34\" y=\"351\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">コード・指標・変更履歴・根拠をまとめる</text><path d=\"M20,402 L420,402\" stroke=\"#b77925\" stroke-width=\"3\" stroke-dasharray=\"8 5\"/><text x=\"24\" y=\"431\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#b77925\">ここから人が決める</text><rect x=\"20\" y=\"452\" width=\"400\" height=\"78\" rx=\"8\" fill=\"#f7edda\" stroke=\"none\"/><text x=\"34\" y=\"480\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">Engineer Review → Online A/B</text><text x=\"34\" y=\"509\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">候補を選び、限定trafficで検証</text><path d=\"M220,531 L220,554\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"564\" width=\"400\" height=\"78\" rx=\"8\" fill=\"#f7edda\" stroke=\"none\"/><text x=\"34\" y=\"592\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">Launch Review → 全trafficへ</text><text x=\"34\" y=\"621\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">結果は次の研究のmemoryへ戻る</text></svg>\n"
+        ]
+      ]
+    },
+    "papers/autolr-dashen/figures/keep-ratchet.svg": {
+      "before": {
+        "sha256": "5cdaad95531e83246f525201291f3dba52a885752891a91dfc16e3095c8022dc",
+        "blob": "36af8ec52061d523d9a14cc86f43d9e9bb65946a"
+      },
+      "after": {
+        "sha256": "8dbfe4afefb26bd97b1cf945e72fa1c0d581e599a3767a3fad551c4eacb2d55b",
+        "blob": "f392b001a63f74a81384fb500009e757d323ff17"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 560\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">KEEPは選択誤差を状態へ残す</title><desc id=\"desc\">KEEPは選択誤差を状態へ残す。説明と出典はLab本文と図注を参照。</desc><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L6,3 L0,6\" fill=\"#217661\"/></marker></defs><rect width=\"440\" height=\"560\" rx=\"12\" fill=\"#fafcf7\"/><rect x=\"20\" y=\"20\" width=\"400\" height=\"78\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"48\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">真の改善がゼロの候補</text><text x=\"34\" y=\"77\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">1回の測定：Δ̂ &gt; τ になることがある</text><path d=\"M220,99 L220,123\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"133\" width=\"400\" height=\"103\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"161\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">採択（KEEP）：基準コードを更新</text><text x=\"34\" y=\"190\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">測定された差分を進歩として記録</text><text x=\"34\" y=\"215\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">採択したコードが次の出発点になる</text><path d=\"M220,237 L220,261\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"271\" width=\"400\" height=\"103\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"299\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">次の候補も、そのtrunkから作る</text><text x=\"34\" y=\"328\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">選択された正の差分が累積する</text><text x=\"34\" y=\"353\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">独立に再測定すると進歩は消えうる</text><text x=\"20\" y=\"422\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">監査時：校正profile不足でも固定閾値。</text><text x=\"20\" y=\"447\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">提案：校正不足なら昇格を保留し、</text><text x=\"20\" y=\"472\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">互換のある反復評価を先に得る。</text></svg>\n"
+        ]
+      ]
+    },
+    "papers/autolr-dashen/figures/ratchet-toy.svg": {
+      "before": {
+        "sha256": "afa8e3212ebbaccc86a9a662774406740817f140f452f6ebb893f4177b8a7687",
+        "blob": "9bb208c0b55652f1b07b62091c66ffdadc7c4b0a"
+      },
+      "after": {
+        "sha256": "abf3ad29179ccc812ce714e9e64abccef809fa397f5b93f2c9945e9fe51e4dde",
+        "blob": "1b8dfe4f0d4ed942ddbbf2a974802c6c3818d757"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 420\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">採択差分の和と真の改善</title><desc id=\"desc\">採択差分の和と真の改善。説明と出典はLab本文と図注を参照。</desc><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L6,3 L0,6\" fill=\"#217661\"/></marker></defs><rect width=\"440\" height=\"420\" rx=\"12\" fill=\"#fafcf7\"/><text x=\"20\" y=\"30\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">合成実験：乱数シード9／候補を100回提案</text><text x=\"20\" y=\"63\" font-family=\"sans-serif\" font-size=\"16\" font-weight=\"normal\" fill=\"#193b36\">採択差分の累積（AUCではない）</text><polyline points=\"50,105 50,315 410,315\" fill=\"none\" stroke=\"#193b36\" stroke-width=\"1\"/><polyline points=\"50.0,315.0 53.63636363636363,315.0 57.27272727272727,315.0 60.90909090909091,315.0 64.54545454545455,313.5834631863751 68.18181818181819,310.54888156160416 71.81818181818181,310.54888156160416 75.45454545454545,302.0459801684846 79.0909090909091,298.699475205085 82.72727272727272,289.71212650285634 86.36363636363637,289.71212650285634 90.0,289.71212650285634 93.63636363636363,282.7393977119181 97.27272727272728,282.7393977119181 100.9090909090909,282.7393977119181 104.54545454545455,282.7393977119181 108.18181818181819,282.7393977119181 111.81818181818181,282.7393977119181 115.45454545454545,282.7393977119181 119.0909090909091,276.75902679918346 122.72727272727273,271.14854727915895 126.36363636363636,271.14854727915895 130.0,270.6323555594814 133.63636363636363,270.6323555594814 137.27272727272725,265.203601288363 140.9090909090909,265.203601288363 144.54545454545456,263.7746427488635 148.1818181818182,263.7746427488635 151.8181818181818,260.6117032900551 155.45454545454544,256.99146029349316 159.0909090909091,253.73512785866467 162.72727272727275,252.269824269384 166.36363636363637,251.04375391916955 170.0,251.04375391916955 173.63636363636363,247.85551094469065 177.27272727272725,247.85551094469065 180.9090909090909,247.85551094469065 184.54545454545453,245.46639900147727 188.1818181818182,233.08975939116982 191.8181818181818,227.058321383173 195.45454545454547,218.05947108291227 199.0909090909091,214.19125363277976 202.72727272727272,214.19125363277976 206.36363636363637,211.94384137732098 210.0,211.94384137732098 213.63636363636363,211.94384137732098 217.27272727272728,207.50698492048485 220.9090909090909,207.50698492048485 224.54545454545453,207.50698492048485 228.1818181818182,207.50698492048485 231.8181818181818,203.13545754047067 235.45454545454547,203.13545754047067 239.0909090909091,203.13545754047067 242.72727272727272,201.9494127514077 246.36363636363637,200.16298454507273 250.0,197.28114414216714 253.63636363636363,197.28114414216714 257.27272727272725,197.28114414216714 260.9090909090909,197.28114414216714 264.5454545454545,194.9665625542013 268.1818181818182,194.9665625542013 271.8181818181818,194.9665625542013 275.4545454545455,192.46197456674633 279.0909090909091,192.46197456674633 282.72727272727275,191.2520064537767 286.3636363636364,191.2520064537767 290.0,184.7002361508108 293.6363636363636,184.7002361508108 297.27272727272725,184.7002361508108 300.9090909090909,184.7002361508108 304.5454545454545,180.31766723668588 308.1818181818182,176.84096418356367 311.8181818181818,173.12686814706038 315.45454545454544,173.12686814706038 319.09090909090907,173.12686814706038 322.72727272727275,173.12686814706038 326.3636363636364,173.12686814706038 330.0,173.12686814706038 333.6363636363636,168.67620977258585 337.27272727272725,168.67620977258585 340.90909090909093,168.67620977258585 344.54545454545456,167.12533429394685 348.1818181818182,167.12533429394685 351.8181818181818,160.39045855031102 355.45454545454544,159.63181314411827 359.09090909090907,155.77693754770291 362.72727272727275,155.77693754770291 366.3636363636364,155.77693754770291 370.0,154.9124774396155 373.6363636363636,151.17077756783527 377.27272727272725,148.78764645559855 380.90909090909093,148.78764645559855 384.54545454545456,148.78764645559855 388.1818181818182,147.27771666595356 391.8181818181818,147.27771666595356 395.45454545454544,146.2163491995578 399.09090909090907,143.56776120474183 402.72727272727275,134.12126870907446 406.3636363636364,133.1818181818182 410.0,133.1818181818182\" fill=\"none\" stroke=\"#b77925\" stroke-width=\"3\"/><polyline points=\"50,315 410,315\" fill=\"none\" stroke=\"#217661\" stroke-width=\"3\"/><text x=\"15\" y=\"115\" font-family=\"sans-serif\" font-size=\"14\" font-weight=\"normal\" fill=\"#193b36\">0.43</text><text x=\"25\" y=\"319\" font-family=\"sans-serif\" font-size=\"14\" font-weight=\"normal\" fill=\"#193b36\">0</text><text x=\"50\" y=\"340\" font-family=\"sans-serif\" font-size=\"15\" font-weight=\"normal\" fill=\"#193b36\">1</text><text x=\"355\" y=\"340\" font-family=\"sans-serif\" font-size=\"15\" font-weight=\"normal\" fill=\"#193b36\">100回</text><text x=\"60\" y=\"377\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#b77925\">茶：表示上の進歩</text><text x=\"242\" y=\"377\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#217661\">緑：真の改善=0</text></svg>\n"
+        ]
+      ]
+    },
+    "papers/autolr-dashen/lab.yaml": {
+      "before": {
+        "sha256": "f1113256c1eea9da79877661cc2df0ad1c05b73e1bc1c95483127005bd862b08",
+        "blob": "f61bfc8bfc96e2aaef0aef05f5a086c754d0529e"
+      },
+      "after": {
+        "sha256": "4c2eda03eb921411ff540a18751fe664d3e038b75713469ea49adb43428285aa",
+        "blob": "3505f6eb845d8b991c9b750c560c56e0fae8a891"
+      },
+      "prior_spans": [
+        [
+          26,
+          28,
+          "question: 実験を自動で続ける仕組みは、誤った改善まで積み上げないか\nsummary: AutoLRは推薦改善の調査からオフライン候補の提出までを自動化する。オンラインA/Bへの投入とLaunch Reviewは人が判断する。採択した測定値とコードを次の基準にするKEEPには、ノイズを進歩として固定する危険がある。\n"
+        ],
+        [
+          30,
+          31,
+          "  scope: 一次PDF本文・方法・結果・限界を確認。数値は著者報告と合成実験を区別。\n"
+        ],
+        [
+          34,
+          36,
+          "  author_claim: '著者はDASHENの2推薦場面で1,586件の完了評価を監査し、9件の本番Launch Reviewを報告した。専門家Council、証拠に基づく決定的な候補選択、層に分けた知識を組み合わせる一方、KEEPによる非再現的な改善の累積を問題として特定した。\n"
+        ],
+        [
+          37,
+          39,
+          "\n    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2609.04871v1)'\n  research_bot_interpretation: 価値は「多数のエージェント」より、提案と確定操作の権限を分け、過去の失敗を次の選択へ戻す設計にある。ただしCouncilやselectorの単独効果を同じ予算の対照実験で示した研究ではない。自動化の成功と、採択規則の妥当性は別々に監査したい。\n"
+        ],
+        [
+          44,
+          46,
+          "  problem: 推薦モデルの改善は、論文を読むだけでもコードを書くだけでも完了しない。実装、訓練、ログ調査、オフライン評価を数日にわたってつなぎ、次の実験が使う基準を管理する必要がある。AutoLRが扱うのは、この長い開発過程だ。利用者へ直接推薦するLLMではない。\n"
+        ],
+        [
+          47,
+          49,
+          "  why_it_might_work: 有限の候補windowと機械的な検証は、モデルの提案を実行可能な範囲へ制限する。過去の失敗を残せば同じ無効案への再投資も減らせそうだ。一方、採択されたノイズがmemoryへ成功例として戻ると、次の提案まで偏る。記録を増やすだけでは信頼性は上がらず、どの証拠でtrunkを変えるかが要になる。\n  evidence: '### 本番の記録はあるが、効果を一つに合算できない\n"
+        ],
+        [
+          50,
+          53,
+          "    単列／2列feedと没入型video feedの記録を、実験pathの重複を除いて1,586件に整理した。9件のLaunch Reviewの相対liftを算術的に足すと、消費浸透率+5.75%、消費時間+10.83%、有効閲覧数VV+5.55%になる（§5、表1）。異なる施策・母集団の記述的な和であり、利用者全体への処置効果でも、複利の増加率でもない。\n"
+        ],
+        [
+          54,
+          55,
+          ""
+        ],
+        [
+          56,
+          57,
+          "    通常iterationのAPI費はRMB 3–4と報告する。Claude Opus級からDeepSeek-V4-Pro/Flashの混成へ移行した後の観測で、2026年8月17日より前のAPI価格に基づく。モデル訓練計算と社内基盤費は含めない。harnessやloopも同時に変わっており、モデル変更だけの節約効果は識別できない。\n"
+        ],
+        [
+          58,
+          59,
+          ""
+        ],
+        [
+          60,
+          61,
+          "    KEEP監査では過去の閾値情報が揃わず、10⁻³を共通の参照値として再評価した。これは各実験で実際に使われた閾値の復元ではない。欠けたguardrail payloadも「違反なし」と補完しない（§5.3、表2）。\n"
+        ],
+        [
+          62,
+          63,
+          ""
+        ],
+        [
+          64,
+          65,
+          "    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2609.04871v1)'\n  executable_understanding: '真の改善がゼロの候補を100回提案する。1回のノイズ付き差分が0.001を越えたら採択し、その差分を累積してtrunk IDを更新する規則と、独立25回の確認評価を追加する規則を比べる。200seedで同じノイズ列を両規則に渡す。\n"
+        ],
+        [
+          66,
+          67,
+          ""
+        ],
+        [
+          68,
+          69,
+          "    追加gateはLabの例で、AutoLRの稼働実装ではない。表示するのは採択差分の和であり、同じ評価集合で直接測ったAUCの推移とは区別する。'\n  results: 下表は200seedの集計。one_run_keepの見かけの累積改善が正でも、全候補の真の改善はゼロのままだ。追加確認を使うrepeat_evidence_gateと、偽のKEEPを一度でも起こしたrun数を比較する。同じrunで何度採択しても、この件数には一度だけ数える。採択回数の平均とは別の集計である。\n  what_we_verified: 真値が改善しなくても、採択差分の累積は単調に増え、コード系譜が更新される。独立した再評価にはその上昇が引き継がれない。追加証拠のgateで偽のKEEPが減るかを、全seedの件数と平均で確認する。\n  what_we_did_not_verify: 実DASHENの指標分布、候補生成、Council、GPU訓練、オンライン効果は未検証。toyの正規ノイズと独立反復は理想化で、共有データを繰り返し見る適応的過学習を表していない。反復評価gateだけで永続的な安全性を保証しない。実運用では校正profileのバージョン、guardrail、確認後のcommitとrollbackまで設計する必要がある。\n  implementation: 'リポジトリのルートで `uv run papers/autolr-dashen/run.py` を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの\n    `results.json` に保存する。\n"
+        ],
+        [
+          70,
+          71,
+          ""
+        ],
+        [
+          72,
+          88,
+          "    乱数を使う実験はseedを固定した。数値は論文の測定値と別に集計している。'\n"
+        ],
+        [
+          91,
+          93,
+          "  title: 自律化はオフライン候補の提出まで\n  caption: 原論文図2・§3.1。Launch Reviewを自動で通過させるシステムではない。\n"
+        ],
+        [
+          95,
+          97,
+          "  title: 測定値だけでなく、実験の出発点も変わる\n  caption: 原論文式6–8・§6.1の再構成。CALIBRATION_REQUIREDは提案であり、監査対象の稼働状態ではない。\n"
+        ],
+        [
+          99,
+          101,
+          "  title: 単調な線だけでは進歩を示せない\n  caption: run.py / results.jsonの合成軌跡。真の改善は全候補ゼロ。採択差分を足す過程の反例であり、DASHENの指標推移を再現していない。\n"
+        ],
+        [
+          105,
+          106,
+          "  title: 案の審議と試行予算の選択を分ける\n"
+        ],
+        [
+          107,
+          108,
+          "  caption: 提案の質を議論する役割と、実行可能な候補集合を確定する役割を区別する。\n"
+        ],
+        [
+          110,
+          111,
+          "  rationale: 提案の質を議論する役割と、実行可能な候補集合を確定する役割を区別する。\n"
+        ],
+        [
+          112,
+          113,
+          "  - label: Council\n"
+        ],
+        [
+          114,
+          119,
+          "    - title: 独立案 → 統合\n      text: 同じbriefingで初稿を独立に作り、似た案を整理する。\n    - title: 反証 → Coordinator\n      text: リスクや前提を問い、変更面と検証条件を明記する。\n  - label: Selector / controller\n"
+        ],
+        [
+          120,
+          125,
+          "    - title: 有限window\n      text: 適格性、多様性、方向別capで候補を限定する。\n    - title: 順位付け＋memory gate\n      text: Councilの順位は助言。訓練開始前に履歴由来の証拠と制約を検証する。\n  - label: 記憶\n"
+        ],
+        [
+          126,
+          130,
+          "    - title: 比較的安定な知識\n      text: 外部研究・本番システム・DASHEN業務知識。\n    - title: 試行で変わる証拠\n      text: 設定・patch・ログ・失敗・offline/online結果。\n"
+        ]
+      ]
+    },
+    "papers/autolr-dashen/mapping.md": {
+      "before": {
+        "sha256": "176ae97821cba900aafd32c678e4906910e639c93a32a596cf7cb9ea6f0f8437",
+        "blob": "b79e8a624dc6d82d78f9ff296074dea8867fbad2"
+      },
+      "after": {
+        "sha256": "44694e7e52b0126c0715b820d327d0a1c201bd65b77cc14585212c6fc6f95bd9",
+        "blob": "c901f513b95763470db67b86ff4e931ad9d98797"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "| 論文 | このLabで確かめられること | 再現していないこと |\n"
+        ],
+        [
+          2,
+          5,
+          "| 式6–7：KEEPだけが次の実験で使う基準コード（trunk）を更新する | `simulate` が残す履歴（`path`）で、判定前の基準（`parent`）と判定後の基準（`trunk`）を比べる。採択したときだけ基準のIDが変わる | コードに変更を適用する代わりにIDを置き換える。候補を保存するPACKや、保護指標による判定は扱わない |\n| 式8・§6.1：評価のばらつきを踏まえて採択を判断する。著者らが監査した設定ではノイズの校正が無効で、同じ条件で使える反復評価の記録がなかったため、固定の閾値が使われた | `gated` では、初回の測定が閾値を超えた候補にも、25回の追加測定を使う条件を課す。その平均が、0.001と標準誤差の3.5倍のうち大きい方を超えたときだけ採択する | 25回と3.5標準誤差はLab独自の設定。論文の式8と同じ判定でも、監査対象の稼働実装でもない。校正の記録がないときに採択を保留する `CALIBRATION_REQUIRED` は論文の提案で、監査時には実装されていなかった |\n| §3：専門家役のエージェント群（Council）が案を出し、制御プログラムが試行する候補を絞る | 手法の解説と役割図で、提案、候補の選択、評価後の判定を誰が担うかを確認できる | LabはLLMを使わず、専門家役による提案や候補の選択は実行しない。論文本文から公式リポジトリのURLは確認できなかった |\n"
+        ],
+        [
+          6,
+          7,
+          "一次資料は [arXiv v1 PDF](https://arxiv.org/pdf/2609.04871v1)。Labでは公式実装を実行していない。\n"
+        ]
+      ]
+    },
+    "papers/autolr-dashen/method.md": {
+      "before": {
+        "sha256": "ec5b380607d3f1056a1b9ce5dafa4262850964794c14d6c4e1c507d1e0ba4517",
+        "blob": "4abd9cc256f6f884b96810abfa3de54ef97cb26e"
+      },
+      "after": {
+        "sha256": "74ddcbdbc0d79ec1b510ae467d4cab01bf0d57f20a61d9e9d0a15f4d588a7042",
+        "blob": "b6cdc0ee12203b040a83877dc2fe53034298701d"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### Councilは案を出し、controllerが状態を確定する\n専門家は同じ凍結briefingを読み、互いの初稿を見ずに提案する。役割は構造、特徴相互作用、系列、多タスク、損失、業務知識、実装可能性など。roundtableで案を整理し、adversarial reviewで前提や実装リスクを反証し、Coordinatorが仮説・変更可能なfile:symbol・検証方法・保護指標を持つ候補へまとめる（§3.2）。\n"
+        ],
+        [
+          2,
+          3,
+          "制御プログラム（controller）は、条件を満たす候補から、多様性を保ちながら件数を限定した候補集合（window）を作る。専門家役のエージェント群（Council）は、その集合の中だけで候補を順位付けする。過去の成功、期待改善、新規性、実現可能性、安定性、確信度、リスクを使うmemory gateを訓練前に通す。成功率の特徴量は `p̂ = (n_success+1)/(n_attempt+2)`。Beta(1,1)として、成功と失敗に疑似観測を一件ずつ加える。posteriorからサンプルするThompson samplingではない（§3.3）。\n"
+        ],
+        [
+          4,
+          5,
+          "知識は外部研究、稼働中システムの事実、DASHENの業務知識に分ける。試行後の設定・patch・ログ・失敗・指標は実験memoryへ蓄積する。役割ごとに必要な情報を取り出し、全記録を毎回文脈へ詰め込まない。\n"
+        ],
+        [
+          6,
+          7,
+          "### KEEPだけが次の実験のtrunkを変える\n現在のコードをT、候補patchをπとすると、`T_next = T ⊕ π` になるのはKEEP時だけ。PACKは候補と系譜を保持し、DISCARDは棄却する。保護指標を通り、オフライン差分Δsが閾値τ_keep以上ならKEEP_E1となる。E1は1回の測定で閾値を越えた意味で、確認済み効果ではない（式6–7）。\n"
+        ],
+        [
+          8,
+          9,
+          "任意の分散調整は `τ_impl = max(τ_keep, λσ̂)` だが、監査対象ではノイズ校正が無効で、互換のある反復評価profileも保持されていなかった。profile不足で昇格を止めるCALIBRATION_REQUIREDは著者が提案する将来の防止策で、稼働していた状態ではない（式8、§6.1）。\n"
+        ],
+        [
+          10,
+          17,
+          "[一次資料：arXiv v1 本文](https://arxiv.org/pdf/2609.04871v1)\n"
+        ]
+      ]
+    },
+    "papers/autolr-dashen/results.json": {
+      "before": {
+        "sha256": "97984989cc0c264378b8dd20cd2783bfb928a67b39fef3ffd32702508209d250",
+        "blob": "3e56620cf6f9a1f3c4006fcbdff501f1a749b244"
+      },
+      "after": {
+        "sha256": "fc756cc78cdb778ab29fcd10593688f61efabe7053eb6383e3b32dadabccc9cb",
+        "blob": "751e369927c5e10c0f10d5fd1400eb5c5c78879c"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"真の改善は全候補でゼロ。採択差分の和が増える失敗例。論文のAUCや実装済み防止策の性能を再現していない。\",\n"
+        ],
+        [
+          4,
+          5,
+          "      \"name\": \"同じ候補ノイズ列でKEEP規則だけを比較\",\n"
+        ]
+      ]
+    },
+    "papers/autolr-dashen/run.py": {
+      "before": {
+        "sha256": "f9abc4cd26b2624ba6314f0652d2fab43397ea68f7f150eaecf45d18c489445a",
+        "blob": "03b7c0070bc5b81b15a16ec0929e09f5773b841d"
+      },
+      "after": {
+        "sha256": "472588f85a98123d49f40836765ad2f46451f6cdda43d7da79da4ba1ee2bdd0c",
+        "blob": "83a27143a5ed45a6749241d77136bdff9394d736"
+      },
+      "prior_spans": [
+        [
+          0,
+          2,
+          "\"\"\"Stateful selection under null improvements; paired candidate noise stream.\nSafer gate is a teaching proposal, not AutoLR's audited implementation.\n"
+        ],
+        [
+          15,
+          16,
+          "        # Every proposed code change has exactly zero population improvement.\n"
+        ],
+        [
+          21,
+          22,
+          "        # Bonferroni-like conservative normal threshold for the finite toy budget.\n"
+        ],
+        [
+          39,
+          40,
+          "    return {\"note\": \"真の改善は全候補でゼロ。採択差分の和が増える失敗例。論文のAUCや実装済み防止策の性能を再現していない。\", \"experiments\": [{\"name\": \"同じ候補ノイズ列でKEEP規則だけを比較\", \"seed\": \"0..199\", \"n\": {\"runs\": 200, \"rounds\": 100, \"repeats\": 25}, \"metrics\": metrics}], \"paths\": {\"one_run_keep\": simulate(9, False)[\"path\"], \"repeat_evidence_gate\": simulate(9, True)[\"path\"]}}\n"
+        ]
+      ]
+    }
+  }
+}
