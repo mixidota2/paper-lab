@@ -31,6 +31,12 @@ def test_case_and_readme_distinguish_field_trial_from_synthetic_example():
     assert '棚を5・4・3本に分けた図は模式図です。別の合成例では' in r['new']
     assert '27,720通り' in r['new'] and '16通り' in r['new']
     current = readme.encode()
+    added = json.loads((ROOT/'tests/root_readme_catalog_121_hashes.json').read_text())
+    assert hashlib.sha256(current).hexdigest() == added['after']['sha256']
+    assert readme.count('121件のLab') == 3
+    readme = readme.replace('121件のLab','120件のLab')
+    assert hashlib.sha256(readme.encode()).hexdigest() == added['before']['sha256']
+    current = readme.encode()
     forward = json.loads((ROOT/'tests/root_readme_catalog_120_hashes.json').read_text())
     assert hashlib.sha256(current).hexdigest() == forward['after']['sha256']
     assert readme.count('120件のLab') == 3
