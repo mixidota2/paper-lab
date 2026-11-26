@@ -1,6 +1,6 @@
 {
   "lab01": "deepstock",
-  "note": "式の再写像のみを検証。Table 1・2と実運用の数値は著者報告の転記で、再現実験ではない。",
+  "note": "Labは発注量を求める4つの式だけを検証した。Table 1・2と導入時の数値は論文の著者報告に基づく。4月の欠品率は差を判別できず、0ではなく null として記録した。",
   "checks": {
     "status": "CONFIRMED",
     "arbitrary_action_cases": 55,
@@ -635,18 +635,24 @@
   ],
   "deployment": [
     {
-      "name": "2024年7月 DiD・選抜10%国際SKU",
-      "sr_pp": -0.83,
+      "name": "2024年7月：選んだ海外商品10%の差の差分析",
+      "sr_pp": null,
+      "sr_reported_percent": -0.83,
+      "sr_status": "reported_as_percent",
       "tt_days": -9.53
     },
     {
-      "name": "2025年4月 反実仮想・国際SKU",
-      "sr_pp": 0,
+      "name": "2025年4月：海外商品で旧方式の試算と比較",
+      "sr_pp": null,
+      "sr_reported_percent": null,
+      "sr_status": "no_distinguishable_difference",
       "tt_days": -1
     },
     {
-      "name": "2025年4月 反実仮想・国内SKU",
-      "sr_pp": 0,
+      "name": "2025年4月：国内商品で旧方式の試算と比較",
+      "sr_pp": null,
+      "sr_reported_percent": null,
+      "sr_status": "no_distinguishable_difference",
       "tt_days": -2
     }
   ],
