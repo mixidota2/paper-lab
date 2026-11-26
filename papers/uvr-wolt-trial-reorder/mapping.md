@@ -1,12 +1,12 @@
-# Original Paper / Official Code Mapping
+# 原論文と配布資料の対応
 
-一次資料: [Balancing Trial and Reorder: A Hybrid Sequential Transformer–GBDT Ranker for On-Demand Delivery](https://arxiv.org/html/2609.16407v1)。本文・実験・限界・付録を確認（2026-09-21）。キャッシュは `/tmp/research-2026-09-21/2609.16407.html`。HTML SHA-256: `3efd76e9194c61d61c912b4d1c25fb6dfa874f66ca6c5bf6a6ccfb18220468e2`。
+一次資料は[Woltの論文（arXiv v1）](https://arxiv.org/html/2609.16407v1)です。2026-09-21に、本文、数式、実験結果、付録を確認しました。照合に使ったHTMLのSHA-256は `3efd76e9194c61d61c912b4d1c25fb6dfa874f66ca6c5bf6a6ccfb18220468e2` です。
 
-| 原典 | Labの対応 | 意図した省略・境界 |
+| 原論文 | 配布資料で説明すること | 配布資料に含まれないこと |
 | --- | --- | --- |
-| §4.1–4.3 / Fig. 2 | モデルと特徴の解説 | 国間転移は主張しない |
-| Eq. 6 / §4.4 | smooth_target / fit | linear pairwise代理。CatBoostは省略 |
-| Appendix A | 重み比の可視化 | 公式150 retrainの再現ではない |
-| Table 5 | 版別A/B表 | control・期間・対象を分離 |
+| §4.1〜4.3・図2 | `method.md` は、購入履歴から得たスコアを、配達可能な店の順位付けにどう使うかを説明します。 | 別の国の購入履歴を転用する実験はありません。 |
+| 式6・§4.4 | `run.py` の `smooth_target()` は、同じ業態の店に正解ラベルの確率を配る式を確かめます。`fit()` は別に、2候補の合成データでセッションの重みを変えます。 | Transformerの学習も、CatBoostによる実際の順位付けも行いません。 |
+| 付録A・図3 | `method.md` の図は、Labが重みを4通りに変えて得た合成データのMRRを示します。 | 著者が負例の抽出設定も変えた150回の再学習は再現していません。 |
+| 表5・§6.3 | `README.md` は、各A/Bテストの対象、期間、比較相手を分けて示します。 | `results.json` に入るのは合成実験の結果だけです。WoltのA/Bテストの記録は含みません。 |
 
-公式コード: 確認した本文に、このシステムの学習・配信を再実行できる公開実装へのリンクは見つからなかった。公開の有無を網羅的に調べたという意味ではない。
+確認した論文本文には、Woltの学習と配信を再実行できる公開コードへのリンクは見当たりませんでした。公開実装の有無を、論文の外まで調べたわけではありません。

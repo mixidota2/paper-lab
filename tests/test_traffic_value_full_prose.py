@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from prose_preservation import before_hear_full_prose, before_autolr_full_prose, before_traffic_value_full_prose
+from prose_preservation import before_uvr_full_prose, before_hear_full_prose, before_autolr_full_prose, before_traffic_value_full_prose
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = 'traffic-forecast-to-decision-value'
@@ -24,7 +24,7 @@ def test_traffic_value_source_receipt_and_fixed_numbers():
     }
     before = {}
     for p, row in files.items():
-        cur = before_autolr_full_prose(ROOT, p, before_hear_full_prose(ROOT, p, (ROOT / p).read_bytes()))
+        cur = before_autolr_full_prose(ROOT, p, before_hear_full_prose(ROOT, p, before_uvr_full_prose(ROOT, p, (ROOT / p).read_bytes())))
         assert sha256(cur).hexdigest() == row['after']['sha256']
         before[p] = before_traffic_value_full_prose(ROOT, p, cur)
         assert sha256(before[p]).hexdigest() == row['before']['sha256']
@@ -49,7 +49,7 @@ def test_traffic_value_source_receipt_and_fixed_numbers():
                                     if isinstance(n, ast.Assign) and n.targets[0].id == 'LABELS'))
         del sets[SLUG]
         return sets
-    current_labels = before_autolr_full_prose(ROOT, LABELS, (ROOT / LABELS).read_bytes())
+    current_labels = before_autolr_full_prose(ROOT, LABELS, before_uvr_full_prose(ROOT, LABELS, (ROOT / LABELS).read_bytes()))
     assert other_labels(before[LABELS]) == other_labels(current_labels)
 
 

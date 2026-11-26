@@ -26,122 +26,134 @@ related_threads:
 - generative-rec-vs-retrieval
 - when-complex-ranking-is-worth-it
 status: published
-question: 新しい店を勧めるほど、いつもの店を見つけにくくなるか
-summary: UVRは双方向TransformerのlogitをCatBoostへ渡す。V1はtrial +5.5%、CVR +0.16%。V2はtrialを伸ばす一方、reorder MRRが6カ国中5カ国で後退した。
+question: |-
+  初めての店を見つけやすくすると、再注文する店の順位はどう変わるか
+summary: |-
+  Woltは、購入履歴から作った店ごとのスコアを使い、配達可能な店の表示順を決めました。初期版のA/Bテストでは飲食店への初回注文の指標が5.5%、全体の注文転換率が0.16%上がりました。新規店をさらに重視したV2では、過去の注文で評価すると、6カ国中5カ国で再注文の店の順位が従来方式より悪くなりました。
 source_review:
   checked: '2026-09-21'
-  scope: arXiv v1の全文HTML・数式・表・付録を確認。著者報告と合成実験を区別。
+  scope: arXiv v1の本文、数式、表、付録を確認しました。論文の結果とLabの合成実験は別に示します。
   url: https://arxiv.org/html/2609.16407v1
   version: v1
   html_sha256: 3efd76e9194c61d61c912b4d1c25fb6dfa874f66ca6c5bf6a6ccfb18220468e2
 core_idea:
-  author_claim: 履歴classifierとcontext・contentを扱うGBDTを組み合わせ、trial-aware weightingで運用点を選ぶ。V3で飲食店と小売の履歴を共有し、4つの旧rankerを統合した。
-  research_bot_interpretation: 国別学習と領域間共有を分けて読む。sequenceモデル対GBDTという二者択一より、どの信号をどこで学習し、何をガードレールにするかが実務上の焦点になる。
+  author_claim: |-
+    WoltのUniversal Venue Ranker（UVR）は、購入履歴からTransformerが出した店ごとのスコアを、CatBoostに渡します。V2では、初めての店に注文したセッションを重く扱い、再注文の順位も確認しながら重みを選びます。V3では、飲食店と小売の履歴を同じTransformerで読み、従来の4つの順位付けモデルを一つの仕組みにまとめました。
+  research_bot_interpretation: |-
+    共有するのは、同じ国の飲食店と小売の履歴です。国をまたいで学習する設計ではありません。この事例では、履歴から学ぶ情報と、店や配達条件から判断する情報を分けて考えると、二つのモデルを組み合わせる理由が分かります。
 sections:
   overview: |-
     Woltの研究チームは、利用者が新しい店を試す機会を増やしつつ、いつもの店も見つけやすくする順位付けを調べました。Transformerで利用者の購入履歴を読み、次に選びそうな店のスコアを作ります。CatBoostはそのスコアをほかの特徴量と合わせて、店の表示順を決めます。
 
     著者は主要10カ国で利用者を半分ずつ無作為に分け、初期版（V1）を従来方式と2週間比較しました。飲食店で初めて注文する割合は5.5%、全体の注文転換率は0.16%増えました（後者はp=0.017）。新しい店をさらに重視したV2では、購入履歴を使った別の評価で、再注文した店を上位に置く指標が6カ国中5カ国で従来方式を下回りました。実際の再注文が同じ割合で減ったという意味ではありません。
-  problem: 配達できない店舗は、好みに合っていても候補にできない。営業時間、距離、配達員、混雑で候補集合はrequestごとに変わる。また、いつもの店から買うreorderと、新しい店を試すtrialでは必要な順位が違う。平均MRRだけを最適化すると、利用頻度の高い再注文が学習を支配しやすい。
+  problem: |-
+    フードデリバリーでは、利用者の好みに合う店でも、その時点で配達できなければ表示候補に入りません。受付時間、配達先との距離、配達員の空き、店の混み具合が変わるため、候補は画面を開くたびに変わります。
+
+    購入履歴がある利用者について、著者は、初めての店への注文を「新規店への注文（trial）」、以前に注文した店への注文を「再注文（reorder）」と分けました。利用者自身の初回注文は、履歴がないため別に扱います。再注文が多いデータでは、注文全体の順位だけを見ると、新規店を見つけにくいままでも評価が良く見えることがあります。
   method: method.md
-  why_it_might_work: 履歴の長期パターンをTransformerで圧縮し、配送料や距離の非線形な条件を木で扱えば、役割を分けて運用できる。[OTTOのGBDT対DNN](otto-gbdt-vs-dnn-ltr.html)の「どちらを選ぶか」に対し、ここでは組み合わせ方が問いになる。[REST](rest-sequence-ranking.html)とも、sequence表現の計算場所と最終rankerの責任を比べたい。
-  evidence: '一次資料の著者報告。
+  why_it_might_work: |-
+    購入履歴だけでは、よく注文する店が今も選びやすいとは限りません。たとえば配達料が高い場合、距離や料金を受け取るCatBoostは履歴のスコアと合わせて順位を変えられます。Transformerには履歴を読み取らせ、CatBoostには配達可能な店を今の条件で並べ替えさせます。
 
+    [OTTOのGBDT対DNN](otto-gbdt-vs-dnn-ltr.html)は二つのモデルを比較します。UVRでは、一方のモデルが出したスコアをもう一方の入力にします。[REST](rest-sequence-ranking.html)と比べるなら、購入履歴をどこで処理し、どのモデルが表示順を決めるかを見ると違いが分かります。
+  evidence: |-
+    一次資料は[原論文の表3〜5と第5〜6節](https://arxiv.org/html/2609.16407v1)です。以下はWoltの著者が報告した結果です。
 
-    [原典 Tables 3–5・§6](https://arxiv.org/html/2609.16407v1) の著者報告。全テストはuser-level 50:50。V1/V2は上位10カ国で2週間、V3は全稼働国で3週間。
+    著者は3回のA/Bテストで、登録利用者を毎回、利用者単位で無作為に半分ずつ分けました。V1とV2は主要10カ国で各2週間、V3は全稼働国で3週間試しました。店への初回注文を捉える指標（Merchant Trial Rate）と、サービス全体の日次注文転換率（Global CVR）を測りました。表の値は、各行の比較相手に対する変化率です。
 
-
-    | 版・control | Merchant Trial Rate | Global CVR |
-
+    | 比べた方式 | 店への初回注文の指標 | 全体の注文転換率 |
     | --- | ---: | ---: |
+    | V1と従来の飲食店向け方式（FPR+SPR/CSR） | 飲食店 +5.5% | +0.16%（p=0.017） |
+    | V2とV1 | 飲食店 +0.45% | −0.05%（p=0.398） |
+    | V3と飲食店向けV2・小売向けRR | 小売 +1.31% | +0.04%（p=0.457） |
 
-    | V1 vs FPR+SPR/CSR | +5.5% | +0.16%, p=0.017 |
+    初回注文の指標は表の3比較とも有意水準5%で改善しました。V2とV3では、全体の注文転換率に統計的な差を確認できませんでした。これは、転換率が変わらないと証明したわけでも、再注文への影響を単独で測ったわけでもありません。V3では広告売上が有意に0.43%減りました。
 
-    | V2 vs V1 | +0.45% | −0.05%, p=0.398 |
+    過去の注文を使った別の評価（表4）では、飲食店を並べるV2を、当時稼働していた順位付けと比較しました。実際に注文した店の順位の逆数を平均する指標（MRR）は、新規店への注文では6カ国すべてで12.5%〜30.3%上がりました。再注文ではフィンランドだけが6.7%上がり、残り5カ国では1.4%〜27.3%下がりました。V1の新規店のMRR改善は7.5%〜19.8%です。複数の乱数シードで学習した1カ国の検証では、改善率の標準偏差が平均改善率の約10〜30%に当たりました。
 
-    | V3 vs V2+RR | 小売 +1.31% | +0.04%, p=0.457 |
+    著者は、新規店のMRRを落とさず、再注文のMRR低下を従来比15%以内に抑える設定のうち、新規店のMRRが最も改善する設定を探しました。報告された探索では、ドイツでこの条件を満たす設定が見つかりませんでした。この設定選びの条件とは別に、配信前の検査では再注文MRRが悪化すると警告しますが、それだけで配信を止めるわけではありません（§4.5）。
 
+    WoltはFlyteとKubernetesで国別に毎日学び直します。学習時に見ていない店舗IDのスコアをTransformerは出せないため、新店を追加することも毎日更新する理由です。配信時はCPUでTransformerを動かします。特徴量の取得から応答データの整形まで含めると、著者が報告した応答時間の99パーセンタイルは約60 msです。
+  executable_understanding: |-
+    Labは、以前に注文した店と初めて注文する店の2候補がある合成データを使います。各セッションには、2店のスコアと距離の差を表す合成の特徴量と、実際にどちらを選んだかを表す正解があります。学習には同じ400セッションを使い、正解店ともう一方の店を比べる線形モデルを4回学習します。再注文の重みは1のまま、新規店への注文の重みだけを1、2、3、5に変えます。
 
-    trialの差はα=0.05で有意。V2/V3のCVRは有意差を確認していない。「変化しないことを証明した」とは言えない。V3のads revenueは−0.43%で、事業指標の交換条件も残る。
+    学習に使わなかった別の400セッションで、注文した店が1位なら1、2位なら0.5と数えます。新規店への注文と再注文を別々に集計し、それぞれのセッション内で得た逆順位を合計して、その区分のセッション数で割るとMRRになります。
 
+    重みの比較とは別に、正解ラベルの確率の合計が1になることと、最も高いスコアを持つ店でも配達できなければ候補から外れることを確かめます。TransformerやCatBoostは学習しません。
+  what_we_verified: |-
+    設定を1から3へ変えると、この合成データでは、新規店への注文のMRRが0.5から1.0に上がり、再注文のMRRは1.0から0.5に下がりました。設定5でも、設定3と同じ値でした。この例で確かめたのは、二つの注文区分のどちらを学習で重く扱うかによって、モデルが付ける順位が変わることです。実際の注文を使っても新規店の順位が良くなるとは、この結果だけでは言えません。
+  what_we_did_not_verify: |-
+    Labは実際のTransformerやCatBoostを動かしていません。国別の購入履歴を使った精度、データ量が増えたときの処理、本番の応答時間約60 ms、A/Bテストの結果は再現していません。
 
-    V2の旧production比trial MRRは+12.5%〜+30.3%。reorderはFINのみ+6.7%、他は−1.4%〜−27.3%。同じ表のV1 trialは+7.5%〜+19.8%なので、12–30%をV1へ帰属させない。seed間のばらつきも平均upliftの約10–30%ある。再注文のMRRの悪化幅を15%以内に抑える設定を探したが、ドイツ（DEU）では条件を満たす設定が見つからなかった。
+    論文のV3では、飲食店の履歴を小売にも使えるようにしただけでなく、小売にもTransformerとCatBoostの組み合わせを導入しました。著者は、履歴を領域ごとに分けた同じ構成との比較も、CatBoostの入力からTransformerのスコアだけを除いた比較も報告していません。小売で初回注文の指標が上がった理由を、領域間の履歴共有だけに絞ることはできません。
+  implementation: |-
+    `fit()`は、新規店への注文と再注文でセッションの重みを変え、2候補を並べる線形モデルを学習します。`metrics()`は、実際に注文した店の順位から、二つの区分のMRRを別々に計算します。`smooth_target()`は正解ラベルの確率を配分し、`eligible_scores()`は配達できる店のスコアだけを返します。
 
-
-    日次学習はFlyte/Kubernetes、推論はCPU、feature取得等を含むp99は約60ms。classifierは学習時に見た店舗だけを識別するため、新店追加も日次更新の理由になる。'
-  executable_understanding: 同じ合成logit・距離特徴を使い、pairwise logistic lossのtrial/reorder重み比だけを1、2、3、5へ変える。未使用400sessionで両群MRRを分けて測る。正解店の順位の逆数をsessionごとに求め、trialとreorderそれぞれのsession数で割って平均する。全店舗で最高logitの店が配達不可なら除外されることと、smoothed
-    targetの総和も検査する。これは学習できる線形代理で、CatBoostやTransformerの再実装ではない。
-  what_we_verified: Mechanism PARTIAL。固定した2候補の曖昧な意図分布で、重み比を上げるとtrial MRRは0.5から1.0、reorder MRRは1.0から0.5へ動いた。重みで目的を変える操作の確認であり、trial性能向上の一般的な証拠ではない。
-  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。実CatBoost、双方向Transformer、国別データ、配信60ms、A/Bを再現していない。原典も、同条件でlogitを抜くablationと領域別Transformerを用いた対照を未実施としており、V3の改善をcross-domain
-    transferだけに帰属できない。
-  implementation: '`fit()`はsession重み付きpairwise線形学習、`metrics()`はtrial/reorder別MRR、`smooth_target()`と`eligible_scores()`は学習labelと配達可能集合の境界。条件を固定した操作実験である。
-
-
-    Python標準ライブラリだけで実行する。乱数を使う実験はseedを固定し、結果をコードと同じ場所に保存する。'
-  results: 以下はこのLabの実行結果。上のEvidenceに載せた著者報告のA/Bとは、データも評価対象も異なる。
+    `run.py`はPython標準ライブラリだけで動きます。乱数シードは固定です。実行すると、同じフォルダーの`results.json`に結果を書き出します。
+  results: |-
+    以下はLabの合成データで計算した結果です。論文のA/Bテストとはデータも指標も異なります。図の表示値と、配布した`results.json`の値を照合できます。
   mapping: mapping.md
 teaching_figures:
 - kind: matrix
   id: versions
-  title: V1・V2・V3で変わるもの
+  title: UVRは版ごとに何を変えたか
   after: problem
-  caption: 原典の説明・報告値を学習用に再構成。独立再現ではない。
+  caption: Woltの論文に沿って、対象の店舗、順位の学習方法、主な変更点を整理しました。
   source: https://arxiv.org/html/2609.16407v1
-  locator: Table 3 / §4.4
-  rationale: V1・V2・V3で変わるもの
+  locator: 表3・§4.4
+  rationale: V3で共有した履歴モデルと、業態ごとに残した順位付けモデルの違いを示します。
   columns:
-  - 対象
-  - ranker損失
-  - 追加
+  - 対象店舗
+  - 順位付けモデルの損失関数
+  - 主な変更点
   rows:
   - label: V1
     cells:
     - 飲食店
     - PairLogit
-    - logit + context
+    - Transformerのスコアと配達条件などを併用
   - label: V2
     cells:
     - 飲食店
-    - YetiRankPairwise:NDCG
-    - smoothing・trial weighting
+    - YetiRankPairwise（NDCG）
+    - 正解ラベルを平滑化し、新規店への注文を重視
   - label: V3
     cells:
-    - 飲食店 + 小売
-    - 同上・領域別CatBoost
-    - 共有classifier・product line
+    - 飲食店と小売
+    - YetiRankPairwise（NDCG）
+    - Transformerは商品区分を使って履歴を共有。CatBoostは業態別
 - kind: matrix
   id: country-tradeoff
-  title: 平均に隠れる再注文の損失
+  title: V2では6カ国中5カ国で再注文のMRRが低下した
   after: evidence
-  caption: 原典の説明・報告値を学習用に再構成。独立再現ではない。
+  caption: 飲食店について、Woltの論文が報告した、従来方式に対するMRRの変化率です。実際の注文率の変化ではありません。
   source: https://arxiv.org/html/2609.16407v1
-  locator: Table 4：V2 ranker vs production
-  rationale: 平均に隠れる再注文の損失
+  locator: 表4：V2の順位付けモデルと従来の配信方式
+  rationale: 新規店への注文と再注文を分けると、同じ変更でも国によって影響が異なることが分かります。
   columns:
-  - trial MRR
-  - reorder MRR
+  - 新規店への注文のMRR
+  - 再注文のMRR
   rows:
-  - label: ISR
+  - label: イスラエル（ISR）
     cells:
     - +30.3%
     - −12.5%
-  - label: GRC
+  - label: ギリシャ（GRC）
     cells:
     - +22.3%
     - −7.8%
-  - label: DEU
+  - label: ドイツ（DEU）
     cells:
     - +29.0%
     - −27.3%
-  - label: FIN
+  - label: フィンランド（FIN）
     cells:
     - +12.5%
     - +6.7%
-  - label: HUN
+  - label: ハンガリー（HUN）
     cells:
     - +14.3%
     - −1.4%
-  - label: DNK
+  - label: デンマーク（DNK）
     cells:
     - +14.5%
     - −5.8%

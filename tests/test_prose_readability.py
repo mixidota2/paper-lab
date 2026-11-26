@@ -329,7 +329,7 @@ def test_batch15_causal_comparisons_and_group_denominators():
         assert excerpt in (ROOT/'papers'/slug/name).read_text()
     for name in ['lab.yaml', 'README.md']:
         assert '同じ向きに厳密な順位を付けた割合' in (ROOT/'papers/sona-yandex-music'/name).read_text()
-        assert 'trialとreorderそれぞれのsession数で割って平均する' in (ROOT/'papers/uvr-wolt-trial-reorder'/name).read_text()
+        assert 'その区分のセッション数で割るとMRRになります' in (ROOT/'papers/uvr-wolt-trial-reorder'/name).read_text()
         assert '配信あり・なしの両方を観測できること' in (ROOT/'papers/linkedin-prediction-to-incrementality'/name).read_text()
     assert '有限個のログで必ず真値に一致するという意味ではない' in (ROOT/'papers/pinterest-causal-retrieval-shopping/method.md').read_text()
 

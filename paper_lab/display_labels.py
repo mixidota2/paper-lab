@@ -34,7 +34,9 @@ LABELS = {'agentx-kuaishou': {'利益あり': '改善条件を満たす例', '�
  't0-tsfm-forecasting-with-context': {'t0の重みは未実行': 't0の学習済みモデルは動かしていない'},
  'tsfm-sparse-event-ranking': {'ロジスティック発生head': '需要が発生するかを予測するロジスティック回帰'},
  'univa-commercial-sid-gar': {'等頻度bin': '件数が同じになるよう区切った区分'},
- 'uvr-wolt-trial-reorder': {'trial重み': '初回注文を重視する重み'},
+ 'uvr-wolt-trial-reorder': {'trial重み': '初回注文を重視する重み',
+                            'trial_MRR': '店への初回注文のMRR',
+                            'reorder_MRR': '同じ店への再注文のMRR'},
  'case-against-generation-retrieval': {'残す候補の枝': '探索の第1段で残す候補群の数'},
  'whole-foods-shelf': {'A部門の面積弾力性 β': 'A部門の面積に対する反応を決める係数 β'}}
 
