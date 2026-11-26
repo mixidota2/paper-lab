@@ -1,7 +1,7 @@
 {
   "lab01_projection": true,
   "seed": null,
-  "scope": "2D static geometry; no HDPO, STE training, or inventory simulation",
+  "scope": "2製品の射影と整数化を計算する。HDPOとSTEを使う学習や長期の在庫シミュレーションは実行しない。",
   "cases": [
     {
       "label": "Free",

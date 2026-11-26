@@ -1,0 +1,483 @@
+{
+  "files": {
+    "papers/diff-projection-feasible-multi-echelon-inventory/README.md": {
+      "before": {
+        "sha256": "5b22b48ade80cb8734c64444c3e7fcf7650472e8a5968b07a361460ea783ea34",
+        "blob": "7756be8a37fd573e3d73e68402024712e0e5a09f"
+      },
+      "after": {
+        "sha256": "5c5068e65a8a8587bfb0e485366704a36acea94c080ffea64787ef478e1aa899",
+        "blob": "921938eb5b334c3a76aff0a4c9c572266730d002"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "## Overview — 設備を分け合う製品の生産量を決める\n"
+        ],
+        [
+          8,
+          9,
+          "## Problem — 製品別に上限を守っても、設備全体では超えることがある\n"
+        ],
+        [
+          10,
+          11,
+          "多段階の生産計画では、製品ごとの上限を守っても、全製品で同じ資材や設備を使い過ぎることがある。すべての製品の生産量をまとめて決める必要がある。満たせなかった需要は、次期以降に届ける注文（バックオーダー）として残す。欠品でその場の売上を失う小売モデルや、食品売場の棚割りを無作為化して効果を測る試験（RCT）とは別の設定だ。\n"
+        ],
+        [
+          12,
+          13,
+          "## Core Idea — 制約内の近い点に移してから整数にする\n"
+        ],
+        [
+          14,
+          15,
+          "【著者の主張】ニューラルネット（NN）が出した連続値の生産目標を、強凸二次計画（QP）で制約内の近い点に移す。次に、その制約の厳しさを表す双対価格を使って整数にする。学習時は射影の解析Jacobianと、整数化を通る勾配を近似するSTEを組み合わせ、微分可能なシミュレーターの費用からNNを更新する。\n"
+        ],
+        [
+          16,
+          17,
+          "【Labの解釈】DeepStockが在庫の構造を手がかりに方策を探すのに対し、この研究は複数製品で共有する資材や設備の上限を、各期の整数の生産判断に直接反映する。Constrained FBSDEが在庫などの時間変化を制約するのとは、守る対象が異なる。性能の優劣を比べたわけではない。\n"
+        ],
+        [
+          18,
+          19,
+          "## Why It Might Work — 共有上限に達すると、片方を増やすにはもう片方を減らす\n"
+        ],
+        [
+          20,
+          21,
+          "【Labの解釈】勾配には、目標を少し変えたとき、実際に選んだ量がどの方向に動くかが表れる。上下限から離れているFreeでは目標どおりに動く。製品1が個別上限に達したPinnedでは、その量をこれ以上増やせない。2製品で共有上限に達したCompetingでは、製品1を増やすには製品2を減らす。\n"
+        ],
+        [
+          22,
+          23,
+          "著者の補題1では、資材残量などで上限が変わる場合、目標側では失われた方向の情報が、制約式の右辺bへの勾配に現れる。残量を変えた過去の判断にも学習信号を返せる。固定容量にはこの補償がない。等号になっている制約の組（活性集合）が切り替わる点で、通常の微分が常に存在するという主張でもない。\n"
+        ],
+        [
+          24,
+          25,
+          "## Evidence — 費用削減は著者のシミュレーション結果\n"
+        ],
+        [
+          26,
+          27,
+          "[改訂版の第6.4節と表5](https://arxiv.org/html/2608.02343v2#S6.SS4)では、各設定で1,000通りの需要を使い、同じ初期在庫と需要のもとで手法を比べています。最も費用が低かった比較手法DBSに対し、費用は基本設定で0.9%、設備容量が厳しい設定で1.8%低くなりました。対応のある99%信頼区間の半幅は、それぞれ0.3、0.6ポイントです。下の表とLabの図には、これとは別に初版のシミュレーション結果を示します。\n"
+        ],
+        [
+          28,
+          29,
+          "以下は[初版の一次資料PDF（v1）](https://arxiv.org/pdf/2608.02343v1)の§4〜6、図3〜6、表1〜5にある著者報告です。Labは費用の数値を再現していません。\n"
+        ],
+        [
+          30,
+          31,
+          "|条件|著者報告|出典|\n|---|---|---|\n|小規模24条件|平均最適性ギャップ0.91%、22/24で最適化SBSを上回る|表1|\n|Tempelmeier型ネットワーク|最良echelon base-stock比で最大9.75%削減、rolling MSP比で少なくとも7.7%削減|表2・§6.3|\n|ASML 14品目、設定1／2|最良echelon DBS比3.22%／2.54%削減|表4|\n|整数化をfloorに替える−IM|費用が11.83%／15.79%増加|表5|\n"
+        ],
+        [
+          32,
+          33,
+          "ASMLの設定1では、複数段階の在庫を見て補充するechelon DBS、複数段階の確率的計画（MSP）、提案法を比較した。平均総費用はechelon DBS 286.99、MSP 289.25、提案法277.74。提案法はDBSより保有費用が低く、MSPよりバックオーダー費用が低い。表4には通常のDBS列もある。削減率の比較先は最良のechelon DBSの列。\n"
+        ],
+        [
+          34,
+          35,
+          "## Executable Understanding — 2製品で射影と整数化を試す\n"
+        ],
+        [
+          36,
+          37,
+          "2製品の目標をz、生産量をxとする。x₁≥0、x₂≥0、x₁≤3、x₁+x₂≤6を満たす多角形の中から、zに一番近い点を選ぶ（射影）。重みはW=diag(1/2,1/2)。すべての辺の最近点を調べて厳密解を選ぶので、外部QPソルバーは不要。制約のかかり方を3通り選び、連続出力をどれだけ動かすかを表す解析Jacobianを、目標を両側にわずかに動かす中心差分と照合する。\n"
+        ],
+        [
+          38,
+          39,
+          "次に§4.1.2に沿って、小数点以下を切り捨てた量（floor）から始める。双対価格を使った優先順位で、各製品の量を1単位だけ増やせるか調べる。制約を守り、目標からのずれを評価する目的関数を悪化させない増分だけを採用する。6,561個の目標を同条件でfloorと比べ、すべての整数点を調べた解とも照合する。図5に対応する別実験では、x₁+x₂≤2の下で(1,1)を選ぶ目標の範囲を調べる。\n"
+        ],
+        [
+          40,
+          41,
+          "## Results — 切り捨てとの違いを数える\n"
+        ],
+        [
+          42,
+          43,
+          "6,561個の目標のうち、整数化した後の制約違反は0件。3,915件で単なる切り捨てより目的関数の値が改善した。この2製品の設定では、すべての整数点を列挙した最適解との差も0だった。整数写像は一般には近似であり、この一致は一般の整数QPでは保証されない。\n"
+        ],
+        [
+          44,
+          45,
+          "図5の縮約では、1,600個の目標のうち、切り捨てで(1,1)になったのは0件、提案の整数化では1,600件だった。(1,1)に写る目標が面積を持ちうる例で、論文の完全性定理の証明ではない。完全性は、各整数行動に写る目標の集合が、単に空でないだけでなく、Lebesgue測度で正の大きさを持つ条件を指す。\n"
+        ],
+        [
+          46,
+          47,
+          "## What We Verified — 縮約した計算で一致を確かめた\n"
+        ],
+        [
+          48,
+          49,
+          "**CONFIRMED — 局所計算**：Free／Pinned／Competingの各例で、Jacobianが中心差分と一致した。全サンプルの整数行動が制約を守り、切り捨てよりも目的関数を悪化させないことをassertで確かめた。\n"
+        ],
+        [
+          50,
+          51,
+          "**PARTIAL — 一部だけ実装**：QPによる射影と整数化を2製品に縮約した。NN、経路微分による方策学習（HDPO）、整数化を逆伝播するときに恒等写像とみなすSTEは、学習実験に含めていない。\n"
+        ],
+        [
+          52,
+          53,
+          "## What We Did NOT Verify — 長期費用と学習効果は未再現\n"
+        ],
+        [
+          54,
+          55,
+          "**NOT TESTED**：多段階在庫の長期費用、小規模の最適性ギャップ0.91%、ASMLの費用削減、規模を大きくしたときの挙動、現場導入。STEは真の微分を計算しないため偏りがあり、学習にどれだけ有効かは未検証。一般制約での完全性や誤差の上限は論文の主張として紹介する。\n"
+        ],
+        [
+          56,
+          57,
+          "## Implementation — Python標準ライブラリで再実行する\n"
+        ],
+        [
+          58,
+          64,
+          "`UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/diff-projection-feasible-multi-echelon-inventory/run.py`を実行すると、results.jsonを作り直せる。Python標準ライブラリを使い、乱数、GPU、外部データは使わない。\n"
+        ],
+        [
+          65,
+          66,
+          "HTMLはlab.yaml、README.md、method.md、mapping.md、run.py、results.jsonから生成し、図はpaper_lab/projection01.pyで表示する。提供PDFでは公式コードへのリンクを確認できず、公式実装は実行していない。\n"
+        ],
+        [
+          67,
+          68,
+          "## Original Paper / Official Code Mapping\n"
+        ],
+        [
+          69,
+          102,
+          "[式・図と実装の対応表](mapping.md)を参照。\n"
+        ]
+      ]
+    },
+    "papers/diff-projection-feasible-multi-echelon-inventory/lab.yaml": {
+      "before": {
+        "sha256": "c41bce8636457ce214df3b8818e641b966985f2f0a46c3dc0132a5008c6d3225",
+        "blob": "e414631655158481f236a03e08e3199802d217de"
+      },
+      "after": {
+        "sha256": "8d25038926b2513e700be03a1b9e1f34f9dba806e74c381158f257fa530cf465",
+        "blob": "f94c497faf4b643037b4766de794ae0ca206db89"
+      },
+      "prior_spans": [
+        [
+          19,
+          21,
+          "summary: 資材や設備を製品間で分け合いながら、実際に作れる整数の生産量を決める。2製品の例で、どの上限に達しているかによって、目標の変化が決定にどう伝わるかを確かめる。\nquestion: 設備や資材の上限を越えない整数の生産量を選びながら、モデルの学習に必要な勾配をどう返すか。\n"
+        ],
+        [
+          27,
+          29,
+          "  author_claim: 【著者の主張】ニューラルネット（NN）が出した連続値の生産目標を、強凸二次計画（QP）で制約内の近い点に移す。次に、その制約の厳しさを表す双対価格を使って整数にする。学習時は射影の解析Jacobianと、整数化を通る勾配を近似するSTEを組み合わせ、微分可能なシミュレーターの費用からNNを更新する。\n  research_bot_interpretation: 【Labの解釈】DeepStockが在庫の構造を手がかりに方策を探すのに対し、この研究は複数製品で共有する資材や設備の上限を、各期の整数の生産判断に直接反映する。Constrained\n    FBSDEが在庫などの時間変化を制約するのとは、守る対象が異なる。性能の優劣を比べたわけではない。\n"
+        ],
+        [
+          34,
+          38,
+          "  problem: 多段階の生産計画では、製品ごとの上限を守っても、全製品で同じ資材や設備を使い過ぎることがある。すべての製品の生産量をまとめて決める必要がある。満たせなかった需要は、次期以降に届ける注文（バックオーダー）として残す。欠品でその場の売上を失う小売モデルや、食品売場の棚割りを無作為化して効果を測る試験（RCT）とは別の設定だ。\n  why_it_might_work: '【Labの解釈】勾配には、目標を少し変えたとき、実際に選んだ量がどの方向に動くかが表れる。上下限から離れているFreeでは目標どおりに動く。製品1が個別上限に達したPinnedでは、その量をこれ以上増やせない。2製品で共有上限に達したCompetingでは、製品1を増やすには製品2を減らす。\n"
+        ],
+        [
+          39,
+          42,
+          ""
+        ],
+        [
+          43,
+          44,
+          "    著者の補題1では、資材残量などで上限が変わる場合、目標側では失われた方向の情報が、制約式の右辺bへの勾配に現れる。残量を変えた過去の判断にも学習信号を返せる。固定容量にはこの補償がない。等号になっている制約の組（活性集合）が切り替わる点で、通常の微分が常に存在するという主張でもない。'\n  evidence: |-\n    [改訂版の第6.4節と表5](https://arxiv.org/html/2608.02343v2#S6.SS4)では、各設定で1,000通りの需要を使い、同じ初期在庫と需要のもとで手法を比べています。最も費用が低かった比較手法DBSに対し、費用は基本設定で0.9%、設備容量が厳しい設定で1.8%低くなりました。対応のある99%信頼区間の半幅は、それぞれ0.3、0.6ポイントです。下の表とLabの図には、これとは別に初版のシミュレーション結果を示します。\n"
+        ],
+        [
+          45,
+          46,
+          "    以下は[初版の一次資料PDF（v1）](https://arxiv.org/pdf/2608.02343v1)の§4〜6、図3〜6、表1〜5にある著者報告です。Labは費用の数値を再現していません。\n"
+        ],
+        [
+          47,
+          48,
+          "    |条件|著者報告|出典|\n    |---|---|---|\n    |小規模24条件|平均最適性ギャップ0.91%、22/24で最適化SBSを上回る|表1|\n    |Tempelmeier型ネットワーク|最良echelon base-stock比で最大9.75%削減、rolling MSP比で少なくとも7.7%削減|表2・§6.3|\n    |ASML 14品目、設定1／2|最良echelon DBS比3.22%／2.54%削減|表4|\n    |整数化をfloorに替える−IM|費用が11.83%／15.79%増加|表5|\n"
+        ],
+        [
+          49,
+          55,
+          "    ASMLの設定1では、複数段階の在庫を見て補充するechelon DBS、複数段階の確率的計画（MSP）、提案法を比較した。平均総費用はechelon DBS 286.99、MSP 289.25、提案法277.74。提案法はDBSより保有費用が低く、MSPよりバックオーダー費用が低い。表4には通常のDBS列もある。削減率の比較先は最良のechelon DBSの列。\n  executable_understanding: '2製品の目標をz、生産量をxとする。x₁≥0、x₂≥0、x₁≤3、x₁+x₂≤6を満たす多角形の中から、zに一番近い点を選ぶ（射影）。重みはW=diag(1/2,1/2)。すべての辺の最近点を調べて厳密解を選ぶので、外部QPソルバーは不要。制約のかかり方を3通り選び、連続出力をどれだけ動かすかを表す解析Jacobianを、目標を両側にわずかに動かす中心差分と照合する。\n"
+        ],
+        [
+          56,
+          59,
+          ""
+        ],
+        [
+          60,
+          63,
+          "    次に§4.1.2に沿って、小数点以下を切り捨てた量（floor）から始める。双対価格を使った優先順位で、各製品の量を1単位だけ増やせるか調べる。制約を守り、目標からのずれを評価する目的関数を悪化させない増分だけを採用する。6,561個の目標を同条件でfloorと比べ、すべての整数点を調べた解とも照合する。図5に対応する別実験では、x₁+x₂≤2の下で(1,1)を選ぶ目標の範囲を調べる。'\n  results: '6,561個の目標のうち、整数化した後の制約違反は0件。3,915件で単なる切り捨てより目的関数の値が改善した。この2製品の設定では、すべての整数点を列挙した最適解との差も0だった。整数写像は一般には近似であり、この一致は一般の整数QPでは保証されない。\n"
+        ],
+        [
+          64,
+          67,
+          ""
+        ],
+        [
+          68,
+          73,
+          "    図5の縮約では、1,600個の目標のうち、切り捨てで(1,1)になったのは0件、提案の整数化では1,600件だった。(1,1)に写る目標が面積を持ちうる例で、論文の完全性定理の証明ではない。完全性は、各整数行動に写る目標の集合が、単に空でないだけでなく、Lebesgue測度で正の大きさを持つ条件を指す。'\n  what_we_verified: '**CONFIRMED — 局所計算**：Free／Pinned／Competingの各例で、Jacobianが中心差分と一致した。全サンプルの整数行動が制約を守り、切り捨てよりも目的関数を悪化させないことをassertで確かめた。\n"
+        ],
+        [
+          74,
+          77,
+          ""
+        ],
+        [
+          78,
+          79,
+          "    **PARTIAL — 一部だけ実装**：QPによる射影と整数化を2製品に縮約した。NN、経路微分による方策学習（HDPO）、整数化を逆伝播するときに恒等写像とみなすSTEは、学習実験に含めていない。'\n  what_we_did_not_verify: '**NOT TESTED**：多段階在庫の長期費用、小規模の最適性ギャップ0.91%、ASMLの費用削減、規模を大きくしたときの挙動、現場導入。STEは真の微分を計算しないため偏りがあり、学習にどれだけ有効かは未検証。一般制約での完全性や誤差の上限は論文の主張として紹介する。'\n  implementation: '`UV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/diff-projection-feasible-multi-echelon-inventory/run.py`を実行すると、results.jsonを作り直せる。Python標準ライブラリを使い、乱数、GPU、外部データは使わない。\n\n\n    HTMLはlab.yaml、README.md、method.md、mapping.md、run.py、results.jsonから生成し、図はpaper_lab/projection01.pyで表示する。提供PDFでは公式コードへのリンクを確認できず、公式実装は実行していない。'\n"
+        ],
+        [
+          85,
+          87,
+          "  title: 実際に選ぶ生産量と、学習で返す勾配は別に計算する\n  caption: 式(2)、補題1、§4.1.2。図3の学習経路に対応する。\n"
+        ],
+        [
+          88,
+          90,
+          "  locator: Equation (2), Lemma 1, Figure 3\n  rationale: 生産量を制約内に収める計算と、学習用の勾配を近似する計算を区別する。\n"
+        ],
+        [
+          91,
+          92,
+          "  - name: 強凸二次計画（QP）で制約内の点を選ぶ\n"
+        ],
+        [
+          93,
+          95,
+          "    explanation: Wは正定値。非空な実行可能集合では解が一意に定まる。\n  - name: 目標を少し動かしたときの出力の変化\n"
+        ],
+        [
+          96,
+          98,
+          "    explanation: 線形独立で等号になっている制約の組が、目標を少し動かしても同じ場合に使える。\n  - name: 整数写像の近似微分\n"
+        ],
+        [
+          99,
+          100,
+          "    explanation: 実際に採用するのは整数の生産量。逆伝播のSTEは、整数化による変化を真に微分した値ではない。\n"
+        ],
+        [
+          103,
+          105,
+          "  title: 手法ごとに、何を守るかは異なる\n  caption: 本Labの整理。手法間の直接比較結果ではない。\n"
+        ],
+        [
+          106,
+          108,
+          "  locator: Sections 2, 4; comparison is Lab interpretation\n  rationale: 毎期の行動を制約する場合と、在庫などの状態の推移を制約する場合を分ける。\n"
+        ],
+        [
+          109,
+          111,
+          "  - 制約の対象\n  - このLabとの関係\n"
+        ],
+        [
+          114,
+          116,
+          "    - 各製品の整数の生産量と、共有する資材・設備の上限\n    - QPで制約内に移し、整数にした後も毎期の制約を守る\n"
+        ],
+        [
+          118,
+          120,
+          "    - 連続時間での在庫と排出予算\n    - 状態の推移を制約する。発注遅延と時間の離散化も扱う\n"
+        ],
+        [
+          122,
+          124,
+          "    - 在庫の運用にかかる費用\n    - 費用を減らす判断と、共有制約を満たす整数の判断は別の課題\n"
+        ]
+      ]
+    },
+    "papers/diff-projection-feasible-multi-echelon-inventory/mapping.md": {
+      "before": {
+        "sha256": "ced4cdb257b66afdf657d79324900c6f12ddea86589e3e7dca15d545f2928d70",
+        "blob": "94f5f6b064974c4993621c79cfe5c330acc34ffe"
+      },
+      "after": {
+        "sha256": "801923b7408b68a8749e277f7972df99976e9a12d26a1120277119a2c62e6172",
+        "blob": "e949b71467ca6de6670e46a04966b9597d0e3e85"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 論文のうち、どこを2製品で確かめたか\n"
+        ],
+        [
+          2,
+          3,
+          "|一次資料|最小実装・表示|省いたもの|\n|---|---|---|\n|§4.1.1 式(2)、図4|run.pyのproject、2変数の射影図|一般次元のQP、重みの変更、制約の分解|\n|補題1・系1|3例の解析Jacobianと中心差分|制約の右辺bへの微分、どの制約に達するかが切り替わる点|\n|§4.1.2|integer_map、KKTからMᵀλ*=W(z−x*)を算出|NN、HDPO、STEによる学習|\n|定義1、図5|x₁+x₂≤2の到達例|完全性定理の証明、一般制約への実験拡張|\n|表1・2|lab.yamlの著者報告|小規模最適解・Tempelmeierの再実行|\n|表4・5|results.jsonの著者値、費用内訳図|ASMLの学習、費用CDFの再構成|\n"
+        ],
+        [
+          4,
+          12,
+          "原論文：[arXiv:2608.02343v1](https://arxiv.org/abs/2608.02343v1)。提供PDFの§4–6、図3–6、表1–5を確認した。図は数式・平均値から独自に描き直した。公式コードへのリンクは提供PDFで確認できず、公式コードは実行していない。\n"
+        ],
+        [
+          13,
+          14,
+          "### 近い研究とは、守る制約が違う\n"
+        ],
+        [
+          15,
+          16,
+          "以下の制約比較はLabの解釈。[Constrained FBSDE](constrained-deep-inventory-fbsde.html)は状態の経路制約を扱う。[DeepStock](deepstock-policy-regularized-inventory-drl.html)は本論文でも引用される。OR-Transformerとの実験比較は行っていない。\n"
+        ]
+      ]
+    },
+    "papers/diff-projection-feasible-multi-echelon-inventory/method.md": {
+      "before": {
+        "sha256": "d309c799a467311f7183b22755a7e5ae24c2a21c8f5e6e1c5cfdd635c84e33db",
+        "blob": "e02e1198e975cdc74f999ad93c9987c75b834322"
+      },
+      "after": {
+        "sha256": "cb86c47aa9497c3437e607230fda43cf33e674cdf8f30ca90abd8c4715b96322",
+        "blob": "0957cadc81fd6708c7e2903d8e0d45a50bc43761"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 生産目標を制約の内側に移す\n"
+        ],
+        [
+          2,
+          3,
+          "NNの出力zは、各製品をどれだけ作りたいかを表す。そのままでは共有設備や資材の上限を越える場合があるので、制約を守る点のうち、重み付きの距離で目標に最も近い量xを選ぶ（図3）。この強凸二次計画が式(2)の `min ½(x−z)ᵀW(x−z), Mx≤r`。資材や設備の使用係数は非負なので、生産量を下げても使用量は増えない。制約を満たす点の各製品の量を切り捨てても、引き続き制約を守れる。この性質を下方閉と呼ぶ。\n"
+        ],
+        [
+          4,
+          5,
+          "### 切り捨てで空いた容量を、使える分だけ戻す\n"
+        ],
+        [
+          6,
+          7,
+          "整数化は `xᶠ=⌊x*⌋` から始める。優先度は `σᵢ=f(xᶠ;z)−f(xᶠ+eᵢ;z)−[Mᵀλ*]ᵢ`。製品iを1個増やしたときの目的関数の改善分から、制約の厳しさを表す双対価格にもとづく値を差し引く。優先度の順に各製品を1回調べ、制約内で、かつ目的関数を悪化させない増分だけを足す。製品ごとに四捨五入する方法ではない。\n"
+        ],
+        [
+          8,
+          9,
+          "### 目標を動かしたとき、共有上限に沿って配分が変わる\n"
+        ],
+        [
+          10,
+          23,
+          "図4では共有容量に達した射影点が、上限の境界に沿って動く。2製品のCompetingでは `Jz=[[0.5,−0.5],[−0.5,0.5]]`。z₁を少し増やすと、x₁には増分の半分が伝わり、代わりにx₂がその分だけ減る。Pinnedでは製品1の個別上限x₁≤3だけに達しているので、z₁を動かしてもx₁は変わらない。いずれも整数化する前の応答で、学習時に整数化を通過する代理勾配とは区別する。\n"
+        ]
+      ]
+    },
+    "papers/diff-projection-feasible-multi-echelon-inventory/results.json": {
+      "before": {
+        "sha256": "c1f9dbc53330ed10a1c3e24b7562df035c6ceaf403fe95a231bc9eb6083544c5",
+        "blob": "347bfe60abdc6168d9854e7f3cff6e991b76b05f"
+      },
+      "after": {
+        "sha256": "bb3b7a901175b095fa08833f0fe08fc7add215757770dfaa6e1ac3825b47db19",
+        "blob": "1cd3e1d3bb0343207b1a67e68a37a82d7f6c9c31"
+      },
+      "prior_spans": [
+        [
+          3,
+          4,
+          "  \"scope\": \"2D static geometry; no HDPO, STE training, or inventory simulation\",\n"
+        ]
+      ]
+    },
+    "papers/diff-projection-feasible-multi-echelon-inventory/run.py": {
+      "before": {
+        "sha256": "4f9e6afa41cd0f8b2b49ff89ddf57664ded9e7b667fc41fb464a15cd7492898c",
+        "blob": "dcee23acdc0ad6804cfc909dbb2939dce7d857b9"
+      },
+      "after": {
+        "sha256": "ca27977259e9abce76b965ab13548ea60436f41c5182a62c3e98631904a0517d",
+        "blob": "ad41950834aedaeba3bc5dcc2a5d71f2da5a9c1a"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Exact two-coordinate QP and paper §4.1.2 integer mapping; no training.\"\"\"\n"
+        ],
+        [
+          8,
+          9,
+          "    # W=diag(1/2,1/2); feasible polygon vertices in counterclockwise order.\n"
+        ],
+        [
+          32,
+          33,
+          "    # KKT stationarity gives M^T lambda = W(z-x), including lower bounds.\n"
+        ],
+        [
+          64,
+          65,
+          "    # Figure 5: generic targets near (1,1), with the sum constraint active.\n"
+        ],
+        [
+          73,
+          74,
+          "    result=dict(lab01_projection=True,seed=None,scope='2D static geometry; no HDPO, STE training, or inventory simulation',cases=cases,samples=samples,integer_violations=violations,improved_over_floor=improved,max_projection_objective_gap_vs_exact=max_gap,reachability=dict(samples=1600,**reach),paper_evidence={'source':'arXiv:2608.02343v1 Table 4','setting1':{'echelon_DBS':{'holding':218.72,'backorder':68.27},'MSP':{'holding':195.60,'backorder':93.65},'Ours':{'holding':204.21,'backorder':73.53}},'setting2':{'echelon_DBS':{'holding':197.26,'backorder':60.86},'MSP':{'holding':180.89,'backorder':80.65},'Ours':{'holding':189.25,'backorder':62.32}}},verification={'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'})\n"
+        ]
+      ]
+    },
+    "paper_lab/projection01.py": {
+      "before": {
+        "sha256": "7f73e5186691dcbf6e2b25fdd19d760057698ad4f394843de56c10ea1555a2a3",
+        "blob": "94bf003c57e1fbff34a428381556067f614f28c5"
+      },
+      "after": {
+        "sha256": "38d2a489ad5dede5873f38f2299fd990dc29fc872621f965043950d1e640d25d",
+        "blob": "2edcf0c5a3f53abf8239a5058c85e4eac188eb1b"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Paper Figure 4 geometry and Table 4 mean cost composition.\"\"\"\n"
+        ],
+        [
+          9,
+          11,
+          "    display_names={'Free':'どの上限にも達していない（Free）','Pinned':'製品1が個別上限に達した（Pinned）','Competing':'2製品で共有上限に達した（Competing）'}\n    explanations={'Free':'どの制約にも達していないので、目標の変化がそのまま生産量の変化になる。','Pinned':'製品1は上限の3を作る。目標z₁を増やしても実際の量x₁は増えない。','Competing':'2製品で容量6を使い切っている。製品1の目標z₁を上げるとx₁が増え、その分x₂が減る。'}\n"
+        ],
+        [
+          17,
+          19,
+          "        svg=f'''<svg viewBox=\"0 0 470 425\" role=\"img\" aria-label=\"{case['label']}。緑の領域が共有容量と個別上限を守る行動。赤は目標、青は制約を守る最も近い点。\" style=\"width:100%;max-width:560px;height:auto\"><path d=\"M55 63V375H367\" fill=\"none\" stroke=\"currentColor\"/><path d=\"M55 375H211V219L55 63Z\" fill=\"#137d7922\" stroke=\"#137d79\" stroke-width=\"2\"/>{grid}<text x=\"270\" y=\"410\">x₁ 生産量</text><text x=\"10\" y=\"25\">x₂ 生産量</text><text x=\"228\" y=\"170\">x₁ ≤ 3</text><text x=\"65\" y=\"50\">x₁ + x₂ ≤ 6</text><line x1=\"{zx}\" y1=\"{zy}\" x2=\"{xx}\" y2=\"{xy}\" stroke=\"#bc583c\" stroke-dasharray=\"5 4\"/><circle cx=\"{zx}\" cy=\"{zy}\" r=\"7\" fill=\"#bc583c\"/><circle cx=\"{xx}\" cy=\"{xy}\" r=\"5\" fill=\"#246baf\"/><path d=\"M{xx} {xy}L{dx} {dy}\" stroke=\"#246baf\" stroke-width=\"4\"/><text x=\"{zx+10}\" y=\"{zy-10}\">z</text><text x=\"{xx+10}\" y=\"{xy+20}\">x*</text><text x=\"30\" y=\"397\">0</text><text x=\"205\" y=\"397\">3</text><text x=\"363\" y=\"397\">6</text></svg>'''\n        frames.append(svg+f'<p><strong>{case[\"label\"]}</strong>：{explanations[case[\"label\"]]}</p><p>z={z} → x*={list(x)}。∂x*/∂z₁=({j[0][0]}, {j[1][0]})。</p><p>切り捨て後の値={case[\"floor\"]} → 整数化した出力={case[\"integer\"]}。青線は、今の生産量x*から、製品1の目標z₁を上げたときに動く方向を示す。整数にする前の変化。</p>')\n"
+        ],
+        [
+          21,
+          22,
+          "    interactive=f'<figure class=\"teaching\" data-b21><h3>図4を動かす：目標を上げると、どの製品の量が変わるか</h3><label>どの上限に達しているか <select>{options}</select></label><script type=\"application/json\" data-frames>{payload}</script><div data-output aria-live=\"polite\">{frames[0]}</div><figcaption>run.pyの2製品の例。灰色の点は、制約を守る整数の生産量。目標をわずかに動かしたときの連続出力の変化（局所Jacobian）は中心差分で検算した。整数化を通る学習用の代理勾配とは別の値。</figcaption></figure>'\n"
+        ],
+        [
+          23,
+          24,
+          ""
+        ],
+        [
+          26,
+          28,
+          "        bars+=f'<text x=\"10\" y=\"{y}\">{escape(label)}</text><rect x=\"140\" y=\"{y-20}\" width=\"{h}\" height=\"25\" fill=\"#137d79\"/><rect x=\"{140+h}\" y=\"{y-20}\" width=\"{b}\" height=\"25\" fill=\"#bc583c\"/><text x=\"{145+h+b}\" y=\"{y}\">{h+b:.2f}</text><text x=\"140\" y=\"{y+25}\">{h:.2f} + {b:.2f}</text>'\n    evidence=f'<figure class=\"teaching\"><h3>ASML設定1：保有費用とバックオーダー費用</h3><svg viewBox=\"0 0 535 265\" role=\"img\" aria-label=\"表4の平均費用。echelon DBS 286.99、MSP 289.25、提案法277.74。\" style=\"width:100%;height:auto\">{bars}<text x=\"10\" y=\"255\">緑：保有費用　赤：バックオーダー費用</text></svg><figcaption>著者の表4から、同じ設定での平均費用を比較した。各棒は0から始まる。費用の分布を表す累積分布（CDF）でも、Labで再現した値でもない。</figcaption></figure>'\n"
+        ]
+      ]
+    }
+  }
+}
