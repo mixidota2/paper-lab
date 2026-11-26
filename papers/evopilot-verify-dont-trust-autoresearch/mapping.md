@@ -1,13 +1,13 @@
-# Original Paper / Official Code Mapping
+# 原論文のどこをLabで確かめるか
 
-一次資料: [Verify, Don’t Trust: Agentic Model Development for Video Discovery Retrieval at Scale](https://arxiv.org/pdf/2609.21257v1)、arXiv v1。2026-09-22確認。PDF SHA-256: `5f1e410fd37a0188628871d4cd241ab3bf8dcd4af0dfae1043f1c82aec90f913`。取得済みPDFは `/tmp/research-2026-09-22/2609.21257v1.pdf` を再利用した。
+一次資料は[原論文 v1](https://arxiv.org/html/2609.21257v1)です。対応する[PDF](https://arxiv.org/pdf/2609.21257v1)の当初の確認日は2026年9月22日、記録済みのSHA-256は `5f1e410fd37a0188628871d4cd241ab3bf8dcd4af0dfae1043f1c82aec90f913` です。下表のLabは論文の検査手順を理解するための人工例で、著者の実験を再実行するものではありません。
 
-| 原典 | Lab | 省略 |
+| 原論文の箇所 | Labで確かめる操作 | Labが扱わないもの |
 | --- | --- | --- |
-| §3 P/K | evaluate | ANN・two-tower・head |
-| Eq. 3 / §4.2 | verify + human_review pending | remote attestation・人間判断 |
-| §5.2 / Table 5 | fault mutation | 原典10 fixtureの全再現 |
-| §5.3 / Table 6 | incident timeline | 学習比較の再実行 |
-| §5.4 | online evidence | guardrail欠落、product A/B未追試 |
+| §3、§5.3：候補をP件集め、K件を返す | `evaluate()` にK=1とK=600を指定し、実際に残る件数と当たり率を読む | 候補を集める動画の索引、二塔型モデル、再採点部 |
+| 式3、§4.2：実行記録から比較の可否を判断する | `verify()` が共通条件と許可差分を照合する。人による確認は未実施と記録する | 遠隔の成果物の証明、指標の意味についての人の判断 |
+| §5.2、表5：不成立の比較を退ける | 正常な比較と、条件または証拠を一つ変えた五つの比較を試す | 論文の10組をそのまま再現すること |
+| §5.3、表6：誤った比較から測り直す | 図でKの不一致、評価器の修正、重みをそろえた比較を区別して読む | 本番データによる学習や測り直し |
+| §5.5：選んだモデルをオンラインで比べる | 七日間のA/Bテストが測った指標と、オフラインの当たり率を区別して読む | 本番A/Bの追試、保持されなかった悪影響の監視指標 |
 
-公式コード: 確認したPDFに本手法の公開実装へのリンクは見つからなかった。公開の有無を網羅的に保証するものではない。
+確認した一次資料にはEvoPilotの公式実装へのリンクが見つかりませんでした。

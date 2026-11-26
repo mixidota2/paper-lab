@@ -4,18 +4,16 @@ EvoPilotは、ある動画の後に見る動画を探す検索モデルの開発
 
 候補を再採点する部分を追加した初期実験では、当たり率が22ポイント下がったという結論が出ました。しかし、両群が同じ候補数を指定したにもかかわらず、実際に評価に使った候補数は異なっていました。最初に問題を見つけたのは人の確認で、自動検査を強化したのはその後です。評価条件をそろえた後の別のオフライン比較では、著者は当たり率が3.20ポイント上がったと報告しています。
 
-公開ページ: https://mixidota2.github.io/paper-lab/papers/evopilot-verify-dont-trust-autoresearch.html
+[Labで図と結果を見る](https://mixidota2.github.io/paper-lab/papers/evopilot-verify-dont-trust-autoresearch.html)
 
-## 実行
+## 人工例を動かす
+
+`run.py` をPythonで実行すると、同じフォルダーの `results.json` に、評価器が実際に残した件数と二つの実験を比較できるかどうかが書き出されます。Python標準ライブラリだけを使います。
 
 ```bash
 uv run papers/evopilot-verify-dont-trust-autoresearch/run.py
 ```
 
-Python標準ライブラリだけを使う。`lab.yaml` と `method.md` が解説の原本、`run.py` が最小実験、`results.json` が出力、`mapping.md` が原典との対応。HTMLは `uv run paper-lab build` で生成する。
+候補を3000件残してしまう評価器と、指定どおりに候補を絞る評価器に、それぞれ1件と600件を指定します。次に、二つの実験の記録を見比べます。条件がそろった比較は機械検査を通り、許可外の変更、変更の未実施、証拠の欠落があれば検査は比較を退けます。機械検査を通った比較も、人が指標の意味を確認したことにはなりません。
 
-## 検証範囲
-
-Mechanism PARTIAL。実現Kの反証probeと、pairの許可外差分・no-op・欠落の拒否は人工artifactでCONFIRMED。canonical recordのhashも計算する。
-
-Performance / Scaling / Production applicability NOT TESTED。本番MBR学習、数億動画index、37日agent運用、offline +3.20 pp、online +0.66%は再現していない。local hashは遠隔artifactの真正性を保証しない。
+`lab.yaml` と `method.md` は記事の原稿、`mapping.md` は論文との対応表です。この例では本番規模の学習、索引、実験運用、論文報告の精度向上は検証していません。出力した照合用のハッシュは遠隔で実行されたものの真正性を証明しません。

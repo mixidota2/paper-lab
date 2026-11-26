@@ -1,7 +1,6 @@
 id: evopilot-verify-dont-trust-autoresearch
 arxiv_id: '2609.21257'
-title: 'Verify, Don’t Trust: Agentic Model Development for Video Discovery Retrieval
-  at Scale'
+title: 'Verify, Don’t Trust: Agentic Model Development for Video Discovery Retrieval at Scale'
 authors:
 - Hao Fu
 - Baiting Zhu
@@ -19,9 +18,8 @@ urls:
   official_code: null
 verdict: Watch
 status: published
-question: 完了した二つの実験を、比較してよい証拠にする条件は何か
-summary: 37日間のVDD研究で、−22 ppという誤った比較をhuman gateが棄却。評価器修正後、matched-lineageで+3.20 pp、別の7日A/BでGSRR
-  +0.66%相対差。
+question: 二つの実験結果をモデルの比較に使うには、何をそろえればよいか
+summary: 著者は動画検索モデルの再採点を評価し、出力件数がそろわない比較を退けました。重みと出力件数を固定した比較では、再採点による当たり率の伸びは3.20ポイントです。別のオンライン実験では、選んだモデルの指標が相対で0.66%上がりました。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -33,121 +31,115 @@ source_review:
   version: v1
   pdf_sha256: 5f1e410fd37a0188628871d4cd241ab3bf8dcd4af0dfae1043f1c82aec90f913
   url: https://arxiv.org/pdf/2609.21257v1
-  scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。
+  scope: 原論文v1の本文、数式、表と限界を確認しました。論文に記録された結果とLabの人工例を分けて説明します。
 core_idea:
-  author_claim: 各実験が完了し、実験の来歴をたどれても、比較が妥当とは限らない。事前に承認した比較条件と、成果物に記録された実際の条件を照合する。必要な証拠が欠ける比較は受け付けない。
-  research_bot_interpretation: '[AURA](aura-disney-agentic-rec-diagnosis.html)は何を直すべきかを診断し、EvoPilotは修正を比べた測定が有効かを検査する。[PILOT](pilot-experiment-lifecycle.html)の非同期実験運用や[AgentX](agentx-kuaishou.html)のkeep判定にも、比較条件が揃ったかという前提を追加できる。'
+  author_claim: 著者は実験の終了とモデルどうしの比較の成立を分けます。担当者が実行前に条件を決め、終了後に成果物から読み取った条件と照合します。条件が違うか必要な証拠がなければ、その差をモデルの効果として扱いません。
+  research_bot_interpretation: '[AURA](aura-disney-agentic-rec-diagnosis.html)はモデルのどこを調べるかを考えます。[PILOT](pilot-experiment-lifecycle.html)は実験を途中で止めたり再開したりします。EvoPilotが扱うのは、その結果を比較に使えるかどうかです。[AgentX](agentx-kuaishou.html)のように結果を見て変更を採用する場合にも、先に比較条件を確かめられます。'
 sections:
   overview: |-
     EvoPilotは、ある動画の後に見る動画を探す検索モデルの開発で、実験結果を公平に比べるための仕組みです。担当者が実験計画を承認し、実行後には計画どおりの出力が得られたかを確かめます。実行が最後まで終わっても、指標の測り方が両群でそろっていなければ、モデルの良し悪しは判断できません。
 
     候補を再採点する部分を追加した初期実験では、当たり率が22ポイント下がったという結論が出ました。しかし、両群が同じ候補数を指定したにもかかわらず、実際に評価に使った候補数は異なっていました。最初に問題を見つけたのは人の確認で、自動検査を強化したのはその後です。評価条件をそろえた後の別のオフライン比較では、著者は当たり率が3.20ポイント上がったと報告しています。
-  problem: 長いML実験はsource、data、training、publish、index、evaluatorをまたぐ。各runが成功し、どのrevisionで実行したか分かっても、二つのrunが同じ測定をしているとは限らない。code変更がno-op、eval日がtrainに混入、K/Pが宣言と不一致、といった問題を「modelが悪い」という結果から切り分ける必要がある。
-  why_it_might_work: '解釈: proposalを実行権限や証拠と混同せず、typed adapterで実行し、artifactを独立verifierへ渡すと、agentの説明だけで比較を通しにくくなる。前回の失敗をmemoryに保存するだけでは防止策にならない。次回のartifactや状態遷移に適用できる検査へ変換して初めて強制力を持つ。evaluatorの意味自体が正しいかは人間の確認が残る。'
-  evidence: '一次資料 [PDF §5、Tables 1–6](https://arxiv.org/pdf/2609.21257v1) の著者報告。37日・7方向・20承認round。記録が揃う部分集合は9
-    round・29 variantで、22 train、22 publish、27 evaluateの計71論理stage。27/29はこの部分集合でscientific
-    resultまで完了した割合であり、20 round全体の成功率ではない。
+  problem: 実験に使ったコードが分かり、両条件で指標が一つずつ得られても、数値が同じものを測ったとは限りません。たとえば、再採点を切った条件だけが候補を3000件返し、オンにした条件は600件しか返さないとします。3000件の中の方が正解を含めやすく、両群の当たり率の差を再採点の効果としては読めません。
+  why_it_might_work: EvoPilotではエージェントが実験を提案し、人が共通条件と変えてよい項目を決めます。実行後には、提案者とは別の検査が成果物を読みます。次回も条件を守れるよう、過去の注意書きを出力件数などの照合に使う検査へ変えます。それでも、出力の数え方が意図した指標に合うかは人が確かめます。
+  evidence: |-
+    一次資料は[原論文 §5・表1〜6](https://arxiv.org/html/2609.21257v1)です。以下は著者の報告です。
 
+    著者は約37日間に7つの研究の方向を調べ、担当者が20回の実験計画を承認しました。運用記録がそろう9回では、29条件すべてで終了状態が残り、27条件で科学的な結果を得ました。残る2条件はメモリ不足でした。27/29は記録がそろう部分の値で、全20回の成功率ではありません。この9回で記録された作業は、学習22回、評価用の公開22回、評価27回の計71工程です。条件によっては、学習せず既存の成果物を使って評価だけを行いました。
 
-    −22 ppの旧比較はcontrol K_eff=3000、treatment K_eff=600。宣言は両方600だった。修正後の同じ(P,K)=(3000,600)再試験は+4.8
-    ppだが、base modelも変わりbundled effect。後のmatched-lineage比較はcheckpointとK=3000を固定し、control
-    P=3000/head off、treatment P=6000/head onで+3.20 pp。head offのtop-KはPに不変という性質を使った、選定運用点でのhead効果である。
+    再採点の初期実験では両群とも上位3000件を集めて600件を返す設定でしたが、再採点なしの評価器は3000件を残しました。再採点ありは600件でした。当たり率が22ポイント落ちたように見えても、著者は再採点の効果とは認めません。著者は対照側でKを600から1に変えても当たり率がほぼ動かないことを確かめ、候補を評価器に渡すときと指標を計算する直前の両方でK件に絞る処理を足しました。
 
+    修正後に両群を3000件から600件に絞った比較では、当たり率が4.8ポイント上がりました。この試行は元のモデルも変更したため、複数の変更をまとめた差です。さらに後の比較では学習済みの重みと最終3000件を固定しました。再採点なしは候補3000件、ありは6000件です。再採点なしなら候補を増やしても上位3000件が変わらないため、著者はこの運用点で再採点を有効にした効果を3.20ポイントと報告しました。比較の条件を変えても同じ差が出るとは示していません。別の比較で使った±0.36ポイントは運用上のばらつきの目安で、信頼区間ではありません。
 
-    別のaccount-randomized A/BはUS/Canada VDD-pivot slice、7日観測＋別の7日pre-period。GSRR +0.66%相対差で、著者は統計的有意と報告する。guardrail結果は保存datasetにない。これは選ばれたmodel変更の効果であり、EvoPilotを使うことの生産性や因果的優位性のRCTではない。
+    別の本番A/Bテストではアカウントを無作為に分け、7日間の結果を別の7日間の事前データで調整しました。米国とカナダで対象となる動画検索セッションのうち、定めた利用行動を満たした割合（GSRR）は相対で0.66%上がりました。0.66ポイントではありません。また、利用者に出したモデルの効果であり、EvoPilotを使うと開発が速くなることを測った実験ではありません。悪影響を確認する指標の値は、著者が分析に使ったデータには残っていません。著者によると、テスト後に再採点が既定になりましたが、切り替え後の効果は別に測っていません。
 
-
-    10組のclean/fault replayは全clean受理・全fault拒否。ただしfunnel/evaluator identity等3組はpost-study強化の検査で、全37日間に自動検知していたわけではない。'
-  executable_understanding: '`uv run papers/evopilot-verify-dont-trust-autoresearch/run.py`。出力Kを無視する壊れたevaluatorと修正版へK=1/600を与える。別に同じbase/data/evaluatorと承認差分を照合し、depth不一致・evaluator変更・data変更・no-op・証拠欠落を注入して拒否を確かめる。'
-  results: 壊れた人工evaluatorはK=1と600で同じhit率1.0。修正版は0.01/0.20へ分かれる。5種類のfaultはすべて拒否し、clean
-    pairだけ機械検査を通過。human_reviewはpendingのまま記録するので、機械検査の成功を人間の承認済みと扱わない。この人工例では、許可した変更が実際には起きていない場合も拒否する。許可外の差分がないことだけでは、意図した比較を実行できた証拠にならない。原典の−22 ppを人工実験で再現するよう値を設定していない。
-  what_we_verified: Mechanism PARTIAL。実現Kの反証probeと、pairの許可外差分・no-op・欠落の拒否は人工artifactでCONFIRMED。canonical
-    recordのhashも計算する。
-  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。本番MBR学習、数億動画index、37日agent運用、offline
-    +3.20 pp、online +0.66%は再現していない。local hashは遠隔artifactの真正性を保証しない。
-  implementation: '`evaluate()`がK契約の破壊・修正、`verify()`が承認差分と必須証拠の確認。`durable_record`はcontrol/treatment・allowed_diff・判定・human
-    statusを一緒に保存する。実際のworkflow adapter、atomic state更新、remote再開・tool権限は省略する。'
+    著者は保存した正常な比較と、条件や証拠を壊した比較を10組用意しました。検査は正常な10件を通し、不成立の10件を退けました。このうち3組は研究期間後に加えた検査を再現したものです。最初の件数の誤りは人が見つけており、この再現だけで現場の見逃し率や誤って退ける率は分かりません。
+  executable_understanding: 配布の `run.py` をPythonで実行します。指定した最終件数が1件の場合と600件の場合で当たり率が変わるかを、同じ100件の人工データで比べる例です。もう一つの例では再採点のオン・オフだけを変更してよいと決め、二つの実験の記録を六通り比較します。
+  results: 指定件数を無視する評価器はどちらの指定でも3000件を残し、正解を100件中100件含みます。指定を守る評価器では、1件を残すと100件中1件、600件を残すと100件中20件が当たります。比較の例では、機械検査は条件がそろう1組を通し、残り5組を退けました。退けた理由は、最終件数が違う、評価器が違う、データが違う、許可した変更が行われていない、証拠が足りない、の五つです。許可外の違いがないだけでは不十分です。検査は、許可した変更が実際には起きていない場合も拒否します。人の確認は未実施のままです。
+  what_we_verified: 人工例では指定を600件から1件に減らしても、壊れた評価器の当たり率は変わりません。出力件数を確認すると、指定が反映されていないと分かります。二つの実行記録を照合し、五つの不成立の比較を退けることも確かめました。機械検査と人の判断を分ける仕組みのうち、実行したのは機械検査までです。
+  what_we_did_not_verify: Labは本番の学習、数億件の動画索引、37日間の運用を再現していません。著者が報告した当たり率の3.20ポイント増とオンライン指標の相対0.66%増も再測定していません。人工例の記録から計算したハッシュは、遠隔の成果物が本物であることを証明しません。
+  implementation: '`evaluate()` は候補の順位と件数から当たり率を計算します。`verify()` は両群の実行記録を読み、必要な項目、終了状態、変更した項目を確認します。`durable_record` には両群の記録、許可した差分、判定、人の確認状況を保存します。遠隔での実行と再開、同時更新の制御、操作権限はこの例に含めていません。'
   method: method.md
   mapping: mapping.md
 teaching_figures:
 - kind: timeline
   id: incident
-  title: −22 ppから+3.20 ppまでに、比較条件を修復した
+  title: 出力件数を直し、再採点の効果を測り直す
   after: evidence
   locator: §5.2–5.3 / Table 6
-  rationale: −22 ppから+3.20 ppまでに、比較条件を修復した
-  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  rationale: 同じ当たり率でも、比較の条件が違うと意味が変わります。
+  caption: 原論文の著者報告です。Labの人工例から得た値ではありません。
   source: https://arxiv.org/pdf/2609.21257v1
   rows:
-  - label: 旧autoresearch
+  - label: 最初の比較
     nodes:
-    - title: 宣言K=600
-      text: controlだけK_eff=3000
-    - title: −22 pp
-      text: headの悪化と誤帰属
-  - label: EvoPilot導入
+    - title: 設定はどちらも600件
+      text: 再採点なしの評価器だけが3000件を残した。
+    - title: 見かけ上22ポイント減
+      text: 条件がそろわず、再採点の効果にはできない。
+  - label: 原因の確認
     nodes:
-    - title: human gate
-      text: 比較不成立を検出
-    - title: K=1反証probe
-      text: 旧evaluatorは出力数を変えていなかった
-  - label: 修正後
+    - title: 人が比較を確認
+      text: 指標に入れた実際の件数が違うと分かった。
+    - title: Kを1にして試す
+      text: 旧評価器の当たり率はほぼ変わらなかった。
+  - label: 評価器の修正後
     nodes:
-    - title: 再試験 +4.8 pp
-      text: baseも変化した複合効果
-    - title: matched-lineage +3.20 pp
-      text: K=3000固定。headの選定運用点
-  - label: 別のオンライン検証
+    - title: 4.8ポイント増
+      text: 元のモデルも変更したため、再採点だけの差ではない。
+    - title: 3.20ポイント増
+      text: 重みと最終件数を固定し、選んだ運用点で再採点を比較した。
+  - label: 別の検証
     nodes:
-    - title: 7日A/B
-      text: GSRR +0.66% relative
-    - title: 事後guard
-      text: identity検査をreplayで確認
+    - title: オンラインで相対0.66%増
+      text: 選んだモデルを7日間のA/Bテストで比較した。
+    - title: 事後に自動検査を試す
+      text: 保存した例を使い、新しい検査が件数の誤りを退けるか確認した。
 - kind: equations
   id: admission
-  title: 機械検査と人間の意味確認を両方必要にする
+  title: 比較に使う前に、機械と人が別のことを確かめる
   after: method
   locator: Eq. 3 / §5.1
-  rationale: 機械検査と人間の意味確認を両方必要にする
-  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  rationale: 機械は実行記録を照合し、人は指標の意味を確かめます。
+  caption: 原論文の比較条件とオンライン指標を読み解くための式です。
   source: https://arxiv.org/pdf/2609.21257v1
   steps:
-  - name: 比較の受理
+  - name: 二つの実験を比較に使う条件
     formula: A(c,t;R) = 1[VerifyR(c,t)] × 1[ReviewR(c,t)]
-    explanation: run単位の成功だけでは両項を満たせない。
-  - name: オンライン指標
+    explanation: 機械検査と人の確認が両方通ったときだけ使います。
+  - name: 実際の利用で測る割合
     formula: GSRR = qualifying eligible pivot sessions / eligible pivot sessions
-    explanation: offline hit-rateとは母集団も意味も違う。
-  - name: 相対lift
+    explanation: 対象セッションのうち、定めた利用行動を満たす割合です。
+  - name: 比較群を基準にした相対差
     formula: lift = (GSRRt − GSRRc) / GSRRc
-    explanation: +0.66%を+0.66 percentage pointへ変換しない。
+    explanation: 差を比較群の割合で割るため、0.66%増と0.66ポイント増は異なります。
 - kind: matrix
   id: proof-layers
-  title: 証拠の段階を飛ばさない
+  title: 実験が終わっても、比べられるとは限らない
   after: problem
   locator: Table 1 / §4.2
-  rationale: 証拠の段階を飛ばさない
-  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  rationale: 実験の完了、出所、比較条件、指標の意味を別々に確認します。
+  caption: 原論文の表1と第4.2節をもとに、どこまで判断できるかを整理しました。
   source: https://arxiv.org/pdf/2609.21257v1
   columns:
   - 確認できること
   - まだ保証しないこと
   rows:
-  - label: run完了
+  - label: 実験の完了
     cells:
-    - terminal metricがある
-    - 比較条件が同じ
-  - label: lineage
+    - 実験が終わり、指標が残った。
+    - 二つの実験が同じ条件で指標を測ったか。
+  - label: 使ったコードと設定の記録
     cells:
-    - revisionへ遡れる
-    - その差分が許可済み
-  - label: pair verifier
+    - 実際に使ったコードや設定をたどれる。
+    - 変更した項目が事前に許可されていたか。
+  - label: 比較条件の機械検査
     cells:
-    - artifactの実現差を照合
-    - metricの意味が妥当
-  - label: human review
+    - 成果物を読み、許可した違いだけが生じたか確かめる。
+    - 指標が意図したものを測っているか。
+  - label: 人による確認
     cells:
-    - 意味と例外を判断
-    - 将来の全faultを防ぐ
+    - 指標の意味や例外を判断する。
+    - 次の実験で起きるすべての誤りを防げるか。
 results: results.json
 submitted: '2026-09-18'

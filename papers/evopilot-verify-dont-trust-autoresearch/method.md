@@ -1,17 +1,15 @@
-### 実験対象はtwo-towerとinteraction head
+### 動画の候補を絞る二つの数
 
-Video Deep Diveはseed動画の後に関連動画を探す面。model-based retrieval（MBR）はrequest towerとcandidate towerからANN affinityを作り、上位P件へcandidate-conditioned interaction headを適用し、最終K件を残す。Pはheadへ入る候補数、Kはretrieval出力数である。
+Video Deep Dive（VDD）は、利用者が起点の動画を見たあとに関連動画を探す機能です。著者が調べた検索モデルには、リクエストと候補動画を別々の数値ベクトルに変換する二つのネットワークがあります。この構成を「二塔型」と呼びます。検索時には、二つのベクトルが近い動画を索引から上位P件探します。再採点をオンにすると、再採点部（interaction head）がリクエストと候補動画を組み合わせて各候補を採点し、最後に上位K件を後段へ渡します。Pは先に拾う件数、Kは後段に渡す件数です。
 
-two-towerとheadは共同学習した同じcheckpointに含まれる。headを推論時に切る比較は学習からheadを削除する比較とは違う。indexとcandidate embeddingは時間単位で更新するが、neural weightsを毎時再学習するという意味ではない。
+著者は二塔型の部分と再採点部を一緒に学習し、一つの重みのファイルに保存しました。比較ではその重みを使ったまま推論時の再採点をオン・オフします。索引と動画ベクトルは毎時更新しますが、モデルの重みを毎時学習し直すわけではありません。[原論文 §3](https://arxiv.org/html/2609.21257v1)
 
-### 実行手順と証拠の受理を分離する
+### EvoPilotは、実行前の約束と実行後の記録を比べる
 
-versioned domain skillはconfig探索、small preflight、train→publish-for-evaluation→evaluateのDAGと再開手順を定義する。typed adapterが承認されたvariantを具体的な操作に対応付ける。workerは隔離環境で実行し、verifierがartifactを読み、analystが仮説treeを更新、plannerが次round案を作る。人間が毎round承認する。
+担当者は二つの条件で共通にするモデルやデータ、評価指標、変更してよい項目、比較に必要な出力を先に決めます。エージェントが次の実験計画を出し、担当者が承認した場合に限り、実行用のアダプターが計画を学習・評価向けの公開・評価へ変換します。実行担当は条件ごとに別の環境で作業します。途中で止まっても、必要な条件を満たす学習済みモデルや索引が残っていれば、そこから再開できます。
 
-計画・変更・結果統合・修復はClaude Opus 4.7/4.8、限定されたread-only監視はClaude Haiku。これらは本文に記載されたagent modelであり、推薦modelのbackbone名ではない。各役割はpromptまたはhash、model alias、session、status等を記録する。
+各実験が終わると、検査担当は出力を読み、許可した違いが実際に生じ、それ以外の条件がそろったかを確認します。比較の可否を決めるには、指標が意図したものを測っているかを人も確認します。分析担当が結果を整理し、計画担当が次の案を立てます。著者が挙げたClaude Opus 4.7/4.8とHaikuはこの運用を担うエージェントであり、動画を検索するモデルではありません。[原論文 §4](https://arxiv.org/html/2609.21257v1)
 
-### 許された差分だけが実現したか調べる
+### 障害の記録を次回も働く検査に変える
 
-round protocol Rはcommon base、data pin、evaluator、metric、必須terminal artifact、許可差分、停止条件を指定する。両runが成功し、artifactの実現値が仕様と一致し、非treatment部分が同等であることを確認。どれかが欠ければreject。人間によるmetricの意味の確認も済んで初めてadmitする。
-
-memoryにはevent ledger、過去結果、incident catalog、実験記述が残る。ただしmemoryのlessonは助言であり、検査として実装されるまでgateを代替しない。初期incidentを自動guardが検知したという読みは避ける。
+著者は実行履歴、過去の結論、障害、実験の説明を保存しました。ただし、前回の失敗が記録に残っているだけでは、次回も同じ誤りを見つけられるとは限りません。たとえば、設定に書いたKと出力に実際に残った件数を毎回照合すれば、不一致がある比較を除外できます。最初の不一致は人が見つけました。著者はその後に自動検査を足し、保存済みの条件を使って検査が働くか確かめました。[原論文 §5.2–5.3](https://arxiv.org/html/2609.21257v1)
