@@ -141,8 +141,8 @@
     "boundary_labels": "CONFIRMED"
   },
   "limitations": [
-    "No provider or readout training",
-    "Hand-designed oracle distributions",
-    "No public dataset benchmark or production A/B"
+    "分布を推定するモデルや後段のモデルは学習していない",
+    "分布はLabが先に決めた",
+    "公開データでの精度比較や本番のA/Bテストは実施していない"
   ]
 }
