@@ -58,7 +58,7 @@ assert(html.includes('minmax(min(100%,230px),1fr)'));assert(html.includes('max-w
 def test_new_catalog_and_downloads(tmp_path):
     from paper_lab.build import build
     labs=build(root=ROOT,site_dir=tmp_path/'site')
-    assert len(labs)==120
+    assert len(labs)==121
     page=(tmp_path/'site/papers/retail-forecast-decision-grain.html').read_text()
     for needle in ['grain-lab','2610.25170','casrp']:
         if needle=='casrp':assert needle not in page

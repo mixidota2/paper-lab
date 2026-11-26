@@ -117,7 +117,7 @@ def test_only_assortment_block_changed_and_all_capture_calls_preserved():
     old_text = old_text.replace('潜在需要 {sum(latent)} 個のうち、観測されなかった需要は {sum(latent) - sum(observed)} 個。', '潜在需要は{sum(latent)}個です。在庫が足りず、{sum(latent) - sum(observed)}個を売り逃しました。')
     assert old_text.count("'正の価値あり' if cases['oracle']['value_percent'] > 0 else '価値ゼロ'") == 1
     old_text = old_text.replace("'正の価値あり' if cases['oracle']['value_percent'] > 0 else '価値ゼロ'", "'平均費用が下がりました' if cases['oracle']['value_percent'] > 0 else '平均費用は変わりませんでした'")
-    old=ast.parse(old_text.replace("117", "120").replace("117件のLab", "120件のLab"))
+    old=ast.parse(old_text.replace("117", "121").replace("117件のLab", "121件のLab"))
     new=ast.parse((ROOT/'tests/review_103.py').read_text())
     def normalize(tree,new=False):
         tree=copy.deepcopy(tree)
