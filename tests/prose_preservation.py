@@ -124,7 +124,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = assortment_full_prose_hash(root, path, expected, algorithm)
     expected = hasterad_full_prose_hash(root, path, expected, algorithm)
     expected = orpr_full_prose_hash(root, path, expected, algorithm)
-    return deepstock_full_prose_hash(root, path, expected, algorithm)
+    expected = deepstock_full_prose_hash(root, path, expected, algorithm)
+    return source_overview_correction_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -1332,6 +1333,9 @@ def before_orpr_full_prose(root, path, current):
     previous = ''.join(lines).encode()
     assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
     return previous
+
+
+from source_overview_corrections import source_overview_correction_hash
 
 
 def deepstock_full_prose_hash(root, path, expected, algorithm='sha256'):
