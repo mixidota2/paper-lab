@@ -1,4 +1,4 @@
-"""Bounded toy replay and exact policy response; no LLM training or paper reproduction."""
+"""人工需要で発注量と費用差を計算する。言語モデルの学習や論文の追試は行わない。"""
 import json
 import math
 import random
@@ -26,8 +26,11 @@ def main():
     paths = [[rng.randint(0, 10) for _ in range(60)] for _ in range(256)]
     policies = [('CBS',0,1,False),('Tilted-CBS',.25,1,False),('Tilted-PIC',.25,.65,True)]
     costs = {name:[replay(d,a,k,p) for d in paths] for name,a,k,p in policies}
-    # q <= gap for these specific candidates, hence total on-hand+pipeline <= 24
-    # and daily cost <= 24 + 9*10 = 114. Both path costs in [0,114].
+    # CBS系は q <= gap。Tilted-PICは係数0.65の積を四捨五入するため、
+    # gap=0.875で q=1 になるように、不足を最大0.5だけ超えることがある。
+    # 初期の在庫と入荷予定の合計は22。入荷で合計は変わらず、販売で増えないので、
+    # 発注後も24.5以下。終日在庫と売り逃しは同じ日に正にならないため、
+    # 1日の費用は max(24.5, 9*10)=90 以下。区間向けの上限114は据え置く。
     bound, delta, comparisons = 114, .05, 2
     radius = bound * math.sqrt(2 * math.log(2 * comparisons / delta) / len(paths))
     rows=[]
@@ -42,7 +45,7 @@ def main():
     assert all(order(g,alpha=0)==order(g) for g in range(31))
     assert all(order(g,alpha=.25,kp=1,pic=True)==order(g,alpha=.25) for g in range(31))
     assert all(0 <= c <= bound for cs in costs.values() for c in cs)
-    out=dict(lab30='invevolve',scope='人工需要の方策応答と保守的な認証。論文の追試ではない。',seed=930,paths=256,days=60,lead_time=3,base_stock=24,base_cap=4,holding=1,penalty=9,bound=bound,delta=delta,comparisons=comparisons,replay=rows,frames=frames,checks={'alpha_zero_recovers_cbs':True,'integer_gap_kp_one_recovers_tilted':True,'bounded_cost':True},paper_reported={'synthetic':{'base_glm':13,'invevolve':25,'n':30},'cj':{'invevolve':20,'a3c':11,'e2e':16,'n':30,'cost_reduction_on_wins_pct':9.2},'stationary':{'tilted_cbs':[18,74,4],'tilted_pic':[41,47,8],'n':96,'tie_threshold_pct':2}},verification={'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'})
+    out=dict(lab30='invevolve',scope='人工需要で発注量と費用差を計算し、固定の参照方策を置き換える条件を確かめる。論文の追試ではない。',seed=930,paths=256,days=60,lead_time=3,base_stock=24,base_cap=4,holding=1,penalty=9,bound=bound,delta=delta,comparisons=comparisons,replay=rows,frames=frames,checks={'alpha_zero_recovers_cbs':True,'integer_gap_kp_one_recovers_tilted':True,'bounded_cost':True},paper_reported={'synthetic':{'base_glm':13,'invevolve':25,'n':30},'cj':{'invevolve':20,'a3c':11,'e2e':16,'n':30,'cost_reduction_on_wins_pct':9.2},'stationary':{'tilted_cbs':[18,74,4],'tilted_pic':[41,47,8],'n':96,'tie_threshold_pct':2}},verification={'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'})
     (ROOT/'results.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n')
     print(json.dumps(rows,ensure_ascii=False,indent=2))
 
