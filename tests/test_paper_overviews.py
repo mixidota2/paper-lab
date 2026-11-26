@@ -8,13 +8,14 @@ import pytest
 import yaml
 
 from paper_lab.build import build
-from prose_preservation import before_orpr_full_prose, before_hasterad_full_prose, before_assortment_full_prose, before_vn2_full_prose, before_intervention_full_prose, before_ogr_full_prose, before_unique_full_prose, before_flashtrie_full_prose, before_pinterest_full_rewrite, before_ahe_full_prose, before_dcdn_full_prose, before_ono_full_rewrite, before_wrapped_produce_full_rewrite, before_static_constrained_full_rewrite, before_forecast_critic_full_rewrite, before_retail_grain_full_rewrite, before_switch_hurdle_full_rewrite, before_perishable_full_rewrite, before_sid_ope_full_rewrite, before_quasid_full_rewrite, before_semantic_id_pair_full_rewrite, before_forecast_pair_full_rewrite, before_harness_icegr_full_rewrite, before_tgr_full_rewrite, before_sona_full_rewrite, before_genpage_full_rewrite, before_unir2_full_rewrite, paper_overview_rewrite_hash, restored_before_paper_overview
+from prose_preservation import before_deepstock_full_prose, before_orpr_full_prose, before_hasterad_full_prose, before_assortment_full_prose, before_vn2_full_prose, before_intervention_full_prose, before_ogr_full_prose, before_unique_full_prose, before_flashtrie_full_prose, before_pinterest_full_rewrite, before_ahe_full_prose, before_dcdn_full_prose, before_ono_full_rewrite, before_wrapped_produce_full_rewrite, before_static_constrained_full_rewrite, before_forecast_critic_full_rewrite, before_retail_grain_full_rewrite, before_switch_hurdle_full_rewrite, before_perishable_full_rewrite, before_sid_ope_full_rewrite, before_quasid_full_rewrite, before_semantic_id_pair_full_rewrite, before_forecast_pair_full_rewrite, before_harness_icegr_full_rewrite, before_tgr_full_rewrite, before_sona_full_rewrite, before_genpage_full_rewrite, before_unir2_full_rewrite, paper_overview_rewrite_hash, restored_before_paper_overview
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def before_full_article_rewrites(root, path, current):
-    old = before_orpr_full_prose(root, path, current)
+    old = before_deepstock_full_prose(root, path, current)
+    old = before_orpr_full_prose(root, path, old)
     old = before_hasterad_full_prose(root, path, old)
     old = before_assortment_full_prose(root, path, old)
     old = before_vn2_full_prose(root, path, old)

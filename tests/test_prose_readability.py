@@ -145,8 +145,8 @@ def test_inventory_learning_explanations_keep_conditions_and_download_mirrors():
         for section in sections:
             assert normalized(lab['sections'][section]) in readme
     deep = labs['deepstock-policy-regularized-inventory-drl']['sections']
-    assert 'ネットワークの出力μ自体も在庫状態によって変わる' in deep['why_it_might_work']
-    assert '単調性保証にはならない' in deep['why_it_might_work']
+    assert 'ネットワークの出力は在庫状態によっても変わります' in deep['why_it_might_work']
+    assert '在庫が増えるたびに発注を減らしたり、需要が増えるたびに発注を増やしたりするとは限りません' in deep['why_it_might_work']
     fbsde = labs['constrained-deep-inventory-fbsde']['sections']
     assert '共通する区間がなければ実行不能' in fbsde['executable_understanding']
     assert '全制約を満たす発注が存在することは保証していない' in fbsde['what_we_did_not_verify']
