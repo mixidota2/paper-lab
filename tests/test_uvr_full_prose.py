@@ -6,7 +6,7 @@ import pytest
 import yaml
 
 from paper_lab.build import _metrics_table
-from prose_preservation import before_uvr_full_prose
+from prose_preservation import before_grace_full_prose, before_uvr_full_prose
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -37,7 +37,7 @@ def test_uvr_rendered_labels_keep_metrics_and_other_articles_unchanged():
     assert '<td>0.73361</td><td>0.75899</td>' in table
     assert 'trial_MRR' not in table and 'reorder_MRR' not in table
 
-    now = (ROOT / LABELS).read_bytes()
+    now = before_grace_full_prose(ROOT, LABELS, (ROOT / LABELS).read_bytes())
     before = before_uvr_full_prose(ROOT, LABELS, now)
     assert unchanged_papers(before) == unchanged_papers(now)
     with pytest.raises(AssertionError):

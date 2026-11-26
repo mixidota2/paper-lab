@@ -1,14 +1,14 @@
-# Original Paper / Official Code Mapping
+# 論文とLabの対応
 
-一次資料: [GRACE: Generative Recommender Acceleration Engine for Real-Time Ads Retrieval](https://arxiv.org/pdf/2608.00938v1)、arXiv v1。2026-09-22確認。PDF SHA-256: `4b0fb0a46d634f111450e471f1b5236435b68c59d03e8ccd03601bc176cadfae`。取得済みPDFは `/tmp/research-2026-09-22/2608.00938v1.pdf` を再利用した。
+出典はMetaの研究チームによる [GRACEの論文（arXiv v1）](https://arxiv.org/pdf/2608.00938v1) です。記録しているPDFのSHA-256は `4b0fb0a46d634f111450e471f1b5236435b68c59d03e8ccd03601bc176cadfae` です。
 
-| 原典 | Lab | 省略 |
+| 論文の箇所 | Labで何を説明したか | Labが再現していないこと |
 | --- | --- | --- |
-| §4.2 | union / match | 実targeting全属性、k-way最適化 |
-| §4.3 | bloom | 256-bit production hash、GPU |
-| §5 | decoder解説 | 全kernel・paged KVの実装 |
-| Tables 3,6 | Evidence / latency表 | 生request・GH200再測定 |
+| §4.2 | `run.py` の `union()` と `match()` が、広告の条件をまとめて照合します。異なる広告の条件が混ざると、配信できる広告がなくても枝が残ります。 | 本番の配信条件を網羅した判定、枝をさらに分割する方式の評価 |
+| §4.3 | 合成例では8ビットのブルームフィルターを使い、登録していない場所を通す例を示します。 | 論文の256ビット設定と本番のハッシュ方式、GPU処理 |
+| §5、付録B | 記事の「手法」では、同じ利用者から伸びた候補がどの情報を共有するかを説明します。 | GPUでの実装、KVキャッシュやビーム探索の速度測定 |
+| 表3、表6 | 記事は、最後の配信条件を通った広告の割合と、生成ループ・推論処理全体の時間を分けて示します。 | 実際のリクエストを使った通過率、GH200の処理時間の再測定 |
 
-比較先STATIC/FlashTrieのLabは制約付きdecodeの計算経路を扱う。GTMのpass率をそれらのretrieval品質と直接比較しない。
+STATICやFlashTrieは、生成できる識別コードを制限する処理を主に扱っています。カタログにあるコードを見つけることと、今回のリクエストで配信できる広告を見つけることは別なので、通過率をそのまま比較しません。
 
-公式コード: 確認したPDFに本手法の公開実装へのリンクは見つからなかった。公開の有無を網羅的に保証するものではない。
+確認した論文には、この手法の公式実装へのリンクがありませんでした。公式実装が公開されていないと確認したわけではありません。

@@ -9,13 +9,14 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
-from prose_preservation import before_uvr_full_prose, before_series_full_prose, before_hear_full_prose, before_angle_full_prose, before_otto_full_prose, before_apollopfn_full_prose, before_multi_harness_full_prose, before_autolr_full_prose, before_aura_full_prose, before_evopilot_full_prose, before_autorecsys_full_prose, before_pilot_full_prose, before_agentx_full_prose, before_retailbench_full_prose, before_traffic_value_full_prose, before_eval_grain_full_prose, before_exaone_full_prose, before_isomorph_full_prose, before_scope_full_prose, before_fbsde_full_prose, before_diff_projection_full_prose, before_radfl_full_prose, before_proximal_full_prose, before_igpo_full_prose, before_sabreagent_full_prose, before_invevolve_full_prose, before_deepstock_full_prose, before_orpr_full_prose, before_hasterad_full_prose, before_assortment_full_prose, before_vn2_full_prose, before_intervention_full_prose, before_ogr_full_prose, before_unique_full_prose, before_flashtrie_full_prose, before_pinterest_full_rewrite, before_ahe_full_prose, before_dcdn_full_prose, before_ono_full_rewrite, before_wrapped_produce_full_rewrite, before_static_constrained_full_rewrite, before_forecast_critic_full_rewrite, before_retail_grain_full_rewrite, before_switch_hurdle_full_rewrite, before_perishable_full_rewrite, before_sid_ope_full_rewrite, before_quasid_full_rewrite, before_semantic_id_pair_full_rewrite, before_forecast_pair_full_rewrite, before_harness_icegr_full_rewrite, before_tgr_full_rewrite, before_sona_full_rewrite, before_genpage_full_rewrite, before_unir2_full_rewrite, paper_overview_rewrite_hash, restored_before_paper_overview
+from prose_preservation import before_grace_full_prose, before_uvr_full_prose, before_series_full_prose, before_hear_full_prose, before_angle_full_prose, before_otto_full_prose, before_apollopfn_full_prose, before_multi_harness_full_prose, before_autolr_full_prose, before_aura_full_prose, before_evopilot_full_prose, before_autorecsys_full_prose, before_pilot_full_prose, before_agentx_full_prose, before_retailbench_full_prose, before_traffic_value_full_prose, before_eval_grain_full_prose, before_exaone_full_prose, before_isomorph_full_prose, before_scope_full_prose, before_fbsde_full_prose, before_diff_projection_full_prose, before_radfl_full_prose, before_proximal_full_prose, before_igpo_full_prose, before_sabreagent_full_prose, before_invevolve_full_prose, before_deepstock_full_prose, before_orpr_full_prose, before_hasterad_full_prose, before_assortment_full_prose, before_vn2_full_prose, before_intervention_full_prose, before_ogr_full_prose, before_unique_full_prose, before_flashtrie_full_prose, before_pinterest_full_rewrite, before_ahe_full_prose, before_dcdn_full_prose, before_ono_full_rewrite, before_wrapped_produce_full_rewrite, before_static_constrained_full_rewrite, before_forecast_critic_full_rewrite, before_retail_grain_full_rewrite, before_switch_hurdle_full_rewrite, before_perishable_full_rewrite, before_sid_ope_full_rewrite, before_quasid_full_rewrite, before_semantic_id_pair_full_rewrite, before_forecast_pair_full_rewrite, before_harness_icegr_full_rewrite, before_tgr_full_rewrite, before_sona_full_rewrite, before_genpage_full_rewrite, before_unir2_full_rewrite, paper_overview_rewrite_hash, restored_before_paper_overview
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def before_full_article_rewrites(root, path, current):
-    old = before_uvr_full_prose(root, path, current)
+    old = before_grace_full_prose(root, path, current)
+    old = before_uvr_full_prose(root, path, old)
     old = before_series_full_prose(root, path, old)
     old = before_hear_full_prose(root, path, old)
     old = before_angle_full_prose(root, path, old)
@@ -107,7 +108,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'episem-missing-evidence-recovery': ('6領域', '300組', '10モデル'),
         'featurearc-inherited-defects-chain-gates': ('62.7%', '28.5%', '273実行'),
         'glide-spotify-sid': ('21日間', '5.4%', '14.3%'),
-        'grace-meta-ads-gtm-serving': ('23.55%', '40.42%', '条件を満たした候補'),
+        'grace-meta-ads-gtm-serving': ('23.55%', '40.42%', '条件を満たした候補', '人工データ', '53.6ミリ秒'),
         'hasterad-retail-substitution': ('54店舗', 'ブランド', '10.9%'),
         'inventory-common-threshold-history': ('約1.58倍', '2倍', '累積需要の条件付き確率'),
         'ono-inventory-forecast-selection': ('85,056', '85,093', '約0.04%'),
@@ -232,7 +233,8 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         assert '概要' in text
         live_overview = (yaml.safe_load((ROOT / path).read_bytes())['sections']['overview']
                          if slug in {'unique-baidu-unified-retrieval-ranking', 'vn2-stockout-catboost',
-                                     'hasterad-retail-substitution', 'igpo-huawei-inventory-grounded-search'} else overview)
+                                     'hasterad-retail-substitution', 'igpo-huawei-inventory-grounded-search',
+                                     'grace-meta-ads-gtm-serving'} else overview)
         assert live_overview.split('\n')[0] in text
         assert all(value in text for value in anchors[slug])
         with pytest.raises(AssertionError):
