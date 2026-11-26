@@ -79,7 +79,7 @@ def orpr(r):
 
 
 def proximal(r):
-    names = {'counterexample': '図3：PCSPを満たさない強凸関数', 'state': '縮約：区分線形費用＋配置後の在庫状態に加える項', 'action': '縮約：区分線形費用＋行動正則化'}
+    names = {'counterexample': '図3：強凸でも配置が変わる反例', 'state': '人工例：配置後の累積在庫に項を加える', 'action': '人工例：各回に置く量に項を加える'}
     options, frames = [], []
     for c in r['cases']:
         xy = lambda p: (70+p[0]*170, 365-p[1]*150)
@@ -89,15 +89,20 @@ def proximal(r):
         fx, fy = xy(c['final'])
         body = '<path d="M70 45V365H440" stroke="currentColor" fill="none"/><path d="M70 65L410 365" stroke="#ccd7df" stroke-dasharray="5 4"/>'
         body += f'<polyline points="{points}" stroke="#137d79" stroke-width="4" fill="none"/><circle cx="{ox}" cy="{oy}" r="10" fill="none" stroke="#bd5034" stroke-width="3"/><circle cx="{fx}" cy="{fy}" r="5" fill="#137d79"/>'
-        body += '<text x="10" y="25">拠点2の在庫 x₂</text><text x="265" y="405">拠点1の在庫 x₁</text><text x="52" y="389">0</text><text x="402" y="389">2</text><text x="43" y="70">2</text>'
+        body += '<text x="10" y="25">拠点2の在庫 x₂（単位）</text><text x="265" y="405">拠点1の在庫 x₁（単位）</text><text x="52" y="389">0</text><text x="402" y="389">2</text><text x="43" y="70">2</text>'
         final = ', '.join(f'{v:.4f}' for v in c['final'])
-        frames.append(svg(body, f'{names[c["kind"]]}、{c["count"]}回、最終在庫{final}', 425)+f'<p><strong>最終在庫 ({final})、TV={c["tv"]:.6f}</strong></p><p>緑線：順次配置。赤い輪：同じ目的の一括配置。TVは一括配置と順次配置の最終在庫の差。TV = 最終在庫のL1差 / (2×入荷量)。需要・費用変化なし。</p>')
+        frames.append(svg(body, f'{names[c["kind"]]}、{c["count"]}回、最終在庫{final}', 425)+f'<p><strong>最終在庫：({final})。一括との差：TV={c["tv"]:.6f}</strong></p><p>緑の線は、選んだ回数で配ったときの在庫の変化です。赤い輪は、同じ方式で一括配置したときの最終在庫です。TVは各拠点の最終在庫の差の絶対値を足し、総入荷量の2倍で割った値です。入荷の間に需要や費用は変わりません。</p>')
         options.append(f'{names[c["kind"]]} / K={c["count"]}')
-    out = select_figure('図3の反例を動かす：先に置いた在庫は戻せない', '目的と分割回数', options, frames,
-                         '図3・付録C.1の反例は原式どおり。状態potentialと行動正則化はLab独自の分離可能な比較例。')
-    rows = [(name, values[0], '#137d79' if name=='State-prox' else '#72818f') for name, values in r['paper_evidence']['oos'].items()]
-    return out + bars('未知商品・別期間：State-proxは0.950、neural RLは1.012', rows, 1.2, '',
-        '著者の表1。SCPUTは充足数量当たりの配送・移送費用で、容量価格ペナルティを含まない。その基準値に対する比の平均。標準偏差は根拠の表を参照。オフラインのみ。図4のK=500感度は別条件で、TV 0.00201対0.12716。')
+    out = select_figure('総入荷量を分けて配ったときの最終在庫', '評価式と分割回数', options, frames,
+                         '図3・付録C.1の反例は原論文の式を使います。残り二つはLabが用意した人工例です。先に置いた在庫は、次の回に別の拠点へ移せません。')
+    labels = {'Historical proxy': '過去の運用を模した比較方式',
+              'Direct neural RL': '配置量を直接出すニューラル方策',
+              'State-prox': 'State-proxと状態ポテンシャル',
+              'State-prox without potential': 'State-proxの残差のみ'}
+    rows = [(labels[name], values[0], '#137d79' if name=='State-prox' else '#72818f')
+            for name, values in r['paper_evidence']['oos'].items()]
+    return out + bars('表1：学習に使わなかった商品と期間での費用', rows, 1.2, '',
+        '配送・移送費を需要を満たした数量で割り、過去の運用を模した方式を1とした平均です。容量価格のペナルティは含みません。標準偏差は本文の表に示します。この比較はシミュレーションです。図4のTVや上の人工例とは異なる実験です。')
 
 
 def radfl(r):
