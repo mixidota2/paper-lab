@@ -148,7 +148,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = multi_harness_full_prose_hash(root, path, expected, algorithm)
     expected = apollopfn_full_prose_hash(root, path, expected, algorithm)
     expected = otto_full_prose_hash(root, path, expected, algorithm)
-    return angle_full_prose_hash(root, path, expected, algorithm)
+    expected = angle_full_prose_hash(root, path, expected, algorithm)
+    return hear_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -1987,6 +1988,34 @@ def angle_full_prose_hash(root, path, expected, algorithm='sha256'):
 
 def before_angle_full_prose(root, path, current):
     row = angle_full_prose_row(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def hear_full_prose_row(root, path):
+    if path != 'paper_lab/batch08.py' and not path.startswith('papers/hear-harness-engine-serving-protocol/'):
+        return None
+    rows = json.loads((root / 'tests/hear_full_prose_hashes.json').read_text())['files']
+    return rows.get(path)
+
+
+def hear_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = hear_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_hear_full_prose(root, path, current):
+    row = hear_full_prose_row(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

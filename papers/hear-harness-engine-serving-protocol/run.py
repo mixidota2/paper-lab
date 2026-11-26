@@ -1,10 +1,10 @@
-"""Non-preemptive single-slot discrete event queue; cache costs are artificial seconds."""
+"""要求を一つずつ処理する合成例。処理の途中で割り込まず、時間は仮定した秒数です。"""
 import json, statistics
 from pathlib import Path
 
 
 def schedule(policy,guard=8):
-    # All ready at t=0: warm A calls compete against two older cold requests.
+    # 開始時のキャッシュはA。時刻0にB、C、A0が届き、残るAは2秒ごとに来る。
     jobs=[{'id':'B0','context':'B','arrival':0},{'id':'C0','context':'C','arrival':0}]+[{'id':f'A{i}','context':'A','arrival':i*2} for i in range(16)]
     pending=list(jobs)
     cache='A'
@@ -36,11 +36,11 @@ PAPER = {'source': 'Table 3–5, v1', 'scbench': [['FCFS', 63.1, 74.2, 79, 481, 
 
 def main():
     cases={p:schedule(p) for p in ['fcfs','cache','cache_guard']}
-    # Guard protects the older cold requests, not a global TTFT deadline.
+    # 待機保護は古い要求を次に選ぶ規則で、最初のトークンまでの締切ではない。
     cold=lambda c:max(t['ttft'] for t in c['trace'] if t['context']!='A')
     assert cold(cases['cache_guard'])<cold(cases['cache'])
     assert cases['cache']['mean_ttft']<cases['fcfs']['mean_ttft']
-    result={'lab_kind':'hear08','note':'人工秒・1スロット・KV 1文脈のtoy。guardは待機後の追い越しを止める規則であり、TTFTの絶対上限ではない。','cases':cases,'experiments':[{'name':p,'metrics':{k:v for k,v in c.items() if k!='trace'}} for p,c in cases.items()]}
+    result={'lab_kind':'hear08','note':'合成例では一度に一つの要求を処理し、文脈一つ分のキャッシュを保存します。待機保護は、次に処理する要求を選ぶときの規則で、TTFTの上限ではありません。','cases':cases,'experiments':[{'name':p,'metrics':{k:v for k,v in c.items() if k!='trace'}} for p,c in cases.items()]}
     result['paper'] = PAPER
     (Path(__file__).parent/'results.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     print(result['experiments'])

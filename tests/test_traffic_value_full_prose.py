@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from prose_preservation import before_autolr_full_prose, before_traffic_value_full_prose
+from prose_preservation import before_hear_full_prose, before_autolr_full_prose, before_traffic_value_full_prose
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = 'traffic-forecast-to-decision-value'
@@ -24,7 +24,7 @@ def test_traffic_value_source_receipt_and_fixed_numbers():
     }
     before = {}
     for p, row in files.items():
-        cur = before_autolr_full_prose(ROOT, p, (ROOT / p).read_bytes())
+        cur = before_autolr_full_prose(ROOT, p, before_hear_full_prose(ROOT, p, (ROOT / p).read_bytes()))
         assert sha256(cur).hexdigest() == row['after']['sha256']
         before[p] = before_traffic_value_full_prose(ROOT, p, cur)
         assert sha256(before[p]).hexdigest() == row['before']['sha256']
@@ -42,7 +42,7 @@ def test_traffic_value_source_receipt_and_fixed_numbers():
     def remove_traffic_scope(blob):
         before, rest = blob.split(b"TRAFFIC = r'''", 1)
         return before, rest.split(b"HEAR = r'''",1)[1]
-    assert remove_traffic_scope(before[RENDERER]) == remove_traffic_scope((ROOT / RENDERER).read_bytes())
+    assert remove_traffic_scope(before[RENDERER]) == remove_traffic_scope(before_hear_full_prose(ROOT, RENDERER, (ROOT / RENDERER).read_bytes()))
 
     def other_labels(blob):
         sets = ast.literal_eval(next(n.value for n in ast.parse(blob).body
