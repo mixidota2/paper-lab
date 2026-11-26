@@ -24,7 +24,8 @@ def yomiyasu_hash(root, path, expected, algorithm='sha256'):
 
 
 def before_yomiyasu_replenishment(root, path, content):
-    """Reverse only the reviewed T3 explanation, retaining all historical guards."""
+    """Reverse the present article edit before examining the protected earlier copy."""
+    content = before_assortment_full_prose(root, path, content.encode()).decode()
     target = 'papers/assortment-replenishment-hard-constraints/interactive.js'
     if path != target:
         return content
@@ -119,7 +120,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = unique_full_prose_hash(root, path, expected, algorithm)
     expected = ogr_full_prose_hash(root, path, expected, algorithm)
     expected = intervention_full_prose_hash(root, path, expected, algorithm)
-    return vn2_full_prose_hash(root, path, expected, algorithm)
+    expected = vn2_full_prose_hash(root, path, expected, algorithm)
+    return assortment_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -1243,6 +1245,31 @@ def before_vn2_full_prose(root, path, current):
     if not path.startswith('papers/vn2-stockout-catboost/'):
         return current
     row = json.loads((root / 'tests/vn2_full_prose_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before']['sha256'], path
+    return prior
+
+
+def assortment_full_prose_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/assortment-replenishment-hard-constraints/'):
+        return expected
+    row = json.loads((root / 'tests/assortment_full_prose_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_assortment_full_prose(root, path, current):
+    if not path.startswith('papers/assortment-replenishment-hard-constraints/'):
+        return current
+    row = json.loads((root / 'tests/assortment_full_prose_hashes.json').read_text())['files'].get(path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
