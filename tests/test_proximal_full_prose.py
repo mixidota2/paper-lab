@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from prose_preservation import before_proximal_full_prose, proximal_full_prose_hash
+from prose_preservation import before_proximal_full_prose, before_radfl_full_prose, proximal_full_prose_hash
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,7 +22,7 @@ def test_exact_reversible_prose_and_no_other_renderer_changes():
     assert set(rows) == {shared, *(f'{PAPERS}/{n}' for n in
                          ('README.md', 'lab.yaml', 'method.md', 'mapping.md', 'results.json', 'run.py'))}
     for path, row in rows.items():
-        current = (ROOT / path).read_bytes()
+        current = before_radfl_full_prose(ROOT, path, (ROOT / path).read_bytes())
         before = before_proximal_full_prose(ROOT, path, current)
         assert hashlib.sha256(before).hexdigest() == row['before']['sha256']
         for key, digest in (
@@ -34,7 +34,7 @@ def test_exact_reversible_prose_and_no_other_renderer_changes():
                 proximal_full_prose_hash(ROOT, path, row['after'][key], key)
         with pytest.raises(AssertionError):
             before_proximal_full_prose(ROOT, path, current + b'\n')
-    current = (ROOT / shared).read_bytes()
+    current = before_radfl_full_prose(ROOT, shared, (ROOT / shared).read_bytes())
     before = before_proximal_full_prose(ROOT, shared, current)
     def leave_other_functions(raw):
         pre, rest = raw.split(b'def proximal(r):',1)

@@ -162,7 +162,8 @@ def test_inventory_learning_explanations_keep_conditions_and_download_mirrors():
     assert '全報酬に同じ定数' in orpr['executable_understanding']
     risk = ROOT / 'papers/ra-dfl-risk-aware-decision-focused-inventory/method.md'
     assert '境界に同じ費用が並ぶ場合も、その確率幅に合う重み' in risk.read_text()
-    assert 'w_outは役割が違う' in risk.read_text()
+    assert '予測モデルが出す `w_i`' in risk.read_text()
+    assert '訓練事例全体の費用に固定の `w_out=0.3`' in risk.read_text()
 
 
 def test_forecast_inventory_batch8_explanations_and_downloads():
