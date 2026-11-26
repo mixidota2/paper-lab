@@ -1,4 +1,4 @@
-"""Small mechanism experiment; no EXAONE weights or learned neural router."""
+"""4種類の人工需要で古典予測器を比べます。EXAONEの重みや学習済み配分器は使いません。"""
 import json
 import math
 import random
@@ -43,7 +43,7 @@ def generate(rng, kind, n=180):
 
 def main():
     rows=[]; by_seed=[]
-    # Same histories / horizons; global method selected on separate validation series.
+    # 検証用の系列で全系列共通の手法を選びます。評価では混合方式と同じ履歴と予測期間を使います。
     for seed in [7,19,41,73,101]:
         rng=random.Random(seed)
         validation=[generate(rng,k) for k in range(4) for _ in range(40)]
@@ -55,7 +55,7 @@ def main():
             for _ in range(80):
                 x=generate(rng,k); train=x[:150]; target=x[150:]
                 fs=forecasts(train); p=membership(*stats(train))
-                # Class-to-method assignment is an explanatory assumption, not learned EXAONE routing.
+                # 需要型と古典手法の対応はLabが決めました。EXAONEが学習した配分ではありません。
                 routed=sum(w*f for w,f in zip(p,[fs[0],fs[2],fs[1],fs[3]]))
                 scale=mean(abs(a-b) for a,b in zip(train,train[1:]))
                 pairs.append([mean(abs(y-f) for y in target)/scale for f in [fs[selected],routed]])
@@ -64,10 +64,10 @@ def main():
         rows.append(seed_rows)
     checks={'membership_sums_to_one':all(abs(sum(membership(a,c))-1)<1e-12 for a in [1,1.32,3,20] for c in [0,.49,2]),'boundary_is_uniform':all(abs(p-.25)<1e-12 for p in membership(1.32,.49)), 'scale_invariance': all(abs(a-b)<1e-10 for a,b in zip(stats([0,2,4,0,3]),stats([0,20,40,0,30])))}
     assert all(checks.values())
-    result={'lab05_exaone':True,'scope':'人工データで分類比率と古典予測器の混合を確認。EXAONEの再現ではない。','seed_results':by_seed,'class_results':[{'class':c,'global':mean(r[k][0] for r in rows),'routed':mean(r[k][1] for r in rows)} for k,c in enumerate(CLASSES)],'checks':checks,'verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},'reported_aggregate':[['EXAONE Demand',1.0667],['Synthetic',1.0742],['TiRex-1.1',1.0818],['Chronos-2',1.0885],['Backbone',1.1050]],'reported_datasets':DATASETS}
+    result={'lab05_exaone':True,'scope':'人工需要で、分類の比率を使って古典予測器を混ぜた場合と、共通の予測器を使った場合を比較しました。EXAONEのモデルや論文の評価は再現していません。','seed_results':by_seed,'class_results':[{'class':c,'global':mean(r[k][0] for r in rows),'routed':mean(r[k][1] for r in rows)} for k,c in enumerate(CLASSES)],'checks':checks,'verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},'reported_aggregate':[['EXAONE Demand',1.0667],['Synthetic',1.0742],['TiRex-1.1',1.0818],['Chronos-2',1.0885],['Backbone',1.1050]],'reported_datasets':DATASETS}
     Path(__file__).with_name('results.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     print(json.dumps(by_seed,indent=2))
 
-# Table 9: EXAONE, synthetic-only, TiRex-1.1, Chronos-2 (reported, not reproduced).
+# 表9のEXAONE、人工データのみの版、TiRex-1.1、Chronos-2を転記しました。Labの測定値ではありません。
 DATASETS=[['Bitbrains fast (H)',1.020,1.008,1.016,.995],['Bitbrains random (H)',5.829,5.832,5.859,5.853],['BizITObs L2C (H)',.441,.445,.487,.439],['Car parts (M)',.828,.847,.916,.900],['Electricity (D)',1.375,1.383,1.466,1.415],['Electricity (H)',1.010,1.009,.912,.888],['Electricity (W)',1.494,1.468,1.478,1.456],['Hierarchical sales (D)',.746,.761,.768,.768],['Hierarchical sales (W)',.719,.722,.747,.745],['Hospital (M)',.759,.765,.785,.807],['Loop Seattle (D)',.889,.891,.900,.928],['Loop Seattle (H)',.817,.819,.820,.816],['M4 daily (D)',3.079,3.046,3.063,3.164],['M4 hourly (H)',.763,.805,.708,.800],['M4 monthly (M)',.909,.925,.938,.943],['M4 quarterly (Q)',1.149,1.150,1.118,1.177],['M4 weekly (W)',2.066,2.150,1.973,2.070],['M4 yearly (Y)',3.165,3.217,3.238,3.256],['M-dense (D)',.645,.640,.678,.681],['M-dense (H)',.786,.783,.802,.807],['Restaurant (D)',.676,.677,.704,.713],['SZ taxi (H)',.566,.567,.582,.591]]
 if __name__=='__main__':main()

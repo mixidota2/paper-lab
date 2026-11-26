@@ -1,0 +1,488 @@
+{
+  "files": {
+    "papers/exaone-demand-routed-tsfm/README.md": {
+      "before": {
+        "sha256": "89bf53ef36a27061fda46a2563d717b6d92463c2b9a75ee55b4565ab5f12468d",
+        "blob": "c11607f60f86ac729deeba9e233ff8030dee34cc"
+      },
+      "after": {
+        "sha256": "d8b2bca5bb99ec5f27ca2a1eea73286aac451191a049d86f97460adc49703db4",
+        "blob": "8920ee3ae33ba667b69b7f52d412cdb26aba624f"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# EXAONE Demand：需要の振る舞いで小さな補正を分ける\n"
+        ],
+        [
+          2,
+          3,
+          "## 何を変えたモデルで、著者の評価はどうだったか\n需要がめったに来ない商品と、需要はよく来るが数量の振れが大きい商品では、予測で捉えるべき違いがある。EXAONE Demand 1.0は、需要向けのデータで、需要の間隔や数量のばらつきに応じて補正を使い分ける時系列基盤モデル（TSFM）だ。22データセットのMASE幾何平均は1.0667。TiRex-1.1の1.0818との差は約1.4%にとどまる。Worth Readingとした理由は、この差の大きさより、古典的な需要分類を学習の手掛かりにした設計にある。\n"
+        ],
+        [
+          4,
+          5,
+          "## 需要の間隔と量のばらつきは別の性質\n売れる間隔と、一度に売れる量のばらつきは別の性質だ。欠品で販売数がゼロになる場合もある。一般的な時系列データだけで学習すると、こうした短く疎な需要系列の割合が小さくなる。ただし需要専用と呼ぶ本論文のコーパスも、系列数の39.87%、観測点数の67.51%がエネルギーで、小売はそれぞれ17.18%、1.33%である（Table 11）。\n"
+        ],
+        [
+          6,
+          7,
+          "## 需要を分類して、予測モデルの補正配分を学ぶ\n**著者の方法。** 学習用データは、合成した47,500系列を含め、全体で約1,130万系列・484億観測点になる。基盤モデル（backbone）の重みは変えず、全系列に共通する補正（LoRA）を1本、需要クラス別の補正を4本追加する。どの補正をどれだけ使うかは系列ごとに決める。LoRAは大きな重み行列を、小さな行列の積で補正する方法である。\n"
+        ],
+        [
+          8,
+          9,
+          "**本Labの解釈。** 業種名で専門家を分けるより、需要が途切れる頻度と数量変動で分けるという設計が読みどころになる。境界に近い系列を1種類に決めつけず、複数の種類に近いものとして学ぶ。予測時には分類式を使わない。配分を決める小さなモデル（router）が、予測時点までの系列から得た8統計量を受け取り、比率を出す。\n"
+        ],
+        [
+          10,
+          29,
+          "ADI = 観測期間数 / 非ゼロ期間数、CV² = 非ゼロ数量の分散 / 平均²とする。式5–6は対数軸上で境界を柔らかくする。\n"
+        ],
+        [
+          36,
+          37,
+          "πの成分は、順にSmooth、Intermittent、Erratic、Lumpy。式10の教師分布は`π̃ = π² / Σπ²`で、温度T=0.5により優勢な成分を強める。routerはゼロ比率、ADI、CV²、時間との相関、1次自己相関、増加割合、全期間のCV、系列長を読む。式4では、ADI、非ゼロCV²、全期間CV、系列長の4つを対数で圧縮する。増加割合には2u−1を使う。π̃は分類統計から作る学習用の教師比率、qは学習済みのrouterが出す配分比率だ。画面で計算するのはπ̃までで、学習済みのqは出さない。各投影に配分器がある。どの配分器も同じ8統計量を読むが、配分は投影ごとに計算する。同じ投影では、系列内のすべてのトークンに同じ配分を使う。\n"
+        ],
+        [
+          38,
+          39,
+          "式11は`y = W₀x + Σₑ gₑ (α/rₑ) BₑAₑx`。元の重みW₀は固定する。共通する補正に0.5を割り当て、残り0.5を4つの補正にqの比率で分ける。共有rank=16、各専門枝rank=4、α=8。24層×6投影=144か所へ付ける。式12はrank方向に枝を積み、行列積をまとめる実装である。\n"
+        ],
+        [
+          40,
+          41,
+          "## 共通する癖と需要パターンごとの差を分ける\n推測：共有枝が需要全般の補正を受け持てば、専門枝はクラス間の差へ容量を使える。生の系列から計算した統計量は、正規化後の表現で見失う需要の特徴をrouterへ渡す。ただしbackbone比の改善には学習コーパスとadapterの両方が含まれる。MASEの1.1050から1.0667への差には両方の変更が含まれるため、配分器だけの効果は分からない。\n"
+        ],
+        [
+          42,
+          43,
+          "古典的なSyntetos–Boylan–Croston分類（2005）を教師信号へ転用した点が、容量拡張を狙うMoirai-MoEとの違いになる。Chronos-2、TiRex-1.1は直接の比較対象であり、Table 8にLightGBMなどの木モデルはない。\n"
+        ],
+        [
+          44,
+          45,
+          "## 著者の予測誤差：22データセットで比較\n一次資料の[原論文v1](https://arxiv.org/pdf/2609.30880v1)のTables 8–9で著者は、22データセットで需要の点予測の誤差（MASE）と、分位点予測の誤差（WQL）を比較した。下表はその著者報告で、Labは数値を再現していない。\n"
+        ],
+        [
+          46,
+          59,
+          "| モデル | MASE幾何平均 | WQL |\n"
+        ],
+        [
+          60,
+          62,
+          "| EXAONE Demand | 1.0667 | 0.1138 |\n| 合成データのみ | 1.0742 | 0.1147 |\n"
+        ],
+        [
+          64,
+          65,
+          "| 凍結backbone | 1.1050 | 0.1169 |\n"
+        ],
+        [
+          66,
+          67,
+          "MASEは履歴の季節naive誤差で正規化した絶対誤差で、小さいほどよい。MASEが1を超えても、同じ未来期間で季節naiveに負けたと直接断定はできない。分母は過去期間の誤差だからだ。データセット間は幾何平均で同じ重みを持つため、系列数の多いデータセットをその数に比例して重く扱う集計ではない。\n"
+        ],
+        [
+          68,
+          69,
+          "Car partsのMASEは0.828、TiRexは0.916。対照的にElectricity (H)では1.010対0.912で負ける。22行中、掲載7モデルの最良は10行。実データ併用は合成のみより16行で改善する。全比較モデルへの勝率91.9%は836組の比較に対する割合で、系列の91.9%で勝ったという意味ではない。\n"
+        ],
+        [
+          70,
+          71,
+          "著者自身が36の比較TSFMを同一手順で実行している。値の重複検査で学習候補358,008系列を除外したが、既存モデルの事前学習データには同じ除外を適用できず、比較は非対称である。評価には電力・M4・計算資源が多く、販促共変量、在庫費用、サービス率の比較はない。\n"
+        ],
+        [
+          72,
+          73,
+          "## Labでは何を比較するか\n`run.py`は5つの乱数seedで、4種類の人工需要を作る。各seedで別の160系列を使い、SES、Croston、SBA、TSBから全系列共通の手法を選ぶ。未使用320系列では150期間の履歴から30期間を予測し、同じ履歴とMASE分母で比べる。\n"
+        ],
+        [
+          74,
+          75,
+          "比較する混合方式はSmooth→SES、Intermittent→SBA、Erratic→Croston、Lumpy→TSBという説明用の割当で、式5–6のπで平均する。この対応はLabの仮定で、論文の学習結果ではない。数量はGamma分布から生成して丸め、Bernoulliの抽選で需要が発生するかを決める。論文の負の二項分布による生成器とは異なる。\n"
+        ],
+        [
+          76,
+          77,
+          "ページの平面ではADIとCV²を動かし、πとπ̃を比較する。在庫図では潜在需要を固定し、販売数だけが在庫量で制限される様子を見る。両者を分けて記録できることが、合成需要の利点である。\n"
+        ],
+        [
+          78,
+          79,
+          "## Labでは混合が5回中4回で悪化\n乱数の初期値を変えた5回のうち4回で、混合方式のMASEは検証用データで選んだ共通手法より悪かった。seed=19のみ0.8848→0.8702へ改善した。**安定した精度向上はNOT OBSERVED**。分類の重みが滑らかに変わっても、混合で予測が良くなるとは限らない。数値はresults.jsonに保存する。\n"
+        ],
+        [
+          80,
+          81,
+          "## 式と人工例で確認したこと\nMechanismはPARTIAL。式5–6の確率和、両境界での均等比率、数量を10倍してもADIとCV²が変わらない性質はCONFIRMED。古典予測器の混合を実行したが、学習routerやLoRAは実装していない。\n"
+        ],
+        [
+          82,
+          83,
+          "## 論文モデルや実店舗では確認していないこと\nPerformance、Scaling、Production applicabilityはNOT TESTED。公開重みの推論、22データセットの成績、8GPU学習、在庫や利益への効果は未検証である。原論文も潜在需要の復元を将来課題とし、合成データで欠品を入れたことだけで実店舗の欠品補正を達成したとは言えない。\n"
+        ],
+        [
+          84,
+          85,
+          "## 手元で人工例を実行する\nPython標準ライブラリだけを使う。リポジトリのルートで実行する。\n"
+        ],
+        [
+          86,
+          87,
+          "```sh\nUV_CACHE_DIR=/tmp/uv-exaone uv run --no-project papers/exaone-demand-routed-tsfm/run.py\n```\n"
+        ],
+        [
+          88,
+          89,
+          "`stats()`が式1–2の統計量、`membership()`が式5–6と10、`forecasts()`が4つの古典法を担う。乱数seed、検証方法、全22行の転記値はrun.pyに固定している。HTMLはlab.yaml、README、results.json、mapping.mdとwidget生成コードから作る。\n"
+        ],
+        [
+          90,
+          101,
+          "## 原論文・公式実装とLabの対応\n[公式実装](https://github.com/LGAI-Research/EXAONE-Forecast)と[公開重み](https://huggingface.co/LG-AI-Research/EXAONE-Demand-1.0)は論文冒頭のリンクを採用した。本Labでは公式リポジトリ内部の関数やcommitを照合していない。式・図・表との対応と省略範囲はmapping.mdに記録する。\n"
+        ]
+      ]
+    },
+    "papers/exaone-demand-routed-tsfm/lab.yaml": {
+      "before": {
+        "sha256": "0db0cc87dd67c3a9a561ed9f6edb046d77029952c777de3c4acb99343acf9c7e",
+        "blob": "50f41cf4fafb4752024db05c33c8a8160c64feba"
+      },
+      "after": {
+        "sha256": "e6ecf022c15ba1212dd86f203516c47fef0aa5f0926184b57b73ffe1f515778a",
+        "blob": "b09ebe4dedbb58301203519eef729e2f7db52db7"
+      },
+      "prior_spans": [
+        [
+          32,
+          34,
+          "summary: 需要の出方による分類を学習の手掛かりにし、全系列に共通する補正と、4つの需要クラス別の補正を組み合わせる。補正には、少数のパラメータでモデルの重みを調整するLoRAを使う。MASEは1.0667対TiRex 1.0818。木モデル・共変量・在庫指標との比較はない。\nquestion: 需要が途切れる頻度と数量のばらつきで、補正を分ける意味は何か\n"
+        ],
+        [
+          43,
+          45,
+          "  author_claim: 需要専用コーパスと、古典的需要分類を教師信号に使うLoRA混合で予測誤差を下げる。\n  research_bot_interpretation: 分類境界を連続に扱う設計が読みどころ。小さな精度差から在庫改善までは主張できない。\n"
+        ],
+        [
+          50,
+          52,
+          "  problem: 売れる間隔と、一度に売れる量のばらつきは別の性質だ。欠品で販売数がゼロになる場合もある。一般的な時系列データだけで学習すると、こうした短く疎な需要系列の割合が小さくなる。ただし需要専用と呼ぶ本論文のコーパスも、系列数の39.87%、観測点数の67.51%がエネルギーで、小売はそれぞれ17.18%、1.33%である（Table\n    11）。\n  method: method.md\n  why_it_might_work: '推測：共有枝が需要全般の補正を受け持てば、専門枝はクラス間の差へ容量を使える。生の系列から計算した統計量は、正規化後の表現で見失う需要の特徴をrouterへ渡す。ただしbackbone比の改善には学習コーパスとadapterの両方が含まれる。MASEの1.1050から1.0667への差には両方の変更が含まれるため、配分器だけの効果は分からない。\n"
+        ],
+        [
+          53,
+          60,
+          ""
+        ],
+        [
+          61,
+          68,
+          "    古典的なSyntetos–Boylan–Croston分類（2005）を教師信号へ転用した点が、容量拡張を狙うMoirai-MoEとの違いになる。Chronos-2、TiRex-1.1は直接の比較対象であり、Table\n    8にLightGBMなどの木モデルはない。'\n  evidence: '一次資料の[原論文v1](https://arxiv.org/pdf/2609.30880v1)のTables 8–9で著者は、22データセットで需要の点予測の誤差（MASE）と、分位点予測の誤差（WQL）を比較した。下表はその著者報告で、Labは数値を再現していない。\n"
+        ],
+        [
+          69,
+          70,
+          ""
+        ],
+        [
+          71,
+          72,
+          "    | モデル | MASE幾何平均 | WQL |\n"
+        ],
+        [
+          73,
+          76,
+          "    | --- | ---: | ---: |\n"
+        ],
+        [
+          77,
+          78,
+          "    | EXAONE Demand | 1.0667 | 0.1138 |\n"
+        ],
+        [
+          79,
+          82,
+          "    | 合成データのみ | 1.0742 | 0.1147 |\n"
+        ],
+        [
+          83,
+          92,
+          "    | TiRex-1.1 | 1.0818 | 0.1161 |\n\n    | Chronos-2 | 1.0885 | 0.1406 |\n\n    | 凍結backbone | 1.1050 | 0.1169 |\n\n\n    MASEは履歴の季節naive誤差で正規化した絶対誤差で、小さいほどよい。MASEが1を超えても、同じ未来期間で季節naiveに負けたと直接断定はできない。分母は過去期間の誤差だからだ。データセット間は幾何平均で同じ重みを持つため、系列数の多いデータセットをその数に比例して重く扱う集計ではない。\n\n\n    Car partsのMASEは0.828、TiRexは0.916。対照的にElectricity (H)では1.010対0.912で負ける。22行中、掲載7モデルの最良は10行。実データ併用は合成のみより16行で改善する。全比較モデルへの勝率91.9%は836組の比較に対する割合で、系列の91.9%で勝ったという意味ではない。\n\n\n    著者自身が36の比較TSFMを同一手順で実行している。値の重複検査で学習候補358,008系列を除外したが、既存モデルの事前学習データには同じ除外を適用できず、比較は非対称である。評価には電力・M4・計算資源が多く、販促共変量、在庫費用、サービス率の比較はない。'\n  executable_understanding: '`run.py`は5つの乱数seedで、4種類の人工需要を作る。各seedで別の160系列を使い、SES、Croston、SBA、TSBから全系列共通の手法を選ぶ。未使用320系列では150期間の履歴から30期間を予測し、同じ履歴とMASE分母で比べる。\n\n\n    比較する混合方式はSmooth→SES、Intermittent→SBA、Erratic→Croston、Lumpy→TSBという説明用の割当で、式5–6のπで平均する。この対応はLabの仮定で、論文の学習結果ではない。数量はGamma分布から生成して丸め、Bernoulliの抽選で需要が発生するかを決める。論文の負の二項分布による生成器とは異なる。\n\n\n    ページの平面ではADIとCV²を動かし、πとπ̃を比較する。在庫図では潜在需要を固定し、販売数だけが在庫量で制限される様子を見る。両者を分けて記録できることが、合成需要の利点である。'\n  results: 乱数の初期値を変えた5回のうち4回で、混合方式のMASEは検証用データで選んだ共通手法より悪かった。seed=19のみ0.8848→0.8702へ改善した。**安定した精度向上はNOT\n    OBSERVED**。分類の重みが滑らかに変わっても、混合で予測が良くなるとは限らない。数値はresults.jsonに保存する。\n  what_we_verified: MechanismはPARTIAL。式5–6の確率和、両境界での均等比率、数量を10倍してもADIとCV²が変わらない性質はCONFIRMED。古典予測器の混合を実行したが、学習routerやLoRAは実装していない。\n  what_we_did_not_verify: Performance、Scaling、Production applicabilityはNOT TESTED。公開重みの推論、22データセットの成績、8GPU学習、在庫や利益への効果は未検証である。原論文も潜在需要の復元を将来課題とし、合成データで欠品を入れたことだけで実店舗の欠品補正を達成したとは言えない。\n  implementation: 'Python標準ライブラリだけを使う。リポジトリのルートで実行する。\n\n\n    ```sh\n\n    UV_CACHE_DIR=/tmp/uv-exaone uv run --no-project papers/exaone-demand-routed-tsfm/run.py\n\n    ```\n\n\n    `stats()`が式1–2の統計量、`membership()`が式5–6と10、`forecasts()`が4つの古典法を担う。乱数seed、検証方法、全22行の転記値はrun.pyに固定している。HTMLはlab.yaml、README、results.json、mapping.mdとwidget生成コードから作る。'\n  mapping: mapping.md\n"
+        ],
+        [
+          95,
+          96,
+          "  title: どの8統計量から補正の配分を決めるか\n"
+        ],
+        [
+          97,
+          98,
+          "  caption: 式4は、学習済みの配分器に渡す8つの値を定義する。需要量の単位を変えても各値は同じ。Lengthは数量とは別に、観測した期間の数を表す。\n"
+        ],
+        [
+          100,
+          101,
+          "  rationale: ADIとCV²だけで教師分布を作る一方、学習routerには8統計量を渡す違いを示す。\n"
+        ],
+        [
+          103,
+          104,
+          "  - 変換・読む性質\n"
+        ],
+        [
+          108,
+          109,
+          "    - 需要のない期間の割合\n"
+        ],
+        [
+          112,
+          113,
+          "    - 需要間隔\n"
+        ],
+        [
+          116,
+          117,
+          "    - 発生した需要量の相対分散\n"
+        ],
+        [
+          120,
+          121,
+          "    - 増加・減少の傾向\n"
+        ],
+        [
+          124,
+          125,
+          "    - 直前の値とのつながり\n"
+        ],
+        [
+          128,
+          129,
+          "    - 連続する値が増加する割合\n"
+        ],
+        [
+          136,
+          137,
+          "    - 統計量を支える観測数\n"
+        ],
+        [
+          139,
+          140,
+          "  title: 学習に使ったデータと、評価で分かったこと\n"
+        ],
+        [
+          141,
+          142,
+          "  caption: 著者が集めた学習データの構成と、評価で調べたこと。小売データは含むが、予測を使って在庫が改善したかは評価していない。\n"
+        ],
+        [
+          144,
+          145,
+          "  rationale: 観測数に占める小売の比率を示し、需要専用という名称から実店舗の効果を過大に読まないようにする。\n"
+        ],
+        [
+          147,
+          148,
+          "  - この数字が示す範囲\n"
+        ],
+        [
+          152,
+          153,
+          "    - 長い高頻度系列が観測点数の多数を占める\n"
+        ],
+        [
+          156,
+          157,
+          "    - SKU単位の短い系列は、観測点数で見ると少数\n"
+        ],
+        [
+          160,
+          161,
+          "    - 自モデルの値レベルの重複を検査。比較モデルには同じ除外を適用できない\n"
+        ],
+        [
+          164,
+          165,
+          "    - 予測誤差の比較。在庫費用・サービス率・利益は未評価\n"
+        ],
+        [
+          167,
+          169,
+          "    - 合成生成器が潜在需要と売上を記録\n    - 実データからの潜在需要復元は将来課題\n"
+        ]
+      ]
+    },
+    "papers/exaone-demand-routed-tsfm/mapping.md": {
+      "before": {
+        "sha256": "24eee5a8761136b0f7a2640f7d48826b7843c2c918a9c9582fda8215cd80f4e6",
+        "blob": "e1c1736bb424f72c8128b5987844ef4dddbf0750"
+      },
+      "after": {
+        "sha256": "800376d7da77b87a34b5459060eaf5e6d201c58bb78a7cb86b9fe6d119013e1e",
+        "blob": "9d8549c1d0899e783bcc5e3522cbdeb19b2cd6c9"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文との対応\n"
+        ],
+        [
+          2,
+          3,
+          "[EXAONE Demand 1.0, v1](https://arxiv.org/pdf/2609.30880v1)（2026-09-25投稿）。手元に保存したPDFの全23ページをpdftotextで読み、本文、参考文献、付録を確認した。\n"
+        ],
+        [
+          4,
+          5,
+          "| 原典 | Labで対応する箇所 | Labで扱う範囲 |\n"
+        ],
+        [
+          6,
+          15,
+          "| §4.1 式1–2、p.9 | `run.py` の `stats` | 相対閾値、ADI、ゼロでない数量のCV²を計算する。欠測処理は省く |\n| §4.1 式3–4、Table 6 | READMEの8つの統計量の説明 | 振り分け器（router）の入力を説明する。学習する振り分け器は実装しない |\n| §4.2 式5–6、Table 7 | `membership`、操作できる図 | τa=0.35、τc=0.60。CV²がゼロのときは、計算を安定させるため1e−12に置き換える |\n| §4.3 式7–10、Figs.8,10–11 | 図でπとπ̃を比較 | T=0.5。図に出るのは学習の目標となる比率で、学習済みの振り分け器が出すqではない |\n| §4.4 式11–12、Fig.9、Table 10 | LoRAの模式図 | 固定するW₀、共有rank16、需要クラス別のrank4を示す。行列の学習は省く |\n| §3、Table 5、Fig.7 | 欠品を操作できる図 | 説明用に値を決めた系列で、潜在需要と実際の販売数を分けて示す。負の二項・Bass・共食いは省く |\n| §5.1 式13 | 古典手法のMASE比較 | 人工系列ではm=1とし、算術平均を取る。論文で使う22データセットの幾何平均とは異なる |\n| Tables 8–9 | `results.json` の `reported_*` と比較表 | Table 9の全22行から、EXAONE/Synthetic/TiRex/Chronosの4列を転記した |\n| Appendix B | READMEの先行研究 | 2005年の分類と、Moirai-MoE、Chronos-2、TiRexに対する設計上の違いを説明する |\n"
+        ],
+        [
+          16,
+          17,
+          "[公式コード](https://github.com/LGAI-Research/EXAONE-Forecast)と[モデル](https://huggingface.co/LG-AI-Research/EXAONE-Demand-1.0)へのリンクは原典に従った。公式コードの実行、ファイル単位の照合、重みの取得はNOT TESTED。公式コードのどの箇所が対応するかを推測で決めてはいない。\n\n人工データでの比較では、需要クラスごとに使う古典手法、Gamma分布から数量を作る方法、検証用の系列で全系列共通の手法を選ぶ方法をLabが決めた。論文の精度を再現した結果ではない。\n"
+        ]
+      ]
+    },
+    "papers/exaone-demand-routed-tsfm/method.md": {
+      "before": {
+        "sha256": "31baab9f66ded4318a5f051a32040b9ecec0038e7cf5352afa71aa6ccdf75341",
+        "blob": "47f67fba41047241bbf7b7f172a2df9eba2b93dc"
+      },
+      "after": {
+        "sha256": "1a91733a2e188ba11a3d170b356173ad1c4d51e5d61dcccce7fde94b6e1b8632",
+        "blob": "79a674262d64982bd03a423c026e9799b26e38cf"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "**著者の方法。** 学習用データは、合成した47,500系列を含め、全体で約1,130万系列・484億観測点になる。基盤モデル（backbone）の重みは変えず、全系列に共通する補正（LoRA）を1本、需要クラス別の補正を4本追加する。どの補正をどれだけ使うかは系列ごとに決める。LoRAは大きな重み行列を、小さな行列の積で補正する方法である。\n"
+        ],
+        [
+          2,
+          3,
+          "**本Labの解釈。** 業種名で専門家を分けるより、需要が途切れる頻度と数量変動で分けるという設計が読みどころになる。境界に近い系列を1種類に決めつけず、複数の種類に近いものとして学ぶ。予測時には分類式を使わない。配分を決める小さなモデル（router）が、予測時点までの系列から得た8統計量を受け取り、比率を出す。\n"
+        ],
+        [
+          4,
+          9,
+          "ADI = 観測期間数 / 非ゼロ期間数、CV² = 非ゼロ数量の分散 / 平均²とする。式5–6は対数軸上で境界を柔らかくする。\n"
+        ],
+        [
+          16,
+          17,
+          "πの成分は、順にSmooth、Intermittent、Erratic、Lumpy。式10の教師分布は`π̃ = π² / Σπ²`で、温度T=0.5により優勢な成分を強める。routerはゼロ比率、ADI、CV²、時間との相関、1次自己相関、増加割合、全期間のCV、系列長を読む。式4では、ADI、非ゼロCV²、全期間CV、系列長の4つを対数で圧縮する。増加割合には2u−1を使う。π̃は分類統計から作る学習用の教師比率、qは学習済みのrouterが出す配分比率だ。画面で計算するのはπ̃までで、学習済みのqは出さない。各投影に配分器がある。どの配分器も同じ8統計量を読むが、配分は投影ごとに計算する。同じ投影では、系列内のすべてのトークンに同じ配分を使う。\n"
+        ],
+        [
+          18,
+          29,
+          "式11は`y = W₀x + Σₑ gₑ (α/rₑ) BₑAₑx`。元の重みW₀は固定する。共通する補正に0.5を割り当て、残り0.5を4つの補正にqの比率で分ける。共有rank=16、各専門枝rank=4、α=8。24層×6投影=144か所へ付ける。式12はrank方向に枝を積み、行列積をまとめる実装である。\n"
+        ]
+      ]
+    },
+    "papers/exaone-demand-routed-tsfm/results.json": {
+      "before": {
+        "sha256": "64cca37aa486999819c6d1a94cc63b12220dc71c6658cde9b4b07001485da8b8",
+        "blob": "b243f6c4e002edd4111c1d02f1bf556b201f005a"
+      },
+      "after": {
+        "sha256": "cd9590fd94423fb430d402f195f0a07892f1d165e202f80e9b11b287b8d775b6",
+        "blob": "a5776b45b9e24245ae1e0faeec07ed01dc001b1b"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "  \"scope\": \"人工データで分類比率と古典予測器の混合を確認。EXAONEの再現ではない。\",\n"
+        ]
+      ]
+    },
+    "papers/exaone-demand-routed-tsfm/run.py": {
+      "before": {
+        "sha256": "8ba48530519423ea99a2a670dcec96800fbb14d0e6a99f11b76b0670800f9185",
+        "blob": "9492e0393b13e3f6c1d72547f1882be52b0da5e7"
+      },
+      "after": {
+        "sha256": "28298628d4bc85cdb1a306f7d2cd200b069ee2f8b1961b6918bcc80184dd1f95",
+        "blob": "75d1ebb6730d90f3312ddc6d2cf6da021b097f7c"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Small mechanism experiment; no EXAONE weights or learned neural router.\"\"\"\n"
+        ],
+        [
+          45,
+          46,
+          "    # Same histories / horizons; global method selected on separate validation series.\n"
+        ],
+        [
+          57,
+          58,
+          "                # Class-to-method assignment is an explanatory assumption, not learned EXAONE routing.\n"
+        ],
+        [
+          66,
+          67,
+          "    result={'lab05_exaone':True,'scope':'人工データで分類比率と古典予測器の混合を確認。EXAONEの再現ではない。','seed_results':by_seed,'class_results':[{'class':c,'global':mean(r[k][0] for r in rows),'routed':mean(r[k][1] for r in rows)} for k,c in enumerate(CLASSES)],'checks':checks,'verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},'reported_aggregate':[['EXAONE Demand',1.0667],['Synthetic',1.0742],['TiRex-1.1',1.0818],['Chronos-2',1.0885],['Backbone',1.1050]],'reported_datasets':DATASETS}\n"
+        ],
+        [
+          70,
+          71,
+          "# Table 9: EXAONE, synthetic-only, TiRex-1.1, Chronos-2 (reported, not reproduced).\n"
+        ]
+      ]
+    },
+    "paper_lab/exaone05.py": {
+      "before": {
+        "sha256": "7abd443e21190acd5ec75c406eca6e0a20f87fa049573751bfcd60eddf5ac2b2",
+        "blob": "b836eddf8bd3bb5c3635a5ff0e80513b1f7c7467"
+      },
+      "after": {
+        "sha256": "7c85f68cdf24cef59cf2da78d725d560de33d0662b25785be47da0123ba35ac8",
+        "blob": "62f11f1b3d8a84cf27d7b03137e1b207c16608d8"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"EXAONE-specific classification plane, adapter anatomy, and censoring view.\"\"\"\n"
+        ],
+        [
+          6,
+          7,
+          "    \"\"\"The existing 30-period illustrative stock curve at S=40, promotion on.\"\"\"\n"
+        ],
+        [
+          28,
+          29,
+          "    return svg, f'潜在需要 {sum(latent)} 個のうち、観測されなかった需要は {lost} 個。'\n"
+        ],
+        [
+          40,
+          41,
+          "    html = r'''<section class=\"exa-lab\" aria-label=\"需要分類の操作実験\">\n"
+        ],
+        [
+          42,
+          45,
+          "<h3>需要の地図：境界を越えても、配分は急変しない</h3>\n<p>式5–6の分類比率πと式10の教師分布π̃を表示する。学習済みの振り分け器（router）のqを表示するものではない。Smoothは発生間隔が短く数量変動が小さい側、Intermittentは間隔が長く変動が小さい側、Erraticは間隔が短く変動が大きい側、Lumpyは間隔が長く変動が大きい側を表す。</p>\n<p data-ex-status role=\"status\">初期条件はADI=1.32、CV²=0.49、補充上限S=40、販促ありです。JavaScriptの準備が完了するまで条件は変更できません。</p><noscript><p>JavaScriptが無効なため、初期条件の結果のみを表示しています。</p></noscript>\n"
+        ],
+        [
+          46,
+          60,
+          "<label>ADI（非ゼロ需要の平均間隔） <output data-adi>1.32</output><input data-a disabled type=\"range\" min=\"1\" max=\"12\" step=\".01\" value=\"1.32\"></label>\n<label>CV²（非ゼロ数量の相対分散） <output data-cv>0.49</output><input data-c disabled type=\"range\" min=\".01\" max=\"4\" step=\".01\" value=\".49\"></label>\n<svg viewBox=\"0 0 440 300\" role=\"img\" aria-label=\"対数軸のADIとCV二乗の分類平面\"><rect x=\"58\" y=\"20\" width=\"332\" height=\"222\" fill=\"#eaf3ee\"/><path d=\"M95 20V242M58 98H390\" stroke=\"#618d80\" stroke-dasharray=\"4\"/><text x=\"66\" y=\"46\" font-size=\"12\">Erratic</text><text x=\"220\" y=\"46\" font-size=\"16\">Lumpy</text><text x=\"61\" y=\"221\" font-size=\"11\">Smooth</text><text x=\"185\" y=\"221\" font-size=\"16\">Intermittent</text><path d=\"M58 20V242H390\" fill=\"none\" stroke=\"#294a43\"/><text x=\"170\" y=\"285\" font-size=\"14\">ADI（対数軸）→</text><text x=\"5\" y=\"15\" font-size=\"14\">CV² ↑</text><text x=\"52\" y=\"261\" font-size=\"12\">1</text><text x=\"88\" y=\"261\" font-size=\"12\">1.32</text><text x=\"373\" y=\"261\" font-size=\"12\">12</text><text x=\"14\" y=\"103\" font-size=\"12\">0.49</text><text x=\"17\" y=\"241\" font-size=\"12\">0.01</text><circle data-point cx=\"__EX_CX__\" cy=\"__EX_CY__\" r=\"7\" fill=\"#bd613b\" stroke=\"white\" stroke-width=\"2\"/></svg>\n</div><div class=\"ex-card\"><h4>π → π̃（T=0.5）</h4><div class=\"ex-weights\" data-weights aria-live=\"polite\">__EX_WEIGHTS__</div><p>両軸が境界なら4成分は25%ずつ。温度を下げても完全な同率は崩れない。</p><div class=\"ex-formula\">π̃c = πc² / Σ πc²<br>a = σ(log(ADI/1.32)/0.35)<br>c = σ(log(CV²/0.49)/0.60)</div></div></div>\n<h3>補正を入れる場所：更新しない元の変換に5本の補正を足す</h3>\n<svg viewBox=\"0 0 660 280\" role=\"img\" aria-label=\"更新しない元の変換に、共有の補正1本と需要型別の補正4本を足す\"><title>Figure 9と式11の再構成</title><g fill=\"none\" stroke=\"#77958a\" stroke-width=\"2\"><path d=\"M45 130H100V40H490V130H600M100 130V95H490V130M100 130V170H490V130M100 130V225H490V130\"/></g><g fill=\"#e4efe9\" stroke=\"#7e9f8f\"><rect x=\"160\" y=\"18\" width=\"260\" height=\"42\" rx=\"8\"/><rect x=\"160\" y=\"75\" width=\"260\" height=\"42\" rx=\"8\"/><rect x=\"130\" y=\"143\" width=\"325\" height=\"44\" rx=\"8\"/><rect x=\"130\" y=\"207\" width=\"325\" height=\"42\" rx=\"8\"/></g><g fill=\"#173c34\" font-size=\"16\" text-anchor=\"middle\"><text x=\"24\" y=\"136\">x</text><text x=\"290\" y=\"45\">凍結 W₀（更新しない）</text><text x=\"290\" y=\"102\">共有 B₀A₀：rank 16 / g₀=0.5</text><text x=\"293\" y=\"162\">Smooth・Intermittent：各rank 4</text><text x=\"293\" y=\"181\">重み 0.5q₁・0.5q₂</text><text x=\"293\" y=\"224\">Erratic・Lumpy：各rank 4</text><text x=\"293\" y=\"242\">重み 0.5q₃・0.5q₄</text><text x=\"510\" y=\"136\">＋</text><text x=\"625\" y=\"136\">y</text></g></svg>\n<p>元の変換W₀は更新せず、共有する補正1本と需要型別の補正4本を足す。図中のrankは補正行列のランクを表す。</p><p>式11：y = W₀x + Σ gₑ(8/rₑ)BₑAₑx。8統計量 → 各層の2層MLP → q。教師分布は学習時だけ使い、共有する補正1本と需要型別の補正4本を使う。共有する補正は教師損失に含めない。144投影に適用する（Table 10）。</p>\n<h3>潜在需要と売上を分ける：在庫が尽きると何を観測するか</h3>\n<div class=\"ex-card\"><label>補充上限S <output data-stock-label>40</output><input data-stock disabled type=\"range\" min=\"10\" max=\"100\" step=\"5\" value=\"40\"></label><label><input data-promo disabled type=\"checkbox\" checked> 販促の盛り上がりと反動を入れる</label><svg data-series viewBox=\"0 0 640 235\" role=\"img\" aria-label=\"30期間の潜在需要と在庫で制限された売上\">__EX_SERIES__</svg><p data-lost aria-live=\"polite\">__EX_LOST__</p></div>\n<p>青：潜在需要、橙：観測売上。s=8を下回ると3期間後にSまで補充する説明用(s,S)モデル。販促は事前増・ピーク・反動の3段階。Table 5の考え方を示す人工曲線で、公式生成器や欠品復元モデルの再現ではない。</p>\n<h3>著者報告：22データセットを同じ色で平均化しない</h3><p>Table 9の4列を転記。各行の掲載4モデル中の最小値を緑で示す。MASEは、予測期間の平均絶対誤差を、同じ系列の学習期間で「1季節前の値をそのまま予測する方法」の平均絶対誤差で割った指標。小さいほどよい。<a href=\"https://arxiv.org/html/2609.30880v1\">原典§5.1式(13)</a>の定義で、季節の長さを一律に1とは置かない。分母が0の場合の処理は未確認。1を超えても、同じ将来期間で季節予測が優れていたとは限らない。全比較モデル中の最良を表す色ではない。</p>\n<div class=\"ex-scroll\"><table><thead><tr><th>データセット</th><th>EXAONE</th><th>Synthetic</th><th>TiRex</th><th>Chronos-2</th></tr></thead><tbody>''' + heat + '''</tbody></table></div>\n<h3>人工実験：混ぜるだけでは安定して改善しなかった</h3><div class=\"ex-scroll\"><table><thead><tr><th>seed</th><th>検証で選んだ共通法</th><th>共通MASE</th><th>混合MASE</th></tr></thead><tbody>''' + toy + r'''</tbody></table></div><p>同じ未使用系列で比較。5seed中4seedで混合が悪化。分類の式は確認できたが、混合による安定した改善は今回の人工実験では見られなかった（NOT OBSERVED）。</p>\n<script>(()=>{const root=document.currentScript.closest('.exa-lab');const a=root.querySelector('[data-a]'),c=root.querySelector('[data-c]');function update(){let av=+a.value,cv=+c.value;let aa=1/(1+Math.exp(-Math.log(av/1.32)/.35)),cc=1/(1+Math.exp(-Math.log(cv/.49)/.6));let p=[(1-aa)*(1-cc),aa*(1-cc),(1-aa)*cc,aa*cc],den=p.reduce((s,v)=>s+v*v,0);root.querySelector('[data-adi]').value=av.toFixed(2);root.querySelector('[data-cv]').value=cv.toFixed(2);root.querySelector('[data-point]').setAttribute('cx',58+332*Math.log(av)/Math.log(12));root.querySelector('[data-point]').setAttribute('cy',242-222*Math.log(cv/.01)/Math.log(400));root.querySelector('[data-weights]').innerHTML=p.map((v,i)=>'<div><b>'+['Smooth','Intermittent','Erratic','Lumpy'][i]+'</b><br>'+(100*v).toFixed(1)+'% → '+(100*v*v/den).toFixed(1)+'%</div>').join('');}function stock(){let S=+root.querySelector('[data-stock]').value,inv=S,due=-1,lost=0,latent=[],observed=[],promo=root.querySelector('[data-promo]').checked;for(let t=0;t<30;t++){if(t===due){inv=S;due=-1;}let d=Math.round((7+3*Math.sin(t*1.3))*(promo?(t>=9&&t<12?1.4:t>=12&&t<16?2.4:t>=16&&t<20?.65:1):1));let y=Math.min(inv,d);inv-=y;lost+=d-y;latent.push(d);observed.push(y);if(inv<8&&due<0)due=t+3;}const path=xs=>xs.map((v,i)=>(i?'L':'M')+(42+i*19)+','+(195-v*6)).join('');root.querySelector('[data-stock-label]').value=S;root.querySelector('[data-series]').innerHTML='<path d=\"M42 15V195H610\" fill=\"none\" stroke=\"#64766e\"/><text x=\"5\" y=\"22\" font-size=\"13\">数量</text><text x=\"270\" y=\"227\" font-size=\"13\">期間（0〜29）</text><text x=\"14\" y=\"195\" font-size=\"12\">0</text><text x=\"8\" y=\"75\" font-size=\"12\">20</text><path d=\"'+path(latent)+'\" fill=\"none\" stroke=\"#316d99\" stroke-width=\"3\"/><path d=\"'+path(observed)+'\" fill=\"none\" stroke=\"#c27035\" stroke-width=\"3\" stroke-dasharray=\"5 3\"/>';root.querySelector('[data-lost]').textContent='潜在需要 '+latent.reduce((s,v)=>s+v,0)+' 個のうち、観測されなかった需要は '+lost+' 個。';}const controls=[a,c,root.querySelector('[data-stock]'),root.querySelector('[data-promo]')];let ready=false;\n"
+        ]
+      ]
+    }
+  }
+}
