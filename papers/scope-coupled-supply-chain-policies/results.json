@@ -2,7 +2,7 @@
   "lab28": "scope",
   "frames": [
     {
-      "label": "配車費用 0/台",
+      "label": "0",
       "dispatch": 0,
       "plans": [
         {
@@ -98,7 +98,7 @@
       }
     },
     {
-      "label": "配車費用 2/台",
+      "label": "2",
       "dispatch": 2,
       "plans": [
         {
@@ -194,7 +194,7 @@
       }
     },
     {
-      "label": "配車費用 10/台",
+      "label": "10",
       "dispatch": 10,
       "plans": [
         {
@@ -290,7 +290,7 @@
       }
     },
     {
-      "label": "配車費用 30/台",
+      "label": "30",
       "dispatch": 30,
       "plans": [
         {
@@ -386,7 +386,7 @@
       }
     }
   ],
-  "note": "教育用の人工例。原論文の学習・性能・本番効果は再現していない。",
+  "note": "品揃えと補充間隔を比べる人工例。道路経路は計算せず、著者の学習や性能評価、現場での効果は再現していない。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",

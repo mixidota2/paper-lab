@@ -20,9 +20,12 @@ def widget(result):
             content+=table(['日','実績','基準予測','補正後'],[[i+1,f['actual'][i],f['base'][i],number(f['prediction'][i])] for i in range(3)])
             content+=f'<p>実績合計に対する絶対誤差の割合（WMAPE）：基準 {number(f["baseline_wmape"])}% → 補正後 {number(f["proposed_wmape"])}%</p>'
         elif kind=='scope':
-            content=table(['商品','周期（日）','配送する数量','1配送の台数','1日当たりの評価値'],[[p['item'],p['cycle'],p['load'],p['vehicles'],p['utility']] for p in f['plans']])
+            content=table(['商品','補充の間隔（日）','1回に運ぶ荷量','1回に使う車両の台数','1日あたりの評価値'],
+                          [[p['item'],p['cycle'],p['load'],p['vehicles'],p['utility']] for p in f['plans']])
             b,p=f['baseline'],f['proposed']
-            content+=f'<p>需要の大きい順に選ぶ：{b["item"]}・{b["cycle"]}日・評価値{b["utility"]}。品揃え・周期・配送費用をまとめて選ぶ：{p["item"]}・{p["cycle"]}日・評価値{p["utility"]}。</p>'
+            content+=(
+                f'<p>需要が多い商品を先に選ぶと、商品{b["item"]}を{b["cycle"]}日おきに配送します。1日あたりの評価値は{b["utility"]}です。'
+                f'商品と間隔を全候補から選ぶと、商品{p["item"]}を{p["cycle"]}日おきに配送し、評価値は{p["utility"]}です。</p>')
         elif kind=='onetrans':
             content='<ol class="b21-search">'+''.join(f'<li>候補 {c["item"]}：log({c["prefix"]}) + {f["beta"]} × {c["offset"]} + log({c["conditional"]}) = <strong>{number(c["score"])}</strong></li>' for c in f['ranking'])+'</ol>'
             content+='<p>上ほど得点が高い。log(prefix)は目的の確率の自然対数、offsetは業務上の加点、log(conditional)は目的を選んだ後の商品確率の自然対数。βだけを動かし、学習済み確率を模した値は固定する。</p>'
@@ -33,7 +36,13 @@ def widget(result):
             content='<div class="b21-serving"><section><h4>実行前の点検</h4><p>提案：'+escape(f['proposal'])+'</p><strong>'+f['decision']+'</strong></section><section><h4>学習対象モデルへ渡し、学習用履歴へ残す応答</h4><p>'+escape(f['executed'])+'</p><p>点検役だけが参照する履歴は含めない。</p></section></div>'
         else: raise ValueError(kind)
         frames.append(content)
-    titles={'reasoncast':'保存済みの3日例：補正なしと誤情報による補正','scope':'配送数量と周期から配送費用の段差を読む','onetrans':'生成の先頭に置く目的の記号を、業務上の加点で選ぶ','evaluation':'予測はそのまま、買い手の組分けを変える','harness':'点検役を通った応答だけを履歴へ残す'}
+    titles={'reasoncast':'保存済みの3日例：補正なしと誤情報による補正','scope':'配車費ごとの品揃えと補充間隔','onetrans':'生成の先頭に置く目的の記号を、業務上の加点で選ぶ','evaluation':'予測はそのまま、買い手の組分けを変える','harness':'点検役を通った応答だけを履歴へ残す'}
     options=''.join(f'<option value="{i}">{escape(f["label"])}</option>' for i,f in enumerate(result['frames']))
     data=json.dumps(frames,ensure_ascii=False).replace('</','<\\/')
-    return '<figure class="teaching" data-b21><h3>'+titles[kind]+'</h3><label>人工例の条件 <select>'+options+'</select></label><script type="application/json" data-frames>'+data+'</script><div data-output aria-live="polite">'+frames[0]+'</div><figcaption>run.pyが計算したresults.jsonから生成。著者の測定値ではない。</figcaption></figure>'
+    label='1回の配送で車両1台にかかる費用' if kind=='scope' else '人工例の条件'
+    caption=(
+        '1拠点へ1商品を配送する人工例です。配車に使う台数を計算し、実際の配送経路は求めません。'
+        '全候補の中に需要が多い商品を先に選ぶ方式の候補が含まれるため、前者の評価値は後者を下回りません。'
+        'SCOPEの学習や、現場での結果を示す図ではありません。'
+        if kind=='scope' else 'run.pyが計算したresults.jsonから生成。著者の測定値ではない。')
+    return '<figure class="teaching" data-b21><h3>'+titles[kind]+'</h3><label>'+label+' <select>'+options+'</select></label><script type="application/json" data-frames>'+data+'</script><div data-output aria-live="polite">'+frames[0]+'</div><figcaption>'+caption+'</figcaption></figure>'
