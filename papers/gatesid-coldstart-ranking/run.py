@@ -1,4 +1,4 @@
-"""GFSA shared attention and gate-weighted InfoNCE with fixed synthetic vectors."""
+"""固定した人工データで、二つの参照重みを混ぜ、同じ比率を対照損失に掛ける。"""
 import json
 import math
 from pathlib import Path
@@ -22,8 +22,8 @@ def compute():
     loss=info_nce(.8,[.2,.3])
     cases=[gfsa(w) for w in [0,.25,.5,.75,1]]
     for x in cases:x["weighted_alignment_loss"]=x["weight"]*loss
-    return {"note":"gateを外から与える人工attention。経過日数からgateを学習した実測曲線ではない。",
-      "experiments":[{"name":"同じgateでattentionと整列強度を制御", "metrics":{str(x["weight"]):{"最初の履歴への重み":round(x["shared_attention"][0],6),"最後の履歴への重み":round(x["shared_attention"][-1],6),"対照損失への寄与":round(x["weighted_alignment_loss"],6)} for x in cases}}],
+    return {"note":"人工データで、指定した混合比を履歴の参照重みと対照損失に使いました。商品の掲載日数から混合比を学んだ結果ではありません。",
+      "experiments":[{"name":"一つの混合比で、履歴の参照重みと対照損失への寄与を変える", "metrics":{str(x["weight"]):{"最初の履歴への重み":round(x["shared_attention"][0],6),"最後の履歴への重み":round(x["shared_attention"][-1],6),"対照損失への寄与":round(x["weighted_alignment_loss"],6)} for x in cases}}],
       "cases":cases,"checks":{"shared_attention_convexity":"CONFIRMED","alignment_weight_coupling":"CONFIRMED","learned_maturity_gate":"NOT TESTED","ranking_auc":"NOT TESTED"}}
 
 

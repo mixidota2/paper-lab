@@ -68,7 +68,9 @@ def test_intervention_keeps_overview_source_and_calculations():
 def test_intervention_widget_changes_only_reader_text():
     rel = 'paper_lab/templates/interactives.js'
     old = subprocess.check_output(['git', 'show', f'{BASE}:{rel}'], cwd=ROOT).decode()
-    new = (ROOT / rel).read_text()
+    from prose_preservation import before_gatesid_full_prose
+
+    new = before_gatesid_full_prose(ROOT, rel, (ROOT / rel).read_bytes()).decode()
     start = "      const p = Number(root.querySelector('[data-failure]').value);"
     stop = "}\n  };\n  root.querySelectorAll('select,input')"
     def divide(text):
