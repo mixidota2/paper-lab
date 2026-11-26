@@ -1,6 +1,5 @@
-"""CPU teaching experiment: shared linear scorer, two normalized CE targets.
-This is an alpha sensitivity experiment, NOT a TT/LambdaMART comparison.
-Run: uv run papers/otto-gbdt-vs-dnn-ltr/run.py
+"""二つの損失で一つの点数を学び、クリック損失の係数を変えて順位を比べる。
+Two-TowerやLambdaMARTは実行しない。
 """
 import json
 import math
@@ -18,7 +17,7 @@ def dataset(seed, n):
     data = []
     for _ in range(n):
         xs = [[rng.uniform(-1, 1), rng.uniform(-1, 1)] for _ in range(8)]
-        # Different latent preferences; the order label is also a click.
+        # 特徴ごとに最大の商品を選ぶ。注文の正例はクリックの正例にもする。
         order = max(range(8), key=lambda i: xs[i][1])
         click = max(range(8), key=lambda i: xs[i][0])
         yc = [int(i in {order, click}) for i in range(8)]
@@ -60,7 +59,7 @@ def experiment():
             values[1] += ndcg(scores, yo)/len(test)
         metrics[str(alpha)] = dict(zip(["NDCG_click@3", "NDCG_order@3"], map(lambda v: round(v, 6), values)))
         metrics[str(alpha)]["weights"] = [round(v, 6) for v in w]
-    return {"note": "合成データ。αで共有スコアの優先順位が変わる例。OTTOの性能、因果関係、モデル間優劣は未検証。", "experiments": [{"name": "クリック損失の重みα", "seed": [19, 20], "n": {"train_queries": 160, "test_queries": 240, "items_per_query": 8}, "metrics": metrics}]}
+    return {"note": "合成例では、クリック損失の係数αに応じて、商品を並べる点数が変わります。OTTOのデータや別のモデルで同じ結果が出ることは確認していません。", "experiments": [{"name": "クリック損失の重みα", "seed": [19, 20], "n": {"train_queries": 160, "test_queries": 240, "items_per_query": 8}, "metrics": metrics}]}
 
 
 def compute():
@@ -72,7 +71,7 @@ def compute():
     result["explorer"] = {
         "label": "クリック損失の重みα", "unit": "", "metric": "NDCG@3（合成テスト）", "default": 0,
         "frames": [
-            {"value": float(a), "note": "合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。",
+            {"value": float(a), "note": "同じ人工の一覧と線形モデルで、クリック損失の係数αだけを変えました。OTTOの性能を示す値ではありません。",
              "bars": [{"label": k, "value": m[k]} for k in ("NDCG_click@3", "NDCG_order@3")], "lines": []}
             for a, m in result["experiments"][0]["metrics"].items()
         ],

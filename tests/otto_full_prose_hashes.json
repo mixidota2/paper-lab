@@ -1,0 +1,343 @@
+{
+  "files": {
+    "papers/otto-gbdt-vs-dnn-ltr/figures/architectures.svg": {
+      "before": {
+        "sha256": "4311aea8c28a69de885294d430acc815537ac4a880b5a567acd564d07de509ac",
+        "blob": "812ac5b7178715634c5bf9e5b1401bd5f51bde9d"
+      },
+      "after": {
+        "sha256": "ebb64fd861b8a83688076cb6f32a94515ae689056689ec5c28853e4be189898f",
+        "blob": "df325de2176c2a374d3743685517d21f106fb773"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 680\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">三つの結合方式</title><desc id=\"desc\">三つの結合方式。説明と出典はLab本文と図注を参照。</desc><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L6,3 L0,6\" fill=\"#217661\"/></marker></defs><rect width=\"440\" height=\"680\" rx=\"12\" fill=\"#fafcf7\"/><rect x=\"20\" y=\"20\" width=\"400\" height=\"128\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"48\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">TT：最後に内積</text><text x=\"34\" y=\"77\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">商品 x_p → 3層のネット → h_p</text><text x=\"34\" y=\"102\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">文脈 x_c → 線形層 → h_c</text><text x=\"34\" y=\"127\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">score = h_cᵀ h_p</text><rect x=\"20\" y=\"190\" width=\"400\" height=\"128\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"218\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">CR：最初に特徴を連結</text><text x=\"34\" y=\"247\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">[商品 x_p, 文脈 x_c]</text><text x=\"34\" y=\"272\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">→ 基本ネットワーク（3層） → h_z</text><text x=\"34\" y=\"297\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">→ 採点層</text><rect x=\"20\" y=\"360\" width=\"400\" height=\"128\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"388\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">TR：自己注意で候補同士を比較</text><text x=\"34\" y=\"417\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">全候補と文脈 → 自己注意 → h_t</text><text x=\"34\" y=\"442\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">(1+h_t) ⊙ h_z でCRの表現を調整</text><text x=\"34\" y=\"467\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">→ 採点層</text><text x=\"20\" y=\"556\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">共通：カテゴリ・単語の埋め込み</text><text x=\"20\" y=\"581\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">TR：位置符号化なし、1層・1ヘッド</text><text x=\"20\" y=\"606\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">本番A/B：TT＋CEとLambdaMART</text></svg>\n"
+        ]
+      ]
+    },
+    "papers/otto-gbdt-vs-dnn-ltr/figures/cascade.svg": {
+      "before": {
+        "sha256": "91c8752e4731230791263e862dbe52ee1b87f16d5a7385041288c8a05b2dad8d",
+        "blob": "c2bdaf7777d8d7065c96ea81edcc617287c8a7b2"
+      },
+      "after": {
+        "sha256": "5d19aaec063a87495b01770023c51798fd84ae3f3cf6b51ee0afb4e935320ac4",
+        "blob": "31be92126270fe769d90b93129cebb2259e16d51"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 545\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">検索結果の並べ替えが比較対象</title><desc id=\"desc\">商品候補を探し、緑の枠で採点して並べ替える。比較するのは並べ替えの方式。</desc><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L6,3 L0,6\" fill=\"#217661\"/></marker></defs><rect width=\"440\" height=\"545\" rx=\"12\" fill=\"#fafcf7\"/><rect x=\"20\" y=\"20\" width=\"400\" height=\"78\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"48\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">リクエスト</text><text x=\"34\" y=\"77\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">検索語・利用者や端末の情報</text><path d=\"M220,99 L220,122\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"132\" width=\"400\" height=\"78\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"160\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">候補生成</text><text x=\"34\" y=\"189\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">検索リクエストに対して候補を返す</text><path d=\"M220,211 L220,234\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"244\" width=\"400\" height=\"103\" rx=\"8\" fill=\"#d7eadd\" stroke=\"none\"/><text x=\"34\" y=\"272\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">比較対象：候補の並べ替え</text><text x=\"34\" y=\"301\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">LambdaMART または TT / CR / TR</text><text x=\"34\" y=\"326\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">同じ商品候補を採点して並べ替える</text><path d=\"M220,347 L220,370\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"380\" width=\"400\" height=\"78\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"408\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">検索結果を表示</text><text x=\"34\" y=\"437\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">クリック・注文・売上で評価</text><text x=\"20\" y=\"507\" font-family=\"sans-serif\" font-size=\"16\" font-weight=\"normal\" fill=\"#193b36\">候補を探す処理の変更は、この実験の対象外。</text></svg>\n"
+        ]
+      ]
+    },
+    "papers/otto-gbdt-vs-dnn-ltr/lab.yaml": {
+      "before": {
+        "sha256": "e0c693eb38176b3fece8243de657d217202e7cd07055265d5c3ecd061e04be91",
+        "blob": "3ad339fc80bfc14a21afab8e6d309670add68389"
+      },
+      "after": {
+        "sha256": "98fd3dfa4308fac5227ee6ab4e05464afdeb4f8a30fdf814130c4b508c8c50ab",
+        "blob": "5e8077efadcf70c0bdc200399a5bc1faee7f427f"
+      },
+      "prior_spans": [
+        [
+          26,
+          28,
+          "question: 商品を並べ替える段階で、Two-Towerは本番のLambdaMARTを上回るか\nsummary: OTTOの検索結果の並べ替えでは、Softmax交差エントロピー（CE）で学習したTwo-Towerを本番のLambdaMARTと8週間比べた。Two-Towerはクリック総数が1.86%、売上が0.56%多く、販売点数は同水準だった。候補同士の関係も使うTransformerは、検索ログを使った評価で注文された商品を上位に置く指標が本番の木モデルより低かった。\n"
+        ],
+        [
+          30,
+          31,
+          "  scope: 一次PDF本文・方法・結果・限界を確認。数値は著者報告と合成実験を区別。\n"
+        ],
+        [
+          35,
+          36,
+          "    著者は本番用に調整したLightGBM LambdaMARTと、3種類の深層モデル（DNN）を比べた。Softmax交差エントロピー（CE）で学習したTwo-Towerは、注文された商品を上位に置く指標を落とさず、クリックされた商品を上位に置く指標と商品価値の指標を改善した。このため著者はTwo-Towerを本番のA/Bテストに選んだ。\n"
+        ],
+        [
+          37,
+          39,
+          "    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2507.20753v1)\n  research_bot_interpretation: OTTOの結果は、本番の木モデルからDNNに替える判断の参考になる。ただし著者が比べたのは、カテゴリとテキストの埋め込みまで含む構成全体だ。同じ特徴を渡したときの木とDNNの差は分からない。切り分けるには、木モデルにも同じ埋め込みを渡して比べたい。\n"
+        ],
+        [
+          45,
+          46,
+          "    検索リクエストを受けると、まず候補を探す処理が商品一覧を返す。この論文で扱うLearning-to-Rank（LTR）は、その一覧の商品に点数を付けて並べ替える段階だ。商品を探す処理をTwo-Towerに置き換えた研究ではない。\n"
+        ],
+        [
+          47,
+          48,
+          "    学習には、表示された商品がクリックされたか、注文されたかを使う。同じ一覧の中で複数の商品がクリックされたり注文されたりすると、それぞれのラベルに正例が複数できる。どの商品が表示され、何位に置かれたかは既存の並べ替えに左右される。ログ上の順位指標だけで売上が増えるとは言えない。\n"
+        ],
+        [
+          49,
+          51,
+          "  why_it_might_work: Two-Tower（TT）は商品と検索時の文脈を別々にベクトルにし、内積で商品を採点する。候補同士の関係を計算する自己注意は使わない。商品の特徴と検索時の文脈だけで十分に採点できるなら、候補同士も比べる利点は小さくなる。これはLabの解釈であり、候補同士の比較が不要だと論文が示したわけではない。\n"
+        ],
+        [
+          52,
+          53,
+          "    ### 検索ログでの比較と本番のA/Bテスト\n"
+        ],
+        [
+          54,
+          55,
+          "    著者はOTTOの匿名化した検索ログを時系列で分け、4,300万件を学習に、70万件をテストに使った（§6）。評価は上位15件までとした。NDCGは正例を上位に置くほど高くなる。下の表では、クリックされた商品を正例とするNDCGと、注文された商品を正例とするNDCGを分けている。AIV（Average Item Value）は商品価値を使った売上の代理指標で、売上そのものではない。\n"
+        ],
+        [
+          56,
+          59,
+          "    | CEで学習したモデル | NDCG_click | NDCG_order | AIV |\n"
+        ],
+        [
+          60,
+          66,
+          "    | TT | +4.32% | 0.00% | +2.28% |\n    | CR | +4.32% | −0.30% | +2.28% |\n    | TR | +2.16% | −1.48% | +2.89% |\n"
+        ],
+        [
+          67,
+          68,
+          "    数値は本番のLightGBM（LGBM）に対する相対差（表1）。RankNet（RN）で学習した場合も、注文のNDCGはTTで−1.48%、CRで−0.59%、TRで−1.78%だった。AIVだけでは採用の判断はできない。\n"
+        ],
+        [
+          69,
+          70,
+          "    8週間のA/BテストではTT＋CEと本番のLambdaMARTを比較した（§6.2）。著者の報告ではクリック総数が+1.86%（t検定 p<0.0001）、売上が+0.56%（p<0.01）で、販売点数は同水準だった。CRとTRはこのA/Bテストの比較には含まれない。信頼区間の正確な端点と、各群に割り付けた規模は本文から確定できない。図の目盛りから数字を推測して補ってはいない。\n"
+        ],
+        [
+          71,
+          76,
+          "    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2507.20753v1)\n"
+        ],
+        [
+          77,
+          78,
+          "    商品が8件の人工的な検索一覧を作る。クリックの正例は「目を引く商品」と「注文される商品」、注文の正例は「注文される商品」だけとする。両方が同じ商品なら、クリックの正例は1件になる。2つの特徴、線形スコア、学習予算はそろえ、クリック損失にかける係数αだけを変える。学習の160一覧とテストの240一覧には別の乱数シードを使い、上位3件のNDCGを測る。\n"
+        ],
+        [
+          79,
+          85,
+          "    この実験で比べるのは損失の重みだ。TT、MLP、木モデルは比較しない。異なるモデルまで小規模に実装して比べると、特徴や調整の違いが混ざり、αの効果を読み取りにくくなるためだ。\n  results: 人工テストで注文のNDCG@3はα=0で0.980、α=1で0.600だった。一方、クリックのNDCG@3は0.752–0.767付近で推移した。クリック損失の係数を増やしても、クリックのNDCG@3が一方向に上がるとは限らない。学習でCEを小さくすることと、評価でNDCGを上げることは同じではない。\n  what_we_verified: 'この人工例ではαを増やすと、クリックと注文で使う共通のスコアを計算する重みが変わり、注文のNDCG@3も変化した。クリックと注文の損失に同じ係数をかけても、両方の順位指標が維持されるとは限らない例だ。仕組みの確認は一部に限る（Mechanism: PARTIAL）。'\n  what_we_did_not_verify: LabではOTTOのデータ、埋め込みの学習、LambdaMART、配信費用、売上増加を検証していない。著者が評価したTransformerで注文のNDCGが下がった原因をαと特定したわけでもない。人工例ではクリックと注文の競合の強さが変われば曲線も変わる。自社での導入を判断するには、特徴、候補、配信予算をそろえた比較と自社でのA/Bテストが必要だ。\n"
+        ],
+        [
+          86,
+          87,
+          "    リポジトリのルートで `uv run papers/otto-gbdt-vs-dnn-ltr/run.py` を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの `results.json` に保存する。\n\n    実験の乱数シードを固定した。結果は論文の測定値と分けて集計している。\n"
+        ],
+        [
+          90,
+          92,
+          "  title: 候補を探したあとにTwo-Towerで並べ替える\n  caption: 原論文§4をもとに再構成。緑の枠は、論文が比較した並べ替えの段階を示す。\n"
+        ],
+        [
+          94,
+          96,
+          "  title: 3方式で商品と検索時の文脈を組み合わせる位置\n  caption: 原論文§4.1–6をもとに再構成。TTは商品側に多層ネットワークを使い、検索時の文脈側は線形層だけを通す。\n"
+        ],
+        [
+          100,
+          101,
+          "  title: 検索ログの順位指標と本番の結果\n"
+        ],
+        [
+          102,
+          103,
+          "  caption: 相対差はTT＋CEと本番LGBMの比較。同じ行でも、検索ログの順位指標と本番で測った件数・売上は別の量だ。\n"
+        ],
+        [
+          105,
+          106,
+          "  rationale: 相対差はTT＋CEと本番LGBMの比較。同じ行でも、検索ログの順位指標と本番で測った件数・売上は別の量だ。\n"
+        ],
+        [
+          107,
+          109,
+          "  - オフライン @15\n  - オンライン 8週間\n"
+        ],
+        [
+          110,
+          111,
+          "  - label: 反応\n"
+        ],
+        [
+          112,
+          114,
+          "    - NDCG_click +4.32%\n    - クリック数 +1.86%\n"
+        ],
+        [
+          116,
+          119,
+          "    - NDCG_order 0.00%\n    - 販売点数は同水準\n  - label: 価値\n"
+        ],
+        [
+          124,
+          126,
+          "  title: クリック損失の係数αと注文の順位\n  caption: 特徴とモデルを固定し、クリックと注文の損失をどの割合で足すかだけを変える。\n"
+        ]
+      ]
+    },
+    "papers/otto-gbdt-vs-dnn-ltr/mapping.md": {
+      "before": {
+        "sha256": "a07fb623ee46149903668d8c9fe750c14d0723d52c5f11c3bb1da7f8a0ac9287",
+        "blob": "393e50f9dd15950fd8470e1e68243b9e567483b2"
+      },
+      "after": {
+        "sha256": "a621cd5fc46a562f284bc285be214a7b09f078508d55a62473f80e97d9b7658f",
+        "blob": "7c7e53c9a229cffd891d4d04289404b59eaf3223"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "| 原論文 | Labで扱う内容 | Labで再現していない内容 |\n"
+        ],
+        [
+          2,
+          6,
+          "| §5.2 Softmax交差エントロピー（CE）と損失の係数α | `fit` と `softmax` で、2特徴の線形スコアを学習する | RankNet（RN）と深層モデル（DNN）の学習 |\n| §6.1 オフラインの順位評価 | `ndcg` で人工一覧の上位3件を評価する | OTTOデータを使った上位15件の評価 |\n| §6.2 本番のA/Bテスト | 「根拠」に著者の報告値を載せる | 本番の実験（NOT TESTED） |\n"
+        ],
+        [
+          7,
+          8,
+          "一次資料は [arXiv v1 PDF](https://arxiv.org/pdf/2507.20753v1)。本文から公式実装のURLは確認できず、公式実装は実行していない。\n"
+        ]
+      ]
+    },
+    "papers/otto-gbdt-vs-dnn-ltr/method.md": {
+      "before": {
+        "sha256": "ae8a9a25fd5e15d07550b535190d6003a53bf05277b1111c83c0dc97977c7311",
+        "blob": "1b53ffcfb41d804694c0c7463cef4569fac532b7"
+      },
+      "after": {
+        "sha256": "9d278f19381befdc6623730777d8e8fa9d6cf3c4ab1334e569ee9a8855ab2054",
+        "blob": "be88be9e286e44e82733b97bf4c005215efb6efb"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 商品と検索時の文脈を組み合わせる位置\n"
+        ],
+        [
+          2,
+          3,
+          "商品には価格、割引率、過去の反応などの数値を正規化して使う。カテゴリは128次元のベクトルにする。商品名や説明文などは、単語ごとの埋め込みを足して512次元のベクトルにする。検索時の文脈にもカテゴリとテキストの埋め込みを使うが、数値特徴は含めない（§4.1、§6）。\n"
+        ],
+        [
+          4,
+          5,
+          "3方式が使う基本ネットワーク（backbone）は幅1024、3層。各層では線形変換、Dropout、ReLU、LayerNormを順に適用し、その出力に層の入力を足す（残差接続）。\n"
+        ],
+        [
+          6,
+          9,
+          "- Two-Tower（TT）は商品の特徴を基本ネットワークに、検索時の文脈を別の線形層に通す。得られた商品ベクトルと文脈ベクトルの内積 `sᵢ = h_cᵀ h_pᵢ` が、商品iのスコアになる。商品ベクトルは事前に計算できるが、価格などが変われば更新が必要になる。\n- Cross-Encoder（CR）は商品と文脈の特徴を先に連結し、基本ネットワークと採点層を使って候補ごとのスコアを出す。\n- Transformer（TR）はCRに候補一覧の自己注意を加える。位置符号化を使わず、1層・1ヘッドの自己注意で候補ごとの表現 `h_t` を計算する。CRの表現 `h_z` に `1+h_t` を要素ごとに掛け、`(1+h_t) ⊙ h_z` を採点層に渡す。\n"
+        ],
+        [
+          10,
+          11,
+          "### クリックと注文の損失\n"
+        ],
+        [
+          12,
+          13,
+          "クリックと注文の損失は別々に計算する。各一覧の正例数を `P = Σᵢyᵢ` とすると、Softmax交差エントロピー（CE）は `ỹᵢ = yᵢ/P` を目標分布にし、`L_CE = −Σᵢỹᵢ log softmax(s)ᵢ` を最小化する。RankNet（RN）は正例と負例のスコア差からペアの損失を計算し、正例数Pで割る。正例が多い一覧にはペアも多く、その一覧の影響が大きくなりやすいためだ。Pがゼロの一覧をどう扱ったかは論文に明記されていない。Labの人工例では、クリックと注文のどちらにも正例がある一覧だけを使う。\n"
+        ],
+        [
+          14,
+          15,
+          "どちらの損失でも `L = α L_click + (1−α) L_order` で合計する。論文ではα=0.5とした。係数が同じでも、正例が現れる頻度や、学習時に重みを動かす勾配の大きさまで等しくなるとは限らない。著者はクリックの多いデータとαの設定を、注文の順位指標が落ちた理由の候補に挙げている。異なるαで比べて原因を確かめたわけではない。\n"
+        ],
+        [
+          16,
+          17,
+          "比較した本番LambdaMARTは400本の木を使う。深さの上限は12、葉数は25、学習率は0.1で、LambdaRankを目的関数に使う。TTが単純というのは、商品と文脈を内積で組み合わせる仕組みを指す。モデルのパラメータが少ないという意味ではない。\n"
+        ],
+        [
+          18,
+          19,
+          "[一次資料：arXiv v1 本文](https://arxiv.org/pdf/2507.20753v1)\n"
+        ]
+      ]
+    },
+    "papers/otto-gbdt-vs-dnn-ltr/results.json": {
+      "before": {
+        "sha256": "8c7f509d27da1a95fe25955c6d4406a182f1e5c7de90c58d0bac7933f168a559",
+        "blob": "2b32b15949ceaf0f059fd148411486e0223940d7"
+      },
+      "after": {
+        "sha256": "e4514d281f3b5ab7d1d32e26388e4c33b035e8d97e9e894422292436980b81bd",
+        "blob": "0ccf410337d084715620c643e51b4ac1e4420478"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"合成データ。αで共有スコアの優先順位が変わる例。OTTOの性能、因果関係、モデル間優劣は未検証。\",\n"
+        ],
+        [
+          72,
+          73,
+          "        \"note\": \"合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。\",\n"
+        ],
+        [
+          87,
+          88,
+          "        \"note\": \"合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。\",\n"
+        ],
+        [
+          102,
+          103,
+          "        \"note\": \"合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。\",\n"
+        ],
+        [
+          117,
+          118,
+          "        \"note\": \"合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。\",\n"
+        ],
+        [
+          132,
+          133,
+          "        \"note\": \"合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。\",\n"
+        ]
+      ]
+    },
+    "papers/otto-gbdt-vs-dnn-ltr/run.py": {
+      "before": {
+        "sha256": "ece96ca84a5c89226353572a68a326506a977b47c27f831d9b81e1fe36f0b114",
+        "blob": "3e6c551e6e035e7efdedb504b76bc5e34dd9cedd"
+      },
+      "after": {
+        "sha256": "2d5b76353160ca6f8cd88719cbd780744ff71b88355af900461a2d7735fa24ab",
+        "blob": "988f1a0bf133f637a54c2420cfa4524b86e6a7f3"
+      },
+      "prior_spans": [
+        [
+          0,
+          2,
+          "\"\"\"CPU teaching experiment: shared linear scorer, two normalized CE targets.\nThis is an alpha sensitivity experiment, NOT a TT/LambdaMART comparison.\nRun: uv run papers/otto-gbdt-vs-dnn-ltr/run.py\n"
+        ],
+        [
+          19,
+          20,
+          "        # Different latent preferences; the order label is also a click.\n"
+        ],
+        [
+          61,
+          62,
+          "    return {\"note\": \"合成データ。αで共有スコアの優先順位が変わる例。OTTOの性能、因果関係、モデル間優劣は未検証。\", \"experiments\": [{\"name\": \"クリック損失の重みα\", \"seed\": [19, 20], \"n\": {\"train_queries\": 160, \"test_queries\": 240, \"items_per_query\": 8}, \"metrics\": metrics}]}\n"
+        ],
+        [
+          73,
+          74,
+          "            {\"value\": float(a), \"note\": \"合成の共有線形スコア。αだけを変えた結果で、OTTOやDNNの性能ではない。\",\n"
+        ]
+      ]
+    }
+  }
+}
