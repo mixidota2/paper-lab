@@ -1,0 +1,478 @@
+{
+  "files": {
+    "papers/sabreagent-design-time-inventory/README.md": {
+      "before": {
+        "sha256": "cd955c5e381de1de201cca20a80a1ab5b86d76bebdae073d428d50d0d0593a3e",
+        "blob": "1e3cb8164ff0defab52c7e35fa39c9b1c073e875"
+      },
+      "after": {
+        "sha256": "75aa7ef2a1ce4a7c0d03ba2fd8635acfbd124412e9df9a09531bea3052979198",
+        "blob": "d1335509d6d0f1aefa7a841a7e946cd7c00e38e6"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# SabreAgent: Language Models at Design Time for Lost-Sales Inventory Control\n"
+        ],
+        [
+          2,
+          3,
+          "LLMを発注のたびに呼ばず、設計した知識だけを運用に残せるか\n"
+        ],
+        [
+          4,
+          5,
+          "## Overview — 要点\n"
+        ],
+        [
+          6,
+          7,
+          "SabreAgentは設計時にLLMが作った季節性の事前情報と発注ルールを固定し、運用時は予測と在庫最適化で発注する。InventoryBenchのNRは0.6311。改善の大部分はORの基本部分から来る。\n"
+        ],
+        [
+          8,
+          9,
+          "## Problem — 問題設定\n"
+        ],
+        [
+          10,
+          11,
+          "単一商品・単一拠点の逸失販売を扱う。売れなかった需要は翌期へ繰り越さない。ただし需要そのものは欠品時も観測できる。納期は0、4、または{1,2,3,∞}で、∞は注文の消失を表す。仕入れ費用・発注固定費・残存価値はゼロ。NRは、各事例の報酬を「すべての需要を即時に満たした場合の売上」で割った値である。負なら0に置き換え、1,320事例を等重みで平均する。\n"
+        ],
+        [
+          12,
+          13,
+          "## Core Idea — 著者の主張と解釈\n"
+        ],
+        [
+          14,
+          15,
+          "著者の主張：商品説明から季節による需要変化の形を作る。さらに検証用データを使い、在庫を目標量まで補充しつつ1回の発注量に上限を設けるルールを選ぶ。運用時のLLM呼出しはゼロだが、統計予測の更新と方策パラメータの探索は続く。\n"
+        ],
+        [
+          16,
+          17,
+          "Labの解釈：注目点はLLMを置く段階にある。需要が欠品時も観測でき、仕入れ費用と発注固定費がゼロという条件が、強いORの基準を支える。実店舗の観測打切りや有料発注へ、そのまま移せるわけではない。\n"
+        ],
+        [
+          18,
+          19,
+          "## Why It Might Work — 効くと考えられる理由\n"
+        ],
+        [
+          20,
+          21,
+          "解釈：売れなかった需要まで将来の在庫不足へ足すと、発注量を膨らませる。販売量に基づいて在庫を更新する計算は、この二重計上を避ける。注文が消失する条件では上限が過大な追加発注を抑え、季節性の形は少数の需要履歴を補う。どちらも常に有利とは限らない。\n"
+        ],
+        [
+          22,
+          23,
+          "## Evidence — 著者の報告\n"
+        ],
+        [
+          24,
+          25,
+          "一次資料[Table 1・Figure 4・Table 2](https://arxiv.org/pdf/2609.19760v2)の著者報告。公開比較の最良値はGemini 3 Flash OR→LLMの0.5380、SabreAgentは0.6311。別のバッチ実行経路では固定OR部分が0.6180、季節性と探索を加えた差が+0.0138。公式の事例別実行へ移すと約0.0006下がるため、この2経路の値を単純に差し引かない。\n"
+        ],
+        [
+          26,
+          27,
+          "ペア比較の季節性効果は実データ3セルでNR +0.0179（著者表記+1.79%）、探索は確率的納期2セルで+0.0230（+2.3%）。相対改善率との混同に注意。同じDeepSeek-V4-Flashを運用時の補正へ戻した124事例の比較では、決定的納期の4セルでNRが低下した。\n"
+        ],
+        [
+          28,
+          29,
+          "## Executable Understanding — 手元で確かめる\n"
+        ],
+        [
+          30,
+          31,
+          "`uv run papers/sabreagent-design-time-inventory/run.py` で同じフォルダーのresults.jsonを更新する。Python標準ライブラリだけで動く。\n"
+        ],
+        [
+          32,
+          33,
+          "在庫を0・2・8から始め、同じ入荷と需要の経路で通常の在庫ポジションによる不足と、販売量で進めた不足を比較する。別の有限動的計画では、定常需要・即時無料補充の条件で、当期の期待報酬だけを最大にする近視眼方策と、全期間の期待報酬を考える最適化を比較する。\n"
+        ],
+        [
+          34,
+          35,
+          "## Results — 人工例の結果\n"
+        ],
+        [
+          36,
+          37,
+          "初期在庫0の例では、通常の不足が6、販売量からの不足が1。その差5は途中の逸失販売と一致する。初期在庫8なら途中の逸失販売がなく、差も0になる。定常需要の小問題では21状態で近視眼方策と動的計画の価値が一致した。\n"
+        ],
+        [
+          38,
+          39,
+          "## What We Verified — 確認した範囲\n"
+        ],
+        [
+          40,
+          41,
+          "CONFIRMED：同じ経路での不足差と逸失販売の恒等式、上限付き発注の形、有限な定常需要の例における近視眼方策の最適性。SabreAgent全体のMechanismはPARTIAL。\n"
+        ],
+        [
+          42,
+          43,
+          "## What We Did NOT Verify — 未検証の範囲\n"
+        ],
+        [
+          44,
+          45,
+          "Performance / Scaling / Production applicabilityはNOT TESTED。InventoryBench、LLMによる季節性生成、検証による方策族選択、確率的納期のrolloutは追試していない。最小実験は一般定理の証明でもない。\n"
+        ],
+        [
+          46,
+          47,
+          "## Implementation — 実装\n"
+        ],
+        [
+          48,
+          49,
+          "project()が販売量で在庫を更新し、capped()が式(4)を計算する。dp_check()は3期・有限需要の全探索。式(3)のκ付き余剰費用や予測混合は省略した。\n"
+        ],
+        [
+          50,
+          51,
+          "## Original Paper / Official Code Mapping — 原典との対応\n"
+        ],
+        [
+          52,
+          93,
+          "[式と図の説明](method.md)、[原典・実装対応表](mapping.md)、[実行結果](results.json)を参照。ページはlab.yamlとこれらのファイルから生成する。\n"
+        ]
+      ]
+    },
+    "papers/sabreagent-design-time-inventory/lab.yaml": {
+      "before": {
+        "sha256": "f753115d8305d91232151bfa8a6261af000e5c98c487519bb24d9e1690ded751",
+        "blob": "25a35ef27633f70e3211c9ea5c675ccdb163bc20"
+      },
+      "after": {
+        "sha256": "383dcd123a1950ebb32aca92000cfab9595d5341d3b3d38638e4c2e2a8acbf78",
+        "blob": "392e8f0658036c097651cef3fdb6218940114971"
+      },
+      "prior_spans": [
+        [
+          22,
+          24,
+          "question: LLMを発注のたびに呼ばず、設計した知識だけを運用に残せるか\nsummary: SabreAgentは設計時にLLMが作った季節性の事前情報と発注ルールを固定し、運用時は予測と在庫最適化で発注する。InventoryBenchのNRは0.6311。改善の大部分はORの基本部分から来る。\n"
+        ],
+        [
+          37,
+          39,
+          "  author_claim: 商品説明から季節による需要変化の形を作る。さらに検証用データを使い、在庫を目標量まで補充しつつ1回の発注量に上限を設けるルールを選ぶ。運用時のLLM呼出しはゼロだが、統計予測の更新と方策パラメータの探索は続く。\n  research_bot_interpretation: 注目点はLLMを置く段階にある。需要が欠品時も観測でき、仕入れ費用と発注固定費がゼロという条件が、強いORの基準を支える。実店舗の観測打切りや有料発注へ、そのまま移せるわけではない。\n"
+        ],
+        [
+          42,
+          44,
+          "  problem: 単一商品・単一拠点の逸失販売を扱う。売れなかった需要は翌期へ繰り越さない。ただし需要そのものは欠品時も観測できる。納期は0、4、または{1,2,3,∞}で、∞は注文の消失を表す。仕入れ費用・発注固定費・残存価値はゼロ。NRは、各事例の報酬を「すべての需要を即時に満たした場合の売上」で割った値である。負なら0に置き換え、1,320事例を等重みで平均する。\n  why_it_might_work: 解釈：売れなかった需要まで将来の在庫不足へ足すと、発注量を膨らませる。販売量に基づいて在庫を更新する計算は、この二重計上を避ける。注文が消失する条件では上限が過大な追加発注を抑え、季節性の形は少数の需要履歴を補う。どちらも常に有利とは限らない。\n  evidence: '一次資料[Table 1・Figure 4・Table 2](https://arxiv.org/pdf/2609.19760v2)の著者報告。公開比較の最良値はGemini\n    3 Flash OR→LLMの0.5380、SabreAgentは0.6311。別のバッチ実行経路では固定OR部分が0.6180、季節性と探索を加えた差が+0.0138。公式の事例別実行へ移すと約0.0006下がるため、この2経路の値を単純に差し引かない。\n"
+        ],
+        [
+          45,
+          46,
+          ""
+        ],
+        [
+          47,
+          50,
+          "    ペア比較の季節性効果は実データ3セルでNR +0.0179（著者表記+1.79%）、探索は確率的納期2セルで+0.0230（+2.3%）。相対改善率との混同に注意。同じDeepSeek-V4-Flashを運用時の補正へ戻した124事例の比較では、決定的納期の4セルでNRが低下した。'\n  executable_understanding: '`uv run papers/sabreagent-design-time-inventory/run.py`\n    で同じフォルダーのresults.jsonを更新する。Python標準ライブラリだけで動く。\n"
+        ],
+        [
+          51,
+          54,
+          ""
+        ],
+        [
+          55,
+          88,
+          "    在庫を0・2・8から始め、同じ入荷と需要の経路で通常の在庫ポジションによる不足と、販売量で進めた不足を比較する。別の有限動的計画では、定常需要・即時無料補充の条件で、当期の期待報酬だけを最大にする近視眼方策と、全期間の期待報酬を考える最適化を比較する。'\n  results: 初期在庫0の例では、通常の不足が6、販売量からの不足が1。その差5は途中の逸失販売と一致する。初期在庫8なら途中の逸失販売がなく、差も0になる。定常需要の小問題では21状態で近視眼方策と動的計画の価値が一致した。\n  what_we_verified: CONFIRMED：同じ経路での不足差と逸失販売の恒等式、上限付き発注の形、有限な定常需要の例における近視眼方策の最適性。SabreAgent全体のMechanismはPARTIAL。\n  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。InventoryBench、LLMによる季節性生成、検証による方策族選択、確率的納期のrolloutは追試していない。最小実験は一般定理の証明でもない。\n  implementation: project()が販売量で在庫を更新し、capped()が式(4)を計算する。dp_check()は3期・有限需要の全探索。式(3)のκ付き余剰費用や予測混合は省略した。\n"
+        ],
+        [
+          93,
+          95,
+          "  title: 固定する成果物と、運用時に動く計算を分ける\n  locator: Figures 1–2\n"
+        ],
+        [
+          96,
+          98,
+          "  rationale: 固定する成果物と、運用時に動く計算を分ける\n  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。\n"
+        ],
+        [
+          99,
+          100,
+          "  - label: 設計時：LLM\n"
+        ],
+        [
+          101,
+          106,
+          "    - title: 季節性の事前情報\n      text: 商品説明から年内の形を生成\n    - title: 方策族を選ぶ\n      text: 検証データでcapped base-stockを選定\n  - label: 運用時：LLM呼出し0\n"
+        ],
+        [
+          107,
+          111,
+          "    - title: 予測を更新\n      text: 観測需要と固定した季節性を組み合わせる\n    - title: ORで注文\n      text: 在庫を進め、θとcを探索する\n"
+        ],
+        [
+          114,
+          116,
+          "  title: 不足と発注上限を別々に計算する\n  locator: Eqs. (1), (3), (4); Proposition 8\n"
+        ],
+        [
+          117,
+          119,
+          "  rationale: 不足と発注上限を別々に計算する\n  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。\n"
+        ],
+        [
+          120,
+          121,
+          "  - name: 在庫を進める\n"
+        ],
+        [
+          122,
+          124,
+          "    explanation: 売れた分だけ在庫が減り、欠品後は負の在庫にならない。\n  - name: 到着直前の不足\n"
+        ],
+        [
+          125,
+          127,
+          "    explanation: 確定済みの入荷と販売を進めて、今回の注文が届く直前の在庫を求める。\n  - name: 決定的納期の限界価値\n"
+        ],
+        [
+          128,
+          130,
+          "    explanation: m(q)が0へ下がる点を探す。κ=0なら不足Uのp/(p+h)分位点。κ付きの規則は近似である。\n  - name: 確率的納期の方策族\n"
+        ],
+        [
+          131,
+          132,
+          "    explanation: rは局所的な需要予測。θで在庫目標、cで一回の発注上限を調整する。\n"
+        ],
+        [
+          135,
+          136,
+          "  title: NRは6セルすべてで公開比較の最良値を上回る\n"
+        ],
+        [
+          138,
+          140,
+          "  rationale: NRは6セルすべてで公開比較の最良値を上回る\n  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。\n"
+        ],
+        [
+          141,
+          147,
+          "  - 合成 L=0\n  - 合成 L=4\n  - 合成 確率的\n  - 実 L=0\n  - 実 L=4\n  - 実 確率的\n"
+        ],
+        [
+          167,
+          169,
+          "  title: 同じバッチ経路でOR部分からの増分を読む\n  locator: Figure 4\n"
+        ],
+        [
+          170,
+          172,
+          "  rationale: 同じバッチ経路でOR部分からの増分を読む\n  caption: 一次論文の図・式・表を説明用に再構成。数値は著者報告であり、Labの追試値ではない。\n"
+        ],
+        [
+          173,
+          174,
+          "  - label: 固定OR\n"
+        ],
+        [
+          175,
+          176,
+          "  - label: OR + 季節性\n"
+        ],
+        [
+          177,
+          178,
+          "  - label: OR + 探索\n"
+        ],
+        [
+          179,
+          180,
+          "  - label: OR + 季節性 + 探索\n"
+        ],
+        [
+          182,
+          183,
+          "  unit: NR（丸め値）\n"
+        ]
+      ]
+    },
+    "papers/sabreagent-design-time-inventory/mapping.md": {
+      "before": {
+        "sha256": "8f36f6ec07daf7e22fc118ed8221e6083d14dad632ef6e9d67c3ec68b9e7537e",
+        "blob": "b3c0ff9943e0c11042b6dc2b68b9e0e0ea6f3fb1"
+      },
+      "after": {
+        "sha256": "4be796de75ed75f71f04116864329dac788091c67b5a9b58cdfb7fcd2adf71d7",
+        "blob": "59e82e514ab492f0862947a97db3179ea59fcc41"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 一次資料と最小実装の対応\n"
+        ],
+        [
+          2,
+          3,
+          "[原論文 v2](https://arxiv.org/pdf/2609.19760v2)。2026-09-29に保存済みのPDFとarXivの版情報を確認した。\n"
+        ],
+        [
+          4,
+          5,
+          "PDF SHA-256: `4ba27bba95dd74380118e7339e447fd81b7ff627953e5e943a29380072bd3308`\n"
+        ],
+        [
+          6,
+          7,
+          "| 原典 | Labで読めるもの | Labで再現しないこと |\n"
+        ],
+        [
+          8,
+          13,
+          "| Figures 1–2 | 設計時と運用時を分けた図。設計時にはLLMを使って季節性を表す形を作り、確率的な納期に使う発注ルールの型を選ぶ。運用時には予測を更新し、選んだ型の中で発注パラメータを探す。 | LLMの実行 |\n| Eq. (1), Proposition 8 | `project()` と在庫の追跡表。実際に販売できた数量を使って各期末の在庫を更新する。 | 需要予測モデルの推定 |\n| Theorem 1, Appendix B | `dp_check()` で、需要分布が期によらず一定で、発注が無料で即時に届く人工例を確かめる。 | 定理の一般的な証明、期によって需要分布が変わる例 |\n| Eq. (4) | `capped()` と発注曲線。目標までの不足量と発注上限を比べ、小さい方を発注する。 | 将来の需要・納品をシミュレーションして発注パラメータ `θ,c` を選ぶ処理 |\n| Table 1 / Figure 4 / Table 2 | 論文の正規化報酬（NR）の比較を本文に示す。 | ベンチマークの再実行 |\n"
+        ],
+        [
+          14,
+          15,
+          "確認したPDFとarXivの概要ページでは、著者が提供するコードのリポジトリを見つけられなかった。公開コードが存在しないと確認したわけではない。`run.py` はLabが説明用に書いた実装だ。\n"
+        ]
+      ]
+    },
+    "papers/sabreagent-design-time-inventory/method.md": {
+      "before": {
+        "sha256": "2208e6b392a42342463d27c744d662117f5672c51f0b529bc826a00cadea4931",
+        "blob": "f5b5292d59a39eddd8f53093aa97440a7f3b4466"
+      },
+      "after": {
+        "sha256": "478ff22af099efedb0b0946fb523d36b64b6068d9654bf65c167d8b56adfaf87",
+        "blob": "97a5e0b4ad63655c7dde28065ee9d1a96c0cdd9a"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "## 無料で即時に届くなら、持ち越しの価値が小さくなる\n"
+        ],
+        [
+          2,
+          3,
+          "翌期も無料で補充できる。今期に余分な在庫を持っても、将来の仕入れ費用は節約できない。\n"
+        ],
+        [
+          4,
+          5,
+          "Theorem 1が扱うのは、需要が期ごとに独立で周辺分布が既知、発注量に上限がなく、仕入れ費用・発注固定費・残存価値がすべてゼロという条件である。L=0で各期のp/(p+h)分位点が非減少なら、近視眼的な在庫水準が最適になる。定常需要はその一例。分位点が下がる場合まで近視眼最適とは主張していない。\n"
+        ],
+        [
+          6,
+          15,
+          "定理と実装は分けて読む。実装にはκ付きの余剰費用の近似が入る。正の納期では在庫パイプラインを進め、確率的納期では上限付き方策を共通の乱数経路で比較する。LLM呼出しがゼロというのは、運用中に発注コードをLLMで生成し直さないという意味である。固定したコードの中で、予測の更新や方策パラメータの探索は続く。\n"
+        ]
+      ]
+    },
+    "papers/sabreagent-design-time-inventory/results.json": {
+      "before": {
+        "sha256": "6048509303af419ed94bec50d7ccf68d11389500e063cd6cf917b958aa2d94d1",
+        "blob": "295262bd42de46b25ead50e70c6c02344ffd1fe5"
+      },
+      "after": {
+        "sha256": "aaa708943f6059ef7af5eeabd8c1736ff53f513aac4ce74663ee165cfe69245f",
+        "blob": "481117b08fe70c9217c3eda5c81dd9f656313166"
+      },
+      "prior_spans": [
+        [
+          4,
+          5,
+          "      \"label\": \"初期在庫 0\",\n"
+        ],
+        [
+          29,
+          30,
+          "      \"label\": \"初期在庫 2\",\n"
+        ],
+        [
+          54,
+          55,
+          "      \"label\": \"初期在庫 8\",\n"
+        ],
+        [
+          183,
+          184,
+          "  \"note\": \"人工例。式(3)のκ付き探索、季節学習、確率的納期のrolloutは未実装。\"\n"
+        ]
+      ]
+    },
+    "papers/sabreagent-design-time-inventory/run.py": {
+      "before": {
+        "sha256": "6694b08713c300e5f53af3678c1c6e7d7e8bacc998061e6a23d3885e65e32a5d",
+        "blob": "5f3bc998c03164b0c8a4f697c3435b79eb636d23"
+      },
+      "after": {
+        "sha256": "e3afbae568ec84f3369a61ba0253d03b514ec68eafad2fce7b9a8be1bf38318f",
+        "blob": "b4ca158b92f96cdb6ac9b604ac661f7326684f9f"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Finite artificial paths; no fitted SabreAgent, LLM, or benchmark data.\"\"\"\n"
+        ],
+        [
+          22,
+          23,
+          "    # Independent stationary demand. Zero purchase/setup/salvage; instant supply.\n"
+        ],
+        [
+          34,
+          35,
+          "        y = max(stock, 4)  # 0.8 quantile\n"
+        ],
+        [
+          50,
+          51,
+          "        frames.append(dict(label=f'初期在庫 {initial}', initial=initial, rows=rows,\n"
+        ],
+        [
+          57,
+          58,
+          "                note='人工例。式(3)のκ付き探索、季節学習、確率的納期のrolloutは未実装。')\n"
+        ]
+      ]
+    },
+    "paper_lab/batch29.py": {
+      "before": {
+        "sha256": "655469265cd9e72315a4ebc875c6b90ccfdfb255bba1e875cdd42de6a28b73d4",
+        "blob": "e79683db489a6d99ed6aa54244b1f8e2e5c9d09d"
+      },
+      "after": {
+        "sha256": "118592c45bd9ee6bf62e85d225c60058b95e47b189bac7081e71f7d28c82a4d8",
+        "blob": "9d914550250ff13f9e21ba0df034ed94cb8de9ff"
+      },
+      "prior_spans": [
+        [
+          22,
+          38,
+          "            content=table(['期','入荷','需要','販売','期末在庫','欠品で売れなかった数量'],[[i+1,r['arrival'],r['demand'],r['sales'],r['ending'],r['lost']] for i,r in enumerate(f['rows'])])\n            content+=f'<p>次の需要3に対する不足：在庫ポジション（IP）を使う計算 <strong>{f[\"textbook\"]}</strong>、販売量で進めた計算 <strong>{f[\"projected\"]}</strong>。差は途中の欠品で売れなかった数量 <strong>{f[\"lost\"]}</strong>。</p>'\n            content+=f'<p>不足が負なら0にした発注量：{f[\"textbook_order\"]} 対 {f[\"projected_order\"]}。負の不足は余剰を意味する。</p>'\n            content+=plot_series([('上限なし',[x['base'] for x in result['cap_curve']]),('c=1で上限4',[x['capped'] for x in result['cap_curve']])],12,'在庫ポジション（IP）：0〜16','発注量：r=4、θ=3')\n            content+='<p>在庫ポジション（IP）は、今期の入荷を計上する前の手元在庫と輸送中在庫の合計。目標量からIPを引き、負なら発注量を0とし、さらに発注上限を適用する。この曲線は合計IPを0〜16で動かす教材で、二つの在庫を個別に模擬していない。<a href=\"https://arxiv.org/html/2609.19760v2\">原典§2.1・§3.5式(4)</a>。曲線はr=4、θ=3を固定した式(4)。c=1ならIPが低くても発注量は4を超えない。</p>'\n"
+        ],
+        [
+          49,
+          51,
+          "    titles={'sabre':'欠品を含む経路と、発注上限の曲線','or':'同じ費用をYとQの二つの経路で微分する','hurdle':'ゼロの山と、正の需要の分布を分けて動かす'}\n    labels={'sabre':'初期在庫','or':'数量Q（屈曲点を除く）','hurdle':'発生確率と、ゼロを除く前のNB平均μ'}\n"
+        ],
+        [
+          53,
+          58,
+          "    return '<figure class=\"teaching\" data-b21><h3>'+titles[kind]+'</h3><label>'+labels[kind]+' <select>'+options+'</select></label><script type=\"application/json\" data-frames>'+data+'</script><div data-output aria-live=\"polite\">'+frames[0]+'</div><figcaption>run.pyの人工実験をresults.jsonから生成。著者の性能値ではない。操作しなくても最初の条件を読める。</figcaption></figure>'\n"
+        ]
+      ]
+    }
+  }
+}
