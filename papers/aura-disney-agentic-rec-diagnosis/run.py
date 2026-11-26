@@ -1,4 +1,4 @@
-"""AURA-inspired deterministic retention and evidence checks, no LLM diagnosis."""
+"""人工の分類を選び、診断の参照先を確かめる合成例。LLMには問い合わせない。"""
 import json
 from pathlib import Path
 
@@ -27,13 +27,13 @@ def main():
     checks=[validate(x,{'s1','s2'},{'ranker.py'}) for x in mutations]
     assert checks[0]==[] and all(checks[1:])
     assert 'age' not in baseline and 'age' in combined
-    # Illustrative gate, not an official AURA numerical promotion threshold.
+    # 正の差を使うLabの保留例。AURAの正式な採用基準ではない。
     deltas=[.0003,.0006,.0001];noise=.001
     decision='hold' if max(deltas)<=noise else 'review'
     assert decision=='hold'
-    out={'note':'人工カテゴリと参照検証のみ。診断精度・因果的な原因推定・LLM rubric採点は未実行。',
+    out={'note':'Labは人工の分類を選び、参照先を入力と照合しました。診断の精度、原因の推定、LLMによる採点は試していません。',
       'scope':{'reference_rejection':'CONFIRMED','mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},
       'categories':rows,'retained':{'percentage_only':baseline,'combined':combined},'validation_errors':checks,'decision':decision,
-      'experiments':[{'name':'低頻度でも残す規則と架空参照の排除','metrics':{'retained_categories':{'baseline':len(baseline),'combined':len(combined)},'invalid_findings_rejected':{'count':3},'noise_gate':{'decision':decision}}}]}
+      'experiments':[{'name':'件数が少ない分類を残し、入力にない参照を退ける','metrics':{'retained_categories':{'baseline':len(baseline),'combined':len(combined)},'invalid_findings_rejected':{'count':3},'noise_gate':{'decision':decision}}}]}
     Path(__file__).with_name('results.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n');return out
 if __name__=='__main__':main()

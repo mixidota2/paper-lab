@@ -17,8 +17,8 @@ urls:
   arxiv: https://arxiv.org/abs/2609.16625
 verdict: Worth Reading
 status: published
-question: コードを変える前に、誰のどんな失敗を直すのか説明できるか
-summary: Disneyの2 platformで約10万sessionずつを診断。診断結果を25項目の評価基準で調べると、基準を満たした項目数はサービスAで15から23、Bで17から24へ増えた。ただし、ジャンル情報の修正によって推薦の順位が改善するかは、まだ確かめられていない。診断と出荷判断を切り離す。
+question: 推薦を直す前に、どの利用者がどんな場面で困ったかを記録から説明できるか
+summary: Disneyの研究チームは2つの動画配信サービスでそれぞれ約10万件の利用セッションを評価し、問題ありと判定した記録をAURAで分析しました。診断などの出力が満たした評価項目は、25項目中サービスAで15から23、Bで17から24に増えました。一方、ジャンルの修正案をオフラインで試しても、対象では推薦の順位が改善しませんでした。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -30,86 +30,97 @@ source_review:
   version: v1
   pdf_sha256: 069c7aa504d2881a293c4d083dc2603a11b55dba53f2fb6f40dae64cc8ae317e
   url: https://arxiv.org/pdf/2609.16625v1
-  scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。
+  scope: 一次資料の本文、数式、実験表を確認しました。著者が報告したことと、Labの合成例で確認したことを分けます。
 core_idea:
-  author_claim: 大量のsessionを階層的にまとめ、証拠付きの失敗分類からrankerのcode・feature・trainingに接続した修正案を作る。各段階で参照検証とengineer
-    reviewを行う。
-  research_bot_interpretation: '[AgentX](agentx-kuaishou.html)のcode探索、[DREAM](dream-taobao-agentic-control.html)の実行時制御、[PILOT](pilot-experiment-lifecycle.html)の実験運用、[CORAL](coral-meta-config-harness.html)の設定探索に、診断対象を決める前段を足す研究と読める。失敗の説明がもっともらしくても修正効果は別途確かめる必要がある。'
+  author_claim: AURAは似た失敗をまとめ、どのセッションがその説明の根拠になったかを示します。さらに推薦を作るコードや特徴量、学習の処理と照らし合わせて修正案を作り、参照先を確認します。技術者は各工程で根拠を確認できます。
+  research_bot_interpretation: '[AgentX](agentx-kuaishou.html)が改善コードを探し、[DREAM](dream-taobao-agentic-control.html)が推薦を実行中に制御し、[PILOT](pilot-experiment-lifecycle.html)が推薦実験を進め、[CORAL](coral-meta-config-harness.html)が実行基盤の設定を探すのに対し、AURAはその前にどんな失敗を調べるかを決めます。失敗の説明がもっともらしくても、修正で利用者に合う推薦が増えるかは別の評価が必要です。'
 sections:
   overview: |-
     AURAは動画配信サービスで、推薦が合わなかった場面を調べ、技術者が修正を検討できる形にまとめます。上流の判定モデルは2サービスでそれぞれ約10万件の利用セッションを評価します。AURAが詳しく調べるのは、そのうち判定モデルが問題ありとしたセッションです。似た失敗をまとめ、どの記録やコードを根拠に修正を提案したかを示します。
 
     著者は一方のサービスで、好みのジャンルと推薦が合わない1,911件を対象に、二つの修正案をオフラインで評価しました。どちらも対象のセッションで順位付けを改善せず、全体の指標も反復実験のばらつきとされた±0.1%の範囲でした。原因候補を調べて修正案を作った事例であり、推薦の改善を確認して本番に出した事例ではありません。
-  problem: 集計NDCGが同じでも、家族向けcontentのsubgenre不一致と年齢に合わない推薦では対処が違う。全sessionを一つのLLM contextへ入れることもできない。Platform
-    Aは96,801中18,901 BAD、Bは101,594中4,154 BAD。階層集約はこのBAD集合を詳しく調べるので、上流judgeが見逃した失敗が診断から落ちる可能性がある。
-  why_it_might_work: '解釈: session→category→検証済みfindingへ圧縮すると、深い分析に使う高価なmodelの呼出しを減らせる。codeを読む前にcohortと失敗を決めることで、平均指標だけの探索より修正の理由が明確になる。ただし分類名と集約時の抽出条件が盲点を作る。低頻度の安全上の失敗を割合閾値で消さず、上流judge自身の誤りも検査する必要がある。'
-  evidence: '一次資料の著者報告。
+  problem: |-
+    全体の順位指標が同じでも、好みと違うジャンルの作品を出した場合と、年齢に合わない作品を出した場合では対策が異なります。約10万件の記録すべてを一度にモデルへ渡せないため、著者はまずセッションごとの判定を使って対象を絞りました。
 
+    最初の判定モデルは、サービスAの96,801件のうち18,901件、Bの101,594件のうち4,154件を問題あり（BAD）としました。AURAが詳しく読むのはこの集合なので、最初の判定で見逃した失敗は診断から漏れる可能性があります。判定の指示はサービスごとに異なり、Bでは調査の途中でも改訂しました。両サービスのBADの割合から、どちらの推薦が優れているかは判断できません。
+  why_it_might_work: |-
+    似た失敗をひとまとめにすると、詳しい分析に使うモデルに全件を渡さずに済みます。コードを読む前に、どの利用者のどんな記録を説明したいかを決めておくと、なぜその修正を提案したかを技術者が確認できます。
 
-    [PDF §4、Tables 1–5](https://arxiv.org/pdf/2609.16625v1) の著者報告。25項目のGOOD数はA 15→23、B
-    17→24。診断出力へのrubricであり、推薦の精度や人間の満足度ではない。同じrubricを使う反復改善なので、未見課題への一般化は別問題となる。
+    一方、既存の分類と抽出条件に合わない問題は見落とすことがあります。発生頻度が低くても安全上見過ごせない問題を別に残し、最初にセッションを評価したモデルの判断も点検する必要があります。小売の推薦に応用する考え方はありますが、論文は動画配信の事例で、移植の効果は計測していません。
+  evidence: |-
+    ### 診断などの出力が満たした基準
 
+    [一次資料の§4と表1–5](https://arxiv.org/html/2609.16625v1)によると、分類からコードの提案までの出力を25項目で評価した結果、基準を満たした数はサービスAで15から23、Bで17から24に増えました。抽出の工程自体は採点対象ではありません。著者は処理の構成やモデルへの指示を見直し、その間も同じ評価基準を使いました。推薦の精度や利用者の満足度を測った結果ではなく、未知の課題でも同じ改善が出るかは分かりません。
 
-    上流judgeの検査にはClaude Opus 4.6、GPT-5.5、Gemini 3.1 Proの多数決を用い、rubric判定にはGemini 3.1
-    ProとGPT-5.5を使う。LLM間の一致を独立した人間正解と同一視できない。Gemini系が上下流に現れる自己選好と、GOOD多数によるκの低さも本文で開示する。
+    最初のセッション判定を点検した際は、Claude Opus 4.6、GPT-5.5、Gemini 3.1 Proのうち2つ以上が元の判定を正しいとみなした割合が、Aで192/200件（96.0%）、Bで176/201件（87.6%）でした。工程ごとの出力を採点したのはGemini 3.1 ProとGPT-5.5です。人手による独立した正解ではなく、Gemini系を作業と採点の両方に使った影響も排除できません。正しいとみなす回答に偏るこの比較では、偶然の一致を補正する係数κは低い値でした。
 
+    ### ジャンルの修正案を試した結果
 
-    Genre Preference Mismatchは両面でBADの約46〜48%。Bの1,911 sessionでgenre cross featureとcandidate-aware
-    attentionを試したが、診断cohortのrankingは改善しなかった。Table 3は3独立学習日の全体差で、NDCG@10 −0.01/+0.05/+0.02%、Click
-    AUC +0.03/+0.06/+0.01%。
+    表2で好みと異なるジャンルの推薦に分類されたのは、BADのうちAで9,135件（48.3%）、Bで1,911件（46.0%）です。表に残ったいずれかの分類に入ったのは、Aで17,996/18,901件（95.2%）、Bで2,415/4,154件（58.1%）でした。サービス間で抽出基準は異なり、Aでは一つのセッションに複数の分類が付きます。
 
+    著者はBの1,911セッションで二つの案をオフラインで試しました。一つは利用者と候補作品のジャンルの組み合わせを特徴量にする案で、もう一つは候補作品に応じて利用者のジャンル別視聴履歴の重みを変える案です。どちらも対象の順位付けを改善しませんでした。後者について、表3の3つの学習日では、比較用に複製した基準モデルに対する全体の相対差が、NDCG@10で−0.01%／+0.05%／+0.02%、Click AUCで+0.03%／+0.06%／+0.01%でした。どれも実行を繰り返したときの目安である±0.1%以内です。この範囲は信頼区間ではありません。著者は修正案を未実証の候補として残しました。
 
-    費用はA $349.26、B $252.85（end-to-end）。そのうち上流judgeは$320.98/$250.21、AURA部分は$28.28/$2.64。約$43〜50/findingには上流judgeを含む。上流費用は観測単価の全sessionへの外挿、code
-    suggestion費用はOpus 4.6の料金からの推定で、全項目が実測telemetryではない。'
-  executable_understanding: '`uv run papers/aura-disney-agentic-rec-diagnosis/run.py`。人工カテゴリを割合のみとtop-N/count/割合＋safety例外で選び、証拠session・code
-    pathが存在するかを検査する。noise内の差をholdにする例も示すが、この数値gateはLabの説明用で、AURAの公式出荷規則ではない。'
-  results: 5%のみでは5カテゴリ中3つを残し、件数・safety例外を加えると5つが残る。10件のage問題が消えなくなる。架空session、架空path、証拠なしの3変異を拒否し、有効なfindingだけを通した。ここで検査するのは、挙げられた参照が入力の集合に存在するかどうか。参照先の内容が診断を裏付けるかまでは判定しない。これは診断内容が正しいことや、genre問題の原因を推定できることの確認ではない。
-  what_we_verified: Mechanism PARTIAL。低頻度category保持と参照の存在確認を人工入力で実行した。架空参照の拒否はCONFIRMED。診断品質のrubric上昇は著者報告でありLabではNOT
-    TESTED。
-  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。session判定、因果推論、LLM間一致、実rankerの学習、A/Bを実行していない。提示メモの「出荷を拒否」は慎重に読む必要がある。原典は修正を未実証のopen
-    candidateとし、現行システムの自動化範囲はengineer-reviewed PRまでである。
-  implementation: '`select()`は§3.3の保持規則を単純化し、`validate()`は§3.6の参照検証を再現する。共通memoryは過去のcategory・仮説・修正・結果を蓄える設計だが、Labでは永続DBやagentを実装しない。診断と修正効果の検証が別契約であることを残す。'
+    ### 費用に含めた工程
+
+    表5の全工程の費用はAが349.26ドル、Bが252.85ドルです。このうち、最初にセッションを判定する費用がAで320.98ドル、Bで250.21ドル、AURA部分がAで28.28ドル、Bで2.64ドルでした。診断1件あたり約43〜50ドルという値には、最初の判定も含まれます。最初の判定は観測した1セッションあたりの費用を全件に当てはめ、コードの提案は入力と変更案を基にOpus 4.6の料金から推定しました。すべての工程で実際に発生した課金を集計したわけではありません。
+  executable_understanding: |-
+    `uv run papers/aura-disney-agentic-rec-diagnosis/run.py`
+
+    Labは人工の5分類に、割合が5%以上の分類を選ぶ規則を当てます。比較する規則では、上位2分類、100件以上の分類、安全上の問題に当たる分類も残します。次に、診断が挙げたセッションIDとファイル名を入力と照合します。著者はサービスBの改修前の試行で、モデルが架空のセッションIDを904件挙げたと報告しています。Labでは実データを使わず、架空のIDを1つ入れて調べます。
+
+    別の合成例では、正の差0.0003、0.0006、0.0001の最大値を0.001と比べ、以下なら保留（`hold`）にします。差の絶対値を調べる関数ではなく、AURAの正式な採用基準でもありません。
+  results: |-
+    割合が5%以上という規則だけでは3分類が残りました。他の条件も加えると5分類が残り、その中には10件しかない年齢に関する分類も含まれます。これはLabの結果です。原論文のサービスBで割合だけを使うと2分類が残るという結果とは、入力が異なります。
+
+    参照の検査では、入力にあるセッションIDとファイル名を挙げた例を通しました。架空のセッションID、架空のファイル名、セッション参照なしの3例は退けました。ここで調べるのは、参照が入力にあるかどうかです。参照先の内容が診断を裏付けるかまでは判定しないため、診断が正しいことや原因を特定できたことは示しません。
+  what_we_verified: 仕組みの一部を確かめました（Mechanism PARTIAL）。人工の入力で、頻度が低い分類を残し、入力にない参照と根拠を挙げなかった例を退けました（参照の存在確認のみCONFIRMED）。
+  what_we_did_not_verify: |-
+    実際の視聴セッションの判定、原因の推定、判定モデル同士の一致、推薦モデルの学習、A/Bテストは試していません。診断出力が満たした項目数の増加は著者の報告です。性能、規模を拡大したときの挙動、実運用への適用は未検証です（NOT TESTED）。
+
+    原論文は、ジャンルの修正案を今後も検討できる候補としています。候補を正式に却下したとまでは読めません。著者が報告した修正作業の自動化は、技術者が確認するプルリクエストを作るところまでです。
+  implementation: |-
+    `select()` は論文§3.3の抽出を簡略化し、`validate()` は§3.6の検査の一部を小さな入力集合で試します。著者の仕組みは過去の分類、仮説、修正と結果を次の調査に残しますが、Labは永続データベースやエージェントを実装していません。
   method: method.md
   mapping: mapping.md
 teaching_figures:
 - kind: logic
   id: diagnostic-funnel
-  title: 約10万sessionを、そのまま修正命令にしない
+  title: 失敗の分類から技術者の確認まで
   after: method
   locator: Fig. 1 / §3.3–3.6
-  rationale: 約10万sessionを、そのまま修正命令にしない
-  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  rationale: 失敗の分類から技術者の確認まで
+  caption: 一次資料の手順を図にしました。
   source: https://arxiv.org/pdf/2609.16625v1
   rows:
-  - label: 圧縮
+  - label: 分類と抽出
     nodes:
-    - title: Classification → Consolidation
-      text: sessionを分類し重複categoryを統合
-    - title: Sampling
-      text: top-N / 件数 / 割合。安全上の例外を残す
+    - title: 似た失敗を一つの分類にまとめる
+      text: 各セッションに分類を付け、重複した分類を統合します。
+    - title: 詳しく読む記録を選ぶ
+      text: 分類を順位・件数・割合で選びます。安全上の問題には例外があります。
   - label: 説明
     nodes:
-    - title: Analysis → Verification
-      text: 証拠・根本原因の仮説・severityを照合
-    - title: Synthesis
-      text: 優先順位をまとめる
+    - title: 失敗の原因候補を調べる
+      text: 分析結果を記録と照らし合わせ、頻度に基づく区分を確認します。
+    - title: 対策の順番を決める
+      text: 共通する問題を整理し、先に検討する対策を示します。
   - label: 変更
     nodes:
-    - title: Hypothesis → code
-      text: 実在するfeature・pathへ接続
-    - title: engineer review
-      text: 現行はPRまで。training/A/B自動化は拡張中
+    - title: 原因候補をコードの変更案につなぐ
+      text: 特徴量やファイルを参照し、変更する箇所を示します。
+    - title: 技術者が変更案を読む
+      text: 自動化はプルリクエストの作成までです。学習とA/Bテストは手作業です。
 - kind: matrix
   id: rubric
-  title: 改善したのは25項目rubricの適合数
+  title: 各工程の出力が満たした評価項目数
   after: evidence
   locator: Table 1
-  rationale: 改善したのは25項目rubricの適合数
-  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  rationale: 各工程の出力が満たした評価項目数
+  caption: 一次資料の表1。数値は採点の結果で、推薦の精度ではありません。
   source: https://arxiv.org/pdf/2609.16625v1
   columns:
-  - A before→after
-  - B before→after
+  - サービスAの変更前→変更後
+  - サービスBの変更前→変更後
   rows:
   - label: 分類
     cells:
@@ -131,30 +142,30 @@ teaching_figures:
     cells:
     - 4/4→4/4
     - 4/4→4/4
-  - label: code提案
+  - label: コードの提案
     cells:
     - 1/4→3/4
     - 1/4→3/4
 - kind: logic
   id: no-win
-  title: もっともらしい診断と、改善する修正は別
+  title: ジャンルの修正案を試した結果
   after: results
   locator: §4.2 / Table 3
-  rationale: もっともらしい診断と、改善する修正は別
-  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。
+  rationale: ジャンルの修正案を試した結果
+  caption: 一次資料の§4.2と表3。著者がオフラインで試した結果で、Labの合成例とは別です。
   source: https://arxiv.org/pdf/2609.16625v1
   rows:
   - label: 観測
     nodes:
-    - title: genre mismatch
-      text: BADの約46〜48%
+    - title: 好みと異なるジャンルの推薦
+      text: 問題ありと判定したセッションのうち、Aで48.3%、Bで46.0%でした。
     - title: 修正候補
-      text: genre交差feature / candidate-aware attention
+      text: 利用者と候補作品のジャンルの組み合わせ、または候補に応じた視聴履歴の重み付け。
   - label: 検証
     nodes:
-    - title: cohort 1,911 session
-      text: 順位改善を観測できず
-    - title: 全体3学習日
-      text: 差は±0.1%以内。未実証候補として保持
+    - title: サービスBの1,911セッション
+      text: どちらの案でも順位の改善は確認できませんでした。
+    - title: 別々の日付で学習した3回の全体比較
+      text: 全体指標の相対差は±0.1%以内でした。効果を確認できていない候補として残しました。
 results: results.json
 submitted: '2026-09-15'
