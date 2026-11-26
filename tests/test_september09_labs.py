@@ -137,10 +137,10 @@ def test_autolr_results_explain_two_distinct_counts_without_changing_metrics():
 def test_autolr_display_mapping_changes_only_autolr_and_rejects_unexpected_bytes():
     import ast
 
-    from prose_preservation import before_uvr_full_prose, before_autolr_full_prose
+    from prose_preservation import before_grace_full_prose, before_uvr_full_prose, before_autolr_full_prose
 
     p = 'paper_lab/display_labels.py'
-    current = before_uvr_full_prose(ROOT, p, (ROOT / p).read_bytes())
+    current = before_uvr_full_prose(ROOT, p, before_grace_full_prose(ROOT, p, (ROOT / p).read_bytes()))
     previous = before_autolr_full_prose(ROOT, p, current)
 
     def other_inputs(raw):

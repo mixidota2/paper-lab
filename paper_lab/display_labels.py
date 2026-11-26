@@ -37,6 +37,12 @@ LABELS = {'agentx-kuaishou': {'利益あり': '改善条件を満たす例', '�
  'uvr-wolt-trial-reorder': {'trial重み': '初回注文を重視する重み',
                             'trial_MRR': '店への初回注文のMRR',
                             'reorder_MRR': '同じ店への再注文のMRR'},
+ 'grace-meta-ads-gtm-serving': {'eligible_ads_after_exact': '最終照合を通った広告数',
+                                'CD_only': '途中ではカタログだけ確認',
+                                'GTM': '途中で配信条件も確認',
+                                'mixed_prefix_false_positive': '枝は残ったが配信できる広告はなかった',
+                                'observed': '合成例で起きたか',
+                                'True': 'はい'},
  'case-against-generation-retrieval': {'残す候補の枝': '探索の第1段で残す候補群の数'},
  'whole-foods-shelf': {'A部門の面積弾力性 β': 'A部門の面積に対する反応を決める係数 β'}}
 

@@ -1,0 +1,358 @@
+{
+  "files": {
+    "paper_lab/display_labels.py": {
+      "before": {
+        "sha256": "8bf2a7f58eee0194943a48df65d0957125ad7ec85b2029bc5f1de20b8621bfab",
+        "blob": "e64e951a284cc763c89a50dd7d7317fb7139a672"
+      },
+      "after": {
+        "sha256": "549eee7ac187f253a263e4e8c9489dff79c0c0fede53999a8864d705aee2afad",
+        "blob": "f72ea761ec1256216ca022733404bd44944bb373"
+      },
+      "prior_spans": [
+        [
+          39,
+          45,
+          ""
+        ]
+      ]
+    },
+    "papers/grace-meta-ads-gtm-serving/README.md": {
+      "before": {
+        "sha256": "13f351e984d4bc9a96834b9d391c6387932626848e25db41c70427aa95669d4c",
+        "blob": "d44b7ad136c5874a707aa612b78ea8d599a58938"
+      },
+      "after": {
+        "sha256": "f1191242a281b4e4e3d30fee38ee955bf531e8f30ddb274192902cec1b54ba2f",
+        "blob": "a489c406ca8c95d72eda104a7d10b8bfdf9cbe26"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# GRACE: Generative Recommender Acceleration Engine for Real-Time Ads Retrieval\n"
+        ],
+        [
+          2,
+          3,
+          "広告を表すID（SID）の候補を生成する途中で、その要求の配信条件を確認する。著者の評価では、最後に広告ごとの条件確認を通過した割合が23.55%から40.42%へ上がった。候補数を固定した生成処理のP99遅延は197.7 msから17.8 msへ短縮したが、配信条件の確認（GTM）を含むモデル全体のP99遅延53.6 msは別の条件で測った値である。\n"
+        ],
+        [
+          4,
+          5,
+          "公開ページ: https://mixidota2.github.io/paper-lab/papers/grace-meta-ads-gtm-serving.html\n"
+        ],
+        [
+          6,
+          11,
+          "## 実行\n"
+        ],
+        [
+          13,
+          14,
+          "uv run papers/grace-meta-ads-gtm-serving/run.py\n"
+        ],
+        [
+          16,
+          17,
+          "Python標準ライブラリだけを使う。`lab.yaml` と `method.md` が解説の原本、`run.py` が最小実験、`results.json` が出力、`mapping.md` が原典との対応。HTMLは `uv run paper-lab build` で生成する。\n"
+        ],
+        [
+          18,
+          19,
+          "## 検証範囲\n"
+        ],
+        [
+          20,
+          21,
+          "Mechanism PARTIAL。人工4要求で、適格広告を持つprefixがOR検査を通ることはCONFIRMED。属性相関の偽陽性、Bloomの偽陽性、同一beamの枠再配分を実行した。\n\nPerformance / Scaling / Production applicability NOT TESTED。GH200 kernel、KV cache、production targeting全条件、実pass率、広告A/Bは未実行。CPUの4広告を23.55→40.42%の再現とは呼ばない。\n"
+        ]
+      ]
+    },
+    "papers/grace-meta-ads-gtm-serving/lab.yaml": {
+      "before": {
+        "sha256": "9ad719e97f794ab28da99326915e2a771ced786e5a81862b97118d6f070c2fb1",
+        "blob": "28007ccfadba043059c649a6014e81b609a6df32"
+      },
+      "after": {
+        "sha256": "c13a030762391b63b676ac5871ac2ae9bbe93204358b09aa04a871042a997048",
+        "blob": "99e2e187947b5f20467bab98ad2f222ed0fcf4e7"
+      },
+      "prior_spans": [
+        [
+          29,
+          31,
+          "question: 存在する広告と、この要求で配信できる広告をどう分けるか\nsummary: 広告を表すID（SID）の候補を生成する途中で、その要求の配信条件を確認する。著者の評価では、最後に広告ごとの条件確認を通過した割合が23.55%から40.42%へ上がった。候補数を固定した生成処理のP99遅延は197.7 msから17.8 msへ短縮したが、配信条件の確認（GTM）を含むモデル全体のP99遅延53.6 msは別の条件で測った値である。\n"
+        ],
+        [
+          43,
+          44,
+          "  scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。\n"
+        ],
+        [
+          45,
+          47,
+          "  author_claim: Generative Target Matching（GTM）はSID prefixへ広告のtargeting条件をまとめ、request別maskをconstrained\n    decodingへ加える。別に広いbeamと短い系列向けのGPU kernelを最適化する。\n  research_bot_interpretation: '[STATIC](static-constrained-gr.html)がカタログ内で成立するSID\n    pathを高速に判定し、[FlashTrie](flashtrie-gpu-beam.html)がTrie制約とbeam処理のGPU効率を問うのに対し、GRACEは「そのrequestで配信可能か」を追加する。合法性・適格性・計算効率を別々の検証項目にできる。'\n"
+        ],
+        [
+          49,
+          50,
+          "    Metaの著者は、広告候補を生成する途中で、広告主が指定した配信条件を使って候補を絞る方法を提案しました。GRACEは同じ識別コードの先頭を持つ広告の配信条件をまとめ、該当する広告がない枝は生成の途中で除きます。残った候補は広告ごとに条件を確認します。実在する広告だけを生成できる既存の制約と比べ、最終的に配信条件を満たした候補の割合は23.55%から40.42%に上がりました。これは広告が条件を通った割合で、広告を見た人の反応や売上の変化を測った結果ではありません。\n  problem: カタログ上の有効性は「広告ID（SID）が実在する広告を指すか」、配信の適格性は「今回のリクエストが広告の条件を満たすか」を指す。配信の可否はリクエストごとに変わる。複数の広告の条件をプレフィックスごとにまとめると、どの条件を同じ広告が満たすかは分からなくなる。条件ごとに当てはまる広告があっても、すべてを満たす広告があるとは限らない。こうした枝も近似検査を通る。枝を誤って残す場合に対処しながら、候補を多く残す探索でも遅延を抑えることが課題となる。\n  why_it_might_work: '解釈: 完全に不適格な枝を早く落とせば、同じbeam数でも最終検査を通る候補へ探索資源を使える。bitmaskとBloomはpacked演算に向く。一方、集約ORが飽和すると枝刈りは効かず、細かく分割するとmatcher参照が増える。低いmask\n    fill率だけを最適化しても、全体のpass率やlatencyがよくなるとは限らない。'\n  evidence: '一次資料 [PDF §6、Tables 2–6](https://arxiv.org/pdf/2608.00938v1) の著者報告。CD\n    onlyからCD+GTMへ、全requestの最終ad-level pass率は23.55→40.42%（+16.87 pp）。これは広告のengagementや売上のA/Bではない。\n"
+        ],
+        [
+          51,
+          54,
+          ""
+        ],
+        [
+          55,
+          61,
+          "    Table 6はNVIDIA GH200、batch 16のP50/P99。固定beam (1,1024,1024,1024)でdecoder P99 197.7→17.8\n    ms、所要時間は約1/11.1。full model P99は220.1→40.5 ms。この行には完全なGTM費用は入っていない。\n"
+        ],
+        [
+          62,
+          63,
+          ""
+        ],
+        [
+          64,
+          65,
+          "    動的beam (1,512,1024,1024)へ移し、lookup・CD・bitmask・Bloomを含めたD3はdecoder P50/P99 25.0/27.3\n    ms、full model 51.0/53.6 ms。したがって「GTM込みdecoderが17.8 ms」とは書けない。cross-attentionはFA3比68.0倍、self-attentionは強いbaseline比23.4〜25.8倍というkernel測定で、サービス全体の倍率ではない。\n"
+        ],
+        [
+          66,
+          67,
+          ""
+        ],
+        [
+          68,
+          85,
+          "    static k-wayはmaskの飽和を減らしても、未分割CD+GTMを最終pass率で上回らなかった。細分化の追加照会費用もあり、著者は未分割を運用点として選ぶ。'\n  executable_understanding: '`uv run papers/grace-meta-ads-gtm-serving/run.py`。4広告の国×年齢条件をprefixでORし、属性相関による偽陽性と最終広告検査の必要性を確かめる。同じscore・beam\n    2でCD onlyとGTMを比較。8-bitに縮小したBloomではhash偽陽性も観測する。'\n  results: 人工例でCD onlyはスコア上位2つのプレフィックスを残すが、広告ごとの検査に通る広告は0件だった。GTMは配信の可能性がない枝を先に除くため、配信できる広告cの枝を探索でき、最終検査に通る広告が1件残った。米国の若年層向け広告とカナダの成人向け広告の条件をまとめた枝は、米国の成人向けのリクエストを近似検査で通す。しかし、広告ごとに調べると、条件を満たすものはない。GTMだけでは最終判定の代わりにならない。\n  what_we_verified: Mechanism PARTIAL。人工4要求で、適格広告を持つprefixがOR検査を通ることはCONFIRMED。属性相関の偽陽性、Bloomの偽陽性、同一beamの枠再配分を実行した。\n  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。GH200\n    kernel、KV cache、production targeting全条件、実pass率、広告A/Bは未実行。CPUの4広告を23.55→40.42%の再現とは呼ばない。\n  implementation: '`match()`はpacked subset検査、`union()`はprefixへのOR、`bloom()`は固定SHA-256由来の3\n    hash位置を持つ説明用実装。論文の実Bloom hash設計を復元したものではない。exact検査はこのLabの国・年齢属性に限定する。'\n  method: method.md\n"
+        ],
+        [
+          89,
+          90,
+          "  title: ORで失われる属性の相関\n"
+        ],
+        [
+          92,
+          94,
+          "  rationale: ORで失われる属性の相関\n  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。\n"
+        ],
+        [
+          98,
+          99,
+          "  - US成人に配信可能\n"
+        ],
+        [
+          102,
+          103,
+          "    - US\n"
+        ],
+        [
+          107,
+          108,
+          "    - CA\n"
+        ],
+        [
+          110,
+          111,
+          "  - label: prefix OR\n"
+        ],
+        [
+          112,
+          113,
+          "    - US または CA\n"
+        ],
+        [
+          119,
+          120,
+          "    - a/bとも棄却\n"
+        ],
+        [
+          122,
+          123,
+          "  title: prefixの可能性と広告の適格性を分ける\n"
+        ],
+        [
+          125,
+          127,
+          "  rationale: prefixの可能性と広告の適格性を分ける\n  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。\n"
+        ],
+        [
+          131,
+          133,
+          "    explanation: 配下の条件を一つのmatcherへまとめる。\n  - name: 要求別の候補token\n"
+        ],
+        [
+          134,
+          136,
+          "    explanation: 近似検査と、IDがカタログ上で有効かを調べるCDの両方を通る枝を残す。\n  - name: k-way\n"
+        ],
+        [
+          137,
+          138,
+          "    explanation: 分割した先でも、どの条件を同じ広告が満たすかは分からない。分割すると条件の照会回数も増える。\n"
+        ],
+        [
+          140,
+          141,
+          "  title: 同じdecoder高速化でも測定範囲が違う\n"
+        ],
+        [
+          143,
+          145,
+          "  rationale: 同じdecoder高速化でも測定範囲が違う\n  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。\n"
+        ],
+        [
+          147,
+          150,
+          "  - beam\n  - decoder P99 ms\n  - full P99 ms\n"
+        ]
+      ]
+    },
+    "papers/grace-meta-ads-gtm-serving/mapping.md": {
+      "before": {
+        "sha256": "ba068f769a566dfc1beff2f9fad8b952a984a01ef793218e9b0e949a5c9d3f2a",
+        "blob": "46ea08a53ed6df1f01074d07ae0b851acdbf5a60"
+      },
+      "after": {
+        "sha256": "8c0c82fd9140acf5746c62a004793bd5b2ee053dd803a12af15370d272f11427",
+        "blob": "910b7792f4f39c5b3427a62aa5d5ebfbda153190"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# Original Paper / Official Code Mapping\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料: [GRACE: Generative Recommender Acceleration Engine for Real-Time Ads Retrieval](https://arxiv.org/pdf/2608.00938v1)、arXiv v1。2026-09-22確認。PDF SHA-256: `4b0fb0a46d634f111450e471f1b5236435b68c59d03e8ccd03601bc176cadfae`。取得済みPDFは `/tmp/research-2026-09-22/2608.00938v1.pdf` を再利用した。\n"
+        ],
+        [
+          4,
+          5,
+          "| 原典 | Lab | 省略 |\n"
+        ],
+        [
+          6,
+          10,
+          "| §4.2 | union / match | 実targeting全属性、k-way最適化 |\n| §4.3 | bloom | 256-bit production hash、GPU |\n| §5 | decoder解説 | 全kernel・paged KVの実装 |\n| Tables 3,6 | Evidence / latency表 | 生request・GH200再測定 |\n"
+        ],
+        [
+          11,
+          12,
+          "比較先STATIC/FlashTrieのLabは制約付きdecodeの計算経路を扱う。GTMのpass率をそれらのretrieval品質と直接比較しない。\n"
+        ],
+        [
+          13,
+          14,
+          "公式コード: 確認したPDFに本手法の公開実装へのリンクは見つからなかった。公開の有無を網羅的に保証するものではない。\n"
+        ]
+      ]
+    },
+    "papers/grace-meta-ads-gtm-serving/method.md": {
+      "before": {
+        "sha256": "aac2a0cc3eee4735805e048adb070f459bc5cf54ff56040564ea5b3e46d482b2",
+        "blob": "da01bf9b7900d2a276fa8a8b6676313fe2c3ce21"
+      },
+      "after": {
+        "sha256": "6a741f3571f1da43febfc290b1379825ef621d94b3d14d76411840bfc91b89c0",
+        "blob": "545bb050e26aebaa3d724bd3fcb2c7afd801e685"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 小型encoder–decoderを、4 token・広いbeamに合わせる\n"
+        ],
+        [
+          2,
+          3,
+          "GRACEは特定のLLM checkpoint名を提示する研究ではない。encoder–decoder Transformerを対象とし、実験decoderは3層、16 heads、head幅128、語彙512、SID長4。評価ではInterFormer-style encoderが128 context tokenを作り、各beamが同じencoder K/Vを読む。\n"
+        ],
+        [
+          4,
+          5,
+          "cross-attentionではbeamをquery次元へまとめて共有K/Vの再読込を減らす。self-attentionは短い系列向けのcoalesced/fused kernelを使い、paged KVでbeamの並べ替え時に大きいtensorをコピーしない。top-k・beam拡張と動的beamも組み合わせる。これらはGTMの精度効果と別の計算上の工夫である。\n"
+        ],
+        [
+          6,
+          7,
+          "### 低cardinalityはbitmask、高cardinalityはBloom\n"
+        ],
+        [
+          8,
+          9,
+          "国・年齢などの条件をbit範囲へ割り当て、prefix配下の広告maskをORする。user属性のbitがすべて含まれれば通す。配下に適格広告があれば、この検査は通る。ただし通過したprefixに適格広告があるとは限らない。異なる広告の属性を組み合わせた偽陽性が生じる。要求の各属性がどこかの広告にあることと、同じ広告が全ての属性を満たすことは異なるため、最後は広告ごとに照合する。\n"
+        ],
+        [
+          10,
+          11,
+          "場所など高cardinality条件は256 bit（int64×4）のBloomを用いる。request側の複数locationのうち一つでも包含検査を通れば候補となる。OR集約の偽陽性にhash衝突も加わる。論文は後段のad-level検査を維持し、SID-levelの効果を最終広告pass率で評価している。\n"
+        ],
+        [
+          12,
+          13,
+          "### maskを細分化すればよいとは限らない\n"
+        ],
+        [
+          14,
+          15,
+          "k-way partitionは広告群を分けて複数matcherを持ち、どれか一つが通ればprefixを残す。国と年齢の不正な組合せを減らせるが、照会回数とstorageが増える。CSRのchild array、SID token、matcher-table IDを並べ、同一matcherをdedupすることで保存量を抑える。kernelは計算費用の小さいbitmaskから試し、失敗ならBloomを読まない。\n"
+        ],
+        [
+          16,
+          19,
+          "<figure class=\"teaching\" data-b21><h3>requestを変えると、同じprefixの判定が変わる</h3><label>対象user <select><option value=\"0\">US・若年</option><option value=\"1\">US・成人</option><option value=\"2\">CA・若年</option><option value=\"3\">CA・成人</option></select></label><div data-output aria-live=\"polite\"><p>要求：US・若年。左から成人・若年・CA・USのbit。</p><div class=\"matrix-scroll\" tabindex=\"0\"><table><thead><tr><th>対象</th><th>mask</th><th>近似pass</th><th>適格広告</th></tr></thead><tbody><tr><td>mixed</td><td><code>1111</code></td><td>通過</td><td>a</td></tr><tr><td>eligible</td><td><code>1001</code></td><td>棄却</td><td>なし</td></tr><tr><td>wrong</td><td><code>0110</code></td><td>棄却</td><td>なし</td></tr></tbody></table></div></div><script type=\"application/json\" data-frames>[\"<p>要求：US・若年。左から成人・若年・CA・USのbit。<\\/p><div class=\\\"matrix-scroll\\\" tabindex=\\\"0\\\"><table><thead><tr><th>対象<\\/th><th>mask<\\/th><th>近似pass<\\/th><th>適格広告<\\/th><\\/tr><\\/thead><tbody><tr><td>mixed<\\/td><td><code>1111<\\/code><\\/td><td>通過<\\/td><td>a<\\/td><\\/tr><tr><td>eligible<\\/td><td><code>1001<\\/code><\\/td><td>棄却<\\/td><td>なし<\\/td><\\/tr><tr><td>wrong<\\/td><td><code>0110<\\/code><\\/td><td>棄却<\\/td><td>なし<\\/td><\\/tr><\\/tbody><\\/table><\\/div>\", \"<p>要求：US・成人。左から成人・若年・CA・USのbit。<\\/p><div class=\\\"matrix-scroll\\\" tabindex=\\\"0\\\"><table><thead><tr><th>対象<\\/th><th>mask<\\/th><th>近似pass<\\/th><th>適格広告<\\/th><\\/tr><\\/thead><tbody><tr><td>mixed<\\/td><td><code>1111<\\/code><\\/td><td>通過<\\/td><td>なし<\\/td><\\/tr><tr><td>eligible<\\/td><td><code>1001<\\/code><\\/td><td>通過<\\/td><td>c<\\/td><\\/tr><tr><td>wrong<\\/td><td><code>0110<\\/code><\\/td><td>棄却<\\/td><td>なし<\\/td><\\/tr><\\/tbody><\\/table><\\/div>\", \"<p>要求：CA・若年。左から成人・若年・CA・USのbit。<\\/p><div class=\\\"matrix-scroll\\\" tabindex=\\\"0\\\"><table><thead><tr><th>対象<\\/th><th>mask<\\/th><th>近似pass<\\/th><th>適格広告<\\/th><\\/tr><\\/thead><tbody><tr><td>mixed<\\/td><td><code>1111<\\/code><\\/td><td>通過<\\/td><td>なし<\\/td><\\/tr><tr><td>eligible<\\/td><td><code>1001<\\/code><\\/td><td>棄却<\\/td><td>なし<\\/td><\\/tr><tr><td>wrong<\\/td><td><code>0110<\\/code><\\/td><td>通過<\\/td><td>d<\\/td><\\/tr><\\/tbody><\\/table><\\/div>\", \"<p>要求：CA・成人。左から成人・若年・CA・USのbit。<\\/p><div class=\\\"matrix-scroll\\\" tabindex=\\\"0\\\"><table><thead><tr><th>対象<\\/th><th>mask<\\/th><th>近似pass<\\/th><th>適格広告<\\/th><\\/tr><\\/thead><tbody><tr><td>mixed<\\/td><td><code>1111<\\/code><\\/td><td>通過<\\/td><td>b<\\/td><\\/tr><tr><td>eligible<\\/td><td><code>1001<\\/code><\\/td><td>棄却<\\/td><td>なし<\\/td><\\/tr><tr><td>wrong<\\/td><td><code>0110<\\/code><\\/td><td>棄却<\\/td><td>なし<\\/td><\\/tr><\\/tbody><\\/table><\\/div>\"]</script><figcaption>run.pyの広告maskを使用。mixedは全要求を通すが、exact結果は空になる場合がある。</figcaption></figure>\n"
+        ]
+      ]
+    },
+    "papers/grace-meta-ads-gtm-serving/results.json": {
+      "before": {
+        "sha256": "734ef5dc7262778a7e9a912a8e191d21aa0b1c009057f8f57507efc53a1e5d0c",
+        "blob": "6d34612779543d225f0582ea7a95d9628a5bb0bc"
+      },
+      "after": {
+        "sha256": "b2bcf4b65a0243dce4829d46563d5f8b11de552186b7e5d3e3db995c7d326b74",
+        "blob": "5fcc83b8fe39f06d8648c465534fa4fdfceb6554"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"4広告の人工targeting。CPUの論理検査でありGH200速度や実pass rateは再現しない。\",\n"
+        ],
+        [
+          59,
+          60,
+          "      \"name\": \"beam 2の枠をrequest条件で使い直す\",\n"
+        ]
+      ]
+    },
+    "papers/grace-meta-ads-gtm-serving/run.py": {
+      "before": {
+        "sha256": "4d0c81cb1a572ef983e4a8acf0c2f2a2c33381e3b58fc981213fa2e478abef15",
+        "blob": "e99c64ac9419c0cd0e6143963d57e3dcbfaf358a"
+      },
+      "after": {
+        "sha256": "4f1b24dc693dced5fdb0c10bf48de143345e11676d83c159cd67d61c4f8ac544",
+        "blob": "978777e1f4c9cd85cb5bb1c5a8e6a03d554e05b6"
+      },
+      "prior_spans": [
+        [
+          43,
+          44,
+          "    out={'note':'4広告の人工targeting。CPUの論理検査でありGH200速度や実pass rateは再現しない。',\n"
+        ],
+        [
+          46,
+          47,
+          "      'experiments':[{'name':'beam 2の枠をrequest条件で使い直す','metrics':{'eligible_ads_after_exact':{'CD_only':len(final(baseline)),'GTM':len(final(gtm))},'mixed_prefix_false_positive':{'observed':True}}}]}\n"
+        ]
+      ]
+    }
+  }
+}

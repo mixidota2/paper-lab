@@ -1,5 +1,5 @@
 {
-  "note": "4広告の人工targeting。CPUの論理検査でありGH200速度や実pass rateは再現しない。",
+  "note": "Labは4件の広告を使い、配信条件の判定をCPUで確かめます。実際の広告の通過率とGH200の処理時間は測っていません。",
   "scope": {
     "conservative_no_false_negative_fixture": "CONFIRMED",
     "mechanism": "PARTIAL",
@@ -57,7 +57,7 @@
   ],
   "experiments": [
     {
-      "name": "beam 2の枠をrequest条件で使い直す",
+      "name": "探索で残す枝を2本にそろえ、配信条件を途中で使うかを比べる",
       "metrics": {
         "eligible_ads_after_exact": {
           "CD_only": 0,

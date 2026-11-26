@@ -453,7 +453,7 @@ def test_batch22_evidence_continuation_and_serving_units():
         'evopilot-verify-dont-trust-autoresearch': ('lab.yaml', '許可した変更が実際には起きていない場合も拒否'),
         'featurearc-inherited-defects-chain-gates': ('method.md', 'その段階は継続率の集計へ戻さない'),
         'flashvector-unity-serving-stack-agent': ('lab.yaml', '途中で不合格になれば、以降の判定へ進まない'),
-        'grace-meta-ads-gtm-serving': ('method.md', '同じ広告が全ての属性を満たすことは異なる'),
+        'grace-meta-ads-gtm-serving': ('method.md', '一つの広告が全条件を満たすとは限りません'),
         'swe-serve-inference-serving-agents': ('lab.yaml', '同じサービスのインスタンスへ続けて要求を送る'),
         'trace-verifier-brittleness': ('method.md', 'ツール名の種類であり、呼出し回数ではない'),
     }

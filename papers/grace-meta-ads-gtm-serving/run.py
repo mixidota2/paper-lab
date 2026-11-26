@@ -41,9 +41,9 @@ def main():
     cities=['Tokyo','Osaka','Kyoto'];mask=bloom(cities,width=8)
     false=[f'city-{i}' for i in range(100) if match(mask,bloom([f'city-{i}'],8))]
     assert all(match(mask,bloom([city],8)) for city in cities)
-    out={'note':'4広告の人工targeting。CPUの論理検査でありGH200速度や実pass rateは再現しない。',
+    out={'note':'Labは4件の広告を使い、配信条件の判定をCPUで確かめます。実際の広告の通過率とGH200の処理時間は測っていません。',
       'scope':{'conservative_no_false_negative_fixture':'CONFIRMED','mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},
       'request_mask':request,'ads':ads,'prefix_masks':masks,'coarse':coarse,'exact':exact,'beam':{'CD_only':baseline,'GTM':gtm},'bloom_8bit_false_positives':false,
-      'experiments':[{'name':'beam 2の枠をrequest条件で使い直す','metrics':{'eligible_ads_after_exact':{'CD_only':len(final(baseline)),'GTM':len(final(gtm))},'mixed_prefix_false_positive':{'observed':True}}}]}
+      'experiments':[{'name':'探索で残す枝を2本にそろえ、配信条件を途中で使うかを比べる','metrics':{'eligible_ads_after_exact':{'CD_only':len(final(baseline)),'GTM':len(final(gtm))},'mixed_prefix_false_positive':{'observed':True}}}]}
     Path(__file__).with_name('results.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n');return out
 if __name__=='__main__':main()

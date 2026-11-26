@@ -1,19 +1,21 @@
-# GRACE: Generative Recommender Acceleration Engine for Real-Time Ads Retrieval
+# GRACE：広告の配信条件を候補生成の途中で確かめる
 
-広告を表すID（SID）の候補を生成する途中で、その要求の配信条件を確認する。著者の評価では、最後に広告ごとの条件確認を通過した割合が23.55%から40.42%へ上がった。候補数を固定した生成処理のP99遅延は197.7 msから17.8 msへ短縮したが、配信条件の確認（GTM）を含むモデル全体のP99遅延53.6 msは別の条件で測った値である。
+Metaの研究チームは、広告候補を生成しながら配信条件を確認する方法を提案しました。広告の識別コードの先頭が同じ広告をまとめ、条件を満たせない広告の集まりを途中で除きます。GRACEは残った広告の条件を最後に一件ずつ確認します。
 
-公開ページ: https://mixidota2.github.io/paper-lab/papers/grace-meta-ads-gtm-serving.html
+著者の評価では、最終検査を通過した広告の割合が、実在する広告のコードだけを生成する方式の23.55%から、配信条件も途中で調べる方式の40.42%に上がりました。著者は利用者の位置に人工データを使いました。この割合は広告をクリックした人の割合ではありません。[論文の表6](https://arxiv.org/html/2608.00938v1#S6.T6)では、候補数を固定したときの生成ループのP99が197.7ミリ秒から17.8ミリ秒に下がりました。配信条件の確認を含む別の設定では、推論全体のP99は53.6ミリ秒でした。
 
-## 実行
+[Labの記事](https://mixidota2.github.io/paper-lab/papers/grace-meta-ads-gtm-serving.html)｜[論文と配布資料の対応](mapping.md)
+
+## Labの合成例を実行する
+
+`run.py` を保存し、同じフォルダーで次を実行します。このスクリプトはPythonの標準ライブラリだけを使い、同じ場所の `results.json` を書き換えます。配布時の結果を残す場合は、別のフォルダーに `run.py` をコピーしてから実行してください。
 
 ```bash
-uv run papers/grace-meta-ads-gtm-serving/run.py
+python3 run.py
 ```
 
-Python標準ライブラリだけを使う。`lab.yaml` と `method.md` が解説の原本、`run.py` が最小実験、`results.json` が出力、`mapping.md` が原典との対応。HTMLは `uv run paper-lab build` で生成する。
+Labは4件の広告に国と年齢の条件を設定しました。探索で残せる枝を2本にそろえると、最後に条件を満たした広告は、配信条件を途中で使わない場合は0件、使う場合は1件でした。条件をまとめる検査が広告を誤って残す例も記録しています。これは論文の通過率やGPU上の処理時間を再現した実験ではありません。
 
-## 検証範囲
+利用者の国と年齢を4通りに変えても、配信できる広告を含む枝は途中の照合を通りました。LabはGPUの各処理、規模を増やしたときの性能、本番での効果を検証していません。
 
-Mechanism PARTIAL。人工4要求で、適格広告を持つprefixがOR検査を通ることはCONFIRMED。属性相関の偽陽性、Bloomの偽陽性、同一beamの枠再配分を実行した。
-
-Performance / Scaling / Production applicability NOT TESTED。GH200 kernel、KV cache、production targeting全条件、実pass率、広告A/Bは未実行。CPUの4広告を23.55→40.42%の再現とは呼ばない。
+リポジトリで作業する場合は、ルートから `uv run papers/grace-meta-ads-gtm-serving/run.py` で合成例を実行し、`uv run paper-lab build` でページを生成できます。記事の原本は [lab.yaml](lab.yaml) と [method.md](method.md) です。
