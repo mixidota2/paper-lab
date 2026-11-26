@@ -1,4 +1,4 @@
-"""PILOT contract analogue. Scripted certificates are not a statistical engine."""
+"""与えた条件で実験の状態を更新し、独立した支持の件数を数えます。証明書は発行・検証しません。"""
 import json
 from pathlib import Path
 
@@ -19,11 +19,11 @@ def transition(state, event, healthy=True, approved=False, confirm=False):
 
 
 def memory(evidence, approval_tasks=3):
-    """Threshold 3 is a LAB choice; paper leaves governed threshold configurable."""
+    """承認に必要な独立した支持3件はLabの設定で、原論文が固定した値ではありません。"""
     if approval_tasks<2:
         raise ValueError('need independent confirmation')
-    # One claim/scope, chronological observations; this is not a full Curator.
-    # Supersession and governed conflict resolution are intentionally omitted.
+    # 同じ範囲の1つの主張について、観測を順番に処理します。
+    # 対立を解消する手順や、過去の記録の置き換えは扱いません。
     positive=set()
     observations=[]
     state='draft'
@@ -37,13 +37,13 @@ def memory(evidence, approval_tasks=3):
             if not conflict:
                 state=('approved' if len(positive)>=approval_tasks else
                        'supported' if len(positive)>=2 else 'draft')
-        # Inconclusive is neutral. Conflict retains state and freezes advancement.
+        # 結論が出なかった観測は中立です。反証があればその時点の状態を保ちます。
     return {'state':state,'conflict':conflict,'sources':len(positive),
             'observations':observations}
 
 
 def route(user, split=False):
-    # Registered PRE-treatment feature; both branches explicitly cover missing data.
+    # 施策前の特徴量で振り分け、値がない利用者には既定の設定を割り当てます。
     return 'intent_bundle' if split and user.get('segment')=='focused' else 'default_bundle'
 
 
@@ -68,10 +68,10 @@ def compute():
                   [('A','positive'),('B','positive'),('C','positive'),('D','negative')],
                   [('A','positive'),('B','positive'),('C','negative'),('D','positive')]]
     memories=[{'evidence':e,**memory(e)} for e in evidence_sets]
-    return {'note':'状態遷移・事前segment・独立task数の人工例。ManagerやPlannerの推論、p値、信頼区間、本番効果は計算していない。承認閾値3はLabの仮定。',
+    return {'note':'人工の条件で状態遷移、施策前の群分け、別の実験からの支持数を確認します。証明書や統計量を計算せず、LLMも本番配信も使いません。承認に必要な独立した支持3件はLabで決めました。',
       'verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},
-      'experiments':[{'name':'同じeventでも権限と証拠で遷移を分ける','metrics':{x['name']:{'前':x['before'],'後':x['after']} for x in trace}},
-                    {'name':'表9の分母15を確認','metrics':{'ROAM':{'満たした条件':8,'率':round(8/15*100,2)},'PILOT':{'満たした条件':14,'率':round(14/15*100,2)}}}],
+      'experiments':[{'name':'健全性・承認・独立確認の入力で、状態がどう変わるか','metrics':{x['name']:{'前':x['before'],'後':x['after']} for x in trace}},
+                    {'name':'原論文の表9で満たした条件の数と割合','metrics':{'ROAM':{'満たした条件':8,'率':round(8/15*100,2)},'PILOT':{'満たした条件':14,'率':round(14/15*100,2)}}}],
       'trace':trace,'memories':memories,'tree':{'baseline':[route(u) for u in users],'proposal':[route(u,True) for u in users],'admissible':admissible(users)},
       'checks':{'unapproved_launch_blocked':'CONFIRMED','independent_confirmation_required':'CONFIRMED','duplicate_task_no_promotion':'CONFIRMED','causal_manager_gain':'NOT TESTED'}}
 

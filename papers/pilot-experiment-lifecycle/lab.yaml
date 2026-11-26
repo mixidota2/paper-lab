@@ -15,9 +15,8 @@ urls:
   official_code: null
 verdict: Watch
 status: published
-question: PILOT：提案するagentから、実験を運営するagentへ
-summary: PILOTでは、実験を進める役、候補を提案する役、過去の結果を整理する役の三つにAIエージェントを分ける。安全上の制約、統計的な判定基準、操作権限は、あらかじめ定めたプログラムで管理する。Taobaoの前後比較でbest-bucket
-  IPVはROAM +1.00%に対し+1.40%、探索条件の達成率は53.3%から93.3%。設計は具体的だが、Manager×Plannerの2×2比較は未実施なのでWatchとする。
+question: 推薦の設定を試すとき、いつ次の候補に移り、何を次の実験に残すか
+summary: TaobaoのPILOTは、推薦実験の進行、候補の提案、過去の結果の整理を3つの役に分けます。5つの実験グループでの前後比較では、商品詳細ページへの訪問数が最も伸びたグループの値は、共通基準に対してROAMで+1.00%、PILOTで+1.40%でした。各役の寄与を分ける比較は未実施です。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -30,101 +29,74 @@ source_review:
   url: https://arxiv.org/pdf/2608.18637v1
   scope: 一次PDFの手法、実験、関連図表と付録を照合。著者報告と人工計算を区別し、未公開の設定を補わない。
 core_idea:
-  author_claim: 著者は、Managerによる能動的な実験運営、Plannerによるsegment別探索、Curatorによる経験蓄積が、反応的なROAMより探索の進捗を増やすと主張する。
-  research_bot_interpretation: 決定的なサービスが判断可能な選択肢を先に限定する設計に注目したい。within-taskの有意性とcross-taskの記憶の確信度を分ける設計は再利用しやすい。一方、比較実験はその設計の個別寄与まで裏づけていない。
+  author_claim: 著者は、実験の進行、利用者群ごとの設定の提案、過去の結果の整理を分けます。5グループでの運用では、従来方式より多くの探索条件を満たしたと報告しました。
+  research_bot_interpretation: この設計では、プログラムが操作の範囲を先に決めます。一つの実験の統計的な結論と、別々の実験で同じ知見が確かめられたかを分ける点は参考になります。ただし、今回の前後比較は個々の仕組みの効果を切り分けていません。
 sections:
   overview: |-
     TaobaoのPILOTは推薦設定の実験を三つの役に分ける仕組みです。進行役が次の変更に移るか、観察を続けるかを判断し、提案役が試す設定を考え、記録役が過去の結果を整理します。安全上の制約、統計による判定の基準、許された操作はプログラムで管理します。
 
     著者は、利用者を分けた五つの実験グループを使い、従来のエージェント方式ROAMとPILOTを前後の期間で比較しました。最良グループの商品詳細ページへの訪問数は、共通の基準に対してROAMで1.00%、PILOTで1.40%増加。目標を上回る、測定が安定する、探索が前進するという三条件について、五つのグループを通じた達成割合は53.3%から93.3%に上がりました。比較したのは別々の時期です。進行役と提案役がそれぞれどれだけ効果を上げたかは分かりません。
-  problem: '指標が悪くなったらparameterを変えるだけでは、何も変えないbucketと、頻繁に変えすぎて証拠が残らないbucketが生じる。PILOTは「どの候補か」だけでなく、「いつ観察を閉じるか」「何を独立確認するか」「どの経験を次へ持ち越すか」を扱う。
+  problem: |-
+    指標が悪化するたびに推薦設定を変えると、どの設定で結果が出たか分からなくなります。一方、悪化がなければ設定を変えない方式では、改善の候補を試さずに期間が終わることがあります。PILOTは次の候補だけでなく、観察を終える条件、配信前に別のデータで確認すること、次の実験に残す結果も扱います。
 
-
-    [DREAM](dream-taobao-agentic-control.html)のrequest向け制御、[CORAL](coral-meta-config-harness.html)の設定更新、[AgentX](agentx-kuaishou.html)のcode開発と並べると、PILOTの責務は実験lifecycleにある。ROAMもagentなので、ここからagent一般が人より優れるという結論は出ない。'
+    利用者ごとの推薦をその場で制御するDREAM、実行基盤の設定を見直すCORAL、改善コードを作るAgentXとは、管理する範囲が異なります。比較対象のROAMもエージェント方式なので、人とLLMの比較ではありません。
   method: method.md
-  why_it_might_work: 【解釈】観測前に判断基準を固定し、同じtaskの反復を記憶の独立証拠に数えなければ、都合のよい結果だけを学ぶ循環を抑えられる。PolicyTreeは全体一律調整では相殺されるsegment差を利用できるが、細分化しすぎると統計powerを失う。leaf比率や探索予算の制約が必要になる。
-  evidence: '### 最良bucketの比較は、agentの因果効果を分離しない
+  why_it_might_work: |-
+    先に判定条件を決めておけば、良く見える日だけを選んで観察を終えることを防げます。同じ実験の記録を別々の証拠として数えないことで、一度の結果を何度も確認したように扱わずに済みます。
 
+    利用者群ごとに設定を変えると、全体の平均に隠れた違いを試せます。一方、細かく分けるほど群ごとのデータが減り、効果を見分けにくくなります。論文の設計では各分岐の最低割合や実験の予算を定めています。
+  evidence: |-
+    [一次資料（原論文v1）](https://arxiv.org/html/2608.18637v1)の§6では、Taobaoホーム画面「Guess You Like」の5つの実験グループを対象に、ROAMの7日間とPILOTの最初の5日間を報告しました（図8）。商品詳細ページへの訪問数（IPV）の最良グループは、共通の固定基準に対して+1.00%から+1.40%に変わりました。Core IPVは+0.90%から+1.60%、取引金額は+1.13%から+1.50%です。+1.00%と+1.40%の差は0.40ポイントで、全利用者の訪問数が40%増えたという結果ではありません。
 
-    Taobaoの5 bucketでROAMを7日、PILOTを最初の5日報告した前後比較。best IPVは+1.00%から+1.40%、Core IPVは+0.90%から+1.60%。共通基準からのliftであり、「PILOTがROAMよりIPVを40%増やした」とは言えない。baseline比の改善幅が0.40
-    percentage points増えた比較である。
+    表7の5日目では、IPVが最大のグループ23で、IPVは+1.40%、Core IPVは+1.60%、取引数は+0.95%、取引金額は+1.50%でした。取引数の最大+0.96%はグループ25で、グループ21の取引数は−0.13%です。論文の総括は各指標の最大値を並べており、すべてが同じグループの値ではありません。
 
+    表9の探索条件の達成率（Search Efficiency）は、5グループそれぞれで、目標を上回った、再設定1回以下で測定が安定した、探索が前進した、の3条件を数えます。ROAMは1+4+3=8件、PILOTは4+5+5=14件です。分母は5×3=15で、53.3%から93.3%へ40ポイント上がりました。計算速度や、提案1件あたりの成功率ではありません。期間中の目標超過はPILOTで4グループでしたが、表7の5日目の値だけでは3グループです。著者はその後も続け、7日間の目標を達成したと報告しました。
 
-    表7のPILOT day 5ではbucket 23がIPV +1.40%、Core IPV +1.60%、取引数+0.95%、取引金額+1.50%。取引数の最大+0.96%はbucket 25。本文の総括はこれら最大値をまとめて記すため、全指標が同じbucketで最大になったとは読まない。bucket
-    21の取引数−0.13%も消さない。
+    この比較は、同じ時期に利用者を無作為に割り付けた比較ではありません。進行方法と設定の探索範囲が同時に変わりました。進行役と提案役をそれぞれ使うかどうかの2×2比較（表8）は計画だけで、実施していません。各操作の測定結果を比較できるように調整することなどが、計画を実施する前提です。今回の結果から、各役だけを追加した効果は分かりません。
 
+    <figure class="teaching batch18"><h3>表7：5日目のグループ別の値</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="5日目のグループ別の値"><table><thead><tr><th>グループ</th><th>IPV</th><th>Core IPV</th><th>取引数</th><th>取引金額</th></tr></thead><tbody><tr><td>21</td><td>+0.39%</td><td>+0.52%</td><td>−0.13%</td><td>+0.40%</td></tr><tr><td>22</td><td>+1.31%</td><td>+1.48%</td><td>+0.54%</td><td>+1.35%</td></tr><tr><td>23</td><td>+1.40%</td><td>+1.60%</td><td>+0.95%</td><td>+1.50%</td></tr><tr><td>24</td><td>+1.11%</td><td>+1.25%</td><td>+0.52%</td><td>+1.20%</td></tr><tr><td>25</td><td>+0.68%</td><td>+0.80%</td><td>+0.96%</td><td>+1.10%</td></tr></tbody></table></div><figcaption>表7の5日目の値です。ROAMとの同時比較ではありません。</figcaption></figure>
 
-    ### Search Efficiencyの分母は、5 bucket × 3条件
+    <figure class="teaching batch18"><h3>表8：まだ実施していない2×2比較</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="計画された2×2の条件"><table><thead><tr><th>実験の進行方法</th><th>提案役なし</th><th>提案役あり</th></tr></thead><tbody><tr><td>プログラムによる制御のみ</td><td>A：未実施</td><td>B：未実施</td></tr><tr><td>進行役あり</td><td>C：未実施</td><td>D：配備構成。ただし2×2として未実施</td></tr></tbody></table></div><figcaption>表8と§6.3.1の計画です。B−A、C−A、D−B、D−Cを比較する予定で、結果はまだありません。</figcaption></figure>
+  executable_understanding: |-
+    Labの図は、外から与えたイベントとデータの健全性・承認・独立確認に対して、状態がどう変わるかを表示します。データが健全でなければ停止します。データが健全で状態が `observe` のとき、`promote` を渡すと `confirm` に進みます。この分岐は承認や独立確認を読みません。承認を調べるのは開始（`launch`）と配信（`deliver`）、独立確認を調べるのは配信だけです。配布JSONの「証明済みのpromote」は、あらかじめ付けたケース名です。Labは証明書を発行せず、その内容も検証しません。
 
+    もう一つの図は、同じ実験Aの記録を10回保存する場合と、別々の実験A・B・Cが支持する場合を比べます。結論が出なかった結果は反証に数えません。反証が来るとその時点の状態にとどまり、承認済みでも取り消しません。後から支持が来れば履歴と件数には加えますが、昇格は止まったままです。独立した支持3件で承認する条件はLabが決めました。
 
-    「目標超過」「再設定1回以下で安定読取」「探索に純進捗」の各binary条件を足す。ROAMは1+4+3=8、PILOTは4+5+5=14で、8/15=53.3%から14/15=93.3%、40
-    percentage points増（表9）。計算速度や提案1件あたりの成功率ではない。また表7のday 5断面でIPVが1%を超えるのは3 bucketで、表9の4/5は期間内の目標超過の評価と区別する。
+    <figure class="teaching batch18"><h3>同じ操作を渡しても条件で行き先が変わる</h3><div data-b18="lifecycle"><label>表示する条件 <select><option value="0">承認なしで開始</option><option value="1">承認を得て開始</option><option value="2">データに異常がある状態で採用</option><option value="3">健全と入力した採用操作</option><option value="4">独立確認なしで配信</option><option value="5">承認と独立確認を済ませて配信</option></select></label><div data-output aria-live="polite"><p>承認なしで開始：frozen → event=launch → frozen</p></div><script type="application/json" data-frames>["<p>承認なしで開始：frozen → event=launch → frozen<\/p>", "<p>承認を得て開始：frozen → event=launch → observe<\/p>", "<p>データに異常がある状態で採用：observe → event=promote → paused<\/p>", "<p>健全と入力した採用操作：observe → event=promote → confirm<\/p>", "<p>独立確認なしで配信：confirm → event=deliver → confirm<\/p>", "<p>承認と独立確認を済ませて配信：confirm → event=deliver → delivered<\/p>"]</script></div><figcaption>各ケースに与えた状態と操作、その後の状態を表示します。データの確認や証明書の検証は行いません。</figcaption></figure>
 
+    <figure class="teaching batch18"><h3>同じ実験の反復と、別の実験からの支持</h3><div data-b18="memory"><label>表示する条件 <select><option value="0">1件の支持</option><option value="1">同じ実験の支持を10回保存</option><option value="2">別々の実験から2件の支持</option><option value="3">別々の実験から3件の支持</option><option value="4">結論が出なかった結果を追加</option><option value="5">反証あり</option><option value="6">裏付けありの後に反証</option><option value="7">承認済みの後に反証</option><option value="8">反証の後に別の実験が支持</option></select></label><div data-output aria-live="polite"><p>状態：draft。独立した支持：1件。未解決の対立：なし。</p></div><script type="application/json" data-frames>["<p>状態：draft。独立した支持：1件。未解決の対立：なし。<\/p>", "<p>状態：draft。独立した支持：1件。未解決の対立：なし。<\/p>", "<p>状態：supported。独立した支持：2件。未解決の対立：なし。<\/p>", "<p>状態：approved。独立した支持：3件。未解決の対立：なし。<\/p>", "<p>状態：draft。独立した支持：1件。未解決の対立：なし。<\/p>", "<p>状態：draft。独立した支持：1件。未解決の対立：あり。<\/p>", "<p>状態：supported。独立した支持：2件。未解決の対立：あり。<\/p>", "<p>状態：approved。独立した支持：3件。未解決の対立：あり。<\/p>", "<p>状態：supported。独立した支持：3件。未解決の対立：あり。<\/p>"]</script></div><figcaption>記録を上から順に処理した結果です。反証の後も支持は記録しますが、状態は進めません。</figcaption></figure>
+  results: |-
+    承認なしでは開始せず、データの異常があると停止します。健全と入力して `promote` を渡した例では確認へ進み、配信には承認と独立確認の両方が必要です。
 
-    §6.3は比較がbefore/afterで非ランダムと明記する。Managerだけ、Plannerだけ、両方、どちらもなしを比べる2×2（表8）は計画であり未実施。per-action観測modelの校正と比較可能なscoringが実施条件。したがって現時点でManager・Planner・Curator個別の増分を数値化できない。traffic構成、時期、探索空間の変更、best-bucket選択の影響が残る。
+    同じ実験Aからの支持を10回保存しても、独立した支持は1件です。人工の10人を施策の前に定めた特徴量で分けると、3人が個別設定、7人が既定の設定になります。特徴量がない人も既定の設定です。これらの結果は、著者のオンライン指標ではありません。
+  what_we_verified: |-
+    Labは、開始と配信の承認、配信の独立確認、同じ実験を重複して数えないことを人工の入力で確かめました。配布JSONで `CONFIRMED` としたのは、その欄にある個別の条件だけです。
+  what_we_did_not_verify: |-
+    Labは候補をLLMに作らせていません。逐次検定、多重比較の補正、利用者の割り当て比率の異常（SRM）の検出、実際の配信量と承認の管理も実装していません。木に対する5種類の操作全体や、記録同士の対立を解消して置き換える処理は対象外です。人工例から商品詳細ページへの訪問が増えることや、本番運用の安全性は分かりません。
+  implementation: |-
+    配布の `run.py` を `python run.py` で実行すると、標準ライブラリだけで人工例を計算し、隣に `results.json` を保存します。外部APIやモデルは使いません。操作図は計算済みの結果を表示し、ブラウザで統計量を推定しません。
 
-
-    <figure class="teaching batch18"><h3>全5 bucketを見て、最大値の寄せ集めを避ける</h3><div class="matrix-scroll" tabindex="0"
-    role="region" aria-label="比較表"><table><thead><tr><th>bucket</th><th>IPV</th><th>Core IPV</th><th>取引数</th><th>取引金額</th></tr></thead><tbody><tr><td>21</td><td>+0.39%</td><td>+0.52%</td><td>−0.13%</td><td>+0.40%</td></tr><tr><td>22</td><td>+1.31%</td><td>+1.48%</td><td>+0.54%</td><td>+1.35%</td></tr><tr><td>23</td><td>+1.40%</td><td>+1.60%</td><td>+0.95%</td><td>+1.50%</td></tr><tr><td>24</td><td>+1.11%</td><td>+1.25%</td><td>+0.52%</td><td>+1.20%</td></tr><tr><td>25</td><td>+0.68%</td><td>+0.80%</td><td>+0.96%</td><td>+1.10%</td></tr></tbody></table></div><figcaption>表7のday
-    5。ROAMとの同時ランダム比較ではない。</figcaption></figure><figure class="teaching batch18"><h3>未実施の2×2：何がまだ切り分けられていないか</h3><div
-    class="matrix-scroll" tabindex="0" role="region" aria-label="比較表"><table><thead><tr><th>lifecycle</th><th>Plannerなし</th><th>Plannerあり</th></tr></thead><tbody><tr><td>決定的制御のみ</td><td>A：未実施</td><td>B：未実施</td></tr><tr><td>Managerあり</td><td>C：未実施</td><td>D：配備構成。ただし2×2として未実施</td></tr></tbody></table></div><figcaption>表8・§6.3.1。B−A、C−A、D−B、D−Cを比べる計画。空欄に推定値を入れない。</figcaption></figure>
-
-
-    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2608.18637v1)。図・表・式と実装の対応は末尾のmappingを参照。'
-  executable_understanding: '同じlaunch / promote / deliverイベントに対して、権限・data health・独立確認の有無を変える。baselineの「依頼があればそのまま進む」処理と比べると、guardのある状態機械は承認のないlaunchや確認前deliveryを通さない。certificateは手作りであり、統計engineを再実装していない。
-
-
-    記憶では同じtask Aを10回記録する条件と、A・B・Cの独立証拠を比較する。approvedへの閾値3はLabの仮定で、論文の固定値ではない。反証が来た時点の状態は保持し、その後に支持が増えても昇格は再開しない。支持・反証・inconclusiveの観測を順序ごと保存する。supersessionと規定に基づく対立解消は省略しており、Curator全体の実装ではない。処置前segmentによる10人の分岐と最小leaf比率も確認し、表9の算術を別途再計算する。
-
-
-    <figure class="teaching batch18"><h3>同じcommandでも、進める条件は違う</h3><div data-b18="lifecycle"><label>条件
-    <select><option value="0">権限なしの開始</option><option value="1">承認済みの開始</option><option value="2">異常時のpromote</option><option
-    value="3">証明済みのpromote</option><option value="4">独立確認なし</option><option value="5">承認と独立確認あり</option></select></label><div
-    data-output aria-live="polite"><p>権限なしの開始：frozen → event=launch → frozen</p></div><script type="application/json"
-    data-frames>["<p>権限なしの開始：frozen → event=launch → frozen<\/p>", "<p>承認済みの開始：frozen → event=launch →
-    observe<\/p>", "<p>異常時のpromote：observe → event=promote → paused<\/p>", "<p>証明済みのpromote：observe →
-    event=promote → confirm<\/p>", "<p>独立確認なし：confirm → event=deliver → confirm<\/p>", "<p>承認と独立確認あり：confirm
-    → event=deliver → delivered<\/p>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure><figure
-    class="teaching batch18"><h3>task内の反復と、taskをまたぐ確認を区別する</h3><div data-b18="memory"><label>条件 <select><option
-    value="0">1 task</option><option value="1">同一taskを10回</option><option value="2">独立2 task</option><option
-    value="3">独立3 task</option><option value="4">inconclusive追加</option><option value="5">反証あり</option><option value="6">supported後の反証</option><option value="7">approved後の反証</option><option value="8">対立後に支持を追加</option></select></label><div
-    data-output aria-live="polite"><p>state=draft、独立した支持task=1、未解決の対立=なし。</p></div><script type="application/json"
-    data-frames>["<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=supported、独立した支持task=2、未解決の対立=なし。<\/p>", "<p>state=approved、独立した支持task=3、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=なし。<\/p>", "<p>state=draft、独立した支持task=1、未解決の対立=あり。<\/p>", "<p>state=supported、独立した支持task=2、未解決の対立=あり。<\/p>", "<p>state=approved、独立した支持task=3、未解決の対立=あり。<\/p>", "<p>state=supported、独立した支持task=3、未解決の対立=あり。<\/p>"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure>'
-  results: 下の数値はLabの人工計算。著者報告のオンライン指標とは分けて読む。
-  what_we_verified: '**Mechanism: PARTIAL**。人工条件の計算と境界条件を確認した。results.jsonのCONFIRMEDは小さな計算命題にだけ適用する。原論文の学習済みモデルや産業環境を再現した意味ではない。'
-  what_we_did_not_verify: 'LLMの候補品質、逐次検定、多重比較補正、sample ratio mismatch検出、実trafficの承認workflow、PolicyTreeの5
-    action全実装、memoryのsupersessionと規定に基づく対立解消は未実装。人工guardが動くことからIPV改善や自律実験の安全性は導けない。
-
-
-    **Performance / Scaling / Production applicability: NOT TESTED**。'
-  implementation: '標準ライブラリだけの独立した小実験。リポジトリのルートで `uv run papers/pilot-experiment-lifecycle/run.py` を実行すると、同じフォルダーの
-    `results.json` を更新する。外部APIやモデル取得は不要。UIはその計算済み結果を表示し、別の推定器をJavaScriptで動かさない。
-
-
-    [実行コード](../downloads/pilot-experiment-lifecycle/run.py)・[全結果](../downloads/pilot-experiment-lifecycle/results.json)・[README](../downloads/pilot-experiment-lifecycle/README.md)・[手法](../downloads/pilot-experiment-lifecycle/method.md)・[lab.yaml](../downloads/pilot-experiment-lifecycle/lab.yaml)・[対応表](../downloads/pilot-experiment-lifecycle/mapping.md)を保存できる。
-
-
-    照合した一次PDFとarXiv書誌に、取得可能な公式実装への案内は確認できなかった。公式コードの独立実行はNOT TESTED。ここにあるコードは公式実装の移植ではない。'
+    一次資料と書誌に取得できる公式実装の案内は確認できませんでした。配布コードは公式実装を移植したものではありません。
   mapping: mapping.md
 teaching_figures:
 - id: pilot-objective
   kind: equations
-  title: 基準を固定して、探索と知識を評価する
+  title: 探索で比べる二つの基準と条件
   after: method
-  caption: 式の対象と仮定を分けて読む。
-  rationale: 演算と制御の境界を具体化する。
+  caption: 固定基準と現在の比較相手で、測る効果を分けます。
+  rationale: 何と比較し、どの条件の範囲で候補を試すかを示します。
   locator: §4.1 式2–3、§6.3.2
   steps:
   - name: 全体効果
     formula: Δtotal(T)=E[Y(T)]−E[Y(T₀)]
-    explanation: 固定baselineはround間で変えない。
+    explanation: 回が変わっても、全体の効果を測る固定基準は変えません。
   - name: 1操作の効果
     formula: Δstep(a)=E[Y(T*ₐ)]−E[Y(T*)]
-    explanation: Championをepoch内で固定して比べる。
+    explanation: 同じ探索期間の中では、現在の比較相手であるChampionを固定します。
   - name: 探索可能な木
     formula: depth≤dmax ; leaves≤Lmax ; w(leaf)≥wmin
-    explanation: 処置前featureと登録済みbundleの範囲だけを探索する。
+    explanation: 施策前に分かる特徴量と、登録済みの推薦設定だけを使います。
   - name: 探索の達成率
     formula: Search Efficiency=Σbucket Σcondition I[達成]/(3B)
-    explanation: B=5。PILOT 14/15、ROAM 8/15。各bucketで満たした条件を個別に数える割合で、全条件を満たしたbucketの割合ではない。速度や勝率ではない。
+    explanation: 5グループ×3条件で、PILOTは14/15、ROAMは8/15です。条件を一つずつ数えます。全条件を満たしたbucketの割合ではないので、3条件をすべて満たしたグループの割合とは区別します。
   source: https://arxiv.org/pdf/2608.18637v1
