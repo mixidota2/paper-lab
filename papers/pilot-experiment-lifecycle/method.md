@@ -1,30 +1,35 @@
-### 3つの役割と、変更できない境界
+### 誰が提案し、誰が実験を動かすか
 
-Experiment Managerはtaskの受付、観察、異常対応、終了後の振り返りを進める。Search PlannerはManagerに呼ばれたときだけ候補を提案し、Memory Curatorは終了したtaskから経験を抽出する。Curatorは非同期で失敗を隔離するため、記憶の保存が失敗しても当該実験の統計的結論は変わらない。採用LLMの具体的なcheckpointやparameter数は確認範囲で明記されておらず、DREAMのQwen3をPILOTへ当てはめない。
+進行役（Experiment Manager）は実験を受け付け、測定、異常への対応、終了後の振り返りを進めます。提案役（Search Planner）は進行役から依頼されたときに候補を作ります。観察期間や配信量を変えたり、候補を採用したりする権限はありません。記録役（Memory Curator）は終了した実験の結果を整理します。この保存に失敗しても、すでに確定した実験の結論は変わりません。採用したLLMの具体的な版や規模は、確認した本文では明記されていません。
 
-task仕様Tは目的、指標、予算、観察期間、登録済みfeatureとstrategy、権限を含む。incomplete → awaiting → ready → frozenと固め、runtimeのplaybookも固定する。安全・統計policy > task仕様 > playbook > approvedな方法論 > 暫定hint > agentの推論という優先順を守る。学習した記憶が上位規則を書き換えることはない（§3.1）。
+実験を始める前に、目的、指標、予算、観察期間、使える特徴量・戦略、操作権限を決めます。仕様は未記入の項目を確認し、実行できる段階を経て固定します。運用の手順書も固定します。安全・統計の規則、実験の仕様、手順書、承認された過去の方法、暫定の手掛かり、LLMの推論の順に優先します。過去の結果から学んだ記憶が上位の規則を書き換えることはありません。
 
-LLMが選べる範囲は、実行可能なcommandを列挙するManager Guard、状態を唯一書き込むState Committer、変更不能なcertificateを出すStatistics Engineが制限する。Contract Builderは観測前に判断基準を固定し、Action EnumeratorとCandidate Validatorは探索可能なactionと提案の適合性を管理する（表2）。判断と強制を同じLLMへ任せないのが設計の中心である。
+進行役が使える操作をManager Guardが列挙します。状態を書き換えるのはState Committerで、統計的な判定記録を出すのはStatistics Engineです。Contract Builderは観測前に判定の基準を定めます。Action Enumeratorが選んでよい操作を挙げ、Candidate Validatorが候補の適合性を確認します（§3.1、表2）。LLMの提案と、規則を強制する処理を分ける設計です。
 
-### 観察期間を、都合のよいliftで切らない
+### 観察を終える条件と配信の条件
 
-Managerは固定した観察計画に沿ってmetricsを収集し、freshness、成熟度、sample size、割付の異常を調べる。closeするかの判断時点ではliftの向きを隠し、「もう少しで有意だから待つ」「良い日だけ切り出す」を許さない。noiseらしい異常はdiagnostic-onlyにして窓を延長、反復やhard bound違反はpauseして人へ戻す（§3.2）。
+進行役は、データが新しいか、値が確定しているか、サンプルが十分か、利用者の割り当てに異常がないかを調べます。観察を閉じる判断には、効果が上向きか下向きかを見せません。偶然と疑われる異常は診断用に記録して観察を延長し、繰り返す異常や許容範囲を超える異常は停止して人に戻します（§3.2）。
 
-roundはcontinue、reject、promoteで処理する。rejectならChampionは変わらず、promoteなら勝ったChallengerを次の基準にする。目標達成後も段階的なscale-upと独立Dconfirmでの確認があり、search期間のデータだけではproduction deliveryを確定しない。deploy、traffic拡大、仕様変更などには人の承認が必要と本文に明記される。「実験cycle中の人の介入なし」というabstractの結果記述を、無制限の権限と読まない。
+各回では、観察を続ける、候補を退ける、候補を採用して次の比較相手にする、のいずれかを選びます。候補を退けた場合は現在の比較相手が変わりません。勝った候補を採用しても、目標達成後の段階的な配信拡大と、別のデータで行う独立確認を経てから配信を確定します。ある運用期間に人が介入しなかったことは、操作権限や事前の承認がなかったという意味ではありません。
 
-### PolicyTree：同じ8次元の設定を、誰に適用するかも探す
+### 誰にどの設定を適用するか
 
-各leafにstrategy bundleを持つ決定木で、施策を適用する前に定まる登録済みの特徴量だけを使ってユーザーを分岐する。施策によって変わった行動で事後的に群を分けない。全ユーザーは必ず1つのleafに割り当てられ、missing値の扱いも事前に定義する。木の深さ、leaf数、最小母集団比率、利用feature数、round数とtraffic予算には上限がある（§4.1）。
+PolicyTreeは、利用者を条件で分け、各分岐の末端に推薦設定の組を割り当てます。利用者は施策の前に分かる登録済みの特徴量で分けます。施策によって変わった行動で事後的に群を分けないためです。特徴量がない場合の扱いも定め、すべての利用者を1つの末端に振り分けます。木の深さ、末端の数、各末端が含む利用者の最低割合、特徴量数、実験回数、配信量に制約があります。
 
-固定baseline T₀は実験を通して動かさない。Champion T*は現在の確認済み基準、Challengerはそこへatomic actionを1つだけ加えた木。actionはsplit、prune、hashExpand、collapse、updateStrategyの5種類。Plannerは許可集合A(T*)の外の操作を作れない。Δtotalは固定baselineとの差、Δstepは現在のChampionとの差なので、基準の混同を避ける。
+実験を通して変えない固定基準T₀は、全体の効果を測る相手です。Champion T*はその時点で確認済みの木で、次の候補の効果を測る相手です。ChallengerはChampionに登録済みの操作を1種類だけ加えた候補です。操作には分岐の追加・刈り込み、ハッシュによる分割、分岐の統合、推薦設定の更新の5種類があります。Δtotalは固定基準との差、Δstepは現在のChampionとの差です。
 
-ROAMもLLM agentであり、非agent baselineではない。ROAMはpage0 / pagingそれぞれのCTR・IPV・CVR・GMVの4次元、計8次元の値を全体へ一律適用する。PILOTは同じ基本parameter空間をsegment別に適用するPolicyTree、checkpoint、最低調整quota、事前登録した仮説と判断基準を加える。制御方法と探索空間の両方が変わっている。
+ROAMもLLMを使う方式です。初回ページと追加読み込みのそれぞれで、クリック率、商品詳細ページへの訪問、購入への転換、取引金額に対応する4つずつ、計8つの値を全体へ一律に適用します。PILOTは同じ基本設定を利用者の群ごとに変えられる木にし、確認時点、最低限の調整回数、事前に登録する仮説や判定基準も加えました。前後比較では運用と探索範囲の両方が変わっています。
 
-### Memory Curator：1回の有意な結果を、再利用可能な知識に飛躍させない
+### 一つの実験の結果を、別の実験で確かめる
 
-Strategy Evidenceはfrom/to bundleとpopulation scope、Methodology Experienceはoperationとscenario条件をkeyとして記録する。taskごとのbranchへ書き、終了後にmain memoryへ照合してmergeする（§5）。task内で強いcertificateが得られても、新しい記憶はdraftから始まる。
+記録役は、どの設定がどの利用者群で別の設定を上回ったかという記録と、どんな状況でどの実験手順が適したかという記録を分けます。実験が終わるまで個別の記憶に保存し、その後に出典、適用範囲、既存の記録との矛盾を照合します。同じ実験で統計的に強い結果が出ても、新しい主張は下書き（draft）から始まります。
 
-同じscopeで独立taskによる一致が1つ増えるとsupportedへ、規定のcross-task閾値を満たし重大な未解決反証がなければapprovedへ進む。supportedはhintとして使え、approvedはstrategy recallや候補優先度などの助言に自律利用できる。同じtaskの複製は独立証拠にならない。孤立した反証だけで既存の状態を自動的に消去・反転しない。支持と反証をともに保存し、規定の対立解消手続きで再評価する。必要なら元のclaimをsupersededと記録する。新しい反対claimもdraftから始める。inconclusiveは否定的な証拠とは別の結果である。
-<figure class="teaching batch18"><h3>実験の状態機械：失敗と保留の経路も残す</h3><ol class="b18-lifecycle"><li><strong>仕様・playbookをfreeze</strong><p>予算、feature、判断基準、権限を固定</p></li><li><strong>候補の検査 → 承認 → observe</strong><p>Champion + 1 action。データの健全性を先に確認</p></li><li><strong>continue / reject / promote</strong><p>異常ならpause。rejectならChampionを維持</p></li><li><strong>目標到達 → 段階拡大 → 独立確認 → delivery</strong><p>searchの勝ちだけでは配信を確定しない</p></li></ol><figcaption>図2・3、§3.1–3.4を要約した状態図。すべてのwire commandを列挙した実装図ではない。</figcaption></figure><figure class="teaching batch18"><h3>PolicyTree：固定baselineと探索基準を分ける</h3><div class="b18-cards"><div><strong>固定baseline T₀</strong><p>全roundのtotal効果の原点。動かさない。</p></div><div><strong>Champion T*</strong><p>epoch中は固定。新しい提案のstep効果を測る。</p></div><div><strong>Challenger T*ₐ</strong><p>登録済みsegmentでsplit、または1つのleafのbundleを変更。</p></div></div><div class="b18-tree"><strong>処置前のsegmentはfocusedか？</strong><div class="b18-cards"><div>yes → intent_bundle</div><div>no / missing → default_bundle</div></div></div><figcaption>上段は§4.1・図3–4。下段はrun.pyの10人の人工木。3人と7人に分岐し、元は全員default。</figcaption></figure><figure class="teaching batch18"><h3>記憶の昇格には、別taskの証拠が要る</h3><div class="b18-cards"><div><strong>draft</strong><p>1つのtask。大標本・有意差でもここから開始。</p></div><div><strong>supported</strong><p>同じscopeの独立taskで一致を確認。hintに使える。</p></div><div><strong>approved</strong><p>規定の確認閾値を満たし、重大な反証が未解決でない。</p></div></div><p>同じtaskを10回保存 → 証拠は1件。inconclusive → 反証とは分けて保存。対立 → 昇格を止め、理由を記録。</p><figcaption>§5.2。approvedでも安全policyやtask仕様の上位権限にはならない。</figcaption></figure>
+同じ範囲で別の実験が結果を支持すると、裏付けあり（supported）となり、暫定の手掛かりに使えます。規定の件数を満たし、重大な反証が未解決でなければ承認済み（approved）となり、候補の優先づけなどに使えます。同じ実験の記録を複製しても独立した証拠にはなりません。支持と反証は両方残し、対立が解消できるかを定めた手順で調べます。結論が出なかった結果は、反証とは別です。この知識が安全規則より優先されることはありません。
 
-Labでは単一claimの観測を順に処理する。反証時の状態を保持して以後の昇格を止め、inconclusiveも含めて観測を保存する。approvedへの閾値3は説明用の仮定。supersessionと規定に基づく対立解消は省略しており、Memory Curator全体は実装していない。
+<figure class="teaching batch18"><h3>実験の開始から配信の確定まで</h3><ol class="b18-lifecycle"><li><strong>仕様と手順を固定</strong><p>使える予算、特徴量、判定条件、権限を決めます。</p></li><li><strong>候補を検査し、承認後に観察</strong><p>確認済みの木に1操作を加え、データに異常がないかを調べます。</p></li><li><strong>観察を続けるか、候補を退けるか、採用するか</strong><p>異常があれば停止し、候補を退ければ比較相手を維持します。</p></li><li><strong>目標達成後に配信を段階的に広げて独立確認</strong><p>探索で勝っただけでは配信を確定しません。</p></li></ol><figcaption>論文の図2・3と§3.1〜3.4から整理しました。すべての操作を列挙した図ではありません。</figcaption></figure>
+
+<figure class="teaching batch18"><h3>固定基準・現在の比較相手・候補の違い</h3><div class="b18-cards"><div><strong>固定基準 T₀</strong><p>全体の効果を測るため、実験中は変えません。</p></div><div><strong>Champion T*</strong><p>今の候補と比べる、確認済みの木です。</p></div><div><strong>Challenger T*ₐ</strong><p>確認済みの木に登録済みの操作を1つ加えた候補です。</p></div></div><div class="b18-tree"><strong>施策前の特徴量がfocusedか</strong><div class="b18-cards"><div>focusedならintent_bundle</div><div>それ以外または値がなければdefault_bundle</div></div></div><figcaption>上段は論文§4.1・図3・4を整理したものです。下段はLabの10人を3人と7人に分ける人工例です。元は全員がdefault_bundleです。</figcaption></figure>
+
+<figure class="teaching batch18"><h3>別の実験で支持を確かめてから知識を使う</h3><div class="b18-cards"><div><strong>下書き（draft）</strong><p>最初の実験で有意差があっても下書きから始めます。</p></div><div><strong>裏付けあり（supported）</strong><p>同じ範囲の別の実験で結果が一致しました。</p></div><div><strong>承認済み（approved）</strong><p>規定の条件を満たし、重大な反証が未解決ではありません。</p></div></div><p>同じ実験の複製は別の証拠になりません。結論が出なかった結果と反証を分けて記録します。</p><figcaption>論文§5.2。記録が承認済みでも、安全規則や実験仕様のほうが優先されます。</figcaption></figure>
+
+Labは1つの主張への観測を順に保存します。反証が来ると、その時点の状態にとどまります。すでに承認済みなら取り消さず、あとから支持が増えても昇格を再開しません。支持の履歴と独立した支持数は増えます。承認に必要な独立した支持3件は教材の設定で、原論文の固定値ではありません。矛盾する記録の解消や置き換えは実装していません。
