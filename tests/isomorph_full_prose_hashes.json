@@ -1,0 +1,453 @@
+{
+  "files": {
+    "papers/isomorph-supply-chain-digital-twin/README.md": {
+      "before": {
+        "sha256": "f08c35c40cace7e8ff34ed2636f00929df04d1757a7e2802130f3ab92ee86b1e",
+        "blob": "58e8731734fb5eb432d67401488561e629e2950d"
+      },
+      "after": {
+        "sha256": "86af0d02fb712231f7ce50c8074dbfca0088980cb68c1665c6d1144084088199",
+        "blob": "05b5f9f731dfa354ea890fc2130ffd1c21576c88"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# ISOMORPH — 物流状態まで予測する\n"
+        ],
+        [
+          2,
+          3,
+          "## overview\n"
+        ],
+        [
+          8,
+          9,
+          "## problem\n"
+        ],
+        [
+          10,
+          11,
+          "需要の予測誤差だけでは、倉庫の滞留や輸送の混雑は見えない。本論文は需要、未充足需要の累積であるbacklog、需要充足率、辺の容量使用率を同じ物流網から出力する。商品数は50と200、各系列は日次7,300期。 同じ需要でも、途中の倉庫や輸送経路の容量によって届く量が変わり、満たせなかった需要は次期へ残る。\n"
+        ],
+        [
+          12,
+          13,
+          "## method\n"
+        ],
+        [
+          14,
+          15,
+          "## 需要を固定してもネットワーク状態は変わる\n"
+        ],
+        [
+          16,
+          17,
+          "状態ξには手元在庫、未着注文、輸送中の荷物、平滑化需要を含む。ξₜ₊₁ = Ψ(ξₜ, yₜ, Lₜ)として状態を進める。需要yはネットワークが処理する前に生成される（§3.2）。\n"
+        ],
+        [
+          18,
+          19,
+          "到着Aは先に既存の滞留Bへ割り当てる。B′ = max(B−A,0)、OH′ = OH + max(A−B,0)。その後に新しい需要yを処理し、OHₜ₊₁ = max(OH′−y,0)、Bₜ₊₁ = B′ + max(y−OH′,0)とする（式21–22）。\n"
+        ],
+        [
+          20,
+          21,
+          "供給元ではOH<sかつ未着注文がないときS−OHを注文する。中間倉庫では上流から実際に荷物を運び、容量と経路に従って詰め込む。需要予測でこの物流状態を代用できるとは限らない。\n"
+        ],
+        [
+          22,
+          23,
+          "## why_it_might_work\n"
+        ],
+        [
+          24,
+          25,
+          "解釈：容量だけを変えて同じ需要を流せば、需要の難しさと物流網の難しさを切り分けられる。状態変数を揃える設計は、拡張したシミュレーターでも物量保存を検査する手掛かりになる。実網への適合度は別に評価する必要がある。 入荷・充足・残量の帳尻が合うかを保存則で確かめたうえで、予測誤差を評価する。\n"
+        ],
+        [
+          26,
+          27,
+          "## evidence\n"
+        ],
+        [
+          28,
+          29,
+          "[一次資料v3](https://arxiv.org/pdf/2605.12768v3)のTable 5では、需要のMASEはPatchTSTが0.828、TimesFMが0.847。Moiraiはbacklog 2.228、充足率1.473、辺使用率0.721で、後者3指標の最良値だった。学習済みChronos-T5、Moirai-1.1-R、TimesFM-2.0は追加学習なし。ARIMA、ETS、PatchTSTは各rollout内で学習する。\n"
+        ],
+        [
+          30,
+          31,
+          "過去512日から1・7・14・30日先を予測し、時系列分割は70/15/15。Table 5は週周期m=7で正規化したMASEを予測期間間で幾何平均した値。需要と辺使用率は29 rollout、backlogと充足率は定数系列5件を除く24 rolloutである。誤差棒はrollout間の95% Student-t区間。\n"
+        ],
+        [
+          32,
+          33,
+          "Table 3のbullwhip比は各拠点のVar(inflow)/Var(outflow)。日次と月次で値が大きく変わる。Forward UQはシナリオ設定の集合に予測器を適用する実験であり、実網の全不確実性を覆う保証ではない。 比較の単位であるrolloutは、シミュレーションで生成した時系列の経路であり、実店舗ではない。\n"
+        ],
+        [
+          34,
+          35,
+          "## executable_understanding\n"
+        ],
+        [
+          36,
+          37,
+          "`uv run papers/isomorph-supply-chain-digital-twin/run.py`\n"
+        ],
+        [
+          38,
+          39,
+          "下の容量選択で、84日間の需要を固定して輸送容量だけを変える。式(21–22)の到着・滞留・新規需要の処理順を実装し、毎期の在庫と需要の保存則を検査する。ここでの当日充足率は、その日の新規需要量を分母、そのうち当日に満たせた数量を分子にする。既存滞留の解消を含む指標とは区別する。\n"
+        ],
+        [
+          40,
+          41,
+          "## results\n"
+        ],
+        [
+          42,
+          43,
+          "results.jsonに容量8・12・20の全経路を保存した。容量不足で増える滞留を需要系列だけからは見分けられない。小実験は予測モデルを走らせていないため、著者のMASEを再現した結果ではない。\n"
+        ],
+        [
+          44,
+          45,
+          "## what_we_verified\n"
+        ],
+        [
+          46,
+          47,
+          "CONFIRMED：全252ステップで物量と未充足需要の保存則が成立し、3条件の需要は一致した。PARTIAL：到着先でのサービス処理を確認した。13拠点の経路探索や荷詰めは実装していない。\n"
+        ],
+        [
+          48,
+          49,
+          "## what_we_did_not_verify\n"
+        ],
+        [
+          50,
+          51,
+          "Performance / Scaling / Production applicabilityはNOT TESTED。Chronos、Moirai、TimesFM、ARIMA、ETS、PatchTSTの再学習・推論、bullwhip比、Forward UQの被覆率は追試していない。「最初の公開digital twin」は著者の位置づけとして扱い、網羅的な先行研究調査では確定していない。\n"
+        ],
+        [
+          52,
+          53,
+          "## implementation\n"
+        ],
+        [
+          54,
+          55,
+          "run.pyは標準ライブラリだけで動く。simulate()で需要と容量の比較条件を固定し、assertで保存則を検査する。1辺・1期遅延へ簡略化した。補充の教材ルールは到着先にも(s,S)を使うため、公式の非到着先補充と同一ではない。ネットワーク図と論文値の原本はlab.yaml、実験曲線の原本はresults.jsonとする。\n"
+        ],
+        [
+          56,
+          57,
+          "## mapping\n"
+        ],
+        [
+          58,
+          59,
+          "mapping.md\n"
+        ],
+        [
+          60,
+          61,
+          "## Core Idea\n"
+        ],
+        [
+          62,
+          63,
+          "著者の主張：公開可能な多段階物流網から需要とネットワーク状態を再生成し、予測とシナリオに由来する不確実性を評価する。\n"
+        ],
+        [
+          64,
+          79,
+          "解釈：補充の判断規則を固定したまま、何を予測するかや物流網の条件を変えて比べられる点に特徴がある。在庫最適化手法の勝敗とは別の評価軸である。\n"
+        ]
+      ]
+    },
+    "papers/isomorph-supply-chain-digital-twin/lab.yaml": {
+      "before": {
+        "sha256": "f97ac6ab11ea1c9d54b7541b70d0747c2d1d15fef715eb3a64578050caf9695c",
+        "blob": "05e4ac91861a51d17576dd45794999ec769143b4"
+      },
+      "after": {
+        "sha256": "a3c0b2c92efb8b09481a141de011f653719a53bd14411cd3ff87e0d95ebb91bb",
+        "blob": "610fd970b2314e1c591362f07f090ba07121b530"
+      },
+      "prior_spans": [
+        [
+          26,
+          28,
+          "question: 同じ需要でも、物流網の容量と経路で予測の難しさはどう変わるか\nsummary: ISOMORPHは物流網の需要と内部状態を再生成できる予測ベンチマークである。公開例は米国13拠点・16辺。補充は固定した(s,S)ルールで行い、補充方策の優越性は主張していない。販促と欠品を含む実小売データでの予測モデル比較とも区別する。\n"
+        ],
+        [
+          41,
+          43,
+          "  author_claim: 公開可能な多段階物流網から需要とネットワーク状態を再生成し、予測とシナリオに由来する不確実性を評価する。\n  research_bot_interpretation: 補充の判断規則を固定したまま、何を予測するかや物流網の条件を変えて比べられる点に特徴がある。在庫最適化手法の勝敗とは別の評価軸である。\n"
+        ],
+        [
+          48,
+          56,
+          "  problem: 需要の予測誤差だけでは、倉庫の滞留や輸送の混雑は見えない。本論文は需要、未充足需要の累積であるbacklog、需要充足率、辺の容量使用率を同じ物流網から出力する。商品数は50と200、各系列は日次7,300期。\n    同じ需要でも、途中の倉庫や輸送経路の容量によって届く量が変わり、満たせなかった需要は次期へ残る。\n  method: method.md\n  why_it_might_work: 解釈：容量だけを変えて同じ需要を流せば、需要の難しさと物流網の難しさを切り分けられる。状態変数を揃える設計は、拡張したシミュレーターでも物量保存を検査する手掛かりになる。実網への適合度は別に評価する必要がある。\n    入荷・充足・残量の帳尻が合うかを保存則で確かめたうえで、予測誤差を評価する。\n  evidence: '[一次資料v3](https://arxiv.org/pdf/2605.12768v3)のTable 5では、需要のMASEはPatchTSTが0.828、TimesFMが0.847。Moiraiはbacklog\n    2.228、充足率1.473、辺使用率0.721で、後者3指標の最良値だった。学習済みChronos-T5、Moirai-1.1-R、TimesFM-2.0は追加学習なし。ARIMA、ETS、PatchTSTは各rollout内で学習する。\n"
+        ],
+        [
+          57,
+          58,
+          ""
+        ],
+        [
+          59,
+          60,
+          "    過去512日から1・7・14・30日先を予測し、時系列分割は70/15/15。Table 5は週周期m=7で正規化したMASEを予測期間間で幾何平均した値。需要と辺使用率は29\n    rollout、backlogと充足率は定数系列5件を除く24 rolloutである。誤差棒はrollout間の95% Student-t区間。\n"
+        ],
+        [
+          61,
+          66,
+          ""
+        ],
+        [
+          67,
+          76,
+          "    Table 3のbullwhip比は各拠点のVar(inflow)/Var(outflow)。日次と月次で値が大きく変わる。Forward UQはシナリオ設定の集合に予測器を適用する実験であり、実網の全不確実性を覆う保証ではない。\n    比較の単位であるrolloutは、シミュレーションで生成した時系列の経路であり、実店舗ではない。'\n  executable_understanding: '`uv run papers/isomorph-supply-chain-digital-twin/run.py`\n\n\n    下の容量選択で、84日間の需要を固定して輸送容量だけを変える。式(21–22)の到着・滞留・新規需要の処理順を実装し、毎期の在庫と需要の保存則を検査する。ここでの当日充足率は、その日の新規需要量を分母、そのうち当日に満たせた数量を分子にする。既存滞留の解消を含む指標とは区別する。'\n  results: results.jsonに容量8・12・20の全経路を保存した。容量不足で増える滞留を需要系列だけからは見分けられない。小実験は予測モデルを走らせていないため、著者のMASEを再現した結果ではない。\n  what_we_verified: CONFIRMED：全252ステップで物量と未充足需要の保存則が成立し、3条件の需要は一致した。PARTIAL：到着先でのサービス処理を確認した。13拠点の経路探索や荷詰めは実装していない。\n  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Chronos、Moirai、TimesFM、ARIMA、ETS、PatchTSTの再学習・推論、bullwhip比、Forward\n    UQの被覆率は追試していない。「最初の公開digital twin」は著者の位置づけとして扱い、網羅的な先行研究調査では確定していない。\n  implementation: run.pyは標準ライブラリだけで動く。simulate()で需要と容量の比較条件を固定し、assertで保存則を検査する。1辺・1期遅延へ簡略化した。補充の教材ルールは到着先にも(s,S)を使うため、公式の非到着先補充と同一ではない。ネットワーク図と論文値の原本はlab.yaml、実験曲線の原本はresults.jsonとする。\n  mapping: mapping.md\n"
+        ],
+        [
+          79,
+          80,
+          "  title: 予測対象を変えると最良モデルが変わる\n"
+        ],
+        [
+          82,
+          84,
+          "  rationale: 予測対象を変えると最良モデルが変わる\n  caption: 一次資料の著者報告値。Labの追試値ではない。\n"
+        ],
+        [
+          87,
+          90,
+          "  - 滞留\n  - 充足率\n  - 辺使用率\n"
+        ],
+        [
+          129,
+          130,
+          "  title: 同じ物量の変動でも集計周期で比率が変わる\n"
+        ],
+        [
+          132,
+          134,
+          "  rationale: 同じ物量の変動でも集計周期で比率が変わる\n  caption: 一次資料の著者報告値。Labの追試値ではない。\n"
+        ],
+        [
+          136,
+          138,
+          "  - 日次比\n  - 月次比\n"
+        ]
+      ]
+    },
+    "papers/isomorph-supply-chain-digital-twin/mapping.md": {
+      "before": {
+        "sha256": "c12253db3c8afd773633ba2f66e7beb218eb35fa71202f497eb0387cf248afde",
+        "blob": "f32ffef291c0420374399e49f81b9374b7a51789"
+      },
+      "after": {
+        "sha256": "7cb1fab4de3e3ad8c36b071fd10d7aa77f27982a5237829ac0ee55b2496a5d32",
+        "blob": "0a8f594b17c24d2e0589681871646c07f242851b"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文・公式コード対応\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料は[arXiv v3](https://arxiv.org/pdf/2605.12768v3)。PDFのSHA256はlab.yamlに記録した。\n"
+        ],
+        [
+          4,
+          5,
+          "| 論文 | Lab | 省略した範囲 |\n"
+        ],
+        [
+          6,
+          11,
+          "| Figure 1 / Table 11 | 13拠点・16辺の図 | 地理座標、辺別容量 |\n| 式(21–22) | run.py simulate() | 商品間の共有容量 |\n| Proposition 4.1 | 毎期の保存則assert | 全ネットワークの保存則 |\n| Tables 3 / 5 | lab.yamlの比較表 | CIは本文で定義。各セルでは省略 |\n| §6.2 | シナリオ集合によるForward UQの説明 | 基盤モデルの推論と被覆率 |\n"
+        ],
+        [
+          12,
+          13,
+          "[公式リポジトリ](https://github.com/tuhinsahai/ISOMORPH)は論文に記載された公開先。コードの取得・実行・ファイル単位の照合は行っていない。公式実装との一致を確認済みとは扱わない。\n"
+        ]
+      ]
+    },
+    "papers/isomorph-supply-chain-digital-twin/method.md": {
+      "before": {
+        "sha256": "e6060507deed3f3a4d6b2a09987fd45caf0d54d9ae71e12e82cc283c3a674410",
+        "blob": "b5040fe47665a3a5ac16841e9e20c8c1287c247a"
+      },
+      "after": {
+        "sha256": "8199efe197ada799908e944fe05f9f80ad82ab73947bcfcd566d4f9b0c78ff5f",
+        "blob": "652c129bcfd966fd4bd217bc3fe8177cf5139fba"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "## 需要を固定してもネットワーク状態は変わる\n"
+        ],
+        [
+          2,
+          3,
+          "状態ξには手元在庫、未着注文、輸送中の荷物、平滑化需要を含む。ξₜ₊₁ = Ψ(ξₜ, yₜ, Lₜ)として状態を進める。需要yはネットワークが処理する前に生成される（§3.2）。\n"
+        ],
+        [
+          4,
+          5,
+          "到着Aは先に既存の滞留Bへ割り当てる。B′ = max(B−A,0)、OH′ = OH + max(A−B,0)。その後に新しい需要yを処理し、OHₜ₊₁ = max(OH′−y,0)、Bₜ₊₁ = B′ + max(y−OH′,0)とする（式21–22）。\n"
+        ],
+        [
+          6,
+          7,
+          "供給元ではOH<sかつ未着注文がないときS−OHを注文する。中間倉庫では上流から実際に荷物を運び、容量と経路に従って詰め込む。需要予測でこの物流状態を代用できるとは限らない。\n"
+        ],
+        [
+          8,
+          9,
+          "順序が重要である。まず既存の滞留を解消する。その残りが手元在庫になる。新しい需要は最後に処理する。\n"
+        ],
+        [
+          10,
+          21,
+          "この小実験では、商品間の容量競合を扱わない。\n"
+        ]
+      ]
+    },
+    "papers/isomorph-supply-chain-digital-twin/results.json": {
+      "before": {
+        "sha256": "2f7af597913680ca922eb33ef074a3129e0535b2659e0b7a94f2d6fe2d3d5dc8",
+        "blob": "f9c2a15c399184dabd6eacd2e7056e791ff0fc1d"
+      },
+      "after": {
+        "sha256": "1d7c8690c2ff4850075dc52b71ca40d4be3002dd6e6d2bba4a2b6f2c41a78358",
+        "blob": "18e798e5e6b3cce7effe82be1a855e8fd9d8b7eb"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "  \"note\": \"人工的な1辺の実験。13拠点の再現、予測モデルの比較、補充方策の性能検証ではない。\",\n"
+        ],
+        [
+          5,
+          6,
+          "      \"label\": \"輸送容量 8 / 日\",\n"
+        ],
+        [
+          686,
+          687,
+          "      \"label\": \"輸送容量 12 / 日\",\n"
+        ],
+        [
+          1367,
+          1368,
+          "      \"label\": \"輸送容量 20 / 日\",\n"
+        ],
+        [
+          2050,
+          2051,
+          "      \"name\": \"同一需要・容量だけを変更\",\n"
+        ],
+        [
+          2053,
+          2055,
+          "        \"輸送容量 8 / 日\": {\n          \"期末滞留\": 137,\n"
+        ],
+        [
+          2058,
+          2060,
+          "        \"輸送容量 12 / 日\": {\n          \"期末滞留\": 0,\n"
+        ],
+        [
+          2063,
+          2065,
+          "        \"輸送容量 20 / 日\": {\n          \"期末滞留\": 0,\n"
+        ]
+      ]
+    },
+    "papers/isomorph-supply-chain-digital-twin/run.py": {
+      "before": {
+        "sha256": "a06f969f9541560dfff90c1af522dfdd4484ab11e6613b7983b6e2504e2fc285",
+        "blob": "9866d09efb4565446f1631cf50e0b914c227d695"
+      },
+      "after": {
+        "sha256": "6b475eee588bd05fc595c9210b8b5d662be16352f5c27f30ce9f61116e428ea4",
+        "blob": "06e33d3c795f6979e6c8533fe03fbd8863813bc4"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Destination service conservation check, not the official 13-node simulator.\"\"\"\n"
+        ],
+        [
+          7,
+          8,
+          "    # Same exogenous demand in all scenarios; single delayed transport edge.\n"
+        ],
+        [
+          22,
+          23,
+          "        # Explicit teaching surrogate for replenishment: destination (s,S).\n"
+        ],
+        [
+          28,
+          29,
+          "    return dict(label=f'輸送容量 {capacity} / 日',capacity=capacity,rows=rows,\n"
+        ],
+        [
+          37,
+          40,
+          "    result = dict(lab30='isomorph',note='人工的な1辺の実験。13拠点の再現、予測モデルの比較、補充方策の性能検証ではない。',\n        frames=frames,experiments=[dict(name='同一需要・容量だけを変更',n=84,\n        metrics={f['label']:{'期末滞留':f['ending_backlog'],'当日需要充足率':round(f['current_demand_fill'],4),'保存則の最大誤差':0} for f in frames})])\n"
+        ]
+      ]
+    },
+    "paper_lab/isomorph30.py": {
+      "before": {
+        "sha256": "976283919a3bfff184b58506a3982bdc51ba49ff1d898e92766248aec9dacf68",
+        "blob": "1ffd15bab7253afe07f3c3da2577e1e5096c206e"
+      },
+      "after": {
+        "sha256": "8e296aeead3b4cb2be1c6bca16587c6ea930f48181115ca44625148931e4ab9f",
+        "blob": "e6465b5c6d4617a14448bff907dda5a8c510a315"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Network-specific September 30 visualization; values from source artifacts.\"\"\"\n"
+        ],
+        [
+          9,
+          10,
+          "    svg='<svg style=\"width:100%;height:auto\" viewBox=\"0 0 870 260\" role=\"img\" aria-label=\"3供給元から9倉庫を経てNewYorkへ至る13拠点16本の輸送経路\"><defs><marker id=\"iso-arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0L10 5L0 10z\" fill=\"#678\"/></marker></defs>'\n"
+        ],
+        [
+          15,
+          16,
+          "    return '<figure class=\"teaching\"><h3>13拠点を16本の輸送経路で結ぶ</h3>'+svg+'</svg><figcaption>Figure 1・Table 11を再構成。地理座標は使わず接続だけを示す。SFはSan Francisco、StLouisはSt. Louis。矢印は輸送方向。</figcaption></figure>'\n"
+        ],
+        [
+          23,
+          26,
+          "        content=plot_series([('需要',[x['demand'] for x in r]),('未充足需要',[x['backlog'] for x in r])],220,'経過日数（1〜84日）','需要と翌日へ持ち越す未充足需要（個）')\n        content+=plot_series([('当日需要充足率',[x['fill'] for x in r]),('輸送容量の使用率',[x['utilization'] for x in r])],1,'経過日数（1〜84日）','比率（0–1）')\n        content+=f'<p>期末に残る未充足需要 {f[\"ending_backlog\"]}個。当日需要充足率 {f[\"current_demand_fill\"]:.3f}。保存則の誤差 {f[\"conservation_max_error\"]}。</p>'\n"
+        ],
+        [
+          29,
+          30,
+          "    return network()+'<figure class=\"teaching\" data-b21><h3>同じ需要のもとで輸送容量を動かす</h3><label>この1本の輸送経路の1日当たり容量 <select>'+options+'</select></label><script type=\"application/json\" data-frames>'+payload+'</script><div data-output aria-live=\"polite\">'+frames[0]+'</div><figcaption>run.pyの1本の輸送経路の教材実験。公式13拠点モデルの出力ではない。容量以外の設定と需要は共通。</figcaption></figure>'\n"
+        ]
+      ]
+    }
+  }
+}
