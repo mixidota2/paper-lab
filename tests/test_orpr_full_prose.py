@@ -6,7 +6,7 @@ import subprocess
 
 import pytest
 import yaml
-from prose_preservation import before_orpr_full_prose, orpr_full_prose_hash
+from prose_preservation import before_orpr_full_prose, before_proximal_full_prose, orpr_full_prose_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = 'c2e4172a0f3e7ab083dcfee9be7619575074a0dd'
@@ -23,7 +23,7 @@ def test_exact_archive_and_orpr_only_shared_copy():
     rows = json.loads((ROOT/'tests/orpr_full_prose_hashes.json').read_text())['files']
     assert rows.keys() == paths | {shared}
     for path,row in rows.items():
-        new = (ROOT/path).read_bytes()
+        new = before_proximal_full_prose(ROOT, path, (ROOT/path).read_bytes())
         assert new != historical(path)
         assert before_orpr_full_prose(ROOT,path,new)==historical(path)
         with pytest.raises(AssertionError):
@@ -35,7 +35,7 @@ def test_exact_archive_and_orpr_only_shared_copy():
     def excluded(raw):
         head,tail = raw.split(b'def orpr(r):',1)
         return head,tail.split(b'\ndef proximal(r):',1)[1]
-    assert excluded((ROOT/shared).read_bytes())==excluded(historical(shared))
+    assert excluded(before_proximal_full_prose(ROOT, shared, (ROOT/shared).read_bytes())) == excluded(historical(shared))
 
 
 def test_orpr_math_data_and_canonical_overview_did_not_change():

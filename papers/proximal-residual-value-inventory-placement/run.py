@@ -1,6 +1,6 @@
-"""Figure 3 exact counterexample and separable PWL + quadratic state potential.
+"""図3の反例と、2拠点に入荷を配る二つの人工例を計算する。
 
-Scalar convex minimization by bisection; no learned policy or State-prox backward.
+凸最小化は一変数の二分探索で解く。学習済み方策やState-proxの逆伝播は使わない。
 """
 import json
 from pathlib import Path
@@ -10,11 +10,11 @@ def allocate(state, budget, kind):
     total = sum(state) + budget
     lo, hi = state[0], state[0] + budget
     if kind == 'counterexample':
-        # Appendix C.1: H=[[2,3],[3,5]], a=(0,1).
+        # 原論文の付録C.1： H=[[2,3],[3,5]], a=(0,1).
         x = min(hi, max(lo, 2 * total - 2))
     else:
         # R(x)=|x1-.5|+2|x2-3|, Phi(x)=||x||²/2, tau=1.
-        # Action control substitutes ||x-I||²/2; it is a Lab-designed contrast.
+        # 各回に置く量を比べる人工例では、二次の項を ||x-I||²/2 に置き換える。
         def derivative(x):
             y = total - x
             s1 = -1 if x < .5 else 1
@@ -53,16 +53,16 @@ def main():
                 assert tv < 1e-10
     assert path('counterexample', 1)[-1] == [2, 0]
     assert path('counterexample', 2)[-1] == [1, 1]
-    result = dict(lab02='proximal', note='図3の反例と分離可能な2拠点縮約。Amazonの学習済み方策・費用は再現していない。',
+    result = dict(lab02='proximal', note='図3の反例と、拠点別の費用を使う2拠点の人工例を計算した。Amazonの学習済み方策や費用評価は再現していない。',
                   cases=cases, pcsp_inverse_shock=[2, -1],
                   paper_evidence={'oos': {'Historical proxy': [1., 0.], 'Direct neural RL': [1.012, .002],
                     'State-prox': [.950, .028], 'State-prox without potential': [1.070, .038]},
                     'in_sample_state_prox': [.851, .022], 'tv_500_oos': {'State-prox': .00201, 'Direct neural RL': .12716}},
-                  experiments=[dict(name='固定環境の分割配置', metrics={
-                      '図3 一括配置': path('counterexample', 1)[-1],
-                      '図3 2回配置': path('counterexample', 2)[-1],
-                      '状態potential 最大TV': max(c['tv'] for c in cases if c['kind']=='state'),
-                      '行動正則化 最大TV': max(c['tv'] for c in cases if c['kind']=='action')})])
+                  experiments=[dict(name='需要と費用を固定した分割配置', metrics={
+                      '図3：一括配置の最終在庫': path('counterexample', 1)[-1],
+                      '図3：2回に分けたときの最終在庫': path('counterexample', 2)[-1],
+                      '配置後の在庫に項を加えたときの最大TV': max(c['tv'] for c in cases if c['kind']=='state'),
+                      '各回の配置量に項を加えたときの最大TV': max(c['tv'] for c in cases if c['kind']=='action')})])
     Path(__file__).with_name('results.json').write_text(json.dumps(result, ensure_ascii=False, indent=2)+'\n')
 
 
