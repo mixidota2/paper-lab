@@ -334,7 +334,7 @@ def test_batch15_causal_comparisons_and_group_denominators():
 def test_batch16_candidate_units_and_conditional_comparisons():
     expected = {
         'angle-tencent-one-step-retrieval': ('method.md', 'kは広告件数ではなく組の数'),
-        'igpo-huawei-inventory-grounded-search': ('lab.yaml', '対応商品がある要求のうち、商品を返さず棄権した要求の割合'),
+        'igpo-huawei-inventory-grounded-search': ('lab.yaml', 'カタログに該当商品がある要求のうち、システムが商品を一致として返さなかった割合'),
         'sam-d2q-aliexpress-doc2query': ('lab.yaml', 'その商品のタイトルまたは追加した検索語の集合に含まれる場合だけ'),
         'case-against-generation-retrieval': ('method.md', '同じ候補集合内で確率分布へ正規化'),
         'ogr-once-generated-ranked': ('method.md', 'その利用者の平均より高く、負なら低い'),
@@ -343,7 +343,7 @@ def test_batch16_candidate_units_and_conditional_comparisons():
     for slug, (name, excerpt) in expected.items():
         assert excerpt in (ROOT/'papers'/slug/name).read_text()
     for name in ['lab.yaml', 'README.md']:
-        assert '対応商品がない要求のうち、商品を返して一致とした要求の割合' in (ROOT/'papers/igpo-huawei-inventory-grounded-search'/name).read_text()
+        assert 'カタログに該当商品がない要求のうち、商品を返して一致したと判断した割合' in (ROOT/'papers/igpo-huawei-inventory-grounded-search'/name).read_text()
         assert 'どれかの語が合うだけでは取得しない' in (ROOT/'papers/sam-d2q-aliexpress-doc2query'/name).read_text()
         assert '平均点が低い枝にも最高点の候補があり得る' in (ROOT/'papers/case-against-generation-retrieval'/name).read_text()
     assert '非関連広告を学習全体から捨てるのではなく、関連性の判定には使う' in (ROOT/'papers/angle-tencent-one-step-retrieval/lab.yaml').read_text()
