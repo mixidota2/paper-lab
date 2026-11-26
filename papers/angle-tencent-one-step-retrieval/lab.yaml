@@ -26,14 +26,14 @@ verification:
   performance: NOT TESTED
   scaling: NOT TESTED
   production_applicability: NOT TESTED
-question: 広告IDの代わりに検索意図と商品語を生成すると、どう広告を取得できるか
-summary: TencentのANGLEは広告を「広い検索意図 × 商品を特定する短い語句」の組で索引化する。検索用のHunyuan-1Bは、組を生成し、検索語との関連性を判定し、商用価値の高い広告を優先するよう学習する。生成時には、配信できる広告がある組に候補を絞る。WTSの検索広告のA/Bテストで著者はGMV +2.16%を報告した。自然検索や通常の推薦全体を置き換えた研究ではない。
+question: 広告IDの代わりに検索意図と要約を生成すると、配信できる広告をどう取得できるか
+summary: TencentのANGLEは、検索意図と広告の短い要約を組にして索引を引き、配信できる広告を取得します。WTSで著者が報告した流通総額は2.16%増えました。既存の精密ランキングは残るため、検索全体を置き換えた比較ではありません。
 core_idea:
-  author_claim: 階層的なテキスト索引、GDR-LLM、動的な制約付きビーム探索（DCBS）を組み合わせると、関連性と商用価値を考慮して広告を取得できる。
-  research_bot_interpretation: 広告との対応をテキスト表現と索引の更新で扱い、生成が済む前に広告の配信可否を反映する設計と読める。SID全般より優れることや、多段カスケード全体を不要にできることは示していない。
+  author_claim: 著者は、テキストの組を引く索引、検索用のモデル、検索ごとに変わる探索の制約を組み合わせました。検索語と意味が合う組を生成し、配信できる広告を取得して精密ランキングに渡します。
+  research_bot_interpretation: 広告と語句の対応は索引に持たせ、配信可否は組を生成し終える前に反映する設計です。意味IDを使うすべての方式より有効か、既存の精密ランキングが不要かは、この比較から分かりません。
 source_review:
   checked: '2026-09-25'
-  scope: 提供された一次PDF v1と抽出テキスト。式4〜6、図1・3、表1〜4、Limitations。公式コードURLは本文に見当たらず、公開の有無は未確認。
+  scope: 一次資料のv1で、式4〜6、図1・3、表1〜4、制約を確認しました。論文に公式コードの公開先は見つからず、別の場所での公開は確認していません。
   pdf_sha256: f5c84a5a3b3ef9683b441f265e358c1f1fa446e4656265bb8dbaeb93ce29a7ef
   url: https://arxiv.org/pdf/2609.18296v1
 sections:
@@ -41,46 +41,62 @@ sections:
     Tencentの著者は検索広告を「広い検索意図」と「広告の短い要約」の組で表しました。ANGLEはこの組を検索語に合わせて生成し、関連性を判定してから、広告の価値に応じて候補を並べます。表示できる広告がない組は生成の途中で除きます。広告を表す専用の番号と広告との対応をモデルに覚えさせる代わりに、短いテキストで索引を引く仕組みです。
 
     著者が報告した本番の比較では、流通総額（GMV）がWTSで2.16%、QBSで5.01%増えました。これらは論文が匿名で示した二つの検索システムです。著者はANGLEを既存のランキングに候補を足す仕組みとして運用しており、精密ランキングまで廃止した比較ではありません。
-  problem: 従来の多段カスケード（MCA）では、候補の取得、関連性の判定、事前順位付け、最終的な順位付けを別々に最適化する。最初に落とした広告は、後段で商用価値が高いと分かっても候補に戻らない。広告に離散的な意味ID（SID）を付けて生成する方式では、IDと広告の対応を学ぶ必要がある。ANGLEは広告を読める語句にし、新広告を索引に追加する手順を用意する。
-  why_it_might_work: 【解釈】広いintentだけでは商品を区別しにくく、商品名に近いabstractだけでは需要の広がりを拾いにくい。両者を組にすると、検索意図を保ちながら商品を絞れる。配信不可の枝を先に外すと、探索で保持できる候補数を有効な組に使える。検索語との意味の一致や商用価値はモデルが学ぶので、索引だけでは保証されない。
-  evidence: '### WTSの広告消費額：表では+1.81%、本文では+1.18%
+  problem: |-
+    広告検索は通常、候補を取得し、検索語との関連性を確かめ、候補を大まかに並べ、最後に表示順を決めます。各処理が別の目標を持つと、前の段階で落ちた広告を、後から価値が高いと判断しても戻せません。ANGLEは最終順位を決める前の三つの処理を、検索用モデルにまとめます。
 
+    広告に意味ID（SID）を付け、そのIDを生成する方式では、モデルがIDから広告への対応を学びます。ANGLEは広告の内容を短い語句にして索引に登録します。新しい広告は、その語句の組を作って登録できます。
+  why_it_might_work: |-
+    大まかな検索意図だけでは同じ種類の商品を区別しにくく、商品名に近い語だけでは検索の意図に合う候補を広く拾いにくくなります。二つを組にすると、意図で候補を広く探し、具体的な語句で候補を区別できます。
 
-    表3では広告消費額（consumption）+1.81%、GMV +2.16%、クリック +1.50%、コンバージョン +1.44%、露出 +2.49%。§4.2によると、5日間・traffic 20%のA/Bテストだった。同節の広告消費額は+1.18%で、要旨・導入・表3の+1.81%と一致しない。Labでは表3の値を載せ、この違いも残す。信頼区間とp値の記載はない。露出数も増えたので、クリック数の増加からクリック率（CTR）が増えたとは言えない。
+    配信できる広告が一つもない組を先に除くと、探索で残せる枠を使える組に回せます。ただし配信可否は広告側の条件で、検索語との意味の一致や広告の価値とは別です。索引に対応があるだけでは、両方を満たすとは限りません。
+  evidence: |-
+    ### 検索ログを使った取得の比較
 
+    著者は過去の表示とクリックから1万件の検索語を選び、各検索の候補を最大1,000件として、無作為に選んだ非関連広告も加えました。評価に使ったのは約22万件の広告候補です（§4.1）。付録CのHR@100は、上位100件に含まれた正解広告の数を、その検索の正解広告全体の数で割る指標です。著者が報告した値はANGLEで0.5273、この列で最も高かった比較先のSimBert-v2-Gで0.3095です。
 
-    ### 構成を変えたときのHR@100
+    表4では、ANGLEの0.5273に対し、検索意図を使わず要約だけにすると0.4645、要約を使わず検索意図だけにすると0.3519でした。動的な制約付き探索（DCBS）を外すと0.2975、GDR-LLMを基盤モデルに替えて制約付きで生成すると0.4412です。DCBSを外す条件では、自由に語句を生成した後、近似近傍検索（ANN）で索引から近い組を探しています。制約だけを切り替えた比較ではありません。
 
+    ### 本番で報告された広告費と件数
 
-    表4のHR@100はANGLE 0.5273、intentなし0.4645、abstractなし0.3519、DCBSなし0.2975、GDR-LLMなし0.4412。DCBSなしの構成は、自由に生成してから近似近傍探索（ANN）で近い組を探す。制約の有無だけを変えた比較ではない。表2で最も高かった比較方式はSimBert-v2-Gの0.3095。10,000クエリ、約220,000広告候補で評価し、実ログのクリックを使った。
+    著者はANGLEを、匿名の検索システムWTSとQBSの既存ランキングへ候補を足す形で導入しました。表3の相対変化は次のとおりです。
 
+    | システム | 広告費 | 流通総額（GMV） | クリック数 | コンバージョン数 | 露出数 |
+    | --- | ---: | ---: | ---: | ---: | ---: |
+    | WTS | +1.81% | +2.16% | +1.50% | +1.44% | +2.49% |
+    | QBS | +6.57% | +5.01% | +6.11% | +0.72% | +7.82% |
 
-    ### 「One-Step」で置き換えた範囲
+    §4.2には5日間、全トラフィックの20%を使ったA/Bテストとあります。本文の広告費は+1.18%で、要旨と表3にあるWTSの+1.81%と一致しません。GMVの+2.16%は一致します。QBSにも同じ期間や割り付けを使ったかは分かりません。信頼区間やp値は載っていません。クリック数やコンバージョン数の変化は率の変化ではなく、流通総額はプラットフォームの純売上ではありません。
 
+    ### 生成の所要時間と残した処理
 
-    §4.2ではWTS/QBSのranking queueを補う形で導入した。Limitationsによると、動的クリエイティブ選択と自動入札は引き続き順位付けに依存する。広告側はHunyuan-13B、検索側はHunyuan-1B、beam 64、intentは最大3 token、abstractは最大4 token。§4.1の90 ms以内は生成にかかった時間で、リクエスト全体のend-to-end p99ではない。
+    検索側のHunyuan-1Bはビーム幅64で、検索意図は最大3トークン、要約は最大4トークンです。§4.1には生成1トークンあたり約8ミリ秒、組の生成は90ミリ秒以内とあります。付録Dのリクエスト60ミリ秒以内は別に記載された運用条件で、同じ計測範囲の値とは確認できません。いずれも全リクエストのp99ではありません。広告の精密ランキング、表示素材の選択、入札は引き続き必要です。
 
+    [一次資料：ANGLE v1の§4、表2〜4、Limitations、付録D](https://arxiv.org/html/2609.18296v1)
+  executable_understanding: |-
+    Labは人工の5広告を4組に対応付け、各組の点数を固定しました。一方は点数順に組を選んでから配信できない広告を除き、もう一方は配信できる広告がある組だけを残してから点数順に選びます。下の操作では最大1〜3組と確認する順序を選べます。トークン単位の探索ではなく、完成した組を比べます。
 
-    [一次資料：ANGLE v1 表2〜4・§4・Limitations](https://arxiv.org/pdf/2609.18296v1)'
-  executable_understanding: '人工の5広告・4組を使い、固定スコアとビーム幅をそろえて比べる。一方はスコア順に組を選んでから配信不可の広告を外し、もう一方は配信できる広告がある組だけに絞ってから選ぶ。1組から複数広告を取得できることと、スコアを変えずに広告Fを索引へ追加できることも確かめる。token単位のDCBSは再現せず、組単位で上位k件を選ぶ。
+    <div class="teaching" data-b21="angle"><h3>配信可否を調べる順序と取得できる広告</h3><p>Labの合成例です。AとEは配信できません。BとCは同じForestの組に入っています。</p><label>選ぶ組数と配信可否を調べる順序 <select><option value="0">1組まで：組を選んでから確認</option><option value="1">1組まで：組を選ぶ前に確認</option><option value="2">2組まで：組を選んでから確認</option><option value="3">2組まで：組を選ぶ前に確認</option><option value="4">3組まで：組を選んでから確認</option><option value="5">3組まで：組を選ぶ前に確認</option></select></label><div data-output aria-live="polite"><div class="b21-cards"><div><strong>選んだ組</strong><p>survival game / Winter</p></div><div><strong>取得した配信可能な広告</strong><p>なし（0件）</p></div></div></div><script type="application/json" data-frames>["<div class=\"b21-cards\"><div><strong>選んだ組</strong><p>survival game / Winter</p></div><div><strong>取得した配信可能な広告</strong><p>なし（0件）</p></div></div>", "<div class=\"b21-cards\"><div><strong>選んだ組</strong><p>survival game / Forest</p></div><div><strong>取得した配信可能な広告</strong><p>B・C（2件）</p></div></div>", "<div class=\"b21-cards\"><div><strong>選んだ組</strong><p>survival game / Winter → survival game / Forest</p></div><div><strong>取得した配信可能な広告</strong><p>B・C（2件）</p></div></div>", "<div class=\"b21-cards\"><div><strong>選んだ組</strong><p>survival game / Forest → mobile game / Winter</p></div><div><strong>取得した配信可能な広告</strong><p>B・C・D（3件）</p></div></div>", "<div class=\"b21-cards\"><div><strong>選んだ組</strong><p>survival game / Winter → survival game / Forest → mobile game / Winter</p></div><div><strong>取得した配信可能な広告</strong><p>B・C・D（3件）</p></div></div>", "<div class=\"b21-cards\"><div><strong>選んだ組</strong><p>survival game / Forest → mobile game / Winter</p></div><div><strong>取得した配信可能な広告</strong><p>B・C・D（3件）</p></div></div>"]</script><p class="source-note">run.pyとresults.jsonの合成例です。JavaScriptを使わない場合は、1組を選んでから配信可否を調べた結果を表示します。</p></div>
+  results: |-
+    1組だけ選ぶときは、先に点数で選ぶと、配信できないAの組が残り、取得数は0件です。配信可否を先に調べると、Forestの組からBとCの2件を取得します。2組まで選ぶと、後から調べる場合は2件、先に調べる場合は3件です。3組までなら両方ともB・C・Dの3件を取得します。
 
-
-    <div class="teaching" data-b21="angle"><h3>組を選ぶ前と後で、配信可否を切り替える</h3><p>合成例：AとEは配信不可。Forestの同じ組にB・Cが属する。</p><label>探索条件 <select><option value="0">beam 1 / 後段filter</option><option value="1">beam 1 / 事前filter</option><option value="2">beam 2 / 後段filter</option><option value="3">beam 2 / 事前filter</option><option value="4">beam 3 / 後段filter</option><option value="5">beam 3 / 事前filter</option></select></label><div data-output aria-live="polite"><div class="b21-cards"><div><strong>生成する組</strong><p>survival game / Winter</p></div><div><strong>解決した有効広告</strong><p>なし（0件）</p></div></div></div><script type="application/json" data-frames>["<div class=\"b21-cards\"><div><strong>生成する組</strong><p>survival game / Winter</p></div><div><strong>解決した有効広告</strong><p>なし（0件）</p></div></div>", "<div class=\"b21-cards\"><div><strong>生成する組</strong><p>survival game / Forest</p></div><div><strong>解決した有効広告</strong><p>B・C（2件）</p></div></div>", "<div class=\"b21-cards\"><div><strong>生成する組</strong><p>survival game / Winter → survival game / Forest</p></div><div><strong>解決した有効広告</strong><p>B・C（2件）</p></div></div>", "<div class=\"b21-cards\"><div><strong>生成する組</strong><p>survival game / Forest → mobile game / Winter</p></div><div><strong>解決した有効広告</strong><p>B・C・D（3件）</p></div></div>", "<div class=\"b21-cards\"><div><strong>生成する組</strong><p>survival game / Winter → survival game / Forest → mobile game / Winter</p></div><div><strong>解決した有効広告</strong><p>B・C・D（3件）</p></div></div>", "<div class=\"b21-cards\"><div><strong>生成する組</strong><p>survival game / Forest → mobile game / Winter</p></div><div><strong>解決した有効広告</strong><p>B・C・D（3件）</p></div></div>"]</script><p class="source-note">出所：run.pyの固定スコアとresults.json。JavaScript無効時はbeam 1・後段filterの結果を表示。</p></div>'
-  results: ビーム幅1で先に組を選ぶと、配信できないAの組が残るため、取得できる広告は0件になる。先に配信可否を確認するとForestの組からBとCの2件を取得できる。同じ組にFを追加すると3件。ビーム幅3では両方式ともB・C・Dを取得した。差は人工例で配信不可にした候補とビーム幅に左右され、事前に絞ればいつでも改善するとは言えない。
-  what_we_verified: CONFIRMED：1組から複数広告を取得する処理、事前に配信可否を調べて組を絞る処理、広告を索引に加えると取得結果が変わること。assertは4件とも通過した。PARTIAL：ANGLE全体の仕組み。生成モデルの出力は固定スコアで置き換えた。
-  what_we_did_not_verify: NOT TESTED：Hunyuanの学習、関連性判定、DPO、token単位の動的な木の組み直し、新しい広告への意味的な汎化、実際の遅延、WTS/QBSのA/B。広告Fの組は手で指定したため、LLMが正しい組を生成できることは確認していない。著者の性能報告とLabの結果は別に扱う。
-  implementation: リポジトリのルートで `UV_CACHE_DIR=/tmp/paper-lab-uv uv run papers/angle-tencent-one-step-retrieval/run.py` を実行する。Python標準ライブラリを使い、同じディレクトリの `results.json` を更新する。外部データ、GPU、乱数は使わない。
+    Forestの組に広告Fを手で追加すると、同じ点数のまま、事前に絞って1組を選ぶ条件で3件になります。この結果は固定した点数と配信可否によるもので、事前に絞ることがどの検索でも改善につながるとは言えません。
+  what_we_verified: |-
+    合成例で、一つの組から複数の広告が返ること、配信可否を確認する順序で取得数が変わること、既存の組に広告を追加すると取得結果に加わることを確認しました。プログラムの4つの検査が通りました。生成モデルの代わりに固定の点数を使っており、確認したのは仕組みの一部です（Mechanism PARTIAL）。
+  what_we_did_not_verify: |-
+    Hunyuanの学習、関連性の判定、DPO、トークン単位の探索木の更新、実際の処理時間、WTSやQBSでの効果は試していません。広告Fを手で割り当てたため、新しい広告に適した語句をモデルが作れるかも分かりません。
+  implementation: |-
+    配布した `run.py` を保存し、同じフォルダで `python run.py` を実行します。標準ライブラリだけで動き、同じフォルダの `results.json` を更新します。リポジトリからは `uv run papers/angle-tencent-one-step-retrieval/run.py` でも実行できます。外部データ、GPU、乱数は使いません。
   method: method.md
   mapping: mapping.md
 teaching_figures:
 - kind: matrix
   id: intent-abstract-index
-  title: 検索意図と商品語の組で広告を探す
+  title: 検索意図と要約で広告を引く索引
   after: problem
   locator: 図3・§3.3（語と広告IDはLab用）
-  caption: 説明用の索引。行がintent、列がabstract。広告がない空欄の組は生成候補にしない。
-  rationale: 検索意図と具体的な語句の組が索引のキーになる。
-  corner: intent × abstract
+  caption: Labの索引です。行は検索意図、列は要約です。広告がない組は候補になりません。
+  rationale: 同じ行と列の交点から複数の広告を取得できます。
+  corner: 検索意図と要約
   columns:
   - Winter
   - Forest
@@ -104,38 +120,38 @@ teaching_figures:
   source: https://arxiv.org/pdf/2609.18296v1
 - kind: equations
   id: gdr-loss
-  title: 一つのモデルが生成・関連性・商用順位を学ぶ
+  title: 検索用モデルが学ぶ三つの判断
   after: method
   locator: 図1・式4〜6
-  caption: 原論文のβはDPOの温度と損失の重みを指す。この図では重みにλを使う。
-  rationale: 順位は独立した回帰ヘッドでは予測しない。DPOで生成確率を調整する。
+  caption: 原論文はDPO内の尺度と損失を足す重みの両方にβを使います。この図では損失の重みをλで表します。
+  rationale: 商用順位を独立した回帰モデルで予測せず、DPOで生成確率を調整します。
   steps:
   - name: 生成
     formula: Lgen = −Σ log πθ(token | query, prefix)
-    explanation: 関連する広告のintentとabstractを正解として生成を学ぶ。非関連広告では生成損失を計算しない（mask）。非関連広告を学習全体から捨てるのではなく、関連性の判定には使う。
+    explanation: 関連ありとされた広告の検索意図と要約だけを、生成の正解に使います。非関連広告を学習全体から捨てるのではなく、関連性の判定には使うという区別です。
   - name: 関連性
     formula: Ldis = −[y log p̂ + (1−y) log(1−p̂)]
-    explanation: discriminatorは関連・非関連のラベルから判定を学ぶ（式4）。
+    explanation: 検索語に関連するかを、関連ありと関連なしの両方のラベルで学びます（式4）。
   - name: 商用順位
     formula: Ldpo = −log σ(β [log(πθ(yw|x)/πref(yw|x)) − log(πθ(yl|x)/πref(yl|x))])
-    explanation: 商用価値が高い広告ywをylより優先する。§4.1では実消費額で順序を決める（式5）。
+    explanation: 広告ywをylより優先するように学習します（式5）。§4.1で優先順を決める基準は実際の広告費です。
   - name: 統合
     formula: Lmodel = λg Lgen + λd Ldis + λr Ldpo
-    explanation: 3つの損失を重み付きで足す（式6）。Labでは学習を実行しない。
+    explanation: 三つの損失に重みを掛けて足します（式6）。Labはこの学習を実行していません。
   source: https://arxiv.org/pdf/2609.18296v1
 - kind: chart
   id: wts-online
-  title: WTSで変わった広告消費額・GMV・件数
+  title: WTSで報告された広告費・流通総額・件数の変化
   after: evidence
   locator: 表3
-  caption: 著者報告。5日間・traffic 20%。広告消費額は本文と表で異なる。件数の変化はCTRやCVRの変化ではない。
-  rationale: 件数の増減と、広告消費額やGMVの増減を別に読む。
+  caption: 著者の表3の値です。§4.2は5日間、全トラフィックの20%と記します。広告費は本文と表で異なり、件数の変化はクリック率やコンバージョン率の変化ではありません。
+  rationale: 件数と金額の相対変化を分けて示します。
   unit: '% 相対'
   maximum: 3
   bars:
-  - label: 広告消費額
+  - label: 広告費
     value: 1.81
-  - label: GMV
+  - label: 流通総額（GMV）
     value: 2.16
   - label: クリック数
     value: 1.5

@@ -1,5 +1,5 @@
-"""Finite toy index: shared identifiers, validity pruning, and new-ad insertion.
-No neural model is trained. Scores and labels are fixed synthetic inputs.
+"""固定した点数で広告の組を選び、配信可否を調べる順序と索引への追加を比べる。
+モデルは学習せず、広告と点数はLabが決める。
 """
 import json
 from pathlib import Path
@@ -52,7 +52,7 @@ def main():
     results = {'experiment': 'synthetic finite pair-level selection',
                'verification': {'mechanism': 'PARTIAL', 'performance': 'NOT TESTED',
                                 'scaling': 'NOT TESTED', 'production_applicability': 'NOT TESTED'},
-               'note': 'Fixed scores; pair-level top-k only. No token trie, LLM, relevance head, DPO or production data.',
+               'note': '固定の点数で組を選ぶ合成例です。トークン単位の探索、LLM、関連性判定、DPO、本番データは使っていません。',
                'ads': ADS, 'frames': frames,
                'index_update': {'before': before, 'after': after, 'generation_scores_changed': False},
                'checks_passed': 4}

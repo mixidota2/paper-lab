@@ -6,7 +6,7 @@
     "scaling": "NOT TESTED",
     "production_applicability": "NOT TESTED"
   },
-  "note": "Fixed scores; pair-level top-k only. No token trie, LLM, relevance head, DPO or production data.",
+  "note": "固定の点数で組を選ぶ合成例です。トークン単位の探索、LLM、関連性判定、DPO、本番データは使っていません。",
   "ads": [
     {
       "id": "A",
