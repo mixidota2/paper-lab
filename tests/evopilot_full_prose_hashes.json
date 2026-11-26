@@ -1,0 +1,341 @@
+{
+  "files": {
+    "papers/evopilot-verify-dont-trust-autoresearch/README.md": {
+      "before": {
+        "sha256": "2fd919f674ef186b8da0746a9517bb80130a547b896b2c43219472ed348ae355",
+        "blob": "84396319ca5cd8bb51a5ac448c917fdb3666018a"
+      },
+      "after": {
+        "sha256": "b0e40ccdb55fd3cd779d72b49e789bddef1723c449219e90e9acfeff8dc14f43",
+        "blob": "8acf3314277ccaf7e81da109f4c54dc26ef15e86"
+      },
+      "prior_spans": [
+        [
+          6,
+          7,
+          "公開ページ: https://mixidota2.github.io/paper-lab/papers/evopilot-verify-dont-trust-autoresearch.html\n"
+        ],
+        [
+          8,
+          11,
+          "## 実行\n"
+        ],
+        [
+          16,
+          17,
+          "Python標準ライブラリだけを使う。`lab.yaml` と `method.md` が解説の原本、`run.py` が最小実験、`results.json` が出力、`mapping.md` が原典との対応。HTMLは `uv run paper-lab build` で生成する。\n"
+        ],
+        [
+          18,
+          19,
+          "## 検証範囲\n\nMechanism PARTIAL。実現Kの反証probeと、pairの許可外差分・no-op・欠落の拒否は人工artifactでCONFIRMED。canonical recordのhashも計算する。\n\nPerformance / Scaling / Production applicability NOT TESTED。本番MBR学習、数億動画index、37日agent運用、offline +3.20 pp、online +0.66%は再現していない。local hashは遠隔artifactの真正性を保証しない。\n"
+        ]
+      ]
+    },
+    "papers/evopilot-verify-dont-trust-autoresearch/lab.yaml": {
+      "before": {
+        "sha256": "c45ffbd17d618a2fee22feb31d60e2a7d6c86dfacd50c647b63f1fa30f642593",
+        "blob": "92a6dbf2917c1e3f6c1b689248de0a63c3906c99"
+      },
+      "after": {
+        "sha256": "5add01a917837c64e39b12a2f56bdf1db8e9dbc18c51130f5014d8d4ae14726e",
+        "blob": "4fe57db1ffd41e96608c2f36ecda01de81e179f5"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "title: 'Verify, Don’t Trust: Agentic Model Development for Video Discovery Retrieval\n  at Scale'\n"
+        ],
+        [
+          20,
+          22,
+          "question: 完了した二つの実験を、比較してよい証拠にする条件は何か\nsummary: 37日間のVDD研究で、−22 ppという誤った比較をhuman gateが棄却。評価器修正後、matched-lineageで+3.20 pp、別の7日A/BでGSRR\n  +0.66%相対差。\n"
+        ],
+        [
+          33,
+          34,
+          "  scope: 一次PDFの本文・数式・実験表と限界を確認。提示メモとの差分は本文に明記。\n"
+        ],
+        [
+          35,
+          37,
+          "  author_claim: 各実験が完了し、実験の来歴をたどれても、比較が妥当とは限らない。事前に承認した比較条件と、成果物に記録された実際の条件を照合する。必要な証拠が欠ける比較は受け付けない。\n  research_bot_interpretation: '[AURA](aura-disney-agentic-rec-diagnosis.html)は何を直すべきかを診断し、EvoPilotは修正を比べた測定が有効かを検査する。[PILOT](pilot-experiment-lifecycle.html)の非同期実験運用や[AgentX](agentx-kuaishou.html)のkeep判定にも、比較条件が揃ったかという前提を追加できる。'\n"
+        ],
+        [
+          42,
+          46,
+          "  problem: 長いML実験はsource、data、training、publish、index、evaluatorをまたぐ。各runが成功し、どのrevisionで実行したか分かっても、二つのrunが同じ測定をしているとは限らない。code変更がno-op、eval日がtrainに混入、K/Pが宣言と不一致、といった問題を「modelが悪い」という結果から切り分ける必要がある。\n  why_it_might_work: '解釈: proposalを実行権限や証拠と混同せず、typed adapterで実行し、artifactを独立verifierへ渡すと、agentの説明だけで比較を通しにくくなる。前回の失敗をmemoryに保存するだけでは防止策にならない。次回のartifactや状態遷移に適用できる検査へ変換して初めて強制力を持つ。evaluatorの意味自体が正しいかは人間の確認が残る。'\n  evidence: '一次資料 [PDF §5、Tables 1–6](https://arxiv.org/pdf/2609.21257v1) の著者報告。37日・7方向・20承認round。記録が揃う部分集合は9\n    round・29 variantで、22 train、22 publish、27 evaluateの計71論理stage。27/29はこの部分集合でscientific\n    resultまで完了した割合であり、20 round全体の成功率ではない。\n"
+        ],
+        [
+          47,
+          48,
+          ""
+        ],
+        [
+          49,
+          50,
+          "    −22 ppの旧比較はcontrol K_eff=3000、treatment K_eff=600。宣言は両方600だった。修正後の同じ(P,K)=(3000,600)再試験は+4.8\n    ppだが、base modelも変わりbundled effect。後のmatched-lineage比較はcheckpointとK=3000を固定し、control\n    P=3000/head off、treatment P=6000/head onで+3.20 pp。head offのtop-KはPに不変という性質を使った、選定運用点でのhead効果である。\n"
+        ],
+        [
+          51,
+          52,
+          ""
+        ],
+        [
+          53,
+          54,
+          "    別のaccount-randomized A/BはUS/Canada VDD-pivot slice、7日観測＋別の7日pre-period。GSRR +0.66%相対差で、著者は統計的有意と報告する。guardrail結果は保存datasetにない。これは選ばれたmodel変更の効果であり、EvoPilotを使うことの生産性や因果的優位性のRCTではない。\n"
+        ],
+        [
+          55,
+          61,
+          "\n    10組のclean/fault replayは全clean受理・全fault拒否。ただしfunnel/evaluator identity等3組はpost-study強化の検査で、全37日間に自動検知していたわけではない。'\n  executable_understanding: '`uv run papers/evopilot-verify-dont-trust-autoresearch/run.py`。出力Kを無視する壊れたevaluatorと修正版へK=1/600を与える。別に同じbase/data/evaluatorと承認差分を照合し、depth不一致・evaluator変更・data変更・no-op・証拠欠落を注入して拒否を確かめる。'\n  results: 壊れた人工evaluatorはK=1と600で同じhit率1.0。修正版は0.01/0.20へ分かれる。5種類のfaultはすべて拒否し、clean\n    pairだけ機械検査を通過。human_reviewはpendingのまま記録するので、機械検査の成功を人間の承認済みと扱わない。この人工例では、許可した変更が実際には起きていない場合も拒否する。許可外の差分がないことだけでは、意図した比較を実行できた証拠にならない。原典の−22 ppを人工実験で再現するよう値を設定していない。\n  what_we_verified: Mechanism PARTIAL。実現Kの反証probeと、pairの許可外差分・no-op・欠落の拒否は人工artifactでCONFIRMED。canonical\n    recordのhashも計算する。\n  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。本番MBR学習、数億動画index、37日agent運用、offline\n    +3.20 pp、online +0.66%は再現していない。local hashは遠隔artifactの真正性を保証しない。\n  implementation: '`evaluate()`がK契約の破壊・修正、`verify()`が承認差分と必須証拠の確認。`durable_record`はcontrol/treatment・allowed_diff・判定・human\n    statusを一緒に保存する。実際のworkflow adapter、atomic state更新、remote再開・tool権限は省略する。'\n"
+        ],
+        [
+          66,
+          67,
+          "  title: −22 ppから+3.20 ppまでに、比較条件を修復した\n"
+        ],
+        [
+          69,
+          71,
+          "  rationale: −22 ppから+3.20 ppまでに、比較条件を修復した\n  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。\n"
+        ],
+        [
+          73,
+          74,
+          "  - label: 旧autoresearch\n"
+        ],
+        [
+          75,
+          80,
+          "    - title: 宣言K=600\n      text: controlだけK_eff=3000\n    - title: −22 pp\n      text: headの悪化と誤帰属\n  - label: EvoPilot導入\n"
+        ],
+        [
+          81,
+          86,
+          "    - title: human gate\n      text: 比較不成立を検出\n    - title: K=1反証probe\n      text: 旧evaluatorは出力数を変えていなかった\n  - label: 修正後\n"
+        ],
+        [
+          87,
+          92,
+          "    - title: 再試験 +4.8 pp\n      text: baseも変化した複合効果\n    - title: matched-lineage +3.20 pp\n      text: K=3000固定。headの選定運用点\n  - label: 別のオンライン検証\n"
+        ],
+        [
+          93,
+          97,
+          "    - title: 7日A/B\n      text: GSRR +0.66% relative\n    - title: 事後guard\n      text: identity検査をreplayで確認\n"
+        ],
+        [
+          99,
+          100,
+          "  title: 機械検査と人間の意味確認を両方必要にする\n"
+        ],
+        [
+          102,
+          104,
+          "  rationale: 機械検査と人間の意味確認を両方必要にする\n  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。\n"
+        ],
+        [
+          106,
+          107,
+          "  - name: 比較の受理\n"
+        ],
+        [
+          108,
+          110,
+          "    explanation: run単位の成功だけでは両項を満たせない。\n  - name: オンライン指標\n"
+        ],
+        [
+          111,
+          113,
+          "    explanation: offline hit-rateとは母集団も意味も違う。\n  - name: 相対lift\n"
+        ],
+        [
+          114,
+          115,
+          "    explanation: +0.66%を+0.66 percentage pointへ変換しない。\n"
+        ],
+        [
+          117,
+          118,
+          "  title: 証拠の段階を飛ばさない\n"
+        ],
+        [
+          120,
+          122,
+          "  rationale: 証拠の段階を飛ばさない\n  caption: 一次資料を学習用に再構成。著者報告とLabの計算を区別する。\n"
+        ],
+        [
+          127,
+          128,
+          "  - label: run完了\n"
+        ],
+        [
+          129,
+          132,
+          "    - terminal metricがある\n    - 比較条件が同じ\n  - label: lineage\n"
+        ],
+        [
+          133,
+          136,
+          "    - revisionへ遡れる\n    - その差分が許可済み\n  - label: pair verifier\n"
+        ],
+        [
+          137,
+          140,
+          "    - artifactの実現差を照合\n    - metricの意味が妥当\n  - label: human review\n"
+        ],
+        [
+          141,
+          143,
+          "    - 意味と例外を判断\n    - 将来の全faultを防ぐ\n"
+        ]
+      ]
+    },
+    "papers/evopilot-verify-dont-trust-autoresearch/mapping.md": {
+      "before": {
+        "sha256": "e7c3002229713bf0f90d6b4de4831fcdf4273f0542487a6bc171ba0f98fddbb9",
+        "blob": "7a7032600970688c452e7b4155e81fc30ce38b6a"
+      },
+      "after": {
+        "sha256": "58a80cade27645cd63c1da98e253117211462428fa97c786ced073a34a5883d4",
+        "blob": "409da5042d4479ddb88f742f9c3f765e0723bf25"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# Original Paper / Official Code Mapping\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料: [Verify, Don’t Trust: Agentic Model Development for Video Discovery Retrieval at Scale](https://arxiv.org/pdf/2609.21257v1)、arXiv v1。2026-09-22確認。PDF SHA-256: `5f1e410fd37a0188628871d4cd241ab3bf8dcd4af0dfae1043f1c82aec90f913`。取得済みPDFは `/tmp/research-2026-09-22/2609.21257v1.pdf` を再利用した。\n"
+        ],
+        [
+          4,
+          5,
+          "| 原典 | Lab | 省略 |\n"
+        ],
+        [
+          6,
+          11,
+          "| §3 P/K | evaluate | ANN・two-tower・head |\n| Eq. 3 / §4.2 | verify + human_review pending | remote attestation・人間判断 |\n| §5.2 / Table 5 | fault mutation | 原典10 fixtureの全再現 |\n| §5.3 / Table 6 | incident timeline | 学習比較の再実行 |\n| §5.4 | online evidence | guardrail欠落、product A/B未追試 |\n"
+        ],
+        [
+          12,
+          13,
+          "公式コード: 確認したPDFに本手法の公開実装へのリンクは見つからなかった。公開の有無を網羅的に保証するものではない。\n"
+        ]
+      ]
+    },
+    "papers/evopilot-verify-dont-trust-autoresearch/method.md": {
+      "before": {
+        "sha256": "d428c887fe624557aad85db6d1bce86c4e6eb79dbd17ea34129992d62111c6ce",
+        "blob": "122dab1bff02fe4f996f7cb62eee535bd7ca4bec"
+      },
+      "after": {
+        "sha256": "7b36fc77c304917336561fe9e11118a80e88e61c0a5cad2fa711ba35940ed1a5",
+        "blob": "9a335e030c002c881ce5363095ddfc83ea13dc72"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 実験対象はtwo-towerとinteraction head\n"
+        ],
+        [
+          2,
+          3,
+          "Video Deep Diveはseed動画の後に関連動画を探す面。model-based retrieval（MBR）はrequest towerとcandidate towerからANN affinityを作り、上位P件へcandidate-conditioned interaction headを適用し、最終K件を残す。Pはheadへ入る候補数、Kはretrieval出力数である。\n"
+        ],
+        [
+          4,
+          5,
+          "two-towerとheadは共同学習した同じcheckpointに含まれる。headを推論時に切る比較は学習からheadを削除する比較とは違う。indexとcandidate embeddingは時間単位で更新するが、neural weightsを毎時再学習するという意味ではない。\n"
+        ],
+        [
+          6,
+          7,
+          "### 実行手順と証拠の受理を分離する\n"
+        ],
+        [
+          8,
+          9,
+          "versioned domain skillはconfig探索、small preflight、train→publish-for-evaluation→evaluateのDAGと再開手順を定義する。typed adapterが承認されたvariantを具体的な操作に対応付ける。workerは隔離環境で実行し、verifierがartifactを読み、analystが仮説treeを更新、plannerが次round案を作る。人間が毎round承認する。\n"
+        ],
+        [
+          10,
+          11,
+          "計画・変更・結果統合・修復はClaude Opus 4.7/4.8、限定されたread-only監視はClaude Haiku。これらは本文に記載されたagent modelであり、推薦modelのbackbone名ではない。各役割はpromptまたはhash、model alias、session、status等を記録する。\n"
+        ],
+        [
+          12,
+          13,
+          "### 許された差分だけが実現したか調べる\n"
+        ],
+        [
+          14,
+          15,
+          "round protocol Rはcommon base、data pin、evaluator、metric、必須terminal artifact、許可差分、停止条件を指定する。両runが成功し、artifactの実現値が仕様と一致し、非treatment部分が同等であることを確認。どれかが欠ければreject。人間によるmetricの意味の確認も済んで初めてadmitする。\n\nmemoryにはevent ledger、過去結果、incident catalog、実験記述が残る。ただしmemoryのlessonは助言であり、検査として実装されるまでgateを代替しない。初期incidentを自動guardが検知したという読みは避ける。\n"
+        ]
+      ]
+    },
+    "papers/evopilot-verify-dont-trust-autoresearch/results.json": {
+      "before": {
+        "sha256": "4ba4d4f91850588d999faeb8fd97aec52e1c9c5120065147edffff7bdf049dcf",
+        "blob": "1568dab359d58673ee0517d7b2a6e10451a49f71"
+      },
+      "after": {
+        "sha256": "773de30d7dc60a852f70755e941ec6218489c0391611ddd6eecfbbc43e7b7b0f",
+        "blob": "cb006f17251d205c80c42aa9ded4adbf343aaa91"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"人工artifactのpair検証。論文の−22 pp、+3.20 pp、オンラインGSRRは入力していない。\",\n"
+        ],
+        [
+          81,
+          82,
+          "      \"name\": \"完了した2 runでも比較を拒否する\",\n"
+        ]
+      ]
+    },
+    "papers/evopilot-verify-dont-trust-autoresearch/run.py": {
+      "before": {
+        "sha256": "3e773f30961946faeeb19a68856b5a4784c8f868587fd9790238018c6f808fdd",
+        "blob": "140697098e41bb3f461e19f1c520e0ffcb7085b0"
+      },
+      "after": {
+        "sha256": "97de82716d2ff31f39797d5ae8b08ecda1cda561d51bbc68b8a2e04e40dd74d3",
+        "blob": "846d15d2d87d3cc7e17fe5e8740146b756250880"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Pair-level evidence admission and a broken output-depth evaluator.\"\"\"\n"
+        ],
+        [
+          32,
+          33,
+          "    # Canonical durable record ties verdict to actual pair contents.\n"
+        ],
+        [
+          35,
+          36,
+          "    out={'note':'人工artifactのpair検証。論文の−22 pp、+3.20 pp、オンラインGSRRは入力していない。',\n"
+        ],
+        [
+          38,
+          39,
+          "      'experiments':[{'name':'完了した2 runでも比較を拒否する','metrics':{'clean_admitted_mechanically':{'count':1},'faults_rejected':{'count':5},'human_admission':{'status':'pending'}}}]}\n"
+        ]
+      ]
+    }
+  }
+}

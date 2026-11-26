@@ -1,4 +1,4 @@
-"""Pair-level evidence admission and a broken output-depth evaluator."""
+"""二つの実行記録を照合し、指定した出力件数を無視する評価器を調べる。"""
 import json,hashlib
 from pathlib import Path
 
@@ -30,12 +30,12 @@ def main():
         traces[mode]=[evaluate(ranks,k,mode=='broken') for k in [1,600]]
     assert traces['broken'][0]['hit_rate']==traces['broken'][1]['hit_rate']
     assert traces['fixed'][0]['hit_rate']<traces['fixed'][1]['hit_rate']
-    # Canonical durable record ties verdict to actual pair contents.
+    # 実行記録と判定をまとめ、同じ内容から同じハッシュを計算する。
     record={'control':base,'treatment':good,'allowed_diff':['head'],'reasons':decisions['valid'],'human_review':'pending'}
     record['record_sha256']=hashlib.sha256(json.dumps(record,sort_keys=True).encode()).hexdigest()
-    out={'note':'人工artifactのpair検証。論文の−22 pp、+3.20 pp、オンラインGSRRは入力していない。',
+    out={'note':'二つの人工の実行記録を比較します。論文が報告した当たり率やオンライン指標は入力していません。',
       'scope':{'mutation_rejection':'CONFIRMED','mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},
       'decisions':decisions,'extreme_k_probe':traces,'durable_record':record,
-      'experiments':[{'name':'完了した2 runでも比較を拒否する','metrics':{'clean_admitted_mechanically':{'count':1},'faults_rejected':{'count':5},'human_admission':{'status':'pending'}}}]}
+      'experiments':[{'name':'二つの実験が完了しても、条件が違えば比較を退ける','metrics':{'clean_admitted_mechanically':{'count':1},'faults_rejected':{'count':5},'human_admission':{'status':'pending'}}}]}
     Path(__file__).with_name('results.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n');return out
 if __name__=='__main__':main()
