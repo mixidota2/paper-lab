@@ -60,7 +60,7 @@ def test_batch08_definitions_and_comparison_denominators():
     sim = yaml.safe_load((ROOT/'papers/sim2real-policy-conditioned-inbound-forecast/lab.yaml').read_text())
     assert '予測誤差を実績で割った割合の絶対値を平均した指標（MAPE）' in sim['sections']['overview']
     assert HARNESS.index('仮定した成功率差Δ') < HARNESS.index('data-power')
-    assert TRAFFIC.index('同じ行動集合のhistoricalを分母') < TRAFFIC.index('data-toy')
+    assert TRAFFIC.index('同じ候補で基準予測を使ったときの費用で割ります') < TRAFFIC.index('data-toy')
     assert '一定値の基準予測' in LABELS['traffic-forecast-to-decision-value']['value_percent']
     method=(ROOT/'papers/harness-buys-tokens-not-pass-rate/method.md').read_text()
     assert 'p値は帰無仮説' in method and '仮定した差Δの下で' in method

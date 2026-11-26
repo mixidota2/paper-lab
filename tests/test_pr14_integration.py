@@ -77,6 +77,8 @@ def expected_runner():
         "get_by_role('navigation',name='論文とガイドを探す',exact=True).get_by_role('link',name='論文・Lab一覧',exact=True)")
     # Only EXAONE’s displayed sentence changed; the same exact totals are still required.
     expected = replace_once(expected, '潜在需要 {sum(latent)} 個のうち、観測されなかった需要は {sum(latent)-sum(observed)} 個。', '潜在需要は{sum(latent)}個です。在庫が足りず、{sum(latent)-sum(observed)}個を売り逃しました。')
+    # Traffic now describes the same oracle cost comparison in plain Japanese.
+    expected = replace_once(expected, "'正の価値あり' if cases['oracle']['value_percent']>0 else '価値ゼロ'", "'平均費用が下がりました' if cases['oracle']['value_percent']>0 else '平均費用は変わりませんでした'")
     return expected.replace("117", "120").replace("117件のLab", "120件のLab")
 
 

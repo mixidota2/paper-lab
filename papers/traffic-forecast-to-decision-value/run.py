@@ -1,4 +1,4 @@
-"""Forecast MAE versus decision value under restricted actions; no traffic simulator."""
+"""同じ予測を使い、補充量の候補を変えると平均費用がどう変わるかを計算します。"""
 import json, random
 from pathlib import Path
 
@@ -19,7 +19,7 @@ def experiment(actions):
     return rows
 
 
-PAPER = {'source': 'Table 2–3 / Fig.4, v1', 'coverage': [90.72, 75.66], 'effective_actions': [1, 1, 1, 1, 1, 1, 1, 8, 8], 'effects': [['予測 queue', -6.09, -12.94, 1.15], ['oracle queue', -3.39, -7.24, 3.08], ['oracle spillback', 3.78, -1.25, 12.26]]}
+PAPER = {'source': 'Table 2–3 / Fig.4, v1', 'coverage': [90.72, 75.66], 'effective_actions': [1, 1, 1, 1, 1, 1, 1, 8, 8], 'effects': [['予測あり：待ち行列', -6.09, -12.94, 1.15], ['将来の流入あり：待ち行列', -3.39, -7.24, 3.08], ['将来の流入あり：上流への滞留', 3.78, -1.25, 12.26]]}
 
 
 def main():
@@ -28,7 +28,7 @@ def main():
     assert cases['one']['oracle']['value_percent']==0
     assert cases['several']['oracle']['value_percent']>0
     assert cases['irrelevant']['oracle']['value_percent']==0
-    result={'lab_kind':'traffic08','note':'小売補充を模した1期間・対称絶対損失のtoy。交通の閉ループ性能や費用は再現していない。','cases':cases,'experiments':[{'name':name,'metrics':rows} for name,rows in cases.items()]}
+    result={'lab_kind':'traffic08','note':'1期間の人工例です。補充の不足と余りを同じ重みで数えます。交通の信号制御や、実店舗で生じる費用は再現していません。','cases':cases,'experiments':[{'name':name,'metrics':rows} for name,rows in cases.items()]}
     result['paper'] = PAPER
     (Path(__file__).parent/'results.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     print(cases)

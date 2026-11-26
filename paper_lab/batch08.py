@@ -63,24 +63,24 @@ for(const sel of ['[data-n]','[data-q]'])$(sel).addEventListener('change',power)
 '''
 
 TRAFFIC = r'''
-<h3>交通量の予測が信号の判断に役立つかを5段階で確かめる</h3>
-<p>ボタンを選ぶと、何を点検し、何が分かったかを順に読めます。MAEは予測と実績の絶対差の平均です。過去平均（historical mean）を基準に誤差を比べ、別のデータを使って予測区間の幅を調整します（CQR）。</p>
+<h3>予測から信号制御までの5つの確認</h3>
+<p>著者は予測誤差を測り、判断に使う時刻、信号の候補、将来を知らせた場合の効果を確認しました。ボタンごとに、点検した条件と結果が表示されます。</p>
 <div class="cols"><div class="gates" data-gates></div><div class="card" data-gate-detail aria-live="polite"></div></div>
-<h3>9交差点のうち、信号の選択肢が複数あるのは2地点</h3><div class="cols"><div class="junctions" data-junctions></div><div class="card"><span class="big">1⁷ × 8² = 64</span><p>車を通す方向の組が同じ候補は一つにまとめ、車を通す方向がない候補は除きます。最終版では、残った64通りすべてを比べます。</p><p class="muted">地点の位置や番号を示す地図ではありません。</p></div></div>
-<h3>予測区間に実績が入った割合は、全体と高需要群で違う</h3><div class="cols" data-coverage></div>
-<h3>最終7日間：いずれの信頼区間もゼロを含む</h3><div class="plot"><svg class="wide" role="img" aria-label="予測を使う条件と将来需要が分かる条件の、待ち行列と下流の詰まりによる上流への滞留の改善率、および95%信頼区間" data-effects></svg></div>
-<p>queueは待ち行列、spillbackは下流の詰まりが上流まで広がる滞留です。予測を使わない条件を基準にした改善率で、負の値は悪化を表します。oracleは将来需要が分かる比較条件であり、実際に使える予測器ではありません。</p>
-<p class="muted">原論文Fig.4。信頼区間は同じ日どうしを組にした7日分を50,000回再標本化して求めています。観測した日数は7日です。</p>
-<h3>補充候補を替えて、予測の誤差と費用を見比べる</h3>
-<p>ここからはLabの補充例です。一定値の基準予測（historical）、誤差を減らした予測、需要を正確に知る条件（oracle）で比べます。費用は選んだ補充量と需要の絶対差の平均です。削減率は、同じ補充候補で基準予測を使ったときの費用を基準にします。式では、同じ行動集合のhistoricalを分母、基準予測から減った費用を分子にします。</p>
-<label>補充の選択肢<select data-actions><option value="one">{8}：1つだけ</option><option value="several">{4,8,12}：需要に応じて替えられる</option><option value="irrelevant">{0,1,2}：複数あるが需要より小さい</option></select></label>
-<div class="tablewrap"><table><thead><tr><th>予測</th><th>MAE</th><th>決定費用</th><th>費用削減</th><th>選んだ量</th></tr></thead><tbody data-toy></tbody></table></div><p class="eq" data-oracle aria-live="polite"></p>
-<p class="muted">人工データ600件で、1期間の費用 |a−D| を比べます。交通の制御性能や実店舗での効果は検証していません。</p>
+<h3>9交差点で車を通せる方向の組み合わせ</h3><div class="cols"><div class="junctions" data-junctions></div><div class="card"><span class="big">1⁷ × 8² = 64</span><p>著者は、通せる方向が同じ候補をまとめ、通せる方向がない候補を除きました。2地点だけに8つずつ候補が残り、組み合わせは最大64通りです。制御器はその時点で切り替え可能な組み合わせをすべて比べます。</p><p class="muted">図の並びは、交差点の所在地や番号を示していません。</p></div></div>
+<h3>名目90%の予測区間に実績が入った割合</h3><div class="cols" data-coverage></div>
+<h3>最終7日間の改善率と95%信頼区間</h3><div class="plot"><svg class="wide" role="img" aria-label="待ち行列と上流への滞留の改善率、95%信頼区間。すべての区間が0を含む" data-effects></svg></div>
+<p>将来を使わない同じ制御器と比べた改善率です。負の値は悪化を示します。上流への滞留とは、下流でできた列が上流へはみ出すことです。将来の流入を知らせた条件は比較用で、実際に使える予測器ではありません。</p>
+<p class="muted">原論文の図4です。著者は同じ日の結果を対にし、7日を50,000回引き直して区間を計算しました。いずれの区間も0をまたぎます。</p>
+<h3>補充量の候補ごとの予測誤差と費用</h3>
+<p>人工需要600件で、いつも8と予測する基準、需要に最大1のずれを加えた予測、正確な需要を知らせる条件を比べます。予測値に最も近い候補を選び、実際の需要との差の絶対値を平均します。費用の削減率は、基準予測から減った費用を、同じ候補で基準予測を使ったときの費用で割ります。</p>
+<label>選べる補充量<select data-actions><option value="one">{8}：8だけを選べる</option><option value="several">{4,8,12}：需要と同じ量を選べる</option><option value="irrelevant">{0,1,2}：どの候補も需要より少ない</option></select></label>
+<div class="tablewrap"><table><thead><tr><th>予測</th><th>MAE</th><th>平均費用</th><th>費用の削減率</th><th>選んだ補充量</th></tr></thead><tbody data-toy></tbody></table></div><p class="eq" data-oracle aria-live="polite"></p>
+<p class="muted">1期間だけの比較で、余りと不足を同じ重みで数えます。交通や実店舗の結果ではありません。</p>
 '''
 TRAFFIC_JS = r'''
-const gates=[['予測品質','MAE −4.03% / −3.92%','過去平均に比べて流入口と方向別の点予測の誤差は減りました。予測区間はLightGBMで作り、CQRで幅を調整しました。'],['時刻の整合','分mの判断にはm−1起点','分mが終わってから分かる総量を、分mの途中の判断には使いません。予測の総量から観測済みの流入を引き、将来分としてもう一度足さないようにします。'],['行動の識別','2/9交差点だけが複数行動','入口の総量だけでは、右折車と左折車を区別できません。進行方向別の需要と、各地点で選べる信号の組み合わせを確認します。'],['将来需要が分かる場合の、行動選択による効果','検証日の判定：採用条件を満たさない（NO_GO）','人工交差点の内部費用は−61.5%。一方、時刻を修正した検証2日では、将来の流入を知る条件でも待ち行列の改善率は−1.38%でした。'],['設定固定後、制御結果を次の判断へ戻す評価での効果','待ち行列を安定して改善する効果は見られなかった','効果が出なかった程度を測るため、設定を固定して最終7日を1回だけ評価しました。どの信頼区間もゼロを含みます。別の制御器を試す場合は、データを分け直して評価します。']];let gate=0;
-function showGate(){root.querySelectorAll('[data-gates] button').forEach((b,i)=>b.setAttribute('aria-pressed',i===gate));let g=gates[gate];$('[data-gate-detail]').innerHTML=`<h4>${g[0]}</h4><span class="big">${g[1]}</span><p>${g[2]}</p>`;}$('[data-gates]').innerHTML=gates.map((g,i)=>`<button type="button" data-gate="${i}" aria-pressed="false">${g[0]}</button>`).join('');root.querySelectorAll('[data-gate]').forEach(b=>b.addEventListener('click',()=>{gate=+b.dataset.gate;showGate();}));showGate();$('[data-junctions]').innerHTML=d.paper.effective_actions.map(a=>`<div class="junction ${a>1?'free':''}"><b>${a}</b><br>実効行動</div>`).join('');$('[data-coverage]').innerHTML=d.paper.coverage.map((v,i)=>`<div class="card">${i?'事後的な高需要群':'全体'}<span class="big">${v}%</span><div class="bar" style="width:${v}%"></div></div>`).join('');forest($('[data-effects]'),d.paper.effects,-15,15);
-function toy(){let c=d.cases[$('[data-actions]').value];$('[data-toy]').innerHTML=Object.entries(c).map(([k,v])=>`<tr><th>${{historical:'historical',improved:'改善した予測',oracle:'oracle'}[k]}</th><td>${f(v.mae,3)}</td><td>${f(v.decision_loss,3)}</td><td>${f(v.value_percent)}%</td><td>${v.actions_used.join(', ')}</td></tr>`).join('');$('[data-oracle]').textContent=c.oracle.value_percent>0?'将来需要を既知とした比較条件（oracle）：費用が下がりました。この人工例では、改善した予測でも同じ量を選べました。':'将来需要を既知とした比較条件（oracle）：費用は下がりませんでした。この候補の組では、予測だけを改善しても費用は変わりません。';}$('[data-actions]').addEventListener('change',toy);toy();
+const gates=[['予測誤差','流入口のMAEは4.03%、方向別は3.92%減少','流入口の平均絶対誤差は、ExtraTreesを使うと過去平均より下がりました。進行方向別では、流入口の予測を方向の比率で分けます。予測区間はLightGBMの分位点を別の日のデータで調整しました。'],['判断に使える時刻','分mの予測には分m−1までの情報を使う','分mの途中に信号を選ぶときは、その分の実績総量を使いません。予測総量から、すでに観測した台数を引き、残りが負なら0にしてまだ観測していない時間へ割り振ります。'],['信号の選択肢','9交差点のうち2地点（2/9）で候補が複数','流入口の総量が同じでも、右折車と左折車の数は違うことがあります。著者は進行方向別の予測を使い、その方向を通す信号を選べるか確認しました。'],['将来の流入を知らせる試験','検証2日では採用条件を満たさず（NO_GO）','人工交差点では、通す方向が変わり、内部計算の費用が61.5%下がりました。交通記録をもとにした検証2日では、将来を知らせても待ち行列の改善率は−1.38%でした。'],['設定を固定した最終評価','待ち行列の安定した削減は確認できず','著者は差の大きさを調べるため、設定を変えずに7日間を1回だけ評価しました。図の信頼区間はすべて0を含みます。結果を見てから採用の指標を変更していません。']];let gate=0;
+function showGate(){root.querySelectorAll('[data-gates] button').forEach((b,i)=>b.setAttribute('aria-pressed',i===gate));let g=gates[gate];$('[data-gate-detail]').innerHTML=`<h4>${g[0]}</h4><span class="big">${g[1]}</span><p>${g[2]}</p>`;}$('[data-gates]').innerHTML=gates.map((g,i)=>`<button type="button" data-gate="${i}" aria-pressed="false">${g[0]}</button>`).join('');root.querySelectorAll('[data-gate]').forEach(b=>b.addEventListener('click',()=>{gate=+b.dataset.gate;showGate();}));showGate();$('[data-junctions]').innerHTML=d.paper.effective_actions.map(a=>`<div class="junction ${a>1?'free':''}"><b>${a}</b><br>信号の候補</div>`).join('');$('[data-coverage]').innerHTML=d.paper.coverage.map((v,i)=>`<div class="card">${i?'実績で選んだ高需要群':'全体'}<span class="big">${v}%</span><div class="bar" style="width:${v}%"></div></div>`).join('');forest($('[data-effects]'),d.paper.effects,-15,15);
+function toy(){let c=d.cases[$('[data-actions]').value];$('[data-toy]').innerHTML=Object.entries(c).map(([k,v])=>`<tr><th>${{historical:'基準予測（常に8）',improved:'需要を最大1ずらした予測',oracle:'正確な需要を知らせる条件'}[k]}</th><td>${f(v.mae,3)}</td><td>${f(v.decision_loss,3)}</td><td>${f(v.value_percent)}%</td><td>${v.actions_used.join(', ')}</td></tr>`).join('');$('[data-oracle]').textContent=c.oracle.value_percent>0?'この候補では、正確な需要を知らせると平均費用が下がりました。ずらした予測でも、実際の需要と同じ量を選べます。':'この候補では、予測を替えても同じ補充量を選びます。正確な需要を知らせても平均費用は変わりませんでした。';}$('[data-actions]').addEventListener('change',toy);toy();
 '''
 
 HEAR = r'''

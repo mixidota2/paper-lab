@@ -242,7 +242,7 @@ def assert_changed_output(page, control):
             rows=page.locator('[data-toy] tr').all();assert len(rows)==len(cases)
             for row,(key,v) in zip(rows,cases.items(),strict=True):
                 assert row.locator('td').all_text_contents()==[f'{v["mae"]:.3f}',f'{v["decision_loss"]:.3f}',f'{v["value_percent"]:.1f}%',', '.join(map(str,v['actions_used']))]
-            assert ('正の価値あり' if cases['oracle']['value_percent']>0 else '価値ゼロ') in page.locator('[data-oracle]').inner_text()
+            assert ('平均費用が下がりました' if cases['oracle']['value_percent']>0 else '平均費用は変わりませんでした') in page.locator('[data-oracle]').inner_text()
             return 'CONFIRMED: all selected action-set costs and oracle condition'
         if kind=='hear08':
             sc=page.locator('[data-benchmark]').input_value()=='scbench';values=d['paper']['scbench' if sc else 'mooncake_100']
