@@ -1,0 +1,25 @@
+{
+  "files": {
+    "papers/hasterad-retail-substitution/lab.yaml": {
+      "before": {
+        "sha256": "15afab520079a7ab35476d4716b5b5a3c0cf3dde247ed4eb22821b0125280071",
+        "blob": "7cfeccf6fa15e4c66bb3d7d56b0a3ee526d6ec08"
+      },
+      "after": {
+        "sha256": "e1a44c5c6c2d4bde9291fa68bc959031ac6d712bfce2add71b78cb3a4d12ba66",
+        "blob": "f281bce06d6e19c0454a104e0915dfecc8418365"
+      }
+    },
+    "research-data/README.md": {
+      "before": {
+        "sha256": "f76708d9bf2b66b2138002920ba5043cc61483e3012a0ffdf99de22ac6425aac",
+        "blob": "85523942472f8aeee7c65c62fb6380c17fdb60ff"
+      },
+      "after": {
+        "sha256": "db603fd867c11fc08366d598a4b2f9713ffbb747b55a658208358f9bcf18eb4f",
+        "blob": "7673ff62613c415739c423c63c3afe7aa0f5b1fe"
+      }
+    }
+  },
+  "prior_overview_field": "  overview: |-\n    著者は、ある商品を棚から外したとき、顧客がどの商品へ移りやすいかを販売データから調べました。商品同士の代わりやすさを表すために、商品をブランドなどの属性で順に分ける方法を提案しました。米国54店舗のビール195商品の週次データでは、最初の分け方にブランドを選びました。別の人工実験では、棚の費用が高く人気商品ほど粗利が低い条件で、商品の代わりやすさを週次データから、需要を欠品が分かる日次データから推定しました。期待利益は最適案を平均10.9%下回りました。この差は人工データでの比較で、実店舗で測った値ではありません。\n"
+}
