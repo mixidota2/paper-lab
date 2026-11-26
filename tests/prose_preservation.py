@@ -134,7 +134,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = diff_projection_full_prose_hash(root, path, expected, algorithm)
     expected = fbsde_full_prose_hash(root, path, expected, algorithm)
     expected = scope_full_prose_hash(root, path, expected, algorithm)
-    return isomorph_full_prose_hash(root, path, expected, algorithm)
+    expected = isomorph_full_prose_hash(root, path, expected, algorithm)
+    return exaone_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -1586,6 +1587,31 @@ def before_isomorph_full_prose(root, path, current):
     if path != 'paper_lab/isomorph30.py' and not path.startswith('papers/isomorph-supply-chain-digital-twin/'):
         return current
     row = json.loads((root / 'tests/isomorph_full_prose_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def exaone_full_prose_hash(root, path, expected, algorithm='sha256'):
+    if path != 'paper_lab/exaone05.py' and not path.startswith('papers/exaone-demand-routed-tsfm/'):
+        return expected
+    row = json.loads((root / 'tests/exaone_full_prose_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_exaone_full_prose(root, path, current):
+    if path != 'paper_lab/exaone05.py' and not path.startswith('papers/exaone-demand-routed-tsfm/'):
+        return current
+    row = json.loads((root / 'tests/exaone_full_prose_hashes.json').read_text())['files'].get(path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

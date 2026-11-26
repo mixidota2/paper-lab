@@ -271,7 +271,7 @@ def assert_changed_output(page, control):
         paths=page.locator('[data-series] path').all();assert len(paths)==3
         for path,values in zip(paths[1:],[latent,observed],strict=True):
             assert path.get_attribute('d')==''.join(('M' if i==0 else 'L')+f'{42+i*19},{195-v*6}' for i,v in enumerate(values))
-        assert page.locator('[data-lost]').inner_text()==f'潜在需要 {sum(latent)} 個のうち、観測されなかった需要は {sum(latent)-sum(observed)} 個。'
+        assert page.locator('[data-lost]').inner_text()==f'潜在需要は{sum(latent)}個です。在庫が足りず、{sum(latent)-sum(observed)}個を売り逃しました。'
         return 'CONFIRMED: classification weights, coordinates, stock series and lost demand'
     if page.locator('[data-forget]').count():
         d=json.loads(page.locator('[data-forget]').text_content());c=d['cases'][page.locator('[data-case]').input_value()]

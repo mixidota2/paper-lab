@@ -51,10 +51,10 @@ def test_initial_html_has_results_and_disabled_controls():
     f = fixture()
     assert f['weights'].count('25.0% → 25.0%') == 4
     assert f['series'].count('stroke-width="3"') == 2
-    assert f['lost'] == '潜在需要 246 個のうち、観測されなかった需要は 61 個。'
+    assert f['lost'] == '潜在需要は246個です。在庫が足りず、61個を売り逃しました。'
     assert '<noscript>' in html and '初期条件の結果のみ' in html
-    assert '公式生成器や欠品復元モデルの再現ではない' in html
-    assert '学習済みの振り分け器（router）のqを表示するものではない' in html
+    assert '公式の生成器や、販売数から潜在需要を復元するモデルは実装していません' in html
+    assert '学習済みの配分器が予測時に出すqは表示しません' in html
 
 
 def test_actual_js_initial_failure_and_all_boundary_combinations(tmp_path):
@@ -133,7 +133,7 @@ for(const c of f.cases){
  percentages.forEach((v,i)=>assert.ok(Math.abs(v-c.percentages[i])<=.0500000001));
  assert.deepEqual(points(n.series.innerHTML,'#316d99'),c.latent);
  assert.deepEqual(points(n.series.innerHTML,'#c27035'),c.observed);
- assert.equal(n.lost.textContent,'潜在需要 '+c.latent.reduce((s,v)=>s+v,0)+' 個のうち、観測されなかった需要は '+c.lost+' 個。');
+ assert.equal(n.lost.textContent,'潜在需要は'+c.latent.reduce((s,v)=>s+v,0)+'個です。在庫が足りず、'+c.lost+'個を売り逃しました。');
 }
 console.log(JSON.stringify({cases:f.cases.length,initializationFailurePositions:initialCounts,staticDynamicEqual:true}));
 """

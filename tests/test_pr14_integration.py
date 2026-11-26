@@ -75,6 +75,8 @@ def expected_runner():
     expected = replace_once(expected,
         "get_by_role('navigation',name='読む入口').get_by_role('link',name='最新研究・Lab一覧',exact=True)",
         "get_by_role('navigation',name='論文とガイドを探す',exact=True).get_by_role('link',name='論文・Lab一覧',exact=True)")
+    # Only EXAONE’s displayed sentence changed; the same exact totals are still required.
+    expected = replace_once(expected, '潜在需要 {sum(latent)} 個のうち、観測されなかった需要は {sum(latent)-sum(observed)} 個。', '潜在需要は{sum(latent)}個です。在庫が足りず、{sum(latent)-sum(observed)}個を売り逃しました。')
     return expected.replace("117", "120").replace("117件のLab", "120件のLab")
 
 
