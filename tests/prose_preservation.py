@@ -126,7 +126,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = orpr_full_prose_hash(root, path, expected, algorithm)
     expected = deepstock_full_prose_hash(root, path, expected, algorithm)
     expected = source_overview_correction_hash(root, path, expected, algorithm)
-    return invevolve_full_prose_hash(root, path, expected, algorithm)
+    expected = invevolve_full_prose_hash(root, path, expected, algorithm)
+    return sabreagent_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -1378,6 +1379,31 @@ def before_invevolve_full_prose(root, path, current):
     if path != 'paper_lab/invevolve30.py' and not path.startswith('papers/invevolve-whitebox-inventory-evolution/'):
         return current
     row = json.loads((root / 'tests/invevolve_full_prose_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def sabreagent_full_prose_hash(root, path, expected, algorithm='sha256'):
+    if path != 'paper_lab/batch29.py' and not path.startswith('papers/sabreagent-design-time-inventory/'):
+        return expected
+    row = json.loads((root / 'tests/sabreagent_full_prose_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_sabreagent_full_prose(root, path, current):
+    if path != 'paper_lab/batch29.py' and not path.startswith('papers/sabreagent-design-time-inventory/'):
+        return current
+    row = json.loads((root / 'tests/sabreagent_full_prose_hashes.json').read_text())['files'].get(path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

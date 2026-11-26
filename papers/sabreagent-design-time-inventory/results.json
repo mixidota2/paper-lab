@@ -2,7 +2,7 @@
   "lab29": "sabre",
   "frames": [
     {
-      "label": "初期在庫 0",
+      "label": "0個",
       "initial": 0,
       "rows": [
         {
@@ -27,7 +27,7 @@
       "projected_order": 1
     },
     {
-      "label": "初期在庫 2",
+      "label": "2個",
       "initial": 2,
       "rows": [
         {
@@ -52,7 +52,7 @@
       "projected_order": 1
     },
     {
-      "label": "初期在庫 8",
+      "label": "8個",
       "initial": 8,
       "rows": [
         {
@@ -181,5 +181,5 @@
     "pathwise_shortfall_identity": "CONFIRMED",
     "stationary_myopic_finite_case": "CONFIRMED"
   },
-  "note": "人工例。式(3)のκ付き探索、季節学習、確率的納期のrolloutは未実装。"
+  "note": "Labの人工例。式(3)のκを使う発注、統計予測に季節性を組み合わせる処理、確率的な納期での発注パラメータ探索は行わない。"
 }
