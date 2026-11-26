@@ -1,0 +1,516 @@
+{
+  "files": {
+    "papers/series-wise-validation/README.md": {
+      "before": {
+        "sha256": "843bf4940c56fd86f9c98cd5f8ace5636ecad9e962659d284d91da92d929241a",
+        "blob": "0c5e5d4f6fa3b61fc6101f9e0fe6280ca6d050b3"
+      },
+      "after": {
+        "sha256": "13205b6c3ea1aca4600854a4e668c68f977535189ef9b5d6e0f7f4cfcaf85e4d",
+        "blob": "0bcef35c00a9078cfcc1b6ec70e2eba97a17e728"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 新しい系列を予測するとき、どの分割でモデルを選ぶか\n"
+        ],
+        [
+          2,
+          3,
+          "対象は *Series-wise Cross-validation for Global Time Series Forecasting*（arXiv 2611.08252v1）。Worth Reading。既存系列の未来を予測するのか、学習に使わなかった系列も予測するのかで、モデル選択の評価対象が変わります。時間分割が常に誤りという論文ではありません。\n"
+        ],
+        [
+          4,
+          5,
+          "このLabは10本×100点の合成系列による自作例です。ニューラルモデルや公式実装は実行しません。分割図、選択に使うラベル、予測時のcontext、重なる最終窓の重みを動かして確認します。公表Table3の丸め済み値による感度集計は、合成実験と別に表示します。\n"
+        ],
+        [
+          8,
+          9,
+          "配布ページの「実行コード」と「table3.json」を同じフォルダーへ保存してください。Python 3.10以上の標準ライブラリだけで動き、リポジトリ全体やuvは不要です。そのフォルダーで次を実行すると、合成予測と公表Table3の感度集計を再生成できます。\n"
+        ],
+        [
+          14,
+          15,
+          "`--out`には、残したい資料と重ならない出力名を指定してください。指定したファイルがあれば上書きします。省略すると、run.pyと同じフォルダーのresults.jsonへ保存します。\n"
+        ],
+        [
+          16,
+          17,
+          "リポジトリから検査・ページ生成も行う場合は、既存の依存環境を使い、ルートから次を実行します。\n"
+        ],
+        [
+          24,
+          25,
+          "保存JSONはoriginごとの予測・実績・誤差、contextと対象時点、選択結果、共通Qを含みます。UIのJSON保存では同じ合成結果と公表表の感度集計を別キーに分けます。原著の実行ログではありません。\n"
+        ],
+        [
+          26,
+          27,
+          "ファイルを取得できない場合も、JSON保存ボタンを押すと同じ内容が画面の読み取り専用欄に表示されます。全内容をコピーして保存してください。条件変更・不正入力・初期化では、古い結果と混同しないよう欄を空にします。\n"
+        ],
+        [
+          28,
+          29,
+          "## 何を確認する教材か\n"
+        ],
+        [
+          30,
+          31,
+          "CONFIRMEDの範囲は自作の時間境界、選択時にtestを参照しないこと、Q=0の表示、丸め済み表の集計、保存結果の再生成です。原手法全体はPARTIAL。著者の学習済み重みと実行環境はNOT OBSERVED。原実験再現、実店舗・在庫費用・TSFM zero-shot性能、実ブラウザー描画はNOT TESTEDです。代用DOMやCSSの検査を実画面幅の確認とは呼びません。\n"
+        ],
+        [
+          32,
+          33,
+          "Q=0ならMASEは未定義としてnullにし、MAEを併記します。欠損・非有限値は拒否します。この規則は教材独自で、原コードのQ=0処理を確認したものではありません。JSON保存とCLIは有限値だけを出力します。\n"
+        ],
+        [
+          34,
+          35,
+          ""
+        ],
+        [
+          36,
+          37,
+          "## 計算の入口で受け付ける入力条件\n"
+        ],
+        [
+          38,
+          39,
+          "`evaluate`が検証付きの主入口です。データはA〜Jだけをキーとする辞書／オブジェクトで、各系列は100個の値を持つPythonのlist／JavaScriptの密なArrayに限ります。数値文字列・真偽値・欠損・疎配列・非有限数は拒否します。値の範囲は−1,000,000〜1,000,000です。これはtoyの安全な計算範囲で、原著データの制約ではありません。\n\nQは自動計算、または0〜1,000,000の有限数です。UIの手入力範囲は従来どおり0〜100。Q=0のMASEはNone／nullですが、正のQが極端に小さく結果が非有限になる場合は例外です。NaNやInfinityをJSONのnullへ変えて正常値として返しません。\n\n`fit`・`select`・`predict`・`scale_q`・`origins`・`role`は固定toyの内部・検査用で、任意入力向けのAPIではありません。検証済みデータとこの教材の系列・時間境界を前提にします。`sensitivity`も同梱Table3専用です。Pythonでは同梱JSONを読み、JavaScriptではそのJSON、掲載手法名、Weather包含の真偽値を内部から渡します。任意の表や欠損データへの汎用集計を保証しません。\n"
+        ]
+      ]
+    },
+    "papers/series-wise-validation/evidence.md": {
+      "before": {
+        "sha256": "7b32d425cca90f9281806152c9f4c5a95e84fcad5148e6481314c8fd22fdb528",
+        "blob": "877e2b4f206e6df6fbf8aa36141675e9556f2c97"
+      },
+      "after": {
+        "sha256": "3f2b41b33fcdd3b8f189ca3634df15733f846709dc05bdf0a6c65d428945f143",
+        "blob": "bde31102a8811c8bf2a05e9f4dafb44e7d48c397"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "## 一次資料の報告\n"
+        ],
+        [
+          2,
+          3,
+          "v1は11データセット、5,776系列、1,538,292観測を扱い、10種類のニューラル構造に各20回のrandom searchを行います。seedは123・456・789の3つ。主設定はin-setをfloor(0.7n)系列に絞り、out-setは全系列の末尾2hです。hは月次12、四半期4、日次14です。\n"
+        ],
+        [
+          4,
+          5,
+          "主設定の掲載平均MASEはK-MC-CV 0.857、Time-CV 0.883。全系列をin-setへ入れた設定では0.859対0.849に逆転します。未学習系列を運用で含むかという対象母集団の違いであり、時間分割を一律にリークと呼ぶ根拠ではありません。\n"
+        ],
+        [
+          6,
+          7,
+          "Time-CVのMAPEE 0.109はHoldout 0.141より小さい一方、選択正解率はHoldout 0.364、Time-CV 0.273です。約12/33対9/33で、33独立datasetではなく11dataset×3seedです。過小推定率は単発Holdout 0.373、Time-CV 0.324、K-Bootstrap 0.255。系列分割なら必ず保守的とはいえません。regretのoracleは各CVが個別に調整した候補集合内の最良値で、全手法共通のハイパラ候補ではありません。\n"
+        ],
+        [
+          8,
+          9,
+          "Table4のK-Bootstrap MAPEEは14.321と掲載されています。誤記と推測して小数点を直しません。Table3の丸め値ではHoldoutはTime-CVに7勝4敗、改善合計0.271のうちWeatherが0.195、約71.96%です。Weather除外時の合計差/Time合計はHoldout約0.008844、K-MC-CV約0.010939。Kf-CVは悪化します。これらは自作集計で、統計的優位を意味しません。\n"
+        ],
+        [
+          10,
+          11,
+          "## 限界と別途必要な監査\n"
+        ],
+        [
+          12,
+          13,
+          "3seedsと短く重なる末尾2h、主に未学習系列0%・30%の比較です。小売現場、在庫費用、TSFM zero-shotの実証ではありません。実際の発売順や非ランダム到着、drift、近縁SKU・店舗階層、前処理fit、カレンダー整合、既知未来共変量を別途監査する必要があります。系列を分けるだけでこれらの情報漏れがすべて解消するわけではありません。\n"
+        ],
+        [
+          14,
+          23,
+          "各掲載値の丸め幅を±0.0005と置く保守的な計算では、HoldoutのWeather寄与は約69.29〜74.81%になります。差の丸め幅は±0.001で、分子のWeather差は分母にも含めて計算します。7勝4敗はこの範囲で変わりません。この区間は標本の信頼区間ではありません。\n"
+        ]
+      ]
+    },
+    "papers/series-wise-validation/experiment.md": {
+      "before": {
+        "sha256": "b45231dabaaf9fb516f674e5f7c45b53769643a725281d069affe778e4a0ff12",
+        "blob": "841e9743ba7df9905b384e1ba1156fb40e034786"
+      },
+      "after": {
+        "sha256": "5eb14b012cec88263673a356c5ff6e4cad752ff167cf84a3cd1295726b55003d",
+        "blob": "cddded5267d9c834025486172ccbdb18eb4aced1"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "外側の評価対象をseries/timeで切り替え、図の段階を内側・外側・最終へ進めます。色は学習ラベル、内側検証、外側検証、最終test、選択対象外を表します。青枠は予測に使うcontextで、データの役割とは別に重ねています。この段階の評価対象でない系列には青枠を表示しません。\n"
+        ],
+        [
+          2,
+          3,
+          "最終originを92から96へ動かし、予測時点・過去8点・保存予測を確認します。stageと表示系列の切替は図と表示を変えるだけで、最終testから再選択しません。Qを0にするとMASEは未定義、1ならMAEと同じになります。原著値の0.857と0.859を混合率で補間する機能はありません。\n"
+        ],
+        [
+          4,
+          5,
+          "下段では公表Table3の比較手法とWeatherの包含を切り替えます。全11件の掲載平均は残し、現在表示する行の平均・勝数を別表示します。JSONは合成実験と公表表の感度集計を分離して保存し、resetで初期値へ戻せます。\n"
+        ],
+        [
+          6,
+          13,
+          "この合成例では両方式ともglobal・scale=1を選び、最終予測は同じになります。外側MAEは評価する系列が違うため一致しません。選択の逆転を作るための調整はせず、候補別の内側・外側MAEを併記します。\n"
+        ]
+      ]
+    },
+    "papers/series-wise-validation/interactive.html": {
+      "before": {
+        "sha256": "d9014a0f848d5f55257007b5c98939bd1f26200bc431943859aa55014bcf3e3e",
+        "blob": "3e9fab964d75baf19a180b8b3918eff5db44558c"
+      },
+      "after": {
+        "sha256": "7b4c196d3b27ec254c77eb6b7ab9130ff2e5ceeaa9326eae8531b9f7f53e672d",
+        "blob": "6405087cefb8306ca1ae94b7733e7cf350829663"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<section id=\"scv-lab\" aria-label=\"系列と時間の分割を動かす自作実験\">\n"
+        ],
+        [
+          2,
+          3,
+          "<p>これは原著の10種類のニューラルモデルを動かすものではありません。A〜Jの10本の合成系列を使い、選択と最終評価の境界を確認します。p=8、h=4、最終testは全系列のt93〜100です。</p>\n"
+        ],
+        [
+          4,
+          9,
+          "<label>外側の比較対象 <select id=\"scv-scheme\" disabled><option value=\"series\">series：未学習F〜Gで選択</option><option value=\"time\">time：学習済みA〜Eの未来で選択</option></select></label>\n<label>図の段階 <select id=\"scv-stage\" disabled><option value=\"inner\">内側ハイパラ選択</option><option value=\"outer\">外側モデル選択</option><option value=\"final\" selected>最終fitとrolling予測</option></select></label>\n<label>contextを見る系列 <select id=\"scv-series\" disabled><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option selected>H</option><option>I</option><option>J</option></select></label>\n<label>最終評価のorigin（92〜96） <input id=\"scv-origin\" type=\"number\" min=\"92\" max=\"96\" step=\"1\" value=\"92\" disabled></label>\n<label>共通Q（auto、または0〜100） <input id=\"scv-q\" type=\"text\" value=\"auto\" disabled></label>\n"
+        ],
+        [
+          10,
+          18,
+          "<p>内側fitはA〜Eのラベルt≤84、t85〜88でハイパラを選択。外側refitはA〜Eのt≤88、series方式はF〜Gのt89〜92でモデルを選びます。time方式は同じA〜Eのt89〜92を使う自作の対照です。最終fitはA〜Gのt≤92。H〜Jは選択から除外しますが、予測時の過去8点は読めます。</p>\n<div aria-label=\"分割の凡例\"><span class=\"scv-key\" style=\"background:#b9dacb\">学習ラベル</span><span class=\"scv-key\" style=\"background:#f7d085\">内側検証</span><span class=\"scv-key\" style=\"background:#c3b1e1\">外側検証</span><span class=\"scv-key\" style=\"background:#efb4b0\">最終test</span><span class=\"scv-key\" style=\"background:#e6e9ed\">選択対象外</span><span class=\"scv-key\" style=\"border:2px solid #174e9a\">青枠＝予測入力context（役割と重なる）</span></div>\n<div id=\"scv-split\" class=\"scroll\"><p>初期状態：A〜Gのt1〜92が最終学習範囲。H〜Jは学習に使わず、Hのt85〜92をorigin92のcontextとして使います。全系列のt93〜100は最終testです。</p></div>\n<pre id=\"scv-out\" aria-live=\"polite\">初期規則：学習originの上限は内側80、外側84、最終88。\n最終origin92〜96は各4点を予測します。時点93〜100の重みは1,2,3,4,4,3,2,1。\n最終testはモデル選択に使いません。実行時の数値はJavaScript有効時に計算します。</pre>\n<h3>公表Table3の平均を分解する</h3>\n<p>下は原著の丸め済みMASEです。合成実験とは別のデータです。Weatherの除外は感度診断であり、除外を推奨する操作ではありません。表示行の平均と掲載平均は丸めのため一致しない場合があります。</p>\n"
+        ],
+        [
+          20,
+          23,
+          "<pre id=\"scv-table-out\" aria-live=\"polite\">初期値：HoldoutはTime-CVより7/11データセットで小さい。改善合計0.271のうちWeatherが0.195（約71.96%）。これは統計的な信頼区間ではありません。</pre>\n<div class=\"scroll\"><table><thead><tr><th>dataset</th><th>選択手法</th><th>Time-CV</th></tr></thead><tbody id=\"scv-table-rows\"></tbody></table></div>\n<button id=\"scv-reset\" type=\"button\" disabled>初期条件へ戻す</button> <button id=\"scv-download\" type=\"button\" disabled>合成予測と感度集計をJSON保存</button><p id=\"scv-error\" role=\"alert\"></p>\n"
+        ],
+        [
+          24,
+          25,
+          "<label for=\"scv-json\">保存用JSON（上のJSON保存ボタンで表示）</label>\n"
+        ],
+        [
+          26,
+          28,
+          "<p id=\"scv-json-help\">ファイルを取得できない場合は、この欄の全内容をコピーしてテキストファイルに保存できます。条件を変えるか初期条件へ戻すと欄を空にするので、必要な結果は先に保存してください。</p>\n<noscript><p>JavaScriptが無効なため操作はできません。初期の分割条件と掲載値は上に残ります。全合成予測は配布results.jsonでも確認できます。</p></noscript>\n"
+        ]
+      ]
+    },
+    "papers/series-wise-validation/interactive.js": {
+      "before": {
+        "sha256": "ae07aaa91c4d9301607974f94b39f4f78b24350bf1f30846b776e6738de51b7a",
+        "blob": "65b2b33dea5ca23df4588ff8ce6df8f3a71c0abd"
+      },
+      "after": {
+        "sha256": "3910bf9bddd4c6aef1aa67255d31c0a7d403f8eceb4aa9281a06cabf7740f9ee",
+        "blob": "1ea1d5b1dd1a4286e17d1fe4e6b615dd4aa34b0d"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "const labels={fit:'学習ラベル',inner:'内側検証',outer:'外側検証',test:'最終test',unused:'選択対象外'};\n"
+        ],
+        [
+          7,
+          8,
+          " if(text.trim()===''||!Number.isFinite(q)||q<0||q>100)throw Error('Qはautoまたは0〜100の有限数です。');\n"
+        ],
+        [
+          9,
+          10,
+          " if(q===0&&/[1-9]/.test(text.trim().split(/[eE]/)[0]))throw Error('Qが小さすぎて0になります。値を大きくして入力してください。');\n"
+        ],
+        [
+          14,
+          16,
+          "try{const scheme=get('scheme').value,stage=get('stage').value,s=get('series').value,o=Number(get('origin').value);if(!['inner','outer','final'].includes(stage)||!Number.isInteger(o)||o<92||o>96||get('origin').value.trim()===''||s.length!==1||!'ABCDEFGHIJ'.includes(s))throw Error('系列とorigin（92〜96の整数）を確認してください。');const q=parseQ(get('q').value);const toy=M.evaluate(undefined,scheme,q),sensitivity=M.sensitivity(table,get('method').value,get('weather').checked),r=toy.records.find(r=>r.series===s&&r.origin===o);const co=stage==='inner'?84:stage==='outer'?88:o,eligible=stage==='final'||(stage==='inner'?'ABCDE':scheme==='series'?'FG':'ABCDE').includes(s);\nlet cells='';for(let i=0;i<10;i++)for(let t=1;t<=100;t++){const id='ABCDEFGHIJ'[i],role=M.role(id,t,stage,scheme),context=eligible&&id===s&&t>co-8&&t<=co;cells+=`<rect x=\"${40+(t-1)*8}\" y=\"${28+i*24}\" width=\"8\" height=\"20\" fill=\"${colors[role]}\" ${context?'stroke=\"#174e9a\" stroke-width=\"2\"':''}><title>${id} t${t}：${labels[role]}${context?'／予測入力context（学習用途とは別）':''}</title></rect>`;}\n"
+        ],
+        [
+          17,
+          20,
+          "get('split').innerHTML=`<svg viewBox=\"0 0 850 275\" role=\"img\" aria-label=\"系列A〜J、時点1〜100の分割とcontext。下の文字説明も参照\">${names}${ticks}${cells}</svg>`;\nget('out').textContent=`自作例：${scheme}方式、内側最終origin80／外側84／最終88\\n選択=${toy.selection.chosen.family}, scale=${toy.selection.chosen.scale}（最終testは選択に不使用）\\n${toy.selection.candidates.map(c=>c.family+' scale='+c.scale+'：内側MAE='+fmt(c.inner_mae)+'／外側MAE='+fmt(c.outer_mae)).join('\\n')}\\n外側検証系列=${toy.selection.outer_validation_ids}。最終fitはA〜Gのt≤92。H〜Jはcontext専用。\\n表示context=${eligible?s+' t'+(co-7)+'..'+co:'なし（この段階の評価対象外）'}。stage切替は図だけを変えます。\\n保存済みrolling予測 ${s}, origin${o} → t${r.target_times.join(',')}：${r.prediction.map(fmt).join(', ')}\\nQ=${fmt(toy.Q)}、20誤差/系列のMAE=${fmt(toy.MAE)}、MASE=${fmt(toy.MASE)}\\n8時点を等重みにしたMAE=${fmt(toy.equal_target_time_MAE)}\\n時点93..100の重み=${Object.values(toy.weights).join(',')}。重みは再学習しません。`;\nget('table-out').textContent=`公表Table3の丸め済み値：${sensitivity.method}、${sensitivity.dataset_count} dataset\\n表示行からの平均=${fmt(sensitivity.displayed_row_mean)}／原著掲載の全11平均=${fmt(sensitivity.published_full_mean)}\\nTime-CVより小さい=${sensitivity.wins_vs_time}、同値=${sensitivity.ties_vs_time}\\n改善合計=${fmt(sensitivity.delta_sum)}、合計差/Time合計=${fmt(sensitivity.mean_difference_ratio)}\\nWeather寄与=${fmt(sensitivity.weather_contribution)}。除外の正当化や信頼区間ではありません。`;\n"
+        ],
+        [
+          26,
+          27,
+          " // Publish the exact JSON before invoking browser APIs that may be unavailable.\n"
+        ],
+        [
+          36,
+          37,
+          "  // Cleanup owns this URL only; it must not alter a later export or reset.\n"
+        ]
+      ]
+    },
+    "papers/series-wise-validation/lab.yaml": {
+      "before": {
+        "sha256": "f4e9ec265d044908f37139c611d82d3a5062e6aad2ee4cc3c467996402f98420",
+        "blob": "2ec580e6c75bfc671f3041fdc6d0be14874715c7"
+      },
+      "after": {
+        "sha256": "3581aaa9fa53d8152205fcde9123b21690b70419ce988408847285289c369e3b",
+        "blob": "1740f93f8dbeb57cd34e27693fbe6b68e0151283"
+      },
+      "prior_spans": [
+        [
+          13,
+          15,
+          "question: 学習していない系列にも予測するなら、どの系列と時点でモデルを選ぶか\nsummary: データを系列と時点で分け、モデル選択に使う正解値、予測時に入力する過去の観測値、最後の評価に使う正解値を区別します。論文の表3では、データセットごとの結果が平均にどう影響するかを確かめます。\n"
+        ],
+        [
+          25,
+          27,
+          "  author_claim: 未学習系列も運用対象に含む場合、系列で分けた検証がモデル選択と誤差推定に役立つかを比較しています。\n  research_bot_interpretation: 分割方式の優劣を一律に決めず、運用対象の系列と、選択時点で利用できる情報を先に定める教材として読みます。\n"
+        ],
+        [
+          32,
+          33,
+          "  problem: 検証誤差の推定が良いことと、最終的に良いモデルを選べることは同じではありません。系列を分けても前処理や未来情報の漏洩が自動的になくなるわけではありません。\n"
+        ],
+        [
+          34,
+          36,
+          "  why_it_might_work: 【解釈】学習に含めない系列で選択すれば、未知の系列へ移す場面に近い評価になります。ただし、学習に使わない系列でも、予測時に過去の観測値を入力します。過去の観測値が一つもない系列の予測は評価していません。\n"
+        ],
+        [
+          38,
+          48,
+          "  results: 自作例では、10系列それぞれで予測の起点を5つ設け、各起点から先の4時点を予測して、計200件の誤差を集計します。同じ時点を複数の起点から予測するため、8時点を同じ重みで集計した誤差とは異なります。論文の表3に掲載された丸め値を比べると、Holdoutは11データセットのうち7つでTime-CVよりMASEが小さく、改善幅の合計0.271のうちWeatherが0.195を占めます。この内訳だけでは、統計的に有意な差があるとも、Weatherを除くべきだとも言えません。\n  what_we_verified: CONFIRMEDは、自作例での分割の境界、モデル選択と最終評価の分離、共通の尺度Q、誤差の集計、保存したJSONの検算に限ります。原著の手法が一般に優れると確認したわけではありません。\n  what_we_did_not_verify: 原モデルの学習・推論、全公式実装、PDF全画素、実店舗、在庫費用、TSFM zero-shot、実ブラウザー表示はNOT TESTED。著者実験の再現物はNOT OBSERVEDです。\n  implementation: run.pyをuv経由で実行しresults.jsonを再生成します。model.jsは同じ自作計算をブラウザー用に実装。table3.jsonは原著の公開表示値です。公式コードやAPIは実行しません。\n"
+        ],
+        [
+          53,
+          54,
+          "  title: 選択の段階ごとに利用できる情報を区切る\n"
+        ],
+        [
+          57,
+          59,
+          "  rationale: 原著の実験設定と混同せず、ラベル上限と予測時contextを別々に確認する。\n  caption: 系列H〜Jはモデル選択にも学習にも使いません。ただし、各系列を予測するときは直近の8点を入力できます。\n"
+        ],
+        [
+          60,
+          61,
+          "  - label: 自作例の選択と最終評価\n"
+        ],
+        [
+          62,
+          63,
+          "    - title: 内側の選択\n"
+        ],
+        [
+          64,
+          65,
+          "    - title: 外側の選択\n"
+        ],
+        [
+          66,
+          67,
+          "    - title: 最終fit\n"
+        ],
+        [
+          68,
+          69,
+          "    - title: 固定重みの予測\n"
+        ],
+        [
+          72,
+          73,
+          "  title: ラベルの終点と、誤差平均の分母を確認する\n"
+        ],
+        [
+          76,
+          78,
+          "  rationale: originとラベル上限、系列共通Q、重複窓の重みを区別する。\n  caption: p=8、h=4は教材の設定で、原著の全データセット共通設定ではありません。\n"
+        ],
+        [
+          81,
+          82,
+          "    explanation: 学習に使う正解値の上限が内側で84、外側で88、最終学習で92なら、学習に使える最後の予測起点は順に80、84、88となる。\n"
+        ],
+        [
+          84,
+          85,
+          "    explanation: Qは学習対象の全系列で求めた季節ナイーブ予測の平均誤差。教材では季節の長さを4とする。Q=0の場合は尺度を定義せず、欠損値は受け付けない。\n"
+        ],
+        [
+          87,
+          88,
+          "    explanation: 8時点を等重みにする評価とは分母と重みが違う。どちらも自作例として併記。\n"
+        ]
+      ]
+    },
+    "papers/series-wise-validation/mapping.md": {
+      "before": {
+        "sha256": "2b0f2c7099a2f7d99f3e6990a6f43dc682331df87e7e98570317f5bfa1085b22",
+        "blob": "0fb6ea01be62f1f227b441511c5dea9b847ad469"
+      },
+      "after": {
+        "sha256": "3de4f4efde0bf7a402944bff7ee8e34ba1d775a82d393bf41c43ecb5294564f9",
+        "blob": "7231dd73fb589d6f87a071e8b6ad8bb41259eb10"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 一次資料と自作実装の対応\n"
+        ],
+        [
+          2,
+          9,
+          "- [arXiv v1 HTML](https://arxiv.org/html/2611.08252v1)：§§1〜7、Tables1〜5、Appendix Aのseed別表と図1〜5のキャプションを読解。今回の実装担当は全PDF画素を監査していません。\n- §3.3・§4.1 → run.pyのorigins/fit/select/evaluate。原著の情報分離を説明する独立toyであり、公式CVやニューラルモデルの再現ではありません。\n- §5 Table3 → table3.json。公表済み丸め値を転記し、表示行平均・勝数・Weather感度を自作集計。掲載平均は別配列に保持しています。\n- [公式実装](https://github.com/vcerqueira/experiments-tscv)のsrc/config.pyを読解。読取時treeは3ba404c160ff9e59bd554fc7bd0352f7497434eb。SEED456、N_FOLDS5、N_SAMPLES20、OUT_SET_MULTIPLIER2、STEP_SIZE1、HOLDOUT_FOR_OUTSET0。既定は主設定の30%除外にならず切替が必要です。論文対応commitは未固定、公式全実装・Q=0処理は未監査、コードは実行していません。\n- model.jsは自作の表示用計算、interactive.jsは分割図・条件切替・reset・JSON保存。Python版との数値照合と、最終testを変える変形検査を行います。原PDF・第三者コード・管理記録は配布しません。\n"
+        ]
+      ]
+    },
+    "papers/series-wise-validation/method.md": {
+      "before": {
+        "sha256": "a8c6a3cceb0111f6fa456e9f47ab6df8c9b1802beefae508eae514546282f021",
+        "blob": "bbd89cc9cd8054c9177418bcdad7bd76abc1753d"
+      },
+      "after": {
+        "sha256": "af0b8151fef2c052565b7dc9dcc1f63f29b13539d15da252302306cea82086f1",
+        "blob": "461329fbb6724c0c33d2562718a8b6cd5f5d9509"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "## 時間境界と対象系列を別々に固定する\n"
+        ],
+        [
+          2,
+          3,
+          "series-wise CVは、学習に使う系列と外側で評価する系列を分け、その中でも時間の前後を守ります。予測時には未学習系列の過去contextを与えます。未知系列は履歴ゼロという意味ではありません。内側ハイパラ選択は原著の全方式でtime-wise holdoutです。\n"
+        ],
+        [
+          4,
+          5,
+          "自作例はp=8、h=4、A〜J、t1〜100。H〜Jはfit・ハイパラ・モデル選択から除外します。内側はA〜Eのラベルt≤84でfitし、t85〜88でハイパラを選びます。外側はA〜Eのt≤88でrefitし、series方式ならF〜Gのt89〜92でモデルを選択。time方式の自作対照ではA〜Eのt89〜92を使います。最終fitはA〜Gのt≤92、最終testは全系列のt93〜100です。これは原著の全CV方式を再実装したものではありません。\n"
+        ],
+        [
+          6,
+          11,
+          "ラベルがorigin+1〜origin+hなら、学習に許す最後のoriginはcutoff−hです。内側80、外側84、最終88となります。origin≤cutoffだけで判定すると、cutoff後のラベルが混入します。同じ系列の過去で学習して未来を予測すること自体はリークではありません。\n"
+        ],
+        [
+          12,
+          13,
+          "## 小さなモデルの決め方も公開する\n"
+        ],
+        [
+          14,
+          15,
+          "合成値は yᵢₜ=10+2i+bᵢt+0.4((t+i) mod 4)。i=0〜9で、bはA〜Eが0.1、F〜Gが0.4、H〜Jが0.7です。意図的な集団差を持つ教材で、現実の到着分布ではありません。\n"
+        ],
+        [
+          16,
+          17,
+          "global候補は、許可された各学習窓のh期の平均増分から共通傾きをfitします。context候補は予測入力の直近8点の両端差を7で割ります。両者とも最後の値に「傾き×予測step×scale」を足し、scaleは0か1。各候補のscaleを内側MAEで選び、外側MAEで候補を選びます。同点ならscale=0、候補はglobalを優先します。この決定規則はLab独自です。\n"
+        ],
+        [
+          18,
+          19,
+          "最終fit後の重みは固定します。origin92〜96で各4点を予測し、予測値をorigin別に保存します。origin93では観測済みy93をcontextに使えますが、それでorigin92の予測を書き換えません。20誤差の平均は、対象時点93〜100を1,2,3,4,4,3,2,1回数えます。時点ごとの誤差を先に平均して8時点を等重みにする値とは違います。\n"
+        ],
+        [
+          20,
+          21,
+          "## 共通MASEと平均の解釈\n"
+        ],
+        [
+          22,
+          23,
+          "MASE=MAE/Q。原著のQは全in-setのseasonal-naive MAEで、通常の系列別MASE平均とは異なります。正の共通Qは同じdataset内の順位を変えませんが、尺度とdataset間の重みを変えます。教材ではA〜Gのt≤92、季節周期4の絶対差の平均をQとします。Qを入力し直す操作は尺度の説明で、論文の推定結果を変更しません。\n"
+        ],
+        [
+          24,
+          25,
+          "Table3は丸め済みの各dataset行を再集計します。掲載平均を別に残し、表示行の算術平均と同一とはみなしません。Weatherを外す操作は平均の構成を見る感度診断で、除外の正当化でも標本誤差の評価でもありません。\n"
+        ],
+        [
+          26,
+          31,
+          "主入口evaluateは10系列×100点の密な数値列を受け、各値の絶対値を1,000,000以下に制限します。Q=0の未定義と、入力不正・非有限結果の例外は区別します。固定toy用の補助関数は、検証済み入力を前提とします。\n"
+        ]
+      ]
+    },
+    "papers/series-wise-validation/model.js": {
+      "before": {
+        "sha256": "848431b0e612454be5aedc8f7ace1cc9a7e2cac3dda67547a8af2be18abdb4f6",
+        "blob": "0c86f80095cf9144d10327bf24191e232851d0a6"
+      },
+      "after": {
+        "sha256": "82014617d67417df21e61e5feb22abe59c9603b582fdc265cf1b0a540360c5ab",
+        "blob": "401eb79f79c91d3fff571d926898a86faf02ef2a"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "// evaluate is the validated public entry; fit/select/predict/sensitivity/role are fixed-toy internal helpers.\n"
+        ]
+      ]
+    },
+    "papers/series-wise-validation/run.py": {
+      "before": {
+        "sha256": "1351279c8b714e26784c10c6d897ec01e01580df5ab0457f83a47164953afcbe",
+        "blob": "57d93f36a3bb895b264ee34886523f0584efa639"
+      },
+      "after": {
+        "sha256": "b4cf06f7df91f5ba4f6d55869cd2f12708b7c8dff138934a190e88f7ade1f1c9",
+        "blob": "f454cf84a5a09319a3d22ab905a58a4e0228b732"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Independent explanatory experiment; no author implementation is executed.\"\"\"\n"
+        ],
+        [
+          10,
+          11,
+          "# evaluate is the validated public entry. Other helpers serve this fixed toy and tests.\n"
+        ],
+        [
+          25,
+          26,
+          "    # Every training target ends by cutoff; origins <= cutoff is insufficient.\n"
+        ]
+      ]
+    },
+    "papers/series-wise-validation/table3.json": {
+      "before": {
+        "sha256": "71da62c932f5a7673052abbef30a4fd3e3790c14800844864d8f4fc6bb51c9a6",
+        "blob": "5637557c0b2e7469630f12f79f454269ac29df19"
+      },
+      "after": {
+        "sha256": "e11d0bbf6341db160d4c0c43c0abb67236148ec4901e5956eb09b7491e6a8800",
+        "blob": "25f1997cde4dcb1a2a7d033f4a563afea4c3e9b7"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "  \"note\": \"Published rounded values, not synthetic observations or raw experiment outputs.\",\n"
+        ]
+      ]
+    }
+  }
+}

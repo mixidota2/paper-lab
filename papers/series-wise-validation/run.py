@@ -1,4 +1,4 @@
-"""Independent explanatory experiment; no author implementation is executed."""
+"""系列と時点の分け方を比べる合成例。著者の実装は動かさない。"""
 from pathlib import Path
 import json
 import math
@@ -8,7 +8,7 @@ ROOT = Path(__file__).parent
 IDS = 'ABCDEFGHIJ'
 P, H = 8, 4
 INPUT_LIMIT = 1_000_000
-# evaluate is the validated public entry. Other helpers serve this fixed toy and tests.
+# 入力を検査する入口はevaluate。ほかの関数はこの合成例と検査に使う。
 
 
 def dataset():
@@ -23,7 +23,7 @@ def origins(cutoff):
 
 
 def fit(data, ids, cutoff):
-    # Every training target ends by cutoff; origins <= cutoff is insufficient.
+    # 起点だけでなく、学習に使う最後の正解値も上限以下にする。
     samples = [(data[s][o+H-1]-data[s][o-1])/H for s in ids for o in origins(cutoff)]
     return sum(samples)/len(samples)
 
