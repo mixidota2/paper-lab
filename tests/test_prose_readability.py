@@ -173,7 +173,7 @@ def test_forecast_inventory_batch8_explanations_and_downloads():
         'proximal-residual-value-inventory-placement': ('executable_understanding', '一方の拠点への配置量から他方も決まる'),
         'switch-hurdle-intermittent-demand': ('core_idea', 'ゼロ'),
         'scope-coupled-supply-chain-policies': ('executable_understanding', '容量で割った値を整数へ切り上げ'),
-        'isomorph-supply-chain-digital-twin': ('executable_understanding', 'その日の新規需要量を分母、そのうち当日に満たせた数量を分子'),
+        'isomorph-supply-chain-digital-twin': ('executable_understanding', '各日の新規需要のうち、その日のうちに渡せた数量の割合'),
     }
     for slug, (section, explanation) in cases.items():
         source = ROOT / 'papers' / slug
