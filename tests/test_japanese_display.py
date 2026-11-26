@@ -91,7 +91,11 @@ def test_orpr_different_units_use_tables_without_bars():
         assert '<svg' not in frame and '<rect' not in frame
         assert '<table>' in frame and '比較基準' in frame
     assert '<td>+2.29</td><td>%</td>' in frames[1]
-    assert '<td>+0.47</td><td>ポイント</td>' in frames[1]
+    # The paper reports the in-stock rows as Y+2.29% and Y+0.47% without
+    # disclosing Y. Keep the original units rather than infer a point change.
+    assert '<td>+0.47</td><td>%</td>' in frames[1]
+    assert '原表はY+2.29%' in frames[1] and '原表はY+0.47%' in frames[1]
+    assert 'ポイント差には換算しません' in frames[1]
     assert '<td>-29.95</td><td>%</td>' in frames[2]
     assert '<td>-18.35</td><td>ポイント</td>' in frames[2]
 

@@ -1,15 +1,13 @@
-# 原論文のどこを、Labで確かめたか
+# 論文の手順のうち、Labで確かめた部分
 
-確認した箇所は§3.1–3.3、図1、Algorithm 1–2、表1・3–6です。
+出典：[原論文2512.19001v2](https://arxiv.org/abs/2512.19001v2)。主に§3の式と手順、図1、表1・3〜6を参照しました。確認したPDFに公式コードへのリンクは見つかりませんでした。Labの図と計算は、原論文の考え方を説明するために作りました。
 
-| 原論文 | Labで読めるもの | Labの確認範囲 |
+| 論文の箇所 | Labで読めるもの | Labの確認範囲 |
 | --- | --- | --- |
-| §3.3、式(1)–(3)、Algorithm 2 | `run.py`の`replay()`、補充日数を選ぶ図 | 人工需要2カテゴリ、固定の発注間隔と納期で100候補を全探索。代替需要や実データは扱わない。 |
-| 図1、§3.1、表5 | 手法の説明と学習順序の図 | 約93万パラメータのTransformerとVAEの学習は実行していない。 |
-| §3.2、Algorithm 1 | `run.py`の`rloo()`、報酬差の式 | 固定報酬4個から基準値を計算しただけ。方策勾配、KLペナルティ、ルールとシミュレーションを合わせた報酬は実装していない。 |
-| 表1 | `results.json`の`paper_evidence.offline_total_cost` | 著者の報告値。JDの非公開データは取得していない。 |
-| 表3・4、図7 | 現場評価を指標ごとに読む図 | 著者の報告値を、比較基準と単位を分けて表示。対象の対応付け（PSM）や介入前後の差の比較（DiD）は再計算していない。 |
+| §3.3、式(1)〜(3)、Algorithm 2 | `run.py` の `replay()` と補充量を選ぶ図 | 2カテゴリの架空の需要で、3日ごとの発注、翌日の入荷を固定し、100候補を列挙する。論文の販売量を使う較正はしない。 |
+| 図1、§3.1、§3.4 | 事前学習の順序とモデルの図 | 著者が報告した約93万パラメータはモデルの規模を表す。LabはTransformerやVAEを学習させていない。 |
+| §3.2、Algorithm 1 | `run.py` の `rloo()` と報酬差の式 | 4つの報酬を固定し、各候補の報酬をほかの候補の平均と比べる。方策勾配、元の方策から離れすぎないための罰則、ルールとシミュレーションの報酬は実装していない。 |
+| 表1 | `results.json` の `paper_evidence.offline_total_cost` | 著者の報告値のうち、JDの現行方式とORPRを記す。非公開データは使っていない。 |
+| 表3・4、図7 | 現場比較を指標ごとに読む図 | 比較の種類と原表の単位を分ける。Labは対象の対応付けや、介入前後の差の比較を再計算していない。 |
 
-出典は[原論文 2512.19001v2](https://arxiv.org/abs/2512.19001v2)です。確認したPDFで公式コードのリンクは見つけられず、公式実装は実行していません。Labの図は、論文の構造と数値をもとに作ったものです。
-
-[DeepStock](deepstock-policy-regularized-inventory-drl.html)、[SabreAgent](sabreagent-design-time-inventory.html)、[InvEvolve](invevolve-whitebox-inventory-evolution.html)との比較はLabの整理です。個別の手法は各Labの原典対応を参照してください。4手法を同じ条件で直接比較した実験ではありません。
+[DeepStock](deepstock-policy-regularized-inventory-drl.html)、[SabreAgent](sabreagent-design-time-inventory.html)、[InvEvolve](invevolve-whitebox-inventory-evolution.html)とORPRの表は、業務知識をどの段階で使うかを比べたものです。同じ条件で実行して性能を比べたわけではありません。
