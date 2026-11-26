@@ -61,7 +61,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
             if expected != row['before_' + algorithm]:
                 expected = reference_guess_markup_hash(root, path, expected, algorithm)
             assert expected == row['before_' + algorithm], path
-            return row['after_' + algorithm]
+            return retailbench_full_prose_hash(root, path, row['after_' + algorithm], algorithm)
         assert expected == row['before_' + algorithm], path
         expected = row['after_' + algorithm]
     expected = replenishment_guide_rewrite_hash(root, path, expected, algorithm)
@@ -137,7 +137,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = isomorph_full_prose_hash(root, path, expected, algorithm)
     expected = exaone_full_prose_hash(root, path, expected, algorithm)
     expected = eval_grain_full_prose_hash(root, path, expected, algorithm)
-    return traffic_value_full_prose_hash(root, path, expected, algorithm)
+    expected = traffic_value_full_prose_hash(root, path, expected, algorithm)
+    return retailbench_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -1664,6 +1665,35 @@ def before_traffic_value_full_prose(root, path, current):
     if path not in ('paper_lab/batch08.py', 'paper_lab/display_labels.py') and not path.startswith('papers/traffic-forecast-to-decision-value/'):
         return current
     row = json.loads((root / 'tests/traffic_value_full_prose_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+
+def retailbench_full_prose_row(root, path):
+    if path != 'paper_lab/retailbench30.py' and not path.startswith('papers/retailbench-long-horizon-store-agents/'):
+        return None
+    rows = json.loads((root / 'tests/retailbench_full_prose_hashes.json').read_text())['files']
+    return rows.get(path)
+
+
+def retailbench_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = retailbench_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_retailbench_full_prose(root, path, current):
+    row = retailbench_full_prose_row(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

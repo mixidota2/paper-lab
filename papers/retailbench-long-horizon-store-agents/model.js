@@ -20,17 +20,17 @@ const mul=(a,b)=>rational(a.n*b.n,a.d*b.d);
 function number(a){
   let d=a.d,two=0,five=0;
   while(d%2n===0n){d/=2n;two++;}while(d%5n===0n){d/=5n;five++;}
-  if(d!==1n)throw Error('内部の十進金額形式が不正です。');
+  if(d!==1n)throw Error('金額を10進表記に変換できませんでした。');
   const scale=Math.max(two,five);
   return Number(String(a.n*2n**BigInt(scale-two)*5n**BigInt(scale-five))+'e-'+scale);
 }
 function evaluate(x) {
   for(const k of ['price','demand','rent','cash','days','cost_a','cost_b','return_a','return_b']) if(!finite(x[k])) throw Error(k+'は有限の数値が必要です。');
-  if(!['accounting','funded'].includes(x.mode)) throw Error('会計モードが不正です。');
-  if(!Number.isInteger(x.days)||x.days<1||x.days>365) throw Error('日数は1〜365の整数です。');
-  if(['price','demand','rent','cash','cost_a','cost_b'].some(k=>x[k]<0)) throw Error('価格・需要・家賃・初期現金・原価は0以上です。');
-  if(['return_a','return_b'].some(k=>x[k]<0||x[k]>1)) throw Error('返品率は0〜1です。');
-  if(x.mode==='funded' && (!Number.isSafeInteger(x.demand)||Math.min(x.cost_a,x.cost_b)<=0)) throw Error('手元資金モードの需要は0〜9007199254740991の整数、原価は正の値にしてください。');
+  if(!['accounting','funded'].includes(x.mode)) throw Error('会計モードは基本会計か手元資金で仕入れる方式を選んでください。');
+  if(!Number.isInteger(x.days)||x.days<1||x.days>365) throw Error('日数は1〜365の整数で入力してください。');
+  if(['price','demand','rent','cash','cost_a','cost_b'].some(k=>x[k]<0)) throw Error('販売価格、潜在需要、家賃、開始時点の現金、仕入原価は0以上の値を入力してください。');
+  if(['return_a','return_b'].some(k=>x[k]<0||x[k]>1)) throw Error('返品率は0〜1の値を入力してください。');
+  if(x.mode==='funded' && (!Number.isSafeInteger(x.demand)||Math.min(x.cost_a,x.cost_b)<=0)) throw Error('手元資金で仕入れるには、潜在需要に0〜9,007,199,254,740,991の整数を、仕入原価には0より大きい値を入力してください。');
   const zero=decimal(0),price=decimal(x.price),demand=decimal(x.demand),dailyRent=decimal(x.rent);
   const suppliers=['a','b'].map(label=>{
     const c=decimal(x['cost_'+label]),rate=decimal(x['return_'+label]);

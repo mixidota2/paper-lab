@@ -11,15 +11,15 @@
 [data-reference-lab] svg {width:100%;height:auto}
 [data-reference-lab] [data-error] {color:#9c241c;font-weight:bold}
 </style><section data-reference-lab aria-label="人工データで仕入先を比べる実験">
-<p><strong>人工データを使い、仕入先ごとの現金の動きを比べます。</strong> 論文の仕組みの一部を確かめる教材（PARTIAL）で、著者が測った結果とは別です。</p>
+<p><strong>同じ店が別々の仕入先を選んだとき、手元に残る現金を比べます。</strong> Labは人工データで、仕入れと返品が現金にどう影響するかを計算します。論文の評価環境を再現したものではありません（PARTIAL）。</p>
 <h3>予想してから、一つの条件を変える</h3>
-<label>条件を一つ変えると、結果はどうなると思いますか？<select data-guess><option>まだ決めていない</option><option>改善する</option><option>同じになる</option><option>悪化する</option></select></label>
-<p>予想は採点されません。値を一つだけ変えたら、仕入先ごとの表と日ごとの現金の推移を見て、予想の理由が結果と合うか確かめてください。</p>
-<p>手元資金で仕入れる場合、潜在需要は0〜9,007,199,254,740,991の整数に限ります。基本会計では小数の需要も使えます。</p>
-<form><div class="reference-fields"><label>販売価格 p（通貨単位/個）<input name="price" type="number" step="any" required></label><label>1日の潜在需要 q（個/日）<input name="demand" type="number" step="any" required></label><label>1日の家賃 R（通貨単位/日）<input name="rent" type="number" step="any" required></label><label>開始時点の現金 C₀（通貨単位）<input name="cash" type="number" step="any" required></label><label>両方の仕入先を比べる日数 H：1〜365<input name="days" type="number" step="any" required></label><label>仕入先Aの仕入原価 c_A（通貨単位/個）<input name="cost_a" type="number" step="any" required></label><label>仕入先Aの返品率 r_A：0〜1（0.3は30%）<input name="return_a" type="number" step="any" required></label><label>仕入先Bの仕入原価 c_B（通貨単位/個）<input name="cost_b" type="number" step="any" required></label><label>仕入先Bの返品率 r_B：0〜1（0.3は30%）<input name="return_b" type="number" step="any" required></label><label>会計モード<select name="mode"><option value="accounting">基本会計（借入に上限なし）</option><option value="funded">手元資金で仕入れる（前払い）</option></select></label></div></form><button type="button" data-reset>初期条件に戻す</button>
+<label>条件を一つ変えると、注目した仕入先の最終現金はどう変わると予想しますか？<select data-guess><option>まだ決めていない</option><option>改善する</option><option>同じになる</option><option>悪化する</option></select></label>
+<p>先にどちらかの仕入先を選び、その店の最終現金が増えるか減るかを予想してください。値を一つ変えたら、仕入先ごとの表と現金の推移を見て、どの日に差が出たかを確かめます。予想は採点しません。</p>
+<p>潜在需要は、在庫があれば1日に売れる数量です。手元資金で仕入れる場合は、潜在需要に0〜9,007,199,254,740,991の整数を入力してください。基本会計では小数も入力できます。</p>
+<form><div class="reference-fields"><label>販売価格 p（通貨単位/個）<input name="price" type="number" step="any" required></label><label>1日の潜在需要 q（個/日）<input name="demand" type="number" step="any" required></label><label>1日の家賃 R（通貨単位/日）<input name="rent" type="number" step="any" required></label><label>開始時点の現金 C₀（通貨単位）<input name="cash" type="number" step="any" required></label><label>比較する日数 H（1〜365日）<input name="days" type="number" step="any" required></label><label>仕入先Aの仕入原価 c_A（通貨単位/個）<input name="cost_a" type="number" step="any" required></label><label>仕入先Aの返品率 r_A：0〜1（0.3は30%）<input name="return_a" type="number" step="any" required></label><label>仕入先Bの仕入原価 c_B（通貨単位/個）<input name="cost_b" type="number" step="any" required></label><label>仕入先Bの返品率 r_B：0〜1（0.3は30%）<input name="return_b" type="number" step="any" required></label><label>会計モード<select name="mode"><option value="accounting">基本会計（現金が足りなくても仕入れる）</option><option value="funded">手元資金で仕入れる（前払い）</option></select></label></div></form><button type="button" data-reset>初期条件に戻す</button>
 <p data-error role="alert"></p><div data-output aria-live="polite"></div>
-<h4>JSONへの書き出しと条件の読み込み</h4><button type="button" data-export>JSONを書き出す</button>
+<h4>入力条件を保存して、あとで再計算する</h4><button type="button" data-export>JSONを書き出す</button>
 <label>保存したJSONを貼り付ける<textarea data-json rows="5" spellcheck="false"></textarea></label>
 <button type="button" data-import>条件を読み込み、再計算する</button>
-<p>JSONを読み込むと、入力条件（inputs）だけを使って再計算します。保存済みの計算結果（output）は使いません。Tabで数値欄や選択欄に移動し、キーボードでも値を変更できます。</p>
-<noscript>この実験を画面で動かすにはJavaScriptが必要です。保存済みの例はこのあとの表にあります。再計算するには、配布ファイルのrun.pyを使ってください。</noscript></section><script src="../downloads/retailbench-long-horizon-store-agents/implementation.js" defer></script><script src="../downloads/retailbench-long-horizon-store-agents/model.js" defer></script><script src="../downloads/retailbench-long-horizon-store-agents/interactive.js" defer></script>
+<p>保存したJSONを読み込むと、Labは入力条件（inputs）を使って計算し直します。以前の計算結果（output）は使いません。キーボードで操作する場合は、Tabキーで項目を移動できます。</p>
+<noscript>画面上で値を変えて比べるには、JavaScriptを有効にしてください。無効のままでも、このあとの表で計算例を読めます。手元で再計算するには、配布ファイルのrun.pyを使ってください。</noscript></section><script src="../downloads/retailbench-long-horizon-store-agents/implementation.js" defer></script><script src="../downloads/retailbench-long-horizon-store-agents/model.js" defer></script><script src="../downloads/retailbench-long-horizon-store-agents/interactive.js" defer></script>

@@ -2296,7 +2296,7 @@
     "retailbench_reproduction": "NOT TESTED"
   },
   "limitations": [
-    "Artificial deterministic inputs; no LLM, lead time, aging, or news. Legacy frames and accounting mode do not stop at negative cash; funded mode uses a local immediate-stop rule, not the paper rule.",
-    "Final cash is not paper net worth; return rates are invented teaching assumptions."
+    "Labは結果が一定になる人工データを使い、LLM、納品までの日数、保管に伴う品質の変化、ニュースを扱いません。保存済みの例と基本会計は現金がマイナスでも計算を続けます。手元資金で仕入れる場合、日末の現金が初めてマイナスになると翌日から営業を止めます。論文の停止条件とは異なります。",
+    "最後に残った現金は、論文が報告する最終純資産とは別の指標です。返品率はLabが説明用に設定しました。"
   ]
 }
