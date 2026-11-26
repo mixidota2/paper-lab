@@ -71,11 +71,11 @@ function render(){
       out.append(table(['日','実績','元予測','常時補正','選択補正','基準予測の絶対誤差','常時誤差','選択誤差'],inputs.actual.map((y,i)=>[i+1,y,...result.rows.map(r=>r.prediction===null?'計算不能':r.prediction[i]),...result.rows.map(r=>r.errors===null?'計算不能':r.errors[i])]),'日別の予測と絶対誤差'));
       out.append(node('p',inputs.route==='Skip'?'Skipは補正演算を通さず元配列をコピーします。祝日にもSkipを許すこの比較は、原論文の制約を外した反実仮想教材です。':'選択した補正 = (b + g×a) × exp(g×l)。実績yは採点だけに使い、経路や予測を決めません。'));
     }else{
-      out.append(table(['仕入先','単位粗利（通貨／個）','最終現金（通貨）','資金制約モードの停止判断日（翌日から営業停止）'],result.suppliers.map(s=>[s.supplier,s.margin,s.final_cash,stopDayText(inputs.mode,s.stopped)]),'同じ価格・潜在需要・期間で比較'));
-      out.append(node('p',`単位粗利差 B−A = ${num(result.margin_difference)}。会計モードの同点境界は p(r_A−r_B)=c_B−c_A。Bの返品率境界は ${num(result.return_b_tie)}${result.return_b_tie===null?'（価格0なので解けません）':''}。資金制約モードの最終現金の順位は、この境界だけでは決まりません。`));
-      out.append(plot(result.suppliers.map(s=>({label:s.supplier,values:[inputs.cash,...s.trace.map(t=>t.cash)]})),'初期現金から日末現金への推移'));
-      for(const s of result.suppliers)out.append(table(['日','状態','日初現金（通貨）','仕入数量（個）','仕入支払（通貨）','売上総額（通貨）','返金（通貨）','家賃（通貨）','販売（個）','失注（個）','期待返品数（個）','返品比率（0〜1）','日末現金（通貨）'],s.trace.map(t=>[t.day,t.active?'営業':'この教材での停止後',t.opening,t.purchased,t.purchase,t.gross,t.refund,t.rent,t.sold,t.lost,t.expected_returns,t.return_ratio,t.cash]),'仕入先'+s.supplier+'の台帳（通貨・個・比率）'));
-      out.append(node('p','日末現金 = 日初現金 − 仕入支払 + 売上総額 − 返金 − 家賃。停止後は取引・家賃とも0。販売ゼロの返品比率は未定義です。返品数の端数は期待値であり、実顧客数ではありません。'));
+      out.append(table(['仕入先','単位粗利（通貨／個）','比較期間の最後に残った現金（通貨）','現金不足で停止を決めた日（営業停止は翌日から）'],result.suppliers.map(s=>[s.supplier,s.margin,s.final_cash,stopDayText(inputs.mode,s.stopped)]),'価格、潜在需要、期間をそろえて仕入先AとBを比較'));
+      out.append(node('p',`販売1個あたりの粗利は、BからAを引くと ${num(result.margin_difference)} です。基本会計では p(r_A−r_B)=c_B−c_A のとき、両方の仕入先で最終現金が同じになります。${result.return_b_tie===null?'販売価格が0のため、この式をBの返品率について解けません。':`同額になるBの返品率は ${num(result.return_b_tie)} です。`} 手元資金で仕入れる場合は、仕入れられる数量も変わるため、この式だけで最終現金の順位は決まりません。`));
+      out.append(plot(result.suppliers.map(s=>({label:s.supplier,values:[inputs.cash,...s.trace.map(t=>t.cash)]})),'仕入先ごとの手元現金の推移'));
+      for(const s of result.suppliers)out.append(table(['日','状態','営業を始める前の現金（通貨）','仕入数量（個）','仕入れに払った額（通貨）','売上総額（通貨）','返金（通貨）','家賃（通貨）','販売（個）','失注（個）','期待返品数（個）','返品比率（0〜1）','日末現金（通貨）'],s.trace.map(t=>[t.day,t.active?'営業':'この教材での停止後',t.opening,t.purchased,t.purchase,t.gross,t.refund,t.rent,t.sold,t.lost,t.expected_returns,t.return_ratio,t.cash]),'仕入先'+s.supplier+'の日ごとの取引と現金'));
+      out.append(node('p','Labは日初の現金に売上を足し、仕入れ代、返金、家賃を引いて日末の現金を出します。営業を停止したあとは取引も家賃の支払いも計上しません。販売数が0の日は返品比率を計算できません。返品数は販売数と返品率から計算した期待値なので、小数になることがあります。'));
     }
     root.dataset.ready='true';
   }catch(e){current=null;save.disabled=true;out.replaceChildren();error.textContent=inputErrorText(e.message);}

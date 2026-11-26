@@ -1,0 +1,534 @@
+{
+  "files": {
+    "paper_lab/retailbench30.py": {
+      "before": {
+        "sha256": "960ba3932bbcad6eada637078ef867e1b3f8ee8b612935254b79a1eb56d0dd61",
+        "blob": "022fd5758cee7ab4debd51a8b041d9f5e5189239"
+      },
+      "after": {
+        "sha256": "88a53e9305b584762a0195c64a6d5c97d55b71986e7553dac66dd3b487161bf3",
+        "blob": "4e84813c434b1943303caa89897209a47f7fe127"
+      },
+      "prior_spans": [
+        [
+          10,
+          11,
+          "    svg = '<svg viewBox=\"0 0 620 350\" role=\"img\" aria-label=\"店舗モジュールの結合図\" style=\"width:100%;height:auto\"><title>Figure 1の7モジュールを再配置</title><g stroke=\"#788b95\" stroke-width=\"2\"><path d=\"M120 70L310 70L500 70L500 175L310 280L120 175L120 70M310 70V280M120 175H500M120 70L500 175M500 70L120 175\" fill=\"none\"/></g>'\n"
+        ],
+        [
+          15,
+          16,
+          "    out='<figure class=\"teaching\"><h3>1日の終了処理が7つの業務を結ぶ</h3>'+svg+'<figcaption>原論文Figure 1・§2.3の概念再配置。線は業務の結合を示す。入荷・販売・返品・経年・資金を日々更新する。</figcaption></figure>'\n"
+        ],
+        [
+          19,
+          21,
+          "        frames.append(table(['モデル / 枠組み','生存日数','最終純資産','販売数量（個）'],[[model+' / '+framework,days,f'{worth:,.2f}',f'{sales:,}']])+f'<p>180日のうち <strong>{days}</strong> 日。純資産はOracleの {worth/131510.42*100:.1f}%、販売数量は {sales/267998*100:.1f}%。</p>')\n    out+=panel('各モデルから選んだ1回の実行を読む','モデル',[r[0] for r in result['reported']],frames,'著者報告 Table 1。生存日数、純資産、販売数量の順で選んだ1回の実行で、全試行の平均ではない。Oracleは特権情報を使う。')\n"
+        ],
+        [
+          24,
+          26,
+          "        frames.append(table(['仕入先を選ぶ規則','30日後の現金'],rows)+'<p>現金 = 3,000 + 30 ×（対象商品数 × 10 × 単位粗利 − 600）。低価格の仕入先を選ぶPriceFirstの単位粗利は3、返品が少ない仕入先を選ぶQualityFirstは4.5。対象を広げる効果は、この固定需要の仮定に依存する。</p>')\n    out+=panel('保存済み30日例：対象商品数と仕入先を同じ収支で比べる','1日の対象商品数',[str(f['products']) for f in result['frames']],frames,'run.pyの人工実験。返品率・原価は説明用の仮定。負の現金でも計算を続けるため生存評価ではない。')\n"
+        ]
+      ]
+    },
+    "papers/retailbench-long-horizon-store-agents/README.md": {
+      "before": {
+        "sha256": "91acc84ad7da7c4d28a0e47c46caf05d51d06fea495d111ceff2c9a0a211a141",
+        "blob": "b69ff33f17e8b4a7001be0126603660ee17234e8"
+      },
+      "after": {
+        "sha256": "f91aa93caea6e655cdb97e0da0b12ec05988b3e1b163c242392c8f0e0dddd8fd",
+        "blob": "f987f2db5831f1908cd9eb376cba8dae59449a9b"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# RetailBench：個々の操作から180日の店舗運営へ\n"
+        ],
+        [
+          2,
+          3,
+          "## Overview — 複数の業務を続けて動かす\n"
+        ],
+        [
+          8,
+          9,
+          "## Problem — 遅れた結果まで追えるか\n"
+        ],
+        [
+          10,
+          11,
+          "Dominick’sのデータを基に96商品・20カテゴリを構成し、棚40商品、在庫容量15,000個、初期資金30,000、日額家賃600という条件で運営する。\n需要やニュースの内部効果は隠される。\n"
+        ],
+        [
+          12,
+          13,
+          "## Core Idea — 著者の主張と解釈\n"
+        ],
+        [
+          14,
+          15,
+          "著者の主張：情報収集、仕入先選択、価格変更、補充を続ける過程で、不完全な情報収集、表面的な判断、継続する方策の欠如を診断する。\n"
+        ],
+        [
+          16,
+          17,
+          "解釈：研究地図では運用中に店舗業務を操作するLLMの評価に当たり、InvEvolveの設計時の方策探索やSabreAgentの固定した在庫制御とは評価単位が異なる。\n"
+        ],
+        [
+          18,
+          19,
+          "## Why It Might Work — 安い仕入れにも後の負担がある\n\n解釈：安い仕入先を選んでも返品が増えれば収入は減り、棚へ載せなければ販売機会を失うため、ツール操作の正否だけでは長期の運営能力を測れない。\n\n## Evidence — 選択実行の成績を読む\n\n著者報告（v3 Table 1）。\n\n| 選択実行 | 最終純資産 | 販売数量（個） | 生存日数 |\n"
+        ],
+        [
+          21,
+          23,
+          "| GPT-5.5 ReAct | 24,350.98 | 136,405 | 180 |\n| DeepSeek-V4-Pro Plan-and-Act | 10,120.90 | 164,417 | 180 |\n"
+        ],
+        [
+          24,
+          25,
+          "生存日数を優先し、同点なら純資産、販売数量の順で枠組みを選ぶため、これは全実行の平均ではない。\nGPT-5.5はReActのみ。\nOracleは特権情報を使う。\nKimi-K2.6は130日、残る4モデルは58〜73日で終了した。\n"
+        ],
+        [
+          26,
+          27,
+          "§5.2・§5.3・Figure 3では、LLMの平均QualityFirstが21.5%、PriceFirstが55.6%、行動対象商品数が1日0.95〜7.89商品（Oracleは38.00商品）と報告される。\n行動対象商品数と販売商品数は別の指標だ。\n"
+        ],
+        [
+          28,
+          29,
+          "## Executable Understanding — 収支の結合を動かす\n"
+        ],
+        [
+          30,
+          31,
+          "```sh\nUV_CACHE_DIR=/tmp/uv-cache uv run --no-project papers/retailbench-long-horizon-store-agents/run.py\n```\n"
+        ],
+        [
+          32,
+          33,
+          "人工例では同じ需要・家賃の下で、安価だが返品率の高い仕入先と、割高だが返品率の低い仕入先を比較する。\n"
+        ],
+        [
+          34,
+          35,
+          "| 人工設定 | PriceFirst | QualityFirst |\n|---|---:|---:|\n| 原価 | 4 | 5 |\n| 返品率 | 30% | 5% |\n| 価格 | 10 | 10 |\n| 返品後の単位粗利 | 3 | 4.5 |\n"
+        ],
+        [
+          36,
+          37,
+          "需要は対象商品当たり10個/日、初期現金3,000、期間30日、家賃600/日とし、毎日即時補充する。\nこれらは説明用の仮定である。\n"
+        ],
+        [
+          38,
+          39,
+          "## Results — 対象商品数でも差が変わる\n"
+        ],
+        [
+          40,
+          41,
+          "| 1日の対象商品数 | PriceFirstの最終現金 | QualityFirstの最終現金 |\n|---|---:|---:|\n| 8 | −7,800 | −4,200 |\n| 38 | 19,200 | 36,300 |\n"
+        ],
+        [
+          42,
+          43,
+          "## What We Verified\n"
+        ],
+        [
+          44,
+          45,
+          "CONFIRMED：全240日分の収支恒等式。\nMechanismはPARTIAL。\n"
+        ],
+        [
+          46,
+          47,
+          "## What We Did NOT Verify\n"
+        ],
+        [
+          48,
+          49,
+          "Performance / Scaling / Production applicabilityはNOT TESTED。\n公式環境、LLM、納期、賞味期限、ニュース、需要の隠れた要因、棚内の代替効果は追試しない。旧固定例は負の現金でも計算を続けるため生存日数を再現しない。新しい資金制約モードも局所停止であり、原論文の生存評価ではない。\n実店舗のA/Bテストや棚割りの無作為化比較試験ではない。\n\n## Implementation\n\nrun.pyは人工実験を計算し、Table 1の転記値と分けてresults.jsonへ保存する。\n追加依存はない。\nページはlab.yamlと結果から生成する。\n\n## Original Paper / Official Code Mapping\n\n[対応表](mapping.md)に原論文の図表、公式コードへのリンク、省略点を記載した。\n純資産の定義については、§3.3と付録の式(18)の記述差も残している。\n\n## 二つの局所会計を区別する\n\n原論文の診断は[§5.2・§5.3](https://arxiv.org/html/2603.16453v3#S5.SS2)。付録A.1は返品を収入から差し引き、A.2.8のplace_orderは発注時に仕入費用を支払います。A.4のOracle停止条件は負の現金10日連続です。以下は公式シミュレータの再実装ではありません。\n\n基本会計は単位粗利 `p*(1-r)-c`、日末現金 `C_t=C_(t-1)+q*粗利-R`。当日全額返金、返品物は廃棄、納期0、在庫持越0、期待値会計、借入無制限と仮定します。現金が負でも計算を続けるので、生存日数や純資産と呼びません。同点境界は `p*(r_A-r_B)=c_B-c_A`。価格0では返品率による境界を解けません。\n\n手元資金モードは `q_t=min(需要,floor(max(日初現金,0)/原価))`。原価は正、需要は整数。日初の現金で買える整数個数と潜在需要の小さい方を仕入れます。仕入支払→即日納品と販売→同日期待返金→家賃の順です。欠品は失注し、翌日に持ち越しません。日末現金が負なら局所破綻として停止し、翌日以降は取引も家賃も0です。原論文の10日規則とは違います。販売0の返品比率は未定義、端数の返品数は期待値で実顧客数ではありません。\n\n初期現金40・需要10・価格10・家賃35・2日では、A(原価4、返品15%)の現金は50→60、B(原価5、返品0%)は45→55。Bは単位粗利が高くても、仕入数量8→9に制約され逆転します。家賃80ではAは5→−70.5で2日目に停止します。両社の潜在需要を変えた結果ではありません。\n"
+        ],
+        [
+          52,
+          53,
+          "このディレクトリで `uv run run.py` を実行すると、保存済みresults.jsonを再生成します。画面では任意の数値を直接変更し、JSONを書き出せます。JSONのinputsを再読込するとoutputは再計算されます。`uv run run.py --input comparison.json` でも入力を再計算して標準出力へ返せます。\n"
+        ],
+        [
+          54,
+          55,
+          "Python標準ライブラリと小さなブラウザ計算だけを使います。数式・台帳の局所検証はCONFIRMED、論文全体の機構はPARTIAL。著者コード・学習・原論文性能・本番適用はNOT TESTED。実ブラウザの画面・キー操作・export/importもNOT TESTEDで、別環境での保護付き確認を残しています。\n"
+        ],
+        [
+          56,
+          57,
+          "局所検査：リポジトリrootで `uv run --extra dev pytest tests/test_reference_comparisons.py`。Node.js 18以上がある場合、`uv run --extra dev python tests/check_reference_js.py` でJavaScriptの独立期待値とPythonとの120条件照合を実行できます。これはDOMや実ブラウザの検証ではありません。保護付きChromeが利用できる別環境では `uv run --with playwright tests/reference_browser.py` を実行し、360/1440pxの画面、任意値、キー入力、保存と再読込を確認します。CHROME_PATHと必要に応じREFERENCE_SITEを指定してください。検査内で127.0.0.1の一時HTTPサーバーを起動し、成功・失敗にかかわらず終了します。file://での確認とは区別します。\n"
+        ],
+        [
+          58,
+          59,
+          "金額境界は入力数値の標準的な十進表記を厳密な有理数として扱います。PythonはFraction、ブラウザはBigIntの分子・分母で日々の会計を保持します。購入可否に許容差を加えず、セント等への丸めも行いません。現金0.3・原価0.1なら3個、0.29999999999999993なら2個です。内部の厳密値を表示・JSONへ出す段階だけ通常の数値へ変換します。数値入力として読んだ後の十進値が対象であり、入力欄で表せる精度を超えた桁の保存は保証しません。\n"
+        ],
+        [
+          60,
+          61,
+          "保存形式schema 2には、教材仕様ID・版2.0.0、原典URL・版、指標や会計の規約を含めます。読込時はschema・教材ID・仕様版を照合し、inputsを再検証します。保存outputや説明メタデータは計算根拠にせず、現行の固定仕様で再計算・再出力します。旧schema 1や未知の仕様版を黙って読み替えません。署名付きの真正性証明ではありません。\n"
+        ],
+        [
+          62,
+          63,
+          "手元資金モードの需要は、JavaScriptとPythonで共通して安全に扱える0〜9,007,199,254,740,991の整数に限る。上限を超える値や小数は入力エラーとし、失注の計算へ進めない。\n"
+        ],
+        [
+          64,
+          65,
+          "保存JSONの `implementation` は計算に使うソースの識別情報です。サイトのビルド時に、配布する `model.js`・`interactive.js`・`run.py` の実バイト列のSHA-256を `implementation.json` と `implementation.js` に生成し、ブラウザのexportへ記録します。これらの生成ファイル自身はハッシュ対象にしません。配布ファイルをダウンロードして `sha256sum model.js interactive.js run.py` とmanifest・保存JSONを照合できます。Pythonの `pack()` は実行時の `run.py` のハッシュを記録します。ビルドを経ずJSモデルを直接使用した場合は `status: unavailable` です。\n\nこれはソース内容の識別であり、署名や公開commitの証明ではありません。未コミットの編集もその内容のハッシュになります。公開時は別途、対象commitのActions実行・配布manifest・実URLの内容を照合します。importは過去の実装を実行せず現在のコードで再計算し、再exportには現在の識別情報を記録します。原典版・入力値・教材仕様版も同じJSONに残ります。\n"
+        ]
+      ]
+    },
+    "papers/retailbench-long-horizon-store-agents/interactive.html": {
+      "before": {
+        "sha256": "dd08a53035ee050b405c0cd16eefb5da4ab7cf9bae420af8b712456d8782a1a3",
+        "blob": "822c2f5b921eefc80cd179844e25c911fbda001f"
+      },
+      "after": {
+        "sha256": "1dcef607696ae0fa0b0684cfb1bd47050aa599cd1f250742de3c7245ad89ae15",
+        "blob": "290192ada1ba11cece235788075671722569c53a"
+      },
+      "prior_spans": [
+        [
+          13,
+          14,
+          "<p><strong>人工データを使い、仕入先ごとの現金の動きを比べます。</strong> 論文の仕組みの一部を確かめる教材（PARTIAL）で、著者が測った結果とは別です。</p>\n"
+        ],
+        [
+          15,
+          19,
+          "<label>条件を一つ変えると、結果はどうなると思いますか？<select data-guess><option>まだ決めていない</option><option>改善する</option><option>同じになる</option><option>悪化する</option></select></label>\n<p>予想は採点されません。値を一つだけ変えたら、仕入先ごとの表と日ごとの現金の推移を見て、予想の理由が結果と合うか確かめてください。</p>\n<p>手元資金で仕入れる場合、潜在需要は0〜9,007,199,254,740,991の整数に限ります。基本会計では小数の需要も使えます。</p>\n<form><div class=\"reference-fields\"><label>販売価格 p（通貨単位/個）<input name=\"price\" type=\"number\" step=\"any\" required></label><label>1日の潜在需要 q（個/日）<input name=\"demand\" type=\"number\" step=\"any\" required></label><label>1日の家賃 R（通貨単位/日）<input name=\"rent\" type=\"number\" step=\"any\" required></label><label>開始時点の現金 C₀（通貨単位）<input name=\"cash\" type=\"number\" step=\"any\" required></label><label>両方の仕入先を比べる日数 H：1〜365<input name=\"days\" type=\"number\" step=\"any\" required></label><label>仕入先Aの仕入原価 c_A（通貨単位/個）<input name=\"cost_a\" type=\"number\" step=\"any\" required></label><label>仕入先Aの返品率 r_A：0〜1（0.3は30%）<input name=\"return_a\" type=\"number\" step=\"any\" required></label><label>仕入先Bの仕入原価 c_B（通貨単位/個）<input name=\"cost_b\" type=\"number\" step=\"any\" required></label><label>仕入先Bの返品率 r_B：0〜1（0.3は30%）<input name=\"return_b\" type=\"number\" step=\"any\" required></label><label>会計モード<select name=\"mode\"><option value=\"accounting\">基本会計（借入に上限なし）</option><option value=\"funded\">手元資金で仕入れる（前払い）</option></select></label></div></form><button type=\"button\" data-reset>初期条件に戻す</button>\n"
+        ],
+        [
+          20,
+          21,
+          "<h4>JSONへの書き出しと条件の読み込み</h4><button type=\"button\" data-export>JSONを書き出す</button>\n"
+        ],
+        [
+          23,
+          25,
+          "<p>JSONを読み込むと、入力条件（inputs）だけを使って再計算します。保存済みの計算結果（output）は使いません。Tabで数値欄や選択欄に移動し、キーボードでも値を変更できます。</p>\n<noscript>この実験を画面で動かすにはJavaScriptが必要です。保存済みの例はこのあとの表にあります。再計算するには、配布ファイルのrun.pyを使ってください。</noscript></section><script src=\"../downloads/retailbench-long-horizon-store-agents/implementation.js\" defer></script><script src=\"../downloads/retailbench-long-horizon-store-agents/model.js\" defer></script><script src=\"../downloads/retailbench-long-horizon-store-agents/interactive.js\" defer></script>\n"
+        ]
+      ]
+    },
+    "papers/retailbench-long-horizon-store-agents/interactive.js": {
+      "before": {
+        "sha256": "23542192ff182f1006f38d20979811021b78db9f523554498458e91c461f2189",
+        "blob": "0ceddc1b4fae23a8dfe697ce1fae9d87f3d2d8e5"
+      },
+      "after": {
+        "sha256": "b58a1c257cf7848a3152303c98ab669ee3efea114acb2b09568bc465dba125d7",
+        "blob": "aaa7953682b083b4da9f10e823c17c44685bbcdd"
+      },
+      "prior_spans": [
+        [
+          73,
+          78,
+          "      out.append(table(['仕入先','単位粗利（通貨／個）','最終現金（通貨）','資金制約モードの停止判断日（翌日から営業停止）'],result.suppliers.map(s=>[s.supplier,s.margin,s.final_cash,stopDayText(inputs.mode,s.stopped)]),'同じ価格・潜在需要・期間で比較'));\n      out.append(node('p',`単位粗利差 B−A = ${num(result.margin_difference)}。会計モードの同点境界は p(r_A−r_B)=c_B−c_A。Bの返品率境界は ${num(result.return_b_tie)}${result.return_b_tie===null?'（価格0なので解けません）':''}。資金制約モードの最終現金の順位は、この境界だけでは決まりません。`));\n      out.append(plot(result.suppliers.map(s=>({label:s.supplier,values:[inputs.cash,...s.trace.map(t=>t.cash)]})),'初期現金から日末現金への推移'));\n      for(const s of result.suppliers)out.append(table(['日','状態','日初現金（通貨）','仕入数量（個）','仕入支払（通貨）','売上総額（通貨）','返金（通貨）','家賃（通貨）','販売（個）','失注（個）','期待返品数（個）','返品比率（0〜1）','日末現金（通貨）'],s.trace.map(t=>[t.day,t.active?'営業':'この教材での停止後',t.opening,t.purchased,t.purchase,t.gross,t.refund,t.rent,t.sold,t.lost,t.expected_returns,t.return_ratio,t.cash]),'仕入先'+s.supplier+'の台帳（通貨・個・比率）'));\n      out.append(node('p','日末現金 = 日初現金 − 仕入支払 + 売上総額 − 返金 − 家賃。停止後は取引・家賃とも0。販売ゼロの返品比率は未定義です。返品数の端数は期待値であり、実顧客数ではありません。'));\n"
+        ]
+      ]
+    },
+    "papers/retailbench-long-horizon-store-agents/lab.yaml": {
+      "before": {
+        "sha256": "0a77f3142136eaaa47d56b3acc2ffed20b5e418e461830278dc49aada17d9701",
+        "blob": "ea97663683968a4bf45e588d16b94fa2ef2d8f53"
+      },
+      "after": {
+        "sha256": "a3705a2b54e3efdb8241cfc047be0bbd285bc958d66fb870219a398b756de280",
+        "blob": "88b2137d32b92d5588ac642a60cd150d5f4a97a6"
+      },
+      "prior_spans": [
+        [
+          20,
+          22,
+          "question: LLMは値付け・補充・棚・仕入先を管理しながら、店を180日間運営できるか\nsummary: RetailBenchは、値付け・補充・棚・仕入先の判断が資金繰りにどう影響するかを調べる店舗運営シミュレーターである。著者は1店舗を最大180日間運営させて評価した。論文で選んだLLMの試行のうち、最終純資産が最も高い試行でも、隠れた情報を使う比較用のOracle Policyの約19%だった。個々のツールを正しく使えても、店を運営し続けられるとは限らない。\n"
+        ],
+        [
+          34,
+          36,
+          "  author_claim: 著者は実データに基づく店舗シミュレーターを作り、店の状態をすべては見られないエージェントが長期にわたって一貫した判断を続けられるかを調べた。必要な情報を集めない、目に見えやすい情報だけで判断する、以前の判断の結果を追って次の行動に反映できない、という3種の失敗を診断する。\n  research_bot_interpretation: 研究地図では、LLMが店舗の運営中に複数の業務をどう判断し、その結果が日々どう積み重なるかを評価する研究として位置づける。設計時に発注方策を探すInvEvolveや、設計後に固定した方策で在庫を制御するSabreAgentとは、LLMの役割と評価の単位が異なる。\n"
+        ],
+        [
+          41,
+          47,
+          "  problem: Dominick’sの実データを基に96商品・20カテゴリを設定した。各商品に5社の仕入先がある。棚に置けるのは40商品までで、店舗の在庫は15,000個まで持てる。初期資金は30,000で、家賃は1日600かかる。需要やニュースで需要が変わる仕組みはエージェントから見えないため、照会ツールで店の状態を調べる。値付け・発注・棚の変更は、その後の販売・返品・現金残高に影響する。\n  why_it_might_work: 解釈：仕入れ値の安さだけで選ぶと、あとから返品が増えて収入が減る可能性を見落とす。棚に置かない商品には販売機会がなく、売れない日にも家賃はかかる。この環境なら、時間がたって現れる結果まで同じ条件の下で追える。ただし、失敗に当てはまる行動と成績を合わせて見ても、その行動が成績をどれだけ下げたかは個別には分からない。\n"
+        ],
+        [
+          48,
+          49,
+          "    一次資料である論文の著者報告（v3 Table 1）では、Oracle Policyの最終純資産は131,510.42、累積販売数量は267,998個だった。LLMではGPT-5.5（ReAct）の最終純資産が24,350.98で最高、DeepSeek-V4-Pro（Plan-and-Act）の累積販売数量が164,417個で最多だった。販売数量は売れた個数で、売上金額ではない。両モデルは180日を完走し、Kimi-K2.6は130日、残る4モデルは58〜73日で終了した。\n"
+        ],
+        [
+          50,
+          51,
+          "    著者は利用可能な実行方式で行った有効な試行から、モデルごとに1件を選んで表に載せている。運営を続けた日数が最も長い試行を選び、同じ日数なら最終純資産、そこも同じなら累積販売数量の多い方を選ぶ。全試行の平均ではない。費用の制約で、著者はGPT-5.5をReActだけで実行した。Oracle Policyは隠れた情報を使う、LLMではない比較用の方策で、LLMと同じ観測条件ではない。\n"
+        ],
+        [
+          52,
+          55,
+          "    §5.2・Figure 3によると、全LLM試行の発注明細を対象にした集計では、同じ商品の仕入先のうち品質が最も高い先を選んだ割合（QualityFirst）は21.5%、最も安い先を選んだ割合（PriceFirst）は55.6%だった。LLMには品質そのものは見えず、返品率や顧客の評価が手がかりになる。§5.3・Figure 3では、照会や運営の操作の対象になった商品は、選んだLLM試行で1日0.95〜7.89商品、Oracle Policyで38.00商品だった。売れた種類数とも、売れた個数とも異なる。\n  executable_understanding: 価格・潜在需要・家賃・初期現金・日数をそろえ、仕入先AとBの原価と返品率だけをそれぞれ変えてください。借入を制限しない基本会計と、手元資金の範囲で仕入れるモードを切り替えると、日ごとの明細でどの取引から現金残高に差が出たかを追えます。仕入先の優劣は「品質を優先」といった名前ではなく、計算した収支で比べてください。\n"
+        ],
+        [
+          56,
+          57,
+          "    人工例で1日8商品を扱うと、30日後の現金はPriceFirstが−7,800、QualityFirstが−4,200になる。1日38商品なら、それぞれ19,200と36,300になる。この差は、返品を見込んだ商品1個当たりの粗利が3と4.5で異なるところから生じる。現金が負でも計算を続ける例なので、店を何日運営できるかは再現できない。\n"
+        ],
+        [
+          58,
+          69,
+          "    仕入先AとBを比べる例では、初期条件のまま30日進めると、残る現金はAが3,000、Bが12,000になる。Bの返品率を20%にすると同額になる。いずれも、ここで定めた条件で期待値を使って収支を計算した結果である。\n  what_we_verified: '旧固定例の収支に加え、手計算で求めた同点の境界、順位の逆転、手元資金で買える上限、停止後は取引がないこと、販売数が0の場合と価格が0の場合、両仕入先の条件が同じなら全日程の結果が一致することを、この簡易会計で確認した（CONFIRMED）。検証できた仕組みは一部（PARTIAL）。公式シミュレーターと実ブラウザでの操作は未検証（NOT TESTED）。'\n  what_we_did_not_verify: 性能・規模を広げた場合の挙動・実務に適用できるかは未検証（Performance / Scaling / Production applicabilityはいずれもNOT TESTED）。公式環境でLLMを使った180日間の運営は再実行しておらず、納期・賞味期限・ニュース・隠れた需要・棚内で別の商品が代わりに売れる効果も検証していない。Labは実店舗のA/Bテストや、棚割りを無作為に変えて比較する試験ではない。単一の固定環境で選んだ試行だけから、モデル全般の平均成績や現場の利益は予測しない。\n  implementation: evaluate()とmodel.jsは同じ簡易会計を計算する。基本会計では借入に上限を設けない。資金制約モードでは前払い・即日納品とし、日末の現金が負になったらその日で止める。付録A.4のOracle Policyは現金が10日連続で負になったときに止めるため、Labとは停止条件が異なる。main()は、著者の報告値をreported、旧固定例の日ごとの結果をframes、新しい仕入先比較をreferenceとして別々に保存する。\n  mapping: mapping.md\n  method: method.md\n"
+        ],
+        [
+          72,
+          73,
+          "  title: 店舗運営の成績が低いときに調べる3つの行動\n"
+        ],
+        [
+          76,
+          78,
+          "  rationale: 成績が低かった試行の行動を、情報収集・個々の判断・判断の見直しの3点から調べる。\n  caption: 論文の記述を基に整理した。数値は著者の報告で、Labの追試結果ではない。\n"
+        ],
+        [
+          84,
+          86,
+          "    - 判断に必要な情報をそろえずに発注・値付けをする\n    - 照会の回数だけでは必要な情報を集めたか分からない\n"
+        ],
+        [
+          89,
+          90,
+          "    - 全LLM試行の集計。品質は返品にも影響する\n"
+        ],
+        [
+          92,
+          94,
+          "    - 1日当たり、照会や運営の操作をした商品はLLMの選択試行で0.95〜7.89商品、Oracle Policyで38.00商品\n    - 販売された商品を数えた値ではない。操作のあとで起きる結果も追う必要がある\n"
+        ],
+        [
+          96,
+          97,
+          "  title: 最終純資産が最も高いLLM試行もOracleを下回る\n"
+        ],
+        [
+          100,
+          102,
+          "  rationale: 選んだ試行の最終純資産を、隠れた情報を使えるOracle Policyと比べる。\n  caption: 論文のTable 1を基に整理した。数値は著者の報告で、Labの追試結果ではない。\n"
+        ],
+        [
+          105,
+          106,
+          "  - label: Oracle（特権情報）\n"
+        ],
+        [
+          113,
+          114,
+          "  title: 販売数量が最も多いLLMは、純資産が最も高いLLMと異なる\n"
+        ],
+        [
+          117,
+          119,
+          "  rationale: 売れた個数で見ると、最終純資産とはLLMの順位が入れ替わる。\n  caption: 論文のTable 1を基に整理した。数値は著者の報告で、Labの追試結果ではない。\n"
+        ]
+      ]
+    },
+    "papers/retailbench-long-horizon-store-agents/mapping.md": {
+      "before": {
+        "sha256": "86d97b3460ebab2513f47ffd92ec278283cccc6539e7f753d0d26c146dfe687b",
+        "blob": "ad27635fbdb5901b3229e33ee20115a1cb5a69e5"
+      },
+      "after": {
+        "sha256": "927be9bd178ef1cd812d45cba2e3618038a178bea03b3997232ea0969acf187f",
+        "blob": "136536e702cdf0e2ee2db90791fe00ba322a997a"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文・公式コードとの対応\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料は[arXiv:2603.16453v3](https://arxiv.org/pdf/2603.16453v3)（2026年7月8日）。2606.15862を別研究として数えない。\n"
+        ],
+        [
+          4,
+          11,
+          "| 原論文 | Labの対応 | 省略・境界 |\n|---|---|---|\n| Figure 1、§2.3：7モジュール | 店舗の結合図 | ニュース、返品、在庫、棚、資金のつながりを説明用に再配置 |\n| §3.1：96商品、20カテゴリ、180日 | lab.yamlの問題設定 | 人工実験の商品数とは別 |\n| Table 1、§4.1：生存優先の実行選択 | results.jsonのreported、モデル比較パネル | 全試行平均や同一情報条件の比較ではない |\n| §5.2・§5.3、Figure 3 | 3種の診断表 | 失敗要因ごとの因果効果は未検証 |\n| §3.3：純資産・販売数量 | 著者報告の棒グラフ | 販売数量は金額ではない |\n| 仕入先品質・返品・資金の結合 | run.pyのsimulate() | 人工定数の即時補充。公式の需要式や遷移を再実装していない |\n"
+        ],
+        [
+          12,
+          13,
+          "[公式コード](https://github.com/linghuazhang01/RetailBench)は論文末尾で案内されるリポジトリ。今回、コードの取得・実行・ファイル単位の対応確認は行っていない。\n"
+        ],
+        [
+          14,
+          15,
+          "純資産の説明には原文内の差がある。§3.3は現金・手持在庫・未着発注の価値を含むと述べるが、付録の式(18)は現金と年齢別手持在庫を明示している。Labはこの差を解消したとは扱わず、Table 1の報告値を転記する。人工実験は現金だけを表示し、純資産と呼ばない。\n"
+        ],
+        [
+          16,
+          17,
+          "## 二つの局所会計を区別する\n"
+        ],
+        [
+          18,
+          19,
+          "原論文の診断は[§5.2・§5.3](https://arxiv.org/html/2603.16453v3#S5.SS2)。付録A.1は返品を収入から差し引き、A.2.8のplace_orderは発注時に仕入費用を支払います。A.4のOracle停止条件は負の現金10日連続です。以下は公式シミュレータの再実装ではありません。\n"
+        ],
+        [
+          20,
+          21,
+          "基本会計は単位粗利 `p*(1-r)-c`、日末現金 `C_t=C_(t-1)+q*粗利-R`。当日全額返金、返品物は廃棄、納期0、在庫持越0、期待値会計、借入無制限と仮定します。現金が負でも計算を続けるので、生存日数や純資産と呼びません。同点境界は `p*(r_A-r_B)=c_B-c_A`。価格0では返品率による境界を解けません。\n\n手元資金モードは `q_t=min(需要,floor(max(日初現金,0)/原価))`。原価は正、需要は整数。日初の現金で買える整数個数と潜在需要の小さい方を仕入れます。仕入支払→即日納品と販売→同日期待返金→家賃の順です。欠品は失注し、翌日に持ち越しません。日末現金が負なら局所破綻として停止し、翌日以降は取引も家賃も0です。原論文の10日規則とは違います。販売0の返品比率は未定義、端数の返品数は期待値で実顧客数ではありません。\n\n初期現金40・需要10・価格10・家賃35・2日では、A(原価4、返品15%)の現金は50→60、B(原価5、返品0%)は45→55。Bは単位粗利が高くても、仕入数量8→9に制約され逆転します。家賃80ではAは5→−70.5で2日目に停止します。両社の潜在需要を変えた結果ではありません。\n\n2026-10-16追記：今回の変更で該当HTML本文を再読した。上記PDFハッシュは保存済み記録を保持したもので、今回PDFの再取得・図の視覚確認・著者コード実行・報告表の再計算はしていない。\n\n金額境界は入力数値の標準的な十進表記を厳密な有理数として扱います。PythonはFraction、ブラウザはBigIntの分子・分母で日々の会計を保持します。購入可否に許容差を加えず、セント等への丸めも行いません。現金0.3・原価0.1なら3個、0.29999999999999993なら2個です。内部の厳密値を表示・JSONへ出す段階だけ通常の数値へ変換します。数値入力として読んだ後の十進値が対象であり、入力欄で表せる精度を超えた桁の保存は保証しません。\n\n保存形式schema 2には、教材仕様ID・版2.0.0、原典URL・版、指標や会計の規約を含めます。読込時はschema・教材ID・仕様版を照合し、inputsを再検証します。保存outputや説明メタデータは計算根拠にせず、現行の固定仕様で再計算・再出力します。旧schema 1や未知の仕様版を黙って読み替えません。署名付きの真正性証明ではありません。\n"
+        ]
+      ]
+    },
+    "papers/retailbench-long-horizon-store-agents/method.md": {
+      "before": {
+        "sha256": "5ac99ed17c3aa50fe5a55806ca108be933d899397459bf3ca0c1fcf306fbfcca",
+        "blob": "07603cb8175cfda8638e8e48f4ad140806c6bcb6"
+      },
+      "after": {
+        "sha256": "5d86288886987814557c9f0dad0a9dacfc1068d67fc4f683009af54eba4227ca",
+        "blob": "0e956a9e0c301c8af177460f19bcf6320e971cbd"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "店舗の需要やニュースの内部効果を直接には見られず、得られた情報から行動を選ぶ部分観測の意思決定過程として扱う。照会ツールで観測し、ReAct、Reflection、Plan-and-Actが発注・価格・棚を操作する。end_todayで入荷、販売、返品、経年、資金を更新する。Oracle Policyは特権情報を使う規則ベースの参照方策である。\n"
+        ],
+        [
+          2,
+          3,
+          "## 二つの局所会計を区別する\n"
+        ],
+        [
+          4,
+          5,
+          "原論文の診断は[§5.2・§5.3](https://arxiv.org/html/2603.16453v3#S5.SS2)。付録A.1は返品を収入から差し引き、A.2.8のplace_orderは発注時に仕入費用を支払います。A.4のOracle停止条件は負の現金10日連続です。以下は公式シミュレータの再実装ではありません。\n"
+        ],
+        [
+          6,
+          7,
+          "基本会計は単位粗利 `p*(1-r)-c`、日末現金 `C_t=C_(t-1)+q*粗利-R`。当日全額返金、返品物は廃棄、納期0、在庫持越0、期待値会計、借入無制限と仮定します。現金が負でも計算を続けるので、生存日数や純資産と呼びません。同点境界は `p*(r_A-r_B)=c_B-c_A`。価格0では返品率による境界を解けません。\n"
+        ],
+        [
+          8,
+          9,
+          "手元資金モードは `q_t=min(需要,floor(max(日初現金,0)/原価))`。原価は正、需要は整数。日初の現金で買える整数個数と潜在需要の小さい方を仕入れます。仕入支払→即日納品と販売→同日期待返金→家賃の順です。欠品は失注し、翌日に持ち越しません。日末現金が負なら局所破綻として停止し、翌日以降は取引も家賃も0です。原論文の10日規則とは違います。販売0の返品比率は未定義、端数の返品数は期待値で実顧客数ではありません。\n"
+        ],
+        [
+          10,
+          11,
+          "初期現金40・需要10・価格10・家賃35・2日では、A(原価4、返品15%)の現金は50→60、B(原価5、返品0%)は45→55。Bは単位粗利が高くても、仕入数量8→9に制約され逆転します。家賃80ではAは5→−70.5で2日目に停止します。両社の潜在需要を変えた結果ではありません。\n"
+        ],
+        [
+          12,
+          13,
+          "金額境界は入力数値の標準的な十進表記を厳密な有理数として扱います。PythonはFraction、ブラウザはBigIntの分子・分母で日々の会計を保持します。購入可否に許容差を加えず、セント等への丸めも行いません。現金0.3・原価0.1なら3個、0.29999999999999993なら2個です。内部の厳密値を表示・JSONへ出す段階だけ通常の数値へ変換します。数値入力として読んだ後の十進値が対象であり、入力欄で表せる精度を超えた桁の保存は保証しません。\n"
+        ],
+        [
+          14,
+          15,
+          "保存形式schema 2には、教材仕様ID・版2.0.0、原典URL・版、指標や会計の規約を含めます。読込時はschema・教材ID・仕様版を照合し、inputsを再検証します。保存outputや説明メタデータは計算根拠にせず、現行の固定仕様で再計算・再出力します。旧schema 1や未知の仕様版を黙って読み替えません。署名付きの真正性証明ではありません。\n"
+        ],
+        [
+          16,
+          23,
+          "手元資金モードの需要は、JavaScriptとPythonで共通して安全に扱える0〜9,007,199,254,740,991の整数に限る。上限を超える値や小数は入力エラーとし、失注の計算へ進めない。\n"
+        ]
+      ]
+    },
+    "papers/retailbench-long-horizon-store-agents/model.js": {
+      "before": {
+        "sha256": "d09b7453ca3321c4ebdd24d282ec364f0eba44031bf052004a9a2c98dd7e1c92",
+        "blob": "fe5c6a6089c85cb8d27eb9ed37ad89f451867f5a"
+      },
+      "after": {
+        "sha256": "7716ba82157c77198d6b408787c0887c02b0973ca7602a39eaa8b448e32dc065",
+        "blob": "93de8e959bad6e5ca19a8cfd4c2ad38239d3d1d0"
+      },
+      "prior_spans": [
+        [
+          22,
+          23,
+          "  if(d!==1n)throw Error('内部の十進金額形式が不正です。');\n"
+        ],
+        [
+          28,
+          33,
+          "  if(!['accounting','funded'].includes(x.mode)) throw Error('会計モードが不正です。');\n  if(!Number.isInteger(x.days)||x.days<1||x.days>365) throw Error('日数は1〜365の整数です。');\n  if(['price','demand','rent','cash','cost_a','cost_b'].some(k=>x[k]<0)) throw Error('価格・需要・家賃・初期現金・原価は0以上です。');\n  if(['return_a','return_b'].some(k=>x[k]<0||x[k]>1)) throw Error('返品率は0〜1です。');\n  if(x.mode==='funded' && (!Number.isSafeInteger(x.demand)||Math.min(x.cost_a,x.cost_b)<=0)) throw Error('手元資金モードの需要は0〜9007199254740991の整数、原価は正の値にしてください。');\n"
+        ]
+      ]
+    },
+    "papers/retailbench-long-horizon-store-agents/results.json": {
+      "before": {
+        "sha256": "b702e2a6fdd5cdb629ed53f7f1151b873176fdeb3254eb6cac6778063c50d54e",
+        "blob": "eaba1c700826d7e4ea9555be73c47d6bbfd70f97"
+      },
+      "after": {
+        "sha256": "f4c1fe372dedade57721253e4faca356cd38bfb48e8ba4fe92bcec5578a4e7ad",
+        "blob": "e7d5d4eddad2dfa3b3664a675d1ab6bec932f6dc"
+      },
+      "prior_spans": [
+        [
+          2298,
+          2300,
+          "    \"Artificial deterministic inputs; no LLM, lead time, aging, or news. Legacy frames and accounting mode do not stop at negative cash; funded mode uses a local immediate-stop rule, not the paper rule.\",\n    \"Final cash is not paper net worth; return rates are invented teaching assumptions.\"\n"
+        ]
+      ]
+    },
+    "papers/retailbench-long-horizon-store-agents/run.py": {
+      "before": {
+        "sha256": "d489bdcd7432782950d958ccc5fabc268ca35b16141acb22b14a54208e0aac2e",
+        "blob": "e0359d1112eb0acf04293b118abb6cf0019f638c"
+      },
+      "after": {
+        "sha256": "a058e96458bab0a838b38b957b68af7eed5b85acb4c2fcd4ab8f26fd6521ff4a",
+        "blob": "6aea502430bc14b3e149876893545b83014ccae5"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Deterministic teaching experiment; not the RetailBench simulator or an LLM run.\"\"\"\n"
+        ],
+        [
+          10,
+          11,
+          "    # Artificial two suppliers; identical demand, shelf capacity, and rent.\n"
+        ],
+        [
+          15,
+          16,
+          "        # Ten units of demand per managed product; at most 40 shelf positions.\n"
+        ],
+        [
+          63,
+          64,
+          "    # Canonical decimal values, exact internally: no budget epsilon or cents rounding.\n"
+        ],
+        [
+          112,
+          113,
+          "    # Independent accounting identity, across every simulated day and setting.\n"
+        ],
+        [
+          122,
+          123,
+          "              'limitations': ['Artificial deterministic inputs; no LLM, lead time, aging, or news. Legacy frames and accounting mode do not stop at negative cash; funded mode uses a local immediate-stop rule, not the paper rule.', 'Final cash is not paper net worth; return rates are invented teaching assumptions.']}\n"
+        ]
+      ]
+    }
+  }
+}
