@@ -132,3 +132,28 @@ def test_autolr_results_explain_two_distinct_counts_without_changing_metrics():
     assert "scope='row'>初回の測定だけで判定</th><td>46.685</td><td>0.395542</td><td>0</td><td>200</td>" in table
     assert "scope='row'>初回の測定に再評価を追加</th><td>0.04</td><td>0.000253</td><td>0</td><td>8</td>" in table
     assert metrics == json.loads(source.read_text())['experiments'][0]['metrics']
+
+
+def test_autolr_display_mapping_changes_only_autolr_and_rejects_unexpected_bytes():
+    import ast
+
+    from prose_preservation import before_autolr_full_prose
+
+    p = 'paper_lab/display_labels.py'
+    current = (ROOT / p).read_bytes()
+    previous = before_autolr_full_prose(ROOT, p, current)
+
+    def other_inputs(raw):
+        tree = ast.parse(raw)
+        mapping = next(n.value for n in tree.body if isinstance(n, ast.Assign)
+                       and isinstance(n.targets[0], ast.Name) and n.targets[0].id == 'LABELS')
+        pos = next(i for i, k in enumerate(mapping.keys) if k.value == IDS[2])
+        assert isinstance(mapping.values[pos], ast.Dict)
+        del mapping.keys[pos]
+        del mapping.values[pos]
+        return ast.dump(tree)
+
+    assert current != previous
+    assert other_inputs(current) == other_inputs(previous)
+    with pytest.raises(AssertionError):
+        before_autolr_full_prose(ROOT, p, current + b'\n')
