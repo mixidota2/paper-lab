@@ -73,7 +73,10 @@ for(const demand of [0,1,Number.MAX_SAFE_INTEGER-1,Number.MAX_SAFE_INTEGER]){
  const r=retail.evaluate({...retail.defaults,mode:'funded',demand,cash:1e20,cost_a:1,cost_b:1,price:0,rent:0,return_a:0,return_b:0,days:1});
  for(const s of r.suppliers){assert.equal(s.trace[0].sold,demand);assert.equal(s.trace[0].lost,0);}
 }
-for(const demand of [Number.MAX_SAFE_INTEGER+1,1000000000000000100,-1,.5])assert.throws(()=>retail.evaluate({...retail.defaults,mode:'funded',demand}),/0以上|0〜9007199254740991/);
+for(const demand of [Number.MAX_SAFE_INTEGER+1,1000000000000000100,.5]){
+ assert.throws(()=>retail.evaluate({...retail.defaults,mode:'funded',demand}),/潜在需要に0〜9,007,199,254,740,991の整数/);
+}
+assert.throws(()=>retail.evaluate({...retail.defaults,mode:'funded',demand:-1}),/0以上/);
 
 // Export uses current build evidence, never an imported packet's old evidence.
 for(const model of [reason,retail]){
