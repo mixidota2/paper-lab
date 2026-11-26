@@ -1,4 +1,4 @@
-"""Generate the deterministic synthetic choice and assortment example."""
+"""同じ4商品の例で、買い替え先の確率と品ぞろえの期待粗利を計算する。"""
 import itertools
 import json
 from pathlib import Path
@@ -12,7 +12,7 @@ MARGINS = {"A1": 5.1, "A2": 4.9, "B1": 4.4, "B2": 2.0}
 
 
 def shares(available, exponent):
-    """Two-level nested logit calibrated to 20% per option in the full set."""
+    """全商品が買えるとき、各商品と非購入の確率を20%ずつにそろえる。"""
     top_level = 0.2
     weights = {}
     for group in GROUPS:
@@ -47,11 +47,11 @@ def percentages(available):
 
 def result():
     scenarios = [
-        (PRODUCTS, "全4商品を並べると、どちらのモデルでも、顧客は各商品と「何も買わない」を20%ずつの確率で選びます。"),
-        (("A2", "B1", "B2"), "A1を外すと、階層なしのモデルよりも、ブランド別のモデルのほうが、同じブランドに残るA2を選ぶ確率が高くなります。"),
-        (("B1", "B2"), "ブランドAの全品を外すと、ブランドAには代わりの商品が残りません。この例では、残ったブランドBの商品と非購入の予測が両モデルで一致します。"),
-        (("A1", "A2"), "2品を残す案①では、同じブランドのA1とA2を並べます。"),
-        (("A1", "B1"), "2品を残す案②では、二つのブランドからA1とB1を1品ずつ並べます。"),
+        (PRODUCTS, "全4商品を並べると、二つのモデルとも各商品を選ぶ確率は20%ずつです。「何も買わない」も20%です。"),
+        (("A2", "B1", "B2"), "A1を外すと、同じブランドに残るA2を選ぶ確率は、階層なしよりブランド別のモデルのほうが高くなります。"),
+        (("B1", "B2"), "ブランドAをすべて外すと、Aから選べる商品はありません。ブランドBの2品を買う確率も、何も買わない確率も、二つのモデルで一致します。"),
+        (("A1", "A2"), "この案では、同じブランドのA1とA2だけを残します。"),
+        (("A1", "B1"), "この案では、ブランドAからA1、ブランドBからB1を残します。"),
     ]
     frames = []
     for number, (included, note) in enumerate(scenarios, 1):
@@ -63,7 +63,7 @@ def result():
                 {"label": f"{p}｜{LABELS[m]}", "value": data[m][p]}
                 for p in OPTIONS for m in MODELS
             ],
-            "note": f"{note} 来店1回当たりに見込む粗利（架空の単位）：{estimates}。",
+            "note": f"{note} 来店1回当たりの期待粗利（架空の単位）：{estimates}。",
         })
     return {
         "margins": MARGINS,
@@ -75,14 +75,14 @@ def result():
         },
         "experiments": [
             {
-                "name": "A1を外したときの予測",
-                "dataset": "Labが作った、4品と非購入を比べる例です。実店舗のデータは使っていません。",
+                "name": "A1を外すと、A2が選ばれる割合はどう変わるか",
+                "dataset": "Labが設定した架空の4商品と、何も買わない場合を比べます。実店舗のデータは使いません。",
                 "metrics": {"A2の予測割合（階層なし、%）": frames[1]["bars"][2]["value"],
                             "A2の予測割合（ブランド別、%）": frames[1]["bars"][3]["value"]},
             }
         ],
         "explorer": {
-            "label": "表示する例（1〜5）", "unit": "", "metric": "選ぶ確率（%）", "default": 0,
+            "label": "確かめる例（1〜5）", "unit": "", "metric": "選択確率（%）", "default": 0,
             "frames": frames,
         },
     }

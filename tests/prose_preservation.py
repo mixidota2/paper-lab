@@ -121,7 +121,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = ogr_full_prose_hash(root, path, expected, algorithm)
     expected = intervention_full_prose_hash(root, path, expected, algorithm)
     expected = vn2_full_prose_hash(root, path, expected, algorithm)
-    return assortment_full_prose_hash(root, path, expected, algorithm)
+    expected = assortment_full_prose_hash(root, path, expected, algorithm)
+    return hasterad_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -1279,3 +1280,28 @@ def before_assortment_full_prose(root, path, current):
     prior = ''.join(lines).encode()
     assert hashlib.sha256(prior).hexdigest() == row['before']['sha256'], path
     return prior
+
+
+def hasterad_full_prose_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/hasterad-retail-substitution/'):
+        return expected
+    row = json.loads((root / 'tests/hasterad_full_prose_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_hasterad_full_prose(root, path, current):
+    if not path.startswith('papers/hasterad-retail-substitution/'):
+        return current
+    row = json.loads((root / 'tests/hasterad_full_prose_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
