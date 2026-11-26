@@ -59,7 +59,7 @@ def experiment(data):
 
 
 def main():
-    results=dict(model_version=VERSION,note='全て合成値。原論文の近似アルゴリズムや実験表の再現ではない。',cases={n:experiment(case(n)) for n in ('T1','T2','T3','T4')})
+    results=dict(model_version=VERSION,note='入力は架空です。論文の近似手順や実験の表は再現していません。',cases={n:experiment(case(n)) for n in ('T1','T2','T3','T4')})
     t=case('T3');raw=evaluate(t,[1,0]);results['truncation_counterexample']=dict(original=raw,clipped_demand=10,clipped_profit=20,hard_optimum=1,same_problem=False)
     results['fixed_mu_example']=evaluate(case('T4'),[0,1,0])
     Path(__file__).with_name('results.json').write_text(json.dumps(results,ensure_ascii=False,indent=2)+'\n')
