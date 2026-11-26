@@ -1,0 +1,578 @@
+{
+  "files": {
+    "paper_lab/batch08.py": {
+      "before": {
+        "sha256": "1d079663c74d9d9e7180927bee13acb04bdc68621a858f819e1b919924d1e11b",
+        "blob": "50c97d1345fc0225b2b8bcec2ef2fe16f36ca429"
+      },
+      "after": {
+        "sha256": "ede12f233a1c6bbd58e89d06a2a0365f8c00dae3f08df6a8ea5abaee41ff4eed",
+        "blob": "0e3e4162fab7c4c3829df8d3c9f29812897e6769"
+      },
+      "prior_spans": [
+        [
+          86,
+          92,
+          "<h3>通信の意味を1往復ずつ追う</h3><div class=\"lanes\"><div>実行支援側（Harness）<br>役割・依存・再利用予定</div><div>推論処理側（Engine）<br>KV・待ち行列・資源の混雑状況</div></div>\n<div data-messages></div><button type=\"button\" data-next>次の通信へ</button> <button type=\"button\" data-reset>先頭へ</button><p class=\"eq\" data-force aria-live=\"polite\"></p>\n<p class=\"muted\">Fig.2 / Table 1–2を説明する模式例。規格で必須の通信順や通信データ形式（wire format）ではない。prefixは文脈の先頭部分、prepareは利用の準備、versionは文脈の版を表します。</p>\n<h3>平均を縮めても、キャッシュを再利用できず前処理が必要な要求の待ちは伸びる</h3>\n<p>FCFSは到着順、Cache-Awareはキャッシュを再利用できる要求を優先する方策です。Guardは長く待った要求の追い越しを止めます。TTFTは要求到着から最初のトークンが出るまでの時間です。</p>\n<div class=\"legend\"><span>緑：キャッシュを再利用</span><span>桃：再利用できず、古い保存状態（KV）を削除</span><span>下線：待機保護</span></div>\n"
+        ],
+        [
+          93,
+          97,
+          "<div class=\"plot\"><svg viewBox=\"0 0 600 220\" role=\"img\" aria-label=\"toyの平均と最大TTFT比較\" data-latency></svg></div>\n<p class=\"muted\">到着：B/Cは0、Aは0,2,…,30。1スロット、KVは1文脈。キャッシュを再利用できる場合の前処理は1、できない場合は6、出力生成は1人工秒。待機8秒で保護。Guardは締切保証ではない。</p>\n<h3>著者報告：SCBenchとMooncakeを混ぜない</h3>\n<label>表示する評価<select data-benchmark><option value=\"scbench\">SCBench：待機と再利用の交換条件</option><option value=\"mooncake\">Mooncake：100%負荷での逆転</option></select></label>\n"
+        ],
+        [
+          101,
+          102,
+          "const messages=[['実行内容と予定（Execution Description and Intent）','Aの文脈v3を次のtool完了後に再利用する見込み →',false,'意図 ≠ 制御：予定を伝えただけではKV保持を命じていない。'],['状態と対応機能（State and Capabilities）','← Aのprefixは今GPU上。prepare操作に対応',true,'観測 ≠ 保証：現在の所在は、次の要求時の予約ではない。'],['実行要件と制御（Execution Requirements and Control）','BのKV準備を要求。待機8秒後は追い越し禁止 →',false,'希望 ≠ 要件：cache優先という希望より、待機保護の要件が優先する。'],['実行結果（Execution Outcomes）','← prepare B: accepted（受理）',true,'受理 ≠ 完了：準備はまだ進行中。Bが使えると決めつけない。'],['実行結果（Execution Outcomes）','← prepare B: completed（完了）、文脈versionを確認',true,'完了を確認してから利用する。拒否（rejected）／未対応（unsupported）／失敗（failed）は別の結果として扱う。']];let step=0;\n"
+        ],
+        [
+          103,
+          107,
+          "const names={fcfs:'FCFS',cache:'Cache-Aware',cache_guard:'Cache-Aware + Guard'};$('[data-timelines]').innerHTML=Object.entries(d.cases).map(([k,v])=>`<h4>${names[k]} ／ 完了 ${v.batch}人工秒</h4><div>${v.trace.map((t,i)=>`<button type=\"button\" class=\"request ${t.hit?'hit':''} ${t.guarded?'guard':''}\" data-policy=\"${k}\" data-event-index=\"${i}\" aria-label=\"${names[k]}の${t.id}、開始${t.start}秒\">${t.id}<br>${t.start}–${t.end}</button>`).join('')}</div>`).join('');\nfunction event(k,i){root.querySelectorAll('.request').forEach(b=>b.classList.toggle('selected',b.dataset.policy===k && +b.dataset.eventIndex===i));let t=d.cases[k].trace[i];$('[data-event]').innerHTML=`<b>${names[k]} / ${t.id}</b><p>開始 ${t.start} → 最初のトークン ${t.first} → 完了 ${t.end}。TTFT ${t.ttft}、待機 ${t.wait}人工秒。</p><p>実行前に保存された状態（KV）：${t.cache_before}。${t.hit?'再利用できた。':t.evicted+'を削除して前処理をやり直す。'} ${t.guarded?'待機保護を適用。':'待機保護なし。'}</p>`;}root.querySelectorAll('[data-event-index]').forEach(b=>b.addEventListener('click',()=>event(b.dataset.policy,+b.dataset.eventIndex)));event('fcfs',0);\nlet s=txt(5,18,'TTFT（人工秒）'),x=v=>210+v*7;Object.entries(d.cases).forEach(([k,c],i)=>{let y=48+i*58;s+=txt(5,y+8,names[k])+`<rect x=\"210\" y=\"${y-9}\" width=\"${c.mean_ttft*7}\" height=\"12\" fill=\"#176d79\"/><rect x=\"210\" y=\"${y+7}\" width=\"${c.max_ttft*7}\" height=\"12\" fill=\"#b96335\"/>`+txt(x(c.mean_ttft)+5,y+1,f(c.mean_ttft))+txt(x(c.max_ttft)+5,y+19,c.max_ttft);});s+=txt(210,218,'緑：平均　橙：最大');$('[data-latency]').innerHTML=s;\nfunction paper(){let sc=$('[data-benchmark]').value==='scbench';let cols=sc?['構成','TTFT中央値（秒）','TTFTの95パーセンタイル（秒）','最大TTFT（秒）','全要求の処理時間（秒）','KV再利用率（%）']:['構成','TTFT中央値（秒）','1分当たりの処理ターン数'];$('[data-paper-head]').innerHTML='<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';$('[data-paper-rows]').innerHTML=(sc?d.paper.scbench:d.paper.mooncake_100).map(r=>'<tr>'+r.map((x,i)=>i?`<td>${x}</td>`:`<th>${x}</th>`).join('')+'</tr>').join('');$('[data-paper-note]').textContent=sc?'Table 3：87.6%と63.1→4.6秒はSCBench。guardなしの最大TTFTは79.0→93.9秒と悪化。':'Table 4：100%負荷ではSession+Cache+GuardのthroughputがFCFSを下回る。再利用の意図だけで混雑を解決できない。';}$('[data-benchmark]').addEventListener('change',paper);paper();\n"
+        ]
+      ]
+    },
+    "papers/hear-harness-engine-serving-protocol/README.md": {
+      "before": {
+        "sha256": "7c16f38c1d2408515614459e0c67ad21dd8c63bb0a8038a0ab5af09f236c0bdc",
+        "blob": "d364a28f56dad1f17b4bb82d0ccf3b61d3c0de08"
+      },
+      "after": {
+        "sha256": "a696f132ec6e5a524474796d064a36b77c80eddcba3780c178a6d1cef1734777",
+        "blob": "f71d9f61e8c35c5c23845b9c6dc1e82bfec8456c"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "## Overview — 概要\n"
+        ],
+        [
+          8,
+          9,
+          "## Problem — 問題設定\n"
+        ],
+        [
+          10,
+          11,
+          "harnessは次に必要な文脈と依存関係を知るが、GPUにそのKVが残っているかは知らない。engineはキャッシュや待ち行列を知るが、ツールの完了を待つエージェントがすぐ戻るかは知らない。この情報の分断により、再利用する直前のキャッシュを削除したり、キャッシュを再利用できる要求を待たせて、再計算が必要な要求を先に処理したりすることがある。\n"
+        ],
+        [
+          12,
+          13,
+          "「後で使う」という予測を「必ず保持せよ」と解釈すると、今度は混雑時に資源を塞ぐ。情報の種類だけでなく、要求なのか希望なのかを区別する必要がある。\n"
+        ],
+        [
+          14,
+          15,
+          "## Core Idea — 著者の主張とLabの解釈\n"
+        ],
+        [
+          16,
+          17,
+          "著者の主張：HEARは要求・文脈の版（version）・推論を担当する実体（serving instance）へ紐づく双方向の意味規約を用意し、最適化方策から切り離す。cache-aware調整と役割別の実行構成選択で、同じ規約を使った効率改善を示した（§3–4）。\n"
+        ],
+        [
+          18,
+          19,
+          "本Labの解釈：Parrot、KVFlow、PBKV、Pythiaなどにも管理側と推論側の情報を利用する仕組みはある。HEARの焦点は、特定の処理順序の規則（scheduler）を標準にすることより、意図・状態・制御・実行結果を同じ意味で接続することにある。[関連するharness費用Lab](harness-buys-tokens-not-pass-rate.html)と合わせると、harnessは毎stepの入力を増やす側にも、再計算を減らす情報を渡す側にもなりうる。\n"
+        ],
+        [
+          20,
+          21,
+          "## モデルと式\n"
+        ],
+        [
+          22,
+          23,
+          "### 4種類のメッセージ\n"
+        ],
+        [
+          24,
+          25,
+          "Harness→EngineのExecution Description and Intentは、役割、準備完了、依存関係、文脈の寿命、明示的に予測とした再利用予定を伝える。Execution Requirements and Controlは、待機制約、保持・準備・解放、実行構成を要求する。\n"
+        ],
+        [
+          26,
+          27,
+          "Engine→HarnessのState and Capabilitiesは、KVの所在、待ち行列、資源の混雑状況、対応操作を返す。Execution Outcomesは、受理（accepted）、完了（completed）、拒否（rejected）、未対応（unsupported）、失敗（failed）と実際の構成・再利用・費用を返す（Table 1）。\n"
+        ],
+        [
+          28,
+          29,
+          "Table 2は、メッセージが相手に何を求め、何を保証するか（message force）を4対で整理する。状態の説明を送っても、操作を命じたことにはならない。希望は可能な範囲で応じるbest effortだが、要件は実行時に守る制約となる。また、状態の観測結果は資源の予約を保証せず、要求の受理も処理の完了を意味しない。満たせない要件は拒否するか、明示的に許された代替を使う。\n"
+        ],
+        [
+          30,
+          31,
+          "### 方策は2つの時間粒度で動く\n"
+        ],
+        [
+          32,
+          33,
+          "Eq.1の`dᵢ=π(hᵢ,sⱼ)`は、harness情報hと最新の関連engine状態sから実行を決める。jとiは同時刻とは限らない。cache-aware方策では先頭から連続する再利用可能な部分（prefix）が50%以上ならhotとし、再利用できる保存単位（block）の多い要求を優先する。Guard-WはW秒待った要求を保護し、後続hot要求の追い越しを止める。完了時刻をW以内に収める保証ではない。\n"
+        ],
+        [
+          34,
+          35,
+          "MooncakeのSession-Awareは別の保持方策で、完了済み会話から推定した継続確率pと処理していない時間（idle）を用いて`r=p exp(−idle/400)`で保持優先度を決める。意図を保持命令とは扱わない。\n"
+        ],
+        [
+          36,
+          37,
+          "役割別選択は`{vLLM, OmniKV} × {vLLM, H2O, SnapKV}`の6構成を開発時に測る。品質・安定性の条件を満たすことを確認した後、全体が完了するまでの時間（makespan）が小さい組を固定する。BrowseComp-Plusは(vLLM,H2O)、DeepResearchBenchは(OmniKV,H2O)。正式評価の結果から後付けで選ばない。\n"
+        ],
+        [
+          38,
+          39,
+          "## Why It Might Work — 解釈\n"
+        ],
+        [
+          40,
+          41,
+          "解釈：既にあるKVを使えば入力を処理する計算（prefill）を減らせるが、再利用しやすいhot要求だけを先にすると、再利用しにくいcold要求が待ち続ける。engine状態は再利用機会を教え、harnessの待機要件はその利用に制限を付ける。この両方を表現できる点が効率と応答性の調整に役立つ。\n"
+        ],
+        [
+          42,
+          43,
+          "役割別には、長い出力ほど実行モード固有の準備費用を回収しやすい。GLM-4.7-FlashのMain出力はBrowseComp-Plusで約0.4K、DeepResearchBenchで約4.4K token。すべての役割へ同じKV圧縮構成を当てる理由はない。\n"
+        ],
+        [
+          44,
+          45,
+          "## Evidence — 著者報告\n"
+        ],
+        [
+          46,
+          47,
+          "[一次資料：原論文 Table 3–6 / Appendix A–B](https://arxiv.org/pdf/2610.06597v1)の著者報告。SCBench/MooncakeはQwen3-8B、調査タスク群はLangGraphとGLM-4.7-Flashを使う。記録した同じ要求軌跡を再生し、処理順序の違いと生成内容の変化を混同しない。\n"
+        ],
+        [
+          48,
+          49,
+          "| SCBench | TTFT中央値 / P95 / 最大 秒 | 全要求の処理時間 秒 | KV再利用 % |\n| --- | --- | --- | --- |\n| FCFS | 63.1 / 74.2 / 79.0 | 481 | 19.2 |\n| Cache-Aware | 4.6 / 75.8 / 93.9 | 224 | 87.6 |\n| + Guard-40 | 28.3 / 51.1 / 65.0 | 299 | 66.1 |\n| + Guard-60 | 4.5 / 64.0 / 80.4 | 230 | 84.7 |\n"
+        ],
+        [
+          50,
+          51,
+          "**出典訂正：87.6%、63.1→4.6秒、481→224秒はSCBenchのTable 3であり、Mooncakeではない。** guardなしでは中央値と全要求の処理時間が良くなる一方、最大TTFTは悪化する。\n"
+        ],
+        [
+          52,
+          53,
+          "Mooncakeの50%負荷ではSession-Awareが再利用を19.5→31.9%へ改善。75%では組合せが有利だが、100%負荷でSession+Cache+Guardの毎分の処理ターン数は108.9 turns/minとなりFCFSの122.7を下回る。Cache-Aware単独は128.3、中央値TTFTは163.9→86.8秒。混雑下で同じ組合せが常に勝つわけではない。\n"
+        ],
+        [
+          54,
+          55,
+          "BrowseComp-Plus（208問）は5.69→4.62時間、1.23倍、Judge正答率46.15→46.63%。DeepResearchBench（100件）は5.93→2.42時間、2.45倍、RACE 40.6→41.1。開発時の構成探索費用は正式E2E時間に含まれない。\n"
+        ],
+        [
+          56,
+          62,
+          "## Executable Understanding — 実行可能な理解\n"
+        ],
+        [
+          63,
+          64,
+          "時刻0にキャッシュのない文脈B/Cの要求、2人工秒ごとにキャッシュを持つ文脈Aの要求が来る。1スロットのengineで、KVは1文脈だけ保持する。キャッシュ再利用時の入力処理は1、再利用できない場合は6、出力生成は1人工秒。到着順のFCFS、キャッシュ優先、キャッシュ優先+8秒guardを同じ到着列で比べる。\n"
+        ],
+        [
+          65,
+          66,
+          "時間軸の各要求を選ぶと、実行前のKV、追い出し、最初のtoken、待機保護が見える。上の通信図では、受理と完了を別の段階として進める。通信図は意味の説明、時間軸はPythonの実行結果である。\n"
+        ],
+        [
+          67,
+          68,
+          "## Results — 最小実験の結果\n"
+        ],
+        [
+          69,
+          70,
+          "toyではFCFSの平均/最大TTFTは18.83/20、cache優先は5.50/45、guard付きは15.50/21人工秒だった。guardはcold要求の長い待機を抑えたが、全体をFCFSより速くする保証ではない。全要求の処理時間は51/46/51で、待機保護を付けた場合と再利用を優先した場合の違いが見える。\n"
+        ],
+        [
+          71,
+          72,
+          "## What We Verified — 確認できた範囲\n"
+        ],
+        [
+          73,
+          74,
+          "CONFIRMED：同じ到着列の全要求を一度ずつ処理し、到着前には実行しない。cache優先で平均が下がり最大が増える例、guardで古いcold要求の待機を抑える例を確認した。\n"
+        ],
+        [
+          75,
+          76,
+          "PARTIAL：待機と再利用の仕組みだけを実行した。HEAR全体、prefix block、複数GPU、非同期状態更新、Session-Aware保持方策を実装したものではない。\n"
+        ],
+        [
+          77,
+          78,
+          "## What We Did NOT Verify — 未検証\n"
+        ],
+        [
+          79,
+          80,
+          "NOT TESTED：実LLM、GPU、KV圧縮、実際のprotocol adapter、4ベンチマークの再現、本番運用、古い状態通知や故障時の正しさ。論文の品質指標は限られたタスク群で低下を観測しなかったという結果であり、E2Eの正しさや同等性の保証ではない。公式リンクは匿名公開先で、今回の取得では内容を確認できなかった。固定版コードの実行はしていない。\n"
+        ],
+        [
+          81,
+          82,
+          "## Implementation — 実行方法\n"
+        ],
+        [
+          83,
+          98,
+          "リポジトリ直下で実行する。Python標準ライブラリだけを使い、APIへは接続しない。\n"
+        ],
+        [
+          104,
+          105,
+          "lab.yamlとREADME.mdが説明、run.pyとresults.jsonが実験、mapping.mdが原典との対応を保持する。HTMLはビルドで生成し、直接編集しない。\n"
+        ],
+        [
+          106,
+          107,
+          "## Original Paper / Official Code Mapping\n"
+        ],
+        [
+          108,
+          109,
+          ""
+        ],
+        [
+          110,
+          111,
+          "一次資料：[arXiv 2610.06597v1](https://arxiv.org/pdf/2610.06597v1)。2026-10-08照合。PDF SHA-256: `ecdc8cdbeb1f3e93579141278a920ac9009f737785373af5a6694d2c122d3d0c`。\n"
+        ],
+        [
+          112,
+          113,
+          "| 原典 | Lab | 境界 |\n"
+        ],
+        [
+          114,
+          118,
+          "| Table 1–2 / Fig.2 | 通信図 | 4種類のメッセージの意味と受理/完了の違いを段階表示。通信データ形式（wire format）の実装ではない。 |\n| §4.2 / Appendix A.2 | schedule() | hot優先と待機保護を単一スロットで縮約。全prefix一致のtoy。 |\n| Table 3–6 | lab.yaml / results.jsonのpaper | SCBenchとMooncakeを別の系列で保存。独立再現ではない。 |\n| Eq.4–5 / Appendix A.1 | method節 | 6構成の役割別選択を説明。GPU/KVモードの実装は省略。 |\n"
+        ],
+        [
+          119,
+          120,
+          "公式コード：[著者がPDFで案内した公開先](https://anonymous.4open.science/r/hear-3D1E/)。本Labはこのコードを実行・監査していない。\n\n匿名公開先は今回の取得で内容を確認できなかった。コード内の関数や固定revisionとの対応はNOT TESTEDとする。\n"
+        ]
+      ]
+    },
+    "papers/hear-harness-engine-serving-protocol/lab.yaml": {
+      "before": {
+        "sha256": "ec0e566df2dcfbd1127bca9f17006ffa65ffac86eb2f6fedcac22b3e364aedbc",
+        "blob": "4a5ef7530c3515a0d674b2cb3329344e7fb7feb6"
+      },
+      "after": {
+        "sha256": "dc1fd2c8f58f94f5f8c85587b11f54922aaa62a4f751eed7adde112c50080fa2",
+        "blob": "ef1c6a69c9e130bb23207368afcb78f1b6fcafc2"
+      },
+      "prior_spans": [
+        [
+          23,
+          25,
+          "summary: Radar：エージェントの実行を管理するharnessと、モデルの推論を処理するengineが情報を交換する。harnessは文脈の再利用予定を、engineは推論の中間計算を保存するKVキャッシュの現在の状態を伝える。 HEARは両者が交換する内容と、各メッセージの効力を定めるプロトコルである。SCBenchでは待機保護付きの方策が全要求の処理を1.61倍速め、要求到着から最初のtokenまでの時間（TTFT）の中央値を2.23倍、P95を1.45倍改善した。P95は、時間の短い順に並べたときの95パーセンタイルを指す。\nquestion: 再利用の予定と現在のKV状態をどう接続するか\n"
+        ],
+        [
+          34,
+          35,
+          "  scope: 本文とAppendix A–Bを照合。SCBench/Mooncakeの誤帰属を訂正。\n"
+        ],
+        [
+          37,
+          39,
+          "  author_claim: 著者の主張：HEARは要求・文脈の版（version）・推論を担当する実体（serving instance）へ紐づく双方向の意味規約を用意し、最適化方策から切り離す。cache-aware調整と役割別の実行構成選択で、同じ規約を使った効率改善を示した（§3–4）。\n  research_bot_interpretation: 本Labの解釈：Parrot、KVFlow、PBKV、Pythiaなどにも管理側と推論側の情報を利用する仕組みはある。HEARの焦点は、特定の処理順序の規則（scheduler）を標準にすることより、意図・状態・制御・実行結果を同じ意味で接続することにある。[関連するharness費用Lab](harness-buys-tokens-not-pass-rate.html)と合わせると、harnessは毎stepの入力を増やす側にも、再計算を減らす情報を渡す側にもなりうる。\n"
+        ],
+        [
+          44,
+          46,
+          "  problem: 'harnessは次に必要な文脈と依存関係を知るが、GPUにそのKVが残っているかは知らない。engineはキャッシュや待ち行列を知るが、ツールの完了を待つエージェントがすぐ戻るかは知らない。この情報の分断により、再利用する直前のキャッシュを削除したり、キャッシュを再利用できる要求を待たせて、再計算が必要な要求を先に処理したりすることがある。\n"
+        ],
+        [
+          47,
+          51,
+          ""
+        ],
+        [
+          52,
+          55,
+          "    「後で使う」という予測を「必ず保持せよ」と解釈すると、今度は混雑時に資源を塞ぐ。情報の種類だけでなく、要求なのか希望なのかを区別する必要がある。'\n  method: method.md\n  why_it_might_work: '解釈：既にあるKVを使えば入力を処理する計算（prefill）を減らせるが、再利用しやすいhot要求だけを先にすると、再利用しにくいcold要求が待ち続ける。engine状態は再利用機会を教え、harnessの待機要件はその利用に制限を付ける。この両方を表現できる点が効率と応答性の調整に役立つ。\n"
+        ],
+        [
+          56,
+          57,
+          ""
+        ],
+        [
+          58,
+          64,
+          "    役割別には、長い出力ほど実行モード固有の準備費用を回収しやすい。GLM-4.7-FlashのMain出力はBrowseComp-Plusで約0.4K、DeepResearchBenchで約4.4K token。すべての役割へ同じKV圧縮構成を当てる理由はない。'\n  evidence: '[一次資料：原論文 Table 3–6 / Appendix A–B](https://arxiv.org/pdf/2610.06597v1)の著者報告。SCBench/MooncakeはQwen3-8B、調査タスク群はLangGraphとGLM-4.7-Flashを使う。記録した同じ要求軌跡を再生し、処理順序の違いと生成内容の変化を混同しない。\n"
+        ],
+        [
+          65,
+          66,
+          ""
+        ],
+        [
+          67,
+          68,
+          "    | SCBench | TTFT中央値 / P95 / 最大 秒 | 全要求の処理時間 秒 | KV再利用 % |\n"
+        ],
+        [
+          69,
+          70,
+          "    | --- | --- | --- | --- |\n"
+        ],
+        [
+          71,
+          72,
+          "    | FCFS | 63.1 / 74.2 / 79.0 | 481 | 19.2 |\n"
+        ],
+        [
+          73,
+          74,
+          "    | Cache-Aware | 4.6 / 75.8 / 93.9 | 224 | 87.6 |\n"
+        ],
+        [
+          75,
+          78,
+          "    | + Guard-40 | 28.3 / 51.1 / 65.0 | 299 | 66.1 |\n"
+        ],
+        [
+          79,
+          80,
+          "    | + Guard-60 | 4.5 / 64.0 / 80.4 | 230 | 84.7 |\n"
+        ],
+        [
+          81,
+          90,
+          "\n    **出典訂正：87.6%、63.1→4.6秒、481→224秒はSCBenchのTable 3であり、Mooncakeではない。** guardなしでは中央値と全要求の処理時間が良くなる一方、最大TTFTは悪化する。\n\n\n    Mooncakeの50%負荷ではSession-Awareが再利用を19.5→31.9%へ改善。75%では組合せが有利だが、100%負荷でSession+Cache+Guardの毎分の処理ターン数は108.9 turns/minとなりFCFSの122.7を下回る。Cache-Aware単独は128.3、中央値TTFTは163.9→86.8秒。混雑下で同じ組合せが常に勝つわけではない。\n\n\n    BrowseComp-Plus（208問）は5.69→4.62時間、1.23倍、Judge正答率46.15→46.63%。DeepResearchBench（100件）は5.93→2.42時間、2.45倍、RACE\n    40.6→41.1。開発時の構成探索費用は正式E2E時間に含まれない。'\n  executable_understanding: '時刻0にキャッシュのない文脈B/Cの要求、2人工秒ごとにキャッシュを持つ文脈Aの要求が来る。1スロットのengineで、KVは1文脈だけ保持する。キャッシュ再利用時の入力処理は1、再利用できない場合は6、出力生成は1人工秒。到着順のFCFS、キャッシュ優先、キャッシュ優先+8秒guardを同じ到着列で比べる。\n\n\n    時間軸の各要求を選ぶと、実行前のKV、追い出し、最初のtoken、待機保護が見える。上の通信図では、受理と完了を別の段階として進める。通信図は意味の説明、時間軸はPythonの実行結果である。'\n  results: toyではFCFSの平均/最大TTFTは18.83/20、cache優先は5.50/45、guard付きは15.50/21人工秒だった。guardはcold要求の長い待機を抑えたが、全体をFCFSより速くする保証ではない。全要求の処理時間は51/46/51で、待機保護を付けた場合と再利用を優先した場合の違いが見える。\n  what_we_verified: 'CONFIRMED：同じ到着列の全要求を一度ずつ処理し、到着前には実行しない。cache優先で平均が下がり最大が増える例、guardで古いcold要求の待機を抑える例を確認した。\n\n\n    PARTIAL：待機と再利用の仕組みだけを実行した。HEAR全体、prefix block、複数GPU、非同期状態更新、Session-Aware保持方策を実装したものではない。'\n  what_we_did_not_verify: NOT TESTED：実LLM、GPU、KV圧縮、実際のprotocol adapter、4ベンチマークの再現、本番運用、古い状態通知や故障時の正しさ。論文の品質指標は限られたタスク群で低下を観測しなかったという結果であり、E2Eの正しさや同等性の保証ではない。公式リンクは匿名公開先で、今回の取得では内容を確認できなかった。固定版コードの実行はしていない。\n  implementation: 'リポジトリ直下で実行する。Python標準ライブラリだけを使い、APIへは接続しない。\n\n"
+        ],
+        [
+          92,
+          92,
+          "\n"
+        ],
+        [
+          93,
+          93,
+          "\n"
+        ],
+        [
+          94,
+          94,
+          "\n"
+        ],
+        [
+          96,
+          97,
+          "\n    lab.yamlとREADME.mdが説明、run.pyとresults.jsonが実験、mapping.mdが原典との対応を保持する。HTMLはビルドで生成し、直接編集しない。'\n"
+        ],
+        [
+          101,
+          102,
+          "  title: 相手の発言が何を保証するかを分ける\n"
+        ],
+        [
+          104,
+          105,
+          "  caption: メッセージの種類だけでは効力は決まらない。\n"
+        ],
+        [
+          106,
+          107,
+          "  rationale: メッセージの種類だけでは効力は決まらない。\n"
+        ],
+        [
+          108,
+          109,
+          "  - label: Harness → Engine\n"
+        ],
+        [
+          110,
+          115,
+          "    - title: Description / Intent\n      text: 状態説明・再利用の予測\n    - title: Requirements / Control\n      text: 明示的な操作要求・待機制約\n  - label: Engine → Harness\n"
+        ],
+        [
+          116,
+          120,
+          "    - title: State / Capabilities\n      text: 観測時点の状態・対応する操作\n    - title: Outcomes\n      text: 受理・完了・拒否・未対応・失敗\n"
+        ],
+        [
+          122,
+          123,
+          "  title: 役割とタスクで選ぶKV構成が変わる\n"
+        ],
+        [
+          125,
+          126,
+          "  caption: 正式評価前に凍結した構成。常に圧縮を強める方策ではない。\n"
+        ],
+        [
+          127,
+          128,
+          "  rationale: 正式評価前に凍結した構成。常に圧縮を強める方策ではない。\n"
+        ],
+        [
+          129,
+          132,
+          "  - Main / Reader\n  - Main出力\n  - 時間の著者報告\n"
+        ],
+        [
+          136,
+          137,
+          "    - 約0.4K token\n"
+        ],
+        [
+          141,
+          142,
+          "    - 約4.4K token\n"
+        ]
+      ]
+    },
+    "papers/hear-harness-engine-serving-protocol/mapping.md": {
+      "before": {
+        "sha256": "3e41b44e0f0cf04cb1212b7e458d8f8ec5a2fc964f949f69842e8eb39e176692",
+        "blob": "157b77043d10ab120794bd1c1254e2926c5a90d5"
+      },
+      "after": {
+        "sha256": "2e5ee36cdb4cfbc8a0048a069830a2d1a46f5307e60f102a5ad2ee1f9f7c6936",
+        "blob": "cc74433c311d7fcb21b2a8726106bf8b46e116c7"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文と最小実験の対応\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料：[arXiv 2610.06597v1](https://arxiv.org/pdf/2610.06597v1)。2026-10-08照合。PDF SHA-256: `ecdc8cdbeb1f3e93579141278a920ac9009f737785373af5a6694d2c122d3d0c`。\n"
+        ],
+        [
+          4,
+          5,
+          "| 原典 | Lab | 境界 |\n"
+        ],
+        [
+          6,
+          10,
+          "| Table 1–2 / Fig.2 | 通信図 | 4種類のメッセージの意味と受理/完了の違いを段階表示。通信データ形式（wire format）の実装ではない。 |\n| §4.2 / Appendix A.2 | schedule() | hot優先と待機保護を単一スロットで縮約。全prefix一致のtoy。 |\n| Table 3–6 | lab.yaml / results.jsonのpaper | SCBenchとMooncakeを別の系列で保存。独立再現ではない。 |\n| Eq.4–5 / Appendix A.1 | method節 | 6構成の役割別選択を説明。GPU/KVモードの実装は省略。 |\n"
+        ],
+        [
+          11,
+          12,
+          "公式コード：[著者がPDFで案内した公開先](https://anonymous.4open.science/r/hear-3D1E/)。本Labはこのコードを実行・監査していない。\n\n匿名公開先は今回の取得で内容を確認できなかった。コード内の関数や固定revisionとの対応はNOT TESTEDとする。\n"
+        ]
+      ]
+    },
+    "papers/hear-harness-engine-serving-protocol/method.md": {
+      "before": {
+        "sha256": "ace142a93dede5f66aa2ff9729cc5b10cb9b93f378374f9604ed1f044abd4f59",
+        "blob": "291ccb85161255b7c62b8d4c3d9da6a62788ca89"
+      },
+      "after": {
+        "sha256": "38fb722c2958c049668239b4537f225ddc44d26f625e1cec33adb8f97b401fb8",
+        "blob": "e427641670b529ec49dc45f46c70576c7c87a02e"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 4種類のメッセージ\n"
+        ],
+        [
+          2,
+          3,
+          "Harness→EngineのExecution Description and Intentは、役割、準備完了、依存関係、文脈の寿命、明示的に予測とした再利用予定を伝える。Execution Requirements and Controlは、待機制約、保持・準備・解放、実行構成を要求する。\n"
+        ],
+        [
+          4,
+          5,
+          "Engine→HarnessのState and Capabilitiesは、KVの所在、待ち行列、資源の混雑状況、対応操作を返す。Execution Outcomesは、受理（accepted）、完了（completed）、拒否（rejected）、未対応（unsupported）、失敗（failed）と実際の構成・再利用・費用を返す（Table 1）。\n"
+        ],
+        [
+          6,
+          7,
+          "Table 2は、メッセージが相手に何を求め、何を保証するか（message force）を4対で整理する。状態の説明を送っても、操作を命じたことにはならない。希望は可能な範囲で応じるbest effortだが、要件は実行時に守る制約となる。また、状態の観測結果は資源の予約を保証せず、要求の受理も処理の完了を意味しない。満たせない要件は拒否するか、明示的に許された代替を使う。\n"
+        ],
+        [
+          8,
+          9,
+          "### 方策は2つの時間粒度で動く\n"
+        ],
+        [
+          10,
+          11,
+          "Eq.1の`dᵢ=π(hᵢ,sⱼ)`は、harness情報hと最新の関連engine状態sから実行を決める。jとiは同時刻とは限らない。cache-aware方策では先頭から連続する再利用可能な部分（prefix）が50%以上ならhotとし、再利用できる保存単位（block）の多い要求を優先する。Guard-WはW秒待った要求を保護し、後続hot要求の追い越しを止める。完了時刻をW以内に収める保証ではない。\n"
+        ],
+        [
+          12,
+          13,
+          "MooncakeのSession-Awareは別の保持方策で、完了済み会話から推定した継続確率pと処理していない時間（idle）を用いて`r=p exp(−idle/400)`で保持優先度を決める。意図を保持命令とは扱わない。\n"
+        ],
+        [
+          14,
+          21,
+          "役割別選択は`{vLLM, OmniKV} × {vLLM, H2O, SnapKV}`の6構成を開発時に測る。品質・安定性の条件を満たすことを確認した後、全体が完了するまでの時間（makespan）が小さい組を固定する。BrowseComp-Plusは(vLLM,H2O)、DeepResearchBenchは(OmniKV,H2O)。正式評価の結果から後付けで選ばない。\n"
+        ]
+      ]
+    },
+    "papers/hear-harness-engine-serving-protocol/results.json": {
+      "before": {
+        "sha256": "b6954003b9344ea4749f8713fef08512a2100d45d610f6e6dbec51481f494e1c",
+        "blob": "052e24ebd6d8b3c01f9fa4276e4a4c6520a34d69"
+      },
+      "after": {
+        "sha256": "d3b1bfd6c6a05198d9a0472dcad497053f6de3d294fef2b4956812bf82a0df0f",
+        "blob": "73555a1c51300c5b75563c60ee1d9f36351459b6"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "  \"note\": \"人工秒・1スロット・KV 1文脈のtoy。guardは待機後の追い越しを止める規則であり、TTFTの絶対上限ではない。\",\n"
+        ]
+      ]
+    },
+    "papers/hear-harness-engine-serving-protocol/run.py": {
+      "before": {
+        "sha256": "a8b408415b9fdafa8571c10f72227e445d98ee9ff57f86ed2a72a9c4f1a12577",
+        "blob": "3899ee23a164d61341e767d7690f428c9956ff6f"
+      },
+      "after": {
+        "sha256": "ca7d730d5e27859fa46c7510792240569e0b9d947797698fe042b0c5265cf3bc",
+        "blob": "0f67e8aff7ff522edb87c9f05fa2d3ba58d6fa7c"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Non-preemptive single-slot discrete event queue; cache costs are artificial seconds.\"\"\"\n"
+        ],
+        [
+          6,
+          7,
+          "    # All ready at t=0: warm A calls compete against two older cold requests.\n"
+        ],
+        [
+          38,
+          39,
+          "    # Guard protects the older cold requests, not a global TTFT deadline.\n"
+        ],
+        [
+          42,
+          43,
+          "    result={'lab_kind':'hear08','note':'人工秒・1スロット・KV 1文脈のtoy。guardは待機後の追い越しを止める規則であり、TTFTの絶対上限ではない。','cases':cases,'experiments':[{'name':p,'metrics':{k:v for k,v in c.items() if k!='trace'}} for p,c in cases.items()]}\n"
+        ]
+      ]
+    }
+  }
+}
