@@ -9,7 +9,7 @@ import subprocess
 import pytest
 import yaml
 
-from prose_preservation import restored_before_paper_overview, wholefoods_full_rewrite_hash
+from prose_preservation import before_apollopfn_full_prose, restored_before_paper_overview, wholefoods_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = 'papers/whole-foods-shelf'
@@ -39,7 +39,8 @@ def test_rewrite_retains_source_urls_equations_metadata_and_code():
         assert all(x[k] == y[k] for k in ('id','kind','after','source','locator'))
         assert [s['formula'] for s in x.get('steps',())] == [s['formula'] for s in y.get('steps',())]
     for path in (f'{SLUG}/run.py', f'{SLUG}/results.json', 'papers/_toy_common.py'):
-        assert (ROOT / path).read_bytes() == historical(path)
+        current = before_apollopfn_full_prose(ROOT, path, (ROOT / path).read_bytes())
+        assert current == historical(path)
     evidence = b['sections']['evidence']
     assert all(x in evidence for x in ('改装で7.5%','新店設計で6.7%','シミュレーション','信頼区間がない','等分50/50','店舗で売上が増えた証拠ではない'))
 
