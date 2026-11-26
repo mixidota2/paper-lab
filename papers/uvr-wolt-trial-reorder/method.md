@@ -1,13 +1,23 @@
-### 国ごとに学習し、領域をまたいで履歴を使う
-V1/V2のclassifierは4層・4 head・幅128、FFN幅160のencoder-only Transformer。BERT4Rec型の双方向attentionを使い、直近購入の店舗IDとproduct lineだけをmaskする。request時刻とH3位置は既知なので残す。targetの正解product lineを入力すると漏洩になる。V3は4層のまま6 head・幅192・FFN幅384へ拡大する。
+### Transformerは次の店を予測し、CatBoostは配達可能な店を並べる
 
-店舗、product line、週、曜日、時刻、H3 cellの埋め込みと、log変換した経過時間を使う。全店舗のlogitを1回のforwardで出し、配達可能な候補のlogitだけを取り出す。CatBoostはこの1スカラーにrating、CVR、距離、配送料、click履歴、平均basketなどを加える。最終scoreは g(i)=CatBoost(hᵢ,xᵢ)。Transformerだけで最終順位を作る設計ではない。
+WoltのTransformerは、過去の注文を時系列で読み、次の注文先を店ごとに採点します。予測を学習するときは、履歴の最後の注文を正解にし、その注文の店舗IDと細かな商品区分（product line）を隠します。予測時に分かる日時、配達先を表すH3の位置区画、利用者が開いた業態（飲食店か小売か）は残します。たとえば小売を閲覧中だと分かっても、実際に買った店の細かな商品区分は分かりません。そこまで入力すると、学習時にだけ正解の手がかりを渡すことになります。
 
-転移するのは同じ国の飲食店と小売の履歴である。国ごとに語彙とモデルを学習し、国間転移の実験はしていない。V3でも構造の異なる特徴を扱うため、飲食店と小売のCatBoostは別に持つ。「4 rankerを一つへ統合」は配信システム全体の記述で、木モデルが一個になったという意味ではない。
+モデルは店舗ID、商品区分、週、曜日、時刻、H3の区画をベクトルに変換し、各注文から予測時点までの経過時間を対数変換して加えます。V1とV2のモデルはBERT4Recと同様に前後の位置に注意を向けられるエンコーダーです。ただし、履歴の途中をランダムに隠すのではなく、著者は直近の注文だけを予測対象にしました。エンコーダーは4層で、各層の注意機構は4ヘッド、表現の幅は128、中間の全結合層の幅は160です。V3は4層のまま、順に6ヘッド、幅192、幅384へ広げています。
 
-### trialの重みと漏洩防止を明示する
-classifierのlabel smoothingはε=0.2。正解にまず1−εの質量を置き、さらに正解を含む各クラスへε/|domain|を配り、w_new > w_cs > w_recでCEを重み付けする。V1のrankerはPairLogit、V2/V3はYetiRankPairwiseのNDCG mode。購入labelはtrial/reorderで同じとし、trialの優先度はsession重みへ置く。clickは購入より弱い段階labelにする。
+Transformerは、学習した店舗すべてのスコア（softmax前のlogit）を、1リクエストにつき1回の推論で出します。そのうち配達可能な店の分だけを、店の評価や注文転換率、配達距離と料金、利用者のクリック履歴や平均購入額などと合わせてCatBoostに渡します。店 i の履歴スコアを hᵢ、それ以外の特徴量を xᵢ とすると、最終スコアは g(i) = CatBoost(hᵢ, xᵢ) です。CatBoostがこのスコアで表示順を決めます。
 
-rankerは直近30日のうち28日を学習、次の1日をvalidation、最後の1日をtestに使う。classifierの学習を2日前で切り、ranker評価日の正解がlogitへ漏れないようにする。購入なしsessionを除外しているため、このオフライン評価だけで全sessionのCVRは説明できない。
+V3では、同じ国の飲食店と小売の注文を時系列に並べ、共通のTransformerへ入力します。一方、飲食店のメニュー数と小売の在庫商品数のように使える特徴量が異なるため、最後のCatBoostは業態ごとに残しました。Woltが廃止したのは旧システムの4モデルです。新システムの木モデルが一つになったわけではありません。国をまたいだ履歴共有も検証していません。
 
-<figure class="teaching batch21"><h3>trialの重みを上げるほど、reorderのMRRが下がる領域がある</h3><div class="b21-frontier"><div><strong>重み比 1</strong><label>trial MRR <meter min="0" max="1" value="0.5"></meter> 0.5</label><label>reorder MRR <meter min="0" max="1" value="1.0"></meter> 1.0</label></div><div><strong>重み比 2</strong><label>trial MRR <meter min="0" max="1" value="0.73361"></meter> 0.73361</label><label>reorder MRR <meter min="0" max="1" value="0.75899"></meter> 0.75899</label></div><div><strong>重み比 3</strong><label>trial MRR <meter min="0" max="1" value="1.0"></meter> 1.0</label><label>reorder MRR <meter min="0" max="1" value="0.5"></meter> 0.5</label></div><div><strong>重み比 5</strong><label>trial MRR <meter min="0" max="1" value="1.0"></meter> 1.0</label><label>reorder MRR <meter min="0" max="1" value="0.5"></meter> 0.5</label></div></div><figcaption>run.pyの合成400 test sessions。原典Appendix Aの150 retrainの数値を模写したものではない。</figcaption></figure>
+### 正解ラベルの配分とセッションの重みを分ける
+
+Transformerの学習では、同じ業態の店舗から正解店を当てます。以下では、その業態の店の数を |domain| と表します。ラベル平滑化では、まず正解店に1−εを置き、正解を含む各クラスへε/|domain|を配ります。論文のεは0.2です。さらに著者は、クロスエントロピーでの注文の重みを、新規店への注文、利用者自身の初回注文、再注文の順に大きくしました。
+
+CatBoostでは、V1は購入した店と表示したが購入しなかった店の組を比べるPairLogitを使います。V2とV3は、上位の並び順を重視するYetiRankPairwiseのNDCGモードを使います。初めての店への注文と再注文には、候補店ごとの購入ラベルとして同じ値を与えます。違いを付けるのはセッション全体の重みです。利用者自身の初回注文も、CatBoostの学習では新規店側に含みます。クリックだけなら購入より小さいラベル値を与えます。
+
+著者は、CatBoost用の直近30日分を、学習28日、検証1日、テスト1日に分けました。Transformerの学習に使う履歴は最後の2日より前で区切ります。後でCatBoostを評価する注文をTransformerが先に学習すると、その注文へのスコアをCatBoostが特徴量として使えてしまうからです。また、オフラインの順位評価は購入のなかったセッションを含みません。この評価だけで、注文のなかったセッションも含む本番の転換率は説明できません。
+
+### Labは4つの重みを同じ合成データで比べる
+
+Labでは、正解店ともう一方の店を比べる線形モデルだけを学習します。正解店が1位なら1、2位なら0.5として、新規店への注文と再注文で別々に平均します。論文の付録Aは、Transformerを固定したまま、セッションの重み3通りと負例の抽出設定50通りを組み合わせ、同じ国・日・乱数シードでCatBoostを150回学習した結果です。Labは重みだけを変えるため、付録の結果を再現していません。
+
+<figure class="teaching batch21"><h3>合成データでは、新規店側の重みが3以上の設定で新規店への注文のMRRが上回る</h3><div class="b21-frontier"><div><strong>新規店側の重み 1</strong><label>新規店への注文のMRR <meter min="0" max="1" value="0.5"></meter> 0.5</label><label>再注文のMRR <meter min="0" max="1" value="1.0"></meter> 1.0</label></div><div><strong>新規店側の重み 2</strong><label>新規店への注文のMRR <meter min="0" max="1" value="0.73361"></meter> 0.73361</label><label>再注文のMRR <meter min="0" max="1" value="0.75899"></meter> 0.75899</label></div><div><strong>新規店側の重み 3</strong><label>新規店への注文のMRR <meter min="0" max="1" value="1.0"></meter> 1.0</label><label>再注文のMRR <meter min="0" max="1" value="0.5"></meter> 0.5</label></div><div><strong>新規店側の重み 5</strong><label>新規店への注文のMRR <meter min="0" max="1" value="1.0"></meter> 1.0</label><label>再注文のMRR <meter min="0" max="1" value="0.5"></meter> 0.5</label></div></div><figcaption>学習に使わなかった合成400セッションで、重みを変えても同じテストデータを使いました。再注文の重みは1です。論文付録Aの再学習150回とは別の実験です。</figcaption></figure>

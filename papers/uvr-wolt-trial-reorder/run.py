@@ -1,5 +1,5 @@
-"""Trial/reorder scalarization with a trainable pairwise linear proxy.
-Not CatBoost or a trained Transformer. Synthetic logits and distance are fixed inputs.
+"""合成データで、2候補の順位学習に使うセッションの重みを変える。
+店のスコアと配達距離は合成データで与える。CatBoostやTransformerは学習しない。
 """
 import json, math, random
 from pathlib import Path
@@ -8,10 +8,10 @@ def samples(seed,n):
     rng=random.Random(seed); rows=[]
     for _ in range(n):
         trial=rng.random()<.3
-        # Candidate 0 is familiar; candidate 1 is a new store.
+        # 候補0は注文したことがある店、候補1は初めて注文する店。
         h=rng.uniform(.2,1.4); distance=rng.uniform(-1,1)
-        x=(h,distance,1.) # feature difference (new minus familiar)
-        # Intent is partly unobserved: same feature can carry conflicting labels.
+        x=(h,distance,1.) # 特徴量の差は、初めての店から注文したことがある店を引いた値。
+        # どちらの店を選ぶかは特徴量とは別に決める。モデルは特徴量だけで注文区分を見分けられない。
         y=1 if trial else -1
         rows.append((x,y,trial))
     return rows
@@ -40,7 +40,7 @@ def compute():
     out={str(r):metrics(fit(train,r),test) for r in [1,2,3,5]}
     assert abs(sum(smooth_target(1,4))-1)<1e-12
     assert 0 not in eligible_scores([99,2,1],[1,2])
-    return {'note':'合成2候補のpairwise線形代理。比率の効果と配達可能集合の境界を確認。UVRの精度再現ではない。','verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},'experiments':[{'name':'trial重みを変え、未使用400セッションで再注文との交換条件を見る','seed':22,'metrics':out}], 'smoothed_target':smooth_target(1,4),'availability_example':eligible_scores([99,2,1],[1,2])}
+    return {'note':'合成データでは、2候補を並べる線形モデルを学習します。注文区分の重みを変えたときの順位と、配達できない店を除く処理を別々に確かめます。Woltの精度は再現していません。','verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},'experiments':[{'name':'新規店への注文の重みを変え、学習に使わなかった400セッションで注文区分ごとのMRRを測る','seed':22,'metrics':out}], 'smoothed_target':smooth_target(1,4),'availability_example':eligible_scores([99,2,1],[1,2])}
 
 if __name__ == "__main__":
     result = compute()
