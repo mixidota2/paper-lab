@@ -1,9 +1,9 @@
-"""Deterministic inventory-boundary lesson, not an LLM or IGPO reproduction."""
+"""人工の商品カタログを検索する。言語モデルや原論文の実装は使わない。"""
 import json
 from pathlib import Path
 
 QUERIES = ('photo', 'vegan', 'wedding', 'gluten-free')
-# Ground truth is used by evaluation only, never by retrieval.
+# 正解の商品は評価でだけ使い、検索では参照しない。
 BASE = [
     {'id': 'a', 'category': 'cake', 'tags': ['photo'], 'description': [], 'truth': ['photo']},
     {'id': 'b', 'category': 'cake', 'tags': ['vegan'], 'description': [], 'truth': ['vegan']},
@@ -11,7 +11,7 @@ BASE = [
 ]
 
 def portrait(items):
-    """Toy probe sees the whole small catalog; production top-k need not."""
+    """予備検索から見える商品だけを集計する。最後の条件では商品cが見えない。"""
     fields = ('tags', 'description')
     return {'category': 'cake', 'count': len(items),
             'fill_rates': {f: sum(bool(i[f]) for i in items) / max(1, len(items)) for f in fields}}
@@ -24,10 +24,10 @@ def search(query, items, guided=False, probe_ids=None):
     candidates = [i for i in visible if any(query in i[f] for f in fields)]
     if candidates:
         return {'id': candidates[0]['id'], 'decision': 'match', 'fields': fields}
-    # Frozen baseline assumes a nearby cake is acceptable when a category is dense.
+    # 比較用の規則は、グルテンフリーの指定があっても最初のケーキを返す。
     if not guided and query == 'gluten-free' and visible:
         return {'id': visible[0]['id'], 'decision': 'match', 'fields': fields}
-    # No match is evidence-limited: it must never establish inventory absence.
+    # 商品を返さないのは、見えた範囲で一致の根拠がないため。カタログ全体の不在ではない。
     return {'id': None, 'decision': 'no_support_observed', 'fields': fields}
 
 
@@ -52,7 +52,7 @@ def evaluate(items, guided, probe_ids=None):
 
 
 def replay_gate(before, after, target_indices, background_indices):
-    """Simplified finite replay gate; not Appendix B's statistical thresholds."""
+    """同じ要求で変更の前後を比べる。原論文の付録Bにある統計的なしきい値は使わない。"""
     return (all(after[i] >= before[i] for i in target_indices)
             and any(after[i] > before[i] for i in target_indices)
             and all(after[i] >= before[i] for i in background_indices))
@@ -61,15 +61,15 @@ def replay_gate(before, after, target_indices, background_indices):
 def simulate():
     renamed = [{**i, 'tags': [], 'description': i['tags'] + i['description']} for i in BASE]
     deleted = [i for i in renamed if i['id'] != 'a']
-    scenarios = [('元の属性', BASE, None), ('属性を移動', renamed, None),
-                 ('商品aを削除', deleted, None), ('probeが商品cを見落とす', BASE, ['a', 'b'])]
+    scenarios = [('元の属性欄を使う', BASE, None), ('タグの情報を説明欄に移す', renamed, None),
+                 ('属性を移した後に商品aを削除', deleted, None), ('予備検索で商品cを見落とす', BASE, ['a', 'b'])]
     records, frames = [], []
     for n, (label, items, ids) in enumerate(scenarios):
         b, g = evaluate(items, False, ids), evaluate(items, True, ids)
         records.append({'label': label, 'baseline': b, 'guided': g})
-        frames.append({'value': n, 'note': label + '。人工4要求。規則は固定し、現在の属性を読み直す。',
-                       'bars': [{'label': '固定属性：正答', 'value': b['correct']},
-                                {'label': '在庫を参照：正答', 'value': g['correct']} ]})
+        frames.append({'value': n, 'note': label + '。4件の人工の検索要求を使います。どの条件でも判断規則は同じです。',
+                       'bars': [{'label': 'タグだけを検索', 'value': b['correct']},
+                                {'label': '値が入った属性欄を検索', 'value': g['correct']} ]})
     rejected = not replay_gate([0, 1], [1, 0], [0], [1])
     assert rejected
     assert records[-1]['guided']['fni_pct'] > 0
@@ -80,7 +80,7 @@ def simulate():
         'checks': {'background_regression_rejected': rejected,
                    'probe_miss_remains': True, 'guidelines_frozen_across_snapshots': True},
         'scenarios': records,
-        'explorer': {'label': '在庫の状態', 'unit': '', 'metric': '正答数 / 4',
+        'explorer': {'label': 'カタログと検索範囲の条件', 'unit': '', 'metric': '4件中の正答数',
                      'default': 0, 'frames': frames}}
 
 if __name__ == '__main__':
