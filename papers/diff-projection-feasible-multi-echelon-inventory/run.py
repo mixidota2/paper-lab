@@ -1,4 +1,4 @@
-"""Exact two-coordinate QP and paper §4.1.2 integer mapping; no training."""
+"""2製品の二次計画と、論文§4.1.2の整数化を計算する。モデルは学習しない。"""
 import itertools
 import json
 import math
@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def project(z, cap=6, bound=3):
-    # W=diag(1/2,1/2); feasible polygon vertices in counterclockwise order.
+    # W=diag(1/2,1/2)。制約を満たす多角形の頂点を反時計回りに並べる。
     vertices = [(0.,0.),(bound,0.),(bound,cap-bound),(0.,cap)]
     candidates = []
     if feasible(z, cap, bound):
@@ -30,7 +30,7 @@ def objective(x,z):
 
 def integer_map(x,z,cap=6,bound=3):
     floor = [math.floor(v+1e-10) for v in x]
-    # KKT stationarity gives M^T lambda = W(z-x), including lower bounds.
+    # 下限を含む最適条件から、双対価格の項 M^T lambda = W(z-x) を求める。
     dual_usage = [(z[i]-x[i])/2 for i in range(2)]
     score = [(z[i]-floor[i]-.5)/2-dual_usage[i] for i in range(2)]
     out = floor[:]
@@ -62,7 +62,7 @@ def main():
         exact=min(objective(q,z) for q in itertools.product(range(7),repeat=2) if feasible(q))
         max_gap=max(max_gap,objective(im,z)-exact)
         samples+=1
-    # Figure 5: generic targets near (1,1), with the sum constraint active.
+    # 初版の図5に沿い、共有上限に達する(1,1)近くの目標を試す。
     reach={'floor':0,'integer_mapping':0}
     for i in range(40):
         for j in range(40):
@@ -71,7 +71,7 @@ def main():
             reach['floor']+=f==[1,1]
             reach['integer_mapping']+=im==[1,1]
     assert violations==0 and improved>0 and reach['floor']==0 and reach['integer_mapping']>0
-    result=dict(lab01_projection=True,seed=None,scope='2D static geometry; no HDPO, STE training, or inventory simulation',cases=cases,samples=samples,integer_violations=violations,improved_over_floor=improved,max_projection_objective_gap_vs_exact=max_gap,reachability=dict(samples=1600,**reach),paper_evidence={'source':'arXiv:2608.02343v1 Table 4','setting1':{'echelon_DBS':{'holding':218.72,'backorder':68.27},'MSP':{'holding':195.60,'backorder':93.65},'Ours':{'holding':204.21,'backorder':73.53}},'setting2':{'echelon_DBS':{'holding':197.26,'backorder':60.86},'MSP':{'holding':180.89,'backorder':80.65},'Ours':{'holding':189.25,'backorder':62.32}}},verification={'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'})
+    result=dict(lab01_projection=True,seed=None,scope='2製品の射影と整数化を計算する。HDPOとSTEを使う学習や長期の在庫シミュレーションは実行しない。',cases=cases,samples=samples,integer_violations=violations,improved_over_floor=improved,max_projection_objective_gap_vs_exact=max_gap,reachability=dict(samples=1600,**reach),paper_evidence={'source':'arXiv:2608.02343v1 Table 4','setting1':{'echelon_DBS':{'holding':218.72,'backorder':68.27},'MSP':{'holding':195.60,'backorder':93.65},'Ours':{'holding':204.21,'backorder':73.53}},'setting2':{'echelon_DBS':{'holding':197.26,'backorder':60.86},'MSP':{'holding':180.89,'backorder':80.65},'Ours':{'holding':189.25,'backorder':62.32}}},verification={'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'})
     Path(__file__).with_name('results.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     print(json.dumps({k:result[k] for k in ['samples','integer_violations','improved_over_floor','max_projection_objective_gap_vs_exact','reachability']},indent=2))
 

@@ -152,7 +152,7 @@ def test_inventory_learning_explanations_keep_conditions_and_download_mirrors():
     assert '全制約を満たす発注が存在することは保証していない' in fbsde['what_we_did_not_verify']
     projection = labs['diff-projection-feasible-multi-echelon-inventory']['sections']
     assert '等号になっている制約の組（活性集合）' in projection['why_it_might_work']
-    assert '通常の微分が常に存在するという主張でもない' in projection['why_it_might_work']
+    assert '制約が切り替わる点では、通常の微分が常にあるわけではありません' in projection['why_it_might_work']
     ort = labs['or-transformer-joint-replenishment']
     assert '需要と発注の有無を固定' in ort['core_idea']['author_claim']
     assert '出力は計算上の商品表現であり、学習した発注量ではありません' in ort['sections']['results']
