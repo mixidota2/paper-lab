@@ -1,0 +1,358 @@
+{
+  "files": {
+    "paper_lab/templates/interactives.js": {
+      "before": {
+        "sha256": "13024c5f870744d2f10a8ca50783e7d53eafd130d185691fb1b7c1c2e7307a80",
+        "blob": "ab97677d9fe7bba377b5a2b7865a27293ae97a35"
+      },
+      "after": {
+        "sha256": "4b5339df06b44e2bc66c4b498f1fd6145ee6d1ce7fb7ab102636ff7d01c889fc",
+        "blob": "50637a124ae79795daed85c99a73cbbddc077f5e"
+      },
+      "prior_spans": [
+        [
+          300,
+          301,
+          "      output.textContent = `w=${row.weight}：共通の注意重み [${row.shared_attention.map(x=>x.toFixed(3)).join(', ')}]。SID側の集約ベクトル [${row.sid_pooled.map(x=>x.toFixed(3)).join(', ')}]、商品ID側の集約ベクトル [${row.item_pooled.map(x=>x.toFixed(3)).join(', ')}]。重み付け後の整列損失=${row.weighted_alignment_loss.toFixed(4)}。人工例。`;\n"
+        ]
+      ]
+    },
+    "papers/gatesid-coldstart-ranking/README.md": {
+      "before": {
+        "sha256": "5b5e8551c33be5719603df410391671223e92070f18bf7b6b61a4107f2da8c77",
+        "blob": "ea655ad4b587b23f075ff875654a20a23d57ae30"
+      },
+      "after": {
+        "sha256": "dc3c273ddf2cc891dfb78c5e543d409fe9688b36dbd0760287ce44f94bb7f0f2",
+        "blob": "4884f7caee50dfcdd1ddb70d98bf1ae23ac12796"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# GateSID：商品情報と行動履歴を候補の順位付けに使う\n"
+        ],
+        [
+          6,
+          7,
+          "一次資料は[2603.22916v2.pdf](https://arxiv.org/pdf/2603.22916v2)。照合した節・表とPDFのSHA-256は[mapping.md](mapping.md)、計算の解説は[method.md](method.md)、サイト本文の原本は[lab.yaml](lab.yaml)を参照。\n"
+        ],
+        [
+          8,
+          11,
+          "## 実行\n"
+        ],
+        [
+          16,
+          17,
+          "この人工実験では、2組のattentionを求める前のスコア（logits）と履歴のベクトルを固定する。重みwを0から1まで動かし、混ぜたattentionを2種類の履歴に適用した結果と、同じwを掛けた対照損失（InfoNCE）を計算する。掲載日数などからwを学習する実験ではない。\n"
+        ],
+        [
+          18,
+          19,
+          "## 検証範囲\n"
+        ],
+        [
+          20,
+          21,
+          "MechanismはPARTIAL。何を確認できたか（CONFIRMED）、何を観測できなかったか（NOT OBSERVED）は[results.json](results.json)のchecksに記録した。Performance / Scaling / Production applicabilityはNOT TESTED。\n"
+        ],
+        [
+          22,
+          23,
+          "固定したwで2組の重みが混ざることは確認した。RQ-VAEの学習、wを決めるモデルの学習、CTR・CTCVRの順位付け学習、AUC、本番のGMV、追加遅延の5ms制約は検証していない。新商品の推薦が本番で改善するかも、この実験からは判断できない。\n"
+        ],
+        [
+          24,
+          25,
+          "## 実装の位置付け\n"
+        ],
+        [
+          26,
+          31,
+          "確認した論文とarXivの書誌には、取得できる公式実装への案内を確認できなかった。公式コードを独立して実行していない（NOT TESTED）。非公開だと確認したわけではない。\n"
+        ]
+      ]
+    },
+    "papers/gatesid-coldstart-ranking/lab.yaml": {
+      "before": {
+        "sha256": "1132f6d442f786294caa1033964a959b7dc3cdad17a9ae9f2d551a26822389e6",
+        "blob": "05d955b4965f739b76da12a66021e560b7f60b8c"
+      },
+      "after": {
+        "sha256": "8e888912c799adf58abc834c2532b1dffdbd5a3330ed421bb7d1bf2c3535352f",
+        "blob": "938ab7b7e51167dc84d6d2b05bf06769a6b12bc1"
+      },
+      "prior_spans": [
+        [
+          21,
+          22,
+          "  GateSID：商品情報と行動履歴を候補の順位付けに使う\n"
+        ],
+        [
+          23,
+          24,
+          "  GateSIDは、すでにある候補商品のクリックや注文を予測する。商品内容を表す識別子（SID）と行動履歴から、履歴を参照する重みを別々に求める。2組の重みは、商品の掲載期間や露出・クリックなどから学習した比率で混ぜる。候補を生成する手法ではない。Alibaba Internationalの著者は、総トラフィックの20%を使った2週間のA/Bテストで、取引総額（GMV）が全体で+2.6%、掲載20日未満の新商品群で+5.6%、追加遅延は5ms未満だったと報告している。\n"
+        ],
+        [
+          32,
+          33,
+          "    版を固定した一次PDFの本文、関連する表、付録を照合した。著者の報告値とLabの人工実験は別に扱う。\n"
+        ],
+        [
+          38,
+          39,
+          "    著者は、意味と行動から求めた履歴の重みをGFSAで混ぜ、同じ混合比でGRCAの対照損失も調整すると、新商品に足りない行動情報を補いながら、成熟商品の行動に基づく表現を保てると主張する（§3）。\n"
+        ],
+        [
+          40,
+          41,
+          "    SIDは候補の順位付けにも使える。混合比wは、掲載日数だけで決めず、商品のIDベクトルと統計特徴から学習する。新商品では商品内容の比率を上げたいという設計意図と、全商品で日数に応じた単調な変化を実測したという主張は別だ。\n"
+        ],
+        [
+          43,
+          44,
+          "    新商品はクリックや購入の履歴が少なく、商品のIDベクトルを十分には学習できない。一方、人気商品は行動の記録が多い。商品内容を強く混ぜると、行動から読み取れる細かな嗜好の違いを弱める場合がある。全商品に同じ混合比を使うと、この違いを反映できない。\n"
+        ],
+        [
+          45,
+          46,
+          "    GateSIDが受け取るのは、すでに選ばれた候補商品とユーザー履歴だ。候補商品と履歴のSIDを使ってattentionを計算する。SIDを1トークンずつ生成して候補を探す生成推薦（GR）とは、入出力も遅延の要因も異なる。\n  evidence: |-\n    ### オフライン評価：何を測り、どの商品を比べたか\n"
+        ],
+        [
+          47,
+          48,
+          "    §4.1–4.2・表1。10億件を超える本番ログを時系列で分け、最新日を検証・テストに使う。クリック率（CTR）と、表示からクリックを経て支払いに至る率（CTCVR）の予測を、AUC・GAUCで評価する。掲載20日未満を新商品（cold-start）、300日超を人気商品（popular）とする。AUCの表には0–1で示す値もあるため、百分率のポイント差と相対改善率を分けて読む。\n\n    表2は固定平均、連結してMLPに渡す方式（Concat+MLP）、学習した混合比を使う方式、および混合比の入力を変えた比較。表3–4では画像やテキストから得た表現とSID、attentionの構成、コードブック設定を比べる。表5は全商品に同じ対照整列を掛ける方式と、商品ごとに強さを変えるGRCAの比較だ。これらは順位付けモデルの比較であり、SIDを使えば生成推薦へ移行すべきだという証拠ではない。\n\n    ### オンライン評価：2週間、総トラフィックの20%\n\n    §4.8。著者報告はGMV +2.6%、CTR +1.1%、注文 +1.6%、追加遅延5ms未満。掲載20日未満の新商品群ではGMV +5.6%。この5.6%の分母は新商品群であり、全体のGMVを5.6ポイント押し上げたという意味ではない。原文で確認できるのは総トラフィックの20%を使ったことまでで、それぞれの群に20%ずつ割り当てたとは書かれていない。信頼区間、p値、追加遅延のパーセンタイルは未報告。\n\n    [QuaSID](quasid-collision-qualified-sid.html)は表現の品質、[GLIDE](glide-spotify-sid.html)は新規対象の候補生成を扱う。GateSIDと比べると、商品内容の表現を候補取得に使う場合と、取得済みの候補を採点する場合を比べられる。\n\n    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2603.22916v2)。参照箇所とSHA-256は末尾の対応表に記載した。\n"
+        ],
+        [
+          52,
+          55,
+          ""
+        ],
+        [
+          56,
+          57,
+          "    <figure class=\"teaching batch17\"><h3>SIDを使う場所：GateSIDは候補の順位付け</h3><div class=\"matrix-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"比較表\"><table><thead><tr><th>設計</th><th>入力</th><th>出力</th><th>SIDの役割</th></tr></thead><tbody><tr><td>GateSID</td><td>ユーザー履歴＋候補商品</td><td>CTR・CTCVRの予測スコア</td><td>候補と履歴の意味特徴</td></tr><tr><td>生成推薦</td><td>ユーザー文脈＋prefix</td><td>次のSIDトークン</td><td>候補を探すために出力する列</td></tr></tbody></table></div><figcaption>§3・図2に基づく役割の比較。SIDを使うだけでは、候補を生成していることにはならない。</figcaption></figure>\n  why_it_might_work: |-\n    【Labの解釈】内容が近い商品でSIDを共有すると、行動が少ない商品も共有コードブックを更新する勾配を利用できる。GFSAで同じ履歴位置の重みを2種類の履歴に使えば、商品内容側と行動側が別々の位置を参照して生じるずれを減らせる。\n"
+        ],
+        [
+          58,
+          75,
+          "    成熟商品では、GRCAの損失に小さいwを掛けると、同じ商品の行動表現を商品内容側の表現に過度に近づけず、行動から得た違いを残しやすい。ただし、行動が少ないときにどの信号が役立つかは商品領域に依存する。wの解釈には、掲載日数だけでなく露出・クリックの偏りも関わる。\n  method: method.md\n"
+        ],
+        [
+          76,
+          79,
+          "    2組のattentionを求める前のスコア（logits）と、両方の履歴のベクトルは固定する。wを0から1まで動かし、混ぜた重みを両方の履歴に適用した結果と、同じwを掛けた対照損失（InfoNCE）を計算する。商品の掲載日数などからwを学習する実験ではない。\n"
+        ],
+        [
+          80,
+          81,
+          "    以下はLabの人工実験で計算した値だ。著者がオンラインで報告した数値とは別である。\n"
+        ],
+        [
+          82,
+          87,
+          "    **Mechanism: PARTIAL**。人工条件で計算手順と境界条件を確認した。results.jsonのchecksでCONFIRMEDとしたのは、各項目に書いた範囲だけだ。\n"
+        ],
+        [
+          88,
+          89,
+          "    run.pyで入力を、results.jsonで全出力を確認できる。\n  what_we_did_not_verify: |-\n    RQ-VAEの学習、wを決めるモデルの学習、CTR・CTCVRの順位付け学習、AUC、本番のGMV、追加遅延の5ms制約は検証していない（NOT TESTED）。この人工実験で確認したのは、固定したwで2組の重みを混ぜる計算であり、本番で新商品の成績が改善するかは確認していない。\n"
+        ],
+        [
+          90,
+          91,
+          "    **Performance / Scaling / Production applicability: NOT TESTED**。一次資料の報告値を照合しただけでは、本番の効果を独立して再現したことにはならない。\n  implementation: |-\n    標準ライブラリだけで動く独立実験だ。リポジトリのルートから `uv run papers/gatesid-coldstart-ranking/run.py` を実行すると、同じフォルダーのresults.jsonを更新する。乱数や外部APIは使わない。\n\n    [実行コード](../downloads/gatesid-coldstart-ranking/run.py)・[全結果](../downloads/gatesid-coldstart-ranking/results.json)・[README](../downloads/gatesid-coldstart-ranking/README.md)・[方法](../downloads/gatesid-coldstart-ranking/method.md)・[対応表](../downloads/gatesid-coldstart-ranking/mapping.md)を保存できる。\n\n    確認した論文とarXivの書誌には、取得できる公式実装への案内を確認できなかった。公式コードを独立して実行していない（NOT TESTED）。非公開だと確認したわけではない。\n"
+        ],
+        [
+          95,
+          96,
+          "  title: 重みを決め、混ぜ、学習に使う式\n"
+        ],
+        [
+          97,
+          99,
+          "  caption: wを決める式、履歴の重みを混ぜる式、対照損失にwを掛ける式を分けて読む。\n  rationale: 同じwでも、履歴の重みを混ぜる役割と、損失に掛ける役割は異なる。\n"
+        ],
+        [
+          102,
+          103,
+          "  - name: gate\n"
+        ],
+        [
+          104,
+          106,
+          "    explanation: 候補商品のIDベクトルと、掲載期間・露出・クリックなどの統計特徴からwを学習する。\n  - name: GFSA\n"
+        ],
+        [
+          107,
+          109,
+          "    explanation: 商品内容と行動から別々に求めた履歴位置の重みを混ぜる。同じ重みを2種類の履歴に掛けて別々に集約する。\n  - name: GRCA\n"
+        ],
+        [
+          110,
+          111,
+          "    explanation: 同じ商品の内容と行動の表現を近づける対照損失にも、混合比wを掛ける。商品ごとの重み付き損失を平均して順位付けの損失へ加える。\n"
+        ]
+      ]
+    },
+    "papers/gatesid-coldstart-ranking/mapping.md": {
+      "before": {
+        "sha256": "26b79f6c66cd70c0bd08d2058b0e8c0f671573fe4b983cc961e532822cd78be1",
+        "blob": "a4332f31d6acd8ef22382a30b435f1a85a01b2f8"
+      },
+      "after": {
+        "sha256": "94fc7afb470755e6d24c38c02ebe8293c743d8e8075c6c425b02695b3f9a5237",
+        "blob": "726376e98c4dd1feb4bf83eaad930ba16aa4f1b3"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文の記述とLabの対応\n"
+        ],
+        [
+          2,
+          3,
+          "2026-09-17に、[2603.22916v2.pdf](https://arxiv.org/pdf/2603.22916v2)を確認した。arXivの初回公開日は2026/03/24、確認した第2版の日付は2026/07/09。\n"
+        ],
+        [
+          4,
+          5,
+          "PDFのSHA-256：`7b0100bbcba779768f491bfd2ee809c224a7ba3e8db5bb640dca057fdaa9f208`\n"
+        ],
+        [
+          6,
+          7,
+          "資料を探すときは既存のHTMLを使い、内容は版を固定した`2603.22916v2.pdf`の本文、関連する表、付録で照合した。図は原論文の画像を転載したものではなく、Labで作った説明図だ。\n"
+        ],
+        [
+          8,
+          9,
+          "| 原論文の箇所 | 確認対象 | Labでの扱い |\n"
+        ],
+        [
+          10,
+          14,
+          "| §3.1、式1–2、§4.1.3 | RQ-VAEの4段×256コード、順位付けモデルの構成 | method.mdで説明。量子化モデルの学習は未実装 |\n| §3.2、式4–8、Algorithm 1 | 2組のattentionを混ぜ、両方の履歴に使うGFSA | run.pyのgfsaとsoftmaxで計算 |\n| §3.3、式9–11 | 商品ごとの重みをInfoNCEに掛けるGRCA | run.pyのinfo_nceとcomputeで計算 |\n| §4.2・4.8、表1–5 | 評価対象の商品群、構成を変えた比較、本番のA/Bテスト | 本文の根拠欄で説明。新商品群内の変化と全体の変化を分ける |\n"
+        ],
+        [
+          15,
+          16,
+          "## 公式コード\n\n確認した論文とarXivの書誌には、取得できる公式実装への案内を確認できなかった。公式コードを独立して実行していない（NOT TESTED）。非公開だと確認したわけではない。\n\n## Labで確認していないこと\n\n固定したwで2組のattentionが混ざることは確認した。RQ-VAEやwを決めるモデルの学習、CTR・CTCVRの順位付け学習、AUC、本番のGMV、追加遅延の5ms制約は検証していない。新商品の推薦が本番で改善するかも、この実験からは判断できない。\n"
+        ]
+      ]
+    },
+    "papers/gatesid-coldstart-ranking/method.md": {
+      "before": {
+        "sha256": "80585c909a89a8b69931f85f27bee1e0d3ab8c8116cc31b6f836d3aabf892136",
+        "blob": "a000d6e1c34b87c7f0ae04fbe567394af5c65691"
+      },
+      "after": {
+        "sha256": "b58be5ef88d11cf32424f4fc04e09001c36538398c2c40f323e6334467a8c3e5",
+        "blob": "b358305749e07ddba26a92ca425137db143c142d"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 商品内容を4段のSIDに変える\n"
+        ],
+        [
+          2,
+          3,
+          "§3.1・式1–2。画像やテキストなどから得た商品の表現を、RQ-VAEで4段のコードにする。各段で選べるコードは256個。対応するSIDのベクトルを連結し、順位付けモデルの学習で調整する。RQ-VAEは10エポック、バッチサイズ4096、コードブックの埋め込み次元64で学習する。順位付け側ではSIDの埋め込み次元を32とし、AdamWと3層のReLU MLPを使ってCTRとCTCVRを扱う（§4.1.3）。\n"
+        ],
+        [
+          4,
+          5,
+          "### 2組のattentionを混ぜ、両方の履歴に使う（GFSA）\n"
+        ],
+        [
+          6,
+          7,
+          "§3.2・Algorithm 1、式4–8。候補商品のIDベクトル`e_item`に、掲載期間や直近1週間の露出・クリックなどの統計特徴`F_stat`をつなぎ、商品内容側の重みを `w=σ(MLP([e_item ⊕ F_stat]))` で求める。\n"
+        ],
+        [
+          8,
+          9,
+          "SID側と行動側で、履歴の各位置をどれだけ参照するかを別々に計算する。SID側は `S_sid=softmax(Q_sid K_sidᵀ/√d)`、行動側は `S_item=softmax(Q_item K_itemᵀ/√d)` だ。\n"
+        ],
+        [
+          10,
+          11,
+          "2組を `S_fused=w S_sid+(1−w)S_item` で混ぜる。その同じ重みをSID側の履歴`H_sid`と行動側の履歴`H_item`の両方に適用し、`h_sid=S_fused H_sid` と `h_item=S_fused H_item` を作る。2つを連結して順位付け層に渡す。別の種類のKeyへ直接Queryを当てるcross-attentionや、最後に2つのベクトルを単純平均する操作とは異なる。\n"
+        ],
+        [
+          12,
+          13,
+          "### 同じwで、2種類の商品表現を近づける強さを変える（GRCA）\n"
+        ],
+        [
+          14,
+          15,
+          "§3.3・式9–11。同じ商品のSID表現とID表現を正例にし、バッチ内の別商品を負例にして対照損失を求める。`ℓ_cl(i)=−log[exp(sim(e_sid_i,e_item_i)/τ)/Σ_j exp(sim(e_sid_i,e_item_j)/τ)]`。\n"
+        ],
+        [
+          16,
+          17,
+          "学習時は、商品ごとにこの損失へwを掛け、バッチ平均を順位付けの損失に加える。`L_total=L_rank+λ |B|⁻¹ Σ_i w_i ℓ_cl(i)`。実験ではλ=0.1。wが大きいほど注意の重みを混ぜるときの商品内容側の比率が上がり、SID表現とID表現を近づける損失の寄与も大きくなる。wは学習で求める値だ。掲載20日は評価対象を分ける境界であり、wを切り替える条件ではない。\n"
+        ],
+        [
+          18,
+          19,
+          "出典：[2603.22916v2](https://arxiv.org/pdf/2603.22916v2)。以下の操作と人工数値は、原論文の式を確認するためにLabで作った。\n"
+        ],
+        [
+          20,
+          23,
+          "<figure class=\"teaching batch17\"><h3>wを動かして、履歴の参照先と対照損失の変化を見る</h3><div data-b17=\"gate\"><label>商品内容から求めた重みに掛けるw（人工入力）<input data-control type=\"range\" min=\"0\" max=\"4\" value=\"2\" step=\"1\"></label><p data-output aria-live=\"polite\">w=0.5：2組のattentionを同じ比率で混ぜる。wは掲載日数などから学習した値ではない。</p><script type=\"application/json\" data-values>[{\"weight\": 0, \"sid_attention\": [0.7869860421615985, 0.10650697891920076, 0.10650697891920076], \"item_attention\": [0.10650697891920076, 0.10650697891920076, 0.7869860421615985], \"shared_attention\": [0.10650697891920076, 0.10650697891920076, 0.7869860421615985], \"sid_pooled\": [0.15976046837880115, 0.8402395316211989], \"item_pooled\": [0.10650697891920077, 0.8934930210807993], \"weighted_alignment_loss\": 0.0}, {\"weight\": 0.25, \"sid_attention\": [0.7869860421615985, 0.10650697891920076, 0.10650697891920076], \"item_attention\": [0.10650697891920076, 0.10650697891920076, 0.7869860421615985], \"shared_attention\": [0.2766267447298002, 0.10650697891920076, 0.6168662763509991], \"sid_pooled\": [0.3298802341894006, 0.6701197658105995], \"item_pooled\": [0.24260279156768033, 0.7573972084323197], \"weighted_alignment_loss\": 0.0309682395923419}, {\"weight\": 0.5, \"sid_attention\": [0.7869860421615985, 0.10650697891920076, 0.10650697891920076], \"item_attention\": [0.10650697891920076, 0.10650697891920076, 0.7869860421615985], \"shared_attention\": [0.44674651054039966, 0.10650697891920076, 0.44674651054039966], \"sid_pooled\": [0.5, 0.5], \"item_pooled\": [0.3786986042161599, 0.6213013957838402], \"weighted_alignment_loss\": 0.0619364791846838}, {\"weight\": 0.75, \"sid_attention\": [0.7869860421615985, 0.10650697891920076, 0.10650697891920076], \"item_attention\": [0.10650697891920076, 0.10650697891920076, 0.7869860421615985], \"shared_attention\": [0.6168662763509991, 0.10650697891920076, 0.2766267447298002], \"sid_pooled\": [0.6701197658105995, 0.3298802341894006], \"item_pooled\": [0.5147944168646394, 0.48520558313536066], \"weighted_alignment_loss\": 0.09290471877702569}, {\"weight\": 1, \"sid_attention\": [0.7869860421615985, 0.10650697891920076, 0.10650697891920076], \"item_attention\": [0.10650697891920076, 0.10650697891920076, 0.7869860421615985], \"shared_attention\": [0.7869860421615985, 0.10650697891920076, 0.10650697891920076], \"sid_pooled\": [0.8402395316211989, 0.15976046837880115], \"item_pooled\": [0.650890229513119, 0.3491097704868811], \"weighted_alignment_loss\": 0.1238729583693676}]</script></div><p>S_sid → <strong>w</strong> ／ S_item → <strong>1−w</strong> → S_fused → 同じ重みを両方の履歴に掛けて集約 → 順位付け</p><p>同じw → w × InfoNCE → 順位付けの損失に加える</p><figcaption>§3.2–3.3、式4–11の人工数値例。スライダーが表すのは人工例のwであり、掲載日数や実測AUCではない。</figcaption></figure>\n"
+        ]
+      ]
+    },
+    "papers/gatesid-coldstart-ranking/results.json": {
+      "before": {
+        "sha256": "b430726f03b846294e18f45caa3abacea528e58e5b0fc7c32e0ddd26da33fc85",
+        "blob": "ce33fa067eb18c4750b67484f031de8059f56761"
+      },
+      "after": {
+        "sha256": "32baff12c5bb1b1aab2b73590cddbaaff10486e90a02d6a2a7ab1963eda3a096",
+        "blob": "30608b9185db85534f22031907242f15cb323c91"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"gateを外から与える人工attention。経過日数からgateを学習した実測曲線ではない。\",\n"
+        ],
+        [
+          4,
+          5,
+          "      \"name\": \"同じgateでattentionと整列強度を制御\",\n"
+        ]
+      ]
+    },
+    "papers/gatesid-coldstart-ranking/run.py": {
+      "before": {
+        "sha256": "f0490db43fa88717d3c0eed2dc76e191827c97b5b4326d384a4ac04e3d41774a",
+        "blob": "634fd15a52296169e5e014c150d03f0b25025e04"
+      },
+      "after": {
+        "sha256": "1dbe797de5bf4e7e98533f31bfe3c6b8167ee37d62679fd0e3b711ef45d5e7b1",
+        "blob": "35626c18fc1edb64b9374f2d4d91eb83023360a1"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"GFSA shared attention and gate-weighted InfoNCE with fixed synthetic vectors.\"\"\"\n"
+        ],
+        [
+          24,
+          26,
+          "    return {\"note\":\"gateを外から与える人工attention。経過日数からgateを学習した実測曲線ではない。\",\n      \"experiments\":[{\"name\":\"同じgateでattentionと整列強度を制御\", \"metrics\":{str(x[\"weight\"]):{\"最初の履歴への重み\":round(x[\"shared_attention\"][0],6),\"最後の履歴への重み\":round(x[\"shared_attention\"][-1],6),\"対照損失への寄与\":round(x[\"weighted_alignment_loss\"],6)} for x in cases}}],\n"
+        ]
+      ]
+    }
+  }
+}

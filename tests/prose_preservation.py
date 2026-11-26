@@ -153,7 +153,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = series_full_prose_hash(root, path, expected, algorithm)
     expected = uvr_full_prose_hash(root, path, expected, algorithm)
     expected = grace_full_prose_hash(root, path, expected, algorithm)
-    return common_threshold_full_prose_hash(root, path, expected, algorithm)
+    expected = common_threshold_full_prose_hash(root, path, expected, algorithm)
+    return gatesid_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -2132,6 +2133,34 @@ def common_threshold_full_prose_hash(root, path, expected, algorithm='sha256'):
 
 def before_common_threshold_full_prose(root, path, current):
     row = common_threshold_full_prose_row(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def gatesid_full_prose_row(root, path):
+    if path != 'paper_lab/templates/interactives.js' and not path.startswith('papers/gatesid-coldstart-ranking/'):
+        return None
+    rows = json.loads((root / 'tests/gatesid_full_prose_hashes.json').read_text())['files']
+    return rows.get(path)
+
+
+def gatesid_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = gatesid_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_gatesid_full_prose(root, path, current):
+    row = gatesid_full_prose_row(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

@@ -298,7 +298,7 @@ document.querySelectorAll('[data-b17]').forEach(panel => {
       output.textContent = row ? `99パーセンタイルの処理時間上限${limit}ms：表の条件を満たす最大の探索候補数（beam幅）は${row[0]}。GPU p99=${row[3]}ms、平均=${row[2]}ms、P@100=${row[4]}。著者の実測点から選択。` : '表の実測点に条件を満たすものはない。';
     } else {
       const row = data[Number(control.value)];
-      output.textContent = `w=${row.weight}：共通の注意重み [${row.shared_attention.map(x=>x.toFixed(3)).join(', ')}]。SID側の集約ベクトル [${row.sid_pooled.map(x=>x.toFixed(3)).join(', ')}]、商品ID側の集約ベクトル [${row.item_pooled.map(x=>x.toFixed(3)).join(', ')}]。重み付け後の整列損失=${row.weighted_alignment_loss.toFixed(4)}。人工例。`;
+      output.textContent = `w=${row.weight}：両方の履歴に掛ける重み [${row.shared_attention.map(x=>x.toFixed(3)).join(', ')}]。商品内容で表した履歴の集約値 [${row.sid_pooled.map(x=>x.toFixed(3)).join(', ')}]、商品IDで表した履歴の集約値 [${row.item_pooled.map(x=>x.toFixed(3)).join(', ')}]。wを掛けた対照損失=${row.weighted_alignment_loss.toFixed(4)}。人工例。`;
     }
   };
   control.addEventListener('input', update);
