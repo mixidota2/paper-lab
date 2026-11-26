@@ -144,7 +144,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = autorecsys_full_prose_hash(root, path, expected, algorithm)
     expected = evopilot_full_prose_hash(root, path, expected, algorithm)
     expected = aura_full_prose_hash(root, path, expected, algorithm)
-    return autolr_full_prose_hash(root, path, expected, algorithm)
+    expected = autolr_full_prose_hash(root, path, expected, algorithm)
+    return multi_harness_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -1871,6 +1872,34 @@ def autolr_full_prose_hash(root, path, expected, algorithm='sha256'):
 
 def before_autolr_full_prose(root, path, current):
     row = autolr_full_prose_row(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def multi_harness_full_prose_row(root, path):
+    if not path.startswith('papers/multi-harness-rl/'):
+        return None
+    rows = json.loads((root / 'tests/multi_harness_full_prose_hashes.json').read_text())['files']
+    return rows.get(path)
+
+
+def multi_harness_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = multi_harness_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_multi_harness_full_prose(root, path, current):
+    row = multi_harness_full_prose_row(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

@@ -1,0 +1,305 @@
+{
+  "files": {
+    "papers/multi-harness-rl/figures/credit-groups.svg": {
+      "before": {
+        "sha256": "97d0eefd0d77ae3c563037fd6b96ed0746d17fbe6b4e3ccbd5ea77af98ee54e6",
+        "blob": "9b65a56037aafa02c1bfb809de66291d1bdf623c"
+      },
+      "after": {
+        "sha256": "90f97b3991921787e0c19c5d9fea629d446b1d43ec5a4952c5661cc9830ca1a7",
+        "blob": "4173d123f378a48e75dd21a56ca3140dcea85ce7"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 610\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">同じ軌跡、異なる比較群</title><desc id=\"desc\">同じ軌跡、異なる比較群。説明と出典はLab本文と図注を参照。</desc><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L6,3 L0,6\" fill=\"#217661\"/></marker></defs><rect width=\"440\" height=\"610\" rx=\"12\" fill=\"#fafcf7\"/><text x=\"20\" y=\"30\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">全て同じ課題の8軌跡（合成例）</text><rect x=\"20\" y=\"55\" width=\"400\" height=\"128\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"83\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">Within：ハーネス別に標準化</text><text x=\"34\" y=\"112\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">A：成功 成功 成功 成功 → 全て0</text><text x=\"34\" y=\"137\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">B：成功 失敗 失敗 失敗</text><text x=\"34\" y=\"162\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">Bの標準化報酬：+1.73／−0.58×3</text><rect x=\"20\" y=\"240\" width=\"400\" height=\"128\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"268\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">Cross：AとBを一緒に標準化</text><text x=\"34\" y=\"297\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">成功5件 / 失敗3件で一群</text><text x=\"34\" y=\"322\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">成功：+0.77、失敗：−1.29</text><text x=\"34\" y=\"347\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">Aの成功にも正の係数が付く</text><text x=\"20\" y=\"434\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">経験の種類は同じ。変わるのは比較群。</text><text x=\"20\" y=\"459\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">二値報酬では、成功↔失敗の符号が</text><text x=\"20\" y=\"484\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">逆転する例ではない。ゼロから正への</text><text x=\"20\" y=\"509\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">変化に注目する。</text><text x=\"20\" y=\"534\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">数値：run.py の固定trajectoryから計算</text></svg>\n"
+        ]
+      ]
+    },
+    "papers/multi-harness-rl/figures/dominance.svg": {
+      "before": {
+        "sha256": "af5c0dfe265acc8711ec9d6c56a4265f0af343754abcf72241b6a8d335b450d1",
+        "blob": "115ac1b914e1f426141ba716813ae6e05a21aeaf"
+      },
+      "after": {
+        "sha256": "f30e009ad9cb70cf614c22fa7a87877bacc9dac9de6199cd8331ada663e24056",
+        "blob": "05b0acbe0046dc1018bdd6114057f8704f294cbb"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 249\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">平均解決率の最大値÷最小値</title><desc id=\"desc\">平均解決率の最大値÷最小値。説明と出典はLab本文と図注を参照。</desc><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L6,3 L0,6\" fill=\"#217661\"/></marker></defs><rect width=\"440\" height=\"249\" rx=\"12\" fill=\"#fafcf7\"/><text x=\"20\" y=\"28\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">平均解決率の最大値÷最小値</text><text x=\"20\" y=\"54\" font-family=\"sans-serif\" font-size=\"16\" font-weight=\"normal\" fill=\"#193b36\">倍率：0〜5（ゼロ起点）</text><text x=\"20\" y=\"87\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">評価ハーネスの最大／最小</text><rect x=\"20\" y=\"98\" width=\"350\" height=\"16\" rx=\"8\" fill=\"#e5e9e3\" stroke=\"none\"/><rect x=\"20\" y=\"98\" width=\"301.0\" height=\"16\" rx=\"8\" fill=\"#217661\" stroke=\"none\"/><text x=\"375\" y=\"113\" font-family=\"sans-serif\" font-size=\"16\" font-weight=\"normal\" fill=\"#193b36\">4.3</text><text x=\"20\" y=\"164\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">訓練レシピの最大／最小</text><rect x=\"20\" y=\"175\" width=\"350\" height=\"16\" rx=\"8\" fill=\"#e5e9e3\" stroke=\"none\"/><rect x=\"20\" y=\"175\" width=\"81.2\" height=\"16\" rx=\"8\" fill=\"#217661\" stroke=\"none\"/><text x=\"375\" y=\"190\" font-family=\"sans-serif\" font-size=\"16\" font-weight=\"normal\" fill=\"#193b36\">1.16</text></svg>\n"
+        ]
+      ]
+    },
+    "papers/multi-harness-rl/figures/portability.svg": {
+      "before": {
+        "sha256": "a7b32d848f84172a990be5276d43e0918af01500c404ded29b11dd81a4e56185",
+        "blob": "8dbd165205cd4123854b705c95a0ea9678405c64"
+      },
+      "after": {
+        "sha256": "2df1c2d1ab84afec9b4161acfa212f35ecb5f403888e565d079cbf07aa89f222",
+        "blob": "8dea57f0ae70e715f19f34d474a46a877f54d73d"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 610\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">未見ハーネスの試験設計</title><desc id=\"desc\">未見ハーネスの試験設計。説明と出典はLab本文と図注を参照。</desc><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L6,3 L0,6\" fill=\"#217661\"/></marker></defs><rect width=\"440\" height=\"610\" rx=\"12\" fill=\"#fafcf7\"/><rect x=\"20\" y=\"20\" width=\"400\" height=\"103\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"48\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">学習：SWE-Gym</text><text x=\"34\" y=\"77\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">4 source harness → 同じmanifest</text><text x=\"34\" y=\"102\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">同じSFT checkpoint → Within / Cross</text><path d=\"M220,124 L220,150\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"160\" width=\"400\" height=\"103\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"188\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">評価：SWE-bench Verified</text><text x=\"34\" y=\"217\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">500課題・source 4種＋未見weak-ReAct</text><text x=\"34\" y=\"242\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">全checkpointを同じsealed oracleへ</text><path d=\"M220,264 L220,290\" fill=\"none\" stroke=\"#217661\" stroke-width=\"2\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"300\" width=\"400\" height=\"103\" rx=\"8\" fill=\"#e9f1ea\" stroke=\"none\"/><text x=\"34\" y=\"328\" font-family=\"sans-serif\" font-size=\"19\" font-weight=\"bold\" fill=\"#193b36\">未見での差を測る</text><text x=\"34\" y=\"357\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">k=8：Cross−Within = +0.25ポイント</text><text x=\"34\" y=\"382\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">95% CI [−0.48, +1.02]</text><text x=\"20\" y=\"453\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">sourceでの改善は構成への適応も含む。</text><text x=\"20\" y=\"478\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">未見で追加効果は検出されなかった。</text><text x=\"20\" y=\"503\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">区間は小さい正負の効果を許し、</text><text x=\"20\" y=\"528\" font-family=\"sans-serif\" font-size=\"17\" font-weight=\"normal\" fill=\"#193b36\">同等性を証明した結果ではない。</text></svg>\n"
+        ]
+      ]
+    },
+    "papers/multi-harness-rl/lab.yaml": {
+      "before": {
+        "sha256": "1ea955fd7c67132c710786bafcba231493e19700c983ab6547593dc5ba0923ba",
+        "blob": "602a20ca1e4bc8272d27b4956f0dc341ff16c5d1"
+      },
+      "after": {
+        "sha256": "7f46008d2dd59577890e7cb22dd5be31a49de2d1ee39c2104fd47aae9f6cac4a",
+        "blob": "f782521f60179b681d691f6e1761daf9d06aab17"
+      },
+      "prior_spans": [
+        [
+          27,
+          29,
+          "question: ハーネスをまたいで報酬を比べると、未見の実行環境にも強くなるか\nsummary: 同じ多様な軌跡を学んでも、ハーネスをまたぐGRPOの報酬比較に移植性の上積みは観測されなかった。評価ハーネスによる平均solve rateの幅は約4.3倍で、学習レシピによる幅の約1.16倍より大きい。\n"
+        ],
+        [
+          31,
+          32,
+          "  scope: 一次PDF本文・方法・結果・限界を確認。数値は著者報告と合成実験を区別。\n"
+        ],
+        [
+          35,
+          37,
+          "  author_claim: '著者は複数ハーネスへのexposure（経験）を固定し、WithinとCrossのcredit assignment（相対報酬の割当）だけを変えた。Crossのadvantageにはハーネスの識別情報が残るが、未見ハーネス上の追加改善は検出されなかった。\n"
+        ],
+        [
+          38,
+          40,
+          "\n    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2609.04518v1)'\n  research_bot_interpretation: 既存のHarness-Benchが問う「どの実行環境で測ったか」を、学習側の比較群まで広げた研究と読める。ただし多ハーネス経験そのものの有効性を否定していない。小規模なQwen3-8B、固定データ再生、今回のハーネス群でCrossの追加効果を検出できなかった、という範囲を守るべきだ。\n"
+        ],
+        [
+          45,
+          49,
+          "  problem: 同じコーディング方策でも、編集ツール、観測の形式、文脈管理、再試行規則が違えば成功率が変わる。複数のハーネスを使う学習には二つの選択がある。いくつの環境で経験を集めるかと、どの軌跡同士を報酬で比べるかだ。両者を一緒に変えると、改善原因が分からない。\n"
+        ],
+        [
+          50,
+          54,
+          "  why_it_might_work: 同じ課題でも、使いやすいハーネスで得た成功は高いadvantageになりやすい。方策はその構成で報酬を得る振る舞いへ寄せられる可能性がある。ただしadvantageからハーネスを分類できることだけでは、汎化を妨げる原因の証明にはならない。評価時のハーネス交換と組み合わせて読む必要がある。\n  evidence: '### ハーネス交換の差と、creditの差を別々に読む\n"
+        ],
+        [
+          55,
+          56,
+          "    24,000件のsealed評価では、ハーネス別平均solve rateの範囲が2.14–9.27%（約4.3倍）だった。レシピ別平均の範囲の比は約1.16倍。これは平均の最大／最小比で、分散分解の寄与率ではない（§4）。\n"
+        ],
+        [
+          57,
+          58,
+          ""
+        ],
+        [
+          59,
+          60,
+          "    未見ハーネスで1課題8試行に増やしたCross−Withinは+0.25 pp、95%区間は[−0.48,+1.02]。3学習seedをまとめた4試行条件では+0.16 pp、[−0.41,+0.72]だった（表2–4）。ゼロを含むので優越は示されないが、小さい正負の効果は残る。検出限界もあり、同等性試験の結論ではない。\n"
+        ],
+        [
+          61,
+          62,
+          ""
+        ],
+        [
+          63,
+          64,
+          "    Crossのadvantageから元のハーネスを当てる分類器は、課題単位のout-of-fold評価でラベルshuffle基準より+4.48 pp。Withinは+0.02 ppだった（表9）。Withinのゼロadvantage比率は55.1%、Crossは0.0%（表7）。信号が増えても未見スコアの追加改善には結びつかなかった。訓練データの半分をon-policyで再収集した補助実験でも、結論は変わらなかった。\n"
+        ],
+        [
+          65,
+          66,
+          ""
+        ],
+        [
+          67,
+          68,
+          "    [一次資料：arXiv v1 本文](https://arxiv.org/pdf/2609.04518v1)'\n  executable_understanding: '固定スクリプトが出した8軌跡を、テキスト、JSON、XML風の3インターフェースで採点する。A/Bのsource報酬についてWithinとCrossのadvantageを計算し、軌跡ごとの値をresults.jsonに保存する。この人工例の標準偏差は、群内の平均との差を二乗して群の全件数で平均し、その平方根を取る。報酬そのものは変更しない。\n"
+        ],
+        [
+          69,
+          72,
+          ""
+        ],
+        [
+          73,
+          76,
+          "    方策更新は実装しない。未見形式でのスコアが変わらないのは固定軌跡の対照であり、学習後の移植性を測った論文の帰無結果の再現ではない。'\n  results: 非ゼロのadvantageはWithinの4軌跡からCrossの8軌跡へ増えた。元のrewardは同じ。未見インターフェースでの成功率は前後とも0だが、方策を更新していないため設計上変化しない。\n  what_we_verified: 同じ軌跡・同じ報酬でも群の境界を変えると非ゼロの更新係数を持つ軌跡が増える。インターフェースだけを交換しても実行成否が変わる。この二点を独立に確認した。\n  what_we_did_not_verify: LLMのGRPO、SWE-bench、sealed oracleのコンテナ、seed間の学習分散は未実装。sourceハーネスへの適応やportable capabilityの獲得はNOT\n    TESTED。少数のインターフェース例からハーネス一般の序列を導くこともできない。\n  implementation: 'リポジトリのルートで `uv run papers/multi-harness-rl/run.py` を実行する。Python標準ライブラリだけを使い、CPUで完了する。結果は同じディレクトリの\n    `results.json` に保存する。\n"
+        ],
+        [
+          77,
+          82,
+          "\n    乱数を使う実験はseedを固定した。数値は論文の測定値と別に集計している。'\n"
+        ],
+        [
+          85,
+          87,
+          "  title: 経験を増やすことと報酬を比べることは別\n  caption: 教育用の合成8軌跡。式は原論文§3に対応し、数値はresults.jsonの丸め値。\n"
+        ],
+        [
+          89,
+          91,
+          "  title: \"平均解決率の最大値÷最小値\"\n  caption: 原論文§4の報告値。効果の分散寄与率ではなく、各軸で平均を集計した範囲の比。\n"
+        ],
+        [
+          93,
+          95,
+          "  title: 環境を交換して残る差を測る\n  caption: 原論文図1・表3–4・付録Lをもとに再構成。訓練課題と評価課題も分離する。\n"
+        ],
+        [
+          99,
+          100,
+          "  title: advantageの平均をどこで引くか\n"
+        ],
+        [
+          101,
+          102,
+          "  caption: 比較群を変えることで、更新係数にハーネスの成功率差が入りうる。\n"
+        ],
+        [
+          104,
+          105,
+          "  rationale: 比較群を変えることで、更新係数にハーネスの成功率差が入りうる。\n"
+        ],
+        [
+          108,
+          109,
+          "    explanation: 同じ課題、同じハーネスの中で報酬を標準化する。\n"
+        ],
+        [
+          111,
+          112,
+          "    explanation: 同じ課題の全ハーネスを一群にする。\n"
+        ]
+      ]
+    },
+    "papers/multi-harness-rl/mapping.md": {
+      "before": {
+        "sha256": "01e6a4d87f6bdc231512fa36a7e4a47030b7f4e87e2dc288033754527b5efa06",
+        "blob": "8e96fccebd11bc31fbd474bfb8e7b667cae71867"
+      },
+      "after": {
+        "sha256": "c7959ec4177d157cac1d42b33e1318e2f064a13d567d1e9ca1d9c9e9638a9b72",
+        "blob": "d14b7b1e86207b5c8863786dd1db55ade805b3c3"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "| 論文 | このLab | 省略・公式コード |\n"
+        ],
+        [
+          2,
+          6,
+          "| §3 群の定義 | `advantages`、`experiment` | optimizer・確率比は計算しない |\n| §4–5 harness swap | `execute` | 文字列の受理だけで課題を模す |\n| 表7/9 信号監査 | trajectory別Within/Cross | 分類器・統計検定は未実行 |\n| 付録F/G 公開artifact記述 | 本文を確認 | 本文中のローカルartifact名は公開URLとみなさない。取得可能な公式repoは未確認 |\n"
+        ],
+        [
+          7,
+          8,
+          "一次資料は [arXiv v1 PDF](https://arxiv.org/pdf/2609.04518v1)。公式実装の実行は行っていない。\n"
+        ]
+      ]
+    },
+    "papers/multi-harness-rl/method.md": {
+      "before": {
+        "sha256": "93d691b0a66d8842f413c79bc1b6ffdeca27b5ac8f75b314bd654738c0c65148",
+        "blob": "a77519904643d2dcebc24b1767c251fd8abf1736"
+      },
+      "after": {
+        "sha256": "b545a126894d7d43cc07ea34df1e0693367078c1e5f5ac51540e0833fcc0fd5a",
+        "blob": "a4b4f858a6e4ac3abb3447ccbcf34b34e6d967ce"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### WithinもCrossも、同じ4ハーネスの軌跡を読む\nAider、OpenHands、Qwen Code、SWE-agentでSWE-Gymの軌跡を集める。各条件は、教師あり学習を終えた同じQwen3-8Bの保存状態から学習を始める。使うデータの一覧、トークン、報酬、損失計算の対象、更新回数の予算をそろえ、収集済みの軌跡を再利用する。主要RL群は183課題・5,543episode、81,216recordを共有し、実際のoptimizer step数は81,200だった（付録G、表7–8）。\n"
+        ],
+        [
+          2,
+          3,
+          "### 違うのは平均と標準偏差を計算する範囲\nたとえば同じ課題の8軌跡を、Aiderの4件とSWE-agentの4件に分けるか、8件で一群にするかを考える。軌跡eの課題をx、ハーネスをh、成功報酬をrとする。Withinは `A_e = (r_e − mean(r|x,h))/(std(r|x,h)+ε)`。Crossは `A_e = (r_e − mean(r|x))/(std(r|x)+ε)` で、同じ課題の別ハーネスまでまとめる。\n"
+        ],
+        [
+          4,
+          5,
+          "このAがGRPOの方策確率比に掛かる。全成功または全失敗の群は分散がゼロなので、Withinでは更新信号が消える。Crossなら別ハーネスとの成功率差が残りうる。これは推論能力の差だけでなく、ツール形式との相性でも生まれる。二値報酬では混合群内の成功は正、失敗は負になる。群を変えて常に符号が逆転するのではなく、ゼロだった信号が正または負になるケースが重要だ。\n"
+        ],
+        [
+          6,
+          7,
+          "### 評価には学習時のフィードバックを使わない\nSWE-bench Verifiedの500課題を、4つのsourceハーネスと学習に出さない最小weak-ReActハーネスで実行する。sealed oracleはepisodeごとの隔離環境でpatchを再実行し、モデルに見せたfeedback testと異なるhidden testで判定する。inline判定との食い違いが2.58%あり、すべて楽観方向だったため、論文の数字はoracle側だけで集計する（付録L）。\n"
+        ],
+        [
+          8,
+          18,
+          "[一次資料：arXiv v1 本文](https://arxiv.org/pdf/2609.04518v1)\n"
+        ]
+      ]
+    },
+    "papers/multi-harness-rl/results.json": {
+      "before": {
+        "sha256": "55ffa33c7cce67a9d393414088cc6243f582ac07473477fa8e477d6bdaa53265",
+        "blob": "8af1c8fdcdde8d95a9bbd7e416392f65be180cfd"
+      },
+      "after": {
+        "sha256": "702ea225287e19d13d29271b87ebd6761adab1858be2eb3b24f3fb32751c6e27",
+        "blob": "5a7304539c55cf46ad10bdc17dde523fb11376ad"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"合成インターフェースの固定軌跡。勾配係数のみ計算し、方策は更新しない。未見スコア不変は設計上の対照であり、論文の帰無結果の再現ではない。\",\n"
+        ],
+        [
+          4,
+          5,
+          "      \"name\": \"評価インターフェースを交換\",\n"
+        ],
+        [
+          12,
+          13,
+          "      \"name\": \"非ゼロのadvantageを持つ軌跡\",\n"
+        ]
+      ]
+    },
+    "papers/multi-harness-rl/run.py": {
+      "before": {
+        "sha256": "339e48ce21b59ebf43db2fec68b53a6337782b1f141d7628665c673e92f85a8c",
+        "blob": "5a05135626a32d82de84b017930b63ef96bceb3f"
+      },
+      "after": {
+        "sha256": "d0df4d7ca6144c1bf6c161e3756c0961662e5d6653e67afddb8bcd4b40770c4d",
+        "blob": "19243b683452b0cebfcdace392518e77965277f9"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Frozen trajectories and credit grouping. No policy update or LLM API.\"\"\"\n"
+        ],
+        [
+          7,
+          8,
+          "    # Same underlying task: return two. Interface accepts a different syntax.\n"
+        ],
+        [
+          28,
+          29,
+          "    return {\"note\": \"合成インターフェースの固定軌跡。勾配係数のみ計算し、方策は更新しない。未見スコア不変は設計上の対照であり、論文の帰無結果の再現ではない。\", \"experiments\": [{\"name\": \"評価インターフェースを交換\", \"metrics\": scores}, {\"name\": \"非ゼロのadvantageを持つ軌跡\", \"metrics\": {\"Within\": sum(r[\"within\"] != 0 for r in records), \"Cross\": sum(r[\"cross\"] != 0 for r in records)}}], \"trajectories\": records, \"held_out_before\": scores[\"held_out\"], \"held_out_after_credit_only\": scores[\"held_out\"]}\n"
+        ]
+      ]
+    }
+  }
+}
