@@ -9,13 +9,14 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
-from prose_preservation import before_youtube_rationales_full_prose, before_spotify_causal_full_prose, before_onetrans_full_prose, before_stockout_full_prose, before_agenttether_full_prose, before_hgenpush_full_prose, before_overview_figure_relocations, before_glide_full_prose, before_netflix_counterfactual_full_prose, before_dsi_full_prose, before_gatesid_full_prose, before_common_threshold_full_prose, before_grace_full_prose, before_uvr_full_prose, before_series_full_prose, before_hear_full_prose, before_angle_full_prose, before_otto_full_prose, before_apollopfn_full_prose, before_multi_harness_full_prose, before_autolr_full_prose, before_aura_full_prose, before_evopilot_full_prose, before_autorecsys_full_prose, before_pilot_full_prose, before_agentx_full_prose, before_retailbench_full_prose, before_traffic_value_full_prose, before_eval_grain_full_prose, before_exaone_full_prose, before_isomorph_full_prose, before_scope_full_prose, before_fbsde_full_prose, before_diff_projection_full_prose, before_radfl_full_prose, before_proximal_full_prose, before_igpo_full_prose, before_sabreagent_full_prose, before_invevolve_full_prose, before_deepstock_full_prose, before_orpr_full_prose, before_hasterad_full_prose, before_assortment_full_prose, before_vn2_full_prose, before_intervention_full_prose, before_ogr_full_prose, before_unique_full_prose, before_flashtrie_full_prose, before_pinterest_full_rewrite, before_ahe_full_prose, before_dcdn_full_prose, before_ono_full_rewrite, before_wrapped_produce_full_rewrite, before_static_constrained_full_rewrite, before_forecast_critic_full_rewrite, before_retail_grain_full_rewrite, before_switch_hurdle_full_rewrite, before_perishable_full_rewrite, before_sid_ope_full_rewrite, before_quasid_full_rewrite, before_semantic_id_pair_full_rewrite, before_forecast_pair_full_rewrite, before_harness_icegr_full_rewrite, before_tgr_full_rewrite, before_sona_full_rewrite, before_genpage_full_rewrite, before_unir2_full_rewrite, paper_overview_rewrite_hash, restored_before_paper_overview
+from prose_preservation import before_unirec_full_prose, before_youtube_rationales_full_prose, before_spotify_causal_full_prose, before_onetrans_full_prose, before_stockout_full_prose, before_agenttether_full_prose, before_hgenpush_full_prose, before_overview_figure_relocations, before_glide_full_prose, before_netflix_counterfactual_full_prose, before_dsi_full_prose, before_gatesid_full_prose, before_common_threshold_full_prose, before_grace_full_prose, before_uvr_full_prose, before_series_full_prose, before_hear_full_prose, before_angle_full_prose, before_otto_full_prose, before_apollopfn_full_prose, before_multi_harness_full_prose, before_autolr_full_prose, before_aura_full_prose, before_evopilot_full_prose, before_autorecsys_full_prose, before_pilot_full_prose, before_agentx_full_prose, before_retailbench_full_prose, before_traffic_value_full_prose, before_eval_grain_full_prose, before_exaone_full_prose, before_isomorph_full_prose, before_scope_full_prose, before_fbsde_full_prose, before_diff_projection_full_prose, before_radfl_full_prose, before_proximal_full_prose, before_igpo_full_prose, before_sabreagent_full_prose, before_invevolve_full_prose, before_deepstock_full_prose, before_orpr_full_prose, before_hasterad_full_prose, before_assortment_full_prose, before_vn2_full_prose, before_intervention_full_prose, before_ogr_full_prose, before_unique_full_prose, before_flashtrie_full_prose, before_pinterest_full_rewrite, before_ahe_full_prose, before_dcdn_full_prose, before_ono_full_rewrite, before_wrapped_produce_full_rewrite, before_static_constrained_full_rewrite, before_forecast_critic_full_rewrite, before_retail_grain_full_rewrite, before_switch_hurdle_full_rewrite, before_perishable_full_rewrite, before_sid_ope_full_rewrite, before_quasid_full_rewrite, before_semantic_id_pair_full_rewrite, before_forecast_pair_full_rewrite, before_harness_icegr_full_rewrite, before_tgr_full_rewrite, before_sona_full_rewrite, before_genpage_full_rewrite, before_unir2_full_rewrite, paper_overview_rewrite_hash, restored_before_paper_overview
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def before_full_article_rewrites(root, path, current):
-    old = before_youtube_rationales_full_prose(root, path, current)
+    old = before_unirec_full_prose(root, path, current)
+    old = before_youtube_rationales_full_prose(root, path, old)
     old = before_spotify_causal_full_prose(root, path, old)
     old = before_onetrans_full_prose(root, path, old)
     old = before_stockout_full_prose(root, path, old)
@@ -188,7 +189,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'sid-ope-hierarchy': ('KuaiRand', 'SNIPS', '0.155', '0.087', '同じ数のグループ'),
         'muser-baidu-long-sequence-multi-interest': ('最大10万件', '6通り', '0.26%', '0.89%', '0.2351', '0.2232'),
         'unique-baidu-unified-retrieval-ranking': ('1週間', '0.96%', '1.08%', '99パーセンタイルで89ミリ秒', '推薦画面全体の応答時間ではありません'),
-        'unirec-chain-of-attribute': ('ランディングページ', '20%', '5.37%', '4.76%', '5.60%', '商品ごとに違えば'),
+        'unirec-chain-of-attribute': ('ランディングページ', '20%', '5.37%', '4.76%', '5.60%'),
         'snaplgr-snapchat': ('7日間', '0.37%', '4.624%', '11.11%', '視聴時間が2.40倍になったわけではありません'),
         'assortment-replenishment-hard-constraints': ('飲料データ', '最大14%', '補充', '店舗の利益が14%増えたわけではありません'),
         'ra-dfl-risk-aware-decision-focused-inventory': ('4.903', '4.721', '5.380', '観測した売上', '実店舗での費用削減を測った結果ではありません'),
@@ -246,7 +247,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         live_overview = (yaml.safe_load((ROOT / path).read_bytes())['sections']['overview']
                          if slug in {'unique-baidu-unified-retrieval-ranking', 'vn2-stockout-catboost',
                                      'hasterad-retail-substitution', 'igpo-huawei-inventory-grounded-search',
-                                     'grace-meta-ads-gtm-serving'} else overview)
+                                     'grace-meta-ads-gtm-serving', 'unirec-chain-of-attribute'} else overview)
         assert live_overview.split('\n')[0] in text
         assert all(value in text for value in anchors[slug])
         with pytest.raises(AssertionError):
