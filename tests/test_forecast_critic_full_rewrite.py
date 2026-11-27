@@ -7,11 +7,14 @@ import re
 import pytest
 import yaml
 
-from prose_preservation import before_forecast_critic_full_rewrite, forecast_critic_full_rewrite_hash
+from prose_preservation import before_forecast_critic_all_full_prose, before_forecast_critic_full_rewrite, forecast_critic_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 P = 'papers/forecast-critic/'
 
+
+def archived(path):
+    return before_forecast_critic_all_full_prose(ROOT,path,(ROOT/path).read_bytes())
 
 def identity(raw):
     return {'sha256':sha256(raw).hexdigest(),
@@ -22,7 +25,7 @@ def test_explicit_forecast_critic_prose_transitions():
     rows = json.loads((ROOT/'tests/forecast_critic_full_rewrite_hashes.json').read_text())['files']
     assert set(rows) == {P+n for n in ('lab.yaml','method.md','mapping.md')}
     for path,row in rows.items():
-        updated=(ROOT/path).read_bytes()
+        updated=before_forecast_critic_all_full_prose(ROOT,path,(ROOT/path).read_bytes())
         previous=before_forecast_critic_full_rewrite(ROOT,path,updated)
         for alg in ('sha256','blob'):
             a,b=identity(previous)[alg],identity(updated)[alg]
@@ -37,7 +40,7 @@ def test_explicit_forecast_critic_prose_transitions():
 
 def test_forecast_critic_exact_original_overview_figure_math_and_toy():
     path=P+'lab.yaml'
-    after=(ROOT/path).read_bytes()
+    after=archived(path)
     before=before_forecast_critic_full_rewrite(ROOT,path,after)
     rx=re.compile(rb'^  overview:.*?(?=^  problem:)',re.M|re.S)
     assert len(rx.findall(after))==1 and rx.findall(after)==rx.findall(before)
@@ -53,10 +56,10 @@ def test_forecast_critic_exact_original_overview_figure_math_and_toy():
         assert anchor in evidence,anchor
     for name,blob in (('run.py','4a65d9e54459482771300c8d4ee50f016d850a0f'),
                       ('results.json','c71ecf9cf818991ebe57325655dc7dead219b0a6')):
-        assert identity((ROOT/(P+name)).read_bytes())['blob']==blob
+        assert identity(archived(P+name))['blob']==blob
     r=re.compile(rb'\]\(([^)]*)\)')
     for name in ('lab.yaml','method.md','mapping.md'):
         path=P+name
-        after=(ROOT/path).read_bytes()
+        after=archived(path)
         before=before_forecast_critic_full_rewrite(ROOT,path,after)
         assert sorted(r.findall(before))==sorted(r.findall(after))

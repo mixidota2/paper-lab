@@ -9,7 +9,7 @@ import subprocess
 import pytest
 import yaml
 
-from prose_preservation import before_apollopfn_full_prose, restored_before_paper_overview, unipinrec_full_rewrite_hash
+from prose_preservation import before_forecast_critic_all_full_prose, before_apollopfn_full_prose, restored_before_paper_overview, unipinrec_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = 'papers/unipinrec'
@@ -43,7 +43,7 @@ def test_metadata_matrix_equation_urls_and_behavior_unchanged():
         links = lambda raw: Counter(re.findall(rb'https?://[^\s)\x27]+', raw))
         assert links(old(path)) == links((ROOT / path).read_bytes())
     for path in (f'{SLUG}/run.py', f'{SLUG}/results.json', 'papers/_toy_common.py'):
-        current = before_apollopfn_full_prose(ROOT, path, (ROOT / path).read_bytes())
+        current = before_apollopfn_full_prose(ROOT, path, before_forecast_critic_all_full_prose(ROOT,path,(ROOT / path).read_bytes()))
         assert old(path) == current
     reported = written['sections']['evidence']
     assert all(x in reported for x in ('表3','11.1%','63.6%','キャッシュ共有だけの寄与ではない','§5'))

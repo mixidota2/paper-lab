@@ -1,4 +1,4 @@
-"""Run the deterministic teaching experiment; no paper model is trained."""
+"""人工例の警告を基準値ごとに数える。原論文の言語モデルは学習させない。"""
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))

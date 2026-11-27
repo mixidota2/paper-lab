@@ -5,14 +5,14 @@ import runpy
 
 import pytest
 
-from prose_preservation import before_apollopfn_full_prose, before_rest_full_prose
+from prose_preservation import before_forecast_critic_all_full_prose, before_apollopfn_full_prose, before_rest_full_prose
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_shared_runner_replays_every_other_download_exactly(tmp_path):
     path = 'papers/_toy_common.py'
-    current = (ROOT / path).read_bytes()
+    current = before_forecast_critic_all_full_prose(ROOT,path,(ROOT / path).read_bytes())
     prior = before_apollopfn_full_prose(ROOT, path, current)
     assert prior != current
     with pytest.raises(AssertionError):

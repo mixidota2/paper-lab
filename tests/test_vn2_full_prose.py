@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from prose_preservation import before_apollopfn_full_prose, before_vn2_full_prose, vn2_full_prose_hash
+from prose_preservation import before_forecast_critic_all_full_prose, before_apollopfn_full_prose, before_vn2_full_prose, vn2_full_prose_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = '374a5d35ed43fba71ec5d24b5d0e042f879606f5'
@@ -33,7 +33,7 @@ def test_vn2_restores_exact_archived_bytes_and_isolates_the_overview():
             with pytest.raises(AssertionError):
                 vn2_full_prose_hash(ROOT, rel, row['after'][algo], algo)
     helper = 'papers/_toy_common.py'
-    assert before_apollopfn_full_prose(ROOT, helper, (ROOT / helper).read_bytes()) == historical(helper)
+    assert before_apollopfn_full_prose(ROOT, helper, before_forecast_critic_all_full_prose(ROOT,helper,(ROOT / helper).read_bytes())) == historical(helper)
     old, new = map(yaml.safe_load, (historical(f'{PREFIX}/lab.yaml'), (ROOT / PREFIX / 'lab.yaml').read_bytes()))
     prose = {'summary', 'question', 'core_idea', 'sections', 'interactives', 'source_review', 'teaching_figures'}
     assert {k: v for k, v in old.items() if k not in prose} == {k: v for k, v in new.items() if k not in prose}

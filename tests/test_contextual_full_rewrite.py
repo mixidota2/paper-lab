@@ -9,7 +9,7 @@ import subprocess
 import pytest
 import yaml
 
-from prose_preservation import before_apollopfn_full_prose, contextual_full_rewrite_hash, restored_before_paper_overview
+from prose_preservation import before_forecast_critic_all_full_prose, before_apollopfn_full_prose, contextual_full_rewrite_hash, restored_before_paper_overview
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = 'papers/contextual-deconvolution'
@@ -39,7 +39,7 @@ def test_rewrite_retains_source_urls_equations_metadata_and_code():
         assert all(x[k] == y[k] for k in ('id','kind','after','source','locator'))
         assert [s['formula'] for s in x.get('steps',())] == [s['formula'] for s in y.get('steps',())]
     for path in (f'{SLUG}/run.py', f'{SLUG}/results.json', 'papers/_toy_common.py'):
-        current = before_apollopfn_full_prose(ROOT, path, (ROOT / path).read_bytes())
+        current = before_apollopfn_full_prose(ROOT, path, before_forecast_critic_all_full_prose(ROOT,path,(ROOT / path).read_bytes()))
         assert current == historical(path)
     assert a['teaching_figures'][1]['rows'] == b['teaching_figures'][1]['rows']
     assert a['teaching_figures'][1]['columns'] == b['teaching_figures'][1]['columns']

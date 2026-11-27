@@ -198,7 +198,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = sim2real_all_full_prose_hash(root, path, expected, algorithm)
     expected = assortment_all_full_prose_hash(root, path, expected, algorithm)
     expected = or_transformer_all_full_prose_hash(root, path, expected, algorithm)
-    return reasoncast_all_full_prose_hash(root, path, expected, algorithm)
+    expected = reasoncast_all_full_prose_hash(root, path, expected, algorithm)
+    return forecast_critic_all_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -3397,3 +3398,28 @@ def before_reasoncast_all_full_prose(root, path, current):
     previous = zlib.decompress(base64.b64decode(row['prior_zlib_b64'], validate=True))
     assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
     return previous
+
+
+def forecast_critic_all_full_prose_for_path(root,path):
+    if path!='papers/_toy_common.py' and not path.startswith('papers/forecast-critic/'):
+        return None
+    return json.loads((root/'tests/forecast_critic_all_full_prose_hashes.json').read_text())['files'].get(path)
+
+
+def forecast_critic_all_full_prose_hash(root,path,expected,algorithm='sha256'):
+    row=forecast_critic_all_full_prose_for_path(root,path)
+    if row is None:
+        return expected
+    assert expected==row['before'][algorithm],path
+    return row['after'][algorithm]
+
+
+def before_forecast_critic_all_full_prose(root,path,current):
+    import base64,zlib
+    row=forecast_critic_all_full_prose_for_path(root,path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
+    prior=zlib.decompress(base64.b64decode(row['prior_zlib_b64'],validate=True))
+    assert hashlib.sha256(prior).hexdigest()==row['before']['sha256'],path
+    return prior

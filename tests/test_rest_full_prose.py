@@ -3,7 +3,7 @@ import math
 from pathlib import Path
 import runpy
 import yaml
-from prose_preservation import before_rest_full_prose
+from prose_preservation import before_forecast_critic_all_full_prose, before_rest_full_prose
 
 ROOT=Path(__file__).resolve().parents[1]
 SLUG='rest-sequence-ranking'
@@ -11,10 +11,12 @@ P=ROOT/'papers'/SLUG
 
 def test_rest_reference_and_other_shared_runner_outputs(tmp_path):
     name='papers/_toy_common.py'
-    now=(ROOT/name).read_bytes()
+    now=before_forecast_critic_all_full_prose(ROOT,name,(ROOT/name).read_bytes())
     p=tmp_path/'baseline.py'
     p.write_bytes(before_rest_full_prose(ROOT,name,now))
-    b,a=map(runpy.run_path,(str(p),str(ROOT/name)))
+    reviewed=tmp_path/'rest_review.py'
+    reviewed.write_bytes(now)
+    b,a=map(runpy.run_path,(str(p),str(reviewed)))
     assert a['IDS']==b['IDS'] and len(a['IDS'])==11
     for key in a['IDS']:
         if key!=SLUG:
