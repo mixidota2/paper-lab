@@ -1,5 +1,5 @@
 {
-  "note": "合成7候補・3枠。学習済みCA、実測レイテンシー、本番liftは再現しない。",
+  "note": "Labが用意した7候補から3本を選ぶ。CAの学習、実際の応答時間、本番での改善は再現していない。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",

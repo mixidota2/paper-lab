@@ -1,6 +1,4 @@
-"""Palette equations 9–14 and Algorithm 1 on a declared synthetic candidate pool.
-No neural predictor is trained. Values and continuation probabilities are fixtures.
-"""
+"""固定した候補と継続確率でPaletteの探索を試す。予測モデルは学習させない。"""
 import itertools, json, math
 from pathlib import Path
 ITEMS = [dict(id=i, value=v, group=g, duration=d, continuation=p)
@@ -17,7 +15,7 @@ def score(path, contextual=True, survival=True):
     return value,raw
 
 def feasible(path):
-    # Illustrative business rule, not a Meta policy.
+    # Labの説明用ルール。Metaの運用ルールではない。
     return len(set(path))==len(path) and all(not (a==0 and b==1) for a,b in zip(path,path[1:]))
 
 def future(path, length, mode, raw):
@@ -51,7 +49,7 @@ def compute():
     runs={'pointwise':decode(contextual=False,survival=False),'CA_beam1':decode(survival=False),'golden_beam6':decode(6,mode='duration'),'trimmed_top3':decode(6,3,mode='duration'),'timeout':decode(6,mode='duration',budget=2)}
     oracle=max((p for p in itertools.permutations(range(7),3) if feasible(p)),key=lambda p:score(p)[0])
     assert runs['timeout']['path']==runs['pointwise']['path']
-    return {'note':'合成7候補・3枠。学習済みCA、実測レイテンシー、本番liftは再現しない。','verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},'experiments':[{'name':'制約付き探索と候補切り詰め','metrics':{k:{'value':v['shared_survival_value'],'evaluations':v['evaluations']} for k,v in runs.items()}}],'runs':runs,'oracle':{'path':list(oracle),'value':score(oracle)[0]}}
+    return {'note':'Labが用意した7候補から3本を選ぶ。CAの学習、実際の応答時間、本番での改善は再現していない。','verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},'experiments':[{'name':'制約付き探索と候補切り詰め','metrics':{k:{'value':v['shared_survival_value'],'evaluations':v['evaluations']} for k,v in runs.items()}}],'runs':runs,'oracle':{'path':list(oracle),'value':score(oracle)[0]}}
 
 if __name__ == "__main__":
     result = compute()
