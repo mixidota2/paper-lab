@@ -1,4 +1,4 @@
-"""Synthetic SGC rule-kernel demonstration; no LLM or production benchmark."""
+"""架空のゲーム状態で助言を選ぶ規則を試す。言語モデルや本番の評価は使わない。"""
 import json
 import random
 from pathlib import Path
@@ -11,7 +11,7 @@ CANDIDATES = [
 
 
 def freeze_tools(intent, sub_intent, snapshot):
-    """A two-entry excerpt: unavailable state and unknown intent use fallback."""
+    """登録例は2組。試合状態がないか、意図が未登録ならツールを先に確定しない。"""
     table = {("recommend", "counter-pick"): ["lineup_search", "counter_rank", "dex_lookup"],
              ("teaching", "skill-explain"): ["skill_dex", "prereq_check"]}
     if snapshot is None:
@@ -27,7 +27,7 @@ def ground(required, inventory):
 
 
 def schedule(candidates, history, turn, rng, cooldown=1):
-    """Hard filter, Bernoulli leak, weighted draw, then external writeback."""
+    """待機中の候補を除き、抽選で残った候補から重みに応じ一つ選ぶ。"""
     allowed = [c for c in candidates if turn - history.get(c["id"], -100) > cooldown]
     survivors = [c for c in allowed if rng.random() < c["leak"]]
     if not survivors:
@@ -50,7 +50,7 @@ def replay(inventory, seed=25, n=12, grounding=True, scheduling=True):
 
 
 def evaluate():
-    inventory = {"A", "B", "C"}  # A's skill is locked in the current snapshot.
+    inventory = {"A", "B", "C"}  # Aに必要な技は、いまの試合状態では使えない。
     variants = {"static_priority": replay(inventory, grounding=False, scheduling=False),
                 "grounding_only": replay(inventory, scheduling=False),
                 "grounding_and_history": replay(inventory)}
@@ -59,7 +59,7 @@ def evaluate():
     assert variants['grounding_only']['consecutive_repeats'] == 11
     assert variants['grounding_and_history']['invalid'] == variants['grounding_and_history']['consecutive_repeats'] == 0
     assert replay(set())['abstentions'] == 12
-    return {"note": "人工的な12ターンの規則実験。SGCのLLM、評価データ、速度を再現していない。",
+    return {"note": "Labは架空の12ターンで助言を選ぶ規則を比べた。原論文の言語モデル、評価データ、応答速度は再現していない。",
             "seed": 25, "verification": {"mechanism": "PARTIAL", "performance": "NOT TESTED", "scaling": "NOT TESTED", "production_applicability": "NOT TESTED"},
             "variants": variants,
             "w1": {"live": freeze_tools('recommend', 'counter-pick', inventory),
@@ -68,7 +68,7 @@ def evaluate():
             "w2": {"locked_skill": ground({'A', 'skill-X'}, inventory), "owned_B": ground({'B'}, inventory)},
             "edge_cases": {"empty_inventory": replay(set()), "single_candidate": replay({'B'}),
                            "stale_snapshot": replay(inventory | {'skill-X'})},
-            "experiments": [{"name": "同じ所持状態で制御規則を切り替える", "n": 12, "seed": 25,
+            "experiments": [{"name": "同じ所持品で助言の選び方を変える", "n": 12, "seed": 25,
                               "metrics": {k: {"無効な提案数": v['invalid'], "連続反復数": v['consecutive_repeats'], "提案見送り数": v['abstentions']} for k, v in variants.items()}}]}
 
 
