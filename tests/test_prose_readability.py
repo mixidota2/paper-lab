@@ -224,7 +224,7 @@ def test_batch10_retail_constraints_and_evaluation_scope():
         'shelf-placement-options': ('lab.yaml', '取り出し余白は置ける面数の判定に使い'),
         'storewide-shelf-decomposition': ('lab.yaml', '採用品の基礎需要比で配った流入'),
         'tsfm-sparse-event-ranking': ('lab.yaml', '同点を恣意的に並べ替えて成績を上げることはしない'),
-        'wrapped-produce-placement-controlled-trial': ('lab.yaml', '無作為割付ではない'),
+        'wrapped-produce-placement-controlled-trial': ('lab.yaml', '著者は店を無作為に割り付けていません'),
         'retailbench-long-horizon-store-agents': ('method.md', '日初の現金で買える整数個数と潜在需要の小さい方'),
     }
     for slug, (name, excerpt) in expected.items():
