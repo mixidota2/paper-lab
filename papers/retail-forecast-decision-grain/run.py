@@ -1,4 +1,4 @@
-"""Self-authored arithmetic examples, not author model training or inference."""
+"""架空の実績と予測を使い、評価式を計算する。著者モデルは学習も実行もしない。"""
 from fractions import Fraction as F
 from pathlib import Path
 import argparse
@@ -9,7 +9,7 @@ import math
 
 
 def finite_float(value):
-    """Keep zero denominators distinct from float overflow/underflow."""
+    """分母が本当に0の場合と、浮動小数点で値を表せない場合を分ける。"""
     if value is None:
         return None
     try:

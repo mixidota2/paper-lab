@@ -1,8 +1,8 @@
 (function(root){'use strict';
 function vectors(...xs){if(!xs.every(Array.isArray)||!xs[0].length||xs.some(x=>x.length!==xs[0].length))throw Error('空でない同じ長さの配列が必要です。');}
 function valid(xs){if(xs.some(x=>!Number.isFinite(x)||x<0||x>10000))throw Error('値は0〜10000の有限数で入力してください。');}
-// Reject non-finite results and complete underflow before JSON can hide them.
-// This is a bounded floating-point teaching API, not arbitrary precision.
+// 無限大や、正の途中値が表せず0になった場合は、JSONにする前に止める。
+// 教材は通常の浮動小数点数を使う。任意精度で計算するものではない。
 function finite(x){if(!Number.isFinite(x))throw RangeError('計算結果が数値の表現範囲を超えました。入力の尺度を見直してください。');return x;}
 function product(a,b){const x=finite(a*b);if(x===0&&a!==0&&b!==0)throw RangeError('計算途中の値が小さすぎます。入力の尺度を見直してください。');return x;}
 function ratio(a,b){const x=finite(a/b);if(x===0&&a!==0)throw RangeError('計算結果が小さすぎます。入力の尺度を見直してください。');return x;}
