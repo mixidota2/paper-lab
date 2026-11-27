@@ -1,0 +1,503 @@
+{
+  "files": {
+    "papers/agent-reasoning-forgetting-externalized-state/README.md": {
+      "before": {
+        "sha256": "538aa3282fea6e31ce3a3705c4836bd766657fb9d64a5c02d00b2e33dc5f2202",
+        "blob": "99de19a0ee9fc266b67e0f9765ed0f57df16b2de"
+      },
+      "after": {
+        "sha256": "e1197e3315017b9f5cf5c314179db85cef119890949ef92be647b88493ee5405",
+        "blob": "5bdceb3d2d2dc72f8d3915e92eba2228f3eea95a"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 推論を消す前に、導いた状態の保存先を確かめる\n"
+        ],
+        [
+          4,
+          5,
+          "著者は、エージェントが長い作業を続けるとき、過去の推論をどこまで消せるかを調べました。ICLRはその時点までの履歴から、今後の判断に必要な情報が少ないと見込んだ部分を削ります。中間結論などが推論にしか残っていなかった52場面では、削除後に結論を出し直したり計画を変えたりした割合が67.31%でした。そうした記録の欠落が見つからなかった213場面では36.15%です。この集計だけでは結論を別のファイルなどに移せば、その差だけ問題が減るとは言えません。\n"
+        ],
+        [
+          6,
+          9,
+          "別の80課題で比べると、ICLRの平均スコアは0.7376、推論履歴をすべて消した場合は0.7178でした。これは同じ80課題を使った比較で、260課題での評価とは別です。\n"
+        ],
+        [
+          12,
+          13,
+          "長い作業では、過去の推論を毎回入力すると処理量が増える。しかし、その推論にしかない制約まで消すと、再調査が必要になる。次のtool呼び出しが変われば、その後に読む情報や作業の終了時点も変わる。削った文章の割合だけでは、作業全体の節約量を予測できない。\n"
+        ],
+        [
+          14,
+          15,
+          "たとえば「このAPIはBearer形式では通らない」という結論が推論にだけある状態と、修正したコードやエラー出力に残る状態を区別する。ファイルが存在しても、次の判断で読み出せなければ代替にはならない。\n"
+        ],
+        [
+          18,
+          19,
+          "著者の主張：Interaction Aware Compression for Long Horizon Reasoning（ICLR）は、凍結したQwen3.5-9Bで推論ブロックの予測エントロピーを採点し、低い80%を削る。実行役はDeepSeek-V4-Flash。action、tool引数、観測、最終回答は保存する。本文とAppendix Iは、導いた状態が外部へ移ると推論を置き換えやすくなると論じる。\n"
+        ],
+        [
+          20,
+          21,
+          "本Labの解釈：採用したい設計上の問いは「削除対象が、まだ唯一の情報源か」である。エントロピーはその判定の代理指標にすぎない。ACON、PACE、SelfCompact、SWE-Pruner、Self-GC、Context-as-a-Tool、ACMなど、文脈や記憶を管理する先行研究に対し、本論文は推論の価値を情報の保存先と後続行動から調べる（§2）。外部記憶そのものが新しいわけではない。\n"
+        ],
+        [
+          24,
+          25,
+          "Fig. 2 / Eq. 1–9の処理では、直前に終えたstepの推論を空行で区切る。因果順の履歴をscorerに与え、各tokenの分布からエントロピーを求める。\n"
+        ],
+        [
+          26,
+          27,
+          "```text\nSₜ = (Rₜ, Aₜ, Oₜ₊₁)                  推論・行動・観測\nhₜ = −Σᵥ pθ(v | cₜ) log₂ pθ(v | cₜ)    予測分布の不確かさ\nH(Bᵢ) = Σₜ∈Bᵢ hₜ / |Bᵢ|               ブロック内平均\nD = BottomK⌊0.8N⌋ {H(Bᵢ)}               低い順に[SKIP]へ置換\n```\n"
+        ],
+        [
+          28,
+          29,
+          "実際に出たtokenのsurprisalとは異なる。N=1なら削らず、scorerの42K入力上限を超えたstepは剪定を見送る。書き換えた履歴を以後の要求でも使う。Random対照はtoken単位、ICLRはblock単位なので、削除率を同じ尺度として並べない。\n"
+        ],
+        [
+          30,
+          42,
+          "Appendix B.3の固定集合に関する情報量の上界は、観測したスコアで適応的に選ぶ削除集合の安全保証ではない。B.4の十分条件は、保存状態Zだけで次の行動分布を復元できることを要求する。\n"
+        ],
+        [
+          48,
+          49,
+          "Wは消す推論、εは共通履歴での行動分布の差の上限。状態をファイルへ書くだけでε=0になるとは主張できない。\n"
+        ],
+        [
+          52,
+          53,
+          "解釈：同じ制約をコードと推論の両方に保持しているなら、コードを参照して後続の判断を進められる。一方、必要な結論が推論だけにある場合、消すと元の証拠から導き直すことになる。対話図はこの保存先の違いを、同じ要求列で比べる。\n"
+        ],
+        [
+          54,
+          55,
+          "外部化は無料でも完全でもない。Table 16では、コード保存後の推論削除で評価値は0.7587のままだが、推論量は1,289から3,222へ増える。成功率が同じでも節約できるとは限らない。\n"
+        ],
+        [
+          58,
+          59,
+          "以下は[一次PDF](https://arxiv.org/pdf/2609.29875v1)の著者報告。最小実験の結果とは分けて読む。\n"
+        ],
+        [
+          60,
+          61,
+          "| 評価集合・場所 | 結果 | 読み取れる範囲 |\n"
+        ],
+        [
+          62,
+          67,
+          "| Full260、Table 2・7 | 報酬0.698654→0.717775、入力−25.48%、出力−14.41%、cache read−33.28% | 同じ実行モデル、260課題。勝/分/負は102/76/82 |\n| Full260の領域別、Table 7 | Security +22.88ポイント、Code −6.37ポイント | 全領域での改善ではない。Office・Webも低下 |\n| Ablation80、Table 3・9 | Base 0.6267、ICLR 0.7376、Delete All 0.7178 | 全削除と同点ではない。主評価と基準値も異なる |\n| Pilot40、Table 1 | 報酬67.5→70.3、総token 1.89M→2.02M（+6.9%） | この集合では節約していない |\n| 外部化、Table 14・15 | 推論内のみ67.31%（n=52）、外部あり36.15%（n=213） | 同一task内差は+19.75ポイント、task bootstrap 95% CI [1.00,37.05] |\n| stderr介入、Table 17 | 見える場合Editが9/9、隠すとBashで同じエラーを再取得が9/9 | 小規模な固定状態の局所介入 |\n"
+        ],
+        [
+          68,
+          69,
+          "再利用予測probeのAUROCは0.8444（31課題・265境界、task単位のnested分割）。activation patchingは凍結したQwenセンサーに対する介入で、実行役DeepSeekの因果機構を直接示していない。47標本・8課題のKL RepairはL4で0.047、L31で0.978。最終層で1になるのは同じreadout入力を戻す実装上の対照である。\n"
+        ],
+        [
+          70,
+          71,
+          "主報酬のseed反復や信頼区間がなく、領域間の振れも大きい。Radarとして、状態の保存先を明示する設計と、作業全体の費用計測を取り入れたい。80%削除の本番導入を勧める根拠にはしない。\n"
+        ],
+        [
+          74,
+          75,
+          "4つの制約を、同じ6要求で再利用する決定的な状態機械を動かす。「保持」「推論だけ削除」「ファイル保存後に削除」「保存したが読めない」の4条件を比較する。再導出が必要なら元の規則から正解を計算し直すので、全条件の最終値は一致する。削除は要求列の開始前だけに行う。読み出した値や導き直した値は推論内へ戻すため、同じ制約への後続要求では参照だけで済む。\n"
+        ],
+        [
+          76,
+          77,
+          "労力は人工的な単位で表し、参照を1、ファイル読出しを2、再導出を10とする。LLMのtoken数ではない。図の実行履歴はresults.jsonから読み込む。論文の非単調な節約量は別の散布図に示し、このtoyで再現したようには扱わない。\n"
+        ],
+        [
+          80,
+          81,
+          "推論保持では再導出0回、削除すると4回。先に外部化して読み出せる場合は0回、保存先を読めない場合は4回となった。人工労力は順に6、42、10、42。これは構成した状態機械の動作確認であり、実LLMの外部化効果を推定する数字ではない。\n"
+        ],
+        [
+          84,
+          85,
+          "CONFIRMED：固定した6要求で4条件の最終値が一致すること、読める保存先が再導出を避けること、読めない保存先では避けられないことをassertで確認した。\n\nPARTIAL：機構の検証は情報の保存先だけに限る。推論ブロック選択やエントロピー推定は実装していない。67.31%と36.15%、80課題の報酬値はPDFへ照合した転記であり、独立再現ではない。\n"
+        ],
+        [
+          88,
+          89,
+          "NOT TESTED：DeepSeek-V4-Flashの実行、Qwen3.5-9Bの採点、WorkBuddyBenchの性能、複数seedの不確実性、実token数、scorerの費用、長期の状態更新と陳腐化、本番適用性。論文の trajectory amplification はtoyの測定対象に含めていない。\n"
+        ],
+        [
+          92,
+          93,
+          "リポジトリ直下で次を実行する。外部APIや追加パッケージは不要。\n"
+        ],
+        [
+          99,
+          100,
+          "run.pyのreplay()は、まず推論内を探し、次に読めるファイルを探し、両方なければ導き直す。README.mdとlab.yamlが説明、mapping.mdが対応関係、results.jsonが実行結果を保持する。生成HTMLは編集しない。\n"
+        ],
+        [
+          103,
+          104,
+          "[mapping.md](https://github.com/mixidota2/paper-lab/blob/main/papers/agent-reasoning-forgetting-externalized-state/mapping.md)に式・表・最小実装の対応を記録した。提供PDFには公式実装の公開URLを確認できなかった。コード公開の不存在までは断定しない。\n"
+        ]
+      ]
+    },
+    "papers/agent-reasoning-forgetting-externalized-state/lab.yaml": {
+      "before": {
+        "sha256": "c33b5c34e47db7164c421275ac1a28ad4160eb32aa9c355b9e7e66d485a1853a",
+        "blob": "942d20c5bf9778d090ccabfc1303b39b0eb4b66d"
+      },
+      "after": {
+        "sha256": "2d3c00a14d492116d1065cb875de92c83a355d5b5d64191d4b5336d592df73b4",
+        "blob": "0fb09032fb38a2915bf9f26496842362e736e3c7"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "title: When Can Agents Forget Their Reasoning? ICLR for Long-Horizon Agent Context\n  Compression\n"
+        ],
+        [
+          24,
+          26,
+          "question: 推論を消した後も、必要な状態を読み出せるか\nsummary: 推論の価値を状態の保存先から考える。著者は、推論で得た情報をコードやファイルに保存することと、その情報を再び導き出すことの関係を、処理の一部を変えて調べた。推論文の80%を削除する手法の成績には、課題の領域によって大きな差がある。\n"
+        ],
+        [
+          38,
+          39,
+          "  scope: 本文・付録全30ページ、特にTable 3/7/9/10/14–17を照合。事前判断の同点という記述を訂正。\n"
+        ],
+        [
+          41,
+          43,
+          "  author_claim: 著者の主張：Interaction Aware Compression for Long Horizon Reasoning（ICLR）は、凍結したQwen3.5-9Bで推論ブロックの予測エントロピーを採点し、低い80%を削る。実行役はDeepSeek-V4-Flash。action、tool引数、観測、最終回答は保存する。本文とAppendix\n    Iは、導いた状態が外部へ移ると推論を置き換えやすくなると論じる。\n  research_bot_interpretation: 本Labの解釈：採用したい設計上の問いは「削除対象が、まだ唯一の情報源か」である。エントロピーはその判定の代理指標にすぎない。ACON、PACE、SelfCompact、SWE-Pruner、Self-GC、Context-as-a-Tool、ACMなど、文脈や記憶を管理する先行研究に対し、本論文は推論の価値を情報の保存先と後続行動から調べる（§2）。外部記憶そのものが新しいわけではない。\n"
+        ],
+        [
+          45,
+          46,
+          "    著者は、エージェントが長い作業を続けるとき、過去の推論をどこまで消せるかを調べました。ICLRはその時点までの履歴から、今後の判断に必要な情報が少ないと見込んだ部分を削ります。中間結論などが推論にしか残っていなかった52場面では、削除後に結論を出し直したり計画を変えたりした割合が67.31%でした。そうした記録の欠落が見つからなかった213場面では36.15%です。この集計だけでは結論を別のファイルなどに移せば、その差だけ問題が減るとは言えません。\n"
+        ],
+        [
+          47,
+          48,
+          "    別の80課題で比べると、ICLRの平均スコアは0.7376、推論履歴をすべて消した場合は0.7178でした。これは同じ80課題を使った比較で、260課題での評価とは別です。\n  problem: '長い作業では、過去の推論を毎回入力すると処理量が増える。しかし、その推論にしかない制約まで消すと、再調査が必要になる。次のtool呼び出しが変われば、その後に読む情報や作業の終了時点も変わる。削った文章の割合だけでは、作業全体の節約量を予測できない。\n"
+        ],
+        [
+          49,
+          52,
+          ""
+        ],
+        [
+          53,
+          54,
+          "    たとえば「このAPIはBearer形式では通らない」という結論が推論にだけある状態と、修正したコードやエラー出力に残る状態を区別する。ファイルが存在しても、次の判断で読み出せなければ代替にはならない。'\n"
+        ],
+        [
+          55,
+          57,
+          "  why_it_might_work: '解釈：同じ制約をコードと推論の両方に保持しているなら、コードを参照して後続の判断を進められる。一方、必要な結論が推論だけにある場合、消すと元の証拠から導き直すことになる。対話図はこの保存先の違いを、同じ要求列で比べる。\n"
+        ],
+        [
+          58,
+          61,
+          ""
+        ],
+        [
+          62,
+          69,
+          "    外部化は無料でも完全でもない。Table 16では、コード保存後の推論削除で評価値は0.7587のままだが、推論量は1,289から3,222へ増える。成功率が同じでも節約できるとは限らない。'\n  evidence: '以下は[一次資料PDF](https://arxiv.org/pdf/2609.29875v1)の著者報告。最小実験の結果とは分けて読む。\n"
+        ],
+        [
+          70,
+          71,
+          ""
+        ],
+        [
+          72,
+          75,
+          "    | 評価集合・場所 | 結果 | 読み取れる範囲 |\n"
+        ],
+        [
+          76,
+          84,
+          "    | --- | --- | --- |\n\n    | Full260、Table 2・7 | 報酬0.698654→0.717775、入力−25.48%、出力−14.41%、cache read−33.28%\n    | 同じ実行モデル、260課題。勝/分/負は102/76/82 |\n\n    | Full260の領域別、Table 7 | Security +22.88ポイント、Code −6.37ポイント | 全領域での改善ではない。Office・Webも低下\n    |\n\n    | Ablation80、Table 3・9 | Base 0.6267、ICLR 0.7376、Delete All 0.7178 | 全削除と同点ではない。主評価と基準値も異なる\n    |\n\n    | Pilot40、Table 1 | 報酬67.5→70.3、総token 1.89M→2.02M（+6.9%） | この集合では節約していない |\n\n    | 外部化、Table 14・15 | 推論内のみ67.31%（n=52）、外部あり36.15%（n=213） | 同一task内差は+19.75ポイント、task\n    bootstrap 95% CI [1.00,37.05] |\n\n    | stderr介入、Table 17 | 見える場合Editが9/9、隠すとBashで同じエラーを再取得が9/9 | 小規模な固定状態の局所介入 |\n\n\n    再利用予測probeのAUROCは0.8444（31課題・265境界、task単位のnested分割）。activation patchingは凍結したQwenセンサーに対する介入で、実行役DeepSeekの因果機構を直接示していない。47標本・8課題のKL\n    RepairはL4で0.047、L31で0.978。最終層で1になるのは同じreadout入力を戻す実装上の対照である。\n\n\n    主報酬のseed反復や信頼区間がなく、領域間の振れも大きい。Radarとして、状態の保存先を明示する設計と、作業全体の費用計測を取り入れたい。80%削除の本番導入を勧める根拠にはしない。'\n  executable_understanding: '4つの制約を、同じ6要求で再利用する決定的な状態機械を動かす。「保持」「推論だけ削除」「ファイル保存後に削除」「保存したが読めない」の4条件を比較する。再導出が必要なら元の規則から正解を計算し直すので、全条件の最終値は一致する。削除は要求列の開始前だけに行う。読み出した値や導き直した値は推論内へ戻すため、同じ制約への後続要求では参照だけで済む。\n\n\n    労力は人工的な単位で表し、参照を1、ファイル読出しを2、再導出を10とする。LLMのtoken数ではない。図の実行履歴はresults.jsonから読み込む。論文の非単調な節約量は別の散布図に示し、このtoyで再現したようには扱わない。'\n  results: 推論保持では再導出0回、削除すると4回。先に外部化して読み出せる場合は0回、保存先を読めない場合は4回となった。人工労力は順に6、42、10、42。これは構成した状態機械の動作確認であり、実LLMの外部化効果を推定する数字ではない。\n  what_we_verified: 'CONFIRMED：固定した6要求で4条件の最終値が一致すること、読める保存先が再導出を避けること、読めない保存先では避けられないことをassertで確認した。\n\n\n    PARTIAL：機構の検証は情報の保存先だけに限る。推論ブロック選択やエントロピー推定は実装していない。67.31%と36.15%、80課題の報酬値はPDFへ照合した転記であり、独立再現ではない。'\n  what_we_did_not_verify: NOT TESTED：DeepSeek-V4-Flashの実行、Qwen3.5-9Bの採点、WorkBuddyBenchの性能、複数seedの不確実性、実token数、scorerの費用、長期の状態更新と陳腐化、本番適用性。論文の\n    trajectory amplification はtoyの測定対象に含めていない。\n  implementation: 'リポジトリ直下で次を実行する。外部APIや追加パッケージは不要。\n\n"
+        ],
+        [
+          86,
+          86,
+          "\n"
+        ],
+        [
+          87,
+          87,
+          "\n"
+        ],
+        [
+          88,
+          88,
+          "\n"
+        ],
+        [
+          90,
+          91,
+          "\n    run.pyのreplay()は、まず推論内を探し、次に読めるファイルを探し、両方なければ導き直す。README.mdとlab.yamlが説明、mapping.mdが対応関係、results.jsonが実行結果を保持する。生成HTMLは編集しない。'\n"
+        ],
+        [
+          95,
+          96,
+          "  title: どの記録を消したかで、次の行動が変わる\n"
+        ],
+        [
+          98,
+          101,
+          "  - 保持する記録\n  - 結果\n  - 解釈の境界\n"
+        ],
+        [
+          102,
+          103,
+          "  - label: 直近の推論のみ\n"
+        ],
+        [
+          104,
+          108,
+          "    - 位置介入のrule score 0.8717\n    - 全保持と同値\n    - 限られた固定状態\n  - label: コード保存後に推論削除\n"
+        ],
+        [
+          109,
+          113,
+          "    - rule score 0.7587\n    - 保持条件と同値\n    - 推論量は増加\n  - label: stderrを隠す\n"
+        ],
+        [
+          114,
+          117,
+          "    - 9/9でBash再実行\n    - 同じValueErrorを再観測\n    - 既知の情報を取り直す\n"
+        ],
+        [
+          118,
+          119,
+          "  caption: 著者報告。介入群が異なるため、行をまたいで評価値を比較しない。\n"
+        ],
+        [
+          120,
+          121,
+          "  rationale: 保存先と後続行動の対応を読む。\n"
+        ],
+        [
+          123,
+          124,
+          "  title: 総費用は、残る履歴と後続の要求回数で決まる\n"
+        ],
+        [
+          126,
+          127,
+          "  - name: 削除後の次の判断\n"
+        ],
+        [
+          128,
+          130,
+          "    explanation: Fig. 2。一度変わったtool呼び出しは、次に読む情報も変える。\n  - name: 作業全体で集計\n"
+        ],
+        [
+          131,
+          133,
+          "    explanation: Eq. B.13。Iは入力、Oは出力のtoken数。cache readを二重加算しない。\n  - name: 削除率から総節約率は出ない\n"
+        ],
+        [
+          134,
+          135,
+          "    explanation: Eq. B.14。K*は両条件の要求回数の小さい方。後続の長さと回数も差に含まれる。\n"
+        ],
+        [
+          136,
+          137,
+          "  caption: 文章を削る直接効果と、後続の作業が変わる効果を一緒に測る。\n"
+        ],
+        [
+          138,
+          139,
+          "  rationale: 局所的な剪定と総費用の違いを式で追う。\n"
+        ]
+      ]
+    },
+    "papers/agent-reasoning-forgetting-externalized-state/mapping.md": {
+      "before": {
+        "sha256": "d88a014ca319de3a1ad21147144822d1f56bc77daa0c30284af3ff9aeb22927b",
+        "blob": "3c33d2827bf43eec6ecf312c2f7ed85f86c0485d"
+      },
+      "after": {
+        "sha256": "4e80c2bad5c6d9532e06b96639d7760aec59d0c2e4d75ca72c12edc1e1658708",
+        "blob": "a7e8fb71166f87ceec8110fc18f47c5ef91fda35"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文との対応\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料：[When Can Agents Forget Their Reasoning? v1](https://arxiv.org/pdf/2609.29875v1)、2026-09-24、全30ページ。本文と付録を照合した記録に基づく。\n"
+        ],
+        [
+          4,
+          5,
+          "| 原論文 | Labで説明する内容 | Labで再現していないこと・比較上の注意 |\n"
+        ],
+        [
+          6,
+          13,
+          "| Fig. 2 / Eq. 1–9 / Appendix C | READMEで推論を削る手順と式を説明 | DeepSeekの実行、Qwenによる採点、ブロック単位の削除は未実装 |\n| Eq. 15 / Table 14–15 | 保存先ごとの比較。対応する値は `results.paper.risk` | 状態の保存先で分けた群の観察結果から、保存先の因果効果は求めていない |\n| Table 16–17 | `replay()` で保存した状態の読み出しと再導出を試す | Office課題、実際のツール、stderrを使った9介入は未再現 |\n| Fig. 3 / Table 10 | Random 5/10/20/40%を散布図に表示 | ICLRはブロック単位、Randomはトークン単位で削るため、同じ横軸に載せない |\n| Table 2・7 | Full260（全260課題）の報酬と費用 | 非公開の実行履歴は再評価していない |\n| Table 3・9 | Ablation80（80課題の比較）で、ICLRの平均報酬は0.7376、推論をすべて削った場合は0.7178 | 別集計である260課題の0.717775と混同しない |\n| Theorem B.3 / Corollary B.4 | 次の行動の確率分布の差から、やり取り全体の差の上界を求める式と、保存した状態だけで同じ分布を得られる条件 | εは推定していない。採点結果に応じて削る方法の安全性を保証するものではない |\n| Table 12–13 | モデル内部の表現から情報を読み取る試験（probe）と、内部の値を差し替える試験（patching）の評価範囲 | 実際に行動を選ぶモデルに対しては、著者もpatchingを行っていない |\n"
+        ],
+        [
+          14,
+          15,
+          "`run.py` は状態の読み出しと再導出を説明するために独自に書いた。公式コードの移植ではない。確認したPDFの本文と再現性に関する記述からは公式コードのURLが見つからなかったため、`lab.yaml` の `official_code` は `null` とした。論文の外まで探して、実装が公開されていないことを確かめたわけではない。\n"
+        ]
+      ]
+    },
+    "papers/agent-reasoning-forgetting-externalized-state/method.md": {
+      "before": {
+        "sha256": "3f5cff8537a6c3ba2ff4b1c9c70dd25fac6286651602860c6646f00a463e6aac",
+        "blob": "c84abe07a5c8a7b62fd99d6b79be2e5cd0d61329"
+      },
+      "after": {
+        "sha256": "ce95dd4ae727e6ccd41bbe5fa7652884507b91d6d8549d6d5cc6b53a3ac186e5",
+        "blob": "796bd1f19dd5a605e387c5adcb6b5f91ab8705aa"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "ICLRはエージェントが直前のステップで書いた推論を空行で区切り、次のトークンを予測しやすい箇所から置き換える。採点モデル（scorer）は、そのトークンより前の履歴だけを読んで次のトークンの確率分布を出す。Fig. 2 と Eq. 1–9 では、分布全体の不確かさをエントロピーで測り、ブロックごとに平均する。\n"
+        ],
+        [
+          2,
+          3,
+          "```text\nSₜ = (Rₜ, Aₜ, Oₜ₊₁)                  推論・行動・観測\nhₜ = −Σᵥ pθ(v | cₜ) log₂ pθ(v | cₜ)    予測分布の不確かさ\nH(Bᵢ) = Σₜ∈Bᵢ hₜ / |Bᵢ|               ブロック内平均\nD = BottomK⌊0.8N⌋ {H(Bᵢ)}               低い順に[SKIP]へ置換\n```\n"
+        ],
+        [
+          4,
+          5,
+          "実際に出たトークン一つの意外さ（surprisal）を測る方法ではない。N=1なら置き換えず、採点モデルの入力が42Kトークンの上限を超える場合も、そのステップは置き換えを見送る。行動と観測は残し、書き換えた履歴を次の要求から使う。Random対照はトークン単位、ICLRはブロック単位なので、両者の削除率はそのまま比較できない。\n"
+        ],
+        [
+          6,
+          18,
+          "Appendix B.3 の情報量の上界は、各ブロックの内容を見る前から削除する位置が決まっている場合に限る。採点結果を見て削除箇所を決める ICLR に、そのまま適用できる安全保証ではない。Corollary B.4 が示すのは、到達可能な各履歴で、残した状態 Z だけから元の履歴を使った場合と同じ行動分布を得られれば、やり取り全体の分布は変わらないという十分条件だ。\n"
+        ],
+        [
+          24,
+          25,
+          "Wは消す推論。εは、元のエージェントと推論を削ったエージェントが同じ履歴に到達したときの、次の行動の確率分布の差の上限だ。同じ環境と初期状態で、次の行動の分布が毎回一致するなら、やり取り全体の分布も一致する。状態をファイルに書いただけでε=0になるわけではない。\n"
+        ]
+      ]
+    },
+    "papers/agent-reasoning-forgetting-externalized-state/results.json": {
+      "before": {
+        "sha256": "620415234043489aa1b566209f0b9228109a90a66ff9e164b91a10f015e6667b",
+        "blob": "70338f07ce16d18ce3ccd9e003054e9ce7e9acaa"
+      },
+      "after": {
+        "sha256": "8d446b597a9dc6fbb6292d9c2767b1dcc2d7e7a5c5e14b6750fc9d8bea3cc20a",
+        "blob": "9076f471074df9dd9c9a67eb36a62005f1f6403d"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "  \"note\": \"人工的な状態機械。労力は設定値であり、LLMのtoken数や論文の再導出率を再現していない。\",\n"
+        ],
+        [
+          5,
+          6,
+          "      \"name\": \"同じ6要求・4制約の再利用\",\n"
+        ],
+        [
+          209,
+          210,
+          "        \"group\": \"推論内だけ\",\n"
+        ],
+        [
+          214,
+          215,
+          "        \"group\": \"外部に状態あり\",\n"
+        ]
+      ]
+    },
+    "papers/agent-reasoning-forgetting-externalized-state/run.py": {
+      "before": {
+        "sha256": "963361afde6246e527ad118df21aa95a9526b434576fec4102ec5541bdb7ebde",
+        "blob": "d4c7647791352d8dff85a70846761c2a0463a3bb"
+      },
+      "after": {
+        "sha256": "13443a29485c22451b05d624f93dbfb6baaf6edc2b340655e65d38ea629d4e9a",
+        "blob": "160c1c0d5889667a8377db499b64c233928d514b"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Deterministic state-carrier toy; no LLM, entropy scorer or real token estimates.\"\"\"\n"
+        ],
+        [
+          6,
+          7,
+          "    # Four derived constraints are consumed in a fixed, shared future task order.\n"
+        ],
+        [
+          40,
+          42,
+          "        'note': '人工的な状態機械。労力は設定値であり、LLMのtoken数や論文の再導出率を再現していない。',\n        'experiments': [{'name': '同じ6要求・4制約の再利用', 'n': 6, 'metrics': {k: {x: c[x] for x in ['rederivations', 'file_reads', 'effort_units']} for k,c in cases.items()}}],\n"
+        ],
+        [
+          45,
+          46,
+          "            'risk': [{'group': '推論内だけ', 'n': 52, 'percent': 67.31}, {'group': '外部に状態あり', 'n': 213, 'percent': 36.15}],\n"
+        ]
+      ]
+    },
+    "paper_lab/forgetting05.py": {
+      "before": {
+        "sha256": "0cd880180af68820672c715b8b8bf3e0880f73557530350baa5d7ed0ed7539e6",
+        "blob": "3d0feb54cec00954ac61073e24fe197ed01f9e7f"
+      },
+      "after": {
+        "sha256": "c177170d03335da6e99e14c6289698f0484495274ca051c4ed79b7449225bf72",
+        "blob": "17f3f57681d75d69992bb4e29a514900b460b672"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"State-carrier trace and paper-only trajectory scatter, generated from results.\"\"\"\n"
+        ],
+        [
+          8,
+          9,
+          "    return r'''<section class=\"forget05\" aria-label=\"状態の保存先と再導出\">\n"
+        ],
+        [
+          12,
+          16,
+          "<h3>必要な制約は、どこに残っているか</h3>\n<div class=\"carriers\"><div class=\"carrier\"><b>推論 R</b><p>まだ実行していない計画・制約・中間結論</p></div><div class=\"carrier\"><b>コード / ファイル Z</b><p>導いた結果を保存。後続の判断で読めることが条件</p></div><div class=\"carrier\"><b>観測 O</b><p>道具の実行結果・標準エラー出力。再取得せず使える証拠</p></div></div>\n<p>左から右への移動は自動ではない。保存と読出しを終えて初めて、推論以外から状態を復元できる。</p>\n<label>同じ6回の要求に与える履歴<select data-case><option value=\"keep\">推論を保持する</option><option value=\"prune_internal\">推論だけを削る</option><option value=\"prune_external\">ファイルへ保存してから削る</option><option value=\"prune_unreadable\">保存したが、ファイルを読めない</option></select></label>\n"
+        ],
+        [
+          17,
+          22,
+          "<p>参照1・読出し2・再導出10の人工労力。LLMや実token数の測定ではない。全条件で最終値は同じ。</p>\n<h3>観察比較：31課題の実行途中に設けた265の比較時点</h3><div class=\"risk\" data-risk></div>\n<p>Table 14の著者報告。同一課題内の差は19.75ポイント [1.00, 37.05]（Table 15）。群全体の差31.16ポイントと区別する。無作為な外部化の効果ではない。</p>\n<figure><h3>多く削っても、作業全体の節約が増えるとは限らない</h3><svg viewBox=\"0 0 560 330\" role=\"img\" aria-label=\"Random削除率と入力削減率の散布図\" data-scatter></svg><figcaption>著者報告 Table 10 / Fig. 3。80課題でのRandom token削除だけを表示。点をつなぐ曲線や最適削除率は推定していない。</figcaption></figure>\n<h3>小さな行動分布差も、長い作業では累積する</h3><label>共通履歴での差の上限 ε <input data-e type=\"range\" min=\"0\" max=\"0.1\" step=\"0.005\" value=\"0.02\"></label><label>行動回数 K <input data-k type=\"range\" min=\"1\" max=\"100\" value=\"30\"></label><div class=\"equation\" data-bound aria-live=\"polite\"></div><p>TVは比較する行動分布の差を表す指標。Theorem B.3の仮定を置いた上界。実測リスクではなく、エントロピー（entropy）からεを推定する式でもない。</p>\n"
+        ],
+        [
+          23,
+          24,
+          "<script>(()=>{const root=document.currentScript.parentElement,d=JSON.parse(root.querySelector('[data-forget]').textContent),sel=root.querySelector('[data-case]');function show(){const c=d.cases[sel.value],names={'reasoning':'推論を参照','read-file':'ファイルを読む','rederive':'制約を導き直す'};root.querySelector('[data-trace]').innerHTML=c.trace.map((t,i)=>`<div class=\"step ${t.action==='rederive'?'lost':t.action==='read-file'?'disk':''}\"><b>${i+1}. ${t.key}</b><br>${names[t.action]}<br>値 ${t.value} ／ 労力 ${t.effort}</div>`).join('');root.querySelector('[data-summary]').textContent=`再導出 ${c.rederivations}回 ／ 読出し ${c.file_reads}回 ／ 人工労力 ${c.effort_units}`;}sel.addEventListener('change',show);show();root.querySelector('[data-risk]').innerHTML=d.paper.risk.map(x=>`<p>${x.group}<strong>${x.percent}%</strong>比較時点数 n=${x.n}</p>`).join('');const x=v=>65+v*10,y=v=>265-v*3;let s='<text x=\"65\" y=\"23\">入力削減率 %（大きいほど節約）</text><path d=\"M65 45 V265 H500\" fill=\"none\" stroke=\"#456\"/>';[0,20,40,60].forEach(v=>s+=`<text x=\"25\" y=\"${y(v)+5}\">${v}</text><path d=\"M65 ${y(v)}H500\" stroke=\"#ddd\"/>`);[0,10,20,30,40].forEach(v=>s+=`<text x=\"${x(v)-7}\" y=\"287\">${v}</text>`);d.paper.random.forEach(p=>s+=`<circle cx=\"${x(p.delete)}\" cy=\"${y(p.input_reduction)}\" r=\"7\" fill=\"#b55634\"/><text x=\"${x(p.delete)+9}\" y=\"${y(p.input_reduction)-10}\">${p.input_reduction}%</text>`);s+='<text x=\"150\" y=\"318\">その場で削る推論tokenの割合 %</text>';root.querySelector('[data-scatter]').innerHTML=s;function bound(){let e=+root.querySelector('[data-e]').value,k=+root.querySelector('[data-k]').value;root.querySelector('[data-bound]').textContent=`ε=${e.toFixed(3)}, K=${k} → TV ≤ 1−(1−ε)^K = ${(1-(1-e)**k).toFixed(3)} ≤ min(1,Kε) = ${Math.min(1,k*e).toFixed(3)}`;}root.querySelector('[data-e]').addEventListener('input',bound);root.querySelector('[data-k]').addEventListener('input',bound);bound();})();</script></section>'''\n"
+        ]
+      ]
+    }
+  }
+}

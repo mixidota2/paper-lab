@@ -185,7 +185,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = dream_full_prose_hash(root, path, expected, algorithm)
     expected = reusegr_full_prose_hash(root, path, expected, algorithm)
     expected = bitemporal_full_prose_hash(root, path, expected, algorithm)
-    return harnesstokens_full_prose_hash(root, path, expected, algorithm)
+    expected = harnesstokens_full_prose_hash(root, path, expected, algorithm)
+    return forgetting_iclr_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -3071,3 +3072,30 @@ def before_harnesstokens_full_prose(root, path, current):
     previous = ''.join(lines).encode()
     assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
     return previous
+
+
+def before_forgetting_iclr_full_prose(root, path, current):
+    prefix = 'papers/agent-reasoning-forgetting-externalized-state/'
+    if not path.startswith(prefix) and path != 'paper_lab/forgetting05.py':
+        return current
+    row = json.loads((root / 'tests/forgetting_iclr_full_prose_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def forgetting_iclr_full_prose_hash(root, path, expected, algorithm='sha256'):
+    prefix = 'papers/agent-reasoning-forgetting-externalized-state/'
+    if not path.startswith(prefix) and path != 'paper_lab/forgetting05.py':
+        return expected
+    row = json.loads((root / 'tests/forgetting_iclr_full_prose_hashes.json').read_text())['files'].get(path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
