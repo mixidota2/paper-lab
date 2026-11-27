@@ -162,7 +162,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = hgenpush_full_prose_hash(root, path, expected, algorithm)
     expected = agenttether_full_prose_hash(root, path, expected, algorithm)
     expected = stockout_full_prose_hash(root, path, expected, algorithm)
-    return onetrans_full_prose_hash(root, path, expected, algorithm)
+    expected = onetrans_full_prose_hash(root, path, expected, algorithm)
+    return spotify_causal_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -2393,6 +2394,34 @@ def onetrans_full_prose_hash(root, path, expected, algorithm='sha256'):
 
 def before_onetrans_full_prose(root, path, current):
     row = onetrans_full_prose_row(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def spotify_causal_full_prose_row(root, path):
+    if not path.startswith('papers/spotify-incremental-recommendation-causal/'):
+        return None
+    rows = json.loads((root / 'tests/spotify_causal_full_prose_hashes.json').read_text())['files']
+    return rows.get(path)
+
+
+def spotify_causal_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = spotify_causal_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_spotify_causal_full_prose(root, path, current):
+    row = spotify_causal_full_prose_row(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
