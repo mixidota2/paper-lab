@@ -10,15 +10,15 @@
 [data-reference-lab] th,[data-reference-lab] td {padding:8px;border-bottom:1px solid #bccac3;white-space:nowrap}
 [data-reference-lab] svg {width:100%;height:auto}
 [data-reference-lab] [data-error] {color:#9c241c;font-weight:bold}
-</style><section data-reference-lab aria-label="入力条件から7日分の予測誤差を比べる教材">
-<p><strong>検証範囲：仕組みの一部（PARTIAL）</strong>。この画面では人工データを使い、補正すると予測がどう変わるかを確かめます。論文の著者が過去のデータで測った予測誤差を再現する実験ではありません。</p>
-<h3>条件を一つ変える前に誤差を予想する</h3>
+</style><section data-reference-lab aria-label="7日分の予測で、補正した場合としない場合の誤差を比べる">
+<p><strong>検証範囲：仕組みの一部（PARTIAL）</strong>。この画面では架空の数字を使います。元の予測に値を足したり倍率を掛けたりすると、実績との差がどう変わるかを確かめます。論文の著者らが得た精度を再現するものではありません。</p>
+<h3>条件を変える前に、誤差がどうなるかを予想する</h3>
 <label>条件を変えると、予測誤差はどうなると思いますか？<select data-guess><option>まだ決めていない</option><option>改善する</option><option>同じになる</option><option>悪化する</option></select></label>
-<p>予想は採点されません。値を一つだけ変え、表で元の予測と補正後の予測の誤差を比べてください。日ごとの予測と実績を見て、どの日の差が大きかったか、予想した理由と合っていたかを確かめてください。</p>
-<form><div class="reference-fields"><label>基準予測 b：補正前の予測を7日分、カンマで区切って入力<textarea name="base" rows="2" required></textarea></label><label>実績 y：0以上の値を7日分<textarea name="actual" rows="2" required></textarea></label><label>加算量 a：イベント情報をもとに足す量を7日分<textarea name="additive" rows="2" required></textarea></label><label>対数倍率 l：イベント情報をもとに決めた倍率の自然対数を7日分（ln 2 ≈ 0.693147）<textarea name="level" rows="2" required></textarea></label><label>補正の強さ g：0〜1<input name="gate" type="number" step="any" required></label><label>基準予測を補正するか<select name="route"><option value="Correct">補正</option><option value="Skip">補正しない（Skip）</option></select></label></div></form><button type="button" data-reset>初期条件に戻す</button>
+<p>画面は予想を採点しません。値を一つ変えたら、表で、元の予測と補正した予測を実績と比べてください。どの日に実績との差が大きくなったかを見れば、予想したとおりだったかを確かめられます。</p>
+<form><div class="reference-fields"><label>基準予測 b：補正前の予測を7日分、カンマで区切って入力<textarea name="base" rows="2" required></textarea></label><label>実績 y：実際の販売数を7日分（0以上）<textarea name="actual" rows="2" required></textarea></label><label>加算量 a：元の予測に足したい数を7日分<textarea name="additive" rows="2" required></textarea></label><label>対数倍率 l：予測に掛けたい倍率の自然対数を7日分（2倍なら ln 2 ≈ 0.693147）<textarea name="level" rows="2" required></textarea></label><label>補正の強さ g：0〜1<input name="gate" type="number" step="any" required></label><label>基準予測を補正するか<select name="route"><option value="Correct">補正</option><option value="Skip">補正しない（Skip）</option></select></label></div></form><button type="button" data-reset>初期条件に戻す</button>
 <p data-error role="alert"></p><div data-output aria-live="polite"></div>
 <h4>条件と計算結果を保存する</h4><button type="button" data-export>JSONを書き出す</button>
 <label>保存したJSONを貼り付ける<textarea data-json rows="5" spellcheck="false"></textarea></label>
 <button type="button" data-import>条件を読み込み、再計算する</button>
-<p>保存したJSONを読み込むと、入力条件（inputs）だけを使って計算し直します。保存済みの計算結果（output）は使いません。Tabキーで項目を移動し、数値欄と選択欄はキーボードでも変更できます。</p>
-<noscript>この画面で実験するにはJavaScriptが必要です。保存済みの例はこの下の表で確認できます。再計算には配布ファイルのrun.pyを使ってください。</noscript></section><script src="../downloads/reasoncast-agentic-demand-forecasting/implementation.js" defer></script><script src="../downloads/reasoncast-agentic-demand-forecasting/model.js" defer></script><script src="../downloads/reasoncast-agentic-demand-forecasting/interactive.js" defer></script>
+<p>画面は、読み込んだJSONの入力条件（inputs）だけを使って計算し直します。保存した計算結果（output）は使いません。Tabキーで項目を移動できます。数値欄や選択欄はキーボードでも変更できます。</p>
+<noscript>この画面はJavaScriptが有効なときに操作できます。下の表には前もって計算した例があります。計算し直すには、配布ファイルのrun.pyを使ってください。</noscript></section><script src="../downloads/reasoncast-agentic-demand-forecasting/implementation.js" defer></script><script src="../downloads/reasoncast-agentic-demand-forecasting/model.js" defer></script><script src="../downloads/reasoncast-agentic-demand-forecasting/interactive.js" defer></script>

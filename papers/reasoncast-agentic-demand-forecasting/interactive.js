@@ -62,14 +62,14 @@ function render(){
     const inputs=read(),result=model.evaluate(inputs);current=model.pack(inputs);out.replaceChildren();error.textContent='';save.disabled=false;
     if(model.kind==='reasoncast'){
       const names=['元予測','常時補正 g=1','選択した補正'];
-      out.append(table(['比較','計算状態','誤差総和','実績の合計','WMAPE (%)','元予測との差（ポイント）','MAE'],result.rows.map((r,i)=>[names[i],r.status==='ok'?'計算済み':'計算不能（数値範囲超過）',metricText(r.error_sum),metricText(r.denominator),metricText(r.wmape,r.denominator===0),metricText(r.delta_pp,r.denominator===0),metricText(r.mae)]),'同じ実績・7日間で比較'));
+      out.append(table(['比較','計算状態','誤差総和','実績の合計','WMAPE (%)','元予測との差（ポイント）','MAE'],result.rows.map((r,i)=>[names[i],r.status==='ok'?'計算済み':'計算不能（数値範囲超過）',metricText(r.error_sum),metricText(r.denominator),metricText(r.wmape,r.denominator===0),metricText(r.delta_pp,r.denominator===0),metricText(r.mae)]),'同じ7日分の実績を使って、予測の誤差を比べる'));
       const d=result.rows[2].delta_pp;
-      out.append(node('p',d===null?(result.rows[0].denominator===0?'実績の合計が0のためWMAPEと差は未定義です。MAEで誤差を確認してください。':'計算できない指標は「計算不能」と表示します。計算できる値は表示を続けます。'):`元予測との差は ${num(d)}ポイント。${Math.abs(d)<1e-9?'同点（数値誤差の範囲）':d<0?'改善':'悪化'}です。実績を基準にした誤差であり、意味情報を推論できた証拠ではありません。`));
-      if(result.rows.some(r=>r.status==='unavailable'))out.append(node('p','計算不能の行は数値範囲を超えています。予測自体が計算不能なら曲線を描きません。Skipの元予測保持とは別です。'));
-      if(result.negative_prediction)out.append(node('p','警告：元予測を含む比較行に負の予測があります。生の値を表示し、0へ切り上げていません。'));
-      out.append(plot([{label:'実績',values:inputs.actual},...result.rows.map((r,i)=>({label:names[i],values:r.prediction})).filter(s=>s.values!==null)],'現在条件の7日予測'));
+      out.append(node('p',d===null?(result.rows[0].denominator===0?'実績の合計が0なので、WMAPEとその差は定義できません。誤差を確認するにはMAEを使ってください。':'計算できなかった指標は「計算不能」と表示し、計算できた値はそのまま載せます。'):`元予測との差は ${num(d)}ポイント。${Math.abs(d)<1e-9?'同点（数値誤差の範囲）':d<0?'改善':'悪化'}です。この差は、与えた実績に対する誤差です。画面がイベントの情報を読み取ったわけではありません。`));
+      if(result.rows.some(r=>r.status==='unavailable'))out.append(node('p','数値の範囲を超えた行は計算できません。予測値を計算できなかった行はグラフに描かず、Skipで元の予測を返す行とは区別します。'));
+      if(result.negative_prediction)out.append(node('p','警告：元の予測か補正後の予測に、負の予測値が含まれています。画面は負の値を0に置き換えません。'));
+      out.append(plot([{label:'実績',values:inputs.actual},...result.rows.map((r,i)=>({label:names[i],values:r.prediction})).filter(s=>s.values!==null)],'今の条件で予測した7日間の数量'));
       out.append(table(['日','実績','元予測','常時補正','選択補正','基準予測の絶対誤差','常時誤差','選択誤差'],inputs.actual.map((y,i)=>[i+1,y,...result.rows.map(r=>r.prediction===null?'計算不能':r.prediction[i]),...result.rows.map(r=>r.errors===null?'計算不能':r.errors[i])]),'日別の予測と絶対誤差'));
-      out.append(node('p',inputs.route==='Skip'?'Skipは補正演算を通さず元配列をコピーします。祝日にもSkipを許すこの比較は、原論文の制約を外した反実仮想教材です。':'選択した補正 = (b + g×a) × exp(g×l)。実績yは採点だけに使い、経路や予測を決めません。'));
+      out.append(node('p',inputs.route==='Skip'?'Skipを選ぶと、画面は補正の計算をせず元の予測を返します。原論文と異なり、この画面では祝日にもSkipを選べます。':'選んだ補正は (b + g×a) × exp(g×l) で計算します。実績yは誤差を求めるときだけ使い、経路や予測を決める計算には渡しません。'));
     }else{
       out.append(table(['仕入先','単位粗利（通貨／個）','最終現金（通貨）','資金制約モードの停止判断日（翌日から営業停止）'],result.suppliers.map(s=>[s.supplier,s.margin,s.final_cash,stopDayText(inputs.mode,s.stopped)]),'同じ価格・潜在需要・期間で比較'));
       out.append(node('p',`単位粗利差 B−A = ${num(result.margin_difference)}。会計モードの同点境界は p(r_A−r_B)=c_B−c_A。Bの返品率境界は ${num(result.return_b_tie)}${result.return_b_tie===null?'（価格0なので解けません）':''}。資金制約モードの最終現金の順位は、この境界だけでは決まりません。`));

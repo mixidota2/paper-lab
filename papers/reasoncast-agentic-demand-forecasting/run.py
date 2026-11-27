@@ -1,4 +1,4 @@
-"""Standalone deterministic teaching experiment; standard library only."""
+"""標準ライブラリだけで、7日分の予測を補正する人工例を計算する。"""
 import math
 
 def correct(base, route, additive, level, gate=1.0):
@@ -51,7 +51,7 @@ def finite(value):
 
 
 def evaluate(inputs):
-    """Seven-day output-space proxy; observed y never determines routing/prediction."""
+    """予測値に直接補正をかける。実績は経路や予測値を決めるために使わない。"""
     for key in ('base', 'actual', 'additive', 'level'):
         if not isinstance(inputs.get(key), list) or len(inputs[key]) != 7 or not all(finite(x) for x in inputs[key]):
             raise ValueError(key + ': finite 7-day array required')
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     from pathlib import Path
     result=experiment()
     result['reference'] = reference_cases()
-    result['note']='教育用の人工例。原論文の学習・性能・本番効果は再現していない。'
+    result['note']='Labは人工の販売数で補正の計算を確かめる。原論文の学習や精度、実店舗での効果は再現していない。'
     result['verification']={'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'}
     Path(__file__).with_name('results.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     print(json.dumps(result,ensure_ascii=False))

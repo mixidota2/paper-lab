@@ -16,9 +16,9 @@ def widget(result):
     kind=result['lab28']; frames=[]
     for f in result['frames']:
         if kind=='reasoncast':
-            content='<div class="b21-tokens"><span>Chronos-2の出力を模した固定予測</span><span>→ '+f['route']+'</span><span>→ 補正後</span></div>'
-            content+=table(['日','実績','基準予測','補正後'],[[i+1,f['actual'][i],f['base'][i],number(f['prediction'][i])] for i in range(3)])
-            content+=f'<p>実績合計に対する絶対誤差の割合（WMAPE）：基準 {number(f["baseline_wmape"])}% → 補正後 {number(f["proposed_wmape"])}%</p>'
+            content='<div class="b21-tokens"><span>元の予測（あらかじめ設定した値）</span><span>→ '+f['route']+'</span><span>→ 選んだ経路の予測</span></div>'
+            content+=table(['日','実績','元の予測','選んだ経路の予測'],[[i+1,f['actual'][i],f['base'][i],number(f['prediction'][i])] for i in range(3)])
+            content+=f'<p>実績の合計に対する絶対誤差の割合（WMAPE）は、元の予測が {number(f["baseline_wmape"])}%、選んだ経路が {number(f["proposed_wmape"])}% です。</p>'
         elif kind=='scope':
             content=table(['商品','補充の間隔（日）','1回に運ぶ荷量','1回に使う車両の台数','1日あたりの評価値'],
                           [[p['item'],p['cycle'],p['load'],p['vehicles'],p['utility']] for p in f['plans']])
@@ -36,7 +36,7 @@ def widget(result):
             content='<div class="b21-serving"><section><h4>実行前の点検</h4><p>提案：'+escape(f['proposal'])+'</p><strong>'+f['decision']+'</strong></section><section><h4>学習対象モデルへ渡し、学習用履歴へ残す応答</h4><p>'+escape(f['executed'])+'</p><p>点検役だけが参照する履歴は含めない。</p></section></div>'
         else: raise ValueError(kind)
         frames.append(content)
-    titles={'reasoncast':'保存済みの3日例：補正なしと誤情報による補正','scope':'配車費ごとの品揃えと補充間隔','onetrans':'目的への加点を変えると、候補の順位はどう変わるか','evaluation':'組分けによるWAPEの違い','harness':'点検役を通った応答だけを履歴へ残す'}
+    titles={'reasoncast':'3日分の固定例で、元の予測と補正した予測を比べる','scope':'配車費ごとの品揃えと補充間隔','onetrans':'目的への加点を変えると、候補の順位はどう変わるか','evaluation':'組分けによるWAPEの違い','harness':'点検役を通った応答だけを履歴へ残す'}
     options=''.join(f'<option value="{i}">{escape(f["label"])}</option>' for i,f in enumerate(result['frames']))
     data=json.dumps(frames,ensure_ascii=False).replace('</','<\\/')
     label='1回の配送で車両1台にかかる費用' if kind=='scope' else '買い手の組分け' if kind=='evaluation' else '加点の強さ（β）' if kind=='onetrans' else '人工例の条件'
@@ -47,5 +47,6 @@ def widget(result):
         if kind=='scope' else
         '4社の実績と予測を固定した人工例です。組の中で予測の過不足が打ち消し合うかを比べます。論文の測定値ではありません。'
         if kind=='evaluation' else '教材の3候補をrun.pyで計算した結果です。論文の実験や実際の推薦の結果ではありません。'
-        if kind=='onetrans' else 'run.pyが計算したresults.jsonから生成。著者の測定値ではない。')
+        if kind=='onetrans' else 'Labが前もって計算した3日分の例です。BasicやToolを選んでも、モデルや検索は動かず、既定の補正を使います。'
+        if kind=='reasoncast' else 'run.pyが計算したresults.jsonから生成。著者の測定値ではない。')
     return '<figure class="teaching" data-b21><h3>'+titles[kind]+'</h3><label>'+label+' <select>'+options+'</select></label><script type="application/json" data-frames>'+data+'</script><div data-output aria-live="polite">'+frames[0]+'</div><figcaption>'+caption+'</figcaption></figure>'
