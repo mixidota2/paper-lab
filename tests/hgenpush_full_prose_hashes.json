@@ -1,0 +1,326 @@
+{
+  "files": {
+    "papers/hgenpush-kuaishou-heterogeneous-push-gr/README.md": {
+      "before": {
+        "sha256": "42d3c3c356f3fdd9b33c8a5a9b0e583e6dd0b3225e52c68556532c9245a22fe0",
+        "blob": "ef074ac8fd872653038ade25db78bd2e4e453810"
+      },
+      "after": {
+        "sha256": "cfa4b1b45c63d6fe96b1aa08da2ca53a0e63fe4a8c6a8e6fb0f55ce563096129",
+        "blob": "d503964019e3f582e020b14d4fc723473d814cd3"
+      },
+      "prior_spans": [
+        [
+          6,
+          7,
+          "## 問い\n"
+        ],
+        [
+          8,
+          9,
+          "動画と作者の二つの経路を、同じpush候補へつなげられるか\n\n## 再実行\n"
+        ],
+        [
+          12,
+          13,
+          ""
+        ],
+        [
+          15,
+          16,
+          "Python標準ライブラリだけを使う。単体で取得した場合は `uv run run.py`。結果はスクリプトと同じ場所の `results.json` に保存する。\n"
+        ],
+        [
+          17,
+          18,
+          "## 読む順序\n"
+        ],
+        [
+          19,
+          20,
+          "`lab.yaml` の問題設定・根拠、`method.md` の仕組みと図、`run.py` と `results.json`、`mapping.md` の省略点。HTMLは `uv run paper-lab build` で生成する。\n"
+        ],
+        [
+          21,
+          34,
+          "Mechanism PARTIAL。Performance / Scaling / Production applicability NOT TESTED。小実験で確認した局所条件のみCONFIRMEDとし、論文の本番数値を再現したとは扱わない。\n"
+        ]
+      ]
+    },
+    "papers/hgenpush-kuaishou-heterogeneous-push-gr/lab.yaml": {
+      "before": {
+        "sha256": "365c1ff69fb5c2ce79b200e029b91c6afd610cc2aafbfb270bf184ff1add835a",
+        "blob": "605839af5fc3d09936eb5e02700329ec07f83e55"
+      },
+      "after": {
+        "sha256": "ae9df83114cd26984de88b2e2a0a9159a7517d83da85cbd7703c8cf766ee94be",
+        "blob": "d733afbeb9e261fef8c13123e932048ef75d9517"
+      },
+      "prior_spans": [
+        [
+          29,
+          33,
+          "question: 動画と作者の二つの経路を、同じpush候補へつなげられるか\nsummary: KuaishouのHGenPushは、動画内容から作る識別子と、投稿者の情報を含む識別子の二つの経路で候補動画を集める。途中の粗い順位付けを省き、既存の最終順位付けモデルへ渡す。全構成のDAU +0.181%（p=0.04）、CTR\n  +1.577%（p=0.11）。CTRの有意差は確認できない。\n"
+        ],
+        [
+          45,
+          46,
+          "  scope: 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。\n"
+        ],
+        [
+          47,
+          51,
+          "  author_claim: feedの長短履歴とpushのclick/send履歴を共有decoderで読み、video branchとauthor branchへ分ける。Chained-MTPで前のSIDの意味を残して軽く生成し、UCPA/GSISPOでclick後の消費行動へ整合させる。\n  research_bot_interpretation: '[PushDualGen](pushdualgen-kuaishou.html)がSIDと通知文を結ぶのに対し、HGenPushはvideoとauthorという候補の粒度を結ぶ。[VARG](varg-tmall-value-generative-retrieval.html)と同様にpre-rankを飛ばしてもrankerへの責任は残る。違いはauthorの信頼を行動から学び、そこからvideoへ戻す経路にある。'\n"
+        ],
+        [
+          56,
+          58,
+          "  problem: 同じジャンルでも、利用者は特定の作者にだけ継続的に反応することがある。内容類似度だけではこの差を捉えにくい。また、全SIDを独立に予測すると階層間の整合が崩れ、各tokenで重いdecoderを回すと配信費用が増える。\n  why_it_might_work: author表現をclick行動でuser表現へ合わせれば、内容だけでは見えない支持関係を取り込める。Chained-MTPは固定のinterest anchorへ前tokenのembeddingを足すため、token間の依存を残しつつTransformerの反復を減らす。ただし生成時のtoken依存そのものは残る。論文の「非自己回帰」を「全tokenが条件なしで独立に生成される」と読まない。\n  evidence: '[一次資料PDF §4 / Tables 1, 3–6](https://arxiv.org/pdf/2607.03362v1) の著者報告。\n"
+        ],
+        [
+          59,
+          62,
+          ""
+        ],
+        [
+          63,
+          66,
+          "    | 比較 | 数値 | 条件・注意 |\n"
+        ],
+        [
+          67,
+          68,
+          "    | --- | --- | --- |\n"
+        ],
+        [
+          69,
+          70,
+          "    | 全HGenPush / production | DAU +0.181%（p=0.04） | pushシステム、Table 6 |\n"
+        ],
+        [
+          71,
+          72,
+          "    | 同上CTR | +1.577%（p=0.11） | 通知のdaily CTR。有意水準5%を満たさない |\n"
+        ],
+        [
+          73,
+          74,
+          "    | 同上App Usage Duration | +0.148%（p=0.75） | 点推定の改善にとどまる |\n"
+        ],
+        [
+          75,
+          76,
+          "    | Parallel-MTP | HR@100 0.1150 / 2.40k QPS | SID独立予測 |\n"
+        ],
+        [
+          77,
+          82,
+          "    | DeepSeek-MTP | 0.3954 / 1.27k QPS | Transformer型依存 |\n"
+        ],
+        [
+          83,
+          84,
+          "    | Chained-MTP | 0.3915 / 1.70k QPS | 精度は僅かに下、QPSは約33.86%上 |\n"
+        ],
+        [
+          85,
+          88,
+          ""
+        ],
+        [
+          89,
+          92,
+          "    HR@100は真のsemantic IDが生成top 100に入る割合。最終video表示のitem-level recallと同一ではない。Table 4ではclick-only HR 0.3964に対しUCPA\n    0.3915なので、消費指標との交換がある。\n"
+        ],
+        [
+          93,
+          100,
+          "\n    v1 videoのみ→v2 UCPA追加→v3 author追加というonline構成で、DAU点推定は0.126→0.153→0.181%。これらは各々production比であり、差の0.028 ppを独立に検定したauthorの効果とは扱わない。期間・traffic比・CIが不足するため、再現性の評価には追加情報が必要。'\n  executable_understanding: '`uv run papers/hgenpush-kuaishou-heterogeneous-push-gr/run.py`。小さいtyped indexでvideo\n    SIDとmixed author SIDの候補を展開し、合流・重複除去・既存ranker順への接続を動かす。さらに前SIDのembeddingを変え、Chained-MTPの後token分布が変わることを確認する。推薦効果や生成品質は測定しない。'\n  results: 人工indexではvideo branchがv1、author+video-prefix branchがv1/v2を返し、重複除去後の候補は2件。authorの全動画を無条件で返す経路とは違う。前tokenのembeddingを変えると後tokenの確率が変化する。全候補を通して既存rankerが順位を決める境界も確認する。\n  what_we_verified: Mechanism PARTIAL。mixed SIDで候補集合が限定されること、候補合流時の重複除去、累積embeddingによる条件依存を人工fixtureでCONFIRMED。重複除去はLabで明示した一般的な実装選択で、論文の固有規則の再現ではない。\n  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。16層decoder、RQ-Kmeans/SimVQ、InfoNCE学習、GSISPOの更新、L20上のQPS、本番DAUを再現していない。CTR改善の統計的有意性は著者表でもNOT\n    OBSERVED（5%基準）と読む。\n  implementation: '`retrieve()`はSIDの型ごとにindexを分ける。`token_probs()`はEq. 14のFFNを人工の線形headで代理し、重いbackboneを固定anchorへ置き換える。全候補へ同じ人工rankerを適用する。'\n"
+        ],
+        [
+          105,
+          106,
+          "  title: 固定anchorへ前SIDの意味を累積する\n"
+        ],
+        [
+          108,
+          110,
+          "  rationale: 固定anchorへ前SIDの意味を累積する\n  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。\n"
+        ],
+        [
+          111,
+          112,
+          "  - name: token k\n"
+        ],
+        [
+          113,
+          115,
+          "    explanation: hは共有decoderが作った利用者の関心表現で、生成中は固定する。そこへ既に生成したSID tokenの表現を足すため、prefixが変われば後続tokenの分布も変わる。\n  - name: sequence比\n"
+        ],
+        [
+          116,
+          118,
+          "    explanation: 各tokenの新旧方策の確率比について、対数を平均してから指数を取る。したがって比そのものの算術平均ではなく、幾何平均になる。\n  - name: GSISPO\n"
+        ],
+        [
+          119,
+          120,
+          "    explanation: clipはimportance weightに置く。通常のPPO clipと同じ操作ではない。\n"
+        ],
+        [
+          123,
+          124,
+          "  title: author追加後の点推定と有意性を分ける\n"
+        ],
+        [
+          126,
+          128,
+          "  rationale: author追加後の点推定と有意性を分ける\n  caption: すべてproduction比。p=0.00は原表の丸め表示で、厳密なゼロを意味しない。\n"
+        ],
+        [
+          129,
+          132,
+          "  - DAU\n  - CTR\n  - App duration\n"
+        ],
+        [
+          133,
+          134,
+          "  - label: v1 video\n"
+        ],
+        [
+          138,
+          139,
+          "  - label: v2 + UCPA\n"
+        ],
+        [
+          143,
+          144,
+          "  - label: v3 + author\n"
+        ]
+      ]
+    },
+    "papers/hgenpush-kuaishou-heterogeneous-push-gr/mapping.md": {
+      "before": {
+        "sha256": "f2271d94573e913517a40406965733a54ddb4810d60dda8478de49f50f83ce02",
+        "blob": "4e7f9e44df0d6fca71db3ed54982b2027c22a68d"
+      },
+      "after": {
+        "sha256": "251e91d1ec3c6c76776c4978b1eccee91c85dfeb8309a26ff61835582a9d69e3",
+        "blob": "261440ba434e868db14a55f7fb875de10f3a4107"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文と最小実装の対応\n"
+        ],
+        [
+          2,
+          3,
+          "[一次PDF v1](https://arxiv.org/pdf/2607.03362v1)。確認日：2026-09-23。保存済みPDFを再利用した。\n"
+        ],
+        [
+          4,
+          11,
+          "SHA-256: `36e81449d940ab105c75bdc7e3806eccdd128bf50de1bfe0b4086890edcc2acb`\n"
+        ],
+        [
+          12,
+          13,
+          "| 原論文 | 最小コード / 図 | 省略 |\n| --- | --- | --- |\n| Eq. 14 Chained-MTP | `token_probs()` | FFN学習、beam、8192語彙 |\n| §3.2.2 mixed SID | `retrieve()`、二経路図 | author alignment、RQ-Kmeans/SimVQ |\n| Eqs. 20–24 | 報酬とGSISPOの数式説明 | RL training、zero-std処理 |\n| §3.4 | rankerへ接続 | 本番quota、重複規則は非再現 |\n| Table 6 | p値を含む表 | A/B再現、差分間の検定 |\n\n\n公式コード：確認した一次PDF・arXiv書誌に、この方式の再現用リポジトリを特定できる案内はなかった。非公開であるとの断定はしない。\n"
+        ]
+      ]
+    },
+    "papers/hgenpush-kuaishou-heterogeneous-push-gr/method.md": {
+      "before": {
+        "sha256": "03910b112deb2586449d2b86a9e022982f88cb5e6f13eb1a7ab1f98c0cdccf4e",
+        "blob": "c446df2f8aef09268bfdff02604107146ac1482d"
+      },
+      "after": {
+        "sha256": "82e447874154114ac9b50f5bfa01cd17d3be91a63a0ffbd5529176e344c125d4",
+        "blob": "5e9c1d9e697845fe78bcbeae0de08e5cdc961204"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 作者の意味空間は行動から整える\n"
+        ],
+        [
+          2,
+          3,
+          "入力はlong/short feed、push click、push sendとstatic feature。共有backboneはcausal self-attention、RMSNorm、SwiGLUを持つdecoder-only。videoとauthorの[cls]位置からinterestを取り出す。主設定は16層、hidden 512、codebook size 8,192。videoは3 code、authorは2 codeを使う。\n"
+        ],
+        [
+          4,
+          5,
+          "author特徴とuser interestをInfoNCEで整合させ、author側をRQ-Kmeansで離散化する。SimVQでcodebook collapseを抑える。mixed SIDは(author₁, author₂, video₁)で、作者とその作者のどの動画群を選ぶかを結び付ける。\n"
+        ],
+        [
+          6,
+          7,
+          "### Chained-MTPはSIDの依存を捨てない\n"
+        ],
+        [
+          8,
+          9,
+          "各level kは同じuser anchorと、j<kのtoken embeddingの和を入力にする。trainingでは教師tokenを使えるためFFNを並行計算できる。inferenceにはbeamとprefixへの依存が残る。「重い自己回帰decoderを繰り返さない」と「独立予測」は違う。\n"
+        ],
+        [
+          10,
+          11,
+          "### 消費報酬をsequence単位で重み付けする\n"
+        ],
+        [
+          12,
+          13,
+          "UCPAのrewardはvalid play / profile遷移 / comment滞在で+2、like / follow / share / commentで+1、short play −2、dislike −5、report −10を一致条件ごとに加算する。session内の動画を最大50件のgroupとして標準化する。GSISPOはsequenceの確率比の幾何平均をclipし、stop-gradientの重みとしてlog-probabilityへ掛ける。SFT lossも残すため追加KLを使わないと記述する。std=0のgroup処理など、実装に必要だが本文だけでは確定できない点は補って断定しない。\n"
+        ],
+        [
+          14,
+          33,
+          "<figure class=\"teaching\"><h3>二つのSID経路が、同じrankerへ入る</h3><div class=\"b21-serving\"><section><h4>Video branch</h4><p>multimodal video → 3-level SID</p><p><strong>[video₁, video₂, video₃]</strong></p><p>video候補へ展開</p></section><section><h4>Author branch</h4><p>行動整合 → 2-level author SID</p><p><strong>[author₁, author₂, video₁]</strong></p><p>作者とvideo群で候補を限定</p></section></div><p>両branch → pre-rankを迂回 → <strong>既存ranking model</strong> → push候補</p><figcaption><a href=\"https://arxiv.org/pdf/2607.03362v1\">§3.2–3.4 / Fig. 1</a>を再構成。候補生成が何を出力し、その後の処理が何を担うかを示す。</figcaption></figure>\n"
+        ]
+      ]
+    },
+    "papers/hgenpush-kuaishou-heterogeneous-push-gr/results.json": {
+      "before": {
+        "sha256": "5c116f06715bc5924da40e08bacc1d851e765c26fc4fc949e372854e62ad53f7",
+        "blob": "d9ed07d0f04725519edd617870f7a46d0f83926a"
+      },
+      "after": {
+        "sha256": "d839f1c6a6dae5260675369304d53298a2aeb31de739942cc25f4bad03e31f27",
+        "blob": "38e49bfa969b91873e502e0a2ab791537e4da1d0"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"人工typed indexと線形head。HR、QPS、DAUを測らない。\",\n"
+        ]
+      ]
+    },
+    "papers/hgenpush-kuaishou-heterogeneous-push-gr/run.py": {
+      "before": {
+        "sha256": "f8feff43751582e4c3945995273c14cce827a83a09abafbf44691c9ba361100f",
+        "blob": "4693e27a42f322e655d95f046ffa165ba669e032"
+      },
+      "after": {
+        "sha256": "1aeae6b42d7a1e944db2566d2b283f61f217b4c7a15723d8ddcf56e0c9170a46",
+        "blob": "18720ea640c6d7a337c2fd8fa0db5c3cf1f18a91"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Typed candidate paths and conditional token arithmetic, all synthetic.\"\"\"\n"
+        ],
+        [
+          12,
+          13,
+          "    r=dict(note='人工typed indexと線形head。HR、QPS、DAUを測らない。',verification=dict(mechanism='PARTIAL',performance='NOT TESTED',scaling='NOT TESTED',production_applicability='NOT TESTED'),paths=paths,ranked=sorted(paths['merged'],key=lambda v:-rank_scores[v]),conditional=dict(prefix_a=token_probs([.2,.3],[[1,0]]),prefix_b=token_probs([.2,.3],[[0,1]])))\n"
+        ]
+      ]
+    }
+  }
+}
