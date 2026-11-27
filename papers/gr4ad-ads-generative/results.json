@@ -1,8 +1,8 @@
 {
-  "note": "合成データ640広告、10 seeds。学習済みUAE・balanced k-means・MGMRの再現ではない。性能と本番はNOT TESTED。",
+  "note": "Labは640件の人工広告を乱数の初期値10通りで比べた。UAE、balanced k-means、MGMRは学習せず、論文の性能や本番の結果は検証していない。",
   "experiments": [
     {
-      "name": "最終層に数値IDを入れると同一内容を区別できるか",
+      "name": "識別子の末尾で数値IDを使うと、内容が同じ広告を区別できるか",
       "metrics": {
         "hash_bins=4": {
           "rq_collision_pct": 100.0,
@@ -510,5 +510,5 @@
       }
     ]
   },
-  "definition": "Col = 1 - singleton occupied SIDs / occupied SIDs; hash collision is still possible"
+  "definition": "Colは使用したSIDのうち、複数の広告に割り当てたSIDの割合。ハッシュを使っても衝突する場合がある。"
 }

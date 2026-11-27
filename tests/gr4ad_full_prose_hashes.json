@@ -1,0 +1,464 @@
+{
+  "files": {
+    "papers/gr4ad-ads-generative/README.md": {
+      "before": {
+        "sha256": "1d48414e806ac95509f15d4671177d46efa4ca53c347f9006e5e4f0305fe8e57",
+        "blob": "5b5505cba46d926614f9359551fb776cf6a0a765"
+      },
+      "after": {
+        "sha256": "1c9986acc9e6a8588235669165e6c1a85d6c8d4a7dc44d742c5b2ddc777d766d",
+        "blob": "fa442e8db5f5f168d5098eff464efba512a40833"
+      },
+      "prior_spans": [
+        [
+          6,
+          7,
+          "`uv run papers/gr4ad-ads-generative/run.py`\n"
+        ],
+        [
+          8,
+          15,
+          "本文の原データは lab.yaml と method.md、対応表は mapping.md。run.py は標準ライブラリのみを使い、results.json を同じディレクトリに生成する。数値は合成例で、論文の再現実験ではない。\n"
+        ]
+      ]
+    },
+    "papers/gr4ad-ads-generative/figures/lazyar.svg": {
+      "before": {
+        "sha256": "053b356e5af70fc287db73ebcd70e1c93b2250139295990a7f1e0e8320b0fe37",
+        "blob": "6d9897ba16b775f979bac083c087bda6c3f3001b"
+      },
+      "after": {
+        "sha256": "deabf74aeab1b2306065eb2bbc5f177540b99d7360a3e8801268d20b31feb8ea",
+        "blob": "770fb7f685d292a13c7f1850eca082d8bdf8d730"
+      },
+      "prior_spans": [
+        [
+          0,
+          3,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 560 630\" role=\"img\" aria-labelledby=\"title\"><title id=\"title\">LazyAR：直前のトークンを使う計算を後半層へ寄せる</title><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0 0L8 4L0 8\" fill=\"none\" stroke=\"#586c78\"/></marker></defs><rect width=\"560\" height=\"630\" fill=\"#f7faf9\"/><style>text{font-family:system-ui,sans-serif;fill:#183640;font-size:19px}.small{font-size:16px}.head{font-size:23px;font-weight:700}</style>\n<text x=\"24\" y=\"28\" style=\"font-size:19px;font-weight:700\"><tspan x=\"24\">LazyAR：直前のトークンを使う計算を</tspan><tspan x=\"24\" y=\"52\">後半層へ寄せる</tspan></text>\n<text x=\"24\" y=\"78\" class=\"\">通常AR：各beam・各SID段で全層を計算</text>\n"
+        ],
+        [
+          4,
+          7,
+          "<text x=\"38\" y=\"121\" class=\"\">前token → layers 1–6 → layers 7–9</text>\n<text x=\"38\" y=\"148\" class=\"\">全体が前token確定後の処理</text>\n<text x=\"24\" y=\"227\" class=\"\">LazyAR：生成位置ごとに前半を先計算</text>\n"
+        ],
+        [
+          8,
+          10,
+          "<text x=\"38\" y=\"277\" class=\"\">position ＋ context → layers 1–6</text>\n<text x=\"38\" y=\"304\" class=\"\">前tokenに依存せず、beam間で再利用</text>\n"
+        ],
+        [
+          12,
+          13,
+          "<text x=\"38\" y=\"404\" class=\"\">Fuse：前tokenをここで注入</text>\n"
+        ],
+        [
+          15,
+          17,
+          "<text x=\"38\" y=\"497\" class=\"\">layers 7–9 → 候補ごとの次SID確率</text>\n<text x=\"24\" y=\"555\" class=\"small\"><tspan x=\"24\">SIDの最初のトークンは全層を通して生成します。</tspan><tspan x=\"24\" y=\"579\">長文生成で同じ効果が得られる保証はありません。</tspan></text><text x=\"24\" y=\"610\" class=\"small\">research_bot · 一次資料を基に説明用に再構成</text></svg>\n"
+        ]
+      ]
+    },
+    "papers/gr4ad-ads-generative/figures/serving.svg": {
+      "before": {
+        "sha256": "2d4944df0e787239f987a38fda66274e4a36ef4f9f679971c2a3255dc33f1d59",
+        "blob": "c73c25c5bc32326795ef2b302f6f4673e0908451"
+      },
+      "after": {
+        "sha256": "3dc6190f5cf16f5256b8628356d56adfb4217f052b5949a5068891232df2590f",
+        "blob": "92fba7f2622776d975f3d4e62b14f2ee0eb337e4"
+      },
+      "prior_spans": [
+        [
+          0,
+          4,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 560 514\" role=\"img\" aria-labelledby=\"title\"><title id=\"title\">DBW：前半の候補を減らし、最後は512候補</title><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0 0L8 4L0 8\" fill=\"none\" stroke=\"#586c78\"/></marker></defs><rect width=\"560\" height=\"514\" fill=\"#f7faf9\"/><style>text{font-family:system-ui,sans-serif;fill:#183640;font-size:19px}.small{font-size:16px}.head{font-size:23px;font-weight:700}</style>\n<text x=\"24\" y=\"35\" class=\"head\">DBW：前半の候補を減らし、最後は512候補</text>\n<text x=\"24\" y=\"83\" class=\"\">Table 4：固定[512,512,512]を基準</text>\n<text x=\"24\" y=\"133\" class=\"\">固定</text>\n"
+        ],
+        [
+          11,
+          12,
+          "<text x=\"24\" y=\"265\" class=\"\">漸増</text>\n"
+        ],
+        [
+          19,
+          21,
+          "<text x=\"24\" y=\"415\" class=\"\">TABS：閑散時はbeamを60%広げる</text>\n<text x=\"24\" y=\"448\" class=\"\">Table 1のDBSはDBW＋TABSの組合せ。</text><text x=\"24\" y=\"498\" class=\"small\">research_bot · 一次資料を基に説明用に再構成</text></svg>\n"
+        ]
+      ]
+    },
+    "papers/gr4ad-ads-generative/figures/tokenization.svg": {
+      "before": {
+        "sha256": "02bd3943eaba75331d02311a77423148fd97b9b96045bfb4f3b904336d34f87f",
+        "blob": "640e2912438e54ea2ffeddb77b00d7f093e846c5"
+      },
+      "after": {
+        "sha256": "fd9aa95a9a534ec4e5d1e8729e3231f6959338bd042c3ee1da042182063973d6",
+        "blob": "72990f11387dd849121ab79cd966ce3fc7f23995"
+      },
+      "prior_spans": [
+        [
+          0,
+          2,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 560 550\" role=\"img\" aria-labelledby=\"title\"><title id=\"title\">UA-SID：意味と業務識別の分担</title><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0 0L8 4L0 8\" fill=\"none\" stroke=\"#586c78\"/></marker></defs><rect width=\"560\" height=\"550\" fill=\"#f7faf9\"/><style>text{font-family:system-ui,sans-serif;fill:#183640;font-size:19px}.small{font-size:16px}.head{font-size:23px;font-weight:700}</style>\n<text x=\"24\" y=\"35\" class=\"head\">UA-SID：意味と業務識別の分担</text>\n"
+        ],
+        [
+          3,
+          5,
+          "<text x=\"38\" y=\"91\" class=\"\">動画＋商品＋広告主</text>\n<text x=\"38\" y=\"118\" class=\"\">instruction tuning ＋ co-occurrence</text>\n"
+        ],
+        [
+          7,
+          8,
+          "<text x=\"38\" y=\"211\" class=\"\">MLLM → UAE（広告の連続表現）</text>\n"
+        ],
+        [
+          10,
+          11,
+          "<text x=\"38\" y=\"305\" class=\"\">第1層：中心16384個 → 大まかな意味の違い</text>\n"
+        ],
+        [
+          13,
+          14,
+          "<text x=\"38\" y=\"397\" class=\"\">第2層：中心4096個 → 意味の残差</text>\n"
+        ],
+        [
+          16,
+          17,
+          "<text x=\"38\" y=\"489\" class=\"\">第3層：1024 hash ← ID / conversion</text><text x=\"24\" y=\"534\" class=\"small\">research_bot · 一次資料を基に説明用に再構成</text></svg>\n"
+        ]
+      ]
+    },
+    "papers/gr4ad-ads-generative/figures/uvr.svg": {
+      "before": {
+        "sha256": "94a91e68e1953d9389ec192abd5357629745124fd5a51ec7cebae0942385188c",
+        "blob": "da8e4d81596dde5da025c90e802cb49294b0cc84"
+      },
+      "after": {
+        "sha256": "a1d06fecccaea2901c5efb0c64afe3c5f5fbb540f8bd5b2dca12b443074ddcd5",
+        "blob": "d5584afdf0b67ad73c240fd608f5d37e0b3dc0cd"
+      },
+      "prior_spans": [
+        [
+          0,
+          2,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 560 466\" role=\"img\" aria-labelledby=\"title\"><title id=\"title\">UVR：模倣と価値探索の配分</title><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0 0L8 4L0 8\" fill=\"none\" stroke=\"#586c78\"/></marker></defs><rect width=\"560\" height=\"466\" fill=\"#f7faf9\"/><style>text{font-family:system-ui,sans-serif;fill:#183640;font-size:19px}.small{font-size:16px}.head{font-size:23px;font-weight:700}</style>\n<text x=\"24\" y=\"35\" class=\"head\">UVR：模倣と価値探索の配分</text>\n"
+        ],
+        [
+          3,
+          4,
+          "<text x=\"38\" y=\"92\" class=\"\">モデル確率の順位 r_p ／ 報酬順位 r_v</text>\n"
+        ],
+        [
+          8,
+          12,
+          "<text x=\"38\" y=\"229\" class=\"\">Aが大きい</text>\n<text x=\"38\" y=\"256\" class=\"\">VSLの比重を増す</text>\n<text x=\"38\" y=\"283\" class=\"\">価値を加味した</text>\n<text x=\"38\" y=\"310\" class=\"\">履歴の模倣</text>\n"
+        ],
+        [
+          13,
+          19,
+          "<text x=\"304\" y=\"229\" class=\"\">Aが小さい</text>\n<text x=\"304\" y=\"256\" class=\"\">RSPOの比重を増す</text>\n<text x=\"304\" y=\"283\" class=\"\">候補一覧の相対順位を</text>\n<text x=\"304\" y=\"310\" class=\"\">価値へ合わせる</text>\n<text x=\"24\" y=\"390\" class=\"\">注意：順位の一致 ≠ 報酬の校正</text>\n<text x=\"24\" y=\"421\" class=\"\">報酬モデルの誤りは別に検証する。</text><text x=\"24\" y=\"450\" class=\"small\">research_bot · 一次資料を基に説明用に再構成</text></svg>\n"
+        ]
+      ]
+    },
+    "papers/gr4ad-ads-generative/lab.yaml": {
+      "before": {
+        "sha256": "ce59fbcab1b38f1efb63cc4f0c7c7181371d423199c26c675e0f0f722ad5944e",
+        "blob": "6456989defb7c143d2ead7f6c4a87a9f57125fb8"
+      },
+      "after": {
+        "sha256": "c3e28b67494dcd29debbdb0fd4c77b1a8efc3678d550528a3387d0c52b9b429a",
+        "blob": "742b42c670889bad3f5db03e3ff087017fbe9483"
+      },
+      "prior_spans": [
+        [
+          53,
+          55,
+          "question: 広告の価値学習とbeam探索を、同じ配信予算の中でどう両立するか\nsummary: GR4ADは広告SID、価値に沿う学習、短い系列の復号、負荷に応じたbeam幅を合わせて設計する。Table 1の最終構成は収益+4.28%（対DLRM）、QPS+117%（対OneRec-V2）。比較基準を分けて、400M超ユーザーへの展開という著者報告を読む。\n"
+        ],
+        [
+          62,
+          65,
+          "  author_claim: 著者は、広告固有の情報をIDに表すUA-SID、ユーザーの興味と広告の価値を学ぶVSL・RSPO、生成時の計算量を減らすLazyAR・DBSを組み合わせている。Kuaishou広告に0.16Bモデルを全面展開し、L20あたり500超QPS・100ms未満の推論を報告する（§4）。\n  research_bot_interpretation: 個別の新型decoderだけを評価すると論点を外す。候補の識別、価値の教師、探索量の配分を合わせた改善である。ただしstackの差分表だけでは要素間の相互作用まで分離できない。報酬モデルの誤差や露出の偏りがあると、listwise整合性を上げても真の収益が上がるとは限らない。\n"
+        ],
+        [
+          71,
+          74,
+          "  problem: 同じ動画を使う広告でも、advertiserやconversion typeが違えば配信先と価値は変わる。内容だけのSIDでは識別できず、クリック履歴の模倣だけでは価値の高い候補を十分に探索できない。しかも後半のSIDでは多数のbeamを処理するため、予測が容易な階層へ計算を使いすぎる。\n  why_it_might_work: UA-SIDは意味情報と数値的な業務識別を分担する。LazyARは前段の文脈処理をbeam間で共有し、多数の候補に必要な後段だけを逐次化する。RSPOが価値の相対順位を学び、DBSが余裕のある時間帯の探索を増やす。この連携には合理性があるが、hashの追加だけで価値が学べるわけではない。\n  evidence: '### 収益とQPSは異なる基準に対する変化\n"
+        ],
+        [
+          75,
+          78,
+          "    提供PDF v3 Table 1の値。収益列はDLRM、QPS列はOneRec-V2（GR-Base）を基準とする。各行はstackへの追加で、単独要素のランダム化比較とは限らない。\n"
+        ],
+        [
+          79,
+          80,
+          ""
+        ],
+        [
+          81,
+          93,
+          "    | 構成 | 収益：対DLRM | QPS：対GR-Base |\n"
+        ],
+        [
+          94,
+          95,
+          "    | --- | ---: | ---: |\n"
+        ],
+        [
+          96,
+          97,
+          "    | OneRec-V2 | +1.68% | 基準 |\n"
+        ],
+        [
+          98,
+          99,
+          "    | + UA-SID | +1.92% | 0% |\n"
+        ],
+        [
+          100,
+          101,
+          "    | + VSL | +2.80% | −25% |\n"
+        ],
+        [
+          102,
+          103,
+          "    | + VSL + DPO | +3.16% | −25% |\n"
+        ],
+        [
+          104,
+          105,
+          "    | + VSL + GRPO | +3.21% | −25% |\n"
+        ],
+        [
+          106,
+          107,
+          "    | + VSL + RSPO | +3.86% | −25% |\n"
+        ],
+        [
+          108,
+          111,
+          "    | + Unified VSL & RSPO（UVR） | +4.01% | −25% |\n"
+        ],
+        [
+          112,
+          115,
+          "    | + UVR + DBS | +4.32% | +20% |\n"
+        ],
+        [
+          116,
+          120,
+          "    | + UVR + DBS + DeepSeek-MTP | +3.98% | +117% |\n\n    | GR4AD：UVR + DBS + LazyAR | +4.28% | +117% |\n\n\n    最終行は収益最大の行ではない。DBSまでの構成に比べ、LazyARは収益liftを0.04ポイント下げ、throughputを増やしている。abstractの「up to 4.2%」は概数なので、ここでは表の精度を保つ。QPSをDLRM比+117%と読み替えない。\n\n\n    ### 衝突率は何を分母にするか\n\n    Table 2では、RQ-KmeansのCpr/Colは3.54/85.44%、MR追加で1.78/59.72%、MG＋MRで1.07/18.26%。符号空間は4096³から16384×4096×1024へ変わり、総容量は同じ。Colは「使われたSIDのうち、複数itemに対応するSIDの割合」である（Appendix\n    A.3）。広告の何%が衝突したかとは異なる。\n\n\n    元のembeddingのphoto-to-photo R@1はQARM 0.541、Qwen3-VL-7B 0.769、instruction tuning＋co-occurrence learning後のUAE\n    0.896。これは同じ広告商品に属する画像を探す評価で、オンライン収益そのものではない。\n\n\n    Table 4のDBW比較では固定[512,512,512]に対し、[128,256,512]が収益−0.15%／QPS+45%。第3層だけ128へ縮めると収益−0.85%／QPS+5%。最終候補数を保ちながら前半を節約する意味が見える。Table\n    1のDBSは時間帯制御も含むため、この−0.15%と直接混ぜない。[一次資料：Tables 1, 2, 4](https://arxiv.org/pdf/2602.22732v3)。'\n  executable_understanding: '`uv run papers/gr4ad-ads-generative/run.py`\n\n\n    160種の合成contentにそれぞれ4 advertiserを付け、640広告を作る。固定中心による3段の残差量子化と、最終段を数値IDのSHA-256 hashへ置換した方式を比較する。10\n    seeds、hash bins=4/16/64を計算する。bins=4だけが同じ符号空間での比較で、16/64は容量を増やす感度分析である。'\n  results: 同じcontentに複数広告を付けたため、内容だけのSIDはすべて衝突を含む。hashで区別できる広告は増えるが、有限bucketでは再衝突する。表示するColは原典の分母に合わせ、item基準の割合もJSONに保存する。数値は論文の18.26%を再現するために調整していない。\n  what_we_verified: Mechanism PARTIAL。意味が同じでも数値IDで分けられることと、hash幅による再衝突を合成例で確認した。Colの分母がitem数と異なることも計算した。\n  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。UAEの学習、balanced\n    k-means、RSPO、LazyARの実速度、広告収益は未検証。A/Bの信頼区間と割付期間の詳細を確認できない。全面展開と400M超ユーザーという記述は著者報告であり、独立監査ではない。\n  implementation: '`nearest()` は固定中心への量子化、`experiment()` は同一prefixを保って最終層だけを差し替える。`collision_metrics()`\n    は占有SIDとitemの両方を分母にした指標を返す。訓練で最適化したcodebookではないため、MGMR全体の品質を測る用途には使わない。'\n"
+        ],
+        [
+          122,
+          124,
+          "  title: 意味の残差と業務上の識別を別の層へ置く\n  caption: Figure 2・Table 2を再構成。最後の1024*はhash層。\n"
+        ],
+        [
+          126,
+          128,
+          "  title: 候補ごとの逐次計算を後半3層へ寄せる\n  caption: §3.2・§5.1のL=9、K=6。図は依存関係で、処理時間の縮尺ではない。\n"
+        ],
+        [
+          130,
+          132,
+          "  title: 順位のずれでVSLとRSPOの比重を変える\n  caption: 式19–22を再構成。大きいAではVSL重視、小さいAではRL重視。\n"
+        ],
+        [
+          134,
+          136,
+          "  title: 最終候補数を保って前半のbeamを細くする\n  caption: Table 4の値は固定[512,512,512]比。TABSの時間帯調整とは分けて読む。\n"
+        ]
+      ]
+    },
+    "papers/gr4ad-ads-generative/mapping.md": {
+      "before": {
+        "sha256": "802fd07889bb302fc6bb7b2db6da9e87b23b25dfe781dd6f2dcc00e0a8524c2f",
+        "blob": "52257d1f8c847a1e227f51dbaabeb163936bb60e"
+      },
+      "after": {
+        "sha256": "96d3ea5b5b26cce1433993a5a708c838fd0de1988b559ad1f10315cec4ccd76e",
+        "blob": "98205bafc99b3ad98d584e73405e5c09f735326a"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "| 原典 | Labの対応 | 省略・確認範囲 |\n"
+        ],
+        [
+          2,
+          7,
+          "| §3.1、Figure 2 | tokenization.svg、experiment() | MLLM・学習済みcodebook・balanced k-meansなし |\n| Appendix A.3、式34 | collision_metrics() | Colとitem基準の違いを確認 |\n| §3.2、Figure 3 | lazyar.svg、method.md | NN計算・速度測定なし |\n| §3.3–3.4 | method.mdの式、uvr.svg | VSL/RSPO学習は未実装 |\n| §4.2、Table 4 | serving.svg、evidence | 報告値の転記。DBSの再現ではない |\n"
+        ],
+        [
+          8,
+          9,
+          "公式コード：提供論文とarXiv書誌内で実行可能な公式実装URLを確認できなかった。公式コードとの同等性は未検証。\n"
+        ]
+      ]
+    },
+    "papers/gr4ad-ads-generative/method.md": {
+      "before": {
+        "sha256": "e0ceadc616956163d4ed9e1313cf66eaae2f27f7e9c5c5db97bb6f5236ada617",
+        "blob": "eaccc7c3275166d4ee7c70506a835479422d679e"
+      },
+      "after": {
+        "sha256": "97cf833e00d4701715e7ffe9d4ced9e4b132c8d7bc783a5d14864342924c04b2",
+        "blob": "63162d27822320d64cf14aceba70aefed77f16a1"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### UA-SIDに使う動画・商品・広告主の情報\n広告の表現UAEは、動画の視覚・ASR・OCRなど、商品の価格・title、advertiserの地域や属性を統合する。原典Table 2はbackboneをQwen3-VL-7Bと表記する。本Labではこのモデル名を原文に従って記し、別の公開モデル名へ補正しない。instruction tuningに加え、同時出現するVideo/Product/Advertiserの組を正例、batch内の他例を負例とするInfoNCEで表現を学ぶ（§3.1、式1）。\n"
+        ],
+        [
+          2,
+          3,
+          "残差量子化は各段で近い中心を選び、残差を次段へ渡す。MRは初期のcodebookを大きくし、意味の大きな違いを先に分ける。各段はbalanced k-meansで利用の偏りを抑える。MGはitem/account IDやconversion typeなどをhashし、最後の数値層へ置く。同じ意味の広告を業務上区別する役割を持つ（Figure 2）。hashなので衝突ゼロの保証はない。\n"
+        ],
+        [
+          4,
+          9,
+          "### VSLは価値を加味した模倣、RSPOはlistの相対順位を学ぶ\nVSLはSIDの次token予測に、各区分の事例数がそろうよう値を分けた等頻度bucketのeCPM tokenの予測を加える。このtokenはSIDの後に置かれ、生成広告の並べ替えに使える。ユーザーの長期広告価値と行動の深さの積をsample weightにする。\n"
+        ],
+        [
+          14,
+          15,
+          "MTP補助損失は、後述の前tokenを注入しない経路にも予測力を持たせる。SID出力を当てるだけで前半層を使わなくなるのを避ける狙いがある。\n"
+        ],
+        [
+          16,
+          17,
+          "RSPOは報酬v_i（eCPM）の低い候補集合 `E_i = {j : v_j < v_i}` に対して、次の損失を使う。式16を読みやすく置き換えると、\n"
+        ],
+        [
+          22,
+          23,
+          "ここで `M_ij = (1/D_|i−j| − 1/D_(|i−j|+1)) |G_i−G_j|`、`D_i=log₂(1+i)`、`G_i=(2^v_i−1)/Z`、Zはideal DCGである。RSPOでは、例えば報酬順位1位の広告が3位の広告より低いscoreになると損失が増える。順位間隔と価値差に応じて重みが変わる。単純なchosen/rejectedの二者比較よりlist全体を扱う。\n"
+        ],
+        [
+          24,
+          25,
+          "C_ijは参照分布が利用可能で信頼できるとき1、それ以外は0。原典式18は対象集合内の平均log確率比が閾値δ未満かで判定する。別pipeline由来のsampleや古い参照分布を扱う工夫である。Appendix A.1のNDCGcostの上界という議論は、このscoreと重みの定義に関するもので、真の収益改善の保証ではない。\n"
+        ],
+        [
+          26,
+          31,
+          "### UVRは順位のずれで学習の配分を変える\nモデル確率の順位r_pと報酬順位r_vから `A(i)=|r_p(i)−r_v(i)|/(n−1)` を計算する。順位差の絶対値を、候補数に応じた最大の順位差で割っている。ずれが大きいとVSL、小さいとRLを強める。\n"
+        ],
+        [
+          38,
+          39,
+          "著者はこれを安定した興味分布と価値探索の調整と説明する（式19–22）。research_botの批評として、順位の一致だけではユーザー満足も報酬の校正も分からない。報酬モデルが同じ誤りを繰り返せばAが小さくても危うい。\n"
+        ],
+        [
+          40,
+          41,
+          "### LazyARは前tokenの注入を後ろへ遅らせる\n通常のARは前tokenのembeddingを最初の層へ入れ、各SID段で全decoderを計算する。LazyARではposition embeddingから先頭K層の状態mを先に計算し、`Fuse(m,s)=W_f[m ⊙ (W_g s); s]` で前tokenを注入する。その後L−K層を逐次実行する（式5–11）。層はOneRec-V2に従うcross-attention、self-attention、FFNとpre-layer normで構成する。\n"
+        ],
+        [
+          42,
+          43,
+          "実験構成はL=9、K=6。前半6層は各生成位置について先に計算でき、beam間で共有する。後半3層が候補別の逐次処理を担う。第1SIDの生成は全層を通す。短いSIDと大きなbeamに適した節約であり、長文の通常LLM decodingへそのまま一般化しない。\n"
+        ],
+        [
+          44,
+          45,
+          "### DBSは階層ごとの幅と時間帯ごとの幅を変える\nDynamic Beam Widthは[512,512,512]を[128,256,512]へ変え、最終候補数を保って前半を縮める。TABSは混雑時のbeamを維持し、閑散時に60%増やして余剰計算を探索へ回す。`B_t=B_base f(Q_t,C_avail)` の関数形は詳述されないため、完全なcontrollerは再実装できない（§4.2）。\n"
+        ],
+        [
+          46,
+          47,
+          "reward systemでは実露出から学んだ価値モデルで、より広いbeamと探索により得た候補を採点する。そのログとVSLログで継続学習し、servingへパラメータを同期する。新規広告はUA-SID↔item indexへ追加する。[TAGR](tagr-live-sid.html)が扱う時間変化に応じたSID更新は別の軸であり、GR4ADのhashによる識別と補完的に検討できる。\n"
+        ],
+        [
+          48,
+          49,
+          "[一次資料：arXiv v3](https://arxiv.org/pdf/2602.22732v3)\n"
+        ],
+        [
+          50,
+          53,
+          "図の「最初」は、1つのSIDを構成するトークン列の先頭（s₁）を指す。最初の候補のID全体という意味ではない。長文生成の性能を保証する図ではない。[原典v3 §3.1.2式(2)・§3.2](https://arxiv.org/html/2602.22732v3)。\n"
+        ]
+      ]
+    },
+    "papers/gr4ad-ads-generative/results.json": {
+      "before": {
+        "sha256": "78c12d4f18d2a131c0e12297dcb01f7c46d2aeddd3ec0e06e54194b5469f48b4",
+        "blob": "660cc7dcf576b104dd84861112e927815d9c7d24"
+      },
+      "after": {
+        "sha256": "c45d6450f6b6911ef21fc17368bfcfc4bb3f79dcc66592d07897fa92989cf91f",
+        "blob": "134b688e300cd0586c47cff21ba1edb1efd14316"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"合成データ640広告、10 seeds。学習済みUAE・balanced k-means・MGMRの再現ではない。性能と本番はNOT TESTED。\",\n"
+        ],
+        [
+          4,
+          5,
+          "      \"name\": \"最終層に数値IDを入れると同一内容を区別できるか\",\n"
+        ],
+        [
+          512,
+          513,
+          "  \"definition\": \"Col = 1 - singleton occupied SIDs / occupied SIDs; hash collision is still possible\"\n"
+        ]
+      ]
+    },
+    "papers/gr4ad-ads-generative/run.py": {
+      "before": {
+        "sha256": "4a2f7a0fbe5ad7cd593986b303ead068edacb5707d86bbb834f1fc02d17d10bb",
+        "blob": "08df89f7adc79294040cc9057fa6b4aed75e7068"
+      },
+      "after": {
+        "sha256": "420bc75c2e8bcdb08996dfc8864776c684b09f95f5dca8f9d707f5ebf1d3169c",
+        "blob": "44cc31367ad4c25a244bc7c985af5e63958f4c50"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Synthetic residual quantization versus a numeric final hash; standard library only.\"\"\"\n"
+        ],
+        [
+          17,
+          18,
+          "            # Paper Appendix A.3 Eq.34: denominator is occupied SIDs, not items.\n"
+        ],
+        [
+          34,
+          35,
+          "            # Four ads share content; numeric identity is the only distinguishing input.\n"
+        ],
+        [
+          43,
+          44,
+          "    # 4 bins is the matched code-space comparison. Wider hashes are capacity sensitivity.\n"
+        ],
+        [
+          46,
+          47,
+          "    assert same['rq']['collision_pct'] == 100  # identical-content duplicates are inseparable\n"
+        ],
+        [
+          54,
+          56,
+          "    result = {'note': '合成データ640広告、10 seeds。学習済みUAE・balanced k-means・MGMRの再現ではない。性能と本番はNOT TESTED。',\n              'experiments': [{'name': '最終層に数値IDを入れると同一内容を区別できるか', 'metrics': metrics}],\n"
+        ],
+        [
+          57,
+          58,
+          "              'definition': 'Col = 1 - singleton occupied SIDs / occupied SIDs; hash collision is still possible'}\n"
+        ]
+      ]
+    }
+  }
+}
