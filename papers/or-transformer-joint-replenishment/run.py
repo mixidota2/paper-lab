@@ -1,4 +1,4 @@
-"""Scalar self-attention and exact local gradients, without policy training."""
+"""自己注意による並べ替えと、発注量を変えたときの費用の傾きを確かめる。発注モデルは学習させない。"""
 import itertools
 import json
 import math
@@ -53,7 +53,7 @@ def experiment():
     return dict(lab29='or',frames=frames,permutation=dict(input=items,global_output=global_value,item_outputs=quantities,max_error=error,permutations=6),
                 verification=dict(mechanism='PARTIAL',performance='NOT TESTED',scaling='NOT TESTED',production_applicability='NOT TESTED'),
                 checks={'permutation_equivariance':'CONFIRMED','quantity_gradient':'CONFIRMED','opening_score_identity':'CONFIRMED'},
-                note='同じ費用関数で解析勾配と中央差分を比較。スカラーattentionは学習済みOR-Transformerではない。')
+                note='Labは、式から求めた費用の傾きと、数量を前後にずらして計算した傾きを比べる。自己注意の例は学習済みのOR-Transformerではない。')
 
 if __name__ == '__main__':
     Path(__file__).with_name('results.json').write_text(json.dumps(experiment(),ensure_ascii=False,indent=2)+'\n')

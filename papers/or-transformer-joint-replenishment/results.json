@@ -67,5 +67,5 @@
     "quantity_gradient": "CONFIRMED",
     "opening_score_identity": "CONFIRMED"
   },
-  "note": "同じ費用関数で解析勾配と中央差分を比較。スカラーattentionは学習済みOR-Transformerではない。"
+  "note": "Labは、式から求めた費用の傾きと、数量を前後にずらして計算した傾きを比べる。自己注意の例は学習済みのOR-Transformerではない。"
 }
