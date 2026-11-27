@@ -402,7 +402,7 @@ def test_batch19_experiment_state_and_aggregation_contracts():
         assert '各設定値と提案値の差を二乗して合計し' in (ROOT/'papers/coral-meta-config-harness'/name).read_text()
     assert 'IPVの重みとscatter幅を補正し' in (ROOT/'papers/dream-taobao-agentic-control/lab.yaml').read_text()
     assert '全条件を満たしたbucketの割合ではない' in (ROOT/'papers/pilot-experiment-lifecycle/lab.yaml').read_text()
-    assert '上位に正例が入らないqueryもゼロとして含める' in (ROOT/'papers/recevolve-autonomous-rec/lab.yaml').read_text()
+    assert '正例が50位に入らなかった検索は、NDCG@50を0として平均に含めます' in (ROOT/'papers/recevolve-autonomous-rec/lab.yaml').read_text()
     assert '並行ジョブの所要時間を足した値とは異なる' in (ROOT/'papers/auto-recsys-harness/method.md').read_text()
     assert "下表は乱数シードを変えて行った200試行の集計です。" in (ROOT/"papers/autolr-dashen/lab.yaml").read_text()
 
