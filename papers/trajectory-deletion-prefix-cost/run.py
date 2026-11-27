@@ -1,4 +1,4 @@
-"""Original deterministic symbolic-token ledger, not an LLM or author-code run."""
+"""順序を付けた記号を使い、再利用できる入力と通常料金の入力を数える作例。"""
 import itertools
 import json
 from pathlib import Path
@@ -22,9 +22,8 @@ def ledger(prompts, outputs, cache_price=.1):
         if output < 0:
             raise ValueError('Negative output')
         c = lcp(previous, prompt)
-        # Diagnostic coloring/counting assumes unique artificial token IDs within
-        # each prompt (enforced by scenario), not repeated tokenizer values.
-        # The LCP and total cost above/below still use ordered value equality.
+        # 色分けには、各入力で記号が重複しないという作例の前提を使う。
+        # 一致する先頭の長さと費用は、記号を順番に比較して計算する。
         old = set(previous[c:])
         rebilled = sum(token in old for token in prompt[c:])
         new = len(prompt) - c - rebilled
@@ -38,10 +37,9 @@ def ledger(prompts, outputs, cache_price=.1):
 
 
 def scenario(discount=.9, position=1, timing=4, retrieval=0):
-    """One rewrite, six calls; each symbol is ONE artificial token ID.
-    position 0..2 chooses a turn, 3 disables deletion. timing 2/4/6.
-    Delay is max(requested timing, first call when target exists).
-    Retrieval is an assumed extra call after rewriting, never inferred success.
+    """通常の呼び出しは6回で、指定したターンから2記号を一度だけ消す。
+    position が3なら削除しない。対象がまだなければ、入力に現れるまで待つ。
+    retrieval を指定したときの追加呼び出しは仮定で、モデルの挙動を予測しない。
     """
     if discount not in (0, .5, .9, 1) or position not in range(4) or timing not in (2,4,6) or retrieval not in (0,2,4):
         raise ValueError('Unsupported teaching condition')
@@ -59,7 +57,7 @@ def scenario(discount=.9, position=1, timing=4, retrieval=0):
         current = changed_history.copy()
         changed.append(current);changed_out.append(2)
         if active == call and retrieval:
-            # Additional read returns synthetic R tokens and requires one output.
+            # 追加の読み取りでは、R の記号を入力に足し、出力を1記号数える。
             changed_history += [f'R{j}' for j in range(retrieval)]
             changed.append(changed_history.copy());changed_out.append(1)
         history += turns[call-1]
@@ -71,7 +69,7 @@ def scenario(discount=.9, position=1, timing=4, retrieval=0):
 
 
 def results():
-    return {'note':'自作の決定論的な記号トークン列。実モデル・著者の軌跡・請求書の再現ではない。',
+    return {'note':'同じ記号列を使い、履歴を消した場合と残した場合の費用を比べる。実モデルの動作や著者のログ、実際の請求は再現していない。',
             'reported':{'source':'https://arxiv.org/html/2610.35496v1',
                         'locator':'§III, Table II, §VI-A',
                         'runs':9400,'tasks':100,'agents':2,'delayed_evaluations':42,
@@ -84,4 +82,4 @@ if __name__ == '__main__':
     (ROOT/'results.json').write_text(json.dumps(results(),ensure_ascii=False,separators=(',',':'))+'\n')
     import runpy
     runpy.run_path(str(ROOT/'render.py'))
-    print('Generated 144 synthetic cases. No model, API or author script executed.')
+    print('作例の144条件を生成しました。実モデル、外部API、著者コードは使っていません。')
