@@ -6,7 +6,7 @@ import sys
 
 import yaml
 
-from prose_preservation import before_onetrans_full_prose
+from prose_preservation import before_reasoncast_all_full_prose, before_onetrans_full_prose
 
 ROOT = Path(__file__).resolve().parents[1]
 PREFIX = 'papers/onetrans-v2-cascade-unification/'
@@ -53,9 +53,11 @@ def test_onetrans_standalone_toy_changes_only_its_explanation(tmp_path):
 
 
 def test_only_onetrans_widget_copy_changes():
-    from paper_lab.batch28 import widget
     name='paper_lab/batch28.py'
-    new=(ROOT/name).read_bytes()
+    new=before_reasoncast_all_full_prose(ROOT,name,(ROOT/name).read_bytes())
+    new_namespace={}
+    exec(compile(new,name,'exec'),new_namespace)
+    widget=new_namespace['widget']
     old=before_onetrans_full_prose(ROOT,name,new)
     namespace={}
     exec(compile(old,name,'exec'),namespace)

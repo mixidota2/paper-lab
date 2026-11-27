@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from prose_preservation import reading_prose_hash, reference_guess_markup_hash
+from prose_preservation import before_reasoncast_all_full_prose, reading_prose_hash, reference_guess_markup_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 PAPERS = ROOT / 'papers'
@@ -62,7 +62,7 @@ def test_reference_guess_markup_translation_is_exact():
         'papers/retailbench-long-horizon-store-agents/interactive.html',
     }
     for path, row in rows.items():
-        content = (ROOT / path).read_bytes()
+        content = before_reasoncast_all_full_prose(ROOT,path,(ROOT / path).read_bytes())
         for algorithm, actual in {
             'sha256': hashlib.sha256(content).hexdigest(),
             'blob': hashlib.sha1(b'blob ' + str(len(content)).encode() + b'\0' + content).hexdigest(),

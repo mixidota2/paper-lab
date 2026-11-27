@@ -255,7 +255,7 @@
       "negative_prediction": false
     }
   },
-  "note": "教育用の人工例。原論文の学習・性能・本番効果は再現していない。",
+  "note": "Labは人工の販売数で補正の計算を確かめる。原論文の学習や精度、実店舗での効果は再現していない。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",

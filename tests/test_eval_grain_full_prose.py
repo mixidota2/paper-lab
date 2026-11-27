@@ -7,7 +7,7 @@ import pytest
 import yaml
 
 from paper_lab.batch28 import widget
-from prose_preservation import before_eval_grain_full_prose, before_onetrans_full_prose
+from prose_preservation import before_reasoncast_all_full_prose, before_eval_grain_full_prose, before_onetrans_full_prose
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = 'evaluation-choices-forecasting-leaderboard'
@@ -23,7 +23,7 @@ def test_eval_grain_exact_receipt_numbers_and_other_renderer_branches():
     }
     before = {}
     for p, row in files.items():
-        cur = before_onetrans_full_prose(ROOT, p, (ROOT / p).read_bytes())
+        cur = before_onetrans_full_prose(ROOT, p, before_reasoncast_all_full_prose(ROOT,p,(ROOT / p).read_bytes()))
         assert sha256(cur).hexdigest() == row['after']['sha256']
         before[p] = before_eval_grain_full_prose(ROOT, p, cur)
         assert sha256(before[p]).hexdigest() == row['before']['sha256']
@@ -48,7 +48,7 @@ def test_eval_grain_exact_receipt_numbers_and_other_renderer_branches():
         'onetrans-v2-cascade-unification', 'harness-zero-distillation',
     }
     historical_widget = {}
-    exec(compile(before_onetrans_full_prose(ROOT, RENDERER, (ROOT / RENDERER).read_bytes()), RENDERER, 'exec'), historical_widget)
+    exec(compile(before_onetrans_full_prose(ROOT, RENDERER, before_reasoncast_all_full_prose(ROOT,RENDERER,(ROOT / RENDERER).read_bytes())), RENDERER, 'exec'), historical_widget)
     for slug in kinds:
         data = json.loads((ROOT / 'papers' / slug / 'results.json').read_text())
         assert 'lab28' in data
