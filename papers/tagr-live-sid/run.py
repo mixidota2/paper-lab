@@ -1,4 +1,4 @@
-"""Fixed vocabulary, changing assignments. No learned LSID/RQ-KMeans or production data."""
+"""固定した語彙で広告のIDを付け直す人工例。学習済みのLSIDや本番データは使わない。"""
 from collections import Counter
 import json
 from pathlib import Path
@@ -25,8 +25,8 @@ def scenario(current):
 
 
 def schedule(period):
-    # Scalar supervised target=0. Alternating reward targets ±1 perturb the same parameter.
-    # Different update counts are deliberately reported; this is not an equal-budget GRPO test.
+    # 同じ数値を、教師あり学習では0へ、追加更新では交互に+1と−1へ近づける。
+    # 追加更新の回数も出力する。更新回数をそろえたGRPOの比較ではない。
     x = 0.
     rows = []
     updates = 0
@@ -42,7 +42,7 @@ def schedule(period):
 
 
 def experiment():
-    return {'kind': 'synthetic mechanism illustration', 'seed': 'deterministic',
+    return {'kind': '固定した語彙への割り当てと、追加更新の頻度を比べる人工例', 'seed': 'deterministic',
             'spread': scenario([.05, 1.05, 2.05, 3.05]),
             'collapse_counterexample': scenario([.05, .05, .05, .05]),
             'schedules': {'continuous': schedule(1), 'intermittent': schedule(5)},
@@ -50,5 +50,5 @@ def experiment():
 
 if __name__ == '__main__':
     result = experiment()
-    Path(__file__).with_name('results.json').write_text(json.dumps(result, indent=2)+'\n')
-    print(json.dumps(result, indent=2))
+    Path(__file__).with_name('results.json').write_text(json.dumps(result, indent=2, ensure_ascii=False)+'\n')
+    print(json.dumps(result, indent=2, ensure_ascii=False))
