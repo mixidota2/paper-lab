@@ -196,7 +196,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = retail_grain_all_full_prose_hash(root, path, expected, algorithm)
     expected = switch_hurdle_all_full_prose_hash(root, path, expected, algorithm)
     expected = sim2real_all_full_prose_hash(root, path, expected, algorithm)
-    return assortment_all_full_prose_hash(root, path, expected, algorithm)
+    expected = assortment_all_full_prose_hash(root, path, expected, algorithm)
+    return or_transformer_all_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -3337,6 +3338,32 @@ def before_assortment_all_full_prose(root, path, current):
     import base64
     import zlib
     row = assortment_all_full_prose_for_path(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    previous = zlib.decompress(base64.b64decode(row['prior_zlib_b64'], validate=True))
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def or_transformer_all_full_prose_for_path(root, path):
+    if path != 'paper_lab/batch29.py' and not path.startswith('papers/or-transformer-joint-replenishment/'):
+        return None
+    return json.loads((root / 'tests/or_transformer_all_full_prose_hashes.json').read_text())['files'].get(path)
+
+
+def or_transformer_all_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = or_transformer_all_full_prose_for_path(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_or_transformer_all_full_prose(root, path, current):
+    import base64
+    import zlib
+    row = or_transformer_all_full_prose_for_path(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
