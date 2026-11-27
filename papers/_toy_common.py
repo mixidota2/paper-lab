@@ -144,7 +144,7 @@ def shelf(exponent):
 
 
 def critic(threshold):
-    # Forecast plausibility classification from level discrepancy; future unseen.
+    # 架空のスコアに同じ基準値を適用し、不適切と決めた予測を何件拾うか数える。
     residuals = [0,1,2,3,4,5,6,7,8,9]
     bad = [False,False,False,True,False,True,True,True,True,True]
     flags=[x>=threshold for x in residuals]
@@ -152,7 +152,7 @@ def critic(threshold):
     precision=tp/(tp+fp) if tp+fp else None
     recall=tp/(tp+fn)
     return frame(threshold,[bar('適合率 (%)',None if precision is None else 100*precision),bar('再現率 (%)',100*recall)],
-                 f'合成10件：正しく警告 {tp}、誤警告 {fp}、見逃し {fn}。適合率は警告の正しさ、再現率は問題を拾う割合。正解ラベルは教材用に人為設定（陽性6/10）。警告0件の適合率は未定義。LLMや論文F1の再現ではない。',
+                 f'Labは架空の10件中、正しい警告を{tp}件、誤警告を{fp}件、見逃しを{fn}件と数えました。10件のうち6件を不適切と決めています。適合率は出した警告のうち正しかった割合、再現率は不適切な予測のうち警告した割合です。警告が0件なら適合率は未定義です。論文の言語モデルやF1は再現していません。',
                  [line('不自然さの規則スコア',residuals),line('警告の閾値',[threshold]*10)])
 
 
@@ -179,6 +179,9 @@ def compute(lab_id):
     if lab_id == 'rest-sequence-ranking':
         exercise = '補助損失の重みを変えて履歴側に届く勾配を比べる'
         note = 'Labは固定した予測値に対する勾配を計算した。論文のモデルは学習しておらず、性能も測っていない。'
+    if lab_id == 'forecast-critic':
+        exercise = '警告の基準値を変え、誤警告と見逃しを数える'
+        note = 'Labは架空の10件で警告の集計を確かめる。著者らの言語モデルや精度を再現したものではない。'
     return {'note':note,
             'verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},
             'experiments':[{'name':exercise,'dataset':'deterministic synthetic','metrics':{b['label']:b['value'] for b in frames[default]['bars']}}],
