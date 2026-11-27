@@ -61,7 +61,7 @@ sections:
 
     <figure class="teaching batch17"><h3>表5：従来の多段推薦に対する相対変化</h3><div class="matrix-scroll" tabindex="0" role="region" aria-label="画面別のA/Bテスト結果"><table><thead><tr><th>指標</th><th>全体</th><th>メイン画面</th><th>ランディングページ</th></tr></thead><tbody><tr><td>注文数</td><td>+4.76%</td><td>+4.27%</td><td>+5.78%</td></tr><tr><td>取引総額（GMV）</td><td>+5.60%</td><td>+5.42%</td><td>+6.19%</td></tr><tr><td>ページビュー当たりのクリック率</td><td>+5.37%</td><td>+5.37%</td><td>未報告</td></tr></tbody></table></div><figcaption>原論文の§4.2、表5。各群には利用者トラフィックの20%を割り当てた。全体欄は著者の報告値で、画面別の値の単純平均ではない。</figcaption></figure>
 
-    [原論文の第4版PDF](https://arxiv.org/pdf/2604.12234v4)。各節と図表の対応は末尾の対応表に記した。
+    一次資料：[原論文の第4版PDF](https://arxiv.org/pdf/2604.12234v4)。各節と図表の対応は末尾の対応表に記した。
   overview: |-
     Shopeeの研究チームは、商品を直接当てる代わりに、まず利用者が選びそうな商品のカテゴリなどを予測する推薦モデルを提案しました。UniRecは、予測した属性を手掛かりに商品の識別子（SID）を順に生成します。候補を探してから別のモデルで順位を付ける方式に対し、商品の特徴を生成の途中に入れ、候補を探す処理と順位付けを一つのモデルで扱います。
 
