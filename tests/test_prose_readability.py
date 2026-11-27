@@ -298,7 +298,7 @@ def test_batch14_training_denominators_and_candidate_boundaries():
     expected = {
         'snaplgr-snapchat': ('method.md', '同じSIDの動画から保存する候補を選ぶ段階'),
         'icegr-baidu-intent-generative-retrieval': ('method.md', '正解SIDのlog確率をそのSIDの長さで割る'),
-        'gr4ad-ads-generative': ('method.md', '順位差の絶対値を、候補数に応じた最大の順位差で割っている'),
+        'gr4ad-ads-generative': ('method.md', '候補数nで取り得る最大の差n−1で割る'),
         'unique-baidu-unified-retrieval-ranking': ('lab.yaml', '一様な場合より使用率の高いコードの距離を大きくし'),
         'unir2-sequence-unify': ('method.md', '前向きの計算ではbase経路の値を使う'),
         'unirec-chain-of-attribute': ('lab.yaml', 'その属性が現れる割合に応じて平均した値'),
