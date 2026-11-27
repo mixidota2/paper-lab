@@ -27,9 +27,8 @@ urls:
   official_code: null
 verdict: Radar
 status: published
-question: 昔の履歴を粗く残し、複数の関心を配信時間内に使えるか
-summary: MuSeRはBaiduのretrievalに、時間別の履歴圧縮・6つのinterest query・意味表現・非同期cacheを統合する。homepageの同一A/BでDAU +0.26%、session
-  duration +0.89%。圧縮は非圧縮のrecallを完全には保たない。
+question: 古い行動履歴をまとめて残すと、どれだけ推薦に使えるか
+summary: MuSeRは古い履歴をまとめて事前に計算し、配信時は直近の行動と組み合わせる。Baiduアプリのホーム画面で候補検索を入れ替えた試験では、1日の利用者数が0.26%、セッション時間の合計が0.89%増えた。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -44,100 +43,88 @@ source_review:
   url: https://arxiv.org/pdf/2609.23677v1
   scope: 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。
 core_idea:
-  author_claim: 新しいprimitiveの発明より、長期・複数interest・multimodalを同時に配信可能にする統合が貢献。古い行動を64件、中期を16件でpoolし、直近はそのまま残す。MGS/HNSW系retrievalと非同期更新を組み合わせる。
-  research_bot_interpretation: '[Sona](sona-yandex-music.html)は古い履歴と直近で計算の深さを変える。MuSeRはまず時間解像度を変え、複数のinterest
-    vectorを取り出してcacheする。両方とも履歴に均等な計算を割かないが、捨てる情報と更新の単位が違う。[UNIQUE](unique-baidu-unified-retrieval-ranking.html)のcode/ranking共有とも補完的な設計論で、同じA/Bの比較ではない。'
+  author_claim: 著者の貢献は、長期の履歴、複数の関心、記事や動画の意味を本番の候補検索で一緒に扱えるようにした点にある。古い行動を時期ごとに異なる件数でまとめ、複数のクエリで履歴を読み分ける。候補を評価するときは、候補との類似度に応じて、取り出した関心の表現を組み合わせる。長期の計算を配信の外へ移し、直近の行動を配信時に使う。
+  research_bot_interpretation: Labでは、使う履歴の長さ、履歴から取り出す関心の数、候補を探すときに使う点の付け方を分ける。長い履歴をまとめると内容の一部は残せるが、グループの中の順序は失われ得る。オンラインの改善は、この圧縮だけの効果ではない。 [Sona](sona-yandex-music.html)は履歴の古さによって計算の深さを変える。MuSeRはまとめる件数を変え、複数の関心を保存する。どちらも全履歴を同じようには処理しないが、捨てる情報と更新の単位が違う。[UNIQUE](unique-baidu-unified-retrieval-ranking.html)はコードと順位付けで表現を共有する。いずれも同じA/Bテストの比較相手ではない。
 sections:
   overview: |-
     Baiduなどの研究チームは、利用者一人あたり最大10万件の行動履歴を、推薦のたびに読み直さずに使う方法を提案しました。MuSeRは古い履歴ほど粗くまとめて事前に計算し、配信時は直近の行動と組み合わせます。履歴全体を一つのベクトルに平均する代わりに、複数の観点から履歴を読み、異なる関心に合う候補を探します。比較した設定の中では、履歴を6通りに読む構成が最もよい結果を出しました。ただし、それぞれが人の言葉で説明できる関心を表すとは限りません。
 
     Baiduアプリのホーム画面では、順位付けなどの後段を変えずに候補を探す処理だけを入れ替え、数週間にわたって比較しました。著者によれば、1日の利用者数が0.26%、セッション時間の合計が0.89%増えました。一方、ログを使った別の比較では、履歴を圧縮すると正解を上位500件に含む割合（Recall@500）は、圧縮しない場合の0.2351から0.2232に下がりました。これは本番での改善率ではなく、計算を減らすときに候補をどれだけ取りこぼすかの比較です。
-  problem: 直近数百件で切ると、季節的・安定した関心を失う。全件attentionは重く、平均化だけでは異なる関心が打ち消し合う。さらにIDだけでは新しい記事やvideoの意味を学びにくい。履歴圧縮と意味表現、index探索の費用をまとめて考える必要がある。
-  why_it_might_work: 古い履歴を粗く残せば、完全な切捨てより長期の手掛かりを保持できる。複数queryは別の部分へ注意を向けられ、candidateに応じた混合で関心を使い分けられる。一方、pool内の順序や稀な行動が消え、cacheが古ければ直近の変化に遅れる。更新頻度を負荷で変えるとモデル入力の鮮度も変わるため、latencyだけでなく品質も監視したい。
-  evidence: '[一次資料PDF §III–IV / Figs. 4–5](https://arxiv.org/pdf/2609.23677v1) の著者報告。
+  problem: 直近の数百件だけを見ると、季節ごとに戻ってくる関心や、長く続く好みを見落とす。一方、履歴をすべて注意機構で読むと、長さに応じて計算が増える。履歴全体を一つに平均すると、別々の関心を区別しにくい。新しい記事や動画については、過去の行動に含まれるIDだけでは内容の近さを捉えにくい。MuSeRは、履歴のまとめ方、商品の表現、候補検索を合わせて設計する。
+  why_it_might_work: 古い履歴を捨てずにまとめると、長期の好みの手掛かりを一部残せる。複数のクエリで履歴の別々の部分を読み、候補に応じてそれらの表現を組み合わせられる。一方、まとめた区間の中では行動順や稀な行動が失われる場合がある。長期の表現を保存して使う場合は、更新間隔が長いほど最近の変化を反映するのが遅れる。負荷に応じて更新間隔を変えるときは、応答時間だけでなく候補の質も確かめたい。
+  evidence: |-
+    一次資料：[原論文の§III–IV、図4–5](https://arxiv.org/pdf/2609.23677v1)。
 
-
-    | 比較 | 著者値 | 条件 |
-
+    | 比較 | 著者の報告値 | 何を測ったか |
     | --- | --- | --- |
+    | Baiduアプリのホーム画面のA/B | 1日の利用者数+0.26%、セッション時間の合計+0.89% | 利用者IDのハッシュで群を固定し、数週間比較。各群の日次利用者は数千万人で、後段の順位付けと候補の混合は同じ。著者はp<0.05と報告した。 |
+    | 履歴の扱いを変えたオフライン比較 | 非圧縮0.2351、古い履歴の切り捨て0.1749、階層圧縮0.2232 | 図4aのRecall@500。圧縮は非圧縮より1.19ポイント低く、切り捨てより4.83ポイント高い。 |
+    | ホーム画面の候補検索 | NANNは0.1982、MuSeRは0.2232 | 非公開データでのRecall@500。圧縮だけを変えた比較とは別。 |
+    | 実運用の候補検索時間 | 27%短縮 | 従来の平坦なHNSW検索との比較。絶対時間や分位点は記載されていない。 |
+    | 配備にかかる費用 | 35%超の削減 | §III-Bで従来の平坦なHNSWと比較。費用の内訳は本文だけでは確認できない。 |
 
-    | homepage A/B | DAU +0.26%、total session duration +0.89% | user ID hash固定、複数週、各bucket数千万daily users、下流rank/mix同一、p<0.05
-    |
-
-    | 履歴処理 / Recall@500 | 非圧縮0.2351、短期切捨て0.1749、階層圧縮0.2232 | Fig. 4a。圧縮は非圧縮より0.0119低い |
-
-    | Home Feed | NANN 0.1982→MuSeR 0.2232 | private dataset、Recall@500 |
-
-    | retrieval latency | 27%低下 | 従来flat HNSWとの比較。絶対ms・分位の明示なし |
-
-    | 工学的配備費用 | 35%超削減 | §III-B、費用内訳は不足 |
-
-
-    公開Amazon 3 datasetは長さ50へ切るため、その結果だけでは10万履歴の有効性を検証できない。private dataは約100M users / 10M items、1か月の前29日で学習し最終日で評価する。全体のオンラインliftを圧縮単独の効果としない。'
-  executable_understanding: '`uv run papers/muser-baidu-long-sequence-multi-interest/run.py`。人工履歴10,000件をearly
-    8,000 / middle 1,200 / recent 800に分け、64/16/1件単位でsum poolingする。圧縮token数と、順序を入れ替えた履歴が同じpoolになる反例を計算する。学習やrecallを人工値で代用しない。'
-  results: 10,000 tokenが125+75+800=1,000 tokenになる。単純なdense attentionのpair数proxyは1/100。ただし実latencyが100倍速いという意味ではない。pool内で[1,0]と[0,1]を入れ替えてもsumが同じとなり、局所順序を失うことを実測する。
-  what_we_verified: Mechanism PARTIAL。Fig. 2の区間設定でEq. 6の1,000 token、sum保存、pool内の順序消失はCONFIRMED。複数headの直交penaltyも人工vectorで計算する。
-  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。6層Transformer、BGE/ERNIE、HNSW
-    beam search、非同期cache、DAU・latencyを再現していない。attention pair数は計算量proxyにすぎず、GPU速度や全体費用の測定ではない。
-  implementation: '`compress()`は古い順の配列で境界を明示し、余りのgroupも保持する。Eq. 6は割り切れる長さの式なので、最小実装の一般長ではceilingを使う。`orthogonal_penalty()`はEq.
-    12の二重和を計算する。'
+    Amazonの3つの公開データでは履歴を最大50件に切り詰めた。その比較だけでは10万件の履歴を使う設定を検証できない。非公開データは約1億利用者、約1,000万アイテムを含む。著者は1か月の最初の29日で学習し、最終日で評価した。本番の改善率を履歴の圧縮だけの効果とは扱わない。
+  executable_understanding: リポジトリの最上位から `uv run papers/muser-baidu-long-sequence-multi-interest/run.py` を実行する。Labは1万件の人工履歴を、古い8,000件、中期の1,200件、直近の800件に分ける。古い履歴は64件、中期は16件、直近は1件ずつ足し合わせ、圧縮後の長さと、順序が異なっても同じ値になる例を計算する。実際の利用者の履歴や推薦の正解率は使わない。
+  results: 1万件の履歴は125個、75個、800個の合計1,000個になった。すべての位置の組を使う計算なら、組数は元の100分の1だ。実際の応答時間が100倍速くなったという意味ではない。`[1,0]` と `[0,1]` は、足すとどちらも1になる。合計は保てるが、グループの中の順序は区別できない。
+  what_we_verified: '**仕組みの検証：一部のみ（Mechanism: PARTIAL）**。図2の区間で1,000個になること、足し合わせた合計が保たれること、グループ内の順序が失われることを人工例で確かめた。別の人工ベクトルで関心同士の内積を使う正則化も計算した。'
+  what_we_did_not_verify: '**実運用の性能・規模を増やした場合の挙動・本番適用：未検証（NOT TESTED）**。Labは6層のTransformer、BGEとERNIE、HNSWを使ったビーム探索、非同期のキャッシュ更新、日次利用者数、応答時間を再現していない。位置の組数は計算の目安で、GPUの速度や配備費用は測っていない。'
+  implementation: '`compress()` は古い順の配列を3区間に分け、決めた件数ずつ足す。式6は区間の長さがグループの大きさで割り切れる場合の形だ。Labでは余った部分も1個にまとめて残す。`orthogonal_penalty()` は異なる2本の関心の内積を、順序を入れ替えた組も含めて二乗し、合計を本数の二乗で割る。'
   method: method.md
   mapping: mapping.md
 teaching_figures:
 - kind: equations
   id: history-budget
-  title: 1万件を残しながら、入力を1,000 tokenへ縮める
+  title: 1万件の行動を、古い方から125個、75個、800個にまとめる
   after: method
   locator: Eqs. 3–6 / Fig. 2
-  rationale: 1万件を残しながら、入力を1,000 tokenへ縮める
-  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  rationale: 古い行動ほど多くまとめ、直近の行動を1件ずつ保つ。
+  caption: 原論文の図2と式6。区間の境界を変えると、圧縮した後の数も変わる。
   steps:
-  - name: early
+  - name: 最も古い8,000件
     formula: 8,000 ÷ 64 = 125 token
-    explanation: 古い履歴。pool内の順序は保持しない。
-  - name: middle
+    explanation: 64件をまとめて1個にする。足し合わせる例では、同じグループの中の順序は残らない。
+  - name: 中期の1,200件
     formula: 1,200 ÷ 16 = 75 token
-    explanation: 中期の履歴は16件ずつまとめ、古い履歴より細かく残す。
-  - name: recent
+    explanation: 16件をまとめて1個にする。古い区間より細かく残す。
+  - name: 直近の800件
     formula: 800 ÷ 1 = 800 token
-    explanation: 直近を細かく保つ。
-  - name: 合計
+    explanation: 各行動を1個ずつ残す。
+  - name: 3つの区間を足す
     formula: L꜀ = Nᵣ + (Nₘ−Nᵣ)/16 + (T−Nₘ)/64 = 1,000
-    explanation: T=10,000、Nᵣ=800、Nₘ=2,000。全10万件で常に1,000になる式ではない。
+    explanation: Tは全件数の10,000、Nᵣは800、Nₘは中期と直近の合計2,000。この設定なら結果は1,000個になる。
   source: https://arxiv.org/pdf/2609.23677v1
 - kind: chart
   id: compression-cost
-  title: 圧縮で取り戻すrecallと、失うrecall
+  title: 圧縮して残すと、切り捨てより正解を多く拾える
   after: evidence
   locator: Fig. 4a / §IV-D
-  rationale: 圧縮で取り戻すrecallと、失うrecall
-  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  rationale: 切り捨てに対する改善と、全件を使う場合に対する低下を分ける。
+  caption: 原論文の図4a。上位500件の再現率を、古い行動の扱いだけが異なる3条件で比べた。Labによる本番の追試ではない。
   unit: Recall@500
   maximum: 0.25
   bars:
-  - label: 短期切捨て
+  - label: 古い履歴を切り捨てる
     value: 0.1749
-  - label: 階層圧縮
+  - label: 古い履歴をまとめて残す
     value: 0.2232
-  - label: 長期・非圧縮
+  - label: 履歴を圧縮しない
     value: 0.2351
   source: https://arxiv.org/pdf/2609.23677v1
 - kind: equations
   id: interest-queries
-  title: 複数interestをcandidateに合わせて混ぜる
+  title: 候補と比べて、関心ごとの重みを変える
   after: method
   locator: Eqs. 9–14
-  rationale: 複数interestをcandidateに合わせて混ぜる
-  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  rationale: 候補を評価する仕組みと、関心が同じ方向を向かないよう学ぶ仕組みを分ける。
+  caption: 原論文の式9–14。候補に対する重みの計算と、関心同士を分ける学習の損失は別だ。
   steps:
-  - name: 抽出
+  - name: 複数のクエリで履歴を読む
     formula: uₘ = softmax(qₘ Hᵀ/√d) H
-    explanation: M個のqueryが圧縮履歴を読む。
-  - name: 候補に応じた混合
+    explanation: 学習するM個のクエリが、同じ圧縮履歴から、それぞれ関心のベクトルを作る。
+  - name: 候補に近い関心の重みを上げる
     formula: αₘ = softmaxₘ(cos(uₘ,eᵢ)/τ), u = Σₘ αₘuₘ
-    explanation: 候補と各interest vectorの類似度から、interest間で総和が一になる重みを作る。候補ごとに重みが変わるので、単一の平均を全候補へ共用しない。
-  - name: head重複へのpenalty
+    explanation: 候補と各関心のコサイン類似度から、合計が1になる重みを求める。候補が変われば重みも変わるため、一つの平均をすべての候補に使う方式ではない。
+  - name: 別の関心が近い方向を向く場合に損失を加える
     formula: Lorth = (1/M²) Σₘ≠ₙ (uₘᵀuₙ)²
-    explanation: 異なるheadの内積を二乗して足し、head数の二乗で割る。同じhead同士は和から除くが、分母は異なる組の数ではない。内積を小さくする正則化であり、意味の解釈可能性を保証しない。
+    explanation: 異なる関心の内積を二乗して足し、関心の本数の二乗で割る。分母は異なる組の数ではない。同じ関心を自分自身と比べる項は和に入れない。関心の意味を説明できるとは限らない。
   source: https://arxiv.org/pdf/2609.23677v1
