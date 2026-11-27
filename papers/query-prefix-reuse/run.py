@@ -1,5 +1,5 @@
-"""Self-authored finite SID toy. Public scalar API: toy(), projection(), checks().
-No trained model, timing measurement, arbitrary vector API, or log replay.
+"""16個の商品コードを使う人工例。toy()、projection()、checks()を公開する。
+学習済みモデル、実行時間の計測、任意の配列を受け取る処理、実ログの再生は含めない。
 """
 import json
 import math
@@ -19,13 +19,13 @@ PRESETS = [dict(name=n, q=q, p=p, hr=h, ms=t, quality=k) for n,q,p,h,t,k in [
 
 def _integer(x, low, high):
     if type(x) not in (int,float) or not math.isfinite(x) or int(x)!=x or not low<=x<=high:
-        raise ValueError('integer outside domain')
+        raise ValueError('指定された範囲の整数を入力してください')
     return int(x)
 
 
 def projection(p):
     if type(p) not in (int,float) or not math.isfinite(p) or not 0<=p<=1:
-        raise ValueError('finite numeric P in [0, 1] required')
+        raise ValueError('Pには0以上1以下の有限な数を入力してください')
     return dict(p=p, mean_ms=p*71.45+(1-p)*117,
                 hr_percent=p*85.82+(1-p)*81.99, recall_percent=p*46.05+(1-p)*45.53,
                 kind='fixed-endpoint projection; not measured mixed traffic')
@@ -33,11 +33,11 @@ def projection(p):
 
 def toy(prepared=True, depth=1, query='wide', history='left', budget=4):
     if type(prepared) is not bool:
-        raise ValueError('prepared must be boolean')
+        raise ValueError('preparedには真偽値を指定してください')
     depth,budget=_integer(depth,0,3),_integer(budget,0,8)
     if query not in ('wide','narrow') or history not in ('left','right'):
-        raise ValueError('unknown query or history')
-    # Authored prefix sets, NOT CellPlan outputs or empirical frequency lookup.
+        raise ValueError('検索語か履歴に、指定できない値が入っています')
+    # 先頭の集合は説明のために用意した。モデルの出力やログの頻度表からは取っていない。
     sets={'wide':[[''],['0','1'],['00','10'],['000','100']],
           'narrow':[[''],['0'],['00'],['000']]}
     active_depth=depth if prepared else 0
@@ -51,7 +51,7 @@ def toy(prepared=True, depth=1, query='wide', history='left', budget=4):
     ranked=sorted(reachable,key=lambda s:(-score(s),s))
     branches=sorted({s[:3] for s in reachable},key=lambda b:(
         -max(score(s) for s in reachable if s.startswith(b)),b))
-    # Artificial admission knob, including d=3. Cold bypasses admission.
+    # Labでは深さ3にも枝の上限を設定できる。準備なしの経路では上限を使わない。
     admitted=branches[:budget] if prepared else branches
     final=[s for s in ranked if s[:3] in admitted]
     return dict(synthetic=True,model_version=VERSION,
@@ -75,7 +75,7 @@ def checks():
         positive_depth_within_prepared_percent=36779/44225*100,
         default=toy(),deep_counterexample=toy(True,3,'wide','right',8),
         root_comparison=toy(True,0,'wide','right',8),cold_comparison=toy(False,3,'wide','right',8),
-        not_tested=['models','commercial logs','money','queue','P95 mixture','P99','online lift'])
+        not_tested=['著者のモデル','商用ログ','費用','準備用のキュー','準備の有無が混ざる場合のP95','P99','本番の増加率'])
 
 
 if __name__=='__main__':

@@ -1,0 +1,524 @@
+{
+  "files": {
+    "papers/query-prefix-reuse/README.md": {
+      "before": {
+        "sha256": "91a623077f24e899b6af6e35be77dc599e310cb70a8ce1a1d705e75c015f58ec",
+        "blob": "891c8461726f2711cd5eaf481509d2e7adf1837c"
+      },
+      "after": {
+        "sha256": "a0eb6df4a5592902f299024c2e6d38d2648118d866502ccc5aa1913b99313850",
+        "blob": "820c24ae72a524c78924acb8ab884e67b242e1c0"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# ReuseGR：検索語の計算をどこまで共有するか\n"
+        ],
+        [
+          2,
+          3,
+          "検索や推薦の仕組みを調べるための教材です。同じ検索語なら商品コードの先頭部分（prefix）をどこまで使い回せるか、その先の計算に現在の履歴をどう使うかを分けて考えます。まず `method.md` で論文の仕組みと教材用の規則を読みます。次にLabで、人工的に作った商品コードの木を操作し、Table 5の投影とTable 1の指標を読み比べてください。原著のモデルを学習させたり、推論を再現したりする教材ではありません。\n"
+        ],
+        [
+          4,
+          5,
+          "一次資料は[ReuseGR v1](https://arxiv.org/html/2611.04259v1)です。HTMLの§3〜5、Eq.3、Tables1/5、Appendix Aの履歴条件とC/Dを確認しました。PDF全体の画像、公式実装、生ログは確認していません。\n"
+        ],
+        [
+          6,
+          7,
+          "## 再実行\n"
+        ],
+        [
+          8,
+          9,
+          "このディレクトリで `uv run run.py` を実行すると、`results.json` を作り直せます。外部データや第三者のコードには頼りません。専用のテストはリポジトリのルートで `uv run pytest -q -ra --fail-on-skip tests/test_reusegr.py` を実行してください。サイト全体のビルドと静的preflight（ブラウザーを使わない事前検査）は、ルートのREADMEに従い、未使用の出力先を指定してください。\n"
+        ],
+        [
+          10,
+          11,
+          "## 計算APIの契約\n"
+        ],
+        [
+          12,
+          13,
+          "Pythonの`toy(prepared=True, depth=1, query='wide', history='left', budget=4)`とJavaScriptの`ReuseGR.toy(...)`は、同じ種類・範囲の値を引数に取ります。preparedは真偽値のみ、depthは0〜3の整数、budgetは0〜8の整数です。queryはwideまたはnarrow、historyはleftまたはrightです。整数を受け取る引数では、真偽値（bool）、文字列、配列、null、NaN/Infinity、範囲外の値を拒否します。`projection(p)`が受け取るのは0〜1の有限な数だけです。両言語の結果が一致するかは、この共通範囲で確かめます。任意の配列を受け取るAPIはありません。\n"
+        ],
+        [
+          14,
+          17,
+          "計算に使う候補は、固定した16個の葉に限られます。候補がない集合を使わず、候補数に応じた分母で平均を計算する処理もありません。budget=0で順位表が空になるのは正常です。不正な入力は例外を返し、NaNをJSONのnullに置き換えて保存することはありません。出力のJSONに含まれる条件から結果を再計算できます。prepared d=0とcoldは、数値が同じでも別の経路として出力します。\n"
+        ],
+        [
+          18,
+          19,
+          "## 根拠と限界\n"
+        ],
+        [
+          20,
+          21,
+          "確認済み（CONFIRMED）は、教材用の入力範囲、処理経路、候補に到達できる条件、採点と採用の順序、および公表値の算術検算です。仕組みについて確認したのは一部（Mechanism: PARTIAL）です。学習済みモデルと商用ログは未確認（NOT OBSERVED）。原実験の再現、性能、規模を拡大したときの挙動、実務での適用は未検証（NOT TESTED）です。Nodeで画面の要素を模したテストは実ブラウザーでの確認ではありません。原版の検証では、実画面幅、実ブラウザーでの保存、日本語lintを確認していません。\n"
+        ],
+        [
+          22,
+          24,
+          "原著の準備済み経路では、7Bモデルが最も高く評価した粗いコード（top1 coarse code）で履歴を絞ります。比較対象と未準備経路では、ログに基づき検索語の一致で絞る方式（logged query-match mask）を使います。ほかの処理も同時に変わっているため、結果の差をすべてprefix共有の効果とはみなしません。商用ログは非公開で、現代のLLMを使う二塔モデルとの比較もありません。検索語がある検索広告の結果を、検索語なしのフィードに一般化することはできません。\n"
+        ],
+        [
+          25,
+          26,
+          "原著の節と教材のコードの対応は`mapping.md`で確認できます。Qは検索語の種類を数えたときの準備済みの割合、Pはログ行を数えたときの準備済みの割合です。HRは正解を1件以上取得できた検索語の割合、Recallは、正解全体のうち取得できた割合を検索語ごとに求めた指標です。\n"
+        ],
+        [
+          27,
+          28,
+          "## JSON保存に失敗したとき\n"
+        ],
+        [
+          29,
+          30,
+          "「合成条件と投影をJSON保存」を押すと、ファイルと同じJSONが読み取り専用の欄に表示されます。ダウンロードが始まらなければ、その欄からコピーして保存できます。表示される案内は、ダウンロード完了を確認したものではありません。条件の変更時、不正な入力時、初期条件に戻したときは、前の条件のJSONと取り違えないよう、欄と案内を消します。入力内容もJSONも外部へ送りません。\n"
+        ],
+        [
+          31,
+          40,
+          "この保存機能の変更では、数値モデル、保存形式、原著の掲載値は変えていません。画面の要素を模したテストで、Blobやobject URLを作れない場合、ダウンロード操作に失敗した場合、連続で保存する場合、条件変更とリセットを確かめます。実ブラウザーやOSが実際にファイルを保存したかは、このテストでは分かりません。\n"
+        ]
+      ]
+    },
+    "papers/query-prefix-reuse/experiment.md": {
+      "before": {
+        "sha256": "b78a55dde16cd629d6134a85f278af9a445a2d92502228db0d3a45c4c264702d",
+        "blob": "4a2925b34c834b1fba0a29db993209980ba0c159"
+      },
+      "after": {
+        "sha256": "3f596436994c03fa7c415a875bfd17793cc2512616690332cbd1f7323b040dd2",
+        "blob": "25f5a36863ae2af38d0be29b75073975b3da7331"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "最初に履歴を1111へ変え、深さを1から3へ動かしてください。目標がprefix外へ出ると、suffixの順位付けで取り戻せないことが分かります。Preparedで深さ0を選んだ状態とColdを比べると、同じ全葉でも経路名と非同期準備の条件が異なります。\n"
+        ],
+        [
+          2,
+          3,
+          "次に採用枝数を0〜8へ動かし、L4採点済み数が変わらないことを見ます。Coldでは採用枝数を計算に使いません。Table 5のStatic QとStatic mixは同じQ/Pですが、掲載品質は82.38%と83.40%です。前者の実測を後者の投影に置き換えないでください。\n"
+        ],
+        [
+          4,
+          17,
+          "JSONにはモデル版、合成入力、到達候補、採用枝、順位、投影のPと値、選択した表の条件と指標を保存します。入力エラー時は直前の有効結果を残してその旨を表示し、保存を止めます。初期化が成功するまで操作は無効です。JavaScriptなしでも初期結果が読めます。\n"
+        ]
+      ]
+    },
+    "papers/query-prefix-reuse/interactive.html": {
+      "before": {
+        "sha256": "875b35b2f7ee28260d1e802435133cef873dc11200940ea5bd129a9827b3370a",
+        "blob": "ffcb48a9b0f1d3718ddf83a61776c06c49ed5533"
+      },
+      "after": {
+        "sha256": "36d135a7f523737924eff87451fd7cfce4694d7910576c24987fbdd5dc9cabc4",
+        "blob": "e8adefe2a9b49856aefbe1a3be3613b98fa28880"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<section class=\"rg-lab\" aria-label=\"ReuseGRの独立した理解実験\">\n"
+        ],
+        [
+          2,
+          3,
+          "<p><strong>合成SID木の操作です。</strong>0/1の4層・16葉を使います。原著の32値コードブック、7B/0.5Bモデル、学習されたBudgetCutを再現しません。投影のPはこの木の到達率とは独立です。</p>\n"
+        ],
+        [
+          4,
+          8,
+          "<label>準備状態<select id=\"rg-prepared\" disabled><option value=\"yes\">Prepared</option><option value=\"no\">Cold miss</option></select></label>\n<label>深さd（coldでは予測深度）<select id=\"rg-depth\" disabled><option>0</option><option selected>1</option><option>2</option><option>3</option></select></label>\n<label>合成queryのprefix集合<select id=\"rg-query\" disabled><option value=\"wide\">広い集合</option><option value=\"narrow\">狭い集合</option></select></label>\n<label>現在の合成履歴<select id=\"rg-history\" disabled><option value=\"left\">目標0001</option><option value=\"right\">目標1111</option></select></label>\n"
+        ],
+        [
+          10,
+          24,
+          "<p id=\"rg-route\">Prepared：query prefix → 現在の履歴でsuffix → L4採点 → admission → 応答。7B待機なし。非同期準備：なし</p>\n<div class=\"rg-tree\" tabindex=\"0\" role=\"region\" aria-label=\"到達可能なSID木。狭い画面は横スクロール\"><ol id=\"rg-tree\"><li>L1：0 / 1</li><li>L2：00 / 01 / 10 / 11</li><li>L3：000 / 001 / 010 / 011 / 100 / 101 / 110 / 111</li><li>L4：0000 / 0001 / 0010 / 0011 / 0100 / 0101 / 0110 / 0111 / 1000 / 1001 / 1010 / 1011 / 1100 / 1101 / 1110 / 1111</li></ol></div>\n<pre id=\"rg-rank\" aria-live=\"polite\">合成目標SID 0001／到達可能 true／返却 true\n0001 (score 10) → 1001 (score 9) → 0101 (score 8) → 0011 (score 7) → 0000 (score 6) → 1000 (score 5) → 0100 (score 4) → 0010 (score 3)</pre>\n<p id=\"rg-budget-result\">L4採点済み 16葉 → 8枝のうち 4枝を採用 → 8葉を順位付け。採用数を変えてもL4採点済みの葉数は減りません。</p>\n<p>広い集合・履歴1111でd=1からd=3へ変えると、目標がprefixの外に出ます。履歴の順位付けでは取り戻せません。原著のd=3は全枝を通します。この教材の採用数は、処理順を調べるために独自に設けた変更可能な設定値です。</p>\n<h4>公表値の平均投影：PとQを分ける</h4>\n<div class=\"rg-controls\"><label>Table 5の条件<select id=\"rg-preset\" disabled><option value=\"0\">Prepared</option><option value=\"1\">Cold</option><option value=\"2\">Static Q</option><option value=\"3\">Static mix</option><option value=\"4\">Backfill</option><option value=\"5\">Rolling 1M</option><option value=\"custom\">任意P</option></select></label>\n<label>準備済みlogged-row share P (%)<input id=\"rg-p\" type=\"range\" min=\"0\" max=\"100\" step=\"0.01\" value=\"100\" disabled></label></div>\n<pre id=\"rg-mix\" aria-live=\"polite\">P=100.00%：1 × 71.45 + 0.0000 × 117.00 = 71.45 ms（平均の投影）\nHR@100投影 85.82%／Recall@100投影 46.05%</pre>\n<p id=\"rg-preset-note\">Table 5 Prepared：Q=100.00%（query数）、P=100.00%（logged rows）。掲載HR 85.82% [endpoint]、掲載mean 71.45 ms。Static Qの82.38%はpartition実測であり、同じPの投影83.40%と別です。</p>\n<p>P95/P99やオンライン売上効果は補間しません。83.16%は準備済みquery群の中のpositive-depth比率で、全trafficのhit rateではありません。</p>\n<h4>Table 1：1つ当たることと全正解の回収率</h4>\n"
+        ],
+        [
+          25,
+          28,
+          "<p id=\"rg-metric-label\">HR@100：正解SIDを1つ以上得たqueryの割合</p>\n<table><caption>44,225 query、canonical history、3 seed平均。遅延はA100 1枚・batch 1。掲載値であり自作木の成績ではありません。</caption><thead><tr><th>手法</th><th>選択指標（%）</th><th>平均遅延</th></tr></thead><tbody id=\"rg-table-body\"><tr><th>0.5B E2E</th><td>81.99%</td><td>117.00 ms</td></tr><tr><th>7B E2E</th><td>85.71%</td><td>168.88 ms</td></tr><tr><th>ReuseGR prepared</th><td>85.82%</td><td>71.45 ms</td></tr></tbody></table>\n<p id=\"rg-error\" role=\"alert\"></p><button type=\"button\" id=\"rg-reset\" disabled>初期条件へ</button> <button type=\"button\" id=\"rg-download\" disabled>合成条件と投影をJSON保存</button>\n"
+        ],
+        [
+          29,
+          30,
+          "<label for=\"rg-json\">保存用JSON（読み取り専用）</label>\n"
+        ],
+        [
+          31,
+          33,
+          "<p id=\"rg-json-help\">JSON保存ボタンを押すと、ファイルと同じ内容をこの欄に表示します。条件を変えるか初期条件へ戻すと欄を空にします。外部への送信はありません。</p>\n<noscript><p>JavaScriptが無効なため初期条件だけを表示しています。条件の変更とJSON保存はできません。</p></noscript>\n"
+        ]
+      ]
+    },
+    "papers/query-prefix-reuse/interactive.js": {
+      "before": {
+        "sha256": "d81a53a63884cb8ddfa1ecb2cbb4b81bec49976e613fe8c46bbe5ccc730e5d54",
+        "blob": "f601e8fcebf0e6503aa604609c9c2d9753bbd890"
+      },
+      "after": {
+        "sha256": "7dfc821001011a4b4455e3419203bd25275076c8649e4a3557c68b03ef130b00",
+        "blob": "183cce1548def5bbf72264a0ee49250c288eabc4"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "/* Actual event handlers; synthetic tests are not browser rendering tests. */\n"
+        ],
+        [
+          18,
+          19,
+          "  const route=r.route==='cold-e2e'?'Cold：別の0.5B E2E → 応答':r.route==='prepared-root'?'Prepared d=0：空のroot → LeafFill → L4採点 → admission → 応答':'Prepared：query prefix → 現在の履歴でsuffix → L4採点 → admission → 応答';\n"
+        ],
+        [
+          20,
+          21,
+          "  const ranking=r.ranking.length?r.ranking.map(v=>v.sid+' (score '+v.score+')').join(' → '):'採用なし（合成budget=0）';\n"
+        ],
+        [
+          22,
+          23,
+          "  get('route').textContent=route+'。7B待機なし。非同期準備：'+(r.async_prepare?'positive-depth missをキューへ送る想定':'なし');\n"
+        ],
+        [
+          24,
+          28,
+          "  get('rank').textContent='合成目標SID '+r.target+'／到達可能 '+r.target_reachable+'／返却 '+r.target_returned+'\\n'+ranking;\n  get('budget-result').textContent='L4採点済み '+r.l4_scored+'葉 → '+r.branches.length+'枝のうち '+r.admitted.length+'枝を採用 → '+r.ranking.length+'葉を順位付け。'+(prepared==='no'?'Coldではadmissionを使わずbudgetを無視。':'採用数を変えてもL4採点済みの葉数は減りません。');\n  get('mix').textContent='P='+ (mix.p*100).toFixed(2)+'%：'+mix.p+' × 71.45 + '+(1-mix.p).toFixed(4)+' × 117.00 = '+mix.mean_ms.toFixed(2)+' ms（平均の投影）\\nHR@100投影 '+mix.hr_percent.toFixed(2)+'%／Recall@100投影 '+mix.recall_percent.toFixed(2)+'%';\n  get('preset-note').textContent=preset?'Table 5 '+preset.name+'：Q='+preset.q.toFixed(2)+'%（query数）、P='+preset.p.toFixed(2)+'%（logged rows）。掲載HR '+preset.hr.toFixed(2)+'% ['+preset.quality+']、掲載mean '+preset.ms.toFixed(2)+' ms。Static Qの82.38%はpartition実測であり、同じPの投影83.40%と別です。':'任意P：Qは未指定です。PからQを推定しません。品質は固定query-macro端点の補間仮定です。';\n"
+        ],
+        [
+          29,
+          30,
+          "  get('metric-label').textContent=metric==='hr'?'HR@100：正解SIDを1つ以上得たqueryの割合':'SID Recall@100：各queryの正解SID回収割合のquery平均';\n"
+        ],
+        [
+          42,
+          43,
+          " // Keep the exact file contents available even if browser download APIs fail.\n"
+        ],
+        [
+          52,
+          53,
+          "  // Do not revoke before the browser has had a chance to consume the URL.\n"
+        ]
+      ]
+    },
+    "papers/query-prefix-reuse/lab.yaml": {
+      "before": {
+        "sha256": "c8d676c26a698de1ac4f1eda4b1d1b462c6a70a8124daf63e71e853222590c64",
+        "blob": "f8f8234ad194c7e1dd308e32bb12c03a41912d1b"
+      },
+      "after": {
+        "sha256": "f2240c393b7b54daf8a41b3e2a9e900b331fc235d47432abdf431882a9c67251",
+        "blob": "8e4011859773d22fb94c964e89b0a29df02d079a"
+      },
+      "prior_spans": [
+        [
+          2,
+          12,
+          "authors: [Xujing Wang, Yufeng Chen, Boxuan Zhang, Chao Wei, Cai Xu, Jie Zhao, Weiru Zhang, Wei Zhao, Ziyu Guan]\n"
+        ],
+        [
+          15,
+          18,
+          "topics: [recommender-systems, ml-systems]\n"
+        ],
+        [
+          23,
+          25,
+          "question: 検索語ごとにどこまで事前計算し、検索時の履歴をどこから使うか\nsummary: 商品を表すコード（SID）の木を人工データで作り、事前に固定する先頭部分の深さと検索時の履歴を変えます。目標の商品が候補に残る条件を確かめ、準備済みの検索語とログ行の割合、実測した品質と混合平均の推計を区別します。\n"
+        ],
+        [
+          31,
+          32,
+          "  checked: '2026-11-09'\n"
+        ],
+        [
+          33,
+          34,
+          "  scope: HTML §3–5、Eq.3、Figure2、Tables1/5、Appendix Aの履歴条件とC/Dの対応箇所。PDF全画素・公式実装・生ログは未監査。\n"
+        ],
+        [
+          35,
+          37,
+          "  author_claim: 7Bモデルは検索語だけを使ってコードの先頭部分を用意し、同じ検索語の要求で使い回します。0.5Bモデルは検索時の履歴を使って残りを補います。\n  research_bot_interpretation: 教材では、事前計算で減らせる処理と、先頭部分を先に固定するために候補から外れる商品を一緒に考えます。\n"
+        ],
+        [
+          39,
+          40,
+          "    著者は、検索語から商品コードを生成する処理のうち、利用者ごとに変わらない部分を事前に計算するReuseGRを提案しました。大きいモデルが検索語だけからコードの先頭を作り、小さいモデルが検索時の行動履歴を使って残りを作ります。先頭部分を事前に用意した44,225件の検索語では、すべてを検索時に小さいモデルで作る方法に比べ、正解が上位100件に一つでも入る割合が81.99%から85.82%に上がり、平均処理時間は117.00 msから71.45 msに短くなりました。これは事前計算が使える評価条件での結果で、検索全体での実測値ではありません。\n"
+        ],
+        [
+          41,
+          45,
+          "    [一次資料](https://arxiv.org/abs/2611.04259)。\n  problem: 商品コードの先頭部分を長く固定すればよいとは限りません。その範囲から外れた商品は、残りの部分を順位付けしても候補には戻りません。処理時間も、固定する深さだけでは決まりません。\n"
+        ],
+        [
+          46,
+          75,
+          "  why_it_might_work: 【解釈】コードの先頭部分を検索語ごとに用意すれば、検索のたびに同じ計算をしなくて済みます。ただし、固定した先頭部分の下に、検索時の履歴に合う候補が残っている必要があります。教材はこの条件を確かめるもので、性能の改善を示すものではありません。\n  evidence: '一次資料（原論文）のTable 1は、44,225件のテスト検索語と基準の履歴（canonical histories）を使った3シードの平均です。A100 1枚で一度に1件を処理しました。0.5B E2E、7B E2E、事前準備済みのReuseGRの順に、上位候補に正解が1つでも入った割合（HR@100）は81.99／85.71／85.82%、正解のSIDをどれだけ拾えたか（SID Recall@100）は45.53／50.96／46.05%、平均遅延は117.00／168.88／71.45 msです。HRが高くても、すべての正解を拾えるとは限りません。Table 5の平均遅延は、事前準備の有無を混ぜた場合の推計です。実測ではありません。14日間のユーザー単位のA/Bテストでは、各群にトラフィックの10%を割り当て、対象は約12.8Mユーザーでした。RPMの相対差は+1.05% [+.58,+1.52]、CTRは+.93% [+.62,+1.24]。1リクエスト当たりの注文は+.78%で、p=.2104です。この結果から、準備率に比例してオンラインの効果が上がるとは推定しません。'\n"
+        ],
+        [
+          76,
+          83,
+          "  results: 'Appendix Dの4段階の処理時間は、合計で0.18+67.01+3.84+0.42=71.45 msです。検索語ごとの計画は88 msかかり、1M件のうち10%を毎日更新すると、A100のGPU時間で約2.44時間です。準備済みデータを1回使うたびに45.55 ms短縮できるとすると、2回で計画にかかった時間を上回ります。これは一度に1件を処理したときの計算時間だけの比較で、費用、処理待ち、準備済みデータが古くなる影響を含む損益分岐ではありません。準備済みと未準備のP95（86.40/132.50 ms）から、混合した場合のP95は計算しません。'\n  what_we_verified: 人工データで候補が外れる境界、準備の状態で分かれる処理経路、採点後に枝を採用する順序、保存したJSONを確認しました。公表値の算術も検算しました（CONFIRMED）。仕組みの確認は一部に限ります（MechanismはPARTIAL）。\n  what_we_did_not_verify: 原論文の学習・推論・商用ログの再現、実店舗、実際の遅延、P99、実ブラウザーは検証していません（NOT TESTED）。モデル成果物とログは確認できていません（NOT OBSERVED）。準備済み経路では、7Bモデルが最上位とした粗いコードで履歴を絞ります。一方、比較対象と未準備経路はログ上の検索語との一致で絞り込みます。ほかの部品も一緒に変更されています。商用ログは非公開で、現在のLLMを使う二塔モデルとの比較はありません。検索語のないフィードにも使えるかは未検証です。\n  implementation: uvでrun.pyを実行するとresults.jsonを再生成できます。model.jsは同じ入力範囲の値を一つずつ受け取るAPIです。interactive.jsでは、画面に与える入力と保存するBlobを、ブラウザーのDOMを模した環境で検査します。教材の元の検証では、実ブラウザー表示と日本語lintは未実施です。\n"
+        ],
+        [
+          88,
+          89,
+          "  title: 事前準備と現在の要求を分ける\n"
+        ],
+        [
+          92,
+          94,
+          "  rationale: 準備済みデータの空の先頭部分と固定済みの先頭部分、未準備の場合に使う別モデルを区別します。\n  caption: 深さが正で、準備済みデータを見つけられなかった場合だけ、非同期での準備を依頼します。現在の検索は7Bモデルの計画を待ちません。\n"
+        ],
+        [
+          95,
+          96,
+          "  - label: 非同期\n"
+        ],
+        [
+          97,
+          100,
+          "    - title: queryのみ → 7B CellPlan\n      text: ReuseCutで固定する深さを選び、生成した先頭部分と得点を保存\n  - label: prepared\n"
+        ],
+        [
+          101,
+          106,
+          "    - title: d=0の空root または d>0のprefix\n      text: 検索時の履歴 → PathKD済みのLeafFill → 第4層のすべての枝を採点\n    - title: BudgetCut → 併合順位\n      text: 採点した後に残す枝を選択。第4層の推論は省略しない\n  - label: cold\n"
+        ],
+        [
+          107,
+          109,
+          "    - title: 別の0.5B E2E → 応答\n      text: 検索時の履歴で全層を生成。深さが正で準備済みデータがない場合は、別途準備を依頼\n"
+        ],
+        [
+          111,
+          112,
+          "  title: 枝数と混合の重みを分ける\n"
+        ],
+        [
+          115,
+          117,
+          "  rationale: 固定する深さ、検索語の種類数、ログの行数、正解の回収率で使う分母を区別します。\n  caption: 遅延の推計は平均に限ります。品質も、準備済みと未準備の値をPで重み付けして推計する仮定を示します。\n"
+        ],
+        [
+          118,
+          119,
+          "  - name: オンライン計算\n"
+        ],
+        [
+          120,
+          122,
+          "    explanation: Mₜは採点する枝の数です。所要時間は深さだけでは決まりません。\n  - name: 混合平均の投影\n"
+        ],
+        [
+          123,
+          125,
+          "    explanation: Pは準備済みのログ行が占める割合です。検索語の種類を数えた割合Qとは異なります。\n  - name: 検索語を同じ重みで数える指標\n"
+        ],
+        [
+          126,
+          127,
+          "    explanation: SIDを単位に評価します。正解が複数ある場合、正解が1つ入ったかと、正解を何割拾えたかは別の問いです。\n"
+        ]
+      ]
+    },
+    "papers/query-prefix-reuse/mapping.md": {
+      "before": {
+        "sha256": "f82b5a1784312def76a2d44f513655cb9a70e73098cc7fe553d65157146d69fb",
+        "blob": "ff72e171e0d638dcc1f2916602a62bd5a97390cf"
+      },
+      "after": {
+        "sha256": "d0a00b9695027a045f9f60ec71f9bba8b9fb639f2c8a97e7462ef196fe214cdf",
+        "blob": "1d745197372b43f21abdf3fd623172ee9dee1c2b"
+      },
+      "prior_spans": [
+        [
+          0,
+          5,
+          "| 一次箇所 | 教材 | 確認範囲と省略 |\n"
+        ],
+        [
+          6,
+          12,
+          "| §3 Eq.3、§4 Fig.2 | method.md、処理図 | 検索語が同じなら事前計算を共有し、残りは現在の履歴で補うことを説明します。Tₜは実測せず、深さから遅延（ms）も推定しません |\n| §4.2–4.4 | run.py/model.jsのtoy | 手で決めた先頭コードと整数の点数で動きます。ReuseCut、CellPlan、PathKDの学習は実装していません |\n| §4.5、Appendix C | l4_scored/branches/admitted | 採点後に枝を選ぶ順序だけを再現します。OPD/GRPOと、枝の集合に応じて採用を決める方策は実装していません。原著ではd=3で枝を減らしません |\n| Table 1、Eq.21 | 指標切替 | 掲載された3手法の指標を比べます。検索語を等しく重み付けする平均で、正解の取得は商品単位ではなくSID単位で数えます |\n| Table 5、Appendix D | projectionとプリセット | 準備済みのログ行の割合Pで両端の値を補間します。Static Qの品質は補間ではなく、検索語を分けて測った値です。P95/P99は補間しません |\n| §5.7、Appendix D | 処理図と根拠 | 未準備ならE2Eモデルがすぐに応答を作ります。そのうち予測深度が0より大きいものだけを非同期で準備します。A/Bテストの効果は投影しません |\n\n出典：[arXiv 2611.04259v1](https://arxiv.org/html/2611.04259v1)。この教材用に書いたコードは原著の公式コードではありません。原著のモデル・ログ・公式コードを実行した結果も含みません。\n"
+        ]
+      ]
+    },
+    "papers/query-prefix-reuse/method.md": {
+      "before": {
+        "sha256": "5028496bca03e1ab9b6a7a8e836402ebcb42dd34324caafcc3d12fec71ad28e0",
+        "blob": "f7789d5400495ae32467a6eaefb426ebe577a723"
+      },
+      "after": {
+        "sha256": "60e7344cb8b4efc18dbae940788995f3727e1442f253dc2074125808e75aaf57",
+        "blob": "1e0ffda5551beb8165fca248f0e631a85975ff75"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "## 検索語を共有し、履歴は要求ごとに使う\n"
+        ],
+        [
+          2,
+          3,
+          "SIDは商品を指すコードです。原著では4層あり、各層に32通りの値があります。7BのCellPlanは検索語（query）だけを使い、SIDの先頭部分（prefix）を事前に用意します。検索要求を受けると、0.5BのLeafFillがその時点の履歴を使って、先頭より後ろを展開します。再利用する深さdは0〜3です。履歴を反映した最終ランキングを要求間で共有するわけではありません。\n"
+        ],
+        [
+          4,
+          5,
+          "ReuseCutが深さを学ぶための教師データは、その深さで過去にクリックされたSIDの先頭部分をどれだけ拾えるかに基づきます。ただし、保存するprefixは7Bモデルが生成した結果です。頻度表から取り出すだけではありません。PathKDで後半を採点するモデル（suffix scorer）を学習し、そのモデルを固定してからBudgetCutを学習します。\n"
+        ],
+        [
+          6,
+          7,
+          "T(d) = t₀ + Σ[t=d+1..4] Tₜ(Mₜ; θ) + tᵣ。Mₜは採点する枝の数です。再利用する深さが同じでも、採点する枝の数が違えば、深さだけでは実際の遅延は分かりません。BudgetCutは4層目（L4）の葉を採点した後で枝を選び、最終順位に加える候補を絞ります。L4の推論は省きません。\n"
+        ],
+        [
+          8,
+          9,
+          "準備済みでd=0（prepared d=0）の場合は、先頭コードのない根から、PathKDで学習したモデルを使います。準備済みのデータがない場合（cold miss）は、別の0.5BのE2Eモデルですぐに全層を生成します。予測深度が0より大きい未準備の要求だけが、7Bモデルで先頭部分を用意する処理に送られます。その要求への応答は準備の完了を待ちません。\n"
+        ],
+        [
+          10,
+          11,
+          "## 自作木が表す範囲\n"
+        ],
+        [
+          12,
+          13,
+          "教材では、各層が0か1の4層からなる16個のSIDを使います。「広い集合」は深さの順に、空の根、{0,1}、{00,10}、{000,100}です。「狭い集合」は、空の根、{0}、{00}、{000}です。説明用に手で決めた集合であり、7Bモデルの出力でも頻度表の値でもありません。\n"
+        ],
+        [
+          14,
+          15,
+          "履歴leftの目標は0001、rightの目標は1111です。先頭のd層は、値が0なら各層1点を付けます。残りの層は、値が目標SIDの同じ位置と一致すれば、その層の番号（1〜4）を点数に加えます。coldでは後者の規則を全4層に使います。同点ならSIDの辞書順です。到達できる葉をすべて採点し、その後に、各L3の枝の中で最も高い葉の点数を比べます。点数の高い枝からbudget本を選び、その枝に含まれる葉を順位に並べます。budget=0なら採用する枝はありません。coldでは枝を絞らないためbudgetを使いません。\n"
+        ],
+        [
+          16,
+          17,
+          "これは教材用の枝の選び方であり、学習済みのBudgetCutではありません。原著ではd=3ならすべての枝を通しますが、教材では採点と採用の順序を確かめるため、この深さでも採用数を変えられます。この木の出力から遅延、HR@100、商用効果は推定しません。\n"
+        ],
+        [
+          18,
+          19,
+          "## 平均を投影する重みを明示する\n"
+        ],
+        [
+          20,
+          31,
+          "M̂(P) = P M₁ + (1−P) M₀。Pはログ行のうち準備済みの割合です。検索語の種類を数えた場合の準備済み割合Qとは異なります。遅延の端点（すべて準備済み／すべて未準備）は71.45/117.00 ms、HRの端点は85.82/81.99%、Recallの端点は46.05/45.53%です。品質の端点は検索語ごとの値を等しい重みで平均した値（query-macro）です。その端点をログ行の割合Pで補間するのは、原著の投影で置いた仮定です。どの実トラフィックでも成り立つ保証はありません。P95/P99やオンライン効果には、この式を使いません。\n"
+        ]
+      ]
+    },
+    "papers/query-prefix-reuse/model.js": {
+      "before": {
+        "sha256": "979e3855c1fc69aeb86cef2de66da223cb2f40babbffa6a133a55c5c298c73ec",
+        "blob": "94bbd0f164c0d83c97ea82dc4f76d9d7cb6511ce"
+      },
+      "after": {
+        "sha256": "27af2b0c564475fd123a475172291065f3709a9f7108fb3f624f7896103b2fee",
+        "blob": "45df5dcb410ae62de9aa59dbc686a8a88ff7cce0"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "/* Self-authored scalar API, matching run.py. No trained model or measured timing. */\n"
+        ],
+        [
+          6,
+          8,
+          "function integer(x,lo,hi){if(!Number.isInteger(x)||x<lo||x>hi)throw Error('integer outside domain');return x;}\nfunction projection(p){if(typeof p!=='number'||!Number.isFinite(p)||p<0||p>1)throw Error('finite numeric P in [0, 1] required');return {p,mean_ms:p*71.45+(1-p)*117,hr_percent:p*85.82+(1-p)*81.99,recall_percent:p*46.05+(1-p)*45.53,kind:'fixed-endpoint projection; not measured mixed traffic'};}\n"
+        ],
+        [
+          9,
+          11,
+          " if(typeof prepared!=='boolean')throw Error('prepared must be boolean');integer(depth,0,3);integer(budget,0,8);\n if(!['wide','narrow'].includes(query)||!['left','right'].includes(history))throw Error('unknown query or history');\n"
+        ]
+      ]
+    },
+    "papers/query-prefix-reuse/results.json": {
+      "before": {
+        "sha256": "157bfdffd30c459a8917d9e94098161e7a9faa00f9467f9374aa7e2b01fc7647",
+        "blob": "9a0fb0f03ce9f40d9f8927a0148c9c6f519098da"
+      },
+      "after": {
+        "sha256": "7b1959dd503a815e71b534b6cff864937c3dc23d483d51dc4ef380981207f903",
+        "blob": "e24946160b572f1647426a0c8978e4137e89f355"
+      },
+      "prior_spans": [
+        [
+          547,
+          552,
+          "    \"models\",\n    \"commercial logs\",\n    \"money\",\n    \"queue\",\n    \"P95 mixture\",\n"
+        ],
+        [
+          553,
+          554,
+          "    \"online lift\"\n"
+        ]
+      ]
+    },
+    "papers/query-prefix-reuse/run.py": {
+      "before": {
+        "sha256": "8f99ea1d1e7a7cc6d465df66d2bd61e848d2e6022ab275781d7af84e47b42080",
+        "blob": "8d64174c437459173bb3aea29609fc1142e6f41c"
+      },
+      "after": {
+        "sha256": "72e6d30a8fdd884583fa33faba1f6d8b2eaab250d92d6ad1bba626b15dc3d88b",
+        "blob": "619bd401e7ed2c2f2e92ed7a40bff4eb84a6ce54"
+      },
+      "prior_spans": [
+        [
+          0,
+          2,
+          "\"\"\"Self-authored finite SID toy. Public scalar API: toy(), projection(), checks().\nNo trained model, timing measurement, arbitrary vector API, or log replay.\n"
+        ],
+        [
+          21,
+          22,
+          "        raise ValueError('integer outside domain')\n"
+        ],
+        [
+          27,
+          28,
+          "        raise ValueError('finite numeric P in [0, 1] required')\n"
+        ],
+        [
+          35,
+          36,
+          "        raise ValueError('prepared must be boolean')\n"
+        ],
+        [
+          38,
+          40,
+          "        raise ValueError('unknown query or history')\n    # Authored prefix sets, NOT CellPlan outputs or empirical frequency lookup.\n"
+        ],
+        [
+          53,
+          54,
+          "    # Artificial admission knob, including d=3. Cold bypasses admission.\n"
+        ],
+        [
+          77,
+          78,
+          "        not_tested=['models','commercial logs','money','queue','P95 mixture','P99','online lift'])\n"
+        ]
+      ]
+    }
+  }
+}

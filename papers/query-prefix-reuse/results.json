@@ -545,12 +545,12 @@
     "target_returned": true
   },
   "not_tested": [
-    "models",
-    "commercial logs",
-    "money",
-    "queue",
-    "P95 mixture",
+    "著者のモデル",
+    "商用ログ",
+    "費用",
+    "準備用のキュー",
+    "準備の有無が混ざる場合のP95",
     "P99",
-    "online lift"
+    "本番の増加率"
   ]
 }

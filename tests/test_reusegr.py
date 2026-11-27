@@ -143,11 +143,11 @@ def test_renderer_links_mapping_and_source_boundaries():
     from paper_lab.reusegr import widget
     html=widget(SOURCE)
     assert 'const ReuseGR=' in html and 'rg-tree' in html
-    assert 'P95/P99やオンライン売上効果は補間しません' in html
+    assert 'P95やP99、本番の売上への効果はこの式で求めません' in html
     text=(SOURCE/'method.md').read_text()
-    for phrase in ['頻度表','採点した後','別の0.5B','原著ではd=3','query-macro']:
+    for phrase in ['頻度表','採点し終えた後','別の0.5B','深さ3の場合に枝を減らしません','検索語ごとに平均']:
         assert phrase in text
-    assert 'logged query-match mask' in (SOURCE/'README.md').read_text()
+    assert 'ログの検索語と一致する履歴' in (SOURCE/'README.md').read_text()
 
 
 @pytest.mark.parametrize('failure', [None, 'blob-missing', 'blob-throws', 'url-missing',
