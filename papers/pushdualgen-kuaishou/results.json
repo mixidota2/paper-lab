@@ -1,5 +1,5 @@
 {
-  "note": "合成頻度モデル。copyはSIDの後なので省略しても先のSIDは同一。説明の忠実性やQwen品質は未検証。",
+  "note": "人工ログの頻度で動画のコードを先に確定する。この例では文面を省いてもコードは変わらない。文面の忠実性やQwenの性能は測っていない。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",
@@ -8,7 +8,7 @@
   },
   "experiments": [
     {
-      "name": "copy省略と表現融合",
+      "name": "文面を省く場合と、動画コードの表現を足す場合を調べる",
       "metrics": {
         "baseline_user_only": {
           "ranking": [

@@ -1,9 +1,15 @@
-### parallel SIDの作り方と、出力の順序を分ける
-Qwen2.5-Omni-3Bに8個のlearnable compression tokenを置き、動画を8つの埋め込みslotへ圧縮する。各slotを独立に512 centroidのK-meansで量子化し、8 tokenのSIDにする。残差を次の段へ渡すRQとは異なる。parallelなのは表現slotの構成であり、SIDとcopyが同時に出るという意味ではない。
+### 動画を表す8つのコードは個別に量子化する
 
-生成backboneはQwen3-0.6B。Text2SIDとSID2TextでSIDと文章を対応付け、元の語彙embeddingを凍結してSID token embeddingを学習する。次にuser profile、recency、履歴からSIDを予測し、区切りtokenの後ろにcopyを続ける。損失は Lgen = LSID + λcopy Lcopy。高頻度の2–4 gramなどをまとめるMulti-token Bindingでは、元token embeddingの平均で新tokenを初期化する。
+Qwen2.5-Omni-3Bは、学習する8個の圧縮トークンを使って、1本の動画を8つのベクトルにまとめる。著者はベクトルごとに512個の中心を持つK-meansで量子化し、8トークンの識別子（SID）を作る。ある段で表せなかった差を次の段へ渡す残差量子化とは異なり、各ベクトルを個別に量子化する。論文がparallelと呼ぶのはこの作り方で、生成モデルがSIDと文面を同時に出すという意味ではない。
 
-<figure class="teaching batch21" data-b21="dual"><h3>SIDが先なら、copy生成を省いても候補を変えない</h3><label>条件を選ぶ <select><option value="0">copyを生成</option><option value="1">copyをskip</option></select></label><div data-output aria-live="polite"><div class="b21-tokens"><span>履歴 music</span><b>→</b><span>SID s0</span><b>→</b><span class="">歌の続きを聴く</span></div><p>合成の逐次出力単位 8。先に決まるSIDは同じ。文字数を使った操作数で、GPU時間ではない。</p></div><script type="application/json" data-frames>["<div class=\"b21-tokens\"><span>履歴 music<\/span><b>→<\/b><span>SID s0<\/span><b>→<\/b><span class=\"\">歌の続きを聴く<\/span><\/div><p>合成の逐次出力単位 8。先に決まるSIDは同じ。文字数を使った操作数で、GPU時間ではない。<\/p>", "<div class=\"b21-tokens\"><span>履歴 music<\/span><b>→<\/b><span>SID s0<\/span><b>→<\/b><span class=\"muted\">copyを省略<\/span><\/div><p>合成の逐次出力単位 1。先に決まるSIDは同じ。文字数を使った操作数で、GPU時間ではない。<\/p>"]</script><figcaption>原典 §3.2の条件付き分解を有限頻度モデルで例示。下流ANNの入力はSID由来の表現。</figcaption></figure>
+生成モデルにはQwen3-0.6Bを使う。最初に、動画の文面や説明からSIDを当てる課題と、SIDから文面や説明を出す課題を一緒に学ぶ。著者はこの段階で既存の語彙の埋め込みを固定し、SIDトークンの埋め込みだけを更新した。
 
-### 本番ではSIDをuser表現へ足し、ANNで検索する
-生成Top-20 SIDsをencoderでeₛへ変換し、既存user特徴eᵤと e′ᵤ=αeᵤ+βeₛ で融合する。実利用ではα=β=1。候補動画のeᵥを持つcollectionへANN検索する。したがって、「生成SIDを一意の動画IDへ戻せば完了」という配信構成ではない。
+続いて、利用者のプロフィール、行動履歴、最近の行動を示す情報を渡し、通知で薦める動画のSIDを生成させる。モデルは区切りトークンの後に通知用の文面を続ける。学習はSIDと文面の両方を予測する損失を使う。式6の `Lgen = LSID + λcopy Lcopy` では、λcopyが文面の損失の重みを決める。高頻度で並ぶ2〜4トークンなどを1トークンにまとめるMulti-token Bindingでは、元のトークンの埋め込みを平均して、まとめたトークンの初期値にする。
+
+Labの人工例は、同じ方法でSIDを先に決めてから、文面を生成するか省くかを切り替える。その手順なら、すでに決めたSIDは変わらない。ただし、SIDと後続の文面の組をまとめて採点する仮の方法では、文面の点数によって先に選ぶSIDも変わり得る。学習時に文面の損失を加えることも、配信時に文面を省くこととは別だ。
+
+<figure class="teaching batch21" data-b21="dual"><h3>動画のコードを決めた後に、文面を出すか切り替える</h3><label>文面を出すか <select><option value="0">文面を出す</option><option value="1">文面を省く</option></select></label><div data-output aria-live="polite"><div class="b21-tokens"><span>音楽を見た履歴</span><b>→</b><span>動画のコード s0</span><b>→</b><span>歌の続きを聴く</span></div><p>この例では8単位を出力する。先に確定した動画のコードは変わらない。コードを1単位、文面を1文字ずつ数えた値で、処理時間は測っていない。</p></div><script type="application/json" data-frames>["<div class=\"b21-tokens\"><span>音楽を見た履歴<\/span><b>→<\/b><span>動画のコード s0<\/span><b>→<\/b><span>歌の続きを聴く<\/span><\/div><p>この例では8単位を出力する。先に確定した動画のコードは変わらない。コードを1単位、文面を1文字ずつ数えた値で、処理時間は測っていない。<\/p>", "<div class=\"b21-tokens\"><span>音楽を見た履歴<\/span><b>→<\/b><span>動画のコード s0<\/span><b>→<\/b><span class=\"muted\">通知文は出さない<\/span><\/div><p>この例では1単位を出力する。先に確定した動画のコードは変わらない。コードを1単位、文面を1文字ずつ数えた値で、処理時間は測っていない。<\/p>"]</script><figcaption>原論文の§3.2を参考にしたLabの人工例。本番ではSIDを別の表現にまとめ、既存の利用者の特徴と組み合わせてから動画を検索する。</figcaption></figure>
+
+### 本番では上位20件のコードを利用者の特徴と組み合わせて動画を探す
+
+推薦の処理は、生成した上位20件のSIDを専用のエンコーダーに渡し、まとめた表現 eₛ を作る。これを、既存の利用者の表現 eᵤ と `e′ᵤ = αeᵤ + βeₛ` で足し合わせる。本番ではαとβをどちらも1にした。近似最近傍探索（ANN）は、こうして得た利用者の表現に近い動画を、あらかじめ作った動画表現 eᵥ の集合から探す。生成モデルが出したSIDを1本の動画に引き当てるだけの仕組みではない。[原論文の§3.2–3.3](https://arxiv.org/html/2608.07989v1)

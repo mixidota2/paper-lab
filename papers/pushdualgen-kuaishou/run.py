@@ -1,6 +1,4 @@
-"""SID-first causal factorization and optional-copy operation trace.
-Finite empirical model, no Qwen weights. Counts are fixture observations.
-"""
+"""人工ログで動画コードを先に選び、文面を出す場合と省く場合を比べる。"""
 from collections import Counter
 from pathlib import Path
 import json
@@ -20,7 +18,7 @@ def rank(beta):
 def compute():
     rows={h:{'copy_on':decode(h),'copy_off':decode(h,False)} for h in ['music','food']}
     assert all(x['copy_on']['sid']==x['copy_off']['sid'] for x in rows.values())
-    return {'note':'合成頻度モデル。copyはSIDの後なので省略しても先のSIDは同一。説明の忠実性やQwen品質は未検証。','verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},'experiments':[{'name':'copy省略と表現融合','metrics':{'baseline_user_only':{'ranking':rank(0)},'user_plus_SID':{'ranking':rank(1)}}}],'decode_trace':rows}
+    return {'note':'人工ログの頻度で動画のコードを先に確定する。この例では文面を省いてもコードは変わらない。文面の忠実性やQwenの性能は測っていない。','verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},'experiments':[{'name':'文面を省く場合と、動画コードの表現を足す場合を調べる','metrics':{'baseline_user_only':{'ranking':rank(0)},'user_plus_SID':{'ranking':rank(1)}}}],'decode_trace':rows}
 
 if __name__ == "__main__":
     result = compute()

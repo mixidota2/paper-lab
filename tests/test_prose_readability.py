@@ -263,7 +263,7 @@ def test_batch12_generation_training_and_serving_boundaries():
     expected = {
         'varg-tmall-value-generative-retrieval': ('lab.yaml', '正解だけを予測する従来の損失も残す'),
         'cq-sid-eg-grpo-tmall': ('method.md', '配信時に正解SIDを渡す仕掛けではない'),
-        'pushdualgen-kuaishou': ('lab.yaml', '訓練でcopyの損失が共有重みへ与える影響は残る'),
+        'pushdualgen-kuaishou': ('lab.yaml', '学習時に文面の損失を加えると、共有する重みは更新される。'),
         'hgenpush-kuaishou-heterogeneous-push-gr': ('lab.yaml', '比そのものの算術平均ではなく、幾何平均'),
         'univa-commercial-sid-gar': ('lab.yaml', 'α=0にすると配信時の価値加算は消えるが、RL済み生成方策は残る'),
         'flashtrie-gpu-beam': ('lab.yaml', '現在までの候補列に続く枝が辞書にあるときだけ'),
@@ -271,7 +271,7 @@ def test_batch12_generation_training_and_serving_boundaries():
     for slug, (name, excerpt) in expected.items():
         assert excerpt in (ROOT/'papers'/slug/name).read_text()
     for name in ['lab.yaml', 'README.md']:
-        assert '通知説明文（copy）を必要な場合だけ生成する' in (ROOT/'papers/pushdualgen-kuaishou'/name).read_text()
+        assert 'その後で必要な場合だけ文面を生成する' in (ROOT/'papers/pushdualgen-kuaishou'/name).read_text()
     flashtrie = ROOT/'papers/flashtrie-gpu-beam'
     assert '前のトークンで次の確率が変わらない非自己回帰' in (flashtrie/'lab.yaml').read_text()
     assert '前のトークンが変わっても、次の位置の確率表は変わりません' in (flashtrie/'README.md').read_text()
