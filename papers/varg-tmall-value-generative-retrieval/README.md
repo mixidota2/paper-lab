@@ -1,21 +1,23 @@
-# VARG: Value-Aware and Ranking-Aligned Generative Retrieval for Dynamic E-commerce Search
+# VARGの生成候補は、確保した枠から最終順位付けに進む
 
 Taobao・Tmallの研究チームは、検索の意図に合い、購入にもつながる商品を、生成モデルで早い段階から探す方法を提案しました。VARGは、検索文との関連性、過去のクリックや購入、既存の順位付けモデルの評価を学習に使います。生成した商品は、通常の予備順位付けを通さず、確保した枠から既存の最終順位付けへ渡します。最終順位付けまで置き換える方法ではありません。
 
 Tmallアプリの検索トラフィックの20%を使った14日間のA/Bテストで、著者は従来方式より取引総額（GMV）が1.45%、利用者あたりの閲覧指標（IPV/user）が0.22%増えたと報告しています。この比較では学習方法と候補を渡す経路をまとめて変えており、商品IDの学び方だけの効果は分かりません。
 
-公開ページ: https://mixidota2.github.io/paper-lab/papers/varg-tmall-value-generative-retrieval.html
+[Labの公開ページ](https://mixidota2.github.io/paper-lab/papers/varg-tmall-value-generative-retrieval.html)
 
 ## 実行
+
+リポジトリの最上位で次のコマンドを実行すると、人工実験の結果を更新する。
 
 ```bash
 uv run papers/varg-tmall-value-generative-retrieval/run.py
 ```
 
-Pythonの標準ライブラリだけを使う。解説の原本は `lab.yaml` と `method.md`、最小実験は `run.py`、実験結果は `results.json`、原典との対応は `mapping.md` にある。HTMLは `uv run paper-lab build` で生成する。
+実験コードはPythonの標準ライブラリだけを用いる。`lab.yaml` と[方法](method.md)に本文を、`run.py` に人工実験の処理を、`results.json` に結果を収める。各説明の出典は[対応表](mapping.md)にある。`uv run paper-lab build` で公開ページを生成する。
 
 ## 検証範囲
 
-MechanismはPARTIAL。人工データで、Eq. 6が値を所定の範囲に収めること、既存の識別子が変わらないこと、商品単位の衝突率、報酬を与える条件、LOで端点の確率を正規化する計算を確認した。確認済み（CONFIRMED）なのは、これら個別の条件に限る。
+Labは仕組みの一部を人工例で確認した（Mechanism: PARTIAL）。式6が新商品の順位を範囲内に収めることと、古いコードを保てる場合でも新旧の商品がコードを共有することを確かめた。形式が不正な場合や商品がない場合の報酬、正解が端の順位にある場合の確率の計算も確認した。結果のCONFIRMEDはこれら個別の条件を指す。
 
-Performance / Scaling / Production applicabilityはNOT TESTED。RQ-VAE・Q2I表現、Qwen2.5の学習、GRPOの収束、51.43M商品でのslot負荷は検証せず、GMV・HRも再現していない。日次更新後もすべてのIDが重複しないとは、原論文も主張していない。
+実運用での性能、規模を増やした場合の挙動、本番への適用は未検証（NOT TESTED）。RQ-VAEと検索語・商品の表現、Qwen2.5の学習、GRPOの収束、5,143万商品でのコード共有の負荷、GMVとHRは再現していない。論文も、日々の更新後にすべての商品が異なるコードを持つとは述べていない。
