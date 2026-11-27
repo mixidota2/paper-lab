@@ -1,4 +1,4 @@
-"""Exact NB hurdle probability calculations, without fitted encoder/decoder."""
+"""売れる確率と売れた日の数量を分け、分布の合計と平均を計算する。著者モデルは学習しない。"""
 import json
 import math
 from pathlib import Path
@@ -30,7 +30,7 @@ def experiment():
     return dict(lab29='hurdle',frames=frames,
                 verification=dict(mechanism='PARTIAL',performance='NOT TESTED',scaling='NOT TESTED',production_applicability='NOT TESTED'),
                 checks={'normalization':'CONFIRMED','positive_mean_correction':'CONFIRMED'},
-                note='固定パラメータの分布計算。Top-1 STE、自己回帰学習、M5評価、在庫運用は未実行。')
+                note='教材はパラメータを決めて確率を計算した。著者モデルは学習しておらず、M5の予測や店舗の在庫も評価していない。')
 
 if __name__ == '__main__':
     Path(__file__).with_name('results.json').write_text(json.dumps(experiment(),ensure_ascii=False,indent=2)+'\n')
