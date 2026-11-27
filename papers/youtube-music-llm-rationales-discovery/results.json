@@ -1,5 +1,5 @@
 {
-  "note": "全artistと理由は人工fixture。Gemini、KG、A/Bを再現しない。",
+  "note": "名前、履歴、理由はすべて架空です。Gemini、実際の知識グラフ、論文の比較実験は再現していません。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",
@@ -15,7 +15,7 @@
     "items": [
       {
         "id": "b",
-        "rationale": "既存の好みとの接点（人工例）"
+        "rationale": "もともとの好みに合う点を示す理由（架空の例）"
       }
     ]
   },
