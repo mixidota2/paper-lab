@@ -1,4 +1,5 @@
 (function(root){'use strict';
+// 買い替え先に割り当てなかった需要は「未配分」として記録する。
 const clone=x=>JSON.parse(JSON.stringify(x));
 function evaluate(d,k){const xs=d.items,n=xs.length;let flows=[];
 for(let j=0;j<n;j++)if(!k[j]){const L=xs[j].lam*xs[j].alpha;for(let i=0;i<n;i++)if(d.mu[j][i])flows.push({source:xs[j].id,target:xs[i].id,amount:L*d.mu[j][i],recovered:!!k[i]});flows.push({source:xs[j].id,target:'未配分',amount:L*(1-d.mu[j].reduce((a,b)=>a+b,0)),recovered:false});}
