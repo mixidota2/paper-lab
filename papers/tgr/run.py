@@ -1,4 +1,4 @@
-"""Run the deterministic teaching experiment; no paper model is trained."""
+"""枝を選ぶ段数と到達率を比べる。論文のモデルは学習させない。"""
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
