@@ -73,7 +73,7 @@ def main():
     for key, values in dict(capacity=range(2, 9), s=[0, 1], beta=[0, 1], r=[0, 12], c=[0, 10], e=[0, 1], brands=[2]).items():
         cases.extend((f'{key}={value}', dict(DEFAULT, **{key:value})) for value in values)
     result = dict(model_version='shelf-decomposition-2',lab_kind='storewide-shelf-decomposition',
-                  note='値はすべて教材の合成値です。原論文の表や、実店舗での効果を再現したものではありません。',
+                  note='架空の6商品を使い、幅と商品構成を選ぶ計算を行った。原論文の計算結果や実店舗の利益は再現していない。',
                   inputs=ITEMS, defaults=DEFAULT, capacity_candidates=CAPACITIES,
                   cases=[dict(name=name, parameters=p, oracle=oracle(p)) for name, p in cases],
                   printed_equation_fixture=dict(direct=15, equation4=15, printed_equation2=25),
