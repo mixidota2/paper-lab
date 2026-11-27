@@ -1,24 +1,20 @@
-# 論文のどの箇所に、Labの計算が対応するか
+# 著者の資料と、Labが計算した範囲
 
-## Labが照合した資料
+Labは[初版の書誌](https://arxiv.org/abs/2610.25170v1)と[初版のPDF](https://arxiv.org/pdf/2610.25170v1)を確認した。PDFでは表1、図2、式3〜4・7、§6.1、§6.9と§9を読んだ。[著者の公開リポジトリの対象版](https://github.com/karthik-iyer-au/retail-world-models/tree/b7c182730a7744ce655fb467af36b951baca629a)では、訂正後の計算式と費用の表を確認した。著者モデルは学習・実行しておらず、補足全体や図の細部までは照合していない。
 
-[arXiv v1](https://arxiv.org/abs/2610.25170v1)と[PDF](https://arxiv.org/pdf/2610.25170v1)では、Webで抽出できた本文を使って、§3の表1、§4の図2・式3〜4、§5の式7、§6.1、§6.9の表11〜12、§9を確認しました。補足全体と全図の画素は確認していません。[著者の公開リポジトリの確認対象版](https://github.com/karthik-iyer-au/retail-world-models/tree/b7c182730a7744ce655fb467af36b951baca629a)のコードは読みましたが、著者モデルの学習や推論は実行していません。
+[第3版の書誌](https://arxiv.org/abs/2610.25170v3)と[本文](https://arxiv.org/html/2610.25170v3)については、表8・13・14を中心に、著者が比較した方式と数値を確認した。Labが費用を数えた表は初版に対応する。第3版の結果を元データや著者のコードから計算し直してはいない。
 
-[arXiv v3](https://arxiv.org/abs/2610.25170v3)は、[本文](https://arxiv.org/html/2610.25170v3)の表8・13・14を中心に確認しました。Labの費用の再集計はv1に対応します。v3の数値は本文で著者の報告として紹介し、著者の元データやコードでは再計算していません。
-
-## 初版の費用をどの表から数えたか
-
-| 著者が公開したファイル | Labが確認したこと |
+| 初版の著者リポジトリにある資料 | Labが確かめたこと |
 | --- | --- |
-| `scripts/category_cost_uncertainty.py`（blob `28cbd341087dab7d6e655dd40022d5309e995ea3`） | 著者のコードは、訂正式を評価期間ごとに計算してから平均します。評価より前の販売数量が正でない場合は単価を0にします。Labの `run.py:metrics/windows` は、その手順を人工例で説明するために、有理数で計算します。 |
-| `results/paper1_revision/tables/category_cost.csv`（blob `bd62596c0581216210a75dc32882085447b0633e`） | Labは `variant=dollars` の行だけを使い、`table_winners` で費用が最小だった回数を数えました。 |
-| `results/paper1_revision/tables/decisions.csv`（blob `ff166093fdb687d9ad44f8a50424482fba16d04c`） | Labは `set=rolling` かつ `decision=replenish_0.8` の行だけを使いました。旧式の `category_planning` は除きました。 |
+| `scripts/category_cost_uncertainty.py`（blob `28cbd341087dab7d6e655dd40022d5309e995ea3`） | 訂正式を評価期間ごとに計算し、その比率を平均する。評価より前の販売数量が0以下なら単価を0とする。教材は `run.py` の `metrics` と `windows` で、それぞれの手順を小さな例として示す。 |
+| `results/paper1_revision/tables/category_cost.csv`（blob `bd62596c0581216210a75dc32882085447b0633e`） | Labは `variant=dollars` の行だけを取り出し、 `table_winners` で訂正後の計画費用が最小の方式を数えた。 |
+| `results/paper1_revision/tables/decisions.csv`（blob `ff166093fdb687d9ad44f8a50424482fba16d04c`） | 発注損失は `set=rolling` かつ `decision=replenish_0.8` の行から数えた。旧式の `category_planning` はこの集計には入れていない。 |
 
-Labは著者が公表した表で最小値を数えました。予測モデルを動かして原実験を再現したわけではありません。論文や著者コードにはそれぞれ利用条件があり、Labの配布物にはPDF・第三者コード・生データを同梱していません。
+Labが行ったのは、著者が公表した表から最小値を数えることと、人工例で評価式を計算することである。モデルの学習や元データからの予測を再現したものではない。配布物には論文PDF、著者のコードや生データを含めていない。
 
-## Labのファイルで確かめられること
+## 配布ファイルに入っているもの
 
-- `model.js` は画面に表示する値を計算します。
-- `interactive.js` は入力を検証し、画面を再計算したり初期値に戻したりします。
-- `run.py` は有理数を使い、画面と別の実装で人工例を検算します。
-- `results.json` は人工例の結果だけを収録しています。
+- `model.js` は、画面に入力した値から誤差と発注損失を計算する。
+- `interactive.js` は入力を検証し、条件を変えたときに表示を更新する。保存と復元、初期値に戻す操作も扱う。
+- `run.py` は、Pythonの分数計算を使って画面とは別に数値を検算する。
+- `results.json` は教材の人工例の値だけを収録する。

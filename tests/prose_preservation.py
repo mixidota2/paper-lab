@@ -191,7 +191,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = scaffold_gaia_full_prose_hash(root, path, expected, algorithm)
     expected = wholefoods_all_full_prose_hash(root, path, expected, algorithm)
     expected = wrapped_all_full_prose_hash(root, path, expected, algorithm)
-    return storewide_all_full_prose_hash(root, path, expected, algorithm)
+    expected = storewide_all_full_prose_hash(root, path, expected, algorithm)
+    return retail_grain_all_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -3228,6 +3229,32 @@ def before_storewide_all_full_prose(root, path, current):
     import base64
     import zlib
     row = storewide_all_full_prose_for_path(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    previous = zlib.decompress(base64.b64decode(row['prior_zlib_b64'], validate=True))
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def retail_grain_all_full_prose_for_path(root, path):
+    if not path.startswith('papers/retail-forecast-decision-grain/'):
+        return None
+    return json.loads((root / 'tests/retail_grain_all_full_prose_hashes.json').read_text())['files'].get(path)
+
+
+def retail_grain_all_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = retail_grain_all_full_prose_for_path(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_retail_grain_all_full_prose(root, path, current):
+    import base64
+    import zlib
+    row = retail_grain_all_full_prose_for_path(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

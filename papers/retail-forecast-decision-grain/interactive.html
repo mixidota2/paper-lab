@@ -1,36 +1,36 @@
 <section id="grain-lab" aria-label="集計順序と発注費用の合成実験">
 <style>#grain-lab{max-width:100%;overflow-wrap:anywhere}#grain-lab .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:1rem}#grain-lab label{display:block;margin:.6rem 0}#grain-lab input,#grain-lab select,#grain-lab button,#grain-lab textarea{font:inherit;max-width:100%}#grain-lab .comparison-scroll{overflow-x:auto}#grain-lab table{border-collapse:collapse;width:100%}#grain-lab th,#grain-lab td{padding:.5rem;border-bottom:1px solid #aaa;text-align:right}#grain-lab th:first-child{text-align:left}#grain-lab pre{white-space:pre-wrap}#grain-lab .bar{height:.8rem;background:#26776d;max-width:100%}</style>
-<p>AとBの予測値は、Labが比較のために設定しました。論文のモデルを使った値ではありません。各実験では費用が小さい方を有利とみなします。実験1は商品ごとに1期分、実験2は評価期間ごとに1組の値を使うため、任意の多期間データで論文の式7（Eq.7）全体を計算する画面ではありません。</p>
-<div class="grid"><fieldset><legend>1．売上が0の商品と、商品を合計する順番</legend>
-<p>1つ目の商品の実績は100で、予測Aは90、予測Bは80です。2つ目は実績と予測Aを変えられますが、予測Bは0で固定します。商品の単価は両方1で、過去の売上金額にもとづく重みは半分ずつです。</p>
+<p>Labが架空の予測AとBを用意しました。各実験では、評価値が小さい予測を有利とみなします。実験1は商品ごとに1期分、実験2は期間ごとに1組の実績と予測を使います。論文の式7（Eq.7）を任意の多期間データに適用する画面ではありません。</p>
+<div class="grid"><fieldset><legend>1．売上が0のとき、商品の集計で評価がどう変わるか</legend>
+<p>1つ目の商品の実績は100、予測Aは90、予測Bは80です。2つ目の商品は実績と予測Aだけを変えられます。予測Bは0です。単価は両商品とも1で、過去の売上額で決める重みは半分ずつとします。</p>
 <label>第2商品の売上 <input id="grain-y2" type="number" min="0" max="10000" value="0" disabled></label>
 <label>Aの第2予測 <input id="grain-a2" type="number" min="0" max="10000" value="1" disabled></label>
 <label>集計する単位 <select id="grain-group" disabled><option value="separate">別カテゴリとして評価</option><option value="together">同じカテゴリへ合計</option></select></label>
-<p>2つの商品を同じカテゴリにする場合は、実績と予測を別々に足してから、その差の絶対値を取ります。旧式は、カテゴリと店舗の組ごとに誤差を売上で割り、過去の売上金額に応じて重みを付けて平均します。</p></fieldset>
-<fieldset><legend>2．評価期間（窓）をどう平均するか</legend><p>1つ目の評価期間の実績は1で、予測Aは0、予測Bは1です。2つ目の評価期間では実績を変えられます。予測Aは実績と同じ値、予測Bは実績から10を引いた値（ただし下限は0）です。</p>
+<p>同じカテゴリで評価するときは、2商品の実績と予測を別々に足し、その差の絶対値を求めます。旧式はカテゴリ・店舗ごとに誤差を売上で割り、過去の売上額で重みを付けて平均します。</p></fieldset>
+<fieldset><legend>2．期間ごとの比率と、全期間をまとめた比率を比べる</legend><p>1つ目の期間の実績は1、予測Aは0、予測Bは1です。2つ目の期間は実績を変更できます。Aは実績と同じ値になり、Bは実績から10を引きます。ただしBの下限は0です。</p>
 <label>第2窓売上 <input id="grain-window" type="number" min="0" max="10000" value="100" disabled></label>
-<p>各期間で誤差を実績で割ってから平均した値と、全期間の誤差の合計を実績の合計で割った値（pool）を比べます。分母が0の場合は、その期間を除外せず「未定義」と表示します。</p></fieldset>
+<p>一つは、各期間で誤差を実績で割り、その値を平均する方法です。もう一つは、全期間の誤差と実績をそれぞれ足し、最後に割る方法（pool）です。分母が0の期間があっても除外せず、平均を「未定義」と表示します。</p></fieldset>
 <fieldset><legend>3．1期の発注で、余りと不足にいくらかかるか</legend>
 <label>発注量 q <input id="grain-q" type="number" min="0" max="10000" value="8" disabled></label>
 <label>観測売上 y <input id="grain-y" type="number" min="0" max="10000" value="10" disabled></label>
 <label>余りと不足の費用の比を決める値 r <select id="grain-r" disabled><option value="0.5">0.5：不足単価1</option><option value="0.8" selected>0.8：不足単価4</option><option value="0.95">0.95：不足単価19</option></select></label>
-<p>この例では、商品が1個余るたびに費用を1とします。在庫の持ち越し、納期、需要数量のうち供給できた割合（fill rate）や、実店舗の利益は計算しません。売上の記録からは、棚に商品が十分にあれば何個売れたかは分かりません。</p></fieldset></div>
+<p>教材では1個余る費用を1に固定します。在庫の持ち越し、納期、需要のうち供給できた割合（fill rate）、実店舗の利益は扱いません。販売記録だけでは、欠品しなければ何個売れたかは分かりません。</p></fieldset></div>
 <button id="grain-reset" type="button" disabled>初期値に戻す</button>
 <pre id="grain-out" aria-live="polite">初期値：旧式 A=500000000.05、B=0.1。訂正式 A=0.11、B=0.2。
 窓平均 A=0.5、B=0.05。pool A=1/101、B=10/101。
 単期発注損失=8（不足2×単価4）。いずれも自作合成例。</pre>
 <div id="grain-bars" aria-label="訂正式の費用比較"></div><p id="grain-error" role="alert"></p>
 <fieldset><legend>条件を固定して、変更前後を並べる</legend>
-<p>「現在の条件を基準にする」で比較元を固定し、上の入力を変えてください。各実験で、基準と現在の値、その差（現在−基準）を表示します。集計する単位、売上、費用の条件を変えた結果の差は、モデルの予測精度が上がったことを示しません。3つの実験は別々の尺度なので、値を足しません。</p>
+<p>「現在の条件を基準にする」を押してから入力を変えると、各実験で基準と現在の値、その差（現在−基準）が分かります。条件を変更しても、予測モデルそのものは変えていません。3つの実験は別の尺度を使うので、値は合計しません。</p>
 <button id="grain-pin" type="button" disabled>現在の条件を基準にする</button>
 <button id="grain-clear-baseline" type="button" disabled>基準を解除する</button>
 <p id="grain-comparison-status" role="status">比較機能にはJavaScriptが必要です。</p>
 <div id="grain-comparison" class="comparison-scroll" tabindex="0" role="region" aria-label="基準と現在の比較表"></div>
-<p>画面は、このページを開いている間だけ基準を覚えています。ページを再読み込みするか「初期値に戻す」を押すと基準が消えます。残したいときは「基準と現在をJSON保存」を押してください。</p>
+<p>基準はこのページを開いている間だけ残ります。ページを読み直すか「初期値に戻す」を押すと消えます。比較を残すには「基準と現在をJSON保存」を使います。</p>
 <button id="grain-comparison-download" type="button" disabled>基準と現在をJSON保存</button>
 </fieldset>
 <fieldset><legend>条件を保存して比較を再開</legend>
-<p>画面は、入力した条件と人工例の結果をJSONに保存します。同じ欄から、基準と現在の両方を保存した比較JSONも読み込めます。現在の条件だけを保存したJSONなら、基準はそのままで、現在の条件だけを戻します。画面は読み込んだ条件から計算し直し、保存済みの結果値は使いません。論文のモデルの予測や実験結果は保存せず、入力を外部に送ることもありません。</p>
+<p>保存するのは、入力と教材の結果です。基準と現在を両方保存したJSONも、同じ欄で読み込めます。現在の条件だけのJSONを読み込む場合は、基準を残して現在の条件だけを戻します。画面は入力をもとに計算し直すので、保存済みの結果は使いません。著者モデルの予測を保存したり、入力を外部へ送ったりはしません。</p>
 <button id="grain-download" type="button" disabled>現在の条件をJSON保存</button>
 <label>保存したJSONを貼り付ける <textarea id="grain-json" rows="8" spellcheck="false" disabled></textarea></label>
 <button id="grain-import" type="button" disabled>JSONの条件を読み込む</button>

@@ -8,11 +8,14 @@ import re
 import pytest
 import yaml
 
-from prose_preservation import before_retail_grain_full_rewrite, retail_grain_full_rewrite_hash
+from prose_preservation import before_retail_grain_all_full_prose, before_retail_grain_full_rewrite, retail_grain_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 P = 'papers/retail-forecast-decision-grain/'
 
+
+def prior(path):
+    return before_retail_grain_all_full_prose(ROOT,path,(ROOT/path).read_bytes())
 
 def ident(data):
     return {'sha256': sha256(data).hexdigest(),
@@ -25,7 +28,7 @@ def test_retail_grain_exact_transition():
     rows = json.loads((ROOT/'tests/retail_grain_full_rewrite_hashes.json').read_text())['files']
     assert set(rows) == {P+name for name in files}
     for path,row in rows.items():
-        new = (ROOT/path).read_bytes()
+        new = prior(path)
         old = before_retail_grain_full_rewrite(ROOT,path,new)
         for kind in ('sha256','blob'):
             assert ident(old)[kind] == row['before_'+kind]
@@ -40,7 +43,7 @@ def test_retail_grain_exact_transition():
 
 def test_retail_grain_keeps_exact_overview_equations_and_toy():
     f=P+'lab.yaml'
-    current=(ROOT/f).read_bytes()
+    current=prior(f)
     original=before_retail_grain_full_rewrite(ROOT,f,current)
     overview=re.compile(rb'^  overview:.*?(?=^  problem:)',re.S | re.M)
     assert len(overview.findall(current)) == 1
@@ -55,7 +58,7 @@ def test_retail_grain_keeps_exact_overview_equations_and_toy():
     for file,blob in (('run.py','cda6ea7b1a99b2b838e4f76a2964a584e8615fe5'),
                       ('model.js','76250c28db1d60c2e42a3ed9c13b573f7f76a959'),
                       ('results.json','89242fa1228c8bb0a6e234817c54b668b16740bb')):
-        assert ident((ROOT/(P+file)).read_bytes())['blob']==blob
+        assert ident(prior(P+file))['blob']==blob
 
 
 class Shape(HTMLParser):
@@ -71,10 +74,10 @@ class Shape(HTMLParser):
 
 def test_retail_grain_keeps_markup_and_makes_editions_distinct():
     path=P+'interactive.html'
-    after=(ROOT/path).read_bytes()
+    after=prior(path)
     before=before_retail_grain_full_rewrite(ROOT,path,after)
     assert Shape(after.decode()).parts==Shape(before.decode()).parts
-    ev=(ROOT/(P+'evidence.md')).read_text()
+    ev=prior(P+'evidence.md').decode()
     part1,part2=ev.split('## 第3版（v3）',1)
     assert all(s in part1 for s in ('一次資料','2610.25170v1','うち7つ','| 4 | 3 | 1（M5） |','| 3 | 5 | 0 |'))
     assert all(s in part2 for s in ('2610.25170v3','27通り','22通り','最小だったのは3つ','0.040','0.311','0.061',
@@ -82,6 +85,6 @@ def test_retail_grain_keeps_markup_and_makes_editions_distinct():
     link=re.compile(rb'\]\(([^)]*)\)')
     for name in ('README.md','evidence.md','experiment.md','method.md','mapping.md','lab.yaml'):
         p=P+name
-        after=(ROOT/p).read_bytes()
+        after=prior(p)
         before=before_retail_grain_full_rewrite(ROOT,p,after)
         assert set(link.findall(before))<=set(link.findall(after))
