@@ -202,7 +202,9 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = forecast_critic_all_full_prose_hash(root, path, expected, algorithm)
     expected = t0_context_all_full_prose_hash(root, path, expected, algorithm)
     expected = placement_and_vn2_asset_prose_hash(root, path, expected, algorithm)
-    return flashvector_all_full_prose_hash(root, path, expected, algorithm)
+    expected = flashvector_all_full_prose_hash(root, path, expected, algorithm)
+    expected = ono_reader_all_full_prose_hash(root, path, expected, algorithm)
+    return sparse_reader_all_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -3491,3 +3493,49 @@ def placement_and_vn2_asset_prose_hash(root, path, expected, algorithm='sha256')
     assert hashlib.sha256(raw).hexdigest() == row['after_sha256'], path
     assert hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest() == row['after_blob'], path
     return row['after_' + algorithm]
+
+
+def ono_reader_all_full_prose_for_path(root,path):
+    if not path.startswith('papers/ono-inventory-forecast-selection/'):
+        return None
+    return json.loads((root/'tests/ono_reader_all_full_prose_hashes.json').read_text())['files'].get(path)
+
+def ono_reader_all_full_prose_hash(root,path,expected,algorithm='sha256'):
+    row=ono_reader_all_full_prose_for_path(root,path)
+    if row is None:
+        return expected
+    assert expected==row['before'][algorithm],path
+    return row['after'][algorithm]
+
+def before_ono_reader_all_full_prose(root,path,current):
+    import base64,zlib
+    row=ono_reader_all_full_prose_for_path(root,path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
+    prior=zlib.decompress(base64.b64decode(row['prior_zlib_b64'],validate=True))
+    assert hashlib.sha256(prior).hexdigest()==row['before']['sha256'],path
+    return prior
+
+
+def sparse_reader_all_full_prose_for_path(root,path):
+    if not path.startswith('papers/tsfm-sparse-event-ranking/'):
+        return None
+    return json.loads((root/'tests/sparse_reader_all_full_prose_hashes.json').read_text())['files'].get(path)
+
+def sparse_reader_all_full_prose_hash(root,path,expected,algorithm='sha256'):
+    row=sparse_reader_all_full_prose_for_path(root,path)
+    if row is None:
+        return expected
+    assert expected==row['before'][algorithm],path
+    return row['after'][algorithm]
+
+def before_sparse_reader_all_full_prose(root,path,current):
+    import base64,zlib
+    row=sparse_reader_all_full_prose_for_path(root,path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
+    prior=zlib.decompress(base64.b64decode(row['prior_zlib_b64'],validate=True))
+    assert hashlib.sha256(prior).hexdigest()==row['before']['sha256'],path
+    return prior

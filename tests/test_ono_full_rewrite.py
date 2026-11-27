@@ -8,7 +8,7 @@ import re
 import pytest
 import yaml
 
-from prose_preservation import before_ono_full_rewrite, ono_full_rewrite_hash
+from prose_preservation import before_ono_reader_all_full_prose, before_ono_full_rewrite, ono_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 P = 'papers/ono-inventory-forecast-selection/'
@@ -27,7 +27,7 @@ def test_exact_ono_custody_rejects_unreviewed_source():
     ledger = json.loads((ROOT/'tests/ono_full_rewrite_hashes.json').read_text())['files']
     assert set(ledger) == {P+key for key in NAMES} | {W}
     for path, row in ledger.items():
-        final = (ROOT/path).read_bytes()
+        final = before_ono_reader_all_full_prose(ROOT, path, (ROOT/path).read_bytes())
         old = before_ono_full_rewrite(ROOT, path, final)
         for alg in ('blob', 'sha256'):
             before, after = identities(old)[alg], identities(final)[alg]
@@ -42,7 +42,7 @@ def test_exact_ono_custody_rejects_unreviewed_source():
 
 
 def test_ono_keeps_metadata_geometry_and_toy_numbers():
-    final = (ROOT/(P+'lab.yaml')).read_bytes()
+    final = before_ono_reader_all_full_prose(ROOT, P+'lab.yaml', (ROOT/(P+'lab.yaml')).read_bytes())
     before = before_ono_full_rewrite(ROOT, P+'lab.yaml', final)
     old, new = map(yaml.safe_load, (before, final))
     assert old.keys() == new.keys()
@@ -58,7 +58,7 @@ def test_ono_keeps_metadata_geometry_and_toy_numbers():
         ('results.json', 'e9dc8df6dd149a9bab2828782881cf8ccee9462070c60fb1b478342d051f5d08'),
         ('run.py', '3b58dbb7871aff538e80cf24a12d3acda0d9d260deb201eed1d038c3712c86e2'),
     ]:
-        assert identities((ROOT/(P+name)).read_bytes())['sha256'] == expected
+        assert identities(before_ono_reader_all_full_prose(ROOT, P+name, (ROOT/(P+name)).read_bytes()))['sha256'] == expected
     widget = (ROOT/W).read_bytes()
     old_widget = before_ono_full_rewrite(ROOT, W, widget)
     class NoProse(ast.NodeTransformer):

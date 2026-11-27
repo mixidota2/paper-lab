@@ -1,20 +1,23 @@
-"""Calculate comparisons of selected reported values, and a separate toy example."""
+"""論文の報告値から費用差を求め、別の架空の例で欠品の指標を比べる。"""
 import json
 from pathlib import Path
 
+# 表7の各行は、欠品費用の率、CFMSの総費用、SESの総費用の順。
 REPORTED = (
     (1, 21657, 22041),
     (5, 27830, 28104),
     (12.5, 39193, 39471),
     (25, 58098, 58415),
 )
+# どちらも1サイクルに10個の需要がある。各要素は在庫から満たせた個数。
 TOY = (
-    ("欠品を1回にまとめる", (10,) * 9 + (6,)),
-    ("欠品を4回に分ける", (10,) * 6 + (9,) * 4),
+    ("1サイクルで4個欠品する", (10,) * 9 + (6,)),
+    ("4サイクルで1個ずつ欠品する", (10,) * 6 + (9,) * 4),
 )
 
 
 def compare(penalty, selection, baseline):
+    # SESを基準に、CFMSの費用が何%低かったかを計算する。
     return {
         "shortage_pct": penalty,
         "cfms": selection,
@@ -25,6 +28,7 @@ def compare(penalty, selection, baseline):
 
 
 def service(label, served):
+    # 欠品がなかったサイクルの割合と、需要を満たした数量の割合を分ける。
     n = len(served)
     assert n and all(0 <= s <= 10 for s in served)
     return {

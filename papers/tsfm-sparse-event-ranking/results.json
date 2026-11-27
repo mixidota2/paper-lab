@@ -1,6 +1,6 @@
 {
   "lab05_sparse": true,
-  "kind": "synthetic mechanism demonstration, not paper replication",
+  "kind": "Labの人工実験。著者らの実データの成績は再現していない。",
   "seeds": [
     42,
     43,
@@ -2892,28 +2892,28 @@
       "varying_size": false,
       "rows": [
         {
-          "method": "中央値（真の分布）",
+          "method": "人工分布から求めた中央値",
           "ap_skill": 0.0,
           "windows": 300,
           "seed_min": 0.0,
           "seed_max": 0.0
         },
         {
-          "method": "平均（真の分布）",
+          "method": "人工分布から求めた平均",
           "ap_skill": 0.2500233344788108,
           "windows": 300,
           "seed_min": 0.23963454506014603,
           "seed_max": 0.2622000522094377
         },
         {
-          "method": "9分位点平均（真の分布）",
+          "method": "人工分布の9つの分位点を平均",
           "ap_skill": 0.22146995629542324,
           "windows": 300,
           "seed_min": 0.21020569088943397,
           "seed_max": 0.23284683732703124
         },
         {
-          "method": "ロジスティック発生head",
+          "method": "需要が発生するかを予測するロジスティック回帰",
           "ap_skill": 0.2500233344788108,
           "windows": 300,
           "seed_min": 0.23963454506014603,
@@ -2925,28 +2925,28 @@
       "varying_size": true,
       "rows": [
         {
-          "method": "中央値（真の分布）",
+          "method": "人工分布から求めた中央値",
           "ap_skill": 0.0,
           "windows": 300,
           "seed_min": 0.0,
           "seed_max": 0.0
         },
         {
-          "method": "平均（真の分布）",
+          "method": "人工分布から求めた平均",
           "ap_skill": -0.1105863815105948,
           "windows": 300,
           "seed_min": -0.11198911281444107,
           "seed_max": -0.10906716365081498
         },
         {
-          "method": "9分位点平均（真の分布）",
+          "method": "人工分布の9つの分位点を平均",
           "ap_skill": 0.17185631416596428,
           "windows": 300,
           "seed_min": 0.16338319681904317,
           "seed_max": 0.17788433432157186
         },
         {
-          "method": "ロジスティック発生head",
+          "method": "需要が発生するかを予測するロジスティック回帰",
           "ap_skill": 0.2500233344788108,
           "windows": 300,
           "seed_min": 0.23963454506014603,
@@ -2992,7 +2992,7 @@
       "raw_lightgbm": 0.1768
     }
   ],
-  "reported_source": "arXiv:2609.39386v1 Tables 14–18 (equal-window AP skill)",
+  "reported_source": "arXiv:2609.39386v1 表14〜18。著者らは各予測区間に同じ重みを付けてAP skillを集計した。",
   "verification": {
     "mechanism": "CONFIRMED",
     "performance": "NOT TESTED",
