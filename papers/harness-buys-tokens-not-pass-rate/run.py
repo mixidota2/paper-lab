@@ -1,4 +1,4 @@
-"""Unconditional exact McNemar power and transparent input-token accounting; stdlib only."""
+"""第1版に基づき、McNemar検定で差を検出できる確率と入力トークンの費用を計算する。標準ライブラリだけを使う。"""
 import json, math, random
 from functools import lru_cache
 from pathlib import Path
@@ -23,7 +23,7 @@ def rejection(m):
 
 
 def power(n,q,gap):
-    if not 0<=gap<=q: raise ValueError('gap must lie within discordance')
+    if not 0<=gap<=q: raise ValueError('仮定した成功率差は0以上で、不一致率を超えない値にしてください')
     out=0
     for m,pm in enumerate(binom(n,q)):
         c=rejection(m)
@@ -79,12 +79,12 @@ def main():
     for n in [45,100,200,447,800]:
         for q in [.07,.14,.27,Q_HARD,Q_POOL]:
             grid.append(dict(n=n,q=q,mde50=mde(n,q,.5),mde80=mde(n,q,.8),ceiling=power(n,q,q)))
-    result={'lab_kind':'harness08','note':'McNemar検出力は数理計算と乱数試行。token計算は入力のみの近似で、実API請求額の再現ではない。', 'checks':check,'power_grid':grid,'bill_params':params,'bills':bills,'experiments':[{'name':'検出力：不一致率14%','metrics':{'n45_mde50_pp':mde(45,.14,.5),'n45_mde80_pp':mde(45,.14,.8),'n45_ceiling':power(45,.14,.14),'n447_mde80_pp':mde(447,.14,.8)}}]}
+    result={'lab_kind':'harness08','note':'第1版の条件で検出力を計算し、乱数試行と照合した。トークン費用は入力だけの近似で、実際の請求額や第2版の追加試行は再現していない。', 'checks':check,'power_grid':grid,'bill_params':params,'bills':bills,'experiments':[{'name':'不一致率を14%としたときに差を見つけられる確率','metrics':{'n45_mde50_pp':mde(45,.14,.5),'n45_mde80_pp':mde(45,.14,.8),'n45_ceiling':power(45,.14,.14),'n447_mde80_pp':mde(447,.14,.8)}}]}
     result['paper'] = PAPER
     result['official_resolution'] = {'q_hard':Q_HARD,'q_pool':Q_POOL,'n45_mde50_pp':mde(45,Q_HARD,.5),'n45_ceiling':power(45,Q_HARD,Q_HARD),'n447_mde80_pp':mde(447,Q_POOL,.8)}
     assert abs(result['official_resolution']['n45_mde50_pp']-12.89653749650708)<.002
     assert abs(result['official_resolution']['n447_mde80_pp']-5.159236787856072)<.002
-    result['experiments'].append({'name':'著者コードの未丸め不一致率による照合','metrics':result['official_resolution']})
+    result['experiments'].append({'name':'丸める前の不一致率を使った第1版の検算','metrics':result['official_resolution']})
     (Path(__file__).parent/'results.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     print(result['experiments'])
 
