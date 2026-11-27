@@ -1,18 +1,16 @@
-# 原論文と最小実装の対応
+# 論文のどの部分を教材で扱うか
 
-[一次PDF v1](https://arxiv.org/pdf/2609.17391v1)。確認日：2026-09-23。保存済みPDFを再利用した。
+[原論文のPDF v1](https://arxiv.org/pdf/2609.17391v1)を参照します。下のハッシュは、2026年9月23日の確認で再利用した保存済みPDFのものです。
 
 SHA-256: `a68ed302b06ee51087ca6b501a80bf748d073ae2f8c9aef29b8d89a5a15862af`
 
-| 原論文 | 最小コード / 表示 | 省略 |
+| 原論文 | Labで扱う部分 | Labで実行しない部分 |
 | --- | --- | --- |
-| Algorithm 1 / §4.2 | `decide()`、採択gate図 | LLM、profiling、code mutation、replay |
-| §4.2 correctness | artificial `correct` flag | dtype別の数値誤差、business KPI |
-| §4.2 noise floor | 6%閾値、再測定要求 | baseline反復・8倍測定 |
-| Table 1 | 全体throughputの棒図 | 生のload-test trace |
-| Table 3 | 940→約1,500 RPSの引用 | feature serviceの再現 |
-| Table 4 | Model Bの250/271 msを明記 | 食い違いの原因は未確認 |
+| Algorithm 1と§4.2 | `decide()` が測定済みと仮定した数字から採否を返す | 言語モデルによるコード変更、処理時間の計測、実際の配信要求の再生 |
+| §4.2の出力確認 | `correct` に出力が合うかどうかを入力する | データ型ごとの数値誤差の検査、事業指標の確認 |
+| §4.2の計測の揺れ | 改善が6%以下なら、再測定が必要と返す | 同じ条件で基準値を繰り返し測る処理、標本を最大8倍に増やす再測定 |
+| 表1のモデル配信 | 各モデルを変更する前後の処理件数を棒で比べる | 負荷試験の生の記録を用いた再分析 |
+| 表3の特徴量処理 | 1秒間の処理件数が940件から約1,500件に変わった著者らの比較を紹介する | 特徴量を作るシステムの再現 |
+| 表4のModel B | 上限250 msと採用候補の271 msが一致しない点を示す | 食い違いの理由の特定 |
 
-本文のC++変更は[公式Triton issue #8348](https://github.com/triton-inference-server/server/issues/8348)を参照する。これはFlashVector全体の公開コードではない。
-
-公式コード：確認した一次PDF・arXiv書誌に、この方式の再現用リポジトリを特定できる案内はなかった。非公開であるとの断定はしない。
+著者らが提案した入力変換のC++への変更は、[Triton公式のIssue #8348](https://github.com/triton-inference-server/server/issues/8348)で確認できます。Issueはこの変更を扱うもので、FlashVector全体のコードを公開した場所ではありません。確認した一次資料には、仕組み全体を再現できるリポジトリへの案内がありませんでした。

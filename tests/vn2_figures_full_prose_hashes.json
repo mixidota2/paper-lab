@@ -1,0 +1,71 @@
+{
+  "files": {
+    "papers/vn2-stockout-catboost/figures/censoring.svg": {
+      "before_sha256": "9f3b460d28dd4c2c4487c702c42c259aea56af93a65c7f48f61badced224eb4c",
+      "after_sha256": "fd44c9e3b60d0f51e3aa53b46e0a79e5834b4cd4e84078dce543e093bdadb0c1",
+      "style_text_sha256": "4897c4bfe36335ec4b7ded0bdd2fae866ba7e594be56e02fcaf1837d6bc3f1ae",
+      "prior_labels": [
+        "論文の設計を簡略化した処理図",
+        "01 / 販売を観測する",
+        "欠品の有無を確認",
+        "02 / 履歴を作る",
+        "実効需要から特徴を作る",
+        "03 / 未来を予測する",
+        "複数の時系列をまとめて学習するCatBoost",
+        "04 / 発注を決める",
+        "到着時在庫と費用から注文"
+      ],
+      "final_labels": [
+        "著者が販売履歴から需要を予測し、発注量を決めるまで",
+        "01 / 販売履歴を調べる",
+        "著者は週ごとに欠品したか調べる",
+        "02 / モデルに渡す値を作る",
+        "欠品しなかった週の販売数を使う",
+        "03 / 1週先から3週先の需要を予測する",
+        "各CatBoostが全店舗・商品から学ぶ",
+        "04 / 著者が発注量を決める",
+        "費用で決めた目標と入荷直前の在庫を比べる"
+      ],
+      "before_blob": "ffc5399b128528c816fb9b072fabea06fa96347a",
+      "after_blob": "b7ad20d2f54b2a08cc6d212db2690ad1ede473c3"
+    },
+    "papers/vn2-stockout-catboost/figures/masking.svg": {
+      "before_sha256": "5e4075ee2596db7bdf19e8202f633acb9a2ecebbf0c37738ebf3db3dd5f1c48f",
+      "after_sha256": "8cf1480715c35ec237784fbdc5d7612ad5c939c1fd763932aea8383588d6895c",
+      "style_text_sha256": "bb3d7bf774ab89ffa681b0b5fcd298caadd0b9561a162103f1e3470dad5b15ed",
+      "prior_labels": [
+        "過去の販売量に欠品の有無を添える",
+        "過去の販売量",
+        "欠品を示す情報",
+        "需要予測"
+      ],
+      "final_labels": [
+        "著者は欠品しなかった週の販売数から需要を予測する",
+        "週ごとの販売数",
+        "欠品週を除く",
+        "需要を予測する"
+      ],
+      "before_blob": "c0b0a73feb9247e794db2615d8a406258e22cab2",
+      "after_blob": "65fb544748fb345ce40488eab146eed84b4ff277"
+    },
+    "papers/vn2-stockout-catboost/figures/order.svg": {
+      "before_sha256": "76c5efe5a523cf193dbb7138ed83fa7e0a91d2af7c106d39e0f49a6159930ff8",
+      "after_sha256": "7a851e0eb69d296b56032f2c908ffb9313f1cb9b68a06376051e167b16295cb5",
+      "style_text_sha256": "f484bc9bd7ed172b9517c917d7907880f9837262e9b1d3511c252afdef95d40c",
+      "prior_labels": [
+        "需要予測 → 目標在庫水準 → 費用",
+        "推定需要",
+        "保管費用h／欠品費用p",
+        "発注量"
+      ],
+      "final_labels": [
+        "著者は需要予測と費用から目標在庫を決める",
+        "入荷直前の在庫予測",
+        "欠品費と保管費",
+        "差から発注数を決める"
+      ],
+      "before_blob": "ba808f95b78e10f70b62a669a9f840cd1afacc2e",
+      "after_blob": "06f3ffb0b20481a16852c8f0aae76a326ae81d20"
+    }
+  }
+}
