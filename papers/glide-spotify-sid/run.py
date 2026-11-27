@@ -1,19 +1,13 @@
-"""CPU teaching counterexample: candidate channel share does not identify lift.
-
-All probabilities are invented toy assumptions, not Spotify measurements.
-Run with uv run papers/glide-spotify-sid/run.py. No dependencies or network.
-"""
+"""候補経路の比率と、見つけられる番組の増分が別であることを合成例で確かめる。"""
 import json
 from pathlib import Path
 
 
 def channel_case(new_probability, overlap, new_count=34, slots=100):
-    """Hold the final slate's channel label count fixed; vary incremental value.
+    """同じ経路に34枠を割り当て、重複数と新候補の確率を変える。
 
-    overlap counts GLIDE-labeled slots that also existed in baseline retrieval.
-    Baseline has identical 0.1 discovery probability in every slot. Shared
-    candidates keep that outcome; only genuinely replaced slots change it.
-    Expected events are sums of Bernoulli expectations, not sampled outcomes.
+    既存方式は各枠で同じ0.1の確率とする。重複する候補の結果は固定する。
+    各枠の確率を足して期待件数を出す。利用者の反応を抽選する計算ではない。
     """
     if not 0 <= overlap <= new_count <= slots or not 0 <= new_probability <= 1:
         raise ValueError("invalid slate assumptions")
@@ -32,11 +26,10 @@ def channel_case(new_probability, overlap, new_count=34, slots=100):
 
 
 def token_budget(old_events, recent_events=20, text_tokens_per_event=30):
-    """Illustrative input accounting; excludes common instructions/metadata.
+    """共通の指示と補助情報を除き、履歴に必要なトークン数を数える。
 
-    Four SID tokens and one soft token follow GLIDE's representation. History
-    lengths and average text length here are assumptions, not paper facts.
-    Equal token count does NOT mean equal information or measured latency.
+    論文に合わせ、SID1件は4トークン、長期の好みは1トークンとする。
+    履歴件数と文章の長さは合成例の仮定。情報量や処理時間は測らない。
     """
     return {
         "old_events": old_events,
@@ -56,11 +49,11 @@ def compute():
         "半数が重複": channel_case(0.2, 17),
     }
     return {
-        "note": "合成の期待値計算。34%は説明上固定した経路比率で、論文の効果量を再現した値ではない。",
+        "note": "Labは追加経路が占める割合を34%に固定して、発見の期待件数を計算します。Spotifyで測った増分を再現した数値ではありません。",
         "verification": {"mechanism": "PARTIAL", "performance": "NOT TESTED", "scaling": "NOT TESTED", "production_applicability": "NOT TESTED"},
         "experiments": [
-            {"name": "同じ経路比率でも増分は変わる", "dataset": "仮想100推薦枠", "metrics": cases},
-            {"name": "履歴の入力枠を数える", "dataset": "1件30 text tokens・直近20件を仮定", "metrics": {str(n): token_budget(n) for n in (0, 20, 100, 1000)}},
+            {"name": "追加経路の割合を固定し、重複と新候補の価値を変える", "dataset": "仮想100推薦枠", "metrics": cases},
+            {"name": "履歴を渡すのに必要なトークン数を比べる", "dataset": "文章は1件30トークン、直近の履歴は20件と仮定", "metrics": {str(n): token_budget(n) for n in (0, 20, 100, 1000)}},
         ],
     }
 

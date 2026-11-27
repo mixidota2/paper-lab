@@ -284,7 +284,7 @@ def test_batch13_sid_diagnostic_denominators_and_decision_boundaries():
         'sidinspector-mapping-diagnostics': ('lab.yaml', '全近傍edgeの重み合計で割る'),
         'sidscope-diagnostics': ('method.md', '更新前後に共通するitemのうちコードが変わった割合'),
         'gatesid-coldstart-ranking': ('lab.yaml', '商品ごとの重み付き損失を平均して順位付けの損失へ加える'),
-        'glide-spotify-sid': ('method.md', '同じSIDからどのエピソードを返すかを決めるtie-breaker'),
+        'glide-spotify-sid': ('method.md', '条件を満たす中で人気度が最も高いエピソードを選びます'),
     }
     for slug, (name, excerpt) in expected.items():
         assert excerpt in (ROOT/'papers'/slug/name).read_text()
