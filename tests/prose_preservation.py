@@ -156,7 +156,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = common_threshold_full_prose_hash(root, path, expected, algorithm)
     expected = gatesid_full_prose_hash(root, path, expected, algorithm)
     expected = dsi_full_prose_hash(root, path, expected, algorithm)
-    return netflix_counterfactual_full_prose_hash(root, path, expected, algorithm)
+    expected = netflix_counterfactual_full_prose_hash(root, path, expected, algorithm)
+    return glide_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -2219,6 +2220,34 @@ def netflix_counterfactual_full_prose_hash(root, path, expected, algorithm='sha2
 
 def before_netflix_counterfactual_full_prose(root, path, current):
     row = netflix_counterfactual_full_prose_row(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def glide_full_prose_row(root, path):
+    if not path.startswith('papers/glide-spotify-sid/'):
+        return None
+    rows = json.loads((root / 'tests/glide_full_prose_hashes.json').read_text())['files']
+    return rows.get(path)
+
+
+def glide_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = glide_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_glide_full_prose(root, path, current):
+    row = glide_full_prose_row(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

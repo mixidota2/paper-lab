@@ -1,0 +1,402 @@
+{
+  "files": {
+    "papers/glide-spotify-sid/figures/ab-design.svg": {
+      "before": {
+        "sha256": "c18d0cd5195394b703546f328339e2b190570e077c9e94ec3b7186bf4acf8f5d",
+        "blob": "6f5ecb5c666329cec099b5d31450c0565d27b187"
+      },
+      "after": {
+        "sha256": "ee03ac466331829b485dd2ff28b47214d70231ffce6d6d80b2a0335c945abb8e",
+        "blob": "d805048e5c8926ab50e2f93bd729d43aa9c257a6"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 560 648\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">A/Bの効果と経路比率を区別する</title><desc id=\"desc\">§5.3を再構成。著者報告の有意性表記はα&lt;0.01。費用・遅延の詳細や信頼区間は本文の記載から確認できない。</desc><defs><marker id=\"arr\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#26745f\"/></marker></defs><rect width=\"560\" height=\"648\" fill=\"#fbfcf7\"/><g font-family=\"sans-serif\"><text x=\"22\" y=\"35\" font-size=\"25\" fill=\"#183c35\" font-weight=\"bold\">ユーザー単位の無作為割付</text><rect x=\"25\" y=\"65\" width=\"510\" height=\"116\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"41\" y=\"97\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">対象と期間</text><text x=\"41\" y=\"127\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">英語圏・直近30日活動のpodcast利用者</text><text x=\"41\" y=\"154\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">21日間、各群の表示は約2,000万回</text><path d=\"M170,181 L150,220\" stroke=\"#26745f\" stroke-width=\"2.5\" fill=\"none\" marker-end=\"url(#arr)\"/><path d=\"M390,181 L410,220\" stroke=\"#26745f\" stroke-width=\"2.5\" fill=\"none\" marker-end=\"url(#arr)\"/><rect x=\"22\" y=\"233\" width=\"246\" height=\"117\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"38\" y=\"265\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">Control</text><text x=\"38\" y=\"295\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">既存の候補pool</text><text x=\"38\" y=\"322\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">既存ranker</text><rect x=\"292\" y=\"233\" width=\"246\" height=\"117\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"308\" y=\"265\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">Treatment</text><text x=\"308\" y=\"295\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">poolへGLIDE追加</text><text x=\"308\" y=\"322\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">既存ranker</text><text x=\"25\" y=\"398\" font-size=\"23\" fill=\"#183c35\" font-weight=\"bold\">Homeでの相対増分（著者報告）</text><rect x=\"25\" y=\"425\" width=\"510\" height=\"119\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"41\" y=\"457\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">non-habitual streams</text><text x=\"41\" y=\"487\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">ユーザー当たり +5.4%</text><text x=\"41\" y=\"514\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">新番組のnon-habitual streams +14.3%</text><text x=\"25\" y=\"584\" font-size=\"21\" fill=\"#183c35\" font-weight=\"normal\">約34%：処置群のGLIDE由来推薦比率</text><text x=\"25\" y=\"618\" font-size=\"21\" fill=\"#a94438\" font-weight=\"normal\">→ 34%の増分や因果貢献を意味しない</text></g></svg>\n"
+        ]
+      ]
+    },
+    "papers/glide-spotify-sid/figures/cascade.svg": {
+      "before": {
+        "sha256": "9f74cbf002721c366aef71e083fe39fb6ea6ddcdfa7539b496b64dd38569b8c9",
+        "blob": "382c22781c196eddeb9b2b7cef0fc99c2cfd06e3"
+      },
+      "after": {
+        "sha256": "d565a113cef408d91d30368a3b446f8047822afe84e63f45280408a99ddf2436",
+        "blob": "781c88f95b962c0302bb972a3caafbee2dd5704d"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 560 658\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">生成器は追加の候補経路になる</title><desc id=\"desc\">§4.4・§5.3の処置を再構成。候補の採用比率と発見の因果効果は別の量。</desc><defs><marker id=\"arr\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#26745f\"/></marker></defs><rect width=\"560\" height=\"658\" fill=\"#fbfcf7\"/><g font-family=\"sans-serif\"><text x=\"22\" y=\"35\" font-size=\"25\" fill=\"#183c35\" font-weight=\"bold\">候補は合流し、既存rankerで競う</text><rect x=\"22\" y=\"68\" width=\"246\" height=\"120\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"38\" y=\"100\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">既存の候補経路</text><text x=\"38\" y=\"130\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">従来の取得候補</text><text x=\"38\" y=\"157\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">処置群でも使う</text><rect x=\"292\" y=\"68\" width=\"246\" height=\"120\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"308\" y=\"100\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">GLIDE経路</text><text x=\"308\" y=\"130\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">文脈 → SID生成</text><text x=\"308\" y=\"157\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">SID → episode ID</text><path d=\"M145,188 L220,241\" stroke=\"#26745f\" stroke-width=\"2.5\" fill=\"none\" marker-end=\"url(#arr)\"/><path d=\"M415,188 L340,241\" stroke=\"#26745f\" stroke-width=\"2.5\" fill=\"none\" marker-end=\"url(#arr)\"/><rect x=\"70\" y=\"250\" width=\"420\" height=\"113\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"86\" y=\"282\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">同じ候補poolへ追加</text><text x=\"86\" y=\"312\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">同じSIDの候補を解決・利用条件を確認</text><text x=\"86\" y=\"339\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">経路の重複と採用を追う</text><path d=\"M280,363 L280,400\" stroke=\"#26745f\" stroke-width=\"2.5\" fill=\"none\" marker-end=\"url(#arr)\"/><rect x=\"70\" y=\"411\" width=\"420\" height=\"90\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"86\" y=\"443\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">既存の下流episode ranker</text><text x=\"86\" y=\"473\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">他経路の候補と一緒に採点・順位付け</text><path d=\"M280,501 L280,538\" stroke=\"#26745f\" stroke-width=\"2.5\" fill=\"none\" marker-end=\"url(#arr)\"/><rect x=\"135\" y=\"548\" width=\"290\" height=\"83\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"151\" y=\"580\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">Homeの推薦</text><text x=\"151\" y=\"610\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">発見の増分はA/Bで測る</text></g></svg>\n"
+        ]
+      ]
+    },
+    "papers/glide-spotify-sid/figures/conditioning.svg": {
+      "before": {
+        "sha256": "e870ceaacc8353acb1524f6201d0cef5fa9033c464e86a514c5f9b5bdf0556f0",
+        "blob": "533ed83bbff4ec65610dbf17c5afd89b899b7b15"
+      },
+      "after": {
+        "sha256": "396fb53c5118f62aa3aa5cd0924fef070e6ce35e6f238d1c859cecda9728c08e",
+        "blob": "89e5a9ecf1a0977f16c2d0e85d284208b230be1a"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 560 630\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">長期はsoft prompt、直近はSID履歴</title><desc id=\"desc\">§4.1–4.3と図2を再構成。SID側の内容ベクトルとユーザーCFを混同しない。</desc><defs><marker id=\"arr\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#26745f\"/></marker></defs><rect width=\"560\" height=\"630\" fill=\"#fbfcf7\"/><g font-family=\"sans-serif\"><text x=\"22\" y=\"35\" font-size=\"24\" fill=\"#183c35\" font-weight=\"bold\">安定した嗜好と、直近の意図を分ける</text><rect x=\"25\" y=\"65\" width=\"510\" height=\"116\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"41\" y=\"97\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">長期：既存CFのユーザーベクトル</text><text x=\"41\" y=\"127\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">2層MLP → Llamaのhidden dimension</text><text x=\"41\" y=\"154\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">1 soft tokenとして入力（文字列ではない）</text><path d=\"M280,181 L280,215\" stroke=\"#26745f\" stroke-width=\"2.5\" fill=\"none\" marker-end=\"url(#arr)\"/><rect x=\"25\" y=\"225\" width=\"510\" height=\"170\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"41\" y=\"257\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">モデルへ渡す順序</text><text x=\"41\" y=\"287\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">system instruction → soft token</text><text x=\"41\" y=\"314\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">補助的なユーザー情報 → 時間順の直近SID列</text><text x=\"41\" y=\"341\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">最後に familiar / unfamiliar の指示</text><text x=\"41\" y=\"368\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">同じモデルの条件を切り替える</text><path d=\"M280,395 L280,430\" stroke=\"#26745f\" stroke-width=\"2.5\" fill=\"none\" marker-end=\"url(#arr)\"/><rect x=\"25\" y=\"440\" width=\"510\" height=\"120\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"41\" y=\"472\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">Llama 3.2 1Bベース</text><text x=\"41\" y=\"502\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">SIDと説明文の双方向grounding</text><text x=\"41\" y=\"529\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">その後、推薦用instruction tuning</text><text x=\"25\" y=\"601\" font-size=\"18\" fill=\"#183c35\" font-weight=\"normal\">注意：1 tokenが全履歴を可逆に保存するわけではない</text></g></svg>\n"
+        ]
+      ]
+    },
+    "papers/glide-spotify-sid/figures/quantizers.svg": {
+      "before": {
+        "sha256": "f71e26f9db39c0c625d7199e0523d6d36b444f7d496c3a1169a788b1f58532e6",
+        "blob": "75de6dff92adf5f47fba3c213f9950b1c76289b2"
+      },
+      "after": {
+        "sha256": "7d85faec444495d72955e4872596bb308d8adc764728def97a7e57b018150cbe",
+        "blob": "2574f9b11ad1db443a4102717aaf8ce5667b5fa1"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 560 665\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">量子化の選択は衝突後の候補にも効く</title><desc id=\"desc\">§5.2.2・表2の報告値。R-KMeansの採用はこの運用条件での判断で、一般的な優劣を保証しない。</desc><defs><marker id=\"arr\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#26745f\"/></marker></defs><rect width=\"560\" height=\"665\" fill=\"#fbfcf7\"/><g font-family=\"sans-serif\"><text x=\"22\" y=\"35\" font-size=\"25\" fill=\"#183c35\" font-weight=\"bold\">同じ内容embeddingからの分岐</text><rect x=\"25\" y=\"65\" width=\"510\" height=\"75\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"41\" y=\"97\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">タイトル・説明 → 内容ベクトル</text><path d=\"M160,140 L150,178\" stroke=\"#26745f\" stroke-width=\"2.5\" fill=\"none\" marker-end=\"url(#arr)\"/><path d=\"M400,140 L410,178\" stroke=\"#26745f\" stroke-width=\"2.5\" fill=\"none\" marker-end=\"url(#arr)\"/><rect x=\"22\" y=\"190\" width=\"246\" height=\"193\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"38\" y=\"222\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">R-KMeans</text><text x=\"38\" y=\"252\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">残差 → 最近傍重心</text><text x=\"38\" y=\"279\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">重心を引き、次段へ</text><text x=\"38\" y=\"306\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">元の内容空間を近似</text><text x=\"38\" y=\"333\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">本番採用</text><rect x=\"292\" y=\"190\" width=\"246\" height=\"193\" rx=\"12\" fill=\"#eaf0f8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"308\" y=\"222\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">RQ-VAE</text><text x=\"308\" y=\"252\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">学習した潜在空間</text><text x=\"308\" y=\"279\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">学習codebookで離散化</text><text x=\"308\" y=\"306\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">再構成などの目的</text><text x=\"308\" y=\"333\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">調整・使用率が課題</text><text x=\"28\" y=\"425\" font-size=\"21\" fill=\"#183c35\" font-weight=\"bold\">同じSID内の平均cosine類似度（表2）</text><text x=\"28\" y=\"467\" font-size=\"21\" fill=\"#183c35\" font-weight=\"normal\">R-KMeans</text><text x=\"434\" y=\"467\" font-size=\"21\" fill=\"#183c35\" font-weight=\"normal\">0.856</text><rect x=\"28\" y=\"479\" width=\"500\" height=\"16\" fill=\"#dce4d9\"/><rect x=\"28\" y=\"479\" width=\"428.0\" height=\"16\" fill=\"#26745f\"/><text x=\"28\" y=\"536\" font-size=\"21\" fill=\"#183c35\" font-weight=\"normal\">RQ-VAE</text><text x=\"434\" y=\"536\" font-size=\"21\" fill=\"#183c35\" font-weight=\"normal\">0.657</text><rect x=\"28\" y=\"548\" width=\"500\" height=\"16\" fill=\"#dce4d9\"/><rect x=\"28\" y=\"548\" width=\"328.5\" height=\"16\" fill=\"#26745f\"/><text x=\"28\" y=\"603\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">棒は0〜1。複数の番組が同じSIDを持つ群だけ。</text><text x=\"28\" y=\"634\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">collapseをtoyで再現した比較ではない。</text></g></svg>\n"
+        ]
+      ]
+    },
+    "papers/glide-spotify-sid/lab.yaml": {
+      "before": {
+        "sha256": "5fce601ecfd64d714dca3f3921318db1a2b04021b4d8adec2176069d7e8a514b",
+        "blob": "83e0a1a2c92562ddd502a57ec0e9c0a7d764b816"
+      },
+      "after": {
+        "sha256": "5bbd65c625745abf5f4833e61d67a1acd84763091d633d82c514e6ab7cd0cc3e",
+        "blob": "8b9726b59a5eff4450671ec34c2d9ce9c382ec5d"
+      },
+      "prior_spans": [
+        [
+          68,
+          70,
+          "question: 生成推薦は、既存の候補経路に何を足したのか\nsummary: GLIDEは既存ランキングへ発見向けの候補を足す。長期嗜好を1つの連続ベクトル、直近行動をSID列で渡す設計と、追加経路の効果を測るA/Bを分けて読む。\n"
+        ],
+        [
+          73,
+          74,
+          "  scope: 2026-09-08日報の対象。arXiv v1のabs・HTML本文を確認。数値は著者の報告であり独立再現ではない。\n"
+        ],
+        [
+          76,
+          78,
+          "  title: 生成器は追加の候補経路になる\n  caption: §4.4・§5.3の処置を再構成。候補の採用比率と発見の因果効果は別の量。\n"
+        ],
+        [
+          80,
+          82,
+          "  title: 長期はsoft prompt、直近はSID履歴\n  caption: §4.1–4.3と図2を再構成。SID側の内容ベクトルとユーザーCFを混同しない。\n"
+        ],
+        [
+          84,
+          86,
+          "  title: 量子化の選択は衝突後の候補にも効く\n  caption: §5.2.2・表2の報告値。R-KMeansの採用はこの運用条件での判断で、一般的な優劣を保証しない。\n"
+        ],
+        [
+          88,
+          90,
+          "  title: A/Bの効果と経路比率を区別する\n  caption: §5.3を再構成。著者報告の有意性表記はα<0.01。費用・遅延の詳細や信頼区間は本文の記載から確認できない。\n"
+        ],
+        [
+          94,
+          95,
+          "  title: SIDは残差を順に近似した4つの番号\n"
+        ],
+        [
+          98,
+          100,
+          "  rationale: 入力、演算、出力と適用条件を具体化する。\n  caption: 論文の記号を用いた手順。番号自体に人手のカテゴリ名が付くわけではない。\n"
+        ],
+        [
+          103,
+          104,
+          "    explanation: xₑはエピソードのタイトルと説明から得た内容ベクトル。ユーザーCFとは別。\n"
+        ],
+        [
+          106,
+          107,
+          "    explanation: 各段mの256個の重心から、その段までに残った成分に最も近い1つを選ぶ。\n"
+        ],
+        [
+          109,
+          110,
+          "    explanation: 4段で4 tokens。段ごとに語彙を分けるため追加語彙は4×256=1,024。\n"
+        ],
+        [
+          112,
+          113,
+          "  title: 長期と直近を同じ条件付き分布へ渡す\n"
+        ],
+        [
+          116,
+          118,
+          "  rationale: 入力、演算、出力と適用条件を具体化する。\n  caption: soft promptの射影は推薦用instruction tuningで学習する。古い履歴全体の可逆圧縮を仮定しない。\n"
+        ],
+        [
+          121,
+          122,
+          "    explanation: 既存のユーザーCFベクトルを2層MLPで1 soft tokenへ写す。通常の文字tokenではない。\n"
+        ],
+        [
+          124,
+          125,
+          "    explanation: 直近履歴は時間順。地域などの軽い文脈とfamiliar / unfamiliarの指示も条件にする。\n"
+        ],
+        [
+          127,
+          129,
+          "  author_claim: GLIDEはポッドキャストの内容を短い識別子列に変え、ユーザーの文脈から次の候補を生成する。長期嗜好、直近履歴、発見の指示を同じモデルに渡し、候補は既存の下流rankerへ送る。[一次資料：§4・§5.3](https://arxiv.org/html/2603.17540)\n  research_bot_interpretation: この事例の判断単位は、生成器だけの順位精度より「候補の集合へ何が加わるか」にある。既存経路との重複、候補の新鮮さ、rankerが採用した理由を測りたい。既存のCF基盤を再利用しているため、履歴を短くした成果をLLM単体の能力と読むのは早い。\n"
+        ],
+        [
+          132,
+          134,
+          "  problem: '聴き慣れた番組への関心と、今このセッションで探したい話題は違う。§3は直近28日の番組別聴取が10分未満のものをnon-habitualと定義する。その中で、過去に一度も聴いていない番組がunfamiliar、過去には聴いた番組がfamiliarである。新番組の発見と、久しぶりの番組への復帰を区別する。\n"
+        ],
+        [
+          135,
+          139,
+          ""
+        ],
+        [
+          140,
+          143,
+          "    推薦対象はエピソード、習慣の判定単位は番組である。この単位の違いを落とすと、新しいエピソードを聴いたことと新しい番組を発見したことを混同する。[一次資料：§3](https://arxiv.org/html/2603.17540)'\n  why_it_might_work: 長期の協調フィルタリング（CF）は他の人との行動の共通性を圧縮し、直近のSID列は行動の順番を残す。この分業なら、毎回すべての履歴を文章化せずに済むと考えられる。一方、1ベクトルから消えた過去の細部は復元できるとは限らない。圧縮された嗜好と、その時々の指示が衝突する利用者での評価が次の課題になる。\n  evidence: '### Homeの改善は追加経路を含むシステム全体の効果\n"
+        ],
+        [
+          144,
+          145,
+          ""
+        ],
+        [
+          146,
+          147,
+          "    著者は、英語圏市場の直近30日間に活動したポッドキャスト利用者を、ユーザー単位で無作為割付した。期間は21日、各群は約2,000万impressions。Homeでユーザー当たりのnon-habitual\n    streamsが相対5.4%、新番組のnon-habitual streamsが14.3%増えたと報告する。本文の有意性表記はα < 0.01。絶対増分、信頼区間、詳細な運用費用はこの記載からは確認できない。\n"
+        ],
+        [
+          148,
+          149,
+          ""
+        ],
+        [
+          150,
+          151,
+          "    処置群の推薦の約34%がGLIDE由来という値は、採用された経路の比率である。34%が純増した推薦や、34%の因果的な貢献を意味するわけではない。下のtoyはこの区別を計算で示す。[一次資料：§5.3](https://arxiv.org/html/2603.17540)\n"
+        ],
+        [
+          152,
+          153,
+          ""
+        ],
+        [
+          154,
+          157,
+          "    ### 条件によってはGLIDEが最良でない\n"
+        ],
+        [
+          158,
+          161,
+          ""
+        ],
+        [
+          162,
+          169,
+          "    §5.2の表1では、familiarのNDCG@30はSID-only比でSID + Textが+30.5%、GLIDEが+28.7%。全体で良いことと各層で最良であることは別である。表2のHR@30はRQ-VAE比でR-LFQが+4.76%、R-KMeansが+9.52%。同じSIDに複数件が入るbucketの平均cosine類似度は順に0.657、0.713、0.856である。R-KMeansがR-LFQより9.52%高いという比較ではない。[一次資料：表1・2](https://arxiv.org/html/2603.17540)'\n  executable_understanding: '`uv run papers/glide-spotify-sid/run.py`\n\n\n    候補経路の比率と発見の増分を切り分ける期待値計算を行う。仮想100枠のうち34枠に追加経路のラベルを付け、元の発見確率を0.1に固定する。追加経路で初めて入る候補の確率を0.05、0.1、0.2に変える。重複候補は同じ結果を保つ仮定で、重複数も動かす。実ユーザーの反応は生成しない。\n\n\n    補助実験は入力tokenの数え上げ。古い履歴件数を増やし、全文履歴・全SID履歴・1 soft tokenと直近SIDの入力長を比べる。1件30 text tokens、直近20件はtoyの仮定である。'\n  results: 追加経路の比率を34%に固定しても、仮想の発見増分は−17%、0%、+34%となる。候補が全件重複する条件では増分は0%。入力長の例では古い100件と直近20件で全文3,600、全SID\n    480、soft promptと直近SIDは81 tokens。これは同じ情報を保持した証明でも、81/3,600の時間で動くという測定でもない。\n  what_we_verified: Mechanism PARTIAL。候補経路の比率から因果効果は一意に決まらないという反例と、表現方式による入力枠の違いを確認した。全数値は決定的に再計算し、results.jsonへ保存する。\n  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Llama、CF射影、R-KMeans、RQ-VAEの学習、衝突率、実トークナイザー、遅延、オンライン発見指標は再現していない。学習を省いた疑似RQ-VAEを用意して、codebook\n    collapseやR-KMeansの優越を主張することもしない。\n  implementation: run.pyは標準ライブラリだけで動く。channel_caseが期待イベント数、token_budgetが入力枠を計算する。共通ヘルパーやネットワークは不要。重複と確率を変更して反例を作れる。実サービスで必要なのは候補の重複除去、資格判定、ランキングと割付実験の整合であり、このtoyはそれらの実装ではない。\n  method: method.md\n"
+        ]
+      ]
+    },
+    "papers/glide-spotify-sid/mapping.md": {
+      "before": {
+        "sha256": "c4daa02662a1b0fa4daa12c7b6883cf2f839aab6493ff53446489d7083ba1866",
+        "blob": "3d814fb22c306081a81deeb316c6b2446a08879b"
+      },
+      "after": {
+        "sha256": "288aaa627f1cbd764b9b72a7ffb4cc62fa189b8561d225a9a6e1fdf40e6d8e4a",
+        "blob": "e04acee13fd4529fd8c849ec871ba45a56e85c02"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文とLabの対応\n"
+        ],
+        [
+          2,
+          3,
+          "GLIDEでは、ポッドキャストの候補を生成するときに、長期の好みを表すベクトルと、直近に利用したエピソードのID列を渡します。Labで動かすのは候補経路と入力枠の小さな例で、Spotifyのモデル全体ではありません。\n"
+        ],
+        [
+          4,
+          10,
+          "| 原論文で扱うこと | 一次資料 | Labで確認できること | Labで確認していないこと |\n| --- | --- | --- | --- |\n| 残差量子化と長期・短期の入力 | [§4.1–4.3](https://arxiv.org/html/2603.17540) | method.md、数式図、conditioning.svgでIDと履歴の使い分けを追う。 | モデル全体の学習。 |\n| 候補を集める経路の追加とIDの衝突 | [§4.4・§5.3](https://arxiv.org/html/2603.17540) | cascade.svgとrun.pyのchannel_caseで候補が増える流れを見る。 | 実際の順位付け器や衝突の測定。 |\n| 入力枠 | [§4.1.1–4.1.2](https://arxiv.org/html/2603.17540) | token_budgetで履歴の表し方ごとに、入力に使うトークンの数を計算する。 | 入力にどれだけ情報が残るか、処理にかかる時間。 |\n| 量子化方式の比較とA/Bテスト | [表2・§5.3](https://arxiv.org/html/2603.17540) | quantizers.svgとab-design.svgで著者の比較条件を読む。 | 比較や実験の独立した再現。 |\n"
+        ],
+        [
+          11,
+          12,
+          "2026-09-07 UTCにarXiv v1の要旨ページとHTMLを確認した。正式タイトルと著者名は要旨ページのAuthors欄に従う。公式コードは確認できていないため、コードの行単位の対応は示さない。非公開ログ、協調フィルタリングとエンコーダーの重み、運用費用の詳細も検証できない。図はresearch_botが教材として描き直したもの。\n"
+        ],
+        [
+          13,
+          14,
+          "関連：[TGR](tgr.html)は候補経路の追加、[Metaの検索設計](case-against-generation-retrieval.html)は検索の設計、[SIDのフィルタ診断](understanding-sids-isd.html)は候補がどこで消えるかを扱う。本番条件を同じとみなして性能は比較していない。\n"
+        ]
+      ]
+    },
+    "papers/glide-spotify-sid/method.md": {
+      "before": {
+        "sha256": "aa9ecb0082d482fbc10c2acb8a4108888429bc044ab89fe04552ae1bacb5cff0",
+        "blob": "6ed200ced4f579944bb048e7e74524d2875b21ed"
+      },
+      "after": {
+        "sha256": "889d10964f16502df048c6e0c656de8fcac33c1114264819a382b7eb784df1ad",
+        "blob": "1fb6cf58a032f77e34fdc087524a374b894e7296"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 内容のコードと、利用者の嗜好を別々に作る\n"
+        ],
+        [
+          2,
+          3,
+          "GLIDEの基盤はLlama 3.2 1Bベース。エピソード側には、多言語BGE-M3の構造を使い、ポッドキャスト向けに調整した独自text encoderを置く。タイトルと説明を連続ベクトルにし、Residual K-Means（R-KMeans）で短い番号列へ変える。この番号列がSemantic ID（SID）である。[一次資料：§4.1・§5](https://arxiv.org/html/2603.17540)\n"
+        ],
+        [
+          4,
+          5,
+          "新しいエピソードには十分な視聴履歴がない。そのため著者は、アイテムのSIDには内容を使い、ユーザーの長期嗜好にはCFを使う。内容ベクトルは行動が増えるたびに更新する必要がないが、メタデータ、encoder、重心の更新でSIDは変わり得る。「内容ベースだから永久に安定」とは読めない。\n"
+        ],
+        [
+          6,
+          7,
+          "### 先にSIDの意味を学び、その後に発見の指示を学ぶ\n"
+        ],
+        [
+          8,
+          9,
+          "新しいSID語彙を追加しただけでは、Llamaはその番号と内容の対応を学習していない。そこでSIDから説明文、説明文からSIDの双方向の生成を学習する。最初はbackboneを固定して新規token埋め込みだけを更新し、次に基盤の重みと埋め込みを固定してLoRAを学習する。LoRAはTransformerへの小さな追加パラメータによる適応である。この段階にユーザーsoft promptは混ぜない。[一次資料：§4.2](https://arxiv.org/html/2603.17540)\n"
+        ],
+        [
+          10,
+          11,
+          "推薦用のinstruction tuningでは、ユーザーCFの射影もモデルとともに学習する。system instructionの直後に1つのsoft tokenを置き、軽い文脈、直近SID履歴、発見の指示を渡す。familiar / unfamiliarを学習例の番組履歴に合わせることで、推論時にも指示で生成分布を切り替える。新番組への指示は分布の制御であり、任意の生成候補が必ず新番組になるという保証とは分けたい。[一次資料：§4.3](https://arxiv.org/html/2603.17540)\n"
+        ],
+        [
+          12,
+          13,
+          "### 同じSIDに複数のエピソードがある場合は、配信条件を満たすものから人気度で一つを選ぶ\n"
+        ],
+        [
+          14,
+          15,
+          "有限のコードへ量子化すると、複数のエピソードが同じSIDになる場合がある。著者は、再生可能、地域で利用可能、現在の候補集合に未登録という条件を満たす中から、人気度で決定的に選ぶ。同じSIDからどのエピソードを返すかを決めるtie-breakerは日次更新する。衝突を解くための追加ID tokenを生成する方式と混同しない。[一次資料：§4.4.1](https://arxiv.org/html/2603.17540)\n"
+        ],
+        [
+          16,
+          17,
+          "research_botの批評：bucket内の類似度が高いほど、別エピソードを返す違和感は小さそうである。ただし同じ内容でも公開日や聴取済み状態は違う。人気度での解決は、希少な候補を出したい目的と衝突し得る。bucketのサイズ分布、衝突後に返されるエピソードの偏り、資格判定で空になる比率を追いたい。\n"
+        ],
+        [
+          18,
+          19,
+          "### R-KMeansの採用理由は、品質と学習の扱いやすさ\n"
+        ],
+        [
+          20,
+          21,
+          "RQ-VAEはencoder・decoderと離散codebookを学習し、再構成などの目的で潜在空間も変える。対してR-KMeansは与えられた内容空間の残差を重心で近似する。著者はRQ-VAEのcode使用の偏りや調整の難しさを説明し、表2の検索品質とbucket内類似度も踏まえてR-KMeansを採用した。RQ-VAEが常に崩壊するという結果ではない。[一次資料：§5.2.2](https://arxiv.org/html/2603.17540)\n"
+        ],
+        [
+          22,
+          27,
+          "配信時は30 beamsで30候補を生成し、エピソードIDへ解決して既存rankerへ渡す。セッション開始などで生成・キャッシュし、必要な時点で利用する。論文は広いbeamに伴うCPU調整とアクセラレーター利用の問題も報告する。生成候補を増やすほど価値が増すとしても、その費用は入力token数だけでは決まらない。[一次資料：§4.4](https://arxiv.org/html/2603.17540)\n"
+        ]
+      ]
+    },
+    "papers/glide-spotify-sid/results.json": {
+      "before": {
+        "sha256": "45ba9370e5e44148ac945122fb0627464f5a9c52b5e351712a46d5db79461635",
+        "blob": "14a3e1e62d2b4252db0e93ea97b80c7074065e5c"
+      },
+      "after": {
+        "sha256": "e87348d11fb537b890797e9b1e2ee8e1a3698e31e84cefcbf8366d49830cdf38",
+        "blob": "a838c17151d6bf6d20ddec0f0a967d21be92c01c"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"合成の期待値計算。34%は説明上固定した経路比率で、論文の効果量を再現した値ではない。\",\n"
+        ],
+        [
+          10,
+          11,
+          "      \"name\": \"同じ経路比率でも増分は変わる\",\n"
+        ],
+        [
+          61,
+          63,
+          "      \"name\": \"履歴の入力枠を数える\",\n      \"dataset\": \"1件30 text tokens・直近20件を仮定\",\n"
+        ]
+      ]
+    },
+    "papers/glide-spotify-sid/run.py": {
+      "before": {
+        "sha256": "14e0dbb6b305bf687750cef4bf0fc9da49a8eb7614d2da72a09adb816bc85e3e",
+        "blob": "328f5a9095652eada3c57931f4f554f205098470"
+      },
+      "after": {
+        "sha256": "87885f2f115d55d9b3bc6045c0db8a2caeed5dfc5d27e6855fd801122ae386c5",
+        "blob": "56745f59c28498168d659b362bf0bc643081eec9"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"CPU teaching counterexample: candidate channel share does not identify lift.\n\nAll probabilities are invented toy assumptions, not Spotify measurements.\nRun with uv run papers/glide-spotify-sid/run.py. No dependencies or network.\n\"\"\"\n"
+        ],
+        [
+          6,
+          7,
+          "    \"\"\"Hold the final slate's channel label count fixed; vary incremental value.\n"
+        ],
+        [
+          8,
+          10,
+          "    overlap counts GLIDE-labeled slots that also existed in baseline retrieval.\n    Baseline has identical 0.1 discovery probability in every slot. Shared\n    candidates keep that outcome; only genuinely replaced slots change it.\n    Expected events are sums of Bernoulli expectations, not sampled outcomes.\n"
+        ],
+        [
+          28,
+          29,
+          "    \"\"\"Illustrative input accounting; excludes common instructions/metadata.\n"
+        ],
+        [
+          30,
+          32,
+          "    Four SID tokens and one soft token follow GLIDE's representation. History\n    lengths and average text length here are assumptions, not paper facts.\n    Equal token count does NOT mean equal information or measured latency.\n"
+        ],
+        [
+          51,
+          52,
+          "        \"note\": \"合成の期待値計算。34%は説明上固定した経路比率で、論文の効果量を再現した値ではない。\",\n"
+        ],
+        [
+          54,
+          56,
+          "            {\"name\": \"同じ経路比率でも増分は変わる\", \"dataset\": \"仮想100推薦枠\", \"metrics\": cases},\n            {\"name\": \"履歴の入力枠を数える\", \"dataset\": \"1件30 text tokens・直近20件を仮定\", \"metrics\": {str(n): token_budget(n) for n in (0, 20, 100, 1000)}},\n"
+        ]
+      ]
+    }
+  }
+}
