@@ -1,0 +1,411 @@
+{
+  "files": {
+    "papers/dream-taobao-agentic-control/README.md": {
+      "before": {
+        "sha256": "957baf74bf8a21d2c4088d25ddddc337b735926a8eb593d45364caa7f7180e85",
+        "blob": "598de51969635aa51e42d9880d64f753bcafdd47"
+      },
+      "after": {
+        "sha256": "1e669b04b3308197c01d843ea17935e763a6124238828b2be259ae367887f62b",
+        "blob": "23c8fa0991ae0a2e8d4800ce6a1d260f1b576280"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# DREAM Technical Report\n"
+        ],
+        [
+          2,
+          3,
+          "TaobaoのDREAMは、利用者がいま何を探しているかを推定し、既存の推薦システムの設定に反映します。長く続く好み、その時に探している商品、価格やブランドなどの細かな条件を分けて扱う設計です。その情報を、推薦の各段階で使える設定に変えます。一部の設定を変える方式なので、従来の設定に戻せます。\n"
+        ],
+        [
+          4,
+          5,
+          "著者がTaobaoのホーム画面で行ったA/Bテストでは、最終段階の並べ替えだけを調整した構成で、商品詳細ページへの訪問数が従来方式より2.06%増えました。その手前の詳しい順位付けも調整した構成では、同じ従来方式より2.71%増えています。二つの数値は足し合わせられません。また、人とエージェントに同じ条件で改善案を探させた比較ではありません。\n"
+        ],
+        [
+          6,
+          7,
+          "## 読み方\n"
+        ],
+        [
+          8,
+          9,
+          "DREAM：今のintentに合わせて、既存推薦器の設定を動かす。まず問題設定と手法を読み、図で操作の単位を追う。Evidenceでは比較の分母と観察範囲を確認し、小実験と原論文の性能を分けて評価する。\n"
+        ],
+        [
+          10,
+          11,
+          "著者は、知覚・strategyの編成・監査を可能にするpolicy層を既存cascadeへ重ね、モデルの置換なしにユーザー価値とbusiness指標を改善できると主張する。\n"
+        ],
+        [
+          12,
+          13,
+          "【Labの解釈】学ぶべき境界は、LLMが意図と意味的なactionを提案し、決定的なTool Processが実行可能な設定へ変換する点にある。モデルを変えずに制御可能性を増やせるが、変更可能なmenuが狭ければ効果もその範囲に限られる。\n"
+        ],
+        [
+          14,
+          15,
+          "## 再実行\n"
+        ],
+        [
+          21,
+          22,
+          "lab.yaml、method.md、mapping.md、run.py、results.jsonが原本。site/は生成物であり直接編集しない。実験は標準ライブラリのみ。\n"
+        ],
+        [
+          23,
+          24,
+          "## 検証範囲\n\n**Mechanism: PARTIAL**。人工条件の計算と境界条件を確認した。results.jsonのCONFIRMEDは小さな計算命題にだけ適用する。原論文の学習済みモデルや産業環境を再現した意味ではない。\n\nGRU・Intent Agent・Qwen3の学習、LLMのstrategy品質、TTL最適化、memory更新、実service replay、端末費用、online liftは検証していない。toyで失敗時にdefaultへ戻す処理はschemaの小部分だけを対象としており、本番の安全性を保証しない。\n\nPerformance / Scaling / Production applicability: NOT TESTED。モデル学習とオンラインA/Bは実行していない。\n\n[一次PDF](https://arxiv.org/pdf/2608.09408v3)。版・ハッシュ・節とコードの対応はmapping.md。公式コードは確認範囲で案内を見つけられず、実行していない。\n"
+        ]
+      ]
+    },
+    "papers/dream-taobao-agentic-control/lab.yaml": {
+      "before": {
+        "sha256": "59368a70fc5716faa29fba1cfbc122a2d05c0ca7f155238365de7ffe44620ed4",
+        "blob": "b1a54377dadc7c57c5e9ac3ac9ba634c4aac70a6"
+      },
+      "after": {
+        "sha256": "70efa7360e46bdc3016a2f635642fa0e25f736c39d075fea78148fc9a83cb46c",
+        "blob": "f8eb31629479d9f445c186a15a563070307f50dc"
+      },
+      "prior_spans": [
+        [
+          17,
+          19,
+          "question: DREAM：今のintentに合わせて、既存推薦器の設定を動かす\nsummary: DREAMはTaobaoの既存cascadeにintent認識とstrategy制御を重ねる。rerank制御でIPV +2.06%、fine rankまで広げて+2.71%。中心はL0/L1/L2のintent、M1/M2/M3の変換契約、defaultへ戻せる局所overrideである。agent対人の探索能力を揃えた比較ではない。\n"
+        ],
+        [
+          31,
+          33,
+          "  author_claim: 著者は、知覚・strategyの編成・監査を可能にするpolicy層を既存cascadeへ重ね、モデルの置換なしにユーザー価値とbusiness指標を改善できると主張する。\n  research_bot_interpretation: 学ぶべき境界は、LLMが意図と意味的なactionを提案し、決定的なTool Processが実行可能な設定へ変換する点にある。モデルを変えずに制御可能性を増やせるが、変更可能なmenuが狭ければ効果もその範囲に限られる。\n"
+        ],
+        [
+          35,
+          36,
+          "    TaobaoのDREAMは、利用者がいま何を探しているかを推定し、既存の推薦システムの設定に反映します。長く続く好み、その時に探している商品、価格やブランドなどの細かな条件を分けて扱う設計です。その情報を、推薦の各段階で使える設定に変えます。一部の設定を変える方式なので、従来の設定に戻せます。\n"
+        ],
+        [
+          37,
+          40,
+          "    著者がTaobaoのホーム画面で行ったA/Bテストでは、最終段階の並べ替えだけを調整した構成で、商品詳細ページへの訪問数が従来方式より2.06%増えました。その手前の詳しい順位付けも調整した構成では、同じ従来方式より2.71%増えています。二つの数値は足し合わせられません。また、人とエージェントに同じ条件で改善案を探させた比較ではありません。\n  problem: 'click最適化の履歴表現だけでは、閲覧から比較、購入へ移るsession内の変化を捉えにくい。しかもretrieval・ranking・rerankingは別の目的や規則を持つ。DREAMはintentを共有し、その解釈を各stageの設定へ配る制御層を足す。\n"
+        ],
+        [
+          41,
+          45,
+          ""
+        ],
+        [
+          46,
+          49,
+          "    [AgentX](agentx-kuaishou.html)がcode / DSLの開発を回し、[CORAL](coral-meta-config-harness.html)が予算や設定を継続更新するのに対し、DREAMはユーザー状態に応じたruntimeのstrategyを扱う。[PILOT](pilot-experiment-lifecycle.html)はそのような変更を実験として運営する層に近い。この分類は各システムの責務に基づくLabの整理である。著者は4システムを組み合わせた実装や性能比較を示していない。'\n  method: method.md\n  why_it_might_work: 【解釈】端末で細かな行動を集め、変化点だけを推論へ送れば、sessionの新しさと推論費用を両立しやすい。nearline cacheとdefaultへの復帰は遅延経路を保護する。ただしgateの見逃しや古いintentの維持には損失があり、報告量の小ささだけでは品質を判断できない。\n  evidence: '### 共通baselineに対する、段階を広げた2つのtreatment\n"
+        ],
+        [
+          50,
+          51,
+          ""
+        ],
+        [
+          52,
+          53,
+          "    Taobao Homepage Guess You Likeのproduction A/B（§5.1・表7）。rerankのみの制御でPV +1.03%、IPV +2.06%、Core IPV +2.39%、GMV\n    +0.88%。fine rankにも広げるとPV +1.04%、IPV +2.71%、Core IPV +3.06%、GMV +1.31%。IPVはitem詳細ページへの帰属visit、Core\n    IPVはそのうちcore item、PVは有効な推薦露出event、GMVは帰属した支払済み注文金額。\n"
+        ],
+        [
+          54,
+          55,
+          ""
+        ],
+        [
+          56,
+          57,
+          "    後段の+2.71%を前段の+2.06%へ足して+4.77%としない。baselineを100と置いた指数なら102.06と102.71で、差はbaseline比0.65 percentage points、両treatmentの比は約0.637%になる。この算術だけでは、独立した因果効果の標準誤差や有意差は得られない。\n"
+        ],
+        [
+          58,
+          59,
+          ""
+        ],
+        [
+          60,
+          61,
+          "    絶対値は機密として省略される。表7には各liftの信頼区間、割付人数、期間の詳細がない。同じintent・MetaModel・guardを用いて制御stageを追加した比較なので、既存cascadeへの制御追加の根拠にはなる。一方、agentと人が同じidea集合を同じ予算で探索したA/Bではなく、LLM自体の純粋な寄与は分離されていない。\n"
+        ],
+        [
+          62,
+          65,
+          ""
+        ],
+        [
+          66,
+          67,
+          "    付録B・表11の4B replay-RLはpCTR +2.42%、pIPV −0.99%、pGMV +1.38%など、proxy間で改善の向きも揃わない。offline勝率やproxy scoreを、実測IPVの上昇と同一視しない。\n"
+        ],
+        [
+          68,
+          71,
+          ""
+        ],
+        [
+          72,
+          77,
+          "    <figure class=\"teaching batch18\"><h3>累積liftを並べる：baselineは共通</h3><div class=\"matrix-scroll\" tabindex=\"0\"\n    role=\"region\" aria-label=\"比較表\"><table><thead><tr><th>指標</th><th>rerank</th><th>rerank + fine rank</th><th>差\n    / baseline比pp</th></tr></thead><tbody><tr><td>PV</td><td>+1.03%</td><td>+1.04%</td><td>0.01</td></tr><tr><td>IPV</td><td>+2.06%</td><td>+2.71%</td><td>0.65</td></tr><tr><td>Core\n    IPV</td><td>+2.39%</td><td>+3.06%</td><td>0.67</td></tr><tr><td>GMV</td><td>+0.88%</td><td>+1.31%</td><td>0.43</td></tr></tbody></table></div><figcaption>表7。差は表の数値の引き算で、独立A/Bの追加効果推定ではない。</figcaption></figure>\n"
+        ],
+        [
+          78,
+          79,
+          ""
+        ],
+        [
+          80,
+          81,
+          "    [一次資料：版を固定したPDF](https://arxiv.org/pdf/2608.09408v3)。図・表・式と実装の対応は末尾のmappingを参照。'\n  executable_understanding: '同じ既定設定に、手作りのM2風bundleを与える。有効ならIPVの重みとscatter幅を補正し、期限切れ・範囲外・未知field・bool値ならdefaultへ戻す。既定値を全書換えしないことと、失敗したproposalが配信値に漏れないことを確認する。TTL=120、基準重み、予算2はLab独自の小さな条件であり、本番の値ではない。\n\n\n    閾値0.7を超えるscoreでも予算が尽きれば呼び出さない人工traceも出す。scoreからintent品質やbusiness liftは求めない。replayの同点は報酬0になる。\n\n\n    <figure class=\"teaching batch18\"><h3>同じdefaultへ、提案だけを変えて渡す</h3><div data-b18=\"override\"><label>条件\n    <select><option value=\"0\">未設定</option><option value=\"1\">有効</option><option value=\"2\">期限切れ</option><option\n    value=\"3\">範囲外</option><option value=\"4\">未許可field</option><option value=\"5\">bool値</option></select></label><div\n    data-output aria-live=\"polite\"><p>未設定：fallback: missing</p><div class=\"matrix-scroll\" tabindex=\"0\"\n    role=\"region\" aria-label=\"比較表\"><table><thead><tr><th>field</th><th>配信値</th></tr></thead><tbody><tr><td>ctr</td><td>1.0</td></tr><tr><td>ipv</td><td>1.0</td></tr><tr><td>cvr</td><td>1.0</td></tr><tr><td>gmv</td><td>1.0</td></tr><tr><td>scatter</td><td>3</td></tr></tbody></table></div></div><script\n    type=\"application/json\" data-frames>[\"<p>未設定：fallback: missing<\\/p><div class=\\\"matrix-scroll\\\" tabindex=\\\"0\\\"\n    role=\\\"region\\\" aria-label=\\\"比較表\\\"><table><thead><tr><th>field<\\/th><th>配信値<\\/th><\\/tr><\\/thead><tbody><tr><td>ctr<\\/td><td>1.0<\\/td><\\/tr><tr><td>ipv<\\/td><td>1.0<\\/td><\\/tr><tr><td>cvr<\\/td><td>1.0<\\/td><\\/tr><tr><td>gmv<\\/td><td>1.0<\\/td><\\/tr><tr><td>scatter<\\/td><td>3<\\/td><\\/tr><\\/tbody><\\/table><\\/div>\",\n    \"<p>有効：override<\\/p><div class=\\\"matrix-scroll\\\" tabindex=\\\"0\\\" role=\\\"region\\\" aria-label=\\\"比較表\\\"><table><thead><tr><th>field<\\/th><th>配信値<\\/th><\\/tr><\\/thead><tbody><tr><td>ctr<\\/td><td>1.0<\\/td><\\/tr><tr><td>ipv<\\/td><td>1.4<\\/td><\\/tr><tr><td>cvr<\\/td><td>1.0<\\/td><\\/tr><tr><td>gmv<\\/td><td>1.0<\\/td><\\/tr><tr><td>scatter<\\/td><td>1<\\/td><\\/tr><\\/tbody><\\/table><\\/div>\",\n    \"<p>期限切れ：fallback: expired<\\/p><div class=\\\"matrix-scroll\\\" tabindex=\\\"0\\\" role=\\\"region\\\" aria-label=\\\"比較表\\\"><table><thead><tr><th>field<\\/th><th>配信値<\\/th><\\/tr><\\/thead><tbody><tr><td>ctr<\\/td><td>1.0<\\/td><\\/tr><tr><td>ipv<\\/td><td>1.0<\\/td><\\/tr><tr><td>cvr<\\/td><td>1.0<\\/td><\\/tr><tr><td>gmv<\\/td><td>1.0<\\/td><\\/tr><tr><td>scatter<\\/td><td>3<\\/td><\\/tr><\\/tbody><\\/table><\\/div>\",\n    \"<p>範囲外：fallback: level range<\\/p><div class=\\\"matrix-scroll\\\" tabindex=\\\"0\\\" role=\\\"region\\\" aria-label=\\\"比較表\\\"><table><thead><tr><th>field<\\/th><th>配信値<\\/th><\\/tr><\\/thead><tbody><tr><td>ctr<\\/td><td>1.0<\\/td><\\/tr><tr><td>ipv<\\/td><td>1.0<\\/td><\\/tr><tr><td>cvr<\\/td><td>1.0<\\/td><\\/tr><tr><td>gmv<\\/td><td>1.0<\\/td><\\/tr><tr><td>scatter<\\/td><td>3<\\/td><\\/tr><\\/tbody><\\/table><\\/div>\",\n    \"<p>未許可field：fallback: allowlist<\\/p><div class=\\\"matrix-scroll\\\" tabindex=\\\"0\\\" role=\\\"region\\\" aria-label=\\\"比較表\\\"><table><thead><tr><th>field<\\/th><th>配信値<\\/th><\\/tr><\\/thead><tbody><tr><td>ctr<\\/td><td>1.0<\\/td><\\/tr><tr><td>ipv<\\/td><td>1.0<\\/td><\\/tr><tr><td>cvr<\\/td><td>1.0<\\/td><\\/tr><tr><td>gmv<\\/td><td>1.0<\\/td><\\/tr><tr><td>scatter<\\/td><td>3<\\/td><\\/tr><\\/tbody><\\/table><\\/div>\",\n    \"<p>bool値：fallback: level range<\\/p><div class=\\\"matrix-scroll\\\" tabindex=\\\"0\\\" role=\\\"region\\\" aria-label=\\\"比較表\\\"><table><thead><tr><th>field<\\/th><th>配信値<\\/th><\\/tr><\\/thead><tbody><tr><td>ctr<\\/td><td>1.0<\\/td><\\/tr><tr><td>ipv<\\/td><td>1.0<\\/td><\\/tr><tr><td>cvr<\\/td><td>1.0<\\/td><\\/tr><tr><td>gmv<\\/td><td>1.0<\\/td><\\/tr><tr><td>scatter<\\/td><td>3<\\/td><\\/tr><\\/tbody><\\/table><\\/div>\"]</script></div><figcaption>run.pyの計算済み人工例。選択すると同じ入力条件の結果を表示する。</figcaption></figure>'\n  results: 下の数値はLabの人工計算。著者報告のオンライン指標とは分けて読む。\n  what_we_verified: '**Mechanism: PARTIAL**。人工条件の計算と境界条件を確認した。results.jsonのCONFIRMEDは小さな計算命題にだけ適用する。原論文の学習済みモデルや産業環境を再現した意味ではない。'\n  what_we_did_not_verify: 'GRU・Intent Agent・Qwen3の学習、LLMのstrategy品質、TTL最適化、memory更新、実service replay、端末費用、online\n    liftは検証していない。toyで失敗時にdefaultへ戻す処理はschemaの小部分だけを対象としており、本番の安全性を保証しない。\n\n\n    **Performance / Scaling / Production applicability: NOT TESTED**。'\n  implementation: '標準ライブラリだけの独立した小実験。リポジトリのルートで `uv run papers/dream-taobao-agentic-control/run.py` を実行すると、同じフォルダーの\n    `results.json` を更新する。外部APIやモデル取得は不要。UIはその計算済み結果を表示し、別の推定器をJavaScriptで動かさない。\n\n\n    [実行コード](../downloads/dream-taobao-agentic-control/run.py)・[全結果](../downloads/dream-taobao-agentic-control/results.json)・[README](../downloads/dream-taobao-agentic-control/README.md)・[手法](../downloads/dream-taobao-agentic-control/method.md)・[lab.yaml](../downloads/dream-taobao-agentic-control/lab.yaml)・[対応表](../downloads/dream-taobao-agentic-control/mapping.md)を保存できる。\n\n\n    照合した一次PDFとarXiv書誌に、取得可能な公式実装への案内は確認できなかった。公式コードの独立実行はNOT TESTED。ここにあるコードは公式実装の移植ではない。'\n"
+        ],
+        [
+          85,
+          86,
+          "  title: M3の契約と二値replay報酬\n"
+        ],
+        [
+          87,
+          89,
+          "  caption: 式の対象と仮定を分けて読む。\n  rationale: 演算と制御の境界を具体化する。\n"
+        ],
+        [
+          91,
+          92,
+          "  - name: default + override\n"
+        ],
+        [
+          93,
+          95,
+          "    explanation: ⊕はstage局所の上書き。全設定の置換ではない。\n  - name: rank補正\n"
+        ],
+        [
+          96,
+          98,
+          "    explanation: bは−2〜2のsemantic level、v̂は本番で校正した予測値。\n  - name: 呼び出し\n"
+        ],
+        [
+          99,
+          101,
+          "    explanation: 推定更新価値が費用・遅延・容量の価格の合計以上なら呼ぶ。等号も呼び出し条件に含む。\n  - name: offline報酬\n"
+        ],
+        [
+          102,
+          103,
+          "    explanation: 同点は0。取引の実測結果をofflineで生成した報酬ではない。\n"
+        ],
+        [
+          106,
+          107,
+          "  title: IPVとGMV：制御stageを広げた累積結果\n"
+        ],
+        [
+          108,
+          110,
+          "  caption: 一次資料の著者報告。Labで測定した値ではない。\n  rationale: 共通尺度で差と分母を読む。\n"
+        ],
+        [
+          114,
+          115,
+          "  - label: IPV / rerank\n"
+        ],
+        [
+          116,
+          117,
+          "  - label: IPV / rerank + rank\n"
+        ],
+        [
+          118,
+          119,
+          "  - label: GMV / rerank\n"
+        ],
+        [
+          120,
+          121,
+          "  - label: GMV / rerank + rank\n"
+        ]
+      ]
+    },
+    "papers/dream-taobao-agentic-control/mapping.md": {
+      "before": {
+        "sha256": "288ff61a0a9d1a227ff7e3e0f63d6b537b0436090bba19a42d855e1861f0bfce",
+        "blob": "feafedb34c806f09a11aada6988d692e01a5539d"
+      },
+      "after": {
+        "sha256": "eb00b2080c5779e4da7b29b555488a844535cf623f7ba07975a4f26f3ecee7f0",
+        "blob": "30d0144f0728a71ace032059e31734b2c35182fc"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文・公式コード対応\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料：[2608.09408v3](https://arxiv.org/pdf/2608.09408v3)。確認日：2026-09-18。PDF SHA-256：`aa7c9bfe3ce9cc28ceb03854a5390a5ed268e5bffd166857e6827ce44e55319a`。\n"
+        ],
+        [
+          4,
+          12,
+          "| 論文の箇所 | このLab | 最小コード / 省略 |\n| --- | --- | --- |\n| §3、表1、図3–5 | intent階層・funnel | neural推論は省略。通過率は著者報告 |\n| §4.1、式5–14 | 頻度制御の目的と閾値 | invoke。scoreと容量は人工値 |\n| §4.2、表6、式16–19、図7 | control plane・override UI | compile_strategy。限定schema・TTL・重みはLab設定 |\n| §4.3、式20–25、図8 | Reward Dual Loop | replay_reward。同点境界だけ確認。service callなし |\n| §5.1・表7 | 累積lift比較 | compute内の算術。因果推定や有意差検定なし |\n| 付録B・表11 | 4B replay-RLのproxy結果 | 学習・評価なし |\n"
+        ],
+        [
+          13,
+          14,
+          "M3をLLMの自由出力として描かない。§4.1式13の3項と4項の表記不整合を明記し、欠けた信号を発明しない。全体8.7%・F2約15%・4B routing約6.3%は母集団を区別する。\n\n公式コード：一次PDFと書誌で案内を確認できず、取得・実行はNOT TESTED。run.pyは説明のための独立実装。PDFは指定cacheに1回取得し、本文抽出を再利用した。\n"
+        ]
+      ]
+    },
+    "papers/dream-taobao-agentic-control/method.md": {
+      "before": {
+        "sha256": "6c38d3e1b7fb1f4591e29c95fedbd6381bd7795d81563ac7f1bbcff87da1af6f",
+        "blob": "c7f356d382f2f02ce273105bfcd494054f3158ae"
+      },
+      "after": {
+        "sha256": "e6ce32bfcdda2992a260bd0f859ab52829d1bc639e371f2ab11cc6f06c564fa6",
+        "blob": "4f1533b779692ae1329a0a72cbda9ddf6d310763"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### Intent Engine：何を欲しいかと、どう選ぶかを分けて持つ\n"
+        ],
+        [
+          2,
+          3,
+          "L0 Physicalは長期的なプロフィール、L1 Demandは需要category・場面・意図の確信度、L2 Preferenceはbrand・価格・属性・意思決定段階など。たとえば同じ家電の需要でも、比較中なのか購入直前なのかで優先すべき情報が変わる。L0は複数intentに共有し、L1とL2を行動に応じて更新する（§3.2）。\n"
+        ],
+        [
+          4,
+          5,
+          "全eventで重い推論を実行するわけではない。端末のF1は60種類超の行動を特徴へ圧縮し、F2は7次元の離散特徴を単層GRUで追って変化点を検出する。2秒以内に元画面へ戻るなどの誤tapを抑え、モデルが使えない場合はRuleTreeへ戻す。F3は最大50 eventのID中心のpackを送信。F4はcloudでitem名やcategoryを復元し、既存intentとの差から推論へ進めるかを判定する（表1）。\n"
+        ],
+        [
+          6,
+          7,
+          "F2の送信率は約15%、全体の報告量は元の約8.7%という著者報告。後段の各段階の実測通過率は提示されていないため、15%から8.7%への図は個々のgateの効果分解ではない。6.3%の非同期4Bへのrouting率は別の母集団の値であり、8.7%に足さない。\n"
+        ],
+        [
+          8,
+          9,
+          "推論は同期0.8B Main Agentが差分insert/updateを出し、複雑なcaseを非同期4Bのcontext / domain expertへ回す。4B Dreamingは夜間のidle計算で記憶を整理する。大きいagentの分布からMain Agentへのon-policy distillationも記載される。Intent側の各checkpoint名を推定して補わない。MetaModelについてはQwen3ベースと明記され、付録Bは4B MetaModelのreplay-RLを評価する。\n"
+        ],
+        [
+          10,
+          11,
+          "### Meta Engine：LLMの意味的な提案を、型のある設定に変換する\n"
+        ],
+        [
+          12,
+          13,
+          "M1はintentの要約、目的、購買力、活動groupを整理する。M2はStrategy Memoryを参照してschemaに従うJSONのstrategyを作る。たとえばranking_weight_boost、category_preference、experience_constraints。M3はTool Processによる決定的な変換結果であり、自由文のLLM出力ではない（§4.2）。\n"
+        ],
+        [
+          14,
+          15,
+          "MetaModelは、推薦の要求に応答する処理とは別に、最新の有効な設定一式（bundle）をキャッシュへ保存する。推薦要求を受けると、Tool Processがその版、データ形式、期限を検査する。検査を通った許可済みの設定項目だけを、候補取得、順位付け、並べ替えの各段階へ渡す。同じcategoryの好みもretrievalでは候補quota、rankingではscatter幅、rerankingでは構成比として解釈する。既存cascadeのモデルと推薦リスト生成器は残る。LLMがitem IDや最終順列を直接出す構造ではない。\n"
+        ],
+        [
+          16,
+          17,
+          "rankの目的ごとのsemantic level bは−2から2。元の重みw⁰と掛けたδを使って、校正済み予測値v̂の項を補正する。categoryのscatter幅はmax(1,既定値+b)。business supportは許可PlanIDだけで件数上限も守る。JSON、schema、allowlist、値域のどれかが失敗したらdefaultへ戻す。未実装のcontent-type levelはno-opとされるなど、意味的な提案のすべてに実行権があるわけではない。\n"
+        ],
+        [
+          18,
+          19,
+          "### 呼び出し頻度も、報酬の学習経路も分ける\n"
+        ],
+        [
+          20,
+          21,
+          "§4.1はintent更新の価値Δから費用・遅延を引き、groupと時間帯の呼び出し予算を守る問題として定式化する。Δはonlineでは分からないため、行動分布のJensen–Shannon divergence、活動量、時刻などを正規化し、context別の閾値で代用する。式13は本文が4信号と述べる一方、表示された和は3項で重みの総和は4項になっている。このLabでは欠けた項を推定せず、toyのscoreを手入力する。\n"
+        ],
+        [
+          22,
+          23,
+          "Reward Dual Loopのoffline側は、本番経路の隔離replay。logの同じrequestに対し、defaultとstrategyを別々のservice callでK回ずつ評価し、最終listをEvaluatorが採点する。平均strategy scoreが平均default scoreを上回ったときだけ報酬1、それ以外0。差の大きさは診断用に残すが、学習報酬は二値である（式20–25）。\n"
+        ],
+        [
+          24,
+          28,
+          "online側は実際のclick・取引を観測し、Evaluatorの校正やStrategy Memoryの経験蓄積へ返す。replayは実行時のfeatureやmodel stateを使うため、過去の環境の厳密な再現ではない。繰り返し平均はnoiseを減らしてもproxyの誤りを消せない。最終的なbusiness impactはonline A/Bで判断する。\n<figure class=\"teaching batch18\"><h3>制御を重ねる位置：設定は変わるがcascadeは残る</h3><div class=\"b18-plane\"><div class=\"b18-control\"><strong>nearline control plane</strong><p>L0 / L1 / L2 → M1 要約 → M2 strategy + Memory → cache</p></div><p class=\"b18-arrow\">↓ request時にM3へ変換・検査</p><div class=\"b18-cards\"><div><strong>retrieval</strong><p>許可categoryのquotaや供給種別を調整</p></div><div><strong>fine ranking</strong><p>既存scoreの項・scatter・PlanID保護を補正</p></div><div><strong>reranking</strong><p>既存Generatorの密度・除外・位置規則を設定</p></div></div><p>失敗・期限切れ → 各stageのdefaultへ</p></div><figcaption>図1・7、式16。構成を教えるための再描画。LLMはrequest時の最終順列を生成しない。</figcaption></figure><figure class=\"teaching batch18\"><h3>Intent funnel：元の行動量を100として読む</h3><div class=\"b18-funnel\"><div style=\"--w:100%\">F1：端末で符号化　100</div><div style=\"--w:65%\">F2・F3：変化点 → pack送信　約15</div><div style=\"--w:45%\">F4：cloudで復元・admission　全体約8.7</div></div><p>幅は説明用。15と8.7は著者の近似値。各gateの独立したA/B効果ではない。</p><figcaption>§2–3.1・表1。8.7%は元の約8.7%まで絞ったという意味で、8.7%削減ではない。</figcaption></figure>\n"
+        ]
+      ]
+    },
+    "papers/dream-taobao-agentic-control/results.json": {
+      "before": {
+        "sha256": "ad31d61cfea2e4ab10588952365d469c88502dea703213ad2204e5b55430a8bb",
+        "blob": "3a47c318892f79d31f2527789c15293ac5c96d34"
+      },
+      "after": {
+        "sha256": "ab8e045a081f4b84f814341e4abb1a0eeaf9eccd90c74b2812652234ff622229",
+        "blob": "f3b5334956545814d1bde98173123963c5df673a"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"手作りstrategyを同じdefaultと比較する契約実験。TTL・重み・容量2はLabの仮定。実際のLLM・Intent推定・A/Bは未実行。\",\n"
+        ],
+        [
+          10,
+          11,
+          "      \"name\": \"defaultと局所overrideの比較\",\n"
+        ],
+        [
+          63,
+          64,
+          "      \"name\": \"表7の累積liftの算術\",\n"
+        ]
+      ]
+    },
+    "papers/dream-taobao-agentic-control/run.py": {
+      "before": {
+        "sha256": "caf98885d42d9cfe252d1d88dee8804fca55edac690b6282eeffe711d7ff4734",
+        "blob": "aa08bd6a59dc71a7e73b69e90b244813f2a8b400"
+      },
+      "after": {
+        "sha256": "f368a59d3e64e99f766984d461c786e3146dda337558db812508ea415a9b3baa",
+        "blob": "934950a96764b40dbcc211742e998875302b2377"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Small deterministic analogue of DREAM's typed local override contract.\"\"\"\n"
+        ],
+        [
+          10,
+          11,
+          "    \"\"\"Lab schema and TTL; unknown fields and bad values fail closed.\"\"\"\n"
+        ],
+        [
+          29,
+          30,
+          "        # Expose multiplier at a synthetic calibrated prediction v_hat=1.\n"
+        ],
+        [
+          59,
+          60,
+          "    # Fixed reported lifts; ratio arithmetic is not an independent effect estimate.\n"
+        ],
+        [
+          61,
+          62,
+          "    return {'note':'手作りstrategyを同じdefaultと比較する契約実験。TTL・重み・容量2はLabの仮定。実際のLLM・Intent推定・A/Bは未実行。',\n"
+        ],
+        [
+          63,
+          65,
+          "      'experiments':[{'name':'defaultと局所overrideの比較','metrics':{x['name']:{'status':x['status'],**x['parameters']} for x in cases}},\n                     {'name':'表7の累積liftの算術','metrics':{k:{'rerank':v[0],'rerank+rank':v[1],'差（percentage points）':round(v[1]-v[0],4),'比の変化（%）':round(((1+v[1]/100)/(1+v[0]/100)-1)*100,4)} for k,v in lifts.items()}}],\n"
+        ]
+      ]
+    }
+  }
+}
