@@ -1,4 +1,4 @@
-"""Synthetic exact-match SNIPS/LOO, not Netflix data or a ranker."""
+"""人工データで、選択が一致した記録から、作品を外す場合と外さない場合を見積もる。"""
 import json,random
 from pathlib import Path
 P=[[.8,.1,.1],[.1,.2,.7]]
@@ -24,6 +24,6 @@ def simulate(n=120000,seed=23):
     full=snips(log,FULL);loo=snips(log,LOO)
     return dict(raw_log_mean=sum(x[2] for x in log)/n,snips_full=full,snips_loo=loo,incrementality=full-loo,true_full=exact(FULL),true_loo=exact(LOO),true_incrementality=exact(FULL)-exact(LOO),absolute_error=abs(full-loo-exact(FULL)+exact(LOO)))
 def main():
-    r=dict(note='人工データ。exact-match、1位置、既知propensity。NetflixのsimulationやA/Bの再現ではない。',verification=dict(mechanism='PARTIAL',performance='NOT TESTED',scaling='NOT TESTED',production_applicability='NOT TESTED'),experiments=[dict(name='同一探索ログでpolicyと除去policyを評価',n=120000,seed=23,metrics=simulate()),dict(name='cascade分解の算術例',metrics=dict(niche=.08*.2,broad=.03*.8))])
+    r=dict(note='人工データの表示枠1つを使い、選択確率が分かる完全一致の記録から推定しました。Netflixのシミュレーションや本番のA/Bテストは再現していません。',verification=dict(mechanism='PARTIAL',performance='NOT TESTED',scaling='NOT TESTED',production_applicability='NOT TESTED'),experiments=[dict(name='同じ探索ログで、作品Aを残す方式と外す方式を比べる',n=120000,seed=23,metrics=simulate()),dict(name='候補に入ったときの差と、候補に入る確率を掛ける',metrics=dict(niche=.08*.2,broad=.03*.8))])
     Path(__file__).with_name('results.json').write_text(json.dumps(r,ensure_ascii=False,indent=2)+'\n')
 if __name__=='__main__':main()

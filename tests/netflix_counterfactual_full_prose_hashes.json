@@ -1,0 +1,341 @@
+{
+  "files": {
+    "papers/netflix-counterfactual-observability/README.md": {
+      "before": {
+        "sha256": "4cf0382d868c4292f5e72754cb7dc0774ff9cf11ccf7d7bce16be3dde29a6d75",
+        "blob": "238925de42f0c2775344a126fe74af7e164c64b4"
+      },
+      "after": {
+        "sha256": "be0cb5ae67bcce494c0534f0caebfe427b6e7b7fd5a485f9bcd02aa24ed5d8c3",
+        "blob": "fd11cbfe463de101e49eb71546127959ae96c680"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "よく見られた作品でも、代わりに出した作品が同じように見られるなら、その作品を外す損失は小さくなります。NetflixのCONSEQUENCES論文は、推薦の成果が「その作品や判断がなかった場合」と比べてどう変わるかを調べます。ホーム画面の行を取り除いたときに失われる価値の推定値を、行を実際に除去した11件のA/Bテストと比べると、決定係数R²は0.8212でした。新しく作品を並べる手法ではなく、推薦によって増えた視聴などをどう読み、障害の原因をどう見つけるかを扱います。\n"
+        ],
+        [
+          4,
+          5,
+          "## 問い\n"
+        ],
+        [
+          6,
+          7,
+          "よく見られた作品は、なくなると困る作品なのか\n\n## 再実行\n"
+        ],
+        [
+          10,
+          11,
+          ""
+        ],
+        [
+          13,
+          14,
+          "Python標準ライブラリだけを使います。ファイルを単体で取得した場合は `uv run run.py` を実行してください。結果はスクリプトと同じ場所の `results.json` に保存します。\n"
+        ],
+        [
+          15,
+          16,
+          "## 読む順序\n"
+        ],
+        [
+          17,
+          18,
+          "まず `lab.yaml` で問いと根拠を確認し、次に `method.md` で仕組みと図を読みます。計算と出力は `run.py` と `results.json`、原論文から省いた部分は `mapping.md` にあります。HTMLを生成するには `uv run paper-lab build` を実行します。\n"
+        ],
+        [
+          19,
+          26,
+          "仕組みは一部確認済み（Mechanism PARTIAL）です。性能、規模を広げたときの挙動、本番に使えるかどうか（Performance / Scaling / Production applicability）は未検証（NOT TESTED）です。確認済み（CONFIRMED）とするのは小実験で実際に確認した条件だけで、論文の本番数値を再現したわけではありません。\n"
+        ]
+      ]
+    },
+    "papers/netflix-counterfactual-observability/lab.yaml": {
+      "before": {
+        "sha256": "bc2c2e5e1ff12f49223c8fe51761ddf45f3186ce70f2bd4f913d7972fce6d0c7",
+        "blob": "969f311d5cac061929c640f4b67e0ce8af10d143"
+      },
+      "after": {
+        "sha256": "13595fd7668b7eb2ceabc757eac0a7fb6d3337eeb5f98e5bce07d879120646ef",
+        "blob": "b9f59c572a7526c94b328218fb02df47efea13f0"
+      },
+      "prior_spans": [
+        [
+          20,
+          24,
+          "question: よく見られた作品は、なくなると困る作品なのか\nsummary: NetflixのCONSEQUENCES論文は、推薦の成果を「その作品や判断がなかった場合との差」で測る。ホーム画面の行を除いたときに失われる価値の推定値を、実際に行を除去した11件のA/Bテストと比べたところ、決定係数R²は0.8212だった。新しいrankerではなく、engagement\n  liftの読み方と障害の見つけ方を変える。\n"
+        ],
+        [
+          36,
+          37,
+          "  scope: 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。\n"
+        ],
+        [
+          38,
+          42,
+          "  author_claim: 探索時の選択確率を記録し、SNIPSで表示の偏りを補正する。同じ位置の代替候補との比較と、対象を除いたLeave-One-Outを使い分ける。cascade全体の貢献はIrreplaceabilityとUniversalityへ分解する。\n  research_bot_interpretation: '[Accuracy Is Not Service](accuracy-not-service-intermittent-demand.html)が予測誤差と発注成果を分けたように、ここでは観測engagementと代替後に失う価値を分ける。[VARG](varg-tmall-value-generative-retrieval.html)や[UNIQUE](unique-baidu-unified-retrieval-ranking.html)のオンライン改善を読む際も、候補経路の採用率だけで増分貢献を判断しない。ただし他社のliftをこの論文の推定量へ換算はできない。'\n"
+        ],
+        [
+          47,
+          49,
+          "  problem: 観測clickには、内容の質、表示位置、対象者の選び方、候補に入る頻度が混ざる。順位が落ちたためのCTR低下を内容の劣化と受け取ると、制作者も開発者も誤った修正へ向かう。必要なのは「誰に、何が候補として入り、どの確率で選ばれ、何が起きたか」のログである。選択確率がゼロの候補については逆確率重みだけでは反実仮想を回復できない。\n  why_it_might_work: 探索が比較対象を観測可能にし、自己正規化が極端な重みの分散を抑える。代替込みの差を取れば、単なる露出の多さと、失うと困る価値を区別しやすい。ただしSNIPSは有限標本で一般に不偏ではない。確率のclipやJaccardによる近似matchにもbias–varianceの交換がある。正しいpropensity、比較可能な報酬、十分なsupportがなければ、「因果」と呼ぶだけでは妥当な推定にならない。\n  evidence: '[一次資料PDF §4.1–4.3 / Figs. 1–3](https://arxiv.org/pdf/2609.22747v1) の著者報告。\n"
+        ],
+        [
+          50,
+          53,
+          ""
+        ],
+        [
+          54,
+          57,
+          "    | 検証 | 条件と結果 | 確かめた範囲 |\n"
+        ],
+        [
+          58,
+          59,
+          "    | --- | --- | --- |\n"
+        ],
+        [
+          60,
+          63,
+          "    | 単段simulation | 1,000内容、intrinsic CTRはBeta(1,8)/4、Boltzmann温度0.1、閲覧深さPoisson(10) | R1/R2除去の真値とLOOの整合。noise増加で差も増える\n    |\n"
+        ],
+        [
+          64,
+          67,
+          "    | homepage row除去 | 11件のA/B、R²=0.8212 | 行のincrementalityと実除去によるengagement損失の対応 |\n"
+        ],
+        [
+          68,
+          69,
+          "    | 行の推定条件 | Hájek、propensityを[0.0001,0.9999]へclip、行ごと100観測以上 | 長さの違うhomepageを集計 |\n"
+        ],
+        [
+          70,
+          71,
+          "    | 監視事例 | content Aだけが急落、類似内容は安定 | positive labelの誤帰属を発見 |\n"
+        ],
+        [
+          72,
+          75,
+          ""
+        ],
+        [
+          76,
+          83,
+          "    R²は11件での整合であり、任意の新しいrowや別サービスへの精度保証ではない。Fig. 2の個別座標と元ログは提供されていないため、本Labは散布点を作らず、R²も再計算しない。Fig. 3の時系列も推測で描かない。監視が問題発見につながったことは報告されるが、修正後のengagement回復量や検知率は示されない。'\n  executable_understanding: '`uv run papers/netflix-counterfactual-observability/run.py`。2種類の利用者、3候補、各contextで既知の選択確率という人工世界で、ログの単純平均とSNIPSを比較する。Aを除いた後にBへ置き換えるtarget\n    policyも同じログで評価する。乱数で作ったBernoulli rewardに加え、確率で厳密に積分した真値を残す。Netflixの1,000内容simulationの再現ではない。\n\n\n    <figure class=\"teaching\" data-b21><h3>代替困難度と到達範囲を掛ける</h3><label>人工作品 <select><option value=\"0\">狭い対象の作品</option><option\n    value=\"1\">広く届く作品</option></select></label><script type=\"application/json\" data-frames>[\"<div class=\\\"b21-cards\\\"><div>候補に入った条件での差<br><strong>0.080<\\/strong><\\/div><div>×\n    候補になる確率<br><strong>0.20<\\/strong><\\/div><div>＝ 全体の増分<br><strong>0.016<\\/strong><\\/div><\\/div><p>狭い対象の作品。人工例であり、実作品の測定値ではない。<\\/p>\",\n    \"<div class=\\\"b21-cards\\\"><div>候補に入った条件での差<br><strong>0.030<\\/strong><\\/div><div>× 候補になる確率<br><strong>0.80<\\/strong><\\/div><div>＝\n    全体の増分<br><strong>0.024<\\/strong><\\/div><\\/div><p>広く届く作品。人工例であり、実作品の測定値ではない。<\\/p>\"]</script><div data-output><div\n    class=\"b21-cards\"><div>候補に入った条件での差<br><strong>0.080</strong></div><div>× 候補になる確率<br><strong>0.20</strong></div><div>＝\n    全体の増分<br><strong>0.016</strong></div></div><p>狭い対象の作品。人工例であり、実作品の測定値ではない。</p></div><figcaption>Eq. 2の掛け算を可視化。値はrun.py\n    / results.jsonの人工例。A/B散布図の代用品ではない。</figcaption></figure>'\n  results: 人工設定では元policyの期待CTRは0.36、A除去後は0.32で、増分は0.04。AのCTRそのものを増分と呼ばない。実行JSONには標本推定の誤差とログの単純平均も保存する。別の人工例では、代替困難度0.08×候補率0.20=0.016、0.03×0.80=0.024となり、代替困難度だけの順序と全体貢献の順序が逆転する。\n  what_we_verified: Mechanism PARTIAL。既知の正のpropensityを使う単段・exact matchでSNIPSとLOOを計算し、解析的な期待値と照合した。全contextに同じ重み倍率を掛けてもSNIPSが変わらない局所条件はCONFIRMED。cascadeの掛け算は定義の算術確認にとどまる。\n  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。Netflixログ、11件のA/B、長期retention、位置間干渉、候補集合のJaccard近似、clipの実データ感度は未検証。最小実験でsupportが消えれば推定不能になるが、実システムで十分な探索量をどう維持するかは別課題。\n  implementation: '`snips()`はmatch/propensityの自己正規化、`simulate()`は同一ログでfullとLOOを比較する。`exact()`はcontextの確率とreward表から期待値を独立に計算する。学習モデルを置かず、target\n    policyを明示することで、選択と測定の違いを確認する。'\n"
+        ],
+        [
+          88,
+          89,
+          "  title: 観測報酬から、代替後に失う分へ\n"
+        ],
+        [
+          91,
+          93,
+          "  rationale: 観測報酬から、代替後に失う分へ\n  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。\n"
+        ],
+        [
+          94,
+          95,
+          "  - name: 1. 対象policyの値\n"
+        ],
+        [
+          96,
+          98,
+          "    explanation: pはログを集めた方策がその候補を選んだ確率、mは評価したい方策の選択との一致度。以下の小実験は0/1のexact matchで、一致する観測を選択確率の逆数で重み付けし、重みの合計で割る。\n  - name: 2. 次善候補で埋める\n"
+        ],
+        [
+          99,
+          101,
+          "    explanation: 作品iの報酬だけを引かず、除去したpolicyの報酬を引く。\n  - name: 3. 到達範囲を戻す\n"
+        ],
+        [
+          102,
+          104,
+          "    explanation: 作品が候補に入った条件内での代替困難度と、その条件自体が起きる頻度を区別する。候補に入りにくい作品の条件内の差を、そのまま全体の貢献とはしない。\n  - name: 4. 条件内のHájek差\n"
+        ],
+        [
+          105,
+          106,
+          "    explanation: 和はiが候補に入る標本Eᵢ上。両群を別々に自己正規化する。\n"
+        ],
+        [
+          109,
+          110,
+          "  title: どこで価値が失われたかを分解する\n"
+        ],
+        [
+          112,
+          114,
+          "  rationale: どこで価値が失われたかを分解する\n  caption: Eq. 2を読むための概念表。実作品を四象限へ割り当てた測定図ではない。\n"
+        ],
+        [
+          115,
+          117,
+          "  - Irreplaceability 高\n  - Irreplaceability 低\n"
+        ],
+        [
+          118,
+          119,
+          "  - label: Universality 高\n"
+        ],
+        [
+          120,
+          123,
+          "    - 広く届き、代替しにくい\n    - 広く届くが、代替が効く\n  - label: Universality 低\n"
+        ],
+        [
+          124,
+          126,
+          "    - 狭い対象で代替しにくい\n    - 到達も条件内の増分も小さい\n"
+        ],
+        [
+          129,
+          130,
+          "  title: 作品の不調から、ラベル生成の故障へ\n"
+        ],
+        [
+          132,
+          134,
+          "  rationale: 作品の不調から、ラベル生成の故障へ\n  caption: 実際に報告された診断の順序。時系列の座標、検知日数、修正効果の数値は追加しない。\n"
+        ],
+        [
+          137,
+          143,
+          "    - title: 監視\n      text: content Aのincrementalityが急落\n    - title: 比較\n      text: 似た内容の系列は安定\n    - title: 調査\n      text: positive labelの誤帰属を発見\n"
+        ]
+      ]
+    },
+    "papers/netflix-counterfactual-observability/mapping.md": {
+      "before": {
+        "sha256": "f7d0cd7e598fef4e46964c440696f1f0d2f5ec586a29edd3b1471c3d9e6be84d",
+        "blob": "f58b4ded9c0ff71863b3e6de4e82f728adb8263e"
+      },
+      "after": {
+        "sha256": "dd9cdb3fd9559c64304b123c4b2fd2a84c3893f375e5a97db850e8635dd175e7",
+        "blob": "3a120130dc2dcac83e662ba1f30c02003d004a6b"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文と最小実装の対応\n"
+        ],
+        [
+          2,
+          3,
+          "[一次PDF v1](https://arxiv.org/pdf/2609.22747v1)を2026-09-23に確認しました。保存済みのPDFを再利用しています。\n"
+        ],
+        [
+          4,
+          11,
+          "SHA-256: `3b3dc018790b6c0919e44b348ade304a935bead51794083432daf77dc2b9445d`\n"
+        ],
+        [
+          12,
+          13,
+          "| 原論文 | 最小コード / 表示 | 確認した範囲 |\n| --- | --- | --- |\n| §3.1 SNIPS | `snips()` | 位置による偏りの補正と、確率の下限処理（clip）は省略。 |\n| §3.2 Eq. 1 | `simulate()` / `exact()` | 候補を3件、表示枠を1か所に絞った。 |\n| §3.3 Eq. 2 / Appendix 6.2 | 掛け算の人工例・数式図 | 段階ごとの推薦の再生と、Hájekを用いた実ログからの推定は行っていない。 |\n| §4.2 Fig. 2 | R²と11件、推定条件の引用 | 元の座標を入手していないため、散布図は再生成しない。 |\n| §4.3 Fig. 3 | 障害を診断する図 | 障害ログと回復量は扱っていない。 |\n\n本番での効果と、著者のシミュレーションは、どちらも追試していません。\n\n確認した一次PDFとarXiv書誌には、この方式を再現する公式コードのリポジトリを特定できる案内がありませんでした。非公開であるとは断定しません。\n"
+        ]
+      ]
+    },
+    "papers/netflix-counterfactual-observability/method.md": {
+      "before": {
+        "sha256": "7bf3a2bd52dddae3b5a729b6ed780dec1d75f7907fd9350c1bd9a859f2d2a3fa",
+        "blob": "c3ea61ce76faf52ca6b0727edff45c157cc09864"
+      },
+      "after": {
+        "sha256": "e39692ee6d8c8bbfdf5a0536808d692744b1722213aa53b751ca880ae8604008",
+        "blob": "765c98afb8b1efaddbd8f07461f0399cf49b3b99"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 偏りの補正、比較、取り除く実験は何を調べるか\n"
+        ],
+        [
+          2,
+          3,
+          "**Bias reduction**では、もとの推薦で作品ごとの表示されやすさに差があるため、その偏りを補正します。**Relativity**では、表示を決める方策（policy）同士、あるいは同じ位置に置いた作品と、そこにランダムに置いた作品を比べます。**Incrementality**で比べるのは、対象の作品を取り除き、次に良い候補を代わりに出した場合です。位置kの重みwₖも使うため、作品の平均クリック率（CTR）を引くだけではありません。\n"
+        ],
+        [
+          4,
+          5,
+          "表示を一段で決めるLeave-One-Outでは、取り除く対象が首位なら次点を出し、そうでなければ首位を残します。この別の方策が選ぶ作品と、探索時にログへ記録された選択が一致した観測に重みを付けます。本文§3.2では、選択時に記録した確率が第10百分位より小さいとき、重みの計算にはその下限値を使います。§4.2で行の価値を推定するときの確率の切り詰め（clip）とは別の条件です。\n"
+        ],
+        [
+          6,
+          7,
+          "### 候補を作る側と、作品を作る側では何を見るか\n"
+        ],
+        [
+          8,
+          9,
+          "候補を作る上流モデルを調べる場合、対象を取り除くと、後段に渡す候補の集合が変わります。そこで候補集合がどれだけ重なるかをJaccard類似度などで測り、一致の代わりに使います。完全一致を近似するため、推定の不偏性まで引き継ぐとは限りません。\n"
+        ],
+        [
+          10,
+          11,
+          "制作者に伝える推薦全体の価値は、候補に入ったときの代替しにくさ（Irreplaceability）と、そもそも候補に入る確率（Universality）を掛けた値です。代替しにくさは、候補に入る条件を満たしたセッションに限って、実際に選ばれたか（T）とログに記録した選択確率πから推定します。候補に入りにくいのか、候補に入ってもほかの作品で代わりが利くのかを分けて調べられます。\n"
+        ],
+        [
+          12,
+          23,
+          "同じ作品を繰り返し選ばず、枠を順に埋める場合は、それまで選ばれていないという条件の下で、各位置に選ばれる確率πᵢₖを使います。そこから、少なくとも一度選ばれる確率pᵢK=1−∏ₖ(1−πᵢₖ)を計算します。各位置の全体の露出率をこの条件付き確率の代わりに使うことはできません。\n"
+        ]
+      ]
+    },
+    "papers/netflix-counterfactual-observability/results.json": {
+      "before": {
+        "sha256": "7925eb571bbdca084f8866c0021e7a7d4907c78d4ebcf61827d73d372dafae51",
+        "blob": "1cb39075642683a30db44100fd2cf06f64180cf8"
+      },
+      "after": {
+        "sha256": "48c5864ea362c709764c096d4015ec679eba88880efb5fab4fc2559ecf937b45",
+        "blob": "4d8c13cbdf9126be079cf7c1ff2a808fe69f07a9"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"人工データ。exact-match、1位置、既知propensity。NetflixのsimulationやA/Bの再現ではない。\",\n"
+        ],
+        [
+          10,
+          11,
+          "      \"name\": \"同一探索ログでpolicyと除去policyを評価\",\n"
+        ],
+        [
+          25,
+          26,
+          "      \"name\": \"cascade分解の算術例\",\n"
+        ]
+      ]
+    },
+    "papers/netflix-counterfactual-observability/run.py": {
+      "before": {
+        "sha256": "6a700258e695619e765eec7930702079df5017ec6ba494a5ab938cf0cb7ed78f",
+        "blob": "f06ec5ab1a45bcc1111d15698070d6cda26adb5b"
+      },
+      "after": {
+        "sha256": "e0156850dbedd22a7c67bff7a94db0684ba618f787401587dab01013e7336334",
+        "blob": "87c4d12b661e6ba3471262510d1e0f94fb5bc1ff"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Synthetic exact-match SNIPS/LOO, not Netflix data or a ranker.\"\"\"\n"
+        ],
+        [
+          26,
+          27,
+          "    r=dict(note='人工データ。exact-match、1位置、既知propensity。NetflixのsimulationやA/Bの再現ではない。',verification=dict(mechanism='PARTIAL',performance='NOT TESTED',scaling='NOT TESTED',production_applicability='NOT TESTED'),experiments=[dict(name='同一探索ログでpolicyと除去policyを評価',n=120000,seed=23,metrics=simulate()),dict(name='cascade分解の算術例',metrics=dict(niche=.08*.2,broad=.03*.8))])\n"
+        ]
+      ]
+    }
+  }
+}
