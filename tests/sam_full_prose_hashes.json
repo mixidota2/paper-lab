@@ -1,0 +1,456 @@
+{
+  "files": {
+    "papers/sam-d2q-aliexpress-doc2query/README.md": {
+      "before": {
+        "sha256": "73b32a9b76e75698e158a61cba415bd87a318cfc932212e6293e951c560a3af1",
+        "blob": "269714711eb3852f4b35cb9d56f20aeeea96efbf"
+      },
+      "after": {
+        "sha256": "339c3ef4b8e4084d2681e5eca60901b3199977091ab991bddb54b839b8fbac6b",
+        "blob": "7be49701d7a9d9207c9f1d52034cb8c56c382fcf"
+      },
+      "prior_spans": [
+        [
+          6,
+          7,
+          "## Overview\n"
+        ],
+        [
+          8,
+          9,
+          "AliExpressの研究チームは、商品名にない言葉で検索しても、意図に合う商品を候補に入れる方法を提案しました。SAM-D2Qは、商品画像と商品名を読んで、その商品を探すときに使われそうな言葉を生成します。検索を受ける前にその言葉を既存の検索索引へ加えるため、検索のたびに生成モデルを動かす方式ではありません。\n"
+        ],
+        [
+          10,
+          11,
+          "本番トラフィックの4%を使った21日間のA/Bテストで、著者は従来方式より決済件数が2.27%、成約率が0.53%増えたと報告しました。この二つはサービスの95%水準の確認を通過しています。取引総額の3.38%増は、増減の方向を示す値で、有意差を確認した結果ではありません。また、論文に書かれた実験の時期は、学習用の重みを決めたログの収集時期より前で、本文だけではこの時系列を確定できません。\n"
+        ],
+        [
+          12,
+          13,
+          "## Problem\n"
+        ],
+        [
+          14,
+          15,
+          "短い商品タイトルには、色、袖、柄などの情報が欠ける。文章だけで作った検索語は画像に合わないことがあり、意味が合っても検索需要の乏しい語なら商業的な効果は小さい。\n"
+        ],
+        [
+          16,
+          17,
+          "## Core Idea\n"
+        ],
+        [
+          18,
+          19,
+          "著者の主張：著者はQwen3-VL-8Bを使い、マルチモーダルSFT、視覚属性を隠す学習データ拡張、GRPOによる商業価値への整合を組み合わせた。検索需要と購入につながる新しい語を、商品の意味を守りながら追加する。\n"
+        ],
+        [
+          20,
+          21,
+          "Labの解釈：商品側の語彙を増やす手法であり、SIDを生成して商品を検索するSID-GRの置換ではない。既存のBoolean検索、クエリ書き換え、他の候補取得経路と併用する。\n"
+        ],
+        [
+          22,
+          23,
+          "Stage 1はタイトルに含まれない語を持つクリックquery-item対でSFTする。Stage 2ではカテゴリ・属性・値の辞書（CPV）を使い、タイトル中の視覚属性を隠して、画像から元の検索語を復元する。Stage 3は意味、商業価値、視覚属性の報酬を組み合わせてGRPOで学習する。\n"
+        ],
+        [
+          24,
+          25,
+          "生成は索引作成時に行う。購入履歴のあるactive商品ごとにTop-100候補を生成し、関連性などのフィルター後に転置索引へ入れる。オンラインで生成モデルを呼び出さない。\n"
+        ],
+        [
+          26,
+          27,
+          "## Why It Might Work\n"
+        ],
+        [
+          28,
+          29,
+          "【解釈】タイトルに既にある単語の言い換えだけでは、Boolean検索で到達する商品の範囲は増えにくい。新しい語を評価対象にし、画像でその属性を裏付けると、検索との語彙不一致を減らせる。人気語を無条件に加えると無関係な商品も検索に出るため、意味のgateが必要になる。\n"
+        ],
+        [
+          30,
+          31,
+          "導入の判断では、学習中に使う検索語単位の商業価値、固定の関連性モデルで測る候補商品数、実ユーザーのランダム割当で測る購入件数を別々に追い、索引サイズの増加も含めて、どの段階の改善が次の段階へ残ったかを確認したい。\n"
+        ],
+        [
+          32,
+          33,
+          "## Evidence\n"
+        ],
+        [
+          34,
+          35,
+          "表1：880万商品と3万クエリのoffline評価で、Top-3000の関連商品数はOriginal 454.5、Doc2Query-Text 558.0、Full 594.1。関連性は固定評価モデルによる代理ラベル。表2のQuery-Valueは学習報酬に近い指標なので、独立した事業成果とは扱わない。\n"
+        ],
+        [
+          36,
+          37,
+          "表4・§5.3：オンライン対照群はCPV、同義語展開、query rewritingなどを含む既存スタック。4%トラフィックを21日間評価し、GMV +3.38%、Pay Count +2.27%、CTR +0.25%、CVR +0.53%。Pay CountとCVRはプラットフォームの95%信頼性確認を通過した。他の指標は方向を示す値として報告され、信頼区間の幅は示されていない。\n"
+        ],
+        [
+          38,
+          39,
+          "索引サイズは約35%増、P99候補取得latencyは0.2%増。オンライン推論を省いても索引コストは増える。なお本文のA/B期間は2025年6月8–28日、報酬用ログは2025年8–11月と記載される。時系列の整合は本文だけでは確認できず、著者への確認が必要。\n"
+        ],
+        [
+          40,
+          41,
+          "## Executable Understanding\n"
+        ],
+        [
+          42,
+          43,
+          "3商品の小さな転置索引で、タイトルのみ、手で用意したDoc2Query候補、意味gateを通した候補を比べる。queryの全tokenが、その商品のタイトルまたは追加した検索語の集合に含まれる場合だけ返すBoolean AND検索を実装した。どれかの語が合うだけでは取得しない。関連性の正解と候補は教育用の固定値で、画像認識も生成学習も行わない。\n"
+        ],
+        [
+          44,
+          45,
+          "商品aのタイトルはsummer shirtで、queryのred shirtに含まれるredが足りない。追加候補のred short sleeve shirtを加えると、商品aが見つかる。もう一つの候補leather bagは商品aとは合わない。無条件で加えるとどうなるか。バッグの検索にもシャツが出る。gateはこの候補を落とし、関連するバッグ商品cは残る。\n"
+        ],
+        [
+          46,
+          47,
+          "この差が示すのは、生成された検索語をタイトルへ追加するだけでも候補集合が変わることと、商品の属性を確認しないまま検索需要の高い語を加える処理では、もともと検索できなかった商品を拾える利点と、無関係な商品を混ぜる欠点が同時に生じることだ。\n"
+        ],
+        [
+          48,
+          49,
+          "## Results\n"
+        ],
+        [
+          50,
+          51,
+          "3クエリでタイトルのみの関連商品取得は0件、無条件拡張は関連3件・誤取得1件、gate付き拡張は関連3件・誤取得0件。新規token総数は無条件7、gate付き5。商品に合わない人気語を索引へ入れると精度が落ちる例を確認した。\n"
+        ],
+        [
+          52,
+          53,
+          "## What We Verified\n"
+        ],
+        [
+          54,
+          55,
+          "CONFIRMED：同じBoolean検索でも商品側の新規語で取得範囲が変わり、不適切な展開を除くと誤取得を減らせた。PARTIAL：Doc2Queryの索引効果だけを確認した。\n"
+        ],
+        [
+          56,
+          57,
+          "## What We Did NOT Verify\n"
+        ],
+        [
+          58,
+          59,
+          "NOT TESTED：Qwen3-VL-8Bの画像理解、CPV拡張の学習効果、GRPO、関連性モデル、880万商品の規模、オンラインGMV。手で作ったgateの結果から本手法の性能を推定しない。\n"
+        ],
+        [
+          60,
+          61,
+          "## Implementation\n\n`UV_CACHE_DIR=/tmp/uv-cache uv run papers/sam-d2q-aliexpress-doc2query/run.py` を実行する。標準ライブラリだけで索引とqueryごとの結果を作り、results.jsonへ保存する。\n\n## Original Paper / Official Code Mapping\n\n[対応表](mapping.md)\n"
+        ]
+      ]
+    },
+    "papers/sam-d2q-aliexpress-doc2query/lab.yaml": {
+      "before": {
+        "sha256": "88c730c4698d053d6ec355d1194a033ebe171b3fa7e14e8368f70587f0118968",
+        "blob": "ada438b00cbe00b5b49f4ad18b001c67bc506f1b"
+      },
+      "after": {
+        "sha256": "d4596fbf9a107515d3923221d5a9b05de9918d0ba3201f61dde456100ccf5edb",
+        "blob": "9e83ee3a0393c170a17350ce49c0b9ae31ea440b"
+      },
+      "prior_spans": [
+        [
+          3,
+          4,
+          "title: 'SAM-D2Q: Aligning Multimodal Doc2Query with Search Demand and Conversion for\n  E-commerce'\n"
+        ],
+        [
+          26,
+          28,
+          "question: 画像から補った検索語を、需要と購入へどう結び付けるか\nsummary: SAM-D2Qは商品画像とタイトルから検索語を生成し、AliExpressの転置索引を拡張する。21日間・4%トラフィックのA/BでGMV +3.38%、Pay\n  Count +2.27%を報告した。GMVは方向を示す値で、有意差確認はPay CountとCVRに限られる。\n"
+        ],
+        [
+          34,
+          36,
+          "  author_claim: 著者はQwen3-VL-8Bを使い、マルチモーダルSFT、視覚属性を隠す学習データ拡張、GRPOによる商業価値への整合を組み合わせた。検索需要と購入につながる新しい語を、商品の意味を守りながら追加する。\n  research_bot_interpretation: 商品側の語彙を増やす手法であり、SIDを生成して商品を検索するSID-GRの置換ではない。既存のBoolean検索、クエリ書き換え、他の候補取得経路と併用する。\n"
+        ],
+        [
+          41,
+          42,
+          "  problem: 短い商品タイトルには、色、袖、柄などの情報が欠ける。文章だけで作った検索語は画像に合わないことがあり、意味が合っても検索需要の乏しい語なら商業的な効果は小さい。\n"
+        ],
+        [
+          43,
+          45,
+          "  why_it_might_work: '【解釈】タイトルに既にある単語の言い換えだけでは、Boolean検索で到達する商品の範囲は増えにくい。新しい語を評価対象にし、画像でその属性を裏付けると、検索との語彙不一致を減らせる。人気語を無条件に加えると無関係な商品も検索に出るため、意味のgateが必要になる。\n"
+        ],
+        [
+          46,
+          49,
+          ""
+        ],
+        [
+          50,
+          51,
+          "    導入の判断では、学習中に使う検索語単位の商業価値、固定の関連性モデルで測る候補商品数、実ユーザーのランダム割当で測る購入件数を別々に追い、索引サイズの増加も含めて、どの段階の改善が次の段階へ残ったかを確認したい。'\n  evidence: '一次資料の著者報告を示す。\n"
+        ],
+        [
+          52,
+          53,
+          ""
+        ],
+        [
+          54,
+          55,
+          "    表1：880万商品と3万クエリのoffline評価で、Top-3000の関連商品数はOriginal 454.5、Doc2Query-Text 558.0、Full\n    594.1。関連性は固定評価モデルによる代理ラベル。表2のQuery-Valueは学習報酬に近い指標なので、独立した事業成果とは扱わない。\n"
+        ],
+        [
+          56,
+          57,
+          ""
+        ],
+        [
+          58,
+          59,
+          "    表4・§5.3：オンライン対照群はCPV、同義語展開、query rewritingなどを含む既存スタック。4%トラフィックを21日間評価し、GMV +3.38%、Pay\n    Count +2.27%、CTR +0.25%、CVR +0.53%。Pay CountとCVRはプラットフォームの95%信頼性確認を通過した。他の指標は方向を示す値として報告され、信頼区間の幅は示されていない。\n"
+        ],
+        [
+          60,
+          61,
+          ""
+        ],
+        [
+          62,
+          65,
+          "    索引サイズは約35%増、P99候補取得latencyは0.2%増。オンライン推論を省いても索引コストは増える。なお本文のA/B期間は2025年6月8–28日、報酬用ログは2025年8–11月と記載される。時系列の整合は本文だけでは確認できず、著者への確認が必要。'\n  executable_understanding: '3商品の小さな転置索引で、タイトルのみ、手で用意したDoc2Query候補、意味gateを通した候補を比べる。queryの全tokenが、その商品のタイトルまたは追加した検索語の集合に含まれる場合だけ返すBoolean AND検索を実装した。どれかの語が合うだけでは取得しない。関連性の正解と候補は教育用の固定値で、画像認識も生成学習も行わない。\n"
+        ],
+        [
+          66,
+          67,
+          ""
+        ],
+        [
+          68,
+          74,
+          "    商品aのタイトルはsummer shirtで、queryのred shirtに含まれるredが足りない。追加候補のred short sleeve shirtを加えると、商品aが見つかる。もう一つの候補leather\n    bagは商品aとは合わない。無条件で加えるとどうなるか。バッグの検索にもシャツが出る。gateはこの候補を落とし、関連するバッグ商品cは残る。'\n  results: 3クエリでタイトルのみの関連商品取得は0件、無条件拡張は関連3件・誤取得1件、gate付き拡張は関連3件・誤取得0件。新規token総数は無条件7、gate付き5。商品に合わない人気語を索引へ入れると精度が落ちる例を確認した。\n  what_we_verified: CONFIRMED：同じBoolean検索でも商品側の新規語で取得範囲が変わり、不適切な展開を除くと誤取得を減らせた。PARTIAL：Doc2Queryの索引効果だけを確認した。\n  what_we_did_not_verify: NOT TESTED：Qwen3-VL-8Bの画像理解、CPV拡張の学習効果、GRPO、関連性モデル、880万商品の規模、オンラインGMV。手で作ったgateの結果から本手法の性能を推定しない。\n  implementation: '`UV_CACHE_DIR=/tmp/uv-cache uv run papers/sam-d2q-aliexpress-doc2query/run.py`\n    を実行する。標準ライブラリだけで索引とqueryごとの結果を作り、results.jsonへ保存する。'\n"
+        ],
+        [
+          78,
+          79,
+          "  title: 生成は索引作成時、検索は転置索引で行う\n"
+        ],
+        [
+          80,
+          81,
+          "  caption: 購入履歴のあるactive商品について、関連性の確認を通った生成語を索引へ事前に加え、検索時は既存のBoolean候補取得を使う。ただし索引サイズは約35%増える。\n"
+        ],
+        [
+          83,
+          84,
+          "  rationale: 生成は索引作成時、検索は転置索引で行う\n"
+        ],
+        [
+          87,
+          91,
+          "    - title: タイトル＋画像\n      text: Qwen3-VL-8Bへの入力\n    - title: Top-100候補\n      text: 意味と新規語を確認\n"
+        ],
+        [
+          92,
+          93,
+          "      text: 毎日差分更新\n"
+        ],
+        [
+          95,
+          101,
+          "    - title: ユーザーquery\n      text: 既存のquery rewriting等も併用\n    - title: Boolean候補取得\n      text: 生成モデルの呼び出しなし\n    - title: ランキング\n      text: 他の取得経路と統合\n"
+        ],
+        [
+          103,
+          104,
+          "  title: 新しい語に価値を付け、意味のgateで守る\n"
+        ],
+        [
+          105,
+          106,
+          "  caption: 新しい語に価値を付け、意味のgateで守る\n"
+        ],
+        [
+          108,
+          109,
+          "  rationale: 新しい語に価値を付け、意味のgateで守る\n"
+        ],
+        [
+          112,
+          113,
+          "    explanation: タイトルにない語だけを商業価値の集計対象にする。\n"
+        ],
+        [
+          115,
+          116,
+          "    explanation: 実装ではカテゴリ平均によるBayes平滑化、global値との混合、log変換を加える。\n"
+        ],
+        [
+          118,
+          119,
+          "    explanation: 関連性が低い、または有用な新規語がない場合、gateで報酬全体を0にする。GRPOは同じ商品から生成した候補群内で報酬を標準化する。\n"
+        ],
+        [
+          121,
+          122,
+          "  title: 既存検索に追加したときの相対変化\n"
+        ],
+        [
+          123,
+          124,
+          "  caption: 21日間、4%トラフィック。相対liftであり、パーセントポイント差ではない。\n"
+        ],
+        [
+          126,
+          127,
+          "  rationale: 既存検索に追加したときの相対変化\n"
+        ],
+        [
+          140,
+          142,
+          "  title: 索引に加える語を切り替える\n  caption: 合成3商品のBoolean検索。語の追加による関連商品と誤取得の変化を比べる。\n"
+        ]
+      ]
+    },
+    "papers/sam-d2q-aliexpress-doc2query/mapping.md": {
+      "before": {
+        "sha256": "cb73637e38fc58d255a52465bc0acb04f58d1b4e3037d362c0002e288c24078a",
+        "blob": "d9bc41820caeff558e9d46f0ba514f5ecc422dd8"
+      },
+      "after": {
+        "sha256": "7751b247d4d6ddfddc727eb590cc1edfce630fd3764fd4987e5ac8f0c803d65f",
+        "blob": "f524a3706f1d8298f50deeb1ccdb13c5e477a22c"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "一次資料：[arXiv:2609.04961v1](https://arxiv.org/pdf/2609.04961v1)。PDF SHA-256: `a36674fa3c4e1b4d3caf95e3c181c16292edda9a0bd9fa32900dbf00d1a9601f`。確認日：2026-09-24。\n"
+        ],
+        [
+          4,
+          5,
+          "| 論文 | Lab | 実装の境界 |\n"
+        ],
+        [
+          6,
+          11,
+          "| §3・図1：Boolean検索と商品側展開 | run.pyのretrieve | 合成3商品のtoken集合のみ |\n| §4.1–4.2：SFTとCPV反実仮想拡張 | Core Idea、offline-index | 画像と学習は未実装 |\n| §4.3：新規語、商業価値、gate付き効用 | new-terms、run.pyの固定gate | GRPOや報酬モデルは未実装 |\n| 表1–2・§5.1：offline評価 | Evidence | 自動関連ラベルの限界を明記 |\n| 表4・§5.3：A/B、索引、latency | online-lift | 原データ・信頼区間は未取得 |\n"
+        ],
+        [
+          12,
+          13,
+          "公式コード：提供PDFでは対応リポジトリを確認できなかった。run.pyは説明用の独立実装。論文内のA/B日付と報酬ログ収集時期は前後が一致しないため、その解消は未検証。\n"
+        ]
+      ]
+    },
+    "papers/sam-d2q-aliexpress-doc2query/method.md": {
+      "before": {
+        "sha256": "4382684271b8ce3cbe4f51d0374d2f6b1a3da60a1eb9b402e925532ee0329334",
+        "blob": "f3b90d2492054fa02a4c02cea4a616db24919ac4"
+      },
+      "after": {
+        "sha256": "12a790fcac40faf926a6c80282a300c16f3515e77a5a01423349463d50f216bd",
+        "blob": "62bc1514694c93c3f5d390e77af24425d201be97"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "SAM-D2QはQwen3-VL-8Bを3段階で学習する。Stage 1の入力は、商品タイトルと画像だ。正解にはクリックされた検索語を使う。ただしタイトルの単語だけで覆える検索語は除く。残った学習対は900万件だった。\n"
+        ],
+        [
+          2,
+          3,
+          "Stage 2ではカテゴリ・属性・値の辞書（CPV）を使い、タイトルに書かれた色や柄などの視覚属性を隠した後も画像から元の検索語を復元する課題を作り、この50万件の拡張データと人手ラベル付きの対を混ぜて学習する。狙いは画像の利用だ。タイトルをコピーするだけでは正解に届かない条件を作る。\n"
+        ],
+        [
+          4,
+          5,
+          "Stage 3はGRPOによる報酬学習だ。意味、商業価値、視覚属性を評価する。生成した検索語と商品の関連性が低い場合や、有用な新しい語が含まれない場合は、判定処理（gate）で報酬全体を0にする。商業価値は、生成した検索語のうち元のタイトルにはない語について集計し、カテゴリ内の検索PVと購入件数を使って平滑化した値を、globalな語の値と組み合わせる（§4.3）。\n"
+        ],
+        [
+          6,
+          17,
+          "生成は索引作成時に行う。購入履歴のあるactive商品ごとにTop-100候補を生成し、関連性などのフィルター後に転置索引へ入れる。オンラインで生成モデルを呼び出さない。\n"
+        ]
+      ]
+    },
+    "papers/sam-d2q-aliexpress-doc2query/results.json": {
+      "before": {
+        "sha256": "1bb1d03c382872f99de6dec1432359588fd5b788e625bd806471b789aec60689",
+        "blob": "38e38d31ae990c67fcf0ae13029035a4a202a45b"
+      },
+      "after": {
+        "sha256": "6f4111def9181b089acc36222643bd9588871d7ce7f65e054bd7432f38ce8215",
+        "blob": "78ee53e9f26bf1ddaffb9b5712081a9025236f81"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"experiment\": \"synthetic Boolean document expansion\",\n"
+        ],
+        [
+          125,
+          126,
+          "  \"limitation\": \"Candidates and gates are hand-authored. No image model, business-reward estimator, GRPO, or production traffic.\",\n"
+        ],
+        [
+          128,
+          131,
+          "    \"label\": \"索引へ入れる展開語\",\n    \"unit\": \"件\",\n    \"metric\": \"3クエリの取得結果\",\n"
+        ],
+        [
+          134,
+          135,
+          "        \"note\": \"タイトルのみ。候補とgateは手作りの固定値。\",\n"
+        ],
+        [
+          148,
+          149,
+          "        \"note\": \"候補を無条件で追加。候補とgateは手作りの固定値。\",\n"
+        ],
+        [
+          162,
+          163,
+          "        \"note\": \"意味gateを通した候補だけ追加。候補とgateは手作りの固定値。\",\n"
+        ]
+      ]
+    },
+    "papers/sam-d2q-aliexpress-doc2query/run.py": {
+      "before": {
+        "sha256": "0a04ea0c7448a0969a62a0ed7d72ff372e9c744cd4f3aa501eb0de79b2558114",
+        "blob": "6e1451950f16c174ec8c2fc8d026fd8657bc1ff8"
+      },
+      "after": {
+        "sha256": "1638a59a4acf0d326f4b74e6abaaf74ea54fb949d6bb9d2333a4482ccaeed689",
+        "blob": "b718ac6dcef8318a66ee2e09af1eb842cc2d3899"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Hand-authored expansion candidates demonstrate Boolean retrieval, not SAM training.\"\"\"\n"
+        ],
+        [
+          5,
+          6,
+          "# (candidate query, valid relevance gate). Labels are illustrative, not model outputs.\n"
+        ],
+        [
+          34,
+          36,
+          "    result = dict(experiment='synthetic Boolean document expansion', verification=dict(mechanism='PARTIAL',performance='NOT TESTED',scaling='NOT TESTED',production_applicability='NOT TESTED'), modes=modes, limitation='Candidates and gates are hand-authored. No image model, business-reward estimator, GRPO, or production traffic.')\n    result['explorer'] = dict(default=0, label='索引へ入れる展開語', unit='件', metric='3クエリの取得結果', frames=[dict(value=i, note=label + '。候補とgateは手作りの固定値。', bars=[dict(label='関連商品', value=modes[mode]['true_positive']), dict(label='誤取得', value=modes[mode]['false_positive'])]) for i, (mode, label) in enumerate([('title', 'タイトルのみ'), ('all', '候補を無条件で追加'), ('gated', '意味gateを通した候補だけ追加')])])\n"
+        ]
+      ]
+    }
+  }
+}
