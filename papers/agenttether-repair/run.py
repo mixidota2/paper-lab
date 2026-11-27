@@ -1,4 +1,4 @@
-"""Known dependencies and explicit guards; no LLM diagnosis or learned detector."""
+"""既知の処理間の依存と、介入の条件を確かめる。学習した検出器や言語モデルは使わない。"""
 import json
 from pathlib import Path
 
@@ -22,7 +22,7 @@ def guard(step, last, evidence, unresolved, complete=False, after_write=False, l
 
 
 def adherence(intervene=False, decay=.82):
-    # Confidence is a synthetic state, not the paper's first-violation survival statistic.
+    # 指示が残る度合いは仮の値。論文が調べた、初めて違反するまでの長さとは異なる。
     confidence, last = 1., -99
     trace, fires = [], []
     for step in range(1,16):
@@ -35,7 +35,7 @@ def adherence(intervene=False, decay=.82):
 
 
 def experiment():
-    # TU1 wrong account -> TU3 transfer -> TU5 failure. TU2,4 unrelated read errors.
+    # TU1で口座を間違えると、TU3がその口座を使い、TU5で失敗する。TU2とTU4は別の処理。
     parents = {0: [], 1: [0], 2: [0], 3: [1], 4: [2], 5: [3]}
     anomalies = [1,2,3,4,5]
     counts = {1:1,2:2,3:3,4:5,5:4}

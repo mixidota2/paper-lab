@@ -1,0 +1,244 @@
+{
+  "files": {
+    "papers/agenttether-repair/figures/ctg.svg": {
+      "before": {
+        "sha256": "e72d8b653c38b8d2e0ffa0de3331c0fab8ef806aa0b5717ebf8b37070157693d",
+        "blob": "4ae8ada903f4d2f7fc992562f23f079148666549"
+      },
+      "after": {
+        "sha256": "ef7a2551269c4da9097abe4f9cfba37ca8a8984677eb25fe4e36522a2840ca54",
+        "blob": "302359da24ff584cef4efeb35033de8fa7144d06"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 610\" role=\"img\" aria-labelledby=\"title\"><title id=\"title\">依存経路による原因候補探索</title><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0 0L8 4L0 8\" fill=\"#53758b\"/></marker></defs><rect width=\"440\" height=\"610\" rx=\"12\" fill=\"#f5f8fb\"/><g font-family=\"sans-serif\" fill=\"#183447\"><text x=\"20\" y=\"30\" font-size=\"20\" fill=\"#183447\">CTG：処理間の依存関係をたどる</text><rect x=\"115\" y=\"50\" width=\"210\" height=\"48\" rx=\"9\" fill=\"#e0edf2\"/><text x=\"127\" y=\"75\" font-size=\"16\" fill=\"#183447\">TU0 · 口座一覧</text><path d=\"M165 100L108 131\" stroke=\"#53758b\" stroke-width=\"2\" fill=\"none\" marker-end=\"url(#arrow)\"/><path d=\"M280 100L330 131\" stroke=\"#53758b\" stroke-width=\"2\" fill=\"none\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"136\" width=\"195\" height=\"70\" rx=\"9\" fill=\"#f1d7bf\"/><text x=\"32\" y=\"161\" font-size=\"16\" fill=\"#183447\">TU1 · 誤った口座</text><text x=\"32\" y=\"184\" font-size=\"16\" fill=\"#183447\">根本原因</text><rect x=\"235\" y=\"136\" width=\"185\" height=\"70\" rx=\"9\" fill=\"#e0edf2\"/><text x=\"247\" y=\"161\" font-size=\"16\" fill=\"#183447\">TU2 · 別の読取</text><text x=\"247\" y=\"184\" font-size=\"16\" fill=\"#183447\">無関係な枝</text><path d=\"M110 210L110 255\" stroke=\"#53758b\" stroke-width=\"2\" fill=\"none\" marker-end=\"url(#arrow)\"/><path d=\"M325 210L325 255\" stroke=\"#53758b\" stroke-width=\"2\" fill=\"none\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"260\" width=\"195\" height=\"70\" rx=\"9\" fill=\"#f1d7bf\"/><text x=\"32\" y=\"285\" font-size=\"16\" fill=\"#183447\">TU3 · 送金</text><text x=\"32\" y=\"308\" font-size=\"16\" fill=\"#183447\">TU1の引数を継承</text><rect x=\"235\" y=\"260\" width=\"185\" height=\"70\" rx=\"9\" fill=\"#e0edf2\"/><text x=\"247\" y=\"285\" font-size=\"16\" fill=\"#183447\">TU4 · 読取失敗</text><text x=\"247\" y=\"308\" font-size=\"16\" fill=\"#183447\">最多エラー</text><path d=\"M110 334L110 377\" stroke=\"#53758b\" stroke-width=\"2\" fill=\"none\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"382\" width=\"195\" height=\"65\" rx=\"9\" fill=\"#f1d7bf\"/><text x=\"32\" y=\"407\" font-size=\"16\" fill=\"#183447\">TU5 · 終了時失敗</text><text x=\"32\" y=\"430\" font-size=\"16\" fill=\"#183447\">最後の症状</text><text x=\"20\" y=\"488\" font-size=\"16\" fill=\"#183447\">最後に失敗した処理 → TU5</text><text x=\"20\" y=\"518\" font-size=\"16\" fill=\"#183447\">エラーが最多の処理 → TU4</text><text x=\"20\" y=\"548\" font-size=\"16\" fill=\"#183447\">依存祖先の選択 → TU1</text><text x=\"20\" y=\"587\" font-size=\"15\" fill=\"#183447\">ただしTU1→TU3が欠けるとTU3を誤選択。</text></g></svg>"
+        ]
+      ]
+    },
+    "papers/agenttether-repair/figures/guards.svg": {
+      "before": {
+        "sha256": "3ab6deec2ab60f9f3bc1d3b84e14ab9858c99fa41616e9ff4ae3f402ec15f329",
+        "blob": "29de38e1d64219b0519e6b2cd6e0316f47328d91"
+      },
+      "after": {
+        "sha256": "0927ce742ff0317f6b7d9418553a2ca09b8f0b631e34db8175acf5a5d83c195b",
+        "blob": "dc3af0912a930070f96f1c6d4e513886f8def283"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 675\" role=\"img\" aria-labelledby=\"title\"><title id=\"title\">診断とguardつき介入</title><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0 0L8 4L0 8\" fill=\"#53758b\"/></marker></defs><rect width=\"440\" height=\"675\" rx=\"12\" fill=\"#f5f8fb\"/><g font-family=\"sans-serif\" fill=\"#183447\"><text x=\"20\" y=\"30\" font-size=\"21\" fill=\"#183447\">終了後の診断</text><rect x=\"20\" y=\"48\" width=\"400\" height=\"92\" rx=\"9\" fill=\"#e0edf2\"/><text x=\"32\" y=\"73\" font-size=\"16\" fill=\"#183447\">完了trace → CTG → 異常の証拠</text><text x=\"32\" y=\"96\" font-size=\"16\" fill=\"#183447\">HGT ＋ Isolation Forest → 診断LLM</text><text x=\"32\" y=\"119\" font-size=\"16\" fill=\"#183447\">原因・転換点・回復ヒント</text><path d=\"M220 143L220 165\" stroke=\"#53758b\" stroke-width=\"2\" fill=\"none\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"170\" width=\"400\" height=\"64\" rx=\"9\" fill=\"#e0edf2\"/><text x=\"32\" y=\"195\" font-size=\"16\" fill=\"#183447\">Repair Memory : fixed / unresolved</text><text x=\"32\" y=\"218\" font-size=\"16\" fill=\"#183447\">次の試行のguidanceへ</text><text x=\"20\" y=\"272\" font-size=\"21\" fill=\"#183447\">再実行中の介入</text><rect x=\"20\" y=\"290\" width=\"400\" height=\"65\" rx=\"9\" fill=\"#e0edf2\"/><text x=\"32\" y=\"315\" font-size=\"16\" fill=\"#183447\">確認：ループ・目的からの逸脱・未実施の修正</text><text x=\"32\" y=\"338\" font-size=\"16\" fill=\"#183447\">tool return または text response</text><path d=\"M220 357L220 379\" stroke=\"#53758b\" stroke-width=\"2\" fill=\"none\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"384\" width=\"400\" height=\"110\" rx=\"9\" fill=\"#e0edf2\"/><text x=\"32\" y=\"409\" font-size=\"16\" fill=\"#183447\">介入の判断：証拠 ＋ active guidance</text><text x=\"32\" y=\"432\" font-size=\"16\" fill=\"#183447\">cooldown・回数上限・最小介入</text><text x=\"32\" y=\"455\" font-size=\"16\" fill=\"#183447\">完了後は停止</text><text x=\"32\" y=\"478\" font-size=\"16\" fill=\"#183447\">期待した書込後はloop以外を抑制</text><path d=\"M220 497L220 519\" stroke=\"#53758b\" stroke-width=\"2\" fill=\"none\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"524\" width=\"400\" height=\"65\" rx=\"9\" fill=\"#e0edf2\"/><text x=\"32\" y=\"549\" font-size=\"16\" fill=\"#183447\">介入内容の追加：tool resultへ追記</text><text x=\"32\" y=\"572\" font-size=\"16\" fill=\"#183447\">またはsynthetic user message</text><text x=\"20\" y=\"623\" font-size=\"16\" fill=\"#183447\">介入を増やすほど良いわけではない。</text><text x=\"20\" y=\"650\" font-size=\"16\" fill=\"#183447\">銀行業務：介入で改善13件／悪化3件</text></g></svg>"
+        ]
+      ]
+    },
+    "papers/agenttether-repair/lab.yaml": {
+      "before": {
+        "sha256": "07904687221edb2f136b6c2b9882c8870196f68292a5ad91ee50f652bc67eb5b",
+        "blob": "ad77324277f88e433baff05947c9b1ce418f2ee5"
+      },
+      "after": {
+        "sha256": "6bbd294adbbebb0398a5833ead0762c2e867ee1dcc1790344940340d5a8ed3b9",
+        "blob": "c97ef3ccf6f7a3a7185218088a06a8584e969060"
+      },
+      "prior_spans": [
+        [
+          30,
+          32,
+          "question: 失敗原因を伝えたあと、長い再実行で修正を守らせるには\nsummary: AgentTetherは凍結したエージェントの外側で、終了後の原因診断と再実行中の介入を分ける。τ-bench Bankingの初回失敗83件では、診断のみの39件から介入つき49件へ修復が増えた。一方で介入により失敗へ転じた例もある。\n"
+        ],
+        [
+          34,
+          35,
+          "  scope: 提供PDFを主資料に、arXiv HTMLの対応箇所を照合。著者報告の独立再現ではない。\n"
+        ],
+        [
+          39,
+          41,
+          "  author_claim: 著者は実行をTransition Unitsへ整理し、Critical Transition Graphで疑わしい依存経路を絞る。診断をRepair Memoryに残し、再実行中はCheck→Decide→Injectで逸脱を補正する。モデルと環境を変更せず、最大3回の修復を評価する（§III–IV）。\n  research_bot_interpretation: 診断だけでは足りない。修正を守り続ける能力も測りたい。共有artifactやerror signatureに基づくグラフは診断の手掛かりにはなるが、因果関係の証明ではない。特に書き込み後のhookでは、すでに起きた副作用を取り消せない。\n"
+        ],
+        [
+          46,
+          52,
+          "  problem: 誤った口座を選んだあと、そのIDを送金処理が引き継いで最後に失敗する場合、最後のエラーだけを直しても原因は残る。注意も長くは続かない。原典はこの二つを、終了後の診断と実行中の監督に分ける。\n  why_it_might_work: 依存をたどれば、エラーが多い場所とエラーの出発点を分けられる可能性がある。解決済みの制約を記憶し、未解決のものだけを確認すれば、同じ修正を繰り返す負担も減らせる。ただし診断役と検証役の誤りは残り、介入が正しい行動を妨げる場合もある。\n  evidence: '### 修復率の分母は初回に失敗したタスク\n"
+        ],
+        [
+          53,
+          54,
+          "    原典はQwen3.7-maxでRetail、Airline、Bankingの計261タスクを実行し、初回失敗123件を修復対象にする。Bankingは97件中83件が対象。最大3回の追加実行を許す。以下はTable\n    Iの著者報告。\n"
+        ],
+        [
+          55,
+          62,
+          ""
+        ],
+        [
+          63,
+          64,
+          "    | Bankingの方法 | 修復数 / 83 | 修復率 | 平均時間 |\n"
+        ],
+        [
+          65,
+          66,
+          "    | --- | ---: | ---: | ---: |\n"
+        ],
+        [
+          67,
+          68,
+          "    | Blind retry | 22 | 26.51% | 21.38分 |\n"
+        ],
+        [
+          69,
+          70,
+          "    | Reflexion | 22 | 26.51% | 19.36分 |\n"
+        ],
+        [
+          71,
+          72,
+          "    | Post-run only | 39 | 46.99% | 17.88分 |\n"
+        ],
+        [
+          73,
+          74,
+          "    | AgentTether | 49 | 59.04% | 20.88分 |\n"
+        ],
+        [
+          75,
+          78,
+          ""
+        ],
+        [
+          79,
+          80,
+          "    全領域では85/123=69.11%。これは全タスク成功率ではない。GPT-5.4 Bankingでも初回失敗86件中56件、65.12%を修復したが、失敗集合はモデルごとに違う。基盤モデルの順位比較には使えない。\n"
+        ],
+        [
+          81,
+          84,
+          ""
+        ],
+        [
+          85,
+          92,
+          "    ### 介入の純増10件の裏に、悪化3件がある\n\n    Bankingでは介入ありだけが成功した13件、診断のみが成功した3件で、差は10件。対応ありのMcNemar検定はp=0.021。Retailは純増1件、Airlineは純増0件である（Table III）。Bankingの改善13件に限る平均介入回数は11.3回、悪化3件では29.3回。これは選ばれた事例の集計で、production\n    fleetの介入率ではない。\n\n\n    診断のみの再実行173件では、指示への最初の違反を数える生存曲線が全体で13step時点に50%を下回り、Bankingでは8stepで下回る（Figure 3）。毎stepの独立した遵守率とは異なる。診断位置の中央値誤差は5.5\n    TU、Recencyは6.0、Frequencyは10.0（§IV-B）。グラフが真の原因を常に特定できたわけではない。[一次資料：§II、§IV、Tables I–III](https://arxiv.org/html/2607.06273)。'\n  executable_understanding: '`uv run papers/agenttether-repair/run.py`\n\n\n    6個のTUに既知の依存を置き、TU1の誤った引数がTU3を経てTU5の失敗になる。無関係な枝にはエラーを多く置く。直近、頻度、依存祖先をたどる方法を比較する。別の例では指示状態を毎step0.82倍に減衰させ、閾値0.55を下回ると最短3step間隔で戻す。'\n  results: 直近はTU5、頻度はTU4、依存をたどる方法は真の原因TU1を選ぶ。TU1→TU3の辺を欠落させるとTU3を誤選択する。checkpointは合成の指示状態を維持するが、原典のfirst-violation生存曲線とは異なる量である。すでに違反した実行を再び遵守扱いにする推計ではない。\n  what_we_verified: Mechanism PARTIAL。既知グラフ上の原因候補探索、欠落辺の反例、cooldown、証拠なしの拒否、完了後の停止、書き込み後はloopのみ許す条件を確認した。この例外も、証拠があること、問題が未解決であること、必要な介入間隔が空いていることを免除しない。指示状態を戻す効果は仮定として与えており、LLMの遵守改善を実証していない。\n  what_we_did_not_verify: HGT、Isolation Forest、診断LLM、verifier、τ-benchの修復率、本番介入率はNOT TESTED。原典の匿名コードURLは記載を確認したが実行していない。tool-return\n    hookはツール実行後なので、送金などの副作用を事前に遮断する保証はない。\n  implementation: '`localize()` は失敗の祖先集合にある異常TUのうち最も早いものを選ぶ教材用規則。原典のHGTとLLMによる帰責を代替する実装ではない。`guard()` は最小の条件式、`adherence()`\n    は決定的な減衰モデルとして切り分けた。'\n"
+        ],
+        [
+          93,
+          95,
+          "  mapping: '| 原典の機構 | Labの対応 | 省略したもの |\n\n"
+        ],
+        [
+          96,
+          99,
+          "\n    | [PDF・HTML](https://arxiv.org/html/2607.06273) の手法節 | method.md と出典つきSVG | 原図の複製ではなく説明用に再構成 |\n\n    | 部分機構の合成例 | run.py → results.json | 本番データ、ニューラルモデル、論文の性能再現 |\n\n    | 公式実装 | 原典に匿名公開URLの記載あり。リンク先の実行は未確認 | 公式実装との同等性は未検証 |'\n"
+        ],
+        [
+          101,
+          103,
+          "  title: 最後の失敗から、引き継がれた引数をたどる\n  caption: 原典Figure 4の考え方をrun.pyの6 TUへ写した合成例。赤は原因の経路、灰色は無関係な枝。\n"
+        ],
+        [
+          105,
+          107,
+          "  title: 診断は次の試行へ、介入は証拠のある場面へ\n  caption: §III-C–Dを基に再構成。外部ツールの実行後に動くhookは、過去の副作用を取り消さない。\n"
+        ]
+      ]
+    },
+    "papers/agenttether-repair/method.md": {
+      "before": {
+        "sha256": "ed3fe206641cf764a94bd6109d2224152aa838b38004e9d6af89b1d598030d9e",
+        "blob": "7612f0abf84d33b818f0aa9d9ed197db7ace547c"
+      },
+      "after": {
+        "sha256": "31cfb95eed7e264d9f440abc849626fc716d1a29a5e10da1cea277d97c03f6c6",
+        "blob": "8cb3a23b9d03a7e037522cfbb0564ef6ed7f42df"
+      },
+      "prior_spans": [
+        [
+          0,
+          4,
+          "### TUは一回の判断と、その結果を結ぶ\n"
+        ],
+        [
+          6,
+          7,
+          "oは観測、bはbeliefとしての推論、aはツール名と引数または応答、fは実行feedbackである。SDKへのbefore/after hookから取得したtraceを、この単位へまとめる。Critical Transition Graph（CTG）は実行順の辺と、共有artifactやerror signatureに基づく依存の辺を持つ。直前のTUだけが原因候補になる構造ではない（§III-B–C）。\n"
+        ],
+        [
+          8,
+          9,
+          "### 学習済みの正常像と、実行内の外れ値を併用する\n正常像を先に学ぶ。Heterogeneous Graph Transformer（HGT）は外部の成功軌跡21,143件から、TUとその周囲のspan、metric、log、verificationなどを型つきノードとして読み、telemetryの辺の復元と、隠されたtoolやstatusなどの属性予測を通じて正常な関係を学習する。推論時にはその二種類のsurpriseを平均し、scoreの最大の落差で異常候補を切る。τ-benchの履歴を学習する設定ではなく、外部の成功軌跡を用いる。\n"
+        ],
+        [
+          10,
+          11,
+          "実行内の外れ値も探す。Isolation Forestには、TUの入出次数などの構造、実行状態とfeedbackの不整合、同じ部分目標やツール群を共有する連続区間のエラー比率など、一つの実行から抽出した25次元の特徴を渡す。二つの検出結果は別々の証拠として保持し、その和集合から局所的な証拠を絞り込む。診断LLMは依存を逆にたどり、根本原因、回復可能な経路から外れた転換点、回復のヒントを返す。\n"
+        ],
+        [
+          12,
+          13,
+          "実験設定はHGT hidden dimension 52、20 epochs、batch 128、Isolation Forest 100 trees、最大sample 256。補助の診断・検証・評価役はDeepSeek-V4-Proに固定し、修復されるエージェントと分ける。モデル名と設定は原典§IV-Aの記載であり、本LabはAPIを呼ばない。\n"
+        ],
+        [
+          14,
+          15,
+          "### 診断を、その場で使える小さな修正へ変える\n修復内容を記録するRepair Memoryは、解決済みの問題と未解決の問題を次の試行へ引き継ぐ。指示は失敗した操作の種類や制約を示すが、正解の引数をそのまま渡す設計ではない。初回は観察だけ。失敗してから修復へ入る。\n"
+        ],
+        [
+          16,
+          23,
+          "| 段階 | 判断すること |\n"
+        ],
+        [
+          24,
+          27,
+          "| Check | 同じ呼び出しの反復、意図からの逸脱、期待する修正の未実施、忘れた指示 |\n| Decide | 証拠とactive guidanceがあるか、cooldownや回数上限に触れないか、最小の介入か |\n| Inject | tool resultへ追記するか、text responseに対してsynthetic user messageを入れて再開するか |\n"
+        ],
+        [
+          28,
+          29,
+          "意図逸脱はembeddingの非類似度で測り、破壊的操作は閾値0.35、通常0.50、情報取得0.55。高リスク候補はLLM verifierが確認する。tool-return側では5stepの指数移動平均（α=0.3）を使う。修正完了後は介入を止め、期待した状態変更の後はloop以外の介入を抑える。これらは誤検出の被害を抑える規則であり、成功の保証ではない（§III-D、§IV-A）。\n"
+        ],
+        [
+          30,
+          31,
+          "### REVISEとは、回復のきっかけと根拠が違う\n[REVISE Lab](revise-recovery.html)は実行途中の指示変更を受け、どの計算結果が最新版でも有効かを追う。AgentTetherは失敗した行動を診断し、次の試行での逸脱を抑える。前者の再利用に必要な妥当性証拠と、後者のLLMを含む診断の確からしさは同じ保証ではない。この対比はresearch_botの整理で、両手法の直接比較実験はない。\n"
+        ],
+        [
+          32,
+          37,
+          "[一次資料：§III–IV、Figure 4](https://arxiv.org/html/2607.06273)。\n"
+        ]
+      ]
+    },
+    "papers/agenttether-repair/run.py": {
+      "before": {
+        "sha256": "d53c72ba5948402023ebd9d865c019be8aa61ab16b6d477cb8c037d20e8b2145",
+        "blob": "e7c5ef80f8c56afb01573d04019f9277d8346f04"
+      },
+      "after": {
+        "sha256": "4860381a376bb8f812c17fdf785f864064c4168e89b85603e44e252b57d24274",
+        "blob": "fbbaaaccc1201e7224dd2742b0d40b2d0735aebd"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Known dependencies and explicit guards; no LLM diagnosis or learned detector.\"\"\"\n"
+        ],
+        [
+          24,
+          25,
+          "    # Confidence is a synthetic state, not the paper's first-violation survival statistic.\n"
+        ],
+        [
+          37,
+          38,
+          "    # TU1 wrong account -> TU3 transfer -> TU5 failure. TU2,4 unrelated read errors.\n"
+        ]
+      ]
+    }
+  }
+}
