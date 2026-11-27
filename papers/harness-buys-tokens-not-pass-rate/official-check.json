@@ -2,7 +2,7 @@
   "checked": "2026-10-08",
   "url": "https://github.com/YangzeLiu/what-does-a-harness-buy",
   "commit": "3f0c13208c8b71eefcf7b764e2372ac7200c3117",
-  "scope": "Read-only inspection of analysis/paper_numbers.py and reference_outputs/numbers.json; official pipeline not executed.",
+  "scope": "第1版の照合時に analysis/paper_numbers.py と reference_outputs/numbers.json を読み、不一致率と検出力を確認した。著者の処理は実行していない。",
   "mde": {
     "hard45": {
       "disc_pooled": 0.14008941877794337,

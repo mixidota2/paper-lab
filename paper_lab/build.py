@@ -33,6 +33,7 @@ from markdown import Markdown
 from paper_lab.display_labels import LABELS, display_text, explorer_view, explorer_axes
 
 from paper_lab.batch08 import widget as batch08_widget
+from paper_lab.harness_cost import widget as harness_cost_widget
 from paper_lab.batch28 import widget as batch28_widget
 from paper_lab.batch29 import widget as batch29_widget
 from paper_lab.isomorph30 import widget as isomorph30_widget
@@ -203,7 +204,10 @@ def paper_sections(lab: Lab) -> list[dict[str, Any]]:
                 html += trial_trace_widget(lab.source_dir)
             if lab.id in {"reasoncast-agentic-demand-forecasting", "retailbench-long-horizon-store-agents"}:
                 html += (lab.source_dir / "interactive.html").read_text(encoding="utf-8")
-            html += batch08_widget(lab.results)
+            if lab.id == "harness-buys-tokens-not-pass-rate":
+                html += harness_cost_widget(lab.results)
+            else:
+                html += batch08_widget(lab.results)
             html += batch28_widget(lab.results)
             html += batch29_widget(lab.results)
             html += isomorph30_widget(lab.results)

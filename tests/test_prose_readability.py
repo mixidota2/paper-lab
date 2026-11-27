@@ -63,7 +63,7 @@ def test_batch08_definitions_and_comparison_denominators():
     assert TRAFFIC.index('同じ候補で基準予測を使ったときの費用で割ります') < TRAFFIC.index('data-toy')
     assert '一定値の基準予測' in LABELS['traffic-forecast-to-decision-value']['value_percent']
     method=(ROOT/'papers/harness-buys-tokens-not-pass-rate/method.md').read_text()
-    assert 'p値は帰無仮説' in method and '仮定した差Δの下で' in method
+    assert '差がないとする検定では確率を1/2' in method and '仮定した差のもとで' in method
     guide=(ROOT/'guides/forecast-to-replenishment.md').read_text()
     assert guide.index('GMVは流通取引総額') < guide.index('<!-- EVIDENCE_CARDS -->')
     assert '未実施の計画' in guide and '実データで比較を始めるための計画' in guide
