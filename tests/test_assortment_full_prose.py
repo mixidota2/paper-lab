@@ -8,11 +8,15 @@ import subprocess
 import pytest
 import yaml
 
-from prose_preservation import before_assortment_full_prose, assortment_full_prose_hash
+from prose_preservation import before_assortment_all_full_prose, before_assortment_full_prose, assortment_full_prose_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = 'd9c6ed04acd6a741d82bd15baccf6896cc761ab9'
 PREFIX = 'papers/assortment-replenishment-hard-constraints'
+
+
+def archived_prose(path):
+    return before_assortment_all_full_prose(ROOT,path,(ROOT/path).read_bytes())
 
 
 def historical(path):
@@ -25,7 +29,7 @@ def test_exact_archive_and_unchanged_experimental_values():
              'lab.yaml','mapping.md','method.md','results.json','run.py','validation.md'}
     assert rows.keys() == {f'{PREFIX}/{name}' for name in names}
     for path, row in rows.items():
-        raw = (ROOT / path).read_bytes()
+        raw = archived_prose(path)
         assert raw != historical(path)
         assert before_assortment_full_prose(ROOT, path, raw) == historical(path)
         assert hashlib.sha256(raw).hexdigest() == row['after']['sha256']
@@ -36,9 +40,9 @@ def test_exact_archive_and_unchanged_experimental_values():
             with pytest.raises(AssertionError):
                 assortment_full_prose_hash(ROOT, path, row['after'][algorithm], algorithm)
     unchanged = f'{PREFIX}/model.js'
-    assert (ROOT / unchanged).read_bytes() == historical(unchanged)
+    assert archived_prose(unchanged) == historical(unchanged)
     dataset = f'{PREFIX}/results.json'
-    a, b = map(json.loads, (historical(dataset), (ROOT / dataset).read_bytes()))
+    a, b = map(json.loads, (historical(dataset), archived_prose(dataset)))
     assert a.pop('note') != b.pop('note')
     assert a == b
     code = f'{PREFIX}/run.py'
@@ -49,12 +53,12 @@ def test_exact_archive_and_unchanged_experimental_values():
                 assert isinstance(n.value, ast.Constant)
                 n.value = ast.Constant(None)
         return ast.dump(tree)
-    assert body(historical(code)) == body((ROOT / code).read_bytes())
+    assert body(historical(code)) == body(archived_prose(code))
 
 
 def test_formula_data_and_existing_paper_overview_are_unchanged():
     path = f'{PREFIX}/lab.yaml'
-    a, b = map(yaml.safe_load, (historical(path), (ROOT / path).read_bytes()))
+    a, b = map(yaml.safe_load, (historical(path), archived_prose(path)))
     editable = {'question','summary','source_review','core_idea','sections','teaching_figures'}
     assert {k:v for k,v in a.items() if k not in editable} == {k:v for k,v in b.items() if k not in editable}
     assert a['sections'].keys() == b['sections'].keys()

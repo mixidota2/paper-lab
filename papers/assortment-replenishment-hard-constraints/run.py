@@ -1,4 +1,4 @@
-"""Independent exhaustive synthetic CASRP oracle, not the paper's heuristic."""
+"""品揃えと棚の制約を、架空の入力と面数の全候補で調べる。原論文の近似法は使わない。"""
 from itertools import product
 from pathlib import Path
 import json
@@ -59,7 +59,7 @@ def experiment(data):
 
 
 def main():
-    results=dict(model_version=VERSION,note='入力は架空です。論文の近似手順や実験の表は再現していません。',cases={n:experiment(case(n)) for n in ('T1','T2','T3','T4')})
+    results=dict(model_version=VERSION,note='Labは架空の商品を使って棚割りを計算します。論文の近似法は実行しておらず、論文の表に載った値も再現していません。',cases={n:experiment(case(n)) for n in ('T1','T2','T3','T4')})
     t=case('T3');raw=evaluate(t,[1,0]);results['truncation_counterexample']=dict(original=raw,clipped_demand=10,clipped_profit=20,hard_optimum=1,same_problem=False)
     results['fixed_mu_example']=evaluate(case('T4'),[0,1,0])
     Path(__file__).with_name('results.json').write_text(json.dumps(results,ensure_ascii=False,indent=2)+'\n')
