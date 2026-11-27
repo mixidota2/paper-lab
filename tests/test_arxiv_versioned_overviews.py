@@ -7,7 +7,7 @@ import re
 import pytest
 import yaml
 
-from prose_preservation import before_oneranker_full_prose, arxiv_versioned_overview_hash, before_revise_full_rewrite, revise_full_rewrite_hash
+from prose_preservation import before_tagr_all_full_prose, before_oneranker_full_prose, arxiv_versioned_overview_hash, before_revise_full_rewrite, revise_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 VERSIONS = {'oneranker-ads': ('2603.02999', 'v3'), 'revise-recovery': ('2609.00643', 'v1'),
@@ -23,7 +23,8 @@ def test_only_labeled_overviews_and_reference_links_changed():
     files = json.loads((ROOT / 'tests/arxiv_versioned_overview_hashes.json').read_text())['files']
     assert files.keys() == {f'papers/{s}/{n}' for s in VERSIONS for n in ('lab.yaml', 'method.md')}
     for path, row in files.items():
-        current = before_oneranker_full_prose(ROOT, path, (ROOT / path).read_bytes())
+        last = before_tagr_all_full_prose(ROOT, path, (ROOT / path).read_bytes())
+        current = before_oneranker_full_prose(ROOT, path, last)
         restored = before_revise_full_rewrite(ROOT, path, current)
         if path.endswith('lab.yaml'):
             field, = re.findall(rb'^  overview: \|-\n(?:    [^\n]+\n|\n(?=    ))+', restored, re.M)
@@ -44,7 +45,7 @@ def test_only_labeled_overviews_and_reference_links_changed():
     ('oneranker-ads', ('後段の精密ランキングは変えていません', '1.3427%', '0.7190%', '2%増',
                       '別の比較', 'arxiv.org/html/2603.02999v4#S4.SS4')),
     ('revise-recovery', ('15,939回', '分岐条件', '43.6%', '5.9%', '分散環境での障害復旧')),
-    ('tagr-live-sid', ('1分ごと', 'DLRM', '16.1%', '4,000万人', 'IDの更新だけによる差ではありません')),
+    ('tagr-live-sid', ('毎分', 'DLRM', '16.1%', '4,000万人', 'IDの更新だけを試した結果ではありません')),
 ])
 def test_summary_states_comparison_and_prior_source_stays_pinned(slug, fragments):
     arxiv, version = VERSIONS[slug]

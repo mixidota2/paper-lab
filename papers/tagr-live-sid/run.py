@@ -1,4 +1,4 @@
-"""Fixed vocabulary, changing assignments. No learned LSID/RQ-KMeans or production data."""
+"""広告4件で、決まった種類のIDを配り直す例。論文の学習モデルや本番データは使いません。"""
 from collections import Counter
 import json
 from pathlib import Path
@@ -25,8 +25,8 @@ def scenario(current):
 
 
 def schedule(period):
-    # Scalar supervised target=0. Alternating reward targets ±1 perturb the same parameter.
-    # Different update counts are deliberately reported; this is not an equal-budget GRPO test.
+    # 予測側の目標は0。報酬側は1と-1を交互に使い、同じ変数xを更新する。
+    # 報酬を使う回数も記録する。この例は、同じ予算でGRPOを比べる実験ではない。
     x = 0.
     rows = []
     updates = 0
