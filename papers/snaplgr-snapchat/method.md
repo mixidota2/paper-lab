@@ -1,15 +1,21 @@
-### Qwen3-VLでSIDを作り、Qwen3-0.6Bで生成する
-動画のmultimodal表現はQwen3-VL-Embedding-8Bの4,096次元中、先頭1,024次元を使う。Matryoshka表現のprefixを利用する。RQ-VAEは3段のcodebook（1,024、512、256）を持ち、全codebookへのstraight-through勾配、reconstruction、commitmentを使う。
+### 動画からSIDを作るモデルと、候補のSIDを生成するモデル
 
-user–video二部graphの2-hop近傍でPersonalized PageRank（PPR）を求め、co-engagement上位pairをInfoNCEの正例にする。productionではP75閾値。PPRは πᵢ=(1−α)eᵢ+αPᵀπᵢ で、anchorへ戻る項が近傍を保つ。
+SnapLGRはQwen3-VL-Embedding-8Bで動画と説明文を表す。この埋め込みは先頭の次元だけでも使えるように学習されている。著者は4,096次元のうち先頭の1,024次元を取り出し、RQ-VAEで1,024、512、256個の語彙からなる3段のSIDに変換した。学習では全語彙にstraight-throughで勾配を渡し、元の表現の復元と、選んだ語彙へ表現を近づける損失を使う。
 
-継続事前学習（CPT）では新しいSID embeddingだけを学習し、LLM本体を凍結したままSIDから動画の説明文を出させる。続く教師あり調整（SFT）では、ChatML形式の履歴から次に対象となるSIDを予測する。履歴のtokenには直接lossを掛けず、回答に当たるassistant tokenだけを採点する。
+動画の内容が似ているかに加え、同じ利用者が見たかも使う。著者は利用者と動画を辺で結んだグラフを作り、動画から利用者を経由して別の動画へたどる2段の近傍で、Personalized PageRank（PPR）を計算した。式は `πᵢ=(1−α)eᵢ+αPᵀπᵢ`。起点の動画へ戻る項を含むので、全体で人気のある動画だけを追う処理とは異なる。著者は本番の学習で、全組のPPRの第75パーセンタイル以上を、対照学習の正例に採用した。[一次資料：§2.1・付録A.1](https://arxiv.org/html/2607.28895v3)
 
-CPTは初期に1回、SFTは1時間ごとの増分学習。
+### IDの意味を学んでから、履歴の次を予測する
 
-<figure class="teaching batch21"><h3>毎日生成し、オンラインではindexを読む</h3><div class="b21-serving"><section><h4>Offline / daily batch</h4><p>履歴SID → Qwen3-0.6B</p><p>TensorRT-LLM / beam 32</p><p>SID → value-weighted動画展開</p><p>user–video indexへ保存</p></section><section><h4>Online / request</h4><p>user ID → serving index</p><p>候補動画を取得</p><p>既存rankingへ渡す</p><p>最終response</p></section></div><figcaption>原典 Fig. 2・§2.3。SFTはhourlyだが、候補のbatch生成はdaily。オンラインrequestごとにLLMをdecodeする図ではない。</figcaption></figure>
+候補の生成にはQwen3-0.6Bを使う。継続事前学習（CPT）ではモデルの語彙に新しいSIDを加え、SIDから動画の説明文を生成するように学習する。説明文を採点するが、更新するのは追加したSIDの埋め込みだけだ。残りのパラメーターは固定する。
 
-生成したSIDを実際の動画候補へ展開する処理（materialization）では、SIDに対応する動画を V(i)=Σₘ wₘ Sₘ(i) で採点し、得点順に固定の上限数まで保存する（Appendix A.3）。Sₘはengagement指標の推定率。正解動画のSIDを当てても、同じSIDの動画から保存する候補を選ぶ段階で、その動画が外れる場合がある。このためSID hitとvideo hitを分けて測る。
+次の教師あり調整（SFT）では、利用者の履歴を発生順に並べ、続く行動のSIDを予測する。ChatML形式で履歴は入力、将来に当たるSIDは回答に置き、回答のトークンにだけ損失を掛ける。CPTは初期に1回行い、SFTによる増分更新は1時間ごとに行う。[一次資料：§2.2](https://arxiv.org/html/2607.28895v3)
 
-### 高速化の分母を固定する
-TensorRT-LLMでbeamの拡張、score、KV管理をCUDAへ移す。Parquet shardを各workerが自分で取得し、中央driverのfan-outを外す。prefetchと非同期writeを重ねる。論文の45.7倍は旧Python・中央集約基盤からの累積samples/s/GPUの比で、推薦request latencyの45.7倍改善ではない。
+### 動画候補は毎日作り、配信時は索引を読む
+
+<figure class="teaching batch21"><h3>候補を作るバッチと、候補を返す配信</h3><div class="b21-serving"><section><h4>日次のバッチ</h4><p>利用者の履歴をQwen3-0.6Bに渡す。</p><p>TensorRT-LLMが幅32のビーム探索でSIDを生成する。</p><p>SIDごとに動画を選び、利用者ごとの候補を索引へ保存する。</p></section><section><h4>利用者から要求が来たとき</h4><p>利用者IDで索引を引き、保存済みの動画候補を取得する。</p><p>候補は既存の順位付けへ渡す。</p><p>要求のたびに生成モデルを動かすわけではない。</p></section></div><figcaption>論文の図2と§2.3をもとに作成。SFTによる更新は1時間に1回で、候補生成は日次。</figcaption></figure>
+
+一つのSIDに複数の動画がある場合、付録A.3の索引は、動画iについて `V(i)=Σₘ wₘ Sₘ(i)` を計算する。Sₘは反応の種類ごとの予測率、wₘはその重みだ。その点で並べ、SIDごとに決めた上限まで動画を保存する。正解動画と同じSIDが生成されても、同じSIDの動画から保存する候補を選ぶ段階で、正解動画が落ちる場合がある。SIDの一致率と、個別の動画が候補に入る割合は別に測る。[一次資料：§2.3・付録A.3](https://arxiv.org/html/2607.28895v3)
+
+### 何を速くしたか
+
+著者はTensorRT-LLMを使い、ビームの拡張、採点、アテンション用キャッシュの処理などをCUDAへ移した。各ワーカーが自分でParquetの入力を取りに行く方式にし、中央のPythonプロセスが作業を割り振る処理を除いた。データの先読みと結果の書き込みも計算と重ねた。A100での45.7倍は、これらを加えた日次の生成処理で、旧方式に対する1秒・GPU1台あたりの試料数の比だ。利用者の要求に返答するまでの時間が45.7分の1になったわけではない。[一次資料：§4.4・表7](https://arxiv.org/html/2607.28895v3)

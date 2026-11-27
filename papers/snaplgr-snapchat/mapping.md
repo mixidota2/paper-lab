@@ -1,12 +1,12 @@
-# Original Paper / Official Code Mapping
+# 原論文とLabの対応
 
-一次資料: [LLM-Based Generative Retrieval for Snapchat Content Recommendation](https://arxiv.org/html/2607.28895v3)。本文・実験・限界・付録を確認（2026-09-21）。キャッシュは `/tmp/research-2026-09-21/2607.28895.html`。HTML SHA-256: `e48dfa317ab605269c7ae5ba58dd653508e1da4af545044c29f1826363fdd139`。
+一次資料は[SnapLGRの論文第3版](https://arxiv.org/html/2607.28895v3)。2026年9月21日に本文と付録を確認した。確認したHTMLのSHA-256は `e48dfa317ab605269c7ae5ba58dd653508e1da4af545044c29f1826363fdd139`。
 
-| 原典 | Labの対応 | 意図した省略・境界 |
+| 論文の箇所 | Labの対応 | どこまで確認したか |
 | --- | --- | --- |
-| §2.1 / Appendix A.1 | SID・PPR解説 | モデル学習を省略 |
-| §2.2 / Table 2 | CPT/SFT・RSA図 | Qwenの再学習なし |
-| Fig. 2 / Appendix A.3 | materialize | max-valueへ簡略化、候補budget省略 |
-| Tables 6–8 | serving表・Evidence | throughputとonline liftを分離 |
+| §2.1・付録A.1：動画の表現、量子化、PPR | 手法の節 | モデルとグラフの作り方を説明した。学習は行っていない。 |
+| §2.2・表2：IDを追加した学習とRSA | 手法の節と図 | RSAは論文の報告値。Qwenは再学習していない。 |
+| 図2・付録A.3：SIDに対応する動画の選択 | `materialize()` の人工例 | 候補の先頭と点が最も高い動画を比べた。本番の重みや保存できる動画数は再現しない。 |
+| 表6〜8：学習・推論の処理量と本番A/B | 根拠の節と表 | 処理量と視聴時間は別の測定。いずれも著者の報告値を使う。 |
 
-公式コード: 確認した本文に、このシステムの学習・配信を再実行できる公開実装へのリンクは見つからなかった。公開の有無を網羅的に調べたという意味ではない。
+確認した論文本文には、学習と配信を再実行できる公式コードへのリンクが見つからなかった。公開の有無を網羅的に調査したわけではない。
