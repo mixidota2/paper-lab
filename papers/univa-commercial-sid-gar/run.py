@@ -1,4 +1,4 @@
-"""Synthetic CSID, prefix beam and GAR probe; no trained model or auction replay."""
+"""人工の広告と探索木でCSIDの区分とGARの選択を確かめる。モデルは学習せず、実際の入札も再現しない。"""
 import json
 import math
 from collections import defaultdict
@@ -12,7 +12,7 @@ def tokenize(ads, bins=2):
     result = {}
     for key, items in groups.items():
         ordered = sorted(items, key=lambda a: (a['bid'], a['id']))
-        # Continuous, distinct synthetic bids: rank quantiles have no tie ambiguity.
+        # 入札額はすべて異なるため、同額の広告をどちらの区間に入れるかは考えなくてよい。
         for rank, ad in enumerate(ordered):
             result[ad['id']] = (ad['semantic'], key, min(bins - 1, rank * bins // len(ordered)))
     return result
@@ -59,8 +59,8 @@ def compute():
                 candidates=beam(alpha,width,personalized)
                 frames.append(dict(alpha=alpha,width=width,personalized=personalized,candidates=candidates,
                                    valid_count=sum(c['valid'] for c in candidates)))
-    return {'note':'合成16広告と深さ2の人工木。CSID学習、PPO、GMVの再現ではない。',
-            'experiments':[{'name':'属性別の等頻度binで入札の群内分散を比較','dataset':'synthetic distinct bids','n':16,
+    return {'note':'Labは人工広告16件と2段の探索木で計算した。CSIDの学習、PPO、GMVの再現は行っていない。',
+            'experiments':[{'name':'属性で分けてから件数が等しい区間を作り、入札額の群内分散を比べる','dataset':'synthetic distinct bids','n':16,
                            'metrics':{'semantic_only_variance':dispersion(ads,base),
                                       'classify_then_bin_variance':dispersion(ads,tokenize(ads))}}],
             'ads':[{**a,'csid':list(tokenize(ads)[a['id']])} for a in ads], 'frames':frames}

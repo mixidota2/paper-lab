@@ -1,0 +1,381 @@
+{
+  "files": {
+    "papers/univa-commercial-sid-gar/README.md": {
+      "before": {
+        "sha256": "b4dd37a61fe047c0be4dcf6cf2c78edab26af950593449282c3f57f246cdc668",
+        "blob": "2b246381bf7248507c38dcbcb6b42c22c45a33a7"
+      },
+      "after": {
+        "sha256": "ec5f812805dd8f0fac43f776564fab0fec1edb138f70c9cac0b908831f06bffa",
+        "blob": "083339bae14b06e0c53af85ba82f0eb0f42918bb"
+      },
+      "prior_spans": [
+        [
+          8,
+          9,
+          "一次資料：[arXiv 2605.05803v2](https://arxiv.org/pdf/2605.05803v2)。判定：Must Read。\n"
+        ],
+        [
+          12,
+          13,
+          "本文と図は `lab.yaml`、モデルと数式の補足は `method.md`、原論文との対応は `mapping.md` にある。`run.py` を実行した結果は `results.json` に保存する。`site` はビルドで生成する。\n"
+        ],
+        [
+          21,
+          22,
+          "## 検証の境界\n"
+        ],
+        [
+          23,
+          24,
+          "入札額を件数が均等になる区間（bin）に分ける計算と、生成スコアに、固定した価値スコアを加えるGARの計算を実行した。各トークン列の途中（prefix）での正規化、選べないprefixの除外、beam幅を変えた場合に残る経路も確認した。比較の入力と結果は `results.json` にある。\n"
+        ],
+        [
+          25,
+          26,
+          "RQ-KMeans+、HSTU、MoE/MoR、PPO、MCTS、商用語彙の最適配分は学習・再現していない。実際の入札、配信時の絞り込み（filter）、eCPM simulator、オンラインGMV、遅延、すべてのカスケード工程を取り除けるかは未検証。CSID更新に伴う入札額（bid）の変動、長期満足度、公平性も実験していない。\n"
+        ]
+      ]
+    },
+    "papers/univa-commercial-sid-gar/lab.yaml": {
+      "before": {
+        "sha256": "34aff5871c4e449385bf54e327fc9b25c5d2cd4625e5f8d16a3a40789d7a6221",
+        "blob": "d28df811a6aceedc8dd8a6982430f652afb64c48"
+      },
+      "after": {
+        "sha256": "7e3e88cbcd597f2120d3d23b06543421b7a34f80b2877001c70fe6cef0c2723b",
+        "blob": "afc58a2e19928eca02f4bab17b97a6d05aa617b0"
+      },
+      "prior_spans": [
+        [
+          3,
+          4,
+          "title: 'UniVA: Unified Value Alignment for Generative Recommendation in Online Advertising\n  at Tencent'\n"
+        ],
+        [
+          38,
+          40,
+          "question: UniVA：広告の価値を、SID・枝選び・配信制約で揃える\nsummary: 広告の生成確率が高くても、配信できて収益につながるとは限らない。TencentのUniVAは、広告の識別子の末尾に、入札額や広告主の目標に関する情報を入れる。生成のしやすさと見込まれる価値を組み合わせて候補を選び、その配信要求で表示できる広告だけを探索する。WeChat\n  ChannelsでGMV +1.50%を報告。実験比率はv1の5%からv2の20%へ記述が変わっており、版を区別して読む。\n"
+        ],
+        [
+          42,
+          43,
+          "  scope: 一次PDF v2の本文・全付録を確認。著者報告と合成実験を分離。\n"
+        ],
+        [
+          46,
+          48,
+          "  author_claim: 著者はCommercial SID、Generation-as-Ranking（GAR）、personalized trieを組み合わせ、商用価値が符号化・探索・配信の途中で失われる問題を抑えると主張する。工業データのHR@100はGPRベースに対して相対37.04%改善した（v2\n    表2）。\n  research_bot_interpretation: 読む価値は「生成後に高価値広告を探す」前に、価値のある枝を残す設計にある。ただし比較対象は先行する広告GRのGPRであり、複数候補生成器を揃えた従来カスケード全体の削除実験ではない。後段をすべて撤去できた証拠と読むのは広げ過ぎだ。\n"
+        ],
+        [
+          53,
+          55,
+          "  problem: '広告の内容が似ていても、最適化目標、ROI目標、業種、bidは違う。意味だけのSIDでは同じ葉に価値の違う広告が集まる。さらに生成尤度だけで枝を切ると、高い収益が見込める広告を早い段階で落とす。グローバルな木で候補を出してから配信可否を調べる方式では、無効候補がbeamを消費する。\n"
+        ],
+        [
+          56,
+          60,
+          ""
+        ],
+        [
+          61,
+          62,
+          "    UniVAが対象にするのは広告の生成推薦系である。GMVは広告経由の取引総額で、広告主の入札額やプラットフォームの収益そのものとは区別する。'\n  why_it_might_work: 商用属性の似た広告を同じ入札分布内で区切れば、末尾tokenの教師信号が混ざりにくい。価値推定をprefixの選択へ戻すと、最後まで生成される前に消えていた枝へ計算を配れる。有効性のmaskは価値を推定せず、探索予算を配信可能な枝へ限定する。この3つは別の失敗を減らすため、組み合わせに意味がある。\n  evidence: '### オフラインの増分にはモデル拡張も含まれる\n"
+        ],
+        [
+          63,
+          64,
+          ""
+        ],
+        [
+          65,
+          66,
+          "    v2 表2は累積構成の比較だ。CSIDのみの相対HR@100は+5.78%、Sparse MoEまでで+18.40%、eCPM-aware RLとGARを加えると+32.01%、Full\n    UniVAで+37.04%。最後の差にはdecoderの62M→80M、8.5G→23.2G FLOPsも含む。GAR単独の寄与へ分解できない。AmazonのIndustrial/Officeでは広告属性がないためCSIDを構築せず、ratingを効用の代理として使う。\n"
+        ],
+        [
+          67,
+          68,
+          ""
+        ],
+        [
+          69,
+          70,
+          "    ### 同じbeamでも、無効枝を切る時点で残る数が変わる\n"
+        ],
+        [
+          71,
+          72,
+          ""
+        ],
+        [
+          73,
+          76,
+          "    v2 §4.4は同じfused scorer、beam=300で比較し、global探索後のfilterは有効SID 48、personalized trieは300と報告する。平均bidは1.29→11.44。これは有効SID経路数とbidの診断であり、GMVの直接測定でも全リクエストでの保証でもない。\n"
+        ],
+        [
+          77,
+          78,
+          ""
+        ],
+        [
+          79,
+          84,
+          "    ### 5%と20%は原論文の版差\n"
+        ],
+        [
+          85,
+          86,
+          ""
+        ],
+        [
+          87,
+          90,
+          "    [初版v1 表3](https://arxiv.org/pdf/2605.05803v1)は2026年3月7〜11日、5% traffic、GARなし+1.03%、あり+1.50%\n    GMV。指定された[v2 表4・§4.5](https://arxiv.org/pdf/2605.05803v2)は同じ期間を20%と記し、V0 +0.22%、V1\n    +0.36%、V2 +1.03%、V3 +1.50%を示す。比率変更の理由は本文から確定できない。v2のV3はPPO化とGAR導入を同時に含む。GMV(normal)はROI広告を除いた指標で、Fullは+1.42%。各値は同時期のproduction\n    baselineに対する相対liftである。\n\n\n    [一次資料：UniVA v2 本文・付録](https://arxiv.org/pdf/2605.05803v2)'\n  executable_understanding: '16広告を同じ意味prefixに置き、商用属性2群と群内の等頻度2binで分ける。入札の群内二乗偏差を比較する。別の深さ2の人工木では、生成logitと与えた価値を加え、softmaxの対数を累積してbeamを選ぶ。α、beam幅、事前の有効性maskを変えて、残る経路を表示する。価値は手で与えた説明用の値で、学習済みqではない。\n\n\n    <div class=\"paper-probe teaching\" data-paper-probe=\"univa-commercial-sid-gar\"><h3>GARの枝選びを操作する</h3><p>合成した木：Aは生成logitが高く、Bは価値が高い。Xは配信不可。深さ2でlog確率を累積する。</p>\n\n    <div class=\"probe-controls\"><label>価値の係数 α<select data-alpha><option>0</option><option>0.25</option><option\n    selected>0.5</option><option>1</option></select></label><label>beam幅<select data-beam><option>1</option><option\n    selected>2</option><option>3</option></select></label><label><input type=\"checkbox\"\n    data-mask checked>探索前に無効枝を除く</label></div>\n\n    <div data-probe-output aria-live=\"polite\"><p>初期値：α=0.5、beam=2、personalized trie。有効経路はB/b1とA/a1。</p></div><script\n    type=\"application/json\" data-probe-data>{\"note\": \"合成16広告と深さ2の人工木。CSID学習、PPO、GMVの再現ではない。\",\n    \"experiments\": [{\"name\": \"属性別の等頻度binで入札の群内分散を比較\", \"dataset\": \"synthetic distinct\n    bids\", \"n\": 16, \"metrics\": {\"semantic_only_variance\": 675.1875, \"classify_then_bin_variance\":\n    63.125}}], \"ads\": [{\"id\": 0, \"semantic\": \"game/rpg\", \"key\": \"conversion\", \"bid\":\n    1.0, \"csid\": [\"game/rpg\", \"conversion\", 0]}, {\"id\": 1, \"semantic\": \"game/rpg\",\n    \"key\": \"conversion\", \"bid\": 2.0, \"csid\": [\"game/rpg\", \"conversion\", 0]}, {\"id\":\n    2, \"semantic\": \"game/rpg\", \"key\": \"conversion\", \"bid\": 3.0, \"csid\": [\"game/rpg\",\n    \"conversion\", 0]}, {\"id\": 3, \"semantic\": \"game/rpg\", \"key\": \"conversion\", \"bid\":\n    4.0, \"csid\": [\"game/rpg\", \"conversion\", 0]}, {\"id\": 4, \"semantic\": \"game/rpg\",\n    \"key\": \"conversion\", \"bid\": 5.0, \"csid\": [\"game/rpg\", \"conversion\", 1]}, {\"id\":\n    5, \"semantic\": \"game/rpg\", \"key\": \"conversion\", \"bid\": 6.0, \"csid\": [\"game/rpg\",\n    \"conversion\", 1]}, {\"id\": 6, \"semantic\": \"game/rpg\", \"key\": \"conversion\", \"bid\":\n    7.0, \"csid\": [\"game/rpg\", \"conversion\", 1]}, {\"id\": 7, \"semantic\": \"game/rpg\",\n    \"key\": \"conversion\", \"bid\": 8.0, \"csid\": [\"game/rpg\", \"conversion\", 1]}, {\"id\":\n    8, \"semantic\": \"game/rpg\", \"key\": \"roi\", \"bid\": 10.0, \"csid\": [\"game/rpg\", \"roi\",\n    0]}, {\"id\": 9, \"semantic\": \"game/rpg\", \"key\": \"roi\", \"bid\": 20.0, \"csid\": [\"game/rpg\",\n    \"roi\", 0]}, {\"id\": 10, \"semantic\": \"game/rpg\", \"key\": \"roi\", \"bid\": 30.0, \"csid\":\n    [\"game/rpg\", \"roi\", 0]}, {\"id\": 11, \"semantic\": \"game/rpg\", \"key\": \"roi\", \"bid\":\n    40.0, \"csid\": [\"game/rpg\", \"roi\", 0]}, {\"id\": 12, \"semantic\": \"game/rpg\", \"key\":\n    \"roi\", \"bid\": 50.0, \"csid\": [\"game/rpg\", \"roi\", 1]}, {\"id\": 13, \"semantic\": \"game/rpg\",\n    \"key\": \"roi\", \"bid\": 60.0, \"csid\": [\"game/rpg\", \"roi\", 1]}, {\"id\": 14, \"semantic\":\n    \"game/rpg\", \"key\": \"roi\", \"bid\": 70.0, \"csid\": [\"game/rpg\", \"roi\", 1]}, {\"id\":\n    15, \"semantic\": \"game/rpg\", \"key\": \"roi\", \"bid\": 80.0, \"csid\": [\"game/rpg\", \"roi\",\n    1]}], \"frames\": [{\"alpha\": 0.0, \"width\": 1, \"personalized\": false, \"candidates\":\n    [{\"path\": \"X/x1\", \"score\": -0.720868, \"valid\": false}], \"valid_count\": 0}, {\"alpha\":\n    0.0, \"width\": 1, \"personalized\": true, \"candidates\": [{\"path\": \"A/a1\", \"score\":\n    -0.313262, \"valid\": true}], \"valid_count\": 1}, {\"alpha\": 0.0, \"width\": 2, \"personalized\":\n    false, \"candidates\": [{\"path\": \"X/x1\", \"score\": -0.720868, \"valid\": false}, {\"path\":\n    \"A/a1\", \"score\": -1.720868, \"valid\": true}], \"valid_count\": 1}, {\"alpha\": 0.0,\n    \"width\": 2, \"personalized\": true, \"candidates\": [{\"path\": \"A/a1\", \"score\": -0.313262,\n    \"valid\": true}, {\"path\": \"B/b1\", \"score\": -1.626523, \"valid\": true}], \"valid_count\":\n    2}, {\"alpha\": 0.0, \"width\": 3, \"personalized\": false, \"candidates\": [{\"path\":\n    \"X/x1\", \"score\": -0.720868, \"valid\": false}, {\"path\": \"A/a1\", \"score\": -1.720868,\n    \"valid\": true}, {\"path\": \"X/x2\", \"score\": -1.720868, \"valid\": false}], \"valid_count\":\n    1}, {\"alpha\": 0.0, \"width\": 3, \"personalized\": true, \"candidates\": [{\"path\": \"A/a1\",\n    \"score\": -0.313262, \"valid\": true}, {\"path\": \"B/b1\", \"score\": -1.626523, \"valid\":\n    true}, {\"path\": \"B/b2\", \"score\": -2.626523, \"valid\": true}], \"valid_count\": 3},\n    {\"alpha\": 0.25, \"width\": 1, \"personalized\": false, \"candidates\": [{\"path\": \"X/x1\",\n    \"score\": -0.467633, \"valid\": false}], \"valid_count\": 0}, {\"alpha\": 0.25, \"width\":\n    1, \"personalized\": true, \"candidates\": [{\"path\": \"A/a1\", \"score\": -0.575939, \"valid\":\n    true}], \"valid_count\": 1}, {\"alpha\": 0.25, \"width\": 2, \"personalized\": false,\n    \"candidates\": [{\"path\": \"X/x1\", \"score\": -0.467633, \"valid\": false}, {\"path\":\n    \"X/x2\", \"score\": -1.717633, \"valid\": false}], \"valid_count\": 0}, {\"alpha\": 0.25,\n    \"width\": 2, \"personalized\": true, \"candidates\": [{\"path\": \"A/a1\", \"score\": -0.575939,\n    \"valid\": true}, {\"path\": \"B/b1\", \"score\": -1.077869, \"valid\": true}], \"valid_count\":\n    2}, {\"alpha\": 0.25, \"width\": 3, \"personalized\": false, \"candidates\": [{\"path\":\n    \"X/x1\", \"score\": -0.467633, \"valid\": false}, {\"path\": \"X/x2\", \"score\": -1.717633,\n    \"valid\": false}, {\"path\": \"A/a1\", \"score\": -2.54266, \"valid\": true}], \"valid_count\":\n    1}, {\"alpha\": 0.25, \"width\": 3, \"personalized\": true, \"candidates\": [{\"path\":\n    \"A/a1\", \"score\": -0.575939, \"valid\": true}, {\"path\": \"B/b1\", \"score\": -1.077869,\n    \"valid\": true}, {\"path\": \"B/b2\", \"score\": -2.327869, \"valid\": true}], \"valid_count\":\n    3}, {\"alpha\": 0.5, \"width\": 1, \"personalized\": false, \"candidates\": [{\"path\":\n    \"X/x1\", \"score\": -0.325286, \"valid\": false}], \"valid_count\": 0}, {\"alpha\": 0.5,\n    \"width\": 1, \"personalized\": true, \"candidates\": [{\"path\": \"B/b1\", \"score\": -0.67549,\n    \"valid\": true}], \"valid_count\": 1}, {\"alpha\": 0.5, \"width\": 2, \"personalized\":\n    false, \"candidates\": [{\"path\": \"X/x1\", \"score\": -0.325286, \"valid\": false}, {\"path\":\n    \"X/x2\", \"score\": -1.825286, \"valid\": false}], \"valid_count\": 0}, {\"alpha\": 0.5,\n    \"width\": 2, \"personalized\": true, \"candidates\": [{\"path\": \"B/b1\", \"score\": -0.67549,\n    \"valid\": true}, {\"path\": \"A/a1\", \"score\": -0.974077, \"valid\": true}], \"valid_count\":\n    2}, {\"alpha\": 0.5, \"width\": 3, \"personalized\": false, \"candidates\": [{\"path\":\n    \"X/x1\", \"score\": -0.325286, \"valid\": false}, {\"path\": \"X/x2\", \"score\": -1.825286,\n    \"valid\": false}, {\"path\": \"B/b1\", \"score\": -2.825286, \"valid\": true}], \"valid_count\":\n    1}, {\"alpha\": 0.5, \"width\": 3, \"personalized\": true, \"candidates\": [{\"path\": \"B/b1\",\n    \"score\": -0.67549, \"valid\": true}, {\"path\": \"A/a1\", \"score\": -0.974077, \"valid\":\n    true}, {\"path\": \"B/b2\", \"score\": -2.17549, \"valid\": true}], \"valid_count\": 3},\n    {\"alpha\": 1.0, \"width\": 1, \"personalized\": false, \"candidates\": [{\"path\": \"X/x1\",\n    \"score\": -0.181913, \"valid\": false}], \"valid_count\": 0}, {\"alpha\": 1.0, \"width\":\n    1, \"personalized\": true, \"candidates\": [{\"path\": \"B/b1\", \"score\": -0.253856, \"valid\":\n    true}], \"valid_count\": 1}, {\"alpha\": 1.0, \"width\": 2, \"personalized\": false, \"candidates\":\n    [{\"path\": \"X/x1\", \"score\": -0.181913, \"valid\": false}, {\"path\": \"X/x2\", \"score\":\n    -2.181913, \"valid\": false}], \"valid_count\": 0}, {\"alpha\": 1.0, \"width\": 2, \"personalized\":\n    true, \"candidates\": [{\"path\": \"B/b1\", \"score\": -0.253856, \"valid\": true}, {\"path\":\n    \"A/a1\", \"score\": -2.126928, \"valid\": true}], \"valid_count\": 2}, {\"alpha\": 1.0,\n    \"width\": 3, \"personalized\": false, \"candidates\": [{\"path\": \"X/x1\", \"score\": -0.181913,\n    \"valid\": false}, {\"path\": \"X/x2\", \"score\": -2.181913, \"valid\": false}, {\"path\":\n    \"B/b1\", \"score\": -3.181913, \"valid\": true}], \"valid_count\": 1}, {\"alpha\": 1.0,\n    \"width\": 3, \"personalized\": true, \"candidates\": [{\"path\": \"B/b1\", \"score\": -0.253856,\n    \"valid\": true}, {\"path\": \"A/a1\", \"score\": -2.126928, \"valid\": true}, {\"path\":\n    \"B/b2\", \"score\": -2.253856, \"valid\": true}], \"valid_count\": 3}]}</script><p class=\"source-note\">出所：run.pyが計算したresults.json。論文の性能再現ではない。JavaScript無効時は初期条件を表示する。</p></div>'\n  results: 合成16広告の群内分散は675.1875→63.125。意味prefixを固定して商用群を細分化したため小さくなる。人工木ではα=0・beam=1のglobal探索が無効なX/x1を残す一方、personalized探索はA/a1を返す。α=0.5ではpersonalized探索がB/b1へ切り替わる。価値と有効性は独立に効いている。\n  what_we_verified: 等頻度binの構成、固定価値を使うGARの加算、prefixごとの正規化、有効prefixのmask、beam幅と経路の関係を実行した。比較の入力と結果はresults.jsonに残す。\n  what_we_did_not_verify: RQ-KMeans+、HSTU、MoE/MoR、PPO、MCTS、商用語彙の最適配分は学習・再現していない。実入札、配信filter、eCPM\n    simulator、オンラインGMV、遅延、全カスケード削除は未検証。CSID更新に伴うbid変動、長期満足度、公平性も実験していない。\n"
+        ],
+        [
+          92,
+          94,
+          "  implementation: '`uv run papers/univa-commercial-sid-gar/run.py` をリポジトリのルートで実行する。Python標準ライブラリのみを使い、CPUで完了する。結果はコードと同じ場所の\n    `results.json` に保存する。乱数を使う箇所はseedを固定した。ダウンロードしたrun.pyも単体で動く。'\n"
+        ],
+        [
+          97,
+          98,
+          "  title: CSIDの上位は意味、末尾は商用の区分\n"
+        ],
+        [
+          100,
+          102,
+          "  caption: 原論文v2を説明用に再構成。入札binは属性の組の内側で決める。\n  rationale: 原論文v2を説明用に再構成。入札binは属性の組の内側で決める。\n"
+        ],
+        [
+          103,
+          104,
+          "  - label: 意味の2段\n"
+        ],
+        [
+          106,
+          108,
+          "      text: multimodal表現 → RQ-KMeans+。粗い意味のまとまりを保つ。\n  - label: 商用の末尾\n"
+        ],
+        [
+          110,
+          114,
+          "      text: 最適化目標 × ROI目標 × 業種。希少な組はfallbackへ。\n    - title: 組ごとのbid分位点\n      text: 等頻度binを割り当て、ψ(k, bin)を末尾tokenにする。\n  - label: 葉の解決\n"
+        ],
+        [
+          115,
+          117,
+          "    - title: 複数広告 → 適格集合\n      text: 同じ葉を共有する広告と、その要求で配信可能な集合I(x)との共通部分を取り、残った広告のうち最大bidの広告を選ぶ。\n"
+        ],
+        [
+          120,
+          121,
+          "  title: 価値を足し、有効な枝で正規化する\n"
+        ],
+        [
+          123,
+          125,
+          "  caption: 記号を分けて、どの量を学習・計算するかを追う。\n  rationale: 記号を分けて、どの量を学習・計算するかを追う。\n"
+        ],
+        [
+          128,
+          129,
+          "    explanation: 上位L−1段は意味。末尾は属性群と群内binの一組。\n"
+        ],
+        [
+          131,
+          132,
+          "    explanation: qは、その要求と現在のprefixで次のtokenを選んだ後に見込む将来return。α=0にすると配信時の価値加算は消えるが、RL済み生成方策は残る。\n"
+        ],
+        [
+          134,
+          135,
+          "    explanation: mₓは有効なら0、無効なら−∞。各prefixで正規化し、log確率の和でbeamを選ぶ。\n"
+        ],
+        [
+          137,
+          138,
+          "    explanation: 終端eCPM由来の固定targetへ回帰。生成方策と価値を同時に学ぶ。\n"
+        ],
+        [
+          141,
+          142,
+          "  title: beam=300で残った有効SID経路\n"
+        ],
+        [
+          144,
+          146,
+          "  caption: 著者報告。同じfused scorerを使う比較。300は一意広告数や全リクエストでの下限ではない。\n  rationale: 著者報告。同じfused scorerを使う比較。300は一意広告数や全リクエストでの下限ではない。\n"
+        ],
+        [
+          149,
+          150,
+          "  - label: global探索 → filter\n"
+        ],
+        [
+          151,
+          152,
+          "  - label: personalized trie\n"
+        ],
+        [
+          156,
+          157,
+          "  title: 累積構成のHR@100改善\n"
+        ],
+        [
+          159,
+          162,
+          "  caption: すべてGPR+SID Decoder比。差分を各部品の独立した因果効果と見なさない。\n  rationale: すべてGPR+SID Decoder比。差分を各部品の独立した因果効果と見なさない。\n  unit: '% 相対'\n"
+        ],
+        [
+          164,
+          165,
+          "  - label: CSID\n"
+        ],
+        [
+          168,
+          169,
+          "  - label: eCPM RL + GAR\n"
+        ],
+        [
+          170,
+          171,
+          "  - label: Full（容量も拡大）\n"
+        ]
+      ]
+    },
+    "papers/univa-commercial-sid-gar/mapping.md": {
+      "before": {
+        "sha256": "ee57ab793ca8b61aeaf89328f9b386455702c04f2faefd7edf9912cf5968c896",
+        "blob": "4f0aad33d2fa4b8294c8afb988b4cd2663e6827b"
+      },
+      "after": {
+        "sha256": "f2f06a3ba9a6b1b8f5f8f56ea4f4c550973ded3d252e9f89e1b6ff63dbfd01c9",
+        "blob": "951e843f763a86ff7ea8e06e326440c36a9b4337"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "一次資料：[PDF v2](https://arxiv.org/pdf/2605.05803v2)。確認した論文の中には公式実装へのリンクが見つからなかった。この表で示すLabの実装は説明用に作ったもので、公式コードではない。\n"
+        ],
+        [
+          4,
+          5,
+          "| 原論文の箇所 | Labの対応 | 確認の範囲 |\n"
+        ],
+        [
+          6,
+          13,
+          "| v2 §3.1、式1–8、付録C/F.1 | CSIDの構成図、run.pyの tokenize / dispersion | 属性は2群、binは2つに固定した。語彙エントロピーの最大化は実装していない |\n| v2 §3.2、式15–16 | GARの数式、beam探索 | 与えたlogitとqを組み合わせる。ニューラルモデルは学習しない |\n| v2 §3.3、付録B | 手法の説明 | PPO・MCTS・eCPMは論文の読解のみ。実行していない |\n| v2 §3.4、式21–24 | beam探索で使うprefixのmask | 人工の探索木で、どの経路が配信条件を満たすかだけを扱う |\n| v2 §4.4 | trieの比較図 | 48 / 300は著者の報告値 |\n| v1 表3 / v2 表4 | Evidenceの実験比率の比較 | v1は5%、v2は20%。記述が変わった理由は未確定 |\n| v2 表2、付録F.1 | 構成を段階的に変えた比較図 | モデル容量の増加も伴う。多段の候補生成を削除した実験ではない |\n"
+        ]
+      ]
+    },
+    "papers/univa-commercial-sid-gar/method.md": {
+      "before": {
+        "sha256": "ad3f34436c7ac8308f7c1250febc3df7d33c694f181673a3fe0156edc0c62e71",
+        "blob": "3fc84ef2fb4558f68ca4834db268e3c5a5175be3"
+      },
+      "after": {
+        "sha256": "195b67adf33d02279fc2e0b4c2dc9e9192f5429fed95dea5e608ef8057e9a7e4",
+        "blob": "e7d112d0a6c20a630ec4e298b8d9a13e915acf2c"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### Commercial SIDの末尾には、属性の組とその組での入札額の区分を入れる\n"
+        ],
+        [
+          2,
+          3,
+          "テキスト・画像・動画の意味をRQ-KMeans+で離散的なコードにし、上位2段を残す。最終段には最適化目標o、ROI目標r、業種cを圧縮した組k=(o′,r′,c′)と、その組の中で入札額（bid）の分位点から作った区分（bin）を使う。すべての広告を入札額だけでまとめて区切るわけではない。v2付録F.1では属性の区分数は25・8・10。3件未満の組を予備の区分（fallback）にまとめ、各組に3〜25binを割り当てる。語彙予算2048の下でトークンのエントロピーを最大化する。付録CのClassify-then-Binと等頻度分割ではH=7.487、実語彙1939だった。\n"
+        ],
+        [
+          4,
+          5,
+          "複数の広告で同じCSIDを共有する。配信時は、条件を満たす広告だけを探索木の末端（葉）に残し、その葉で入札額が最大の広告を選ぶ。CSIDでは個々の広告を一意に特定できず、入札の絶対額もそのまま表さない。\n"
+        ],
+        [
+          6,
+          7,
+          "### 同じdecoderから、次のトークンのスコアと選択後の価値を出す\n"
+        ],
+        [
+          8,
+          9,
+          "HSTU encoderはUser・Organic・Environment・Item tokenを受け取る。decoderはencoderへのcross-attention、causal self-attention、sparse MoEを使い、MoRでは中間層を繰り返し使う。Fullの構成は埋め込み256、実効6層、64 routed expertsのTop-16。80Mはdecoderのパラメーター数で、encoderを含むモデル全体の数ではない。\n"
+        ],
+        [
+          10,
+          11,
+          "生成ヘッドは次のトークンのlogit o_genを出す。価値ヘッドは、途中までのトークン列（prefix）で候補aを選んだ後の商用return qφを出す。GARではo_gen+α_l qφを使う。α_lは検証データで選び、オンラインでは固定する。価値の単位と較正が異なるため、入札額をそのままlogitに足す方法ではない。[v2 式15–16](https://arxiv.org/pdf/2605.05803v2)\n"
+        ],
+        [
+          12,
+          13,
+          "### 学習ではeCPMを報酬にし、配信時は価値ヘッドを使う\n"
+        ],
+        [
+          14,
+          15,
+          "次のトークンの交差エントロピーで学習するバッチ（SL）と、強化学習（RL）のバッチを交互に使う。RLでは旧方策のbeam探索と、価値に基づくMCTSで選択の軌跡を集める。本番の順位付けに使うpCTR・pCVR部品を固定し、オフラインのシミュレーターで終端eCPMを計算する。同じリクエスト内で平均を引き、標準偏差で割る。PPOで生成方策を更新し、価値ヘッドはreturnを予測するよう回帰する。基準値V_oldは、有効なトークンに対する旧方策の確率でq_oldを加重平均したもの。MCTSとシミュレーターはオンラインでは動かさない。\n"
+        ],
+        [
+          16,
+          19,
+          "配信時は、条件を満たさないトークンを除外するmaskをGAR logitに加え、softmaxを取る。その対数をprefixに沿って足す。約500万creativeのライブラリを日次で作り、targeting・広告の配信状態・creativeの制約から、リクエストごとに探索木（trie）を作る。著者が独立したオンラインrerankerを呼ばないとしているのは、この生成経路に限られる。[v2 §3.3–3.4、付録B/F](https://arxiv.org/pdf/2605.05803v2)\n"
+        ]
+      ]
+    },
+    "papers/univa-commercial-sid-gar/results.json": {
+      "before": {
+        "sha256": "cec71255124560f3d0638b5f4aa174717f6af52146a3892303fc354d56fc105d",
+        "blob": "b3391616ce4ce1c42e0fa8c3b0015ee4fc904315"
+      },
+      "after": {
+        "sha256": "3af146b90fbde2bf0d9ac2b5b785eda480eb6ea9168c5b82912e1a4219a445ae",
+        "blob": "0baebbad5d2482e54a0363f3d316e55fa54e0901"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"合成16広告と深さ2の人工木。CSID学習、PPO、GMVの再現ではない。\",\n"
+        ],
+        [
+          4,
+          5,
+          "      \"name\": \"属性別の等頻度binで入札の群内分散を比較\",\n"
+        ]
+      ]
+    },
+    "papers/univa-commercial-sid-gar/run.py": {
+      "before": {
+        "sha256": "179f91003584c1471fa4578babc26ab5e777e8981637e09cfed317ef41559e12",
+        "blob": "80edf97b0f8ef29e4579fc9a38537dc2eefa3917"
+      },
+      "after": {
+        "sha256": "aa84608017f97f676a00f457fbe6111dc57c918dc3e388ef9f22e3ef509fefdb",
+        "blob": "a609e6baa9e8968f0e50b025427473578ba88212"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Synthetic CSID, prefix beam and GAR probe; no trained model or auction replay.\"\"\"\n"
+        ],
+        [
+          14,
+          15,
+          "        # Continuous, distinct synthetic bids: rank quantiles have no tie ambiguity.\n"
+        ],
+        [
+          61,
+          63,
+          "    return {'note':'合成16広告と深さ2の人工木。CSID学習、PPO、GMVの再現ではない。',\n            'experiments':[{'name':'属性別の等頻度binで入札の群内分散を比較','dataset':'synthetic distinct bids','n':16,\n"
+        ]
+      ]
+    }
+  }
+}
