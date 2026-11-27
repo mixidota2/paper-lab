@@ -410,7 +410,7 @@ def test_batch19_experiment_state_and_aggregation_contracts():
 def test_batch20_harness_denominators_and_intervention_boundaries():
     phrases = {
         'harness-bench': ('lab.yaml', '一つでも欠ければ不合格'),
-        'harness-r1': ('method.md', '全課題を一つにまとめた成功率とは区別'),
+        'harness-r1': ('method.md', '課題を全てまとめて成功数を割った値ではありません'),
         'harness-zero-distillation': ('lab.yaml', '各領域の率を同じ重みで平均'),
         'multi-harness-rl': ('lab.yaml', '群の全件数で平均し、その平方根'),
         'scaffold-effects-gaia': ('lab.yaml', '上限は初回呼出しを含まず'),
@@ -433,7 +433,7 @@ def test_batch20_harness_denominators_and_intervention_boundaries():
         assert '成功したタスクはそこで止める' in (ROOT/'papers/scaffold-effects-gaia'/name).read_text()
     method = (ROOT/'papers/intervention-paradox/method.md').read_text()
     assert 'rとdがどちらも定義でき、合計が正' in method and '境界ちょうどでは増減はない' in method
-    assert '同じbatchの全課題で修正前後の報酬差を平均' in (ROOT/'papers/harness-r1/lab.yaml').read_text()
+    assert '修正後の報酬から修正前の報酬を引き、同じ課題すべてで平均します' in (ROOT/'papers/harness-r1/lab.yaml').read_text()
 
 
 def test_batch21_memory_repair_and_cost_aggregation_boundaries():

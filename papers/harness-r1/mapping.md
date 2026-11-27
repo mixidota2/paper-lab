@@ -1,9 +1,10 @@
-| 論文 | このLab | 省略・公式コード |
-| --- | --- | --- |
-| 図2、付録C hooks | `run_task`、`HOOKS` | Pythonの固定hook集合に限定 |
-| §3.1 failure packet | `engineer` | 失敗型とhookのルール対応。学習なし |
-| 式1 batch reward | `evaluate`、full_batch前後 | 二値のtoy task |
-| 図4b 除去実験 | without各hook | 合成20課題。論文数値とは別 |
-| 公式実装 | [DeepExperience/Harness-R1](https://github.com/DeepExperience/Harness-R1) | 論文記載のURL。コード内部の対応・実行は未確認 |
+# 論文とLabの実験をどこで対応させたか
 
-一次資料は [arXiv v1 PDF](https://arxiv.org/pdf/2608.02276v1)。公式実装の実行は行っていない。
+| 論文で調べること | Labで確かめること | Labでは扱わないこと |
+| --- | --- | --- |
+| 実行の4箇所に処理を差し込む（図2・付録C） | `run_task` が、開始時から結果を受け取るまでの4箇所で、指定された処理だけを使います。 | モデルが自由に作ったコード |
+| 失敗した記録から修正を作る（§3.1） | `engineer` がエラーの種類に合わせて、用意した処理を選びます。 | 学習した修正役や、用意していない失敗への対応 |
+| 最初に成功した課題も含めて採点する（式1） | 修正前後の `full_batch_before` と `full_batch_after` は、最初の20課題すべてで計算します。 | WebShopの段階スコアや実モデルの報酬 |
+| 修正箇所を一つずつ外す（図4b） | 別の商品IDを持つ20課題で、処理を一つずつ外して比べます。 | 論文の成功率や、どの箇所が最も効くかの再現 |
+
+[原論文の初版](https://arxiv.org/pdf/2608.02276v1)は[公式コード](https://github.com/DeepExperience/Harness-R1)を案内しています。Labの実験は、そのコードを使わず、仕組みの一部だけを固定ルールで試しています。

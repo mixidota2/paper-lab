@@ -1,5 +1,5 @@
-"""Scripted frozen target with executable runtime hooks; rule-based engineer.
-There is no SFT/GRPO, learned editor, network, or arbitrary code execution.
+"""商品を探す関数は固定し、失敗の型に応じて前後の処理を選びます。
+モデルの学習、ネット接続、自由に生成したコードの実行は行いません。
 """
 import json
 from pathlib import Path
@@ -8,7 +8,7 @@ HOOKS = ("episode_init", "pre_decision", "pre_action", "post_feedback")
 
 
 def target(context):
-    # Immutable policy: requests a lookup unless a successful result is visible.
+    # 欲しい結果がまだなければ検索する。修正役はこの関数を変えない。
     if context.get("result") == context["wanted"]:
         return {"tool": "finish"}
     return {"tool": "lookup", "key": context["key"]}
@@ -73,7 +73,7 @@ def experiment():
     patch = engineer(failures)
     metrics = {"base": evaluate(held_out, set()), "full": evaluate(held_out, patch)}
     metrics.update({f"without_{hook}": evaluate(held_out, patch-{hook}) for hook in HOOKS})
-    return {"note": "固定ルールの修正器と固定スクリプトのtarget。未見IDでも同じ故障型を使う。学習済み修正能力や新しい故障への汎化は未検証。", "patch_hooks": sorted(patch), "experiments": [{"name": "未見の商品IDでhookを一つずつ外す", "n": {"evidence": 20, "held_out": 20}, "metrics": metrics}], "failure_example": failures[0][1], "full_batch_before": evaluate(evidence, set()), "full_batch_after": evaluate(evidence, patch)}
+    return {"note": "課題を解く関数は固定し、失敗に合わせて用意した処理を選びます。別の商品IDでも失敗の種類は同じです。学習したモデルや未知の失敗は扱いません。", "patch_hooks": sorted(patch), "experiments": [{"name": "商品IDを変え、処理を一つずつ外して比べる", "n": {"evidence": 20, "held_out": 20}, "metrics": metrics}], "failure_example": failures[0][1], "full_batch_before": evaluate(evidence, set()), "full_batch_after": evaluate(evidence, patch)}
 
 
 def compute():
