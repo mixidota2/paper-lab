@@ -1,5 +1,5 @@
 {
-  "note": "人工typed indexと線形head。HR、QPS、DAUを測らない。",
+  "note": "人工データを使い、動画と投稿者の二つの経路で候補を探す処理と、前のコードを使う確率計算を確かめました。推薦の精度、処理件数、本番のDAUは測っていません。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",

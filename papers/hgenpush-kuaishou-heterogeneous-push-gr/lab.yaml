@@ -27,9 +27,10 @@ urls:
   official_code: null
 verdict: Radar
 status: published
-question: 動画と作者の二つの経路を、同じpush候補へつなげられるか
-summary: KuaishouのHGenPushは、動画内容から作る識別子と、投稿者の情報を含む識別子の二つの経路で候補動画を集める。途中の粗い順位付けを省き、既存の最終順位付けモデルへ渡す。全構成のDAU +0.181%（p=0.04）、CTR
-  +1.577%（p=0.11）。CTRの有意差は確認できない。
+question: |-
+  通知する動画を、動画の内容や、利用者が好む投稿者からどう探すか
+summary: |-
+  KuaishouのHGenPushは、動画の内容から探す経路と、利用者が好む投稿者の動画を探す経路を使います。両経路の候補は、予備の順位付けを通さず既存の最終モデルへ渡します。著者の本番A/Bテストでは、全構成を従来方式と比べたとき、1日あたりのアクティブ利用者数が0.181%増えました（p=0.04）。通知のクリック率の差は+1.577%でしたが、5%水準で有意ではありませんでした（p=0.11）。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -42,93 +43,105 @@ source_review:
   version: v1
   pdf_sha256: 36e81449d940ab105c75bdc7e3806eccdd128bf50de1bfe0b4086890edcc2acb
   url: https://arxiv.org/pdf/2607.03362v1
-  scope: 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。
+  scope: 保存していた版を固定したPDFで、本文、式、表を確認しました。著者の報告値とLabの人工データの結果は分けています。
 core_idea:
-  author_claim: feedの長短履歴とpushのclick/send履歴を共有decoderで読み、video branchとauthor branchへ分ける。Chained-MTPで前のSIDの意味を残して軽く生成し、UCPA/GSISPOでclick後の消費行動へ整合させる。
-  research_bot_interpretation: '[PushDualGen](pushdualgen-kuaishou.html)がSIDと通知文を結ぶのに対し、HGenPushはvideoとauthorという候補の粒度を結ぶ。[VARG](varg-tmall-value-generative-retrieval.html)と同様にpre-rankを飛ばしてもrankerへの責任は残る。違いはauthorの信頼を行動から学び、そこからvideoへ戻す経路にある。'
+  author_claim: |-
+    著者は、フィードの長期・短期の行動と、通知を送った記録・開いた記録を、同じデコーダーで読みます。その結果を動画経路と投稿者経路へ渡します。前のコードを参照して次のコードを作るChained-MTPと、クリック後の再生や共有などを学習に取り込むUCPAを組み合わせます。
+  research_bot_interpretation: |-
+    [PushDualGen](pushdualgen-kuaishou.html)は動画のコードと通知文を結びます。HGenPushが結ぶのは、動画を直接探す経路と利用者が好む投稿者から動画へ戻す経路です。[VARG](varg-tmall-value-generative-retrieval.html)と同様、予備の順位付けを省いても、最後にどの候補を選ぶかは順位付けモデルが決めます。
 sections:
   overview: |-
     KuaishouのHGenPushは通知で届ける動画の候補を二つの経路で探します。動画から探す経路は、動画の特徴を3段階で表したコード（SID）を生成します。投稿者から探す経路が生成するのは、利用者が好みそうな投稿者を表す2段階のコードと、動画の特徴を表す最初のコードの組み合わせです。この経路の目的も、投稿者を通知することではなく、その投稿者の動画を探すことです。
 
     両方の経路から得た候補は、予備の順位付けを経ずに、最終的な順位を決めるモデルへ渡ります。著者が従来の通知システムと比較したA/Bテストでは、両経路を使う構成で1日あたりのアクティブ利用者数が0.181%増えました。同じ構成では、通知のクリック率とアプリ利用時間の差は5%水準で統計的に有意ではありませんでした。
-  problem: 同じジャンルでも、利用者は特定の作者にだけ継続的に反応することがある。内容類似度だけではこの差を捉えにくい。また、全SIDを独立に予測すると階層間の整合が崩れ、各tokenで重いdecoderを回すと配信費用が増える。
-  why_it_might_work: author表現をclick行動でuser表現へ合わせれば、内容だけでは見えない支持関係を取り込める。Chained-MTPは固定のinterest anchorへ前tokenのembeddingを足すため、token間の依存を残しつつTransformerの反復を減らす。ただし生成時のtoken依存そのものは残る。論文の「非自己回帰」を「全tokenが条件なしで独立に生成される」と読まない。
-  evidence: '[一次資料PDF §4 / Tables 1, 3–6](https://arxiv.org/pdf/2607.03362v1) の著者報告。
+  problem: |-
+    似た動画を投稿していても、利用者は特定の投稿者に繰り返し反応することがあります。動画の内容だけで候補を探すと、その投稿者を好む利用者に届かない場合があります。一方、好みの投稿者を見つけるだけでは、その人のどの動画を通知するかは決まりません。
 
+    候補を表す複数のコードを作るときにも、両方の条件を満たす必要があります。各段のコードを独立に選ぶと、前の段で絞った内容と後の段が合わないことがあります。反対に、コードを一つ出すたびに大きなモデルを回し直すと、候補を探す処理に時間がかかります。
+  why_it_might_work: |-
+    クリックを手がかりに、投稿者の表現を、その投稿者の動画に反応する利用者の関心に近づけます。動画内容だけでは捉えにくい、特定の投稿者を選ぶ傾向を表せるようにするためです。
 
-    | 比較 | 数値 | 条件・注意 |
+    Chained-MTPは、先に計算した利用者の関心に、前の段までに出したコードの埋め込みを足してから、次のコードを選びます。毎回Transformerを回し直さなくても、次のコードを、すでに選んだコードに応じて変えられます。論文が「自己回帰を避ける」と述べているのは、大きなデコーダーを毎段で繰り返す処理についてです。推論時に前のコードと無関係に全段を予測するわけではありません。
+  evidence: |-
+    ### 本番比較で確認したのは、全構成の1日あたりの利用者数の差
 
-    | --- | --- | --- |
+    [一次資料PDFの§4・表1、3〜6](https://arxiv.org/pdf/2607.03362v1)に、Kuaishouの著者が報告した結果があります。
 
-    | 全HGenPush / production | DAU +0.181%（p=0.04） | pushシステム、Table 6 |
+    表6は、各構成をKuaishouの従来の多段階の通知システムと比べた結果です。動画経路、クリック後の行動を使う学習方法（UCPA）、投稿者経路の順に構成を加えると、従来方式に対する1日あたりのアクティブ利用者数（DAU）の点推定は+0.126%、+0.153%、+0.181%でした。最後の+0.181%（p=0.04）は全構成のDAUの相対差で、通知をクリックした人数の増加ではありません。v3とv2の差の0.028ポイントも、投稿者経路だけの効果として独立に検定された値ではありません。
 
-    | 同上CTR | +1.577%（p=0.11） | 通知のdaily CTR。有意水準5%を満たさない |
+    著者が定義した通知のクリック率（CTR）は、その日に受け取った通知全体で測る指標です。全構成の点推定は+1.577%でしたが、p=0.11なので5%水準では上昇を確認できません。1日あたりのアプリ総利用時間も+0.148%（p=0.75）で有意ではありません。ただし、差がないと証明したわけでもありません。実験期間、各群への配信割合、信頼区間は本文から確認できません。
 
-    | 同上App Usage Duration | +0.148%（p=0.75） | 点推定の改善にとどまる |
+    ### 動画のコードを当てる精度と、候補を作る速さは別の指標
 
-    | Parallel-MTP | HR@100 0.1150 / 2.40k QPS | SID独立予測 |
+    過去のログでは、正解の識別子が生成した上位100件に入った割合（HitRate@100）を測りました。コードの後ろにある動画を展開した後の再現率でも、最終的に通知した動画の精度でもありません。表3のHitRate@100は動画経路の指標で、処理件数（QPS）は両経路を含むモデルが装置1台で1秒に処理できた最大件数です。
 
-    | DeepSeek-MTP | 0.3954 / 1.27k QPS | Transformer型依存 |
+    | コードを作る方法 | 動画のHitRate@100 | 装置1台の最大QPS |
+    | --- | ---: | ---: |
+    | 各段を独立に予測（Parallel-MTP） | 0.1150 | 2.40千件/秒 |
+    | Transformerで前の段に条件付け（DeepSeek-MTP） | 0.3954 | 1.27千件/秒 |
+    | 前のコードの埋め込みを足す（Chained-MTP） | 0.3915 | 1.70千件/秒 |
 
-    | Chained-MTP | 0.3915 / 1.70k QPS | 精度は僅かに下、QPSは約33.86%上 |
+    著者の比較では、Chained-MTPはDeepSeek-MTPよりHitRate@100がわずかに低い一方、最大QPSは約33.86%高くなりました。実際の通知を送り終えるまでの時間を測った比較ではありません。
 
+    表4では、クリックだけで学習した場合のHitRate@100は0.3964、UCPAを加えると0.3915で、正解のコードを当てる指標は少し下がりました。一方、表5はクリックだけの方式とUCPAを加えた方式を本番で比べる別の実験です。著者は、通知からの再生時間が0.43%、共有率が7.57%増えたと報告しました。この表に各指標のp値は示されていません。
+  executable_understanding: |-
+    Labは、動画のコードと、投稿者のコードに動画の最初のコードを足した組み合わせを、別々の一覧で引きます。得られた動画を一つの集合にまとめ、重複を消して、すべてを同じ人工の最終スコアで並べます。
 
-    HR@100は真のsemantic IDが生成top 100に入る割合。最終video表示のitem-level recallと同一ではない。Table 4ではclick-only HR 0.3964に対しUCPA
-    0.3915なので、消費指標との交換がある。
+    もう一つの計算では、利用者の関心を表す数値を固定し、前に選んだコードの埋め込みだけを変えます。次のコードの確率が変わることを確かめます。モデルを学習したり、推薦の精度を測ったりはしません。
+  results: |-
+    人工データでは、動画の完全なコードで探すとv1が見つかり、投稿者のコードと動画の先頭コードで探すとv1とv2が見つかります。両経路をまとめて重複を消すと2件です。別の動画コードに属するv3は、同じ投稿者を表すコードでも入りません。人工の最終スコアではv2、v1の順になります。
 
-
-    v1 videoのみ→v2 UCPA追加→v3 author追加というonline構成で、DAU点推定は0.126→0.153→0.181%。これらは各々production比であり、差の0.028 ppを独立に検定したauthorの効果とは扱わない。期間・traffic比・CIが不足するため、再現性の評価には追加情報が必要。'
-  executable_understanding: '`uv run papers/hgenpush-kuaishou-heterogeneous-push-gr/run.py`。小さいtyped indexでvideo
-    SIDとmixed author SIDの候補を展開し、合流・重複除去・既存ranker順への接続を動かす。さらに前SIDのembeddingを変え、Chained-MTPの後token分布が変わることを確認する。推薦効果や生成品質は測定しない。'
-  results: 人工indexではvideo branchがv1、author+video-prefix branchがv1/v2を返し、重複除去後の候補は2件。authorの全動画を無条件で返す経路とは違う。前tokenのembeddingを変えると後tokenの確率が変化する。全候補を通して既存rankerが順位を決める境界も確認する。
-  what_we_verified: Mechanism PARTIAL。mixed SIDで候補集合が限定されること、候補合流時の重複除去、累積embeddingによる条件依存を人工fixtureでCONFIRMED。重複除去はLabで明示した一般的な実装選択で、論文の固有規則の再現ではない。
-  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。16層decoder、RQ-Kmeans/SimVQ、InfoNCE学習、GSISPOの更新、L20上のQPS、本番DAUを再現していない。CTR改善の統計的有意性は著者表でもNOT
-    OBSERVED（5%基準）と読む。
-  implementation: '`retrieve()`はSIDの型ごとにindexを分ける。`token_probs()`はEq. 14のFFNを人工の線形headで代理し、重いbackboneを固定anchorへ置き換える。全候補へ同じ人工rankerを適用する。'
+    前のコードを変える計算では、次に1番目のコードを選ぶ確率が約0.711から約0.250へ変わりました。同じ利用者の関心でも、前のコードで後の確率が変わることを示す人工例です。
+  what_we_verified: |-
+    Labは、投稿者と動画の先頭コードの組み合わせで候補を絞れること、同じ動画が両方に出たときに一度だけ残すこと、すべての候補を同じスコアで並べることを確かめました。前のコードの埋め込みが次の確率に影響することも確認しました。重複を消す規則はLabで決めたもので、著者が本番で使った規則を再現したわけではありません。
+  what_we_did_not_verify: |-
+    Labは16層のデコーダー、投稿者のコードを作る量子化、クリックで利用者と投稿者の表現を近づける学習、GSISPOの更新を再現していません。論文のGPUでの最大QPSや本番のDAUも、独立には測っていません。表6の全構成の通知クリック率は、原論文の数値でも5%水準では有意ではありません。
+  implementation: |-
+    `retrieve()` は、動画の完全なコードと投稿者・動画の混合コードを、別々の辞書で検索します。`token_probs()` は、論文の式14で使うニューラルネットを簡単な計算に置き換えます。利用者の関心と前のコードの埋め込みを足し、その結果から次のコードの確率を求めます。`run.py` は標準ライブラリだけで動き、同じフォルダーに `results.json` を保存します。
   method: method.md
   mapping: mapping.md
 teaching_figures:
 - kind: equations
   id: chained-tokens
-  title: 固定anchorへ前SIDの意味を累積する
+  title: 利用者の関心に、前のコードの情報を足す
   after: method
   locator: Eqs. 14, 21–24
-  rationale: 固定anchorへ前SIDの意味を累積する
-  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  rationale: 前のコードを使って次を選ぶ式と、生成したコード列の学習に使う式を区別します。
+  caption: 原論文の式を、コードを作る処理と、その確率を学習に使う処理に分けました。
   steps:
-  - name: token k
+  - name: k番目のコードを選ぶ確率
     formula: p(sₖ | h,s<ₖ) = softmax(FFNₖ(h + Σⱼ<ₖ Embⱼ(sⱼ)))
-    explanation: hは共有decoderが作った利用者の関心表現で、生成中は固定する。そこへ既に生成したSID tokenの表現を足すため、prefixが変われば後続tokenの分布も変わる。
-  - name: sequence比
+    explanation: 共有デコーダーが出した利用者の関心hは、コードを作る途中では変えません。先に選んだコードの埋め込みをhに加えるので、前のコードが違えば次のコードの確率も変わります。
+  - name: コード列全体で、更新前後の確率比を求める
     formula: w = exp[(1/L) Σₖ log(pθ(sₖ|h,s<ₖ)/pold(sₖ|h,s<ₖ))]
-    explanation: 各tokenの新旧方策の確率比について、対数を平均してから指数を取る。したがって比そのものの算術平均ではなく、幾何平均になる。
-  - name: GSISPO
+    explanation: 各段のコードについて、新しいモデルと古いモデルの確率の比を求めます。比の対数を平均し、指数を取ります。比そのものの算術平均ではなく、幾何平均になります。
+  - name: 確率比を制限し、学習の重みに使う（GSISPO）
     formula: L = −(1/G) Σg sg(clip(wg,1−ε,1+ε)) Âg log πθ(sg|h)
-    explanation: clipはimportance weightに置く。通常のPPO clipと同じ操作ではない。
+    explanation: 確率比wを範囲内に収め、定数として、相対的な報酬とコード列の対数確率に掛けます。通常のPPOのように、比を掛けた目的関数の候補同士を比べて小さい方を取る処理とは異なります。
   source: https://arxiv.org/pdf/2607.03362v1
 - kind: matrix
   id: heterogeneous-evidence
-  title: author追加後の点推定と有意性を分ける
+  title: 投稿者経路を加えた全構成では、DAUの差が有意だった
   after: evidence
   locator: Table 6
-  rationale: author追加後の点推定と有意性を分ける
-  caption: すべてproduction比。p=0.00は原表の丸め表示で、厳密なゼロを意味しない。
+  rationale: 同じ従来方式との比較でも、指標ごとに結論が異なります。
+  caption: すべて従来の通知システムに対する変化率です。行と行を直接比較した検定ではありません。p=0.00は論文の丸め表示で、厳密なゼロではありません。
   columns:
-  - DAU
-  - CTR
-  - App duration
+  - 1日あたりのアクティブ利用者数（DAU）
+  - 通知のクリック率（CTR）
+  - 1日あたりのアプリ総利用時間
   rows:
-  - label: v1 video
+  - label: v1・動画経路のみ
     cells:
     - +0.126% / p=0.00
     - +0.998% / p=0.00
     - +0.095% / p=0.01
-  - label: v2 + UCPA
+  - label: v2・クリック後の行動を学習に追加
     cells:
     - +0.153% / p=0.00
     - +1.075% / p=0.02
     - +0.145% / p=0.05
-  - label: v3 + author
+  - label: v3・投稿者経路を追加
     cells:
     - +0.181% / p=0.04
     - +1.577% / p=0.11
