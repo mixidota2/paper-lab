@@ -433,7 +433,7 @@ def test_batch20_harness_denominators_and_intervention_boundaries():
 def test_batch21_memory_repair_and_cost_aggregation_boundaries():
     phrases = {
         'agent-reasoning-forgetting-externalized-state': ('lab.yaml', '削除は要求列の開始前だけに行う'),
-        'agenttether-repair': ('lab.yaml', '必要な介入間隔が空いていることを免除しない'),
+        'agenttether-repair': ('lab.yaml', 'その場合も、ほかの条件は省きません'),
         'execution-state-unlearning': ('method.md', '秘密を返した問いの割合ではない'),
         'revise-recovery': ('lab.yaml', '親の状態や副作用の検査は省かない'),
         'sgc-state-grounded-conditioning': ('lab.yaml', '見送りを挟んだ再提案は数えない'),
