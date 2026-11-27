@@ -1,4 +1,4 @@
-"""CoA entropy, exposure-capacity repair, and a Bayes ranking counterexample."""
+"""属性を知る前後の不確かさ、露出上限、順位が逆になる条件を計算する。"""
 import json
 import math
 from pathlib import Path
@@ -22,7 +22,7 @@ def capacity_repair(points, weights, centers, tolerance=1.05):
     return {"before": before, "after": loads(), "capacity": cap, "feasible": max(loads())<=cap}
 
 def compute():
-    # 4 SID tokens, two categories; the attribute is observed exactly in this toy.
+    # SIDは4種類、カテゴリは2種類とする。この例ではカテゴリを誤らず観測できる。
     joint = [(a,s) for a,ss in [("X",[0,0,1,1]),("Y",[2,2,3,3])] for s in ss]
     h = entropy(list(Counter(s for a,s in joint).values()))
     conditional = sum(.5*entropy(list(Counter(s for aa,s in joint if aa==a).values())) for a in ["X","Y"])
@@ -32,7 +32,7 @@ def compute():
     py=sum(a*b for a,b in zip(prior,engagement))
     posterior=[a*b/py for a,b in zip(prior,engagement)]
     corrected=[p*py/f for p,f in zip(posterior,prior)]
-    return {"note":"人工分布。CoAの属性予測、RQモデルの学習、Shopeeの精度は再現しない。",
+    return {"note":"Labの人工データで計算した。CoAの属性予測やRQモデルの学習、Shopeeでの精度は再現していない。",
       "experiments":[{"name":"属性条件付きエントロピー", "metrics":{"属性なし(bit)":h,"属性あり(bit)":conditional,"減少(bit)":h-conditional}},
       {"name":"Bayesの分母を省くと順位が逆転する", "metrics":{"商品A":{"p(f|u)":prior[0],"p(y=1|f,u)":engagement[0],"p(f|y=1,u)":posterior[0]},"商品B":{"p(f|u)":prior[1],"p(y=1|f,u)":engagement[1],"p(f|y=1,u)":posterior[1]}}}],
       "capacity":repair,"infeasible_heavy_item":impossible,"bayes_corrected":corrected,

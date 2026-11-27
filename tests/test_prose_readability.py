@@ -301,17 +301,17 @@ def test_batch14_training_denominators_and_candidate_boundaries():
         'gr4ad-ads-generative': ('method.md', '順位差の絶対値を、候補数に応じた最大の順位差で割っている'),
         'unique-baidu-unified-retrieval-ranking': ('lab.yaml', '一様な場合より使用率の高いコードの距離を大きくし'),
         'unir2-sequence-unify': ('method.md', '前向きの計算ではbase経路の値を使う'),
-        'unirec-chain-of-attribute': ('lab.yaml', 'その属性が現れる確率で重み付けした平均'),
+        'unirec-chain-of-attribute': ('lab.yaml', 'その属性が現れる割合に応じて平均した値'),
     }
     for slug, (name, excerpt) in expected.items():
         assert excerpt in (ROOT/'papers'/slug/name).read_text()
     unirec = (ROOT/'papers/unirec-chain-of-attribute/lab.yaml').read_text()
-    assert 'すべての生成prefixで精度が上がる保証' in (ROOT/'papers/unirec-chain-of-attribute/method.md').read_text()
-    assert '商品数の均等化ではない' in unirec
-    assert '同じ履歴・ユーザー情報を条件にすると、属性を知る前より平均では大きくならない' in unirec
-    assert '属性がSIDについて追加の情報を持つと、その分だけ小さくなる' in unirec
-    assert '正解属性を与えるteacher forcingと、誤る可能性のある属性を生成する推論は違う' in unirec
-    assert '属性段で落とした商品は後段SIDだけでは戻せない' in unirec
+    assert 'すべての生成経路で予測が当たりやすくなることまでは示していない' in (ROOT/'papers/unirec-chain-of-attribute/method.md').read_text()
+    assert '商品数の上限ではない' in unirec
+    assert '同じ履歴と利用者情報の下では、属性を知らない場合より平均が大きくなることはない' in unirec
+    assert '属性がSIDの予測に追加の情報を与えるほど平均は小さくなる' in unirec
+    assert '学習時は正解の属性を与えられるのに対し、推論時はモデルが予測する' in unirec
+    assert 'ビーム探索が属性の段で正しい候補を落とせば、続くSIDの段でその商品を取り戻せない' in unirec
     unir2 = (ROOT/'papers/unir2-sequence-unify/lab.yaml').read_text()
     assert '調整できる自由度をそろえる' in unir2
 
