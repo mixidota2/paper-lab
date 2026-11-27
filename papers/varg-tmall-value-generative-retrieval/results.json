@@ -1,5 +1,5 @@
 {
-  "note": "人工4商品・1 prefix。学習済みモデルのHRやGMVを再現していない。",
+  "note": "同じ先頭コードを持つ人工4商品で計算した。学習済みモデルのHRやGMVは再現していない。",
   "scope": {
     "address_invariants": "CONFIRMED",
     "mechanism": "PARTIAL",
@@ -9,7 +9,7 @@
   },
   "experiments": [
     {
-      "name": "新商品DをAとBの間へ追加",
+      "name": "商品DをAとBの間の価値順位に追加する",
       "metrics": {
         "old_address_retention": {
           "reorder": 0.3333333333333333,

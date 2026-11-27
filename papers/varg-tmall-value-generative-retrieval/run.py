@@ -1,4 +1,4 @@
-"""VARG Eqs. 3–6, 11–18: finite address/reward probes; no neural training."""
+"""人工データでコードを割り当て、報酬を計算する。モデルは学習させない。"""
 import json
 import math
 from pathlib import Path
@@ -55,9 +55,9 @@ def main():
     assert reward('occupied','buy',0,3) == reward('occupied','buy',0,1)
     assert reward('occupied',None,0,1) < 0
     assert abs(sum(ordinal(0,4).values())-1) < 1e-12
-    result = {'note':'人工4商品・1 prefix。学習済みモデルのHRやGMVを再現していない。',
+    result = {'note':'同じ先頭コードを持つ人工4商品で計算した。学習済みモデルのHRやGMVは再現していない。',
       'scope':{'address_invariants':'CONFIRMED','mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},
-      'experiments':[{'name':'新商品DをAとBの間へ追加','metrics':{'old_address_retention':stable,'alias_item_rate':{'initial':0,'full_reorder':alias_rate(full),'frozen':alias_rate(frozen)}}}],
+      'experiments':[{'name':'商品DをAとBの間の価値順位に追加する','metrics':{'old_address_retention':stable,'alias_item_rate':{'initial':0,'full_reorder':alias_rate(full),'frozen':alias_rate(frozen)}}}],
       'maps':{'initial':old,'full_reorder':full,'frozen':frozen},'reward_probes':probes,
       'ordinal_edge':ordinal(0,4),'eb_sparse_example':{'raw_1_of_1':1.,'smoothed_1_of_1':eb(1,1)},
       'branch_weights':{str(n):.1+.9*math.log(n)/math.log(8) for n in [1,2,4,8]}}
