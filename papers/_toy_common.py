@@ -70,7 +70,7 @@ def sid(depth):
     p = .9
     probability = p**depth
     return frame(depth, [bar('各段の正しい枝の選択率 (%)', p*100), bar('全段で正しい枝を選ぶ率 (%)', probability*100)],
-                 '各段が独立に90%で正しい枝を選ぶ仮定。途中で枝を誤ると後段だけでは目標へ戻れない。BARGEの実測精度や改善幅を表す式ではない。',
+                 'Labは、各段が独立に90%の確率で正しい枝を選ぶと仮定しました。どこかで枝を誤れば、この例ではあとから目的の候補に戻れません。BARGEの精度や改善幅を測った結果ではありません。',
                  [line('深さごとの到達率 (%)', [100*p**d for d in range(1, depth+1)])])
 
 
@@ -182,6 +182,9 @@ def compute(lab_id):
     if lab_id == 'forecast-critic':
         exercise = '警告の基準値を変え、誤警告と見逃しを数える'
         note = 'Labは架空の10件で警告の集計を確かめる。著者らの言語モデルや精度を再現したものではない。'
+    if lab_id == 'tgr':
+        exercise = '枝を選ぶ段が増えると、候補にたどり着く割合はどう変わるか'
+        note = 'Labは架空の商品IDで、各段の成功確率を掛けて到達率を求めました。著者らの推薦モデルは動かしておらず、性能も測っていません。'
     return {'note':note,
             'verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},
             'experiments':[{'name':exercise,'dataset':'deterministic synthetic','metrics':{b['label']:b['value'] for b in frames[default]['bars']}}],

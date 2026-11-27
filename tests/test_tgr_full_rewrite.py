@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from prose_preservation import before_tgr_full_rewrite, tgr_full_rewrite_hash
+from prose_preservation import before_tgr_reader_all_full_prose, before_tgr_full_rewrite, tgr_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 P = 'papers/tgr/'
@@ -31,7 +31,7 @@ def test_rewrite_keeps_overview_experiment_and_source_identity():
         ('run.py', 'e49faef30cce99388f3eeaf201d9cbb43c76d67b'),
         ('results.json', '1567811f1742c397d05fb7ce3ac7da314c1d2482'),
     ):
-        preserved = (ROOT / (P + name)).read_bytes()
+        preserved = before_tgr_reader_all_full_prose(ROOT, P+name, (ROOT / (P + name)).read_bytes())
         assert hashlib.sha1(f'blob {len(preserved)}\0'.encode() + preserved).hexdigest() == expected
 
 

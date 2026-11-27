@@ -205,7 +205,9 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = flashvector_all_full_prose_hash(root, path, expected, algorithm)
     expected = ono_reader_all_full_prose_hash(root, path, expected, algorithm)
     expected = sparse_reader_all_full_prose_hash(root, path, expected, algorithm)
-    return sgc_all_full_prose_hash(root, path, expected, algorithm)
+    expected = sgc_all_full_prose_hash(root, path, expected, algorithm)
+    expected = tgr_reader_all_full_prose_hash(root, path, expected, algorithm)
+    return genpage_reader_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -3421,6 +3423,8 @@ def forecast_critic_all_full_prose_hash(root,path,expected,algorithm='sha256'):
 
 
 def before_forecast_critic_all_full_prose(root,path,current):
+    if path == 'papers/_toy_common.py':
+        current = before_tgr_reader_all_full_prose(root,path,current)
     import base64,zlib
     row=forecast_critic_all_full_prose_for_path(root,path)
     if row is None:
@@ -3557,6 +3561,52 @@ def sgc_all_full_prose_hash(root,path,expected,algorithm='sha256'):
 def before_sgc_all_full_prose(root,path,current):
     import base64,zlib
     row=sgc_all_full_prose_for_path(root,path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
+    prior=zlib.decompress(base64.b64decode(row['prior_zlib_b64'],validate=True))
+    assert hashlib.sha256(prior).hexdigest()==row['before']['sha256'],path
+    return prior
+
+
+def tgr_reader_all_full_prose_for_path(root,path):
+    if not (path.startswith('papers/tgr/') or path=='papers/_toy_common.py'):
+        return None
+    return json.loads((root/'tests/tgr_reader_all_full_prose_hashes.json').read_text())['files'].get(path)
+
+def tgr_reader_all_full_prose_hash(root,path,expected,algorithm='sha256'):
+    row=tgr_reader_all_full_prose_for_path(root,path)
+    if row is None:
+        return expected
+    assert expected==row['before'][algorithm],path
+    return row['after'][algorithm]
+
+def before_tgr_reader_all_full_prose(root,path,current):
+    import base64,zlib
+    row=tgr_reader_all_full_prose_for_path(root,path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
+    prior=zlib.decompress(base64.b64decode(row['prior_zlib_b64'],validate=True))
+    assert hashlib.sha256(prior).hexdigest()==row['before']['sha256'],path
+    return prior
+
+
+def genpage_reader_full_prose_row(root,path):
+    if path not in {'papers/genpage-netflix-homepage/results.json','papers/genpage-netflix-homepage/run.py'}:
+        return None
+    return json.loads((root/'tests/genpage_reader_full_prose_hashes.json').read_bytes())['files'][path]
+
+def genpage_reader_full_prose_hash(root,path,expected,algorithm='sha256'):
+    row=genpage_reader_full_prose_row(root,path)
+    if row is None:
+        return expected
+    assert expected==row['before'][algorithm],path
+    return row['after'][algorithm]
+
+def before_genpage_reader_full_prose(root,path,current):
+    import base64,zlib
+    row=genpage_reader_full_prose_row(root,path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path

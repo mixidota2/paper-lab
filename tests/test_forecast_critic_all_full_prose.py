@@ -5,7 +5,7 @@ import runpy
 from xml.etree import ElementTree as E
 import pytest
 import yaml
-from prose_preservation import before_forecast_critic_all_full_prose
+from prose_preservation import before_tgr_reader_all_full_prose, before_forecast_critic_all_full_prose
 
 ROOT=Path(__file__).resolve().parents[1]
 P='papers/forecast-critic/'
@@ -14,7 +14,8 @@ FILES={P+n for n in ('lab.yaml','mapping.md','method.md','results.json','run.py'
 
 def pair(p):
     raw=(ROOT/p).read_bytes()
-    return before_forecast_critic_all_full_prose(ROOT,p,raw),raw
+    prior_for_this_test = before_tgr_reader_all_full_prose(ROOT,p,raw) if p == H else raw
+    return before_forecast_critic_all_full_prose(ROOT,p,raw),prior_for_this_test
 
 def test_exact_source_scope_and_guard_rejection():
     rows=json.loads((ROOT/'tests/forecast_critic_all_full_prose_hashes.json').read_bytes())['files']
@@ -22,7 +23,7 @@ def test_exact_source_scope_and_guard_rejection():
     for p in FILES:
         a,b=pair(p);assert a!=b
         with pytest.raises(AssertionError):
-            before_forecast_critic_all_full_prose(ROOT,p,b+b'\n')
+            before_forecast_critic_all_full_prose(ROOT,p,(ROOT/p).read_bytes()+b'\n')
 
 def test_paper_only_overview_and_figure_geometry():
     a,b=map(yaml.safe_load,pair(P+'lab.yaml'))
@@ -38,7 +39,9 @@ def test_paper_only_overview_and_figure_geometry():
 
 def test_only_target_generated_prose_changes(tmp_path):
     old=tmp_path/'old.py';old.write_bytes(pair(H)[0])
-    a,b=map(runpy.run_path,(str(old),str(ROOT/H)))
+    recorded=tmp_path/'forecast_critic_stage.py'
+    recorded.write_bytes(pair(H)[1])
+    a,b=map(runpy.run_path,(str(old),str(recorded)))
     assert tuple(a['SPECS'])==tuple(b['SPECS'])
     for k in a['SPECS']:
         u,v=a['compute'](k),b['compute'](k)
