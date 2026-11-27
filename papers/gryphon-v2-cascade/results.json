@@ -1,8 +1,8 @@
 {
-  "note": "合成分布の被覆を調べる線形 MAE toy。pair labels も教師から構成し、独立なユーザー品質を測らない。Production NOT TESTED。",
+  "note": "Labは線形モデルで、候補源によって観測できる特徴が変わる場合を調べた。前後の正解も教師から作るため、実際の利用者への推薦品質は測っていない。",
   "experiments": [
     {
-      "name": "候補源の被覆と教師への一致",
+      "name": "候補をどこから集めると、教師の点数と順序に近づくか",
       "metrics": {
         "impressions only": {
           "weights": [
@@ -43,7 +43,7 @@
       0,
       0
     ],
-    "loss": "sum of per-source mean absolute errors",
+    "loss": "候補源ごとに平均した絶対誤差を足す",
     "test_points": [
       [
         -0.9,

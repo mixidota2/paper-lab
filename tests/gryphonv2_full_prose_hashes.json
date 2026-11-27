@@ -1,0 +1,263 @@
+{
+  "files": {
+    "papers/gryphon-v2-cascade/figures/distillation.svg": {
+      "before": {
+        "sha256": "daf2c6a351488ea256b668811f967faab856b2de1409704ed5e2940080e617c8",
+        "blob": "748710a81d70691f691499409266ab882ce1a2d3"
+      },
+      "after": {
+        "sha256": "93d1dd4774782145069fe19f17a7905371d4249c487bb00cf2f8d26e0beb1151",
+        "blob": "9b74e19e7a71d218adf828f0cfc0b4d1db7e03dc"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 550\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">候補数の比率と損失の重みは違う</title><desc id=\"desc\">原典 §3.6–3.7 を基に再構成。候補源ごとの平均 MAE を係数1で加える。</desc><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0,0 L8,4 L0,8\" fill=\"#59717f\"/></marker></defs><style>text{font-family:system-ui,sans-serif;fill:#193743;font-size:20px}.small{font-size:17px}.head{font-size:25px;font-weight:700}.edge{stroke:#59717f;stroke-width:2;fill:none;marker-end:url(#arrow)}</style><rect width=\"640\" height=\"550\" rx=\"18\" fill=\"#f3f7f8\"/><text x=\"24\" y=\"38\" class=\"head\">Rollout Distillation の教師信号</text><rect x=\"24\" y=\"65\" width=\"286\" height=\"87\" rx=\"10\" fill=\"#dbeceb\"/><text x=\"40\" y=\"95\" class=\"\">現在の decoder</text><text x=\"40\" y=\"122\" class=\"\">生成・展開した Gᵤ</text><rect x=\"330\" y=\"65\" width=\"286\" height=\"87\" rx=\"10\" fill=\"#dbeceb\"/><text x=\"346\" y=\"95\" class=\"\">表示ログ</text><text x=\"346\" y=\"122\" class=\"\">表示された Mᵤ</text><path class=\"edge\" d=\"M165,152 L165,191\"/><path class=\"edge\" d=\"M473,152 L473,191\"/><rect x=\"24\" y=\"198\" width=\"592\" height=\"84\" rx=\"10\" fill=\"#dbeceb\"/><text x=\"40\" y=\"228\" class=\"\">教師モデルと生徒モデルが同じ候補を採点</text><text x=\"40\" y=\"255\" class=\"\">タスク別に |student − teacher| を計算</text><path class=\"edge\" d=\"M165,282 L165,316\"/><path class=\"edge\" d=\"M473,282 L473,316\"/><rect x=\"24\" y=\"322\" width=\"286\" height=\"65\" rx=\"10\" fill=\"#dbeceb\"/><text x=\"40\" y=\"352\" class=\"\">Gᵤ 内の平均：Lroll</text><rect x=\"330\" y=\"322\" width=\"286\" height=\"65\" rx=\"10\" fill=\"#dbeceb\"/><text x=\"346\" y=\"352\" class=\"\">Mᵤ 内の平均：Limpr</text><text x=\"24\" y=\"431\" class=\"head\">L = LNTP + Lroll + Limpr</text><text x=\"24\" y=\"473\" class=\"\">rollout が候補の90%超 ≠ 損失の重み90%</text><text x=\"24\" y=\"508\" class=\"small\">beam search へ勾配は流さない。教師は固定目標。</text></svg>"
+        ]
+      ]
+    },
+    "papers/gryphon-v2-cascade/figures/online.svg": {
+      "before": {
+        "sha256": "48ff9be7d459314ebedf1d5e40f0e1df1dac5f8ddba5b4612fadcaf54bfc4187",
+        "blob": "546dfbc6f52ae48ba383f40b2be3d755d54aebff"
+      },
+      "after": {
+        "sha256": "cd1e370684f8c81eab1ef2f2db1c7a0e9ae6a72de95f2913e92f4e67a1210930",
+        "blob": "291e8ce1bad46a98d801e7a5dfec1b2cc43cd23c"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 380\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">本番の相対差と、その解釈の境界</title><desc id=\"desc\">原典 Table 2・§6。いずれも著者報告で p&lt;0.001。蒸留単独の効果ではない。</desc><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0,0 L8,4 L0,8\" fill=\"#59717f\"/></marker></defs><style>text{font-family:system-ui,sans-serif;fill:#193743;font-size:20px}.small{font-size:17px}.head{font-size:25px;font-weight:700}.edge{stroke:#59717f;stroke-width:2;fill:none;marker-end:url(#arrow)}</style><rect width=\"640\" height=\"380\" rx=\"18\" fill=\"#f3f7f8\"/><text x=\"24\" y=\"38\" class=\"head\">Yandex Music：従来の多段構成に対する相対差</text><text x=\"24\" y=\"92\" class=\"\">Active users</text><rect x=\"24\" y=\"108\" width=\"423\" height=\"34\" rx=\"5\" fill=\"#267d78\"/><text x=\"467\" y=\"134\" class=\"\">+1.41%</text><text x=\"24\" y=\"185\" class=\"\">Total listening time</text><rect x=\"24\" y=\"201\" width=\"486\" height=\"34\" rx=\"5\" fill=\"#267d78\"/><text x=\"518\" y=\"227\" class=\"\">+1.62%</text><text x=\"24\" y=\"277\" class=\"small\">Active = 日次聴取7分以上。各群は対象の8%。</text><text x=\"24\" y=\"313\" class=\"\">測ったもの：置き換え＋蒸留＋オンライン更新</text><text x=\"24\" y=\"346\" class=\"small\">未分離：各部品の効果／長期・多様性への影響</text></svg>"
+        ]
+      ]
+    },
+    "papers/gryphon-v2-cascade/figures/serving.svg": {
+      "before": {
+        "sha256": "6e5e1bbc884959e88f4e4f32c550d49e968f8c7baafb044f07cd671e9769bb55",
+        "blob": "58dbda296859fb1dab558d1a3bf80ee891e05d70"
+      },
+      "after": {
+        "sha256": "6fdeca566c5cc1e7f9df2377690b129fc9a36f6edc5ac1343d1fa3afd3b087c8",
+        "blob": "8bae0e2a9f0e37d408c59d86a51c63317bf82664"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 640\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">最終 ranker まで配信経路から外す</title><desc id=\"desc\">原典 Figure 1・Table 4 を基に再構成。教師は学習時のみ。候補数は著者の配信設定。</desc><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0,0 L8,4 L0,8\" fill=\"#59717f\"/></marker></defs><style>text{font-family:system-ui,sans-serif;fill:#193743;font-size:20px}.small{font-size:17px}.head{font-size:25px;font-weight:700}.edge{stroke:#59717f;stroke-width:2;fill:none;marker-end:url(#arrow)}</style><rect width=\"640\" height=\"640\" rx=\"18\" fill=\"#f3f7f8\"/><text x=\"24\" y=\"38\" class=\"head\">従来の多段構成とGryphon-v2</text><rect x=\"24\" y=\"64\" width=\"592\" height=\"62\" rx=\"10\" fill=\"#dbeceb\"/><text x=\"40\" y=\"94\" class=\"\">旧：15超の候補生成器 → 約10000候補</text><path class=\"edge\" d=\"M320,126 L320,151\"/><rect x=\"24\" y=\"156\" width=\"592\" height=\"62\" rx=\"10\" fill=\"#dbeceb\"/><text x=\"40\" y=\"186\" class=\"\">prerank → 3000候補 → 最終 ranker</text><text x=\"24\" y=\"272\" class=\"head\">v2：履歴は一度だけエンコード</text><rect x=\"24\" y=\"292\" width=\"592\" height=\"62\" rx=\"10\" fill=\"#dbeceb\"/><text x=\"40\" y=\"322\" class=\"\">共有 encoder  Eᵤ（最大2048イベント）</text><path class=\"edge\" d=\"M200,354 L200,388\"/><rect x=\"24\" y=\"394\" width=\"350\" height=\"89\" rx=\"10\" fill=\"#dbeceb\"/><text x=\"40\" y=\"424\" class=\"\">SID decoder → 衝突展開</text><text x=\"40\" y=\"451\" class=\"\">1024 SID → 最大1200曲</text><path class=\"edge\" d=\"M374,436 L402,436\"/><rect x=\"410\" y=\"394\" width=\"206\" height=\"89\" rx=\"10\" fill=\"#dbeceb\"/><text x=\"426\" y=\"424\" class=\"\">Ranking Module</text><text x=\"426\" y=\"451\" class=\"\">最終順位を出力</text><path class=\"edge\" d=\"M518,354 L518,388\"/><rect x=\"24\" y=\"525\" width=\"592\" height=\"77\" rx=\"10\" fill=\"#f5e5cf\"/><text x=\"40\" y=\"555\" class=\"\">Teacher Ranker：最大8000イベント</text><text x=\"40\" y=\"582\" class=\"\">学習時の教師スコアのみ。配信には入らない。</text></svg>"
+        ]
+      ]
+    },
+    "papers/gryphon-v2-cascade/lab.yaml": {
+      "before": {
+        "sha256": "c2d4fb51ddf155ea69ca423eb5038db1dd881a1f21c333328389135a07e43176",
+        "blob": "ad439cd0641ffa99613d3c9420e2e5348cef7965"
+      },
+      "after": {
+        "sha256": "c8dddc2c4b17389602cd899b52b56ccfaa66af4d3671d9542c4143ee327fecde",
+        "blob": "04b59e0a9be85f567d30d3b454e179372ec16969"
+      },
+      "prior_spans": [
+        [
+          33,
+          35,
+          "question: 重い教師を配信せず、候補生成から最終順位まで担えるか\nsummary: Gryphon-v2 は候補生成と最終順位付けを一つのモデルにまとめる。Yandex Music の A/B では active users +1.41%、総聴取時間 +1.62%を報告。改善はシステム全体の比較で、蒸留だけの因果効果ではない。\n"
+        ],
+        [
+          42,
+          44,
+          "  author_claim: 共有 encoder、SID decoder、Ranking Module を共同学習する。現在の decoder が生成する候補と、過去に表示された曲の両方を Teacher Ranker\n    が採点し、そのスコアを蒸留する。教師は学習時だけ使い、配信では15超の候補生成器・prerank・最終 ranker を一つのモデルに置き換える。\n  research_bot_interpretation: 候補分布が鍵になる。[先行 Gryphon](gryphon-ilsm.html) の次曲予測から、最終順位を教える教師へ変えた点が大きい。TeacherRecall\n    の上昇はこの移植の成功を示すが、教師の偏りまで継承する可能性がある。\n"
+        ],
+        [
+          49,
+          51,
+          "  problem: '### 候補に入る曲と、表示したい曲は一致しない\n"
+        ],
+        [
+          52,
+          57,
+          "    SID の生成確率は次曲予測のための信号であり、like・skip など複数の目的を調整した最終順位とは異なる。先行 Gryphon は曲単位のスコアを持っても、本番 ranker を必要としていた。\n"
+        ],
+        [
+          58,
+          59,
+          ""
+        ],
+        [
+          60,
+          65,
+          "    v2 は重い Teacher Ranker の採点を、軽い Ranking Module に学習させる。教師の方が優れた本番 A/B を得たとの記載はあるが、その対照実験の結果は本論文に掲載されていない。教師の優位を独立に監査できる証拠と、蒸留後のシステムの評価は分けて扱う。'\n  method: method.md\n  why_it_might_work: 表示ログだけで学ぶと、旧システムが見せた候補に教師信号が偏る。rollout では学生自身が配信で出す候補の採点を学習させる。一方、表示曲を残せば現在の生成器が拾わない曲も教師から学べる。これは分布の被覆についての解釈であり、混合すれば常に両指標が改善するという一般則ではない。\n  evidence: '### 候補源を変えると、違う評価軸が動く\n"
+        ],
+        [
+          66,
+          67,
+          "    下表は原典 Table 3 の点推定。R は Recall@1000、T-R は TeacherRecall@10。WPA は like > play > skip > dislike のラベル順序を使い、ラベル重みの差で加重した\n    pair accuracy である。\n"
+        ],
+        [
+          68,
+          69,
+          ""
+        ],
+        [
+          70,
+          71,
+          "    | 蒸留候補 | R | T-R | WPA |\n"
+        ],
+        [
+          72,
+          73,
+          "    | --- | ---: | ---: | ---: |\n"
+        ],
+        [
+          74,
+          75,
+          "    | rollout + impressions | 0.8615 | 0.5654 | 0.5892 |\n"
+        ],
+        [
+          76,
+          79,
+          "    | rollout only | 0.8610 | 0.5618 | 0.5730 |\n"
+        ],
+        [
+          80,
+          81,
+          "    | impressions only | 0.8663 | 0.2983 | 0.5872 |\n"
+        ],
+        [
+          82,
+          85,
+          ""
+        ],
+        [
+          86,
+          92,
+          "    表示ログだけでは教師の top-10 への一致が低く、rollout だけでは表示ログ上の WPA が下がる。表の差は正式な有意差を意味しない。配信設定は MAE・学習 beam 32で固定され、後から比較した MSE\n    が一部指標で良かったことはオンライン検証ではない。\n\n\n    ### 教師一致とユーザー品質を別々に読む\n\n    TeacherRecall@k = |Topk(student) ∩ Topk(teacher)| / k は、同じ生成候補内での一致率。教師への忠実度を測る。独立な推薦品質は測らない。WPA も旧 cascade\n    の露出方針で得たログに限定される。原典 Table 1 の学生 WPA 0.5892 と教師0.6199は学習期間も2週間対1年で、対等な条件の比較ではない。\n\n\n    オンラインでは対象ユーザーの8%ずつを control と treatment に割り当てる。active users は1日の聴取7分以上で定義され、+1.41%。TLT は+1.62%、いずれも p<0.001\n    と報告する。レイテンシーは同程度で、ミリ秒単位の内訳は示されない。蒸留・構造変更・オンライン更新を含む全体の効果である。[一次資料：Table 1–4、§5–6](https://arxiv.org/html/2608.06213)。'\n  executable_understanding: '`uv run papers/gryphon-v2-cascade/run.py`\n\n\n    2特徴の線形学生を、固定の線形教師 y=0.8x₁−0.6x₂ に MAE で近づける。表示候補では x₂=0、rollout 候補では x₁=0 と意図して分ける。impression-only、rollout-only、両方の3条件を同じ初期値・2400更新で比較する。候補源ごとに教師との誤差の絶対値を合計し、その候補源の件数で割って平均を求める。得られた平均どうしを足す。全候補をまとめた平均ではない。\n\n\n    学習と異なる座標で教師誤差と pair accuracy proxy を測る。proxyは、教師が厳密な上下関係を付けた候補の組のうち、学生も同じ上下関係を付けた割合。学生の同点は一致に数えない。proxy の正解順も教師から作るため、論文のユーザーラベルによる WPA と同一ではない。衝突と再採点の例は [ILSM Lab](gryphon-ilsm.html#executable_understanding)\n    で実行できる。'\n  results: 片方の候補源だけでは、観測しない特徴の重みが初期値0のまま残る。混合すると両方向の教師信号を学べる。この例では、片方の候補源からは一方の特徴がまったく観測できないように入力を作っているので、混合による改善をそのまま本番の候補分布へ当てはめたり、原典\n    Table 3 の差の大きさを予測したりはできない。\n  what_we_verified: Mechanism PARTIAL。候補源別に正規化した MAE と、入力分布の被覆が教師再現へ与える影響を CPU toy で確認した。生成器の学習や rollout の更新は含まない。\n  what_we_did_not_verify: Performance / Scaling / Production applicability は NOT TESTED。原典の集約 A/B から個別部品の効果は分離できない。長期の満足度、アーティスト多様性、tail\n    coverage、露出集中も未評価と記載される。教師単独の A/B の詳細、最終スコアの重み、絶対レイテンシー、本番ログは独立検証できない。\n  implementation: '`fit()` は MAE の subgradient を標準ライブラリで計算する。`evaluate()` は未使用座標で誤差と順序を計算する。原典 §3.6 の候補源別損失だけを移し、Transformer・複数タスク・実\n    decoder・オンライン更新を省略した。教師が誤る場合の実ユーザー品質は扱わない。'\n  mapping: '| 原論文 | この Lab | 省略・公式実装 |\n\n"
+        ],
+        [
+          93,
+          96,
+          "\n    | [原典 HTML](https://arxiv.org/html/2608.06213)・提供 PDF | method の式と図は原典から描き直し | 原典の数値と toy の数値を分離 |\n\n    | 手法の最小機構 | `run.py` と `results.json` | ニューラルモデル・本番データを省略 |\n\n    | 公式コード | 原典で実行可能な公開URLを確認できず | 公式実装との一致は未検証 |'\n"
+        ],
+        [
+          98,
+          100,
+          "  title: 最終 ranker まで配信経路から外す\n  caption: 原典 Figure 1・Table 4 を基に再構成。教師は学習時のみ。候補数は著者の配信設定。\n"
+        ],
+        [
+          102,
+          104,
+          "  title: 候補数の比率と損失の重みは違う\n  caption: 原典 §3.6–3.7 を基に再構成。候補源ごとの平均 MAE を係数1で加える。\n"
+        ],
+        [
+          106,
+          108,
+          "  title: 本番の相対差と、その解釈の境界\n  caption: 原典 Table 2・§6。いずれも著者報告で p<0.001。蒸留単独の効果ではない。\n"
+        ]
+      ]
+    },
+    "papers/gryphon-v2-cascade/method.md": {
+      "before": {
+        "sha256": "8b0b0b7c42150622361c0bfb3db70596a9f1994a4449f71532625ad699dacfd4",
+        "blob": "e931471336839c8497960dddd0edf2774330bf97"
+      },
+      "after": {
+        "sha256": "dc6ab192e9d52211281ae5c84de28e29eb1a359daa93b23c1875e8b81df0da81",
+        "blob": "33c46ca2e9e75302b93030f51a00ecba1637b001"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 履歴を一度読み、生成と採点が同じ状態列を使う\nEᵤ=Encodehist(Hᵤ) は履歴を読んだ状態列。双方向 encoder 7層、decoder 2層、Ranking Module 1層、隠れ幅1024、全体0.5Bパラメーターを使う。学生の履歴は最大2048イベント、教師は最大8000イベント。教師の重い履歴計算は配信経路に入らない。\n"
+        ],
+        [
+          2,
+          5,
+          "生成部（decoder）は、曲のカタログ内で有効なIDだけを残すよう、接頭辞をまとめた木構造（trie）を参照する。その制約の下で、複数の有望な候補を並行して残すビーム探索を行い、SIDを生成する。SID は3 codebook、各32000要素。配信時は1024 SID を曲へ展開し、最大1200曲に抑える。上限を超える場合は低尤度 SID とその衝突集合をまとめて外す。したがって最終採点の前にも候補選別の影響が残る。\n"
+        ],
+        [
+          13,
+          14,
+          "曲表現は曲 ID と SID 接頭辞の n-gram を multi-hash embedding で表す。候補を query にして共有履歴を読み、タスク別スコアを出す。最終順位は教師と同じ固定の組み合わせを使うが、組み合わせの具体的な重みは確認した本文にない。SID の尤度は候補の採否に使い、最終順位は曲単位で決める。\n"
+        ],
+        [
+          15,
+          18,
+          "### Rollout Distillation は二つの平均誤差を足す\nGᵤ は現在の decoder を各 training step で走らせた候補、Mᵤ は同じ request の表示ログ。両方を同じ教師が採点する。r̂ᵗ は学生、rT,ᵗ は教師、T は順位付けタスクの集合である。\n"
+        ],
+        [
+          25,
+          26,
+          "LNTP は正の表示曲の SID を学ぶ next-token prediction 損失。順位の教師信号は Teacher Ranker のスコアだけであり、表示ログのラベルを Ranking Module に直接与える方式ではない。異なる候補の90%超が rollout 由来でも、損失は候補源ごとに正規化して係数1で足す。損失は90対10ではない。\n"
+        ],
+        [
+          27,
+          30,
+          "NTP は decoder と encoder を、蒸留は Ranking Module と encoder を更新する。beam search には勾配を流さない。policy gradient も使わない。[一次資料：§3、Appendix A](https://arxiv.org/html/2608.06213)。\n"
+        ]
+      ]
+    },
+    "papers/gryphon-v2-cascade/results.json": {
+      "before": {
+        "sha256": "ffff58bf013eecda13ccc764490b01133b2bda0986d1d32e3bd4af502aaa6717",
+        "blob": "c95a54f08498a2d51f74360400d97c0212099e15"
+      },
+      "after": {
+        "sha256": "f8fcacf088a9c80d3398590d004340c142410c85eb550e2a7260797a5b630b37",
+        "blob": "2319b65eac0eb1321fc2634d913d4cb3a37206cd"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"合成分布の被覆を調べる線形 MAE toy。pair labels も教師から構成し、独立なユーザー品質を測らない。Production NOT TESTED。\",\n"
+        ],
+        [
+          4,
+          5,
+          "      \"name\": \"候補源の被覆と教師への一致\",\n"
+        ],
+        [
+          45,
+          46,
+          "    \"loss\": \"sum of per-source mean absolute errors\",\n"
+        ]
+      ]
+    },
+    "papers/gryphon-v2-cascade/run.py": {
+      "before": {
+        "sha256": "977da7bda298a191a88605b9b7bcda5a41f01cbd0e8ab8826b38c1092debba1a",
+        "blob": "0d27b2a7c34a1a6b71091787e909a63b89b5bb6f"
+      },
+      "after": {
+        "sha256": "4e65ec317acfdb39d81c22d59af32b2930ae29624d8c9e471995b108c249b16c",
+        "blob": "d4607bc8a1059800f30508595defc6626f68318e"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Source-normalized MAE distillation of a tiny linear student on synthetic pools.\"\"\"\n"
+        ],
+        [
+          15,
+          16,
+          "    # Same initialization, optimizer steps and source-normalized objective.\n"
+        ],
+        [
+          37,
+          38,
+          "    # Deliberately complementary feature support. Not sampled from real impressions.\n"
+        ],
+        [
+          47,
+          50,
+          "    out = {'note': '合成分布の被覆を調べる線形 MAE toy。pair labels も教師から構成し、独立なユーザー品質を測らない。Production NOT TESTED。',\n           'experiments': [{'name': '候補源の被覆と教師への一致', 'metrics': metrics}],\n           'controls': {'steps': 2400, 'initial_weights': [0, 0], 'loss': 'sum of per-source mean absolute errors',\n"
+        ]
+      ]
+    }
+  }
+}
