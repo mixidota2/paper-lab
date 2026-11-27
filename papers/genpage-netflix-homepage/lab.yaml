@@ -37,6 +37,8 @@ sections:
     Netflixのホーム画面では、単に評価が高い作品を選ぶだけでは足りない。たとえば「視聴中の作品」を上に置くと、利用者は続きの再生を始めて、下の行を見ないことがある。同じ作品を別の行に置くと、違う作品を見つける機会も減る。行と作品の順位を別々に決める方式では、後からこうした関係を調整する必要がある。
 
     GenPageは行と作品の並びを一つの出力として扱う。ただし、本番実験でモデルに渡したのは既存システムが用意した行と作品の候補である。どの候補を出せるかの判断まで全部置き換えたわけではない。Gryphonのように、商品や作品を表す記号から候補を探す仕組みとの違いはそこにある。
+
+    <figure class="teaching batch17"><h3>GenPageはどの作業をまとめて行うか</h3><div class="b17-cards"><div><strong>既存の候補集合</strong><p>どの行と作品を候補に入れるかは、従来の処理で決めます。</p></div><div><strong>約2億パラメータのGenPage</strong><p>指示と表示済みの内容を読みます。行と先頭の作品は順に選び、行末の作品はまとめて選びます。</p></div><div><strong>ホーム画面に表示する</strong><p>重複、位置、カテゴリの制約を守って並べます。次の画面を作るときは、直近の反応も使います。</p></div></div><details><summary>モデルに渡す情報を見る</summary><div class="b17-cards"><div><strong>履歴</strong><p>作品ID、行動の種類、時刻と視聴の長さの区分</p></div><div><strong>利用者と利用場面</strong><p>言語、子ども用か大人用か、端末、時間帯</p></div><div><strong>表示済みの内容</strong><p>直前に出した行と作品、最新の反応</p></div></div></details><figcaption>論文の§2・図1、§6.3〜4、§8に基づく説明図です。GryphonのようにSIDから候補を探す部分はありません。</figcaption></figure>
   evidence: |-
     ### Netflixは既存の候補を使って並べ方を比べた
 
@@ -57,8 +59,6 @@ sections:
     Netflixの研究チームは、ホーム画面に並べる行と、それぞれの行に載せる作品を、一つのTransformerで順に決めるGenPageを提案しました。利用者の視聴履歴やすでに表示した行を入力し、既存の候補集合の中から次の行と作品を選びます。
 
     14日間のA/Bテストでは、約2億パラメータのモデルを従来の多段階の推薦と比べました。最も成績のよかった設定では、採用判断に用いる主要な利用指標が0.24%増えました（95%信頼区間は0.17〜0.30%増）。著者は、配信全体にかかる時間が20%短くなったとも報告しています。本番で試したのは、重み付きの二値分類で追加学習したモデルです。強化学習版や、既存の候補生成まで置き換える構成は、この本番比較の対象ではありません。
-
-    <figure class="teaching batch17"><h3>既存pipelineをどこまで一つにまとめるか</h3><div class="b17-cards"><div><strong>既存の候補集合</strong><p>行・作品の適格性と候補生成を継承する。ここがonline試験の外側の境界。</p></div><div><strong>GenPage 約200M / WBC</strong><p>promptと既出ページを読む → 行を選ぶ → 先頭作品を逐次生成 → 行末をまとめて選ぶ。</p></div><div><strong>配信するホーム</strong><p>重複・位置固定・カテゴリ制約を適用した行の並び。次のpaginationは直近反応を含む。</p></div></div><details><summary>promptの中身を開く</summary><div class="b17-cards"><div><strong>履歴</strong><p>作品ID / 行動 / 時間bucket / 継続時間bucket</p></div><div><strong>profile・request</strong><p>言語 / kids・adult / device / 時間帯</p></div><div><strong>既出のページ</strong><p>直前の行と作品、最新の反応</p></div></div></details><figcaption>§2・図1、§6.3–4、§8をもとにした説明図。GryphonのSID候補生成を組み込んだ図ではない。</figcaption></figure>
   why_it_might_work: |-
     モデルは、すでに上に置いた行や同じ行に置いた作品を読み、次に何を出すかを決める。行と作品をそれぞれ一つのIDで表すので、出してはいけない候補はそのIDを選択肢から外せばよい。
 

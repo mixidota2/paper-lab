@@ -7,7 +7,7 @@ import sys
 
 import pytest
 import yaml
-from prose_preservation import agentx_full_prose_hash, before_agentx_full_prose
+from prose_preservation import before_overview_figure_relocations, agentx_full_prose_hash, before_agentx_full_prose
 
 ROOT = Path(__file__).resolve().parents[1]
 P = 'papers/agentx-kuaishou/'
@@ -18,7 +18,7 @@ def test_agentx_source_receipts_reject_wrong_input_and_restore_exact_source():
     entries = json.loads((ROOT/'tests/agentx_full_prose_hashes.json').read_text())['files']
     assert set(entries) == {P+n for n in NAMES}
     for p,row in entries.items():
-        final = (ROOT/p).read_bytes()
+        final = before_overview_figure_relocations(ROOT, p, (ROOT/p).read_bytes())
         prior = before_agentx_full_prose(ROOT,p,final)
         for alg, digest in {
             'sha256': lambda b: hashlib.sha256(b).hexdigest(),
@@ -34,7 +34,7 @@ def test_agentx_source_receipts_reject_wrong_input_and_restore_exact_source():
 
 def test_agentx_preserves_exact_overview_and_reported_data():
     p=P+'lab.yaml'
-    final=(ROOT/p).read_bytes()
+    final=before_overview_figure_relocations(ROOT, p, (ROOT/p).read_bytes())
     a=yaml.safe_load(before_agentx_full_prose(ROOT,p,final))
     b=yaml.safe_load(final)
     for key in ('id','arxiv_id','authors','verification','urls','year','status','title'):
