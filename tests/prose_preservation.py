@@ -173,7 +173,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = oneranker_full_prose_hash(root, path, expected, algorithm)
     expected = muser_full_prose_hash(root, path, expected, algorithm)
     expected = univa_full_prose_hash(root, path, expected, algorithm)
-    return sam_full_prose_hash(root, path, expected, algorithm)
+    expected = sam_full_prose_hash(root, path, expected, algorithm)
+    return rest_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -1955,6 +1956,8 @@ def apollopfn_full_prose_hash(root, path, expected, algorithm='sha256'):
 
 
 def before_apollopfn_full_prose(root, path, current):
+    if path == 'papers/_toy_common.py':
+        current = before_rest_full_prose(root, path, current)
     row = apollopfn_full_prose_row(root, path)
     if row is None:
         return current
@@ -2712,6 +2715,34 @@ def sam_full_prose_hash(root, path, expected, algorithm='sha256'):
 
 def before_sam_full_prose(root, path, current):
     row = sam_full_prose_row(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def rest_full_prose_row(root, path):
+    if path != 'papers/_toy_common.py' and not path.startswith('papers/rest-sequence-ranking/'):
+        return None
+    rows = json.loads((root / 'tests/rest_full_prose_hashes.json').read_text())['files']
+    return rows.get(path)
+
+
+def rest_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = rest_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_rest_full_prose(root, path, current):
+    row = rest_full_prose_row(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
