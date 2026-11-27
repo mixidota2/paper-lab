@@ -1,4 +1,4 @@
-"""Arithmetic/causality demonstrations only: no t0 checkpoint is run."""
+"""報告値の差と人工例の情報の流れ・分位点を計算する。t0は実行しない。"""
 import json,math
 from pathlib import Path
 def skill_audit(off,on):
@@ -18,6 +18,6 @@ def ordered_quantiles(base,raw):
     for r in raw:values.append(values[-1]+max(r,0)+math.log1p(math.exp(-abs(r))))
     return values
 def main():
-    r=dict(note='t0の重みは未実行。Table 5の丸め値の算術と、人工の依存graph・分位点構成のみ。',verification=dict(mechanism='PARTIAL',performance='NOT TESTED',scaling='NOT TESTED',production_applicability='NOT TESTED'),author_value_audit=dict(known_future=skill_audit(36.7,43),past_only=skill_audit(32.9,35.6)),future_target_leak=dict(symmetric=propagate(True),asymmetric=propagate(False)),quantile_toy=ordered_quantiles(-1,[-2,0,1,2]))
+    r=dict(note='Labは表5の丸め済みの値から差を求め、人工例で情報の伝わり方と分位点の順序を確認する。t0の重みは使わない。',verification=dict(mechanism='PARTIAL',performance='NOT TESTED',scaling='NOT TESTED',production_applicability='NOT TESTED'),author_value_audit=dict(known_future=skill_audit(36.7,43),past_only=skill_audit(32.9,35.6)),future_target_leak=dict(symmetric=propagate(True),asymmetric=propagate(False)),quantile_toy=ordered_quantiles(-1,[-2,0,1,2]))
     Path(__file__).with_name('results.json').write_text(json.dumps(r,ensure_ascii=False,indent=2)+'\n')
 if __name__=='__main__':main()

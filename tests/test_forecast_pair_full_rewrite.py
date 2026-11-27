@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from prose_preservation import before_reasoncast_all_full_prose, before_forecast_pair_full_rewrite, forecast_pair_full_rewrite_hash
+from prose_preservation import before_t0_context_all_full_prose, before_reasoncast_all_full_prose, before_forecast_pair_full_rewrite, forecast_pair_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 T0 = 'papers/t0-tsfm-forecasting-with-context/'
@@ -23,7 +23,7 @@ def test_each_exact_prose_transition_replays_prior_bytes():
     rows = json.loads(receipt.read_text())['files']
     assert rows.keys() == {slug+n for slug in (RC, T0) for n in ('lab.yaml','README.md','method.md','mapping.md')}
     for p, row in rows.items():
-        raw = before_reasoncast_all_full_prose(ROOT,p,(ROOT / p).read_bytes())
+        raw = before_reasoncast_all_full_prose(ROOT,p,before_t0_context_all_full_prose(ROOT,p,(ROOT / p).read_bytes()))
         initial = before_forecast_pair_full_rewrite(ROOT, p, raw)
         a,b = identity(initial),identity(raw)
         for k in a:
@@ -39,7 +39,7 @@ def test_each_exact_prose_transition_replays_prior_bytes():
 def test_both_overviews_and_computations_are_unchanged():
     for slug in (T0, RC):
         p = slug + 'lab.yaml'
-        new = before_reasoncast_all_full_prose(ROOT,p,(ROOT / p).read_bytes())
+        new = before_reasoncast_all_full_prose(ROOT,p,before_t0_context_all_full_prose(ROOT,p,(ROOT / p).read_bytes()))
         old = before_forecast_pair_full_rewrite(ROOT,p,new)
         n,o = map(yaml.safe_load,(new,old))
         assert n['sections']['overview']==o['sections']['overview']

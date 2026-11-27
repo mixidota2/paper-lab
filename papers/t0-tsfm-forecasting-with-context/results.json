@@ -1,5 +1,5 @@
 {
-  "note": "t0の重みは未実行。Table 5の丸め値の算術と、人工の依存graph・分位点構成のみ。",
+  "note": "Labは表5の丸め済みの値から差を求め、人工例で情報の伝わり方と分位点の順序を確認する。t0の重みは使わない。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",
