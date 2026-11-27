@@ -1,0 +1,493 @@
+{
+  "files": {
+    "papers/oxygenrec-v2-idgr/README.md": {
+      "before": {
+        "sha256": "22532415d33990c30315b8d1cd7603974d107932e35621342c5ded1bbdfdb7c6",
+        "blob": "f0caac66d78d885f5b9d8bc95b198af96070dff1"
+      },
+      "after": {
+        "sha256": "afd4cdc6750cd4418a50da9a0870547dc07c1f7ddc218c9af978a746564ad63e",
+        "blob": "e03127cf80277a2fb2c247f6d60e1e7b0b870a24"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# OxygenREC-v2: Internalizing Discrimination into Generative Recommendation\n"
+        ],
+        [
+          8,
+          10,
+          ""
+        ],
+        [
+          15,
+          16,
+          "Python標準ライブラリだけで動く。実行場所に依存せず、同じフォルダーの `results.json` を更新する。\n"
+        ],
+        [
+          19,
+          20,
+          "`lab.yaml` が本文・図の定義、`method.md` が手法、`mapping.md` が原論文との対応。HTMLはgeneratorで生成する。`run.py` と `results.json` が合成実験の原本。\n"
+        ],
+        [
+          23,
+          24,
+          "Mechanism PARTIAL、Performance / Scaling / Production applicability NOT TESTED。CONFIRMEDはJSONに記した個別の算術・比較条件だけを指す。論文のモデルを訓練した結果ではない。\n"
+        ],
+        [
+          25,
+          26,
+          "[一次資料・全文](https://arxiv.org/html/2607.24255v1)。確認日：2026-09-15。詳細な未検証項目と出典上の注意はLab本文・mappingを参照。\n"
+        ]
+      ]
+    },
+    "papers/oxygenrec-v2-idgr/figures/privilege.svg": {
+      "before": {
+        "sha256": "3cb610099a309a81af335e54c8115fd1a7ca9a263cafc1794c3a55a62bba1aa5",
+        "blob": "56a4a777baed5eb91031ad0b884a985ed9fd40c3"
+      },
+      "after": {
+        "sha256": "e5e4369eaf72b3c4c6b30928450a2925c90acf6a5a6d7bc9f7d5315581443097",
+        "blob": "dd7782ad4517ec18ce1b6bee50e53a0d8db03b02"
+      },
+      "prior_spans": [
+        [
+          0,
+          22,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 470\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">教師だけに将来2商品の6トークンを加える</title><desc id=\"desc\">教師だけに将来2商品の6トークンを加える。詳細は図の説明と本文を参照。</desc><rect width=\"440\" height=\"470\" rx=\"16\" fill=\"#f4f7f6\"/><g font-family=\"sans-serif\" fill=\"#163b40\"><text x=\"22\" y=\"33\" font-size=\"20\" fill=\"#163b40\">教師だけに将来2商品の6トークンを加える</text><text x=\"22\" y=\"63\" font-size=\"14\" fill=\"#163b40\">OxygenREC-v2 / Appendix E</text><rect x=\"18\" y=\"88\" width=\"404\" height=\"105\" rx=\"9\" fill=\"#dfede8\"/><text x=\"30\" y=\"113\" font-size=\"17\" fill=\"#163b40\">Student · 配信する方策</text><text x=\"30\" y=\"142\" font-size=\"18\" fill=\"#163b40\">BOS → Iₛ → Iᵣ → Iᵦ</text><text x=\"30\" y=\"171\" font-size=\"16\" fill=\"#163b40\">SIDを生成</text><rect x=\"18\" y=\"217\" width=\"404\" height=\"105\" rx=\"9\" fill=\"#f3e3d3\"/><text x=\"30\" y=\"242\" font-size=\"17\" fill=\"#163b40\">Teacher · 訓練時のみ</text><text x=\"30\" y=\"271\" font-size=\"18\" fill=\"#163b40\">BOS → Iₛ → Iᵣ → Iᵦ</text><text x=\"30\" y=\"300\" font-size=\"16\" fill=\"#163b40\">同じ軌跡を評価</text><text x=\"250\" y=\"271\" font-size=\"16\" fill=\"#163b40\">→ F（2商品）</text><path d=\"M217 328 L217 348\" fill=\"none\" stroke=\"#628287\" stroke-width=\"2\"/><text x=\"22\" y=\"373\" font-size=\"17\" fill=\"#163b40\">低entropy → advantage付きSD</text><text x=\"22\" y=\"403\" font-size=\"16\" fill=\"#163b40\">高entropy → teacher ∥ student のKL</text><text x=\"22\" y=\"439\" font-size=\"15\" fill=\"#163b40\">共有backbone。Fはstudentへ渡さない。</text></g></svg>\n"
+        ]
+      ]
+    },
+    "papers/oxygenrec-v2-idgr/lab.yaml": {
+      "before": {
+        "sha256": "005e2c0fc9e4d0f1e99196a513dfcdd1eaf1b3843fcc074233db06803b0b03b0",
+        "blob": "a9ff59ed5c086cadb396067b4120e2084e158c5d"
+      },
+      "after": {
+        "sha256": "aa5b50583d892010c6e849875c35ed51fafdb8369506e6371b6a872579cc3e6f",
+        "blob": "4d2266fbf7070a2acda07eabf2c119070bf18efa"
+      },
+      "prior_spans": [
+        [
+          34,
+          36,
+          "question: 行動を生成前に指定し、未来情報を推論へ漏らさず学習へ使えるか\nsummary: JD.comのOxygenREC-v2は、クリック、カートへの追加、注文のどれを目指すかを指定してから、商品の識別子を生成する。学習時には実ログとの一致と、未来行動を見た同一backboneの教師を使う。IDGRの焦点は行動信号を入れる位置にある。6つの配信面のA/Bを読み分け、外部報酬モデルの除去を、サービス全体のカスケード撤去と解釈しない。\n"
+        ],
+        [
+          42,
+          44,
+          "  author_claim: 著者はIDGR（Internalizing Discrimination into Generative Recommendation）として、入力の行動指示と行動重み付き学習を提案する。追加学習のEA-TOSDは、検証可能な軌跡報酬と、教師のentropyに応じた2種類の自己蒸留を組み合わせる。単一backboneを保ち、外部の行動scorerを不要にするという主張である（§4）。\n  research_bot_interpretation: 候補を生成する前に目的を渡す設計と、生成済み候補の採点を分けて読むと違いが明確になる。ただし条件付き生成もログにない選好を保証しない。未来prefixは訓練だけに置く必要があり、外部報酬モデルがなくても、ログの偏りや損失重みの選択は残る。\n"
+        ],
+        [
+          50,
+          53,
+          "  problem: クリックされやすい商品と購入されやすい商品は一致しない。生成後にrankerで点を付けても、beamから消えた商品は戻らない。一方、生成損失と識別headの損失を共有backboneで最適化すると、その重みの調整が必要になる。原論文はこの2つの経路と、生成の入口に行動を置く経路を比較する（Figure\n    1、Appendix C）。\n  why_it_might_work: 行動指示は最初のSID tokenから参照されるため、粗い商品カテゴリを選ぶ段階で目的を変えられる。未来を見た教師は疎な完全一致報酬を補う。低entropy位置では特定tokenの方向を、高entropy位置では複数候補への確率を伝える。ただしentropyは正しさの証明ではない。自信のある誤りや、未来ログ自体の偏りまで自動で除去する機構ではない。\n  evidence: '### 全指標でProxy-RMに勝ったわけではない\n"
+        ],
+        [
+          54,
+          57,
+          ""
+        ],
+        [
+          58,
+          59,
+          "    Table 1のHR@1はv1 PT-only 4.62%、Proxy-RM 5.54%、v2 5.64%。HR@512は43.24%、43.09%、44.14%である。v1からのHR@1差は**1.02ポイント**で、相対1.02%ではない。v2は7指標中6指標でProxy-RMを上回るが、HR@128は33.76%対33.89%で下回る。\n"
+        ],
+        [
+          60,
+          61,
+          ""
+        ],
+        [
+          62,
+          63,
+          "    ### 追加学習のどこが効いたか\n"
+        ],
+        [
+          64,
+          65,
+          ""
+        ],
+        [
+          66,
+          67,
+          "    Table 4ではFKL除去でHR@512が44.14%から43.80%へ落ちる。一方、VRだけでもHR@1は5.64%で完全構成と同じ。すべての項がすべての指標を改善したとは読めない。Table 5では低・高entropy各20%の選択が各100%より良いが、20%はこの条件の実測結果であり普遍的な最適値ではない。\n"
+        ],
+        [
+          68,
+          69,
+          ""
+        ],
+        [
+          70,
+          73,
+          "    ### 6面のA/Bは母集団と更新内容を分ける\n"
+        ],
+        [
+          74,
+          77,
+          ""
+        ],
+        [
+          78,
+          82,
+          "    配信面ごとに5–20%のtraffic、5–8日間。表の比較対象は当時の本番モデルで、要旨ではOxygenREC-v1比と要約される。feed・floorの事前学習更新と、RecForUでの追加学習更新は同じ介入ではない。下表の星印はp<0.05、無印は有意差未確認。特に−2.34%のGMVを「退化なし」と証明したとは扱わない。本文では丸めた−2.3%、p=0.23と説明される。\n"
+        ],
+        [
+          83,
+          86,
+          ""
+        ],
+        [
+          87,
+          88,
+          "    要旨のGMV +2.8–6.8%は表6の全範囲ではない。ホーム面の+21.21%や負の面も残す。[一次資料：Tables 1–6、§5–6](https://arxiv.org/html/2607.24255v1#S6)。'\n  executable_understanding: '`uv run papers/oxygenrec-v2-idgr/run.py`\n\n\n    同一文脈の3つの候補群を仮定し、行動別に600件ずつ合成ログを抽出する。平滑化した条件付き頻度と、行動を無視してpoolした頻度を比較する。別の16語彙・3位置の計算では8本の軌跡をstudentから抽出し、幾何重みの報酬で1本を選ぶ。教師分布は人工的に与え、低・中・高entropyの経路と損失を計算する。'\n  results: 指示を変えると条件付き頻度が変わり、poolした対照では変わらない。これはデータ生成時に仮定した行動差を学習できるという確認である。教師の低・高entropyの間には蒸留しない帯域がある。表示するVR・SD・FKLは選択軌跡に対する値で、モデル改善量ではない。\n  what_we_verified: CONFIRMED：固定seedでの再計算、報酬の正規化、entropy閾値の厳密な不等号、選択token数での損失正規化。MechanismはPARTIAL：式の有限例を確認した範囲に限る。行動指示を学ぶTransformerや、同一backboneから作る教師は実装していない。\n  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。JD.comログ、3B-A1B MoE、近未来prefixの実データ生成、EA-TOSDの勾配学習、オンライン売上は未検証。公式実装へのリンクは確認した原論文・書誌に見当たらない。§5はofflineを3Bと記す一方、Appendix\n    G.2は0.7Bとする。この食い違いは解消できず、offline規模を断定しない。\n  implementation: '`instruction_probe()` はLaplace平滑化した頻度学習、`reward()` は式6、`gates()` は式9–10の判定、`losses()` は式11–13の数値を返す。教師は固定配列なので自己蒸留そのものの再現ではない。JSONのweighted_without_SFTにはSFT\n    anchorを含めない。原論文Algorithm 1はSFTを並行して加えるため、総学習損失と混同しない。'\n"
+        ],
+        [
+          91,
+          92,
+          "  title: 行動をいつ使うかで、変えられる対象が違う\n"
+        ],
+        [
+          94,
+          96,
+          "  caption: 生成前の条件、学習の採点、生成後の採点を並べる。\n  rationale: 生成前の条件、学習の採点、生成後の採点を並べる。\n"
+        ],
+        [
+          97,
+          100,
+          "  - 方式\n  - 行動信号の入口\n  - 作用\n"
+        ],
+        [
+          101,
+          102,
+          "  - label: 外部RM\n"
+        ],
+        [
+          103,
+          107,
+          "    - OneRec / OneMall型\n    - 生成後に別rankerが報酬\n    - 方策の追加学習\n  - label: 生成・識別の共同学習\n"
+        ],
+        [
+          108,
+          112,
+          "    - GDM / Suffix Head\n    - 出力headへ行動loss\n    - 共有表現と候補内の順位\n  - label: IDGR\n"
+        ],
+        [
+          113,
+          116,
+          "    - OxygenREC-v2\n    - prefix Iᵦ＋ログ一致＋EA-TOSD\n    - 最初のtokenから条件付け\n"
+        ],
+        [
+          119,
+          120,
+          "  title: 最良軌跡の報酬と、2つの蒸留経路\n"
+        ],
+        [
+          122,
+          124,
+          "  caption: 原式の条件付けと正規化を保ち、記号をUnicodeで表記。\n  rationale: 原式の条件付けと正規化を保ち、記号をUnicodeで表記。\n"
+        ],
+        [
+          125,
+          126,
+          "  - name: 条件付き生成・式3\n"
+        ],
+        [
+          127,
+          132,
+          "    explanation: Iᵦが全生成位置の入力になる。\n  - name: 幾何報酬・式5–7\n    formula: ωₜ = γᵗ⁻¹ / Σⱼ₌₁ᴸ γʲ⁻¹; Rᵢ = Σₜ₌₁ᴸ ωₜ 𝟙[ŷᵢ,ₜ = y*ₜ]; k = argmaxᵢ Rᵢ; LVR = E[−Rₖ Σₜ log πS(ŷₖ,ₜ | X,\n      ŷₖ,<ₜ)]\n    explanation: 一致はtoken単位。位置ごとの幾何重みの総和を一にして、一致した位置の重みを足す。選択軌跡の全tokenをRₖで重み付けするため、不一致位置のlog確率も損失に含まれる。\n  - name: 教師の確信度・式8–10\n"
+        ],
+        [
+          133,
+          135,
+          "    explanation: gˡₜ=𝟙[Hᵀₜ<τₗ]、gʰₜ=𝟙[Hᵀₜ>τₕ]。各gをΣⱼgⱼ+εで割った値がg̃。低・高の経路ごとに、選ばれた位置の数とεの和で正規化する。どの位置も選ばれない経路の損失はゼロになる。\n  - name: 低entropy・式11\n"
+        ],
+        [
+          136,
+          138,
+          "    explanation: advantage側へ勾配を戻さない。負のadvantageもあり得る。\n  - name: 高entropy・式12\n"
+        ],
+        [
+          139,
+          141,
+          "    explanation: 向きはteacherからstudent。複数の妥当な候補の質量を伝える。\n  - name: 結合・式13とAlgorithm 1\n"
+        ],
+        [
+          142,
+          143,
+          "    explanation: 既定λ=.1、β=ζ=.01。Algorithm 1ではさらにλsft LSFTを加える。\n"
+        ],
+        [
+          146,
+          147,
+          "  title: 固定文脈へ別の行動を強制する\n"
+        ],
+        [
+          149,
+          151,
+          "  caption: 著者報告のHR@512（%）。Actualは実際のtarget行動による条件付け。\n  rationale: 著者報告のHR@512（%）。Actualは実際のtarget行動による条件付け。\n"
+        ],
+        [
+          152,
+          155,
+          "  - click部分集合\n  - cart部分集合\n  - order部分集合\n"
+        ],
+        [
+          156,
+          157,
+          "  - label: Actual\n"
+        ],
+        [
+          161,
+          162,
+          "  - label: Force click\n"
+        ],
+        [
+          166,
+          167,
+          "  - label: Force cart\n"
+        ],
+        [
+          171,
+          172,
+          "  - label: Force order\n"
+        ],
+        [
+          179,
+          180,
+          "  title: 6面のA/B：有意差と負の値も残す\n"
+        ],
+        [
+          182,
+          184,
+          "  caption: すべて本番比の相対変化。*はp<0.05。RecForUは本文では商品詳細面と説明される。\n  rationale: すべて本番比の相対変化。*はp<0.05。RecForUは本文では商品詳細面と説明される。\n"
+        ],
+        [
+          185,
+          188,
+          "  - UCTR\n  - UCTCVR\n  - GMV\n"
+        ],
+        [
+          189,
+          190,
+          "  - label: 1 Budget & Free Shipping / homepage\n"
+        ],
+        [
+          194,
+          195,
+          "  - label: 2 Billion Subsidy / feed\n"
+        ],
+        [
+          199,
+          200,
+          "  - label: 3 Budget & Free Shipping / feed\n"
+        ],
+        [
+          204,
+          205,
+          "  - label: 4 Seckill / feed\n"
+        ],
+        [
+          209,
+          210,
+          "  - label: 5 Add-to-Cart Overlay\n"
+        ],
+        [
+          214,
+          215,
+          "  - label: 6 RecForU\n"
+        ],
+        [
+          222,
+          224,
+          "  title: 指示だけを変えて候補の確率を見る\n  caption: 3種類の人工ログから学んだ頻度表。表8の再現値ではなく、行動を入力に持つ場合と持たない場合の違いを調べる。\n"
+        ],
+        [
+          226,
+          228,
+          "  title: 未来情報の境界\n  caption: 式8–12・Appendix Eを再構成。teacherの6 token offsetを合わせて損失を取る。\n"
+        ]
+      ]
+    },
+    "papers/oxygenrec-v2-idgr/mapping.md": {
+      "before": {
+        "sha256": "cb41fab78ff50bc209a801f0f3d3de417e1196fc0e9dfaa62f0981fbd99f3281",
+        "blob": "f7e6024b05b5fe7b415679d1fbc664f4e4b92238"
+      },
+      "after": {
+        "sha256": "477b7a571cdeabf4842285170249a106126326933d6ab437b18cc034c1a1db7f",
+        "blob": "950254f45cb4a589248ba34a345d8fa0dd60fe22"
+      },
+      "prior_spans": [
+        [
+          0,
+          3,
+          "| 原論文の場所 | Labの対応 | 実装の範囲 |\n"
+        ],
+        [
+          4,
+          10,
+          "| 図1、付録C | 行動を使う位置が異なる3方式の比較 | 推論で候補を生成する入力と、生成後に候補を採点する処理を図で区別した。 |\n| 式3–4、付録B | 行動指示を変える実験 | `instruction_probe()` は頻度だけを使って候補の確率を求める。原論文のモデルではない。 |\n| 式5–7 | 報酬で生成列を選ぶ計算 | `reward()` で人工の生成列8本を採点する。 |\n| 式8–13、Algorithm 1 | 教師のエントロピーによる蒸留経路の選択と損失計算 | `gates()` と `losses()` で計算する。教師あり微調整（SFT）や勾配による学習は実行しない。 |\n| 表6 | 配信面ごとのA/Bテスト | 著者の報告値で、独立には再現していない。 |\n| 表8 | 行動を強制した比較表 | 原論文の値で、Labの人工データで得た値とは分けて示す。 |\n"
+        ],
+        [
+          11,
+          12,
+          "[原論文v1の全文](https://arxiv.org/html/2607.24255v1)を本文から付録Hまで確認した。公式コードへのリンクは原論文とarXivの書誌情報では確認できていない。`run.py` はこのLabが作った教材であり、著者の実装ではない。本番の性能、規模を拡大した場合の動作、本番への適用はこのLabでは確認していない。\n"
+        ],
+        [
+          13,
+          14,
+          "オフライン検証のモデル規模は§5では3B、付録G.2では0.7Bとあり、どちらかには断定できない。表10の既定の教師と表3の成績が最も良い教師は区別する。表6の各配信面の結果は、要旨にあるGMV変化率の範囲では置き換えない。この論文が扱うのはv1からのシステム更新であり、サービス全体で段階的な処理が廃止されたことを確認した資料ではない。\n"
+        ]
+      ]
+    },
+    "papers/oxygenrec-v2-idgr/method.md": {
+      "before": {
+        "sha256": "06f53fe0e3a6e40b66527558f6063e292450f87aaa1c958d4db609e21a77595c",
+        "blob": "3dad68006c56bf7e70fef00bd22b6e5b24bca832"
+      },
+      "after": {
+        "sha256": "4189f01eef4edf1f224c2c9fa49a54053f34049592680f941e45fe9738bb1ea3",
+        "blob": "b276d7a0a82313d66050bd0f6c01e7ac6d5c7fa4"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 商品IDを生成する前に、目指す行動を指定する\n"
+        ],
+        [
+          2,
+          3,
+          "商品は残差量子化で得た3つのトークンからなるID（SID）で表す。各段のコードブックには8192個の候補がある。ユーザーの短期・長期の行動履歴とプロフィールはエンコーダーへ渡す。デコーダーには配信面の指示 Iₛ、ユーザーの意図を示す信号からニアラインでLLMが作る推論の埋め込み Iᵣ、行動の指示 Iᵦ を渡す。本番の構成はMoEで、3Bパラメータのうち1Bが活性化する。[論文§3、付録G](https://arxiv.org/html/2607.24255v1#S3)\n"
+        ],
+        [
+          4,
+          5,
+          "Iᵦ は自由入力の文章ではない。click・cart・orderにそれぞれ予約トークンがあり、共通の埋め込み表から対応するベクトルを取り出して2層の射影 ψ に通す。付録B.2では、負側の傾きが0.01のLeakyReLUとドロップアウトを使う。デコーダーの先頭には [BOS, Iₛ, Iᵣ, Iᵦ] の順に置く。学習時は実際に起きた行動を指定し、配信時はその面で目指す行動を指定する。\n"
+        ],
+        [
+          6,
+          7,
+          "### 露出だけの例を除き、実際の行動を学習に使う\n"
+        ],
+        [
+          8,
+          9,
+          "予測対象の行動が重複した場合は、order > cart > click > exposure の順に優先する。予測対象を展開し、露出だけで終わった例は除く。行動の既定の重みは click=1.2、cart=1.5、order=2.0。複数商品をまとめて学習するときは、N個の商品を L=3N 個のトークンに展開する。式6の幾何重みはこの列の先頭から通しで数えた位置 t に掛かる。Labでも商品ごとに重みをリセットしない。\n"
+        ],
+        [
+          10,
+          11,
+          "### 未来の行動を渡すのは学習時の教師だけ\n"
+        ],
+        [
+          12,
+          13,
+          "教師と生徒は同じ基盤モデルを使う。教師の入力だけに、時刻 t₀ より後（tⱼ>t₀）の対象から選んだ最大2商品のSIDを追加する。商品ごとに3トークンを使い、足りない分は埋めて固定6トークンの入力 F にする。生徒には F を渡さず、学習で同じ予測位置を比べるときは教師側を6トークン分ずらす。付録Eの表10で既定とされるのは露出を含む版だが、表3で良いのは露出だけの例を除くClick版である。既定の設定と比較で最も良かった設定は同じではない。\n"
+        ],
+        [
+          14,
+          15,
+          "実ログの正解トークンと一致する位置で報酬を計算し、報酬が最も高い生成列を選ぶ。教師の分布は、その列の各位置で評価する。教師のエントロピー Hᵀ<0.75 なら自己蒸留（SD）を、Hᵀ>2.6 なら教師から生徒への前向きKL（FKL）を使う。どちらのしきい値と等しい点も、両者の間にある点も蒸留の対象にしない。エントロピーが高い位置も、前向きKLの対象にする。[論文の式5–13、Algorithm 1](https://arxiv.org/html/2607.24255v1#S4)\n"
+        ],
+        [
+          16,
+          17,
+          "### 注文の指示を固定しても、すべての行動に有利とは限らない\n"
+        ],
+        [
+          18,
+          19,
+          "下の表は同じ評価文脈で指示 Iᵦ だけを変えた著者の結果である。注文を強制すると、注文の部分集合の成績はほぼ維持する。一方、クリックの部分集合のHR@512は42.99から34.54へ下がる。目指す行動を変えた比較であり、すべてのユーザーに注文を固定する根拠にはならない。図4のLDAは行動のラベルを使って射影しており、教師なしで自然に分離した証拠とは区別する。\n"
+        ]
+      ]
+    },
+    "papers/oxygenrec-v2-idgr/results.json": {
+      "before": {
+        "sha256": "23037427403919beee8feb2a80a7aa6bfcdedf61d2d47d1ef9f881583ab37ddc",
+        "blob": "03f41250c4d979d618aa506190ca7313115676cc"
+      },
+      "after": {
+        "sha256": "d3a52edff9cdc5d9d5e255889c134992b1fdaa9f4b666918effe2a63f23c34ec",
+        "blob": "573a78045e38f0f4d47f0625fbafbbf735eef0bc"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "  \"note\": \"合成ログの条件付き頻度と式6・8–13の算術検証。MoE、自己蒸留の学習、JD.comの成果は再現していない。\",\n"
+        ],
+        [
+          130,
+          131,
+          "    \"label\": \"行動指示（0=click / 1=cart / 2=order）\",\n"
+        ],
+        [
+          152,
+          153,
+          "        \"note\": \"指示=click。同じ文脈で学習済み頻度表の条件だけを変更。業務上の行動確率やHRではない。\"\n"
+        ],
+        [
+          171,
+          172,
+          "        \"note\": \"指示=cart。同じ文脈で学習済み頻度表の条件だけを変更。業務上の行動確率やHRではない。\"\n"
+        ],
+        [
+          190,
+          191,
+          "        \"note\": \"指示=order。同じ文脈で学習済み頻度表の条件だけを変更。業務上の行動確率やHRではない。\"\n"
+        ]
+      ]
+    },
+    "papers/oxygenrec-v2-idgr/run.py": {
+      "before": {
+        "sha256": "861b044e51ddfcb298d6f5eae5233ee9a738a28bfc03e662b6b6ac1068ffe915",
+        "blob": "e61eca2157310c8fca9486f645110b41b700e55e"
+      },
+      "after": {
+        "sha256": "5d0f6ab702040ab18868515f531b17b2add712fc206a10a43a192048378d7d2b",
+        "blob": "e0acb8365a7cf66dcad61ee638596186a9dd2c5f"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Finite categorical probes, not training OxygenREC-v2. Python stdlib only.\"\"\"\n"
+        ],
+        [
+          42,
+          43,
+          "    # Assumed item-class distributions; learn frequency estimates from sampled logs.\n"
+        ],
+        [
+          44,
+          45,
+          "    counts = [[1.0] * 3 for _ in assumed]  # Laplace smoothing\n"
+        ],
+        [
+          54,
+          55,
+          "    names = ['click', 'cart', 'order']\n"
+        ],
+        [
+          57,
+          58,
+          "               'note': f'指示={names[i]}。同じ文脈で学習済み頻度表の条件だけを変更。業務上の行動確率やHRではない。'} for i, row in enumerate(probes)]\n"
+        ],
+        [
+          66,
+          67,
+          "    return {'seed': 15, 'note': '合成ログの条件付き頻度と式6・8–13の算術検証。MoE、自己蒸留の学習、JD.comの成果は再現していない。',\n"
+        ],
+        [
+          72,
+          73,
+          "            'explorer': {'label': '行動指示（0=click / 1=cart / 2=order）', 'unit': '', 'metric': '合成候補群の確率（%）', 'default': 0, 'frames': frames}}\n"
+        ]
+      ]
+    }
+  }
+}

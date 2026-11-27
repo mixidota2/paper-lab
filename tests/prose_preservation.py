@@ -166,7 +166,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = spotify_causal_full_prose_hash(root, path, expected, algorithm)
     expected = youtube_rationales_full_prose_hash(root, path, expected, algorithm)
     expected = unirec_full_prose_hash(root, path, expected, algorithm)
-    return lige_full_prose_hash(root, path, expected, algorithm)
+    expected = lige_full_prose_hash(root, path, expected, algorithm)
+    return oxygenrec_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -2509,6 +2510,34 @@ def lige_full_prose_hash(root, path, expected, algorithm='sha256'):
 
 def before_lige_full_prose(root, path, current):
     row = lige_full_prose_row(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def oxygenrec_full_prose_row(root, path):
+    if not path.startswith('papers/oxygenrec-v2-idgr/'):
+        return None
+    rows = json.loads((root / 'tests/oxygenrec_full_prose_hashes.json').read_text())['files']
+    return rows.get(path)
+
+
+def oxygenrec_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = oxygenrec_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_oxygenrec_full_prose(root, path, current):
+    row = oxygenrec_full_prose_row(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

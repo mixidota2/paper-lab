@@ -359,7 +359,7 @@ def test_batch17_cascade_comparison_units_and_loss_denominators():
         'oneranker-ads': ('lab.yaml', '集合内の並び順の一致は測らない'),
         'onetrans-v2-cascade-unification': ('method.md', '同じ目的を持つ候補には同じ点を加えます'),
         'muser-baidu-long-sequence-multi-interest': ('lab.yaml', '分母は異なる組の数ではない'),
-        'oxygenrec-v2-idgr': ('lab.yaml', '不一致位置のlog確率も損失に含まれる'),
+        'oxygenrec-v2-idgr': ('lab.yaml', '一致しなかった位置の対数確率も損失に入る'),
     }
     for slug, (name, excerpt) in expected.items():
         assert excerpt in (ROOT/'papers'/slug/name).read_text()
