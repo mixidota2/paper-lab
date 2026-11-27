@@ -169,7 +169,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = lige_full_prose_hash(root, path, expected, algorithm)
     expected = oxygenrec_full_prose_hash(root, path, expected, algorithm)
     expected = varg_full_prose_hash(root, path, expected, algorithm)
-    return pushdualgen_full_prose_hash(root, path, expected, algorithm)
+    expected = pushdualgen_full_prose_hash(root, path, expected, algorithm)
+    return oneranker_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -2596,6 +2597,34 @@ def pushdualgen_full_prose_hash(root, path, expected, algorithm='sha256'):
 
 def before_pushdualgen_full_prose(root, path, current):
     row = pushdualgen_full_prose_row(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def oneranker_full_prose_row(root, path):
+    if not path.startswith('papers/oneranker-ads/'):
+        return None
+    rows = json.loads((root / 'tests/oneranker_full_prose_hashes.json').read_text())['files']
+    return rows.get(path)
+
+
+def oneranker_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = oneranker_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_oneranker_full_prose(root, path, current):
+    row = oneranker_full_prose_row(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

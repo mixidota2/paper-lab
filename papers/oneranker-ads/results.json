@@ -81,12 +81,12 @@
       ]
     }
   ],
-  "counterexample": "A wrong teacher is also imitated; missing candidates cannot be recovered.",
+  "counterexample": "教師が誤っていても生成側は模倣する。候補に含まれない広告は戻せない。",
   "not_tested": [
-    "causal attention",
-    "interest coverage",
-    "production eCPM",
-    "latency",
-    "GMV"
+    "因果マスク付きの注意機構",
+    "拾える興味の広さ",
+    "本番のeCPM",
+    "応答時間",
+    "取引総額"
   ]
 }
