@@ -2,7 +2,7 @@
   "lab28": "harness",
   "frames": [
     {
-      "label": "PASS：確認済みの読取",
+      "label": "PASS：セルを読む案をそのまま使う",
       "proposal": "read cell A1",
       "decision": "PASS",
       "executed": "read cell A1",
@@ -14,7 +14,7 @@
       ]
     },
     {
-      "label": "REPLACE：上書き前に退避",
+      "label": "REPLACE：上書きより先にバックアップする",
       "proposal": "overwrite workbook",
       "decision": "REPLACE",
       "executed": "backup workbook then edit cell A1",
@@ -26,7 +26,7 @@
       ]
     },
     {
-      "label": "REPLACE：結果を確認",
+      "label": "REPLACE：終える前にセルを読み直す",
       "proposal": "finish",
       "decision": "REPLACE",
       "executed": "reload workbook and check cell A1",
@@ -45,7 +45,7 @@
   "checks": {
     "rejected_excluded": true
   },
-  "note": "教育用の人工例。原論文の学習・性能・本番効果は再現していない。",
+  "note": "Labは架空の提案から採用案を選びます。元のモデルを学習させたり、性能や本番での効果を測ったりはしていません。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",
