@@ -265,7 +265,7 @@ def test_batch12_generation_training_and_serving_boundaries():
         'cq-sid-eg-grpo-tmall': ('method.md', '配信時に正解SIDを渡す仕掛けではない'),
         'pushdualgen-kuaishou': ('lab.yaml', '学習時に文面の損失を加えると、共有する重みは更新される。'),
         'hgenpush-kuaishou-heterogeneous-push-gr': ('lab.yaml', '比そのものの算術平均ではなく、幾何平均'),
-        'univa-commercial-sid-gar': ('lab.yaml', 'α=0にすると配信時の価値加算は消えるが、RL済み生成方策は残る'),
+        'univa-commercial-sid-gar': ('lab.yaml', 'α=0にすると配信時に価値を足さなくなるが、強化学習で更新した生成方策は残る'),
         'flashtrie-gpu-beam': ('lab.yaml', '現在までの候補列に続く枝が辞書にあるときだけ'),
     }
     for slug, (name, excerpt) in expected.items():

@@ -1,8 +1,8 @@
 {
-  "note": "合成16広告と深さ2の人工木。CSID学習、PPO、GMVの再現ではない。",
+  "note": "Labは人工広告16件と2段の探索木で計算した。CSIDの学習、PPO、GMVの再現は行っていない。",
   "experiments": [
     {
-      "name": "属性別の等頻度binで入札の群内分散を比較",
+      "name": "属性で分けてから件数が等しい区間を作り、入札額の群内分散を比べる",
       "dataset": "synthetic distinct bids",
       "n": 16,
       "metrics": {
