@@ -1,0 +1,521 @@
+{
+  "files": {
+    "papers/lige-gr-meta-listwise/README.md": {
+      "before": {
+        "sha256": "4f10cc2c4dd2a143bab91f11ad7a40fb61692ffa73a7b658cf4c0051ea38163f",
+        "blob": "69d174dc2f90a86e5c02c205a3b6b8dc863545fe"
+      },
+      "after": {
+        "sha256": "3893b7163a384e42003f892995aa6bd0cc4b6cc96280a865cc026c6bd2f5a050",
+        "blob": "56eae5ff5cb008cdeeb70fe779cc03c90e5b5d6a"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# LIGE-GR: A Smooth Leap from Ranking to Generative Recommendation in the LLM Era\n"
+        ],
+        [
+          6,
+          7,
+          "優先度: Must Read。確認日: 2026-09-21。\n"
+        ],
+        [
+          9,
+          11,
+          ""
+        ],
+        [
+          17,
+          18,
+          "## Overview\n"
+        ],
+        [
+          19,
+          20,
+          "動画を個別に評価する既存の順位付けモデルを残しつつ、すでに選んだ動画との関係を次の動画の選択に反映する。既存の予測や業務上の制約を引き継げるので、運用の責任分担を保ったまま段階的に切り替えられる。Instagram ReelsとFacebook Videoの7日間のA/Bテストでは、視聴時間（Time spent）がそれぞれ+1.14%と+0.72%だった。いずれも、選んだ動画の並びを考慮する予測器（CA）を使ったbeam 1の基本構成での結果である。\n"
+        ],
+        [
+          21,
+          22,
+          "## Problem\n"
+        ],
+        [
+          23,
+          24,
+          "各動画を独立に採点して高得点順に並べても、似た話題が続けば、後から出す動画の価値は変わる。従来も制約を扱う層（CL）が多様性の確保や禁止条件の適用を担っていたが、予測器自体はそれまでに選んだ動画を考慮しない。LIGE-GRが変えるのは、数百件ある既存の候補から約10件の並びを作る部分である。全カタログを対象にSIDを生成する方式ではない。\n"
+        ],
+        [
+          25,
+          26,
+          "## Core Idea\n"
+        ],
+        [
+          27,
+          28,
+          "既存の予測器（CF）が各候補について作った表現を、すでに選んだ動画の並びを読む予測器（CA）が更新する。Paletteはその予測を使い、並び全体の評価値（ListVM）が高くなるように候補を探索する。既存のCLとCFは残しているため、追加部分を止めて元の順位付けに戻せる。\n"
+        ],
+        [
+          29,
+          30,
+          "解釈: [Sona](sona-yandex-music.html)・[Gryphon-v2](gryphon-v2-cascade.html)のcascade置換とは移行単位が違う。[OGR](ogr-once-generated-ranked.html)・[GenPage](genpage-netflix-homepage.html)のslate統合とも、候補空間と生成責任を分けて比較したい。\n"
+        ],
+        [
+          31,
+          32,
+          "## モデル / 手法\n"
+        ],
+        [
+          33,
+          34,
+          "[method.md](method.md) の図と数式を読む。\n"
+        ],
+        [
+          35,
+          36,
+          "## Why It Might Work\n"
+        ],
+        [
+          37,
+          38,
+          "次の動画を選ぶたびに重いCFを再計算するのではなく、小さいCAで並びの中の関係を見直す。たとえば同じ話題が続いて価値が下がる場合や、別の動画を組み合わせると価値が上がる場合を扱う。既存モデルの予測を使いながら探索を追加できるのはこのためである。後ろの動画ほど、視聴者がそこまで進む確率で重み付けすれば、届かない価値を過大に見積もりにくい。ただし、候補に入っていない動画は選べず、継続確率の推定誤差は後ろの位置ほど積み重なる。\n"
+        ],
+        [
+          39,
+          40,
+          "## Evidence\n"
+        ],
+        [
+          41,
+          42,
+          "[原典 §4–5・Tables 1–4](https://arxiv.org/html/2609.18148v1) の著者報告。Reelsはcontrol/treatment各1.5%、FBはtreatment約2%と同程度のcontrolで、両方7日間。Time spentの差は両面でp<0.001。\n"
+        ],
+        [
+          43,
+          44,
+          "| 指標 | Reels | Facebook Video |\n"
+        ],
+        [
+          45,
+          49,
+          "| Time spent | +1.14% | +0.72% |\n| Video views | +2.28% | −0.52% |\n| Likes / reactions | +2.65% | +1.59% |\n| Sessions | +0.11% | +0.07% |\n"
+        ],
+        [
+          50,
+          51,
+          "Facebook Videoでは視聴時間が増えた一方、視聴回数は減った。体験全体の改善を、すべての指標が改善したという意味で受け取らない。Reelsで推薦した動画の内訳を調べると、公開後72時間未満の動画の割合も−0.66%だった。\n"
+        ],
+        [
+          52,
+          53,
+          "基本構成で増えた推論資源は、CF部分が使う資源の約10%に相当する。サービス全体の計算量に対する割合ではない。Reelsではリクエスト全体の応答時間が約+7%、Facebook Videoでは配信処理の平均レイテンシーが約+2.2%だった。測定範囲が異なり、直接比較はできない。候補を絞るとCA経路が単位時間に処理できる量は60–80%増えたが、処理時間が60–80%減ったわけではない。beam 6が必要とする追加資源はbeam 1の約2.1倍で、CF比の約20%はこれらの数字から求めた値である。\n"
+        ],
+        [
+          54,
+          55,
+          "Table 3では、どの構成もCAを使う。探索幅だけをbeam 6に広げると視聴時間は+0.05%で、評価関数をgoldenに替え、動画の長さを考慮した将来価値の推定も使うbeam 6では+0.69%だった。各行はbeam 1の基本構成と別々に比べた値なので、従来方式と比べた+1.14%にそのまま足すことはできない。\n"
+        ],
+        [
+          56,
+          57,
+          "## Executable Understanding\n"
+        ],
+        [
+          58,
+          59,
+          "同じ7候補、3枠、禁止条件のもとで、個別採点、CA beam 1、golden beam 6、上位だけを残す絞り込み（top-3 pool）、処理の予算を使い切った場合を比べる。全順列を列挙して最大値も求める。予測値は人工的に設定して固定したため、探索で高得点の並びを見つけても、CAの学習がうまくいく証拠にはならない。`uv run papers/lige-gr-meta-listwise/run.py`。\n"
+        ],
+        [
+          60,
+          61,
+          "## Results\n"
+        ],
+        [
+          62,
+          63,
+          "視聴が続く確率で重み付けした同じ評価値で比べると、動画を個別に評価した並びとCA beam 1の並びは、どちらも14.732だった。この条件ではCAだけによる順位の改善は観察できなかった（NOT OBSERVED）。golden beam 6では21.754になったが、全順列を調べたときの最大値22.512には届かなかった。候補を絞り込んだとき（top-3 pool）も、このbeam設定の評価値は21.754のままで、評価回数は72から12に減った。ただし候補4が外れるので、全候補を使ったときの最適な並びは作れない。この比較で数えたのは評価回数であり、GPUの処理能力は測っていない。\n"
+        ],
+        [
+          64,
+          65,
+          "## What We Verified\n"
+        ],
+        [
+          66,
+          67,
+          "仕組みを一部確認した（Mechanism PARTIAL）。有限個の候補から重複や禁止された並びを除き、各位置まで視聴が続く確率を掛けて、並び全体の評価値を求めた。処理の予算を使い切ったときの並びが、動画を個別に採点した基準方式（pointwise baseline）の結果と一致することをassertで確認した。全順列の最大値との比較に加え、候補を絞ると探索できる並びが減ることも記録した。\n"
+        ],
+        [
+          68,
+          69,
+          "## What We Did NOT Verify\n"
+        ],
+        [
+          70,
+          71,
+          "性能、規模拡大、本番への適用は未検証（Performance / Scaling / Production applicability: NOT TESTED）。CAの学習、実ログでのNE、A/Bテストの差、GPUの処理能力、実際の経過時間で打ち切った場合の動作、投稿の鮮度や投稿者の多様性への効果は再現していない。将来価値の見積もりが実際に得られる最大値以上になる保証はなく、有限幅のビーム探索で最適解が見つかる保証もない。\n"
+        ],
+        [
+          72,
+          73,
+          "## Implementation\n"
+        ],
+        [
+          74,
+          75,
+          "`score()`はEq. 9の到達確率積、`future()`はEq. 12/14、`decode()`はAlgorithm 1/2の制約付き拡張と復帰を表す。候補のグループに応じた減点は、CAの代わりにLabで設けた規則である。Paletteの公式実装ではない。\n"
+        ],
+        [
+          76,
+          77,
+          "Python標準ライブラリだけで実行する。乱数を使う実験はseedを固定し、結果をコードと同じ場所に保存する。\n"
+        ],
+        [
+          78,
+          79,
+          "## Original Paper / Official Code Mapping\n"
+        ],
+        [
+          80,
+          81,
+          "[mapping.md](mapping.md)\n"
+        ]
+      ]
+    },
+    "papers/lige-gr-meta-listwise/lab.yaml": {
+      "before": {
+        "sha256": "83d35184eb9167aacdf865e6569c1bd87bbf8ef696b6ca1115f4ddffa696c81b",
+        "blob": "b73e13d39a9c31540060af36df025a36133236a8"
+      },
+      "after": {
+        "sha256": "728d91d08d4863c2bc7df5164566747effab3ac58288cc375356414986016074",
+        "blob": "762b9738baf3cb8b6d547bdd2bb97ded3d24fb55"
+      },
+      "prior_spans": [
+        [
+          28,
+          30,
+          "question: 既存rankerを残したまま、推薦する順番を学習できるか\nsummary: LIGE-GRは既存候補poolの中で列を生成する追加型の設計。beam 1の7日A/BでReels視聴時間+1.14%、FB+0.72%。FB視聴回数−0.52%も併記する。\n"
+        ],
+        [
+          37,
+          39,
+          "  author_claim: 既存の予測器（CF）が作った表現を、選択済みの動画の並びを読む予測器（CA）で更新する。その予測を使い、動画の並び全体の評価値（ListVM）が高くなるようにPaletteで候補を探索する。既存CLとCFを保持するため、追加部分を停止して元の順位付けへ戻せる。\n  research_bot_interpretation: '[Sona](sona-yandex-music.html)・[Gryphon-v2](gryphon-v2-cascade.html)のcascade置換とは移行単位が違う。[OGR](ogr-once-generated-ranked.html)・[GenPage](genpage-netflix-homepage.html)のslate統合とも、候補空間と生成責任を分けて比較したい。'\n"
+        ],
+        [
+          44,
+          48,
+          "  problem: 高得点の動画を独立に並べても、似た話題が連続すれば後続動画の価値は変わる。従来のcontrol layer（CL）は多様性や禁止条件を補うが、予測自体は選択済みの列を見ていない。そこで、数百件の既存候補poolから約10件の列を作る部分を更新する。全カタログからSIDを生成する問題までは解いていない。\n"
+        ],
+        [
+          49,
+          51,
+          "  why_it_might_work: 重いCFを各位置で再計算せず、小さいCAに列内の飽和や補完関係だけを担わせるので、既存rankerの精度を捨てずに探索を追加しやすい。継続確率の重み付けは、到達されない後半の価値を過大評価しにくくする。一方、候補poolの外に正解がある場合は回復できず、継続確率の誤差は後半へ累積する。\n  evidence: '一次資料の著者報告。\n"
+        ],
+        [
+          52,
+          55,
+          ""
+        ],
+        [
+          56,
+          57,
+          "    [原典 §4–5・Tables 1–4](https://arxiv.org/html/2609.18148v1) の著者報告。Reelsはcontrol/treatment各1.5%、FBはtreatment約2%と同程度のcontrolで、両方7日間。Time\n    spentの差は両面でp<0.001。\n"
+        ],
+        [
+          58,
+          59,
+          ""
+        ],
+        [
+          60,
+          66,
+          "    | 指標 | Reels | Facebook Video |\n"
+        ],
+        [
+          67,
+          68,
+          "    | --- | ---: | ---: |\n"
+        ],
+        [
+          69,
+          70,
+          "    | Time spent | +1.14% | +0.72% |\n"
+        ],
+        [
+          71,
+          72,
+          "    | Video views | +2.28% | −0.52% |\n"
+        ],
+        [
+          73,
+          74,
+          "    | Likes / reactions | +2.65% | +1.59% |\n"
+        ],
+        [
+          75,
+          76,
+          "    | Sessions | +0.11% | +0.07% |\n"
+        ],
+        [
+          77,
+          80,
+          ""
+        ],
+        [
+          81,
+          86,
+          "    FBは視聴時間が増えても視聴回数が減る。体験全体の改善を、全指標の一方向の改善と言い換えない。Reelsの構成診断では72時間未満の新しい動画の割合も−0.66%だった。\n"
+        ],
+        [
+          87,
+          90,
+          ""
+        ],
+        [
+          91,
+          92,
+          "    追加推論資源は基本構成でCF部分の約10%。サービス全体の計算量の10%ではない。Reelsのend-to-end request latencyは約+7%、FBの平均serving latencyは約+2.2%で、定義が違うため直接比較しない。pool削減による60–80%はCA経路のthroughput増加であり、処理時間60–80%削減ではない。beam\n    6はbeam 1の約2.1倍の追加資源を要し、CF比約20%は導出値である。\n\n\n    Table 3ではCAを共通に、beam 6のみへの変更はTime spent +0.05%。golden + duration-awareのbeam 6は+0.69%だった。各行はbeam 1に対する独立比較で、+1.14%へ単純に足さない。'\n  executable_understanding: 同じ7候補・3枠・禁止条件でpointwise、CA beam 1、golden beam 6、top-3 pool、時間予算超過を比較する。小さい全順列oracleも計算する。予測値は固定した人工値であり、探索がよい列を見つけてもCAを学習できた証拠にはならない。`uv\n    run papers/lige-gr-meta-listwise/run.py`。\n  what_we_verified: Mechanism PARTIAL。有限候補で重複と禁止遷移を排除し、継続確率に沿って価値を累積した。時間切れ時の列がpointwise baselineと一致することをassertで確認。全順列の最大値と比較できる。候補削減が探索可能な列を狭める様子も記録した。\n  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。CAの学習、実ログでのNE、A/B差、GPU throughput、実時間timeout、鮮度・creator多様性への効果は再現していない。将来価値推定が許容的な上界である保証もなく、有限beamは最適性を保証しない。\n  implementation: '`score()`はEq. 9の到達確率積、`future()`はEq. 12/14、`decode()`はAlgorithm 1/2の制約付き拡張と復帰を表す。candidateのgroupによる減点はLab独自のCA代理。実装をPaletteの公式版と呼ばない。\n\n\n    Python標準ライブラリだけで実行する。乱数を使う実験はseedを固定し、結果をコードと同じ場所に保存する。'\n  results: 同じ継続重み付き目的で、pointwiseとCA beam 1はともに14.732（CA単独の順位改善はNOT OBSERVED）。golden beam 6は21.754へ上がるが、全順列oracleの22.512には届かない。top-3\n    poolもこのbeam設定では21.754のまま、評価回数は72から12へ減る。ただし候補4を除くのでoracleの列は失われる。これは演算回数の比較で、GPU throughputの再現ではない。\n"
+        ],
+        [
+          96,
+          97,
+          "  title: 到達確率を価値と探索へ渡す\n"
+        ],
+        [
+          98,
+          99,
+          "  caption: 原典の説明・報告値を学習用に再構成。独立再現ではない。\n"
+        ],
+        [
+          100,
+          102,
+          "  locator: §3.2–3.3 / Eqs. 9–14\n  rationale: 到達確率を価値と探索へ渡す\n"
+        ],
+        [
+          103,
+          104,
+          "  - name: その位置まで届く確率\n"
+        ],
+        [
+          105,
+          107,
+          "    explanation: p(空列)=1。動画単体の確率と累積到達確率を分ける。\n  - name: 列の期待価値\n"
+        ],
+        [
+          108,
+          110,
+          "    explanation: 前の位置まで視聴が続く確率で、その位置の価値を重み付けする。CL=−∞の候補は加算前に除外する。\n  - name: 探索の判定\n"
+        ],
+        [
+          111,
+          112,
+          "    explanation: 残り位置j=1…T−t。全長では将来項は0。\n"
+        ],
+        [
+          114,
+          115,
+          "  title: 何を置き換える研究か\n"
+        ],
+        [
+          116,
+          117,
+          "  caption: LIGE-GR本文と関連Labを基に整理した比較メモ。Sona・Gryphon-v2・OGR・GenPageへのリンクは本文のCore Ideaに掲載。\n"
+        ],
+        [
+          118,
+          120,
+          "  locator: §1–2・§7\n  rationale: 何を置き換える研究か\n"
+        ],
+        [
+          121,
+          124,
+          "  - 候補空間\n  - 残すもの\n  - 生成の責任\n"
+        ],
+        [
+          127,
+          130,
+          "    - 既存の数百候補\n    - retrieval・CF・CL\n    - 候補内の順序列\n"
+        ],
+        [
+          132,
+          135,
+          "    - SIDからカタログ候補\n    - 業務制約\n    - 候補生成と最終rank\n"
+        ],
+        [
+          137,
+          140,
+          "    - 各論文のslate空間\n    - 固有の制約・表現\n    - slate生成の統合\n"
+        ],
+        [
+          142,
+          143,
+          "  title: beamを広げる効果と評価関数の効果\n"
+        ],
+        [
+          144,
+          145,
+          "  caption: 原典の説明・報告値を学習用に再構成。独立再現ではない。\n"
+        ],
+        [
+          146,
+          148,
+          "  locator: Table 3\n  rationale: beamを広げる効果と評価関数の効果\n"
+        ],
+        [
+          149,
+          152,
+          "  - 目的\n  - beam\n  - TS差 vs beam 1\n"
+        ],
+        [
+          153,
+          154,
+          "  - label: 基本\n"
+        ],
+        [
+          155,
+          156,
+          "    - vanilla\n"
+        ],
+        [
+          157,
+          159,
+          "    - 基準\n  - label: 探索だけ\n"
+        ],
+        [
+          160,
+          161,
+          "    - vanilla\n"
+        ],
+        [
+          163,
+          164,
+          "  - label: 継続・動画長も考慮\n"
+        ],
+        [
+          165,
+          166,
+          "    - golden + Fdur\n"
+        ]
+      ]
+    },
+    "papers/lige-gr-meta-listwise/mapping.md": {
+      "before": {
+        "sha256": "9515639dbf3d325b79252b0245fc8a07acb73f050598fa46c203283b78d61bd0",
+        "blob": "2f5db9e84d662acccf39a9ee5f6cc60d906ff9f9"
+      },
+      "after": {
+        "sha256": "5bb1663059ebfe76069e54ef6797bf49466bb49c8d3fbbe872acbd7a6ee189e9",
+        "blob": "d8154a29634b2bd74de59390b7294503d78118d1"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# Original Paper / Official Code Mapping\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料: [LIGE-GR: A Smooth Leap from Ranking to Generative Recommendation in the LLM Era](https://arxiv.org/html/2609.18148v1)。本文・実験・限界・付録を確認（2026-09-21）。キャッシュは `/tmp/research-2026-09-21/2609.18148.html`。HTML SHA-256: `fdef5a1acc124ad2687d95b0964e4c27ab599f62ffdc1568f5f5131b5513ed7f`。\n"
+        ],
+        [
+          4,
+          5,
+          "| 原典 | Labの対応 | 省略した処理・確認できる範囲 |\n"
+        ],
+        [
+          6,
+          10,
+          "| Fig. 3 / §3.1 | CA/CFの解説 | Transformer学習は省略 |\n| Eqs. 9–14 / Algorithm 1 | score / future / decode | CAの予測値は人工的に設定し、CLには説明用の規則を使う |\n| Algorithm 2 / §4.3 | timeout / trimmed_top3 | 実際の経過時間は測らず、GPUや配信環境も使わない |\n| Tables 2–4 | Evidence | 論文が報告した値。Labが実行して得た値ではない |\n"
+        ],
+        [
+          11,
+          12,
+          "公式コード: 確認した本文に、このシステムの学習・配信を再実行できる公開実装へのリンクは見つからなかった。公開の有無を網羅的に調べたという意味ではない。\n"
+        ]
+      ]
+    },
+    "papers/lige-gr-meta-listwise/method.md": {
+      "before": {
+        "sha256": "faa30b86ee259508e1f9502409fdcf52c9e3c1c07c44b5735ccd8b018a282890",
+        "blob": "22cb0f58ed3e54f32314ef22c2b55c732d7b27de"
+      },
+      "after": {
+        "sha256": "b7ecf775e97674b24fa3d9a52f2a4943e3811989ff26ed8cb120a035e6929f07",
+        "blob": "5a475c8de7d240375cd91063224aa932e8cbd8b2"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### CFを一度計算し、CAだけを位置ごとに動かす\n既存のcontext-free predictor（CF）が作ったユーザー・動画の中間表現を保存する。4層・4 headのGPT型causal Transformerであるcontext-aware predictor（CA）は、その表現と選択済みprefixを読み、like、skip、continueなどを予測し直す。CFはここではcollaborative filteringの略ではない。\n"
+        ],
+        [
+          2,
+          3,
+          "ListVM vanillaはCAによるitemVMとCLの和を全位置で足す。golden版は、その位置まで視聴が続く確率を各位置の価値に掛けてから足す。到達確率は、それまでに選んだ動画の継続確率を順に掛けた値であり、その位置の動画単体の継続確率とは異なる。Paletteは各prefixを許可された未選択候補へ拡張し、累積価値と将来価値の和Qでtop-bを残す。論文はRLとして解釈するが、将来価値は別の価値ネットワークを学習したものではなく、既存の予測から作る閉形式の推定である。\n"
+        ],
+        [
+          4,
+          5,
+          "duration-aware推定では、直前動画の継続確率を平均動画長へ換算する。長い動画の「全編後に残る確率」を後続位置ごとに繰り返すと、短い動画ばかり有利になるためだ。長期満足度の推定ではない。\n"
+        ],
+        [
+          6,
+          7,
+          "<figure class=\"teaching batch21\" data-b21=\"palette\"><h3>Paletteの枝刈りと候補poolの切り詰めを分ける</h3><label>条件を選ぶ <select><option value=\"0\">pointwise</option><option value=\"1\">CA_beam1</option><option value=\"2\">golden_beam6</option><option value=\"3\">trimmed_top3</option><option value=\"4\">timeout</option></select></label><div data-output aria-live=\"polite\"><div class=\"b21-tokens\"><span>0：候補</span><span>1：候補</span><span>2：候補</span><span>3：候補</span><span>4：候補</span><span>5：候補</span><span>6：候補</span></div><div class=\"b21-cards \"><div><strong>選択列</strong><p>0 → 2 → 1</p></div><div><strong>共通の継続重み付き価値</strong><p>14.732</p></div><div><strong>評価回数</strong><p>17</p></div></div><ol class=\"b21-search\"><li><strong>位置 1</strong> 7枝を評価 → 1枝を保持<br><code>[[0]]</code></li><li><strong>位置 2</strong> 5枝を評価 → 1枝を保持<br><code>[[0, 2]]</code></li><li><strong>位置 3</strong> 5枝を評価 → 1枝を保持<br><code>[[0, 2, 1]]</code></li></ol><p>同じ目的で全順列を調べたoracleは <strong>4 → 2 → 0、価値22.512</strong>。top-3 poolは候補4を落とすため、この最適列を探索できない。</p></div><script type=\"application/json\" data-frames>[\"<div class=\\\"b21-tokens\\\"><span>0：候補<\\/span><span>1：候補<\\/span><span>2：候補<\\/span><span>3：候補<\\/span><span>4：候補<\\/span><span>5：候補<\\/span><span>6：候補<\\/span><\\/div><div class=\\\"b21-cards \\\"><div><strong>選択列<\\/strong><p>0 → 2 → 1<\\/p><\\/div><div><strong>共通の継続重み付き価値<\\/strong><p>14.732<\\/p><\\/div><div><strong>評価回数<\\/strong><p>17<\\/p><\\/div><\\/div><ol class=\\\"b21-search\\\"><li><strong>位置 1<\\/strong> 7枝を評価 → 1枝を保持<br><code>[[0]]<\\/code><\\/li><li><strong>位置 2<\\/strong> 5枝を評価 → 1枝を保持<br><code>[[0, 2]]<\\/code><\\/li><li><strong>位置 3<\\/strong> 5枝を評価 → 1枝を保持<br><code>[[0, 2, 1]]<\\/code><\\/li><\\/ol><p>同じ目的で全順列を調べたoracleは <strong>4 → 2 → 0、価値22.512<\\/strong>。top-3 poolは候補4を落とすため、この最適列を探索できない。<\\/p>\", \"<div class=\\\"b21-tokens\\\"><span>0：候補<\\/span><span>1：候補<\\/span><span>2：候補<\\/span><span>3：候補<\\/span><span>4：候補<\\/span><span>5：候補<\\/span><span>6：候補<\\/span><\\/div><div class=\\\"b21-cards \\\"><div><strong>選択列<\\/strong><p>0 → 2 → 1<\\/p><\\/div><div><strong>共通の継続重み付き価値<\\/strong><p>14.732<\\/p><\\/div><div><strong>評価回数<\\/strong><p>17<\\/p><\\/div><\\/div><ol class=\\\"b21-search\\\"><li><strong>位置 1<\\/strong> 7枝を評価 → 1枝を保持<br><code>[[0]]<\\/code><\\/li><li><strong>位置 2<\\/strong> 5枝を評価 → 1枝を保持<br><code>[[0, 2]]<\\/code><\\/li><li><strong>位置 3<\\/strong> 5枝を評価 → 1枝を保持<br><code>[[0, 2, 1]]<\\/code><\\/li><\\/ol><p>同じ目的で全順列を調べたoracleは <strong>4 → 2 → 0、価値22.512<\\/strong>。top-3 poolは候補4を落とすため、この最適列を探索できない。<\\/p>\", \"<div class=\\\"b21-tokens\\\"><span>0：候補<\\/span><span>1：候補<\\/span><span>2：候補<\\/span><span>3：候補<\\/span><span>4：候補<\\/span><span>5：候補<\\/span><span>6：候補<\\/span><\\/div><div class=\\\"b21-cards \\\"><div><strong>選択列<\\/strong><p>2 → 1 → 0<\\/p><\\/div><div><strong>共通の継続重み付き価値<\\/strong><p>21.754<\\/p><\\/div><div><strong>評価回数<\\/strong><p>72<\\/p><\\/div><\\/div><ol class=\\\"b21-search\\\"><li><strong>位置 1<\\/strong> 7枝を評価 → 6枝を保持<br><code>[[1], [2], [3], [4], [0], [5]]<\\/code><\\/li><li><strong>位置 2<\\/strong> 35枝を評価 → 6枝を保持<br><code>[[1, 2], [2, 1], [3, 1], [1, 3], [1, 4], [4, 1]]<\\/code><\\/li><li><strong>位置 3<\\/strong> 30枝を評価 → 6枝を保持<br><code>[[2, 1, 0], [1, 2, 0], [3, 1, 0], [4, 1, 2], [2, 1, 4], [1, 4, 2]]<\\/code><\\/li><\\/ol><p>同じ目的で全順列を調べたoracleは <strong>4 → 2 → 0、価値22.512<\\/strong>。top-3 poolは候補4を落とすため、この最適列を探索できない。<\\/p>\", \"<div class=\\\"b21-tokens\\\"><span>0：候補<\\/span><span>1：候補<\\/span><span>2：候補<\\/span><span class=\\\"muted\\\">3：除外<\\/span><span class=\\\"muted\\\">4：除外<\\/span><span class=\\\"muted\\\">5：除外<\\/span><span class=\\\"muted\\\">6：除外<\\/span><\\/div><div class=\\\"b21-cards \\\"><div><strong>選択列<\\/strong><p>2 → 1 → 0<\\/p><\\/div><div><strong>共通の継続重み付き価値<\\/strong><p>21.754<\\/p><\\/div><div><strong>評価回数<\\/strong><p>12<\\/p><\\/div><\\/div><ol class=\\\"b21-search\\\"><li><strong>位置 1<\\/strong> 3枝を評価 → 3枝を保持<br><code>[[1], [2], [0]]<\\/code><\\/li><li><strong>位置 2<\\/strong> 5枝を評価 → 5枝を保持<br><code>[[1, 2], [2, 1], [0, 2], [2, 0], [1, 0]]<\\/code><\\/li><li><strong>位置 3<\\/strong> 4枝を評価 → 4枝を保持<br><code>[[2, 1, 0], [1, 2, 0], [1, 0, 2], [0, 2, 1]]<\\/code><\\/li><\\/ol><p>同じ目的で全順列を調べたoracleは <strong>4 → 2 → 0、価値22.512<\\/strong>。top-3 poolは候補4を落とすため、この最適列を探索できない。<\\/p>\", \"<div class=\\\"b21-tokens\\\"><span>0：候補<\\/span><span>1：候補<\\/span><span>2：候補<\\/span><span>3：候補<\\/span><span>4：候補<\\/span><span>5：候補<\\/span><span>6：候補<\\/span><\\/div><div class=\\\"b21-cards \\\"><div><strong>選択列<\\/strong><p>0 → 2 → 1<\\/p><\\/div><div><strong>共通の継続重み付き価値<\\/strong><p>14.732<\\/p><\\/div><div><strong>評価回数<\\/strong><p>17（復帰側のみ）<\\/p><\\/div><\\/div><ol class=\\\"b21-search\\\"><li><strong>位置 1<\\/strong> 7枝を評価 → 1枝を保持<br><code>[[0]]<\\/code><\\/li><li><strong>位置 2<\\/strong> 5枝を評価 → 1枝を保持<br><code>[[0, 2]]<\\/code><\\/li><li><strong>位置 3<\\/strong> 5枝を評価 → 1枝を保持<br><code>[[0, 2, 1]]<\\/code><\\/li><\\/ol><p>予算超過でCFへ復帰。中断までの評価回数は 3。復帰時は候補を再encodeしない想定。<\\/p><p>同じ目的で全順列を調べたoracleは <strong>4 → 2 → 0、価値22.512<\\/strong>。top-3 poolは候補4を落とすため、この最適列を探索できない。<\\/p>\"]</script><figcaption>run.py / results.json の合成7候補・3枠。候補0→1の隣接を禁止。Metaの実データ・処理時間ではない。</figcaption></figure>\n"
+        ],
+        [
+          8,
+          19,
+          "### 切り戻しを構成として持つ\nCA→CF、継続確率→1、将来価値→0、beam→1とすれば従来のgreedyへ戻る。beam 1にするだけではCAの影響が残る。時間切れやCA失敗時にも保存済みCFから復帰する。候補poolの上位約1/3だけをCAへ渡す工夫は、beam内の枝刈りとは別の削減である。\n"
+        ]
+      ]
+    },
+    "papers/lige-gr-meta-listwise/results.json": {
+      "before": {
+        "sha256": "5941af9abe193fdc334a1a69254b9a4cf73e349995d849aca652b03e81f56b8b",
+        "blob": "b94b9230b7d54eacde6571b347b1acca72ac08b6"
+      },
+      "after": {
+        "sha256": "9c377beb52bc5b3d34c91f2fd33ad9516a2c260f9e763676db384d54d5f9d62b",
+        "blob": "40d97335c9f30147c023f1bb5cb30e130508dea8"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"合成7候補・3枠。学習済みCA、実測レイテンシー、本番liftは再現しない。\",\n"
+        ]
+      ]
+    },
+    "papers/lige-gr-meta-listwise/run.py": {
+      "before": {
+        "sha256": "0139ee3608724490c51deff8ce60c49eae41ae8b50141c723f74054f94f32364",
+        "blob": "9eac9d122c0bcd0ef089585c64b17e9ee9c1d47f"
+      },
+      "after": {
+        "sha256": "3cada92ec141d1622f1ce887efba76d5c42fc8cb3e3244ecf95d9112d863fd06",
+        "blob": "e4b2449f4e59f2dd15c78ebcd2491318d2096947"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Palette equations 9–14 and Algorithm 1 on a declared synthetic candidate pool.\nNo neural predictor is trained. Values and continuation probabilities are fixtures.\n\"\"\"\n"
+        ],
+        [
+          17,
+          18,
+          "    # Illustrative business rule, not a Meta policy.\n"
+        ],
+        [
+          51,
+          52,
+          "    return {'note':'合成7候補・3枠。学習済みCA、実測レイテンシー、本番liftは再現しない。','verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},'experiments':[{'name':'制約付き探索と候補切り詰め','metrics':{k:{'value':v['shared_survival_value'],'evaluations':v['evaluations']} for k,v in runs.items()}}],'runs':runs,'oracle':{'path':list(oracle),'value':score(oracle)[0]}}\n"
+        ]
+      ]
+    }
+  }
+}

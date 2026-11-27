@@ -1,12 +1,12 @@
-# Original Paper / Official Code Mapping
+# 原論文・公式コードとLabの対応
 
-一次資料: [LIGE-GR: A Smooth Leap from Ranking to Generative Recommendation in the LLM Era](https://arxiv.org/html/2609.18148v1)。本文・実験・限界・付録を確認（2026-09-21）。キャッシュは `/tmp/research-2026-09-21/2609.18148.html`。HTML SHA-256: `fdef5a1acc124ad2687d95b0964e4c27ab599f62ffdc1568f5f5131b5513ed7f`。
+Labは2026年9月21日に[原論文の第1版HTML](https://arxiv.org/html/2609.18148v1)の本文、実験、限界、付録を確認した。確認したHTMLのSHA-256は `fdef5a1acc124ad2687d95b0964e4c27ab599f62ffdc1568f5f5131b5513ed7f`。
 
-| 原典 | Labの対応 | 省略した処理・確認できる範囲 |
+| 原論文 | Labで扱う内容 | Labで実行していない処理 |
 | --- | --- | --- |
-| Fig. 3 / §3.1 | CA/CFの解説 | Transformer学習は省略 |
-| Eqs. 9–14 / Algorithm 1 | score / future / decode | CAの予測値は人工的に設定し、CLには説明用の規則を使う |
-| Algorithm 2 / §4.3 | timeout / trimmed_top3 | 実際の経過時間は測らず、GPUや配信環境も使わない |
-| Tables 2–4 | Evidence | 論文が報告した値。Labが実行して得た値ではない |
+| 図3、§3.1 | 既存の予測器（CF）と、先に選んだ動画を参照する予測器（CA）の分担を説明する。 | Transformerは学習させていない。 |
+| 式9–14、Algorithm 1 | `score()` が各位置の価値を合計し、`future()` が残りの位置の価値を見積もる。`decode()` が両方を使って並びを探索する。 | CAの予測値は人工的に設定した。業務上の制約にはLabの説明用の規則を使う。 |
+| Algorithm 2、§4.3 | `timeout` は評価の予算に達した場合の復帰、`trimmed_top3` は候補を3件に絞る場合を扱う。 | 実際の経過時間による打ち切りは試していない。GPUや本番の配信環境も使っていない。 |
+| 表2–4 | 記事の「結果と根拠」は著者の報告値を示す。 | LabがA/Bテストや対になったリクエストの分析を再実行した値ではない。 |
 
-公式コード: 確認した本文に、このシステムの学習・配信を再実行できる公開実装へのリンクは見つからなかった。公開の有無を網羅的に調べたという意味ではない。
+確認した論文本文では、学習や配信を再実行できる公開実装へのリンクは見つからなかった。Labが公式実装を実行したわけではなく、実装の公開先を網羅的に調べた結果でもない。

@@ -341,7 +341,7 @@ def test_batch16_candidate_units_and_conditional_comparisons():
         'sam-d2q-aliexpress-doc2query': ('lab.yaml', 'その商品のタイトルまたは追加した検索語の集合に含まれる場合だけ'),
         'case-against-generation-retrieval': ('method.md', '同じ候補集合内で確率分布へ正規化'),
         'ogr-once-generated-ranked': ('method.md', 'その利用者の平均より高く、負なら低い'),
-        'lige-gr-meta-listwise': ('method.md', 'それまでに選んだ動画の継続確率を順に掛けた値'),
+        'lige-gr-meta-listwise': ('method.md', '2本目まで進んだ人がその後も進む確率を掛けた値'),
     }
     for slug, (name, excerpt) in expected.items():
         assert excerpt in (ROOT/'papers'/slug/name).read_text()
