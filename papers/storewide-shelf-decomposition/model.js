@@ -1,4 +1,4 @@
-/* Synthetic finite-capacity model. Browser and Node share this implementation. */
+/* 架空の商品を対象に、棚幅を配る計算。ページとNode.jsのテストで同じ処理を使う。 */
 (function(root){
 'use strict';
 const items=[

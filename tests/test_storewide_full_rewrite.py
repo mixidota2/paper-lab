@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 import subprocess
 import yaml
+from prose_preservation import before_storewide_all_full_prose
 
 ROOT=Path(__file__).resolve().parents[1]
 REL=Path('papers/storewide-shelf-decomposition')
@@ -15,7 +16,8 @@ BASE='f7793bc88ab49a347b43e74a9ff45e77bb6fe5ad'
 def old(name):
     return subprocess.check_output(['git','show',f'{BASE}:{REL / name}'],cwd=ROOT)
 def current(name):
-    return (ROOT/REL/name).read_bytes()
+    path=(REL/name).as_posix()
+    return before_storewide_all_full_prose(ROOT,path,(ROOT/path).read_bytes())
 
 def test_scope_facts_and_machine_artifacts_unchanged():
     a,b=(yaml.safe_load(raw('lab.yaml')) for raw in (old,current))
