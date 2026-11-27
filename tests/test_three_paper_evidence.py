@@ -40,7 +40,7 @@ def test_rendered_evidence_and_honest_cta(tmp_path):
     for text in ['Favoritaへ','1000','100 SKU','Appendix U','不整合','2607.25664v1']:
         assert text in c
     w=(pages/'whole-foods-shelf.html').read_text()
-    for text in ['集計分母','CI','構成上の性質','10.1145/3764919.3770880']:
+    for text in ['集計の分母','CI','最大値は等分案を下回らない','10.1145/3764919.3770880']:
         assert text in w
 
 
@@ -60,7 +60,7 @@ def test_mapping_files_reach_rendered_sections_and_promotion_conditions(tmp_path
         html=(pages/f'{slug}.html').read_text()
         return re.search(r'<section[^>]*id="'+key+r'"[^>]*>(.*?)</section>',html,re.S).group(1)
     w=section('whole-foods-shelf','mapping')
-    for text in ['改装で部門面積をどこまで増減できるかに上下限','新店では過去の面積分布と費用条件','これは教材の計算から必ず言える','継承した値']:
+    for text in ['部門ごとに面積をどこまで増減できるかを制限','過去の面積分布と費用の条件','候補に含めた等分案を下回らない','PDFのバイト列は照合していない']:
         assert text in w
     c=section('contextual-deconvolution','mapping')
     for text in ['SKU別平均日次費用の中央値','100 paired SKU、28日累積費用','日次費用の中央値と混ぜない','再計算をしていない']:

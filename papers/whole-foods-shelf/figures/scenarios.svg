@@ -1,1 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 180"><rect width="600" height="180" fill="#fbfaf7"/><text x="300" y="30" text-anchor="middle" font-size="18">既存店舗の改装と、新店舗の設計</text><rect x="60" y="65" width="190" height="60" fill="#dbeafe"/><rect x="350" y="65" width="190" height="60" fill="#dcfce7"/><text x="155" y="100" text-anchor="middle">過去の店舗配置</text><text x="445" y="100" text-anchor="middle">店舗実績がない段階の配置</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="328" viewBox="0 0 940 328" role="img" aria-labelledby="title desc">
+<title id="title">改装と新店設計では、著者が使う条件が違う</title>
+<desc id="desc">Whole Foods Marketを対象に著者が比較したのはシミュレーション。実際の売上を測った結果ではない。</desc>
+<rect width="940" height="328" fill="#f3f7fa"/>
+<g font-family="Noto Sans CJK JP, sans-serif" fill="#15304a">
+<text x="26" y="41" font-size="24" font-weight="700">改装と新店設計では、著者が使う条件が違う</text>
+<rect x="26" y="63" width="888" height="69" rx="10" fill="#fff" stroke="#a6b7c7"/>
+<text x="44" y="90" font-size="18" font-weight="700">既存店を改装する案</text>
+<text x="44" y="114" font-size="16">著者は部門の面積を変更できる範囲を絞った。既存手法に比べて7.5%の売上増を見込んだ。</text>
+<rect x="26" y="145" width="888" height="69" rx="10" fill="#fff" stroke="#a6b7c7"/>
+<text x="44" y="172" font-size="18" font-weight="700">新店を設計する案</text>
+<text x="44" y="196" font-size="16">著者は過去の面積分布と費用条件を使った。既存手法に比べて6.7%の売上増を見込んだ。</text>
+<rect x="26" y="227" width="888" height="69" rx="10" fill="#fff" stroke="#a6b7c7"/>
+<text x="44" y="254" font-size="18" font-weight="700">数値が表す範囲</text>
+<text x="44" y="278" font-size="16">どちらも著者のシミュレーションの結果であり、改装や出店後の売上の実測値ではない。</text>
+</g>
+</svg>
