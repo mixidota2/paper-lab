@@ -1,10 +1,10 @@
-"""報告を受け取った時点ごとに、同じ過去と将来予定を計算する合成例。"""
+"""同じ3日目の在庫を、受領の締切を変えて計算する人工例。将来予定は固定する。"""
 import json
 from pathlib import Path
 
 
 REPORTS = [
-    # event_id, revision, event_day, received_day, kind, qty
+    # 出来事ID、版番号、発生日、受領日、入荷か需要か、数量
     ("A", 1, 1, 1, "demand", 5),
     ("C", 1, 3, 3, "demand", 1),
     ("B", 1, 2, 4, "receipt", 4),
@@ -17,7 +17,7 @@ INITIAL = 2
 
 
 def select(reports, target, cutoff):
-    """受領で絞り、訂正版を選び、それから発生日で絞る。"""
+    """受領締切までの最新版を選び、その版の発生日が対象日までかを確かめる。"""
     latest = {}
     for row in reports:
         event, revision, day, received, _, _ = row
@@ -63,8 +63,8 @@ def main():
         stock, _, end, loss, _ = case["answer"]
         assert end - loss == stock - 2
     output = {
-        "note": "Labが決めた1商品の合成例です。モデルの呼び出し、需要予測、実店舗データは使っていません。",
-        "experiments": [{"name": "報告を受け取った時点による5項目の違い", "metrics": {
+        "note": "Labは一つの商品について、届いた報告と同じ将来予定から在庫を求めた。モデル、需要予測、実店舗データは使っていない。",
+        "experiments": [{"name": "受領の締切を変えたときに過去と将来の答えがどう変わるか", "metrics": {
             f'{case["cutoff"]}日目': dict(zip(
                 ("3日目の在庫（個）", "過去の売り逃し（個）", "6日目の最終在庫（個）",
                  "将来の売り逃し（個）", "最初の売り逃し（将来）"),

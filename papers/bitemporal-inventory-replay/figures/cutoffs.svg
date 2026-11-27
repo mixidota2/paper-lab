@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 250" role="img" aria-labelledby="title desc">
-<title id="title">2日目の入荷報告は4日目に届く</title>
-<desc id="desc">2日目に4個が入荷したという報告が4日目に届きます。同じ3日目の在庫を求めるときでも、受領の締切を2日目とするとその報告は対象外、4日目とすると対象になります。</desc>
+<title id="title">入荷した日と、報告が届いた日は違う</title>
+<desc id="desc">2日目に4個入荷しても、その報告は4日目まで届かない。3日目の在庫を求めるとき、受領締切が2日目なら入荷を含めず、4日目なら含める。</desc>
 <rect width="640" height="250" rx="12" fill="#f2f7f7"/>
 <g font-family="system-ui, sans-serif" fill="#142a31" font-size="20">
-<text x="24" y="33" font-weight="bold">2日目の入荷報告は4日目に届く</text>
+<text x="24" y="33" font-weight="bold">入荷した日と、報告が届いた日は違う</text>
 <text x="85" y="82">2日目</text><text x="290" y="82">3日目</text><text x="495" y="82">4日目</text>
 <path d="M110 103H520" stroke="#56737a" stroke-width="3"/>
 <circle cx="110" cy="103" r="7" fill="#13656a"/><circle cx="315" cy="103" r="7" fill="#13656a"/><circle cx="520" cy="103" r="7" fill="#13656a"/>
-<text x="50" y="138">4個が入荷</text><text x="251" y="138">在庫の対象日</text><text x="452" y="138">入荷報告が届く</text>
-<text x="24" y="187">2日目までに届いた報告 → 入荷を含めない</text>
-<text x="24" y="223">4日目までに届いた報告 → 2日目の入荷を含める</text>
+<text x="50" y="138">商品4個が入る</text><text x="251" y="138">求める在庫の日</text><text x="452" y="138">倉庫から報告が届く</text>
+<text x="24" y="187">締切が2日目なら、入荷の報告はまだ使えない</text>
+<text x="24" y="223">締切が4日目なら、2日目の入荷を計算に含める</text>
 </g></svg>
