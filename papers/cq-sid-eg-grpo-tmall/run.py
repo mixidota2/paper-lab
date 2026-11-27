@@ -1,4 +1,4 @@
-"""Cluster expansion and sparse reward group probe. Not Qwen training or GRPO reproduction."""
+"""人工例で商品候補の絞り込みと、報酬を比べる量を計算する。モデルは学習しない。"""
 import json
 import math
 import random
@@ -20,7 +20,7 @@ def gradient_probe(k, seed=16, trials=2000):
     rng=random.Random(seed)
     dead=0
     gradients=[]
-    # Five tabular SIDs: the rarely sampled clicked/exposed SIDs have positive reward.
+    # 5個の人工SIDを使う。最後の2個にはクリックや表示に対応する高い報酬を付ける。
     probs=[.7,.2,.08,.015,.005]
     reward=[.1,.1,.1,.5,1.]
     for _ in range(trials):
@@ -28,7 +28,8 @@ def gradient_probe(k, seed=16, trials=2000):
         group=sampled+[rng.choice([3,4]) for _ in range(k)]
         adv=advantages([reward[i] for i in group])
         dead+=max(adv)-min(adv)<1e-9
-        # Gradient of mean A log pi(o) at old policy (ratio=1); includes injected samples.
+        # 新旧の出力確率比が1の時点で、mean(A log pi(o))の勾配を求める。
+        # モデルが出した例と、後から加えた教師例の両方を使う。
         grad=[sum(a*((j==o)-probs[j]) for o,a in zip(group,adv))/len(group) for j in range(5)]
         gradients.append(sum(grad[3:]))
     return {'expert_k':k,'zero_advantage_fraction':dead/trials,
@@ -37,7 +38,7 @@ def gradient_probe(k, seed=16, trials=2000):
 
 def compute():
     frames=[]
-    # Item target=23. Cluster order is intentionally coarse; efficiency truncation can discard it.
+    # 商品番号を後段の点として使う。候補の群を増やすと、商品23が上位20件から外れ得る。
     clusters=[list(range(i*10,(i+1)*10)) for i in range(6)]
     for width in (1,2,3,4,6):
         expanded=sum(clusters[:width],[])
@@ -45,8 +46,8 @@ def compute():
         frames.append({'beam':width,'unique_items':width,'cluster_items':len(expanded),
                        'after_cap':len(selected),'target_retained':23 in selected,'selected':selected})
     probes=[gradient_probe(k) for k in (0,2,4)]
-    return {'note':'人工SID群で展開件数と正規化advantageを計算。学習崩壊や実際の検索精度は再現していない。',
-            'experiments':[{'name':'疎報酬の8サンプルにexpertを注入','dataset':'five synthetic SID outcomes','seed':16,'n':2000,
+    return {'note':'人工のSIDから商品を取り出し、上位20件に絞った。教師例を加えた場合に各報酬が群の平均とどれだけ違うかも計算した。本番の検索精度や学習の収束は測っていない。',
+            'experiments':[{'name':'モデルが出した8個の候補に教師例を加える','dataset':'人工のSID 5個','seed':16,'n':2000,
                            'metrics':{f'K={p["expert_k"]}':{k:v for k,v in p.items() if k!='expert_k'} for p in probes}}],
             'frames':frames,'group_examples':{str(k):advantages([.1]*8+[1.]*k) for k in (0,2,4)},
             'cluster_split':{str(n):split_cluster(n) for n in (120,5001)}}

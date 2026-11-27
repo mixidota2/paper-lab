@@ -1,9 +1,9 @@
 {
-  "note": "人工SID群で展開件数と正規化advantageを計算。学習崩壊や実際の検索精度は再現していない。",
+  "note": "人工のSIDから商品を取り出し、上位20件に絞った。教師例を加えた場合に各報酬が群の平均とどれだけ違うかも計算した。本番の検索精度や学習の収束は測っていない。",
   "experiments": [
     {
-      "name": "疎報酬の8サンプルにexpertを注入",
-      "dataset": "five synthetic SID outcomes",
+      "name": "モデルが出した8個の候補に教師例を加える",
+      "dataset": "人工のSID 5個",
       "seed": 16,
       "n": 2000,
       "metrics": {
