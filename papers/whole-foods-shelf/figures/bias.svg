@@ -1,1 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 180"><rect width="600" height="180" fill="#fbfaf7"/><text x="300" y="30" text-anchor="middle" font-size="18">人気が棚面積の割当に影響する（選択バイアス）</text><circle cx="160" cy="100" r="42" fill="#fde68a"/><circle cx="430" cy="100" r="42" fill="#dbeafe"/><text x="160" y="105" text-anchor="middle">popularity</text><text x="430" y="105" text-anchor="middle">space</text><path d="M210 100 H375" stroke="#ef4444" stroke-width="5"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="328" viewBox="0 0 940 328" role="img" aria-labelledby="title desc">
+<title id="title">売れる部門には、もともと広い売場が配られているかもしれない</title>
+<desc id="desc">人気が売場面積と販売数量の両方に影響する場合、過去の相関を面積の効果とは読めない。</desc>
+<rect width="940" height="328" fill="#f3f7fa"/>
+<g font-family="Noto Sans CJK JP, sans-serif" fill="#15304a">
+<text x="26" y="41" font-size="24" font-weight="700">売れる部門には、もともと広い売場が配られているかもしれない</text>
+<rect x="26" y="63" width="888" height="69" rx="10" fill="#fff" stroke="#a6b7c7"/>
+<text x="44" y="90" font-size="18" font-weight="700">人気が広さを左右する場合</text>
+<text x="44" y="114" font-size="16">店舗担当者は、人気のある部門に広い面積を割り当てることがある。</text>
+<rect x="26" y="145" width="888" height="69" rx="10" fill="#fff" stroke="#a6b7c7"/>
+<text x="44" y="172" font-size="18" font-weight="700">同じ人気が販売も左右する場合</text>
+<text x="44" y="196" font-size="16">過去のデータで売場が広く販売も多いだけでは、広げた結果とは言えない。</text>
+<rect x="26" y="227" width="888" height="69" rx="10" fill="#fff" stroke="#a6b7c7"/>
+<text x="44" y="254" font-size="18" font-weight="700">回帰をやり直しても別の問題が残る</text>
+<text x="44" y="278" font-size="16">係数を小さくする罰則を外しても、記録にない人気の影響を除いたことにはならない。</text>
+</g>
+</svg>

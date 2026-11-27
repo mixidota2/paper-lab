@@ -9,7 +9,7 @@ import subprocess
 import pytest
 import yaml
 
-from prose_preservation import before_apollopfn_full_prose, restored_before_paper_overview, wholefoods_full_rewrite_hash
+from prose_preservation import before_wholefoods_all_full_prose, before_apollopfn_full_prose, restored_before_paper_overview, wholefoods_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = 'papers/whole-foods-shelf'
@@ -21,14 +21,18 @@ def historical(path):
     return subprocess.check_output(['git', 'show', f'{BASE}:{path}'], cwd=ROOT)
 
 
+def prior(path):
+    return before_wholefoods_all_full_prose(ROOT, path, (ROOT / path).read_bytes())
+
+
 def test_rewrite_retains_source_urls_equations_metadata_and_code():
     files = [f'{SLUG}/{n}' for n in NAMES]
     for path in files:
         def links(raw):
             return Counter(re.findall(rb'https?://[^\s)\x27]+', raw))
-        assert links((ROOT / path).read_bytes()) == links(historical(path))
+        assert links(prior(path)) == links(historical(path))
     path = f'{SLUG}/lab.yaml'
-    a, b = map(yaml.safe_load, [historical(path), (ROOT / path).read_bytes()])
+    a, b = map(yaml.safe_load, [historical(path), prior(path)])
     reader = {'summary','question','core_idea','sections','interactives','source_review','teaching_figures'}
     assert {k:v for k,v in a.items() if k not in reader} == {k:v for k,v in b.items() if k not in reader}
     assert a['sections'].keys() == b['sections'].keys()
@@ -39,7 +43,7 @@ def test_rewrite_retains_source_urls_equations_metadata_and_code():
         assert all(x[k] == y[k] for k in ('id','kind','after','source','locator'))
         assert [s['formula'] for s in x.get('steps',())] == [s['formula'] for s in y.get('steps',())]
     for path in (f'{SLUG}/run.py', f'{SLUG}/results.json', 'papers/_toy_common.py'):
-        current = before_apollopfn_full_prose(ROOT, path, (ROOT / path).read_bytes())
+        current = before_apollopfn_full_prose(ROOT, path, prior(path))
         assert current == historical(path)
     evidence = b['sections']['evidence']
     assert all(x in evidence for x in ('改装で7.5%','新店設計で6.7%','シミュレーション','信頼区間がない','等分50/50','店舗で売上が増えた証拠ではない'))
@@ -55,7 +59,7 @@ def test_archive_and_current_text_identities_are_exact(algo):
             return hashlib.sha256(raw).hexdigest()
         return hashlib.sha1(f'blob {len(raw)}\0'.encode()+raw).hexdigest()
     for path in manifest['files']:
-        current = restored_before_paper_overview(ROOT, path, (ROOT / path).read_bytes())
+        current = restored_before_paper_overview(ROOT, path, prior(path))
         assert wholefoods_full_rewrite_hash(ROOT,path,digest(historical(path)),algo) == digest(current)
         with pytest.raises(AssertionError):
             wholefoods_full_rewrite_hash(ROOT,path,digest(current+b'\n'),algo)

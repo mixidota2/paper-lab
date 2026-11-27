@@ -72,13 +72,13 @@ def test_batch08_definitions_and_comparison_denominators():
 def test_whole_foods_explains_response_and_distinguishes_toy_from_evidence():
     source = ROOT / 'papers/whole-foods-shelf'
     lab = yaml.safe_load((source / 'lab.yaml').read_text())
-    assert '面積を変えた割合に対して需要がどれだけの割合で変わるか' in lab['core_idea']['author_claim']
-    assert '正則化の偏りへの対処とは異なる' in lab['core_idea']['research_bot_interpretation']
+    assert '面積が1%変わると、各部門の週販売数量が何%変わるか' in lab['core_idea']['author_claim']
+    assert '罰則が係数を小さくする問題に対処' in lab['core_idea']['research_bot_interpretation']
     explanation = lab['sections']['executable_understanding']
-    assert 'A部門を広げると、その分だけB部門が狭くなる' in explanation
-    assert '棒グラフは等分と選んだ配分の目的値を比べ、折れ線は候補ごとの目的値' in explanation
-    assert '実売上ではない' in explanation
-    assert '構成上の性質' in lab['sections']['evidence']
+    assert 'A部門を1広げれば、B部門は1狭くなる' in explanation
+    assert '棒グラフは、50ずつ配る案と、点数が最も高い案を比べる。折れ線は、A部門の面積ごとの点数' in explanation
+    assert '売上の金額を表さない' in explanation
+    assert '最大値は等分案を下回らない' in lab['sections']['results']
     assert '信頼区間（CI）' in (source / 'mapping.md').read_text()
 
 
