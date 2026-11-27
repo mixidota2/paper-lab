@@ -262,7 +262,7 @@ def test_batch11_recommendation_conditions_and_metric_meaning():
 def test_batch12_generation_training_and_serving_boundaries():
     expected = {
         'varg-tmall-value-generative-retrieval': ('lab.yaml', '正解だけを予測する従来の損失も残す'),
-        'cq-sid-eg-grpo-tmall': ('method.md', '配信時に正解SIDを渡す仕掛けではない'),
+        'cq-sid-eg-grpo-tmall': ('method.md', '配信中に検索の正解を渡す仕組みではありません'),
         'pushdualgen-kuaishou': ('lab.yaml', '学習時に文面の損失を加えると、共有する重みは更新される。'),
         'hgenpush-kuaishou-heterogeneous-push-gr': ('lab.yaml', '比そのものの算術平均ではなく、幾何平均'),
         'univa-commercial-sid-gar': ('lab.yaml', 'α=0にすると配信時に価値を足さなくなるが、強化学習で更新した生成方策は残る'),

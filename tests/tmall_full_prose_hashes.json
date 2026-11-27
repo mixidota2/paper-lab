@@ -1,0 +1,471 @@
+{
+  "files": {
+    "papers/cq-sid-eg-grpo-tmall/README.md": {
+      "before": {
+        "sha256": "08825f76429f219ddf94b353261f1148dd5a918a06543526e114b9d19f1bda30",
+        "blob": "ed4c1a23faeabdfafb59ccdd0d3bb34bbbb79913"
+      },
+      "after": {
+        "sha256": "358287cc557793efe6539e9704ee524734d6c474b66a9214448a146ddfa5ca96",
+        "blob": "ff1e7e48ed2c9a2c3a225777ad6f08dac906a85b"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# CQ-SID：商品群を生成し、Tmallの既存ランキングにつなぐ\n"
+        ],
+        [
+          4,
+          5,
+          "Tmallの研究チームは、検索文から商品を一つずつ当てる代わりに、関連しそうな商品群の識別子（SID）を生成する方法を提案しました。CQ-SIDは、商品のカテゴリと、過去の検索でどの商品が選ばれたかを使ってグループを作ります。著者は、既存の検索で表示された商品やクリックされた商品を手掛かりに、どのグループを出すかも追加学習しました。選んだグループの商品は、既存の順位付けに渡します。\n"
+        ],
+        [
+          6,
+          7,
+          "Tmallアプリの検索で2週間のA/Bテストを行い、著者は取引総額（GMV）が1.15%、論文の指標UCTCVRが0.40%増えたと報告しています。UCTCVRの詳しい集計方法は公表されていません。また、72.63%は導入後に生成方式の候補が占めた購入の割合で、購入件数が72.63%増えたという意味ではありません。\n"
+        ],
+        [
+          8,
+          9,
+          "一次資料：[arXiv 2605.14434v1](https://arxiv.org/pdf/2605.14434v1)。判定：Worth Reading。\n"
+        ],
+        [
+          10,
+          11,
+          "## 読み方\n"
+        ],
+        [
+          12,
+          13,
+          "lab.yamlに本文と図の定義があり、method.mdでモデルと数式を補足する。mapping.mdでは論文の各節とLabの実装を照合できる。run.pyで最小実験を実行し、results.jsonでその結果を確認できる。siteはこれらの原本から生成する。\n"
+        ],
+        [
+          14,
+          17,
+          "## 実行\n"
+        ],
+        [
+          23,
+          24,
+          "## 検証の境界\n"
+        ],
+        [
+          25,
+          26,
+          "Labでは、SIDから商品候補を取り出す処理を確認した。後段で残す件数に上限を設けると、生成時に探す範囲を広げても、目当ての商品が残りやすくなるとは限らない。同じ群の候補すべてが同じ報酬を得ると、群内の相対的な優位度（advantage）はゼロになる。正解の例を群に加えたときの報酬差と、最初の更新で使う勾配も確認した。また、分割先を最大100群に制限している。5,001商品を分けたときの最大群は51商品だった。\n"
+        ],
+        [
+          27,
+          28,
+          "カテゴリ表現の学習、EMAによるコードブックの更新、Qwen2.5-0.5Bの教師あり微調整（SFT）、複数ステップにわたるEG-GRPOは再現していない。通常のGRPOで実際に学習が崩れるか、CTR・CVR・GMVがどう変わるか、配信時に40msで処理できるかも確認していない。ログにどのような選択バイアスがあるか、複数の経路で候補になった商品の成果をどこに帰属させるか、本番の順位付けをどう実装したかは、論文からは分からない。\n"
+        ]
+      ]
+    },
+    "papers/cq-sid-eg-grpo-tmall/lab.yaml": {
+      "before": {
+        "sha256": "61de144e69eaa671d4837c9080c93666161788efcf03c7a6a657d0adc75d6649",
+        "blob": "00f9ccd45ffc071fa87db7ef85dea8796b918969"
+      },
+      "after": {
+        "sha256": "3e6202a1aebf79d0e3b312db327787440c959ae3f877ab02ca021a79be565179",
+        "blob": "f3557cda77c0ee7b33d35e5b843fa35f7dcb0a15"
+      },
+      "prior_spans": [
+        [
+          3,
+          4,
+          "title: Efficient Generative Retrieval for E-commerce Search with Semantic Cluster\n  IDs and Expert-Guided RL\n"
+        ],
+        [
+          19,
+          20,
+          "  pdf: https://arxiv.org/pdf/2605.14434v1\n"
+        ],
+        [
+          29,
+          31,
+          "question: CQ-SID：商品群を生成し、Tmallの既存ランキングにつなぐ\nsummary: TmallAPPのCQ-SIDは、意味の近い商品をまとめた識別子（SID）を生成し、その識別子に対応する商品群を既存の順位付け処理へ渡す仕組みである。カテゴリ制約とquery-item対照学習で群を作り、EG-GRPOで既存の露出・クリックに合わせる。2週間のA/BでGMV\n  +1.15%、UCTCVR +0.40%。購入の72.63%という値はチャネル構成比で、改善率ではない。\n"
+        ],
+        [
+          32,
+          36,
+          "  checked: '2026-09-15'\n  scope: 一次PDF v1の本文・全付録を確認。著者報告と合成実験を分離。\n  pdf_sha256: 8790cce2464f481475da38312b72d72237ef1ae37b105a921b3a40565534731d\n  url: https://arxiv.org/pdf/2605.14434v1\n"
+        ],
+        [
+          37,
+          39,
+          "  author_claim: 著者はCategory-and-Query constrained Semantic ID（CQ-SID）とExpert-Guided\n    GRPO（EG-GRPO）により、検索召回の精度・候補の広がり・計算量を両立できると主張する。生成召回は既存のmulti-channel recallとrankingへ組み込む（§1、§3–4）。\n  research_bot_interpretation: ここでの設計判断は「IDの衝突をすべてなくす」より、意味の近い商品を一緒に呼ぶことにある。後段の選別が前提なので、beamを減らせても商品展開やrankingの費用は残る。専門家SIDの注入は教師信号の補強であり、未知の良い商品を発見できた証拠とは分ける。\n"
+        ],
+        [
+          41,
+          42,
+          "    Tmallの研究チームは、検索文から商品を一つずつ当てる代わりに、関連しそうな商品群の識別子（SID）を生成する方法を提案しました。CQ-SIDは、商品のカテゴリと、過去の検索でどの商品が選ばれたかを使ってグループを作ります。著者は、既存の検索で表示された商品やクリックされた商品を手掛かりに、どのグループを出すかも追加学習しました。選んだグループの商品は、既存の順位付けに渡します。\n"
+        ],
+        [
+          43,
+          46,
+          "    Tmallアプリの検索で2週間のA/Bテストを行い、著者は取引総額（GMV）が1.15%、論文の指標UCTCVRが0.40%増えたと報告しています。UCTCVRの詳しい集計方法は公表されていません。また、72.63%は導入後に生成方式の候補が占めた購入の割合で、購入件数が72.63%増えたという意味ではありません。\n  problem: '巨大な検索商品集合から最終表示までを直接生成すると、必要な精度を低遅延で保ちにくい。本論文は生成を召回段に限定し、既存の粗いranking・精密rankingを使うhybrid構成を採る。SIDを一意IDにすると、小さなbeamでは呼び出せる商品数も少ない。逆に群を大きくし過ぎると、人気群が候補枠を占める。\n"
+        ],
+        [
+          47,
+          50,
+          ""
+        ],
+        [
+          51,
+          54,
+          "    学習ログの購入・クリックは疎で、同じ報酬ばかりの生成群ではGRPOの相対advantageがなくなる。群の意味構造と学習信号の薄さを別々に扱う必要がある。'\n  why_it_might_work: カテゴリで大枠を揃え、queryと商品の表現を近づけると、同じSIDを共有する商品の検索意図が揃いやすい。一つの生成で複数商品を出せるため、同じ候補件数を得るbeamを減らせる。expert\n    SIDは低品質な生成群にも報酬差を作る。ただし注入により学習分布が変わり、ログ方策が選んだ商品への依存も残る。\n  evidence: '### beamを揃える比較と商品数を揃える比較を分ける\n"
+        ],
+        [
+          55,
+          56,
+          ""
+        ],
+        [
+          57,
+          58,
+          "    CQ-SIDは37.5Mサンプルで学習し、query評価201k、個人化評価170kを用いる。表1の非個人化click hitrateはbeam=100でRQ-VAE\n    0.5199、CQ-SID 0.6181。ただし同じbeamでも候補商品数は一致しない。表2のtop-1K truncationではCQ-SIDがbeam=30で0.4422、RQ-VAEが65で0.4275。商品効率scoreで切るオフライン評価と、粗rankingで切るオンライン処理も同一ではない。\n"
+        ],
+        [
+          59,
+          60,
+          ""
+        ],
+        [
+          61,
+          62,
+          "    個人化した表3のtop-1KではCQ-SIDがbeam=160で0.7984、RQ-VAEが195で0.7607。beam削減は17.95%。これをそのまま遅延削減率に換算しない。\n"
+        ],
+        [
+          63,
+          64,
+          ""
+        ],
+        [
+          65,
+          66,
+          "    ### EG-GRPOの改善幅は小さい\n"
+        ],
+        [
+          67,
+          68,
+          ""
+        ],
+        [
+          69,
+          70,
+          "    表4では標準GRPO（K=0）のclk@1は0.1510→0.1519だが、clk@10は0.5206→0.5196、平均露出coverage pvr@10は0.4371→0.4360と下がる。K=2では0.1524\n    / 0.5221 / 0.4377。著者は深いbeamでのmode concentrationをcollapseと解釈するが、表は小幅な指標差を示すもので、全面的な学習破綻を測ったものではない。\n"
+        ],
+        [
+          71,
+          72,
+          ""
+        ],
+        [
+          73,
+          74,
+          "    ### オンラインのliftとチャネル構成比は別の分母\n"
+        ],
+        [
+          75,
+          76,
+          ""
+        ],
+        [
+          77,
+          78,
+          "    §4.5は2週間のA/BでGMV +1.15%、UCTCVR +0.40%を報告する。UCTCVRの詳細な集計定義や割付比率、区間推定は本文に明記されない。全面展開後の生成チャネル比率は露出50.25%、クリック58.96%、購入72.63%。この構成比をA/B\n    liftや独占的な因果寄与と扱わない。平均end-to-end latencyは約40ms、8 GPUで200 QPS超、availability 99.9%、動的beamは20/50/100。p95遅延やGPU機種別の曲線はない。[一次資料\n    §4](https://arxiv.org/pdf/2605.14434v1)\n"
+        ],
+        [
+          79,
+          82,
+          ""
+        ],
+        [
+          83,
+          84,
+          "    <figure class=\"teaching\"><h3>生成チャネルの構成比と、残りのチャネル</h3><p>著者報告 §4.5。各行の分母は全チャネルの露出・クリック・購入。A/Bの改善率ではない。</p><div\n    class=\"share-row\"><p>露出：生成 50.25% / その他 49.75%</p><div class=\"share-track\" role=\"img\"\n    aria-label=\"露出の生成チャネル構成比50.25%\"><span style=\"width:50.25%\"></span><span style=\"width:49.75%\"></span></div></div><div\n    class=\"share-row\"><p>クリック：生成 58.96% / その他 41.04%</p><div class=\"share-track\" role=\"img\"\n    aria-label=\"クリックの生成チャネル構成比58.96%\"><span style=\"width:58.96%\"></span><span style=\"width:41.04%\"></span></div></div><div\n    class=\"share-row\"><p>購入：生成 72.63% / その他 27.37%</p><div class=\"share-track\" role=\"img\"\n    aria-label=\"購入の生成チャネル構成比72.63%\"><span style=\"width:72.63%\"></span><span style=\"width:27.370000000000005%\"></span></div></div><figcaption>濃色＝生成、淡色＝その他（100%から計算）。複数チャネル間の重複帰属の詳細は本文にない。<a\n    href=\"https://arxiv.org/pdf/2605.14434v1\">出典：§4.5</a></figcaption></figure>'\n  executable_understanding: '6つの人工クラスタを作り、各クラスタを10商品へ展開する。生成beamを増やした後、商品効率を模した固定scoreで20商品に切る。beamを増やすとtargetが落ちる反例を追う。別の実験では5つのSIDに報酬0.1/0.5/1.0を与え、8生成サンプルへK=0/2/4のexpertを加える。2,000群のadvantageと、旧方策上の一歩のlogit勾配を計算する。\n"
+        ],
+        [
+          85,
+          88,
+          ""
+        ],
+        [
+          89,
+          92,
+          "    <div class=\"paper-probe teaching\" data-paper-probe=\"cq-sid-eg-grpo-tmall\"><h3>商品を群で呼び、20件へ切り詰める</h3><p>合成6クラスタ×10商品。targetは23。商品番号が大きいほど高い効率scoreを与えた反例である。</p>\n\n    <div class=\"probe-controls\"><label>生成beam<select data-cluster-beam><option>1</option><option>2</option><option\n    selected>3</option><option>4</option><option>6</option></select></label></div><div\n    data-probe-output aria-live=\"polite\"><p>初期値：beam=3。30商品へ展開し、20商品へ制限。target=23は残る。</p></div>\n\n    <h4>expert SIDを混ぜると、群の報酬差が生まれる</h4><label>注入数K<select data-expert><option>0</option><option\n    selected>2</option><option>4</option></select></label><p>この例の生成8件はすべて報酬0.1、expertは報酬1.0。値は正規化advantage。</p><div\n    data-expert-output aria-live=\"polite\">K=2：生成のadvantageは−0.5、expertは2.0。</div><script\n    type=\"application/json\" data-probe-data>{\"note\": \"人工SID群で展開件数と正規化advantageを計算。学習崩壊や実際の検索精度は再現していない。\",\n    \"experiments\": [{\"name\": \"疎報酬の8サンプルにexpertを注入\", \"dataset\": \"five synthetic SID\n    outcomes\", \"seed\": 16, \"n\": 2000, \"metrics\": {\"K=0\": {\"zero_advantage_fraction\":\n    0.842, \"mean_positive_sid_logit_gradient\": 0.053388}, \"K=2\": {\"zero_advantage_fraction\":\n    0.0, \"mean_positive_sid_logit_gradient\": 0.390471}, \"K=4\": {\"zero_advantage_fraction\":\n    0.0, \"mean_positive_sid_logit_gradient\": 0.43707}}}], \"frames\": [{\"beam\": 1, \"unique_items\":\n    1, \"cluster_items\": 10, \"after_cap\": 10, \"target_retained\": false, \"selected\":\n    [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]}, {\"beam\": 2, \"unique_items\": 2, \"cluster_items\":\n    20, \"after_cap\": 20, \"target_retained\": false, \"selected\": [19, 18, 17, 16, 15,\n    14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]}, {\"beam\": 3, \"unique_items\":\n    3, \"cluster_items\": 30, \"after_cap\": 20, \"target_retained\": true, \"selected\":\n    [29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10]},\n    {\"beam\": 4, \"unique_items\": 4, \"cluster_items\": 40, \"after_cap\": 20, \"target_retained\":\n    true, \"selected\": [39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25,\n    24, 23, 22, 21, 20]}, {\"beam\": 6, \"unique_items\": 6, \"cluster_items\": 60, \"after_cap\":\n    20, \"target_retained\": false, \"selected\": [59, 58, 57, 56, 55, 54, 53, 52, 51,\n    50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40]}], \"group_examples\": {\"0\": [0.0, 0.0,\n    0.0, 0.0, 0.0, 0.0, 0.0, 0.0], \"2\": [-0.4999999861111114, -0.4999999861111114,\n    -0.4999999861111114, -0.4999999861111114, -0.4999999861111114, -0.4999999861111114,\n    -0.4999999861111114, -0.4999999861111114, 1.999999944444446, 1.999999944444446],\n    \"4\": [-0.707106764519881, -0.707106764519881, -0.707106764519881, -0.707106764519881,\n    -0.707106764519881, -0.707106764519881, -0.707106764519881, -0.707106764519881,\n    1.4142135290397626, 1.4142135290397626, 1.4142135290397626, 1.4142135290397626]},\n    \"cluster_split\": {\"120\": [40, 40, 40], \"5001\": [51, 50, 50, 50, 50, 50, 50, 50,\n    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,\n    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,\n    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,\n    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,\n    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]}}</script><p class=\"source-note\">出所：run.pyが計算したresults.json。論文の性能再現ではない。JavaScript無効時は初期条件を表示する。</p></div>'\n  results: 合成疎報酬群で全advantageがゼロになる割合はK=0で84.2%、K=2/4で0%。positive SIDのlogit勾配合計の平均は0.053388→0.390471→0.437070だった。これは初期勾配の計算であり、収束や多様性改善は測っていない。商品展開の例ではtarget=23がbeam=3/4で残り、beam=6でtop-20から落ちる。\n  what_we_verified: クラスタからの商品展開、後段の件数制限による非単調なtarget保持、同報酬群のadvantage消失、expert注入時の報酬差と一歩の勾配を確認した。群分割では上限100群のため、5,001商品なら最大51商品が残る境界も確認する。\n  what_we_did_not_verify: カテゴリ表現学習、EMA codebook、Qwen2.5-0.5BのSFT、複数stepのEG-GRPO、GRPO\n    collapseの実際の発生、CTR/CVR/GMV、40msのservingは未再現。ログのselection bias、商品展開の重複帰属、オンラインrankingの実装は不明。\n"
+        ],
+        [
+          94,
+          96,
+          "  implementation: '`uv run papers/cq-sid-eg-grpo-tmall/run.py` をリポジトリのルートで実行する。Python標準ライブラリのみを使い、CPUで完了する。結果はコードと同じ場所の\n    `results.json` に保存する。乱数を使う箇所はseedを固定した。ダウンロードしたrun.pyも単体で動く。'\n"
+        ],
+        [
+          99,
+          100,
+          "  title: カテゴリ制約とexpertの役割を分ける\n"
+        ],
+        [
+          102,
+          104,
+          "  caption: 記号を分けて、どの量を学習・計算するかを追う。\n  rationale: 記号を分けて、どの量を学習・計算するかを追う。\n"
+        ],
+        [
+          105,
+          106,
+          "  - name: 第1段\n"
+        ],
+        [
+          107,
+          109,
+          "    explanation: 残差の近さだけに任せず、既知のカテゴリを固定する。\n  - name: 学習\n"
+        ],
+        [
+          110,
+          112,
+          "    explanation: 表現を復元し、queryと商品を近づける。\n  - name: 群のadvantage\n"
+        ],
+        [
+          113,
+          115,
+          "    explanation: 生成した出力と教師例のexpertを同じ群に入れ、各報酬から群平均を引いて標準偏差とεの和で割る。全報酬が同じならA=0。\n  - name: 更新\n"
+        ],
+        [
+          116,
+          118,
+          "    explanation: ρは新旧方策の出力確率比。toyはρ=1の初期勾配だけを調べる。\n  source: https://arxiv.org/pdf/2605.14434v1\n"
+        ],
+        [
+          120,
+          121,
+          "  title: SIDひとつから何件の商品を呼ぶか\n"
+        ],
+        [
+          123,
+          125,
+          "  caption: 概念比較。群の大きさは一定ではなく、最終候補数は展開と切り詰めで決まる。\n  rationale: 概念比較。群の大きさは一定ではなく、最終候補数は展開と切り詰めで決まる。\n"
+        ],
+        [
+          126,
+          127,
+          "  - 一意IDを使う設計\n"
+        ],
+        [
+          129,
+          130,
+          "  - label: 生成の単位\n"
+        ],
+        [
+          131,
+          134,
+          "    - 1 ID → 1商品\n    - 1 SID → 意味の近い商品群\n  - label: 同じbeam幅\n"
+        ],
+        [
+          135,
+          138,
+          "    - 商品数はbeam幅に制約される\n    - 複数商品へ展開するため多くなり得る\n  - label: 最後の識別\n"
+        ],
+        [
+          139,
+          142,
+          "    - IDで識別\n    - SID-to-itemsと既存ranking\n  - label: 大きすぎる群\n"
+        ],
+        [
+          143,
+          146,
+          "    - 共有しない\n    - 50件を目安にsuffix分割、最大100群\n  source: https://arxiv.org/pdf/2605.14434v1\n"
+        ],
+        [
+          148,
+          149,
+          "  title: beamを減らせた比較と、40msの運用条件\n"
+        ],
+        [
+          151,
+          153,
+          "  caption: 40msを各beamの個別測定へ割り当てない。表のbeamはオフライン、20/50/100はオンラインの設定。\n  rationale: 40msを各beamの個別測定へ割り当てない。表のbeamはオフライン、20/50/100はオンラインの設定。\n"
+        ],
+        [
+          157,
+          158,
+          "  - label: 非個人化 top-1K\n"
+        ],
+        [
+          159,
+          162,
+          "    - beam 65 / hitrate 0.4275\n    - beam 30 / hitrate 0.4422\n  - label: 個人化 top-1K\n"
+        ],
+        [
+          163,
+          166,
+          "    - beam 195 / hitrate 0.7607\n    - beam 160 / hitrate 0.7984\n  - label: オンライン\n"
+        ],
+        [
+          167,
+          170,
+          "    - 比較遅延なし\n    - 動的beam 20/50/100、平均約40ms\n  source: https://arxiv.org/pdf/2605.14434v1\n"
+        ]
+      ]
+    },
+    "papers/cq-sid-eg-grpo-tmall/mapping.md": {
+      "before": {
+        "sha256": "0e6666214b9f1c6ca0522bd2091dc1e478dc691d28fc6e98ddc3a4a18fbe6e22",
+        "blob": "bfd2b806dd1200009a80997d781a95d1ee44b75f"
+      },
+      "after": {
+        "sha256": "d0437582ecf48dd26a2296129c780a34a670d83009b527b9494dbbbe7c623cbb",
+        "blob": "46ee91562430510c87cdcbf2ea66e43e0002f389"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文と実装の対応\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料：[PDF v1](https://arxiv.org/pdf/2605.14434v1)。公式実装へのリンクは確認した論文では見つからなかった。以下の対応表は論文の手法を説明するためにLabで作った実装について示す。公式コードとの対応表ではない。\n"
+        ],
+        [
+          4,
+          5,
+          "| 原論文の箇所 | Labの対応 | 確認の範囲 |\n"
+        ],
+        [
+          6,
+          13,
+          "| §3.1、式1–7 | method、量子化の式 | RQ-VAE/EMA/InfoNCEは説明のみ |\n| Algorithm 1 | run.py split_cluster | 分割した群ごとの件数だけを均等にする。各商品を無作為に割り当てる処理は省略 |\n| §3.2 | 学習段階の本文 | Qwen2.5-0.5Bを学習していない |\n| 式8–10、Algorithm 2 | advantages / gradient_probe | 合成した候補群で初期勾配だけを計算する。GRPOの全過程は再現しない |\n| 表1–3 | beam比較表、商品展開の操作 | 説明用に作ったスコアを使い、論文のヒット率は再現しない |\n| 表4 | EvidenceのK=0/2比較 | 学習が崩れたというのは著者の解釈。Labの小実験では、その現象を検証していない |\n| §4.5 | チャネル比率の積み上げ棒 | 50.25/58.96/72.63%は露出・クリック・購入それぞれの構成比であり、A/BテストのGMV・UCTCVRの改善率とは異なる |\n"
+        ]
+      ]
+    },
+    "papers/cq-sid-eg-grpo-tmall/method.md": {
+      "before": {
+        "sha256": "b9f0f04e49b874d3eb221567142a2206109f77931ea0553e07f0f1872e3f9b0e",
+        "blob": "c18175524f925cdbf437d24b975f08d1ed46bbfd"
+      },
+      "after": {
+        "sha256": "03e2f712666a37b5cc9e7bddfde35b8e5666a2ef978039decdfb921124adcc26",
+        "blob": "5ee032b89453c350d9849915b9552fe2aa7e146b"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 1段目はカテゴリ、残り2段は残差の近さで決める\n"
+        ],
+        [
+          2,
+          3,
+          "CQ-SIDはRQ-VAEを基に、1,711の有効カテゴリを最初の量子化に使う。既知カテゴリの商品はそのカテゴリIDを強制的に選び、未知の場合は最近傍codeへ割り当てる。codebookは2048×1024×1024。第2・第3段は残差の最近傍を取り、EMAで更新し、使われないcodeをrestartする。\n"
+        ],
+        [
+          4,
+          5,
+          "query-itemの双方向InfoNCEを加え、再構成誤差＋commitment＋対照損失で学習する。実験設定はβ=1、γ=0.001、温度τ=0.1。queryのない商品では対照項をmaskする。意味の近い商品を同じSIDへ集めるため、一意IDは要求しない。[式1–7](https://arxiv.org/pdf/2605.14434v1)\n"
+        ],
+        [
+          6,
+          7,
+          "50商品を超すSIDは、G=min(ceil(c/50),100)の群へランダム分割し、第3段へgroup suffixを付ける。これは上限100群のため、必ず各群50以下になる保証ではない。語彙の残差量子化と、この後処理の群分割は別工程だ。\n"
+        ],
+        [
+          8,
+          9,
+          "### Qwen2.5-0.5Bを3段階のSFTからEG-GRPOへ進める\n"
+        ],
+        [
+          10,
+          11,
+          "商品title→SID、query→SID、user+query→SIDの順にSFTする。query段ではクリック・購入に対応するSIDを3つsample。個人化段では性別・年齢帯・関連カテゴリの最近のクリックSIDも入力する。最後に既存rankingとの整合を狙うEG-GRPOを行う。\n"
+        ],
+        [
+          12,
+          13,
+          "報酬は購入またはクリック1.0、露出のみ0.5、有効SIDのみ0.1、無効0。順位の上から最初に該当する条件を使い、加算しない。通常8出力の群へ、クリックまたは露出集合からK個の正解SIDをpseudo-generated outputとして注入する。広げた群で平均・標準偏差を計算し、clipped policy gradientへ入れる。expertは、学習時に報酬差を作るために加える教師例である。配信時に正解SIDを渡す仕掛けではない。[式8–10、Algorithm 2](https://arxiv.org/pdf/2605.14434v1)\n"
+        ],
+        [
+          14,
+          15,
+          "式10の掲載式にはKL項がない一方、§4.1の設定はKL weight=1.0と記す。完全な学習lossやoff-policy注入の補正を再構成できたとは扱わない。\n"
+        ],
+        [
+          16,
+          17,
+          "### 日次の商品集合と既存rankingが残る\n"
+        ],
+        [
+          18,
+          19,
+          "数億商品の全量から効率の良い約2,100万商品を選び、SID-to-items lookupを作る。新しい商品を日次でクラスタに追加する。生成されたSIDを商品へ展開し、既存の複数召回チャネルとrankingへ渡す。40msはこの配置での平均値だ。\n"
+        ],
+        [
+          20,
+          25,
+          "[OxygenREC-v2 Lab](oxygenrec-v2-idgr.html)は行動指示と未来情報を使う教師からの蒸留が主題で、expert SIDを群へ注入する本論文とは教師信号の入れ方が違う。[TSGR](https://arxiv.org/abs/2607.18796)は表現・候補順位に価値を入れ、[CRID](https://arxiv.org/abs/2607.11392)はclusterと群内business-value順位をDocIDへ符号化する。本論文の「群を呼んで既存rankingへ渡す」判断と比較できるが、同条件の直接比較結果ではない。\n"
+        ]
+      ]
+    },
+    "papers/cq-sid-eg-grpo-tmall/results.json": {
+      "before": {
+        "sha256": "d68627404db8cebdea04a3966a0473bd1332b868ea83c6ef41aad48eac3a9ff5",
+        "blob": "f2aa43cf2c74b5e3c25b7c7ee78067dd6922e5ad"
+      },
+      "after": {
+        "sha256": "67cae009051002e79a8a861fa6d3fb7422b17ce2920a4ed89b147476cc71df33",
+        "blob": "2c6bd8e9ec9bfddebbe7905f3bcc7353ddfc8e43"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"人工SID群で展開件数と正規化advantageを計算。学習崩壊や実際の検索精度は再現していない。\",\n"
+        ],
+        [
+          4,
+          6,
+          "      \"name\": \"疎報酬の8サンプルにexpertを注入\",\n      \"dataset\": \"five synthetic SID outcomes\",\n"
+        ]
+      ]
+    },
+    "papers/cq-sid-eg-grpo-tmall/run.py": {
+      "before": {
+        "sha256": "c61672b18b4cc7f223f6ece44be70bc3c86380be5a1d7c5425108375f98a7272",
+        "blob": "2d0b1b25df0892baf16ee2bb7aaa143f85b96f9d"
+      },
+      "after": {
+        "sha256": "2dc9c3a9760aa1f0faf264b165f6e5956cc9f4fb670ecb60ba8fa4629fdfb05d",
+        "blob": "becc80518ea6468f767ab653ab5fee52a9b697d7"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Cluster expansion and sparse reward group probe. Not Qwen training or GRPO reproduction.\"\"\"\n"
+        ],
+        [
+          22,
+          23,
+          "    # Five tabular SIDs: the rarely sampled clicked/exposed SIDs have positive reward.\n"
+        ],
+        [
+          30,
+          32,
+          "        # Gradient of mean A log pi(o) at old policy (ratio=1); includes injected samples.\n"
+        ],
+        [
+          40,
+          41,
+          "    # Item target=23. Cluster order is intentionally coarse; efficiency truncation can discard it.\n"
+        ],
+        [
+          48,
+          50,
+          "    return {'note':'人工SID群で展開件数と正規化advantageを計算。学習崩壊や実際の検索精度は再現していない。',\n            'experiments':[{'name':'疎報酬の8サンプルにexpertを注入','dataset':'five synthetic SID outcomes','seed':16,'n':2000,\n"
+        ]
+      ]
+    }
+  }
+}
