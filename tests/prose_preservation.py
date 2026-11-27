@@ -160,7 +160,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = glide_full_prose_hash(root, path, expected, algorithm)
     expected = overview_figure_relocations_hash(root, path, expected, algorithm)
     expected = hgenpush_full_prose_hash(root, path, expected, algorithm)
-    return agenttether_full_prose_hash(root, path, expected, algorithm)
+    expected = agenttether_full_prose_hash(root, path, expected, algorithm)
+    return stockout_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -2335,6 +2336,34 @@ def agenttether_full_prose_hash(root, path, expected, algorithm='sha256'):
 
 def before_agenttether_full_prose(root, path, current):
     row = agenttether_full_prose_row(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def stockout_full_prose_row(root, path):
+    if not path.startswith('papers/stockout-data-debt/'):
+        return None
+    rows = json.loads((root / 'tests/stockout_full_prose_hashes.json').read_text())['files']
+    return rows.get(path)
+
+
+def stockout_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = stockout_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_stockout_full_prose(root, path, current):
+    row = stockout_full_prose_row(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

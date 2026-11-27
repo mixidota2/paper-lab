@@ -1,4 +1,4 @@
-"""Exact arithmetic for Figure 1 and Proposition 7, not a retail performance trial."""
+"""論文の図1と命題7の人工例を有理数で計算する。店舗での発注は扱わない。"""
 from fractions import Fraction as F
 from itertools import product
 import json
@@ -26,8 +26,8 @@ def one(gamma):
                 worst_regret=worst,data_debt=min(worst))
 
 def two_cost(theta1,theta2,policy,c=F(7,10)):
-    # Complete deterministic Markov rule: actions at (t1,x0), (t2,x0), (t2,x1).
-    # At inventory 1, only action 0 is feasible.
+    # 発注数を初日、翌日の在庫0、翌日の在庫1の順で持つ。
+    # 在庫が1個あるときは追加で買えない。
     a1,a20,a21=policy
     if a1 not in (0,1) or a20 not in (0,1) or a21!=0:
         raise ValueError("infeasible policy")
@@ -53,17 +53,17 @@ def carryover():
 
 def results():
     cases=[one(g) for g in GAMMAS]
-    return dict(note="論文の人工例を数式から計算した。実店舗の販売、費用、効果は測っていない。",
+    return dict(note="論文の人工例を計算しました。実店舗での発注や費用の変化は測っていません。",
         verification=dict(mechanism="PARTIAL",performance="NOT TESTED",
                           scaling="NOT TESTED",production_applicability="NOT TESTED"),
-        experiments=[dict(name="図1の単期例",metrics={"Γ=11の最大費用差":one(11)['data_debt']}),
-                     dict(name="命題7の2期間例",metrics={"持越しがある場合の最小最大費用差":carryover()['data_debt']})],
+        experiments=[dict(name="図1：一日だけ発注する",metrics={"Γ=11の最大費用差":one(11)['data_debt']}),
+                     dict(name="命題7：初日の在庫を翌日に持ち越す",metrics={"持越しがある場合の最小最大費用差":carryover()['data_debt']})],
         calculations=cases,carryover=carryover(),
-        explorer=dict(label="隠れた需要の偏りに許す上限 Γ",unit="",metric="需要を知る最適行動より余分にかかる費用（人工単位）",default=5,
+        explorer=dict(label="需要が分かる記録と分からない記録に、どれだけ違いを認めるか（Γ）",unit="",metric="最も不利な分布で、最適な行動より余分にかかる費用（例の単位）",default=5,
           frames=[dict(value=r['gamma'],bars=[
-              dict(label="注文しない場合の最大費用差",value=r['worst_regret'][0]),
-              dict(label="1個注文する場合の最大費用差",value=r['worst_regret'][1])],
-              note=f"需要0の確率は{r['p_zero'][0]:.4f}〜{r['p_zero'][1]:.4f}の範囲です。観測割合は20%・20%・60%に固定しています。Γはデータから推定した値ではなく、分析者が置く仮定です。どちらの棒も、その行動にとって最も不利な需要分布で計算しています。二つの棒が同じ分布の費用を示すわけではありません。",
+              dict(label="注文しない場合",value=r['worst_regret'][0]),
+              dict(label="1個注文する場合",value=r['worst_regret'][1])],
+              note=f"需要が0となる確率は{r['p_zero'][0]:.4f}〜{r['p_zero'][1]:.4f}です。需要0・需要1・不明の割合は20%・20%・60%から変えていません。Γは分析者が置く仮定です。棒ごとに最も不利な分布を使うため、二つの棒の分布は同じとは限りません。",
               lines=[]) for r in cases]))
 if __name__=="__main__":
     Path(__file__).with_name("results.json").write_text(json.dumps(results(),ensure_ascii=False,indent=2)+"\n")
