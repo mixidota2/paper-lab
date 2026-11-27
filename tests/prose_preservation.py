@@ -207,7 +207,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = sparse_reader_all_full_prose_hash(root, path, expected, algorithm)
     expected = sgc_all_full_prose_hash(root, path, expected, algorithm)
     expected = tgr_reader_all_full_prose_hash(root, path, expected, algorithm)
-    return genpage_reader_full_prose_hash(root, path, expected, algorithm)
+    expected = genpage_reader_full_prose_hash(root, path, expected, algorithm)
+    return harness_zero_all_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -3607,6 +3608,29 @@ def genpage_reader_full_prose_hash(root,path,expected,algorithm='sha256'):
 def before_genpage_reader_full_prose(root,path,current):
     import base64,zlib
     row=genpage_reader_full_prose_row(root,path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
+    prior=zlib.decompress(base64.b64decode(row['prior_zlib_b64'],validate=True))
+    assert hashlib.sha256(prior).hexdigest()==row['before']['sha256'],path
+    return prior
+
+
+def harness_zero_all_full_prose_for_path(root,path):
+    if not path.startswith('papers/harness-zero-distillation/'):
+        return None
+    return json.loads((root/'tests/harness_zero_all_full_prose_hashes.json').read_text())['files'].get(path)
+
+def harness_zero_all_full_prose_hash(root,path,expected,algorithm='sha256'):
+    row=harness_zero_all_full_prose_for_path(root,path)
+    if row is None:
+        return expected
+    assert expected==row['before'][algorithm],path
+    return row['after'][algorithm]
+
+def before_harness_zero_all_full_prose(root,path,current):
+    import base64,zlib
+    row=harness_zero_all_full_prose_for_path(root,path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path

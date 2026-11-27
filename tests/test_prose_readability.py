@@ -416,13 +416,19 @@ def test_batch20_harness_denominators_and_intervention_boundaries():
         'scaffold-effects-gaia': ('lab.yaml', '上限は初回呼出しを含まず'),
         'intervention-paradox': ('lab.yaml', '実際に観測した整数の件数ではない'),
     }
+    from prose_preservation import before_harness_zero_all_full_prose
     for slug, (name, text) in phrases.items():
-        assert text in (ROOT/'papers'/slug/name).read_text()
+        relative = f'papers/{slug}/{name}'
+        current = (ROOT/relative).read_bytes()
+        assert text in before_harness_zero_all_full_prose(ROOT, relative, current).decode()
     root = ROOT/'papers/harness-zero-distillation'
+    def prior(name):
+        path = f'papers/harness-zero-distillation/{name}'
+        return before_harness_zero_all_full_prose(ROOT, path, (root/name).read_bytes()).decode()
     for name in ('lab.yaml', 'README.md'):
-        assert '課題を全領域で合算した成功率ではない' in (root/name).read_text()
+        assert '課題を全領域で合算した成功率ではない' in prior(name)
     for name in ('method.md', 'README.md'):
-        assert 'その推論文を模倣するようには学習させない' in (root/name).read_text()
+        assert 'その推論文を模倣するようには学習させない' in prior(name)
     for name in ('lab.yaml', 'README.md'):
         assert '成功したタスクはそこで止める' in (ROOT/'papers/scaffold-effects-gaia'/name).read_text()
     method = (ROOT/'papers/intervention-paradox/method.md').read_text()

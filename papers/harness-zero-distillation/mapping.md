@@ -1,17 +1,16 @@
-# 原論文・公式コード対応
+# 原論文と教材で扱う範囲
 
-[一次資料PDF](https://arxiv.org/pdf/2609.24974)。確認箇所：Figure 1; §3.1–3.3; Eqs. (1), (3)–(5); Tables 2, 4。保存済みPDFのSHA-256：`bf0331faa974d446aa360d7ac8bf9bb0cb44363a4fcebc06aea52c6cfcc8101f`。
+[一次資料：原論文PDF](https://arxiv.org/pdf/2609.24974)。図1、§3.1〜3.3、式(1)、(3)〜(5)、表2と4を参照します。次の値は以前に保存したPDFのSHA-256です。
 
-## 紙面と最小実験の対応
+`bf0331faa974d446aa360d7ac8bf9bb0cb44363a4fcebc06aea52c6cfcc8101f`
 
-collect() → 式(3)のPASS/REPLACEと学生可視履歴。nll() → 式(4)の1応答分の算術。重み更新と私的推論maskは省略。
+| 原論文 | Labで扱う部分 | Labで試していない部分 |
+| --- | --- | --- |
+| 図1と式(3) | `collect()` はPASSまたはREPLACEの指定から、採用した応答を実行対象と学習用履歴に残す | 言語モデルによる点検、強化版の支援環境を作る処理、実際の操作 |
+| 式(4) | `nll()` は採用応答の確率から、応答一つ分の損失を計算する | 教師あり学習、点検役だけに見える推論を損失から除く処理 |
+| 表2と表4 | 比較条件と、著者らが評価した値を整理する | 外付けの点検を外した後の能力や、28種類の行動の測定 |
+| 本番への適用 | 論文の結果と、架空の教材を区別する | 配信性能、規模を広げた場合の挙動、本番での効果 |
 
-Performance / Scaling / Production applicabilityはNOT TESTED。harness進化、LLMによる点検、推論文のmask、LoRA SFT、28行動の検出、本番配信は実行していない。点検役を外した後の能力保持も人工例では確かめていない。
+著者らは[公式リポジトリ](https://github.com/metaevo-ai/harness-zero)を示しています。Labはコードを取得・実行しておらず、個々のファイルを照合していません。
 
-## 公式コードの確認範囲
-
-論文が示す[公式リポジトリ](https://github.com/metaevo-ai/harness-zero)。今回はコード本体を取得・実行していないため、ファイル単位の一致はNOT TESTED。
-
-## 原本と生成物
-
-lab.yamlは本文と図の定義、method.mdは手法説明、run.pyは人工実験、results.jsonは実行結果、mapping.mdは対応表。HTMLはこれらから生成する。PDFの報告値と人工実験値は別に表示する。
+`lab.yaml` は本文と図、`method.md` は論文の手法、`run.py` は教材、`results.json` は教材の結果です。記事のHTMLはこれらの資料から作ります。
