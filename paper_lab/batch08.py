@@ -15,26 +15,26 @@ function forest(el,rows,min,max,band=false){const x=v=>175+(v-min)/(max-min)*360
 '''
 
 SIM = r'''
-<h3>候補の費用から、届く数量を予測する</h3>
-<p>Gは容量目標で、倉庫が処理する総入荷量の目安です。各商品の発注ルールπは、在庫などの状態Xと共通費用λから注文を決めます。予測器ψは候補の費用を受け取り、そのときに見込まれる総入荷量を返します。</p>
-<div class="flow"><div><b>容量計画 G → λ</b><p>調整モデルが容量目標を共通費用に変えます</p></div><div><b>π(X,λ) → 注文 a → 入荷 J</b><p>注文が納期に達すると、倉庫に商品が届きます</p></div><div><b>Ĵ=ψ(X,λ) → 容量計画へ</b><p>容量を計画する際に、予測した入荷量を参照します</p></div></div>
-<p class="band">旧ルールπ₀の記録には、新ルールの注文はありません。著者らは同じ需要と納期で新ルールπ₁を動かし、入荷を予測するための学習データを作りました。</p>
-<h3>需要と納期をそろえ、費用を替えて比べる</h3>
-<p>費用と週を選ぶと、発注、入荷、在庫を比較できます。需要と納期は共通です。この在庫図はLabの人工例です。下の予測誤差の比較は、著者らが実際の導入事例から計算した結果です。</p>
-<div class="cols"><label>全商品に共通の入荷費用 λ<select data-cost><option value="0">0</option><option value="2">2</option><option value="4">4</option></select></label><label>表示週 <output data-week-label></output><input data-week type="range" min="1" max="23" value="8"></label></div>
-<div class="plot"><svg viewBox="0 0 600 265" role="img" aria-label="費用の候補ごとの需要・入荷・期末在庫" data-replay></svg></div>
-<div class="legend"><span style="color:#7d8990">● 需要：どの費用でも同じ</span><span style="color:#176d79">● 入荷</span><span style="color:#b86d34">● 期末在庫</span></div>
+<h3>同じ発注ルールでも、共通の費用を変えると入荷量は変わる</h3>
+<p>Gは容量目標で、倉庫が受け入れられる数量を表します。各商品の発注ルールπは、在庫などの状態Xと、全商品に共通の費用λをもとに注文数を決めます。予測器ψは、その費用の候補を使うと全商品で何個届くかを予測します。</p>
+<div class="flow"><div><b>容量計画 G → λ</b><p>調整モデルは、受け入れ枠の目標を全商品に共通の費用に置き換えます。</p></div><div><b>π(X,λ) → 注文 a → 入荷 J</b><p>シミュレーターは、納期を迎えた注文を入荷として数えます。</p></div><div><b>Ĵ=ψ(X,λ) → 容量計画へ</b><p>担当者は予測した入荷量を、受け入れ枠と見比べられます。</p></div></div>
+<p class="band">旧ルールπ₀の実績だけでは、新ルールπ₁で発注するとどれだけ届くかは分かりません。著者らは過去の需要と納期を使ってπ₁を動かし、そのときの総入荷量を学習データにしました。</p>
+<h3>費用だけを変え、発注・入荷・在庫の違いを見る</h3>
+<p>この図では、Labが架空の商品で計算した発注・入荷・在庫を表示します。費用と週を選んでください。どの費用でも、需要と納期には同じ値を使います。下の予測誤差の図は、論文の著者らが実際の導入事例で測った値です。</p>
+<div class="cols"><label>比較する共通費用 λ<select data-cost><option value="0">0</option><option value="2">2</option><option value="4">4</option></select></label><label>内訳を表示する週 <output data-week-label></output><input data-week type="range" min="1" max="23" value="8"></label></div>
+<div class="plot"><svg viewBox="0 0 600 265" role="img" aria-label="選んだ費用で計算した需要・入荷・期末在庫" data-replay></svg></div>
+<div class="legend"><span style="color:#7d8990">● 需要（費用を変えても同じ）</span><span style="color:#176d79">● 入荷</span><span style="color:#b86d34">● 期末在庫</span></div>
 <div class="cards" data-stock></div><p class="eq" data-equation aria-live="polite"></p>
-<p class="muted">人工の24商品を使っています。納期は1〜2週です。Labは商品ごとに式2で販売と在庫を計算し、足し合わせます。商品を合わせた後に、小さいほうの数量を選ぶ計算ではありません。</p>
-<h3>模擬値と実績のずれ、予測器の誤差を分けて比べる</h3>
-<div class="cols"><div class="card"><h4>Table 1：商品・週ごとの模擬値と実績</h4><div data-fidelity></div><p class="muted">横軸に模擬値、縦軸に実績を置いた回帰です。傾き1は尺度の一致を表します。Labは表の95%信頼区間の中点を棒の長さに使っています。著者が表に示した区間と区別してください。R²は別の指標です。</p></div><div><label>論文の評価事例<select data-study><option>S1</option><option>S2</option></select></label><p>S1：約2万商品・1年<br>S2：約10万商品・3カ月</p><p>灰：旧ルールの実績で学習　青緑：新ルールの模擬で学習<br>橙：新ルールの模擬で学び、導入後に補正</p></div></div>
+<p class="muted">Labは24個の架空の商品を使い、納期を1〜2週に設定しました。商品ごとに需要と手元の在庫を比べ、少ないほうを販売数にします。その後、各商品の販売数と在庫数をそれぞれ合計します。</p>
+<h3>シミュレーターのずれと、そこで学習した予測器の誤差を分けて読む</h3>
+<div class="cols"><div class="card"><h4>表1：各商品の各週で、模擬値と実績を比べる</h4><div data-fidelity></div><p class="muted">著者らは横軸に模擬値、縦軸に実績を置いて回帰しました。傾きが1なら、回帰線上の模擬値と実績は同じです。棒は論文の95%信頼区間の中点だけを表します。R²は、回帰がどの程度当てはまるかを表す別の値です。</p></div><div><label>表示する導入事例<select data-study><option>S1</option><option>S2</option></select></label><p>S1：約2万商品・1年<br>S2：約10万商品・3カ月</p><p>灰：旧ルールの実績で学習　青緑：新ルールの模擬データで学習<br>橙：青緑の予測を導入後の実績で補正</p></div></div>
 <div class="plot"><svg class="wide" viewBox="0 0 600 300" role="img" aria-label="予測期間別MAPEと95%信頼区間" data-transfer></svg></div>
-<p class="muted">著者らは総入荷量の予測と実績の差の絶対値を実績で割り、週ごとの予測起点で平均しました（MAPE）。予測期間ごとに比べています。実績がゼロの場合の処理は、確認した本文では明示されていません。Labの人工例はmax(J,1)で割ります。<a href="https://arxiv.org/html/2610.03662v1">原典§4・Tables 2–3</a>。灰と青緑の縦線は、それぞれのMAPEの95%信頼区間です。二つの予測の差の区間ではありません。橙は補正後の点推定値です。補正後の区間は図に載せていないので、原論文のTable 3を参照してください。</p>
+<p class="muted">著者らは、各週に出した総入荷量の予測について、絶対誤差を実績で割りました。その割合を、同じ予測期間の値どうしで平均した指標がMAPEです。本文では、実績がゼロの週をどう扱ったかは明示していません。Labの人工例では、入荷実績と1の大きいほうで割ります。<a href="https://arxiv.org/html/2610.03662v1">原典§4・Tables 2–3</a>。灰と青緑の縦線は、各モデルのMAPEに対する95%信頼区間です。モデル間の差に対する区間ではありません。橙は補正後のMAPEの点推定値です。補正後の区間は原論文の表3で確認できます。</p>
 '''
 SIM_JS = r'''
-function replay(){const rows=d.traces[$('[data-cost]').value],t=+$('[data-week]').value,r=rows[t];$('[data-week-label]').textContent=t;let s='';const max=Math.max(...Object.values(d.traces).flat().map(r=>Math.max(r.demand,r.inbound,r.inventory))),x=i=>45+i*23,y=v=>225-v/max*190;[0,.5,1].forEach(a=>{s+=line(45,y(max*a),580,y(max*a))+txt(3,y(max*a)+4,f(max*a,0));});for(const [k,c] of [['demand','#7d8990'],['inbound','#176d79'],['inventory','#b86d34']]){s+=`<polyline points="${rows.map((v,i)=>`${x(i)},${y(v[k])}`).join(' ')}" fill="none" stroke="${c}" stroke-width="2.5"/>`;}s+=line(x(t),20,x(t),228,'#172f3b',2)+txt(45,255,'0週')+txt(550,255,'23週');$('[data-replay]').innerHTML=s;$('[data-stock]').innerHTML=[['前週末在庫',r.before],['今週入荷 J',r.inbound],['販売 s',r.sales],['今週発注 a',r.orders]].map(([k,v])=>`<div class="card">${k}<span class="big">${f(v)}</span></div>`).join('');$('[data-equation]').textContent=`Eq.1：過去の注文のうち納期を迎えた ${f(r.inbound)} が届きました。Eq.2：${f(r.before)} + ${f(r.inbound)} − ${f(r.sales)} = 期末在庫 ${f(r.inventory)}`;}
+function replay(){const rows=d.traces[$('[data-cost]').value],t=+$('[data-week]').value,r=rows[t];$('[data-week-label]').textContent=t;let s='';const max=Math.max(...Object.values(d.traces).flat().map(r=>Math.max(r.demand,r.inbound,r.inventory))),x=i=>45+i*23,y=v=>225-v/max*190;[0,.5,1].forEach(a=>{s+=line(45,y(max*a),580,y(max*a))+txt(3,y(max*a)+4,f(max*a,0));});for(const [k,c] of [['demand','#7d8990'],['inbound','#176d79'],['inventory','#b86d34']]){s+=`<polyline points="${rows.map((v,i)=>`${x(i)},${y(v[k])}`).join(' ')}" fill="none" stroke="${c}" stroke-width="2.5"/>`;}s+=line(x(t),20,x(t),228,'#172f3b',2)+txt(45,255,'0週')+txt(550,255,'23週');$('[data-replay]').innerHTML=s;$('[data-stock]').innerHTML=[['前週末在庫',r.before],['今週入荷 J',r.inbound],['販売 s',r.sales],['今週発注 a',r.orders]].map(([k,v])=>`<div class="card">${k}<span class="big">${f(v)}</span></div>`).join('');$('[data-equation]').textContent=`式1：今週は、以前に注文した分のうち ${f(r.inbound)} が届きました。式2：前週末の在庫 ${f(r.before)} に今回の入荷 ${f(r.inbound)} を足し、今週売れた ${f(r.sales)} を引くと、期末には ${f(r.inventory)} 残ります。`;}
 function transfer(){let a=d.paper.studies[$('[data-study]').value],s='',x=i=>105+i*135,y=v=>255-v*6;[0,10,20,30].forEach(v=>s+=line(55,y(v),580,y(v))+txt(15,y(v)+4,v));s+=txt(15,20,'MAPE %');for(let i=0;i<4;i++){for(const [key,ci,dx,col] of [['history','history_ci',-15,'#7d8990'],['sim','sim_ci',10,'#176d79']]){let xx=x(i)+dx;s+=line(xx,y(a[key][i]-a[ci][i]),xx,y(a[key][i]+a[ci][i]),col,2)+dot(xx,y(a[key][i]),col)+txt(xx,y(a[key][i])-8,a[key][i],'middle',col);}s+=line(x(i)+10,y(a.sim[i]),x(i)+30,y(a.cal[i]),'#c27831',3)+dot(x(i)+30,y(a.cal[i]),'#c27831')+txt(x(i),282,d.paper.horizons[i],'middle');}$('[data-transfer]').innerHTML=s;}
-$('[data-fidelity]').innerHTML=d.paper.fidelity.map(([name,b,r])=>`<p>${name}　傾きの区間の中点 ${f(b,3)} ／ R² ${r}<span class="bar" style="display:block;width:${b*100}%"></span></p>`).join('');$('[data-cost]').addEventListener('change',replay);$('[data-week]').addEventListener('input',replay);$('[data-study]').addEventListener('change',transfer);replay();transfer();
+$('[data-fidelity]').innerHTML=d.paper.fidelity.map(([name,b,r])=>`<p>${name}　傾きの95%信頼区間の中点 ${f(b,3)} ／ R² ${r}<span class="bar" style="display:block;width:${b*100}%"></span></p>`).join('');$('[data-cost]').addEventListener('change',replay);$('[data-week]').addEventListener('input',replay);$('[data-study]').addEventListener('change',transfer);replay();transfer();
 '''
 
 HARNESS = r'''

@@ -193,7 +193,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = wrapped_all_full_prose_hash(root, path, expected, algorithm)
     expected = storewide_all_full_prose_hash(root, path, expected, algorithm)
     expected = retail_grain_all_full_prose_hash(root, path, expected, algorithm)
-    return switch_hurdle_all_full_prose_hash(root, path, expected, algorithm)
+    expected = switch_hurdle_all_full_prose_hash(root, path, expected, algorithm)
+    return sim2real_all_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -3282,6 +3283,32 @@ def before_switch_hurdle_all_full_prose(root, path, current):
     import base64
     import zlib
     row = switch_hurdle_all_full_prose_for_path(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    previous = zlib.decompress(base64.b64decode(row['prior_zlib_b64'], validate=True))
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def sim2real_all_full_prose_for_path(root, path):
+    if path != 'paper_lab/batch08.py' and not path.startswith('papers/sim2real-policy-conditioned-inbound-forecast/'):
+        return None
+    return json.loads((root / 'tests/sim2real_all_full_prose_hashes.json').read_text())['files'].get(path)
+
+
+def sim2real_all_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = sim2real_all_full_prose_for_path(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_sim2real_all_full_prose(root, path, current):
+    import base64
+    import zlib
+    row = sim2real_all_full_prose_for_path(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

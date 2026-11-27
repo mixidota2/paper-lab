@@ -1,7 +1,7 @@
 # /// script
 # dependencies = ["numpy==2.5.3"]
 # ///
-"""Policy-dependent inbound: shared exogenous tracks, misspecified simulator, causal calibration."""
+"""人工例で発注ルール変更後の翌週入荷を予測し、判明した実績で補正する。"""
 import json
 from pathlib import Path
 import numpy as np
@@ -29,7 +29,7 @@ def rollout(seed, policy, scale=1.0, lead_bias=0, cost=None, weeks=260):
         for i in range(p):
             due[t+leads[t,i],i] += order[i]
         assert np.allclose(inventory,before+inbound-sales)
-        # At origin t, next week's due orders (including today's orders) are still unknown to the forecaster.
+        # 予測には未着注文の合計だけを渡す。翌週に届く注文の内訳と当週の新規注文は渡さない。
         features = [1, np.sin(t/6), np.cos(t/6), float(lam[t]), inventory.sum()/p, pipeline.sum()/p, inbound.sum()/p]
         records.append(dict(t=t, x=features, inbound=float(inbound.sum()), demand=float(demand[t].sum()), inventory=float(inventory.sum()), orders=float(order.sum()), before=float(before.sum()), sales=float(sales.sum()), lam=float(lam[t])))
     x=np.array([r['x'] for r in records[12:-1]])
@@ -74,8 +74,8 @@ def main():
     trials=[experiment(s) for s in [7,19,43,71,101]]
     traces={str(c):rollout(7,'new',cost=c,weeks=40)[2][:24] for c in [0,2,4]}
     assert all(traces['0'][t]['demand']==traces['4'][t]['demand'] for t in range(24))
-    result={'lab_kind':'sim08','seed':7,'note':'人工的な24商品の実験。CNN、Amazonのデータ、原論文の性能は再現していない。MAPEは同じ新方策の期間で比較する。', 'trials':trials,'traces':traces,
-      'experiments':[{'name':'新方策への移行：5 seed平均','metrics':{k:round(float(np.mean([r[k] for r in trials])),3) for k in ['history_mape','sim_mape','calibrated_mape','calibrated_history_mape']}}]}
+    result={'lab_kind':'sim08','seed':7,'note':'Labは架空の24商品を使う。両方の予測器について、同じ新ルールの期間を対象にMAPEを比べる。著者らのCNNや導入先の実データは使わず、原論文の精度も再現していない。', 'trials':trials,'traces':traces,
+      'experiments':[{'name':'新ルールに切り替えた場合の誤差率（乱数の初期値5通りの平均）','metrics':{k:round(float(np.mean([r[k] for r in trials])),3) for k in ['history_mape','sim_mape','calibrated_mape','calibrated_history_mape']}}]}
     result['paper'] = PAPER
     (Path(__file__).parent/'results.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     print(result['experiments'])
