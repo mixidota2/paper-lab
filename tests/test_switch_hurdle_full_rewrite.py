@@ -7,11 +7,14 @@ import re
 import pytest
 import yaml
 
-from prose_preservation import before_switch_hurdle_full_rewrite, switch_hurdle_full_rewrite_hash
+from prose_preservation import before_switch_hurdle_all_full_prose, before_switch_hurdle_full_rewrite, switch_hurdle_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 PREFIX = 'papers/switch-hurdle-intermittent-demand/'
 
+
+def prior_file(path):
+    return before_switch_hurdle_all_full_prose(ROOT,path,(ROOT/path).read_bytes())
 
 def identity(b):
     return {'sha256':hashlib.sha256(b).hexdigest(),
@@ -22,7 +25,7 @@ def test_switch_hurdle_exact_prose_transition():
     rows = json.loads((ROOT/'tests/switch_hurdle_full_rewrite_hashes.json').read_text())['files']
     assert set(rows) == {PREFIX+n for n in ('README.md','mapping.md','method.md','lab.yaml')}
     for path, row in rows.items():
-        new = (ROOT/path).read_bytes()
+        new = prior_file(path)
         old = before_switch_hurdle_full_rewrite(ROOT, path, new)
         for algorithm, prior_hash in identity(old).items():
             new_hash = identity(new)[algorithm]
@@ -37,7 +40,7 @@ def test_switch_hurdle_exact_prose_transition():
 
 def test_switch_hurdle_keeps_overview_links_and_experiment():
     path = PREFIX+'lab.yaml'
-    recent = (ROOT/path).read_bytes()
+    recent = prior_file(path)
     prior = before_switch_hurdle_full_rewrite(ROOT,path,recent)
     overview = re.compile(rb'^  overview:.*?(?=^  problem:)',re.S|re.M)
     assert len(overview.findall(prior)) == 1
@@ -56,9 +59,9 @@ def test_switch_hurdle_keeps_overview_links_and_experiment():
     links = re.compile(rb'\]\(([^)]*)\)')
     for n in ('README.md','mapping.md','method.md','lab.yaml'):
         p = PREFIX+n
-        newer = (ROOT/p).read_bytes()
+        newer = prior_file(p)
         prior = before_switch_hurdle_full_rewrite(ROOT,p,newer)
         assert sorted(links.findall(newer)) == sorted(links.findall(prior))
     for n,expected in (('run.py','aa77166336d9ca084e113ad3d975102f7f83a65b'),
                        ('results.json','1801386f29907d4ca02973ba8dd9131319ee02b9')):
-        assert identity((ROOT/(PREFIX+n)).read_bytes())['blob'] == expected
+        assert identity(prior_file(PREFIX+n))['blob'] == expected
