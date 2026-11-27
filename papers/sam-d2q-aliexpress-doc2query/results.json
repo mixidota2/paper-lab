@@ -1,5 +1,5 @@
 {
-  "experiment": "synthetic Boolean document expansion",
+  "experiment": "人工データで、商品に語を追加したときの全語一致を調べる。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",
@@ -123,16 +123,16 @@
       ]
     }
   },
-  "limitation": "Candidates and gates are hand-authored. No image model, business-reward estimator, GRPO, or production traffic.",
+  "limitation": "Labは追加候補と採否を手で決めた。画像モデル、商業価値の推定、GRPO、本番トラフィックは使っていない。",
   "explorer": {
     "default": 0,
-    "label": "索引へ入れる展開語",
-    "unit": "件",
-    "metric": "3クエリの取得結果",
+    "label": "比較条件",
+    "unit": "番",
+    "metric": "3種類の検索語で候補に入った件数",
     "frames": [
       {
         "value": 0,
-        "note": "タイトルのみ。候補とgateは手作りの固定値。",
+        "note": "タイトルのみ。追加候補と、その候補を採用するかどうかはLabが手で決めた。",
         "bars": [
           {
             "label": "関連商品",
@@ -146,7 +146,7 @@
       },
       {
         "value": 1,
-        "note": "候補を無条件で追加。候補とgateは手作りの固定値。",
+        "note": "追加候補をすべて使う。追加候補と、その候補を採用するかどうかはLabが手で決めた。",
         "bars": [
           {
             "label": "関連商品",
@@ -160,7 +160,7 @@
       },
       {
         "value": 2,
-        "note": "意味gateを通した候補だけ追加。候補とgateは手作りの固定値。",
+        "note": "商品に合う候補だけを追加。追加候補と、その候補を採用するかどうかはLabが手で決めた。",
         "bars": [
           {
             "label": "関連商品",
