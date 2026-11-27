@@ -1,4 +1,4 @@
-/* Actual event handlers; synthetic tests are not browser rendering tests. */
+/* 画面の操作とJSON保存を結ぶ処理。模擬テストは実ブラウザの表示検査ではない。 */
 (()=>{
 'use strict';
 const get=id=>document.getElementById('rg-'+id);
@@ -16,18 +16,18 @@ function render(){
   const k=get('preset').value;
   if(k!=='custom'&&!/^[0-5]$/.test(k))throw Error('プリセットが不正');
   const preset=k==='custom'?null:ReuseGR.presets[Number(k)];
-  const route=r.route==='cold-e2e'?'Cold：別の0.5B E2E → 応答':r.route==='prepared-root'?'Prepared d=0：空のroot → LeafFill → L4採点 → admission → 応答':'Prepared：query prefix → 現在の履歴でsuffix → L4採点 → admission → 応答';
+  const route=r.route==='cold-e2e'?'準備なし：別の0.5Bモデルが四層すべてを生成します':r.route==='prepared-root'?'準備済みで深さ0：根から番号を補い、第4層の採点後に枝を選びます':'準備済み：保存した先頭から今の履歴で残りを補い、第4層の採点後に枝を選びます';
   const tree=Array.from({length:4},(_,j)=>'<li>L'+(j+1)+'：'+[...new Set(r.reachable.map(s=>s.slice(0,j+1)))].join(' / ')+'</li>').join('');
-  const ranking=r.ranking.length?r.ranking.map(v=>v.sid+' (score '+v.score+')').join(' → '):'採用なし（合成budget=0）';
+  const ranking=r.ranking.length?r.ranking.map(v=>v.sid+'（点 '+v.score+'）').join(' → '):'枝の上限が0なので、順位表は空です';
   const rows=ReuseGR.table1.map(v=>'<tr><th>'+v.method+'</th><td>'+v[metric].toFixed(2)+'%</td><td>'+v.ms.toFixed(2)+' ms</td></tr>').join('');
-  get('route').textContent=route+'。7B待機なし。非同期準備：'+(r.async_prepare?'positive-depth missをキューへ送る想定':'なし');
+  get('route').textContent=route+'。今回の検索は7Bモデルを待ちません。'+(r.async_prepare?'深さが正なので、次の検索に向けて事前準備を依頼します。':'次回用の準備は依頼しません。');
   get('tree').innerHTML=tree;
-  get('rank').textContent='合成目標SID '+r.target+'／到達可能 '+r.target_reachable+'／返却 '+r.target_returned+'\n'+ranking;
-  get('budget-result').textContent='L4採点済み '+r.l4_scored+'葉 → '+r.branches.length+'枝のうち '+r.admitted.length+'枝を採用 → '+r.ranking.length+'葉を順位付け。'+(prepared==='no'?'Coldではadmissionを使わずbudgetを無視。':'採用数を変えてもL4採点済みの葉数は減りません。');
-  get('mix').textContent='P='+ (mix.p*100).toFixed(2)+'%：'+mix.p+' × 71.45 + '+(1-mix.p).toFixed(4)+' × 117.00 = '+mix.mean_ms.toFixed(2)+' ms（平均の投影）\nHR@100投影 '+mix.hr_percent.toFixed(2)+'%／Recall@100投影 '+mix.recall_percent.toFixed(2)+'%';
-  get('preset-note').textContent=preset?'Table 5 '+preset.name+'：Q='+preset.q.toFixed(2)+'%（query数）、P='+preset.p.toFixed(2)+'%（logged rows）。掲載HR '+preset.hr.toFixed(2)+'% ['+preset.quality+']、掲載mean '+preset.ms.toFixed(2)+' ms。Static Qの82.38%はpartition実測であり、同じPの投影83.40%と別です。':'任意P：Qは未指定です。PからQを推定しません。品質は固定query-macro端点の補間仮定です。';
+  get('rank').textContent='目標のSID：'+r.target+'。'+(r.target_reachable?'候補に入る。':'候補に入らない。')+(r.target_returned?'順位表に残る。':'順位表には残らない。')+'\n'+ranking;
+  get('budget-result').textContent='第4層の'+r.l4_scored+'件を採点し、'+r.branches.length+'本の枝から'+r.admitted.length+'本を残しました。順位表には'+r.ranking.length+'件が入ります。'+(prepared==='no'?'準備なしの経路では枝の上限を使いません。':'枝の上限を変えても、先に採点した件数は減りません。');
+  get('mix').textContent='P='+ (mix.p*100).toFixed(2)+'%：'+mix.p+' × 71.45 + '+(1-mix.p).toFixed(4)+' × 117.00 = '+mix.mean_ms.toFixed(2)+' ms（混合した平均の推計）\nHR@100の推計： '+mix.hr_percent.toFixed(2)+'%／Recall@100の推計： '+mix.recall_percent.toFixed(2)+'%';
+  get('preset-note').textContent=preset?'表5の'+preset.name+'：Q='+preset.q.toFixed(2)+'%（検索語の種類）、P='+preset.p.toFixed(2)+'%（ログ行）。論文のHR '+preset.hr.toFixed(2)+'% ['+preset.quality+']、平均時間 '+preset.ms.toFixed(2)+' ms。Static Qの実測82.38%と、同じPでの推計83.40%は別です。':'Pを変更しました。検索語の種類の割合QはPから求めません。品質は検索語ごとの平均を端点に使う推計です。';
   get('table-body').innerHTML=rows;
-  get('metric-label').textContent=metric==='hr'?'HR@100：正解SIDを1つ以上得たqueryの割合':'SID Recall@100：各queryの正解SID回収割合のquery平均';
+  get('metric-label').textContent=metric==='hr'?'HR@100：正解SIDが一つ以上入った検索語の割合':'SID Recall@100：検索語ごとに正解SIDを何割拾えたかを平均';
   saved={synthetic:true,model_version:ReuseGR.version,toy:r,projection:mix,preset,metric};
   get('error').textContent='';get('download').disabled=false;
  } catch(e){saved=null;get('error').textContent='入力エラー：'+e.message+'。表示結果は直前の有効条件です。保存できません。';get('download').disabled=true;}
@@ -40,7 +40,7 @@ for(const id of controls)for(const event of ['input','change'])get(id).addEventL
 get('reset').addEventListener('click',reset);
 get('download').addEventListener('click',()=>{
  if(!saved)return;
- // Keep the exact file contents available even if browser download APIs fail.
+ // ダウンロードできない場合も、同じJSONをコピーできるように表示する。
  const text=JSON.stringify(saved,null,2)+'\n';get('json').value=text;get('json').disabled=false;
  let url;
  try {
@@ -50,7 +50,7 @@ get('download').addEventListener('click',()=>{
  } catch(e) {
   get('export-status').textContent='ファイルのダウンロードを開始できませんでした。下のJSON欄からコピーして保存してください。';
  } finally {
-  // Do not revoke before the browser has had a chance to consume the URL.
+  // ブラウザがURLを使えるよう、破棄まで時間を置く。
   if(url)setTimeout(()=>{try{URL.revokeObjectURL(url);}catch(e){}},1000);
  }
 });

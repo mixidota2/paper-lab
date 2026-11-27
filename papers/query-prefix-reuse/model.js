@@ -1,14 +1,14 @@
-/* Self-authored scalar API, matching run.py. No trained model or measured timing. */
+/* run.pyと同じ入力を受け取る人工例。学習済みモデルや実測時間は扱わない。 */
 const ReuseGR=(()=>{
 'use strict';
 const version='query-prefix-reuse-toy-1';
 const table1=[{method:'0.5B E2E',hr:81.99,recall:45.53,ms:117},{method:'7B E2E',hr:85.71,recall:50.96,ms:168.88},{method:'ReuseGR prepared',hr:85.82,recall:46.05,ms:71.45}];
 const presets=[['Prepared',100,100,85.82,71.45,'endpoint'],['Cold',0,0,81.99,117,'endpoint'],['Static Q',20.97,36.87,82.38,100.21,'measured partition'],['Static mix',20.97,36.87,83.40,100.21,'projection'],['Backfill',42.15,58.40,84.23,90.40,'projection'],['Rolling 1M',68.50,84.20,85.21,78.65,'projection']].map(([name,q,p,hr,ms,quality])=>({name,q,p,hr,ms,quality}));
-function integer(x,lo,hi){if(!Number.isInteger(x)||x<lo||x>hi)throw Error('integer outside domain');return x;}
-function projection(p){if(typeof p!=='number'||!Number.isFinite(p)||p<0||p>1)throw Error('finite numeric P in [0, 1] required');return {p,mean_ms:p*71.45+(1-p)*117,hr_percent:p*85.82+(1-p)*81.99,recall_percent:p*46.05+(1-p)*45.53,kind:'fixed-endpoint projection; not measured mixed traffic'};}
+function integer(x,lo,hi){if(!Number.isInteger(x)||x<lo||x>hi)throw Error('指定された範囲の整数を入力してください');return x;}
+function projection(p){if(typeof p!=='number'||!Number.isFinite(p)||p<0||p>1)throw Error('Pには0以上1以下の有限な数を入力してください');return {p,mean_ms:p*71.45+(1-p)*117,hr_percent:p*85.82+(1-p)*81.99,recall_percent:p*46.05+(1-p)*45.53,kind:'fixed-endpoint projection; not measured mixed traffic'};}
 function toy(prepared=true,depth=1,query='wide',history='left',budget=4){
- if(typeof prepared!=='boolean')throw Error('prepared must be boolean');integer(depth,0,3);integer(budget,0,8);
- if(!['wide','narrow'].includes(query)||!['left','right'].includes(history))throw Error('unknown query or history');
+ if(typeof prepared!=='boolean')throw Error('preparedには真偽値を指定してください');integer(depth,0,3);integer(budget,0,8);
+ if(!['wide','narrow'].includes(query)||!['left','right'].includes(history))throw Error('検索語か履歴に、指定できない値が入っています');
  const sets={wide:[[''],['0','1'],['00','10'],['000','100']],narrow:[[''],['0'],['00'],['000']]};
  const active_depth=prepared?depth:0,prefixes=sets[query][active_depth],target=history==='left'?'0001':'1111';
  const reachable=Array.from({length:16},(_,i)=>i.toString(2).padStart(4,'0')).filter(s=>prefixes.some(c=>s.startsWith(c)));
