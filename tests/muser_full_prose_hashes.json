@@ -1,0 +1,291 @@
+{
+  "files": {
+    "papers/muser-baidu-long-sequence-multi-interest/README.md": {
+      "before": {
+        "sha256": "8686c0c6c7fe3cb2f965f4fba5fb1f760a5cb1a1b3d2fe7747a9215541eff708",
+        "blob": "7dfbd7d267136c7fa68190f8a52a8e663362139e"
+      },
+      "after": {
+        "sha256": "96f9d8d16098f3378ea27bea0f7d2b8000b48dc6241008ac7ed6f3704cc6e42e",
+        "blob": "52b00a73597c98428166e1f71324da41eceac292"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# MuSeR: Scalable Long-sequence Recommendation with Multi-interest Modeling\n"
+        ],
+        [
+          8,
+          9,
+          "古い履歴を粗く残し、配信に使える時間内に、利用者が持つ複数の関心を利用できるかを考える。\n"
+        ],
+        [
+          11,
+          13,
+          ""
+        ],
+        [
+          18,
+          19,
+          "Python標準ライブラリだけを使う。教材を単体で取得した場合は `uv run run.py` を実行する。結果はスクリプトと同じ場所の `results.json` に保存する。\n"
+        ],
+        [
+          22,
+          23,
+          "最初に `lab.yaml` で問題設定と根拠を確認し、`method.md` の説明と図を読む。次に `run.py` と `results.json` を照らし合わせ、最後に `mapping.md` で原論文との対応と省略した箇所を確認する。HTMLは `uv run paper-lab build` で生成する。\n"
+        ],
+        [
+          24,
+          25,
+          "仕組みの確認は一部に限る（Mechanism: PARTIAL）。性能、規模を拡大したときの挙動、実運用への適用は検証していない（Performance / Scaling / Production applicability: NOT TESTED）。確認済み（CONFIRMED）とするのは小実験で確かめた局所的な条件に限り、論文の本番数値を再現したわけではない。\n"
+        ]
+      ]
+    },
+    "papers/muser-baidu-long-sequence-multi-interest/lab.yaml": {
+      "before": {
+        "sha256": "fe45c5c62d919b883836dd43925dd1bfc99b78722fd96015deffd6a3f4cf5169",
+        "blob": "137823726e71cae10b5f8f66ad007abb71078322"
+      },
+      "after": {
+        "sha256": "115481149f241e2442a2ae0d64808258d6bf785892f2c2647c3e6857768fcf16",
+        "blob": "212d225c905c2e787b361c4308c9a870e7ae1e24"
+      },
+      "prior_spans": [
+        [
+          29,
+          31,
+          "question: 昔の履歴を粗く残し、複数の関心を配信時間内に使えるか\nsummary: MuSeRはBaiduのretrievalに、時間別の履歴圧縮・6つのinterest query・意味表現・非同期cacheを統合する。homepageの同一A/BでDAU +0.26%、session\n  duration +0.89%。圧縮は非圧縮のrecallを完全には保たない。\n"
+        ],
+        [
+          45,
+          47,
+          "  author_claim: 新しいprimitiveの発明より、長期・複数interest・multimodalを同時に配信可能にする統合が貢献。古い行動を64件、中期を16件でpoolし、直近はそのまま残す。MGS/HNSW系retrievalと非同期更新を組み合わせる。\n  research_bot_interpretation: '[Sona](sona-yandex-music.html)は古い履歴と直近で計算の深さを変える。MuSeRはまず時間解像度を変え、複数のinterest\n    vectorを取り出してcacheする。両方とも履歴に均等な計算を割かないが、捨てる情報と更新の単位が違う。[UNIQUE](unique-baidu-unified-retrieval-ranking.html)のcode/ranking共有とも補完的な設計論で、同じA/Bの比較ではない。'\n"
+        ],
+        [
+          52,
+          56,
+          "  problem: 直近数百件で切ると、季節的・安定した関心を失う。全件attentionは重く、平均化だけでは異なる関心が打ち消し合う。さらにIDだけでは新しい記事やvideoの意味を学びにくい。履歴圧縮と意味表現、index探索の費用をまとめて考える必要がある。\n  why_it_might_work: 古い履歴を粗く残せば、完全な切捨てより長期の手掛かりを保持できる。複数queryは別の部分へ注意を向けられ、candidateに応じた混合で関心を使い分けられる。一方、pool内の順序や稀な行動が消え、cacheが古ければ直近の変化に遅れる。更新頻度を負荷で変えるとモデル入力の鮮度も変わるため、latencyだけでなく品質も監視したい。\n  evidence: '[一次資料PDF §III–IV / Figs. 4–5](https://arxiv.org/pdf/2609.23677v1) の著者報告。\n"
+        ],
+        [
+          57,
+          64,
+          ""
+        ],
+        [
+          65,
+          71,
+          "    | 比較 | 著者値 | 条件 |\n\n    | --- | --- | --- |\n\n    | homepage A/B | DAU +0.26%、total session duration +0.89% | user ID hash固定、複数週、各bucket数千万daily users、下流rank/mix同一、p<0.05\n    |\n\n    | 履歴処理 / Recall@500 | 非圧縮0.2351、短期切捨て0.1749、階層圧縮0.2232 | Fig. 4a。圧縮は非圧縮より0.0119低い |\n\n    | Home Feed | NANN 0.1982→MuSeR 0.2232 | private dataset、Recall@500 |\n\n    | retrieval latency | 27%低下 | 従来flat HNSWとの比較。絶対ms・分位の明示なし |\n\n    | 工学的配備費用 | 35%超削減 | §III-B、費用内訳は不足 |\n\n\n    公開Amazon 3 datasetは長さ50へ切るため、その結果だけでは10万履歴の有効性を検証できない。private dataは約100M users / 10M items、1か月の前29日で学習し最終日で評価する。全体のオンラインliftを圧縮単独の効果としない。'\n  executable_understanding: '`uv run papers/muser-baidu-long-sequence-multi-interest/run.py`。人工履歴10,000件をearly\n    8,000 / middle 1,200 / recent 800に分け、64/16/1件単位でsum poolingする。圧縮token数と、順序を入れ替えた履歴が同じpoolになる反例を計算する。学習やrecallを人工値で代用しない。'\n  results: 10,000 tokenが125+75+800=1,000 tokenになる。単純なdense attentionのpair数proxyは1/100。ただし実latencyが100倍速いという意味ではない。pool内で[1,0]と[0,1]を入れ替えてもsumが同じとなり、局所順序を失うことを実測する。\n  what_we_verified: Mechanism PARTIAL。Fig. 2の区間設定でEq. 6の1,000 token、sum保存、pool内の順序消失はCONFIRMED。複数headの直交penaltyも人工vectorで計算する。\n  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。6層Transformer、BGE/ERNIE、HNSW\n    beam search、非同期cache、DAU・latencyを再現していない。attention pair数は計算量proxyにすぎず、GPU速度や全体費用の測定ではない。\n  implementation: '`compress()`は古い順の配列で境界を明示し、余りのgroupも保持する。Eq. 6は割り切れる長さの式なので、最小実装の一般長ではceilingを使う。`orthogonal_penalty()`はEq.\n    12の二重和を計算する。'\n"
+        ],
+        [
+          76,
+          77,
+          "  title: 1万件を残しながら、入力を1,000 tokenへ縮める\n"
+        ],
+        [
+          79,
+          81,
+          "  rationale: 1万件を残しながら、入力を1,000 tokenへ縮める\n  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。\n"
+        ],
+        [
+          82,
+          83,
+          "  - name: early\n"
+        ],
+        [
+          84,
+          86,
+          "    explanation: 古い履歴。pool内の順序は保持しない。\n  - name: middle\n"
+        ],
+        [
+          87,
+          89,
+          "    explanation: 中期の履歴は16件ずつまとめ、古い履歴より細かく残す。\n  - name: recent\n"
+        ],
+        [
+          90,
+          92,
+          "    explanation: 直近を細かく保つ。\n  - name: 合計\n"
+        ],
+        [
+          93,
+          94,
+          "    explanation: T=10,000、Nᵣ=800、Nₘ=2,000。全10万件で常に1,000になる式ではない。\n"
+        ],
+        [
+          97,
+          98,
+          "  title: 圧縮で取り戻すrecallと、失うrecall\n"
+        ],
+        [
+          100,
+          102,
+          "  rationale: 圧縮で取り戻すrecallと、失うrecall\n  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。\n"
+        ],
+        [
+          105,
+          106,
+          "  - label: 短期切捨て\n"
+        ],
+        [
+          107,
+          108,
+          "  - label: 階層圧縮\n"
+        ],
+        [
+          109,
+          110,
+          "  - label: 長期・非圧縮\n"
+        ],
+        [
+          114,
+          115,
+          "  title: 複数interestをcandidateに合わせて混ぜる\n"
+        ],
+        [
+          117,
+          119,
+          "  rationale: 複数interestをcandidateに合わせて混ぜる\n  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。\n"
+        ],
+        [
+          120,
+          121,
+          "  - name: 抽出\n"
+        ],
+        [
+          122,
+          124,
+          "    explanation: M個のqueryが圧縮履歴を読む。\n  - name: 候補に応じた混合\n"
+        ],
+        [
+          125,
+          127,
+          "    explanation: 候補と各interest vectorの類似度から、interest間で総和が一になる重みを作る。候補ごとに重みが変わるので、単一の平均を全候補へ共用しない。\n  - name: head重複へのpenalty\n"
+        ],
+        [
+          128,
+          129,
+          "    explanation: 異なるheadの内積を二乗して足し、head数の二乗で割る。同じhead同士は和から除くが、分母は異なる組の数ではない。内積を小さくする正則化であり、意味の解釈可能性を保証しない。\n"
+        ]
+      ]
+    },
+    "papers/muser-baidu-long-sequence-multi-interest/mapping.md": {
+      "before": {
+        "sha256": "5ea71943d75f2f58ffd06dbd692897dcb2ba5d6a2ba7069a58ce094de773f3b7",
+        "blob": "71d2e1ce0b3bf35ebadb211095828d6aa820dd7d"
+      },
+      "after": {
+        "sha256": "a48c5444c23237884f2b1e8bd635595181838d980ec7140da178721eca726dbf",
+        "blob": "6f54fc5a770fd26fa9804738836db4bca1ed0512"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文と最小実装の対応\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料は[PDF v1](https://arxiv.org/pdf/2609.23677v1)。2026-09-23に、保存済みのPDFを再利用して確認した。\n"
+        ],
+        [
+          4,
+          10,
+          "SHA-256: `a7e0d31274719fc0da9c38d70d7529707930773b6ee304336b0aa2c72bc4c195`\n"
+        ],
+        [
+          11,
+          12,
+          "| 原論文 | 教材で確認できる箇所 | 教材に含めないもの |\n| --- | --- | --- |\n| Fig. 2 / Eq. 6 | `compress()`、履歴を表すトークン数の図 | 注意機構で重みを付けてまとめる処理（attentive pooling）、学習済み埋め込み |\n| Eq. 12 | `orthogonal_penalty()` | 次のK件を使う学習 |\n| Eq. 14 / §III | 非同期で得た関心を組み合わせる説明 | Redis/Kafka、実際のQPS制御 |\n| Fig. 4a | 著者の値を示す棒グラフ | 候補回収率（recall）の追試 |\n"
+        ],
+        [
+          13,
+          14,
+          "Fig. 5のL꜀=1,000は、履歴を特定の区間に分けた場合の結果だ。履歴全体の長さや区間の境界を変える場合は計算し直す。\n\n確認した一次PDFとarXivの書誌情報には、この方式を再現できる公式コードのリポジトリを特定する案内はなかった。コードが非公開だと断定するものではない。\n"
+        ]
+      ]
+    },
+    "papers/muser-baidu-long-sequence-multi-interest/method.md": {
+      "before": {
+        "sha256": "04f4900644f2422309510f23ccf5c67602a4c8f17514c3b190047e648c01523c",
+        "blob": "7abccd1ede22113b239976e81ef98ae94cc5ed7b"
+      },
+      "after": {
+        "sha256": "fa44a3b64c7b078a901d751647d94ef2fb6a1fb5f089c331fd00e930ec99f3e9",
+        "blob": "665b9af3afdcd8841a57e5f4a5d87303be69fea8"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 古い履歴をまとめ、6つのqueryで異なる関心を取り出す\n"
+        ],
+        [
+          2,
+          3,
+          "図2では10,000件の履歴を時期で分ける。最も古い8,000件は64件ずつ、中期の1,200件は16件ずつまとめる。直近の800件は1件ずつ残す。本文の添字の並びは図の時系列（古い順）とは違うため、実装ではどの順序を使うか明記する。\n"
+        ],
+        [
+          4,
+          5,
+          "履歴を処理するencoderは6層、隠れ次元512、8ヘッド、dropout 0.1。学習する6つのqueryで関心を取り出す。各関心と候補のコサイン類似度を温度0.07のsoftmaxに通して重みを求め、関心を混ぜ合わせる。Fig. 2にはargmaxの表記もあるが、本文のEq. 10では重み付きの和を計算している。この教材は式に従う。学習には、次のK件に対する対照学習の損失と、係数λ=0.01の直交正則化を組み合わせる。\n"
+        ],
+        [
+          6,
+          7,
+          "### リクエストの外で用意する意味表現と長期の関心\n"
+        ],
+        [
+          8,
+          9,
+          "ERNIE-4.0-Turboの要約生成をERNIE-Speedに蒸留し、BGE-base-enで得た768次元の表現をIDと組み合わせる。必要に応じてVisualized-BGE/VISTAも使う。長期の関心はキャッシュに保存し、短期の関心はオンラインで更新する。Eq. 14のβ(t)は負荷と同時実行数に応じて長期と短期の関心を組み合わせる係数で、どの状況でも同じ値に固定するものではない。\n"
+        ],
+        [
+          10,
+          15,
+          "MGSはHNSWを使うNANN型の候補検索だ。検索インデックスが使うユークリッド距離と、多目的DNNが付けるスコアにはずれがある。MGSは階層型のビーム検索の途中でスコアを計算し直し、そのずれを抑える。意味を表すencoderを新しくするだけで、インデックスとのずれがなくなるとは述べていない。\n"
+        ]
+      ]
+    },
+    "papers/muser-baidu-long-sequence-multi-interest/results.json": {
+      "before": {
+        "sha256": "032e43cbeb720f102378c69f6d5e9c017d99450a658e3b88f37877cf1b7448e1",
+        "blob": "656cb33ad0eef3c34f52cad6c6dcca3e13d08cbd"
+      },
+      "after": {
+        "sha256": "cc8e405755e76fc148e037df5c1ee7aa861d37726d51264b0d0e880ac0c5f61a",
+        "blob": "4c469bf03c18b8a0b1d7d1d00d3fbdf6e3ce1226"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"人工数列のsum pooling。attention pair数はproxyでありlatencyではない。\",\n"
+        ]
+      ]
+    },
+    "papers/muser-baidu-long-sequence-multi-interest/run.py": {
+      "before": {
+        "sha256": "552bf441c6df256afa7e58f18edac31463b298a46564e2fec22a41c2eb8945e7",
+        "blob": "3e9a253ff3ad2c6363ef7babc21e4861f4a12558"
+      },
+      "after": {
+        "sha256": "0cb318ed6f300be1cb25bca61afde4e6784965e97bb1cb5fc7843911c5e0cdcf",
+        "blob": "87d68a9e76de28b57f04b879c9f7a4754e838620"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Pooling arithmetic and information-loss counterexample, not MuSeR training.\"\"\"\n"
+        ],
+        [
+          12,
+          13,
+          "    r=dict(note='人工数列のsum pooling。attention pair数はproxyでありlatencyではない。',verification=dict(mechanism='PARTIAL',performance='NOT TESTED',scaling='NOT TESTED',production_applicability='NOT TESTED'),tokens=dict(original=len(xs),compressed=len(small),pair_count_ratio=(len(small)/len(xs))**2,sum_preserved=sum(xs)==sum(small)),order_loss=dict(a=pool([1,0],2),b=pool([0,1],2)),orthogonal_penalty=dict(distinct=orthogonal_penalty([[1,0],[0,1]]),duplicate=orthogonal_penalty([[1,0],[1,0]])))\n"
+        ]
+      ]
+    }
+  }
+}

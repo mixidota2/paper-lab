@@ -1,5 +1,5 @@
 {
-  "note": "人工数列のsum pooling。attention pair数はproxyでありlatencyではない。",
+  "note": "人工履歴を決めた件数ずつ足し、全位置の組を計算する場合の組数を比べる。応答時間は測っていない。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",
