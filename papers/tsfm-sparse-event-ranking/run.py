@@ -2,7 +2,7 @@
 # requires-python = ">=3.10"
 # dependencies = ["numpy==2.2.6", "scipy==1.18.1"]
 # ///
-"""Toy hurdle counts and exact threshold-AP normalization (paper Appendix B.1)."""
+"""架空のデータで発生時点を順位付けし、原論文の付録B.1の式を確かめる。"""
 import itertools
 import json
 from pathlib import Path
@@ -45,7 +45,7 @@ def validate():
 
 def quantiles(p, mu):
     from scipy.stats import nbinom
-    # Y = Bernoulli(p) * (1 + NB(r=2, mean=mu-1)); positive size is strictly positive.
+    # Y = Bernoulli(p) * (1 + NB(r=2, mean=mu-1))。発生した時点の数量は1個以上。
     tau=np.arange(1,10)/10
     level=(tau-(1-p[...,None]))/p[...,None]
     q=np.where(level<=0, 0, 1+nbinom.ppf(np.clip(level,1e-12,1-1e-12),2,2/(mu[...,None]+1)))
@@ -57,9 +57,9 @@ def experiment(seed, varying):
     from scipy.special import expit
     rng=np.random.default_rng(seed)
     x=rng.uniform(-2,2,(1000,64))
-    p=1/(1+np.exp(2-0.9*x)) # all probabilities below 0.5
+    p=1/(1+np.exp(2-0.9*x)) # すべての時点で発生確率は0.5未満。
     mu=np.exp(1.5-1.2*x) if varying else np.full_like(x,5.)
-    # Clip the conditional positive mean above one to preserve count support.
+    # 発生時の平均数量が1個を下回らないよう、最小値を1.01個にする。
     mu=np.maximum(mu,1.01)
     y=(rng.random(p.shape)<p)*(1+rng.negative_binomial(2,2/(mu+1)))
     design=np.column_stack([np.ones(700*64),x[:700].ravel()])
@@ -72,7 +72,7 @@ def experiment(seed, varying):
     beta=fit.x
     event=y[700:]>0
     q=quantiles(p[700:],mu[700:])
-    methods={'中央値（真の分布）':q[:,:,4], '平均（真の分布）':p[700:]*mu[700:], '9分位点平均（真の分布）':q.mean(axis=-1), 'ロジスティック発生head':expit(beta[0]+beta[1]*x[700:])}
+    methods={'人工分布から求めた中央値':q[:,:,4], '人工分布から求めた平均':p[700:]*mu[700:], '人工分布の9つの分位点を平均':q.mean(axis=-1), '需要が発生するかを予測するロジスティック回帰':expit(beta[0]+beta[1]*x[700:])}
     rows=[]
     for name,z in methods.items():
         metrics=[metric(a,b) for a,b in zip(event,z)]
@@ -98,7 +98,7 @@ def main():
             rows.append({**r,'ap_skill':float(np.mean(scores)),'seed_min':min(scores),'seed_max':max(scores)})
         scenarios.append({'varying_size':varying,'rows':rows})
     reported=[{'dataset':d,'reference':ref,'chronos2_point':point,'chronos2_probe':probe,'raw_lightgbm':tree} for d,ref,point,probe,tree in [('Amazon',.0078,.0057,.0130,.0091),('Favorita',.1026,.1160,.1932,.1957),('M5',.0434,.0453,.0762,.0642),('NYC taxi',.1853,.2117,.2237,.2243),('Web traffic',.0154,.0187,.0667,.1768)]]
-    result={'lab05_sparse':True,'kind':'synthetic mechanism demonstration, not paper replication','seeds':[42,43,44],'horizon':64,'train_windows_per_seed':700,'test_windows_per_seed':300,'checks':checks,'distribution_frames':frames,'scenarios':scenarios,'reported':reported,'reported_source':'arXiv:2609.39386v1 Tables 14–18 (equal-window AP skill)','verification':{'mechanism':'CONFIRMED','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'}}
+    result={'lab05_sparse':True,'kind':'Labの人工実験。著者らの実データの成績は再現していない。','seeds':[42,43,44],'horizon':64,'train_windows_per_seed':700,'test_windows_per_seed':300,'checks':checks,'distribution_frames':frames,'scenarios':scenarios,'reported':reported,'reported_source':'arXiv:2609.39386v1 表14〜18。著者らは各予測区間に同じ重みを付けてAP skillを集計した。','verification':{'mechanism':'CONFIRMED','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'}}
     Path(__file__).with_name('results.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     print(json.dumps({'checks':checks,'scenarios':scenarios},ensure_ascii=False,indent=2))
 

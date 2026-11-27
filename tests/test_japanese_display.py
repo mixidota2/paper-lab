@@ -138,9 +138,15 @@ def test_internal_consistency_of_distillation_and_probe_scope():
     text = (root/'papers/onetrans-v2-cascade-unification/lab.yaml').read_text()
     assert 'title: 後の段階の点数から学ぶ' in text
     assert 'text: 精密な順位付けの点数を学習に使う' in text
-    sparse = yaml.safe_load((root/'papers/tsfm-sparse-event-ranking/lab.yaml').read_text())
-    assert 'probeで比較した6モデルすべて' in sparse['summary']
-    assert '12 TSFM' in sparse['summary']
+    from prose_preservation import before_sparse_reader_all_full_prose
+    path = 'papers/tsfm-sparse-event-ranking/lab.yaml'
+    raw = (root/path).read_bytes()
+    prior = yaml.safe_load(before_sparse_reader_all_full_prose(root,path,raw))
+    assert 'probeで比較した6モデルすべて' in prior['summary']
+    assert '12 TSFM' in prior['summary']
+    sparse = yaml.safe_load(raw)
+    assert '12モデルの点予測' in sparse['summary']
+    assert 'Favoritaでは6モデルとも過去の観測値から学んだLightGBMを下回りました' in sparse['summary']
 
 
 def test_retail_stop_display_uses_accounting_mode_and_actual_stop():
