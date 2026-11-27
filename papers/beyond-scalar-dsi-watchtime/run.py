@@ -1,10 +1,12 @@
-"""Deterministic interface counterexample, not a trained DSI reproduction."""
+"""平均と動画長だけでは視聴の状態を区別できないことを、合成例で確かめる。"""
 import json
 import math
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 STATES = ['early', 'mid', 'completion', 'overplay']
+DISPLAY = {'early': '短時間の視聴', 'mid': '途中までの視聴',
+           'completion': '終了付近の視聴', 'overplay': '動画長の110%を超える視聴'}
 
 
 def state(y, d):
@@ -24,7 +26,7 @@ def expected_brier(atoms, probability, target):
 
 
 def main():
-    # Same duration and conditional mean: context has no extra distinguishing input.
+    # どちらも10秒の動画で、平均視聴時間は10秒。追加の入力では二群を区別しない。
     cohorts = [[(10, 1.)], [(0, .5), (20, .5)]]
     summaries = [summarize(a) for a in cohorts]
     curves = []
@@ -34,9 +36,9 @@ def main():
         atoms = [(0, mixture/2), (10, 1-mixture), (20, mixture/2)]
         s = summarize(atoms)
         curves.append({'mixture': mixture, **s})
-        bars = ''.join(f'<div><strong>{w}: {s["event_mass"][w]:.0%}</strong><div style="height:22px;background:#e2e8f0;border-radius:4px"><div style="height:100%;width:{s["event_mass"][w]*100}%;background:#167d8d;border-radius:4px"></div></div></div>' for w in STATES)
-        frames.append(f'<p>動画10秒・予測平均10秒は固定。0秒と20秒への分岐を {mixture:.0%} 混ぜる。</p>{bars}<p>completion {s["event_mass"]["completion"]:.0%} / overplay {s["event_mass"]["overplay"]:.0%} / long {s["long_probability"]:.0%}</p>')
-    # Eq. 5 support on a deliberately small integer-second grid.
+        bars = ''.join(f'<div><strong>{DISPLAY[w]}：{s["event_mass"][w]:.0%}</strong><div style="height:22px;background:#e2e8f0;border-radius:4px"><div style="height:100%;width:{s["event_mass"][w]*100}%;background:#167d8d;border-radius:4px"></div></div></div>' for w in STATES)
+        frames.append(f'<p>動画の長さも平均視聴時間も10秒です。0秒か20秒を見る群を全体の{mixture:.0%}にしました。</p>{bars}<p>終了付近 {s["event_mass"]["completion"]:.0%} ／ 110%超 {s["event_mass"]["overplay"]:.0%} ／ 両方を合わせた割合 {s["long_probability"]:.0%}</p>')
+    # 式5の範囲を、0〜20秒を1秒刻みにした格子で確かめる。
     support = {w: [t for t in range(21) if (t == 10 if w == 'completion' else state(t, 10) == w)] for w in STATES}
     allowed = sum(len(v) for v in support.values())
     masked_mass = {w: {str(t): (1/allowed if t in support[w] else 0.) for t in range(21)} for w in STATES}
@@ -53,20 +55,22 @@ def main():
               'cohorts': summaries, 'mixture_sweep': curves, 'support': support,
               'expected_overplay_brier': {'best_shared_scalar_readout': sum(expected_brier(a,.25,'overplay') for a in cohorts)/2, 'oracle_distribution_readout': sum(expected_brier(a,s['event_mass']['overplay'],'overplay') for a,s in zip(cohorts,summaries))/2},
               'checks': {k: 'CONFIRMED' if v else 'NOT OBSERVED' for k,v in checks.items()},
-              'limitations': ['No provider or readout training', 'Hand-designed oracle distributions', 'No public dataset benchmark or production A/B']}
+              'limitations': ['分布を推定するモデルや後段のモデルは学習していない', '分布はLabが先に決めた', '公開データでの精度比較や本番のA/Bテストは実施していない']}
     (ROOT/'results.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
-    method = '''## 平均が同じでも、完了や overplay の確率は違う
+    method = '''## 視聴時間の平均からは、終了付近まで見た割合が分からない
 
-平均視聴時間だけでなく、分布の要約を後段のモデルに渡すのが著者の提案である。Fig. 2 では、視聴の状態と時刻の組合せごとの確率276個を27次元に要約する。分布を推定するモデルは学習した後に固定する。視聴秒数を予測する層と順位付けのスコアを出す層は、要約と元の特徴の一部を共通の入力として学習する。
+DSIは、どのくらいの時間まで視聴が続くかを推薦に使います。著者は、視聴の状態と時間の区間を組み合わせた276個の確率を、状態ごとの確率や平均秒数を含む27個の値にまとめます（図2）。分布を推定するモデルを学習した後は、その重みを固定します。視聴秒数を予測するモデルと順位を付けるモデルは、27個の値に利用者や動画などの元の特徴を加えて学習します。
 
-視聴時間を y、動画の長さを d とすると、四つの状態を分ける基準は y/d である。early は y/d < 0.3、mid は 0.3 ≤ y/d < 0.9、completion は 0.9 ≤ y/d ≤ 1.1、overplay は y/d > 1.1。overplay は動画の長さに対する視聴時間の比であり、意図して見直したかどうかを記録したラベルではない。
+視聴時間を動画の長さで割ると、同じ10秒でも動画のどこまで見たかを比べられます。著者はその比率を使い、30%未満を短時間、30%以上90%未満を途中、90%以上110%以下を終了付近、110%を超える場合をoverplayと呼びます。終了付近には、最後まで再生しなかった視聴も含まれます。110%を超えても、利用者が意図して見直したかは分かりません。
 
-次の図は学習済みモデルの予測ではない。動画の長さと平均視聴時間が同じ二つの人工分布を比べる。全員が10秒見る群に、0秒見る人と20秒見る人が半数ずつの群を混ぜる。「分岐」は後者を混ぜる割合を表す。
+### 動画の長さと平均をそろえて、見方の違いを調べる
+
+Labは10秒の動画に対して2種類の見方を設定しました。片方の群では全員が10秒見ます。もう片方では、半数が0秒、残りの半数が20秒見ます。どちらの群でも平均は10秒です。下の選択欄で、後者の群を全体の何割にするか変えられます。表示するのは、先に決めた視聴時間から計算した確率であり、モデルの予測ではありません。
 
 '''
-    options = ''.join(f'<option value="{i}">{i*25}% 分岐</option>' for i in range(5))
-    method += f'<figure class="teaching" data-b21><h3>平均10秒でも、完了確率は変わる</h3><label>分布を混ぜる <select>{options}</select></label><div data-output aria-live="polite">{frames[0]}</div><script type="application/json" data-frames>{json.dumps(frames,ensure_ascii=False)}</script><figcaption>run.py が作る分布。棒は各状態の確率を示す。0秒か20秒を見る群の割合を変えても、平均は10秒のままである。</figcaption></figure>\n\n'
-    method += '平均視聴時間と動画の長さだけを入力にすると、二群はどちらも同じ値になる。各状態の確率を入力にすれば、完了と長時間視聴を別々に判断できる。この図の long は completion と overplay の確率を足した値である。この例では、実際の視聴データから分布を正しく推定できるかは検証していない。\n'
+    options = ''.join(f'<option value="{i}">{i*25}%</option>' for i in range(5))
+    method += f'<figure class="teaching" data-b21><h3>平均10秒のまま、視聴の内訳が変わる</h3><label>0秒か20秒を見る群の割合 <select>{options}</select></label><div data-output aria-live="polite">{frames[0]}</div><script type="application/json" data-frames>{json.dumps(frames,ensure_ascii=False)}</script><figcaption>棒は4つの状態が占める割合です。0秒と20秒の人数を同じにすると、二つの群をどの割合で混ぜても平均は10秒です。</figcaption></figure>\n\n'
+    method += '動画の長さと平均視聴時間だけを受け取るモデルには、二群を見分ける情報がありません。状態ごとの確率が分かれば、終了付近まで見る割合と110%を超えて見る割合を別に扱えます。論文のlongはこの二つを合計した値です。実際の視聴データからこの確率をどれだけ正確に求められるかは、Labでは検証していません。\n'
     (ROOT/'method.md').write_text(method)
     print(json.dumps(result['checks'],ensure_ascii=False))
 

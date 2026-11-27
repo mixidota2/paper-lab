@@ -1,0 +1,451 @@
+{
+  "files": {
+    "papers/beyond-scalar-dsi-watchtime/README.md": {
+      "before": {
+        "sha256": "5a17ef497e3ea8189c9f1c9e3872314ccb4e7cb20dc5c01ef6cf4a1ba824cc82",
+        "blob": "6be7d740660267cddc2d7a45be5d6ea29ab60136"
+      },
+      "after": {
+        "sha256": "affb8d1d764810fe8399f54a2d9021f2759249a3c0a47e714b04c75b2ebd2342",
+        "blob": "8be3a559a77634fda0d5a7e0cad9dedb03b21562"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# DSI: 平均だけでは完了確率を渡せない\n"
+        ],
+        [
+          2,
+          3,
+          "## Overview\n"
+        ],
+        [
+          8,
+          9,
+          "## Problem\n"
+        ],
+        [
+          10,
+          11,
+          "動画長が同じでも、毎回10秒見る集団と、半数が0秒・半数が20秒見る集団は平均10秒になる。平均と動画長だけでは完了確率を区別できない。Fig. 1 の動画長による曖昧さを解消しても、この分布の曖昧さは残る。\n"
+        ],
+        [
+          12,
+          13,
+          "## Core Idea\n"
+        ],
+        [
+          14,
+          15,
+          "著者の主張: 固定した分布推定器から27次元の要約を渡し、共通の生特徴と合わせてタスク別の読み出し層を学習する。公開データで秒数予測と検索を改善する。\n"
+        ],
+        [
+          16,
+          17,
+          "本 Lab の解釈: 中心は、視聴時間の分布から何を残して、秒数予測や順位付けをする下流モデルへ渡すかという設計にある。四状態の細分化が唯一の有効な構成だとは、追加対照実験も支持していない。\n"
+        ],
+        [
+          18,
+          19,
+          "式と操作図は [method.md](method.md) を参照。\n"
+        ],
+        [
+          20,
+          21,
+          "## Why It Might Work\n"
+        ],
+        [
+          22,
+          23,
+          "本 Lab の解釈: 推定器を固定したまま、秒数、完了、overplay に合わせて下流を学習できる。分布の情報を一度平均にまとめると復元できないため、確率と不確実性を残す意味がある。ただし Appendix E では時刻だけの推定器や通常の27次元要約も同程度だった。四状態の表現だけが改善原因とはいえない。\n"
+        ],
+        [
+          24,
+          25,
+          "## Evidence\n"
+        ],
+        [
+          26,
+          27,
+          "以下は[一次資料 Table 1](https://arxiv.org/pdf/2609.28383v1) の著者報告。平均±標本標準偏差、3 seed、MAE の単位は秒。比較相手は各データセットで MAE が最良の baseline。\n"
+        ],
+        [
+          28,
+          29,
+          "| データ | 最良 baseline MAE | DSI MAE | DSI XAUC |\n"
+        ],
+        [
+          34,
+          35,
+          "XAUC は2データで最良。WeChat21 は CREAD の0.7054を下回る。ランダムな impression 単位の8:1:1分割で、ユーザー・商品は分割間で重複し得る。時系列の分布変化を試した評価ではない。WeChat21 は d < 60秒と y/d < 10 の部分集合を使う。\n\nFig. 3 の同一読み出し層による比較では、検索指標の改善の大半をタスクに合わせた読み出し層が説明し、DSI の残差的な優位は小さくなる。Table 2 で平均と動画長を固定した比較でも情報追加の効果を調べるが、Long-N@5 は3データ中2つで逆転する。Table 3–4 は固定推定器から新しい視聴目標と別途記録された engagement への転用を評価する。本番 A/B、売上、継続率への効果は示していない。\n"
+        ],
+        [
+          37,
+          38,
+          "同じ読み出し層で比べるときは、入力の生特徴、推定器を固定した時点、読み出しの学習件数、検証指標による checkpoint の選び方まで揃えなければ、分布の情報を残した効果と、下流モデルの容量や学習目標を変えた効果が混ざってしまう。\n"
+        ],
+        [
+          39,
+          40,
+          "## Executable Understanding\n"
+        ],
+        [
+          41,
+          42,
+          "`UV_CACHE_DIR=/tmp/paper-lab-uv uv run papers/beyond-scalar-dsi-watchtime/run.py`\n"
+        ],
+        [
+          43,
+          44,
+          "平均と動画長を固定し、共通の条件で二つの人工分布を比べる。変えるのは四状態の確率だけである。overplay の二値予測に対する期待 Brier score と、Eq. 5–6 の合法領域への正規化を確かめる。Brier score は、予測した確率と発生・非発生を表す値の差を二乗した誤差で、ここでは人工分布の確率で重み付けして平均する。学習はしない。\n"
+        ],
+        [
+          45,
+          46,
+          "## Results\n"
+        ],
+        [
+          47,
+          48,
+          "二群を半数ずつ混ぜる。平均だけを受け取る最良の共通予測は overplay 確率0.25となり、期待 Brier score は0.1875。真の分布を渡す場合は0.125。人工分布の反例に限る。DSI の学習精度は測っていない。秒数の平均予測は両方式で同じ10秒である。\n"
+        ],
+        [
+          49,
+          50,
+          "## What We Verified\n"
+        ],
+        [
+          51,
+          52,
+          "Mechanism PARTIAL。平均と動画長の一致、overplay 確率の差、合法領域の正規化、completion の動画終端への集約、状態境界の5項目を CONFIRMED とした。読み出しに残す情報によって判断可能な対象が変わることを確認した。\n"
+        ],
+        [
+          53,
+          54,
+          "## What We Did NOT Verify\n"
+        ],
+        [
+          55,
+          56,
+          "Performance / Scaling / Production applicability は NOT TESTED。学習の再現は未実施。27次元要約全体、DCNv2 の読み出し、転用実験、推論負荷も対象外。本番 A/B は原論文にも報告がない。overplay を意図的な再視聴や満足度の正解ラベルとして扱わない。\n"
+        ],
+        [
+          57,
+          58,
+          "## Implementation\n"
+        ],
+        [
+          59,
+          60,
+          "標準ライブラリだけで実行する。state() が Eq. 4 の区分、summarize() が状態確率と平均、expected_brier() が同一分布上の期待誤差を計算する。run.py が results.json と操作図入り method.md を生成する。合法領域は理解用の0〜20秒の小さい格子で確認する。\n"
+        ],
+        [
+          61,
+          62,
+          "## Original Paper / Official Code Mapping\n"
+        ],
+        [
+          63,
+          64,
+          "[mapping.md](mapping.md) に一次資料と最小実装の対応を記す。\n"
+        ],
+        [
+          65,
+          73,
+          ""
+        ]
+      ]
+    },
+    "papers/beyond-scalar-dsi-watchtime/lab.yaml": {
+      "before": {
+        "sha256": "3a913b535e5db585a1892277e6cf46bbeef37e3842ef600daf3870e68d737eb4",
+        "blob": "96667f04b40b4accca7eca0b12e278683f97bcfa"
+      },
+      "after": {
+        "sha256": "5bf3d4f204968e5d4ca7a7bec176eb886a2b26896459a4cee777772f3b2134e0",
+        "blob": "5d93aec7f992159baa7cc5f4f3e82662e47ab619"
+      },
+      "prior_spans": [
+        [
+          19,
+          21,
+          "question: 平均視聴時間が同じなら、完了確率も同じか\nsummary: DSI は視聴時間の平均に加え、完了や overplay の確率を下流へ渡す設計である。公開3データセットで最良の比較手法に対し MAE を1.9%〜8.5%削減したと著者は報告する。本番 A/B はない。\n"
+        ],
+        [
+          33,
+          35,
+          "  author_claim: 固定した分布推定器から27次元の要約を渡し、共通の生特徴と合わせてタスク別の読み出し層を学習する。公開データで秒数予測と検索を改善する。\n  research_bot_interpretation: 中心は、視聴時間の分布から何を残して、秒数予測や順位付けをする下流モデルへ渡すかという設計にある。四状態の細分化が唯一の有効な構成だとは、追加対照実験も支持していない。\n"
+        ],
+        [
+          40,
+          44,
+          "  problem: 動画長が同じでも、毎回10秒見る集団と、半数が0秒・半数が20秒見る集団は平均10秒になる。平均と動画長だけでは完了確率を区別できない。Fig. 1 の動画長による曖昧さを解消しても、この分布の曖昧さは残る。\n"
+        ],
+        [
+          45,
+          47,
+          "  why_it_might_work: '本 Lab の解釈: 推定器を固定したまま、秒数、完了、overplay に合わせて下流を学習できる。分布の情報を一度平均にまとめると復元できないため、確率と不確実性を残す意味がある。ただし\n    Appendix E では時刻だけの推定器や通常の27次元要約も同程度だった。四状態の表現だけが改善原因とはいえない。'\n  evidence: '以下は[一次資料 Table 1](https://arxiv.org/pdf/2609.28383v1) の著者報告。平均±標本標準偏差、3 seed、MAE の単位は秒。比較相手は各データセットで\n    MAE が最良の baseline。\n"
+        ],
+        [
+          48,
+          51,
+          ""
+        ],
+        [
+          52,
+          53,
+          "    | データ | 最良 baseline MAE | DSI MAE | DSI XAUC |\n"
+        ],
+        [
+          54,
+          55,
+          ""
+        ],
+        [
+          56,
+          56,
+          "\n"
+        ],
+        [
+          57,
+          57,
+          "\n"
+        ],
+        [
+          58,
+          58,
+          "\n"
+        ],
+        [
+          60,
+          61,
+          ""
+        ],
+        [
+          62,
+          63,
+          "    XAUC は2データで最良。WeChat21 は CREAD の0.7054を下回る。ランダムな impression 単位の8:1:1分割で、ユーザー・商品は分割間で重複し得る。時系列の分布変化を試した評価ではない。WeChat21\n    は d < 60秒と y/d < 10 の部分集合を使う。\n"
+        ],
+        [
+          64,
+          65,
+          ""
+        ],
+        [
+          66,
+          67,
+          "    Fig. 3 の同一読み出し層による比較では、検索指標の改善の大半をタスクに合わせた読み出し層が説明し、DSI の残差的な優位は小さくなる。Table 2 で平均と動画長を固定した比較でも情報追加の効果を調べるが、Long-N@5\n    は3データ中2つで逆転する。Table 3–4 は固定推定器から新しい視聴目標と別途記録された engagement への転用を評価する。本番 A/B、売上、継続率への効果は示していない。\n"
+        ],
+        [
+          68,
+          71,
+          "    同じ読み出し層で比べるときは、入力の生特徴、推定器を固定した時点、読み出しの学習件数、検証指標による checkpoint の選び方まで揃えなければ、分布の情報を残した効果と、下流モデルの容量や学習目標を変えた効果が混ざってしまう。\n"
+        ],
+        [
+          72,
+          75,
+          "    '\n  executable_understanding: '`UV_CACHE_DIR=/tmp/paper-lab-uv uv run papers/beyond-scalar-dsi-watchtime/run.py`\n"
+        ],
+        [
+          76,
+          83,
+          "\n    平均と動画長を固定し、共通の条件で二つの人工分布を比べる。変えるのは四状態の確率だけである。overplay の二値予測に対する期待 Brier score と、Eq. 5–6 の合法領域への正規化を確かめる。Brier score は、予測した確率と発生・非発生を表す値の差を二乗した誤差で、ここでは人工分布の確率で重み付けして平均する。学習はしない。'\n  results: 二群を半数ずつ混ぜる。平均だけを受け取る最良の共通予測は overplay 確率0.25となり、期待 Brier score は0.1875。真の分布を渡す場合は0.125。人工分布の反例に限る。DSI\n    の学習精度は測っていない。秒数の平均予測は両方式で同じ10秒である。\n  what_we_verified: Mechanism PARTIAL。平均と動画長の一致、overplay 確率の差、合法領域の正規化、completion の動画終端への集約、状態境界の5項目を CONFIRMED\n    とした。読み出しに残す情報によって判断可能な対象が変わることを確認した。\n  what_we_did_not_verify: Performance / Scaling / Production applicability は NOT TESTED。学習の再現は未実施。27次元要約全体、DCNv2\n    の読み出し、転用実験、推論負荷も対象外。本番 A/B は原論文にも報告がない。overplay を意図的な再視聴や満足度の正解ラベルとして扱わない。\n  implementation: 標準ライブラリだけで実行する。state() が Eq. 4 の区分、summarize() が状態確率と平均、expected_brier() が同一分布上の期待誤差を計算する。run.py\n    が results.json と操作図入り method.md を生成する。合法領域は理解用の0〜20秒の小さい格子で確認する。\n"
+        ],
+        [
+          87,
+          89,
+          "  title: 'Fig. 2 を式で読む: 合法な分布から判断へ'\n  caption: Eq. 4–12 の要点。completion の教師時刻は実測秒数ではなく動画終端 b(d)。\n"
+        ],
+        [
+          91,
+          92,
+          "  rationale: 状態の定義、終端への集約、読み出しの順序を結ぶ。\n"
+        ],
+        [
+          94,
+          95,
+          "  - name: 合法領域\n"
+        ],
+        [
+          96,
+          97,
+          "    explanation: early・mid・overplayの各状態では、視聴時間と動画長の比率で定めた範囲にだけ確率を割り当てる。completionでは動画の終端 b(d) だけに割り当てる。それ以外の確率を0にし、全体の合計が1になるように調整する。\n"
+        ],
+        [
+          99,
+          101,
+          "    explanation: 95秒・100秒・108秒の視聴を100秒動画の終端へ集約しても、実測秒数は復元損失へ渡す。二つの損失には競合がある。\n  - name: 境界を渡す要約\n"
+        ],
+        [
+          102,
+          104,
+          "    explanation: 状態確率、平均、状態別時間、動画長に対する比率、エントロピーなどを残す。元の格子は4×69＝276値。\n  - name: 目的ごとの読み出し\n"
+        ],
+        [
+          105,
+          106,
+          "    explanation: DCNv2 型の共有読み出しから秒数と順位を出す。順位側は overplay で学習し、long の検索にも同じスコアを使う。\n"
+        ]
+      ]
+    },
+    "papers/beyond-scalar-dsi-watchtime/mapping.md": {
+      "before": {
+        "sha256": "09800dad139f093bf1987a2d0906447397b35ba5cacd3c47affe777eca974793",
+        "blob": "09fb7a70a4519dd78b67a695df2e4c0e846c25a2"
+      },
+      "after": {
+        "sha256": "ac384ef33efd12804e89dc1e57b026c5682db0c6eb9c31731db3d9f34ddd1b58",
+        "blob": "19d3d21fc904c9db4cc999ce9caad403ed6046d6"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文と実装の対応\n"
+        ],
+        [
+          2,
+          3,
+          "一次資料は [原論文 v1](https://arxiv.org/abs/2609.28383)。確認には、提供された PDF とそこから抽出したテキストを使った。PDF のハッシュは lab.yaml に記録した。公開ページの HTML は lab.yaml、README.md、method.md、run.py、results.json から生成する。\n"
+        ],
+        [
+          4,
+          14,
+          "原論文は、動画の長さが分かっても平均視聴時間だけでは完了や overplay の確率は分からないと指摘する。Lab の最小実装では、論文のモデルを学習せず、説明用に作った分布でその違いを確かめる。\n"
+        ],
+        [
+          15,
+          16,
+          "| 原典 | 本 Lab の対応 | 省略・境界 |\n| --- | --- | --- |\n| Fig. 1、§3.1 | 同じ長さで平均視聴時間も同じ二群を比べる | 二群は説明用に作った。実データの分布ではない |\n| Fig. 2、Eq. 4 | `run.py` の `state()` が、視聴時間を動画長で割った値で四状態に分ける | 状態を分ける境界は論文と同じ |\n| Eq. 5–6 | `support` が各状態で取りうる時刻を示し、`masked_mass` がそこだけに確率を割り当てる | 0〜20秒の格子で確認する。論文の69個の時間区間で学習する処理はない |\n| Eq. 7、9–10 | `summarize()` が平均視聴時間、各状態の確率、long の確率、状態のエントロピーを計算する | 論文が要約する統計量の一部だけを扱う |\n| Eq. 8 | `lab.yaml` で、分布の平均を記録された視聴時間に近づける復元損失を説明する | 復元損失でモデルを学習していない |\n| Eq. 11–14 | 分布の要約から視聴秒数を予測し、順位を付ける読み出しの式を説明する | DCNv2 の読み出し層は学習していない |\n| Table 1、Fig. 3、Table 2 | README の Evidence 節に、精度の比較と、読み出し層をそろえた比較を記す | 著者の実験結果を紹介している。Lab で再現した結果ではない |\n| Appendix E、Table 9–10 | README の Why It Might Work 節に、四状態を明示しない分布の要約でも成績がほぼ同じだった対照を記す | 四状態に分けること自体の優位性は、この対照からは言えない |\n| §4.4、Table 3–4 | 別の視聴目標や、視聴時間とは別に記録された行動への転用を説明する | 転用実験は実施していない |\n"
+        ],
+        [
+          17,
+          18,
+          "論文の1ページ目には [公式コード](https://github.com/Xuanxuana1/DSI) へのリンクがある。Lab では公式コードのファイルと論文の対応は調べておらず、実行もしていない。この教材の最小実装は公式コードの抜粋ではない。\n\n原論文には本番 A/B テストの結果がなく、事業への効果は未確認である。\n\n保存PDFのSHA-256：`fe20b8854c01f2fe258be729b71d9d2ea25c71e03893e56a833b8f16593ec86d`。\n"
+        ]
+      ]
+    },
+    "papers/beyond-scalar-dsi-watchtime/method.md": {
+      "before": {
+        "sha256": "5b99c449b71644cdf6dc08382993c0c7e6b5f00ec50c5b495e1b0b1936581448",
+        "blob": "2d9a6edb6aee9867fa0cfb1612c56eb782fdc0b7"
+      },
+      "after": {
+        "sha256": "1e4cfcc32c94c13f4a95550b464504e42f997ad5bc6e2a7d09358f06617bfae0",
+        "blob": "8b17e09fa2f50db68d253a55378aa0e3496049e6"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "## 平均が同じでも、完了や overplay の確率は違う\n"
+        ],
+        [
+          2,
+          3,
+          "平均視聴時間だけでなく、分布の要約を後段のモデルに渡すのが著者の提案である。Fig. 2 では、視聴の状態と時刻の組合せごとの確率276個を27次元に要約する。分布を推定するモデルは学習した後に固定する。視聴秒数を予測する層と順位付けのスコアを出す層は、要約と元の特徴の一部を共通の入力として学習する。\n"
+        ],
+        [
+          4,
+          5,
+          "視聴時間を y、動画の長さを d とすると、四つの状態を分ける基準は y/d である。early は y/d < 0.3、mid は 0.3 ≤ y/d < 0.9、completion は 0.9 ≤ y/d ≤ 1.1、overplay は y/d > 1.1。overplay は動画の長さに対する視聴時間の比であり、意図して見直したかどうかを記録したラベルではない。\n"
+        ],
+        [
+          6,
+          7,
+          "次の図は学習済みモデルの予測ではない。動画の長さと平均視聴時間が同じ二つの人工分布を比べる。全員が10秒見る群に、0秒見る人と20秒見る人が半数ずつの群を混ぜる。「分岐」は後者を混ぜる割合を表す。\n"
+        ],
+        [
+          8,
+          9,
+          "<figure class=\"teaching\" data-b21><h3>平均10秒でも、完了確率は変わる</h3><label>分布を混ぜる <select><option value=\"0\">0% 分岐</option><option value=\"1\">25% 分岐</option><option value=\"2\">50% 分岐</option><option value=\"3\">75% 分岐</option><option value=\"4\">100% 分岐</option></select></label><div data-output aria-live=\"polite\"><p>動画10秒・予測平均10秒は固定。0秒と20秒への分岐を 0% 混ぜる。</p><div><strong>early: 0%</strong><div style=\"height:22px;background:#e2e8f0;border-radius:4px\"><div style=\"height:100%;width:0.0%;background:#167d8d;border-radius:4px\"></div></div></div><div><strong>mid: 0%</strong><div style=\"height:22px;background:#e2e8f0;border-radius:4px\"><div style=\"height:100%;width:0%;background:#167d8d;border-radius:4px\"></div></div></div><div><strong>completion: 100%</strong><div style=\"height:22px;background:#e2e8f0;border-radius:4px\"><div style=\"height:100%;width:100.0%;background:#167d8d;border-radius:4px\"></div></div></div><div><strong>overplay: 0%</strong><div style=\"height:22px;background:#e2e8f0;border-radius:4px\"><div style=\"height:100%;width:0.0%;background:#167d8d;border-radius:4px\"></div></div></div><p>completion 100% / overplay 0% / long 100%</p></div><script type=\"application/json\" data-frames>[\"<p>動画10秒・予測平均10秒は固定。0秒と20秒への分岐を 0% 混ぜる。</p><div><strong>early: 0%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:0.0%;background:#167d8d;border-radius:4px\\\"></div></div></div><div><strong>mid: 0%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:0%;background:#167d8d;border-radius:4px\\\"></div></div></div><div><strong>completion: 100%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:100.0%;background:#167d8d;border-radius:4px\\\"></div></div></div><div><strong>overplay: 0%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:0.0%;background:#167d8d;border-radius:4px\\\"></div></div></div><p>completion 100% / overplay 0% / long 100%</p>\", \"<p>動画10秒・予測平均10秒は固定。0秒と20秒への分岐を 25% 混ぜる。</p><div><strong>early: 12%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:12.5%;background:#167d8d;border-radius:4px\\\"></div></div></div><div><strong>mid: 0%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:0%;background:#167d8d;border-radius:4px\\\"></div></div></div><div><strong>completion: 75%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:75.0%;background:#167d8d;border-radius:4px\\\"></div></div></div><div><strong>overplay: 12%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:12.5%;background:#167d8d;border-radius:4px\\\"></div></div></div><p>completion 75% / overplay 12% / long 88%</p>\", \"<p>動画10秒・予測平均10秒は固定。0秒と20秒への分岐を 50% 混ぜる。</p><div><strong>early: 25%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:25.0%;background:#167d8d;border-radius:4px\\\"></div></div></div><div><strong>mid: 0%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:0%;background:#167d8d;border-radius:4px\\\"></div></div></div><div><strong>completion: 50%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:50.0%;background:#167d8d;border-radius:4px\\\"></div></div></div><div><strong>overplay: 25%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:25.0%;background:#167d8d;border-radius:4px\\\"></div></div></div><p>completion 50% / overplay 25% / long 75%</p>\", \"<p>動画10秒・予測平均10秒は固定。0秒と20秒への分岐を 75% 混ぜる。</p><div><strong>early: 38%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:37.5%;background:#167d8d;border-radius:4px\\\"></div></div></div><div><strong>mid: 0%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:0%;background:#167d8d;border-radius:4px\\\"></div></div></div><div><strong>completion: 25%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:25.0%;background:#167d8d;border-radius:4px\\\"></div></div></div><div><strong>overplay: 38%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:37.5%;background:#167d8d;border-radius:4px\\\"></div></div></div><p>completion 25% / overplay 38% / long 62%</p>\", \"<p>動画10秒・予測平均10秒は固定。0秒と20秒への分岐を 100% 混ぜる。</p><div><strong>early: 50%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:50.0%;background:#167d8d;border-radius:4px\\\"></div></div></div><div><strong>mid: 0%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:0%;background:#167d8d;border-radius:4px\\\"></div></div></div><div><strong>completion: 0%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:0.0%;background:#167d8d;border-radius:4px\\\"></div></div></div><div><strong>overplay: 50%</strong><div style=\\\"height:22px;background:#e2e8f0;border-radius:4px\\\"><div style=\\\"height:100%;width:50.0%;background:#167d8d;border-radius:4px\\\"></div></div></div><p>completion 0% / overplay 50% / long 50%</p>\"]</script><figcaption>run.py が作る分布。棒は各状態の確率を示す。0秒か20秒を見る群の割合を変えても、平均は10秒のままである。</figcaption></figure>\n"
+        ],
+        [
+          10,
+          13,
+          "平均視聴時間と動画の長さだけを入力にすると、二群はどちらも同じ値になる。各状態の確率を入力にすれば、完了と長時間視聴を別々に判断できる。この図の long は completion と overplay の確率を足した値である。この例では、実際の視聴データから分布を正しく推定できるかは検証していない。\n"
+        ]
+      ]
+    },
+    "papers/beyond-scalar-dsi-watchtime/results.json": {
+      "before": {
+        "sha256": "0ccb5411a75acadadba2a4b9bd5e662650e9a2126de956f444d8b819db29798c",
+        "blob": "9490b52ebe960f5d1fbe887d922d9ecc762eb96c"
+      },
+      "after": {
+        "sha256": "9356f02cc9c07a8038ecffa4892042e1814531fc5cb15f5a91e0b48768a78596",
+        "blob": "9432a41e4fe728d41ca691865ebdf259181e15b3"
+      },
+      "prior_spans": [
+        [
+          143,
+          146,
+          "    \"No provider or readout training\",\n    \"Hand-designed oracle distributions\",\n    \"No public dataset benchmark or production A/B\"\n"
+        ]
+      ]
+    },
+    "papers/beyond-scalar-dsi-watchtime/run.py": {
+      "before": {
+        "sha256": "94fe6bf9228ad381e85e8dcce89c40a3cb0cdb329beb073509e7de622ed6c4de",
+        "blob": "e0c8ac0b4c6545c82906665abc106966b09bddea"
+      },
+      "after": {
+        "sha256": "35829b02a352fd77a02372a260ae786b85988242be5daa2d5f6deed8ded0e080",
+        "blob": "6ceb1819b17ba38a8fef29c8b7819b1d473033f8"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Deterministic interface counterexample, not a trained DSI reproduction.\"\"\"\n"
+        ],
+        [
+          7,
+          9,
+          ""
+        ],
+        [
+          28,
+          29,
+          "    # Same duration and conditional mean: context has no extra distinguishing input.\n"
+        ],
+        [
+          38,
+          41,
+          "        bars = ''.join(f'<div><strong>{w}: {s[\"event_mass\"][w]:.0%}</strong><div style=\"height:22px;background:#e2e8f0;border-radius:4px\"><div style=\"height:100%;width:{s[\"event_mass\"][w]*100}%;background:#167d8d;border-radius:4px\"></div></div></div>' for w in STATES)\n        frames.append(f'<p>動画10秒・予測平均10秒は固定。0秒と20秒への分岐を {mixture:.0%} 混ぜる。</p>{bars}<p>completion {s[\"event_mass\"][\"completion\"]:.0%} / overplay {s[\"event_mass\"][\"overplay\"]:.0%} / long {s[\"long_probability\"]:.0%}</p>')\n    # Eq. 5 support on a deliberately small integer-second grid.\n"
+        ],
+        [
+          57,
+          58,
+          "              'limitations': ['No provider or readout training', 'Hand-designed oracle distributions', 'No public dataset benchmark or production A/B']}\n"
+        ],
+        [
+          59,
+          60,
+          "    method = '''## 平均が同じでも、完了や overplay の確率は違う\n"
+        ],
+        [
+          61,
+          62,
+          "平均視聴時間だけでなく、分布の要約を後段のモデルに渡すのが著者の提案である。Fig. 2 では、視聴の状態と時刻の組合せごとの確率276個を27次元に要約する。分布を推定するモデルは学習した後に固定する。視聴秒数を予測する層と順位付けのスコアを出す層は、要約と元の特徴の一部を共通の入力として学習する。\n"
+        ],
+        [
+          63,
+          64,
+          "視聴時間を y、動画の長さを d とすると、四つの状態を分ける基準は y/d である。early は y/d < 0.3、mid は 0.3 ≤ y/d < 0.9、completion は 0.9 ≤ y/d ≤ 1.1、overplay は y/d > 1.1。overplay は動画の長さに対する視聴時間の比であり、意図して見直したかどうかを記録したラベルではない。\n"
+        ],
+        [
+          65,
+          68,
+          "次の図は学習済みモデルの予測ではない。動画の長さと平均視聴時間が同じ二つの人工分布を比べる。全員が10秒見る群に、0秒見る人と20秒見る人が半数ずつの群を混ぜる。「分岐」は後者を混ぜる割合を表す。\n"
+        ],
+        [
+          70,
+          73,
+          "    options = ''.join(f'<option value=\"{i}\">{i*25}% 分岐</option>' for i in range(5))\n    method += f'<figure class=\"teaching\" data-b21><h3>平均10秒でも、完了確率は変わる</h3><label>分布を混ぜる <select>{options}</select></label><div data-output aria-live=\"polite\">{frames[0]}</div><script type=\"application/json\" data-frames>{json.dumps(frames,ensure_ascii=False)}</script><figcaption>run.py が作る分布。棒は各状態の確率を示す。0秒か20秒を見る群の割合を変えても、平均は10秒のままである。</figcaption></figure>\\n\\n'\n    method += '平均視聴時間と動画の長さだけを入力にすると、二群はどちらも同じ値になる。各状態の確率を入力にすれば、完了と長時間視聴を別々に判断できる。この図の long は completion と overplay の確率を足した値である。この例では、実際の視聴データから分布を正しく推定できるかは検証していない。\\n'\n"
+        ]
+      ]
+    }
+  }
+}
