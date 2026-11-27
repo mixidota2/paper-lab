@@ -28,7 +28,7 @@ def widget(result):
                 f'商品と間隔を全候補から選ぶと、商品{p["item"]}を{p["cycle"]}日おきに配送し、評価値は{p["utility"]}です。</p>')
         elif kind=='onetrans':
             content='<ol class="b21-search">'+''.join(f'<li>候補 {c["item"]}：log({c["prefix"]}) + {f["beta"]} × {c["offset"]} + log({c["conditional"]}) = <strong>{number(c["score"])}</strong></li>' for c in f['ranking'])+'</ol>'
-            content+='<p>上ほど得点が高い。log(prefix)は目的の確率の自然対数、offsetは業務上の加点、log(conditional)は目的を選んだ後の商品確率の自然対数。βだけを動かし、学習済み確率を模した値は固定する。</p>'
+            content+='<p>候補は得点が高い順です。各式の最初の項は目的の確率、最後の項はその目的で商品コードが出る確率を、どちらも自然対数にした値です。真ん中の項は目的に応じた加点です。βを変えても、元の確率は変えません。</p>'
         elif kind=='evaluation':
             content='<div class="b21-cards">'+''.join('<div>買い手 '+', '.join(str(i+1) for i in g)+'<br>組内のAの予測値から実績を引いた合計： <strong>'+str(sum(result['predictions']['A'][i]-result['actual'][i] for i in g))+'</strong></div>' for g in f['groups'])+'</div>'
             content+=table(['予測','組ごとの絶対誤差を足して実績総額で割った値（WAPE、%）'],[[k,number(v)] for k,v in f['scores'].items()])+f'<p>この組分けでは、予測{f["winner"]}の方がWAPEは小さいです。買い手各社の実績と予測値は変わりません。</p>'
@@ -36,15 +36,16 @@ def widget(result):
             content='<div class="b21-serving"><section><h4>実行前の点検</h4><p>提案：'+escape(f['proposal'])+'</p><strong>'+f['decision']+'</strong></section><section><h4>学習対象モデルへ渡し、学習用履歴へ残す応答</h4><p>'+escape(f['executed'])+'</p><p>点検役だけが参照する履歴は含めない。</p></section></div>'
         else: raise ValueError(kind)
         frames.append(content)
-    titles={'reasoncast':'保存済みの3日例：補正なしと誤情報による補正','scope':'配車費ごとの品揃えと補充間隔','onetrans':'生成の先頭に置く目的の記号を、業務上の加点で選ぶ','evaluation':'組分けによるWAPEの違い','harness':'点検役を通った応答だけを履歴へ残す'}
+    titles={'reasoncast':'保存済みの3日例：補正なしと誤情報による補正','scope':'配車費ごとの品揃えと補充間隔','onetrans':'目的への加点を変えると、候補の順位はどう変わるか','evaluation':'組分けによるWAPEの違い','harness':'点検役を通った応答だけを履歴へ残す'}
     options=''.join(f'<option value="{i}">{escape(f["label"])}</option>' for i,f in enumerate(result['frames']))
     data=json.dumps(frames,ensure_ascii=False).replace('</','<\\/')
-    label='1回の配送で車両1台にかかる費用' if kind=='scope' else '買い手の組分け' if kind=='evaluation' else '人工例の条件'
+    label='1回の配送で車両1台にかかる費用' if kind=='scope' else '買い手の組分け' if kind=='evaluation' else '加点の強さ（β）' if kind=='onetrans' else '人工例の条件'
     caption=(
         '1拠点へ1商品を配送する人工例です。配車に使う台数を計算し、実際の配送経路は求めません。'
         '全候補の中に需要が多い商品を先に選ぶ方式の候補が含まれるため、前者の評価値は後者を下回りません。'
         'SCOPEの学習や、現場での結果を示す図ではありません。'
         if kind=='scope' else
         '4社の実績と予測を固定した人工例です。組の中で予測の過不足が打ち消し合うかを比べます。論文の測定値ではありません。'
-        if kind=='evaluation' else 'run.pyが計算したresults.jsonから生成。著者の測定値ではない。')
+        if kind=='evaluation' else '教材の3候補をrun.pyで計算した結果です。論文の実験や実際の推薦の結果ではありません。'
+        if kind=='onetrans' else 'run.pyが計算したresults.jsonから生成。著者の測定値ではない。')
     return '<figure class="teaching" data-b21><h3>'+titles[kind]+'</h3><label>'+label+' <select>'+options+'</select></label><script type="application/json" data-frames>'+data+'</script><div data-output aria-live="polite">'+frames[0]+'</div><figcaption>'+caption+'</figcaption></figure>'

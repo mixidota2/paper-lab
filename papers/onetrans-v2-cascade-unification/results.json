@@ -117,7 +117,7 @@
   "checks": {
     "zero_offset_baseline": true
   },
-  "note": "教育用の人工例。原論文の学習・性能・本番効果は再現していない。",
+  "note": "教材用の候補と計算量を使いました。論文の学習や配信の速度、実際の利用者への効果は測っていません。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",

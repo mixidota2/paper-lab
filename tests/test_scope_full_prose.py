@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from prose_preservation import before_eval_grain_full_prose, before_scope_full_prose, scope_full_prose_hash
+from prose_preservation import before_onetrans_full_prose, before_eval_grain_full_prose, before_scope_full_prose, scope_full_prose_hash
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,7 +22,7 @@ def test_exact_archives_and_untouched_renderer_branches():
     assert set(rows) == {RENDERER, *(f'{PAPER}/{n}' for n in
                          ('README.md', 'lab.yaml', 'method.md', 'mapping.md', 'results.json', 'run.py'))}
     for path, row in rows.items():
-        current = before_eval_grain_full_prose(ROOT, path, (ROOT / path).read_bytes())
+        current = before_eval_grain_full_prose(ROOT, path, before_onetrans_full_prose(ROOT, path, (ROOT / path).read_bytes()))
         before = before_scope_full_prose(ROOT, path, current)
         assert hashlib.sha256(before).hexdigest() == row['before']['sha256']
         for key, digest in (
@@ -35,7 +35,7 @@ def test_exact_archives_and_untouched_renderer_branches():
         with pytest.raises(AssertionError):
             before_scope_full_prose(ROOT, path, current + b'\n')
 
-    current = before_eval_grain_full_prose(ROOT, RENDERER, (ROOT / RENDERER).read_bytes())
+    current = before_eval_grain_full_prose(ROOT, RENDERER, before_onetrans_full_prose(ROOT, RENDERER, (ROOT / RENDERER).read_bytes()))
     old = before_scope_full_prose(ROOT, RENDERER, current)
     def other_branches(src):
         before, rest = src.split(b"        elif kind=='scope':",1)

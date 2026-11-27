@@ -357,14 +357,14 @@ def test_batch17_cascade_comparison_units_and_loss_denominators():
         'gryphon-ilsm': ('lab.yaml', '候補から脱落した正解曲も分母に残す'),
         'gryphon-v2-cascade': ('lab.yaml', '学生の同点は一致に数えない'),
         'oneranker-ads': ('lab.yaml', '集合内の並び順の一致は測らない'),
-        'onetrans-v2-cascade-unification': ('method.md', '同じ接頭辞を持つ候補には同じ加点が付く'),
+        'onetrans-v2-cascade-unification': ('method.md', '同じ目的を持つ候補には同じ点を加えます'),
         'muser-baidu-long-sequence-multi-interest': ('lab.yaml', '分母は異なる組の数ではない'),
         'oxygenrec-v2-idgr': ('lab.yaml', '不一致位置のlog確率も損失に含まれる'),
     }
     for slug, (name, excerpt) in expected.items():
         assert excerpt in (ROOT/'papers'/slug/name).read_text()
     for name in ['method.md', 'README.md']:
-        assert '施策の因果効果を推定する手法という意味ではない' in (ROOT/'papers/onetrans-v2-cascade-unification'/name).read_text()
+        assert '表示より後の行動を隠しても、施策の効果を推定することにはなりません' in (ROOT/'papers/onetrans-v2-cascade-unification'/name).read_text()
     assert '全候補をまとめた平均ではない' in (ROOT/'papers/gryphon-v2-cascade/lab.yaml').read_text()
     assert 'どの位置も選ばれない経路の損失はゼロになる' in (ROOT/'papers/oxygenrec-v2-idgr/lab.yaml').read_text()
 
