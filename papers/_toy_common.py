@@ -96,8 +96,8 @@ def rest(weight):
     y, nonseq, seq, gate = 1., .9, .2, .1
     main_grad = 2*(nonseq + gate*seq-y)*gate
     aux_grad = 2*weight*(seq-y)
-    return frame(weight, [bar('主損失から系列枝への勾配絶対値', abs(main_grad)), bar('補助損失を足した勾配絶対値', abs(main_grad+aux_grad))],
-                 f'主予測は {nonseq+gate*seq:.2f}、系列枝単独は {seq:.2f}、正解は1。L=(主予測−1)² + λ(系列予測−1)²。大きい勾配だけでは汎化改善を保証しない。')
+    return frame(weight, [bar('主損失だけで計算した勾配の絶対値', abs(main_grad)), bar('補助損失を足して計算した勾配の絶対値', abs(main_grad+aux_grad))],
+                 f'主ヘッドの予測は{nonseq+gate*seq:.2f}、履歴だけを使う側の予測は{seq:.2f}だ。正解を1とし、主損失と、重みλを掛けた補助損失を足す。ここで勾配が大きくなっても、学習後の予測精度が上がるとは限らない。')
 
 
 def apollo(shift):
@@ -162,7 +162,7 @@ SPECS = {
     IDS[2]: (cache, list(range(0,129,8)), 2, '履歴の長さ', '要素', '仮定した計算単位'),
     IDS[3]: (sid, list(range(1,9)), 2, '商品IDの階層の深さ', '段', '確率 (%)'),
     IDS[4]: (harness, [0,1,2], 0, '修復範囲：0なし／1形式／2形式と保存', '', '合格成果物数'),
-    IDS[5]: (rest, [i/20 for i in range(21)], 4, '系列枝への補助損失の重み λ', '', '勾配の絶対値'),
+    IDS[5]: (rest, [i/20 for i in range(21)], 4, '履歴側の補助損失の重み λ', '', '勾配の絶対値'),
     IDS[6]: (apollo, list(range(-4,5)), 4, '販促予定のずれ', '期', '平均絶対誤差（小さいほどよい）'),
     IDS[7]: (stockout, list(range(12,26)), 8, '各期の在庫上限', '個', '平均数量'),
     IDS[8]: (cost, [i/20 for i in range(41)], 4, '保管費用 / 欠品費用 h/p', '', '合成費用'),
@@ -174,9 +174,14 @@ SPECS = {
 def compute(lab_id):
     fn, values, default, label, unit, metric = SPECS[lab_id]
     frames=[fn(v) for v in values]
-    return {'note':'教材用の合成実験。論文モデルの再現・性能比較ではありません。',
+    exercise = '条件を変える最小実験'
+    note = '教材用の合成実験。論文モデルの再現・性能比較ではありません。'
+    if lab_id == 'rest-sequence-ranking':
+        exercise = '補助損失の重みを変えて履歴側に届く勾配を比べる'
+        note = 'Labは固定した予測値に対する勾配を計算した。論文のモデルは学習しておらず、性能も測っていない。'
+    return {'note':note,
             'verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},
-            'experiments':[{'name':'条件を変える最小実験','dataset':'deterministic synthetic','metrics':{b['label']:b['value'] for b in frames[default]['bars']}}],
+            'experiments':[{'name':exercise,'dataset':'deterministic synthetic','metrics':{b['label']:b['value'] for b in frames[default]['bars']}}],
             'explorer':{'label':label,'unit':unit,'metric':metric,'default':default,'frames':frames}}
 
 
