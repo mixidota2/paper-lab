@@ -465,7 +465,7 @@ def test_batch22_evidence_continuation_and_serving_units():
         'featurearc-inherited-defects-chain-gates': ('method.md', 'その段階は継続率の集計へ戻さない'),
         'flashvector-unity-serving-stack-agent': ('lab.yaml', '途中で不合格になれば、以降の判定へ進まない'),
         'grace-meta-ads-gtm-serving': ('method.md', '一つの広告が全条件を満たすとは限りません'),
-        'swe-serve-inference-serving-agents': ('lab.yaml', '同じサービスのインスタンスへ続けて要求を送る'),
+        'swe-serve-inference-serving-agents': ('lab.yaml', '同じインスタンスに2回送ります'),
         'trace-verifier-brittleness': ('method.md', 'ツール名の種類であり、呼出し回数ではない'),
     }
     for slug, (name, phrase) in phrases.items():
