@@ -204,7 +204,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = placement_and_vn2_asset_prose_hash(root, path, expected, algorithm)
     expected = flashvector_all_full_prose_hash(root, path, expected, algorithm)
     expected = ono_reader_all_full_prose_hash(root, path, expected, algorithm)
-    return sparse_reader_all_full_prose_hash(root, path, expected, algorithm)
+    expected = sparse_reader_all_full_prose_hash(root, path, expected, algorithm)
+    return sgc_all_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -3533,6 +3534,29 @@ def sparse_reader_all_full_prose_hash(root,path,expected,algorithm='sha256'):
 def before_sparse_reader_all_full_prose(root,path,current):
     import base64,zlib
     row=sparse_reader_all_full_prose_for_path(root,path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
+    prior=zlib.decompress(base64.b64decode(row['prior_zlib_b64'],validate=True))
+    assert hashlib.sha256(prior).hexdigest()==row['before']['sha256'],path
+    return prior
+
+
+def sgc_all_full_prose_for_path(root,path):
+    if not path.startswith('papers/sgc-state-grounded-conditioning/'):
+        return None
+    return json.loads((root/'tests/sgc_all_full_prose_hashes.json').read_text())['files'].get(path)
+
+def sgc_all_full_prose_hash(root,path,expected,algorithm='sha256'):
+    row=sgc_all_full_prose_for_path(root,path)
+    if row is None:
+        return expected
+    assert expected==row['before'][algorithm],path
+    return row['after'][algorithm]
+
+def before_sgc_all_full_prose(root,path,current):
+    import base64,zlib
+    row=sgc_all_full_prose_for_path(root,path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
