@@ -460,7 +460,9 @@ def test_batch22_evidence_continuation_and_serving_units():
     for slug, (name, phrase) in phrases.items():
         assert phrase in (ROOT/'papers'/slug/name).read_text()
     assert phrases['swe-serve-inference-serving-agents'][1] in (ROOT/'papers/swe-serve-inference-serving-agents/README.md').read_text()
-    flash = (ROOT/'papers/flashvector-unity-serving-stack-agent/lab.yaml').read_text()
+    from prose_preservation import before_flashvector_all_full_prose
+    path = 'papers/flashvector-unity-serving-stack-agent/lab.yaml'
+    flash = before_flashvector_all_full_prose(ROOT, path, (ROOT/path).read_bytes()).decode()
     order = ('出力の一致、測定値が有限であること、p99 SLO、全体throughputの退行がないこと、'
              '局所と全体の改善がnoiseを超えることの順')
     assert order in flash

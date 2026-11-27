@@ -25,9 +25,8 @@ urls:
   official_code: null
 verdict: Worth Reading
 status: published
-question: kernelが速くなっても、配信全体が速くならなければ棄却できるか
-summary: UnityのFlashVectorは、計測結果を基にシステムの各部分の変更案を作る。実際の配信要求を再現して、システム全体で処理できる要求数と応答時間を確かめる。model serverは最大2×
-  throughput・1.98× latency speedup、feature処理は約1.6×。局所速度と採択条件を分けて読む。
+question: 一部を速くした変更でも、配信全体が速くならなければ見送れるか
+summary: Wuらは、広告のモデル配信で時間がかかる処理を見つけ、変更後の出力と配信全体の性能を確かめる仕組みを作りました。順位付けモデルの一例では処理件数が2.00倍になりました。別の検索モデルでは入力変換が最大30倍速くなりましたが、配信全体の処理件数は1.10倍でした。順位付けモデルの応答時間は元の1/1.98、特徴量を作るサービスで処理できる件数は約1.6倍でした。
 verification:
   mechanism: PARTIAL
   performance: NOT TESTED
@@ -40,137 +39,113 @@ source_review:
   version: v1
   pdf_sha256: a68ed302b06ee51087ca6b501a80bf748d073ae2f8c9aef29b8d89a5a15862af
   url: https://arxiv.org/pdf/2609.17391v1
-  scope: 保存済み一次PDFの本文・式・表を確認。著者報告と合成実験を分離。
+  scope: 過去に保存した一次PDFと原論文の表を確認しました。著者らが計測した結果と、Labが作った架空の例を分けています。
 core_idea:
-  author_claim: GPU kernel、計算graph、model server、on-demand feature処理を共通のProfile→Diagnose→Optimize→Verifyで扱う。正しさと測定noiseを通過した変更だけを全体負荷試験へ進め、結果をknowledge
-    baseへ戻して継続的に最適化する。
-  research_bot_interpretation: 研究コードのKEEP、設定探索、runtime制御、実験運用に加え、配信費用を扱う第5の役割として読める。この番号は本ライブラリの整理。[AURA](aura-disney-agentic-rec-diagnosis.html)が診断する推薦品質と、FlashVectorが変えるserving性能の責任を分けたい。[AgentX](agentx-kuaishou.html)、[CORAL](coral-meta-config-harness.html)、[DREAM](dream-taobao-agentic-control.html)、[PILOT](pilot-experiment-lifecycle.html)と比べる軸は、モデル能力だけでなく何を変更でき、何を証拠に採択するかである。
+  author_claim: 著者らは、GPUの演算、モデルの計算、モデルサーバー、要求時の特徴量処理に、計測・診断・変更・検証の同じ手順を使います。出力と局所の計測結果を確認した後、配信全体でも負荷をかけて調べます。採用した変更と採用しなかった変更を記録し、次の試行に使います。
+  research_bot_interpretation: Labでは、[AURA](aura-disney-agentic-rec-diagnosis.html)が扱う推薦品質の診断と、FlashVectorが扱う配信性能の変更を分けて考えます。[AgentX](agentx-kuaishou.html)、[CORAL](coral-meta-config-harness.html)、[DREAM](dream-taobao-agentic-control.html)、[PILOT](pilot-experiment-lifecycle.html)とも、変更できる対象と、何を確かめて採用するかを比べます。配信の処理能力を、研究コードの採否・設定探索・実行時の制御・実験運用に続く5つ目の役割と位置付けるのは、このLabの整理です。
 sections:
   overview: |-
-    著者は、モデルの配信が遅いときに、GPUの計算だけでなく、入力の変換や特徴量の組み立ても調べるエージェントを開発しました。FlashVectorは時間がかかっている箇所を測り、コードや設定の変更を提案します。変更後も同じ出力になるか、応答時間やシステム全体の処理件数がどう変わるかを調べ、その結果を採用の判断に使います。
+    Wuらは、Unityの広告配信でモデルを速くするために、FlashVectorを開発しました。FlashVectorはGPUの演算だけでなく、モデルサーバーの入力変換や、要求を受けてから特徴量を作る処理も調べます。時間がかかる箇所を測って変更案を出し、変更後の出力を確かめます。そのうえで実際の配信要求を再生し、応答時間と配信全体の処理件数を測って、変更を残すか判断します。
 
-    同じ環境で比べた事例では、著者はある順位付けモデルの処理件数が同じ時間で2.00倍になったと報告しました。一方、候補検索モデルで30倍になったのは入力変換の処理であり、配信システム全体の処理件数は1.10倍でした。これらは個別のモデルで測った値で、全モデルの平均や、広告のクリック率の改善を示すものではありません。
-  problem: Python/PyTorch、CUDA、Triton serverのC++、feature処理のPython/Cythonでは計測手段も最適化対象も違う。再学習やhardware更新で前回の最適設定も古くなる。単発のコード生成だけでは、誤ったボトルネック診断、精度劣化、他層への負荷転移を見逃す。
-  why_it_might_work: 入力tensorのshape、request単位とcandidate単位のfeatureの違い、実際のprofileがあれば、汎用compilerからは見えにくい重複処理をagentが取り除ける。履歴を次回の探索へ返す点にも合理性がある。ただし熟練者との同一予算比較、agent
-    backbone別のablation、全試行の成功率は示されない。性能事例だけでは自律性や人手節約の因果効果を確定できない。
-  evidence: '[一次資料PDF §4.2–5.4 / Tables 1–4](https://arxiv.org/pdf/2609.17391v1) の著者報告。
+    同じ環境で変更前後を比べると、ある順位付けモデルでは同じ時間に処理できる件数が2.00倍になりました。別の候補検索モデルで最大30倍速くなったのは入力変換だけで、配信全体で処理できる件数は1.10倍でした。著者らが示したのは個別のモデルでの比較です。全モデルの平均や、広告のクリック率が改善したことを示す結果ではありません。
+  problem: モデル配信が遅くなる原因は、GPUの演算にも、PythonやC++で動くサーバーにもあります。処理によって必要な計測器が異なります。モデルを学習し直したり、機器を更新したりすると、前に効いた設定が効かなくなることもあります。コードを生成するだけでは、遅い箇所を間違えたり、出力を壊したり、別の処理に負荷を移したりしたことに気づけません。
+  why_it_might_work: FlashVectorは、実行時に測った時間や、入力の配列の形を変えると処理がどう変わるかを調べます。こうした情報があれば、汎用のコンパイラだけでは見つけにくい重複処理も候補にできます。試行の記録は次に同じモデルを見直すときに使えます。ただし著者らは、熟練者と同じ予算で比較した結果、基盤の言語モデルを変えた比較、すべての試行に対する成功率を示していません。報告した速度の改善だけから、人手がどれだけ減ったかは判断できません。
+  evidence: |-
+    [一次資料：原論文 §4.2〜5.4・表1〜4](https://arxiv.org/pdf/2609.17391v1)を基に、著者らが比べた数値を整理します。
 
-
-    | 対象 | 測定値 | 適用範囲 |
-
+    | 著者らが測った対象 | 改良前との比較 | 比較した条件 |
     | --- | --- | --- |
+    | 順位付けモデル2 | 処理件数2.00倍、応答時間は元の1/1.98 | 表1のモデル配信。全モデルの平均ではない |
+    | 候補検索モデル | 処理件数1.10倍、応答時間は元の1/1.67 | 表1の別モデル。次行の入力変換だけの値とは別 |
+    | 入力変換 | 最大30倍速くなった | TritonサーバーからPython側に入力を渡すための変換 |
+    | attentionの計算 | 996.5 μsから279.8 μsへ短縮。約3.56倍の速度 | FP16、AOTInductorとの比較、RTX PRO 6000 Blackwell、1要求あたり2,000候補 |
+    | 特徴量を作るサービスの一単位 | 1秒あたり940件、約1,200件、約1,500件と順に増えた | 14 vCPUとPythonの12プロセス。同じ応答時間の条件で変更を順に追加 |
 
-    | Ranking model 2 | throughput 2.00×、latency speedup 1.98× | Table 1、model serving stack。全モデル平均ではない |
+    Cythonで書き換えた関数は、単体で最大350倍速くなりました。特徴量を作るサービスの一単位で処理できる件数は約1.6倍のため、両者を同じ倍率として扱えません。表3の値は前の変更を残したまま次の変更を加えた結果です。それぞれを独立した改善として足せません。
 
-    | Retrieval model | throughput 1.10×、latency 1.67× | 同表。局所30×を全体30×としない |
+    表4のModel Bでは、選ばれた設定のp99が271 msと書かれています。p99は99%の要求がその時間までに終わる値です。表にある目標は250 msなので、目標内の候補を採用するとした本文の説明と一致しません。記載の誤りなのか、測定条件の違いなのかは原論文では分かりません。選ばれた設定がすべて目標を満たしたとは言えません。
+  executable_understanding: |-
+    `uv run papers/flashvector-unity-serving-stack-agent/run.py` を実行すると、コードは5つの架空の変更案を判定します。出力が合うか、数字がすべて有限か、応答時間が上限内か、配信全体の処理件数が落ちないか、局所と全体の両方で改善幅が測定の揺れを超えたかを順に確かめます。途中で不合格になれば、以降の判定へ進まない仕組みです。実際に要求を流したり、言語モデルで変更案を作ったりする教材ではありません。
 
-    | 入力変換 | 最大30× | Triton server→Python backendのserialization処理 |
-
-    | attention | 996.5→279.8 μs、3.56× | FP16、AOTInductor baseline、RTX PRO 6000 Blackwell、2,000候補/request |
-
-    | feature pod | 940→約1,200→約1,500 RPS | 14 vCPU、12 Python backend process、固定latency SLO、順次追加 |
-
-
-    featureの個別Cython関数は最大350×だが、pod全体は約1.6×。Table 3の各段は前段の上に積み重ねた値であり、独立した改善率を足さない。
-
-
-    **表の不整合**：Table 4のModel BはSLO 250 msに対してchosen trialのp99が271 ms。本文のSLO内採択という基準とこの行は整合しない。誤植か計測条件差かは確認できないため、全選択trialがSLOを満たしたとは記載しない。'
-  executable_understanding: '`uv run papers/flashvector-unity-serving-stack-agent/run.py`。人工の候補変更を、出力の一致、測定値が有限であること、p99 SLO、全体throughputの退行がないこと、局所と全体の改善がnoiseを超えることの順で判定する。途中で不合格になれば、以降の判定へ進まない。局所2倍でも全体が遅い変更、throughputが増えてもSLOを破る変更を棄却する。これは採択規則の実装であり、実traffic replayやagentの実行ではない。
-
-
-    <figure class="teaching" data-b21><h3>この変更を採択するか</h3><label>人工candidate <select><option value="0">局所だけ2倍</option><option
-    value="1">SLO超過</option><option value="2">3%改善</option><option value="3">出力が変化</option><option value="4">全gate通過</option></select></label><script
-    type="application/json" data-frames>["<div class=\"b21-frontier\"><div>局所speed倍率 <strong>2<\/strong><\/div><div>全体throughput倍率
-    <strong>0.98<\/strong><\/div><div>p99 <strong>220 ms<\/strong> / SLO 250 ms<\/div><div>出力一致：はい<br><strong>棄却：全体throughputが退行<\/strong><\/div><\/div>",
-    "<div class=\"b21-frontier\"><div>局所speed倍率 <strong>1.3<\/strong><\/div><div>全体throughput倍率 <strong>1.2<\/strong><\/div><div>p99
-    <strong>270 ms<\/strong> / SLO 250 ms<\/div><div>出力一致：はい<br><strong>棄却：p99がSLOを超過<\/strong><\/div><\/div>",
-    "<div class=\"b21-frontier\"><div>局所speed倍率 <strong>1.1<\/strong><\/div><div>全体throughput倍率 <strong>1.03<\/strong><\/div><div>p99
-    <strong>230 ms<\/strong> / SLO 250 ms<\/div><div>出力一致：はい<br><strong>採択せず再測定：noise以内<\/strong><\/div><\/div>",
-    "<div class=\"b21-frontier\"><div>局所speed倍率 <strong>1.4<\/strong><\/div><div>全体throughput倍率 <strong>1.3<\/strong><\/div><div>p99
-    <strong>200 ms<\/strong> / SLO 250 ms<\/div><div>出力一致：いいえ<br><strong>棄却：出力の正しさ<\/strong><\/div><\/div>",
-    "<div class=\"b21-frontier\"><div>局所speed倍率 <strong>1.3<\/strong><\/div><div>全体throughput倍率 <strong>1.2<\/strong><\/div><div>p99
-    <strong>230 ms<\/strong> / SLO 250 ms<\/div><div>出力一致：はい<br><strong>採択：全条件を満たす<\/strong><\/div><\/div>"]</script><div
-    data-output><div class="b21-frontier"><div>局所speed倍率 <strong>2</strong></div><div>全体throughput倍率 <strong>0.98</strong></div><div>p99
-    <strong>220 ms</strong> / SLO 250 ms</div><div>出力一致：はい<br><strong>棄却：全体throughputが退行</strong></div></div></div><figcaption>results.jsonの規則判定。Unityで実際に棄却されたtrialではない。</figcaption></figure>'
-  results: 5つの人工candidateのうち採択は1件。局所2倍でも全体0.98倍、全体1.2倍でもp99 270 ms、改善3%でnoise floor 6%、出力不一致の4例は棄却する。2–6%帯を再測定する仕組み自体は実装しておらず、「再測定が必要」と返す。
-  what_we_verified: Mechanism PARTIAL。出力不一致、SLO超過、全体退行、noise以下を採択しない規則はCONFIRMED。全体の改善が局所速度から自動的には導けないことを人工fixtureで確認した。
-  what_we_did_not_verify: Performance / Scaling / Production applicability NOT TESTED。Unity traffic、Nsight/eBPF、GPU
-    kernel、shadow canary、LLMによる自動編集は実行していない。論文はagentの基盤LLM名・版や全trial分布を特定しておらず、本Labでも推測しない。人手のreview負荷、運用費用、再学習後の改善維持率は未評価。
-  implementation: '`decide()`は論文の本文が求める全体throughput改善とSLOを明示した教育用gate。Algorithm 1のlocal verifyとFullStackLoadTestを区別する。requestを送信せず、各candidateへ与えた人工測定値を判定する。'
+    <figure class="teaching" data-b21><h3>変更案を選ぶと、採否の理由が分かる</h3><label>架空の変更案 <select><option value="0">一部だけ2倍速い</option><option value="1">応答時間が上限を超える</option><option value="2">全体で3%改善</option><option value="3">出力が変わる</option><option value="4">すべての条件を満たす</option></select></label><script type="application/json" data-frames>["<div class=\"b21-frontier\"><div>一部の処理の速度（元を1とする） <strong>2<\/strong><\/div><div>全体の処理件数（元を1とする） <strong>0.98<\/strong><\/div><div>p99 <strong>220 ms<\/strong> / 目標は250 ms<\/div><div>出力一致：はい<br><strong>全体の処理件数が落ちたため不採用<\/strong><\/div><\/div>","<div class=\"b21-frontier\"><div>一部の処理の速度（元を1とする） <strong>1.3<\/strong><\/div><div>全体の処理件数（元を1とする） <strong>1.2<\/strong><\/div><div>p99 <strong>270 ms<\/strong> / 目標は250 ms<\/div><div>出力一致：はい<br><strong>p99が目標を超えたため不採用<\/strong><\/div><\/div>","<div class=\"b21-frontier\"><div>一部の処理の速度（元を1とする） <strong>1.1<\/strong><\/div><div>全体の処理件数（元を1とする） <strong>1.03<\/strong><\/div><div>p99 <strong>230 ms<\/strong> / 目標は250 ms<\/div><div>出力一致：はい<br><strong>改善が測定の揺れの範囲内なので再測定<\/strong><\/div><\/div>","<div class=\"b21-frontier\"><div>一部の処理の速度（元を1とする） <strong>1.4<\/strong><\/div><div>全体の処理件数（元を1とする） <strong>1.3<\/strong><\/div><div>p99 <strong>200 ms<\/strong> / 目標は250 ms<\/div><div>出力一致：いいえ<br><strong>出力が合わないため不採用<\/strong><\/div><\/div>","<div class=\"b21-frontier\"><div>一部の処理の速度（元を1とする） <strong>1.3<\/strong><\/div><div>全体の処理件数（元を1とする） <strong>1.2<\/strong><\/div><div>p99 <strong>230 ms<\/strong> / 目標は250 ms<\/div><div>出力一致：はい<br><strong>すべての条件を満たしたため採用<\/strong><\/div><\/div>"]</script><div data-output><div class="b21-frontier"><div>一部の処理の速度（元を1とする） <strong>2</strong></div><div>全体の処理件数（元を1とする） <strong>0.98</strong></div><div>p99 <strong>220 ms</strong> / 目標は250 ms</div><div>出力一致：はい<br><strong>全体の処理件数が落ちたため不採用</strong></div></div></div><figcaption>Labが用意した測定値で判定します。Unityが実際に見送った変更案ではありません。</figcaption></figure>
+  results: 5案のうち、すべての条件を満たしたのは1案です。一部が2倍速くなっても全体の処理件数が0.98倍の案、処理件数が1.2倍でもp99が270 msで上限を超えた案、出力が変わった案は不採用です。処理件数の改善が3%の案は、揺れの目安6%を超えないため、再測定が必要と判定しました。Labは2〜6%の改善を実際に再測定してはいません。
+  what_we_verified: '**仕組み：一部確認（PARTIAL）。** Labは、出力が合わない、応答時間が上限を超える、全体が遅くなる、改善が測定の揺れを超えない場合に採用しない規則を、架空の数字で確認しました。一部の処理が速くなっても、配信全体が速くなるとは限らないことを例で示します。'
+  what_we_did_not_verify: Labでは、Unityの実際の配信要求、NsightやeBPFの計測、GPUの実行、配信先に結果を返さないシャドー試験、言語モデルによるコードの変更を試していません。配信性能、規模を広げたときの動作、本番で使えるかも未検証です。著者らは基盤の言語モデル名と版、全試行の内訳を公表していません。人手でレビューする負担、運用費、再学習後にも改善が続く割合は確認できません。
+  implementation: '`decide()` は、論文のAlgorithm 1で分けている局所の確認と配信全体の負荷試験を、教材の一つの判定にまとめています。コードは実際の要求を送らず、あらかじめ用意した測定値で出力の一致、応答時間、処理件数を比べて採否を返します。'
   method: method.md
   mapping: mapping.md
 teaching_figures:
 - kind: matrix
   id: layer-contract
-  title: 層ごとに変えるもの、全層で守るもの
+  title: FlashVectorは処理の種類に合わせて測り方と変更を選ぶ
   after: method
   locator: Fig. 3 / §4.1–4.2
-  rationale: 層ごとに変えるもの、全層で守るもの
-  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  rationale: 同じ計測・診断・変更・検証の手順でも、処理ごとに使う情報が異なります。
+  caption: 著者らが調べた処理と主な変更をまとめています。Labがこれらの変更を試した結果ではありません。
   columns:
-  - Profile / context
-  - 変更の例
+  - 何を調べるか
+  - 著者らが試した変更
   rows:
-  - label: GPU kernel
+  - label: GPUの演算
     cells:
-    - Nsight、shape/layout
-    - attention融合
-  - label: 計算graph
+    - Nsightで測定し、配列の形と配置を確認する
+    - attentionの演算をまとめる
+  - label: モデルの計算手順
     cells:
-    - PyTorch / business logic
-    - embedding分解・重複除去
-  - label: model server
+    - PyTorchの計算と用途に固有の処理を確認する
+    - 埋め込みの集計を分解し、重複計算を減らす
+  - label: モデルサーバー
     cells:
-    - eBPF、C++ source
-    - 入力serialization
-  - label: feature処理
+    - eBPFで記録を取り、C++のコードを確認する
+    - 別の処理に渡す入力を速く変換する
+  - label: 要求時の特徴量処理
     cells:
-    - eBPF、lineage / dtype
-    - Cython、zero-copy、tensor組立
+    - eBPFで記録を取り、元の変数とデータ型を確認する
+    - コピーを省き、配列をまとめて作る
   source: https://arxiv.org/pdf/2609.17391v1
 - kind: logic
   id: acceptance-gates
-  title: 局所で勝っても全体のgateが残る
+  title: 著者らは一部が速くなっても配信全体を測ってから採用する
   after: method
   locator: Algorithm 1 / §4.2
-  rationale: 局所で勝っても全体のgateが残る
-  caption: 一次資料を説明用に再構成。数値は著者報告であり、Labの追試結果ではない。
+  rationale: 出力の検査、一部の計測、配信全体の負荷試験を区別します。
+  caption: 原論文の手順を示します。Labは配信システムを使った追試をしていません。
   rows:
-  - label: 候補を試す
+  - label: 変更案を調べる
     nodes:
-    - title: 正しさ
-      text: 出力・business metricを保持
-    - title: 局所の測定
-      text: noiseを超える改善
-    - title: FullStackLoadTest
-      text: throughputとSLOを確認
-  - label: 全体で退行
+    - title: 出力を比べる
+      text: 出力や事業指標を許容範囲内に保てるかを確かめる。
+    - title: 変更した処理を測る
+      text: 改善が計測の揺れを超えるか確かめる。
+    - title: 配信全体を測る
+      text: 処理件数と応答時間が採用条件を満たすか確かめる。
+  - label: 配信全体が遅くなった場合
     nodes:
-    - title: 棄却
-      text: incumbentへ戻す
-    - title: 記録
-      text: 失敗条件もknowledge baseへ
+    - title: 変更を見送る
+      text: 変更前の設定やコードに戻す。
+    - title: 理由を残す
+      text: 採用しなかった条件も記録する。
   source: https://arxiv.org/pdf/2609.17391v1
 - kind: chart
   id: whole-stack-speed
-  title: 同じ表でもモデルごとに改善幅が違う
+  title: 同じ時間に処理できた件数は、モデルによって増え方が違う
   after: evidence
   locator: Table 1
-  rationale: 同じ表でもモデルごとに改善幅が違う
-  caption: 各モデル自身のbaseline=1。絶対RPSや同一hardwareでのモデル間性能比較ではない。
-  unit: throughput倍率
+  rationale: 各モデルについて、改良前の処理件数を1として比べます。
+  caption: 横棒は各モデルの改良前後の比です。1秒あたりの実際の処理件数や、機材をそろえてモデルどうしの速度を比べた結果ではありません。
+  unit: 改良前を1とした処理件数の比
   maximum: 2
   bars:
-  - label: Retrieval model
+  - label: 候補検索モデル
     value: 1.1
-  - label: Ranking model 1
+  - label: 順位付けモデル1
     value: 1.8
-  - label: Ranking model 2
+  - label: 順位付けモデル2
     value: 2
-  - label: Ranking model 3
+  - label: 順位付けモデル3
     value: 1.33
-  - label: Ranking model 4
+  - label: 順位付けモデル4
     value: 1.35
-  - label: Gamer model
+  - label: ゲーマーモデル
     value: 1.15
   source: https://arxiv.org/pdf/2609.17391v1

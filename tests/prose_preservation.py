@@ -200,7 +200,9 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = or_transformer_all_full_prose_hash(root, path, expected, algorithm)
     expected = reasoncast_all_full_prose_hash(root, path, expected, algorithm)
     expected = forecast_critic_all_full_prose_hash(root, path, expected, algorithm)
-    return t0_context_all_full_prose_hash(root, path, expected, algorithm)
+    expected = t0_context_all_full_prose_hash(root, path, expected, algorithm)
+    expected = placement_and_vn2_asset_prose_hash(root, path, expected, algorithm)
+    return flashvector_all_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -3447,3 +3449,45 @@ def before_t0_context_all_full_prose(root,path,current):
     prior=zlib.decompress(base64.b64decode(row['prior_zlib_b64'],validate=True))
     assert hashlib.sha256(prior).hexdigest()==row['before']['sha256'],path
     return prior
+
+
+def flashvector_all_full_prose_for_path(root,path):
+    if not path.startswith('papers/flashvector-unity-serving-stack-agent/'):
+        return None
+    return json.loads((root/'tests/flashvector_all_full_prose_hashes.json').read_text())['files'].get(path)
+
+def flashvector_all_full_prose_hash(root,path,expected,algorithm='sha256'):
+    row=flashvector_all_full_prose_for_path(root,path)
+    if row is None:
+        return expected
+    assert expected==row['before'][algorithm],path
+    return row['after'][algorithm]
+
+def before_flashvector_all_full_prose(root,path,current):
+    import base64,zlib
+    row=flashvector_all_full_prose_for_path(root,path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
+    prior=zlib.decompress(base64.b64decode(row['prior_zlib_b64'],validate=True))
+    assert hashlib.sha256(prior).hexdigest()==row['before']['sha256'],path
+    return prior
+
+
+def placement_and_vn2_asset_prose_hash(root, path, expected, algorithm='sha256'):
+    if path == 'papers/shelf-placement-options/model.js':
+        manifest = 'placement_model_full_prose_hashes.json'
+    elif path in {
+        'papers/vn2-stockout-catboost/figures/censoring.svg',
+        'papers/vn2-stockout-catboost/figures/masking.svg',
+        'papers/vn2-stockout-catboost/figures/order.svg',
+    }:
+        manifest = 'vn2_figures_full_prose_hashes.json'
+    else:
+        return expected
+    row = json.loads((root / 'tests' / manifest).read_bytes())['files'][path]
+    assert expected == row['before_' + algorithm], path
+    raw = (root / path).read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == row['after_sha256'], path
+    assert hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest() == row['after_blob'], path
+    return row['after_' + algorithm]

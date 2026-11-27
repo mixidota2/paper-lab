@@ -1,0 +1,25 @@
+{
+  "files": {
+    "papers/shelf-placement-options/model.js": {
+      "before_sha256": "36a8153a58b331c2554c37c070e04b48de4f4cc12699c0ac7f845a66bf519c89",
+      "after_sha256": "f3305d585e55a9050cd8ce79fa9614d5420687d3ae5adef2de2e494482a6cc5f",
+      "old_error": "寸法は非負の0.1刻み",
+      "new_error": "寸法は0以上の有限な数で、0.1刻みに限ります。",
+      "code_without_comments_and_with_old_error_sha256": "74f1a1836b3f0e9726bcfdfd3727a113d3949a11749bf893e509164fd740ad80",
+      "original_comments": [
+        "// UI dimensions are multiples of 0.1. Arithmetic uses integer tenths;",
+        "// exported decimals therefore match Python's exact Fraction(str(value))."
+      ],
+      "new_comments": [
+        "// 寸法は0.1刻みです。このコードは寸法を10倍して整数で比べます。",
+        "// 返す小数は、入力を分数に直して計算するPython版と一致します。",
+        "// 1つ目の例では、商品Aを吊るす場合と棚に置く場合のそれぞれで、何面並ぶかを調べます。",
+        "// 2つ目の例では、棚板の高さを固定する場合と、下側の商品に合わせる場合を比べます。",
+        "// このコードは棚板の下の隙間が足りるか、商品と棚板が棚の中に収まるかを調べます。条件を満たさなければ、当てはまる理由をすべて返します。",
+        "// 操作ページと結果JSONはreasonsの短い値を使います。操作ページはその値を詳しい説明に置き換えて表示します。"
+      ],
+      "before_blob": "da29c846667ed30d9a6c139d4a5932ae03ebd6d7",
+      "after_blob": "ec83f3a9c5e9e9a5761035a006b1097607e59de1"
+    }
+  }
+}
