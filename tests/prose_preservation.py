@@ -174,7 +174,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = muser_full_prose_hash(root, path, expected, algorithm)
     expected = univa_full_prose_hash(root, path, expected, algorithm)
     expected = sam_full_prose_hash(root, path, expected, algorithm)
-    return rest_full_prose_hash(root, path, expected, algorithm)
+    expected = rest_full_prose_hash(root, path, expected, algorithm)
+    return tagr_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -2743,6 +2744,34 @@ def rest_full_prose_hash(root, path, expected, algorithm='sha256'):
 
 def before_rest_full_prose(root, path, current):
     row = rest_full_prose_row(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def tagr_full_prose_row(root, path):
+    if not path.startswith('papers/tagr-live-sid/'):
+        return None
+    rows = json.loads((root / 'tests/tagr_full_prose_hashes.json').read_text())['files']
+    return rows.get(path)
+
+
+def tagr_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = tagr_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_tagr_full_prose(root, path, current):
+    row = tagr_full_prose_row(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

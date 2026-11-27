@@ -1,0 +1,266 @@
+{
+  "files": {
+    "papers/tagr-live-sid/figures/clocks.svg": {
+      "before": {
+        "sha256": "ed3acd19b34eaade54731a4dc07f59795f0c6a52cdcf5036bd1cb87b6f54df81",
+        "blob": "203fdbb1eb6e77fd6311a1e7b9c10a68c382b166"
+      },
+      "after": {
+        "sha256": "13457df314cc62b9fd247def9874158694e2e75995d2bb8ff7012c6065ece5c2",
+        "blob": "feb3071c9febd37fb904f29b3ab59068a51df6ba"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 655\" role=\"img\" aria-labelledby=\"title\"><title id=\"title\">対象・意図・方策の更新周期</title><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0 0L8 4L0 8\" fill=\"#53758b\"/></marker></defs><rect width=\"440\" height=\"655\" rx=\"12\" fill=\"#f5f8fb\"/><g font-family=\"sans-serif\" fill=\"#183447\"><text x=\"20\" y=\"30\" font-size=\"22\" fill=\"#183447\">TAGRの3種類の更新周期</text><rect x=\"20\" y=\"50\" width=\"400\" height=\"136\" rx=\"9\" fill=\"#e0edf2\"/><text x=\"32\" y=\"75\" font-size=\"16\" fill=\"#183447\">対象の更新 · 毎分</text><text x=\"32\" y=\"98\" font-size=\"16\" fill=\"#183447\">配信場面と商品情報 → 固定語彙へ再割当</text><text x=\"32\" y=\"121\" font-size=\"16\" fill=\"#183447\">LiveID A : (a,b,c) → (a,d,e)</text><text x=\"32\" y=\"144\" font-size=\"16\" fill=\"#183447\">LSID ↔ LiveID 索引へ数秒で伝播</text><rect x=\"20\" y=\"205\" width=\"400\" height=\"135\" rx=\"9\" fill=\"#e0edf2\"/><text x=\"32\" y=\"230\" font-size=\"16\" fill=\"#183447\">意図の更新 · 新しい行動が来た時</text><text x=\"32\" y=\"253\" font-size=\"16\" fill=\"#183447\">入室：stride 1 / 2 / 10でブロック化</text><text x=\"32\" y=\"276\" font-size=\"16\" fill=\"#183447\">いいね／カート追加／注文：別々に符号化</text><text x=\"32\" y=\"299\" font-size=\"16\" fill=\"#183447\">長期profileと一緒にdecoderへ</text><text x=\"30\" y=\"376\" font-size=\"18\" fill=\"#183447\">方策の更新 · warm-up → 間欠RL</text><rect x=\"20\" y=\"394\" width=\"61\" height=\"43\" rx=\"9\" fill=\"#cbe6df\"/><text x=\"32\" y=\"419\" font-size=\"16\" fill=\"#183447\">NTP</text><rect x=\"88\" y=\"394\" width=\"61\" height=\"43\" rx=\"9\" fill=\"#cbe6df\"/><text x=\"100\" y=\"419\" font-size=\"16\" fill=\"#183447\">NTP</text><rect x=\"156\" y=\"394\" width=\"61\" height=\"43\" rx=\"9\" fill=\"#f1d7bf\"/><text x=\"168\" y=\"419\" font-size=\"16\" fill=\"#183447\">RL</text><rect x=\"224\" y=\"394\" width=\"61\" height=\"43\" rx=\"9\" fill=\"#cbe6df\"/><text x=\"236\" y=\"419\" font-size=\"16\" fill=\"#183447\">NTP</text><rect x=\"292\" y=\"394\" width=\"61\" height=\"43\" rx=\"9\" fill=\"#cbe6df\"/><text x=\"304\" y=\"419\" font-size=\"16\" fill=\"#183447\">NTP</text><rect x=\"360\" y=\"394\" width=\"61\" height=\"43\" rx=\"9\" fill=\"#f1d7bf\"/><text x=\"372\" y=\"419\" font-size=\"16\" fill=\"#183447\">RL</text><text x=\"20\" y=\"470\" font-size=\"16\" fill=\"#183447\">RL時：現方策で候補群を新しく生成</text><text x=\"20\" y=\"498\" font-size=\"16\" fill=\"#183447\">合間：ログのNTPで実行動へつなぐ</text><path d=\"M220 521L220 545\" stroke=\"#53758b\" stroke-width=\"2\" fill=\"none\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"550\" width=\"400\" height=\"85\" rx=\"9\" fill=\"#e0edf2\"/><text x=\"32\" y=\"575\" font-size=\"16\" fill=\"#183447\">Serving：beam searchで256 LSID</text><text x=\"32\" y=\"598\" font-size=\"16\" fill=\"#183447\">稼働中LiveIDへ解決</text><text x=\"32\" y=\"621\" font-size=\"16\" fill=\"#183447\">下流 filtering → ranking は残る</text></g></svg>"
+        ]
+      ]
+    },
+    "papers/tagr-live-sid/figures/collision.svg": {
+      "before": {
+        "sha256": "3c91f218d830ecc1a590e4db932c7a0954e8d47df3d73eac6f9776c7f3ff5731",
+        "blob": "5caae24bcf016c0d7fbef061b477299d2b030394"
+      },
+      "after": {
+        "sha256": "24fea5383e87758f35f5ebf2d334d92aeff010643471ede41415a308f65f309f",
+        "blob": "dcd86017b0d20c9171e202ccaaad54daafe841f5"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 612\" role=\"img\" aria-labelledby=\"title\"><title id=\"title\">再割当の成功例と衝突の反例</title><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0 0L8 4L0 8\" fill=\"#53758b\"/></marker></defs><rect width=\"440\" height=\"612\" rx=\"12\" fill=\"#f5f8fb\"/><g font-family=\"sans-serif\" fill=\"#183447\"><text x=\"20\" y=\"30\" font-size=\"20\" fill=\"#183447\">広告A〜Dの合成例：中心0・1・2・3は固定</text><text x=\"20\" y=\"65\" font-size=\"18\" fill=\"#183447\">開始時の割当</text><rect x=\"20\" y=\"81\" width=\"92\" height=\"63\" rx=\"9\" fill=\"#cbe6df\"/><text x=\"32\" y=\"106\" font-size=\"16\" fill=\"#183447\">広告 A</text><text x=\"32\" y=\"129\" font-size=\"16\" fill=\"#183447\">ID 0</text><rect x=\"124\" y=\"81\" width=\"92\" height=\"63\" rx=\"9\" fill=\"#cbe6df\"/><text x=\"136\" y=\"106\" font-size=\"16\" fill=\"#183447\">広告 B</text><text x=\"136\" y=\"129\" font-size=\"16\" fill=\"#183447\">ID 0</text><rect x=\"228\" y=\"81\" width=\"92\" height=\"63\" rx=\"9\" fill=\"#d5e4f5\"/><text x=\"240\" y=\"106\" font-size=\"16\" fill=\"#183447\">広告 C</text><text x=\"240\" y=\"129\" font-size=\"16\" fill=\"#183447\">ID 1</text><rect x=\"332\" y=\"81\" width=\"92\" height=\"63\" rx=\"9\" fill=\"#d5e4f5\"/><text x=\"344\" y=\"106\" font-size=\"16\" fill=\"#183447\">広告 D</text><text x=\"344\" y=\"129\" font-size=\"16\" fill=\"#183447\">ID 1</text><text x=\"20\" y=\"177\" font-size=\"16\" fill=\"#183447\">Cpr = 2　Col = 1</text><text x=\"20\" y=\"215\" font-size=\"18\" fill=\"#183447\">特徴が広がる → 再割当</text><rect x=\"20\" y=\"231\" width=\"92\" height=\"63\" rx=\"9\" fill=\"#cbe6df\"/><text x=\"32\" y=\"256\" font-size=\"16\" fill=\"#183447\">広告 A</text><text x=\"32\" y=\"279\" font-size=\"16\" fill=\"#183447\">ID 0</text><rect x=\"124\" y=\"231\" width=\"92\" height=\"63\" rx=\"9\" fill=\"#d5e4f5\"/><text x=\"136\" y=\"256\" font-size=\"16\" fill=\"#183447\">広告 B</text><text x=\"136\" y=\"279\" font-size=\"16\" fill=\"#183447\">ID 1</text><rect x=\"228\" y=\"231\" width=\"92\" height=\"63\" rx=\"9\" fill=\"#f1d7bf\"/><text x=\"240\" y=\"256\" font-size=\"16\" fill=\"#183447\">広告 C</text><text x=\"240\" y=\"279\" font-size=\"16\" fill=\"#183447\">ID 2</text><rect x=\"332\" y=\"231\" width=\"92\" height=\"63\" rx=\"9\" fill=\"#e4d9f0\"/><text x=\"344\" y=\"256\" font-size=\"16\" fill=\"#183447\">広告 D</text><text x=\"344\" y=\"279\" font-size=\"16\" fill=\"#183447\">ID 3</text><text x=\"20\" y=\"327\" font-size=\"16\" fill=\"#183447\">Cpr = 1　Col = 0</text><text x=\"20\" y=\"365\" font-size=\"18\" fill=\"#183447\">特徴が集まる → 再割当</text><rect x=\"20\" y=\"381\" width=\"92\" height=\"63\" rx=\"9\" fill=\"#cbe6df\"/><text x=\"32\" y=\"406\" font-size=\"16\" fill=\"#183447\">広告 A</text><text x=\"32\" y=\"429\" font-size=\"16\" fill=\"#183447\">ID 0</text><rect x=\"124\" y=\"381\" width=\"92\" height=\"63\" rx=\"9\" fill=\"#cbe6df\"/><text x=\"136\" y=\"406\" font-size=\"16\" fill=\"#183447\">広告 B</text><text x=\"136\" y=\"429\" font-size=\"16\" fill=\"#183447\">ID 0</text><rect x=\"228\" y=\"381\" width=\"92\" height=\"63\" rx=\"9\" fill=\"#cbe6df\"/><text x=\"240\" y=\"406\" font-size=\"16\" fill=\"#183447\">広告 C</text><text x=\"240\" y=\"429\" font-size=\"16\" fill=\"#183447\">ID 0</text><rect x=\"332\" y=\"381\" width=\"92\" height=\"63\" rx=\"9\" fill=\"#cbe6df\"/><text x=\"344\" y=\"406\" font-size=\"16\" fill=\"#183447\">広告 D</text><text x=\"344\" y=\"429\" font-size=\"16\" fill=\"#183447\">ID 0</text><text x=\"20\" y=\"477\" font-size=\"16\" fill=\"#183447\">Cpr = 4　Col = 1</text><text x=\"20\" y=\"525\" font-size=\"16\" fill=\"#183447\">Cpr = 広告数 / 使用ID数</text><text x=\"20\" y=\"553\" font-size=\"16\" fill=\"#183447\">Col = 複数広告を持つID数 / 使用ID数</text><text x=\"20\" y=\"590\" font-size=\"16\" fill=\"#183447\">更新は鮮度を直すが、衝突減は条件次第。</text></g></svg>"
+        ]
+      ]
+    },
+    "papers/tagr-live-sid/lab.yaml": {
+      "before": {
+        "sha256": "d110909c16d86a64260bd1254bc30424bf40c61b493779044d4abe6129579f15",
+        "blob": "e1435d7e2ff7a5ca23080b5c91e6a30898cd9e90"
+      },
+      "after": {
+        "sha256": "e2929620e08eeac610025fa72a3371ee26af254bbbf9301c023d7e0498b72ce1",
+        "blob": "4a396e206b55804a6742ae9991499499c7b58ef0"
+      },
+      "prior_spans": [
+        [
+          32,
+          34,
+          "question: 同じ配信の中で商品が変わるとき、SIDを何に固定するか\nsummary: TAGRは語彙を固定したままライブ広告のSID割当を更新し、行動履歴と選好学習も別の周期で更新する。10%トラフィック、4000万人超のA/Bで売上+16.1%を報告する。役割は下流ランキングへ渡す候補検索である。\n"
+        ],
+        [
+          41,
+          43,
+          "  author_claim: 著者は、LSIDによる対象更新、IAGによる意図表現と教師重み、IOPOによる間欠的な現方策更新を組み合わせる。Kuaishouのライブ広告でLRE率+8.5%、SCC率+7.4%、広告売上+16.1%をDLRM比で報告する（§4）。\n  research_bot_interpretation: 更新周期は一つではない。対象、意図、方策を分けて考える。語彙固定でも割当が動けば履歴ラベルと索引の時間的一貫性は難しくなる。売上差をSID更新だけに帰属せず、表現学習、重みづけ、下流教師の組合せとして読む必要がある。\n"
+        ],
+        [
+          48,
+          52,
+          "  problem: 配信ルームIDが同じでも、紹介する商品や映像が変われば検索対象の意味は変わる。SIDを開始時のままにすると、新しい商品を求めるユーザーが古い意味のIDを生成する。ユーザー側でも入室と注文では行動の密度も意図も違う。\n  why_it_might_work: 語彙を固定すればdecoderの出力空間を維持でき、割当だけを更新すれば現在の内容を索引へ反映できる。NTPを挟む選好更新は、報酬に偏る学習を実行動へ引き戻す可能性がある。ただし更新頻度を下げれば常に良くなるわけではなく、急な環境変化には追随が遅れる。\n  evidence: '### 下流をそろえた候補検索の比較\n"
+        ],
+        [
+          53,
+          54,
+          "    原典Table 1は同じ下流filtering/rankingと同等のtraffic bucketを用いる。DLRMは複数チャネルの二塔型検索基準系であり、TAGRが最終ランカーまで置換した比較ではない。複数週のランダム化A/Bは10%トラフィック、4000万人超（§4.3）。\n"
+        ],
+        [
+          55,
+          63,
+          ""
+        ],
+        [
+          64,
+          65,
+          "    | 累積構成 | 売上のDLRM比 |\n"
+        ],
+        [
+          66,
+          67,
+          "    | --- | ---: |\n"
+        ],
+        [
+          68,
+          69,
+          "    | OneRec v2 | +6.1% |\n"
+        ],
+        [
+          70,
+          71,
+          "    | LSID | +9.9% |\n"
+        ],
+        [
+          72,
+          73,
+          "    | +MSI | +11.2% |\n"
+        ],
+        [
+          74,
+          75,
+          "    | +MF-NTP | +13.5% |\n"
+        ],
+        [
+          76,
+          77,
+          "    | +BA-GRPO | +14.7% |\n"
+        ],
+        [
+          78,
+          81,
+          "    | +VA-GRPO（Full） | +16.1% |\n"
+        ],
+        [
+          82,
+          83,
+          ""
+        ],
+        [
+          84,
+          87,
+          "    FullのLRE率は+8.5%、SCC率は+7.4%。いずれも相対変化で、パーセントポイントではない。累積追加の順序に依存するため、個別要素の独立した因果効果には分解できない。DLRMのoffline HRは評価形式が違うため原典も掲載しない。\n"
+        ],
+        [
+          88,
+          92,
+          "\n    ### SIDの衝突と安定性は別の指標\n\n    Table 2ではStatic SIDがCpr=1.42、Col=0.42、Stability=100%、Full LSIDが1.01、0.02、90%。Stabilityはセッション中に第1階層が変わらない広告の割合であり、全SIDが不変という意味ではない。第3階層に配信者hashを入れる効果も含む。\n\n\n    原典の定義では、N個の広告、U個の使用SID、複数広告を持つSID数Mに対してCpr=N/U、Col=M/Uとなる。このときN≥U+MなのでCpr≥1+Colのはずだ。ところがDynamic SIDの報告値は1.36と0.39で、この関係を満たさない。集計母集団や平均方法の違いがあるかは本文から確認できない。Fullの1.01と0.02も丸め前の値が必要であり、数値の整合性は未解決とする。\n\n\n    Table 4のNTP lossはoff-policy 1.79、continuous on-policy 1.68、IOPO 1.53。Stability列はloss spikeの有無で定義され、SID安定性とは異なる。原典はlow/moderate/highと表示し、割合の実数は示さない。[一次資料：§4、Tables\n    1–4](https://arxiv.org/html/2608.24034v1)。'\n  executable_understanding: '`uv run papers/tagr-live-sid/run.py`\n\n\n    4広告を固定中心0,1,2,3へ最近傍で割り当てる。途中で特徴を広げる条件と、一点へ集める反例を実行する。Cpr、Col、割当維持率、現在特徴との二乗誤差を計算する。割当維持率は元と同じIDを持つ広告の割合、二乗誤差は各広告の現在特徴と割当中心の差を二乗した平均で、どちらも広告数を分母にする。別のスカラー例ではNTP目標を0、報酬目標を±1とし、毎stepの報酬更新と5stepごとの更新を比較する。'\n  results: 特徴を広げる条件では静的割当のCpr=2、Col=1に対し更新後は1、0になる。一点へ集める反例では更新後Cpr=4、Col=1となり、更新は衝突減少を保証しない。スカラー例の報酬更新は60回対12回である。更新回数が異なるため、lossが低くても同予算のIOPO優位を示したことにはならない。\n  what_we_verified: Mechanism PARTIAL。固定語彙への再割当、衝突の定義、鮮度と安定性のトレードオフを合成例で確認した。更新を疎にすると教師あり目標への摂動が減る例も確認したが、報酬品質は測定していない。\n  what_we_did_not_verify: 本番レイテンシー、売上、QPSはNOT TESTED。原典のL20 GPU当たり2500超QPS、検索100ms未満は著者報告。toyはCPU上の最近傍量子化で、学習済みRQ-KMeans、hash、ユーザー協調情報、GRPO、索引伝播の遅延を省略する。報告されたCpr/Colの整合性も未確認。\n  implementation: '`scenario()` が同じ変更後特徴で静的割当と更新割当を評価する。`schedule()` は20stepのwarm-up後に報酬摂動を追加し、全loss系列と更新回数を保存する。GRPOの実装と誤解しないよう、合成摂動モデルとして独立させた。'\n"
+        ],
+        [
+          93,
+          95,
+          "  mapping: '| 原典の機構 | Labの対応 | 省略したもの |\n\n"
+        ],
+        [
+          96,
+          99,
+          "\n    | [PDF・HTML](https://arxiv.org/html/2608.24034v1) の手法節 | method.md と出典つきSVG | 原図の複製ではなく説明用に再構成 |\n\n    | 部分機構の合成例 | run.py → results.json | 本番データ、ニューラルモデル、論文の性能再現 |\n\n    | 公式実装 | 原典内で実行可能な公式コードURLを確認できず | 公式実装との同等性は未検証 |'\n"
+        ],
+        [
+          101,
+          103,
+          "  title: 対象・意図・方策を、それぞれの周期で更新する\n  caption: §2–3から再構成。語彙を保つことと、広告への割当を保つことは異なる。\n"
+        ],
+        [
+          105,
+          107,
+          "  title: ID更新の利点は、衝突数だけでは決まらない\n  caption: run.pyの合成4広告。中心は固定。広告の内容が同じ領域へ集まれば、更新後に衝突が増える反例も成立する。\n"
+        ]
+      ]
+    },
+    "papers/tagr-live-sid/method.md": {
+      "before": {
+        "sha256": "b135816e72f53b1e0f482c0036f452acae59e98a2161922118432ee9a71d1a67",
+        "blob": "d8b071a62175311e7154c3a29a806c2aaeefa92e"
+      },
+      "after": {
+        "sha256": "0df90c4a4f8398b8e9f58aced5121a3f915ebd5566e250240d39fe3e0899d942",
+        "blob": "a7a4fe371570c603a2ae123dc994fabc97ddbd17"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### LSIDはユーザーごとのIDにしない\nscene encoderは配信者の過去の販売スタイル、現在の映像、場面特徴を読む。product encoderは商品テキスト、属性、注文状態などを読む。user encoderは長期興味とprofileを扱う。三つともReLUつきMLPで共有空間へ写す（§2.2）。\n"
+        ],
+        [
+          2,
+          3,
+          "`L_align = L_U2S + L_U2P + L_S2P`\n"
+        ],
+        [
+          4,
+          5,
+          "入室でuser–scene、カートクリックでuser–product、共起でscene–productを対照学習する。割当には次の融合表現を使う。\n"
+        ],
+        [
+          10,
+          11,
+          "協調情報は表現学習に入るが、同じ時刻の広告はリクエストによらず共通のIDを持つ。最終階層には配信者を考慮したhash bucketを使う。システムは、現行広告を毎分符号化し直す。正規のID割当を保存領域に書き込み、LSIDからLiveID、LiveIDからLSIDを検索する索引へ、数秒以内に反映する（§3.2）。語彙は固定するが、広告への割当は変わる。\n"
+        ],
+        [
+          12,
+          15,
+          "### 入室履歴を複数の幅でまとめ、注文履歴は別に読む\nIAGは軽量TransformerであるLazy Decoderを使う。MSIでは直近の入室列をstride 1,2,10で連続ブロックへまとめ、それぞれ射影と位置表現を加える。stride 10は10件ごとに1件を抜く説明ではなく、10件を連結して一つの表現を作る式である。like、cart、orderは別ストリームとして符号化し、入室の複数スケールと長期profileに連結する。\n"
+        ],
+        [
+          18,
+          19,
+          "MF-NTPはどのログを強く学ぶかを決める。各ログと各階層の重みを掛けて損失を足し、その重みの総和で割る。分母はログの生件数ではない。\n"
+        ],
+        [
+          24,
+          25,
+          "feedbackは閲覧後の深い行動、userは価値層、eCPMは分位で正規化した商業価値を表す。実装では重みを正規化・clipする。将来の行動は学習時の重みにだけ使い、リクエスト時の入力へ漏らさない（Eq. (5)）。\n"
+        ],
+        [
+          26,
+          31,
+          "### IOPOは候補の鮮度と更新頻度を分ける\nwarm-upではNTPとReward Modelを学ぶ。その後は現方策で候補群を生成し、短いGRPO更新をT stepごとに行う。間のstepではログに対するNTPを続ける。BA-GRPOは行動への一致を、VA-GRPOは商業価値を加える。候補群内の報酬を平均と標準偏差で正規化し、clipしたadvantageをlog方策確率へ掛ける。\n"
+        ],
+        [
+          34,
+          35,
+          "Reward Modelは下層のLSID embeddingを共有する。post-exposure LREは実ユーザーfeedback、eCPM教師は本番fine-ranking scoreである。報酬計算ではstop-gradientを使う。したがって商業価値の信号は既存ランカーにも依存する。\n"
+        ],
+        [
+          36,
+          37,
+          "サービングはbeam searchで256個のLSIDを生成し、稼働中LiveIDへ解決して下流filtering/rankingへ渡す。静的SIDを扱う[GLIDE](glide-spotify-sid.html)や[Gryphon](gryphon-ilsm.html)との比較点は対象の変化であり、[TGR](tgr.html)と同様に置換範囲を明示して読む。\n"
+        ],
+        [
+          38,
+          39,
+          "[一次資料：§2–3、Eq. (1)–(14)、Figure 4](https://arxiv.org/html/2608.24034v1)。\n"
+        ]
+      ]
+    },
+    "papers/tagr-live-sid/results.json": {
+      "before": {
+        "sha256": "dfded7ed370a53342c393e838d9fccbec40acce8b6b6f10f4df70ce4817c803e",
+        "blob": "f21a97489c713e3c0189a5ce5592fa250f68f654"
+      },
+      "after": {
+        "sha256": "31c695865190e7de264672e0f496a174914997b3f4b1426bf38629c94fafee61",
+        "blob": "b6c9216778f1bfd57b655e64ea048002ba6f28f1"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"kind\": \"synthetic mechanism illustration\",\n"
+        ]
+      ]
+    },
+    "papers/tagr-live-sid/run.py": {
+      "before": {
+        "sha256": "9e493409a9815a78496ab09f1f801a2263f450bd81d52e29f0eb46fc981c2bf4",
+        "blob": "33b2363992d50857e5ab8c38fc1e78deb62b64fe"
+      },
+      "after": {
+        "sha256": "b252558cbe8b8f1c254ad19c6804ad2e64137358a7cdef8110dfe335a88ce335",
+        "blob": "e65b758e40912951f5aa625d8aeb497c3800cd7a"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Fixed vocabulary, changing assignments. No learned LSID/RQ-KMeans or production data.\"\"\"\n"
+        ],
+        [
+          27,
+          29,
+          "    # Scalar supervised target=0. Alternating reward targets ±1 perturb the same parameter.\n    # Different update counts are deliberately reported; this is not an equal-budget GRPO test.\n"
+        ],
+        [
+          44,
+          45,
+          "    return {'kind': 'synthetic mechanism illustration', 'seed': 'deterministic',\n"
+        ],
+        [
+          52,
+          54,
+          "    Path(__file__).with_name('results.json').write_text(json.dumps(result, indent=2)+'\\n')\n    print(json.dumps(result, indent=2))\n"
+        ]
+      ]
+    }
+  }
+}
