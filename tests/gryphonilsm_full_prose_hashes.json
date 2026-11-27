@@ -1,0 +1,226 @@
+{
+  "files": {
+    "papers/gryphon-ilsm/figures/collision.svg": {
+      "before": {
+        "sha256": "2db3654c325b843176217d50f9e44e8a5f88c403e1086fc5134003e2d8611597",
+        "blob": "aa6d389f2270b33bae55d891f086fca8781eb6ea"
+      },
+      "after": {
+        "sha256": "66addf6874443ab0f9cffc034a186c3646195ed11fd9dd29c66b51833843fc1a",
+        "blob": "ea31a685c909650bda0cf367628df3f9d42f4f19"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 490\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">同点を解いても、候補外の曲は戻せない</title><desc id=\"desc\">Lab の合成4曲。原典 §2 の衝突と尤度のずれを説明するための数値で、論文結果ではない。</desc><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0,0 L8,4 L0,8\" fill=\"#59717f\"/></marker></defs><style>text{font-family:system-ui,sans-serif;fill:#193743;font-size:20px}.small{font-size:17px}.head{font-size:25px;font-weight:700}.edge{stroke:#59717f;stroke-width:2;fill:none;marker-end:url(#arrow)}</style><rect width=\"640\" height=\"490\" rx=\"18\" fill=\"#f3f7f8\"/><text x=\"24\" y=\"38\" class=\"head\">SID生成確率と曲の再採点（合成例）</text><rect x=\"24\" y=\"65\" width=\"592\" height=\"65\" rx=\"10\" fill=\"#dbeceb\"/><text x=\"40\" y=\"95\" class=\"\">SID 11：0.6 × 0.8 = 0.48</text><path class=\"edge\" d=\"M160,130 L160,163\"/><path class=\"edge\" d=\"M475,130 L475,163\"/><rect x=\"24\" y=\"170\" width=\"286\" height=\"65\" rx=\"10\" fill=\"#dbeceb\"/><text x=\"40\" y=\"200\" class=\"\">曲 A：score 0.1</text><rect x=\"330\" y=\"170\" width=\"286\" height=\"65\" rx=\"10\" fill=\"#bfe3d5\"/><text x=\"346\" y=\"200\" class=\"\">曲 B：score 0.9</text><text x=\"24\" y=\"277\" class=\"\">同じ SID でも、B を A より上に置ける。</text><rect x=\"24\" y=\"304\" width=\"592\" height=\"66\" rx=\"10\" fill=\"#dbeceb\"/><text x=\"40\" y=\"334\" class=\"\">SID 12：0.6 × 0.2 = 0.12 → 曲 D：0.8</text><text x=\"24\" y=\"413\" class=\"\">D が beam に残る → 再採点で昇格できる</text><text x=\"24\" y=\"453\" class=\"\">D が beam から脱落 → ILSM では回復できない</text></svg>"
+        ]
+      ]
+    },
+    "papers/gryphon-ilsm/figures/inference.svg": {
+      "before": {
+        "sha256": "3aa0cea2533a21c3806318f7b7186a48a67ec3efbd77bcedaec84b6cab542a9d",
+        "blob": "5e93b7ef0fcdc268a884ef79427b342f094d982d"
+      },
+      "after": {
+        "sha256": "0195145e263e845c70d45342203aa753427c9b0574db0d8c314ab7dbce4590e4",
+        "blob": "4fcdbc528ddc043a420075d448689d6e086b9083"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 420\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">ILSM は候補の選別、最終 ranker は残る</title><desc id=\"desc\">原典 §3–4 の配信図を再構成。v2 と異なり、同じ本番 ranker に1000候補を渡す。</desc><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0,0 L8,4 L0,8\" fill=\"#59717f\"/></marker></defs><style>text{font-family:system-ui,sans-serif;fill:#193743;font-size:20px}.small{font-size:17px}.head{font-size:25px;font-weight:700}.edge{stroke:#59717f;stroke-width:2;fill:none;marker-end:url(#arrow)}</style><rect width=\"640\" height=\"420\" rx=\"18\" fill=\"#f3f7f8\"/><text x=\"24\" y=\"38\" class=\"head\">一度の履歴計算を二つの経路で共有</text><rect x=\"24\" y=\"63\" width=\"592\" height=\"63\" rx=\"10\" fill=\"#dbeceb\"/><text x=\"40\" y=\"93\" class=\"\">履歴 → 共有 encoder → Eᵤ</text><path class=\"edge\" d=\"M165,126 L165,162\"/><path class=\"edge\" d=\"M480,126 L480,269\"/><rect x=\"24\" y=\"169\" width=\"360\" height=\"65\" rx=\"10\" fill=\"#dbeceb\"/><text x=\"40\" y=\"199\" class=\"\">decoder / beam → SID 候補</text><path class=\"edge\" d=\"M165,234 L165,270\"/><rect x=\"24\" y=\"277\" width=\"360\" height=\"65\" rx=\"10\" fill=\"#dbeceb\"/><text x=\"40\" y=\"307\" class=\"\"><tspan x=\"40\" y=\"302\">同じSIDの各曲を候補へ展開</tspan><tspan x=\"40\" y=\"328\">ILSMで採点</tspan></text><path class=\"edge\" d=\"M480,300 L388,300\"/><path class=\"edge\" d=\"M165,342 L165,362\"/><text x=\"24\" y=\"391\" class=\"\">1000候補 → 既存の最終 ranker → 表示</text></svg>"
+        ]
+      ]
+    },
+    "papers/gryphon-ilsm/lab.yaml": {
+      "before": {
+        "sha256": "4eb1892ee37d03fdc88b5892bfd9f9313d221f82bb9bce033b083f6ecee5df41",
+        "blob": "0c5f95346194a3f5787e0737a6f3dd086a4630a2"
+      },
+      "after": {
+        "sha256": "e2cfd809823dd84c0a31813a005e261fc3f863a8b8777fdf5b9c3e49e10cf79a",
+        "blob": "3ed95121e30ab7a6308c2fa94147606a4e155350"
+      },
+      "prior_spans": [
+        [
+          29,
+          31,
+          "question: SID の確率が同じ曲を、どう順位付けするか\nsummary: Gryphonは、生成した識別子に対応する曲を候補として取り出し、曲ごとに点数を付け直して絞り込む。候補を作る処理と採点する処理は同じ履歴情報を使う。本番実験では、その後に最終的な順位を決める既存モデルも使っている。TLT の有意な改善を示した論文としては読めない。\n"
+        ],
+        [
+          38,
+          40,
+          "  author_claim: 著者は、SID の尤度と曲の関連度のずれを、共有エンコーダーを使う Item-Level Scoring Module（ILSM）で補う。同じ候補集合を採点し直す比較と、候補生成・事前順位付けを置き換える本番\n    A/B を示す。\n  research_bot_interpretation: まず、候補の範囲を確認したい。生成された SID に対応する曲をすべて展開しても正解が含まれないなら、いくら曲ごとの採点を改善しても、そのユーザーの正解曲を上位には戻せない。最終\n    ranker を外せるかは、次の [Gryphon-v2](gryphon-v2-cascade.html) が教師による蒸留で扱う別の問いになる。\n"
+        ],
+        [
+          45,
+          47,
+          "  problem: '### 同じ SID に入った曲には、尤度だけでは差が付かない\n"
+        ],
+        [
+          48,
+          53,
+          "    意味に基づく短いトークン列を曲に割り当てる仕組みが Semantic ID（SID）である。生成器はユーザー履歴から次の曲の SID を予測する。ところが評価するのは曲であり、トークン列ではない。\n"
+        ],
+        [
+          54,
+          55,
+          ""
+        ],
+        [
+          56,
+          61,
+          "    複数の曲が同じ SID に割り当てられる衝突では、曲の好みが違っても beam score は完全に同じになる。衝突がなくても、早い段階の接頭辞の予測が後続の探索を左右する。著者はこの2点を構造上のずれとして扱う。末尾に識別トークンを足す方法も比較するが、動的なカタログで解決用の語彙を増やし続ける運用を問題にしている。'\n  method: method.md\n  why_it_might_work: 曲 ID を含むクエリーがあれば、同じ SID の曲にも別のスコアを与えられる。履歴を再度エンコードしないため、全候補に重いモデルを別々にかけるより計算を共有しやすい。ただし関連度を学べる特徴と教師信号があることが前提で、別スコアを持つだけでは改善は保証されない。\n  evidence: '### Table 2 は同じ候補から採点だけを変える\n"
+        ],
+        [
+          62,
+          63,
+          "    著者は K=2048 の同じ beam 候補を比較する。下表の SID-level と item-level は評価単位が違うため、すべてを曲の Recall として並べ替えてはいけない。\n"
+        ],
+        [
+          64,
+          65,
+          ""
+        ],
+        [
+          66,
+          67,
+          "    | Table 2 の採点 | Recall@1000 | 読み方 |\n"
+        ],
+        [
+          68,
+          69,
+          "    | --- | ---: | --- |\n"
+        ],
+        [
+          70,
+          73,
+          "    | SID-level / beam | 0.8404 | SID を正解単位にした値 |\n"
+        ],
+        [
+          74,
+          77,
+          "    | item-level / beam | 0.8209 | 衝突を曲へ展開すると低下 |\n"
+        ],
+        [
+          78,
+          85,
+          "    | item-level / ILSM | 0.8552 | 同じ候補内で曲を再選択 |\n\n\n    最後の値が SID-level の値を超えるのは、元の上位1000 SID より下にある候補からも曲を昇格させるため。カタログ全体から候補に入らなかった曲を、候補へ戻したという意味ではない。複数 seed の正式な有意差検定はなく、予備実験の変動幅は約\n    ±0.003 と記載される。\n\n\n    ### 本番では最終 ranker へ渡す候補を減らした\n\n    7日間、対象ユーザーの4%を treatment に割り当てる。15超の候補生成器と prerank を Gryphon に置換し、同じ最終 ranker に渡す候補を3000から1000に減らす。主指標 TLT は\n    +0.25%で有意差なし。active-user ratio +0.43%、unfinished tracks −1.3% は p<0.001 の著者報告である。同等性は未証明である。[一次資料：Table 2–3、§4](https://arxiv.org/html/2606.08604)。'\n  executable_understanding: '`uv run papers/gryphon-ilsm/run.py`\n\n\n    4曲・3 SID の合成例を使う。A と B は同じ SID で尤度0.48、C は0.36、D は0.12。正解は B と D とする。手で与えた曲スコアは B、D、C、A の順になる。候補集合を固定した比較に加え、beam\n    幅を1・2・3と変えて到達できる正解の上限を計算する。衝突内の tie-break も逆順で再実行する。'\n  results: 全 SID を残す条件では Recall@2 が0.5から1.0になる。beam 幅を狭めて D を落とすと、再採点後も1.0には届かない。これは反例である。学習による改善率は測っていない。\n  what_we_verified: Mechanism PARTIAL。SID の同点、同じ候補集合内の再順位付け、候補から脱落した曲は回復できないという境界を確認した。\n  what_we_did_not_verify: ILSM の学習、曲 ID の汎化、コールドスタート、カタログ更新、実測レイテンシー、本番の TLT は NOT TESTED。独立なラベルで scorer を学習していないので、手で設定したスコアが得られるかも未検証である。\n  implementation: 標準ライブラリだけの `run.py` 単体で動く。`experiment()` が SID の確率積、衝突展開、同点処理、Recall を計算する。Recallの分母は、候補に残った正解曲数ではなく、合成例で定義した全正解曲数。候補から脱落した正解曲も分母に残す。原典 §3.2 の cross-attention\n    と §3.3 の sampled softmax は説明だけにとどめ、toy では明示的なスコアに置き換えた。\n  mapping: '| 原論文 | この Lab | 省略・公式実装 |\n\n"
+        ],
+        [
+          86,
+          89,
+          "\n    | [原典 HTML](https://arxiv.org/html/2606.08604)・提供 PDF | method の式と図は原典から描き直し | 原典の数値と toy の数値を分離 |\n\n    | 手法の最小機構 | `run.py` と `results.json` | ニューラルモデル・本番データを省略 |\n\n    | 公式コード | 原典で実行可能な公開URLを確認できず | 公式実装との一致は未検証 |'\n"
+        ],
+        [
+          91,
+          93,
+          "  title: 同点を解いても、候補外の曲は戻せない\n  caption: Lab の合成4曲。原典 §2 の衝突と尤度のずれを説明するための数値で、論文結果ではない。\n"
+        ],
+        [
+          95,
+          97,
+          "  title: ILSM は候補の選別、最終 ranker は残る\n  caption: 原典 §3–4 の配信図を再構成。v2 と異なり、同じ本番 ranker に1000候補を渡す。\n"
+        ]
+      ]
+    },
+    "papers/gryphon-ilsm/method.md": {
+      "before": {
+        "sha256": "ae11fc1428637739cc7272e4d4366da6c82e1d29433e7d92398e55dfb94e6fb5",
+        "blob": "74eccdc08a3861bf192de1dbea04ddda9c967fd3"
+      },
+      "after": {
+        "sha256": "f206b1055d1bb72dc629a3c01b5a7102f043526f400638fa606a6f8108d87bf9",
+        "blob": "31e0fbe8c10ca110cdcfcaf3b038e660984c8635"
+      },
+      "prior_spans": [
+        [
+          0,
+          3,
+          "### 生成は候補を提案し、ILSM が曲を選ぶ\nユーザー履歴を双方向 Transformer で一度読み、状態列 Eᵤ を decoder と ILSM が共有する。SID σ=(s₁,…,sL) の確率と対数スコアは次の関係にある。\n"
+        ],
+        [
+          10,
+          11,
+          "Cσ は同じSIDを持つ曲の集合。SIDの生成確率をそのまま曲の得点にすると、Cσ 内は全曲が同点になる。beam 内の SID を曲へ展開した Iᵤ に対して、曲の表現 eᵢ をクエリーとして履歴を読む cross-attention と MLP を適用する。\n"
+        ],
+        [
+          18,
+          19,
+          "一般形の hᵢ は曲 ID・属性・内容を含められるが、報告実験の ILSM は曲 ID だけを使う。追加特徴による優位を避ける比較である。Gryphon は encoder 7層、decoder 2層、ILSM 1層。Vanilla GR の decoder 3層のうち1層を ILSM に置き換え、パラメーター数と推論時間の差を1%未満と報告する。\n"
+        ],
+        [
+          20,
+          23,
+          "### 次の曲を当てる損失を、二つの経路で学ぶ\n生成側は正解 SID の負の対数尤度 Lgen を最小化する。ILSM は in-batch の負例集合 B⁻ を使い、サンプリング確率 Qᵢ を補正した sampled softmax で次の曲を学習する。\n"
+        ],
+        [
+          30,
+          31,
+          "τ は温度、Qᵢ は曲が負例として現れる頻度に対応する確率。共有 encoder は両方の損失を受ける。推薦後の多目的なユーザー価値を直接学んだ実験ではない。[一次資料：§2–3、§4.1.3](https://arxiv.org/html/2606.08604)。\n"
+        ]
+      ]
+    },
+    "papers/gryphon-ilsm/results.json": {
+      "before": {
+        "sha256": "fd4d7225e0d216296a4e3510f41d07b3b0dcdcc002ecdabdfa227a83cda9b7c7",
+        "blob": "5c19b4664f18c5c26a9b96338a1ee123ff90ed72"
+      },
+      "after": {
+        "sha256": "65c8e46e4b1d0b9b798b1d62af5cf0c716e6d54cf5e02d98d7b8aebddf4edb3c",
+        "blob": "d5c0d6f5eff6e29f7b30f00f62482245680379df"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"合成例。手で設定した item score による再順位付け。ILSM 学習・論文性能・本番適用は未検証。\",\n"
+        ],
+        [
+          4,
+          5,
+          "      \"name\": \"同じ候補集合で比較（全3 SID）\",\n"
+        ]
+      ]
+    },
+    "papers/gryphon-ilsm/run.py": {
+      "before": {
+        "sha256": "5c96297ffc1e8f893d82c31a76d424907c896c89cdc8c3fd4cf9f1366645257f",
+        "blob": "af7bd5788a11c02dc3474d6dd6010d16752db45e"
+      },
+      "after": {
+        "sha256": "1dc5f77e9399aed1c4ca776ecf2d016ae83ab92a6083d4dfa92754dd3b94c4fb",
+        "blob": "fa37db0a2eb9ed04b779b107a590dbd0366c45d9"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"CPU-only synthetic scoring example; no trained ILSM or production measurement.\"\"\"\n"
+        ],
+        [
+          7,
+          8,
+          "    # Conditional token probabilities for three distinct SID paths.\n"
+        ],
+        [
+          10,
+          11,
+          "    relevant = {'B', 'D'}  # Synthetic held-out labels, not paper data.\n"
+        ],
+        [
+          13,
+          14,
+          "    # Explicit tie policy; repeat with the reverse to expose arbitrary collision order.\n"
+        ],
+        [
+          27,
+          29,
+          "    out = {'note': '合成例。手で設定した item score による再順位付け。ILSM 学習・論文性能・本番適用は未検証。',\n           'experiments': [{'name': '同じ候補集合で比較（全3 SID）', 'metrics': {\n"
+        ]
+      ]
+    }
+  }
+}
