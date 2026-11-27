@@ -1,5 +1,5 @@
 {
-  "note": "合成の固定SIDと固定確率。残存率の母集団は9例すべてで、論文の外部ranker top-k条件付き集計とは異なる。",
+  "note": "Labは固定した人工のSIDと確率を使った。残存率は評価9件すべてを分母にし、別の順位で正解が上位に入った場合だけを数える論文とは異なる。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",
@@ -9,7 +9,7 @@
   "experiments": [
     {
       "name": "beam幅 1",
-      "dataset": "8 items・独立した学習遷移表と9評価例",
+      "dataset": "8商品、評価とは別の学習遷移表、9件の評価例",
       "n": 9,
       "metrics": {
         "通常beam": {
@@ -56,7 +56,7 @@
     },
     {
       "name": "beam幅 2",
-      "dataset": "8 items・独立した学習遷移表と9評価例",
+      "dataset": "8商品、評価とは別の学習遷移表、9件の評価例",
       "n": 9,
       "metrics": {
         "通常beam": {
@@ -103,7 +103,7 @@
     },
     {
       "name": "beam幅 4",
-      "dataset": "8 items・独立した学習遷移表と9評価例",
+      "dataset": "8商品、評価とは別の学習遷移表、9件の評価例",
       "n": 9,
       "metrics": {
         "通常beam": {
@@ -150,7 +150,7 @@
     },
     {
       "name": "beam幅 8",
-      "dataset": "8 items・独立した学習遷移表と9評価例",
+      "dataset": "8商品、評価とは別の学習遷移表、9件の評価例",
       "n": 9,
       "metrics": {
         "通常beam": {
