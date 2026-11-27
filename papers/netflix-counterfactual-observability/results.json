@@ -1,5 +1,5 @@
 {
-  "note": "人工データ。exact-match、1位置、既知propensity。NetflixのsimulationやA/Bの再現ではない。",
+  "note": "人工データの表示枠1つを使い、選択確率が分かる完全一致の記録から推定しました。Netflixのシミュレーションや本番のA/Bテストは再現していません。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",
@@ -8,7 +8,7 @@
   },
   "experiments": [
     {
-      "name": "同一探索ログでpolicyと除去policyを評価",
+      "name": "同じ探索ログで、作品Aを残す方式と外す方式を比べる",
       "n": 120000,
       "seed": 23,
       "metrics": {
@@ -23,7 +23,7 @@
       }
     },
     {
-      "name": "cascade分解の算術例",
+      "name": "候補に入ったときの差と、候補に入る確率を掛ける",
       "metrics": {
         "niche": 0.016,
         "broad": 0.024
