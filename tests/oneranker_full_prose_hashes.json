@@ -1,0 +1,266 @@
+{
+  "files": {
+    "papers/oneranker-ads/figures/mask.svg": {
+      "before": {
+        "sha256": "efd39806a938b963248a039cf4122673690bdb0af93d68a3bee450f01b592e03",
+        "blob": "a86e168509f8bb64704091358076fcd8d4700592"
+      },
+      "after": {
+        "sha256": "c0d5795d6379f06458b949080f10124e21d597ca419a66d30fbb68fad3096d48",
+        "blob": "2e9c70bec7ba19dbcb0d657bba2d6df53b769c1e"
+      },
+      "prior_spans": [
+        [
+          0,
+          69,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 615\" role=\"img\" aria-labelledby=\"title\"><title id=\"title\">異種マスクの可視性</title><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0 0L8 4L0 8\" fill=\"#53758b\"/></marker></defs><rect width=\"440\" height=\"615\" rx=\"12\" fill=\"#f5f8fb\"/><g font-family=\"sans-serif\" fill=\"#183447\"><text x=\"20\" y=\"30\" font-size=\"20\" fill=\"#183447\">Step 2：誰が誰を読めるか</text><text x=\"20\" y=\"60\" font-size=\"16\" fill=\"#183447\">■ 読める　□ 読めない</text><text x=\"116\" y=\"98\" font-size=\"13\" fill=\"#183447\">表示</text><text x=\"165\" y=\"98\" font-size=\"13\" fill=\"#183447\">click</text><text x=\"214\" y=\"98\" font-size=\"13\" fill=\"#183447\">CV</text><text x=\"263\" y=\"98\" font-size=\"13\" fill=\"#183447\">価値</text><text x=\"312\" y=\"98\" font-size=\"13\" fill=\"#183447\">F1</text><text x=\"361\" y=\"98\" font-size=\"13\" fill=\"#183447\">F2</text><text x=\"20\" y=\"140\" font-size=\"15\" fill=\"#183447\">表示</text><rect x=\"112\" y=\"117\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"161\" y=\"117\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#ffffff\" stroke=\"#aec1ca\"/><rect x=\"210\" y=\"117\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#ffffff\" stroke=\"#aec1ca\"/><rect x=\"259\" y=\"117\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#ffffff\" stroke=\"#aec1ca\"/><rect x=\"308\" y=\"117\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"357\" y=\"117\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><text x=\"20\" y=\"185\" font-size=\"15\" fill=\"#183447\">click</text><rect x=\"112\" y=\"162\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"161\" y=\"162\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"210\" y=\"162\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#ffffff\" stroke=\"#aec1ca\"/><rect x=\"259\" y=\"162\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#ffffff\" stroke=\"#aec1ca\"/><rect x=\"308\" y=\"162\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"357\" y=\"162\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><text x=\"20\" y=\"230\" font-size=\"15\" fill=\"#183447\">CV</text><rect x=\"112\" y=\"207\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"161\" y=\"207\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"210\" y=\"207\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"259\" y=\"207\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#ffffff\" stroke=\"#aec1ca\"/><rect x=\"308\" y=\"207\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"357\" y=\"207\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><text x=\"20\" y=\"275\" font-size=\"15\" fill=\"#183447\">価値</text><rect x=\"112\" y=\"252\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"161\" y=\"252\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"210\" y=\"252\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"259\" y=\"252\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"308\" y=\"252\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"357\" y=\"252\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><text x=\"20\" y=\"320\" font-size=\"15\" fill=\"#183447\">F1</text><rect x=\"112\" y=\"297\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"161\" y=\"297\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"210\" y=\"297\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"259\" y=\"297\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"308\" y=\"297\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"357\" y=\"297\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#ffffff\" stroke=\"#aec1ca\"/><text x=\"20\" y=\"365\" font-size=\"15\" fill=\"#183447\">F2</text><rect x=\"112\" y=\"342\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"161\" y=\"342\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"210\" y=\"342\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"259\" y=\"342\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><rect x=\"308\" y=\"342\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#ffffff\" stroke=\"#aec1ca\"/><rect x=\"357\" y=\"342\" width=\"34\" height=\"30\" rx=\"4\" fill=\"#237d85\" stroke=\"#aec1ca\"/><text x=\"20\" y=\"420\" font-size=\"16\" fill=\"#183447\">行＝Query、列＝読む相手</text><text x=\"20\" y=\"450\" font-size=\"16\" fill=\"#183447\">タスク：自分までのタスクと全中心を参照</text><text x=\"20\" y=\"480\" font-size=\"16\" fill=\"#183447\">中心：全タスクと自分を参照／他中心は不可</text><rect x=\"20\" y=\"505\" width=\"400\" height=\"90\" rx=\"9\" fill=\"#e0edf2\"/><text x=\"32\" y=\"530\" font-size=\"16\" fill=\"#183447\">F1・F2：K-meansの中心</text><text x=\"32\" y=\"553\" font-size=\"16\" fill=\"#183447\">架空の広告や実際の候補IDではない</text><text x=\"32\" y=\"576\" font-size=\"16\" fill=\"#183447\">Step 3では実候補を詳細に評価する</text></g></svg>"
+        ]
+      ]
+    },
+    "papers/oneranker-ads/figures/stack.svg": {
+      "before": {
+        "sha256": "b5c32baf9a5bce44e8f6e415f509f2a689917d3a8f9ae557d1fda4647e0e5ddf",
+        "blob": "51422a30bba01cb0e9cad779228da78d8c79a630"
+      },
+      "after": {
+        "sha256": "635f3d71e8020ffe075a7c3e119a39fd4f68998d973c5b70f490e3f7b9982d1c",
+        "blob": "b9b67854f9e7819e7d860b66b1478ce332a06855"
+      },
+      "prior_spans": [
+        [
+          0,
+          34,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 440 585\" role=\"img\" aria-labelledby=\"title\"><title id=\"title\">生成とランキングの接続</title><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0 0L8 4L0 8\" fill=\"#53758b\"/></marker></defs><rect width=\"440\" height=\"585\" rx=\"12\" fill=\"#f5f8fb\"/><g font-family=\"sans-serif\" fill=\"#183447\"><text x=\"20\" y=\"30\" font-size=\"20\" fill=\"#183447\">基準系：生成 → 別学習ランカー</text><rect x=\"20\" y=\"48\" width=\"400\" height=\"60\" rx=\"9\" fill=\"#e0edf2\"/><text x=\"32\" y=\"73\" font-size=\"16\" fill=\"#183447\">候補だけを渡す</text><text x=\"32\" y=\"96\" font-size=\"16\" fill=\"#183447\">生成の途中状態を共有しない</text><text x=\"20\" y=\"147\" font-size=\"20\" fill=\"#183447\">OneRanker：3段を接続</text><rect x=\"20\" y=\"166\" width=\"320\" height=\"65\" rx=\"9\" fill=\"#e0edf2\"/><text x=\"32\" y=\"191\" font-size=\"16\" fill=\"#183447\">Step 1 · 履歴 → 複数の興味表現</text><path d=\"M180 232L180 255\" stroke=\"#53758b\" stroke-width=\"2\" fill=\"none\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"259\" width=\"320\" height=\"92\" rx=\"9\" fill=\"#e0edf2\"/><text x=\"32\" y=\"284\" font-size=\"16\" fill=\"#183447\">Step 2 · Task + Fake Item Tokens</text><text x=\"32\" y=\"307\" font-size=\"16\" fill=\"#183447\">興味／価値の別ヘッドでSID生成</text><text x=\"32\" y=\"330\" font-size=\"16\" fill=\"#183447\">中心との照合で候補の大まかな特徴を取り込む</text><path d=\"M180 352L180 379\" stroke=\"#53758b\" stroke-width=\"2\" fill=\"none\" marker-end=\"url(#arrow)\"/><rect x=\"20\" y=\"382\" width=\"320\" height=\"85\" rx=\"9\" fill=\"#e0edf2\"/><text x=\"32\" y=\"407\" font-size=\"16\" fill=\"#183447\">Step 3 · 実候補 + ranking token</text><text x=\"32\" y=\"430\" font-size=\"16\" fill=\"#183447\">Step 1 / 2 のKVを再利用</text><text x=\"32\" y=\"453\" font-size=\"16\" fill=\"#183447\">候補ごとの価値スコア</text><path d=\"M345 426L395 426L395 300L345 300\" fill=\"none\" stroke=\"#b95a43\" stroke-width=\"3\" marker-end=\"url(#arrow)\"/><text x=\"356\" y=\"369\" font-size=\"18\" fill=\"#b95a43\">DC</text><text x=\"20\" y=\"510\" font-size=\"16\" fill=\"#183447\">DC：候補集合内の教師分布を戻す</text><text x=\"20\" y=\"540\" font-size=\"16\" fill=\"#183447\">Gryphon-v2の全カスケード置換とは</text><text x=\"20\" y=\"563\" font-size=\"16\" fill=\"#183447\">比較基準も、示している範囲も違う。</text></g></svg>"
+        ]
+      ]
+    },
+    "papers/oneranker-ads/lab.yaml": {
+      "before": {
+        "sha256": "3745a48562eca8fd7c7839ed28ec7fb28ff016e0a8fb75350725dc8754b57198",
+        "blob": "b65d9bd25d2b61adc5482f36da5e7c0e5412e1d2"
+      },
+      "after": {
+        "sha256": "cd02dc7d8182100a09bd88f5ac8ac405c396adb68598ae35ed8e981060547a32",
+        "blob": "71577879cfa5a86d66093b9fad2103fc1fb52dae"
+      },
+      "prior_spans": [
+        [
+          31,
+          33,
+          "question: 興味の広さを保ちながら、生成候補を広告価値に寄せられるか\nsummary: OneRankerは興味と広告価値の出力を分け、生成時の表現をランキングへ渡す。Weixin ChannelsのA/Bでは生成モデル＋別学習ランカーを基準に改善を報告した。広告の全カスケードを撤去した証拠とは区別して読む。\n"
+        ],
+        [
+          40,
+          42,
+          "  author_claim: 著者は、タスクトークンによる出力空間の分離、クラスタ中心による候補の大まかな特徴の表現、候補単位のランキングを一体化する。生成とランキングの入力を共有し、ランキングの軟らかい教師分布を生成へ戻す。A/B後の100%展開を報告する（§3、§4.4）。\n  research_bot_interpretation: 価値の高い広告が候補生成で落ちれば、後段の優秀なランカーでも救えない。DCはこの境界を学習で動かす設計と読める。ただし教師が誤る場合や候補集合に偏りがある場合、整合性だけが高まっても利益は改善しない。Gryphon-v2との比較では、モデル数より実際に置換したサービング範囲を確認したい。\n"
+        ],
+        [
+          47,
+          51,
+          "  problem: クリックと価値はずれる。単一の出力へ両方の目的を押し込むと競合し、別モデルへ完全に分けると生成中に価値の情報が届かない。共有と分離の境界が問題になる。\n  why_it_might_work: 興味タスクの出力を維持したまま価値用の経路を追加すれば、価値重視の学習が興味の表現を直接置き換える圧力を減らせる。Fake Item Tokensは全候補との詳細な相互作用を避けつつ、アイテム空間のどの領域を好むかを表せる。これは設計上の推論で、共有層の勾配競合が消える保証ではない。\n  evidence: '### 大きな差はStep 3の追加にある\n"
+        ],
+        [
+          52,
+          53,
+          "    以下は提供PDF Table 2の著者報告。HR@5を比較すると、Step 2から候補単位のランキングへ進む差が、DC単独の差より大きい。\n"
+        ],
+        [
+          54,
+          55,
+          ""
+        ],
+        [
+          57,
+          65,
+          ""
+        ],
+        [
+          66,
+          67,
+          "    | --- | ---: | ---: |\n"
+        ],
+        [
+          68,
+          69,
+          "    | S2、TargetとMDAを除去 | 0.5066 | 0.7275 |\n"
+        ],
+        [
+          70,
+          71,
+          "    | S2、Targetを除去 | 0.5203 | 0.7285 |\n"
+        ],
+        [
+          72,
+          73,
+          "    | S2 | 0.5448 | 0.7440 |\n\n    | S3 ranker only | 0.6157 | 0.7849 |\n\n    | S2 token injectionを除去 | 0.6161 | 0.7858 |\n\n    | DCを除去 | 0.6173 | 0.7865 |\n\n    | Full | 0.6213 | 0.7904 |\n\n\n    原典§4.2.1の説明文は0.6161と0.6173に対応する追加要素をTable 2と逆に説明している。本Labは表の行名を採用した。したがって本文の説明を根拠に、個別要素の寄与を細かく断定しない。Table 3ではS2のHR@5がCross-Attention先行の除去で0.5277、異種マスクの除去で0.5335になる。\n\n\n    ### +1.34%は全トラフィック共通の効果ではない\n\n    Table 4の基準系は生成＋別学習ランカー。GMV-Normalはクリック／コンバージョン最適化広告のGMVである。\n\n\n    | A/Bのtraffic phase | GMV-Normal相対変化 | 95% CI | 全GMV相対変化 |\n\n"
+        ],
+        [
+          74,
+          74,
+          "\n"
+        ],
+        [
+          75,
+          75,
+          "\n"
+        ],
+        [
+          76,
+          76,
+          "\n"
+        ],
+        [
+          78,
+          79,
+          ""
+        ],
+        [
+          80,
+          83,
+          "    5%と80%の全GMVのCIは0をまたぐ。著者は80%段階にtraffic coverageの現象があると記すが、補正方法は詳述しない。100%展開は採用の証拠であり、その段階で+1.34%を再測定したという意味ではない。会議名・DOIにテンプレート文字列が残るため、出版先は確定情報として扱わない。[一次資料：§4、Tables\n    2–4](https://arxiv.org/html/2603.02999v3)。'\n  executable_understanding: '`uv run papers/oneranker-ads/run.py`\n"
+        ],
+        [
+          84,
+          87,
+          ""
+        ],
+        [
+          88,
+          92,
+          "    第一の例は同じ入力xに興味目標x、価値目標−xを与える回帰である。共有出力とタスク別出力の最適解を比較する。第二の例は4候補を固定し、教師のsoftmax分布への交差エントロピーで生成logitを200回更新する。温度1、学習率0.2。'\n  results: 共有出力の興味・価値MSEはともに2.5、タスク別ではともに0になる。これは追加した出力自由度による差で、興味coverage改善の実証ではない。DCの例ではtop-2不一致率が1から0へ下がる。この不一致率は、教師の上位集合に含まれる候補のうち生成側の上位集合にない割合であり、集合内の並び順の一致は測らない。下のJSONには途中のKLと確率も保存する。\n  what_we_verified: Mechanism PARTIAL。矛盾する目標を一つの出力で表す制約と、固定候補内で教師分布を模倣する更新を確認した。タスクトークン、causal mask、Fake Item Tokens自体の有効性はこのtoyでは検証していない。\n  what_we_did_not_verify: 本番eCPM、GMV、興味coverage、スケール、レイテンシーはNOT TESTED。教師の校正、候補外の高価値広告、複数タスクの共有勾配も未検証。Figure 3の曲線から精密な数値は読み取らず、順位一致が増えるという著者の観察に留める。\n  implementation: '`conflict()` は解析的最適解の損失を計算し、`align()` は交差エントロピーの勾配p−qで更新する。教師は固定する。出力を増やす実験と、分布を寄せる実験は分けた。数値はすべて合成データ由来。'\n"
+        ],
+        [
+          93,
+          95,
+          "  mapping: '| 原典の機構 | Labの対応 | 省略したもの |\n\n"
+        ],
+        [
+          96,
+          99,
+          "\n    | [PDF・HTML](https://arxiv.org/html/2603.02999v3) の手法節 | method.md と出典つきSVG | 原図の複製ではなく説明用に再構成 |\n\n    | 部分機構の合成例 | run.py → results.json | 本番データ、ニューラルモデル、論文の性能再現 |\n\n    | 公式実装 | 原典内で実行可能な公式コードURLを確認できず | 公式実装との同等性は未検証 |'\n"
+        ],
+        [
+          101,
+          103,
+          "  title: 統合するのは生成とランキングの接続\n  caption: 原典Figure 2・§4.4を基に再構成。DCの矢印は学習時、KVの矢印は表現の受け渡し。\n"
+        ],
+        [
+          105,
+          107,
+          "  title: タスクの順序とクラスタの可視性は別に決める\n  caption: \"§3.2.3のマスク規則。行がQuery、列が読む相手。中心は実候補の代わりに粗い領域を表す。 タスクは自分自身までのタスクと全中心、中心は全タスクと自分自身を参照する。他の中心は参照しない。\"\n"
+        ]
+      ]
+    },
+    "papers/oneranker-ads/method.md": {
+      "before": {
+        "sha256": "b042210f6de6dc772a57c9b9fc458acfeeebc6bdce52f184005d8595c221b69d",
+        "blob": "65e367b9f06fee7e7efbc36218457c2aa354c799"
+      },
+      "after": {
+        "sha256": "ab9bda475c3f693c08414e623b15195b58f1e23c3062cec0484519c8b7c074b5",
+        "blob": "0caad130bb7286b9a1052e75cc6e0893d87b9d7d"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 3段の接続で、候補生成と価値推定を結ぶ\nStep 1はユーザー履歴から複数の興味表現を作る生成基盤である。原典はHSTU/GPR系を比較対象とし、U/C/X/I（ユーザー・コンテンツ・文脈・アイテム）で履歴を時系列に並べる。Step 2はその出力をKey/Valueに、タスクトークンとFake Item TokensをQueryにする。Cross-Attentionで履歴を読み、その後にSelf-Attentionを行う（§3.1–3.2）。\n"
+        ],
+        [
+          2,
+          3,
+          "タスクは表示→クリック→コンバージョン→価値の順序を持つ。タスク間の参照は後段から前段への一方向だ。タスクごとに独立した予測ヘッドを置き、興味ヘッドはクリック等を、価値ヘッドは価値重みつきサンプリングを学習する。たとえばクリックへつながる候補を広く拾う経路と、広告価値を重視して拾う経路を同じ履歴表現から学習しても、予測ヘッドを分けておけば、一つの出力に二種類の順位を同時に表させる必要はなくなる。これがMTPの出力を分ける狙いだ。\n"
+        ],
+        [
+          4,
+          5,
+          "### Fakeは架空の広告ではなく、アイテム空間の代表点\n全アイテムをK-meansでまとめたk個の中心fを使う。タスクはすべての中心を読め、中心もすべてのタスクを読める。一方、異なる中心同士は読めない。これが異種マスクであり、Query全体へ通常の三角マスクを一律に適用する説明では不十分になる。\n"
+        ],
+        [
+          6,
+          11,
+          "タスク表現Tᵢと各中心Fⱼを連結してMLPへ通し、k次元の出力を足すとs_target⁽ⁱ⁾になる。候補アイテム側では各中心とのcos類似度cを付ける。Eq. (1)–(4)の要点は次の内積である。\n"
+        ],
+        [
+          16,
+          17,
+          "前半は意味の一致。後半は領域への好みだ。生成前に特定候補の詳細をすべて読む必要はないが、中心が粗すぎれば細かな商品差は残る。\n"
+        ],
+        [
+          18,
+          21,
+          "### ランカーには実候補と生成途中の状態を渡す\nStep 3はランキング用トークンと生成した候補をQueryにし、Step 1とStep 2の出力をKey/Valueとして再利用する。1層のランキングdecoderと軽いMLPが候補ごとのスカラーを出す。候補同士は見えず、各候補はランキングトークンを読める。生成時の粗い対象意識を、ここで実候補への詳細な相互作用に置き換える（§3.3）。\n"
+        ],
+        [
+          28,
+          29,
+          "ランキングはeCPMラベルyの大小をBPRで学ぶ。ラベルが高い候補のスコアを相手より高くするよう、候補の組ごとのスコア差を学習する。ラベルの金額そのものを回帰する損失ではない。DCでは、現在の候補集合Cに含まれる各広告のランキングスコアを確率分布へ変換し、生成モデルがその分布に近づくよう学習する。最後の式はEq. (10)の期待値を候補上の重みつき和として示したもの。SIDの尤度学習も残す。DCだけで動くモデルではない。Eq. (9)の報酬と参照方策へのKLを用いる目的から、サンプリングの不安定さを避ける教師あり代理損失へ進む説明である。\n"
+        ],
+        [
+          30,
+          33,
+          "[一次資料：§3、Eq. (1)–(10)、Figure 2](https://arxiv.org/html/2603.02999v3)。\n"
+        ]
+      ]
+    },
+    "papers/oneranker-ads/results.json": {
+      "before": {
+        "sha256": "86cf8c7e7d98c2b628b6b4759b4e90cd3ad34f8ae6bcff3873c42b2ff118ed89",
+        "blob": "fc98ae9542bca125b45eab0f4c4dd22e73197123"
+      },
+      "after": {
+        "sha256": "9f789e2ac994df952797e3f309e8a89377509d54d33ae91210a483af0c506fbb",
+        "blob": "e2898796061733ed6efa2328b12be9df3210236b"
+      },
+      "prior_spans": [
+        [
+          83,
+          84,
+          "  \"counterexample\": \"A wrong teacher is also imitated; missing candidates cannot be recovered.\",\n"
+        ],
+        [
+          85,
+          90,
+          "    \"causal attention\",\n    \"interest coverage\",\n    \"production eCPM\",\n    \"latency\",\n    \"GMV\"\n"
+        ]
+      ]
+    },
+    "papers/oneranker-ads/run.py": {
+      "before": {
+        "sha256": "4e857dbedff274e2a4a883bc7fe043d4883791e7c3ecd6d4e10d6dc5397cb31b",
+        "blob": "c23395274d397f19214599b8752e64b7b505bdfc"
+      },
+      "after": {
+        "sha256": "f85325e3454e15be4f74e2934f04756c14a4e3bba8dbb30cf8c5b120f1d01c1b",
+        "blob": "6ddd917285719400dc93260720ddf86c7584d7a4"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"CPU illustration of output-space conflict and candidate-set distillation, not OneRanker.\"\"\"\n"
+        ],
+        [
+          16,
+          17,
+          "    # Fixed candidate pool, frozen teacher, CE gradient p-q. No retrieval discovery.\n"
+        ],
+        [
+          31,
+          33,
+          "    # Same x, contradictory regression targets: interest=x, value=-x.\n    # Shared output has optimal w=0. Task-conditioned outputs permit w=(1,-1).\n"
+        ],
+        [
+          43,
+          45,
+          "            'counterexample': 'A wrong teacher is also imitated; missing candidates cannot be recovered.',\n            'not_tested': ['causal attention', 'interest coverage', 'production eCPM', 'latency', 'GMV']}\n"
+        ],
+        [
+          48,
+          50,
+          "    Path(__file__).with_name('results.json').write_text(json.dumps(result, indent=2)+'\\n')\n    print(json.dumps(result, indent=2))\n"
+        ]
+      ]
+    }
+  }
+}

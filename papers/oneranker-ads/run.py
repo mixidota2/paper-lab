@@ -1,4 +1,4 @@
-"""CPU illustration of output-space conflict and candidate-set distillation, not OneRanker."""
+"""出力を分ける場合と、固定候補の確率分布を近づける場合を人工データで計算する。"""
 import json
 import math
 from pathlib import Path
@@ -14,7 +14,7 @@ def topk(z, k=2):
 
 
 def align(steps=200, rate=.2, teacher=None):
-    # Fixed candidate pool, frozen teacher, CE gradient p-q. No retrieval discovery.
+    # 候補集合と教師を固定し、交差エントロピーの勾配p−qで更新する。新しい候補は探さない。
     z = [2., 1., 0., -1.]
     q = softmax(teacher or [-1., 0., 1., 2.])
     frames = []
@@ -29,8 +29,8 @@ def align(steps=200, rate=.2, teacher=None):
 
 
 def conflict():
-    # Same x, contradictory regression targets: interest=x, value=-x.
-    # Shared output has optimal w=0. Task-conditioned outputs permit w=(1,-1).
+    # 同じ入力xで、興味の正解はx、価値の正解は−xとする。
+    # 共有出力の最適な重みは0。出力を分けると1と−1を使える。
     xs = [-2., -1., 1., 2.]
     def loss(w, sign):
         return sum((w*x-sign*x)**2 for x in xs)/len(xs)
@@ -41,10 +41,10 @@ def conflict():
 def experiment():
     return {'kind': 'synthetic mechanism illustration', 'seed': 'deterministic',
             'metrics': conflict(), 'alignment': align(),
-            'counterexample': 'A wrong teacher is also imitated; missing candidates cannot be recovered.',
-            'not_tested': ['causal attention', 'interest coverage', 'production eCPM', 'latency', 'GMV']}
+            'counterexample': '教師が誤っていても生成側は模倣する。候補に含まれない広告は戻せない。',
+            'not_tested': ['因果マスク付きの注意機構', '拾える興味の広さ', '本番のeCPM', '応答時間', '取引総額']}
 
 if __name__ == '__main__':
     result = experiment()
-    Path(__file__).with_name('results.json').write_text(json.dumps(result, indent=2)+'\n')
-    print(json.dumps(result, indent=2))
+    Path(__file__).with_name('results.json').write_text(json.dumps(result, indent=2, ensure_ascii=False)+'\n')
+    print(json.dumps(result, indent=2, ensure_ascii=False))
