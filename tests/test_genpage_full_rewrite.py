@@ -6,7 +6,7 @@ import re
 import pytest
 import yaml
 
-from prose_preservation import before_genpage_full_rewrite, genpage_full_rewrite_hash
+from prose_preservation import before_overview_figure_relocations, before_genpage_full_rewrite, genpage_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 P = 'papers/genpage-netflix-homepage/'
@@ -14,7 +14,7 @@ P = 'papers/genpage-netflix-homepage/'
 
 def test_rewrite_preserves_overview_links_formula_and_figure_data():
     lab = ROOT / (P + 'lab.yaml')
-    actual = lab.read_bytes()
+    actual = before_overview_figure_relocations(ROOT, P + lab.name, lab.read_bytes())
     state = yaml.safe_load(actual)
     prior = yaml.safe_load(before_genpage_full_rewrite(ROOT, P + lab.name, actual))
     for key in ('urls', 'verification'):
@@ -36,7 +36,7 @@ def test_exact_rewrite_guard_rejects_unreviewed_bytes():
     data = json.loads((ROOT / 'tests/genpage_full_rewrite_hashes.json').read_text())['files']
     assert data.keys() == {P+n for n in ('lab.yaml','README.md','method.md','mapping.md')}
     for path, row in data.items():
-        raw = (ROOT / path).read_bytes()
+        raw = before_overview_figure_relocations(ROOT, path, (ROOT / path).read_bytes())
         for alg, current in (('sha256', hashlib.sha256(raw).hexdigest()),
                              ('blob', hashlib.sha1(f'blob {len(raw)}\0'.encode()+raw).hexdigest())):
             assert current == row['after_'+alg] == genpage_full_rewrite_hash(ROOT,path,row['before_'+alg],alg)

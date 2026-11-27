@@ -157,7 +157,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = gatesid_full_prose_hash(root, path, expected, algorithm)
     expected = dsi_full_prose_hash(root, path, expected, algorithm)
     expected = netflix_counterfactual_full_prose_hash(root, path, expected, algorithm)
-    return glide_full_prose_hash(root, path, expected, algorithm)
+    expected = glide_full_prose_hash(root, path, expected, algorithm)
+    return overview_figure_relocations_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -2248,6 +2249,34 @@ def glide_full_prose_hash(root, path, expected, algorithm='sha256'):
 
 def before_glide_full_prose(root, path, current):
     row = glide_full_prose_row(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def overview_figure_relocations_row(root, path):
+    if path not in ('papers/agentx-kuaishou/lab.yaml','papers/genpage-netflix-homepage/lab.yaml'):
+        return None
+    rows = json.loads((root / 'tests/overview_figure_relocations_hashes.json').read_text())['files']
+    return rows.get(path)
+
+
+def overview_figure_relocations_hash(root, path, expected, algorithm='sha256'):
+    row = overview_figure_relocations_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_overview_figure_relocations(root, path, current):
+    row = overview_figure_relocations_row(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

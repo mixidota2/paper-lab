@@ -1,0 +1,48 @@
+{
+  "files": {
+    "papers/agentx-kuaishou/lab.yaml": {
+      "before": {
+        "sha256": "0d3d763fe10c2c661a173def1d2e4107a380b833c6b907ae49189dcba6828698",
+        "blob": "b345dda9d06452fb4a95d6a5b730817aa3bcb5bb"
+      },
+      "after": {
+        "sha256": "007e5815e9bc7d8ac2b7c02e06ed3afea5df5284ec9432e8d99ec605ddf4376f",
+        "blob": "7315f2ad411dd701617a1bc096337c4dbdc53222"
+      },
+      "prior_spans": [
+        [
+          102,
+          104,
+          ""
+        ],
+        [
+          115,
+          115,
+          "\n    <figure class=\"teaching batch17\"><h3>374案のうち各段階に進んだ件数</h3><div class=\"b17-funnel\"><div style=\"--stage:100%\"><strong>374</strong> 発案</div><div style=\"--stage:75%\"><strong>106</strong> 審査通過</div><div style=\"--stage:65%\"><strong>100</strong> 実装・実験開始</div><div style=\"--stage:35%\"><strong>10</strong> 本番導入の候補</div></div><p>374→106：28.34% ／ 106→100：94.3% ／ 100→10：表の報告9.9%</p><figcaption>出典は§8・表5・式10。棒の幅は段階を区別するためのもので、件数に比例しない。最後の段階の割合は整数の件数で計算すると10%になるが、論文の表は9.9%と報告している。本文からは、丸めと集計方法のどちらで差が生じたか分からない。</figcaption></figure>\n"
+        ]
+      ]
+    },
+    "papers/genpage-netflix-homepage/lab.yaml": {
+      "before": {
+        "sha256": "53413f4cdd4d81a275d47ecd0b4f44474733c99e1cb508baaa042a452905868e",
+        "blob": "33df4377204a7cb82ec9e4b4453b33d8f6528053"
+      },
+      "after": {
+        "sha256": "ff81bfd850d9758d154182fd982794fb5ec6e042d1737ccc7f586a5f998f2822",
+        "blob": "e15270a56ae1a8a02abeee4c3968a43f46b459ff"
+      },
+      "prior_spans": [
+        [
+          39,
+          41,
+          ""
+        ],
+        [
+          61,
+          61,
+          "\n    <figure class=\"teaching batch17\"><h3>既存pipelineをどこまで一つにまとめるか</h3><div class=\"b17-cards\"><div><strong>既存の候補集合</strong><p>行・作品の適格性と候補生成を継承する。ここがonline試験の外側の境界。</p></div><div><strong>GenPage 約200M / WBC</strong><p>promptと既出ページを読む → 行を選ぶ → 先頭作品を逐次生成 → 行末をまとめて選ぶ。</p></div><div><strong>配信するホーム</strong><p>重複・位置固定・カテゴリ制約を適用した行の並び。次のpaginationは直近反応を含む。</p></div></div><details><summary>promptの中身を開く</summary><div class=\"b17-cards\"><div><strong>履歴</strong><p>作品ID / 行動 / 時間bucket / 継続時間bucket</p></div><div><strong>profile・request</strong><p>言語 / kids・adult / device / 時間帯</p></div><div><strong>既出のページ</strong><p>直前の行と作品、最新の反応</p></div></div></details><figcaption>§2・図1、§6.3–4、§8をもとにした説明図。GryphonのSID候補生成を組み込んだ図ではない。</figcaption></figure>\n"
+        ]
+      ]
+    }
+  }
+}
