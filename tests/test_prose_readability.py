@@ -279,7 +279,7 @@ def test_batch12_generation_training_and_serving_boundaries():
 
 def test_batch13_sid_diagnostic_denominators_and_decision_boundaries():
     expected = {
-        'understanding-sids-isd': ('method.md', '探索候補を削る前にこの値で順位を付け直す'),
+        'understanding-sids-isd': ('method.md', '二つの値を足してから、幅Bで候補を絞る'),
         'quasid-collision-qualified-sid': ('lab.yaml', 'その群のpair数とεの和で割る'),
         'sidinspector-mapping-diagnostics': ('lab.yaml', '全近傍edgeの重み合計で割る'),
         'sidscope-diagnostics': ('method.md', '更新前後に共通するitemのうちコードが変わった割合'),

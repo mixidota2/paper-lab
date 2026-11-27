@@ -177,7 +177,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = rest_full_prose_hash(root, path, expected, algorithm)
     expected = gr4ad_full_prose_hash(root, path, expected, algorithm)
     expected = gryphonv2_full_prose_hash(root, path, expected, algorithm)
-    return gryphonilsm_full_prose_hash(root, path, expected, algorithm)
+    expected = gryphonilsm_full_prose_hash(root, path, expected, algorithm)
+    return isd_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -2830,6 +2831,34 @@ def gryphonilsm_full_prose_hash(root, path, expected, algorithm='sha256'):
 
 def before_gryphonilsm_full_prose(root, path, current):
     row = gryphonilsm_full_prose_row(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, prior in reversed(row['prior_spans']):
+        lines[start:stop] = [prior]
+    previous = ''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def isd_full_prose_row(root, path):
+    if not path.startswith('papers/understanding-sids-isd/'):
+        return None
+    rows = json.loads((root / 'tests/isd_full_prose_hashes.json').read_text())['files']
+    return rows.get(path)
+
+
+def isd_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = isd_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_isd_full_prose(root, path, current):
+    row = isd_full_prose_row(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

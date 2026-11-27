@@ -1,8 +1,7 @@
-"""Finite SID trie + Eq. (15)-(17) rank fusion, without a trained decoder.
+"""人工のIDの木で、探索前と生成後に順位を使う違いを調べる。
 
-The decoder uses fixed leaf probabilities; the item ranker uses separate
-synthetic training transitions. Held-out targets enter evaluation only.
-This is a mechanism toy, not a TIGER / LIGER / Amazon reproduction.
+デコーダーの確率と順位付けの遷移表を固定した。評価用の正解は順位付けに使わない。
+TIGER、LIGERやAmazonの実験は再現しない。
 """
 from collections import Counter
 import json
@@ -11,13 +10,12 @@ from pathlib import Path
 
 SIDS = {"a": "000", "b": "001", "c": "010", "d": "011",
         "e": "100", "f": "101", "g": "110", "h": "111"}
-# A decoder can prefer a coarse bucket even when a separate item scorer
-# prefers an item in the other bucket. Probabilities are strictly positive.
+# デコーダーと商品順位が別の先頭部分を選ぶ場合を作る。確率はすべて正。
 PROBS = dict(zip(SIDS, (0.24, 0.20, 0.16, 0.12, 0.10, 0.08, 0.06, 0.04)))
 TRAIN = {"x": ["e"] * 12 + ["f"] * 8 + ["a"] * 2,
          "y": ["a"] * 12 + ["b"] * 8 + ["c"] * 2,
          "z": ["h"] * 12 + ["g"] * 8 + ["b"] * 2}
-# Deliberately includes provider errors, not just its favorite next items.
+# 外部順位で正解が上位に来ない評価例も含める。
 TEST = [("x", "e"), ("x", "f"), ("x", "a"), ("y", "a"),
         ("y", "b"), ("y", "d"), ("z", "h"), ("z", "g"), ("z", "c")]
 
@@ -32,10 +30,9 @@ def ranker(history, budget=3, reverse=False):
 
 def decode(history, beam_width=2, support=True, ordering=True, budget=3,
            kappa=60, reverse=False):
-    """Keep original cumulative decoder probability across fusion steps.
+    """順位を融合しても、デコーダーの累積確率は変えない。
 
-    Rank support is applied over all beam extensions, not per parent.
-    Returning traces makes irreversible exclusion inspectable.
+    前のビームから伸ばせる候補をまとめて順位付けし、どの段で何が残ったかを返す。
     """
     q = ranker(history, budget, reverse)
     qranks = {item: rank for rank, item in enumerate(q, 1)}
@@ -87,9 +84,9 @@ def compute():
              ("逆順位の支援", True, True, True)]
     experiments = []
     for width in (1, 2, 4, 8):
-        experiments.append({"name": f"beam幅 {width}", "dataset": "8 items・独立した学習遷移表と9評価例", "n": len(TEST),
+        experiments.append({"name": f"beam幅 {width}", "dataset": "8商品、評価とは別の学習遷移表、9件の評価例", "n": len(TEST),
                             "metrics": {name: evaluate(width, s, o, r) for name, s, o, r in modes}})
-    return {"note": "合成の固定SIDと固定確率。残存率の母集団は9例すべてで、論文の外部ranker top-k条件付き集計とは異なる。",
+    return {"note": "Labは固定した人工のSIDと確率を使った。残存率は評価9件すべてを分母にし、別の順位で正解が上位に入った場合だけを数える論文とは異なる。",
             "verification": {"mechanism": "PARTIAL", "performance": "NOT TESTED", "scaling": "NOT TESTED", "production_applicability": "NOT TESTED"},
             "experiments": experiments,
             "example": {"history": "x", "evaluation_target": "e", "baseline": decode("x", 1, False, False), "supported": decode("x", 1)},

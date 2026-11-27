@@ -1,0 +1,388 @@
+{
+  "files": {
+    "papers/understanding-sids-isd/figures/beam.svg": {
+      "before": {
+        "sha256": "853ed7aeb1de4db5e25f62b194c58b5d574f8bb9ec8107adffca2ed51acddf51",
+        "blob": "17b8af877a64a2dfc812ed1e467809a2b251a8ce"
+      },
+      "after": {
+        "sha256": "942bf29b272c68d65a7590f55c4a60db23d2a3a16a2692bdf847ae3fb11521d5",
+        "blob": "3c247e00c7279eedb2dd859a86d7ed0dcdbd8b8d"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 560 690\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">prefixを落とす前にアイテムの証拠を入れる</title><desc id=\"desc\">run.pyの履歴x・beam幅1を図示。数値はtoyであり論文の測定値ではない。target eは評価にだけ使い、順位作成には渡さない。</desc><defs><marker id=\"arr\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#26745f\"/></marker></defs><rect width=\"560\" height=\"690\" fill=\"#fbfcf7\"/><g font-family=\"sans-serif\"><text x=\"22\" y=\"35\" font-size=\"24\" fill=\"#183c35\" font-weight=\"bold\">探索幅1の合成例：評価用の正解eのSIDは100</text><rect x=\"22\" y=\"67\" width=\"246\" height=\"100\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"38\" y=\"99\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">通常のbeam</text><text x=\"38\" y=\"129\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">累積確率の順位</text><text x=\"38\" y=\"156\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">prefix 0 の質量0.72</text><rect x=\"292\" y=\"67\" width=\"246\" height=\"100\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"308\" y=\"99\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">削減前にISD支援</text><text x=\"308\" y=\"129\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">Q(x) = [e, f, a]</text><text x=\"308\" y=\"156\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">prefix 1をeが支える</text><text x=\"23\" y=\"207\" font-size=\"18\" fill=\"#183c35\" font-weight=\"normal\">token 1</text><rect x=\"22\" y=\"222\" width=\"246\" height=\"84\" rx=\"12\" fill=\"#fae7df\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"38\" y=\"254\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">0 → a,b,c,d</text><rect x=\"292\" y=\"222\" width=\"246\" height=\"84\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"308\" y=\"254\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">1 → e,f,g,h</text><path d=\"M145,306 L145,341\" stroke=\"#26745f\" stroke-width=\"2.5\" fill=\"none\" marker-end=\"url(#arr)\"/><path d=\"M415,306 L415,341\" stroke=\"#26745f\" stroke-width=\"2.5\" fill=\"none\" marker-end=\"url(#arr)\"/><text x=\"23\" y=\"346\" font-size=\"18\" fill=\"#183c35\" font-weight=\"normal\">token 2</text><rect x=\"22\" y=\"361\" width=\"246\" height=\"84\" rx=\"12\" fill=\"#fae7df\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"38\" y=\"393\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">00 → a,b</text><rect x=\"292\" y=\"361\" width=\"246\" height=\"84\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"308\" y=\"393\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">10 → e,f</text><path d=\"M145,445 L145,480\" stroke=\"#26745f\" stroke-width=\"2.5\" fill=\"none\" marker-end=\"url(#arr)\"/><path d=\"M415,445 L415,480\" stroke=\"#26745f\" stroke-width=\"2.5\" fill=\"none\" marker-end=\"url(#arr)\"/><text x=\"23\" y=\"485\" font-size=\"18\" fill=\"#183c35\" font-weight=\"normal\">token 3</text><rect x=\"22\" y=\"500\" width=\"246\" height=\"84\" rx=\"12\" fill=\"#fae7df\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"38\" y=\"532\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">000 → a</text><rect x=\"292\" y=\"500\" width=\"246\" height=\"84\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"308\" y=\"532\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">100 → e</text><text x=\"25\" y=\"627\" font-size=\"18\" fill=\"#a94438\" font-weight=\"normal\">左：最初にeが消える → 最後の並べ替えでは救えない</text><text x=\"25\" y=\"661\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">右：生成できたeを最終候補として採点できる</text></g></svg>\n"
+        ]
+      ]
+    },
+    "papers/understanding-sids-isd/figures/geometry.svg": {
+      "before": {
+        "sha256": "e8a3f1efd291f7e2eb4dfbed410553ace0a33214df14c91e7fdec772521fa282",
+        "blob": "7c8324f21e4e25d33615abead5c5e7da17680bd5"
+      },
+      "after": {
+        "sha256": "680152112569fb73549c50bd7241dd9f0968c5b3141b41faba47af734cdb9535",
+        "blob": "ecdfd26d55534659edf8acdfe1eefc792e5b45bb"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 560 682\" role=\"img\" aria-labelledby=\"title desc\"><title id=\"title\">SIDの3役は同じ保証ではない</title><desc id=\"desc\">§2–3を踏まえた概念図。粗い組織化を保つことと、完全SIDや細かな近傍を保つことを分ける。</desc><defs><marker id=\"arr\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 Z\" fill=\"#26745f\"/></marker></defs><rect width=\"560\" height=\"682\" fill=\"#fbfcf7\"/><g font-family=\"sans-serif\"><text x=\"22\" y=\"35\" font-size=\"23\" fill=\"#183c35\" font-weight=\"bold\">近い点でも、境界を越えると番号は変わる</text><rect x=\"30\" y=\"75\" width=\"250\" height=\"200\" fill=\"#e5f1e8\"/><rect x=\"280\" y=\"75\" width=\"250\" height=\"200\" fill=\"#eaf0f8\"/><path d=\"M280 75V275\" stroke=\"#315e94\" stroke-width=\"3\" stroke-dasharray=\"7 5\"/><text x=\"48\" y=\"107\" font-size=\"21\" fill=\"#183c35\" font-weight=\"normal\">SID側の領域A</text><text x=\"304\" y=\"107\" font-size=\"21\" fill=\"#183c35\" font-weight=\"normal\">領域B</text><circle cx=\"249\" cy=\"171\" r=\"8\" fill=\"#26745f\"/><circle cx=\"297\" cy=\"185\" r=\"8\" fill=\"#315e94\"/><circle cx=\"232\" cy=\"209\" r=\"8\" fill=\"#26745f\"/><circle cx=\"321\" cy=\"146\" r=\"8\" fill=\"#315e94\"/><circle cx=\"245\" cy=\"143\" r=\"8\" fill=\"#26745f\"/><circle cx=\"336\" cy=\"220\" r=\"8\" fill=\"#315e94\"/><path d=\"M249,171 L290,183\" stroke=\"#26745f\" stroke-width=\"2.5\" fill=\"none\" marker-end=\"url(#arr)\"/><text x=\"48\" y=\"252\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">同じ情報を並べ替える → ベクトルが少し移動</text><text x=\"30\" y=\"320\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">概念図。点・距離・境界は合成。</text><rect x=\"25\" y=\"347\" width=\"510\" height=\"91\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"41\" y=\"379\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">① 組織化</text><text x=\"41\" y=\"409\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">近いアイテムを同じprefixへ集める</text><rect x=\"25\" y=\"456\" width=\"510\" height=\"91\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"41\" y=\"488\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">② 個体の識別</text><text x=\"41\" y=\"518\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">完全SIDの一致は連続近傍の一致と別</text><rect x=\"25\" y=\"565\" width=\"510\" height=\"91\" rx=\"12\" fill=\"#e5f1e8\" stroke=\"#183c35\" stroke-width=\"1.3\"/><text x=\"41\" y=\"597\" font-size=\"22\" fill=\"#183c35\" font-weight=\"bold\">③ 探索中の選択</text><text x=\"41\" y=\"627\" font-size=\"19\" fill=\"#183c35\" font-weight=\"normal\">prefixを捨てると、その下の候補も消える</text></g></svg>\n"
+        ]
+      ]
+    },
+    "papers/understanding-sids-isd/lab.yaml": {
+      "before": {
+        "sha256": "b74ed9f01cf7967f9736283d2c95f5155bb14d62d1f6123bd8fa5dad8ccaa819",
+        "blob": "e33f161b842259ca9950f33466c37d778ad52da6"
+      },
+      "after": {
+        "sha256": "25ad2c640c2a43f77bb6ac4221ec50df0dd55d76a03eb1a91b17546e5713e2c9",
+        "blob": "d92f329fa0847960093395fd8b9095c85d4c28c8"
+      },
+      "prior_spans": [
+        [
+          26,
+          28,
+          "question: 正しい候補は、SIDを生成する途中で消えていないか\nsummary: SIDの粗い意味構造、個体識別、探索中の絞り込みを分けて考える。ISDは外部のアイテム順位をbeam削減の前と生成完了後に使うが、失われた識別子の学習まで直す手法ではない。\n"
+        ],
+        [
+          34,
+          36,
+          "  title: SIDの3役は同じ保証ではない\n  caption: §2–3を踏まえた概念図。粗い組織化を保つことと、完全SIDや細かな近傍を保つことを分ける。\n"
+        ],
+        [
+          38,
+          40,
+          "  title: prefixを落とす前にアイテムの証拠を入れる\n  caption: run.pyの履歴x・beam幅1を図示。数値はtoyであり論文の測定値ではない。target eは評価にだけ使い、順位作成には渡さない。\n"
+        ],
+        [
+          44,
+          45,
+          "  title: アイテム順位を削減前のprefixへ戻す\n"
+        ],
+        [
+          48,
+          50,
+          "  rationale: 入力、演算、出力と適用条件を具体化する。\n  caption: 診断用の全アイテムscoreの線形混合（§4.3）とは異なり、ISDは順位を融合する。\n"
+        ],
+        [
+          51,
+          52,
+          "  - name: 1回だけ支援集合を作る\n"
+        ],
+        [
+          53,
+          55,
+          "    explanation: 観測履歴hから未消費アイテムを順位付け。test targetの正体は入力しない。\n  - name: prefixを支える最上位\n"
+        ],
+        [
+          56,
+          58,
+          "    explanation: Sₚはprefix pを持つアイテム集合。支援集合Q(h)にも属するアイテムのうち最上位の順位を使い、該当なしなら∞。\n  - name: 順位融合してからbeam削減\n"
+        ],
+        [
+          59,
+          60,
+          "    explanation: ∞の項は0。rdecは累積系列確率での順位。上位B個を残す。\n"
+        ],
+        [
+          62,
+          63,
+          "  title: 候補を残すことと上位へ置くことを分ける\n"
+        ],
+        [
+          66,
+          68,
+          "  rationale: 入力、演算、出力と適用条件を具体化する。\n  caption: prefix救済と最終orderingを別々に評価する理由。\n"
+        ],
+        [
+          69,
+          70,
+          "  - name: 生存集合\n"
+        ],
+        [
+          71,
+          73,
+          "    explanation: prefixが落ちると、その下の全アイテムが以後の生成対象から外れる。\n  - name: 生成済みアイテムを並べ替える\n"
+        ],
+        [
+          74,
+          75,
+          "    explanation: Qにないアイテムの第2項は0。並べ替えだけでは未生成のアイテムを復活させない。\n"
+        ],
+        [
+          77,
+          79,
+          "  author_claim: SIDは大まかなアイテムのまとまりを保つ一方、encoderの細かい近傍や、同じ事実の並べ替えに対する完全なコード不変性を失う。著者は、生成途中のprefix削除をアイテムの不可逆な除外として測り、外部順位で支えるISDを提案する。[一次資料：§3–5](https://arxiv.org/html/2607.24995)\n  research_bot_interpretation: 「意味が近い番号」を作ることと「必要な候補を落とさない探索」を実現することは別の設計課題である。SIDを捨てる結論ではなく、どの段で何件の候補が消えたかを観測する根拠として読む。SpotifyのR-KMeansにも問いは適用できるが、Amazonの測定率を本番へそのまま当てはめられない。\n"
+        ],
+        [
+          84,
+          88,
+          "  problem: 生成途中のIDの先頭部分（prefix）を、探索中に保持する候補（beam）から外すと、その先頭部分を共有する全アイテムが以後の生成候補から消える。後で強いrankerを使っても、入力されなかったアイテムは救えない。問題は生成した最終リストの精度だけでなく、その前段でどの候補の到達可能性を失ったかにある。[一次資料：§4.1](https://arxiv.org/html/2607.24995)\n  why_it_might_work: 外部rankerが好むアイテムを残すprefixに加点すれば、tokenだけの判断で起こる取りこぼしを減らせると考えられる。ただし上位の1アイテムがprefix全体を支えるため、外部rankerが誤るとその誤りも広がる。多くのアイテムを抱えるbucketの有利さ、支援集合に入らない新規アイテムへの影響も測りたい。\n  evidence: '### 平均値だけでSIDの性質を決めない\n"
+        ],
+        [
+          89,
+          90,
+          ""
+        ],
+        [
+          91,
+          92,
+          "    Abstractはencoderのtop-10近傍回復を平均32.2%、同じ事実の並べ替えによる完全SIDの変化を38.4%と報告する。表2では、近傍回復は構築法・領域ごとに13.8–45.1%、SID変化は14.0–73.5%に広がる。例えばSentence-T5とOfficeのRQ-VAEでは近傍回復13.8%、変化53.9%。同じencoderのRQ-KMeansでは31.5%、29.3%となる。\n"
+        ],
+        [
+          93,
+          94,
+          ""
+        ],
+        [
+          95,
+          96,
+          "    同一性の対照実験について、Abstractと§3.1.4は99.57%とするが、表1のSentence-T5のOffice / Scientificはともに99.51%。集計範囲の差が明記されていないため同じ値として統合しない。[一次資料：Abstract・表1・2](https://arxiv.org/html/2607.24995)\n"
+        ],
+        [
+          97,
+          98,
+          ""
+        ],
+        [
+          99,
+          100,
+          "    ### 改善は外部順位と指標に依存する\n"
+        ],
+        [
+          101,
+          102,
+          ""
+        ],
+        [
+          103,
+          104,
+          "    Amazon ReviewsのBaby / Office / Scientificで、時系列の最後をtest、その前をvalidationとする。表3の最大+31.2%はBabyのTIGER +\n    ISD(UniSRec)のNDCG@10であり、0.0295から0.0387への相対改善。statistics版ではBabyのRecall@20が0.0866から0.0745へ下がる。\n"
+        ],
+        [
+          105,
+          108,
+          ""
+        ],
+        [
+          109,
+          110,
+          "    表5の段階別実験では、TIGERの改善は主にorderingから来る条件もある。「prefix救済だけが性能改善の原因」とは言えない。§6.4では変更後のsemantic prefixを残しても、未学習の衝突解決suffixのため完全取得がゼロの実験も報告する。[一次資料：§6・表3–5](https://arxiv.org/html/2607.24995)'\n  executable_understanding: '`uv run papers/understanding-sids-isd/run.py`\n"
+        ],
+        [
+          111,
+          114,
+          ""
+        ],
+        [
+          115,
+          120,
+          "    8アイテムに3桁の固定SIDと正の生成確率を与える。外部順位は別に用意した学習遷移表の頻度から求める。9件の評価targetは順位作成にもdecode関数にも渡さない。通常beam、生成後の並べ替えだけ、prefix支援だけ、両段階、意図的な逆順位支援を同じbeam幅で比較する。\n\n\n    幅1・2・4・8で、各桁の残存target率とtoy NDCG@2を計算する。評価は各例に関連アイテム1つ、残れば1/log₂(rank+1)、上位2件に入らなければ0。残存率の母集団は9例すべてで、論文の外部ranker\n    top-kに条件付けたKℓとは異なる。'\n  results: beam幅2では最終残存率が通常beamの3/9から両段階の5/9へ増え、toy NDCG@2は0.292326から0.473540となった。逆順位の支援では0に下がる。幅8で全アイテムを残すとprefix支援は残存率を改善できず、並べ替えの効果だけが残る。これらは手で定めた小さな確率表の結果である。\n  what_we_verified: Mechanism PARTIAL。累積生成確率によるbeam探索、式(15)–(17)の順位融合、候補脱落後の復帰不能を有限の木で確認した。外部順位が誤る条件と、全葉が残る条件も実行した。\n  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。encoder、量子化学習、同事実の並べ替え、SASRec\n    / UniSRec、TIGER / LIGERの学習、Amazonでの精度、実サービスの負荷は未検証。衝突解決suffixもtoyにはない。\n  implementation: run.pyのSIDSとPROBSがカタログと固定decoder、TRAINが外部順位の学習データ、TESTが評価例である。decodeは各段の全beam拡張を累積確率で順位付けし、支援を加えてから削減する。最終候補だけを再順位付けし、未生成アイテムは追加しない。results.jsonには各prefixの確率・融合値・残存集合も残す。\n"
+        ]
+      ]
+    },
+    "papers/understanding-sids-isd/mapping.md": {
+      "before": {
+        "sha256": "c45f7f2aaaca1aa5cb1b511517f9d39fdb799546fbe2a65391ec197eac0b0615",
+        "blob": "c13ddd6d4cdbed1b4e1b6deaa1506f59bc274211"
+      },
+      "after": {
+        "sha256": "5b896da83e080e439b34eb29b1722a13b2a3238de49718c8d542aadc7e1dca4d",
+        "blob": "fd5ccbacbcfa28ba5747ee43bdf154b92df8723a"
+      },
+      "prior_spans": [
+        [
+          2,
+          3,
+          "どの候補がIDの先頭から生成される途中で消え、どの候補が最後の並べ替えで埋もれるかを分けます。Labは人工例で候補の残り方をたどります。Amazonでの精度は検証しません。\n"
+        ],
+        [
+          4,
+          11,
+          "| 原論文で扱うこと | 一次資料 | Labで確認できること | 原論文と異なる条件 |\n| --- | --- | --- | --- |\n| SIDが担う3つの役割と近傍の変化 | [§2–3・表1–2](https://arxiv.org/html/2607.24995) | method.mdとgeometry.svgで、アイテム同士の近さの考え方を読む。 | 図は概念を示す。実際の埋め込みではない。 |\n| IDの先頭を使う生成の補助と、候補の最終順位 | [式(15)–(17)](https://arxiv.org/html/2607.24995) | run.pyのdecodeと数式図で、補助を入れる段階ごとの違いを追う。 | 8アイテムの固定確率を使う。 |\n| 生成を補助する順位付け器 | [§5.1](https://arxiv.org/html/2607.24995) | rankerが履歴に続く候補を頻度順に選ぶ例を見る。 | 人工例では遷移頻度だけを使う。式(14)を再現したものではない。 |\n| 候補の残存率 | [式(10)](https://arxiv.org/html/2607.24995) | evaluateとbeam.svgで、候補が生成のどの段階で消えたかを見る。 | 人工例では全9例を集計する。上位k件に入る条件などで絞った値ではない。 |\n| 変更を入れる段階による効果の差 | [表5](https://arxiv.org/html/2607.24995) | 4つの介入と、順序を逆にした場合を比べる。 | 原論文とはデータと、集計対象を区切る位置が異なる。 |\n"
+        ],
+        [
+          12,
+          13,
+          "2026-09-07 UTCにarXiv v1の要旨ページとHTMLを確認した。公式実装との行単位の照合は行っていない。AbstractのIdentity@1=99.57と表1のSentence-T5=99.51について、両者がどの集計で対応するかは確認できない。そこで精度を1つの値にまとめない。\n"
+        ],
+        [
+          14,
+          15,
+          "関連：[GLIDE](glide-spotify-sid.html)は本番のR-KMeansとID衝突への対処、[TGR](tgr.html)は候補を生成する経路を扱う。このLabで読むAmazonのSID診断と同じ条件ではない。\n"
+        ]
+      ]
+    },
+    "papers/understanding-sids-isd/method.md": {
+      "before": {
+        "sha256": "a94f3f75e31460e768a9aca4a9e4125dd5315b91c3767ac2c99bb57c770dd853",
+        "blob": "407dbde99f1182bc719de68f5391dabfe5887ae6"
+      },
+      "after": {
+        "sha256": "edea77a522aa1cca67f32277d5cb86076d820b4152978032160f013d4daf1b40",
+        "blob": "6f0f570db07507a41d9f4fb5e171a2eb9d102246"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "### 同じSID列の3つの役割\n"
+        ],
+        [
+          2,
+          3,
+          "似た内容を同じprefixに集める。これが最初の仕事である。prefixを共有するアイテムの学習例が同じtokenに集まるため、疎らな履歴でも他アイテムの学習信号を使いやすい。次は、完全な番号列で1アイテムを特定すること。そして生成時には、各tokenが残すアイテムを絞る。この3つは別の性質であり、粗い分類がうまくいっても、完全なコードの安定性や候補の生存は保証しない。[一次資料：§2–4](https://arxiv.org/html/2607.24995)\n"
+        ],
+        [
+          4,
+          5,
+          "著者は内容から得た連続ベクトルhᵢ、量子化後のsemantic tuple zᵢ、衝突解決規則まで含む完全SID Cᵢを分ける。最後の識別suffixを意味構造の分析へ混ぜると、「個体を区別した」ことを「細かい意味を保った」ことと誤認しやすい。\n"
+        ],
+        [
+          6,
+          7,
+          "### 近傍の保持と完全な番号の保持は別に測る\n"
+        ],
+        [
+          8,
+          9,
+          "同一アイテムのtitleやdescriptionの順番だけを変える実験では、語や属性値の集合を保ち、encoderとconstructorを固定する。Sentence-T5、BGE-base、Qwen3-0.6Bを使うencoder対照では、元アイテムを近傍検索で取り戻せるかを調べる。SID側では完全コードが変わった割合と、再構成空間のtop-10近傍が元encoderと何件重なるかを測る。[一次資料：§3.1–3.2](https://arxiv.org/html/2607.24995)\n"
+        ],
+        [
+          10,
+          11,
+          "research_botの解釈：離散境界の近くでは、連続空間の小さな変化が番号を切り替え得る。番号が変わったことだけで、内容理解が壊れたとは言えない。逆に内容の大枠を保っていても、推薦器が学んだtargetの番号は動いてしまう。下の点と境界で、その違いを図示した。点は合成である。\n"
+        ],
+        [
+          12,
+          13,
+          "### ISDは生成器を固定し、外部の順位を探索へ使う\n"
+        ],
+        [
+          14,
+          15,
+          "著者はTIGERとLIGERのSID割当てとdecoderを固定する。支援に使う順位は、学習データの遷移・共消費統計、SASRec、UniSRecから作る。statistics版は直前アイテムからの遷移数のlog(1+count)と、最近の共消費を出現頻度でcosine正規化した値を使う。両信号をユーザーごとの候補集合内で標準化して等しく足す。生scoreではなく順位を使うため、異なるrankerのscore尺度を直接そろえる必要がない。[一次資料：§5.1・式(13)–(14)](https://arxiv.org/html/2607.24995)\n"
+        ],
+        [
+          16,
+          17,
+          "一度作った上位J件のQ(h)を、各アイテムのSID prefixへ投影する。あるprefixがQ内の上位アイテムを含めば、その順位がprefixを支える。decoderの累積確率による順位と、κを足した逆数の和で融合する。これがreciprocal rank fusionである。探索候補を削る前にこの値で順位を付け直すため、後から並べ替えるだけでは救えないprefixを残せる場合がある。生成終了後には同じQを使って、生成できたアイテムだけを並べ替える。[一次資料：§5.2](https://arxiv.org/html/2607.24995)\n"
+        ],
+        [
+          18,
+          19,
+          "<details><summary>なぜ最終rankerだけでは間に合わないのか</summary>\n<p>toyの履歴xで評価対象eのSIDを100とする。通常の幅1の探索は質量0.72のprefix 0を選び、0.28のprefix 1を捨てる。この瞬間にeは消える。最終段でeを高く評価する式を追加しても、候補にeがない。支援集合がeを上位に置けば、削減前の融合でprefix 1を残せる場合がある。ただし支援集合の正しさを仮定した論理であり、実験精度の保証ではない。</p>\n</details>\n"
+        ],
+        [
+          20,
+          21,
+          "### 「追加学習なし」と「追加費用なし」を分ける\n"
+        ],
+        [
+          22,
+          23,
+          "ISDの追加パラメータは不要でも、外部rankerを学習・配信する費用は消えない。§5.3の計算量はQ(h)の作成を前処理として除外し、生成側にJLとB log Bを足す。Jは支援件数、LはSID長、Bはbeam幅である。すでにrankerを持つシステムと、新たに全カタログを採点するシステムでは採用条件が違う。[一次資料：§5.3](https://arxiv.org/html/2607.24995)\n"
+        ],
+        [
+          24,
+          27,
+          "research_botの次の検証案：同じ特徴、同じ候補予算、Q作成込みの遅延で、外部ranker単独、通常beam、orderingのみ、両段階を比べる。候補の質を外部から借りることで、生成側が何を追加したかを切り分けたい。\n"
+        ]
+      ]
+    },
+    "papers/understanding-sids-isd/results.json": {
+      "before": {
+        "sha256": "2830d1938559f5c2f8286b87ff3eb37d49db6f033fede3ff7b127bbf5f554f28",
+        "blob": "ad3dfd7c256045aaf94f8d752b25be43d73d21bf"
+      },
+      "after": {
+        "sha256": "e4360bd42757ce80c313dcdc5de6d91f81fe3daeed74d78babe044f23ea1123e",
+        "blob": "5ed7ab9bce53a4cddfbd47eeacd61cdb048c9e31"
+      },
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"合成の固定SIDと固定確率。残存率の母集団は9例すべてで、論文の外部ranker top-k条件付き集計とは異なる。\",\n"
+        ],
+        [
+          11,
+          12,
+          "      \"dataset\": \"8 items・独立した学習遷移表と9評価例\",\n"
+        ],
+        [
+          58,
+          59,
+          "      \"dataset\": \"8 items・独立した学習遷移表と9評価例\",\n"
+        ],
+        [
+          105,
+          106,
+          "      \"dataset\": \"8 items・独立した学習遷移表と9評価例\",\n"
+        ],
+        [
+          152,
+          153,
+          "      \"dataset\": \"8 items・独立した学習遷移表と9評価例\",\n"
+        ]
+      ]
+    },
+    "papers/understanding-sids-isd/run.py": {
+      "before": {
+        "sha256": "d84e9c4020cc1f3de22a4ad2969f1252b13efe9451af0858cd0dfebc8c708828",
+        "blob": "c2cd7bc399c00232179db873fff3e920bf11bfa5"
+      },
+      "after": {
+        "sha256": "38d439bc0766d02bc3b84321f942d1f2f5868a23615d63b1ec0fb184f89d4178",
+        "blob": "af54a97bf4e1aee8fe87243fd9063914e0dabb21"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Finite SID trie + Eq. (15)-(17) rank fusion, without a trained decoder.\n"
+        ],
+        [
+          2,
+          4,
+          "The decoder uses fixed leaf probabilities; the item ranker uses separate\nsynthetic training transitions. Held-out targets enter evaluation only.\nThis is a mechanism toy, not a TIGER / LIGER / Amazon reproduction.\n"
+        ],
+        [
+          12,
+          13,
+          "# A decoder can prefer a coarse bucket even when a separate item scorer\n# prefers an item in the other bucket. Probabilities are strictly positive.\n"
+        ],
+        [
+          17,
+          18,
+          "# Deliberately includes provider errors, not just its favorite next items.\n"
+        ],
+        [
+          32,
+          33,
+          "    \"\"\"Keep original cumulative decoder probability across fusion steps.\n"
+        ],
+        [
+          34,
+          35,
+          "    Rank support is applied over all beam extensions, not per parent.\n    Returning traces makes irreversible exclusion inspectable.\n"
+        ],
+        [
+          86,
+          87,
+          "        experiments.append({\"name\": f\"beam幅 {width}\", \"dataset\": \"8 items・独立した学習遷移表と9評価例\", \"n\": len(TEST),\n"
+        ],
+        [
+          88,
+          89,
+          "    return {\"note\": \"合成の固定SIDと固定確率。残存率の母集団は9例すべてで、論文の外部ranker top-k条件付き集計とは異なる。\",\n"
+        ]
+      ]
+    }
+  }
+}
