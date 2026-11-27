@@ -1,0 +1,373 @@
+{
+  "files": {
+    "paper_lab/batch28.py": {
+      "before": {
+        "sha256": "5d05a28e3eabcd8a23eeee5c8cc8f6f4bbe2e241130c2aa4e33bf9a9264add56",
+        "blob": "cb4e1d1ab23ab949299005a247f21373a8e2542c"
+      },
+      "after": {
+        "sha256": "0e74524f5a94a4f1155cd0e1b13514ba886304c8875accecd355d7290694d9fe",
+        "blob": "a4fdeb20d4679cf2d003f1a79d0e6dd0183d3a5e"
+      },
+      "prior_spans": [
+        [
+          30,
+          31,
+          "            content+='<p>上ほど得点が高い。log(prefix)は目的の確率の自然対数、offsetは業務上の加点、log(conditional)は目的を選んだ後の商品確率の自然対数。βだけを動かし、学習済み確率を模した値は固定する。</p>'\n"
+        ],
+        [
+          38,
+          39,
+          "    titles={'reasoncast':'保存済みの3日例：補正なしと誤情報による補正','scope':'配車費ごとの品揃えと補充間隔','onetrans':'生成の先頭に置く目的の記号を、業務上の加点で選ぶ','evaluation':'組分けによるWAPEの違い','harness':'点検役を通った応答だけを履歴へ残す'}\n"
+        ],
+        [
+          41,
+          42,
+          "    label='1回の配送で車両1台にかかる費用' if kind=='scope' else '買い手の組分け' if kind=='evaluation' else '人工例の条件'\n"
+        ],
+        [
+          48,
+          50,
+          "        if kind=='evaluation' else 'run.pyが計算したresults.jsonから生成。著者の測定値ではない。')\n"
+        ]
+      ]
+    },
+    "papers/onetrans-v2-cascade-unification/README.md": {
+      "before": {
+        "sha256": "4e3224764475f4fc94d1e324b37f8939ca07a7fb045c934f448bd159002f499b",
+        "blob": "5773d81d37a107259fbb3e54966811b628e745a5"
+      },
+      "after": {
+        "sha256": "063dc48d91d79c444e968b04312e339391d34e274b0294f834aede9fb9bfb0ef",
+        "blob": "95a2b566d3a01682208eb0c6d9dfb52d35791cff"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# OneTrans-V2: Unifying Retrieval, Pre-rank, and Fine-rank with One Transformer in Industrial Recommender\n"
+        ],
+        [
+          2,
+          3,
+          "OneTrans-V2は検索・粗い順位付け・精密な順位付けを残し、ユーザー文脈とTransformerを共有する。著者はオンラインGMV/user +9.74%、同じハードウェア予算で3.2倍のQPSを報告する。\n"
+        ],
+        [
+          4,
+          5,
+          "## Core Idea — 主張と解釈\n\n著者の主張：段階ごとのトークンと候補特徴を保ちつつ、ユーザー履歴を一度符号化する。DCGRは、注文・探索・広告などの目的を、生成する系列の先頭に置く記号（決定接頭辞）で表す。生成時には、その目的に応じた業務上の加点も加える。\n\nLabの解釈：本ライブラリでは「段階を保つ統合」に位置づける。Sona/OneRec型の段階廃止、UNIQUEの早期融合、VARGの粗い順位付けの迂回とは、統合する境界が異なる。この分類はLabの整理であり、これらとの同条件の優劣は示していない。\n\n## Overview — 概要\n"
+        ],
+        [
+          10,
+          11,
+          "## Problem — 問題設定\n"
+        ],
+        [
+          12,
+          18,
+          "段階別モデルは同じユーザー履歴を繰り返し符号化し、学習信号も分断する。一方、全段階に最も重い候補特徴を使えば費用が膨らむ。共有する文脈と段階固有の処理を分ける必要がある。\n"
+        ],
+        [
+          19,
+          20,
+          "## Why It Might Work — 解釈\n"
+        ],
+        [
+          21,
+          22,
+          "解釈：同一要求の履歴計算を共有すると重複を減らせる。精密な順位付けから粗い順位付けへ知識を蒸留すれば、候補を早期に落とす判断も合わせやすい。ただし3.2倍のQPSには配信側の共同設計が含まれ、キャッシュ単独の寄与ではない。\n"
+        ],
+        [
+          23,
+          24,
+          "## Evidence — 著者報告\n"
+        ],
+        [
+          25,
+          26,
+          "一次資料[Table 2・§6.3](https://arxiv.org/pdf/2609.28589) の著者報告。\n"
+        ],
+        [
+          27,
+          28,
+          "| 評価 | 比較と結果 | 範囲 |\n| --- | --- | --- |\n| 検索HR@1 | OneTrans-GR 0.0545 → V2L 0.0923 | オフライン |\n| GMV/user | +9.74% | 全段階を置換したオンラインA/B |\n| ユーザーの活動日数 | +0.25% | 同A/B |\n| QPS | 3.2倍 | 同じハードウェア予算、配信設計込み |\n| GFLOPs | V2S 239 / 分業方式275 | V2LのHR値と規模を混同しない |\n"
+        ],
+        [
+          29,
+          30,
+          "DCGR単独のチャネル比較（Table 4）のGMV +48.0%は、システム全体の+9.74%と分母が異なる。SNTの学習高速化4.4倍も、配信QPSとは別の測定である。\n"
+        ],
+        [
+          31,
+          32,
+          "## モデル / 手法\n"
+        ],
+        [
+          33,
+          34,
+          "## 共有文脈の上に段階固有のトークンを置く\n"
+        ],
+        [
+          35,
+          36,
+          "Figure 2では履歴から共有文脈Hを作り、検索・粗い順位付け・精密な順位付けの候補トークンがそれを参照する。候補特徴と計算量は段階ごとに残る。疎なMoEで容量を増やし、μP系のパラメータ化で学習の拡大を安定させる。\n"
+        ],
+        [
+          37,
+          38,
+          "DCGR（Figure 3）は、注文・探索・広告などの決定と注文金額の区分を接頭辞zに置き、その条件下で3段のsemantic IDを生成する。式(4)の候補得点は、log P(z|H) + βφ(z) + Σℓ log P(SIDℓ|H,z,SID<ℓ)。φは業務目的に応じた加点、βはその強さである。同じ接頭辞を持つ候補には同じ加点が付くが、商品側の条件付き確率による得点差は残る。\n"
+        ],
+        [
+          39,
+          40,
+          "β = 0ならモデル確率だけで並べる。βを増やしても特定の商品を必ず選ぶ制約にはならず、接頭辞の確率と商品コードの条件付き確率がともに残る。人工図では3段のコード確率を一つの積へまとめ、全3候補を比較する。枝刈りを伴うbeam searchの再現ではない。\n\nSNT（Figure 4）は履歴を学習サンプルの中心に置き、複数の露出へ符号化を再利用する。各露出の予測で、その時点より後の行動を読めないようにする因果的なmaskが必要になる。これは入力の時間順序を守る処理で、施策の因果効果を推定する手法という意味ではない。配信での共有と学習での再利用を分けて読む。\n\n\n## Executable Understanding — 最小実験\n\n`uv run papers/onetrans-v2-cascade-unification/run.py`。標準ライブラリだけで実行でき、同じフォルダーのresults.jsonを更新する。\n\nrank()でβを0・0.5・1・2に変え、同じ候補の決定確率・商品確率を固定したまま順位を計算する。文脈計算100、段階処理10+20+30という人工の費用も、3回符号化する場合と1回共有する場合で比較する。\n\n## Results — 人工例の結果\n\nβ=0ではA、β=1ではB、β=2ではCが首位になる。人工の計算費用は360から160へ減るが、これは2.25倍という仮定上の比であり、実測3.2倍の説明や再現ではない。\n\n## What We Verified — 確認範囲\n\nCONFIRMED：β=0で確率順へ戻ることと、加点による候補順位の変化。MechanismはPARTIAL。\n\n## What We Did NOT Verify — 未検証\n\nPerformance / Scaling / Production applicabilityはNOT TESTED。Transformer、MoE、SNT、学習されたsemantic ID、段階間蒸留、GPUキャッシュ、オンラインA/Bは実行していない。\n\n## Implementation — 実装\n\nrank() → 式(4)の全候補得点。cache_cost → Figure 2の共有の教育用費用計算。公式のモデル学習・配信コードには対応させていない。\n\n## Original Paper / Official Code Mapping\n\n[対応表](mapping.md)\n"
+        ]
+      ]
+    },
+    "papers/onetrans-v2-cascade-unification/lab.yaml": {
+      "before": {
+        "sha256": "f3efa8fc1103e11b9d15b7b1417359d0fb785257a149811f3bd9e99fddd38d43",
+        "blob": "c64dec235d74526ae5a029774cddc7ce0aea6a68"
+      },
+      "after": {
+        "sha256": "e57127b0e49a5762fc1baf56026d4253a202cf8c5811ea03c041096d515db6bd",
+        "blob": "6db41a252e502cec5c9c074fbe57a1e42dfbd417"
+      },
+      "prior_spans": [
+        [
+          18,
+          20,
+          "question: 推薦の段階を残したまま、ユーザー履歴の計算を共有できるか\nsummary: OneTrans-V2は検索・粗い順位付け・精密な順位付けを残し、ユーザー文脈とTransformerを共有する。著者はオンラインGMV/user\n  +9.74%、同じハードウェア予算で3.2倍のQPSを報告する。\n"
+        ],
+        [
+          31,
+          32,
+          "  scope: Figures 1–4; Eq. (4); Table 2; §6.3; Table 4\n"
+        ],
+        [
+          33,
+          35,
+          "  author_claim: 段階ごとのトークンと候補特徴を保ちつつ、ユーザー履歴を一度符号化する。DCGRは、注文・探索・広告などの目的を、生成する系列の先頭に置く記号（決定接頭辞）で表す。生成時には、その目的に応じた業務上の加点も加える。\n  research_bot_interpretation: 本ライブラリでは「段階を保つ統合」に位置づける。Sona/OneRec型の段階廃止、UNIQUEの早期融合、VARGの粗い順位付けの迂回とは、統合する境界が異なる。この分類はLabの整理であり、これらとの同条件の優劣は示していない。\n"
+        ],
+        [
+          40,
+          51,
+          "  problem: 段階別モデルは同じユーザー履歴を繰り返し符号化し、学習信号も分断する。一方、全段階に最も重い候補特徴を使えば費用が膨らむ。共有する文脈と段階固有の処理を分ける必要がある。\n  why_it_might_work: 解釈：同一要求の履歴計算を共有すると重複を減らせる。精密な順位付けから粗い順位付けへ知識を蒸留すれば、候補を早期に落とす判断も合わせやすい。ただし3.2倍のQPSには配信側の共同設計が含まれ、キャッシュ単独の寄与ではない。\n  evidence: '一次資料[Table 2・§6.3](https://arxiv.org/pdf/2609.28589) の著者報告。\n"
+        ],
+        [
+          52,
+          53,
+          ""
+        ],
+        [
+          54,
+          55,
+          "    | 評価 | 比較と結果 | 範囲 |\n"
+        ],
+        [
+          56,
+          60,
+          "    | --- | --- | --- |\n"
+        ],
+        [
+          61,
+          70,
+          "    | 検索HR@1 | OneTrans-GR 0.0545 → V2L 0.0923 | オフライン |\n\n    | GMV/user | +9.74% | 全段階を置換したオンラインA/B |\n\n    | ユーザーの活動日数 | +0.25% | 同A/B |\n\n    | QPS | 3.2倍 | 同じハードウェア予算、配信設計込み |\n\n    | GFLOPs | V2S 239 / 分業方式275 | V2LのHR値と規模を混同しない |\n\n\n    DCGR単独のチャネル比較（Table 4）のGMV +48.0%は、システム全体の+9.74%と分母が異なる。SNTの学習高速化4.4倍も、配信QPSとは別の測定である。'\n  method: method.md\n  executable_understanding: '`uv run papers/onetrans-v2-cascade-unification/run.py`。標準ライブラリだけで実行でき、同じフォルダーのresults.jsonを更新する。\n\n\n    rank()でβを0・0.5・1・2に変え、同じ候補の決定確率・商品確率を固定したまま順位を計算する。文脈計算100、段階処理10+20+30という人工の費用も、3回符号化する場合と1回共有する場合で比較する。'\n  results: β=0ではA、β=1ではB、β=2ではCが首位になる。人工の計算費用は360から160へ減るが、これは2.25倍という仮定上の比であり、実測3.2倍の説明や再現ではない。\n  what_we_verified: CONFIRMED：β=0で確率順へ戻ることと、加点による候補順位の変化。MechanismはPARTIAL。\n  what_we_did_not_verify: Performance / Scaling / Production applicabilityはNOT TESTED。Transformer、MoE、SNT、学習されたsemantic\n    ID、段階間蒸留、GPUキャッシュ、オンラインA/Bは実行していない。\n  implementation: rank() → 式(4)の全候補得点。cache_cost → Figure 2の共有の教育用費用計算。公式のモデル学習・配信コードには対応させていない。\n"
+        ],
+        [
+          74,
+          75,
+          "  title: 段階は残し、ユーザー文脈を再利用する\n"
+        ],
+        [
+          78,
+          82,
+          "    - title: 履歴トークン\n      text: 共有Transformer\n    - title: 共有文脈H\n      text: 各段階が参照\n"
+        ],
+        [
+          85,
+          86,
+          "      text: 決定接頭辞 → semantic ID\n"
+        ],
+        [
+          87,
+          88,
+          "      text: 次の段階へ渡す\n"
+        ],
+        [
+          91,
+          94,
+          "      text: 軽い候補特徴\n    - title: 蒸留を受ける側\n      text: 精密な順位付けを教師として学ぶ\n"
+        ],
+        [
+          97,
+          98,
+          "      text: 豊かな候補特徴\n"
+        ],
+        [
+          99,
+          100,
+          "      text: 段階的な絞込みを維持\n"
+        ],
+        [
+          103,
+          105,
+          "  rationale: 段階は残し、ユーザー文脈を再利用する\n  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。\n"
+        ],
+        [
+          107,
+          108,
+          "  title: 接頭辞への加点と商品確率を足す\n"
+        ],
+        [
+          111,
+          112,
+          "    explanation: 業務上の加点は接頭辞に適用する。\n"
+        ],
+        [
+          114,
+          115,
+          "    explanation: 条件付きの商品確率も順位に残る。\n"
+        ],
+        [
+          117,
+          118,
+          "    explanation: βは加点で順位を調整する強さで、配信を義務づける制約ではない。\n"
+        ],
+        [
+          121,
+          123,
+          "  rationale: 接頭辞への加点と商品確率を足す\n  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。\n"
+        ],
+        [
+          125,
+          126,
+          "  title: 同じ検索指標で比較する\n"
+        ],
+        [
+          136,
+          138,
+          "  rationale: 同じ検索指標で比較する\n  caption: 一次資料の式・図・表を説明用に再構成。性能値は著者報告で、Labの追試結果ではない。\n"
+        ]
+      ]
+    },
+    "papers/onetrans-v2-cascade-unification/mapping.md": {
+      "before": {
+        "sha256": "c0ec99103b9338d7e0229a61abc22df0f37dec50efdd8638723ca7f793d49ae9",
+        "blob": "27c918733eeff46823e8c8a91b4db8b076556c35"
+      },
+      "after": {
+        "sha256": "383d80cca90dab8324c6a3713c63e6678e5d030a0df582f2b88696cc500c5931",
+        "blob": "c1c868d5ecf31839eff375bf090ed4e83385ed69"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "# 原論文・公式コード対応\n"
+        ],
+        [
+          2,
+          3,
+          "[一次資料PDF](https://arxiv.org/pdf/2609.28589)。確認箇所：Figures 1–4; Eq. (4); Table 2; §6.3; Table 4。保存済みPDFのSHA-256：`166a1ec87e118921fd9fa2130f7648097df65e9ebcfe096097ea29c0df50f951`。\n"
+        ],
+        [
+          4,
+          10,
+          "## 紙面と最小実験の対応\n"
+        ],
+        [
+          11,
+          12,
+          "rank() → 式(4)の全候補得点。cache_cost → Figure 2の共有の教育用費用計算。公式のモデル学習・配信コードには対応させていない。\n"
+        ],
+        [
+          13,
+          14,
+          "Performance / Scaling / Production applicabilityはNOT TESTED。Transformer、MoE、SNT、学習されたsemantic ID、段階間蒸留、GPUキャッシュ、オンラインA/Bは実行していない。\n\n## 公式コードの確認範囲\n\n確認したPDF内で本手法の公式実装URLを特定できなかった。公開実装が存在しないとの断定はしない。公式コードの実行はNOT TESTED。\n\n## 原本と生成物\n\nlab.yamlは本文と図の定義、method.mdは手法説明、run.pyは人工実験、results.jsonは実行結果、mapping.mdは対応表。HTMLはこれらから生成する。PDFの報告値と人工実験値は別に表示する。\n"
+        ]
+      ]
+    },
+    "papers/onetrans-v2-cascade-unification/method.md": {
+      "before": {
+        "sha256": "54dd80fdf0be0cdf1641b4de4ad0551ecbf5fb9806c58c3cf18465df7731ccfc",
+        "blob": "9434f2b85c70385a3a47d8bdf026d2ba64add8ce"
+      },
+      "after": {
+        "sha256": "ab6220de8d7470d5dd83704d607950e5500c761a5e881dc6f0dcb7f01d508056",
+        "blob": "3a09d5d6c5f40a17f50d68ecd16be03ed04abc65"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "## 共有文脈の上に段階固有のトークンを置く\n"
+        ],
+        [
+          2,
+          3,
+          "Figure 2では履歴から共有文脈Hを作り、検索・粗い順位付け・精密な順位付けの候補トークンがそれを参照する。候補特徴と計算量は段階ごとに残る。疎なMoEで容量を増やし、μP系のパラメータ化で学習の拡大を安定させる。\n"
+        ],
+        [
+          4,
+          5,
+          "DCGR（Figure 3）は、注文・探索・広告などの決定と注文金額の区分を接頭辞zに置き、その条件下で3段のsemantic IDを生成する。式(4)の候補得点は、log P(z|H) + βφ(z) + Σℓ log P(SIDℓ|H,z,SID<ℓ)。φは業務目的に応じた加点、βはその強さである。同じ接頭辞を持つ候補には同じ加点が付くが、商品側の条件付き確率による得点差は残る。\n"
+        ],
+        [
+          6,
+          7,
+          "β = 0ならモデル確率だけで並べる。βを増やしても特定の商品を必ず選ぶ制約にはならず、接頭辞の確率と商品コードの条件付き確率がともに残る。人工図では3段のコード確率を一つの積へまとめ、全3候補を比較する。枝刈りを伴うbeam searchの再現ではない。\n"
+        ],
+        [
+          8,
+          27,
+          "SNT（Figure 4）は履歴を学習サンプルの中心に置き、複数の露出へ符号化を再利用する。各露出の予測で、その時点より後の行動を読めないようにする因果的なmaskが必要になる。これは入力の時間順序を守る処理で、施策の因果効果を推定する手法という意味ではない。配信での共有と学習での再利用を分けて読む。\n"
+        ]
+      ]
+    },
+    "papers/onetrans-v2-cascade-unification/results.json": {
+      "before": {
+        "sha256": "38f2171b5face36c8ffcc1c5900feee1fa07ebe790c19b8219f5d4d120c9c443",
+        "blob": "97765ace8f72c209fda6f4a0fd2b75bb840cf944"
+      },
+      "after": {
+        "sha256": "3488489c38cc79a893ae6d3ab504e2cf29dce050ed5389b7970116360b263464",
+        "blob": "56f24f92bc931798ccaeba0f569f0d3a2dcccd1a"
+      },
+      "prior_spans": [
+        [
+          119,
+          120,
+          "  \"note\": \"教育用の人工例。原論文の学習・性能・本番効果は再現していない。\",\n"
+        ]
+      ]
+    },
+    "papers/onetrans-v2-cascade-unification/run.py": {
+      "before": {
+        "sha256": "9487beea3e1a4663c77a6aea3a18fc43b2419cde0a7876641320bf396eaf443a",
+        "blob": "e2ba723de74af17b0ae27975533d822694e82035"
+      },
+      "after": {
+        "sha256": "01f835d482244a847ec273003784b9cca084a1d5214200b5b96c087cbcfcb851",
+        "blob": "f32b457bd5fa1d0f6b8dc81bf73d06f739b6d113"
+      },
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Standalone deterministic teaching experiment; standard library only.\"\"\"\n"
+        ],
+        [
+          10,
+          11,
+          "    # Abstract operation units: context encoding 100, stage work 10+20+30.\n"
+        ],
+        [
+          17,
+          18,
+          "    result['note']='教育用の人工例。原論文の学習・性能・本番効果は再現していない。'\n"
+        ]
+      ]
+    }
+  }
+}

@@ -134,10 +134,10 @@ def test_three_figure_generators_preserve_current_labels(tmp_path):
 def test_internal_consistency_of_distillation_and_probe_scope():
     root = Path(__file__).resolve().parents[1]
     one = yaml.safe_load((root/'papers/onetrans-v2-cascade-unification/lab.yaml').read_text())
-    assert '精密な順位付けから粗い順位付けへ' in one['sections']['why_it_might_work']
+    assert '粗い順位付けは、精密な順位付けの点数を手掛かりに学習' in one['sections']['why_it_might_work']
     text = (root/'papers/onetrans-v2-cascade-unification/lab.yaml').read_text()
-    assert 'title: 蒸留を受ける側' in text
-    assert 'text: 精密な順位付けを教師として学ぶ' in text
+    assert 'title: 後の段階の点数から学ぶ' in text
+    assert 'text: 精密な順位付けの点数を学習に使う' in text
     sparse = yaml.safe_load((root/'papers/tsfm-sparse-event-ranking/lab.yaml').read_text())
     assert 'probeで比較した6モデルすべて' in sparse['summary']
     assert '12 TSFM' in sparse['summary']
