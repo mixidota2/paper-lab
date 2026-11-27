@@ -372,7 +372,7 @@ def test_batch17_cascade_comparison_units_and_loss_denominators():
 def test_batch18_weighting_diagnostics_and_decision_boundaries():
     expected = {
         'rest-sequence-ranking': ('lab.yaml', '予測値を固定した地点での計算'),
-        'tagr-live-sid': ('method.md', '分母はログの生件数ではない'),
+        'tagr-live-sid': ('method.md', '分母は記録の件数ではなく、記録と階層の重みを掛け合わせた値の合計です'),
         'sid-ope-hierarchy': ('lab.yaml', '推定の偏りが消えたことを意味しない'),
         'genpage-netflix-homepage': ('lab.yaml', 'その部分の途中で作品を追加してもスコアを計算し直さない'),
         'agentx-kuaishou': ('method.md', '現時点では採用を決めない'),
@@ -382,7 +382,7 @@ def test_batch18_weighting_diagnostics_and_decision_boundaries():
         assert excerpt in (ROOT/'papers'/slug/name).read_text()
     for name in ['lab.yaml', 'README.md']:
         assert 'その部分の途中で作品を追加してもスコアを計算し直さない' in (ROOT/'papers/genpage-netflix-homepage'/name).read_text()
-    assert 'どちらも広告数を分母にする' in (ROOT/'papers/tagr-live-sid/lab.yaml').read_text()
+    assert '維持率は同じIDを保った広告の数を広告総数で割り、誤差も広告総数で平均します' in (ROOT/'papers/tagr-live-sid/lab.yaml').read_text()
     assert 'その差を合計して課題数で割る' in (ROOT/'papers/agentx-kuaishou/lab.yaml').read_text()
     assert 'その平方根を取る' in (ROOT/'papers/sid-ope-hierarchy/lab.yaml').read_text()
 
