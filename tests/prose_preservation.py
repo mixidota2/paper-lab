@@ -187,7 +187,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = bitemporal_full_prose_hash(root, path, expected, algorithm)
     expected = harnesstokens_full_prose_hash(root, path, expected, algorithm)
     expected = forgetting_iclr_full_prose_hash(root, path, expected, algorithm)
-    return deletion_prefix_full_prose_hash(root, path, expected, algorithm)
+    expected = deletion_prefix_full_prose_hash(root, path, expected, algorithm)
+    return scaffold_gaia_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -3120,6 +3121,32 @@ def before_deletion_prefix_full_prose(root, path, current):
     import base64
     import zlib
     row = deletion_prefix_full_prose_for_path(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    previous = zlib.decompress(base64.b64decode(row['prior_zlib_b64'], validate=True))
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
+def scaffold_gaia_full_prose_for_path(root, path):
+    if not path.startswith('papers/scaffold-effects-gaia/'):
+        return None
+    return json.loads((root / 'tests/scaffold_gaia_full_prose_hashes.json').read_text())['files'].get(path)
+
+
+def scaffold_gaia_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = scaffold_gaia_full_prose_for_path(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_scaffold_gaia_full_prose(root, path, current):
+    import base64
+    import zlib
+    row = scaffold_gaia_full_prose_for_path(root, path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path

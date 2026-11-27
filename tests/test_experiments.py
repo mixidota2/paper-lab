@@ -25,6 +25,13 @@ def test_checked_in_results_are_computed_and_reproducible(lab_id, monkeypatch):
         vn2 = importlib.util.module_from_spec(vn2_spec)
         vn2_spec.loader.exec_module(vn2)
         assert actual == vn2.compute()
+    elif lab_id == 'scaffold-effects-gaia':
+        # The article translates reader-facing labels without changing the shared toy.
+        monkeypatch.syspath_prepend(str(paper.parent))
+        entry_spec = importlib.util.spec_from_file_location('scaffold_gaia_entry', paper / 'run.py')
+        entry = importlib.util.module_from_spec(entry_spec)
+        entry_spec.loader.exec_module(entry)
+        assert actual == entry.example()
     else:
         assert actual == toy.compute(lab_id)
     assert actual['verification']['performance'] == 'NOT TESTED'
