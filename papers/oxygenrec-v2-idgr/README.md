@@ -1,4 +1,4 @@
-# OxygenREC-v2: Internalizing Discrimination into Generative Recommendation
+# OxygenREC-v2は目標にする行動を選んでから商品候補を作る
 
 JD.comのOxygenREC-v2では、クリック、カートへの追加、注文のどれを狙うかを最初に指定します。その条件で商品の特徴を表すコード（SID）を生成するため、同じ利用者でも、注文を狙うときはクリックを狙うときと異なる候補を出せます。追加学習に使うのは、生成結果と記録された行動が一致したかどうかと、後に起きた行動まで見られる同じモデルからの予測です。配信時には将来の行動を入力しません。
 
@@ -6,19 +6,21 @@ JD.comのOxygenREC-v2では、クリック、カートへの追加、注文の�
 
 ## 実行
 
+リポジトリの最上位から次のコマンドを実行する。最初のコマンドで人工実験の結果を、次のコマンドでLabのページを作る。
+
 ```bash
 uv run papers/oxygenrec-v2-idgr/run.py
 uv run paper-lab build
 ```
 
-Python標準ライブラリだけで動く。実行場所に依存せず、同じフォルダーの `results.json` を更新する。
+人工実験のコードはPythonの標準ライブラリだけを使う。実行場所にかかわらず、スクリプトと同じフォルダーの `results.json` を更新する。
 
 ## 原本
 
-`lab.yaml` が本文・図の定義、`method.md` が手法、`mapping.md` が原論文との対応。HTMLはgeneratorで生成する。`run.py` と `results.json` が合成実験の原本。
+`lab.yaml` は記事と図の定義、[方法](method.md)はモデルの説明、[対応表](mapping.md)は各説明の出典を収める。`run.py` は人工実験を実行し、その結果を `results.json` に保存する。公開ページはこれらの資料から生成する。
 
 ## 検証範囲
 
-Mechanism PARTIAL、Performance / Scaling / Production applicability NOT TESTED。CONFIRMEDはJSONに記した個別の算術・比較条件だけを指す。論文のモデルを訓練した結果ではない。
+Labは人工データで、報酬の計算と、教師の予測の不確かさに応じて蒸留する位置を選ぶ処理を確認した（Mechanism: PARTIAL）。結果ファイルのCONFIRMEDは、個別の算術や比較についての判定だ。論文のモデルの学習、実運用の性能、規模を増やした場合の挙動、本番への適用は検証していない（NOT TESTED）。
 
-[一次資料・全文](https://arxiv.org/html/2607.24255v1)。確認日：2026-09-15。詳細な未検証項目と出典上の注意はLab本文・mappingを参照。
+Labは2026年9月15日に[原論文v1の全文](https://arxiv.org/html/2607.24255v1)を確認した。論文の記述が一致しない箇所と、著者の結果を再現していない範囲は[対応表](mapping.md)に記した。
