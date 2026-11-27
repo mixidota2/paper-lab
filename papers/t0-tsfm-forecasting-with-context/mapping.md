@@ -1,18 +1,18 @@
-# 論文・公式コード・Lab小実験の対応
+## 論文の記述、公開コードの確認記録、Labの計算を分ける
 
-このLabは[一次PDF v1](https://arxiv.org/pdf/2609.24559v1)に基づきます。既存の調査では2026年9月23日に保存した39ページのPDFから全文を抽出し、§5.1.2の評価、Table 5、§6の限界まで確認しました。保存されたPDFのSHA-256は `e23720637cc9e2409620d5ecc7658fe57d0c897dd53814a75f933a7a6dff5757` です。
+一次資料は[原論文PDF v1](https://arxiv.org/pdf/2609.24559v1)です。以前の照合では、2026年9月23日に保存した39ページのPDFで、第5.1.2節、表5、第6節を確認しました。そのPDFのSHA-256は `e23720637cc9e2409620d5ecc7658fe57d0c897dd53814a75f933a7a6dff5757` です。
 
-| 論文の箇所 | Labで扱う範囲 | 固定コミットの参照先 |
+| 原論文 | Labで確かめる範囲 | 以前の確認で読んだコード |
 | --- | --- | --- |
-| §4.1・Eq. 2：標準化に使う情報の範囲 | 図で予測時点の前後を区別します。標準化は再実装していません。 | `t0/scaler.py`：`CausalScaler`、`_compute_causal_stats`、`_compute_global_stats` |
-| Fig. 3：変数間で情報を読む向き | `propagate()` で人工例の依存関係だけを追います。 | `t0/model/layers/group_attention.py`：`VariateSelfAttention`、`t0/mask.py` |
-| §4.1：分位点の出力 | `ordered_quantiles()` で、分位点が逆転しないことを確認します。 | `t0/model/layers/head.py`（参照先。実行なし） |
-| Table 5：補助変数を渡す場合と渡さない場合 | 図で著者の成績を表示し、`skill_audit()` で丸め済みの値から差を計算します。 | 公式モデルでは計算し直していません。 |
+| 第4.1節・式2 | 図で、標準化が予測時点の前後にあるどの値を使うかを示します。処理は再実装していません。 | `t0/scaler.py` の `CausalScaler`、`_compute_causal_stats`、`_compute_global_stats` |
+| 図3 | `propagate()` で、二時点の人工例における情報の伝わる方向を追います。 | `t0/model/layers/group_attention.py` の `VariateSelfAttention` と `t0/mask.py` |
+| 第4.1節の分位点 | `ordered_quantiles()` で、小さい分位点に正の差を足すと順序が保たれることを確認します。 | `t0/model/layers/head.py`。実行はしていません。 |
+| 表5 | `skill_audit()` で、著者らの丸め済みの報告値から差を計算します。 | 公式モデルで計算し直していません。 |
 
-既存調査では[標準化](https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/scaler.py)と[変数方向のattention](https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/model/layers/group_attention.py)をコミット `a2eca8d80892485c44679c638bcd883ae974f751` で読みました。[公式リポジトリ](https://github.com/theforecastingcompany/tfc-t0)の公開APIは `T0Forecaster.from_pretrained()` と `predict(..., future_covariates=...)` です。Labはモデルの重みをダウンロードせず、公式コードで予測していません。
+以前の確認で読んだ版は、コミット `a2eca8d80892485c44679c638bcd883ae974f751` の[標準化](https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/scaler.py)と[変数間の注意](https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/model/layers/group_attention.py)です。既存の確認記録は、[公開リポジトリ](https://github.com/theforecastingcompany/tfc-t0)の呼び出し方を `T0Forecaster.from_pretrained()` と `predict(..., future_covariates=...)` と記録しています。Labは公式モデルの重みを取得せず、予測も実行していません。
 
-## 論文の参照制限は、既存調査で読んだ経路では確認できなかった
+### 論文どおりの変数の参照制限は、読んだコードからは確認できなかった
 
-論文§4.1では、将来の値が分かる変数zが予測対象を参照できないようにします。既存調査で確認した固定コミットの経路では、`MaskBuilder.build_group_mask()` がグループIDの一致とパディングの条件を作り、`Transformer.forward()` がそれを変数方向のattentionに渡していました。その経路からは、論文が説明する変数の役割別の制限までは確認できませんでした。一方、将来の値が分かる変数が時間方向に前後を読む設定と、各時点までの値で標準化する処理は確認できました。
+原論文は、将来分が既知の変数zが予測対象の実績を読まないようにします。以前のコード確認では、`MaskBuilder.build_group_mask()` が、グループIDが一致するかと、パディングかどうかで、参照可能な場所を決めていました。`Transformer.forward()` はこのマスクを変数方向の注意に渡していました。この経路では、どの変数が予測対象かに応じた論文の制限は確認できませんでした。一方、既知の変数が時間方向に前後を読む処理と、その時点までの値で標準化する処理は、以前の調査で確認しています。[固定版のマスク](https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/mask.py#L31)・[呼び出し側](https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/model/layers/transformer.py#L169)。
 
-これは固定コミットを読んだ範囲での記録で、学習済みモデルから未来情報が漏れたという実験結果ではありません。実際の挙動を判断するには、モデルの版、学習時のコード、入力の作り方も確認する必要があります。[固定コミットのマスク](https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/mask.py#L31)・[呼び出し側](https://github.com/theforecastingcompany/tfc-t0/blob/a2eca8d80892485c44679c638bcd883ae974f751/t0/model/layers/transformer.py#L169)
+この記録は、固定した版の該当箇所を読んだ範囲に限ります。学習済みモデルから未来の実績が漏れたことを示す実験結果ではありません。その有無を判断するには、モデルの版、訓練時の処理、予測時に作る入力を合わせて確かめる必要があります。
