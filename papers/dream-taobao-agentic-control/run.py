@@ -1,4 +1,4 @@
-"""Small deterministic analogue of DREAM's typed local override contract."""
+"""DREAMが設定の一部を変更し、無効な提案なら既定値へ戻すしくみを人工例で試す。"""
 import json
 import math
 from pathlib import Path
@@ -8,7 +8,7 @@ BASE_WEIGHT = {'ctr':.1, 'ipv':.2, 'cvr':.1, 'gmv':.1}
 
 
 def compile_strategy(bundle, now=100):
-    """Lab schema and TTL; unknown fields and bad values fail closed."""
+    """Labが決めた形式と期限を確認し、許可されない項目や値があれば既定値を返す。"""
     default = dict(DEFAULT)
     if not isinstance(bundle, dict):
         return default, 'fallback: missing'
@@ -27,7 +27,7 @@ def compile_strategy(bundle, now=100):
     if any(type(x) is not int or x not in [-2,-1,0,1,2] for x in values):
         return default, 'fallback: level range'
     for key,level in boosts.items():
-        # Expose multiplier at a synthetic calibrated prediction v_hat=1.
+        # 校正した予測値を1と仮定し、各目的の項に掛ける値を計算する。
         default[key] = 1+BASE_WEIGHT[key]*level
     default['scatter'] = max(1,DEFAULT['scatter']+category)
     return default, 'override'
@@ -57,12 +57,12 @@ def compute():
         accepted=invoke(s,.7,left)
         left-=int(accepted)
         decisions.append({'score':s,'invoke':accepted,'remaining':left})
-    # Fixed reported lifts; ratio arithmetic is not an independent effect estimate.
+    # 著者が報告した増加率を使う。表の引き算は、別に測った追加の因果効果ではない。
     lifts={'IPV':[2.06,2.71],'GMV':[.88,1.31],'PV':[1.03,1.04]}
-    return {'note':'手作りstrategyを同じdefaultと比較する契約実験。TTL・重み・容量2はLabの仮定。実際のLLM・Intent推定・A/Bは未実行。',
+    return {'note':'Labは同じ既定値に異なる方針案を渡した。期限、重み、呼び出し枠2件は人工の値で、LLMの推論や本番のA/Bテストは実行していない。',
       'verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},
-      'experiments':[{'name':'defaultと局所overrideの比較','metrics':{x['name']:{'status':x['status'],**x['parameters']} for x in cases}},
-                     {'name':'表7の累積liftの算術','metrics':{k:{'rerank':v[0],'rerank+rank':v[1],'差（percentage points）':round(v[1]-v[0],4),'比の変化（%）':round(((1+v[1]/100)/(1+v[0]/100)-1)*100,4)} for k,v in lifts.items()}}],
+      'experiments':[{'name':'方針案が許可された設定だけを変えるか','metrics':{x['name']:{'status':x['status'],**x['parameters']} for x in cases}},
+                     {'name':'表7の共通基準に対する増加率を比べる','metrics':{k:{'rerank':v[0],'rerank+rank':v[1],'差（percentage points）':round(v[1]-v[0],4),'比の変化（%）':round(((1+v[1]/100)/(1+v[0]/100)-1)*100,4)} for k,v in lifts.items()}}],
       'cases':cases,'trigger_trace':decisions,'reward_tie':replay_reward([1,1],[1,1]),
       'checks':{'invalid_defaults':'CONFIRMED','local_override':'CONFIRMED','budget_gate':'CONFIRMED','business_lift':'NOT TESTED'}}
 

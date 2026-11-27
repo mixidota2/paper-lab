@@ -1,26 +1,28 @@
-### Intent Engine：何を欲しいかと、どう選ぶかを分けて持つ
+### Taobaoは長く続く好みと、いまの買い物の条件を分ける
 
-L0 Physicalは長期的なプロフィール、L1 Demandは需要category・場面・意図の確信度、L2 Preferenceはbrand・価格・属性・意思決定段階など。たとえば同じ家電の需要でも、比較中なのか購入直前なのかで優先すべき情報が変わる。L0は複数intentに共有し、L1とL2を行動に応じて更新する（§3.2）。
+DREAMのIntent Engineは、利用者の状態を三つに分けます。L0は長期的なプロフィールです。L1はそのときに必要な商品カテゴリや場面、意図の確かさを表します。L2はブランド、価格、商品の属性、比較中か購入直前かといった選び方です。同じ家電を探す場合でも、比較中なら違いを知りたくなり、購入直前なら価格や配送条件が重要になります。DREAMは複数の買い物の意図でL0を共有し、行動に応じてL1とL2を更新します。[論文第3版 §3.2](https://arxiv.org/html/2608.09408v3#S3.SS2)
 
-全eventで重い推論を実行するわけではない。端末のF1は60種類超の行動を特徴へ圧縮し、F2は7次元の離散特徴を単層GRUで追って変化点を検出する。2秒以内に元画面へ戻るなどの誤tapを抑え、モデルが使えない場合はRuleTreeへ戻す。F3は最大50 eventのID中心のpackを送信。F4はcloudでitem名やcategoryを復元し、既存intentとの差から推論へ進めるかを判定する（表1）。
+端末はすべての行動をクラウド推論に送るわけではありません。F1は60種類を超える行動を特徴にまとめます。F2は7次元の離散特徴を単層GRUで追い、意図が変わった候補を検出します。たとえば2秒以内に元の画面へ戻る行動は、誤タップの候補として送信を抑えます。モデルが使えない場合は規則ベースのRuleTreeを使います。F3は最大50件をID中心の記録にまとめて送り、クラウドのF4が商品名やカテゴリなどを補います。既存の意図と比べ、さらに推論するかを判定します。[§3.1、表1](https://arxiv.org/html/2608.09408v3#S3.SS1)
 
-F2の送信率は約15%、全体の報告量は元の約8.7%という著者報告。後段の各段階の実測通過率は提示されていないため、15%から8.7%への図は個々のgateの効果分解ではない。6.3%の非同期4Bへのrouting率は別の母集団の値であり、8.7%に足さない。
+著者はF2で約15%が送信対象になり、処理全体で元の行動量の約8.7%を報告したと説明します。8.7%は削減後の割合です。15%と8.7%だけでは、後段の各判定が何件減らしたかは分かりません。同期推論から非同期へ振り分けた6.3%は分母が異なるので、8.7%とは足し合わせません。
 
-推論は同期0.8B Main Agentが差分insert/updateを出し、複雑なcaseを非同期4Bのcontext / domain expertへ回す。4B Dreamingは夜間のidle計算で記憶を整理する。大きいagentの分布からMain Agentへのon-policy distillationも記載される。Intent側の各checkpoint名を推定して補わない。MetaModelについてはQwen3ベースと明記され、付録Bは4B MetaModelのreplay-RLを評価する。
+通常の意図更新では0.8BのMain Agentが変更する項目を出し、複雑な要求は4Bの専門モデルへ非同期で回します。4BのDreamingは夜間の空き時間に記憶を整理します。著者は、Main Agentが出した更新列について、専門モデルの分布に近づける蒸留も説明しています。Intent Engine側のモデルの系列名は公開本文で確認できません。Qwen3ベースと明記されているのはMeta EngineのMetaModelで、付録Bの再生評価は4BのMetaModelを扱います。[§3.2、付録B](https://arxiv.org/html/2608.09408v3#S3.SS2)
 
-### Meta Engine：LLMの意味的な提案を、型のある設定に変換する
+### MetaModelが方針を出し、変換処理が実際の設定値を決める
 
-M1はintentの要約、目的、購買力、活動groupを整理する。M2はStrategy Memoryを参照してschemaに従うJSONのstrategyを作る。たとえばranking_weight_boost、category_preference、experience_constraints。M3はTool Processによる決定的な変換結果であり、自由文のLLM出力ではない（§4.2）。
+M1では利用者の意図を要約し、目的や購買力、活動の多さなどを整理します。M2ではMetaModelが過去の戦略記録（Strategy Memory）を参照し、決まった形式のJSONで方針を出します。たとえば、どの商品カテゴリを優先するか、どの目的を強めるか、表示にどんな制約を付けるかです。M3では段階ごとの変換処理（Tool Process）が、その方針を実際に使える数値や項目へ変換します。M3はLLMが自由に書く段階ではありません。[§4.2](https://arxiv.org/html/2608.09408v3#S4.SS2)
 
-MetaModelは、推薦の要求に応答する処理とは別に、最新の有効な設定一式（bundle）をキャッシュへ保存する。推薦要求を受けると、Tool Processがその版、データ形式、期限を検査する。検査を通った許可済みの設定項目だけを、候補取得、順位付け、並べ替えの各段階へ渡す。同じcategoryの好みもretrievalでは候補quota、rankingではscatter幅、rerankingでは構成比として解釈する。既存cascadeのモデルと推薦リスト生成器は残る。LLMがitem IDや最終順列を直接出す構造ではない。
+DREAMは推薦の要求とは別に方針を作り、最新の有効な設定をキャッシュします。推薦の要求が来ると、Tool Processが期限、JSONの形式、許可された項目、値の範囲を確認します。同じカテゴリを優先する方針でも、候補取得では候補枠を増やし、順位付けでは同じカテゴリを近くに置きにくくする範囲を調整し、最後の並べ替えではカテゴリの構成比を変えます。既存のモデルと並べ替え処理は残ります。LLMは商品IDや表示順を直接出しません。
 
-rankの目的ごとのsemantic level bは−2から2。元の重みw⁰と掛けたδを使って、校正済み予測値v̂の項を補正する。categoryのscatter幅はmax(1,既定値+b)。business supportは許可PlanIDだけで件数上限も守る。JSON、schema、allowlist、値域のどれかが失敗したらdefaultへ戻す。未実装のcontent-type levelはno-opとされるなど、意味的な提案のすべてに実行権があるわけではない。
+方針が指定する強さの段階は−2から2です。詳しい順位付けでは、既定の重みと調整幅を使い、校正した予測値が総合点にどれだけ効くかを変えます。同じカテゴリを近くに置くことを避ける範囲は、既定値に調整値を足し、最小1にします。事業施策の保護には許可されたPlanIDを使い、設定できる件数にも上限があります。項目の検証に失敗した場合や方針の期限が切れた場合は既定値を使います。許可されていない変更や実装されていない内容の種類は、提案を受けても適用しません。
 
-### 呼び出し頻度も、報酬の学習経路も分ける
+### 更新を呼び出す条件と、学習の報酬を分ける
 
-§4.1はintent更新の価値Δから費用・遅延を引き、groupと時間帯の呼び出し予算を守る問題として定式化する。Δはonlineでは分からないため、行動分布のJensen–Shannon divergence、活動量、時刻などを正規化し、context別の閾値で代用する。式13は本文が4信号と述べる一方、表示された和は3項で重みの総和は4項になっている。このLabでは欠けた項を推定せず、toyのscoreを手入力する。
+クラウドで意図を更新すれば得られる価値は、その要求を送る前には分かりません。DREAMは行動分布の変化、活動の多さ、時刻などから点を作り、利用者群や場面に応じた閾値と比べます。式15では点が閾値以上で、呼び出し回数の上限などに触れない場合に更新します。それ以外は、以前の結果や規則に基づく処理を使います。式13の説明は4つの信号を挙げますが、手法中の式で足している項は3つです。Labは残る項を推定せず、人工例には決めた点を入力します。[§4.1、式13〜15](https://arxiv.org/html/2608.09408v3#S4.SS1)
 
-Reward Dual Loopのoffline側は、本番経路の隔離replay。logの同じrequestに対し、defaultとstrategyを別々のservice callでK回ずつ評価し、最終listをEvaluatorが採点する。平均strategy scoreが平均default scoreを上回ったときだけ報酬1、それ以外0。差の大きさは診断用に残すが、学習報酬は二値である（式20–25）。
+方針を学習する段階では、同じ記録上の要求に対して、既定の方針と提案された方針をそれぞれK回処理します。評価器は最終的な推薦リストに点を付けます。提案した方針の平均点が既定の平均点を超えたら報酬は1で、同点か下回った場合は0です。差の大きさは診断に残しますが、学習の報酬には使いません。[§4.3、式20〜25](https://arxiv.org/html/2608.09408v3#S4.SS3)
 
-online側は実際のclick・取引を観測し、Evaluatorの校正やStrategy Memoryの経験蓄積へ返す。replayは実行時のfeatureやmodel stateを使うため、過去の環境の厳密な再現ではない。繰り返し平均はnoiseを減らしてもproxyの誤りを消せない。最終的なbusiness impactはonline A/Bで判断する。
-<figure class="teaching batch18"><h3>制御を重ねる位置：設定は変わるがcascadeは残る</h3><div class="b18-plane"><div class="b18-control"><strong>nearline control plane</strong><p>L0 / L1 / L2 → M1 要約 → M2 strategy + Memory → cache</p></div><p class="b18-arrow">↓ request時にM3へ変換・検査</p><div class="b18-cards"><div><strong>retrieval</strong><p>許可categoryのquotaや供給種別を調整</p></div><div><strong>fine ranking</strong><p>既存scoreの項・scatter・PlanID保護を補正</p></div><div><strong>reranking</strong><p>既存Generatorの密度・除外・位置規則を設定</p></div></div><p>失敗・期限切れ → 各stageのdefaultへ</p></div><figcaption>図1・7、式16。構成を教えるための再描画。LLMはrequest時の最終順列を生成しない。</figcaption></figure><figure class="teaching batch18"><h3>Intent funnel：元の行動量を100として読む</h3><div class="b18-funnel"><div style="--w:100%">F1：端末で符号化　100</div><div style="--w:65%">F2・F3：変化点 → pack送信　約15</div><div style="--w:45%">F4：cloudで復元・admission　全体約8.7</div></div><p>幅は説明用。15と8.7は著者の近似値。各gateの独立したA/B効果ではない。</p><figcaption>§2–3.1・表1。8.7%は元の約8.7%まで絞ったという意味で、8.7%削減ではない。</figcaption></figure>
+再生時点の特徴やモデルを使うため、記録を再生しても過去の配信を完全には再現しません。回数を増やせば配信のばらつきを減らせますが、評価器が本番の反応を正しく表すとは限りません。DREAMは実際のクリックや注文を評価器の調整や戦略の記録に戻します。事業指標の改善は、本番のA/Bテストで別に確かめます。
+
+<figure class="teaching batch18"><h3>既存の推薦モデルは残し、設定だけを調整する</h3><div class="b18-plane"><div class="b18-control"><strong>推薦の要求が来る前</strong><p>利用者の意図を要約し、MetaModelが方針を作って保存する。</p></div><p class="b18-arrow">↓ 推薦の要求が来たら、使う設定値に変換して検査する</p><div class="b18-cards"><div><strong>候補取得</strong><p>カテゴリごとに集める候補の枠や、候補の種類を調整する。</p></div><div><strong>詳しい順位付け</strong><p>既存モデルの予測を使い、重みや同じカテゴリを並べる範囲を調整する。</p></div><div><strong>最後の並べ替え</strong><p>既存の処理で、カテゴリの割合、除外、表示位置を調整する。</p></div></div><p>検査に通らないか期限が切れた場合は、その段階の既定値を使う。</p></div><figcaption>論文の図1・7、式16をもとに作成。LLMは配信する商品の順番を直接出さない。</figcaption></figure>
+<figure class="teaching batch18"><h3>端末とクラウドは、どこで報告を絞るか</h3><div class="b18-funnel"><div style="--w:100%">F1：端末にある元の行動を100とする</div><div style="--w:65%">F2・F3：端末が変化を検出し、約15を送る</div><div style="--w:45%">F4：クラウドで情報を補い、全体の報告量は約8.7</div></div><p>図の幅は件数に比例していません。各判定が単独でどのくらい減らしたかを示す図ではありません。</p><figcaption>論文§2〜3.1、表1。約8.7は元の行動量を100としたときの残り。</figcaption></figure>

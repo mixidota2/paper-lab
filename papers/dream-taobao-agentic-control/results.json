@@ -1,5 +1,5 @@
 {
-  "note": "手作りstrategyを同じdefaultと比較する契約実験。TTL・重み・容量2はLabの仮定。実際のLLM・Intent推定・A/Bは未実行。",
+  "note": "Labは同じ既定値に異なる方針案を渡した。期限、重み、呼び出し枠2件は人工の値で、LLMの推論や本番のA/Bテストは実行していない。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",
@@ -8,7 +8,7 @@
   },
   "experiments": [
     {
-      "name": "defaultと局所overrideの比較",
+      "name": "方針案が許可された設定だけを変えるか",
       "metrics": {
         "未設定": {
           "status": "fallback: missing",
@@ -61,7 +61,7 @@
       }
     },
     {
-      "name": "表7の累積liftの算術",
+      "name": "表7の共通基準に対する増加率を比べる",
       "metrics": {
         "IPV": {
           "rerank": 2.06,
