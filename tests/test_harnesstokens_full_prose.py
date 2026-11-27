@@ -2,7 +2,7 @@ from pathlib import Path
 import hashlib,json
 import yaml
 
-from prose_preservation import before_harnesstokens_full_prose
+from prose_preservation import before_sim2real_all_full_prose, before_harnesstokens_full_prose
 ROOT=Path(__file__).resolve().parents[1]
 REL='papers/harness-buys-tokens-not-pass-rate/'
 P=ROOT/REL
@@ -35,7 +35,9 @@ def test_results_and_old_receipt_numbers_are_unchanged():
 def test_dedicated_widget_leaves_shared_renderer_exact():
     from paper_lab.harness_cost import HARNESS, HARNESS_JS, widget
     build_text = (ROOT / 'paper_lab/build.py').read_text()
-    assert hashlib.sha256((ROOT / 'paper_lab/batch08.py').read_bytes()).hexdigest() == 'ede12f233a1c6bbd58e89d06a2a0365f8c00dae3f08df6a8ea5abaee41ff4eed'
+    path = 'paper_lab/batch08.py'
+    prior = before_sim2real_all_full_prose(ROOT, path, (ROOT / path).read_bytes())
+    assert hashlib.sha256(prior).hexdigest() == 'ede12f233a1c6bbd58e89d06a2a0365f8c00dae3f08df6a8ea5abaee41ff4eed'
     assert 'if lab.id == "harness-buys-tokens-not-pass-rate":\n                html += harness_cost_widget(lab.results)' in build_text
     assert widget({'lab_kind':'sim08'}) == ''
     assert widget({'lab_kind':'hear08'}) == ''

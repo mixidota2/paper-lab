@@ -2,14 +2,14 @@
 import ast
 from pathlib import Path
 import pytest
-from prose_preservation import before_hear_full_prose
+from prose_preservation import before_sim2real_all_full_prose, before_hear_full_prose
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_shared_renderer_scope_and_old_bytes():
     path = 'paper_lab/batch08.py'
-    current = (ROOT / path).read_bytes()
+    current = before_sim2real_all_full_prose(ROOT, path, (ROOT / path).read_bytes())
     prior = before_hear_full_prose(ROOT, path, current)
     assert prior != current
     def outside_hear(raw):
