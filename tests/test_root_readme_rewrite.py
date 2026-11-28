@@ -3,6 +3,7 @@
 import hashlib
 import json
 from pathlib import Path
+from prose_preservation import historical_lab_public_guide
 
 import pytest
 
@@ -30,7 +31,7 @@ def test_root_readme_identity_rejects_one_digit_or_unrelated_path(algorithm):
     assert set(proof['files']) == {PATH}
     before = PREVIOUS[algorithm]
     assert proof['files'][PATH]['before_' + algorithm] == before
-    content = (ROOT / PATH).read_bytes()
+    content = historical_lab_public_guide(ROOT,PATH)
     after = root_readme_rewrite_hash(ROOT, PATH, before, algorithm)
     assert after == identity(content, algorithm)
     assert after != identity(content + b'\n', algorithm)

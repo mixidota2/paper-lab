@@ -120,6 +120,9 @@ def verify_preserved_source(root, path, expected, *, patch_bytes=None, dcmp_patc
     if sha(data) == expected:
         return  # Every unchanged historical source remains valid.
     assert path == GUIDE and expected == BEFORE, path
+    if (root/'tests/lab_public_guides_hashes.json').is_file():
+        from prose_preservation import before_lab_public_guide
+        data = before_lab_public_guide(root,path,data)
     data = before_november(data)
     assert sha(data) in (SYNTHESIS, AFTER, LAYOUT, WORDING), 'Guide differs from exact reviewed revisions'
     if sha(data) == WORDING:

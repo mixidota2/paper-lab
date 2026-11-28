@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+from prose_preservation import historical_lab_public_guide
 import re
 
 import pytest
@@ -18,7 +19,7 @@ def identity(b):
 
 
 def test_weather_section_and_existing_guide_are_exact():
-    current=(ROOT/P).read_bytes()
+    current=historical_lab_public_guide(ROOT,P)
     prior=before_weather_cutoff(ROOT,P,current)
     weather=before_axial_ingredient_order(ROOT,P,before_stockout_example(ROOT,P,current))
     receipt=json.loads((ROOT/'tests/replenishment_weather_cutoff_hashes.json').read_text())

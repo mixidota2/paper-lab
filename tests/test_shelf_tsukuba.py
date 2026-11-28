@@ -1,6 +1,7 @@
 """Keep the model comparison, field change, and sales evidence distinct."""
 from hashlib import sha1
 from pathlib import Path
+from prose_preservation import historical_lab_public_guide
 
 import pytest
 
@@ -9,7 +10,7 @@ from prose_preservation import shelf_tsukuba_hash
 from shelf_guide_preservation import BEFORE, GUIDE, STREICHER, before_tsukuba, sha, verify_preserved_source
 
 ROOT = Path(__file__).resolve().parents[1]
-RAW = (ROOT / GUIDE).read_bytes()
+RAW = historical_lab_public_guide(ROOT,GUIDE)
 ANCHOR = 'tsukuba-sekisho-shelf-evaluation'
 SOURCE = 'https://casebank.sk-tsukuba.university/case/10454'
 

@@ -1,6 +1,7 @@
 import hashlib
 import json
 from pathlib import Path
+from prose_preservation import historical_lab_public_guide
 import runpy
 
 import pytest
@@ -31,7 +32,7 @@ def test_fixed_counts_and_connectivity_exact_example():
 
 
 def test_calculation_edit_preserves_prior_guide_and_numeric_copy():
-    raw = GUIDE.read_bytes()
+    raw = historical_lab_public_guide(ROOT,str(GUIDE.relative_to(ROOT)))
     old = before_store_layout_calculation(ROOT, raw)
     row = json.loads((ROOT / 'tests/store_layout_calculation_hashes.json').read_text())
     assert hashlib.sha256(old).hexdigest() == row['before_sha256']

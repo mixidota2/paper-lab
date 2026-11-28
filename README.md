@@ -6,11 +6,11 @@
 
 ## 論文一覧とテーマガイド
 
-最新の研究やLabの一覧を探すなら、公開サイトの `index.html` を開きます。業務上のテーマから探すなら `guides/index.html` です。生成したサイトではガイドを121件のLabと別に数え、ガイドの追加日と論文の発表・公開時期も区別して表示します。
+個別の論文を探すときは[Labの一覧](https://mixidota2.github.io/paper-lab/)を、業務上のテーマから探すときは[テーマガイドの一覧](https://mixidota2.github.io/paper-lab/guides/)を開きます。生成したサイトではガイドを121件のLabと別に数え、ガイドの追加日と論文の発表・公開時期も区別して表示します。
 
 | テーマ | ガイドで読めること | 生成に必要な原稿とLab |
 | --- | --- | --- |
-| 棚割り | 棚の本数、配分、置き方を考えるときに参照できる3件のLabを案内します。 | 原稿 `guides/shelf-decisions.md` と、原稿が参照する3件のLab |
+| 棚割り | カテゴリへの棚幅配分、置く商品、棚内と店内での置き方を分けて考えます。 | 原稿 `guides/shelf-decisions.md` と、棚幅配分・品揃えと棚在庫・棚内配置の3件のLab |
 | 需要予測と補充 | 企業での事例、理論上保証されること、小さく試すための提案を分けて比べます。 | 棚割りガイドの生成条件に加え、共通閾値・ORPR・予測精度と在庫指標のLab、原稿と事例カードが必要です。 |
 | 棚本数を固定した店舗レイアウト | カテゴリーごとの棚本数を固定した上で、棚をどの位置に置くか、同じカテゴリーの棚を連続して置くか、配置の組み合わせによって何が変わるかを比べます。棚を5・4・3本に分けた図は模式図です。別の合成例では12か所への配置27,720通りを調べ、同じカテゴリの棚がすべてつながり、通路をまたがない配置が16通りあることを確かめました。 | 原稿 `guides/store-layout-fixed-counts.md`、棚割りガイドの生成条件、Whole FoodsのLab |
 
@@ -142,7 +142,7 @@ OGR、DREAM、PILOTの3件を追加しました。各 `mapping.md` に一次PDF�
 
 ### 2026-09-22：検索の価値、注文の完納、修正前の診断
 
-[VARG](https://mixidota2.github.io/paper-lab/papers/varg-tmall-value-generative-retrieval.html) は検索に使うID（住所）がどれだけ安定しているかを扱います。[Accuracy Is Not Service](https://mixidota2.github.io/paper-lab/papers/accuracy-not-service-intermittent-demand.html) は予測精度による順位と、注文をすべてそろえて出せた割合による順位を扱います。[AURA](https://mixidota2.github.io/paper-lab/papers/aura-disney-agentic-rec-diagnosis.html) は原因を診断し、修正を保留する判断を扱います。各 `mapping.md` にPDFの版とハッシュ、Labで実行した範囲を記録しています。
+[VARG](https://mixidota2.github.io/paper-lab/papers/varg-tmall-value-generative-retrieval.html) では、初回に商品IDを作るとき、先頭2つの符号が同じ商品どうしを、購入につながる見込みの推定値で並べ、その順位を3つ目の符号に使います。全商品を一列に並べた順位ではありません。生成モデルが選んだ候補は、専用の枠を使って粗い順位付けを省き、既存の最終順位付けへ進みます。[Accuracy Is Not Service](https://mixidota2.github.io/paper-lab/papers/accuracy-not-service-intermittent-demand.html) は予測精度による順位と、注文をすべてそろえて出せた割合による順位を扱います。[AURA](https://mixidota2.github.io/paper-lab/papers/aura-disney-agentic-rec-diagnosis.html) は原因を診断し、修正を保留する判断を扱います。各 `mapping.md` にPDFの版とハッシュ、Labで実行した範囲を記録しています。
 
 注目枠の図では、[GRACE](https://mixidota2.github.io/paper-lab/papers/grace-meta-ads-gtm-serving.html) のマスクがリクエストごとに候補をどう制限するか、[ICEGR](https://mixidota2.github.io/paper-lab/papers/icegr-baidu-intent-generative-retrieval.html) が使うマージンの係数、[EvoPilot](https://mixidota2.github.io/paper-lab/papers/evopilot-verify-dont-trust-autoresearch.html) で評価器の不具合がどう推移したか、[SIDInspector](https://mixidota2.github.io/paper-lab/papers/sidinspector-mapping-diagnostics.html) がIDの対応表をどう診断するかを確認できます。画面幅を変えてこの日の7件の表示を確認するには、`uv run --with playwright tests/browser_september22.py` を実行します。
 

@@ -1,6 +1,7 @@
 """Changing the explanation keeps its destinations, units, and reviewed history."""
 from collections import Counter
 from pathlib import Path
+from prose_preservation import historical_lab_public_guide
 import hashlib
 import json
 import re
@@ -15,7 +16,7 @@ BASE = 'df58ceae17143d38d03499090c8bbd449a0c738d'
 
 
 def test_all_source_links_anchors_and_numeric_occurrences_survive():
-    current = (ROOT / GUIDE).read_bytes()
+    current = historical_lab_public_guide(ROOT,GUIDE)
     previous = subprocess.check_output(['git', 'show', f'{BASE}:{GUIDE}'], cwd=ROOT)
     assert before_full_rewrite(current) == previous
     a, b = previous.decode(), before_streicher(current).decode()
@@ -33,7 +34,7 @@ def test_manifest_requires_exact_prior_and_current_identities(algo):
     record = json.loads((ROOT / 'tests/shelf_full_rewrite_hashes.json').read_text())
     assert record['files'].keys() == {GUIDE}
     old = subprocess.check_output(['git', 'show', f'{BASE}:{GUIDE}'], cwd=ROOT)
-    new = (ROOT / GUIDE).read_bytes()
+    new = historical_lab_public_guide(ROOT,GUIDE)
     def digest(raw):
         if algo == 'sha256':
             return hashlib.sha256(raw).hexdigest()

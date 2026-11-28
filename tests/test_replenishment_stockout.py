@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+from prose_preservation import historical_lab_public_guide
 import re
 
 import pytest
@@ -20,7 +21,7 @@ def hashes(data):
 
 
 def test_stockout_is_one_exact_insertion_after_axial():
-    current = (ROOT / GUIDE).read_bytes()
+    current = historical_lab_public_guide(ROOT,GUIDE)
     row = json.loads((ROOT / 'tests/replenishment_stockout_hashes.json').read_text())
     axial = json.loads((ROOT / 'tests/replenishment_axial_hashes.json').read_text())
     block = row['inserted'].encode()
