@@ -3,6 +3,8 @@ import hashlib
 import json
 import re
 
+from shelf_prelaunch_revision import before_shelf_prelaunch_revision, shelf_prelaunch_hash
+
 from overview_predicate_revisions import before_overview_predicate_revision, overview_predicate_hash
 from research_notes_reader_revision import SHELF as SHELF_EVIDENCE_NOTE, research_notes_reader_hash
 
@@ -4389,13 +4391,14 @@ def lab_public_guide_hash(root,path,expected,algorithm='sha256'):
     if row is None:
         return expected
     assert expected==row['before'][algorithm],path
-    return row['after'][algorithm]
+    return shelf_prelaunch_hash(root,path,row['after'][algorithm],algorithm)
 
 
 def before_lab_public_guide(root,path,current):
     row=lab_public_guide_row(root,path)
     if row is None:
         return current
+    current = before_shelf_prelaunch_revision(root,path,current)
     assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
     lines=current.decode().splitlines(keepends=True)
     for start,stop,old in reversed(row['prior_spans']):
