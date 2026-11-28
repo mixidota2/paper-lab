@@ -11,9 +11,9 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "papers" / "trial-by-trace-evidence-boundaries"
 CONTROL_IDS = ("a", "h", "g", "b", "q", "reset")
 INITIAL = ("成果 100%／基盤 50%／総合 75点\n"
-           "成果の全項目が合格：はい\n両層の全項目が合格：いいえ\n"
-           "基盤に不合格項目がある：はい\n観測の迂回を除いても基盤に不合格が残る：はい\n"
-           "基盤から成果に失敗が伝わった可能性を調べる候補：該当なし\n実際に失敗が伝わったか：未検証")
+           "成果は全項目に合格したか：はい\n成果と基盤はともに全項目に合格したか：いいえ\n"
+           "基盤に不合格の項目があるか：はい\n元の結果が見えなかった項目を除いても、基盤に不合格が残るか：はい\n"
+           "基盤の失敗が成果に影響したかを調べる候補：該当なし\n実際に失敗が伝わったか：未検証")
 
 
 class Document(HTMLParser):
@@ -71,8 +71,8 @@ class TrialFallbackTests(unittest.TestCase):
         for doc, prefix, _ in surfaces():
             with self.subTest(surface=prefix or "standalone"):
                 self.assertEqual(doc.nodes[prefix + "out"]["text"], INITIAL)
-                self.assertIn("初期条件の結果のみ", doc.explanation)
-                self.assertIn("条件の変更はできません", doc.explanation)
+                self.assertIn("最初の条件だけが表示され", doc.explanation)
+                self.assertIn("条件は変えられません", doc.explanation)
 
     def test_controls_disabled_before_scripts_run(self):
         for doc, prefix, _ in surfaces():
@@ -106,8 +106,8 @@ const get=name=>nodes[f.prefix+name];
 for(const id of Object.keys(f.controls))assert.equal(nodes[id].disabled,false,id);
 assert.equal(get('out').textContent,f.initial);
 function expected(r){return r.admitted?
- `成果 ${r.agent*100}%／基盤 ${r.harness*100}%／総合 ${r.score}点\n成果の全項目が合格：${r.success ? "はい" : "いいえ"}\n両層の全項目が合格：${r.clean ? "はい" : "いいえ"}\n基盤に不合格項目がある：${r.raw ? "はい" : "いいえ"}\n観測の迂回を除いても基盤に不合格が残る：${r.adjusted ? "はい" : "いいえ"}\n基盤から成果に失敗が伝わった可能性を調べる候補：${r.link ? "該当" : "該当なし"}\n実際に失敗が伝わったか：未検証`:
- '記録の整合性を確認していないため、採点と原因の判定を保留します。';}
+ `成果 ${r.agent*100}%／基盤 ${r.harness*100}%／総合 ${r.score}点\n成果は全項目に合格したか：${r.success ? "はい" : "いいえ"}\n成果と基盤はともに全項目に合格したか：${r.clean ? "はい" : "いいえ"}\n基盤に不合格の項目があるか：${r.raw ? "はい" : "いいえ"}\n元の結果が見えなかった項目を除いても、基盤に不合格が残るか：${r.adjusted ? "はい" : "いいえ"}\n基盤の失敗が成果に影響したかを調べる候補：${r.link ? "該当" : "該当なし"}\n実際に失敗が伝わったか：未検証`:
+ '記録が対象の実行に対応すると確認できないため、採点と候補の判定を保留します。';}
 for(const c of f.cases){
  get('a').value=String(c.a);get('h').value=String(c.h);
  for(const id of ['g','b','q'])get(id).checked=c[id];

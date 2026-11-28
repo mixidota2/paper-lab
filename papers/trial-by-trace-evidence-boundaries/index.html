@@ -1,17 +1,17 @@
-<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 fill=%27%23356%27/%3E%3C/svg%3E"><title>完成物が正しくても、途中の処理は正しく伝わったか</title><style>body{max-width:850px;margin:auto;padding:1.2rem;font:18px/1.8 sans-serif;color:#24343d;background:#faf8f1}label{display:block;margin:1rem 0}select,button{font:inherit;max-width:100%}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#fff;padding:1rem}.diagram{border:2px solid #356;padding:1rem}a{color:#246}</style><main>
-<h1>完成物が正しくても、途中の処理は正しく伝わったか</h1><p>エージェントの完成物と、その判断を支える実行基盤（Harness）の情報伝達を別々に確認します。たとえば処理が失敗したのに成功と伝わっても、別の手順で完成物だけは正しくなる場合があります。</p>
-<h2>仕組みと図</h2><div class="diagram" role="img" aria-label="測定の整合性確認後、成果と基盤を別採点し、失敗の候補関係を調べる自作図">測定記録の整合性 → 成果の判定A／基盤の判定H → 候補関係 → 別途、証拠による検証</div><p>得点は S=50 pA/nA + 50 pH/nH。各層内では項目を等重みとし、両層の全項目が合格した場合だけ100点です。測定不備は基盤の欠陥として数えません。</p>
-<h2>根拠</h2><p><a href="https://arxiv.org/html/2610.32285v1">Trial by Trace v1</a> §3.4・表4・式3、§3.5・式4/6をもとにした自作教材です。状態2は、基盤の仕組みがないか、該当する処理を通らなかった場合です。成果が全項目合格なら基盤のその項目も合格（1）、そうでなければ不合格（0）になります。二つの採点表を分けても、この判定は成果に依存します。</p>
-<h2>操作できる合成例</h2><p>成果2項目と基盤2項目を採点します。各層の第2項目は合格で固定。下の選択は既に得られた判定を入力する教材で、実モデルや意味判定器は動かしません。割合は、この合成例の各層2項目のうち合格した項目の割合です。原著実験の成功率ではありません。測定の整合性や候補関係のチェック欄も、実際に検査した結果ではなく仮定の入力です。</p>
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 fill=%27%23356%27/%3E%3C/svg%3E"><title>成果物が正しくても、途中の結果は正しく伝わったか</title><style>body{max-width:850px;margin:auto;padding:1.2rem;font:18px/1.8 sans-serif;color:#24343d;background:#faf8f1}label{display:block;margin:1rem 0}select,button{font:inherit;max-width:100%}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#fff;padding:1rem}.diagram{border:2px solid #356;padding:1rem}a{color:#246}</style><main>
+<h1>成果物が正しくても、途中の結果は正しく伝わったか</h1><p>処理が失敗したのに成功と伝わっても、エージェントが別の手順で仕事を終えれば、成果物は正しくなる場合があります。この教材では、成果物の合否と、エージェントを動かす実行基盤（Harness）の合否を分けて扱います。</p>
+<h2>得点の決まり方</h2><div class="diagram" role="img" aria-label="記録を照合し、成果と基盤を別に採点してから候補を調べる図">1. 記録を照合する → 2. 成果と基盤を採点する → 3. 候補の条件を確かめる → 4. 証拠から原因を確認する</div><p>得点は S=50 pA/nA + 50 pH/nH。成果と基盤それぞれで、合格した割合に50を掛けます。両方の全項目が合格したときだけ100点です。記録の不備だけで基盤に欠陥があるとは判断しません。</p>
+<h2>状態2の扱い</h2><p><a href="https://arxiv.org/html/2610.32285v1">Trial by Trace v1</a>の§3.4の表4・式3と§3.5の式4・6を使った教材です。基盤に仕組みがないか、その仕組みを使う処理まで進まなかった場合を、著者は状態2としました。成果が全項目に合格すれば、基盤のその項目も合格（1）になります。成果に一つでも不合格があれば、基盤のその項目は0です。採点表が別でも、この判定には成果が影響します。</p>
+<h2>条件を切り替える</h2><p>成果と基盤にそれぞれ2項目あり、どちらも2項目目は合格に固定します。1項目目の判定と、チェック欄の仮定を選ぶと、下に点数が出ます。割合は教材の各2項目のうち合格した割合です。実際のモデルや採点器を動かした結果ではありません。</p>
 <label>成果の第1項目<select id="a" disabled><option value="1">合格</option><option value="0">不合格</option></select></label>
-<label>基盤の第1項目<select id="h" disabled><option value="0">0：裏付けなし／不合格</option><option value="1">1：裏付けあり</option><option value="2">2：仕組みを使わなかった</option><option value="3">3：仕組みを使ったが基盤が異常を起こした</option></select></label>
-<label><input id="g" disabled type="checkbox" checked>記録の整合性を確認済みと仮定する</label><label><input id="b" disabled type="checkbox">調べたい処理の結果を別の処理が覆い隠したと仮定する</label><label><input id="q" disabled type="checkbox">失敗が伝わる候補の条件に合うと仮定する</label><button id="reset" disabled>初期条件へ</button><pre id="out" aria-live="polite">成果 100%／基盤 50%／総合 75点
-成果の全項目が合格：はい
-両層の全項目が合格：いいえ
-基盤に不合格項目がある：はい
-観測の迂回を除いても基盤に不合格が残る：はい
-基盤から成果に失敗が伝わった可能性を調べる候補：該当なし
-実際に失敗が伝わったか：未検証</pre><noscript><p>JavaScriptが無効なため、初期条件の結果のみを表示しています。条件の変更はできません。</p></noscript>
-<p>観測の迂回を指定しても、基盤項目の不合格は採点に残ります。基盤側に帰属させる失敗を調べるときだけ、その項目を除きます。一方、失敗が伝わった可能性を示す候補の判定には、除く前の不合格を使います。候補になっても、失敗が実際に伝わったことは未確認です。</p>
-<h2>限界</h2><p>ここでは基盤項目0を欠陥確定と扱いません。原記録の照合、途中の情報変化、出来事の順序、競合する説明の検討は自動化していません。著者の実験再現・性能比較・実務効果は未検証です。</p>
-<h2>実装</h2><p><a href="model.js">自作計算</a>・<a href="results.json">全64条件</a>。ブラウザの操作処理も自動テストで検査します。測定不備の際は得点を表示しません。64条件は、成果2状態×基盤4状態×チェック欄の2状態を3個、という自作の組合せであり、原著の実行件数ではありません。</p></main><script src="model.js"></script><script src="ui.js"></script></html>
+<label>基盤の第1項目<select id="h" disabled><option value="0">0：不合格、または確認に必要な証拠がない</option><option value="1">1：条件を満たした証拠がある</option><option value="2">状態2：仕組みを使わなかった</option><option value="3">3：実行基盤の仕組みが動いたが異常が起きた</option></select></label>
+<label><input id="g" disabled type="checkbox" checked>記録がこの実行と対応すると仮定する</label><label><input id="b" disabled type="checkbox">別の処理が元の結果を隠したと仮定する</label><label><input id="q" disabled type="checkbox">失敗のつながりを調べる事前の条件に合うと仮定する</label><button id="reset" disabled>最初の条件に戻す</button><pre id="out" aria-live="polite">成果 100%／基盤 50%／総合 75点
+成果は全項目に合格したか：はい
+成果と基盤はともに全項目に合格したか：いいえ
+基盤に不合格の項目があるか：はい
+元の結果が見えなかった項目を除いても、基盤に不合格が残るか：はい
+基盤の失敗が成果に影響したかを調べる候補：該当なし
+実際に失敗が伝わったか：未検証</pre><noscript><p>JavaScriptを無効にすると最初の条件だけが表示され、条件は変えられません。</p></noscript>
+<p>元の処理の結果が別の処理に隠れても、採点ではその項目の不合格を残します。基盤が原因だったかを調べるときは除きます。一方、調べる候補を選ぶときは除く前の不合格を使います。候補になっただけでは、基盤の失敗が成果に伝わったとは判断しません。</p>
+<h2>限界</h2><p>この教材は原記録を読まず、途中の情報の変化や出来事の順番を確かめません。基盤の項目が0でも、欠陥があると確かめたわけではありません。著者の実験、モデルの性能比較や実務での効果は検証していません。</p>
+<h2>実装</h2><p><a href="model.js">得点を計算するコード</a>・<a href="results.json">全64条件</a>。自動テストでは条件の変更と初期化も確認します。記録と実行が対応しない設定では採点を保留します。64条件は成果の2状態、基盤の4状態、3個のチェック欄のオン・オフを組み合わせた教材の件数です。</p></main><script src="model.js"></script><script src="ui.js"></script></html>
