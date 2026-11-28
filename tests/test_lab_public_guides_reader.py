@@ -7,6 +7,7 @@ import pytest
 from prose_preservation import (
     LAB_PUBLIC_GUIDES, before_lab_public_guide, lab_public_guide_hash, reading_prose_hash,
 )
+from shelf_prelaunch_revision import before_shelf_prelaunch_revision
 from shelf_guide_preservation import BEFORE,GUIDE,verify_preserved_source
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -23,10 +24,10 @@ def test_exact_after_and_reverse_preserve_historical_bytes(path):
     assert rows.keys()==LAB_PUBLIC_GUIDES
     current=(ROOT/path).read_bytes()
     previous=before_lab_public_guide(ROOT,path,current)
-    assert identities(current)==rows[path]['after']
+    assert identities(before_shelf_prelaunch_revision(ROOT,path,current))==rows[path]['after']
     assert identities(previous)==rows[path]['before']
     for algorithm in ('sha256','blob'):
-        assert lab_public_guide_hash(ROOT,path,rows[path]['before'][algorithm],algorithm)==rows[path]['after'][algorithm]
+        assert lab_public_guide_hash(ROOT,path,rows[path]['before'][algorithm],algorithm)==identities(current)[algorithm]
         for bad in (rows[path]['after'][algorithm],'0'*len(rows[path]['before'][algorithm])):
             with pytest.raises(AssertionError):
                 lab_public_guide_hash(ROOT,path,bad,algorithm)
