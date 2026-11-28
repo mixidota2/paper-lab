@@ -1,0 +1,85 @@
+{
+  "base": "725136b4709824ddd4b65254e13d6729f84c6d47",
+  "files": {
+    "papers/revise-recovery/figures/certificate.svg": {
+      "before_sha256": "833943e30af8d19c660a3d800b82395a17bf9417e5ce76d1323dba622231e3c1",
+      "before_blob": "daa11aaf3bc4adc8a6a876747b09aa746fd5b0b3",
+      "after_sha256": "833943e30af8d19c660a3d800b82395a17bf9417e5ce76d1323dba622231e3c1",
+      "after_blob": "daa11aaf3bc4adc8a6a876747b09aa746fd5b0b3",
+      "prior_spans": []
+    },
+    "papers/revise-recovery/figures/impact.svg": {
+      "before_sha256": "1855a33e9541b5930eb2eee15d4bb7827e0ade5b28deae424d36ebc40bfd7e65",
+      "before_blob": "5fe1a6fb0443c090e5c954496a0b609054f5a782",
+      "after_sha256": "1855a33e9541b5930eb2eee15d4bb7827e0ade5b28deae424d36ebc40bfd7e65",
+      "after_blob": "5fe1a6fb0443c090e5c954496a0b609054f5a782",
+      "prior_spans": []
+    },
+    "papers/revise-recovery/lab.yaml": {
+      "before_sha256": "91107b4f9d0f69c3825a176ff370a080abd51cd088468ac1157d3574e991a717",
+      "before_blob": "18340d1cd2b1bdcba1fdb86db3f756318e629bb6",
+      "after_sha256": "566294767b0405132072df7ab332d353d1d4ad8b500aa94ef93c75e8b6cb5508",
+      "after_blob": "874d40d7ca0ab29bfe09a00eae77aba32511a872",
+      "prior_spans": [
+        [
+          41,
+          42,
+          "    エージェントの実行中に利用者が指示を変えると、最初からやり直す方式では変更と関係ない作業まで失われます。REVISEは変更された入力を各処理が読んだ値や処理を選んだ分岐条件と照合し、影響を受けた処理だけをやり直します。再利用する結果も、外部へ反映する直前に再確認します。依存関係を十分に記録できていなければ、より広い範囲をやり直します。\n"
+        ],
+        [
+          43,
+          44,
+          "    著者の評価では、15,939回の実行結果がすべて、最新の指示で最初からやり直した結果と一致しました。LangGraphでは、最初に影響を受けた処理から後ろをすべてやり直す方式に比べ、モデルの呼び出し回数が43.6%減りました。一方、その比較でリクエスト完了までの時間の中央値が縮んだのは5.9%です。分散環境での障害復旧を検証した結果ではありません。\n"
+        ],
+        [
+          68,
+          70,
+          ""
+        ]
+      ]
+    },
+    "papers/revise-recovery/method.md": {
+      "before_sha256": "c49feb729baa7bccbfd92a54f4e33f168107ea00e0e2c988de82f9ecfdaac126",
+      "before_blob": "e494953dfe5bf725a1501a6e1f5e34c14a231d2d",
+      "after_sha256": "c49feb729baa7bccbfd92a54f4e33f168107ea00e0e2c988de82f9ecfdaac126",
+      "after_blob": "e494953dfe5bf725a1501a6e1f5e34c14a231d2d",
+      "prior_spans": []
+    },
+    "papers/revise-recovery/results.json": {
+      "before_sha256": "e9b5199152f458ac90acca26a24b0a789c4437b9e516799c9a4a23fd8012f5d0",
+      "before_blob": "4031b9512f9d904a8ca0d649841cf647b6e09407",
+      "after_sha256": "0fb994b856d715da4d14522850f079f1c7c42a330ae681c183e4b10e4043b564",
+      "after_blob": "3e52c91fa277cd4a7cdaaf07666fc3aa1fb26599",
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"合成 DAG の決定的再実行。call はノード再計算数。並行実行・LLM token・本番効果は測っていない。\",\n"
+        ],
+        [
+          4,
+          5,
+          "      \"name\": \"budget の局所変更\",\n"
+        ]
+      ]
+    },
+    "papers/revise-recovery/run.py": {
+      "before_sha256": "8bff6b7b923ed6fcdd550181b8b1f8c1bdf9220be364971eeb48534c687a2ac1",
+      "before_blob": "8aaa3fccffea8076a227962a6250c9785ae7368e",
+      "after_sha256": "17bcff0fe3709f8f62e0df99e1bd798450862c321761e5fb800473ced488a364",
+      "after_blob": "46587044bb74bfd9268aaa77802bae74c03f052f",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Deterministic DAG recovery and a commit certificate toy, not a concurrent runtime.\"\"\"\n"
+        ],
+        [
+          60,
+          62,
+          "    out = {'note': '合成 DAG の決定的再実行。call はノード再計算数。並行実行・LLM token・本番効果は測っていない。',\n           'experiments': [{'name': 'budget の局所変更', 'metrics': {k: {'calls': v['calls'], 'oracle_equal': v['oracle_equal']} for k, v in cases[0]['policies'].items()}}],\n"
+        ]
+      ]
+    }
+  }
+}

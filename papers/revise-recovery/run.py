@@ -1,4 +1,4 @@
-"""Deterministic DAG recovery and a commit certificate toy, not a concurrent runtime."""
+"""指示変更後に再計算する処理を選び、結果を確定できるかを調べる教材です。並行実行はしません。"""
 import json
 from pathlib import Path
 
@@ -58,8 +58,8 @@ def main():
               'obsolete_parent_rejected': not commit_valid([], [], parents_current=False),
               'unknown_rejected': not commit_valid([], [], complete=False),
               'unsafe_effect_rejected': not commit_valid([], [], effect_safe=False)}
-    out = {'note': '合成 DAG の決定的再実行。call はノード再計算数。並行実行・LLM token・本番効果は測っていない。',
-           'experiments': [{'name': 'budget の局所変更', 'metrics': {k: {'calls': v['calls'], 'oracle_equal': v['oracle_equal']} for k, v in cases[0]['policies'].items()}}],
+    out = {'note': 'このファイルは架空の6処理を使って、指示を変えたあとの再計算を比べた結果です。calls は再計算した処理数、oracle_equal は最新の入力で最初から計算した結果と一致したかを表します。並行実行、モデルが生成したトークン数、本番での効果は測っていません。',
+           'experiments': [{'name': '予算だけを変える', 'metrics': {k: {'calls': v['calls'], 'oracle_equal': v['oracle_equal']} for k, v in cases[0]['policies'].items()}}],
            'cases': cases, 'commit_checks': checks}
     assert all(checks.values())
     assert all(v['oracle_equal'] for c in cases for v in c['policies'].values())
