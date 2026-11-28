@@ -8,7 +8,7 @@ import subprocess
 import pytest
 import yaml
 
-from prose_preservation import paper_overview_rewrite_hash, zalando_full_rewrite_hash
+from prose_preservation import before_zalando_reader_full_prose, paper_overview_rewrite_hash, zalando_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 PAPER = 'papers/zalando-sales-event-pricing-forecast-optimize/'
@@ -20,7 +20,7 @@ def historical(path):
     return subprocess.check_output(['git', 'show', f'{BASE}:{path}'], cwd=ROOT)
 
 def local(path):
-    return (ROOT / path).read_bytes()
+    return before_zalando_reader_full_prose(ROOT, path, (ROOT / path).read_bytes())
 
 def urls(raw):
     return Counter(re.findall(rb'https?://[^\s)\x27"\x60<]+', raw))

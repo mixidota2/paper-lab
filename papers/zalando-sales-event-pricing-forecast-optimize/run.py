@@ -2,7 +2,7 @@
 # requires-python = ">=3.10"
 # dependencies = ["numpy==2.2.6", "lightgbm==4.6.0"]
 # ///
-"""Small constant-elasticity teaching experiment, not a Zalando replication."""
+"""架空商品の需要と在庫を使い、予測から選んだ割引を比較する。Zalandoの実地試験は再現しない。"""
 import json
 from pathlib import Path
 import numpy as np
@@ -10,6 +10,7 @@ import lightgbm as lgb
 
 
 def financial(q, discounts, stock, price, cost, gamma, returns=0.2, vat=0.19):
+    """売れる数量を在庫で止め、純売上・短期利益・長期利益を計算する。"""
     sales = np.minimum(q, stock[:, None])
     nmv = (1-returns) * sales * price[:, None] * (1-discounts) / (1+vat)
     profit = nmv-cost[:, None]*sales
@@ -39,6 +40,7 @@ def experiment(seed):
     cost = price*0.2
     gamma = price*0.25
     actual = financial(true, discounts, stock, price, cost, gamma)
+    # 真の需要を使える場合も、選ぶ割引は短期利益ではなく長期利益で決める。
     oracle_choice = actual[3].argmax(axis=1)
     row = np.arange(n)
     oracle_profit = actual[2][row,oracle_choice].sum()
