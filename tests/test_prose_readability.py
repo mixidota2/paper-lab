@@ -460,7 +460,7 @@ def test_batch21_memory_repair_and_cost_aggregation_boundaries():
 
 def test_batch22_evidence_continuation_and_serving_units():
     phrases = {
-        'episem-missing-evidence-recovery': ('method.md', '事実が見えないことと、その事実が偽であることは別'),
+        'episem-missing-evidence-recovery': ('method.md', '「上限を超えたことがわからない」は、「上限内だとわかった」とは別'),
         'evopilot-verify-dont-trust-autoresearch': ('lab.yaml', '許可した変更が実際には起きていない場合も拒否'),
         'featurearc-inherited-defects-chain-gates': ('method.md', 'その段階は継続率の集計へ戻さない'),
         'flashvector-unity-serving-stack-agent': ('lab.yaml', '途中で不合格になれば、以降の判定へ進まない'),

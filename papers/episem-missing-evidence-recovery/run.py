@@ -1,4 +1,4 @@
-"""Original deterministic teaching toy. No author data, model or external action."""
+"""固定した判断規則を使う教材。著者の実験データや実際のモデルは使わず、外部への操作も行わない。"""
 from itertools import product
 import json
 from pathlib import Path
@@ -50,7 +50,7 @@ def pair(task, mask, irrelevant, policy, setting, timing):
 
 
 def boundary(observed, c):
-    """Accept a witness only with smaller masks covered; sentinel needs all masks."""
+    """より少ない欠落の全条件を試してから最小値を返す。失敗なしを示す値には、全条件の結果が必要。"""
     assert 0 in observed
     failures = sorted((m for m, bad in observed.items() if bad), key=lambda m: (m.bit_count(), m))
     if failures:
@@ -88,7 +88,7 @@ def compute():
                 [False, True], POLICIES, ['SE', 'RE'], ['before', 'after']):
             args = [task, mask, irrelevant, policy, setting, timing]
             cases.append({'args': args, 'result': pair(*args)})
-    return {'note': '独自の決定論的toy。著者300対・実モデル・外部APIを実行した結果ではない。',
+    return {'note': 'この教材は仮想の2課題を固定した判断規則で計算しました。著者の300組、実際のモデル、外部APIは使っていません。',
             'reported': {'arxiv': '2610.31650v1', 'pairs': 300, 'worlds': 600, 'domains': 6,
                          'families': 60, 'critical_atoms': 944, 'irrelevant_atoms': 419,
                          'fixed_conditions_per_model': 600 + 4 * (944 + 419)},

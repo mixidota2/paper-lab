@@ -211,7 +211,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = harness_zero_all_full_prose_hash(root, path, expected, algorithm)
     expected = tagr_all_full_prose_hash(root, path, expected, algorithm)
     expected = swe_serve_full_prose_hash(root, path, expected, algorithm)
-    return harness_r1_full_prose_hash(root, path, expected, algorithm)
+    expected = harness_r1_full_prose_hash(root, path, expected, algorithm)
+    return episem_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -3703,6 +3704,29 @@ def harness_r1_full_prose_hash(root,path,expected,algorithm='sha256'):
 def before_harness_r1_full_prose(root,path,current):
     import base64,zlib
     row=harness_r1_full_prose_for_path(root,path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
+    prior=zlib.decompress(base64.b64decode(row['prior_zlib_b64'],validate=True))
+    assert hashlib.sha256(prior).hexdigest()==row['before']['sha256'],path
+    return prior
+
+
+def episem_full_prose_for_path(root,path):
+    if not path.startswith('papers/episem-missing-evidence-recovery/'):
+        return None
+    return json.loads((root/'tests/episem_full_prose_hashes.json').read_text())['files'].get(path)
+
+def episem_full_prose_hash(root,path,expected,algorithm='sha256'):
+    row=episem_full_prose_for_path(root,path)
+    if row is None:
+        return expected
+    assert expected==row['before'][algorithm],path
+    return row['after'][algorithm]
+
+def before_episem_full_prose(root,path,current):
+    import base64,zlib
+    row=episem_full_prose_for_path(root,path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
