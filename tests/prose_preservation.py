@@ -109,6 +109,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = stockout_example_hash(root, path, expected, algorithm)
     expected = sid_ope_full_rewrite_hash(root, path, expected, algorithm)
     expected = perishable_full_rewrite_hash(root, path, expected, algorithm)
+    expected = perishables_reader_assets_hash(root, path, expected, algorithm)
     expected = switch_hurdle_full_rewrite_hash(root, path, expected, algorithm)
     expected = retail_grain_full_rewrite_hash(root, path, expected, algorithm)
     expected = forecast_critic_full_rewrite_hash(root, path, expected, algorithm)
@@ -3855,3 +3856,32 @@ def before_trial_trace_all_full_prose(root,path,current):
     old=zlib.decompress(base64.b64decode(row['prior_zlib_b64'],validate=True))
     assert hashlib.sha256(old).hexdigest()==row['before']['sha256'],path
     return old
+
+
+def perishables_reader_assets_rows(root):
+    return json.loads((root / 'tests/perishables_reader_assets_hashes.json').read_text())['files']
+
+
+def perishables_reader_assets_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/discounted-perishables-forecast/'):
+        return expected
+    row = perishables_reader_assets_rows(root).get(path)
+    if row is None:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_perishables_reader_assets(root, path, current):
+    if not path.startswith('papers/discounted-perishables-forecast/'):
+        return current
+    row = perishables_reader_assets_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior

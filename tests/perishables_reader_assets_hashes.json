@@ -1,0 +1,162 @@
+{
+  "base": "6f97f5ae28c30327b1a7056992b7f85b6aeecaf7",
+  "files": {
+    "papers/discounted-perishables-forecast/README.md": {
+      "before_sha256": "9f74375c720eb6dc3adbc78dcb0538bc264e53c8f9052d2b75047ca6044a3b39",
+      "before_blob": "bb4e056447d8dbd709ab26f3d29cacd0b229e2f6",
+      "after_sha256": "67abf786885f48a6d17dace25ef394d8007341baaa11c93300747663a3dda48a",
+      "after_blob": "3ac119d53f6d3512fc3c218b15b3cbd83569763f",
+      "prior_spans": [
+        [
+          6,
+          8,
+          ""
+        ]
+      ]
+    },
+    "papers/discounted-perishables-forecast/evidence.md": {
+      "before_sha256": "d3d9084380e471eb3099568515f238b3e32ac0bdf09668e62f42e7a646b8a3b4",
+      "before_blob": "3736e552fd8439b70c96dc55ab1601fb00e69d03",
+      "after_sha256": "d3d9084380e471eb3099568515f238b3e32ac0bdf09668e62f42e7a646b8a3b4",
+      "after_blob": "3736e552fd8439b70c96dc55ab1601fb00e69d03",
+      "prior_spans": []
+    },
+    "papers/discounted-perishables-forecast/experiment.md": {
+      "before_sha256": "4227ae697dcf9db3dc4940408161e928baf93ed6460c6b9b7b86d525669907bb",
+      "before_blob": "a8b67273a00f9d94d9ef8fcba5a043e63ab02bbe",
+      "after_sha256": "4227ae697dcf9db3dc4940408161e928baf93ed6460c6b9b7b86d525669907bb",
+      "after_blob": "a8b67273a00f9d94d9ef8fcba5a043e63ab02bbe",
+      "prior_spans": []
+    },
+    "papers/discounted-perishables-forecast/interactive.html": {
+      "before_sha256": "2e969f8bd605461c325303d6afa36be2c5bc77313ef891d7b26148bdd176afee",
+      "before_blob": "3fca3c2b5c2dba4ff0d3ae354cad953ae421e00f",
+      "after_sha256": "2e969f8bd605461c325303d6afa36be2c5bc77313ef891d7b26148bdd176afee",
+      "after_blob": "3fca3c2b5c2dba4ff0d3ae354cad953ae421e00f",
+      "prior_spans": []
+    },
+    "papers/discounted-perishables-forecast/interactive.js": {
+      "before_sha256": "1a29ffe583c60340729a71ad9343f30adb30b2a25592c51daedabc31f23ced89",
+      "before_blob": "99acf5d1a6794872a4d1dea03c02dfe35d414f5f",
+      "after_sha256": "b5bb6a029d7c38852baf1844d1f977400051bfd768e58c1902821de86e1da4b6",
+      "after_blob": "6aa8a4507c5dbe33d4cc8500d1d73359defc0222",
+      "prior_spans": [
+        [
+          4,
+          5,
+          "  selection:'この例では、値引きしなくても同じ数が売れます。回帰の傾きは最初の例と同じ1ですが、値引きで増えた販売数は0個です。',\n"
+        ]
+      ]
+    },
+    "papers/discounted-perishables-forecast/lab.yaml": {
+      "before_sha256": "60cacb4eb26ef3bc95c4e3ac4cc4a2e3660f5431b417dc8eb36d287023be81c3",
+      "before_blob": "86f16bd247c52cd2ce0e24a15384913ac86bf5f3",
+      "after_sha256": "cd771fea559e6b668154c01bcfe88dc95b1c28b7319acdcbc0eb04d016e7fa82",
+      "after_blob": "48daccb00b13e7b7556c39c84fca05099731c6bc",
+      "prior_spans": [
+        [
+          19,
+          20,
+          "summary: 著者が集計した商品では、値引き品が売れた日の販売が基準の予測を上回る商品が多かった。だが、値引き品が売れた数は総販売数の一部だ。同じ正の傾きでも、値引きで販売が増えた場合と、売れ行きのよい日に値引き品も売れただけの場合がある。Labでは同じ観測値が生まれる二例を比べる。\n"
+        ],
+        [
+          34,
+          37,
+          "    著者は、期限が近い食品の値引き販売を、通常の需要予測にどのように含めるかを調べました。欧州の食品小売676店舗で、値引き価格で売れた個数がゼロの日の記録から、商品ごとに販売数の基準を作りました。値引き品が売れた日の総販売数を基準と比べると、図2(a)に載った1,077商品のうち92.2%で、実績は予測を平均で上回りました。ただし、値引きの有無を無作為に決めた研究ではなく、この差から値引きで販売が何個増えたかは分かりません。\n"
+        ],
+        [
+          42,
+          43,
+          "  results: Labの人工例では、値引きで販売が平均2個増えた例では、残差を使った回帰の傾きは1だった。よく売れる日に値引き品も売れた例では、値引きによる増加は0個だったが、傾きは同じ1だった。通常価格で売れる分がそのまま値引き品に置き換わった例では、総販売数は変わらず、傾きは0だった。\n"
+        ]
+      ]
+    },
+    "papers/discounted-perishables-forecast/mapping.md": {
+      "before_sha256": "ded0126b9c6771e72d31eafdfd1c285faf9148c5386a1e25cd11c5397df4d558",
+      "before_blob": "f689fdc28e209a0f22e47e8f30d373efe9aaa911",
+      "after_sha256": "ded0126b9c6771e72d31eafdfd1c285faf9148c5386a1e25cd11c5397df4d558",
+      "after_blob": "f689fdc28e209a0f22e47e8f30d373efe9aaa911",
+      "prior_spans": []
+    },
+    "papers/discounted-perishables-forecast/method.md": {
+      "before_sha256": "d6fbe7d8f75f889cd16bcd0b321be42a275b55b84151281f12bbd18d09b7bd46",
+      "before_blob": "5ab2d39e0958b0df4fc69474ba2a1c1e1eeba9cd",
+      "after_sha256": "d6fbe7d8f75f889cd16bcd0b321be42a275b55b84151281f12bbd18d09b7bd46",
+      "after_blob": "5ab2d39e0958b0df4fc69474ba2a1c1e1eeba9cd",
+      "prior_spans": []
+    },
+    "papers/discounted-perishables-forecast/model.js": {
+      "before_sha256": "a7309482a6d34145193b617420de27388fd52b81a5f063aa4b71bba5d3459e16",
+      "before_blob": "aaa609be8edfeaf99dc2faea45ca8df927fa694b",
+      "after_sha256": "9f58e80017ccfee989517a2f93f7e639fd3c9b0f4e1c7d1a69c9ae2a8892755b",
+      "after_blob": "04bf842a66bc7991dbbfcb609719116147b9451a",
+      "prior_spans": [
+        [
+          6,
+          8,
+          ""
+        ],
+        [
+          14,
+          15,
+          ""
+        ],
+        [
+          17,
+          18,
+          ""
+        ],
+        [
+          37,
+          38,
+          ""
+        ]
+      ]
+    },
+    "papers/discounted-perishables-forecast/results.json": {
+      "before_sha256": "9522dfcac3e674f1e5699cb149dc4ff7907f04bdd929f8f5a386e9da2e061805",
+      "before_blob": "5d2da7636487a44a2fe09751e881d63fd0603a79",
+      "after_sha256": "9522dfcac3e674f1e5699cb149dc4ff7907f04bdd929f8f5a386e9da2e061805",
+      "after_blob": "5d2da7636487a44a2fe09751e881d63fd0603a79",
+      "prior_spans": []
+    },
+    "papers/discounted-perishables-forecast/run.py": {
+      "before_sha256": "53a0b5549e1f9b3279cc1f9eee77932d65c6ed1e9cc63a7eff086e3b40782407",
+      "before_blob": "7ad7852defc37bf47f8809f81605553d2aa2b095",
+      "after_sha256": "938b3f2e20199b93b995379264c276901c7b457180b322b643dc7bc4885e3656",
+      "after_blob": "2fbec2d21cd735cb23134448a1ea6dd44f87bf44",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Synthetic accounting and two-stage OLS; no retailer records.\"\"\"\n"
+        ],
+        [
+          14,
+          16,
+          "        # Non-exposed calibration rows include both latent deviations, and\n        # exposed rows with zero conversions remain in the DS=0 calibration.\n"
+        ],
+        [
+          17,
+          18,
+          ""
+        ],
+        [
+          22,
+          23,
+          "        # With selection the high-demand day would sell those units\n        # anyway. In the increment scenario the counterfactual is baseline.\n"
+        ],
+        [
+          31,
+          32,
+          "    \"\"\"Normal equations on this full rank toy; exact rational arithmetic.\"\"\"\n"
+        ],
+        [
+          48,
+          49,
+          ""
+        ]
+      ]
+    }
+  }
+}
