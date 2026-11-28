@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+from prose_preservation import before_coral_reader_assets
 
 import pytest
 from paper_lab.models import load_lab
@@ -19,7 +20,7 @@ def test_exact_published_roles_followup():
         for name in ('README.md', 'method.md', 'lab.yaml')
     }
     for path, row in manifest['files'].items():
-        final = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+        final = hashlib.sha256(before_coral_reader_assets(ROOT,path,(ROOT/path).read_bytes())).hexdigest()
         historical = coral_role_clarification_hash(ROOT, path, row['before_sha256'])
         assert paper_overview_rewrite_hash(ROOT, path, historical) == final
         for wrong in ('0' * 64, historical, final):
