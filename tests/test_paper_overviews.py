@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_agenttether_reader_assets
 from prose_preservation import before_dcdn_reader_assets
 from prose_preservation import before_episem_reader_assets
 from prose_preservation import before_static_reader_assets
@@ -98,6 +99,7 @@ def before_full_article_rewrites(root, path, current):
     old = before_spotify_causal_full_prose(root, path, old)
     old = before_onetrans_full_prose(root, path, old)
     old = before_stockout_full_prose(root, path, old)
+    old = before_agenttether_reader_assets(root, path, old)
     old = before_agenttether_full_prose(root, path, old)
     old = before_hgenpush_full_prose(root, path, old)
     old = before_overview_figure_relocations(root, path, old)
@@ -366,6 +368,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'execution-state-unlearning',
                                      'featurearc-inherited-defects-chain-gates',
                                      'contextual-deconvolution',
+                                     'agenttether-repair',
                                      'static-constrained-gr',
                                      'deep-cross-division',
                                      'sidinspector-mapping-diagnostics',

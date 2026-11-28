@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 import yaml
 
 from prose_preservation import before_agenttether_full_prose
+from prose_preservation import before_agenttether_reader_assets
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,7 +17,7 @@ PREFIX = 'papers/agenttether-repair/'
 
 def pair(name):
     p = PREFIX + name
-    new = (ROOT / p).read_bytes()
+    new = before_agenttether_reader_assets(ROOT,p,(ROOT / p).read_bytes())
     return before_agenttether_full_prose(ROOT, p, new), new
 
 

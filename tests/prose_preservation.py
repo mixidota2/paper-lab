@@ -181,6 +181,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = overview_figure_relocations_hash(root, path, expected, algorithm)
     expected = hgenpush_full_prose_hash(root, path, expected, algorithm)
     expected = agenttether_full_prose_hash(root, path, expected, algorithm)
+    expected = agenttether_reader_assets_hash(root, path, expected, algorithm)
     expected = stockout_full_prose_hash(root, path, expected, algorithm)
     expected = onetrans_full_prose_hash(root, path, expected, algorithm)
     expected = spotify_causal_full_prose_hash(root, path, expected, algorithm)
@@ -4562,6 +4563,35 @@ def before_revise_reader_assets(root, path, current):
     if not path.startswith('papers/revise-recovery/'):
         return current
     row = revise_reader_assets_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior
+
+
+def agenttether_reader_assets_rows(root):
+    return json.loads((root / 'tests/agenttether_reader_assets_hashes.json').read_text())['files']
+
+
+def agenttether_reader_assets_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/agenttether-repair/'):
+        return expected
+    row = agenttether_reader_assets_rows(root).get(path)
+    if row is None or not row['prior_spans']:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_agenttether_reader_assets(root, path, current):
+    if not path.startswith('papers/agenttether-repair/'):
+        return current
+    row = agenttether_reader_assets_rows(root).get(path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path

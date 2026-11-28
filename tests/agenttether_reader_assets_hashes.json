@@ -1,0 +1,68 @@
+{
+  "base": "954794379c1739616831521bd662f61896658726",
+  "files": {
+    "papers/agenttether-repair/figures/ctg.svg": {
+      "before_sha256": "ef7a2551269c4da9097abe4f9cfba37ca8a8984677eb25fe4e36522a2840ca54",
+      "before_blob": "302359da24ff584cef4efeb35033de8fa7144d06",
+      "after_sha256": "ef7a2551269c4da9097abe4f9cfba37ca8a8984677eb25fe4e36522a2840ca54",
+      "after_blob": "302359da24ff584cef4efeb35033de8fa7144d06",
+      "prior_spans": []
+    },
+    "papers/agenttether-repair/figures/guards.svg": {
+      "before_sha256": "0927ce742ff0317f6b7d9418553a2ca09b8f0b631e34db8175acf5a5d83c195b",
+      "before_blob": "dc3af0912a930070f96f1c6d4e513886f8def283",
+      "after_sha256": "0927ce742ff0317f6b7d9418553a2ca09b8f0b631e34db8175acf5a5d83c195b",
+      "after_blob": "dc3af0912a930070f96f1c6d4e513886f8def283",
+      "prior_spans": []
+    },
+    "papers/agenttether-repair/lab.yaml": {
+      "before_sha256": "6bbd294adbbebb0398a5833ead0762c2e867ee1dcc1790344940340d5a8ed3b9",
+      "before_blob": "c97ef3ccf6f7a3a7185218088a06a8584e969060",
+      "after_sha256": "0226e050cb790666905552bd42a61341f83d69e4aa0a455721f498abe0d386f1",
+      "after_blob": "52c7db6f53b53e76a36761f6f055361e26f7cd29",
+      "prior_spans": [
+        [
+          43,
+          44,
+          "    著者は、LLMエージェントのモデルを変えずに、失敗した仕事をやり直す仕組みを作りました。AgentTetherは、最初の実行を終えたあとに記録をたどり、失敗につながったと考えられる箇所を探します。その結果を次の実行に渡すだけでなく、実行が診断結果から外れたと判断したときは、途中で修正を促します。終了後の診断と、再実行中の介入を分けて比較しました。\n"
+        ],
+        [
+          45,
+          46,
+          "    Qwen3.7-maxを使ったτ-benchの銀行業務で、最初に失敗した83件を調べました。終了後の診断だけでは39件、その診断に途中の介入を加えると49件が成功に変わりました。一方、診断だけなら成功し、介入を加えると失敗した課題も3件ありました。49件は初回失敗のうち修復できた件数で、銀行業務の全課題に対する成功率ではありません。\n"
+        ],
+        [
+          68,
+          70,
+          ""
+        ],
+        [
+          101,
+          103,
+          ""
+        ]
+      ]
+    },
+    "papers/agenttether-repair/method.md": {
+      "before_sha256": "31cfb95eed7e264d9f440abc849626fc716d1a29a5e10da1cea277d97c03f6c6",
+      "before_blob": "8cb3a23b9d03a7e037522cfbb0564ef6ed7f42df",
+      "after_sha256": "31cfb95eed7e264d9f440abc849626fc716d1a29a5e10da1cea277d97c03f6c6",
+      "after_blob": "8cb3a23b9d03a7e037522cfbb0564ef6ed7f42df",
+      "prior_spans": []
+    },
+    "papers/agenttether-repair/results.json": {
+      "before_sha256": "48479c5b4038a6607a32f6e8a5bfbba24a43edeb57794c7da3fe1f0cabde4781",
+      "before_blob": "42dbd173cf2491c11ed461fdf8d015530637deb4",
+      "after_sha256": "48479c5b4038a6607a32f6e8a5bfbba24a43edeb57794c7da3fe1f0cabde4781",
+      "after_blob": "42dbd173cf2491c11ed461fdf8d015530637deb4",
+      "prior_spans": []
+    },
+    "papers/agenttether-repair/run.py": {
+      "before_sha256": "4860381a376bb8f812c17fdf785f864064c4168e89b85603e44e252b57d24274",
+      "before_blob": "fbbaaaccc1201e7224dd2742b0d40b2d0735aebd",
+      "after_sha256": "4860381a376bb8f812c17fdf785f864064c4168e89b85603e44e252b57d24274",
+      "after_blob": "fbbaaaccc1201e7224dd2742b0d40b2d0735aebd",
+      "prior_spans": []
+    }
+  }
+}
