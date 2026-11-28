@@ -112,6 +112,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = axial_ingredient_order_hash(root, path, expected, algorithm)
     expected = stockout_example_hash(root, path, expected, algorithm)
     expected = sid_ope_full_rewrite_hash(root, path, expected, algorithm)
+    expected = sid_ope_reader_full_prose_hash(root, path, expected, algorithm)
     expected = perishable_full_rewrite_hash(root, path, expected, algorithm)
     expected = perishables_reader_assets_hash(root, path, expected, algorithm)
     expected = switch_hurdle_full_rewrite_hash(root, path, expected, algorithm)
@@ -4029,3 +4030,30 @@ def before_quasid_reader_assets(root, path, current):
     prior = ''.join(lines).encode()
     assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
     return prior
+
+
+def sid_ope_reader_full_prose_row(root, path):
+    if not path.startswith('papers/sid-ope-hierarchy/'):
+        return None
+    return json.loads((root / 'tests/sid_ope_reader_full_prose_hashes.json').read_text())['files'].get(path)
+
+
+def sid_ope_reader_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = sid_ope_reader_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_sid_ope_reader_full_prose(root, path, content):
+    import base64
+    import zlib
+
+    row = sid_ope_reader_full_prose_row(root, path)
+    if row is None:
+        return content
+    assert hashlib.sha256(content).hexdigest() == row['after']['sha256'], path
+    previous = zlib.decompress(base64.b64decode(row['prior_zlib_b64'], validate=True))
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
