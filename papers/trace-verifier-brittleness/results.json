@@ -1,5 +1,5 @@
 {
-  "note": "reportedは論文の転記。syntheticは自作の決定的な在庫修正例。論文の独立再現ではない。",
+  "note": "reportedには著者の報告値を、syntheticにはLabが作った在庫の記録を入れています。Labは論文の値を再計算していません。",
   "reported": {
     "source": "https://arxiv.org/html/2610.11678v1#A5.T6",
     "main_unseen_tasks": 88,

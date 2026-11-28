@@ -215,7 +215,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = episem_full_prose_hash(root, path, expected, algorithm)
     expected = execution_state_unlearning_full_prose_hash(root, path, expected, algorithm)
     expected = featurearc_full_prose_hash(root, path, expected, algorithm)
-    return contextual_all_full_prose_hash(root, path, expected, algorithm)
+    expected = contextual_all_full_prose_hash(root, path, expected, algorithm)
+    return trace_all_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -3801,6 +3802,29 @@ def contextual_all_full_prose_hash(root,path,expected,algorithm='sha256'):
 def before_contextual_all_full_prose(root,path,current):
     import base64,zlib
     row=contextual_all_full_prose_row(root,path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
+    old=zlib.decompress(base64.b64decode(row['prior_zlib_b64'],validate=True))
+    assert hashlib.sha256(old).hexdigest()==row['before']['sha256'],path
+    return old
+
+
+def trace_all_full_prose_row(root,path):
+    if not path.startswith('papers/trace-verifier-brittleness/'):
+        return None
+    return json.loads((root/'tests/trace_all_full_prose_hashes.json').read_text())['files'].get(path)
+
+def trace_all_full_prose_hash(root,path,expected,algorithm='sha256'):
+    row=trace_all_full_prose_row(root,path)
+    if row is None:
+        return expected
+    assert expected==row['before'][algorithm],path
+    return row['after'][algorithm]
+
+def before_trace_all_full_prose(root,path,current):
+    import base64,zlib
+    row=trace_all_full_prose_row(root,path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
