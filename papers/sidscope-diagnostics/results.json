@@ -1,5 +1,5 @@
 {
-  "note": "既定入力は説明用6 item。--mappingで実際のJSONを診断できる。D3は渡された重み付き辺で計算し、公式の近傍抽出は省略。",
+  "note": "既定では架空の6商品と、公式の動作例が公開した12商品の対応表をLabのコードで点検する。別の表は --mapping で指定できる。D3は指定した商品対と重みから計算する。公式の方法で利用履歴から商品対を選ぶ処理は行わない。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",
@@ -8,7 +8,7 @@
   },
   "experiments": [
     {
-      "name": "衝突修復とcheckpoint引き継ぎは別",
+      "name": "同じSIDの共有を解消しても、旧モデルを使えるかは別に確かめる",
       "metrics": {
         "old": {
           "items": 6,

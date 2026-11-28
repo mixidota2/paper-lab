@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+from prose_preservation import before_sidscope_reader_assets
 from xml.etree import ElementTree
 
 import pytest
@@ -24,7 +25,7 @@ def test_receipt_only_accepts_exact_previous_and_current_source_bytes():
     rows = json.loads(ledger.read_text())['files']
     assert rows.keys() == {P+n for n in ('lab.yaml','README.md','mapping.md','method.md','plot.py','mapping-grid.svg')} | {S+n for n in ('lab.yaml','README.md','mapping.md','method.md')}
     for path,row in rows.items():
-        current = (ROOT/path).read_bytes()
+        current = before_sidscope_reader_assets(ROOT,path,(ROOT/path).read_bytes())
         prior = before_semantic_id_pair_full_rewrite(ROOT,path,current)
         b,a = identity(prior),identity(current)
         for alg in b:
@@ -62,12 +63,13 @@ def test_unchanged_overview_toy_and_figure_geometry():
 
 def test_sidscope_keeps_overview_figure_formulas_and_data_identity():
     path = S+'lab.yaml'
-    current = (ROOT/path).read_bytes()
+    current = before_sidscope_reader_assets(ROOT,path,(ROOT/path).read_bytes())
     old = before_semantic_id_pair_full_rewrite(ROOT,path,current)
     a,b = map(yaml.safe_load,(old,current))
     assert b['source_review']['version']=='v1'
     assert a['sections']['overview']==b['sections']['overview']
-    assert (ROOT/(S+'README.md')).read_text().count(b['sections']['overview'])==1
+    readme = S+'README.md'
+    assert before_sidscope_reader_assets(ROOT,readme,(ROOT/readme).read_bytes()).decode().count(b['sections']['overview'])==1
     assert all(q in b['sections']['evidence'] for q in ('0.976','0.900','0.083','9,610','23.6%','275商品'))
     for n,o in zip(b['teaching_figures'],a['teaching_figures'],strict=True):
         assert n['id']==o['id'] and n['kind']==o['kind']
@@ -76,4 +78,4 @@ def test_sidscope_keeps_overview_figure_formulas_and_data_identity():
         ('run.py','8f8631c1faf4c3189d98db86ee66ed3c824d5fd1'),
         ('results.json','2a2dc7a3df9ddb62b337e1d4c3ec677d00276fb0'),
     ):
-        assert identity((ROOT/(S+name)).read_bytes())['blob']==expected
+        assert identity(before_sidscope_reader_assets(ROOT,S+name,(ROOT/(S+name)).read_bytes()))['blob']==expected

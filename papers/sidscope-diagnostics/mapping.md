@@ -23,3 +23,12 @@
 | `src/sidinspector/d7_trace.py` | `trace()` が行う有効・曖昧・一意の判定だけ |
 
 以前取得した公式コードのアーカイブのSHA-256は `852f79c01075708fa0b9161bd686e31a7dc3a37ff7ef3d1b0625c5ed5b39a525`、入力CSVは `5ada9e4f9782dc12cb931fd54af86ac59fc78b65101d789d99b0fc984321dcaf` です。公式の実行記録は `official-check.json`、入力例のMITライセンスは `NOTICE.txt` にあります。
+
+## 配布ファイルの読み方
+
+| ファイル | 何を記録しているか |
+| --- | --- |
+| `official-check.json` | 以前に公式v1.0.1で公開12商品を点検した記録。`official_preflight_status` の `passed` は入力の事前検査を通ったことを示す。ハッシュは公式コードのアーカイブと入力CSVを特定するための値で、論文の全実験や本番の確認を表すものではない。 |
+| `results.json` | Labの独立実装の結果。`experiments` と `trace_before`・`trace_after` は架空の6商品の例。`official_quickstart_mapping` は同じ公開12商品をLabのコードで計算した値で、公式の実行結果ではない。 |
+
+生成ログの例では、`target_path_survives` は正解商品の符号が候補に残ったか、`unique_item_hit` はその符号が正解商品だけを指すかを示す。同じ符号を別の商品も持つと、前者は真でも後者は偽になる。
