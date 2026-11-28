@@ -1,0 +1,101 @@
+{
+  "base": "d174a013de5684ee19164fe4dd478f7413f1e6aa",
+  "files": {
+    "papers/deep-cross-division/README.md": {
+      "before_sha256": "0705d56c5c41225b6e123a80d2d15671d83371593e2a0d6ecca12ae391421a41",
+      "before_blob": "043284f2ecbdb306c99fd5609cad3aa2c06f7d58",
+      "after_sha256": "0705d56c5c41225b6e123a80d2d15671d83371593e2a0d6ecca12ae391421a41",
+      "after_blob": "043284f2ecbdb306c99fd5609cad3aa2c06f7d58",
+      "prior_spans": []
+    },
+    "papers/deep-cross-division/evidence.md": {
+      "before_sha256": "3db4df2d6cecf6facf72748ddd3b1aab4266cee643f81db1d5e57eb716a23816",
+      "before_blob": "004adae035cb9a993c393572b37bc71e65217cc5",
+      "after_sha256": "3db4df2d6cecf6facf72748ddd3b1aab4266cee643f81db1d5e57eb716a23816",
+      "after_blob": "004adae035cb9a993c393572b37bc71e65217cc5",
+      "prior_spans": []
+    },
+    "papers/deep-cross-division/experiment.md": {
+      "before_sha256": "d6de390ea770057ed7f3e6d4c20f1a5719d61696e4bb8e0431962c7cc0d74e72",
+      "before_blob": "680e61f5ec6f215ed199b4d0cdd9e879e04b957c",
+      "after_sha256": "d6de390ea770057ed7f3e6d4c20f1a5719d61696e4bb8e0431962c7cc0d74e72",
+      "after_blob": "680e61f5ec6f215ed199b4d0cdd9e879e04b957c",
+      "prior_spans": []
+    },
+    "papers/deep-cross-division/interactive.html": {
+      "before_sha256": "840bd8bbace56f9447542afc76bf26501d4e2111699c6c309beedea19162cfbf",
+      "before_blob": "38307767d863a5648bcc86039b1eefae8bc02860",
+      "after_sha256": "840bd8bbace56f9447542afc76bf26501d4e2111699c6c309beedea19162cfbf",
+      "after_blob": "38307767d863a5648bcc86039b1eefae8bc02860",
+      "prior_spans": []
+    },
+    "papers/deep-cross-division/interactive.js": {
+      "before_sha256": "a4fa5e64e7618cd07f1c077bd44bd358d968877d61e447d2641f3439a3117558",
+      "before_blob": "9653038803ab3778fd483e2ccbaadbfbbf26fa16",
+      "after_sha256": "a4fa5e64e7618cd07f1c077bd44bd358d968877d61e447d2641f3439a3117558",
+      "after_blob": "9653038803ab3778fd483e2ccbaadbfbbf26fa16",
+      "prior_spans": []
+    },
+    "papers/deep-cross-division/lab.yaml": {
+      "before_sha256": "024e9fb27c9368cb62c5b19661307bc0a174160740d48ed87c0b04e674e27879",
+      "before_blob": "69f05cde97e7c1e05d4159ed115545ef1a45738c",
+      "after_sha256": "29fd1c2f0f37359377d10a1d6f4e55ca3cb2a8d26d4786d08175cc961801000c",
+      "after_blob": "4f893ff06bfbd77bce97a7d7c15d1bb2ae6d2db7",
+      "prior_spans": [
+        [
+          29,
+          32,
+          "    著者は、クリック率のように二つの数を割って作る特徴量を、人があらかじめ作らなくても、推薦モデルが学べるかを調べました。DCDNは既存のDCNv2に割り算を扱う部分を加え、クリック数や表示数から、比率と他の特徴の組み合わせを学びます。短尺動画サービスでは、手作業で作った比率を外して入力の特徴量を40.1%減らしました。従来のDCNv2を使うモデルとの本番A/Bテストでは、「いいね」が3.25%、共有が16.26%、総視聴時間が0.33%増えました。著者が報告したのは、このサービスでの比較です。\n"
+        ]
+      ]
+    },
+    "papers/deep-cross-division/mapping.md": {
+      "before_sha256": "e9b9f37be51b588ad6d62542cfd52d519fd259cab95e530041fa27e05f26bacc",
+      "before_blob": "31589305513009e9a73f46f05e7308b7d3ede593",
+      "after_sha256": "e3b7c67049c3cfa4925f255e0a7cf4d57d88b877b66d8c900a5fd619ce21f8b4",
+      "after_blob": "2544089ecb88d5f0a115dea11418778f3a7c921d",
+      "prior_spans": [
+        [
+          6,
+          12,
+          ""
+        ]
+      ]
+    },
+    "papers/deep-cross-division/method.md": {
+      "before_sha256": "b457c7e897a7b0cbc0bd469dc6c1f0e3225e3f215cfc3c57639cd2afcbffe00d",
+      "before_blob": "fd8a12df0954f5e283d35ec1533c585d3f4d5662",
+      "after_sha256": "b457c7e897a7b0cbc0bd469dc6c1f0e3225e3f215cfc3c57639cd2afcbffe00d",
+      "after_blob": "fd8a12df0954f5e283d35ec1533c585d3f4d5662",
+      "prior_spans": []
+    },
+    "papers/deep-cross-division/results.json": {
+      "before_sha256": "3bfe3935043973faafdaa6a5d867a46d5135e98d0f575c4ebda9825ce990b4f6",
+      "before_blob": "2f5e47fa12435800c8a7e3a9f840b6a3bd0ab6da",
+      "after_sha256": "3bfe3935043973faafdaa6a5d867a46d5135e98d0f575c4ebda9825ce990b4f6",
+      "after_blob": "2f5e47fa12435800c8a7e3a9f840b6a3bd0ab6da",
+      "prior_spans": []
+    },
+    "papers/deep-cross-division/run.py": {
+      "before_sha256": "a425e7f236407aa9e3298878c6a5a667dbb00110c6b989f22149f6d079585c66",
+      "before_blob": "4d2a4f32791f3028ca0e5d7e61231c74f6d1eaeb",
+      "after_sha256": "a425e7f236407aa9e3298878c6a5a667dbb00110c6b989f22149f6d079585c66",
+      "after_blob": "4d2a4f32791f3028ca0e5d7e61231c74f6d1eaeb",
+      "prior_spans": []
+    },
+    "papers/deep-cross-division/test.cjs": {
+      "before_sha256": "5f3c6a0c7fc401a90ba91e1605b956a8d6195ebb949833eafbc0c81e8c61dda2",
+      "before_blob": "e468e1a2bcd79f93d78feb147341670b3c469c95",
+      "after_sha256": "5f3c6a0c7fc401a90ba91e1605b956a8d6195ebb949833eafbc0c81e8c61dda2",
+      "after_blob": "e468e1a2bcd79f93d78feb147341670b3c469c95",
+      "prior_spans": []
+    },
+    "papers/deep-cross-division/widget.html": {
+      "before_sha256": "74edb97416cf330bb97a198e89b938292baaad2a125e4f4ad6e0ae3d2cced510",
+      "before_blob": "614b896f42ddc4722f783c5670ad2d9fb1b48f54",
+      "after_sha256": "74edb97416cf330bb97a198e89b938292baaad2a125e4f4ad6e0ae3d2cced510",
+      "after_blob": "614b896f42ddc4722f783c5670ad2d9fb1b48f54",
+      "prior_spans": []
+    }
+  }
+}
