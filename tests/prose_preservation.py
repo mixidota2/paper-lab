@@ -207,6 +207,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = wrapped_all_full_prose_hash(root, path, expected, algorithm)
     expected = storewide_all_full_prose_hash(root, path, expected, algorithm)
     expected = retail_grain_all_full_prose_hash(root, path, expected, algorithm)
+    expected = retail_grain_reader_assets_hash(root, path, expected, algorithm)
     expected = switch_hurdle_all_full_prose_hash(root, path, expected, algorithm)
     expected = sim2real_all_full_prose_hash(root, path, expected, algorithm)
     expected = assortment_all_full_prose_hash(root, path, expected, algorithm)
@@ -4254,6 +4255,35 @@ def before_icegr_reader_assets(root, path, current):
     if not path.startswith('papers/icegr-baidu-intent-generative-retrieval/'):
         return current
     row = icegr_reader_assets_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior
+
+
+def retail_grain_reader_assets_rows(root):
+    return json.loads((root / 'tests/retail_grain_reader_assets_hashes.json').read_text())['files']
+
+
+def retail_grain_reader_assets_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/retail-forecast-decision-grain/'):
+        return expected
+    row = retail_grain_reader_assets_rows(root).get(path)
+    if row is None or not row['prior_spans']:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_retail_grain_reader_assets(root, path, current):
+    if not path.startswith('papers/retail-forecast-decision-grain/'):
+        return current
+    row = retail_grain_reader_assets_rows(root).get(path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path

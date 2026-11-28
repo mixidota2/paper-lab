@@ -3,6 +3,7 @@ from hashlib import sha1, sha256
 from html.parser import HTMLParser
 import json
 from pathlib import Path
+from prose_preservation import before_retail_grain_reader_assets
 import re
 
 import pytest
@@ -15,7 +16,7 @@ P = 'papers/retail-forecast-decision-grain/'
 
 
 def prior(path):
-    return before_retail_grain_all_full_prose(ROOT,path,(ROOT/path).read_bytes())
+    return before_retail_grain_all_full_prose(ROOT,path,before_retail_grain_reader_assets(ROOT,path,(ROOT/path).read_bytes()))
 
 def ident(data):
     return {'sha256': sha256(data).hexdigest(),

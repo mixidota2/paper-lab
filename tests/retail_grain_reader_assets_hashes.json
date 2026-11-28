@@ -1,0 +1,115 @@
+{
+  "base": "5c743d08b91ee94ceee83e4bb1be7c24cdfb80ff",
+  "files": {
+    "papers/retail-forecast-decision-grain/README.md": {
+      "before_sha256": "f55086efc2e3c54c0361f604617e2432d798cadf13d5d76546a64888aad6c443",
+      "before_blob": "f7fbd34bc4eed2869d0dd78063335635011b97e1",
+      "after_sha256": "2770aef96e87a18f21f3db56057f9676a345ccf101756416c6201512540f7c01",
+      "after_blob": "36731bc1e23809af5f0a7fcf7abe64e2867d8121",
+      "prior_spans": [
+        [
+          17,
+          19,
+          ""
+        ]
+      ]
+    },
+    "papers/retail-forecast-decision-grain/evidence.md": {
+      "before_sha256": "adf9d1f8be643627d5022c2add5ca413b35e8b2f5d59bb0db8a87839f8e6f950",
+      "before_blob": "b4c5a6a9c2125a6628246479db9ec656b88000ba",
+      "after_sha256": "adf9d1f8be643627d5022c2add5ca413b35e8b2f5d59bb0db8a87839f8e6f950",
+      "after_blob": "b4c5a6a9c2125a6628246479db9ec656b88000ba",
+      "prior_spans": []
+    },
+    "papers/retail-forecast-decision-grain/experiment.md": {
+      "before_sha256": "50de0cbc6999633f7b3026c6aad01ccbe493243a0dda55c8c2d9114774e61fe6",
+      "before_blob": "6c7538a8c7fc2b6ddcb6c30b8f024defa04719d8",
+      "after_sha256": "50de0cbc6999633f7b3026c6aad01ccbe493243a0dda55c8c2d9114774e61fe6",
+      "after_blob": "6c7538a8c7fc2b6ddcb6c30b8f024defa04719d8",
+      "prior_spans": []
+    },
+    "papers/retail-forecast-decision-grain/interactive.html": {
+      "before_sha256": "12a3a70b40770e4dcbaecdf8f9058232252c4b176420eef8fe1f909bf73c24d6",
+      "before_blob": "3a8a7ddc548812fa3abae468067c5d64ff6b221d",
+      "after_sha256": "12a3a70b40770e4dcbaecdf8f9058232252c4b176420eef8fe1f909bf73c24d6",
+      "after_blob": "3a8a7ddc548812fa3abae468067c5d64ff6b221d",
+      "prior_spans": []
+    },
+    "papers/retail-forecast-decision-grain/interactive.js": {
+      "before_sha256": "2ada0d615551d124a614c7cf89303d97ed5be000f7207a0666b36441efd89961",
+      "before_blob": "3d61bf2bedd95c4639520786e22b114437e81ccc",
+      "after_sha256": "2ada0d615551d124a614c7cf89303d97ed5be000f7207a0666b36441efd89961",
+      "after_blob": "3d61bf2bedd95c4639520786e22b114437e81ccc",
+      "prior_spans": []
+    },
+    "papers/retail-forecast-decision-grain/lab.yaml": {
+      "before_sha256": "137b7321c069e28133cd583e6ea87329bd729451d6d03956fc1c883293f5a01a",
+      "before_blob": "98f257cb68082de715d50b0df2f3b6173884eb79",
+      "after_sha256": "eb30e5c745560276ae04c9b8af11ee0ca7377ad9a648e2fb7969121f921877e9",
+      "after_blob": "5f3545975e1141aa0d54310aa4e261590f83b79d",
+      "prior_spans": [
+        [
+          33,
+          34,
+          "    IyerとDabbeeruは、同じ売上予測でも、発注に使う商品・店舗別の値と、カテゴリの売上計画に使う合計値では、どのモデルがよく当たるか変わるのかを調べました。著者は価格や販促の計画を入力し、4つの公開データ源を9つの単位に分けて比較しました。\n"
+        ],
+        [
+          35,
+          36,
+          "    初版では、将来の状態を1期ずつ更新するworld model、LightGBM、計画を入力したTimesFMの予測を同じ重みで平均しました。商品×店舗の予測誤差は、この平均が9つのうち7つで最小でした。カテゴリ×店舗の計画では、著者が費用の計算を訂正した後、平均かLightGBMが8つのうち7つで最小でした。\n"
+        ],
+        [
+          37,
+          38,
+          "    第3版では、著者は調整したworld modelとLightGBMの2モデルを平均しました。この平均は、集計単位や期間の取り方が異なる27通りのうち22通りで誤差が最小でした。調整に使わなかった最終期間では、平均が最小だったのは8つのうち3つです。初版と第3版では条件が違うので、数字をそのまま比べて改善幅は求められません。論文が予測したのは販売数で、欠品で売れなかった需要や、実店舗でいくら利益が増えたかは分かりません。\n"
+        ],
+        [
+          43,
+          44,
+          "  results: 配布データは、教材の初期値で求めた比率と、1期分の発注損失9例を収録する。著者の公開表から数えた、費用が最小の方式の件数は「検証・根拠」にある。\n"
+        ]
+      ]
+    },
+    "papers/retail-forecast-decision-grain/mapping.md": {
+      "before_sha256": "6258c7899afd70676592a545941c98011d84c4908f3d673fa5adc74eabd3d345",
+      "before_blob": "cf403073659d0e2d6407b7bd0ee75b97d82d0425",
+      "after_sha256": "189eb59721e50071699490f3117c78d6d41a7dc80a929c144054ac6956fe8c1d",
+      "after_blob": "f030a0bff397ff24ea700ef0a74d3c9d5d03a0d7",
+      "prior_spans": [
+        [
+          19,
+          30,
+          "- `results.json` は教材の人工例の値だけを収録する。\n"
+        ]
+      ]
+    },
+    "papers/retail-forecast-decision-grain/method.md": {
+      "before_sha256": "81934e9dc2fa3997970fe2f6996a6efff4e797cd1d456b3f2870741823adbaff",
+      "before_blob": "f018de9d90585d5f530938ee28b2438c0a65c9af",
+      "after_sha256": "81934e9dc2fa3997970fe2f6996a6efff4e797cd1d456b3f2870741823adbaff",
+      "after_blob": "f018de9d90585d5f530938ee28b2438c0a65c9af",
+      "prior_spans": []
+    },
+    "papers/retail-forecast-decision-grain/model.js": {
+      "before_sha256": "41ce37375afda93cf7c47f233029723acd80dcfbe108d10a6332c07330645a3c",
+      "before_blob": "da59c1607c8899606c8bcba2cfb270474d6d9ad0",
+      "after_sha256": "41ce37375afda93cf7c47f233029723acd80dcfbe108d10a6332c07330645a3c",
+      "after_blob": "da59c1607c8899606c8bcba2cfb270474d6d9ad0",
+      "prior_spans": []
+    },
+    "papers/retail-forecast-decision-grain/results.json": {
+      "before_sha256": "a0801f7e3342b4583b8d510f907800031d34a5f23817ad790d478efdc78cd861",
+      "before_blob": "89242fa1228c8bb0a6e234817c54b668b16740bb",
+      "after_sha256": "a0801f7e3342b4583b8d510f907800031d34a5f23817ad790d478efdc78cd861",
+      "after_blob": "89242fa1228c8bb0a6e234817c54b668b16740bb",
+      "prior_spans": []
+    },
+    "papers/retail-forecast-decision-grain/run.py": {
+      "before_sha256": "b3f607164c8244cbe466eeee8623b4ec8dc38f1476475d8948f1c3d526056823",
+      "before_blob": "116a9be863d4b30ee103d133fbf56fe77e160784",
+      "after_sha256": "b3f607164c8244cbe466eeee8623b4ec8dc38f1476475d8948f1c3d526056823",
+      "after_blob": "116a9be863d4b30ee103d133fbf56fe77e160784",
+      "prior_spans": []
+    }
+  }
+}
