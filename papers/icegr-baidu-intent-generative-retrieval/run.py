@@ -1,4 +1,4 @@
-"""Intent graph anchoring and RCPO coefficient; no encoder/LLM training."""
+"""架空の候補で式3と式9を計算する。ICEGRの学習や本番A/Bテストは再現しない。"""
 import math,json
 from pathlib import Path
 
@@ -17,24 +17,24 @@ def propagate(x,w,steps=3,anchor=.2):
 
 
 def main():
-    # Lipstick and necklace share gift intent, despite different product content.
+    # この例では、口紅とネックレスは贈り物を探す同じ検索で選ばれたと仮定する。
     x=[[1.,0.],[0.,1.],[-1.,0.]]
     w=[[0,4,0],[4,0,0],[0,0,0]]
     h=propagate(x,w)
     dist=lambda a,b:math.sqrt(sum((i-j)**2 for i,j in zip(a,b)))
     candidates=[{'id':'lipstick','relevance':.9,'business':.6},{'id':'necklace','relevance':.85,'business':.8},{'id':'repair','relevance':.1,'business':1.}]
     business=max(candidates,key=lambda r:r['business'])['id']
-    # Illustrative hard gate, not the full SRA/BPR pair construction.
+    # Labで決めた関連性の下限を使う。論文の規則で学習用の組を作る処理ではない。
     gated=max((r for r in candidates if r['relevance']>=.8),key=lambda r:r['business'])['id']
     assert business=='repair' and gated=='necklace'
     assert dist(h[0],h[1])<dist(x[0],x[1])
     margins=[-1,-.5,0,.5,1];factors=[beta_factor(d) for d in margins]
     assert all(a>=b for a,b in zip(factors,factors[1:]))
     assert propagate(x,w,anchor=1)==x
-    out={'note':'人工3商品。Eq. 3と9の算術、関連性gateの意義を確認。ICEGRの学習・A/B再現ではない。',
+    out={'note':'架空の3候補で式3と式9を計算した。関連性の下限を決めると、取引の得点だけで選ぶ場合とは異なる候補を選ぶ。ICEGRの学習や本番A/Bテストは再現していない。',
       'scope':{'calibration_monotonicity':'CONFIRMED','mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},
       'embeddings':{'content':x,'after_graph':h},'calibration':[{'margin':d,'factor':v} for d,v in zip(margins,factors)],
-      'experiments':[{'name':'意図で結ぶ2商品の距離と関連性制約','metrics':{'gift_pair_distance':{'before':dist(x[0],x[1]),'after':dist(h[0],h[1])},'chosen':{'business_only':business,'relevance_gate':gated}}}]}
+      'experiments':[{'name':'同じ検索で選ばれたと仮定した2商品の距離と、関連性で絞った場合に選ぶ候補','metrics':{'gift_pair_distance':{'before':dist(x[0],x[1]),'after':dist(h[0],h[1])},'chosen':{'business_only':business,'relevance_gate':gated}}}]}
     from plot import render
     render(out)
     Path(__file__).with_name('results.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n');return out

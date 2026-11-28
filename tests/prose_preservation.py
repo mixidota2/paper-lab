@@ -110,6 +110,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = sona_reader_assets_hash(root, path, expected, algorithm)
     expected = tgr_full_rewrite_hash(root, path, expected, algorithm)
     expected = harness_icegr_full_rewrite_hash(root, path, expected, algorithm)
+    expected = icegr_reader_assets_hash(root, path, expected, algorithm)
     expected = forecast_pair_full_rewrite_hash(root, path, expected, algorithm)
     expected = semantic_id_pair_full_rewrite_hash(root, path, expected, algorithm)
     expected = quasid_full_rewrite_hash(root, path, expected, algorithm)
@@ -4224,6 +4225,35 @@ def before_coral_reader_assets(root, path, current):
     if not path.startswith('papers/coral-meta-config-harness/'):
         return current
     row = coral_reader_assets_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior
+
+
+def icegr_reader_assets_rows(root):
+    return json.loads((root / 'tests/icegr_reader_assets_hashes.json').read_text())['files']
+
+
+def icegr_reader_assets_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/icegr-baidu-intent-generative-retrieval/'):
+        return expected
+    row = icegr_reader_assets_rows(root).get(path)
+    if row is None or not row['prior_spans']:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_icegr_reader_assets(root, path, current):
+    if not path.startswith('papers/icegr-baidu-intent-generative-retrieval/'):
+        return current
+    row = icegr_reader_assets_rows(root).get(path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
