@@ -16,6 +16,8 @@ uv run python -m paper_lab.build --out /tmp/retail-grain-preview
 
 初版の著者CSVを入手済みなら、Labの標準Python実装で、方式ごとに費用が最小だった件数を数えられる。著者のコードは実行しない。第三者のCSV・コード・PDFは配布物に入っていない。
 
+通常の実行で作る `results.json` は、論文の結果ではなく教材の初期値を使った計算結果である。各項目は [results.json の読み方](mapping.md#resultsjson-の読み方) を参照。下の `--tables` は著者のCSVを集計する別のコマンドである。
+
 ```sh
 uv run python papers/retail-forecast-decision-grain/run.py --tables /path/to/official-csvs --out /tmp/table-counts.json
 ```

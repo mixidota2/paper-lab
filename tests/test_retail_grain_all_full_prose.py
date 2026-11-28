@@ -1,6 +1,7 @@
 """Preserve model behavior and distinguish the published paper editions."""
 import ast
 from pathlib import Path
+from prose_preservation import before_retail_grain_reader_assets
 import subprocess, sys, json
 import pytest, yaml
 from prose_preservation import before_retail_grain_all_full_prose
@@ -12,7 +13,8 @@ NAMES={'README.md','evidence.md','experiment.md','interactive.html','interactive
 def pair(n):
     p=PREFIX+n
     current=(ROOT/p).read_bytes()
-    return before_retail_grain_all_full_prose(ROOT,p,current),current
+    historical=before_retail_grain_reader_assets(ROOT,p,current)
+    return before_retail_grain_all_full_prose(ROOT,p,historical),historical
 
 
 def test_current_overview_follows_the_primary_source_not_the_demo():

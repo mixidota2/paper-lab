@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_retail_grain_reader_assets
 from prose_preservation import before_icegr_reader_assets
 from prose_preservation import before_coral_reader_assets
 from prose_preservation import before_unipinrec_reader_assets
@@ -57,6 +58,7 @@ def before_full_article_rewrites(root, path, current):
     current = before_assortment_all_full_prose(root, path, current)
     current = before_sim2real_all_full_prose(root, path, current)
     current = before_switch_hurdle_all_full_prose(root, path, current)
+    current = before_retail_grain_reader_assets(root, path, current)
     current = before_retail_grain_all_full_prose(root, path, current)
     current = before_storewide_all_full_prose(root, path, current)
     current = before_wrapped_all_full_prose(root, path, current)
@@ -201,7 +203,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'inventory-common-threshold-history': ('約1.58倍', '2倍', '累積需要の条件付き確率'),
         'ono-inventory-forecast-selection': ('85,056', '85,093', '約0.04%'),
         'query-prefix-reuse': ('44,225件', '85.82%', '71.45 ms'),
-        'retail-forecast-decision-grain': ('4つ', '9つのうち7つ', 'カテゴリ×店舗の計画', '27通りのうち22通り'),
+        'retail-forecast-decision-grain': ('4つ', '9つのうち7つ', 'カテゴリ×店舗の計画', '27通りのうち22通り', '8つのうち4つで3モデルの平均', '欠品がなければ売れた数量'),
         'sabreagent-design-time-inventory': ('1,320事例', '0.6311', '0.5380'),
         'series-wise-validation': ('11のデータセット', '10種類', '未学習の系列'),
         'shelf-placement-options': ('5店舗・6カテゴリ', '4.0%', '推定利益'),
