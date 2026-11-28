@@ -94,6 +94,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = diff_projection_source_version_hash(root, path, expected, algorithm)
     expected = arxiv_versioned_overview_hash(root, path, expected, algorithm)
     expected = paper_overview_rewrite_hash(root, path, expected, algorithm)
+    expected = bridging_reader_full_prose_hash(root, path, expected, algorithm)
     expected = revise_full_rewrite_hash(root, path, expected, algorithm)
     expected = pinterest_full_rewrite_hash(root, path, expected, algorithm)
     expected = unir2_full_rewrite_hash(root, path, expected, algorithm)
@@ -3885,3 +3886,30 @@ def before_perishables_reader_assets(root, path, current):
     prior = ''.join(lines).encode()
     assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
     return prior
+
+
+def bridging_reader_full_prose_row(root, path):
+    if not path.startswith('papers/bridging-forecast-accuracy-inventory-kpis/'):
+        return None
+    return json.loads((root / 'tests/bridging_reader_full_prose_hashes.json').read_text())['files'].get(path)
+
+
+def bridging_reader_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = bridging_reader_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_bridging_reader_full_prose(root, path, content):
+    import base64
+    import zlib
+
+    row = bridging_reader_full_prose_row(root, path)
+    if row is None:
+        return content
+    assert hashlib.sha256(content).hexdigest() == row['after']['sha256'], path
+    previous = zlib.decompress(base64.b64decode(row['prior_zlib_b64'], validate=True))
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous

@@ -118,7 +118,7 @@ def test_order_completion_and_quantity_fill_are_distinct():
     first = yaml.safe_load((a/'lab.yaml').read_text())
     second = yaml.safe_load((b/'lab.yaml').read_text())
     assert '注文完納率（COFR）は全明細を満たした注文数を全注文数で割る' in first['sections']['problem']
-    assert '需要数量のうち即時に満たせた数量の割合' in second['sections']['results']
+    assert '需要196個のうち147個（75%）をすぐに満たしました' in second['sections']['results']
     assert '品目ごとの比を平均した値ではない' in (a/'method.md').read_text()
     assert '評価期間中の需要で更新しない' in (b/'method.md').read_text()
     assert '未納分を翌日へ繰り越さない' in (b/'method.md').read_text()

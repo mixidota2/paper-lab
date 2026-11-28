@@ -1,4 +1,4 @@
-"""Small explanatory counterexample, NOT the TruckParts experiment."""
+"""同じ人工需要を使い、予測誤差と在庫費用で順位が変わる例を計算する。著者の実験は再現しない。"""
 import json
 import math
 import random
@@ -26,7 +26,7 @@ def croston(train, alpha=.1):
 
 
 def simulate(demand, forecast, penalty):
-    # Identical policy for both forecasts: one-day replenishment, target ceil(5*f).
+    # 補充は翌日に届く。両モデルとも日次予測を5倍し、整数に切り上げて目標在庫を決める。
     target = math.ceil(5 * forecast)
     stock = incoming = held = lost = served = ordered = 0
     trace = []
@@ -65,14 +65,14 @@ def main():
         frames.append({'penalty': penalty, 'rows': rows})
     assert frames[-1]['rows'][0]['mae'] < frames[-1]['rows'][1]['mae']
     assert frames[-1]['rows'][0]['cost'] > frames[-1]['rows'][1]['cost']
-    result = {'lab01_forecast': True, 'reported_source': '2601.21844v2 Table 1 (rounded)',
+    result = {'lab01_forecast': True, 'reported_source': '論文v2（2601.21844）の表1。値は著者が丸めて掲載した。',
               'reported': REPORTED, 'frames': frames, 'seed': 260101,
               'train_days': 730, 'test_days': 365, 'test_demand': sum(test),
               'verification': {'mechanism': 'PARTIAL', 'performance': 'NOT TESTED',
                                'scaling': 'NOT TESTED', 'production_applicability': 'NOT TESTED'},
               'checks': {'stock_conservation': 'CONFIRMED', 'demand_conservation': 'CONFIRMED',
                          'toy_rank_inversion_penalty_50': 'CONFIRMED'},
-              'boundary': 'Independent Bernoulli demand; simplified lost-sales policy; no official simulator or tree models.'}
+              'boundary': 'Labは各日の需要を独立に生成し、欠品分を翌日に持ち越さない。著者のシミュレータや木モデルは実行していない。'}
     Path(__file__).with_name('results.json').write_text(json.dumps(result, ensure_ascii=False, indent=2)+'\n')
     print(json.dumps([{ 'penalty': f['penalty'], 'rows': [{k:v for k,v in r.items() if k != 'trace'} for r in f['rows']]} for f in frames], indent=2))
 
