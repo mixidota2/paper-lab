@@ -94,6 +94,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = diff_projection_source_version_hash(root, path, expected, algorithm)
     expected = arxiv_versioned_overview_hash(root, path, expected, algorithm)
     expected = paper_overview_rewrite_hash(root, path, expected, algorithm)
+    expected = generation_reader_full_prose_hash(root, path, expected, algorithm)
     expected = assortment_observation_reader_assets_hash(root, path, expected, algorithm)
     expected = zalando_reader_full_prose_hash(root, path, expected, algorithm)
     expected = bridging_reader_full_prose_hash(root, path, expected, algorithm)
@@ -4145,3 +4146,30 @@ def before_sona_reader_assets(root, path, current):
     prior = ''.join(lines).encode()
     assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
     return prior
+
+
+def generation_reader_full_prose_row(root, path):
+    if not path.startswith('papers/case-against-generation-retrieval/'):
+        return None
+    return json.loads((root / 'tests/generation_reader_full_prose_hashes.json').read_text())['files'].get(path)
+
+
+def generation_reader_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = generation_reader_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_generation_reader_full_prose(root, path, content):
+    import base64
+    import zlib
+
+    row = generation_reader_full_prose_row(root, path)
+    if row is None:
+        return content
+    assert hashlib.sha256(content).hexdigest() == row['after']['sha256'], path
+    previous = zlib.decompress(base64.b64decode(row['prior_zlib_b64'], validate=True))
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous

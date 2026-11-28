@@ -1,4 +1,4 @@
-"""Run the deterministic teaching experiment; no paper model is trained."""
+"""人工の16候補で、枝の平均点を使って探索範囲を絞る例を動かす。論文のモデルは学習しない。"""
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))

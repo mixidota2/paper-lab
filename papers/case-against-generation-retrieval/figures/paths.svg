@@ -3,18 +3,18 @@
 <rect width="600" height="520" fill="#f5f3ec"/>
 <g font-family="sans-serif" fill="#172e30">
 <rect x="24" y="20" width="552" height="98" rx="7" fill="#e6eee5" stroke="#afc1b4"/>
-<text x="48" y="53" font-size="16">01 / 学習用の入力</text>
-<text x="48" y="90" font-size="22" font-weight="bold">ユーザーと商品を教師モデルが照合</text>
+<text x="48" y="53" font-size="16">01 教師が評価する</text>
+<text x="48" y="90" font-size="22" font-weight="bold">教師が利用者と商品を一緒に読む</text>
 <path d="M300 120 v20 m-5 -6 l5 6 5 -6" fill="none" stroke="#086b5e" stroke-width="2"/>
 <rect x="24" y="145" width="552" height="98" rx="7" fill="#e6eee5" stroke="#afc1b4"/>
-<text x="48" y="178" font-size="16">02 / 知識を圧縮する</text>
-<text x="48" y="215" font-size="22" font-weight="bold">教師の順位を生徒へ蒸留</text>
+<text x="48" y="178" font-size="16">02 二塔モデルが学ぶ</text>
+<text x="48" y="215" font-size="22" font-weight="bold">二塔モデルが教師の関連度を学ぶ</text>
 <path d="M300 245 v20 m-5 -6 l5 6 5 -6" fill="none" stroke="#086b5e" stroke-width="2"/>
 <rect x="24" y="270" width="552" height="98" rx="7" fill="#e6eee5" stroke="#afc1b4"/>
-<text x="48" y="303" font-size="16">03 / 商品を準備する</text>
-<text x="48" y="340" font-size="22" font-weight="bold">商品ベクトルを事前計算</text>
+<text x="48" y="303" font-size="16">03 検索前に準備する</text>
+<text x="48" y="340" font-size="22" font-weight="bold">商品をベクトルにして索引を作る</text>
 <path d="M300 370 v20 m-5 -6 l5 6 5 -6" fill="none" stroke="#086b5e" stroke-width="2"/>
 <rect x="24" y="395" width="552" height="98" rx="7" fill="#e6eee5" stroke="#afc1b4"/>
-<text x="48" y="428" font-size="16">04 / 候補を取り出す</text>
-<text x="48" y="465" font-size="22" font-weight="bold">ユーザーベクトルから近傍検索</text>
+<text x="48" y="428" font-size="16">04 配信時に候補を探す</text>
+<text x="48" y="465" font-size="22" font-weight="bold">利用者ベクトルに近い商品を探す</text>
 </g></svg>

@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_generation_reader_full_prose
 from prose_preservation import before_sona_reader_assets
 from prose_preservation import before_pinterest_reader_full_prose
 from prose_preservation import before_unir2_reader_assets
@@ -25,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def before_full_article_rewrites(root, path, current):
+    current = before_generation_reader_full_prose(root, path, current)
     current = before_assortment_observation_reader_assets(root, path, current)
     current = before_zalando_reader_full_prose(root, path, current)
     current = before_bridging_reader_full_prose(root, path, current)
@@ -344,6 +346,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'execution-state-unlearning',
                                      'featurearc-inherited-defects-chain-gates',
                                      'contextual-deconvolution',
+                                     'case-against-generation-retrieval',
                                      'sona-yandex-music',
                                      'pinterest-causal-retrieval-shopping',
                                      'unir2-sequence-unify',
