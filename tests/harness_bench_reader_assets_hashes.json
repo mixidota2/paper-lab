@@ -1,0 +1,76 @@
+{
+  "base": "e4b8882e8825b13a7d83fb6dd96c03e966c86273",
+  "files": {
+    "papers/harness-bench/figures/failures.svg": {
+      "before_sha256": "fde1b886a1a02067742b0dac45fdf54569d2744c4a103d54de0c735852e62022",
+      "before_blob": "160fdb117f079b82715d5ba27aa7e30d1fb19892",
+      "after_sha256": "fde1b886a1a02067742b0dac45fdf54569d2744c4a103d54de0c735852e62022",
+      "after_blob": "160fdb117f079b82715d5ba27aa7e30d1fb19892",
+      "prior_spans": []
+    },
+    "papers/harness-bench/figures/gap.svg": {
+      "before_sha256": "aa50e6b0a1f8f9b245550007715d35f579a1f3d168eb5bc29eb9e73fe34a2024",
+      "before_blob": "b39ad081fb3b160af891c8d0351ed4eecc993c0c",
+      "after_sha256": "11a6f3a17353f397c15605599ac7ff726d325a2dffeba18318418f48e054e18f",
+      "after_blob": "45336e282805022de8ff56acbcf70eca8ea54259",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 600 180\"><rect width=\"600\" height=\"180\" fill=\"#fbfaf7\"/><g font-family=\"sans-serif\" text-anchor=\"middle\"><text x=\"300\" y=\"28\" font-size=\"18\">モデル差と実行制御の構成差（概念図）</text><line x1=\"80\" y1=\"130\" x2=\"520\" y2=\"130\" stroke=\"#334155\"/><line x1=\"80\" y1=\"130\" x2=\"80\" y2=\"55\" stroke=\"#334155\"/><circle cx=\"180\" cy=\"105\" r=\"16\" fill=\"#2563eb\"/><circle cx=\"330\" cy=\"75\" r=\"16\" fill=\"#16a34a\"/><circle cx=\"460\" cy=\"95\" r=\"16\" fill=\"#f59e0b\"/><text x=\"300\" y=\"160\" font-size=\"13\">harness</text><text x=\"45\" y=\"55\" font-size=\"13\">completion</text></g></svg>\n"
+        ]
+      ]
+    },
+    "papers/harness-bench/figures/unit.svg": {
+      "before_sha256": "197f6125b00f764cc167d3e29395dffde6c0f2589e4aaa34ba5633342342a4c3",
+      "before_blob": "690149d0d8b0517527eb569ef556d2066229d93b",
+      "after_sha256": "197f6125b00f764cc167d3e29395dffde6c0f2589e4aaa34ba5633342342a4c3",
+      "after_blob": "690149d0d8b0517527eb569ef556d2066229d93b",
+      "prior_spans": []
+    },
+    "papers/harness-bench/lab.yaml": {
+      "before_sha256": "74c9b069182ba259f1ee22aa4cda3ad5ca3267ab2b97fa4b2b98a4e536abed15",
+      "before_blob": "2647a8698c2039489d5a4262b3ee3eae11a4bc20",
+      "after_sha256": "2e7c0daaa13c64cc16da69577c97068bd4549b1a00118ba2529d837b495b13df",
+      "after_blob": "77550d08ab508974055b7002ea7ea56bc72e3060",
+      "prior_spans": [
+        [
+          45,
+          46,
+          "    著者は、言語モデルへの指示、ツールの使い方、実行途中の状態などを管理する仕組みを、モデルと分けて評価するHarness-Benchを提案しました。初版では、同じ課題と予算で実行し、最終成果物が要件を満たすかだけでなく、途中の行動や利用したトークン数も調べました。途中の行動の評価には、別の言語モデルによる採点も含みます。\n"
+        ],
+        [
+          47,
+          48,
+          "    初版の表2では、6つの実行環境を106課題と8モデルで比べました。総合点はNanoBotの76.2点が最も高く、OpenClawの52.4点が最も低く、差は23.8ポイントでした。これは課題を完了した割合の差ではありません。Codexは同じ課題で試しましたが、組み合わせるモデルを同じ条件で選べないため、著者は参考値として別に掲載しました。\n"
+        ],
+        [
+          86,
+          88,
+          ""
+        ]
+      ]
+    },
+    "papers/harness-bench/method.md": {
+      "before_sha256": "eb29567c0c993a079f38052b74cffddcd121847bc8383e07a723684e7c6dc978",
+      "before_blob": "86c65b042868c28543be7b8df3c116ade967f19b",
+      "after_sha256": "eb29567c0c993a079f38052b74cffddcd121847bc8383e07a723684e7c6dc978",
+      "after_blob": "86c65b042868c28543be7b8df3c116ade967f19b",
+      "prior_spans": []
+    },
+    "papers/harness-bench/results.json": {
+      "before_sha256": "54598be21be279f3bf3293f738fa90fd9cc4ea0b600da42dd069e6e57eee7734",
+      "before_blob": "63308ef63ec6f50ec577a6a5bdc06fc0ced9af25",
+      "after_sha256": "54598be21be279f3bf3293f738fa90fd9cc4ea0b600da42dd069e6e57eee7734",
+      "after_blob": "63308ef63ec6f50ec577a6a5bdc06fc0ced9af25",
+      "prior_spans": []
+    },
+    "papers/harness-bench/run.py": {
+      "before_sha256": "7b911c0e89738a5e3c2109b407f4d1eff7ae5a5a010b2f88cfa4638b9c329b52",
+      "before_blob": "9cea0ae52a3418a89f92496b50f68dcd529709ee",
+      "after_sha256": "7b911c0e89738a5e3c2109b407f4d1eff7ae5a5a010b2f88cfa4638b9c329b52",
+      "after_blob": "9cea0ae52a3418a89f92496b50f68dcd529709ee",
+      "prior_spans": []
+    }
+  }
+}

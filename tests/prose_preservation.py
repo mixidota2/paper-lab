@@ -111,6 +111,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = sona_reader_assets_hash(root, path, expected, algorithm)
     expected = tgr_full_rewrite_hash(root, path, expected, algorithm)
     expected = harness_icegr_full_rewrite_hash(root, path, expected, algorithm)
+    expected = harness_bench_reader_assets_hash(root, path, expected, algorithm)
     expected = icegr_reader_assets_hash(root, path, expected, algorithm)
     expected = forecast_pair_full_rewrite_hash(root, path, expected, algorithm)
     expected = semantic_id_pair_full_rewrite_hash(root, path, expected, algorithm)
@@ -4592,6 +4593,35 @@ def before_agenttether_reader_assets(root, path, current):
     if not path.startswith('papers/agenttether-repair/'):
         return current
     row = agenttether_reader_assets_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior
+
+
+def harness_bench_reader_assets_rows(root):
+    return json.loads((root / 'tests/harness_bench_reader_assets_hashes.json').read_text())['files']
+
+
+def harness_bench_reader_assets_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/harness-bench/'):
+        return expected
+    row = harness_bench_reader_assets_rows(root).get(path)
+    if row is None or not row['prior_spans']:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_harness_bench_reader_assets(root, path, current):
+    if not path.startswith('papers/harness-bench/'):
+        return current
+    row = harness_bench_reader_assets_rows(root).get(path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
