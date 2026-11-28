@@ -1,0 +1,93 @@
+{
+  "base": "70413fb9bd2c7819af04fd03e3c5e689c9311ed4",
+  "files": {
+    "papers/case-against-generation-retrieval/README.md": {
+      "before": {
+        "sha256": "ab2ba182c6d71d6f1030a3fd3b839a574708f18debf873e21c3dd0b840267dd1",
+        "blob": "6d3cdae4c425b750ffa0922b8c8cd0871d1bf130"
+      },
+      "after": {
+        "sha256": "4603b4cfb81d78c4617b3cf95e378d33304ff042c197ae6ff6bf937f892f56bd",
+        "blob": "efab97a58a2cbf1638ef3377c68a25bfed262478"
+      },
+      "prior_zlib_b64": "eNp1VN1u2kgUvucpkKJeJt1Ku32C3qy0+wzFqVCbVQIRkEq584whkAKBEiBhQxJIs+CYAFXTH4dAeJjxeOy32HNmDFjprsSFmfP3fed856xFeeOAH5PfXzFaE/VLt1Bl5IyRvxkZuEem1+xxveV9aoPVPbpipBWJMHLMyOgPbZORMdOJZ+qedcGMK2bkmTEAR2c2Z+RAupn408l/1DhhpOdet8VXTMpoMXCnNV6A0I9g9XSDkQKadPpnPKNBUdGpi5vvzCDMmDKjowDwwo2om56eg3hVCDy9rikqj5DuKTzSd2bA5gMGji5521Tlg0BaYwb8HTOjAM4Ajk8bECKpA+JLgKLoM6PB6A0mNHQEAy/0TqI6VKgYOYdH1cJwc3gREhZlUYpRpI/+xGIkC8kjkbW1qDOZ8B//yIgpo3N00QlAwF5BA79dyHaZzqyB/HpFrzqTnW5BYs8C/3twiETUhH5KNnrxcjnSXxm5RpQXgHUQNB76Us3iCwzSHoI18IaP+zt+nhf0Hpto91QdAA3O/D4Xpu13DpxZGT4c+wOypYdIj1RW5UBOo6KCjN+lPH7r1DMLYgSNHvOcuaiL4T6xGYW+d9y27g9OJQYUlkyCg5EUOlI4/+MPVcb1JeYQl5IzOwJ4qgkwlVCJJfcSIxREwx9PZO9HwUwkBUWHX4EpK8FY6A+UYTdWwzlB4u1Dke3C32BK5HLZW7fxGWd7NfGscrAQqIZYLLappd9F9t5HU3uJ6K62G0+ln7/R0vF17a22lUhn1t/GE/GUltlKJtZT8UxqK/5e234Ozhu7+xgO+2pYzACIthS1JXHoMBg5oT4sgdctLXYQexpTwbEo0IjGgpKvM8n912+SOzvJhW0UzAqofwT936FwcqZ73nUevsNjNJaKp/e2M+mNv9LJBAYMnPk5H56G2IHWgTfXQRQlcT0Bixhn+dmXxY0Jr9TTPYZqw56Y17DLNVs0QD0k2FcwzdtiWHdb1G8e4+Cv2545XcwG90xdocX9MUEZ3tRYNYGUg9Mir4J/dsCrBZz32Ve3+dnvPPBJ72kVqXW/VcUTAjtAy8vbxXO3frMYXme30eI2nKIS6okgEmE/BoJWkEIHw23fioaFkwouB4aIb1X3AjaYrq6lNWRUxxUaNN0mrNPol43fnuEBwGv8CbWm+rXA4ecrKAXcib5SN5R3JkV+WFae3pcHHG4VQBAs+aMCL3BpQ1Hhw+XYunvb9e7ybrOFEjdPIRn69ovy4I+jsW1tc2Nf29kGNUDiChW5/koN/wLzVTkM"
+    },
+    "papers/case-against-generation-retrieval/figures/distillation.svg": {
+      "before": {
+        "sha256": "9784dd0f8c20d7e7fd2f7c4e58cff7e05edfd69f9c61cd4629c13e1769c1bba8",
+        "blob": "bfb1a93852b919269d9282e4c436379bc6e65fbe"
+      },
+      "after": {
+        "sha256": "66a490c80f6c52809f06468e14695679a481a166777babb73f4fcdffaffbab8a",
+        "blob": "cb7fd68b424912bb8a32b5d7b65557d7ef457c1e"
+      },
+      "prior_zlib_b64": "eNp9k92O0kAYhs+9isnscWk7lJ+ybe/Aiyh0oI1duumMFiSb0BKJya7REDaGSFxd178l/hxsDFndPfFOHEq5DKdAlUD0pMmXvF+ep2+/auRBA7QO3CbRoU3pYUUUgyDIBfmc5zdEJEmSyBMQBI5FbR2WihIENnYaNtUhykvQ0Ahtu9iguEU7da9Jhbp54LjtCjGbRCDYd+r7dcd1K3tyGUmydZSrdlYzVjHGpX1Cfe8eruwhpVBV1PUoLHEVdJQzO1nAxApG5nZAE1d8LRUALR0qXLCtQ64GljrEeYi5ajYGa/eq51rQiJ+dzEcRCyeLy08s6s5PR/F0An71B2B2fRK/HsYvj1n4ORmexbcDTUwRhubjGgU11yS8sSpMkcUVslT4U5Nc3qipWIDiXz8VLcOyVIAG671jvR8s+saf4OdzwKJzFl2wXp/1XmW4bC9dWC6iMjRqvkeIgJs1z8J+ljw0qZ2JmRBYOryLFAnIUslWpU0FVFgJq1wh7o4Wb8Zx/xF/z21kllsiiVengNQ8H/+Hl89v8nabUtBOVUj+Z1VKxk+7ih+/ZV1uOYnPjlkULm55b91tY6W4YUwDT6BegH1A6H0LN+lOpVlaTa+DH6UO11cGjeTqKwv5x79MXkxn14PZzTgZfmDRgHXD+cU4uTqPn35Z9G54gHeXfHzCwmny/jsLRxkk/W2MO78BoYNEfQ=="
+    },
+    "papers/case-against-generation-retrieval/figures/failure-modes.svg": {
+      "before": {
+        "sha256": "501fb611b5126582a269ac2d2a10fec9ca9fdfa654db2980127b32595c6733fb",
+        "blob": "d777a25e25d84e3a7251d489b5339f0e59ad6c33"
+      },
+      "after": {
+        "sha256": "68192e8bb3386d627ec2152fd0f3cbc67dbf90eec7cd83e1d9f223b7206b3786",
+        "blob": "59ccd51ac022d58ffd1653e4526ee34b7c40f5aa"
+      },
+      "prior_zlib_b64": "eNqVkt9KG0EUxu/7FMN4WZKdzGabZN0sFHrTG98hMZNk6ZqUzOAmFcHp1qKgKLiplQptQi5C/9kWKaihD9Pp7OpbdCZ/apVG6M3MHDjn+77fYRy6WgPtFb9Bi7DO2FPbMIIgSAdmutmqGRghZKgOCAKvwupFmHuAIKgTr1ZnRYhNBF2Hso5PXEbabK3abLBUtbTi+R2blho0RUnLqy5WPd+3FzJ5jDKV9XR5bVKTAiEkt0hZq/mE2As4a5WzhWmZGtvZeN0xJvKO1gftIjQtCDrqwhCM3aj3jKgkaFoG02jlpl+BbnwSXY5CwY8EPxN8Vw6+xt1DEfZFOBLhtmNoUddpkWUGlv0SVSsoQ22SnZho1ik3zv/FncEWNK4j5dC4u3AzUiYP3auN/fhjL4nexlv7M7dbU1rL/bnRB0xhN4DgkeBDwT9f8U158X3ekIUnQ/LTa3ms2g8Ffy/4C2AAuTfQj8eP7qAz0f/gZS1rHt+v8x3Zi8B98HBp6XbU2dgfwMveMNn7odCSbypud27/jC0eHCen/SQaqlOOumotsvtSHnARHonnJyLcEuEHpRa/OY1ffdEPff5L2TSvk9z4NNpo+92sXf9z995v0NctnQ=="
+    },
+    "papers/case-against-generation-retrieval/figures/paths.svg": {
+      "before": {
+        "sha256": "49461f53c54a5b01b4cd2b2fc714d2dadc77707a0ec8c19c67a959ba10a4a76b",
+        "blob": "d063605143b81a33a9eb44d96c79510f72779ff0"
+      },
+      "after": {
+        "sha256": "fd59362b6d3057b2f390c57c6ff7bf625dc96fd0161b7887e97478fa345572a1",
+        "blob": "a0542d53ad213d732a52833ee462fcc79e9465a0"
+      },
+      "prior_zlib_b64": "eNq1lM1O20AUhfc8xWhYB4/HP0mqOIvu+xAOGSdWnRjFFqZd1bYg/Ko0kNAIJFpaIBIirdSqilBbHmYY7L5Fx25waQkVXWRhyx6dOffeb46m5CzWwFLDajoarLvuwiNB8DxvzpPm7FZNwAghgSsgWDSJ99he0iACCKgIAQUjCFq2RTRoNrhAb5l6ztIrxLJItfJMg67pWgSWZ0rpBzCr2VJ81rvutak/jAfn8WCVBp3o49uoe8w2e9Tfo/4ha59E2yts/1NJSLdwkxaZd4FnVt26Bnl5COrErNVdDaZ9GKZlaXDWUAyJzEOB62vAsJtuztAbpsWbcfSmk3NIyzQysZjHRELwxpuPhmUIuDYxHFdSFPy7UrHAB+ayfGZBVEKIAoHjtuynHMSsbsyLFTltwCVLqalcSE0VCf7qyDGfc6WowjISgQDY+Ul02Yl2BxwHWz5m6/t8Zr71rkMR/eGA8fjXG7dXsa0qLNPwhIZfafAlefsD1l1hOz4nfN3ts9EZDY9o2KbhGfU3o+VTtr2aVVvQ3TrgZ/RE4ocrYgQW+dPIKSCnAksBKki+biZv2k1ya2xUUCtKtpAbw8Mph7/girIyBbpivnAXL+Z4o8Pj+Pw1n58dnEajIfX7NNi4jzAWlYcgHqP0hz/erFx920riu3vIvneoP4o7o6jbn8wUy8qUmOL8NBIroQmRlZLIZpm66LGg/2+mkvyg2I49Q271gYarSUKDztXFBlvb4jdENNybzFTKTyunUnEaOZXxhJzKCdMX/fjdQZLTlz0arLP2Bcd6H1NZVf77KrhN1t+gwVp8+YoFW9fvD6LPR1khoVYuJfd9eeYnM9owtQ=="
+    },
+    "papers/case-against-generation-retrieval/lab.yaml": {
+      "before": {
+        "sha256": "99413bb787d894bc4f4893438d3eb3b5d6fbefc9ff773776042ff547409948c9",
+        "blob": "db6ab500062635fa8c48f18049303f43a5883ef4"
+      },
+      "after": {
+        "sha256": "0c0804f456bfccd97af6859a2f5ea5384ae7324fffa75cb07ba1a5afc46ce159",
+        "blob": "2f53ae1b3d4f71bf01dd32b32bc226b23234ffc5"
+      },
+      "prior_zlib_b64": "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"
+    },
+    "papers/case-against-generation-retrieval/method.md": {
+      "before": {
+        "sha256": "fb09d5bb66fe893f403533e08b06db4bb129d46ca0c701bb383ae88a4dbf0cb9",
+        "blob": "01061e782ed5cee334cf8f622f06166003bc869b"
+      },
+      "after": {
+        "sha256": "ec688f6fbe0522cade0c155de416dbf89568940dad4f1c7e2d6cc813936246ce",
+        "blob": "1987d998a4e3458c0d7d1da4737e24f44822c85c"
+      },
+      "prior_zlib_b64": "eNp9VU1PI0cQvftXROKSHIDNbkKiHBdxSqRVEt+iHCKCwiqJHQEJyW26xx+zNl57AQ8YvIA/1gz2ekzCLjsYY35MuefjxF9IVfeMbSJtJMuye6qrXr33qmZmZuYDt1wRTgdYTxhn3q7la2lglihnxA4Dvj1yNO/dNrCO3+4CuwWNBWY90Bqi36Kn1/vAXgDPx2L+iz15tSfSrwMzD3oW9AHwW2C2sI8DawfY6debK4lHsw/mFh7T3Rt81gB2DBqPMNiLa8n19dmlxHLyx5W1u4GxuHQ3ePY+bKK0BWxfpF+J3CEiHDktYFeI8K+VdQxLJDEf6F3gDug66Aam8+p973kWY0UTsxoIXDwrEEKtKevY4p2NOKdb9GsWsApiFN2Wd7vtVjhev4/IdvW0OPkbg92XtdH1pQzYA9ZCLAqsa2Yp7HVNQjIkMz3QL6iJmx2K5Hm//U9Q2wLOJTEZrBiLzaA+3u6xGKICvTFJ/ll5NKzR3S52fIFV3GbVe1OfYBszlDZIOsvw7L0QEssBK8ZiUVY7vpmcjSc3Jdvx+P+xbbwCOpk4YeTUZExHCeFbmt8+Ar0utSegQbZAkaHW1FJIRLUjzod47jX7SO7Sk2/x0Mtduuk8sDxwxPASOOY8om+9IskyKCfCKJrAcyLbp36Q30zaOyvg+UQzJgXjeSw3NmXEnRX1PZUfJeFXwFGMOuahnMpXWsVvVIPDjCgZWAVtodwjjIxwdGCO2234raLYMsfllEUwEiuO+pikSZYK4+2AlYGlsMSXX4GuAW+CXpJOcICfSjNc4VVxXgQKLI6zTgyABU8blFJpwk5o+Kham+JRkGtTmpmAoyxR0wjkTDZalNSmgg5ObcqjpqMJxikk4rl01KX03tgEgr2JSpG5FpPLycTvG2JQJCVvqqJquc8tv4OybH/s2m9F7kSNFmaZMkMv0HZHTpfuRNGisI+GEcaelIzcibLKWcbPgRI30C1yfM3yisOppdFSsxQ6G1UbSyCpkZA70yMabgksquARZSlqmzPaaenC6LYmd0EnJPe+6zCPmypKrguqkBrOkGKNhSLJH65RUgNJG6G3S0sJr1CPBVJR7QiuTFhQXCHd71+beIlm/L8WtrGO5wzxqVc+p4buWX4LK/sDnfZitGifJFa+WVmeja8+TfxM+Y/73iE6tKfW8uePZSmu0qgGRNoa0X6yRaotcg25BZqu2Q3pln4g38nxVmIEWXLi9PDQX7U7w875pHMUckwQYu+YakF4b0vuUXVscMUpleNEFhnIbIXY6DXQEvbBRBtejMaiF8pMan2HbzI0jX+Rdc3K3eDANa/cizItOEmzwvb9h6sbG7+tfzE//8Pan0//mEuu/TS/uvHrL/MPFx58Nvfw00efLHwU+xflfLoi"
+    },
+    "papers/case-against-generation-retrieval/results.json": {
+      "before": {
+        "sha256": "32b6fd88ca37d9190b4822a18ad667c3dc703ccb8060d42e9bc0f723dbdfbdf6",
+        "blob": "352755a69ef93227986f88f85bc3af6174ba8b71"
+      },
+      "after": {
+        "sha256": "32b6fd88ca37d9190b4822a18ad667c3dc703ccb8060d42e9bc0f723dbdfbdf6",
+        "blob": "352755a69ef93227986f88f85bc3af6174ba8b71"
+      },
+      "prior_zlib_b64": "eNrtVN9P2lAUfuevaHgmUxCJ7s1EH0yWbdl4W8xSy2U2aQspxcwYkt6iE2RGsjk3N9GpixprYInTjMncH3NtC0/+Czu3UH4o+GtvS3m4Ked+537nfOd+d9bDMF4ppiDvQ8ZrflgzC3lrZZ/gopHPmJm8Udys7b8nqlbVV83VBZLeJmlYdQp4s2Qtn5H0qanuVdO/zdJKtZImeI/gEsEa0RYJPiP4C9FoutdHeaaRzEd5jlX4mAR8sxCDqIi4KVbiEyIt4enIs/D4yCMbD3txJEdjsshKnF3g4ydhJjz2PDw26gASHCvw0qvum3E5FklylO0lG48LwDzJC7wycwkN4JRdH3oNfLyIJCUBkBf2IfUiqUisWBepsHV+ekK0d8a3LMEZouXMddX4vlyXqkEN+AirsAmk0JQIUpAs8tCjwnNMYkZSphB8tbAiUmSeSzQ1sYPG/L6hrlV31gnOES1bwz/NxY2Lyufa6nZN3TF+7QK8/8HwsK+VYm4UoDDreIPgHYJ3e6SEGgkpj7NOOO0LMRnJrdEI7CQS7KaLOYLXnHKKwONonJR4u0dz/dAJ1buhwSbvRSVTv1BEKxPtiGjbF5Wsg4+gKJsU6Cn9jUhUBrFbM2DaZZlmhSQdhL+t70lWbkd3ZnR2crOqvs5Mh49K3baT8t2C7OZ59CQLtXM1vyfamnZcax0e+s3iMVivPiUgZfx9QWragz8El+0bqls62LLEBPv8IYbeX1UzykdGYcGCgUCmXSjUR/DJ+VmuYWMVw9WuZksNweDK53WiqXWwMZ8hWDeX4LHYBQrj6w+YMMFvbfPn4HxrbstYLI+PwknWyiadPf5IsXiO4AO6Np4FRzReQrceYn6OFgGPkNNDVyEvH0d/oKzvSigwNHg1ONAlFhjsCE3c9UI0Cwdha/qnfy683f1OrEvZwd5Vey5Hm3108VzA9VxvzwV6eW7I9ZzruXt7buD/9lwn2Z1NN9DLdP6A6zrXdfd2XdB13TWuC/Z0Xch1neu6613ncf6lPCnPXwucqAE="
+    },
+    "papers/case-against-generation-retrieval/run.py": {
+      "before": {
+        "sha256": "8b5a5900b27d470c7f8fa0da0b83d1d869e63aac11816b10fb47db3e01cbf01e",
+        "blob": "cbe4b1029e4f609ce5571b17296944d9c3d7602d"
+      },
+      "after": {
+        "sha256": "744deefd0db0f382a0b20b68f49cd0b4674c92517fef425cc05603fcaf077460",
+        "blob": "be8030c7b0d9db632df03687fe331857744c8094"
+      },
+      "prior_zlib_b64": "eNo1jsFqxDAMRO/+CuFTDE1ory37D6XXpQhvoiQCWw6Sdun+fb10KxBomIdmYoxfVwHfCRZy0srC5jyDU553lg3o5yDlSuIfIA2O3CXUtlABNnDNLLRMMcawaqvd973wBbgeTR0+uwzP2+4W+k4PZGIxUh9eX8Bchwc2IK5cCDFNStbKjYbUWe3Jdn77TukvAL3dcW61NvkP0atgyZcQeAVEybU/gdMJImLt9RDje4A+T26IczYa89Y983EjIc3OTUYlV6ZbLjGFXyQ1Yq4="
+    }
+  }
+}
