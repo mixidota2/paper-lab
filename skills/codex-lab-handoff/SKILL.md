@@ -27,6 +27,11 @@ Overview; Problem; Core Idea (author claims vs our interpretation); Why It Might
 
 Choose the best medium inside sections: text, diagram, animation, interactive viz, equations, tables, charts, code comparison, parameter exploration, attention/embedding viz, execution traces, etc.
 
+### 論文の概要
+`lab.yaml` の `sections.overview` には、一次資料をもとに、著者が何を調べ、どの方法やデータを使い、どの条件で何と比べ、どんな結果を得たかを書きます。主な数値には比較対象を添え、解釈が変わる条件や限界も示します。一次資料にない結果や比較条件は補いません。Labの教材、操作方法、独自に確かめた結果は、それぞれの節で説明します。
+
+新しい記事を書くときや概要を書き直したときは、yomiyasuとexplain-before-shortenを使って見直します。公開前に、生成したページの概要だけを読み、論文の内容が伝わり、Lab独自の作業と混ざっていないことを確かめます。
+
 ### Executable understanding
 Convert the paper into the most understandable executable form. Code is optional.
 If the core is an implementable mechanism, create a minimal implementation:

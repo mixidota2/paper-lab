@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_shelf_placement_overview
 from prose_preservation import before_harness_bench_reader_assets
 from prose_preservation import before_agenttether_reader_assets
 from prose_preservation import before_dcdn_reader_assets
@@ -38,6 +39,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def before_full_article_rewrites(root, path, current):
+    current = before_shelf_placement_overview(root, path, current)
     current = before_coral_reader_assets(root, path, current)
     current = before_unipinrec_reader_assets(root, path, current)
     current = before_generation_reader_full_prose(root, path, current)
@@ -222,7 +224,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'retail-forecast-decision-grain': ('4つ', '9つのうち7つ', 'カテゴリ×店舗の計画', '27通りのうち22通り', '8つのうち4つで3モデルの平均', '欠品がなければ売れた数量'),
         'sabreagent-design-time-inventory': ('1,320事例', '0.6311', '0.5380'),
         'series-wise-validation': ('11のデータセット', '10種類', '約3割の系列', '全系列で', '0.857', '0.849'),
-        'shelf-placement-options': ('5店舗・6カテゴリ', '4.0%', '推定利益'),
+        'shelf-placement-options': ('6カテゴリ・237商品', '5店舗分の販売はシミュレーション', '粗利率には仮の値', '4.0%', '推定利益'),
         'storewide-shelf-decomposition': ('18条件', '16条件', '0.10〜0.29秒', '前半の計算は入っていません'),
         'switch-hurdle-intermittent-demand': ('WRMSSE', '0.6307', '0.6403'),
         'trace-verifier-brittleness': ('25件', '0.250', '15〜36%'),
@@ -349,7 +351,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'harness-buys-tokens-not-pass-rate',
                                      'agent-reasoning-forgetting-externalized-state',
                                      'trajectory-deletion-prefix-cost',
-                                     'scaffold-effects-gaia', 'whole-foods-shelf',
+                                     'scaffold-effects-gaia', 'whole-foods-shelf', 'shelf-placement-options',
                                      'wrapped-produce-placement-controlled-trial',
                                      'storewide-shelf-decomposition',
                                      'retail-forecast-decision-grain',

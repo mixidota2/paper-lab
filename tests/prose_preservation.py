@@ -101,6 +101,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = diff_projection_source_version_hash(root, path, expected, algorithm)
     expected = arxiv_versioned_overview_hash(root, path, expected, algorithm)
     expected = paper_overview_rewrite_hash(root, path, expected, algorithm)
+    expected = shelf_placement_overview_hash(root, path, expected, algorithm)
     expected = coral_reader_assets_hash(root, path, expected, algorithm)
     expected = unipinrec_reader_assets_hash(root, path, expected, algorithm)
     expected = generation_reader_full_prose_hash(root, path, expected, algorithm)
@@ -757,6 +758,34 @@ def paper_overview_rewrite_hash(root, path, expected, algorithm='sha256'):
         return expected
     assert expected == row['before_' + algorithm], path
     return row['after_' + algorithm]
+
+
+SHELF_PLACEMENT_PAPER = 'papers/shelf-placement-options/lab.yaml'
+
+
+def _shelf_placement_overview_receipt(root):
+    row = json.loads((root / 'tests/shelf_placement_overview_revision.json').read_text())
+    assert row['path'] == SHELF_PLACEMENT_PAPER
+    return row
+
+
+def shelf_placement_overview_hash(root, path, expected, algorithm='sha256'):
+    if path != SHELF_PLACEMENT_PAPER:
+        return expected
+    row = _shelf_placement_overview_receipt(root)
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_shelf_placement_overview(root, path, raw):
+    if path != SHELF_PLACEMENT_PAPER:
+        return raw
+    row = _shelf_placement_overview_receipt(root)
+    assert hashlib.sha256(raw).hexdigest() == row['after']['sha256'], path
+    assert raw.count(row['new'].encode()) == 1, path
+    previous = raw.replace(row['new'].encode(), row['old'].encode(), 1)
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
 
 
 def restored_before_paper_overview(root, path, raw):
