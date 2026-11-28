@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_assortment_observation_reader_assets
 from prose_preservation import before_zalando_reader_full_prose
 from prose_preservation import before_bridging_reader_full_prose
 from prose_preservation import before_perishables_reader_assets
@@ -18,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def before_full_article_rewrites(root, path, current):
+    current = before_assortment_observation_reader_assets(root, path, current)
     current = before_zalando_reader_full_prose(root, path, current)
     current = before_bridging_reader_full_prose(root, path, current)
     current = before_trial_trace_all_full_prose(root, path, current)
@@ -168,7 +170,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
     anchors = {
         'accuracy-not-service-intermittent-demand': ('20,330件', '−0.555', '63%'),
         'ahe-beta-receipt': ('38課題', '21.9%', '33.3%'),
-        'assortment-observation-budget': ('顧客1人', '同じ品揃え', 'ゼロに近づく'),
+        'assortment-observation-budget': ('顧客1人', '同じ品揃え', 'より収益が低い商品を含まない品揃え', 'ゼロに近づく'),
         'contextual-deconvolution': ('約2割', 'XGBoost', '在庫シミュレーション'),
         'deep-cross-division': ('40.1%', '3.25%', '16.26%'),
         'discounted-perishables-forecast': ('676店舗', '1,077品目', '92.2%', '回帰', '値引き価格で出したか'),
@@ -331,6 +333,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'execution-state-unlearning',
                                      'featurearc-inherited-defects-chain-gates',
                                      'contextual-deconvolution',
+                                     'assortment-observation-budget',
                                      'zalando-sales-event-pricing-forecast-optimize',
                                      'discounted-perishables-forecast',
                                      'trace-verifier-brittleness',
