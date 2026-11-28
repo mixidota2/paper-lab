@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_unipinrec_reader_assets
 from prose_preservation import before_generation_reader_full_prose
 from prose_preservation import before_sona_reader_assets
 from prose_preservation import before_pinterest_reader_full_prose
@@ -26,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def before_full_article_rewrites(root, path, current):
+    current = before_unipinrec_reader_assets(root, path, current)
     current = before_generation_reader_full_prose(root, path, current)
     current = before_assortment_observation_reader_assets(root, path, current)
     current = before_zalando_reader_full_prose(root, path, current)
@@ -205,7 +207,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'trajectory-deletion-prefix-cost': ('42条件', '9,400回', '26評価', '19評価'),
         'trial-by-trace-evidence-boundaries': ('95課題', '3,420回', '31.1%'),
         'tsfm-sparse-event-ranking': ('5つ', '最大0.031', '30組中29組'),
-        'unipinrec': ('0.95%', '0.91%', '11.1%', '63.6%'),
+        'unipinrec': ('0.95%', '0.91%', '11.1%', '63.6%', 'PinRec', '後段の精密な順位付けは変えていません'),
         'walmart-demand-transfer': ('50カテゴリ', '代表5拠点', '誤差が小さくなった'),
         'whole-foods-shelf': ('7.5%', '6.7%', 'シミュレーション'),
         'wrapped-produce-placement-controlled-trial': ('36店舗', '0.32標準偏差', '3.3ポイント'),
@@ -346,6 +348,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'execution-state-unlearning',
                                      'featurearc-inherited-defects-chain-gates',
                                      'contextual-deconvolution',
+                                     'unipinrec',
                                      'case-against-generation-retrieval',
                                      'sona-yandex-music',
                                      'pinterest-causal-retrieval-shopping',
