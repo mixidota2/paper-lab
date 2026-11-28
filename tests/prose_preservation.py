@@ -114,6 +114,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = forecast_pair_full_rewrite_hash(root, path, expected, algorithm)
     expected = semantic_id_pair_full_rewrite_hash(root, path, expected, algorithm)
     expected = sidscope_reader_assets_hash(root, path, expected, algorithm)
+    expected = sidinspector_reader_assets_hash(root, path, expected, algorithm)
     expected = quasid_full_rewrite_hash(root, path, expected, algorithm)
     expected = quasid_reader_assets_hash(root, path, expected, algorithm)
     expected = weather_cutoff_rewrite_hash(root, path, expected, algorithm)
@@ -4391,3 +4392,32 @@ def before_lab_public_guide(root,path,current):
 
 def historical_lab_public_guide(root,path):
     return before_lab_public_guide(root,path,(root/path).read_bytes())
+
+
+def sidinspector_reader_assets_rows(root):
+    return json.loads((root / 'tests/sidinspector_reader_assets_hashes.json').read_text())['files']
+
+
+def sidinspector_reader_assets_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/sidinspector-mapping-diagnostics/'):
+        return expected
+    row = sidinspector_reader_assets_rows(root).get(path)
+    if row is None or not row['prior_spans']:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_sidinspector_reader_assets(root, path, current):
+    if not path.startswith('papers/sidinspector-mapping-diagnostics/'):
+        return current
+    row = sidinspector_reader_assets_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior

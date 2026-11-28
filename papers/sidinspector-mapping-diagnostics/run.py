@@ -1,4 +1,4 @@
-"""Same-item mapping probes: addressability does not imply neighbor alignment."""
+"""同じ6商品の対応表を比べ、完全なSIDで商品を区別できるかと、関係のある商品が同じ先頭の符号を持つかを調べる。"""
 from collections import Counter,defaultdict
 import json,math
 from pathlib import Path
@@ -40,10 +40,10 @@ def main():
         try:validate(rows,items)
         except ValueError as e:failures.append(str(e))
     assert len(failures)==3
-    out={'note':'同じ6 itemと固定co-occurrence edgeの診断。公式tokenizerの再学習・A/Bはしていない。',
+    out={'note':'同じ架空の6商品を使い、対応表だけを替えて比べる。一緒に現れたと仮定した商品対と重みは共通。論文の符号化器の学習や本番のA/Bテストは再現していない。',
       'scope':{'mapping_contract':'CONFIRMED','mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},
       'maps':maps,'profiles':profiles,'rejected':failures,
-      'experiments':[{'name':'同じcollision-freeでもprefixの意味は異なる','metrics':{k:{'alias_item_rate':v['D2_alias_item_rate'],'neighbor_recovery':v['D3_L1_weighted'],'tail_capacity':v['D4_tail_unique_ratio']} for k,v in profiles.items()}}]}
+      'experiments':[{'name':'完全なSIDがすべて異なる表でも、商品対が先頭の符号を共有するとは限らない','metrics':{k:{'alias_item_rate':v['D2_alias_item_rate'],'neighbor_recovery':v['D3_L1_weighted'],'tail_capacity':v['D4_tail_unique_ratio']} for k,v in profiles.items()}}]}
     from plot import render
     render(out)
     Path(__file__).with_name('results.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n');return out

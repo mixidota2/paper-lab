@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+from prose_preservation import before_sidinspector_reader_assets
 from prose_preservation import before_sidscope_reader_assets
 from xml.etree import ElementTree
 
@@ -25,7 +26,7 @@ def test_receipt_only_accepts_exact_previous_and_current_source_bytes():
     rows = json.loads(ledger.read_text())['files']
     assert rows.keys() == {P+n for n in ('lab.yaml','README.md','mapping.md','method.md','plot.py','mapping-grid.svg')} | {S+n for n in ('lab.yaml','README.md','mapping.md','method.md')}
     for path,row in rows.items():
-        current = before_sidscope_reader_assets(ROOT,path,(ROOT/path).read_bytes())
+        current = before_sidinspector_reader_assets(ROOT,path,before_sidscope_reader_assets(ROOT,path,(ROOT/path).read_bytes()))
         prior = before_semantic_id_pair_full_rewrite(ROOT,path,current)
         b,a = identity(prior),identity(current)
         for alg in b:
@@ -40,7 +41,7 @@ def test_receipt_only_accepts_exact_previous_and_current_source_bytes():
 
 def test_unchanged_overview_toy_and_figure_geometry():
     path = P+'lab.yaml'
-    recent = (ROOT/path).read_bytes()
+    recent = before_sidinspector_reader_assets(ROOT,path,(ROOT/path).read_bytes())
     old = before_semantic_id_pair_full_rewrite(ROOT,path,recent)
     new,before = map(yaml.safe_load,(recent,old))
     assert new['sections']['overview'] == before['sections']['overview']
@@ -59,7 +60,7 @@ def test_unchanged_overview_toy_and_figure_geometry():
         ('run.py','faa94fa0daac96c9321c32b5797cc03ce84e5e77'),
         ('results.json','2c9a69e9fa95d47660c12fd2f635175ba2df24f0'),
     ):
-        assert identity((ROOT/(P+name)).read_bytes())['blob']==expected
+        assert identity(before_sidinspector_reader_assets(ROOT,P+name,(ROOT/(P+name)).read_bytes()))['blob']==expected
 
 def test_sidscope_keeps_overview_figure_formulas_and_data_identity():
     path = S+'lab.yaml'
