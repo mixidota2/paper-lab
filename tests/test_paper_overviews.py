@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_sparse_inspection_full_prose
 from prose_preservation import before_assortment_observation_reader_assets
 from prose_preservation import before_zalando_reader_full_prose
 from prose_preservation import before_bridging_reader_full_prose
@@ -33,6 +34,7 @@ def before_full_article_rewrites(root, path, current):
     current = before_swe_serve_full_prose(root, path, current)
     current = before_harness_zero_all_full_prose(root, path, current)
     current = before_sgc_all_full_prose(root, path, current)
+    current = before_sparse_inspection_full_prose(root, path, current)
     current = before_sparse_reader_all_full_prose(root, path, current)
     current = before_ono_reader_all_full_prose(root, path, current)
     current = before_flashvector_all_full_prose(root, path, current)

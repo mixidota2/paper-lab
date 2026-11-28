@@ -209,6 +209,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = flashvector_all_full_prose_hash(root, path, expected, algorithm)
     expected = ono_reader_all_full_prose_hash(root, path, expected, algorithm)
     expected = sparse_reader_all_full_prose_hash(root, path, expected, algorithm)
+    expected = sparse_inspection_full_prose_hash(root, path, expected, algorithm)
     expected = sgc_all_full_prose_hash(root, path, expected, algorithm)
     expected = tgr_reader_all_full_prose_hash(root, path, expected, algorithm)
     expected = genpage_reader_full_prose_hash(root, path, expected, algorithm)
@@ -3971,3 +3972,30 @@ def before_assortment_observation_reader_assets(root, path, current):
     prior = ''.join(lines).encode()
     assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
     return prior
+
+
+def sparse_inspection_full_prose_row(root, path):
+    if path != 'paper_lab/sparse05.py' and not path.startswith('papers/tsfm-sparse-event-ranking/'):
+        return None
+    return json.loads((root / 'tests/sparse_inspection_full_prose_hashes.json').read_text())['files'].get(path)
+
+
+def sparse_inspection_full_prose_hash(root, path, expected, algorithm='sha256'):
+    row = sparse_inspection_full_prose_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_sparse_inspection_full_prose(root, path, content):
+    import base64
+    import zlib
+
+    row = sparse_inspection_full_prose_row(root, path)
+    if row is None:
+        return content
+    assert hashlib.sha256(content).hexdigest() == row['after']['sha256'], path
+    previous = zlib.decompress(base64.b64decode(row['prior_zlib_b64'], validate=True))
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous

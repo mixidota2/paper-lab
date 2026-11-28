@@ -138,10 +138,11 @@ def test_internal_consistency_of_distillation_and_probe_scope():
     text = (root/'papers/onetrans-v2-cascade-unification/lab.yaml').read_text()
     assert 'title: 後の段階の点数から学ぶ' in text
     assert 'text: 精密な順位付けの点数を学習に使う' in text
-    from prose_preservation import before_sparse_reader_all_full_prose
+    from prose_preservation import before_sparse_inspection_full_prose, before_sparse_reader_all_full_prose
     path = 'papers/tsfm-sparse-event-ranking/lab.yaml'
     raw = (root/path).read_bytes()
-    prior = yaml.safe_load(before_sparse_reader_all_full_prose(root,path,raw))
+    prior_source = before_sparse_inspection_full_prose(root,path,raw)
+    prior = yaml.safe_load(before_sparse_reader_all_full_prose(root,path,prior_source))
     assert 'probeで比較した6モデルすべて' in prior['summary']
     assert '12 TSFM' in prior['summary']
     sparse = yaml.safe_load(raw)

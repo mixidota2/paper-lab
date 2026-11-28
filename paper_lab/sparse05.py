@@ -1,4 +1,4 @@
-"""Sparse-event teaching: probability mass, threshold ties, dataset dot plots."""
+"""人工データの分布と採点方法、著者が報告した成績を別々に表示する。"""
 import json
 from paper_lab.batch28 import table
 from paper_lab.retailbench30 import panel
@@ -25,7 +25,7 @@ def widget(result):
             y=40+i*46; x=195+value/.25*300
             dots+=f'<text x="5" y="{y+5}" font-size="14">{name}</text><line x1="195" y1="{y}" x2="495" y2="{y}" stroke="#d1dce1"/><circle cx="{x}" cy="{y}" r="6" fill="{["#879095","#ce6d39","#257d85","#7854a0"][i]}"/><text x="{x+10}" y="{y+5}" font-size="13">{value:.4f}</text>'
         dotframes.append(f'<svg viewBox="0 0 590 250" role="img" aria-label="{r["dataset"]}のAP skill" style="width:100%;height:auto"><title>{r["dataset"]}・著者報告</title>{dots}<text x="195" y="240">0</text><text x="420" y="240">AP skill → 0.25</text></svg>'+table(['評価経路','AP skill'],rows))
-    out+=panel('同じChronos-2でも、点予測と発生予測用の出力部は別の評価になる','データセット',[r['dataset'] for r in result['reported']],dotframes,'Chronos-2の線形分類器は固定表現から学び、Raw LightGBMは生の履歴から学ぶ。著者報告 Tables 14–18を転記。軸は全データセット共通。点の差だけで有意性を判断しない。Chronos-2は代表例で、最高値を選んだ図ではない。')
+    out+=panel('Chronos-2の点予測と、発生を学ぶ分類器の得点を比べる','データセット',[r['dataset'] for r in result['reported']],dotframes,'Chronos-2の線形分類器は固定表現から学び、Raw LightGBMは生の履歴から学ぶ。著者報告 Tables 14–18を転記。軸は全データセット共通。点の差だけで有意性を判断しない。Chronos-2は代表例で、最高値を選んだ図ではない。')
     sim=[]
     for f in result['scenarios']:
         sim.append(table(['人工実験の方法','平均AP skill','3 seedの最小〜最大'],[[r['method'],f'{r["ap_skill"]:.4f}',f'{r["seed_min"]:.4f}〜{r["seed_max"]:.4f}'] for r in f['rows']]))

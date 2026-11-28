@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from prose_preservation import before_sparse_reader_all_full_prose, restored_before_paper_overview, tsfm_sparse_rewrite_hash
+from prose_preservation import before_sparse_inspection_full_prose, before_sparse_reader_all_full_prose, restored_before_paper_overview, tsfm_sparse_rewrite_hash
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,7 +30,7 @@ def test_sparse_rewrite_keeps_exact_reviewed_bytes(name, algorithm):
     historic = 'yomiyasu_revision_hashes.json' if name in ('README.md', 'lab.yaml') else 'reading_prose_revision_hashes.json'
     previous = json.loads((ROOT / 'tests' / historic).read_text())['files'][path]['after_' + algorithm]
     assert proof['files'][path]['before_' + algorithm] == previous
-    content = restored_before_paper_overview(ROOT, path, before_sparse_reader_all_full_prose(ROOT, path, (ROOT / path).read_bytes()))
+    content = restored_before_paper_overview(ROOT, path, before_sparse_reader_all_full_prose(ROOT, path, before_sparse_inspection_full_prose(ROOT, path, (ROOT / path).read_bytes())))
     after = tsfm_sparse_rewrite_hash(ROOT, path, previous, algorithm)
     assert after == identity(content, algorithm)
     assert after != identity(content + b'\n', algorithm)
