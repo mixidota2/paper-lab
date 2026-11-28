@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_sid_ope_reader_full_prose
 from prose_preservation import before_quasid_reader_assets
 from prose_preservation import before_sparse_inspection_full_prose
 from prose_preservation import before_assortment_observation_reader_assets
@@ -133,6 +134,7 @@ def before_full_article_rewrites(root, path, current):
     old = before_switch_hurdle_full_rewrite(root, path, old)
     old = before_perishables_reader_assets(root, path, old)
     old = before_perishable_full_rewrite(root, path, old)
+    old = before_sid_ope_reader_full_prose(root, path, old)
     old = before_sid_ope_full_rewrite(root, path, old)
     old = before_quasid_reader_assets(root, path, old)
     old = before_quasid_full_rewrite(root, path, old)
@@ -337,6 +339,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'execution-state-unlearning',
                                      'featurearc-inherited-defects-chain-gates',
                                      'contextual-deconvolution',
+                                     'sid-ope-hierarchy',
                                      'quasid-collision-qualified-sid',
                                      'assortment-observation-budget',
                                      'zalando-sales-event-pricing-forecast-optimize',

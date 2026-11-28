@@ -1,4 +1,4 @@
-"""Known-propensity catalog bandit: IPS/SNIPS at nested prefix depths."""
+"""配信確率が分かる人工ログで、商品をまとめる粒度によって推定誤差がどう変わるかを比べる。"""
 import json
 import math
 import random
@@ -22,8 +22,8 @@ def cluster_masses(p, depth):
 
 
 def decoder_prefix(p, cluster, depth):
-    # Recover conditional probabilities from a normalized toy leaf policy.
-    # Reading a real SID decoder would supply these conditionals directly.
+    # 人工例では、商品を選ぶ確率の和から次の桁の条件付き確率を求める。
+    # 本物のデコーダが出す条件付き確率は使わない。
     product, parent, parent_mass = 1.0, 0, 1.0
     for level in range(1, depth+1):
         digit = (cluster//(4**(depth-level))) % 4
@@ -58,7 +58,7 @@ def experiment():
         metrics[f"depth_{depth}"] = {"clusters": 4**depth, "IPS_RMSE": round(math.sqrt(statistics.mean((v-truth)**2 for v in ips)), 6), "SNIPS_RMSE": round(math.sqrt(statistics.mean((v-truth)**2 for v in snips)), 6), "IPS_variance": round(statistics.pvariance(ips), 6), "exact_IPS_bias": round(expected-truth, 6), "mean_ESS": round(statistics.mean(ess), 3), "observed_cluster_fraction": round(statistics.mean(coverage), 6)}
         for c, mass in enumerate(me):
             max_mass_error = max(max_mass_error, abs(decoder_prefix(pe, c, depth)-mass))
-    return {"note": "64商品・既知確率の合成実験。深さ0は全商品を一群にまとめる対照、深さ3は商品IPS。実データのSID学習・深さ選択・本番性能は未検証。", "oracle_value": truth, "decoder_mass_max_error": max_mass_error, "experiments": [{"name": "粒度ごとの誤差と有効標本数", "seed": "0..249", "n": {"items": 64, "logs_per_seed": 600, "seeds": 250}, "metrics": metrics}]}
+    return {"note": "配信確率が分かる架空の64商品で、IPSとSNIPSを比べる。深さ0は全商品を一つにまとめ、深さ3は商品ごとに扱う。SIDの学習や粒度選び、本番での性能は検証していない。", "oracle_value": truth, "decoder_mass_max_error": max_mass_error, "experiments": [{"name": "粒度ごとの誤差と有効標本数", "seed": "0..249", "n": {"items": 64, "logs_per_seed": 600, "seeds": 250}, "metrics": metrics}]}
 
 
 def compute():
@@ -68,9 +68,9 @@ def compute():
         "scaling": "NOT TESTED", "production_applicability": "NOT TESTED",
     }
     result["explorer"] = {
-        "label": "接頭辞の深さ", "unit": "", "metric": "RMSE（小さいほどよい）", "default": 0,
+        "label": "商品IDの先頭から使う桁数", "unit": "", "metric": "RMSE（小さいほどよい）", "default": 0,
         "frames": [
-            {"value": i, "note": f"群数 {m['clusters']}、平均ESS {m['mean_ESS']}、raw IPSの厳密バイアス {m['exact_IPS_bias']}。深さ3は商品粒度。",
+            {"value": i, "note": f"グループ数は{m['clusters']}。有効標本数は平均{m['mean_ESS']}件相当。重みを正規化しないIPSの期待値から真値を引くと{m['exact_IPS_bias']}。深さ3では商品ごとに計算する。",
              "bars": [{"label": "IPS RMSE", "value": m["IPS_RMSE"]}, {"label": "SNIPS RMSE", "value": m["SNIPS_RMSE"]}], "lines": []}
             for i, m in enumerate(result["experiments"][0]["metrics"].values())
         ],

@@ -7,10 +7,14 @@ from xml.etree import ElementTree
 import pytest
 import yaml
 
-from prose_preservation import before_sid_ope_full_rewrite, sid_ope_full_rewrite_hash
+from prose_preservation import before_sid_ope_reader_full_prose, before_sid_ope_full_rewrite, sid_ope_full_rewrite_hash
 
 ROOT = Path(__file__).resolve().parents[1]
 P = 'papers/sid-ope-hierarchy/'
+
+
+def prior_reader(path):
+    return before_sid_ope_reader_full_prose(ROOT,path,(ROOT/path).read_bytes())
 
 
 def identity(data):
@@ -23,7 +27,7 @@ def test_receipt_only_accepts_exact_previous_and_current_source_bytes():
     rows = json.loads(ledger.read_text())['files']
     assert rows.keys() == {P+n for n in ('lab.yaml','mapping.md','method.md','figures/sid-tree.svg','figures/decoder-mass.svg','figures/ess.svg')}
     for path,row in rows.items():
-        current = (ROOT/path).read_bytes()
+        current = prior_reader(path)
         prior = before_sid_ope_full_rewrite(ROOT,path,current)
         b,a = identity(prior),identity(current)
         for alg in b:
@@ -38,7 +42,7 @@ def test_receipt_only_accepts_exact_previous_and_current_source_bytes():
 
 def test_unchanged_overview_toy_and_figure_geometry():
     path = P+'lab.yaml'
-    recent = (ROOT/path).read_bytes()
+    recent = prior_reader(path)
     old = before_sid_ope_full_rewrite(ROOT,path,recent)
     new,before = map(yaml.safe_load,(recent,old))
     assert new['sections']['overview'] == before['sections']['overview']
@@ -57,4 +61,4 @@ def test_unchanged_overview_toy_and_figure_geometry():
         ('run.py','00a33aadbe5eafa11bb585477a115504ceb12e62'),
         ('results.json','79efd53c8a7258fe96094efb8eae15f2f54e94e5'),
     ):
-        assert identity((ROOT/(P+name)).read_bytes())['blob']==expected
+        assert identity(prior_reader(P+name))['blob']==expected
