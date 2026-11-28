@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_quasid_reader_assets
 from prose_preservation import before_sparse_inspection_full_prose
 from prose_preservation import before_assortment_observation_reader_assets
 from prose_preservation import before_zalando_reader_full_prose
@@ -133,6 +134,7 @@ def before_full_article_rewrites(root, path, current):
     old = before_perishables_reader_assets(root, path, old)
     old = before_perishable_full_rewrite(root, path, old)
     old = before_sid_ope_full_rewrite(root, path, old)
+    old = before_quasid_reader_assets(root, path, old)
     old = before_quasid_full_rewrite(root, path, old)
     old = before_semantic_id_pair_full_rewrite(root, path, old)
     old = before_forecast_pair_full_rewrite(root, path, old)
@@ -209,7 +211,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'apollopfn': ('モデルの重みは更新しません', '平均5.7%', 'TabPFN-TS'),
         'evaluation-choices-forecasting-leaderboard': ('19手法中2位', '25手法中23位', '買い手別で17位'),
         'forecast-critic': ('0.88', '0.97', '少なくとも10%'),
-        'quasid-collision-qualified-sid': ('TIGER', '0.0211', '0.0230'),
+        'quasid-collision-qualified-sid': ('TIGER', '0.0211', '0.0230', 'NDCG@5', 'GMV-S2', '0.55%', '2.38%'),
         'scope-coupled-supply-chain-policies': ('18のシナリオ', '1.58%', '実現利益'),
         'sidinspector-mapping-diagnostics': ('23,742商品', '97.7%', 'ReSID/GAOQ'),
         'flashtrie-gpu-beam': ('8億件', '46.3 ms', '1.9 ms', '3.3 ms', '0.71%'),
@@ -335,6 +337,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'execution-state-unlearning',
                                      'featurearc-inherited-defects-chain-gates',
                                      'contextual-deconvolution',
+                                     'quasid-collision-qualified-sid',
                                      'assortment-observation-budget',
                                      'zalando-sales-event-pricing-forecast-optimize',
                                      'discounted-perishables-forecast',

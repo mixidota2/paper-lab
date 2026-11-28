@@ -1,0 +1,525 @@
+{
+  "base": "485e865dfaf791833cd61dc9f80f3857fcaec8c1",
+  "renderer_entry_sha256": "4b3a07af09e3323d55a52bb0d2c7cfba331d20982ec867c7190c74222d016a2c",
+  "files": {
+    "papers/quasid-collision-qualified-sid/README.md": {
+      "before_sha256": "0fea280b7d3a8be1397cfce16ac8e02b1435a567796b10fd8253a663dd9fa3bf",
+      "before_blob": "17f9d7307e6295c3ba4e65c6c205f7a2887d0c65",
+      "after_sha256": "0fea280b7d3a8be1397cfce16ac8e02b1435a567796b10fd8253a663dd9fa3bf",
+      "after_blob": "17f9d7307e6295c3ba4e65c6c205f7a2887d0c65",
+      "prior_spans": []
+    },
+    "papers/quasid-collision-qualified-sid/figures/geometry.svg": {
+      "before_sha256": "3f1575cbcd8d4ba10a90da25b039a1f571ebc3a6e4ad5caeb65d67f63440e8aa",
+      "before_blob": "d6134080b54bfa5e2d37496bb5ff4478eba1669e",
+      "after_sha256": "3f1575cbcd8d4ba10a90da25b039a1f571ebc3a6e4ad5caeb65d67f63440e8aa",
+      "after_blob": "d6134080b54bfa5e2d37496bb5ff4478eba1669e",
+      "prior_spans": []
+    },
+    "papers/quasid-collision-qualified-sid/figures/online.svg": {
+      "before_sha256": "86079bb9b5c07fc649fb615f456fe97ba15c071919e388e94f697643fa773246",
+      "before_blob": "e5914649314f7f3504a4da9ac3836b7ce7a9d847",
+      "after_sha256": "86079bb9b5c07fc649fb615f456fe97ba15c071919e388e94f697643fa773246",
+      "after_blob": "e5914649314f7f3504a4da9ac3836b7ce7a9d847",
+      "prior_spans": []
+    },
+    "papers/quasid-collision-qualified-sid/lab.yaml": {
+      "before_sha256": "8f1a886837aeb2890363cc35ded1803eb05aec13d555d0e08164fa362f2ccea8",
+      "before_blob": "33568b5d88d39d1c7884c52a111798b4d0fb7195",
+      "after_sha256": "c4517b93b26ad89a31b50db980c179a4da8ea008be506f0ebe1ac34a94d22550",
+      "after_blob": "d6e0fc1b8fcfe8b70352464f80aea08c885987d6",
+      "prior_spans": [
+        [
+          53,
+          54,
+          "    生成型推薦では、商品を短い符号列（Semantic ID）に置き換えます。QuaSIDの著者は、別の商品に似た符号を付けてしまう問題を減らすため、符号が重なる商品どうしを学習時に引き離す方法を試しました。ただし、同じ商品の重複や、推薦の学習で近付ける対象にした組は引き離しません。\n"
+        ],
+        [
+          55,
+          58,
+          "    著者は推薦モデルをTIGERにそろえ、商品に符号を割り当てる方法を変えて比べました。Amazon Beautyでは、推薦で正解を上位に出せたかを測るNDCG@10が、RQ-Kmeansの0.0211からQuaSIDの0.0230に上がりました。他の符号の割り当て方にも同じ工夫を加えて試しましたが、すべての条件や指標で改善したわけではありません。\n"
+        ],
+        [
+          72,
+          73,
+          "    [一次資料の表2](https://arxiv.org/html/2603.00632v1#S5)は、公開データで5つの乱数シードを使った平均を示す。正解が上位10件の何位に入ったかを反映するNDCG@10は、BeautyでRQ-Kmeansの0.0211からQuaSIDの0.0230に、Toysで0.0213から0.0225に上がった。BeautyのNDCG@5はQuaSIDの0.0193に対し、CVPMを外すと0.0181、HaMRを外すと0.0170だった（表5）。\n"
+        ],
+        [
+          76,
+          77,
+          "    論文は、各SIDを持つ商品数を全商品数で割り、その頻度の分布からエントロピーを計算した。この値が高いほど、割り当てが一部のSIDに偏りにくい。ただし、ToysでSimRQはRQ-Kmeansよりエントロピーが高かった（9.3688対9.3460）が、NDCG@10は低かった（0.0190対0.0213）。また、RQ-OPQにHaMRを追加すると、Toysで正解が上位5件に入った割合（HR@5）が0.0228から0.0227に下がった（表3）。HaMRを足した方式の中には、QuaSIDよりエントロピーが高いものもあった。符号の分布、正解が入った割合、正解の順位はそれぞれ違う指標だ。\n"
+        ],
+        [
+          80,
+          81,
+          "    [表4と§5.4](https://arxiv.org/html/2603.00632v1#S5.SS4)では、Kuaishouがオンラインのトラフィックの約5%（2,000万人超）を介入群に無作為に割り付け、5日間比較した。生成型の候補取得では、SIDの作り方を替えるとGMV-S2が対照比で0.55%増えた。順位付けでは、既存モデルにSIDから作った特徴量を加えると同じ指標が2.38%増えた。GMV-S2は特定のシナリオでの取引総額であり、第2段の順位付けを指す名称ではない。二つの介入は別なので増加率は足せない。\n"
+        ]
+      ]
+    },
+    "papers/quasid-collision-qualified-sid/mapping.md": {
+      "before_sha256": "088c216a2c0911551c161c04190ec06a0df9e11c039dd56fb2fb8c5a47cc9956",
+      "before_blob": "3b1b73bdfbcdb736d4ef39d893a6f9883174abfe",
+      "after_sha256": "088c216a2c0911551c161c04190ec06a0df9e11c039dd56fb2fb8c5a47cc9956",
+      "after_blob": "3b1b73bdfbcdb736d4ef39d893a6f9883174abfe",
+      "prior_spans": []
+    },
+    "papers/quasid-collision-qualified-sid/method.md": {
+      "before_sha256": "eaa0294ae5cd762a7591bb8016f9985ac410c192d717bba913344398cf4d0b9f",
+      "before_blob": "b718222a702e551bfe07d086a7ee8408429812d2",
+      "after_sha256": "eaa0294ae5cd762a7591bb8016f9985ac410c192d717bba913344398cf4d0b9f",
+      "after_blob": "b718222a702e551bfe07d086a7ee8408429812d2",
+      "prior_spans": []
+    },
+    "papers/quasid-collision-qualified-sid/results.json": {
+      "before_sha256": "5794c79c93008e9b0041c95a2a752a9d046fbe25177f803c140a0f920bbd2879",
+      "before_blob": "ac4ebc4f1e087556727e036e032700b8afdb0311",
+      "after_sha256": "b392219154ec403f47c3bb2cc48fb14ce0410ef16405ff81071c59017b9b99cb",
+      "after_blob": "4fc43a235d89a91c69e5038e9232d98953595b87",
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"式8–13のmask、群別平均、角度方向の反発だけを実装。SIDは固定し、量子化器と推薦器は学習しない。\",\n"
+        ],
+        [
+          15,
+          16,
+          "      \"name\": \"群別平均と反発前後\",\n"
+        ],
+        [
+          772,
+          773,
+          "    \"label\": \"encoder上の2点の角度\",\n"
+        ],
+        [
+          774,
+          775,
+          "    \"metric\": \"重みを掛ける前のpair hinge\",\n"
+        ],
+        [
+          782,
+          783,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          786,
+          787,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          790,
+          791,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          794,
+          795,
+          "        \"note\": \"角度=0度、cosine距離=0.0000。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          801,
+          802,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          805,
+          806,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          809,
+          810,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          813,
+          814,
+          "        \"note\": \"角度=10度、cosine距離=0.0152。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          820,
+          821,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          824,
+          825,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          828,
+          829,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          832,
+          833,
+          "        \"note\": \"角度=20度、cosine距離=0.0603。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          839,
+          840,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          843,
+          844,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          847,
+          848,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          851,
+          852,
+          "        \"note\": \"角度=30度、cosine距離=0.1340。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          858,
+          859,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          862,
+          863,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          866,
+          867,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          870,
+          871,
+          "        \"note\": \"角度=40度、cosine距離=0.2340。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          877,
+          878,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          881,
+          882,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          885,
+          886,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          889,
+          890,
+          "        \"note\": \"角度=50度、cosine距離=0.3572。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          896,
+          897,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          900,
+          901,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          904,
+          905,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          908,
+          909,
+          "        \"note\": \"角度=60度、cosine距離=0.5000。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          915,
+          916,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          919,
+          920,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          923,
+          924,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          927,
+          928,
+          "        \"note\": \"角度=70度、cosine距離=0.6580。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          934,
+          935,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          938,
+          939,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          942,
+          943,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          946,
+          947,
+          "        \"note\": \"角度=80度、cosine距離=0.8264。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          953,
+          954,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          957,
+          958,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          961,
+          962,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          965,
+          966,
+          "        \"note\": \"角度=90度、cosine距離=1.0000。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          972,
+          973,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          976,
+          977,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          980,
+          981,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          984,
+          985,
+          "        \"note\": \"角度=100度、cosine距離=1.1736。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          991,
+          992,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          995,
+          996,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          999,
+          1000,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          1003,
+          1004,
+          "        \"note\": \"角度=110度、cosine距離=1.3420。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          1010,
+          1011,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          1014,
+          1015,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          1018,
+          1019,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          1022,
+          1023,
+          "        \"note\": \"角度=120度、cosine距離=1.5000。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          1029,
+          1030,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          1033,
+          1034,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          1037,
+          1038,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          1041,
+          1042,
+          "        \"note\": \"角度=130度、cosine距離=1.6428。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          1048,
+          1049,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          1052,
+          1053,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          1056,
+          1057,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          1060,
+          1061,
+          "        \"note\": \"角度=140度、cosine距離=1.7660。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          1067,
+          1068,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          1071,
+          1072,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          1075,
+          1076,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          1079,
+          1080,
+          "        \"note\": \"角度=150度、cosine距離=1.8660。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          1086,
+          1087,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          1090,
+          1091,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          1094,
+          1095,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          1098,
+          1099,
+          "        \"note\": \"角度=160度、cosine距離=1.9397。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          1105,
+          1106,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          1109,
+          1110,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          1113,
+          1114,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          1117,
+          1118,
+          "        \"note\": \"角度=170度、cosine距離=1.9848。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ],
+        [
+          1124,
+          1125,
+          "            \"label\": \"完全衝突のhinge\",\n"
+        ],
+        [
+          1128,
+          1129,
+          "            \"label\": \"部分衝突のhinge\",\n"
+        ],
+        [
+          1132,
+          1133,
+          "            \"label\": \"同一item・協調正例\",\n"
+        ],
+        [
+          1136,
+          1137,
+          "        \"note\": \"角度=180度、cosine距離=2.0000。SIDのHamming距離は固定。離散コードの再割当は行わない。\"\n"
+        ]
+      ]
+    },
+    "papers/quasid-collision-qualified-sid/run.py": {
+      "before_sha256": "12cab7f09e3bca6a0bbd228db56d29f7a807ae698f2d27e779cb1ad1ed472f7e",
+      "before_blob": "d8e4715101a54d5601b61ff7810973d9101b1a13",
+      "after_sha256": "bbe9cd0c7b921d1eb25dc2589731400607234db6576409893ad16dbfdf9b00f6",
+      "after_blob": "5552b972235c4174ae01555240008f7cfaf6b088",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"CVPM/HaMR arithmetic and a 2-D angular update, not an RQ-VAE trainer.\"\"\"\n"
+        ],
+        [
+          40,
+          41,
+          "            theta += .1 * math.sin(theta)  # Exact negative derivative of m - (1-cos(theta)).\n"
+        ],
+        [
+          45,
+          46,
+          "    ids = ['a', 'a', 'c', 'b', 'd', 'e']  # triggers first, targets second\n"
+        ],
+        [
+          54,
+          58,
+          "            {'label': '完全衝突のhinge', 'value': pair_loss(0, d)},\n            {'label': '部分衝突のhinge', 'value': pair_loss(1, d)},\n            {'label': '同一item・協調正例', 'value': pair_loss(0, d, False)}],\n            'note': f'角度={degrees}度、cosine距離={d:.4f}。SIDのHamming距離は固定。離散コードの再割当は行わない。'})\n"
+        ],
+        [
+          59,
+          60,
+          "    return {'note': '式8–13のmask、群別平均、角度方向の反発だけを実装。SIDは固定し、量子化器と推薦器は学習しない。',\n"
+        ],
+        [
+          62,
+          63,
+          "            'experiments': [{'name': '群別平均と反発前後', 'n': 6, 'metrics': {'masked_HaMR': masked['loss'], 'unmasked_HaMR': unmasked['loss'], 'initial_distance': trace[0]['distance'], 'final_distance': trace[-1]['distance']}}],\n"
+        ],
+        [
+          64,
+          65,
+          "            'explorer': {'label': 'encoder上の2点の角度', 'unit': '度', 'metric': '重みを掛ける前のpair hinge', 'default': 2, 'frames': frames}}\n"
+        ]
+      ]
+    }
+  }
+}

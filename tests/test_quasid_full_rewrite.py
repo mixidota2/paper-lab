@@ -8,6 +8,7 @@ import pytest
 import yaml
 
 from prose_preservation import before_quasid_full_rewrite, quasid_full_rewrite_hash
+from prose_preservation import before_quasid_reader_assets
 
 ROOT = Path(__file__).resolve().parents[1]
 P = 'papers/quasid-collision-qualified-sid/'
@@ -23,7 +24,7 @@ def test_receipt_only_accepts_exact_previous_and_current_source_bytes():
     rows = json.loads(ledger.read_text())['files']
     assert rows.keys() == {P+n for n in ('lab.yaml','README.md','mapping.md','method.md','figures/geometry.svg','figures/online.svg')}
     for path,row in rows.items():
-        current = (ROOT/path).read_bytes()
+        current = before_quasid_reader_assets(ROOT,path,(ROOT/path).read_bytes())
         prior = before_quasid_full_rewrite(ROOT,path,current)
         b,a = identity(prior),identity(current)
         for alg in b:
@@ -38,7 +39,7 @@ def test_receipt_only_accepts_exact_previous_and_current_source_bytes():
 
 def test_unchanged_overview_toy_and_figure_geometry():
     path = P+'lab.yaml'
-    recent = (ROOT/path).read_bytes()
+    recent = before_quasid_reader_assets(ROOT,path,(ROOT/path).read_bytes())
     old = before_quasid_full_rewrite(ROOT,path,recent)
     new,before = map(yaml.safe_load,(recent,old))
     assert new['sections']['overview'] == before['sections']['overview']
@@ -57,4 +58,4 @@ def test_unchanged_overview_toy_and_figure_geometry():
         ('run.py','d8e4715101a54d5601b61ff7810973d9101b1a13'),
         ('results.json','ac4ebc4f1e087556727e036e032700b8afdb0311'),
     ):
-        assert identity((ROOT/(P+name)).read_bytes())['blob']==expected
+        assert identity(before_quasid_reader_assets(ROOT,P+name,(ROOT/(P+name)).read_bytes()))['blob']==expected
