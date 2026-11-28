@@ -1,10 +1,10 @@
-| 論点 | 一次資料 | Labの対応 | 省略 |
-| --- | --- | --- | --- |
-| 反実仮想の状態 | [Definition 1・式(1)](https://arxiv.org/html/2609.04875) | advance・audit・数式図 | 実LLM・確率的生成 |
-| cropと後半の再実行 | [Algorithm 1](https://arxiv.org/html/2609.04875) | replay・splice.svg | KVは記号辞書。provenanceは既知 |
-| 複数probeと行動 | [表2–3](https://arxiv.org/html/2609.04875) | probes・audit・audit.svg | probeは手書き。実攻撃の再現ではない |
-| 最小費用 | [Corollary 1](https://arxiv.org/html/2609.04875) | experiment・cost_sweep | token数・遅延は測定しない |
+| 論文で確かめたこと | 教材の参照先 | 教材が扱う範囲 |
+| --- | --- | --- |
+| [定義1・式(1)：対象を最初から見なかった場合と比べる](https://arxiv.org/html/2609.04875v1) | `advance`、`audit`、状態更新の図 | 同じ入力なら同じ結果になる辞書の状態を比べます。実際の言語モデルや、確率で結果が変わる生成は使いません。 |
+| [アルゴリズム1：前半を残し、後半を作り直す](https://arxiv.org/html/2609.04875v1) | `replay`、`splice.svg` | 辞書の履歴をキャッシュに見立てます。対象が入った位置は人工データに明示しており、自動で依存関係を見つける処理はありません。 |
+| [表2・3：回答に出る情報と、選択への影響を分ける](https://arxiv.org/html/2609.04875v1) | `probes`、`audit`、`audit.svg` | 画面に対象が出たかと、選択に差が出たかを分けます。応答は教材用の規則で決めています。実際の言語モデルや外部のシステムを調べる実験ではありません。 |
+| [系1：状態を何回更新するか](https://arxiv.org/html/2609.04875v1) | `experiment`、`cost_sweep` | 対象を受け取った位置を変え、何回やり直すかを数えます。再計算したトークン数や経過時間は測りません。 |
 
-2026-09-07 UTCにarXiv v1のabs・HTMLを確認。公開公式コードの実体と行単位の照合は未確認。著者のoracleによる独立性ラベルが実運用でどの費用・精度で得られるかは検証できない。図はresearch_botによる教育用の再構成。
+元の調査では2026年9月7日（UTC）に、arXiv v1の概要とHTML本文を確認しました。対応する著者の公開コードは確認できず、論文と教材を行単位で照合していません。著者が実験で使った「どの処理が対象に依存しないか」を知る手段についても、実運用でどれだけ正確に、どのくらいの費用で得られるかは未検証です。図はこのLabが教材用に作りました。
 
-関連：[Harness-Bench](harness-bench.html)と[GAIAのscaffold効果](scaffold-effects-gaia.html)が測る実行基盤の違いに、状態の取り消しという新しい評価軸を足す。
+[Harness-Bench](harness-bench.html)と[GAIAのscaffold効果](scaffold-effects-gaia.html)は、エージェントの実行基盤によって成績がどう変わるかを扱います。この論文では、稼働中に特定の情報の影響を取り消せるかを別の観点から調べます。

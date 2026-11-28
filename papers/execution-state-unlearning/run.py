@@ -1,7 +1,7 @@
-"""Deterministic runtime replay with explicit derived state; no LLM calls.
+"""同じ入力なら同じ状態になる教材。実際の言語モデルは呼び出さない。
 
-The symbolic kv field is NOT an attention cache. Probe behavior is scripted,
-so this illustrates audit blind spots rather than measuring model leakage.
+kvは辞書の履歴であり、モデルのキャッシュではない。確認に対する応答は規則で決め、
+文字列を数えるだけでは見落とす選択の差を示す。
 """
 from copy import deepcopy
 import json
@@ -102,11 +102,11 @@ def experiment(total=12, tau=8, checkpoint=None):
 
 
 def compute():
-    return {"note": "合成状態機械。KVは辞書の履歴でありTransformerではない。再計算は状態遷移回数だけを数え、token数・時間を測らない。",
+    return {"note": "この教材は、同じ入力なら同じ結果になる規則で動きます。kvは実際のモデルのキャッシュではなく、辞書の履歴です。再計算は状態を更新した回数だけを数え、トークン数や経過時間は測りません。",
             "verification": {"mechanism": "PARTIAL", "performance": "NOT TESTED", "scaling": "NOT TESTED", "production_applicability": "NOT TESTED"},
             "experiments": [experiment(), experiment(tau=1), experiment(tau=12), experiment(checkpoint=4)],
             "cost_sweep": [{"tau": t, "full": 12, "selective": experiment(tau=t)["metrics"]["選択的再実行"]["recomputed_steps"]} for t in range(1, 13)],
-            "probe_contract": "task obeys silent; introspection reads symbolic kv; summary reads derived notes; choice reads avoid_a",
+            "probe_contract": "回答、キャッシュに見立てた辞書、要約を教材の規則で確認します。選択に影響が残るかは、候補Aを避ける印の有無で確かめます。",
             "omissions": ["real LLM", "stochastic decoding", "provenance discovery", "external side effects", "token-level attribution"]}
 
 

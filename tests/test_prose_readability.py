@@ -440,7 +440,7 @@ def test_batch21_memory_repair_and_cost_aggregation_boundaries():
     phrases = {
         'agent-reasoning-forgetting-externalized-state': ('lab.yaml', '削除は要求列の開始前だけに行う'),
         'agenttether-repair': ('lab.yaml', 'その場合も、ほかの条件は省きません'),
-        'execution-state-unlearning': ('method.md', '秘密を返した問いの割合ではない'),
+        'execution-state-unlearning': ('method.md', '何問で情報が出たかを表す値ではありません'),
         'revise-recovery': ('lab.yaml', '親の状態や副作用の検査は省かない'),
         'sgc-state-grounded-conditioning': ('lab.yaml', '見送りを挟んだ再提案は数えない'),
         'trajectory-deletion-prefix-cost': ('method.md', '課題ごとの費用比を先に平均した値ではない'),
@@ -454,7 +454,7 @@ def test_batch21_memory_repair_and_cost_aggregation_boundaries():
         relative = f'papers/{slug}/README.md'
         current = (ROOT/relative).read_bytes()
         assert phrases[slug][1] in before_sgc_all_full_prose(ROOT, relative, current).decode()
-    assert '実LLMの監査能力の証拠にはならない' in (ROOT/'papers/execution-state-unlearning/method.md').read_text()
+    assert '実際の言語モデルが同じように振る舞うことを確かめたわけではありません' in (ROOT/'papers/execution-state-unlearning/method.md').read_text()
     assert '介入の再実行や削除の抽選の変動を含まない' in (ROOT/'papers/trajectory-deletion-prefix-cost/method.md').read_text()
 
 
