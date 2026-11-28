@@ -1,4 +1,4 @@
-"""Run the deterministic teaching experiment; no paper model is trained."""
+"""8期の架空の需要と在庫から費用を計算する。論文の予測モデルは実行しない。"""
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))

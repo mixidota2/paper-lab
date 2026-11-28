@@ -6,7 +6,7 @@ from xml.etree import ElementTree as E
 
 import pytest
 
-from prose_preservation import before_tgr_reader_all_full_prose
+from prose_preservation import before_contextual_all_full_prose, before_tgr_reader_all_full_prose
 
 ROOT=Path(__file__).resolve().parents[1]
 P='papers/tgr/'
@@ -39,7 +39,9 @@ def test_tgr_explanation_rewrite_is_exact_and_does_not_move_figure_geometry():
 def test_tgr_numeric_replay_and_non_target_shared_outputs(tmp_path):
     prior=tmp_path/'previous.py'
     prior.write_bytes(pair(H)[0])
-    old,new=map(runpy.run_path,(str(prior),str(ROOT/H)))
+    reviewed=tmp_path/'reviewed_tgr.py'
+    reviewed.write_bytes(before_contextual_all_full_prose(ROOT,H,(ROOT/H).read_bytes()))
+    old,new=map(runpy.run_path,(str(prior),str(reviewed)))
     assert old['IDS']==new['IDS'] and len(old['IDS'])==11
     for slug in old['IDS']:
         a,b=old['compute'](slug),new['compute'](slug)
