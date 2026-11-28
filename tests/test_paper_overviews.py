@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_pinterest_reader_full_prose
 from prose_preservation import before_unir2_reader_assets
 from prose_preservation import before_sid_ope_reader_full_prose
 from prose_preservation import before_quasid_reader_assets
@@ -147,7 +148,7 @@ def before_full_article_rewrites(root, path, current):
     old = before_genpage_full_rewrite(root, path, old)
     old = before_unir2_reader_assets(root, path, old)
     old = before_unir2_full_rewrite(root, path, old)
-    return before_pinterest_full_rewrite(root, path, old)
+    return before_pinterest_full_rewrite(root, path, before_pinterest_reader_full_prose(root, path, old))
 
 
 class OverviewText(HTMLParser):
@@ -341,6 +342,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'execution-state-unlearning',
                                      'featurearc-inherited-defects-chain-gates',
                                      'contextual-deconvolution',
+                                     'pinterest-causal-retrieval-shopping',
                                      'unir2-sequence-unify',
                                      'sid-ope-hierarchy',
                                      'quasid-collision-qualified-sid',
