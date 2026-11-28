@@ -1,0 +1,68 @@
+{
+  "base": "f0a2a0d98c312f115b5421f3119e3750aa25740d",
+  "files": {
+    "papers/tagr-live-sid/figures/clocks.svg": {
+      "before_sha256": "45c768f4a1c34f084eceae30994986af46badf929bdc17dca878e50b3a050e95",
+      "before_blob": "f1854641b66237f4ab99335c10ed7b629a348365",
+      "after_sha256": "45c768f4a1c34f084eceae30994986af46badf929bdc17dca878e50b3a050e95",
+      "after_blob": "f1854641b66237f4ab99335c10ed7b629a348365",
+      "prior_spans": []
+    },
+    "papers/tagr-live-sid/figures/collision.svg": {
+      "before_sha256": "cad5a22fac49b7ce6f5f9a5dde43f7d62c4604fac28ac7eab190cc7c36b1431e",
+      "before_blob": "4bf79cfe8ea7a557f9ceed0af0f91cd1a73705eb",
+      "after_sha256": "cad5a22fac49b7ce6f5f9a5dde43f7d62c4604fac28ac7eab190cc7c36b1431e",
+      "after_blob": "4bf79cfe8ea7a557f9ceed0af0f91cd1a73705eb",
+      "prior_spans": []
+    },
+    "papers/tagr-live-sid/lab.yaml": {
+      "before_sha256": "644d2712e1d0079b1278a999cc32476551cb673a7153de402c7f022c66193c96",
+      "before_blob": "15dd805612f9d4668dc41a10c858a3657df589d3",
+      "after_sha256": "2719efdcf6d0b81138b9b974e6f0c550532e8103c1b044f713757356313e007a",
+      "after_blob": "2eb74c814b78035caee7ca8b72f40d55a6a76dd0",
+      "prior_spans": [
+        [
+          45,
+          46,
+          "    Kuaishouのライブ広告では、同じ配信でも紹介する商品や映像が変わります。TAGRは検索に使えるIDの種類を固定し、広告が今どんな内容かを見て、配信中の広告に割り当てるIDを毎分選び直します。候補を選ぶモデルは入室履歴を複数の長さで読み、カートのクリックや注文は別に扱います。著者らは、一定の間隔で、その時点のモデルが生成した候補を使って学習します。\n"
+        ],
+        [
+          47,
+          48,
+          "    著者らは本番トラフィックの10%を使い、4,000万人超の利用者を対象に複数週の無作為比較を行いました。後段の絞り込みと順位付けはそろえ、候補検索だけを従来のDLRMと比べました。TAGRの入室率は8.5%、カートのクリック率は7.4%、広告売上は16.1%高かったと報告しています。これらは従来方式に対する増加率で、IDの更新だけを試した結果ではありません。\n"
+        ],
+        [
+          68,
+          69,
+          "    論文の表2では、固定IDのCprは1.42、Colは0.42、第1階層の安定率は100%でした。LSIDの全機能を使うと、順に1.01、0.02、90%でした。この安定率は、配信中にIDの第1階層が変わらなかった広告の割合です。IDのすべての階層が変わらなかった割合ではありません。LSIDには最終階層に配信者のハッシュを使う変更も含まれます。\n"
+        ],
+        [
+          90,
+          96,
+          ""
+        ]
+      ]
+    },
+    "papers/tagr-live-sid/method.md": {
+      "before_sha256": "6e004298e857a554401fcf94ad1969fb603c050cd35f6335d395a451c7840f52",
+      "before_blob": "f126c4edc5cdea79902e481839e017338e639921",
+      "after_sha256": "6e004298e857a554401fcf94ad1969fb603c050cd35f6335d395a451c7840f52",
+      "after_blob": "f126c4edc5cdea79902e481839e017338e639921",
+      "prior_spans": []
+    },
+    "papers/tagr-live-sid/results.json": {
+      "before_sha256": "dfded7ed370a53342c393e838d9fccbec40acce8b6b6f10f4df70ce4817c803e",
+      "before_blob": "f21a97489c713e3c0189a5ce5592fa250f68f654",
+      "after_sha256": "dfded7ed370a53342c393e838d9fccbec40acce8b6b6f10f4df70ce4817c803e",
+      "after_blob": "f21a97489c713e3c0189a5ce5592fa250f68f654",
+      "prior_spans": []
+    },
+    "papers/tagr-live-sid/run.py": {
+      "before_sha256": "3255820487d04c0d3b3cd11aa288d8ff00cd80e54a63afd97e7cd895a2ff476a",
+      "before_blob": "900cc19266a50978eab092c9e1ccb2a938b09d41",
+      "after_sha256": "3255820487d04c0d3b3cd11aa288d8ff00cd80e54a63afd97e7cd895a2ff476a",
+      "after_blob": "900cc19266a50978eab092c9e1ccb2a938b09d41",
+      "prior_spans": []
+    }
+  }
+}

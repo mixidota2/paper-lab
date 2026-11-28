@@ -1,4 +1,5 @@
 from pathlib import Path
+from prose_preservation import before_tagr_reader_assets
 from xml.etree import ElementTree as ET
 import ast
 import json
@@ -16,7 +17,7 @@ ASSETS = {'lab.yaml', 'method.md', 'run.py', 'figures/clocks.svg', 'figures/coll
 
 
 def current(name):
-    return (ROOT/(P+name)).read_bytes()
+    return before_tagr_reader_assets(ROOT,P+name,(ROOT/(P+name)).read_bytes())
 
 
 def previous(name):

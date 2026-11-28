@@ -228,6 +228,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = genpage_reader_full_prose_hash(root, path, expected, algorithm)
     expected = harness_zero_all_full_prose_hash(root, path, expected, algorithm)
     expected = tagr_all_full_prose_hash(root, path, expected, algorithm)
+    expected = tagr_reader_assets_hash(root, path, expected, algorithm)
     expected = swe_serve_full_prose_hash(root, path, expected, algorithm)
     expected = harness_r1_full_prose_hash(root, path, expected, algorithm)
     expected = episem_full_prose_hash(root, path, expected, algorithm)
@@ -4412,6 +4413,35 @@ def before_sidinspector_reader_assets(root, path, current):
     if not path.startswith('papers/sidinspector-mapping-diagnostics/'):
         return current
     row = sidinspector_reader_assets_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior
+
+
+def tagr_reader_assets_rows(root):
+    return json.loads((root / 'tests/tagr_reader_assets_hashes.json').read_text())['files']
+
+
+def tagr_reader_assets_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/tagr-live-sid/'):
+        return expected
+    row = tagr_reader_assets_rows(root).get(path)
+    if row is None or not row['prior_spans']:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_tagr_reader_assets(root, path, current):
+    if not path.startswith('papers/tagr-live-sid/'):
+        return current
+    row = tagr_reader_assets_rows(root).get(path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
