@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_series_reader_assets
 from prose_preservation import before_retail_grain_reader_assets
 from prose_preservation import before_icegr_reader_assets
 from prose_preservation import before_coral_reader_assets
@@ -101,6 +102,7 @@ def before_full_article_rewrites(root, path, current):
     old = before_common_threshold_full_prose(root, path, old)
     old = before_grace_full_prose(root, path, old)
     old = before_uvr_full_prose(root, path, old)
+    old = before_series_reader_assets(root, path, old)
     old = before_series_full_prose(root, path, old)
     old = before_hear_full_prose(root, path, old)
     old = before_angle_full_prose(root, path, old)
@@ -205,7 +207,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'query-prefix-reuse': ('44,225件', '85.82%', '71.45 ms'),
         'retail-forecast-decision-grain': ('4つ', '9つのうち7つ', 'カテゴリ×店舗の計画', '27通りのうち22通り', '8つのうち4つで3モデルの平均', '欠品がなければ売れた数量'),
         'sabreagent-design-time-inventory': ('1,320事例', '0.6311', '0.5380'),
-        'series-wise-validation': ('11のデータセット', '10種類', '未学習の系列'),
+        'series-wise-validation': ('11のデータセット', '10種類', '約3割の系列', '全系列で', '0.857', '0.849'),
         'shelf-placement-options': ('5店舗・6カテゴリ', '4.0%', '推定利益'),
         'storewide-shelf-decomposition': ('18条件', '16条件', '0.10〜0.29秒', '前半の計算は入っていません'),
         'switch-hurdle-intermittent-demand': ('WRMSSE', '0.6307', '0.6403'),
@@ -354,6 +356,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'execution-state-unlearning',
                                      'featurearc-inherited-defects-chain-gates',
                                      'contextual-deconvolution',
+                                     'series-wise-validation',
                                      'icegr-baidu-intent-generative-retrieval',
                                      'coral-meta-config-harness',
                                      'unipinrec',

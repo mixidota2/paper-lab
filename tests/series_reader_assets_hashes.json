@@ -1,0 +1,118 @@
+{
+  "base": "3d5e0ca83b3e65392e53d32ba35052617731dedf",
+  "files": {
+    "papers/series-wise-validation/README.md": {
+      "before_sha256": "13205b6c3ea1aca4600854a4e668c68f977535189ef9b5d6e0f7f4cfcaf85e4d",
+      "before_blob": "0bcef35c00a9078cfcc1b6ec70e2eba97a17e728",
+      "after_sha256": "d203b315839e22b0f72158468a59594236bbc999944341cf8be29a3e11af0a8f",
+      "after_blob": "ff49276e06181c4e15becbd735df40e4b3c32753",
+      "prior_spans": [
+        [
+          24,
+          25,
+          "保存するJSONには、起点ごとの過去の観測時点、予測対象、予測値、実績と誤差、選んだモデル、共通尺度Qがあります。画面から保存すると、合成結果と論文の表の集計が別のキーに入ります。著者の実行ログではありません。\n"
+        ]
+      ]
+    },
+    "papers/series-wise-validation/evidence.md": {
+      "before_sha256": "3f2b41b33fcdd3b8f189ca3634df15733f846709dc05bdf0a6c65d428945f143",
+      "before_blob": "bde31102a8811c8bf2a05e9f4dafb44e7d48c397",
+      "after_sha256": "9b09f6ee74d90671930eb27b0184692a873146ba959ffa356f95d334f8b2d805",
+      "after_blob": "1a4f925307f3b3fad2bb61ae117abd15d9845a2a",
+      "prior_spans": [
+        [
+          4,
+          5,
+          "主な実験では、系列数の70%を切り捨てた本数を無作為に選び、その系列の早い時期を学習とモデル選択に使いました。最終評価では、学習に使わない系列も含め、すべての系列の末尾2hを評価します。hは月次12、四半期4、日次14です。学習に使わない系列でも、予測時点までの履歴は入力できます。\n"
+        ]
+      ]
+    },
+    "papers/series-wise-validation/experiment.md": {
+      "before_sha256": "5eb14b012cec88263673a356c5ff6e4cad752ff167cf84a3cd1295726b55003d",
+      "before_blob": "cddded5267d9c834025486172ccbdb18eb4aced1",
+      "after_sha256": "5eb14b012cec88263673a356c5ff6e4cad752ff167cf84a3cd1295726b55003d",
+      "after_blob": "cddded5267d9c834025486172ccbdb18eb4aced1",
+      "prior_spans": []
+    },
+    "papers/series-wise-validation/interactive.html": {
+      "before_sha256": "7b4c196d3b27ec254c77eb6b7ab9130ff2e5ceeaa9326eae8531b9f7f53e672d",
+      "before_blob": "6405087cefb8306ca1ae94b7733e7cf350829663",
+      "after_sha256": "7b4c196d3b27ec254c77eb6b7ab9130ff2e5ceeaa9326eae8531b9f7f53e672d",
+      "after_blob": "6405087cefb8306ca1ae94b7733e7cf350829663",
+      "prior_spans": []
+    },
+    "papers/series-wise-validation/interactive.js": {
+      "before_sha256": "3910bf9bddd4c6aef1aa67255d31c0a7d403f8eceb4aa9281a06cabf7740f9ee",
+      "before_blob": "1ea1d5b1dd1a4286e17d1fe4e6b615dd4aa34b0d",
+      "after_sha256": "3910bf9bddd4c6aef1aa67255d31c0a7d403f8eceb4aa9281a06cabf7740f9ee",
+      "after_blob": "1ea1d5b1dd1a4286e17d1fe4e6b615dd4aa34b0d",
+      "prior_spans": []
+    },
+    "papers/series-wise-validation/lab.yaml": {
+      "before_sha256": "3581aaa9fa53d8152205fcde9123b21690b70419ce988408847285289c369e3b",
+      "before_blob": "1740f93f8dbeb57cd34e27693fbe6b68e0151283",
+      "after_sha256": "71bac780fc3cfaa5e60cdfbf259f8f5e98335acf08c421589dbb48b998016216",
+      "after_blob": "89685b8a2a6eef913b083ac68282edb2b1d9af23",
+      "prior_spans": [
+        [
+          14,
+          15,
+          "summary: 著者は、同じ系列を時間で分ける検証と、時間に加えて系列を分ける検証を比べました。学習に使わなかった系列も評価すると、系列を分ける方法で選んだモデルの予測誤差は小さくなりました。ただし、最終誤差の見積もりには、時間だけで分ける方法の方が近い値を出しました。\n"
+        ],
+        [
+          29,
+          34,
+          "    著者は、複数の時系列で学んだ予測モデルを未学習の系列にも使う場合、モデルをどう選ぶとよいかを調べました。11のデータセットと10種類のニューラルネットワークを使い、同じ系列を時間で分ける検証と、時間だけでなく系列も分ける検証を比べました。未学習の系列をテストに含めた実験では、系列も分けて検証した方が、選んだモデルの予測精度は高くなりました。一方、テスト時にどのくらい誤るかを見積もる精度では、時間だけで分ける方法がわずかに上回りました。\n"
+        ]
+      ]
+    },
+    "papers/series-wise-validation/mapping.md": {
+      "before_sha256": "3de4f4efde0bf7a402944bff7ee8e34ba1d775a82d393bf41c43ecb5294564f9",
+      "before_blob": "7231dd73fb589d6f87a071e8b6ad8bb41259eb10",
+      "after_sha256": "7b21dbd3ff1fcc79092b92b6194cf698ec15fd04690191cc7344d1cb26a6e487",
+      "after_blob": "f58f1eeb2b472ec4502ae24af770b80f2efffa48",
+      "prior_spans": [
+        [
+          9,
+          23,
+          ""
+        ]
+      ]
+    },
+    "papers/series-wise-validation/method.md": {
+      "before_sha256": "af0b8151fef2c052565b7dc9dcc1f63f29b13539d15da252302306cea82086f1",
+      "before_blob": "461329fbb6724c0c33d2562718a8b6cd5f5d9509",
+      "after_sha256": "af0b8151fef2c052565b7dc9dcc1f63f29b13539d15da252302306cea82086f1",
+      "after_blob": "461329fbb6724c0c33d2562718a8b6cd5f5d9509",
+      "prior_spans": []
+    },
+    "papers/series-wise-validation/model.js": {
+      "before_sha256": "82014617d67417df21e61e5feb22abe59c9603b582fdc265cf1b0a540360c5ab",
+      "before_blob": "401eb79f79c91d3fff571d926898a86faf02ef2a",
+      "after_sha256": "82014617d67417df21e61e5feb22abe59c9603b582fdc265cf1b0a540360c5ab",
+      "after_blob": "401eb79f79c91d3fff571d926898a86faf02ef2a",
+      "prior_spans": []
+    },
+    "papers/series-wise-validation/results.json": {
+      "before_sha256": "ed7d75bbfaaae91a0f05dac5e913de5e7cad24feade1a81f8fdce2d1c48cf6a7",
+      "before_blob": "fc213149df76528bbe2c75aa701bfce03c15f69e",
+      "after_sha256": "ed7d75bbfaaae91a0f05dac5e913de5e7cad24feade1a81f8fdce2d1c48cf6a7",
+      "after_blob": "fc213149df76528bbe2c75aa701bfce03c15f69e",
+      "prior_spans": []
+    },
+    "papers/series-wise-validation/run.py": {
+      "before_sha256": "b4cf06f7df91f5ba4f6d55869cd2f12708b7c8dff138934a190e88f7ade1f1c9",
+      "before_blob": "f454cf84a5a09319a3d22ab905a58a4e0228b732",
+      "after_sha256": "b4cf06f7df91f5ba4f6d55869cd2f12708b7c8dff138934a190e88f7ade1f1c9",
+      "after_blob": "f454cf84a5a09319a3d22ab905a58a4e0228b732",
+      "prior_spans": []
+    },
+    "papers/series-wise-validation/table3.json": {
+      "before_sha256": "e11d0bbf6341db160d4c0c43c0abb67236148ec4901e5956eb09b7491e6a8800",
+      "before_blob": "25f1997cde4dcb1a2a7d033f4a563afea4c3e9b7",
+      "after_sha256": "e11d0bbf6341db160d4c0c43c0abb67236148ec4901e5956eb09b7491e6a8800",
+      "after_blob": "25f1997cde4dcb1a2a7d033f4a563afea4c3e9b7",
+      "prior_spans": []
+    }
+  }
+}
