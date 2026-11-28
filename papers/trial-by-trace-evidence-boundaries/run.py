@@ -1,4 +1,4 @@
-"""Regenerate deterministic teaching fixtures using the distributed JS implementation."""
+"""配布するJavaScriptで64条件を計算し、教材の結果を作り直す。"""
 from pathlib import Path
 import subprocess
 if __name__ == '__main__':

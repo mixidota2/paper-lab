@@ -3,4 +3,4 @@ for(let a=0;a<2;a++)for(let h=0;h<4;h++)for(const g of [false,true])for(const b 
 assert.equal(rows.length,64);assert.throws(()=>evaluate([],[]));assert.throws(()=>evaluate([1],[4]));assert.equal(evaluate([1],[0]).score,50);
 const nodes={};for(const id of ['a','h','g','b','q','reset','out'])nodes[id]={value:id==='a'?'1':'0',checked:id==='g',events:{},addEventListener(e,f){this.events[e]=f;}};
 require('./ui.js').mount({getElementById:id=>nodes[id]});const initial=nodes.out.textContent;nodes.a.value='0';nodes.a.events.change();assert.notEqual(initial,nodes.out.textContent);nodes.g.checked=false;nodes.g.events.change();assert(nodes.out.textContent.includes('保留'));nodes.reset.events.click();assert.equal(initial,nodes.out.textContent);
-fs.writeFileSync('results.json',JSON.stringify({note:'自作の64条件。原著の実行結果ではありません。',cases:rows},null,2)+'\n');console.log('PASS: 64 cases, independent score oracle, error inputs, change/admission/reset');
+fs.writeFileSync('results.json',JSON.stringify({note:'Labが組み合わせた64条件の計算結果です。論文で使った実行記録ではありません。',cases:rows},null,2)+'\n');console.log('64条件の得点、誤った入力、条件の変更と採点の保留、初期化を確認しました。');

@@ -216,7 +216,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = execution_state_unlearning_full_prose_hash(root, path, expected, algorithm)
     expected = featurearc_full_prose_hash(root, path, expected, algorithm)
     expected = contextual_all_full_prose_hash(root, path, expected, algorithm)
-    return trace_all_full_prose_hash(root, path, expected, algorithm)
+    expected = trace_all_full_prose_hash(root, path, expected, algorithm)
+    return trial_trace_all_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -3825,6 +3826,29 @@ def trace_all_full_prose_hash(root,path,expected,algorithm='sha256'):
 def before_trace_all_full_prose(root,path,current):
     import base64,zlib
     row=trace_all_full_prose_row(root,path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
+    old=zlib.decompress(base64.b64decode(row['prior_zlib_b64'],validate=True))
+    assert hashlib.sha256(old).hexdigest()==row['before']['sha256'],path
+    return old
+
+
+def trial_trace_all_full_prose_row(root,path):
+    if path != 'paper_lab/trial_trace.py' and not path.startswith('papers/trial-by-trace-evidence-boundaries/'):
+        return None
+    return json.loads((root/'tests/trial_trace_all_full_prose_hashes.json').read_text())['files'].get(path)
+
+def trial_trace_all_full_prose_hash(root,path,expected,algorithm='sha256'):
+    row=trial_trace_all_full_prose_row(root,path)
+    if row is None:
+        return expected
+    assert expected==row['before'][algorithm],path
+    return row['after'][algorithm]
+
+def before_trial_trace_all_full_prose(root,path,current):
+    import base64,zlib
+    row=trial_trace_all_full_prose_row(root,path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
