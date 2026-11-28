@@ -8,6 +8,7 @@ import sys
 
 import pytest
 import yaml
+from overview_predicate_revisions import before_overview_predicate_revision
 from prose_preservation import pilot_full_prose_hash, before_pilot_full_prose
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,7 +41,8 @@ def test_pilot_paper_data_and_toy_outcomes_are_separate_and_unchanged():
     b=yaml.safe_load(b)
     for key in ('id','arxiv_id','authors','verification','urls','year','status','title','source_review'):
         assert a[key]==b[key]
-    assert a['sections']['overview']==b['sections']['overview']
+    earlier = yaml.safe_load(before_overview_predicate_revision(ROOT, p, (ROOT/p).read_bytes()))
+    assert a['sections']['overview']==earlier['sections']['overview']
     p=P+'results.json'
     b=(ROOT/p).read_bytes()
     a,b=(json.loads(v) for v in (before_pilot_full_prose(ROOT,p,b),b))

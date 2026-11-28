@@ -294,7 +294,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'varg-tmall-value-generative-retrieval': ('予備順位付けを通さず','20%','14日間','1.45%','0.22%'),
         'hgenpush-kuaishou-heterogeneous-push-gr': ('投稿者の動画を探す','予備の順位付けを経ず','0.181%','統計的に有意ではありませんでした'),
         'lige-gr-meta-listwise': ('7日間','1.14%','0.72%','0.52%減','別の比較です'),
-        'oxygenrec-v2-idgr': ('将来の行動を入力しません','6つの配信面','1.61〜4.44%','4.25%','他の推薦処理を取り除いたという意味ではありません'),
+        'oxygenrec-v2-idgr': ('将来の行動を入力しません','6つの配信面','1.61〜4.44%','4.25%','配信時の他の推薦処理まで取り除いたわけではありません'),
         'pushdualgen-kuaishou': ('14日間','15%を二群に等分','64.46%から69.94%','0.053%から0.033%','文面生成だけの効果ではありません'),
         'agenttether-repair': ('最初に失敗した83件','39件','49件','失敗した課題も3件','全課題に対する成功率ではありません'),
         'scaffold-effects-gaia': ('5つのモデル','3回の試行','最大28ポイント','全モデルの平均ではない'),
@@ -318,7 +318,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'swe-serve-inference-serving-agents': ('53課題','19課題','627件','45.9%','69.4%','同じ変更のまま'),
         'dream-taobao-agentic-control': ('2.06%','2.71%','同じ従来方式','足し合わせられません'),
         'evopilot-verify-dont-trust-autoresearch': ('22ポイント','評価に使った候補数は異なって','人の確認','3.20ポイント'),
-        'pilot-experiment-lifecycle': ('五つの実験グループ','1.00%','1.40%','53.3%から93.3%','別々の時期'),
+        'pilot-experiment-lifecycle': ('五つの実験グループ','1.00%','1.40%','ROAMの53.3%からPILOTの93.3%','別々の時期'),
         'recevolve-autonomous-rec': ('41件','0.4796から0.5751','3.77%','試行は元に戻し'),
     }
     for path, row in rows.items():
@@ -390,7 +390,9 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'zalando-sales-event-pricing-forecast-optimize',
                                      'discounted-perishables-forecast',
                                      'trace-verifier-brittleness',
-                                     'trial-by-trace-evidence-boundaries'} else overview)
+                                     'trial-by-trace-evidence-boundaries',
+                                     'invevolve-whitebox-inventory-evolution',
+                                     'pilot-experiment-lifecycle', 'oxygenrec-v2-idgr'} else overview)
         assert live_overview.split('\n')[0] in text
         assert all(value in text for value in anchors[slug])
         with pytest.raises(AssertionError):
