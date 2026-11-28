@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_icegr_reader_assets
 from prose_preservation import before_coral_reader_assets
 from prose_preservation import before_unipinrec_reader_assets
 from prose_preservation import before_generation_reader_full_prose
@@ -149,6 +150,7 @@ def before_full_article_rewrites(root, path, current):
     old = before_quasid_full_rewrite(root, path, old)
     old = before_semantic_id_pair_full_rewrite(root, path, old)
     old = before_forecast_pair_full_rewrite(root, path, old)
+    old = before_icegr_reader_assets(root, path, old)
     old = before_harness_icegr_full_rewrite(root, path, old)
     old = before_tgr_full_rewrite(root, path, old)
     old = before_sona_reader_assets(root, path, old)
@@ -257,7 +259,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'sona-yandex-music': ('各群15%', '7日間', '4.53%', '6.30%', 'Active Users', '教師を動かしません', '全利用者に展開しておらず'),
         'unir2-sequence-unify': ('5%', '2週間', '1.177%', '2.569%', 'OneLive', '推薦の全段階を置き換えた結果でもありません'),
         'gatesid-coldstart-ranking': ('二つの表現', '2週間', '2.6%', '5.6%', '5ミリ秒未満'),
-        'icegr-baidu-intent-generative-retrieval': ('5億パラメータ', '最終結果に直接', '3.52%', '15.96%', '7.53%'),
+        'icegr-baidu-intent-generative-retrieval': ('5億パラメータ', '最終結果に直接', '3.52%', '15.96%', '7.53%', '20%を対象', '商品表示1回あたり', '支払いの有無'),
         'ogr-once-generated-ranked': ('3%', '1週間', '1.120%', '本番の応答時間が約2.2倍速くなったという測定結果ではありません'),
         'sid-ope-hierarchy': ('KuaiRand', 'SNIPS', '0.155', '0.087', '同じ数のグループ'),
         'muser-baidu-long-sequence-multi-interest': ('最大10万件', '6通り', '0.26%', '0.89%', '0.2351', '0.2232'),
@@ -350,6 +352,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'execution-state-unlearning',
                                      'featurearc-inherited-defects-chain-gates',
                                      'contextual-deconvolution',
+                                     'icegr-baidu-intent-generative-retrieval',
                                      'coral-meta-config-harness',
                                      'unipinrec',
                                      'case-against-generation-retrieval',

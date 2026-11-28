@@ -1,5 +1,5 @@
 {
-  "note": "人工3商品。Eq. 3と9の算術、関連性gateの意義を確認。ICEGRの学習・A/B再現ではない。",
+  "note": "架空の3候補で式3と式9を計算した。関連性の下限を決めると、取引の得点だけで選ぶ場合とは異なる候補を選ぶ。ICEGRの学習や本番A/Bテストは再現していない。",
   "scope": {
     "calibration_monotonicity": "CONFIRMED",
     "mechanism": "PARTIAL",
@@ -61,7 +61,7 @@
   ],
   "experiments": [
     {
-      "name": "意図で結ぶ2商品の距離と関連性制約",
+      "name": "同じ検索で選ばれたと仮定した2商品の距離と、関連性で絞った場合に選ぶ候補",
       "metrics": {
         "gift_pair_distance": {
           "before": 1.4142135623730951,

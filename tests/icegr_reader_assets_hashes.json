@@ -1,0 +1,135 @@
+{
+  "base": "a6aeb84554d65a9e11ab305de70a3d8e084eae63",
+  "files": {
+    "papers/icegr-baidu-intent-generative-retrieval/README.md": {
+      "before_sha256": "fab71151d7f8d52d8cd26a9ab53670ccdd659de63bc30c602f95dcae8a069e3f",
+      "before_blob": "d784e8c1a6064ae6f133bc9ac169b1102ff31b8e",
+      "after_sha256": "3fbb71879d2e4ba05c3a3b355c41859ee9f70f26c5b025d73cf316f852b6c200",
+      "after_blob": "9894990d508012090f10ecba61230a816583a810",
+      "prior_spans": [
+        [
+          2,
+          3,
+          "Baiduの研究チームは、検索した人の目的に合う商品を生成モデルで探す方法を提案しました。たとえば口紅とネックレスは商品としては似ていませんが、「恋人への贈り物」という同じ検索で選ばれます。ICEGRは、同じ検索でクリックされた商品や、商品につながった過去の検索語も使って商品IDを作ります。表示が少ない商品には学習用の検索文を補い、検索に合う商品だけを比べ、クリックや注文などの実績を使って、どちらを優先するかを学びます。\n"
+        ],
+        [
+          4,
+          5,
+          "Baiduは本番トラフィックの20%を使い、2週間のA/Bテストを行いました。既存の検索システムに5億パラメータのICEGRを追加し、その上位候補の一部を最終結果に直接入れました。著者の報告では、既存方式に比べてクリック率が3.52%、注文数が15.96%、取引総額が7.53%増えました。比較では商品IDの作り方、学習方法、表示の仕方をまとめて変えています。この数字だけでは、どの変更が効いたかは分かりません。\n"
+        ]
+      ]
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/lab.yaml": {
+      "before_sha256": "9778f3c0e10760a4cda6e2b87ac421beedcd6802f79e724895eb950b7d4866e4",
+      "before_blob": "ef2c43eed37270085ceb989615a53ea8f5eb6abe",
+      "after_sha256": "c19ef0bb17fde64de2c649369d2bceac05ccb6ff3b1df87400904992f4fbaa9e",
+      "after_blob": "f59e1cddbc4e24a53084cdc69e5ee53a31ccf13e",
+      "prior_spans": [
+        [
+          29,
+          30,
+          "summary: Baiduの検索で使うICEGRは、検索意図を反映した識別子（SID）、人工的に作った検索文を使う学習、関連性を保つための追加学習を組み合わせる。2週・20% A/BでCTR +3.52%、注文 +15.96%、GMV +7.53%。最終表示への直接挿入枠を持つ。\n"
+        ],
+        [
+          48,
+          49,
+          "    Baiduの研究チームは、検索した人の目的に合う商品を生成モデルで探す方法を提案しました。たとえば口紅とネックレスは商品としては似ていませんが、「恋人への贈り物」という同じ検索で選ばれます。ICEGRは、同じ検索でクリックされた商品や、商品につながった過去の検索語も使って商品IDを作ります。表示が少ない商品には学習用の検索文を補い、検索に合う商品だけを比べ、クリックや注文などの実績を使って、どちらを優先するかを学びます。\n"
+        ],
+        [
+          50,
+          51,
+          "    Baiduは本番トラフィックの20%を使い、2週間のA/Bテストを行いました。既存の検索システムに5億パラメータのICEGRを追加し、その上位候補の一部を最終結果に直接入れました。著者の報告では、既存方式に比べてクリック率が3.52%、注文数が15.96%、取引総額が7.53%増えました。比較では商品IDの作り方、学習方法、表示の仕方をまとめて変えています。この数字だけでは、どの変更が効いたかは分かりません。\n"
+        ],
+        [
+          77,
+          78,
+          "    Baiduは5億パラメータのICEGRを既存の多段階検索に追加し、本番トラフィックの20%を使って2週間のA/Bテストを行いました。生成した上位候補の一部を最終表示に直接入れ、残りを既存の関連性検査と順位付けに回す構成です。対照群では既存の多段階検索だけを使いました。\n"
+        ],
+        [
+          88,
+          89,
+          "    この表は経路の追加と表示方法を合わせた結果です。直接表示する件数や、各指標の信頼区間は表5からは分かりません。ログでProdGRと比べた評価や、VARGが最終順位付けに枠を持つ本番比較とは、対照も設定も異なります。\n"
+        ]
+      ]
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/mapping.md": {
+      "before_sha256": "32ad38810d2a811cc2e8a0e12be200c2a630e68c0d6822e81ed7e51b13592f93",
+      "before_blob": "a329d42bb82c38d6817255adf02c9c4e70141008",
+      "after_sha256": "32ad38810d2a811cc2e8a0e12be200c2a630e68c0d6822e81ed7e51b13592f93",
+      "after_blob": "a329d42bb82c38d6817255adf02c9c4e70141008",
+      "prior_spans": []
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/margin-curve.svg": {
+      "before_sha256": "6dfda0e255f7c76dbd38288787162f63bee12204c0312f959ba3d4f807aa47de",
+      "before_blob": "6bc682c8a2369aaa7ae4b8ab34050e9110e74358",
+      "after_sha256": "6dfda0e255f7c76dbd38288787162f63bee12204c0312f959ba3d4f807aa47de",
+      "after_blob": "6bc682c8a2369aaa7ae4b8ab34050e9110e74358",
+      "prior_spans": []
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/method.md": {
+      "before_sha256": "9e88e7f39bdff00a7ba451717357217666e4ceb06e36d6c59730d9d946e51830",
+      "before_blob": "0d32e491ace63d28977ae9e01cbec5fa26ce945e",
+      "after_sha256": "9e88e7f39bdff00a7ba451717357217666e4ceb06e36d6c59730d9d946e51830",
+      "after_blob": "0d32e491ace63d28977ae9e01cbec5fa26ce945e",
+      "prior_spans": []
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/plot.py": {
+      "before_sha256": "d63e1e942dc692aa9d3e3083ed909f4f41ebe54777a6527198913f6b4a5a15e3",
+      "before_blob": "b8e7904e73d0babc9965326f321793586886c102",
+      "after_sha256": "d63e1e942dc692aa9d3e3083ed909f4f41ebe54777a6527198913f6b4a5a15e3",
+      "after_blob": "b8e7904e73d0babc9965326f321793586886c102",
+      "prior_spans": []
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/results.json": {
+      "before_sha256": "a8c80e56752bb455ef1438c9909b6cddbd95bcc285f302248e71d1caabc64de8",
+      "before_blob": "380f49f1dbb557291cf0c48f9378699bca2612a1",
+      "after_sha256": "616f350130bbf5c35a0865489d1286ab5b45cc30fdeb7e1209f4475300f53c6a",
+      "after_blob": "1993b6d24b5032b819811566d4f3d901421a310a",
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"人工3商品。Eq. 3と9の算術、関連性gateの意義を確認。ICEGRの学習・A/B再現ではない。\",\n"
+        ],
+        [
+          63,
+          64,
+          "      \"name\": \"意図で結ぶ2商品の距離と関連性制約\",\n"
+        ]
+      ]
+    },
+    "papers/icegr-baidu-intent-generative-retrieval/run.py": {
+      "before_sha256": "df7d1575668cfef21d6bda3981c9a953dcaaeab41d2a7c4077d3bfc47136bc6f",
+      "before_blob": "78b2aad9c08c3487d03f56ed6e7583f678c678d6",
+      "after_sha256": "b94dc15cfcc3ec7c19313d67852f07e047aee8f0ca9be940b3d16bf1bbd0c6bb",
+      "after_blob": "f507a7b9f102358c4fb84ddbfd63c8e125cbfc53",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Intent graph anchoring and RCPO coefficient; no encoder/LLM training.\"\"\"\n"
+        ],
+        [
+          19,
+          20,
+          "    # Lipstick and necklace share gift intent, despite different product content.\n"
+        ],
+        [
+          26,
+          27,
+          "    # Illustrative hard gate, not the full SRA/BPR pair construction.\n"
+        ],
+        [
+          33,
+          34,
+          "    out={'note':'人工3商品。Eq. 3と9の算術、関連性gateの意義を確認。ICEGRの学習・A/B再現ではない。',\n"
+        ],
+        [
+          36,
+          37,
+          "      'experiments':[{'name':'意図で結ぶ2商品の距離と関連性制約','metrics':{'gift_pair_distance':{'before':dist(x[0],x[1]),'after':dist(h[0],h[1])},'chosen':{'business_only':business,'relevance_gate':gated}}}]}\n"
+        ]
+      ]
+    }
+  }
+}

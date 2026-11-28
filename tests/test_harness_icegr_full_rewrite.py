@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+from prose_preservation import before_icegr_reader_assets
 
 import pytest
 import yaml
@@ -23,7 +24,7 @@ def test_full_rewrite_replays_earlier_source_bytes_only():
     assert rows.keys() == {H + 'lab.yaml', H + 'method.md'} | {
         I + name for name in ('lab.yaml','README.md','mapping.md','method.md','plot.py','margin-curve.svg')}
     for p, row in rows.items():
-        raw = (ROOT / p).read_bytes()
+        raw = before_icegr_reader_assets(ROOT,p,(ROOT / p).read_bytes())
         prior = before_harness_icegr_full_rewrite(ROOT, p, raw)
         old, new = identity(prior), identity(raw)
         for key in old:
@@ -41,8 +42,9 @@ def test_article_evidence_keeps_version_figures_and_toys_separate():
         lab = slug + 'lab.yaml'
         raw = (ROOT / lab).read_bytes()
         current = yaml.safe_load(raw)
-        prior = yaml.safe_load(before_harness_icegr_full_rewrite(ROOT,lab,raw))
-        assert current['sections']['overview'] == prior['sections']['overview']
+        historical = before_icegr_reader_assets(ROOT,lab,raw)
+        prior = yaml.safe_load(before_harness_icegr_full_rewrite(ROOT,lab,historical))
+        assert yaml.safe_load(historical)['sections']['overview'] == prior['sections']['overview']
         assert current['source_review']['version'] == 'v1'
         for a,b in zip(current['teaching_figures'],prior['teaching_figures'],strict=True):
             assert a['id']==b['id'] and a['after']==b['after'] and a['kind']==b['kind']
@@ -53,7 +55,7 @@ def test_article_evidence_keeps_version_figures_and_toys_separate():
             assert all(s in current['sections']['results'] for s in ('24件','36件','48件','12件は不合格'))
         else:
             e=current['sections']['evidence']
-            assert all(s in e for s in ('ProdGR（対照）','0.4247','0.5169','20%を使って2週間','注文数 | +15.96%','取引総額（GMV） | +7.53%'))
+            assert all(s in e for s in ('ProdGR（対照）','0.4247','0.5169','20%を対象に2週間','注文数 | +15.96%','取引総額（GMV） | +7.53%'))
             assert '0.486' in current['sections']['results']
     for f, blob in {
         H+'run.py': '9cea0ae52a3418a89f92496b50f68dcd529709ee',
@@ -61,4 +63,4 @@ def test_article_evidence_keeps_version_figures_and_toys_separate():
         I+'run.py': '78b2aad9c08c3487d03f56ed6e7583f678c678d6',
         I+'results.json': '380f49f1dbb557291cf0c48f9378699bca2612a1',
     }.items():
-        assert identity((ROOT / f).read_bytes())['blob'] == blob
+        assert identity(before_icegr_reader_assets(ROOT,f,(ROOT / f).read_bytes()))['blob'] == blob
