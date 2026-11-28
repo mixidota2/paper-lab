@@ -1,0 +1,111 @@
+{
+  "base": "35c0a4b3a4a36a083f895203cda61842af983485",
+  "files": {
+    "papers/coral-meta-config-harness/README.md": {
+      "before_sha256": "aa795b9807c3a460395ab2526431ae9023e60f2f2a930e4fdb519af9042059ea",
+      "before_blob": "1e2ba4b1346e64dcc47fd436cefba6a82fa51782",
+      "after_sha256": "f001511d0d90db762cd2b874c8db06e2b4a9f1bb35727caeb3302b8d54bb1ef8",
+      "after_blob": "40c9cca7e90680f9a429d2e2447b00f50b28e223",
+      "prior_spans": [
+        [
+          2,
+          3,
+          "MetaのCORALが数日ごとに見直すのは、利用者に毎回出す推薦ではなく、既存の推薦システムの設定です。動画サービスでは推薦候補を集める予算を経路ごとに見直します。別のサービスでは、利用者グループごとに配信方法を選びます。言語モデルが運用統計と過去の変更結果を読んで案を出すと、数値最適化がその案に近い設定を予算内で選びます。\n"
+        ],
+        [
+          4,
+          5,
+          "著者が報告したA/Bテストでは、動画サービスの最終構成で配信費用を増やさず、視聴時間が0.15%、動画を見た訪問の回数が全体で0.16%増えました。別のサービスでは利用者の反応に統計的な差が出ず、対象グループを広げると費用を減らせた額が初回より44%増えました。総費用が44%下がったという意味ではありません。\n"
+        ]
+      ]
+    },
+    "papers/coral-meta-config-harness/lab.yaml": {
+      "before_sha256": "d6567928b1011b169142a6a15c9884672410b50cb12750abe993dd881d533b48",
+      "before_blob": "6262b6224bda83f71b8f541af4697ec77d9bb95c",
+      "after_sha256": "41c34f41129e0711d7a42abf1538c5eaf01c5d37174c5d39d209a668aa98a444",
+      "after_blob": "14158bf7c18f14fab2859e53059eba99df43bee6",
+      "prior_spans": [
+        [
+          44,
+          45,
+          "    MetaのCORALが数日ごとに見直すのは、利用者に毎回出す推薦ではなく、既存の推薦システムの設定です。動画サービスでは推薦候補を集める予算を経路ごとに見直します。別のサービスでは、利用者グループごとに配信方法を選びます。言語モデルが運用統計と過去の変更結果を読んで案を出すと、数値最適化がその案に近い設定を予算内で選びます。\n"
+        ],
+        [
+          46,
+          47,
+          "    著者が報告したA/Bテストでは、動画サービスの最終構成で配信費用を増やさず、視聴時間が0.15%、動画を見た訪問の回数が全体で0.16%増えました。別のサービスでは利用者の反応に統計的な差が出ず、対象グループを広げると費用を減らせた額が初回より44%増えました。総費用が44%下がったという意味ではありません。\n"
+        ],
+        [
+          71,
+          72,
+          "    著者は別のサービスで、一部の利用者グループに配信方法を割り当て、年率換算で数百万USDの推薦配信費用を減らした（§5.2）。次に対象グループを広げたところ、初回の削減額より44%多く減らせた。利用者の反応には統計的な変化がなかった。初回の削減額をSとすると次回は1.44S（`saving₂=1.44×saving₁`）である。総費用が44%減った（`cost₂=0.56×cost₀`）とは読めない。元の総費用が分からないため、総費用に対する削減率は計算できない。\n"
+        ]
+      ]
+    },
+    "papers/coral-meta-config-harness/mapping.md": {
+      "before_sha256": "328517b4a445e508f16326f77a10a90d807a2b33e4430729fbcc55ca32bfd54b",
+      "before_blob": "16a2d0de48bf35411372cb46018fde55c173c1cd",
+      "after_sha256": "328517b4a445e508f16326f77a10a90d807a2b33e4430729fbcc55ca32bfd54b",
+      "after_blob": "16a2d0de48bf35411372cb46018fde55c173c1cd",
+      "prior_spans": []
+    },
+    "papers/coral-meta-config-harness/method.md": {
+      "before_sha256": "74177f5b1ea0cefeff8e25c3cf73b7f077b5ae037ed5dca90503f6d688d2f774",
+      "before_blob": "a3ac47f8e09ade8752df579051c0b99a1f9ce5a1",
+      "after_sha256": "74177f5b1ea0cefeff8e25c3cf73b7f077b5ae037ed5dca90503f6d688d2f774",
+      "after_blob": "a3ac47f8e09ade8752df579051c0b99a1f9ce5a1",
+      "prior_spans": []
+    },
+    "papers/coral-meta-config-harness/results.json": {
+      "before_sha256": "ba4f52d8aca75f6e846b917a0d2504ab03f26a76f82f378f12f5c05b5f097597",
+      "before_blob": "165d42de09ed53ec3b5d834afc18796abf9de43e",
+      "after_sha256": "3fd27343263995d8d60e351eb3dd6ca4f38a62b471cf094af9bc5b67dc3f4c83",
+      "after_blob": "5a8dbeced4f97823b50497b2336776830f8b2663",
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"提案は手作り。LLM・実トラフィック・学習効果は含まない。ユークリッド距離と単価一定はLabの仮定。\",\n"
+        ],
+        [
+          4,
+          5,
+          "      \"name\": \"予算10へ射影する数値ツール\",\n"
+        ],
+        [
+          21,
+          22,
+          "      \"name\": \"削減額44%増の分母\",\n"
+        ]
+      ]
+    },
+    "papers/coral-meta-config-harness/run.py": {
+      "before_sha256": "6f7fb914080fce75c1b6322b3e83a3dd279f948e3cc4f337d3155f1970990e13",
+      "before_blob": "fe68470186272cb65bf94699ed037d3f2be48478",
+      "after_sha256": "bc17af2fea53fe82d591a7af97418d94c2191933cc4a5a8eed124f1cd33a2c24",
+      "after_blob": "9db52a44f276a3bc855539e629151602a2a6891b",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"CORAL numerical tool analogue: exact budget projection and discrete allocation.\"\"\"\n"
+        ],
+        [
+          9,
+          11,
+          "    # Euclidean projection onto x>=0, sum(x)<=B; this norm is a Lab choice.\n"
+        ],
+        [
+          26,
+          27,
+          "    # Synthetic first-round saving, to expose the denominator of 44%.\n"
+        ],
+        [
+          28,
+          31,
+          "    return {\"note\":\"提案は手作り。LLM・実トラフィック・学習効果は含まない。ユークリッド距離と単価一定はLabの仮定。\",\n      \"experiments\":[{\"name\":\"予算10へ射影する数値ツール\", \"metrics\":{str(i+1):{\"提案費用\":sum(x[\"proposal\"]),\"配信費用\":x[\"cost\"]} for i,x in enumerate(frames)}},\n      {\"name\":\"削減額44%増の分母\", \"metrics\":{\"元の費用\":base,\"初回の削減額\":first,\"次回の削減額\":first*1.44,\"次回の費用\":base-first*1.44}}],\n"
+        ]
+      ]
+    }
+  }
+}

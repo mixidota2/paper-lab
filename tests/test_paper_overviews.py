@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_coral_reader_assets
 from prose_preservation import before_unipinrec_reader_assets
 from prose_preservation import before_generation_reader_full_prose
 from prose_preservation import before_sona_reader_assets
@@ -27,6 +28,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def before_full_article_rewrites(root, path, current):
+    current = before_coral_reader_assets(root, path, current)
     current = before_unipinrec_reader_assets(root, path, current)
     current = before_generation_reader_full_prose(root, path, current)
     current = before_assortment_observation_reader_assets(root, path, current)
@@ -285,7 +287,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'agentx-kuaishou': ('3週間','374案','10件','8倍','約3.7倍','無作為に割り付けた比較でもありません'),
         'aura-disney-agentic-rec-diagnosis': ('それぞれ約10万件','1,911件','±0.1%','本番に出した事例ではありません'),
         'auto-recsys-harness': ('31回','4.0回から1.3回','平均0.5回','対照群のない運用記録'),
-        'coral-meta-config-harness': ('0.15%','0.16%','費用を減らせた額','44%','総費用が44%下がったという意味ではありません'),
+        'coral-meta-config-harness': ('0.15%','0.16%','訪問の回数','人が運用を監督','費用を減らせた額','44%','総費用が44%下がったという意味ではありません'),
         'harness-r1': ('44.3%から53.6%','9.3ポイント','同じ重み','全体の改善になるわけではありません'),
         'harness-zero-distillation': ('23.3%から44.3%','41.7%','30.0%','38.0%','全課題を合算した成功率ではありません'),
         'multi-harness-rl': ('1課題を8回ずつ','0.25ポイント','−0.48から+1.02','2.14%から9.27%'),
@@ -348,6 +350,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'execution-state-unlearning',
                                      'featurearc-inherited-defects-chain-gates',
                                      'contextual-deconvolution',
+                                     'coral-meta-config-harness',
                                      'unipinrec',
                                      'case-against-generation-retrieval',
                                      'sona-yandex-music',

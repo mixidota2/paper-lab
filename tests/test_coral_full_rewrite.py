@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+from prose_preservation import before_coral_reader_assets
 
 from paper_lab.models import load_all_labs
 from prose_preservation import coral_full_rewrite_hash, paper_overview_rewrite_hash
@@ -16,7 +17,7 @@ def test_coral_revision_rejects_unknown_or_already_updated_source():
     assert proof['base'] == '5c97429443b48dd3d3e6568e4dd7087525bc8b63'
     assert {Path(p).name for p in proof['files']} == {'README.md','lab.yaml','mapping.md','method.md'}
     for path, row in proof['files'].items():
-        content = (ROOT/path).read_bytes()
+        content = before_coral_reader_assets(ROOT,path,(ROOT/path).read_bytes())
         actual = {'sha256': hashlib.sha256(content).hexdigest(),
                   'blob': hashlib.sha1(b'blob '+str(len(content)).encode()+b'\0'+content).hexdigest()}
         for algo, digest in actual.items():

@@ -94,6 +94,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = diff_projection_source_version_hash(root, path, expected, algorithm)
     expected = arxiv_versioned_overview_hash(root, path, expected, algorithm)
     expected = paper_overview_rewrite_hash(root, path, expected, algorithm)
+    expected = coral_reader_assets_hash(root, path, expected, algorithm)
     expected = unipinrec_reader_assets_hash(root, path, expected, algorithm)
     expected = generation_reader_full_prose_hash(root, path, expected, algorithm)
     expected = assortment_observation_reader_assets_hash(root, path, expected, algorithm)
@@ -4194,6 +4195,35 @@ def before_unipinrec_reader_assets(root, path, current):
     if not path.startswith('papers/unipinrec/'):
         return current
     row = unipinrec_reader_assets_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior
+
+
+def coral_reader_assets_rows(root):
+    return json.loads((root / 'tests/coral_reader_assets_hashes.json').read_text())['files']
+
+
+def coral_reader_assets_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/coral-meta-config-harness/'):
+        return expected
+    row = coral_reader_assets_rows(root).get(path)
+    if row is None or not row['prior_spans']:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_coral_reader_assets(root, path, current):
+    if not path.startswith('papers/coral-meta-config-harness/'):
+        return current
+    row = coral_reader_assets_rows(root).get(path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
