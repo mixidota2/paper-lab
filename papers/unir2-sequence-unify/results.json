@@ -1,5 +1,5 @@
 {
-  "note": "合成例。scalar adapterはLoRAの代用品。論文の性能・本番適用性はNOT TESTED。",
+  "note": "人工例では、順位付け専用の調整値を1個置く。実際のLoRAは実装せず、論文の精度や本番での利用も試していない（NOT TESTED）。",
   "parameters": {
     "ntp_target": 0.8,
     "rank_target": 0.2,
@@ -267,7 +267,7 @@
   },
   "experiments": [
     {
-      "name": "同じadapter自由度で勾配の境界だけを変える",
+      "name": "調整値の数をそろえ、順位付けの勾配を共有の重みに伝えるかだけを変える",
       "metrics": {
         "initial": {
           "ntp_ce": 0.500402,

@@ -1,0 +1,165 @@
+{
+  "base": "8b680cbb791f10760867d9d1cd2ddddaea04ca1d",
+  "files": {
+    "papers/unir2-sequence-unify/README.md": {
+      "before_sha256": "b65cda984f5c70f74ea3f65f22756ce0bca556e5a8d237c38f0764134ffdfd85",
+      "before_blob": "398838b88b2042e6dc17dc02517ed854b8653094",
+      "after_sha256": "7afd1f29562e0f0f8f403726af867145646d5dea10ffcb31c3df22089e3be6ab",
+      "after_blob": "c248da953ae4befa3df4c362c6fec0aff927e827",
+      "prior_spans": [
+        [
+          4,
+          5,
+          "Kuaishouの研究チームは、ライブ配信の候補を探す処理と、最終順位付けの前に候補を絞る処理を、一つのTransformerにまとめました。UniR²は利用者の文脈を読み、候補を表すIDの列を生成します。同じモデルはその途中の情報と候補の特徴を使い、候補を絞るための点数を計算します。\n"
+        ],
+        [
+          6,
+          7,
+          "著者は2026年6月に、配信の5%を使って従来のOneLiveによる候補検索と予備順位付けを置き換え、2週間比較しました。Kuaishou本体では再生回数が1.177%増え、Kuaishou Liteではギフト総額が2.569%増えました。異なるアプリの指標であり、推薦の全段階を置き換えた結果でもありません。\n"
+        ],
+        [
+          37,
+          38,
+          "§6.4には、指標ごとの信頼区間と検定結果が示されていない。Labではgifting intentionを正確にどう数えたかも確認できていない。2週間の差から、長期に利用する人が増えたか、他のサービスでも同じ効果が出るかは分からない。\n"
+        ],
+        [
+          41,
+          42,
+          "検索した128候補にクリックされた配信が入る割合（Click HR@128）は、表1でOneLiveが0.8284、PROMISEが0.8416、UniR²が0.8741だった。表2ではクリックの予測順位を測るAUCが、HoMEを使う本番の比較方式で0.8450、UniR²で0.8513だった。\n"
+        ]
+      ]
+    },
+    "papers/unir2-sequence-unify/figures/isolation.svg": {
+      "before_sha256": "a6630c962c363889bc233d1ca0ab6832208e1b4204b34e136132782d2c777775",
+      "before_blob": "9ece7a640f2acceb6ab250a5c9b04a5d06daaef3",
+      "after_sha256": "a6630c962c363889bc233d1ca0ab6832208e1b4204b34e136132782d2c777775",
+      "after_blob": "9ece7a640f2acceb6ab250a5c9b04a5d06daaef3",
+      "prior_spans": []
+    },
+    "papers/unir2-sequence-unify/figures/mask.svg": {
+      "before_sha256": "a84f1e4183f0bd4c5cc445385ecfea2371e22cfcd8f22d28f5bd0e4c026efbda",
+      "before_blob": "21d8ca669622ef0d8152e1598d3d1f69e4dee869",
+      "after_sha256": "a84f1e4183f0bd4c5cc445385ecfea2371e22cfcd8f22d28f5bd0e4c026efbda",
+      "after_blob": "21d8ca669622ef0d8152e1598d3d1f69e4dee869",
+      "prior_spans": []
+    },
+    "papers/unir2-sequence-unify/figures/sequence.svg": {
+      "before_sha256": "26268322c3cda208d8f055ab9c2359b05372895256f4e936f01ae19e062426fb",
+      "before_blob": "93c2be274fdbb046ad052613adaec5ecd1f0ba1f",
+      "after_sha256": "26268322c3cda208d8f055ab9c2359b05372895256f4e936f01ae19e062426fb",
+      "after_blob": "93c2be274fdbb046ad052613adaec5ecd1f0ba1f",
+      "prior_spans": []
+    },
+    "papers/unir2-sequence-unify/figures/serving.svg": {
+      "before_sha256": "b55ebf4c561210695f21a5c3ba6ec8e7f31779237765b9e97804e6451e566d6a",
+      "before_blob": "497649b708e796ad712f75ba5877f5851b3d9199",
+      "after_sha256": "b55ebf4c561210695f21a5c3ba6ec8e7f31779237765b9e97804e6451e566d6a",
+      "after_blob": "497649b708e796ad712f75ba5877f5851b3d9199",
+      "prior_spans": []
+    },
+    "papers/unir2-sequence-unify/lab.yaml": {
+      "before_sha256": "b10a9378c025e0eb1c1dc3af5aff1c37a50ae100082c5c395b2bdaf82020b98c",
+      "before_blob": "87266a705a1e1cdc10d13078c4417c4b4800b71e",
+      "after_sha256": "0f07a6a5ebf49e297b42f90fd500abcaa80f084533f75744ca95f4466a527717",
+      "after_blob": "4ea1f02b4e740cd39c0224b95506b6cd934ba770",
+      "prior_spans": [
+        [
+          45,
+          46,
+          "    Kuaishouの研究チームは、ライブ配信の候補を探す処理と、最終順位付けの前に候補を絞る処理を、一つのTransformerにまとめました。UniR²は利用者の文脈を読み、候補を表すIDの列を生成します。同じモデルはその途中の情報と候補の特徴を使い、候補を絞るための点数を計算します。\n"
+        ],
+        [
+          47,
+          48,
+          "    著者は2026年6月に、配信の5%を使って従来のOneLiveによる候補検索と予備順位付けを置き換え、2週間比較しました。Kuaishou本体では再生回数が1.177%増え、Kuaishou Liteではギフト総額が2.569%増えました。異なるアプリの指標であり、推薦の全段階を置き換えた結果でもありません。\n"
+        ],
+        [
+          65,
+          66,
+          "    §6.4には、指標ごとの信頼区間と検定結果が示されていない。Labではgifting intentionを正確にどう数えたかも確認できていない。2週間の差から、長期に利用する人が増えたか、他のサービスでも同じ効果が出るかは分からない。\n"
+        ],
+        [
+          69,
+          70,
+          "    検索した128候補にクリックされた配信が入る割合（Click HR@128）は、表1でOneLiveが0.8284、PROMISEが0.8416、UniR²が0.8741だった。表2ではクリックの予測順位を測るAUCが、HoMEを使う本番の比較方式で0.8450、UniR²で0.8513だった。\n"
+        ]
+      ]
+    },
+    "papers/unir2-sequence-unify/mapping.md": {
+      "before_sha256": "9c0747f77c01290ba0ff91f127dc9170db65b1c36703a4ab861130f3e6bd46ee",
+      "before_blob": "b9211c15f33f7f765397540cb2420fa601794a0f",
+      "after_sha256": "9c0747f77c01290ba0ff91f127dc9170db65b1c36703a4ab861130f3e6bd46ee",
+      "after_blob": "b9211c15f33f7f765397540cb2420fa601794a0f",
+      "prior_spans": []
+    },
+    "papers/unir2-sequence-unify/method.md": {
+      "before_sha256": "4f2e5d8268b229270d0742531bd92d134ec122b6e720d95701ebd8c8e6e0a48d",
+      "before_blob": "55367fb2ea4243a0d86e552c475d0673f97cfe17",
+      "after_sha256": "419f8893b2d95ed004a952d58cfe4c11589aa6c10d7276f98f70d916344d27b8",
+      "after_blob": "f1d0bc55e8be99919dab6b873bebdd7128a4eb9e",
+      "prior_spans": [
+        [
+          30,
+          33,
+          "GPUは利用者情報と、候補のSIDを生成するときに各層で計算したキー・バリュー（KV）を保存する。CPUが候補の特徴を取得してから、モデルは順位付け用の入力を足し、保存したKVと順位付け専用のLoRAを使って候補をまとめて採点する。順位付けは、ここでも履歴全体を直接読み直さない。業務ルールで候補を除外する処理と採点は、同じ候補集合を使って並行に進め、最後に除外結果を適用する（図3）。\n"
+        ]
+      ]
+    },
+    "papers/unir2-sequence-unify/results.json": {
+      "before_sha256": "c8e94bd5729aa885d8f6dee87a9cd3c226139d925708d921cde1965f92287d8f",
+      "before_blob": "86fe5a939954ac3d34a74fdd04ebcf26164cd105",
+      "after_sha256": "eee872b707c9e4db6e1c3096b5e376520048cba96ef97df5c867456dfd7eaac2",
+      "after_blob": "cbb03b657e514b2c57e32cc36a63901bbe8d3dd5",
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"合成例。scalar adapterはLoRAの代用品。論文の性能・本番適用性はNOT TESTED。\",\n"
+        ],
+        [
+          269,
+          270,
+          "      \"name\": \"同じadapter自由度で勾配の境界だけを変える\",\n"
+        ]
+      ]
+    },
+    "papers/unir2-sequence-unify/run.py": {
+      "before_sha256": "f1b4ef512022558f5d8c4b43d9837225019bd18bf214f7982ac2e8f31cde2068",
+      "before_blob": "fbb1e5e769efadf5dff639357d3b5b692968910c",
+      "after_sha256": "fb27405587aed4740242eb3705c0f2078733348302782aeb39117be7d95dc054",
+      "after_blob": "811a19ecd04216945e960f66e5f0e4b5febdf1ab",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"CPU mechanism toy, not a Transformer or a production reproduction. Run with uv.\"\"\"\n"
+        ],
+        [
+          13,
+          14,
+          "    # Intervene on masked values: generated states must never see item/future tokens.\n"
+        ],
+        [
+          32,
+          33,
+          "    # Stage 1 optimum for synthetic next-token target 0.8.\n"
+        ],
+        [
+          43,
+          44,
+          "        # Same scalar adapter capacity in both conditions; only detach boundary differs.\n"
+        ],
+        [
+          55,
+          56,
+          "    result = {'note': '合成例。scalar adapterはLoRAの代用品。論文の性能・本番適用性はNOT TESTED。',\n"
+        ],
+        [
+          58,
+          59,
+          "              'experiments': [{'name': '同じadapter自由度で勾配の境界だけを変える',\n"
+        ]
+      ]
+    }
+  }
+}

@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_unir2_reader_assets
 from prose_preservation import before_sid_ope_reader_full_prose
 from prose_preservation import before_quasid_reader_assets
 from prose_preservation import before_sparse_inspection_full_prose
@@ -144,6 +145,7 @@ def before_full_article_rewrites(root, path, current):
     old = before_tgr_full_rewrite(root, path, old)
     old = before_sona_full_rewrite(root, path, old)
     old = before_genpage_full_rewrite(root, path, old)
+    old = before_unir2_reader_assets(root, path, old)
     old = before_unir2_full_rewrite(root, path, old)
     return before_pinterest_full_rewrite(root, path, old)
 
@@ -244,7 +246,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'genpage-netflix-homepage': ('14日間', '約2億', '0.24%', '0.17〜0.30%', '20%', '既存の候補生成まで'),
         'tgr': ('CCFormer', '3.57%', 'BARGE', '0.60%', 'HiGR', '1.22%', 'TGR-Reason', '13.09%'),
         'sona-yandex-music': ('各群15%', '7日間', '4.53%', '6.30%', '全利用者に展開しておらず'),
-        'unir2-sequence-unify': ('5%', '2週間', '1.177%', '2.569%', '推薦の全段階を置き換えた結果でもありません'),
+        'unir2-sequence-unify': ('5%', '2週間', '1.177%', '2.569%', 'OneLive', '推薦の全段階を置き換えた結果でもありません'),
         'gatesid-coldstart-ranking': ('二つの表現', '2週間', '2.6%', '5.6%', '5ミリ秒未満'),
         'icegr-baidu-intent-generative-retrieval': ('5億パラメータ', '最終結果に直接', '3.52%', '15.96%', '7.53%'),
         'ogr-once-generated-ranked': ('3%', '1週間', '1.120%', '本番の応答時間が約2.2倍速くなったという測定結果ではありません'),
@@ -339,6 +341,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'execution-state-unlearning',
                                      'featurearc-inherited-defects-chain-gates',
                                      'contextual-deconvolution',
+                                     'unir2-sequence-unify',
                                      'sid-ope-hierarchy',
                                      'quasid-collision-qualified-sid',
                                      'assortment-observation-budget',
