@@ -1,6 +1,6 @@
 {
   "lab01_forecast": true,
-  "reported_source": "2601.21844v2 Table 1 (rounded)",
+  "reported_source": "論文v2（2601.21844）の表1。値は著者が丸めて掲載した。",
   "reported": [
     [
       "XGBoost",
@@ -659,5 +659,5 @@
     "demand_conservation": "CONFIRMED",
     "toy_rank_inversion_penalty_50": "CONFIRMED"
   },
-  "boundary": "Independent Bernoulli demand; simplified lost-sales policy; no official simulator or tree models."
+  "boundary": "Labは各日の需要を独立に生成し、欠品分を翌日に持ち越さない。著者のシミュレータや木モデルは実行していない。"
 }
