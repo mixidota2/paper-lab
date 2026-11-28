@@ -466,7 +466,7 @@ def test_batch22_evidence_continuation_and_serving_units():
         'flashvector-unity-serving-stack-agent': ('lab.yaml', '途中で不合格になれば、以降の判定へ進まない'),
         'grace-meta-ads-gtm-serving': ('method.md', '一つの広告が全条件を満たすとは限りません'),
         'swe-serve-inference-serving-agents': ('lab.yaml', '同じインスタンスに2回送ります'),
-        'trace-verifier-brittleness': ('method.md', 'ツール名の種類であり、呼出し回数ではない'),
+        'trace-verifier-brittleness': ('method.md', '同じ名前を何度呼んでも1種類です'),
     }
     for slug, (name, phrase) in phrases.items():
         assert phrase in (ROOT/'papers'/slug/name).read_text()
@@ -479,7 +479,7 @@ def test_batch22_evidence_continuation_and_serving_units():
     assert order in flash
     assert '実traffic replayやagentの実行ではない' in flash
     assert '分母が0なら、0%とはせず未定義' in (ROOT/'papers/featurearc-inherited-defects-chain-gates/method.md').read_text()
-    assert '必要な書込みが抜けていれば' in (ROOT/'papers/trace-verifier-brittleness/method.md').read_text()
+    assert '必要な書き込みを省いた場合は' in (ROOT/'papers/trace-verifier-brittleness/method.md').read_text()
 
 
 def test_root_readme_catalog_and_validation_scope():
