@@ -1,5 +1,7 @@
-"""Two-source MAE distillation on shifted synthetic candidate features.
-A linear student replaces Sona's neural Ranking Module; teacher is an analytic rule.
+"""特徴の分布が異なる二種類の人工候補で、教師の点数を学べるか試す。
+
+Sonaの採点部の代わりに線形モデルを使う。教師は決めておいた式で採点し、
+学習するモデルは教師との点数差の絶対値を小さくする。
 """
 import json, random
 from pathlib import Path
@@ -30,7 +32,7 @@ def compute():
                 correct+=(predict(w,test[i])-predict(w,test[j]))*(teacher(test[i])-teacher(test[j]))>0;total+=1
         out[name]={'heldout_MAE':round(sum(abs(predict(w,x)-teacher(x)) for x in test)/len(test),6),'pair_accuracy':round(correct/total,6),'weights':w}
     n,r,l=8192,2048,7
-    return {'note':'合成特徴の分布差だけを検証。teacherの正しさ、Transformer、オンライン効果は未検証。','verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},'experiments':[{'name':'同じ未使用rollout候補で教師との一致を測る','seed':13,'metrics':out}], 'attention_pair_counts':{'seven_full_layers':l*n*n,'compression_proxy':l*r*r+n*n+2*(n-r)*r,'note':'式の項数。FLOPs・壁時計時間ではない。'}}
+    return {'note':'二種類の人工候補の特徴の分布が違うとき、学習に使う候補の違いだけを比べる。教師が利用者の好みを当てるか、Transformerで再現できるか、本番で効果があるかは試していない。','verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},'experiments':[{'name':'学習に使わなかった同じ生成候補で、教師との点数の差と順位の一致を測る','seed':13,'metrics':out}], 'attention_pair_counts':{'seven_full_layers':l*n*n,'compression_proxy':l*r*r+n*n+2*(n-r)*r,'note':'注意機構で履歴の位置どうしを照らし合わせる項の数を式から求めた。浮動小数点演算数（FLOPs）や実際にかかった時間ではない。'}}
 
 if __name__ == "__main__":
     result = compute()
