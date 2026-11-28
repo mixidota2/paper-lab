@@ -1,4 +1,4 @@
-"""Reference CSR trie, exhaustively compared with a dictionary trie on tiny IDs."""
+"""架空のIDを使い、許可IDの先頭部分を配列でたどれるかを全通りで照合する。"""
 import json
 import itertools
 from pathlib import Path
@@ -35,13 +35,13 @@ def compute():
         for path in itertools.product(range(2),repeat=length):
             expected=any(p[:length]==path for p in FRESH)
             assert walk(path,csr)==expected;checked+=1
-    # Candidate scores fixed for both controls. Filtering after top-1 loses the fresh path.
+    # 同じ点数を使い、上位1件を選ぶ前と後で、許可集合に絞る結果を比べる。
     scores={p:5-i for i,p in enumerate(CATALOG)}
     unconstrained=sorted(CATALOG,key=scores.get,reverse=True)[:1]
     post=[p for p in unconstrained if p in FRESH]
     constrained=sorted(FRESH,key=scores.get,reverse=True)[:1]
-    return {"note":"2値・3段の人工IDをCPUで全列挙。STATICのTPU kernelや遅延を再現する実験ではない。",
-      "experiments":[{"name":"有効SIDと鮮度制約を分ける", "metrics":{"生成後filterの件数":len(post),"制約内top-1の件数":len(constrained),"照合したprefix数":checked}}],
+    return {"note":"0か1を3つ並べた架空のIDを使う。許可集合の先頭部分と、配列でたどれる先頭部分が一致するかをCPUで確かめる。TPUで動く処理や推論時間は再現していない。",
+      "experiments":[{"name":"許可集合に絞る順序を変えて、残る候補の数を比べる", "metrics":{"生成後filterの件数":len(post),"制約内top-1の件数":len(constrained),"照合したprefix数":checked}}],
       "csr":{"indptr":ptr,"tokens":tokens,"next_state":dst},"post_filter":post,"constrained":constrained,
       "checks":{"csr_prefix_equivalence":"CONFIRMED","fresh_subset_compliance":"CONFIRMED","accelerator_speed":"NOT TESTED"}}
 
