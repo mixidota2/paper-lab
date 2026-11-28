@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_sidscope_reader_assets
 from prose_preservation import before_series_reader_assets
 from prose_preservation import before_retail_grain_reader_assets
 from prose_preservation import before_icegr_reader_assets
@@ -152,6 +153,7 @@ def before_full_article_rewrites(root, path, current):
     old = before_sid_ope_full_rewrite(root, path, old)
     old = before_quasid_reader_assets(root, path, old)
     old = before_quasid_full_rewrite(root, path, old)
+    old = before_sidscope_reader_assets(root, path, old)
     old = before_semantic_id_pair_full_rewrite(root, path, old)
     old = before_forecast_pair_full_rewrite(root, path, old)
     old = before_icegr_reader_assets(root, path, old)
@@ -275,7 +277,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         't0-tsfm-forecasting-with-context': ('36.7', '43.0', '6.3ポイント', '19課題', '11課題', '43%減りました'),
         'youtube-music-llm-rationales-discovery': ('22.43%', '16.93〜27.93%', '8.07%', '理由文だけ', 'YouTube Music全体の利用継続率ではありません'),
         'cq-sid-eg-grpo-tmall': ('2週間','1.15%','0.40%','72.63%','既存の順位付け'),
-        'sidscope-diagnostics': ('0.976','0.900','0.083','−0.564から0.205','本番でのA/Bテストはありません'),
+        'sidscope-diagnostics': ('0.976','0.900','0.083','−0.564から0.205','本番でのA/Bテストはありません','NDCG@20','6.4%','3.4%','探索記録が分母'),
         'understanding-sids-isd': ('32.2%','0.0295','0.0387','31.2%','IDを作り直す方法ではありません'),
         'varg-tmall-value-generative-retrieval': ('予備順位付けを通さず','20%','14日間','1.45%','0.22%'),
         'hgenpush-kuaishou-heterogeneous-push-gr': ('投稿者の動画を探す','予備の順位付けを経ず','0.181%','統計的に有意ではありませんでした'),
@@ -356,6 +358,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'execution-state-unlearning',
                                      'featurearc-inherited-defects-chain-gates',
                                      'contextual-deconvolution',
+                                     'sidscope-diagnostics',
                                      'series-wise-validation',
                                      'icegr-baidu-intent-generative-retrieval',
                                      'coral-meta-config-harness',

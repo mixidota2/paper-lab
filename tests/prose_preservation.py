@@ -113,6 +113,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = icegr_reader_assets_hash(root, path, expected, algorithm)
     expected = forecast_pair_full_rewrite_hash(root, path, expected, algorithm)
     expected = semantic_id_pair_full_rewrite_hash(root, path, expected, algorithm)
+    expected = sidscope_reader_assets_hash(root, path, expected, algorithm)
     expected = quasid_full_rewrite_hash(root, path, expected, algorithm)
     expected = quasid_reader_assets_hash(root, path, expected, algorithm)
     expected = weather_cutoff_rewrite_hash(root, path, expected, algorithm)
@@ -4314,6 +4315,35 @@ def before_series_reader_assets(root, path, current):
     if not path.startswith('papers/series-wise-validation/'):
         return current
     row = series_reader_assets_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior
+
+
+def sidscope_reader_assets_rows(root):
+    return json.loads((root / 'tests/sidscope_reader_assets_hashes.json').read_text())['files']
+
+
+def sidscope_reader_assets_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/sidscope-diagnostics/'):
+        return expected
+    row = sidscope_reader_assets_rows(root).get(path)
+    if row is None or not row['prior_spans']:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_sidscope_reader_assets(root, path, current):
+    if not path.startswith('papers/sidscope-diagnostics/'):
+        return current
+    row = sidscope_reader_assets_rows(root).get(path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path

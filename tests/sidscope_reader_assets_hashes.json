@@ -1,0 +1,116 @@
+{
+  "base": "dada9537ab415bc598eb00087b273f793b7aadd1",
+  "files": {
+    "papers/sidscope-diagnostics/NOTICE.txt": {
+      "before_sha256": "5b4ea900589cc85a3a659ef490f70311d2f363123e0ebd10e99cddbb29aabc9f",
+      "before_blob": "bf222d6e0684950a1771bebcd3fa0b865595e2c7",
+      "after_sha256": "5b4ea900589cc85a3a659ef490f70311d2f363123e0ebd10e99cddbb29aabc9f",
+      "after_blob": "bf222d6e0684950a1771bebcd3fa0b865595e2c7",
+      "prior_spans": []
+    },
+    "papers/sidscope-diagnostics/README.md": {
+      "before_sha256": "852ee361b2e26fd6b918cbc8c82cf5884989cc3a3e79da61284afef51dc3b683",
+      "before_blob": "f82e2d4b5fd96191d2b992cd1f6bdfc0781a6563",
+      "after_sha256": "0369839e569e0c07bdf7120c9205c5bcd7a6e131bfe711eb3a61b34446d7c7a6",
+      "after_blob": "784082b0a236728038a470a21fee6105f1287cc1",
+      "prior_spans": [
+        [
+          15,
+          16,
+          "著者は、商品と識別子（SID）の対応表から、生成推薦が候補を探す前の段階で何が起きているかを調べるSIDScopeを作りました。たとえば、異なる商品に同じIDが付くと一つに特定できません。一方、同じ人の履歴に一緒に現れやすい商品に共通の先頭記号が付いていれば、その記号を使って候補をまとめて探せます。SIDScopeは、この二つを別々に測り、IDの更新前後の変化や、生成時に残った候補も調べます。\n"
+        ],
+        [
+          17,
+          20,
+          "8つの対応表では、履歴が近い商品が先頭記号を共有する度合いと、その記号で正解候補を拾える度合いの順位相関は0.976でした。同じカタログを使う対応表をまとめた5群では0.900で、p値は0.083でした。学習済みの生成モデルの並び順を測った比較では相関が−0.564から0.205までばらつきました。この診断だけでは、本番の推薦の質は分かりません。論文には本番でのA/Bテストはありません。\n"
+        ],
+        [
+          63,
+          64,
+          "入力を指定しなければ、説明用の6商品と、公式パッケージがMITライセンスで公開した12商品の対応表を診断する。後者については、以前に公式の動作例も別に実行した。確認値とハッシュは `official-check.json`、利用条件は `NOTICE.txt` にある。\n"
+        ]
+      ]
+    },
+    "papers/sidscope-diagnostics/lab.yaml": {
+      "before_sha256": "b409dd145e38bdc6abbdaa09a56236935b4b8041351a22caaca88742b810425e",
+      "before_blob": "2bec639d24bda9deb22a8da24d2c10e6512afffa",
+      "after_sha256": "c845cc53d41f5267d6b02728f8f94dfddfa72bd59d130a8d6ed30b1558923198",
+      "after_blob": "7522acc0b3b360b79e3dcceb01c990617c93660c",
+      "prior_spans": [
+        [
+          43,
+          44,
+          "    著者は、商品と識別子（SID）の対応表から、生成推薦が候補を探す前の段階で何が起きているかを調べるSIDScopeを作りました。たとえば、異なる商品に同じIDが付くと一つに特定できません。一方、同じ人の履歴に一緒に現れやすい商品に共通の先頭記号が付いていれば、その記号を使って候補をまとめて探せます。SIDScopeは、この二つを別々に測り、IDの更新前後の変化や、生成時に残った候補も調べます。\n"
+        ],
+        [
+          45,
+          48,
+          "    8つの対応表では、履歴が近い商品が先頭記号を共有する度合いと、その記号で正解候補を拾える度合いの順位相関は0.976でした。同じカタログを使う対応表をまとめた5群では0.900で、p値は0.083でした。学習済みの生成モデルの並び順を測った比較では相関が−0.564から0.205までばらつきました。この診断だけでは、本番の推薦の質は分かりません。論文には本番でのA/Bテストはありません。\n"
+        ]
+      ]
+    },
+    "papers/sidscope-diagnostics/mapping.md": {
+      "before_sha256": "f53756de86cede84332662772dd949a3c68e9bbb59b222174800b4f493c02378",
+      "before_blob": "ee977e2468e56a5a3b1c5084d51a5cd404427abb",
+      "after_sha256": "a1740e21afcac3f16b6ce4c378a290e4424a67450e0f9a72244e7a369625d200",
+      "after_blob": "00afce1aa2926e371c493ad1f32e15e0eec79a9c",
+      "prior_spans": [
+        [
+          25,
+          34,
+          ""
+        ]
+      ]
+    },
+    "papers/sidscope-diagnostics/method.md": {
+      "before_sha256": "97c8f5b4257d6d908ab10c93bf12009a35c5b2a117cf1832d30ab26dd3a16220",
+      "before_blob": "6b8dd4ed6dfb4cc79a5935dcead8e31357fd80e5",
+      "after_sha256": "97c8f5b4257d6d908ab10c93bf12009a35c5b2a117cf1832d30ab26dd3a16220",
+      "after_blob": "6b8dd4ed6dfb4cc79a5935dcead8e31357fd80e5",
+      "prior_spans": []
+    },
+    "papers/sidscope-diagnostics/official-check.json": {
+      "before_sha256": "532a419920e70e632a74195e806bae3345155a9beda17dc2ca9a979d78acf74a",
+      "before_blob": "465482641cd2bf7eb40c4f7aa35027a9c1cf161e",
+      "after_sha256": "532a419920e70e632a74195e806bae3345155a9beda17dc2ca9a979d78acf74a",
+      "after_blob": "465482641cd2bf7eb40c4f7aa35027a9c1cf161e",
+      "prior_spans": []
+    },
+    "papers/sidscope-diagnostics/results.json": {
+      "before_sha256": "f21e26575f56a7b84498361b024b364f546e0e1e9b078f22e4f0c51722e0b31a",
+      "before_blob": "2a2dc7a3df9ddb62b337e1d4c3ec677d00276fb0",
+      "after_sha256": "c5b14abc2a5315a76445b5c7fcc2c4119460bee06457b3f5cf02472fabee803c",
+      "after_blob": "62d56528db9d64f917ad8192e0db3cc4bb27e9c4",
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"既定入力は説明用6 item。--mappingで実際のJSONを診断できる。D3は渡された重み付き辺で計算し、公式の近傍抽出は省略。\",\n"
+        ],
+        [
+          10,
+          11,
+          "      \"name\": \"衝突修復とcheckpoint引き継ぎは別\",\n"
+        ]
+      ]
+    },
+    "papers/sidscope-diagnostics/run.py": {
+      "before_sha256": "cc473858dd25b9797b3e044ac30b67bb38bfc191461379de4d76997d660171de",
+      "before_blob": "8f8631c1faf4c3189d98db86ee66ed3c824d5fd1",
+      "after_sha256": "f092314c2646a7701fe17fe017e5234f1993e93e09944b319261f816c5e2e543",
+      "after_blob": "ef66654878b726127f1e2ace67e21a16b3434399",
+      "prior_spans": [
+        [
+          0,
+          7,
+          "\"\"\"Mapping diagnostics on real user-supplied JSON or a declared six-item fixture.\nUsage: uv run run.py --mapping map.json --previous old.json --pairs pairs.json\nmap.json: {\"item_id\": [0,1,2], ...}; pairs.json: [[\"a\",\"b\",weight], ...].\nWeights must be finite nonnegative numbers, not booleans. Unknown item pairs\nare excluded; zero total eligible weight has undefined alignment (JSON null).\nThis is an independent subset of SIDScope, not its official implementation.\n"
+        ],
+        [
+          88,
+          89,
+          "    return {'note':'既定入力は説明用6 item。--mappingで実際のJSONを診断できる。D3は渡された重み付き辺で計算し、公式の近傍抽出は省略。','verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},'experiments':[{'name':'衝突修復とcheckpoint引き継ぎは別','metrics':{'old':diagnose(old,pairs),'repaired':diagnose(fixed,pairs,old)}}],'official_quickstart_mapping':diagnose(OFFICIAL_EXAMPLE),'trace_before':trace(old,[[0,0],[1,0]],'a'),'trace_after':trace(fixed,[[0,0],[1,0]],'a')}\n"
+        ]
+      ]
+    }
+  }
+}

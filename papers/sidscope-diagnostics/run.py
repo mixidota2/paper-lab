@@ -1,9 +1,10 @@
-"""Mapping diagnostics on real user-supplied JSON or a declared six-item fixture.
-Usage: uv run run.py --mapping map.json --previous old.json --pairs pairs.json
-map.json: {"item_id": [0,1,2], ...}; pairs.json: [["a","b",weight], ...].
-Weights must be finite nonnegative numbers, not booleans. Unknown item pairs
-are excluded; zero total eligible weight has undefined alignment (JSON null).
-This is an independent subset of SIDScope, not its official implementation.
+"""商品と識別子（SID）の対応表を点検する。何も指定しないと、架空の6商品の例と公式の公開入力をLabのコードで計算する。
+実行例: uv run run.py --mapping map.json --previous old.json --pairs pairs.json
+map.json は商品IDから符号列への対応: {"item_id": [0,1,2], ...}。
+pairs.json は商品対と重み: [["a","b",weight], ...]。
+重みには0以上の有限な数を使う。真偽値は使えない。対応表にない商品を含む対は集計から外す。
+残った対の重みの合計が0なら、先頭の符号の一致度は計算できないためJSONのnullを返す。
+このコードはSIDScopeの一部を独立に実装したもので、公式の実装ではない。
 """
 import argparse, hashlib, json, math
 from collections import Counter, defaultdict
@@ -85,7 +86,7 @@ OFFICIAL_EXAMPLE = {'101': [4, 10, 1], '102': [4, 10, 2], '103': [4, 11, 1], '10
 def compute():
     old={'a':[0,0],'b':[0,0],'c':[0,1],'d':[1,0],'e':[1,1],'f':[2,0]}
     fixed={**old,'b':[0,2]}; pairs=[('a','c',3),('d','e',2),('a','f',1)]
-    return {'note':'既定入力は説明用6 item。--mappingで実際のJSONを診断できる。D3は渡された重み付き辺で計算し、公式の近傍抽出は省略。','verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},'experiments':[{'name':'衝突修復とcheckpoint引き継ぎは別','metrics':{'old':diagnose(old,pairs),'repaired':diagnose(fixed,pairs,old)}}],'official_quickstart_mapping':diagnose(OFFICIAL_EXAMPLE),'trace_before':trace(old,[[0,0],[1,0]],'a'),'trace_after':trace(fixed,[[0,0],[1,0]],'a')}
+    return {'note':'既定では架空の6商品と、公式の動作例が公開した12商品の対応表をLabのコードで点検する。別の表は --mapping で指定できる。D3は指定した商品対と重みから計算する。公式の方法で利用履歴から商品対を選ぶ処理は行わない。','verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},'experiments':[{'name':'同じSIDの共有を解消しても、旧モデルを使えるかは別に確かめる','metrics':{'old':diagnose(old,pairs),'repaired':diagnose(fixed,pairs,old)}}],'official_quickstart_mapping':diagnose(OFFICIAL_EXAMPLE),'trace_before':trace(old,[[0,0],[1,0]],'a'),'trace_after':trace(fixed,[[0,0],[1,0]],'a')}
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--mapping',type=Path);p.add_argument('--previous',type=Path);p.add_argument('--pairs',type=Path);p.add_argument('--out',type=Path,default=Path(__file__).with_name('results.json'));a=p.parse_args()
