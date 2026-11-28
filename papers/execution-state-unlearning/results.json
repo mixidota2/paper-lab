@@ -1,5 +1,5 @@
 {
-  "note": "合成状態機械。KVは辞書の履歴でありTransformerではない。再計算は状態遷移回数だけを数え、token数・時間を測らない。",
+  "note": "この教材は、同じ入力なら同じ結果になる規則で動きます。kvは実際のモデルのキャッシュではなく、辞書の履歴です。再計算は状態を更新した回数だけを数え、トークン数や経過時間は測りません。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",
@@ -374,7 +374,7 @@
       "selective": 1
     }
   ],
-  "probe_contract": "task obeys silent; introspection reads symbolic kv; summary reads derived notes; choice reads avoid_a",
+  "probe_contract": "回答、キャッシュに見立てた辞書、要約を教材の規則で確認します。選択に影響が残るかは、候補Aを避ける印の有無で確かめます。",
   "omissions": [
     "real LLM",
     "stochastic decoding",
