@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_static_reader_assets
 from prose_preservation import before_sidinspector_reader_assets
 from prose_preservation import before_sidscope_reader_assets
 from prose_preservation import before_series_reader_assets
@@ -144,6 +145,7 @@ def before_full_article_rewrites(root, path, current):
     old = before_dcdn_full_prose(root, path, old)
     old = before_ono_full_rewrite(root, path, old)
     old = before_wrapped_produce_full_rewrite(root, path, old)
+    old = before_static_reader_assets(root, path, old)
     old = before_static_constrained_full_rewrite(root, path, old)
     old = before_forecast_critic_full_rewrite(root, path, old)
     old = before_retail_grain_full_rewrite(root, path, old)
@@ -292,7 +294,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'harness-buys-tokens-not-pass-rate': ('難しいコード修正45課題','約13%','約26%','約8〜9ポイント','約14ポイント','3〜4倍'),
         'gryphon-ilsm': ('0.8209から0.8552','7日間','3,000件から1,000件','0.25%増','従来と同等だったとも'),
         'sam-d2q-aliexpress-doc2query': ('4%','21日間','2.27%','0.53%','3.38%増','この時系列を確定できません'),
-        'static-constrained-gr': ('0.033ミリ秒','0.25%','5.1%','実験期間ではありません'),
+        'static-constrained-gr': ('0.033ミリ秒','0.25%','5.1%','実験期間ではありません','視聴回数','候補をすべて7日以内に絞ったわけではありません'),
         'univa-commercial-sid-gar': ('1.50%','初版に5%','第2版に20%','どちらか片方の効果ではありません'),
         'agentx-kuaishou': ('3週間','374案','10件','8倍','約3.7倍','無作為に割り付けた比較でもありません'),
         'aura-disney-agentic-rec-diagnosis': ('それぞれ約10万件','1,911件','±0.1%','本番に出した事例ではありません'),
@@ -360,6 +362,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'execution-state-unlearning',
                                      'featurearc-inherited-defects-chain-gates',
                                      'contextual-deconvolution',
+                                     'static-constrained-gr',
                                      'sidinspector-mapping-diagnostics',
                                      'sidscope-diagnostics',
                                      'series-wise-validation',

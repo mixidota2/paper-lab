@@ -2,6 +2,7 @@
 from hashlib import sha1, sha256
 import json
 from pathlib import Path
+from prose_preservation import before_static_reader_assets
 import re
 
 import pytest
@@ -23,7 +24,7 @@ def test_static_constrained_four_exact_prose_transitions():
     rows=json.loads((ROOT/'tests/static_constrained_full_rewrite_hashes.json').read_text())['files']
     assert set(rows)=={P+n for n in names}
     for path,row in rows.items():
-        new=(ROOT/path).read_bytes()
+        new=before_static_reader_assets(ROOT,path,(ROOT/path).read_bytes())
         before=before_static_constrained_full_rewrite(ROOT,path,new)
         for alg in ('blob','sha256'):
             old_hash=identity(before)[alg]; new_hash=identity(new)[alg]
@@ -38,7 +39,8 @@ def test_static_constrained_four_exact_prose_transitions():
 
 
 def test_static_constrained_primary_results_are_separate_from_lab_replay():
-    new=(ROOT/(P+'lab.yaml')).read_bytes()
+    path=P+'lab.yaml'
+    new=before_static_reader_assets(ROOT,path,(ROOT/path).read_bytes())
     before=before_static_constrained_full_rewrite(ROOT,P+'lab.yaml',new)
     original,draft=map(yaml.safe_load,(before,new))
     assert original['sections']['overview']==draft['sections']['overview']
@@ -52,4 +54,4 @@ def test_static_constrained_primary_results_are_separate_from_lab_replay():
     assert '動的な更新を今後の課題' in draft['sections']['why_it_might_work']
     for name,sha in {'run.py':'68ad5320fbbccab9fb8cbbd34c98444762aceaab',
                      'results.json':'4320b7251a2b4984480ce98952afb30ff2f1763a'}.items():
-        assert identity((ROOT/(P+name)).read_bytes())['blob']==sha
+        assert identity(before_static_reader_assets(ROOT,P+name,(ROOT/(P+name)).read_bytes()))['blob']==sha
