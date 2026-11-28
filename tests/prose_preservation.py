@@ -94,6 +94,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = diff_projection_source_version_hash(root, path, expected, algorithm)
     expected = arxiv_versioned_overview_hash(root, path, expected, algorithm)
     expected = paper_overview_rewrite_hash(root, path, expected, algorithm)
+    expected = assortment_observation_reader_assets_hash(root, path, expected, algorithm)
     expected = zalando_reader_full_prose_hash(root, path, expected, algorithm)
     expected = bridging_reader_full_prose_hash(root, path, expected, algorithm)
     expected = revise_full_rewrite_hash(root, path, expected, algorithm)
@@ -3941,3 +3942,32 @@ def before_zalando_reader_full_prose(root, path, content):
     previous = zlib.decompress(base64.b64decode(row['prior_zlib_b64'], validate=True))
     assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
     return previous
+
+
+def assortment_observation_reader_assets_rows(root):
+    return json.loads((root / 'tests/assortment_observation_reader_assets_hashes.json').read_text())['files']
+
+
+def assortment_observation_reader_assets_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/assortment-observation-budget/'):
+        return expected
+    row = assortment_observation_reader_assets_rows(root).get(path)
+    if row is None or not row['prior_spans']:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_assortment_observation_reader_assets(root, path, current):
+    if path != 'paper_lab/assortment_observation.py' and not path.startswith('papers/assortment-observation-budget/'):
+        return current
+    row = assortment_observation_reader_assets_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior

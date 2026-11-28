@@ -1,8 +1,8 @@
-"""Exact no-observation prefix benchmark; arXiv:2610.40557v1 §3.
+"""観測なしの基準となる品揃えを、arXiv:2610.40557v1 §3に沿って計算する。
 
-No preference estimation, experiments, simulation, or empirical retail effects.
-Inputs are exact integers, Fraction values, or rational strings; floats are rejected.
-Product indices and cuts are one-based. Smallest optimal cut is our tie rule.
+この基準の計算に、選好の推定、実験、シミュレーション、実店舗での効果測定は含まれない。
+入力に使えるのは、整数、Fractionの値、有理数を表す文字列。浮動小数点数は受け付けない。
+商品番号と区切りの番号は1から数える。最適な区切りが複数なら、Labは最も小さい番号を選ぶ。
 """
 from dataclasses import dataclass
 from fractions import Fraction
@@ -29,11 +29,11 @@ class Benchmark:
 
 
 def component_a(revenues):
-    """Evaluate every k=1..n with r[n+1]=0, retaining every minimizer.
+    """収益r[n+1]を0と置いてk=1からnまで調べ、後悔を最小にする区切りをすべて返す。
 
-    Scope: finite positive strictly decreasing revenue sequences. The formula
-    is the paper's supremum over unknown nonnegative MNL preference weights,
-    not regret for any particular preference vector or a finite-grid maximum.
+    商品数は有限で、収益は正かつ同額がなく、高い順に並べる。
+    式が返すのは、未知の非負の選好の重み全体にわたる後悔の上限（上界のうち最小のもの）。
+    一つの選好だけで求めた後悔でも、有限個の候補を並べて求めた最大値でもない。
     """
     if not isinstance(revenues, (tuple, list)) or not revenues:
         raise ValueError('revenues must be a nonempty list or tuple')
@@ -60,10 +60,10 @@ def component_a(revenues):
     return Benchmark(r, cuts, optimal, chosen, tuple(range(1, chosen+1)),
                      g0, bound, corollary)
 
-"""Independent exact teaching components; not a paper reproduction.
+"""ここからは、Labが独自に作った有限例を分数で計算する。論文の再現ではない。
 
-C enumerates 6**floor(m/2) effective paths, capped at 1296 (m <= 9).
-Unused observations are marginalized exactly, not added to the decision.
+Cは判断に使う6**floor(m/2)通りの経路を列挙する。mが9以下なら最大1296通りになる。
+判断に使わない観測は、可能な結果の確率の和が1になるので、列挙せずに計算できる。
 """
 from fractions import Fraction as F
 from itertools import product
@@ -147,7 +147,7 @@ def component_c(m, r=(3, 2, 1), v=(1, 1, 1), threshold=F(1)):
     budget(m, 2)
     r, v = parameters(r, v)
     tau = m // 2
-    # MAX_PATHS = 6**4; reject before any input-dependent exponentiation.
+    # 最大経路数は6**4。上限を超える入力は、入力値に応じた累乗を計算する前に拒む。
     if tau > 4:
         raise ValueError('enumeration cap exceeded: floor(m/2) <= 4 required')
     probs = [probabilities(s, v) for s in PREFIXES[:2]]
@@ -166,7 +166,7 @@ def component_c(m, r=(3, 2, 1), v=(1, 1, 1), threshold=F(1)):
                 enumerated_paths=6**tau)
 
 
-# Integration adapter: bounded UI contract; original A/B/C functions above.
+# ここからは画面で扱う条件に入力を絞り、上で定義したA・B・Cを同じ条件で計算する。
 import json
 from pathlib import Path
 A_INPUTS = ((3,2,1),(2,1),(7,),(9,5,2),(F(3,2),1,F(1,2)),(8,7,6,1))
@@ -206,7 +206,7 @@ def generate():
     return dict(kind='original-exact-finite-enumeration',a=acuts,
                 cases=[integrated_case(m,v,s) for s in SCALES for v in range(4) for m in range(2,10)],
                 budget=dict(cases=96,max_paths=1296,monte_carlo=False,seed=None),
-                limits=['Fixed preference results are not minimax values','No author replication or retail effect'])
+                limits=['選好を固定した計算結果は、未知の選好全体で比較した最悪時の後悔ではない。','著者の計算は再現しておらず、実店舗での効果も測っていない。'])
 
 if __name__=='__main__':
     Path(__file__).with_name('results.json').write_text(json.dumps(generate(),ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
