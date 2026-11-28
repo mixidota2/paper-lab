@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+from prose_preservation import before_tagr_reader_assets
 import re
 
 import pytest
@@ -23,7 +24,7 @@ def test_only_labeled_overviews_and_reference_links_changed():
     files = json.loads((ROOT / 'tests/arxiv_versioned_overview_hashes.json').read_text())['files']
     assert files.keys() == {f'papers/{s}/{n}' for s in VERSIONS for n in ('lab.yaml', 'method.md')}
     for path, row in files.items():
-        last = before_tagr_all_full_prose(ROOT, path, (ROOT / path).read_bytes())
+        last = before_tagr_all_full_prose(ROOT, path, before_tagr_reader_assets(ROOT,path,(ROOT / path).read_bytes()))
         current = before_oneranker_full_prose(ROOT, path, last)
         restored = before_revise_full_rewrite(ROOT, path, current)
         if path.endswith('lab.yaml'):
