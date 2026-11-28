@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_sidinspector_reader_assets
 from prose_preservation import before_sidscope_reader_assets
 from prose_preservation import before_series_reader_assets
 from prose_preservation import before_retail_grain_reader_assets
@@ -153,6 +154,7 @@ def before_full_article_rewrites(root, path, current):
     old = before_sid_ope_full_rewrite(root, path, old)
     old = before_quasid_reader_assets(root, path, old)
     old = before_quasid_full_rewrite(root, path, old)
+    old = before_sidinspector_reader_assets(root, path, old)
     old = before_sidscope_reader_assets(root, path, old)
     old = before_semantic_id_pair_full_rewrite(root, path, old)
     old = before_forecast_pair_full_rewrite(root, path, old)
@@ -234,7 +236,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'forecast-critic': ('0.88', '0.97', '少なくとも10%'),
         'quasid-collision-qualified-sid': ('TIGER', '0.0211', '0.0230', 'NDCG@5', 'GMV-S2', '0.55%', '2.38%'),
         'scope-coupled-supply-chain-policies': ('18のシナリオ', '1.58%', '実現利益'),
-        'sidinspector-mapping-diagnostics': ('23,742商品', '97.7%', 'ReSID/GAOQ'),
+        'sidinspector-mapping-diagnostics': ('23,742商品', '97.7%', 'ReSID/GAOQ', '0.154', '0.447', '公式GRIDの学習手順全体'),
         'flashtrie-gpu-beam': ('8億件', '46.3 ms', '1.9 ms', '3.3 ms', '0.71%'),
         'invevolve-whitebox-inventory-evolution': ('25件', '13件', '30件中20件', 'シミュレーション'),
         'netflix-counterfactual-observability': ('11件', '0.8212', '新しい枠'),
@@ -358,6 +360,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'execution-state-unlearning',
                                      'featurearc-inherited-defects-chain-gates',
                                      'contextual-deconvolution',
+                                     'sidinspector-mapping-diagnostics',
                                      'sidscope-diagnostics',
                                      'series-wise-validation',
                                      'icegr-baidu-intent-generative-retrieval',

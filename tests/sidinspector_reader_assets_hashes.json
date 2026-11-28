@@ -1,0 +1,111 @@
+{
+  "base": "1eeea71e9e7f671de732c554e201f6be398d54c7",
+  "files": {
+    "papers/sidinspector-mapping-diagnostics/README.md": {
+      "before_sha256": "3dfb196ba5cd5c3e9ca50d61d0a0a1474343330764f9e65120055de9ccc83f7d",
+      "before_blob": "aaa603dddd215db63c9a41647c68e1d2face2d5e",
+      "after_sha256": "de4c0909fb8928521cfe5cb6fec34fc74afd8a287ca706c180427590c1bcb4c6",
+      "after_blob": "089b933db4e9983998b6eb7f6c7db2fab70359ef",
+      "prior_spans": [
+        [
+          12,
+          13,
+          "Python標準ライブラリだけで動きます。実行コードは `run.py`、計算結果は `results.json` にあります。手法を読むなら `method.md`、論文初版との対応を確かめるなら `mapping.md` を開いてください。公開ページは `lab.yaml` と手法の説明 `method.md` を使って生成します。サイト全体は `uv run paper-lab build` で生成できます。\n"
+        ]
+      ]
+    },
+    "papers/sidinspector-mapping-diagnostics/lab.yaml": {
+      "before_sha256": "6998a9f5c479ce7c8df26fb6107a214367eb61a1f4fee9a28a26ae8aec2262b1",
+      "before_blob": "2841dcc6cef1919962753cbc26640b3a0a560ae1",
+      "after_sha256": "8f2e4a6e8308d1b05e90829eed3f130256309a8c6891d86b57e0e027032a4070",
+      "after_blob": "f0b5d6e466270e6cb32fa10d32258915f8770a62",
+      "prior_spans": [
+        [
+          42,
+          43,
+          "    商品ごとに符号列（Semantic ID）を割り当てると、異なる商品が完全に同じ符号を持つことがあります。SIDInspectorは推薦モデルを学習させる前に、その割り当てを調べる道具です。符号を共有する商品の割合と、履歴でよく一緒に現れる商品どうしが符号の先頭が一致するかを別々に測ります。\n"
+        ],
+        [
+          44,
+          47,
+          "    著者が同じ23,742商品を使って比べると、GRIDを模した出力では97.7%の商品が別の商品と同じ符号を共有しました。ReSID/GAOQの出力では共有がありませんでした。これは書き出した符号の比較です。推薦したときの順位や、本番での利用者の反応を比べた結果ではありません。\n"
+        ]
+      ]
+    },
+    "papers/sidinspector-mapping-diagnostics/mapping-grid.svg": {
+      "before_sha256": "2654f0d034cdc3fdf9f0d7cba9c528d53168a6649bf35228f9db2c517282981c",
+      "before_blob": "72865360180ccc4a8e0c7a83fc6df3dcff8ec181",
+      "after_sha256": "2654f0d034cdc3fdf9f0d7cba9c528d53168a6649bf35228f9db2c517282981c",
+      "after_blob": "72865360180ccc4a8e0c7a83fc6df3dcff8ec181",
+      "prior_spans": []
+    },
+    "papers/sidinspector-mapping-diagnostics/mapping.md": {
+      "before_sha256": "1b753f1bd067cc6bbb683618ee69968a17efbcde028cbfdfac40d093036f6a04",
+      "before_blob": "152c44421d54aa8c0b3e9430b447237d3c4a302b",
+      "after_sha256": "46f2c69d2840c18c19f19781c90ac166e3cbe37297e37fbdc12f462533d1395f",
+      "after_blob": "e4291be89d265af2a60678a32209cfca0828e9f2",
+      "prior_spans": [
+        [
+          13,
+          26,
+          ""
+        ]
+      ]
+    },
+    "papers/sidinspector-mapping-diagnostics/method.md": {
+      "before_sha256": "3484042cad33eba52d49971590dc870026c3de42755ddaf51ff129a508c72a59",
+      "before_blob": "cffde742d1c9e4d68d2667033afb42ba24a40992",
+      "after_sha256": "3484042cad33eba52d49971590dc870026c3de42755ddaf51ff129a508c72a59",
+      "after_blob": "cffde742d1c9e4d68d2667033afb42ba24a40992",
+      "prior_spans": []
+    },
+    "papers/sidinspector-mapping-diagnostics/plot.py": {
+      "before_sha256": "c3c0b1e63174f74b861a63428f070e1836e0daec4c86e4ff7e76be1e6e5bdb4e",
+      "before_blob": "4f318b6afb32c7a16addcd45ea38e7004b4cad23",
+      "after_sha256": "c3c0b1e63174f74b861a63428f070e1836e0daec4c86e4ff7e76be1e6e5bdb4e",
+      "after_blob": "4f318b6afb32c7a16addcd45ea38e7004b4cad23",
+      "prior_spans": []
+    },
+    "papers/sidinspector-mapping-diagnostics/results.json": {
+      "before_sha256": "edba794c56a322454114614e6f6236acef4ce4a21d4e637c31109de29edfaaeb",
+      "before_blob": "2c9a69e9fa95d47660c12fd2f635175ba2df24f0",
+      "after_sha256": "a595f43b4cc565ada70f58eb9aba625ab89ababcf8666e728f39ce45a5c9a242",
+      "after_blob": "76b9117ed3b29c69923ee0337cac7fc5a27bd9a9",
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"同じ6 itemと固定co-occurrence edgeの診断。公式tokenizerの再学習・A/Bはしていない。\",\n"
+        ],
+        [
+          158,
+          159,
+          "      \"name\": \"同じcollision-freeでもprefixの意味は異なる\",\n"
+        ]
+      ]
+    },
+    "papers/sidinspector-mapping-diagnostics/run.py": {
+      "before_sha256": "57784d720912db9b6fc9b02bcd71524836304dff3afa17eb0fdbad96cc789555",
+      "before_blob": "faa94fa0daac96c9321c32b5797cc03ce84e5e77",
+      "after_sha256": "2d60d83fe3e05d1a5b8c9e0a9a8610e6a979cc21074df1dcbe674d199c34a6aa",
+      "after_blob": "82f941f903fcd43f63afeef27ab1e7fa29ad101d",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "\"\"\"Same-item mapping probes: addressability does not imply neighbor alignment.\"\"\"\n"
+        ],
+        [
+          42,
+          43,
+          "    out={'note':'同じ6 itemと固定co-occurrence edgeの診断。公式tokenizerの再学習・A/Bはしていない。',\n"
+        ],
+        [
+          45,
+          46,
+          "      'experiments':[{'name':'同じcollision-freeでもprefixの意味は異なる','metrics':{k:{'alias_item_rate':v['D2_alias_item_rate'],'neighbor_recovery':v['D3_L1_weighted'],'tail_capacity':v['D4_tail_unique_ratio']} for k,v in profiles.items()}}]}\n"
+        ]
+      ]
+    }
+  }
+}

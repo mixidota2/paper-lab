@@ -10,7 +10,7 @@
 uv run papers/sidinspector-mapping-diagnostics/run.py
 ```
 
-Python標準ライブラリだけで動きます。実行コードは `run.py`、計算結果は `results.json` にあります。手法を読むなら `method.md`、論文初版との対応を確かめるなら `mapping.md` を開いてください。公開ページは `lab.yaml` と手法の説明 `method.md` を使って生成します。サイト全体は `uv run paper-lab build` で生成できます。
+Python標準ライブラリだけで動きます。配布ファイルだけで試すなら、`run.py` と `plot.py` を同じフォルダーに保存して `python3 run.py` を実行してください。配布の `results.json` には架空の6商品の計算結果だけが入っています。各項目は[結果ファイルの読み方](mapping.md#結果ファイルの読み方)を参照してください。手法を読むなら `method.md`、論文初版との対応を確かめるなら `mapping.md` を開いてください。公開ページは `lab.yaml` と手法の説明 `method.md` を使って生成します。サイト全体は `uv run paper-lab build` で生成できます。
 
 ## 何を確かめたか
 

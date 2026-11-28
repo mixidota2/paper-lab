@@ -1,5 +1,5 @@
 {
-  "note": "同じ6 itemと固定co-occurrence edgeの診断。公式tokenizerの再学習・A/Bはしていない。",
+  "note": "同じ架空の6商品を使い、対応表だけを替えて比べる。一緒に現れたと仮定した商品対と重みは共通。論文の符号化器の学習や本番のA/Bテストは再現していない。",
   "scope": {
     "mapping_contract": "CONFIRMED",
     "mechanism": "PARTIAL",
@@ -156,7 +156,7 @@
   ],
   "experiments": [
     {
-      "name": "同じcollision-freeでもprefixの意味は異なる",
+      "name": "完全なSIDがすべて異なる表でも、商品対が先頭の符号を共有するとは限らない",
       "metrics": {
         "aliased": {
           "alias_item_rate": 0.6666666666666666,
