@@ -25,7 +25,7 @@ def test_scientific_overview_and_equation_bytes():
  for k in ('id','doi','status','urls','authors','title','verification'):
   assert old[k]==new[k]
  s=new['sections']['overview']
- assert all(w in s for w in ('18条件','16条件','0.10〜0.29秒','前半の計算は入っていません','売上や利益を報告していません'))
+ assert all(w in s for w in ('18条件','16条件','0.10〜0.29秒','棚幅110 cm','棚幅70 cmの場合の約69倍','前半の計算は入っていません','売上や利益を報告していません'))
  assert all(w not in s for w in ('Lab','教材','操作','150.780593'))
  for before,after in zip(old['teaching_figures'],new['teaching_figures'],strict=True):
   assert before['source']==after['source'] and before['locator']==after['locator']

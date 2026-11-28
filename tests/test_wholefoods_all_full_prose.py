@@ -24,7 +24,7 @@ def test_study_and_overview_keep_the_original_scope():
         assert now[key] == previous[key]
     assert now['source_review']['url'] == previous['source_review']['url']
     overview = now['sections']['overview']
-    markers = ['Liら', '商圏', '週販売数量', '既存手法', 'シミュレーション', '改装で7.5%', '新店設計で6.7%', '実際に改装や出店をした後の売上を測った結果ではなく']
+    markers = ['Liら', '商圏', '週販売数量', '既存手法', 'シミュレーション', '改装案で7.5%', '新店案で6.7%', '改装や出店のあとに測った売上ではありません', '詳しい検証結果は論文に掲載されていません']
     assert all(m in overview for m in markers)
     assert all(m not in overview for m in ('Lab', '教材', '操作図', '268.7006'))
     for before, after in zip(previous['teaching_figures'], now['teaching_figures'], strict=True):
