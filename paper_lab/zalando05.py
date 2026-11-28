@@ -1,4 +1,4 @@
-"""Pricing desk: paper-specific figures driven by results.json."""
+"""results.jsonの数値を使い、著者の結果とLabの人工例を別々に表示する。"""
 import json
 from html import escape
 from paper_lab.batch28 import table as _table
@@ -13,7 +13,7 @@ def widget(result):
         return ''
     fs=result['frames']
     def frontier(selected):
-        # Derive axis bounds from the computed assortment, including repeated choices.
+        # 同じ割引案が繰り返し選ばれた点も含め、全候補から軸の範囲を決める。
         lo=min(f['nmv'] for f in fs); hi=max(f['nmv'] for f in fs)
         bottom=min(f['ltp'] for f in fs); top=max(f['ltp'] for f in fs)
         x=lambda f:70+440*(f['nmv']-lo)/max(hi-lo,1)
@@ -30,7 +30,7 @@ def widget(result):
         rows=[[a['article'],f'{100*a["discount"]:.0f}%',f'{a["demand"]:.1f}',a['stock'],f'{a["sales"]:.1f}',f'{a["nmv"]:.0f}',f'{a["ltp"]:.0f}'] for a in f['articles']]
         frames.append(f'<p><strong>α = {f["alpha"]:.1f}</strong> ／ NMV {f["nmv"]:.0f} ／ LTP {f["ltp"]:.0f} ／ 短期利益 {f["profit"]:.0f}</p>'+frontier(i)+'<p>表は横にスクロールできます。金額の単位は架空通貨です。</p><div class="zalando-price-table">'+table(['商品','割引','3日需要','在庫 M','販売 min(M,需要)','NMV','LTP'],rows)+'</div>')
     payload=json.dumps(frames,ensure_ascii=False).replace('</','<\\/')
-    out='<figure class="teaching" id="zalando-alpha"><h3>純売上を重視したときに選ばれる割引率</h3><p>著者はLightGBMで日と割引率ごとの需要を予測し、在庫を上限に販売数を求める。その販売数で長期利益LTP + α×純売上NMVを計算し、商品ごとに割引率を選ぶ。この図はFig. 3–4をもとにした教材。</p><label for="zalando-slider">純売上の重み α（0〜2）</label> <input id="zalando-slider" disabled type="range" min="0" max="20" value="0" step="1" style="width:min(100%,360px)"><noscript><p>JavaScriptが無効のため、α = 0 の静的な結果を表示しています。スライダー操作はできません。</p></noscript><script type="application/json" data-zframes>'+payload+'</script><div data-zoutput aria-live="polite">'+frames[0]+'</div><figcaption>Labは式(1)、(3)〜(7)を3商品に当てはめた。R=0.2、VAT=0.19、C=0.2P、γ=0.25P。各点は、そのαで選ばれた案を示す。すべてのPareto解を示した図ではない。</figcaption></figure>'
+    out='<figure class="teaching" id="zalando-alpha"><h3>純売上を重視したときに選ばれる割引率</h3><p>著者はLightGBMで割引率ごとの日別需要を予測し、在庫を超えない範囲で販売数を見積もった。システムは長期利益に、純売上に重みαを掛けた額を足して、商品ごとの割引を選ぶ。この図は、架空の3商品で同じ計算の一部を試す教材だ。</p><label for="zalando-slider">純売上の重み α（0〜2）</label> <input id="zalando-slider" disabled type="range" min="0" max="20" value="0" step="1" style="width:min(100%,360px)"><noscript><p>JavaScriptが無効のため、α = 0 の静的な結果を表示しています。スライダー操作はできません。</p></noscript><script type="application/json" data-zframes>'+payload+'</script><div data-zoutput aria-live="polite">'+frames[0]+'</div><figcaption>Labは図3〜4と式(1)、(3)〜(7)をもとに、R=0.2、VAT=0.19、C=0.2P、γ=0.25Pを設定した。各点は、純売上への重みを一つ決めたときに選ばれる案だ。全候補を描いた図ではない。</figcaption></figure>'
     out+='''<script>(()=>{const r=document.getElementById('zalando-alpha');const f=JSON.parse(r.querySelector('[data-zframes]').textContent);r.querySelector('input').disabled=false;r.querySelector('input').addEventListener('input',e=>{r.querySelector('[data-zoutput]').innerHTML=f[+e.target.value]})})();</script>'''
     out+='<figure class="teaching"><h3>在庫と返品を考慮した利益の計算</h3><ol><li>需要：q(d)=q(0)(1−d)<sup>−ε</sup>。割引を大きくすると予測需要が増える。</li><li>販売：s(d)=min(M, Σ Sᵗ(d))。表の需要が在庫より多ければ、販売数は在庫の数までとする。</li><li>純売上：NMV=(1−R)(1−d)Ps/(1+VAT)。返品と税を除く。</li><li>長期利益：LTP=NMV−Cs+[M−s(1−R)]γ。残在庫の将来価値を足す。</li></ol><figcaption>原論文式(3)〜(7)、(12)を参照。γを一定に置くため、将来の値付けを変えたときの影響は扱わない。</figcaption></figure>'
     evidence=result['paper_evidence']
@@ -47,7 +47,7 @@ def widget(result):
             y=35+i*90+j*29; w=r[key]*3.4
             svg+=f'<text x="5" y="{y+17}" font-size="12">{r["model"]} {"予測" if j==0 else "実現"}</text><rect x="125" y="{y}" width="{w}" height="23" fill="{color}"/><text x="{130+w}" y="{y+17}" font-size="12">{r[key]:.2f}%</text>'
     svg+='<path d="M465 20V200" stroke="currentColor" stroke-dasharray="4"/><text x="440" y="221">oracle 100%</text><text x="125" y="240">棒の原点 0% ／ PCIIのoracle比</text></svg>'
-    out+='<figure class="teaching"><h3>シミュレーションで予測した利益と実現利益</h3>'+svg+'<figcaption>Table 3のうち、α=0で著者が行ったシミュレーションの結果。TweedieはMSEより予測と実現の差が小さいが、実現PCIIはMSEを1.50ポイント下回る。</figcaption></figure>'
+    out+='<figure class="teaching"><h3>シミュレーションで予測した利益と実現利益</h3>'+svg+'<figcaption>表3は著者が実地試験とは別に行ったシミュレーションだ。ここでは純売上への重みを0としている。TweedieはMSEより見込みが結果に近いが、シミュレーションで実現した利益貢献（PCII）はMSEを1.50ポイント下回る。</figcaption></figure>'
     svg='<svg viewBox="0 0 620 240" role="img" aria-label="実地試験統合の効果と95パーセント区間" style="width:100%;height:auto">'
     x=lambda v:180+v*28
     svg+=f'<path d="M{x(0)} 20V180" stroke="currentColor" stroke-dasharray="4"/>'
