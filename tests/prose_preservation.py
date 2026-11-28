@@ -233,6 +233,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = swe_serve_full_prose_hash(root, path, expected, algorithm)
     expected = harness_r1_full_prose_hash(root, path, expected, algorithm)
     expected = episem_full_prose_hash(root, path, expected, algorithm)
+    expected = episem_reader_assets_hash(root, path, expected, algorithm)
     expected = execution_state_unlearning_full_prose_hash(root, path, expected, algorithm)
     expected = featurearc_full_prose_hash(root, path, expected, algorithm)
     expected = contextual_all_full_prose_hash(root, path, expected, algorithm)
@@ -4472,6 +4473,35 @@ def before_static_reader_assets(root, path, current):
     if not path.startswith('papers/static-constrained-gr/'):
         return current
     row = static_reader_assets_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior
+
+
+def episem_reader_assets_rows(root):
+    return json.loads((root / 'tests/episem_reader_assets_hashes.json').read_text())['files']
+
+
+def episem_reader_assets_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/episem-missing-evidence-recovery/'):
+        return expected
+    row = episem_reader_assets_rows(root).get(path)
+    if row is None or not row['prior_spans']:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_episem_reader_assets(root, path, current):
+    if not path.startswith('papers/episem-missing-evidence-recovery/'):
+        return current
+    row = episem_reader_assets_rows(root).get(path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path

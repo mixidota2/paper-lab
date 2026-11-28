@@ -1,0 +1,98 @@
+{
+  "base": "19c1ada48988980d2a3b4d9994bff05a66115937",
+  "files": {
+    "papers/episem-missing-evidence-recovery/README.md": {
+      "before_sha256": "8fdc352915b43ee460ad91b297ccb7d642c5f242b352d46e007e241456aa1504",
+      "before_blob": "d6057c36ff03476edfd991152a9c83dd37de66ea",
+      "after_sha256": "8fdc352915b43ee460ad91b297ccb7d642c5f242b352d46e007e241456aa1504",
+      "after_blob": "d6057c36ff03476edfd991152a9c83dd37de66ea",
+      "prior_spans": []
+    },
+    "papers/episem-missing-evidence-recovery/evidence.md": {
+      "before_sha256": "cc60500539b90dcf363fdff5d6f079e2c81d4916a1bd1dbad8dc8a6aa45349e6",
+      "before_blob": "d907c82e8b2e8c101f02b226c7a4346ddcbda6d3",
+      "after_sha256": "500528b472fd7975c5e0dc00340a2ea0748e4a742aff7b6522a896706c54ca91",
+      "after_blob": "75f1b4e73edac8cf632080ef5bbd87527524ef59",
+      "prior_spans": [
+        [
+          3,
+          5,
+          ""
+        ]
+      ]
+    },
+    "papers/episem-missing-evidence-recovery/experiment.md": {
+      "before_sha256": "5b6f6b3995c2568cc8269e6646e8822796a424412fa1bf152f0eef64dc21c886",
+      "before_blob": "86a1968db189fee8e2417249f5d812ed424e3a86",
+      "after_sha256": "5b6f6b3995c2568cc8269e6646e8822796a424412fa1bf152f0eef64dc21c886",
+      "after_blob": "86a1968db189fee8e2417249f5d812ed424e3a86",
+      "prior_spans": []
+    },
+    "papers/episem-missing-evidence-recovery/interactive.js": {
+      "before_sha256": "93c48ae5b13ae0a1ddc5100fa26605684389280b8a392ea4f9dfd7625de3792b",
+      "before_blob": "6e65f6dbe4123845146eadc1bff9186110a136eb",
+      "after_sha256": "93c48ae5b13ae0a1ddc5100fa26605684389280b8a392ea4f9dfd7625de3792b",
+      "after_blob": "6e65f6dbe4123845146eadc1bff9186110a136eb",
+      "prior_spans": []
+    },
+    "papers/episem-missing-evidence-recovery/lab.yaml": {
+      "before_sha256": "48f7b1544cf154b6144625a6e7630f2db389f551f49ab3738670a59df5395fdb",
+      "before_blob": "3a64133a0b332a65bf5d126ffd8783247358b2d9",
+      "after_sha256": "bcc848615f717db528e42cfbb7aa7ec814400f43af76ca07541fe656ccadd628",
+      "after_blob": "ad629edbef620d403d4fe75a91ad486afdf8c4ae",
+      "prior_spans": [
+        [
+          31,
+          32,
+          "    EpiSEM-Benchの著者は、AIエージェントが操作の可否を確かめるために必要な事実を、ツールから受け取れないときの行動を調べました。著者は、同じ依頼が許可される場合と禁止される場合を組にして、どちらでも同じ事実を隠します。著者はこの組を6分野で300組用意し、通常のツールからは得られない情報を、別の手段で確かめられる場合と、そうでない場合を比べました。\n"
+        ],
+        [
+          33,
+          34,
+          "    同じ事実を隠した条件にそろえると、別の照会手段がある場合は、禁止された操作の実行を一度でも確定した課題の割合が、10モデルすべてで下がりました。低下幅は0.7〜45.3ポイントでした。一方、隠れた事実を確かめてから、禁止側で止まり許可側で依頼を完了できた割合は、モデルによって0.0〜58.4%でした。禁止された操作が減ることと、必要な情報を自分で集めて適切に判断できることは、同じではありません。論文では、別の照会手段が隠れた事実をすべて正しく返す場合を評価しています。\n"
+        ]
+      ]
+    },
+    "papers/episem-missing-evidence-recovery/mapping.md": {
+      "before_sha256": "dc512665157cfacf46d2210a6f4b1bdaa8292fbdfc05b1b5fa92dd83d6bbcd61",
+      "before_blob": "37d7b8264839eae902a1b3e3466f22e2430ca716",
+      "after_sha256": "dc512665157cfacf46d2210a6f4b1bdaa8292fbdfc05b1b5fa92dd83d6bbcd61",
+      "after_blob": "37d7b8264839eae902a1b3e3466f22e2430ca716",
+      "prior_spans": []
+    },
+    "papers/episem-missing-evidence-recovery/method.md": {
+      "before_sha256": "adb608b1c2a4ab04c726a241ba253005d6386ebe31eda56ae281babdc776eb6d",
+      "before_blob": "7aceccc72d6652e8ac230cc54b9ea02b1a3c5362",
+      "after_sha256": "adb608b1c2a4ab04c726a241ba253005d6386ebe31eda56ae281babdc776eb6d",
+      "after_blob": "7aceccc72d6652e8ac230cc54b9ea02b1a3c5362",
+      "prior_spans": []
+    },
+    "papers/episem-missing-evidence-recovery/model.js": {
+      "before_sha256": "4788068815fc599a055a4f4494dcebf009ea66d2e598fd2f024c39b215354aa6",
+      "before_blob": "a9caf5efbe1195385677e7e5ea482f621cc98051",
+      "after_sha256": "ab6ce941a77024079e43a461299a8ab5c5790284f4548bf7b54fe5df020db2a6",
+      "after_blob": "045ae7cbacfe5888074894339437fb99ba448505",
+      "prior_spans": [
+        [
+          0,
+          4,
+          "/* Original deterministic toy; never calls a tool server or model. */\n"
+        ]
+      ]
+    },
+    "papers/episem-missing-evidence-recovery/results.json": {
+      "before_sha256": "893a299bcec3c20e975d6a2c2f660c087f6c17c0fa837a5de5ef4219dfdea03c",
+      "before_blob": "c26aa2aa2338586f1e30467aa476c16d76ee6c68",
+      "after_sha256": "893a299bcec3c20e975d6a2c2f660c087f6c17c0fa837a5de5ef4219dfdea03c",
+      "after_blob": "c26aa2aa2338586f1e30467aa476c16d76ee6c68",
+      "prior_spans": []
+    },
+    "papers/episem-missing-evidence-recovery/run.py": {
+      "before_sha256": "74ca5499c3456ddb3b85cc262051829a2b5a7534869729d716d43a2880e18496",
+      "before_blob": "14ddc3255e38bc0a40bc6875bc526c0e09632ce1",
+      "after_sha256": "74ca5499c3456ddb3b85cc262051829a2b5a7534869729d716d43a2880e18496",
+      "after_blob": "14ddc3255e38bc0a40bc6875bc526c0e09632ce1",
+      "prior_spans": []
+    }
+  }
+}

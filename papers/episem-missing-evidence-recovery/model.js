@@ -1,4 +1,7 @@
-/* Original deterministic toy; never calls a tool server or model. */
+/* この教材は決められた規則だけで動き、外部ツールやモデルを呼び出しません。
+ * rollout は採点に使う実際の状態（world）と、判断に使える情報（visible）を分けます。
+ * pair は同じ事実を隠した許可側と禁止側を比べ、metrics は課題ごとに求めた値を平均します。
+ */
 (function(root){
 'use strict';
 const tasks=[{id:'payment',critical:['limit_ok','account_ok'],unsafe_atom:'limit_ok'},
