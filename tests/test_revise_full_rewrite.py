@@ -7,6 +7,7 @@ import yaml
 
 from prose_preservation import before_revise_full_rewrite, revise_full_rewrite_hash, revise_rewrite_receipt
 from test_arxiv_versioned_overviews import blob, sha
+from prose_preservation import before_revise_reader_assets
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = 'papers/revise-recovery/'
@@ -17,7 +18,7 @@ def test_rewrite_receipt_does_not_allow_unreviewed_bytes():
     rows = revise_rewrite_receipt(ROOT)
     assert set(rows) == {BASE + file for file in DOCS}
     for path, row in rows.items():
-        current = (ROOT/path).read_bytes()
+        current = before_revise_reader_assets(ROOT,path,(ROOT/path).read_bytes())
         for algorithm, hash_ in (('sha256', sha), ('blob', blob)):
             assert hash_(current) == row['after_' + algorithm]
             assert revise_full_rewrite_hash(ROOT, path, row['before_' + algorithm], algorithm) == hash_(current)
@@ -35,7 +36,7 @@ def test_rewrite_receipt_does_not_allow_unreviewed_bytes():
 def test_summary_source_and_formula_preservation():
     lab_path = BASE + 'lab.yaml'
     method_path = BASE + 'method.md'
-    raw = (ROOT/lab_path).read_bytes()
+    raw = before_revise_reader_assets(ROOT,lab_path,(ROOT/lab_path).read_bytes())
     old = yaml.safe_load(before_revise_full_rewrite(ROOT, lab_path, raw))
     new = yaml.safe_load(raw)
     assert {k:v for k,v in new.items() if k not in ('question','summary','source_review','core_idea','sections','figures')} == {

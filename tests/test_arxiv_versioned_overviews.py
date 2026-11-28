@@ -3,6 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 from prose_preservation import before_tagr_reader_assets
+from prose_preservation import before_revise_reader_assets
 import re
 
 import pytest
@@ -26,6 +27,7 @@ def test_only_labeled_overviews_and_reference_links_changed():
     for path, row in files.items():
         last = before_tagr_all_full_prose(ROOT, path, before_tagr_reader_assets(ROOT,path,(ROOT / path).read_bytes()))
         current = before_oneranker_full_prose(ROOT, path, last)
+        current = before_revise_reader_assets(ROOT, path, current)
         restored = before_revise_full_rewrite(ROOT, path, current)
         if path.endswith('lab.yaml'):
             field, = re.findall(rb'^  overview: \|-\n(?:    [^\n]+\n|\n(?=    ))+', restored, re.M)
