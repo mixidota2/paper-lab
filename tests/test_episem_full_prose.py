@@ -7,6 +7,7 @@ import runpy
 import yaml
 
 from prose_preservation import before_episem_full_prose
+from prose_preservation import before_episem_reader_assets
 
 ROOT = Path(__file__).resolve().parents[1]
 REL = "papers/episem-missing-evidence-recovery/"
@@ -14,7 +15,9 @@ PAPER = ROOT / REL
 
 
 def old(name):
-    return before_episem_full_prose(ROOT, REL + name, (PAPER / name).read_bytes())
+    path = REL + name
+    current = before_episem_reader_assets(ROOT, path, (PAPER / name).read_bytes())
+    return before_episem_full_prose(ROOT, path, current)
 
 
 def test_rephrasing_preserves_inputs_metrics_and_widget_controls():

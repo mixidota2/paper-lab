@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_episem_reader_assets
 from prose_preservation import before_static_reader_assets
 from prose_preservation import before_sidinspector_reader_assets
 from prose_preservation import before_sidscope_reader_assets
@@ -46,6 +47,7 @@ def before_full_article_rewrites(root, path, current):
         current = before_contextual_all_full_prose(root, path, current)
     current = before_featurearc_full_prose(root, path, current)
     current = before_execution_state_unlearning_full_prose(root, path, current)
+    current = before_episem_reader_assets(root, path, current)
     current = before_episem_full_prose(root, path, current)
     current = before_harness_r1_full_prose(root, path, current)
     current = before_swe_serve_full_prose(root, path, current)
