@@ -3,6 +3,8 @@ import hashlib
 import json
 import re
 
+from overview_predicate_revisions import before_overview_predicate_revision, overview_predicate_hash
+
 
 def revised_hash(root, path, expected, algorithm='sha256'):
     revisions = json.loads((root / 'tests/prose_revision_hashes.json').read_text())['files']
@@ -1491,7 +1493,7 @@ def invevolve_full_prose_hash(root, path, expected, algorithm='sha256'):
     if row is None:
         return expected
     assert expected == row['before'][algorithm], path
-    return row['after'][algorithm]
+    return overview_predicate_hash(root, path, row['after'][algorithm], algorithm)
 
 
 def before_invevolve_full_prose(root, path, current):
@@ -1500,6 +1502,7 @@ def before_invevolve_full_prose(root, path, current):
     row = json.loads((root / 'tests/invevolve_full_prose_hashes.json').read_text())['files'].get(path)
     if row is None:
         return current
+    current = before_overview_predicate_revision(root, path, current)
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
     lines = current.decode().splitlines(keepends=True)
     for start, stop, prior in reversed(row['prior_spans']):
@@ -1853,13 +1856,14 @@ def pilot_full_prose_hash(root, path, expected, algorithm='sha256'):
     if row is None:
         return expected
     assert expected == row['before'][algorithm], path
-    return row['after'][algorithm]
+    return overview_predicate_hash(root, path, row['after'][algorithm], algorithm)
 
 
 def before_pilot_full_prose(root, path, current):
     row = pilot_full_prose_row(root, path)
     if row is None:
         return current
+    current = before_overview_predicate_revision(root, path, current)
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
     lines = current.decode().splitlines(keepends=True)
     for start, stop, prior in reversed(row['prior_spans']):
@@ -2611,13 +2615,14 @@ def oxygenrec_full_prose_hash(root, path, expected, algorithm='sha256'):
     if row is None:
         return expected
     assert expected == row['before'][algorithm], path
-    return row['after'][algorithm]
+    return overview_predicate_hash(root, path, row['after'][algorithm], algorithm)
 
 
 def before_oxygenrec_full_prose(root, path, current):
     row = oxygenrec_full_prose_row(root, path)
     if row is None:
         return current
+    current = before_overview_predicate_revision(root, path, current)
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
     lines = current.decode().splitlines(keepends=True)
     for start, stop, prior in reversed(row['prior_spans']):

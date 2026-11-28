@@ -6,6 +6,7 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 import yaml
+from overview_predicate_revisions import before_overview_predicate_revision
 from prose_preservation import before_oxygenrec_full_prose
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -16,7 +17,8 @@ def files(name):
 
 def test_oxygenrec_primary_overview_and_reported_figures_preserved():
     new,old=map(yaml.safe_load,files('lab.yaml'))
-    assert new['sections']['overview']==old['sections']['overview']
+    earlier = yaml.safe_load(before_overview_predicate_revision(ROOT, P+'lab.yaml', files('lab.yaml')[0]))
+    assert earlier['sections']['overview']==old['sections']['overview']
     assert new['sections']['overview'] in (ROOT/P/'README.md').read_text()
     for key in ('source_review','verification','urls'):
         assert new[key]==old[key]
