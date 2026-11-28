@@ -1,0 +1,228 @@
+{
+  "base": "429cf1cd71787f3f08868ac845e3d559cdb2c41d",
+  "files": {
+    "papers/unipinrec/README.md": {
+      "before_sha256": "01f39490d9866c4e59ab61258713492eb841677e75556c02d815192383b249f5",
+      "before_blob": "b971696c959a3d562c49dc692cbbf7dd0cc5e315",
+      "after_sha256": "3157907efee91085e095476424cc836d2d8db1ac252ee8417c4dce06bc80369e",
+      "after_blob": "02c9df98f823297a83e90dc4d06cbb855de72470",
+      "prior_spans": [
+        [
+          8,
+          9,
+          "このコマンドは `papers/_toy_common.py` の計算を呼び出し、比べた全条件を `results.json` に書く。\n"
+        ]
+      ]
+    },
+    "papers/unipinrec/figures/cascade.svg": {
+      "before_sha256": "7f0e8f5ac9f393318d8127efbb05766767729705f4cf226a3dc1411e5ebe313c",
+      "before_blob": "87db60c1d0fd81722fcef81df066590e9fc93afa",
+      "after_sha256": "893cce0176b66c69b0c1296c857115b5b25d7df2b423362b35329a3605fa2bb3",
+      "after_blob": "2800661277d0cedc3b01cb8ee02a4b5d626b14d1",
+      "prior_spans": [
+        [
+          1,
+          2,
+          "<title id=\"title\">論文の設計を簡略化した処理図</title>\n"
+        ],
+        [
+          6,
+          7,
+          "<text x=\"48\" y=\"90\" font-size=\"22\" font-weight=\"bold\">商品と行動を同じ系列へ</text>\n"
+        ],
+        [
+          10,
+          11,
+          "<text x=\"48\" y=\"215\" font-size=\"22\" font-weight=\"bold\">共有バックボーンで計算</text>\n"
+        ],
+        [
+          14,
+          15,
+          "<text x=\"48\" y=\"340\" font-size=\"22\" font-weight=\"bold\">共有表現で近い商品ベクトルを検索（ANN）</text>\n"
+        ],
+        [
+          18,
+          19,
+          "<text x=\"48\" y=\"465\" font-size=\"22\" font-weight=\"bold\">保存したKVで候補を照合</text>\n"
+        ]
+      ]
+    },
+    "papers/unipinrec/figures/kv-cache.svg": {
+      "before_sha256": "250ffc40a32d5331f48196b60cc0a6b973da726b0ce11875127d642a21fd59d4",
+      "before_blob": "c297cc09f8fc2391bb3282989beb4650bd330c9e",
+      "after_sha256": "bf2836eaf5f0539c489f17566c8c6955057249483c64ed00b9e71445372e0ecd",
+      "after_blob": "c4017dc3cde03acef7986f1af7fe1d060f0676d6",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"760\" height=\"230\"><style>text{font-family:sans-serif;fill:#18201d}.b{fill:#e9eee7;stroke:#245b49;stroke-width:2}.a{stroke:#ae4e2a;stroke-width:2}</style><text x=\"35\" y=\"32\" font-size=\"20\" font-weight=\"bold\">候補取得と順位付けで履歴の計算結果を再利用</text><rect class=\"b\" x=\"45\" y=\"70\" width=\"170\" height=\"50\"/><text x=\"75\" y=\"100\">履歴を先に計算</text><path class=\"a\" d=\"M215 95h75\"/><rect class=\"b\" x=\"290\" y=\"70\" width=\"160\" height=\"50\"/><text x=\"330\" y=\"100\">保存したKV</text><path class=\"a\" d=\"M450 95h75\"/><rect class=\"b\" x=\"525\" y=\"70\" width=\"170\" height=\"50\"/><text x=\"550\" y=\"100\">順位付けの計算</text><text x=\"45\" y=\"180\" fill=\"#ae4e2a\">分離モデルなら ranking が履歴をもう一度 prefill する</text></svg>\n"
+        ]
+      ]
+    },
+    "papers/unipinrec/figures/mam.svg": {
+      "before_sha256": "6e49b3eb485decec68d47b1585a36186dffe839cbf6a400f604a3ab9b72c5b87",
+      "before_blob": "2e8b48987d5043e46056acd0b30da9d458eadff2",
+      "after_sha256": "e9de911cee22121a8bae3a0ade9d7f4956b51d63c27f01732e8aacd00c22fe77",
+      "after_blob": "8d52b408287b147da1156454523ee77a0b771159",
+      "prior_spans": [
+        [
+          0,
+          1,
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"760\" height=\"230\"><style>text{font-family:sans-serif;fill:#18201d}.b{fill:#e9eee7;stroke:#245b49;stroke-width:2}.m{fill:#f5d7c7;stroke:#ae4e2a;stroke-width:2}</style><text x=\"35\" y=\"35\" font-size=\"20\" font-weight=\"bold\">Masked Action Modeling</text><text x=\"35\" y=\"75\">item: A</text><rect class=\"b\" x=\"115\" y=\"50\" width=\"75\" height=\"45\"/><text x=\"133\" y=\"78\">click</text><text x=\"215\" y=\"75\">item: B</text><rect class=\"m\" x=\"295\" y=\"50\" width=\"75\" height=\"45\"/><text x=\"316\" y=\"78\">MASK</text><text x=\"395\" y=\"75\">item: C</text><rect class=\"b\" x=\"475\" y=\"50\" width=\"75\" height=\"45\"/><text x=\"493\" y=\"78\">save</text><path d=\"M330 100v45\" stroke=\"#ae4e2a\" stroke-width=\"2\"/><text x=\"250\" y=\"180\">隠した行動を予測する。商品を追加せず、系列長を保つ。</text></svg>\n"
+        ]
+      ]
+    },
+    "papers/unipinrec/lab.yaml": {
+      "before_sha256": "201f9300012e2b69d2c7ccf4a00f731679b40a8588391985a8fc6ff92f62c64d",
+      "before_blob": "cee4f85acf4344f510d43637282a6d90d70de0bc",
+      "after_sha256": "01d1ce5b59b5a5f16bc438c56eaacafd244ed3e7a4d3a38f041cbc8dac6e35e1",
+      "after_blob": "2535ca019eb64734ee4fa9ba55487f9fb27466cc",
+      "prior_spans": [
+        [
+          53,
+          58,
+          "    Pinterestの著者は、推薦候補を探す段階と順位付けする段階で、利用者の同じ行動履歴を二度処理する問題に取り組みました。UniPinRecは商品と行動をひとまとめにし、予測したい行動を隠して候補生成と順位付けを一緒に学習します。配信時は、候補生成が処理した履歴を順位付けでも使います。従来のPinRecと比べた本番A/Bテストでは、ボードに関連するピンの提案画面で保存が0.95%、プッシュ通知の開封が0.91%増えました。GPUの条件をそろえた別の比較では、候補生成と順位付けを別々に配信する構成に比べ、処理時間が11.1%短くなり、1秒あたりの処理件数が63.6%増えました。\n"
+        ],
+        [
+          66,
+          69,
+          "    配信比較（§4.2、表3）で、著者は候補生成と順位付けを別々に動かす比較構成に対し、共有や配信設定を組み合わせた構成で、応答時間が11.1%減り、QPSが63.6%増えたと報告した。QPSは1秒当たりのリクエスト数である。この差はキャッシュ共有だけの寄与ではない。§5は実際の利用行動を比較した別の実験なので、二つの改善率を足し合わせない。\n"
+        ]
+      ]
+    },
+    "papers/unipinrec/method.md": {
+      "before_sha256": "4ca1440609db1e209910075b525021d1d09f4e0ab288d588f1fc9683a7bf71eb",
+      "before_blob": "a73baa6ef7178466a25ee722ffc7b601c13a5dd0",
+      "after_sha256": "4ca1440609db1e209910075b525021d1d09f4e0ab288d588f1fc9683a7bf71eb",
+      "after_blob": "a73baa6ef7178466a25ee722ffc7b601c13a5dd0",
+      "prior_spans": []
+    },
+    "papers/unipinrec/results.json": {
+      "before_sha256": "664b0459eef14883a4066713f6f1698560ad76031322b5addddb146d4a8b0fdb",
+      "before_blob": "564a6648e1a5f3be5cbb43347c771d4909b2d784",
+      "after_sha256": "3597a91eb18aae19409b1a1422eafabffbedf099e3d1709537046a632dbcec76",
+      "after_blob": "f16a56cd11f002a8e72e70569c4d756ed52ea28b",
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"教材用の合成実験。論文モデルの再現・性能比較ではありません。\",\n"
+        ],
+        [
+          10,
+          12,
+          "      \"name\": \"条件を変える最小実験\",\n      \"dataset\": \"deterministic synthetic\",\n"
+        ],
+        [
+          36,
+          37,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 0.0%。転送・保存・失効の費用は含まない。\",\n"
+        ],
+        [
+          51,
+          52,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 30.8%。転送・保存・失効の費用は含まない。\",\n"
+        ],
+        [
+          66,
+          67,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 38.1%。転送・保存・失効の費用は含まない。\",\n"
+        ],
+        [
+          81,
+          82,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 41.4%。転送・保存・失効の費用は含まない。\",\n"
+        ],
+        [
+          96,
+          97,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 43.2%。転送・保存・失効の費用は含まない。\",\n"
+        ],
+        [
+          111,
+          112,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 44.4%。転送・保存・失効の費用は含まない。\",\n"
+        ],
+        [
+          126,
+          127,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 45.3%。転送・保存・失効の費用は含まない。\",\n"
+        ],
+        [
+          141,
+          142,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 45.9%。転送・保存・失効の費用は含まない。\",\n"
+        ],
+        [
+          156,
+          157,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 46.4%。転送・保存・失効の費用は含まない。\",\n"
+        ],
+        [
+          171,
+          172,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 46.8%。転送・保存・失効の費用は含まない。\",\n"
+        ],
+        [
+          186,
+          187,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 47.1%。転送・保存・失効の費用は含まない。\",\n"
+        ],
+        [
+          201,
+          202,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 47.3%。転送・保存・失効の費用は含まない。\",\n"
+        ],
+        [
+          216,
+          217,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 47.5%。転送・保存・失効の費用は含まない。\",\n"
+        ],
+        [
+          231,
+          232,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 47.7%。転送・保存・失効の費用は含まない。\",\n"
+        ],
+        [
+          246,
+          247,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 47.9%。転送・保存・失効の費用は含まない。\",\n"
+        ],
+        [
+          261,
+          262,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 48.0%。転送・保存・失効の費用は含まない。\",\n"
+        ],
+        [
+          276,
+          277,
+          "        \"note\": \"80リクエスト、候補10件。履歴1要素と候補1件を各1単位と仮定。削減率 48.1%。転送・保存・失効の費用は含まない。\",\n"
+        ]
+      ]
+    },
+    "papers/unipinrec/run.py": {
+      "before_sha256": "ddf7c0e6c477c3de0b2d9004d484ec3acc90fe594ba2314ca69b7d2091ca8565",
+      "before_blob": "a9777e091e036cb5b39daff3f7aa262436e9adfc",
+      "after_sha256": "a1712e891adcef285b60ffe556ad2fa183687a22eeb5325a50913846e888e712",
+      "after_blob": "cc681e28e0955bc19eea05cf879a13452940b73e",
+      "prior_spans": [
+        [
+          0,
+          2,
+          "\"\"\"Run the deterministic teaching experiment; no paper model is trained.\"\"\"\n"
+        ],
+        [
+          5,
+          20,
+          "from _toy_common import run_lab\n"
+        ],
+        [
+          22,
+          25,
+          "    run_lab(\"unipinrec\")\n"
+        ]
+      ]
+    }
+  }
+}

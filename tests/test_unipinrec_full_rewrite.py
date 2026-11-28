@@ -1,6 +1,7 @@
 """Preserve UniPinRec's scientific boundaries and all executable artifacts."""
 from collections import Counter
 from pathlib import Path
+from prose_preservation import before_unipinrec_reader_assets
 import hashlib
 import json
 import re
@@ -43,7 +44,7 @@ def test_metadata_matrix_equation_urls_and_behavior_unchanged():
         links = lambda raw: Counter(re.findall(rb'https?://[^\s)\x27]+', raw))
         assert links(old(path)) == links((ROOT / path).read_bytes())
     for path in (f'{SLUG}/run.py', f'{SLUG}/results.json', 'papers/_toy_common.py'):
-        current = before_apollopfn_full_prose(ROOT, path, before_forecast_critic_all_full_prose(ROOT,path,(ROOT / path).read_bytes()))
+        current = before_apollopfn_full_prose(ROOT, path, before_forecast_critic_all_full_prose(ROOT,path,before_unipinrec_reader_assets(ROOT,path,(ROOT / path).read_bytes())))
         assert old(path) == current
     reported = written['sections']['evidence']
     assert all(x in reported for x in ('表3','11.1%','63.6%','キャッシュ共有だけの寄与ではない','§5'))
@@ -61,7 +62,7 @@ def test_exact_three_inputs_and_outputs_only(algorithm):
             return hashlib.sha256(raw).hexdigest()
         return hashlib.sha1(f'blob {len(raw)}\0'.encode()+raw).hexdigest()
     for path in manifest['files']:
-        after = restored_before_paper_overview(ROOT, path, (ROOT / path).read_bytes())
+        after = restored_before_paper_overview(ROOT,path,before_unipinrec_reader_assets(ROOT,path,(ROOT / path).read_bytes()))
         assert unipinrec_full_rewrite_hash(ROOT,path,digest(old(path)),algorithm) == digest(after)
         with pytest.raises(AssertionError):
             unipinrec_full_rewrite_hash(ROOT,path,digest(after+b'\n'),algorithm)

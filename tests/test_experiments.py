@@ -25,7 +25,7 @@ def test_checked_in_results_are_computed_and_reproducible(lab_id, monkeypatch):
         vn2 = importlib.util.module_from_spec(vn2_spec)
         vn2_spec.loader.exec_module(vn2)
         assert actual == vn2.compute()
-    elif lab_id in {'scaffold-effects-gaia', 'whole-foods-shelf'}:
+    elif lab_id in {'scaffold-effects-gaia', 'whole-foods-shelf', 'unipinrec'}:
         # The article translates reader-facing labels without changing the shared toy.
         monkeypatch.syspath_prepend(str(paper.parent))
         entry_spec = importlib.util.spec_from_file_location(lab_id.replace('-', '_') + '_entry', paper / 'run.py')
