@@ -6,6 +6,7 @@ import pytest
 import yaml
 
 from prose_preservation import before_unir2_full_rewrite, unir2_full_rewrite_hash
+from prose_preservation import before_unir2_reader_assets
 
 ROOT = Path(__file__).resolve().parents[1]
 P = 'papers/unir2-sequence-unify/'
@@ -13,7 +14,7 @@ P = 'papers/unir2-sequence-unify/'
 
 def test_rewrite_preserves_reviewed_overview_sources_and_results():
     lab = ROOT / (P + 'lab.yaml')
-    actual = lab.read_bytes()
+    actual = before_unir2_reader_assets(ROOT,P+lab.name,lab.read_bytes())
     new = yaml.safe_load(actual)
     prior = yaml.safe_load(before_unir2_full_rewrite(ROOT, P + lab.name, actual))
     for key in ('urls', 'verification'):
@@ -21,7 +22,7 @@ def test_rewrite_preserves_reviewed_overview_sources_and_results():
     assert new['sections']['overview'] == prior['sections']['overview']
     assert new['source_review']['pdf_version'] == prior['source_review']['pdf_version'] == 'v1'
     assert new['source_review']['pdf_sha256'] == prior['source_review']['pdf_sha256']
-    readme = (ROOT / (P + 'README.md')).read_text()
+    readme = before_unir2_reader_assets(ROOT,P+'README.md',(ROOT/(P+'README.md')).read_bytes()).decode()
     assert readme.count(new['sections']['overview']) == 1
     for section in ('problem', 'why_it_might_work', 'evidence', 'executable_understanding', 'results', 'what_we_verified', 'what_we_did_not_verify', 'implementation'):
         assert new['sections'][section] in readme
@@ -34,7 +35,7 @@ def test_exact_scope_guard_rejects_unreviewed_content():
     rows = json.loads((ROOT / 'tests/unir2_full_rewrite_hashes.json').read_text())['files']
     assert rows.keys() == {P+i for i in ('lab.yaml','README.md','method.md','mapping.md','figures/isolation.svg','figures/mask.svg','figures/sequence.svg','figures/serving.svg')}
     for path,row in rows.items():
-        raw = (ROOT / path).read_bytes()
+        raw = before_unir2_reader_assets(ROOT,path,(ROOT/path).read_bytes())
         for alg, current in [('sha256', hashlib.sha256(raw).hexdigest()),
                              ('blob', hashlib.sha1(f'blob {len(raw)}\0'.encode()+raw).hexdigest())]:
             assert current == row['after_'+alg] == unir2_full_rewrite_hash(ROOT,path,row['before_'+alg],alg)

@@ -100,6 +100,7 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = revise_full_rewrite_hash(root, path, expected, algorithm)
     expected = pinterest_full_rewrite_hash(root, path, expected, algorithm)
     expected = unir2_full_rewrite_hash(root, path, expected, algorithm)
+    expected = unir2_reader_assets_hash(root, path, expected, algorithm)
     expected = genpage_full_rewrite_hash(root, path, expected, algorithm)
     expected = sona_full_rewrite_hash(root, path, expected, algorithm)
     expected = tgr_full_rewrite_hash(root, path, expected, algorithm)
@@ -4057,3 +4058,32 @@ def before_sid_ope_reader_full_prose(root, path, content):
     previous = zlib.decompress(base64.b64decode(row['prior_zlib_b64'], validate=True))
     assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
     return previous
+
+
+def unir2_reader_assets_rows(root):
+    return json.loads((root / 'tests/unir2_reader_assets_hashes.json').read_text())['files']
+
+
+def unir2_reader_assets_hash(root, path, expected, algorithm='sha256'):
+    if not path.startswith('papers/unir2-sequence-unify/'):
+        return expected
+    row = unir2_reader_assets_rows(root).get(path)
+    if row is None or not row['prior_spans']:
+        return expected
+    assert expected == row['before_' + algorithm], path
+    return row['after_' + algorithm]
+
+
+def before_unir2_reader_assets(root, path, current):
+    if not path.startswith('papers/unir2-sequence-unify/'):
+        return current
+    row = unir2_reader_assets_rows(root).get(path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after_sha256'], path
+    lines = current.decode().splitlines(keepends=True)
+    for start, stop, old in reversed(row['prior_spans']):
+        lines[start:stop] = [old]
+    prior = ''.join(lines).encode()
+    assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
+    return prior
