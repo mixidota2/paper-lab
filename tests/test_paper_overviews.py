@@ -9,7 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
-from prose_preservation import before_shelf_placement_overview
+from prose_preservation import before_shelf_comparison_overview, before_shelf_placement_overview
 from prose_preservation import before_harness_bench_reader_assets
 from prose_preservation import before_agenttether_reader_assets
 from prose_preservation import before_dcdn_reader_assets
@@ -225,7 +225,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'sabreagent-design-time-inventory': ('1,320事例', '0.6311', '0.5380'),
         'series-wise-validation': ('11のデータセット', '10種類', '約3割の系列', '全系列で', '0.857', '0.849'),
         'shelf-placement-options': ('6カテゴリ・237商品', '5店舗分の販売はシミュレーション', '粗利率には仮の値', '4.0%', '推定利益'),
-        'storewide-shelf-decomposition': ('18条件', '16条件', '0.10〜0.29秒', '前半の計算は入っていません'),
+        'storewide-shelf-decomposition': ('18条件', '16条件', '0.10〜0.29秒', '約69倍', '前半の計算は入っていません'),
         'switch-hurdle-intermittent-demand': ('WRMSSE', '0.6307', '0.6403'),
         'trace-verifier-brittleness': ('25件', '0.250', '15〜36%'),
         'trajectory-deletion-prefix-cost': ('42条件', '9,400回', '26評価', '19評価'),
@@ -233,7 +233,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'tsfm-sparse-event-ranking': ('5つ', '最大0.031', '30組中29組'),
         'unipinrec': ('0.95%', '0.91%', '11.1%', '63.6%', 'PinRec', '後段の精密な順位付けは変えていません'),
         'walmart-demand-transfer': ('50カテゴリ', '代表5拠点', '誤差が小さくなった'),
-        'whole-foods-shelf': ('7.5%', '6.7%', 'シミュレーション'),
+        'whole-foods-shelf': ('7.5%', '6.7%', 'シミュレーション', '改装案は部門の面積', '過去の部門面積の分布と費用'),
         'wrapped-produce-placement-controlled-trial': ('36店舗', '0.32標準偏差', '3.3ポイント'),
         'bridging-forecast-accuracy-inventory-kpis': ('48条件', '0.43', '0.52', '供給量に上限を置いていません'),
         'case-against-generation-retrieval': ('Recall@10', '4.3〜35.3%', '同じモデル規模'),
@@ -323,6 +323,17 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
         'pilot-experiment-lifecycle': ('五つの実験グループ','1.00%','1.40%','ROAMの53.3%からPILOTの93.3%','別々の時期'),
         'recevolve-autonomous-rec': ('41件','0.4796から0.5751','3.77%','試行は元に戻し'),
     }
+    revised = json.loads((ROOT / 'tests/shelf_comparison_overview_receipt.json').read_text())
+    assert set(revised) == {'papers/whole-foods-shelf/lab.yaml', 'papers/storewide-shelf-decomposition/lab.yaml'}
+    for path in revised:
+        after = (ROOT / path).read_bytes()
+        before = before_shelf_comparison_overview(ROOT, path, after)
+        old_doc, new_doc = map(yaml.safe_load, (before, after))
+        assert old_doc['sections'].pop('overview') != new_doc['sections'].pop('overview')
+        assert old_doc == new_doc
+        assert before.replace(revised[path]['old'].encode(), revised[path]['new'].encode(), 1) == after
+        with pytest.raises(AssertionError):
+            before_shelf_comparison_overview(ROOT, path, after+b'\n')
     for path, row in rows.items():
         raw = before_full_article_rewrites(ROOT, path, (ROOT / path).read_bytes())
         previous = restored_before_paper_overview(ROOT, path, raw)

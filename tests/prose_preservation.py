@@ -3249,6 +3249,32 @@ def before_scaffold_gaia_full_prose(root, path, current):
     return previous
 
 
+def _shelf_comparison_overview_row(root, path):
+    if path not in ('papers/whole-foods-shelf/lab.yaml', 'papers/storewide-shelf-decomposition/lab.yaml'):
+        return None
+    return json.loads((root / 'tests/shelf_comparison_overview_receipt.json').read_text())[path]
+
+
+def shelf_comparison_overview_hash(root, path, expected, algorithm='sha256'):
+    row = _shelf_comparison_overview_row(root, path)
+    if row is None:
+        return expected
+    assert expected == row['before'][algorithm], path
+    return row['after'][algorithm]
+
+
+def before_shelf_comparison_overview(root, path, current):
+    row = _shelf_comparison_overview_row(root, path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
+    new = row['new'].encode()
+    assert current.count(new) == 1, path
+    previous = current.replace(new, row['old'].encode(), 1)
+    assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
+    return previous
+
+
 def wholefoods_all_full_prose_for_path(root, path):
     if not path.startswith('papers/whole-foods-shelf/'):
         return None
@@ -3260,7 +3286,7 @@ def wholefoods_all_full_prose_hash(root, path, expected, algorithm='sha256'):
     if row is None:
         return expected
     assert expected == row['before'][algorithm], path
-    return row['after'][algorithm]
+    return shelf_comparison_overview_hash(root, path, row['after'][algorithm], algorithm)
 
 
 def before_wholefoods_all_full_prose(root, path, current):
@@ -3269,6 +3295,7 @@ def before_wholefoods_all_full_prose(root, path, current):
     row = wholefoods_all_full_prose_for_path(root, path)
     if row is None:
         return current
+    current = before_shelf_comparison_overview(root, path, current)
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
     previous = zlib.decompress(base64.b64decode(row['prior_zlib_b64'], validate=True))
     assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
@@ -3312,7 +3339,7 @@ def storewide_all_full_prose_hash(root, path, expected, algorithm='sha256'):
     if row is None:
         return expected
     assert expected == row['before'][algorithm], path
-    return row['after'][algorithm]
+    return shelf_comparison_overview_hash(root, path, row['after'][algorithm], algorithm)
 
 
 def before_storewide_all_full_prose(root, path, current):
@@ -3321,6 +3348,7 @@ def before_storewide_all_full_prose(root, path, current):
     row = storewide_all_full_prose_for_path(root, path)
     if row is None:
         return current
+    current = before_shelf_comparison_overview(root, path, current)
     assert hashlib.sha256(current).hexdigest() == row['after']['sha256'], path
     previous = zlib.decompress(base64.b64decode(row['prior_zlib_b64'], validate=True))
     assert hashlib.sha256(previous).hexdigest() == row['before']['sha256'], path
