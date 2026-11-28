@@ -3,6 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 from prose_preservation import before_icegr_reader_assets
+from prose_preservation import before_harness_bench_reader_assets
 
 import pytest
 import yaml
@@ -24,7 +25,7 @@ def test_full_rewrite_replays_earlier_source_bytes_only():
     assert rows.keys() == {H + 'lab.yaml', H + 'method.md'} | {
         I + name for name in ('lab.yaml','README.md','mapping.md','method.md','plot.py','margin-curve.svg')}
     for p, row in rows.items():
-        raw = before_icegr_reader_assets(ROOT,p,(ROOT / p).read_bytes())
+        raw = before_harness_bench_reader_assets(ROOT,p,before_icegr_reader_assets(ROOT,p,(ROOT / p).read_bytes()))
         prior = before_harness_icegr_full_rewrite(ROOT, p, raw)
         old, new = identity(prior), identity(raw)
         for key in old:
@@ -42,7 +43,7 @@ def test_article_evidence_keeps_version_figures_and_toys_separate():
         lab = slug + 'lab.yaml'
         raw = (ROOT / lab).read_bytes()
         current = yaml.safe_load(raw)
-        historical = before_icegr_reader_assets(ROOT,lab,raw)
+        historical = before_harness_bench_reader_assets(ROOT,lab,before_icegr_reader_assets(ROOT,lab,raw))
         prior = yaml.safe_load(before_harness_icegr_full_rewrite(ROOT,lab,historical))
         assert yaml.safe_load(historical)['sections']['overview'] == prior['sections']['overview']
         assert current['source_review']['version'] == 'v1'
