@@ -9,6 +9,7 @@ import yaml
 
 from paper_lab.build import build
 from source_overview_corrections import before_hasterad_overview_correction
+from prose_preservation import before_dcdn_reader_assets
 from prose_preservation import before_episem_reader_assets
 from prose_preservation import before_static_reader_assets
 from prose_preservation import before_sidinspector_reader_assets
@@ -144,6 +145,7 @@ def before_full_article_rewrites(root, path, current):
     old = before_unique_full_prose(root, path, old)
     old = before_flashtrie_full_prose(root, path, old)
     old = before_ahe_full_prose(root, path, old)
+    old = before_dcdn_reader_assets(root, path, old)
     old = before_dcdn_full_prose(root, path, old)
     old = before_ono_full_rewrite(root, path, old)
     old = before_wrapped_produce_full_rewrite(root, path, old)
@@ -365,6 +367,7 @@ def test_scoped_source_transition_and_rendered_overviews(tmp_path):
                                      'featurearc-inherited-defects-chain-gates',
                                      'contextual-deconvolution',
                                      'static-constrained-gr',
+                                     'deep-cross-division',
                                      'sidinspector-mapping-diagnostics',
                                      'sidscope-diagnostics',
                                      'series-wise-validation',

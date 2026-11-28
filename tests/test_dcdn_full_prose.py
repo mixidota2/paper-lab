@@ -7,6 +7,7 @@ import re
 import pytest
 import yaml
 from prose_preservation import before_dcdn_full_prose, dcdn_full_prose_hash
+from prose_preservation import before_dcdn_reader_assets
 
 ROOT = Path(__file__).resolve().parents[1]
 P = 'papers/deep-cross-division/'
@@ -24,7 +25,7 @@ def test_exact_dcdn_prose_mapping_and_mutation_guard():
     snapshots=json.loads((ROOT/'tests/dcdn_full_prose_hashes.json').read_text())['files']
     assert set(snapshots)=={P+name for name in NAMES}
     for path,row in snapshots.items():
-        after=(ROOT/path).read_bytes()
+        after=before_dcdn_reader_assets(ROOT,path,(ROOT/path).read_bytes())
         before=before_dcdn_full_prose(ROOT,path,after)
         for alg in ('blob','sha256'):
             a,b=identities(before)[alg],identities(after)[alg]
@@ -39,7 +40,7 @@ def test_exact_dcdn_prose_mapping_and_mutation_guard():
 
 def test_overview_mechanism_source_and_controls_unchanged():
     def pair(n):
-        after=(ROOT/(P+n)).read_bytes()
+        after=before_dcdn_reader_assets(ROOT,P+n,(ROOT/(P+n)).read_bytes())
         return before_dcdn_full_prose(ROOT,P+n,after),after
     a,b=map(yaml.safe_load,pair('lab.yaml'))
     assert a.keys()==b.keys()
