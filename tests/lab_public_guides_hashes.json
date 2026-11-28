@@ -1,0 +1,85 @@
+{
+  "README.md": {
+    "before": {
+      "sha256": "b1d0acc75bdc5d814cb354f59752835f38f06814c3ce69cdfe9e47da85d2f1c0",
+      "blob": "acb407896e9886b4a9f9efba9508f4804ed1b2da"
+    },
+    "after": {
+      "sha256": "61477eb1746987598127a228474b5660c2f2ca01a741a3b421dfce72d3802607",
+      "blob": "a5df469d9b8bc331c95864cca7ac181098074e8d"
+    },
+    "prior_spans": [
+      [
+        8,
+        9,
+        "最新の研究やLabの一覧を探すなら、公開サイトの `index.html` を開きます。業務上のテーマから探すなら `guides/index.html` です。生成したサイトではガイドを121件のLabと別に数え、ガイドの追加日と論文の発表・公開時期も区別して表示します。\n"
+      ],
+      [
+        12,
+        13,
+        "| 棚割り | 棚の本数、配分、置き方を考えるときに参照できる3件のLabを案内します。 | 原稿 `guides/shelf-decisions.md` と、原稿が参照する3件のLab |\n"
+      ],
+      [
+        144,
+        145,
+        "[VARG](https://mixidota2.github.io/paper-lab/papers/varg-tmall-value-generative-retrieval.html) は検索に使うID（住所）がどれだけ安定しているかを扱います。[Accuracy Is Not Service](https://mixidota2.github.io/paper-lab/papers/accuracy-not-service-intermittent-demand.html) は予測精度による順位と、注文をすべてそろえて出せた割合による順位を扱います。[AURA](https://mixidota2.github.io/paper-lab/papers/aura-disney-agentic-rec-diagnosis.html) は原因を診断し、修正を保留する判断を扱います。各 `mapping.md` にPDFの版とハッシュ、Labで実行した範囲を記録しています。\n"
+      ]
+    ]
+  },
+  "guides/forecast-to-replenishment.md": {
+    "before": {
+      "sha256": "864cf608448e14747e8b1406beb2bfdbefb0cf4eb92d3201d5350a74766d3e55",
+      "blob": "a1b038c86df24268db6bbe9af9a5e1eb63c98df0"
+    },
+    "after": {
+      "sha256": "ecc23cfc6155d634b4c33fd3c1e515efd348b29fe463dde8f4b9e6c910bc0fbe",
+      "blob": "42535f4d90edbc6e0a41c1563763417119931b7d"
+    },
+    "prior_spans": [
+      [
+        4,
+        5,
+        "新しい手法を店舗と商品管理単位（SKU）ごとに小さく試すなら、需要のばらつきを見積もる予測器と、その出力を受け取る発注方策を分ける。説明できる発注規則や制約付き最適化を比べる基準にすると、担当者は予測を替えた効果と、発注の決め方を替えた効果を見分けやすい。このガイドでは、検証・制約追加・運用を分けて進めるためにこの構成を勧める。2025〜2026年の業界標準を示すものではない。\n"
+      ]
+    ]
+  },
+  "guides/shelf-decisions.md": {
+    "before": {
+      "sha256": "3ca1a2f1862f52b0ba9e4cc8ec1670d0b973bd3a9b971d4f1a670dd92b8236ec",
+      "blob": "81b6d744f57cc0724bc86901ca1160086d2ae0f6"
+    },
+    "after": {
+      "sha256": "c915e1b3761b45efb4238426d5dc83b1ead2340ea8e833b9ea946f2bc4bac25c",
+      "blob": "ed09d236a8b9713b2a1edc6cd928b286898ae6e2"
+    },
+    "prior_spans": [
+      [
+        2,
+        3,
+        "どの変更にも、変更後にどれだけ売れるかという問いが残ります。このガイドは、棚と作業の条件を満たす案を選ぶことと、選んだ案で需要がどう変わるかを見積もることを分けます。掲載済みの4Labと追加の一次資料から、問いごとにどの手法や検証を使えるかを整理しました。ここでいう「店全体」は、一つの店舗が使う棚や売場全体のことです。\n"
+      ],
+      [
+        107,
+        108,
+        "| 近似探索と、数理計画を併用する近似探索 | 初期案や小問題から、時間内に制約を守る高利益の案を探す | 初期値、乱数、時間制限をそろえ、利益、制約違反、上界との差、時間の分布を調べる | 厳密に解く時間がない。最適性を確かめていない案は最適と呼ばない |\n"
+      ]
+    ]
+  },
+  "guides/store-layout-fixed-counts.md": {
+    "before": {
+      "sha256": "e751d1df504d4bf159dbed2d678b0fe646aed03fc33fa127243e53a3e4130555",
+      "blob": "8cf66b1b644d46603e5ab7d09ac946b4c22cb684"
+    },
+    "after": {
+      "sha256": "44a2362bc26cf9c9547778d47784f29c54724e141dd655066ce06914fa5b2177",
+      "blob": "bcf0361de3da2be19682486fad27b7ce5e355329"
+    },
+    "prior_spans": [
+      [
+        20,
+        21,
+        "担当者が各位置pにカテゴリcを置く得点a[c,p]を決め、その得点を位置ごとに足せるなら、計算は `max Σ_c Σ_p a[c,p] x[c,p]` を求める。本数と「1か所に1本」だけを守ればよい場合は、カテゴリから各位置に本数を流す輸送問題や最小費用流として解ける。n_c=1のときは1カテゴリを1位置に割り当てる形になる。カテゴリごとに複数本を置ける場合は、1対1割当の変数1個でそのまま表せない。\n"
+      ]
+    ]
+  }
+}

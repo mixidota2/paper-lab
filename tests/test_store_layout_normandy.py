@@ -1,6 +1,7 @@
 import hashlib
 import json
 from pathlib import Path
+from prose_preservation import historical_lab_public_guide
 
 import pytest
 
@@ -22,7 +23,7 @@ def test_normandy_chain_rejects_unreviewed_state():
     assert extra['before_sha256'] == original['after_sha256']
     assert extra['before_blob'] == original['after_blob']
     field = json.loads((ROOT / 'tests/store_layout_field_example_hashes.json').read_text())['files'][GUIDE]
-    raw = (ROOT / GUIDE).read_bytes()
+    raw = historical_lab_public_guide(ROOT,GUIDE)
     git_blob = hashlib.sha1(f'blob {len(raw)}\0'.encode() + raw).hexdigest()
     for algo, value in [('sha256', hashlib.sha256(raw).hexdigest()), ('blob', git_blob)]:
         assert store_layout_full_rewrite_hash(ROOT, GUIDE, original['before_' + algo], algo) == value
@@ -37,7 +38,7 @@ def test_normandy_chain_rejects_unreviewed_state():
 
 def test_store_timing_example_leaves_previously_reviewed_guide_byte_identical():
     receipt = json.loads((ROOT / 'tests/store_layout_field_example_hashes.json').read_text())['files'][GUIDE]
-    raw = before_store_layout_calculation(ROOT, (ROOT / GUIDE).read_bytes())
+    raw = before_store_layout_calculation(ROOT, historical_lab_public_guide(ROOT,GUIDE))
     opening = '### 棚を動かした日時と、売上を集計する日をそろえる\n'.encode()
     closing = '5・4・3本の図は'.encode()
     assert raw.count(opening) == raw.count(closing) == 1

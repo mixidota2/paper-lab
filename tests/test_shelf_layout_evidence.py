@@ -1,5 +1,6 @@
 """Private layout-evidence candidate: scope, units and exact preservation."""
 from pathlib import Path
+from prose_preservation import historical_lab_public_guide
 import re
 import pytest
 from paper_lab.build import markdown_to_html
@@ -8,6 +9,7 @@ from shelf_guide_preservation import (GUIDE, BEFORE, AFTER, LAYOUT, WORDING_NEW,
 ROOT = Path(__file__).resolve().parents[1]
 PATCH = (ROOT / 'tests/fixtures/shelf-guide-layout-integration-20261030.patch').read_bytes()
 TEXT = (ROOT / GUIDE).read_text()
+HISTORICAL = historical_lab_public_guide(ROOT,GUIDE)
 SECTION = TEXT.split('<span id="iceland-layout-evaluation"></span>')[1].split('<span id="dcmp-evaluation"></span>')[0]
 
 
@@ -32,11 +34,11 @@ def test_evidence_units_uncertainty_scope_and_sources():
 
 def test_exact_prior_bytes_and_all_existing_anchors_preserved():
     from shelf_guide_preservation import before_november, before_streicher
-    layout_text = before_november(TEXT.encode()).decode().replace(WORDING_NEW, WORDING_OLD)
+    layout_text = before_november(HISTORICAL).decode().replace(WORDING_NEW, WORDING_OLD)
     assert sha(layout_text.encode()) == LAYOUT
     previous = reverse_exact(layout_text.encode(), PATCH, LAYOUT_PATCH_SHA, AFTER).decode()
     old_anchors = re.findall(r'id="([^"]+)"', previous)
-    new_anchors = re.findall(r'id="([^"]+)"', before_streicher(TEXT.encode()).decode())
+    new_anchors = re.findall(r'id="([^"]+)"', before_streicher(HISTORICAL).decode())
     assert [a for a in new_anchors if a != 'iceland-layout-evaluation'] == old_anchors
     assert new_anchors.count('iceland-layout-evaluation') == 1
     # This candidate is additions only: all prior lines stay in the same order.
@@ -52,13 +54,13 @@ def test_exact_prior_bytes_and_all_existing_anchors_preserved():
     ('<span id="iceland-layout-evaluation"></span>', ''),
     ('独立した追試2件とは数えません', '独立した追試2件です')])
 def test_new_evidence_mutation_rejected(tmp_path, old, new):
-    p=tmp_path/GUIDE; p.parent.mkdir(); p.write_text(TEXT.replace(old,new,1))
+    p=tmp_path/GUIDE; p.parent.mkdir(); p.write_bytes(HISTORICAL.replace(old.encode(),new.encode(),1))
     with pytest.raises(AssertionError):
         verify_preserved_source(tmp_path,GUIDE,BEFORE,layout_patch_bytes=PATCH)
 
 
 @pytest.mark.parametrize('patch', [PATCH+b'\n', PATCH.replace(b'guides/shelf-decisions.md', b'../outside.md')])
 def test_new_patch_mutation_and_redirection_rejected(tmp_path, patch):
-    p=tmp_path/GUIDE; p.parent.mkdir(); p.write_text(TEXT)
+    p=tmp_path/GUIDE; p.parent.mkdir(); p.write_bytes(HISTORICAL)
     with pytest.raises(AssertionError):
         verify_preserved_source(tmp_path,GUIDE,BEFORE,layout_patch_bytes=patch)

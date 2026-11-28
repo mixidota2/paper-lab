@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+from prose_preservation import historical_lab_public_guide
 
 import pytest
 
@@ -28,7 +29,7 @@ def test_hermans_source_scope_limit_and_comparison():
 
 
 def test_case_guard_accepts_only_scoped_review():
-    current = before_asda((ROOT / GUIDE).read_bytes())
+    current = before_asda(historical_lab_public_guide(ROOT,GUIDE))
     unreviewed = current.replace('47カテゴリは6%'.encode(), '47カテゴリは7%'.encode())
     assert unreviewed != current and before_hermans(unreviewed) == unreviewed
     old = before_hermans(current)

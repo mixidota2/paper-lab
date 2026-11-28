@@ -234,7 +234,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = featurearc_full_prose_hash(root, path, expected, algorithm)
     expected = contextual_all_full_prose_hash(root, path, expected, algorithm)
     expected = trace_all_full_prose_hash(root, path, expected, algorithm)
-    return trial_trace_all_full_prose_hash(root, path, expected, algorithm)
+    expected = trial_trace_all_full_prose_hash(root, path, expected, algorithm)
+    return lab_public_guide_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -4353,3 +4354,40 @@ def before_sidscope_reader_assets(root, path, current):
     prior = ''.join(lines).encode()
     assert hashlib.sha256(prior).hexdigest() == row['before_sha256'], path
     return prior
+
+
+LAB_PUBLIC_GUIDES=frozenset({
+    'README.md','guides/shelf-decisions.md','guides/forecast-to-replenishment.md',
+    'guides/store-layout-fixed-counts.md',
+})
+
+
+def lab_public_guide_row(root,path):
+    if path not in LAB_PUBLIC_GUIDES:
+        return None
+    return json.loads((root/'tests/lab_public_guides_hashes.json').read_text())[path]
+
+
+def lab_public_guide_hash(root,path,expected,algorithm='sha256'):
+    row=lab_public_guide_row(root,path)
+    if row is None:
+        return expected
+    assert expected==row['before'][algorithm],path
+    return row['after'][algorithm]
+
+
+def before_lab_public_guide(root,path,current):
+    row=lab_public_guide_row(root,path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
+    lines=current.decode().splitlines(keepends=True)
+    for start,stop,old in reversed(row['prior_spans']):
+        lines[start:stop]=[old]
+    previous=''.join(lines).encode()
+    assert hashlib.sha256(previous).hexdigest()==row['before']['sha256'],path
+    return previous
+
+
+def historical_lab_public_guide(root,path):
+    return before_lab_public_guide(root,path,(root/path).read_bytes())

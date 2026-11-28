@@ -1,6 +1,7 @@
 import hashlib
 import json
 from pathlib import Path
+from prose_preservation import historical_lab_public_guide
 
 import pytest
 
@@ -15,7 +16,7 @@ ANCHOR = 'asda-pizza-facing-evaluation'
 
 def test_case_and_readme_distinguish_field_trial_from_synthetic_example():
     receipt = json.loads((ROOT/'tests/shelf_asda_hashes.json').read_text())['files']
-    g = (ROOT/GUIDE).read_bytes()
+    g = historical_lab_public_guide(ROOT,GUIDE)
     html = markdown_to_html(g.decode())
     assert html.count(f'id="{ANCHOR}"') == html.count(f'href="#{ANCHOR}"') == 1
     assert html.count(f'href="{SOURCE}"') == 2
@@ -26,7 +27,7 @@ def test_case_and_readme_distinguish_field_trial_from_synthetic_example():
                    '売場全体の棚本数を固定してカテゴリを移す試験でもありません'):
         assert phrase in case
     r = receipt['README.md']
-    readme = (ROOT/'README.md').read_text()
+    readme = historical_lab_public_guide(ROOT,'README.md').decode()
     assert readme.count(r['new']) == 1 and r['old'] not in readme
     assert '棚を5・4・3本に分けた図は模式図です。別の合成例では' in r['new']
     assert '27,720通り' in r['new'] and '16通り' in r['new']

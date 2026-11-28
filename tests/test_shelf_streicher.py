@@ -2,6 +2,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from hashlib import sha1, sha256
 import json
 from pathlib import Path
+from prose_preservation import historical_lab_public_guide
 
 import pytest
 
@@ -14,7 +15,7 @@ GUIDE = 'guides/shelf-decisions.md'
 def test_streicher_supplement_keeps_the_exact_guide_chain():
     original = json.loads((ROOT / 'tests/shelf_full_rewrite_hashes.json').read_text())['files'][GUIDE]
     extra = json.loads((ROOT / 'tests/shelf_streicher_hashes.json').read_text())['files'][GUIDE]
-    raw = (ROOT / GUIDE).read_bytes()
+    raw = historical_lab_public_guide(ROOT,GUIDE)
     for algo, value in {
         'blob': sha1(f'blob {len(raw)}\0'.encode() + raw).hexdigest(),
         'sha256': sha256(raw).hexdigest(),
@@ -46,7 +47,7 @@ def test_aisle_share_and_revenue_are_distinguished():
 def test_verbatim_restoration_and_patch_mutants():
     import gzip
     from shelf_guide_preservation import FULL_REWRITE, before_streicher
-    raw = (ROOT / GUIDE).read_bytes()
+    raw = historical_lab_public_guide(ROOT,GUIDE)
     patch = gzip.decompress((ROOT / 'tests/fixtures/shelf-guide-streicher-20261124.patch.gz').read_bytes())
     assert sha256(before_streicher(raw)).hexdigest() == FULL_REWRITE
     assert before_streicher(raw + b'\n') == raw + b'\n'

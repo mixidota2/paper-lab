@@ -1,6 +1,7 @@
 """Negative controls for the exact, reversible shelf-guide revision exception."""
 import json
 from pathlib import Path
+from prose_preservation import historical_lab_public_guide
 import subprocess
 import pytest
 from shelf_guide_preservation import GUIDE, BEFORE, AFTER, SYNTHESIS, PATCH_SHA, DCMP_PATCH_SHA, LAYOUT, WORDING, WORDING_NEW, WORDING_OLD, LAYOUT_PATCH_SHA, reverse_exact, sha, verify_preserved_source
@@ -14,7 +15,7 @@ LAYOUT_PATCH = (ROOT / 'tests/fixtures/shelf-guide-layout-integration-20261030.p
 def prepare(tmp_path, data=None):
     target = tmp_path / GUIDE
     target.parent.mkdir(parents=True)
-    target.write_bytes((ROOT / GUIDE).read_bytes() if data is None else data)
+    target.write_bytes(historical_lab_public_guide(ROOT,GUIDE) if data is None else data)
     return target
 
 
@@ -53,7 +54,7 @@ def test_reviewed_revision_and_previous_version_both_pass(tmp_path):
     ('約25%の粗利増', '約26%の粗利増'),  # newly reviewed addition
 ])
 def test_single_character_edits_are_rejected(tmp_path, old, new):
-    data = (ROOT / GUIDE).read_text()
+    data = historical_lab_public_guide(ROOT,GUIDE).decode()
     assert old in data
     prepare(tmp_path, data.replace(old, new, 1).encode())
     with pytest.raises(AssertionError):
@@ -61,7 +62,7 @@ def test_single_character_edits_are_rejected(tmp_path, old, new):
 
 
 def test_previous_paragraph_deletion_is_rejected(tmp_path):
-    data = (ROOT / GUIDE).read_text()
+    data = historical_lab_public_guide(ROOT,GUIDE).decode()
     paragraph = next(p for p in data.split('\n\n') if p.startswith('Kök・Fisher（2007）'))
     prepare(tmp_path, data.replace(paragraph, '', 1).encode())
     with pytest.raises(AssertionError):
@@ -100,7 +101,7 @@ def test_dcmp_patch_mutation_or_path_redirection_is_rejected(tmp_path, patch):
 
 @pytest.mark.parametrize('anchor', ['<span id="dcmp-evaluation"></span>', '<span id="preestimate-to-realization"></span>'])
 def test_either_reviewed_addition_cannot_be_silently_deleted(tmp_path, anchor):
-    data=(ROOT / GUIDE).read_text()
+    data=historical_lab_public_guide(ROOT,GUIDE).decode()
     assert anchor in data
     prepare(tmp_path, data.replace(anchor, '', 1).encode())
     with pytest.raises(AssertionError):
