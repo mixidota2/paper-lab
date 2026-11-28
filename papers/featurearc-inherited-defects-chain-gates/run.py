@@ -1,4 +1,4 @@
-"""Original deterministic teaching program. No agent, API, or author artifact."""
+"""固定した整数列で確かめる教材。実際のエージェント、外部API、著者の実行データは使わない。"""
 from copy import deepcopy
 import json
 from pathlib import Path
@@ -9,7 +9,7 @@ def initial():
     return dict(filter=False, cap=False, render=False, inclusive=True, signed=True)
 
 def execute(state, op, values, threshold=0, limit=1):
-    # Actual behavior under test; no access to any acceptance expectation.
+    # 実際の関数の動き。検査で使う期待値は渡さない。
     if op == 'total':
         return sum(values) if state['signed'] else sum(abs(v) for v in values)
     if not state['filter']:
@@ -26,7 +26,7 @@ def execute(state, op, values, threshold=0, limit=1):
         return 'UNAVAILABLE'
     return ','.join(str(v) for v in chosen)
 
-# Literal independent specification examples, never derived from defect flags.
+# 仕様から決めた期待値。実装の誤りを表す値からは作らない。
 F2P = [
     [('境界を含める', 'filter', [1,2,3], 2, 1, [2,3]), ('空集合', 'filter', [], 2, 1, [])],
     [('境界から1件', 'cap', [1,2,3], 2, 1, [2]), ('上限0件', 'cap', [1,2,3], 2, 0, [])],
@@ -51,7 +51,7 @@ def check(state, tests):
     return dict(passed=all(c['passed'] for c in checks), checks=checks)
 
 def edit(state, stage, scenario, repair):
-    # Modify the same workspace. Gates are not inputs and never roll back edits.
+    # 同じ作業状態を更新する。検査結果は編集に渡さず、失敗しても変更を戻さない。
     state[['filter','cap','render'][stage]]=True
     if stage==0 and scenario in ('inherited','oracle'):state['inclusive']=False
     if stage==2 and scenario=='regression':state['inclusive']=False
@@ -91,7 +91,7 @@ def results():
                 reported=dict(tasks=73,stages=263,repositories=53,configured_agents=10,
                               first_percent=62.7,chain_percent=28.5,last_pass_chain_fail=ratio(69,273),
                               inheritance_failed_later_percent=72.9,missed_prior_failure_percent=94.9),
-                note='Synthetic cases are hand-designed illustrations, not a performance estimate or author replication.')
+                note='この教材は手で作った例を比べます。実際のエージェントの性能を推定した値でも、著者の実験を再現した値でもありません。')
 
 if __name__=='__main__':
     path=Path(__file__).resolve().parent

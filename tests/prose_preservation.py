@@ -213,7 +213,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = swe_serve_full_prose_hash(root, path, expected, algorithm)
     expected = harness_r1_full_prose_hash(root, path, expected, algorithm)
     expected = episem_full_prose_hash(root, path, expected, algorithm)
-    return execution_state_unlearning_full_prose_hash(root, path, expected, algorithm)
+    expected = execution_state_unlearning_full_prose_hash(root, path, expected, algorithm)
+    return featurearc_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -3751,6 +3752,29 @@ def execution_state_unlearning_full_prose_hash(root,path,expected,algorithm='sha
 def before_execution_state_unlearning_full_prose(root,path,current):
     import base64,zlib
     row=execution_state_unlearning_full_prose_for_path(root,path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
+    prior=zlib.decompress(base64.b64decode(row['prior_zlib_b64'],validate=True))
+    assert hashlib.sha256(prior).hexdigest()==row['before']['sha256'],path
+    return prior
+
+
+def featurearc_full_prose_for_path(root,path):
+    if not path.startswith('papers/featurearc-inherited-defects-chain-gates/'):
+        return None
+    return json.loads((root/'tests/featurearc_full_prose_hashes.json').read_text())['files'].get(path)
+
+def featurearc_full_prose_hash(root,path,expected,algorithm='sha256'):
+    row=featurearc_full_prose_for_path(root,path)
+    if row is None:
+        return expected
+    assert expected==row['before'][algorithm],path
+    return row['after'][algorithm]
+
+def before_featurearc_full_prose(root,path,current):
+    import base64,zlib
+    row=featurearc_full_prose_for_path(root,path)
     if row is None:
         return current
     assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path

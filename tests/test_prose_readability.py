@@ -462,7 +462,7 @@ def test_batch22_evidence_continuation_and_serving_units():
     phrases = {
         'episem-missing-evidence-recovery': ('method.md', '「上限を超えたことがわからない」は、「上限内だとわかった」とは別'),
         'evopilot-verify-dont-trust-autoresearch': ('lab.yaml', '許可した変更が実際には起きていない場合も拒否'),
-        'featurearc-inherited-defects-chain-gates': ('method.md', 'その段階は継続率の集計へ戻さない'),
+        'featurearc-inherited-defects-chain-gates': ('method.md', '継続率の分母に戻りません'),
         'flashvector-unity-serving-stack-agent': ('lab.yaml', '途中で不合格になれば、以降の判定へ進まない'),
         'grace-meta-ads-gtm-serving': ('method.md', '一つの広告が全条件を満たすとは限りません'),
         'swe-serve-inference-serving-agents': ('lab.yaml', '同じインスタンスに2回送ります'),
@@ -478,7 +478,7 @@ def test_batch22_evidence_continuation_and_serving_units():
              '局所と全体の改善がnoiseを超えることの順')
     assert order in flash
     assert '実traffic replayやagentの実行ではない' in flash
-    assert '分母0は0%にせず、未定義' in (ROOT/'papers/featurearc-inherited-defects-chain-gates/method.md').read_text()
+    assert '分母が0なら、0%とはせず未定義' in (ROOT/'papers/featurearc-inherited-defects-chain-gates/method.md').read_text()
     assert '必要な書込みが抜けていれば' in (ROOT/'papers/trace-verifier-brittleness/method.md').read_text()
 
 
