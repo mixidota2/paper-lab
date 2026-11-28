@@ -1,0 +1,131 @@
+{
+  "base": "8ef93a08568d1a2bec5a15c708a79ae88972ce36",
+  "files": {
+    "papers/sona-yandex-music/README.md": {
+      "before_sha256": "07ee7231860727763dbc8471e77838fabf5c86d777dc03cd311b39408cbbcaf8",
+      "before_blob": "8ce02f26a2e8cfa999d1772a91a242c8aaa10d7f",
+      "after_sha256": "01e6c71b716af332b20441002e2ee31d100fdd02064ff41aced7a351a5bf318a",
+      "after_blob": "cf5f28dcc89f2587ee03c0a8d2ccef0a2fa24118",
+      "prior_spans": [
+        [
+          4,
+          5,
+          "Yandex Musicの研究チームは、自動で曲を流すMy Vibeで、候補を探す処理、候補を絞る処理、最後に並べ替える処理を一つのモデルにまとめました。Sonaは利用者が聴いた曲や曲への反応を読み、曲を表すIDを生成して候補を探し、点数を付けます。配信できる曲を制限する既存のルールは維持しました。\n"
+        ],
+        [
+          6,
+          7,
+          "スマートスピーカーの最終A/Bテストでは、利用者を各群15%ずつ無作為に選び、従来方式と7日間比べました。Sonaの群は利用した人の数が4.53%、総再生時間が6.30%増えました。論文時点では全利用者に展開しておらず、推薦に現れる曲の範囲は従来方式より狭いと報告しています。\n"
+        ],
+        [
+          16,
+          17,
+          "最終の実験では、著者はMy Vibeの利用者を各群15%ずつ無作為に選び、従来方式とSonaを7日間比べた。利用者数が4.53%、総再生時間が6.30%、いいねが11.42%、リピートの指示が17.99%、論文でDeeply Engaged Usersと呼ぶ利用者の指標が7.37%増えた（表7.12、いずれもp<0.01）。リピートの指示は、利用者が繰り返し再生を指示した回数で、曲が一覧に重複する割合とは違う。\n"
+        ],
+        [
+          20,
+          21,
+          "Gryphon-v2で利用者数が1.41%増えたのは実験4であり、実験5のSonaとの直接比較ではない。実験4と5の利用者数の改善幅には3.12ポイントの差がある。ただし別の実験なので、この差を履歴の長さだけの効果とはみなせない。論文の2.35倍は、Sonaの4.53%と過去のArgusの1.93%という改善の幅を比べた値で、利用者数やモデル精度の比ではない。\n"
+        ],
+        [
+          24,
+          29,
+          "同じ候補集合で、上位10曲が教師の上位10曲と重なる割合は、表示された候補だけで採点部を学んだ場合に0.2983、生成候補も使った場合に0.5654だった。別の比較では、約2,000件の履歴を使い、採点部なしの0.0381に対して、採点部を4層にすると0.6005だった。約8,000件をすべて同じように処理すると0.6586、古い履歴の計算を減らした構成では0.6474だった。重み付きのペア精度（WPA）は圧縮あり0.6033、なし0.6029で、全指標で同じ順になるわけではない。[一次資料：§7、表7.6〜7.12](https://arxiv.org/html/2608.11015v2)\n"
+        ]
+      ]
+    },
+    "papers/sona-yandex-music/lab.yaml": {
+      "before_sha256": "da453743d49bcfa441f47c9d8b47cdf55efc5621a936fd15abab0ba21ee1ce76",
+      "before_blob": "45be31c0bbc8be16537d773b229dbcf65c16b47d",
+      "after_sha256": "ae458819a17bccd3573a577a944dde16dfddbcd4fad619285487bd74d0a52bf1",
+      "after_blob": "fc05d99f5e33472b891125d134c93a29361f3eb7",
+      "prior_spans": [
+        [
+          26,
+          27,
+          "summary: Sonaは最大8,192件の履歴を候補検索と採点で共有し、計算を多くかけるのは直近2,048件に絞る。My Vibeの各群15%・7日間の本番比較で、著者は利用者数が4.53%、総再生時間が6.30%増えたと報告した。全利用者への展開や推薦に出る曲の範囲の改善は未解決である。\n"
+        ],
+        [
+          38,
+          39,
+          "    Yandex Musicの研究チームは、自動で曲を流すMy Vibeで、候補を探す処理、候補を絞る処理、最後に並べ替える処理を一つのモデルにまとめました。Sonaは利用者が聴いた曲や曲への反応を読み、曲を表すIDを生成して候補を探し、点数を付けます。配信できる曲を制限する既存のルールは維持しました。\n"
+        ],
+        [
+          40,
+          41,
+          "    スマートスピーカーの最終A/Bテストでは、利用者を各群15%ずつ無作為に選び、従来方式と7日間比べました。Sonaの群は利用した人の数が4.53%、総再生時間が6.30%増えました。論文時点では全利用者に展開しておらず、推薦に現れる曲の範囲は従来方式より狭いと報告しています。\n"
+        ],
+        [
+          47,
+          48,
+          "    最終の実験では、著者はMy Vibeの利用者を各群15%ずつ無作為に選び、従来方式とSonaを7日間比べた。利用者数が4.53%、総再生時間が6.30%、いいねが11.42%、リピートの指示が17.99%、論文でDeeply Engaged Usersと呼ぶ利用者の指標が7.37%増えた（表7.12、いずれもp<0.01）。リピートの指示は、利用者が繰り返し再生を指示した回数で、曲が一覧に重複する割合とは違う。\n"
+        ],
+        [
+          51,
+          52,
+          "    [Gryphon-v2](gryphon-v2-cascade.html)で利用者数が1.41%増えたのは実験4であり、実験5のSonaとの直接比較ではない。実験4と5の利用者数の改善幅には3.12ポイントの差がある。ただし別の実験なので、この差を履歴の長さだけの効果とはみなせない。論文の2.35倍は、Sonaの4.53%と過去のArgusの1.93%という改善の幅を比べた値で、利用者数やモデル精度の比ではない。\n"
+        ],
+        [
+          55,
+          60,
+          "    同じ候補集合で、上位10曲が教師の上位10曲と重なる割合は、表示された候補だけで採点部を学んだ場合に0.2983、生成候補も使った場合に0.5654だった。別の比較では、約2,000件の履歴を使い、採点部なしの0.0381に対して、採点部を4層にすると0.6005だった。約8,000件をすべて同じように処理すると0.6586、古い履歴の計算を減らした構成では0.6474だった。重み付きのペア精度（WPA）は圧縮あり0.6033、なし0.6029で、全指標で同じ順になるわけではない。[一次資料：§7、表7.6〜7.12](https://arxiv.org/html/2608.11015v2)\n"
+        ]
+      ]
+    },
+    "papers/sona-yandex-music/mapping.md": {
+      "before_sha256": "67e90145e4cbfa26b888734565b1cea92ee4a07ffc65e669a27429dcf26c29d3",
+      "before_blob": "0c59e258da3402a422dd295743d5f910dfcab9a2",
+      "after_sha256": "67e90145e4cbfa26b888734565b1cea92ee4a07ffc65e669a27429dcf26c29d3",
+      "after_blob": "0c59e258da3402a422dd295743d5f910dfcab9a2",
+      "prior_spans": []
+    },
+    "papers/sona-yandex-music/method.md": {
+      "before_sha256": "83ce7c24f6ea12d0a0596c712105a0dc65f782d1eef9a60f2f47561e59189282",
+      "before_blob": "bc85d84c1617fd6b7621df76db0b14209c46af3b",
+      "after_sha256": "83ce7c24f6ea12d0a0596c712105a0dc65f782d1eef9a60f2f47561e59189282",
+      "after_blob": "bc85d84c1617fd6b7621df76db0b14209c46af3b",
+      "prior_spans": []
+    },
+    "papers/sona-yandex-music/results.json": {
+      "before_sha256": "7df39f9a1c0162130d70ba6cc507e8f349a89f1d48f4a140428868c5cd346416",
+      "before_blob": "e832d31b8a82f9b42bf101d468b420081d1467e2",
+      "after_sha256": "51bfbd713074ea12b07f090b813d595045424009c543e0a4caf618f99f51f4e2",
+      "after_blob": "91fc8e3c99a7085ea3617808cb3e47800efb29a2",
+      "prior_spans": [
+        [
+          1,
+          2,
+          "  \"note\": \"合成特徴の分布差だけを検証。teacherの正しさ、Transformer、オンライン効果は未検証。\",\n"
+        ],
+        [
+          10,
+          11,
+          "      \"name\": \"同じ未使用rollout候補で教師との一致を測る\",\n"
+        ],
+        [
+          46,
+          47,
+          "    \"note\": \"式の項数。FLOPs・壁時計時間ではない。\"\n"
+        ]
+      ]
+    },
+    "papers/sona-yandex-music/run.py": {
+      "before_sha256": "10d225e1ddd022f98896738aacb014154bbf7d0840bf3d8e5e6ebbbeefc822d1",
+      "before_blob": "cad905bfd8de166ef0a36f9963df5e3c6229786c",
+      "after_sha256": "798c7ee7b5f4f18794e8f3d998b426a674e0451a5da387bc29df4596c3bb65d9",
+      "after_blob": "c4d3b0af3e40e6627dd9066c731b15568f46462f",
+      "prior_spans": [
+        [
+          0,
+          4,
+          "\"\"\"Two-source MAE distillation on shifted synthetic candidate features.\nA linear student replaces Sona's neural Ranking Module; teacher is an analytic rule.\n"
+        ],
+        [
+          34,
+          35,
+          "    return {'note':'合成特徴の分布差だけを検証。teacherの正しさ、Transformer、オンライン効果は未検証。','verification':{'mechanism':'PARTIAL','performance':'NOT TESTED','scaling':'NOT TESTED','production_applicability':'NOT TESTED'},'experiments':[{'name':'同じ未使用rollout候補で教師との一致を測る','seed':13,'metrics':out}], 'attention_pair_counts':{'seven_full_layers':l*n*n,'compression_proxy':l*r*r+n*n+2*(n-r)*r,'note':'式の項数。FLOPs・壁時計時間ではない。'}}\n"
+        ]
+      ]
+    }
+  }
+}

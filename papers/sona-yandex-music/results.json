@@ -1,5 +1,5 @@
 {
-  "note": "合成特徴の分布差だけを検証。teacherの正しさ、Transformer、オンライン効果は未検証。",
+  "note": "二種類の人工候補の特徴の分布が違うとき、学習に使う候補の違いだけを比べる。教師が利用者の好みを当てるか、Transformerで再現できるか、本番で効果があるかは試していない。",
   "verification": {
     "mechanism": "PARTIAL",
     "performance": "NOT TESTED",
@@ -8,7 +8,7 @@
   },
   "experiments": [
     {
-      "name": "同じ未使用rollout候補で教師との一致を測る",
+      "name": "学習に使わなかった同じ生成候補で、教師との点数の差と順位の一致を測る",
       "seed": 13,
       "metrics": {
         "impressions_only": {
@@ -44,6 +44,6 @@
   "attention_pair_counts": {
     "seven_full_layers": 469762048,
     "compression_proxy": 121634816,
-    "note": "式の項数。FLOPs・壁時計時間ではない。"
+    "note": "注意機構で履歴の位置どうしを照らし合わせる項の数を式から求めた。浮動小数点演算数（FLOPs）や実際にかかった時間ではない。"
   }
 }
