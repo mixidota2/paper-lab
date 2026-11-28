@@ -4,6 +4,7 @@ import json
 import re
 
 from overview_predicate_revisions import before_overview_predicate_revision, overview_predicate_hash
+from research_notes_reader_revision import SHELF as SHELF_EVIDENCE_NOTE, research_notes_reader_hash
 
 
 def revised_hash(root, path, expected, algorithm='sha256'):
@@ -67,6 +68,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
             return retailbench_full_prose_hash(root, path, row['after_' + algorithm], algorithm)
         assert expected == row['before_' + algorithm], path
         expected = row['after_' + algorithm]
+    if path == SHELF_EVIDENCE_NOTE:
+        expected = research_notes_reader_hash(root, path, expected, algorithm)
     expected = replenishment_guide_rewrite_hash(root, path, expected, algorithm)
     expected = replenishment_cards_rewrite_hash(root, path, expected, algorithm)
     expected = replenishment_cards_followup_hash(root, path, expected, algorithm)
