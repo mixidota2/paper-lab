@@ -1,4 +1,4 @@
-"""The source edits change no computation, experiment outputs or figure markup."""
+"""The edits preserve training computations and canonically serialize toy traces."""
 import ast
 import hashlib
 import json
@@ -51,12 +51,33 @@ def test_unir2_only_reader_text_changes_and_results_regenerate(tmp_path):
                     if isinstance(key,ast.Constant) and key.value in {'note','name'}:
                         assert isinstance(value,ast.Constant) and isinstance(value.value,str)
                         value.value='<reader text>'
+        tree.body = [n for n in tree.body if not (isinstance(n,ast.FunctionDef) and n.name=='stable_trace')]
+        for node in ast.walk(tree):
+            if not isinstance(node,ast.Dict):
+                continue
+            for i,(key,value) in enumerate(zip(node.keys,node.values)):
+                if (isinstance(key,ast.Constant) and key.value in ('coupled','isolated')
+                        and isinstance(value,ast.Call) and isinstance(value.func,ast.Name)
+                        and value.func.id=='stable_trace'):
+                    assert len(value.args)==1 and not value.keywords
+                    node.values[i]=value.args[0]
         return ast.dump(tree)
     assert len(set(map(logic,contents('run.py'))))==1
     previous,present=map(json.loads,contents('results.json'))
     for data in (previous,present):
         data.pop('note')
         data['experiments'][0].pop('name')
+    # Only saved traces are rounded; all other structured data stay exact.
+    old_trace=previous.pop('traces')
+    changed_trace=present.pop('traces')
+    assert old_trace.keys()==changed_trace.keys()=={'coupled','isolated'}
+    for section, old_rows in old_trace.items():
+        assert len(old_rows)==len(changed_trace[section])
+        for old,new in zip(old_rows,changed_trace[section],strict=True):
+            assert old.keys()==new.keys() and old['step']==new['step']
+            for key in ('base','adapter','ntp_ce','ranking_bce'):
+                assert new[key]==round(old[key],10)
+                assert abs(new[key]-old[key])<=5.1e-11
     assert previous==present
     script=tmp_path/'run.py'
     script.write_bytes(contents('run.py')[1])

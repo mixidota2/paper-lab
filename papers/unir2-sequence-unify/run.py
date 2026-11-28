@@ -47,6 +47,13 @@ def seesaw(isolate, steps=200, rate=0.1):
     return trace
 
 
+def stable_trace(rows):
+    # 公開データの末尾が実行環境で変わらないよう、記録だけ小数点以下10桁にそろえる。
+    # 勾配の計算と比較には、丸める前の値を使う。
+    return [{key: value if key == 'step' else round(value, 10)
+             for key, value in row.items()} for row in rows]
+
+
 def main():
     coupled, isolated = seesaw(False), seesaw(True)
     assert coupled[-1]['ntp_ce'] > coupled[0]['ntp_ce']
@@ -55,7 +62,7 @@ def main():
     assert isolated[-1]['ranking_bce'] < isolated[0]['ranking_bce']
     result = {'note': '人工例では、順位付け専用の調整値を1個置く。実際のLoRAは実装せず、論文の精度や本番での利用も試していない（NOT TESTED）。',
               'parameters': {'ntp_target': 0.8, 'rank_target': 0.2, 'steps': 200, 'learning_rate': 0.1},
-              'mask': visibility(), 'traces': {'coupled': coupled, 'isolated': isolated},
+              'mask': visibility(), 'traces': {'coupled': stable_trace(coupled), 'isolated': stable_trace(isolated)},
               'experiments': [{'name': '調整値の数をそろえ、順位付けの勾配を共有の重みに伝えるかだけを変える',
                               'metrics': {name: {k: round(row[k], 6) for k in ('ntp_ce', 'ranking_bce')}
                                           for name, row in [('initial', coupled[0]), ('coupled', coupled[-1]), ('isolated', isolated[-1])]}}]}
