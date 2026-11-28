@@ -5,14 +5,14 @@ import json
 import pytest
 import yaml
 
-from prose_preservation import before_sparse_reader_all_full_prose
+from prose_preservation import before_sparse_inspection_full_prose, before_sparse_reader_all_full_prose
 
 ROOT=Path(__file__).resolve().parents[1]
 P='papers/tsfm-sparse-event-ranking/'
 
 
 def pair(name):
-    final=(ROOT/(P+name)).read_bytes()
+    final=before_sparse_inspection_full_prose(ROOT,P+name,(ROOT/(P+name)).read_bytes())
     return before_sparse_reader_all_full_prose(ROOT,P+name,final),final
 
 
