@@ -214,7 +214,8 @@ def reading_prose_hash(root, path, expected, algorithm='sha256'):
     expected = harness_r1_full_prose_hash(root, path, expected, algorithm)
     expected = episem_full_prose_hash(root, path, expected, algorithm)
     expected = execution_state_unlearning_full_prose_hash(root, path, expected, algorithm)
-    return featurearc_full_prose_hash(root, path, expected, algorithm)
+    expected = featurearc_full_prose_hash(root, path, expected, algorithm)
+    return contextual_all_full_prose_hash(root, path, expected, algorithm)
 
 
 def pinterest_full_rewrite_hash(root, path, expected, algorithm='sha256'):
@@ -3590,6 +3591,8 @@ def tgr_reader_all_full_prose_hash(root,path,expected,algorithm='sha256'):
 
 def before_tgr_reader_all_full_prose(root,path,current):
     import base64,zlib
+    if path == 'papers/_toy_common.py':
+        current = before_contextual_all_full_prose(root, path, current)
     row=tgr_reader_all_full_prose_for_path(root,path)
     if row is None:
         return current
@@ -3781,3 +3784,26 @@ def before_featurearc_full_prose(root,path,current):
     prior=zlib.decompress(base64.b64decode(row['prior_zlib_b64'],validate=True))
     assert hashlib.sha256(prior).hexdigest()==row['before']['sha256'],path
     return prior
+
+
+def contextual_all_full_prose_row(root,path):
+    if path != 'papers/_toy_common.py' and not path.startswith('papers/contextual-deconvolution/'):
+        return None
+    return json.loads((root/'tests/contextual_all_full_prose_hashes.json').read_text())['files'].get(path)
+
+def contextual_all_full_prose_hash(root,path,expected,algorithm='sha256'):
+    row=contextual_all_full_prose_row(root,path)
+    if row is None:
+        return expected
+    assert expected==row['before'][algorithm],path
+    return row['after'][algorithm]
+
+def before_contextual_all_full_prose(root,path,current):
+    import base64,zlib
+    row=contextual_all_full_prose_row(root,path)
+    if row is None:
+        return current
+    assert hashlib.sha256(current).hexdigest()==row['after']['sha256'],path
+    old=zlib.decompress(base64.b64decode(row['prior_zlib_b64'],validate=True))
+    assert hashlib.sha256(old).hexdigest()==row['before']['sha256'],path
+    return old

@@ -128,9 +128,9 @@ def cost(ratio):
         shortage = sum(max(d-s,0) for s,d in zip(stock,demand))
         return holding,shortage
     a,b=parts(responsive),parts(smooth)
-    return frame(ratio,[bar('変動を追う在庫：総費用',ratio*a[0]+a[1]),bar('平滑な在庫：総費用',ratio*b[0]+b[1])],
-                 f'費用=h×余剰+p×不足、p=1。余剰/不足は追従 {a[0]}/{a[1]}、平滑 {b[0]}/{b[1]}。各期独立で持越しなし。この反転点は論文の約0.20とは別。',
-                 [line('需要',demand),line('変動を追う在庫',responsive),line('平滑な在庫',smooth)])
+    return frame(ratio,[bar('期ごとに数量を変える在庫の総費用',ratio*a[0]+a[1]),bar('毎期同じ数量を置く在庫の総費用',ratio*b[0]+b[1])],
+                 f'欠品1個の単価は1です。余った数量に保管単価を、足りない数量に欠品単価を掛けて足します。8期の合計は、数量を変える案で余り{a[0]}個・不足{a[1]}個、同じ数量の案で余り{b[0]}個・不足{b[1]}個です。翌期に在庫は持ち越しません。教材の費用が等しくなる比は8/9で、論文の約0.20とは別です。',
+                 [line('需要',demand),line('期ごとに数量を変える在庫',responsive),line('毎期同じ数量を置く在庫',smooth)])
 
 
 def shelf(exponent):
@@ -165,7 +165,7 @@ SPECS = {
     IDS[5]: (rest, [i/20 for i in range(21)], 4, '履歴側の補助損失の重み λ', '', '勾配の絶対値'),
     IDS[6]: (apollo, list(range(-4,5)), 4, '販促予定のずれ', '期', '平均絶対誤差（小さいほどよい）'),
     IDS[7]: (stockout, list(range(12,26)), 8, '各期の在庫上限', '個', '平均数量'),
-    IDS[8]: (cost, [i/20 for i in range(41)], 4, '保管費用 / 欠品費用 h/p', '', '合成費用'),
+    IDS[8]: (cost, [i/20 for i in range(41)], 4, '保管単価を欠品単価で割った比 h/p', '', '8期分の在庫費用'),
     IDS[9]: (shelf, [i/20 for i in range(21)], 10, 'A部門の面積弾力性 β', '', '合成の目的値'),
     IDS[10]: (critic, list(range(11)), 5, '警告する不自然さの閾値', '', '割合 (%)'),
 }
@@ -179,6 +179,9 @@ def compute(lab_id):
     if lab_id == 'rest-sequence-ranking':
         exercise = '補助損失の重みを変えて履歴側に届く勾配を比べる'
         note = 'Labは固定した予測値に対する勾配を計算した。論文のモデルは学習しておらず、性能も測っていない。'
+    if lab_id == 'contextual-deconvolution':
+        exercise = '保管単価を変えて二つの在庫費用を比べる'
+        note = 'Labは8期分の架空の需要と在庫から費用を計算しました。論文の需要予測や発注シミュレーションは再現していません。'
     if lab_id == 'forecast-critic':
         exercise = '警告の基準値を変え、誤警告と見逃しを数える'
         note = 'Labは架空の10件で警告の集計を確かめる。著者らの言語モデルや精度を再現したものではない。'

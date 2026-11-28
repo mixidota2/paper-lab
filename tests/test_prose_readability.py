@@ -101,7 +101,7 @@ def test_forecast_prose_defines_denominators_and_information_boundaries():
     assert '予測誤差の絶対値を全期間で平均' in ap['sections']['executable_understanding']
     assert '販促効果の大きさは既知と仮定' in ap['sections']['executable_understanding']
     cd_verified = cd['sections']['what_we_verified']
-    for phrase in ('8期の需要と二つの在庫系列','総費用の大小が入れ替わる','各期は独立で在庫を持ち越さない','論文の手法を再現したわけではない'):
+    for phrase in ('需要と在庫の数量を8期分固定','総費用が安い在庫の置き方が入れ替わります','在庫は期をまたいで持ち越しません','論文の発注シミュレーションを再現したものではありません'):
         assert phrase in cd_verified
     assert fc['sections']['executable_understanding'].split('\n')[0] in fc['sections']['what_we_verified']
     ap_verified = ap['sections']['what_we_verified']

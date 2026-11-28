@@ -9,7 +9,7 @@ import subprocess
 import pytest
 import yaml
 
-from prose_preservation import before_forecast_critic_all_full_prose, before_apollopfn_full_prose, contextual_full_rewrite_hash, restored_before_paper_overview
+from prose_preservation import before_contextual_all_full_prose, before_forecast_critic_all_full_prose, before_apollopfn_full_prose, contextual_full_rewrite_hash, restored_before_paper_overview
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = 'papers/contextual-deconvolution'
@@ -26,9 +26,9 @@ def test_rewrite_retains_source_urls_equations_metadata_and_code():
     for path in files:
         def links(raw):
             return Counter(re.findall(rb'https?://[^\s)\x27]+', raw))
-        assert links((ROOT / path).read_bytes()) == links(historical(path))
+        assert links(before_contextual_all_full_prose(ROOT,path,(ROOT / path).read_bytes())) == links(historical(path))
     path = f'{SLUG}/lab.yaml'
-    a, b = map(yaml.safe_load, [historical(path), (ROOT / path).read_bytes()])
+    a, b = map(yaml.safe_load, [historical(path), before_contextual_all_full_prose(ROOT,path,(ROOT / path).read_bytes())])
     reader = {'summary','question','core_idea','sections','interactives','source_review','teaching_figures'}
     assert {k:v for k,v in a.items() if k not in reader} == {k:v for k,v in b.items() if k not in reader}
     assert a['sections'].keys() == b['sections'].keys()
@@ -40,6 +40,8 @@ def test_rewrite_retains_source_urls_equations_metadata_and_code():
         assert [s['formula'] for s in x.get('steps',())] == [s['formula'] for s in y.get('steps',())]
     for path in (f'{SLUG}/run.py', f'{SLUG}/results.json', 'papers/_toy_common.py'):
         current = before_apollopfn_full_prose(ROOT, path, before_forecast_critic_all_full_prose(ROOT,path,(ROOT / path).read_bytes()))
+        if path.startswith(SLUG + '/'):
+            current = before_contextual_all_full_prose(ROOT,path,current)
         assert current == historical(path)
     assert a['teaching_figures'][1]['rows'] == b['teaching_figures'][1]['rows']
     assert a['teaching_figures'][1]['columns'] == b['teaching_figures'][1]['columns']
@@ -57,7 +59,7 @@ def test_archive_and_current_text_identities_are_exact(algo):
             return hashlib.sha256(raw).hexdigest()
         return hashlib.sha1(f'blob {len(raw)}\0'.encode()+raw).hexdigest()
     for path in manifest['files']:
-        current = restored_before_paper_overview(ROOT, path, (ROOT / path).read_bytes())
+        current = restored_before_paper_overview(ROOT, path, before_contextual_all_full_prose(ROOT, path, (ROOT / path).read_bytes()))
         assert contextual_full_rewrite_hash(ROOT,path,digest(historical(path)),algo) == digest(current)
         with pytest.raises(AssertionError):
             contextual_full_rewrite_hash(ROOT,path,digest(current+b'\n'),algo)
