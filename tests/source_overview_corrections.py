@@ -4,6 +4,8 @@ import hashlib
 import json
 import re
 
+from research_notes_reader_revision import research_notes_reader_hash
+
 HASTERAD = 'papers/hasterad-retail-substitution/lab.yaml'
 ORPR_ARCHIVE = 'research-data/README.md'
 OVERVIEW = rb'^  overview: [^\n]+\n(?:    [^\n]+\n|\n(?=    [^\n]+\n))*'
@@ -14,6 +16,8 @@ def source_overview_correction_hash(root, path, expected, algorithm='sha256'):
         return expected
     row = _receipt(root)['files'][path]
     assert expected == row['before'][algorithm], path
+    if path == ORPR_ARCHIVE:
+        return research_notes_reader_hash(root, path, row['after'][algorithm], algorithm)
     return row['after'][algorithm]
 
 
